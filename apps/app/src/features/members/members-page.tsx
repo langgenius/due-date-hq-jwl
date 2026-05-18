@@ -233,10 +233,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
       <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-            <Trans>Practice</Trans>
-          </p>
-          <h1 className="mt-0.5 text-2xl leading-[30px] font-semibold text-text-primary">
+          <h1 className="text-2xl leading-[30px] font-semibold text-text-primary">
             <Trans>Members</Trans>
           </h1>
           <p className="mt-1 text-base leading-5 text-text-secondary">

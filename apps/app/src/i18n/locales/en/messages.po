@@ -1620,9 +1620,7 @@ msgstr "clients"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/opportunities/opportunities-page.tsx
 #: src/features/rules/generation-preview-tab.tsx
-#: src/routes/clients.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
 msgstr "Clients"
@@ -4503,7 +4501,6 @@ msgstr "Notification center"
 
 #: src/components/patterns/app-shell.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
 msgstr "Notifications"
@@ -4819,14 +4816,9 @@ msgid "Opens the existing duplicate obligation or the newly created obligation a
 msgstr "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
 
 #: src/components/patterns/app-shell-nav.tsx
-#: src/features/reminders/reminders-page.tsx
 #: src/routes/route-summary.ts
 msgid "Operations"
 msgstr "Operations"
-
-#: src/routes/dashboard.tsx
-msgid "Operations command"
-msgstr "Operations command"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
@@ -5233,13 +5225,9 @@ msgstr "Portal link copied"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/audit/audit-log-page.tsx
 #: src/features/concepts/concept-help.tsx
-#: src/features/members/members-page.tsx
-#: src/features/pulse/AlertsListPage.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
-#: src/routes/practice.tsx
 #: src/routes/route-summary.ts
 msgid "Practice"
 msgstr "Practice"
@@ -7652,11 +7640,6 @@ msgstr "Timezone"
 #: src/routes/obligations.tsx
 msgid "Today"
 msgstr "Today"
-
-#. placeholder {0}: formatTodayHeader(data.asOfDate)
-#: src/routes/dashboard.tsx
-msgid "Today, {0}"
-msgstr "Today, {0}"
 
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."

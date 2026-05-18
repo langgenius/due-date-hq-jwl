@@ -131,9 +131,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
     <div className={embedded ? 'flex flex-col gap-5' : 'flex flex-col gap-5 p-4 md:p-6'}>
       {!embedded ? (
         <header className="flex flex-col gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Practice</Trans>
-          </span>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
