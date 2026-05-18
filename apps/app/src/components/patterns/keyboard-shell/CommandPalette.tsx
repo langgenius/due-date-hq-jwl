@@ -17,6 +17,7 @@ import {
   MapIcon,
   RssIcon,
   ScaleIcon,
+  SettingsIcon,
   SparklesIcon,
   UploadCloudIcon,
   UsersIcon,
@@ -201,6 +202,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         icon: ScaleIcon,
         permission: 'audit.read',
         onSelect: () => navigate('/audit'),
+      },
+      {
+        id: 'settings',
+        label: t`Settings`,
+        description: t`Workspace configuration hub — Practice, team, billing, automation.`,
+        group: 'navigate',
+        icon: SettingsIcon,
+        onSelect: () => navigate('/settings'),
       },
       {
         id: 'calendar-sync',
