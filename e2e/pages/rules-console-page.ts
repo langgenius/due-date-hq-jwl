@@ -1,22 +1,16 @@
 import type { Locator, Page } from '@playwright/test'
 
 // The Rules workspace used to be a single page with six tabs; each former tab
-// is now its own route under `/rules/*`, reachable from a collapsible Rules
-// entry in the sidebar. The helpers below preserve the old test naming
-// (`coverageTab`, `sourcesTab`, `libraryTab`) but route through the sidebar
-// nav links so we keep validating the same user-facing surface. Obligation
-// preview is no longer in the sidebar — see `gotoPreview()` below for the
-// direct-URL access used by the preview spec.
+// is now its own route under `/rules/*`. After the sidebar tidy + rules
+// library merge, only "Rule library" remains as a direct sidebar entry.
+// Coverage and Sources are still routes (and reachable from "View …" strips
+// inside `/rules/library`), but they no longer appear in the sidebar — tests
+// that need to land on them should navigate directly via URL. Obligation
+// preview is also URL-only — see `gotoPreview()` below.
 export class RulesConsolePage {
-  readonly rulesNavParent: Locator
-  readonly coverageTab: Locator
-  readonly sourcesTab: Locator
   readonly libraryTab: Locator
 
   constructor(readonly page: Page) {
-    this.rulesNavParent = page.getByRole('button', { name: /^Rules/ })
-    this.coverageTab = page.getByRole('link', { name: /^Coverage$/ })
-    this.sourcesTab = page.getByRole('link', { name: /^Sources$/ })
     this.libraryTab = page.getByRole('link', { name: /^Rule library$/ })
   }
 

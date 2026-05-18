@@ -131,9 +131,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
     <div className={embedded ? 'flex flex-col gap-5' : 'flex flex-col gap-5 p-4 md:p-6'}>
       {!embedded ? (
         <header className="flex flex-col gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Practice</Trans>
-          </span>
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
@@ -150,7 +147,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               </p>
             </div>
             {!alertsQuery.isLoading ? (
-              <span className="hidden font-mono text-xs tabular-nums text-text-tertiary md:inline">
+              <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
                 {alerts.length === 0 ? (
                   <Trans>0 active</Trans>
                 ) : filtersActive ? (
@@ -335,7 +332,7 @@ function SourceAttentionAlert({
         <span>
           <Trans>Pulse source needs attention</Trans>
         </span>
-        <Badge variant="warning" className="font-mono tabular-nums">
+        <Badge variant="warning" className="tabular-nums">
           <Plural value={sourceCount} one="# source" other="# sources" />
         </Badge>
       </AlertTitle>
@@ -420,7 +417,7 @@ function PulseSourceHealthTable({
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {sources.map((source) => (
             <TableRow key={source.sourceId}>
               <TableCell className="min-w-[220px]">
@@ -437,7 +434,7 @@ function PulseSourceHealthTable({
               <TableCell className="whitespace-nowrap text-text-secondary">
                 {formatSourceDate(source.lastSuccessAt, i18n, t`Never`)}
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums text-text-primary">
+              <TableCell className="text-right tabular-nums text-text-primary">
                 {source.consecutiveFailures}
               </TableCell>
               <TableCell className="whitespace-nowrap text-text-secondary">

@@ -15,13 +15,20 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   authenticatedPage,
   rulesConsolePage,
 }) => {
+  // After the sidebar tidy + rules library merge, only "Rule library" remains
+  // as a direct sidebar entry. Coverage and Sources are reachable as their
+  // own routes (and from "View …" strips inside `/rules/library`), but they
+  // no longer appear as sidebar links. Navigate directly to verify each
+  // dedicated route renders the expected content.
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/coverage$/)
+  // The Coverage KPI strip uses canonical terminology: "Active rules" and
+  // "Needs review" (renamed from "Pending review" in the rules library merge).
   await expect(authenticatedPage.getByText('Active rules', { exact: true })).toBeVisible()
-  await expect(authenticatedPage.getByText('Pending review', { exact: true })).toBeVisible()
+  await expect(authenticatedPage.getByText('Needs review', { exact: true })).toBeVisible()
 
-  await rulesConsolePage.sourcesTab.click()
+  await authenticatedPage.goto('/rules/sources')
   await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
   await authenticatedPage.getByRole('button', { name: /^Healthy\s+\d+$/ }).click()
   await expect(

@@ -358,9 +358,6 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   return (
     <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
       <section className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Practice</Trans>
-        </span>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted">

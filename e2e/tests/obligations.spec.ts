@@ -17,7 +17,8 @@ test.describe('seeded obligations', () => {
   }) => {
     await authenticatedPage.goto('/')
 
-    await expect(authenticatedPage.getByText('Priority list', { exact: true })).toBeVisible()
+    // The "Priority list" card heading was removed in the spec-alignment pass;
+    // the priority tabs are the surviving anchor for the triage table.
     await expect(authenticatedPage.getByRole('tab', { name: /This Week/ })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -39,9 +40,11 @@ test.describe('seeded obligations', () => {
   }) => {
     await authenticatedPage.goto('/')
 
+    // Without the "Priority list" card title, scope the triage table to the
+    // card that owns the priority tabs (the surviving stable anchor).
     const triageTable = authenticatedPage
       .locator('[data-slot="card"]')
-      .filter({ has: authenticatedPage.getByText('Priority list', { exact: true }) })
+      .filter({ has: authenticatedPage.getByRole('tab', { name: /This Week/ }) })
       .getByRole('table')
     const dashboardHeaderButton = (name: string) =>
       triageTable
@@ -88,10 +91,10 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.goto()
 
     await expect(obligationQueuePage.heading).toBeVisible()
-    await expect(obligationQueuePage.calendarSyncLink).toHaveAttribute(
-      'href',
-      '/obligations/calendar',
-    )
+    // Calendar sync is now a popover button (not a route link) — verify the
+    // trigger is visible; the /obligations/calendar destination is exercised
+    // separately by the command-palette test in authenticated-shell.spec.ts.
+    await expect(obligationQueuePage.calendarSyncButton).toBeVisible()
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
 
@@ -159,14 +162,15 @@ test.describe('seeded obligations', () => {
     await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Paid')
   })
 
-  test('AC: E2E-OBLIGATIONS-COMPLETE saves a view, changes density/columns, and bulk updates rows', async ({
+  test('AC: E2E-OBLIGATIONS-COMPLETE saves a view, hides columns, and bulk updates rows', async ({
     authenticatedPage,
     obligationQueuePage,
   }) => {
+    // The Compact/Comfortable density tabs were removed in the obligations
+    // header polish (PR #4). Density is still persisted in saved views and
+    // URL, but there's no UI control to toggle it anymore — drop the density
+    // toggle from this test.
     await obligationQueuePage.goto()
-
-    await obligationQueuePage.compactTab.click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?density=compact$/)
 
     await obligationQueuePage.columnsButton.click()
     await obligationQueuePage.columnVisibilityOption('County').click()
@@ -187,7 +191,6 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.savedViewsButton.click()
     await obligationQueuePage.savedViewMenuItem('Apply view').click()
     await expect(authenticatedPage).toHaveURL(/q=Arbor/)
-    await expect(authenticatedPage).toHaveURL(/density=compact/)
     await expect(authenticatedPage).toHaveURL(/hide=clientCounty/)
 
     await obligationQueuePage.savedViewsButton.click()
