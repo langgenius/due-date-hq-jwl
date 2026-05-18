@@ -90,6 +90,13 @@ const jurisdictionParser = parseAsArrayOf(parseAsString)
   .withDefault([])
   .withOptions({ history: 'replace' })
 
+// Entity filter is URL-state so the Coverage status entity-dot drill can
+// land here with `?entity=llc` (or any subset of entities) pre-applied.
+// Same convention as `?jur=` and `?library=`.
+const entityParser = parseAsArrayOf(parseAsString)
+  .withDefault([])
+  .withOptions({ history: 'replace' })
+
 function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
   return `${rule.id}:${rule.version}:${rule.status}`
 }
@@ -107,7 +114,13 @@ export function RuleLibraryTab() {
   const queryClient = useQueryClient()
   const [libraryFilter, setLibraryFilter] = useQueryState('library', libraryFilterParser)
   const [jurisdictionFilters, setJurisdictionFilters] = useQueryState('jur', jurisdictionParser)
-  const [entityFilters, setEntityFilters] = useState<string[]>([])
+  const [entityFilters, setEntityFiltersQuery] = useQueryState('entity', entityParser)
+  const setEntityFilters = useCallback(
+    (values: string[]) => {
+      void setEntityFiltersQuery(values)
+    },
+    [setEntityFiltersQuery],
+  )
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<RuleHeaderFilterId | null>(null)

@@ -92,17 +92,10 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
-function matrixHeaders(): string[] {
-  const matrixTable = document.querySelectorAll('table')[1]
-  return Array.from(matrixTable?.querySelectorAll('th') ?? []).map(
+function tableHeaders(): string[] {
+  const table = document.querySelector('table')
+  return Array.from(table?.querySelectorAll('thead th') ?? []).map(
     (header) => header.textContent ?? '',
-  )
-}
-
-function entityViewButton(label: string): HTMLButtonElement | undefined {
-  const controls = document.querySelector('[aria-label="Entity coverage view"]')
-  return Array.from(controls?.querySelectorAll('button') ?? []).find(
-    (button): button is HTMLButtonElement => button.textContent === label,
   )
 }
 
@@ -125,46 +118,43 @@ afterEach(() => {
   activateLocale('en')
 })
 
-describe('CoverageTab entity matrix', () => {
-  it('defaults to the Business entity group', async () => {
+describe('CoverageTab single-table layout', () => {
+  it('renders the unified jurisdiction table with the ENTITY COVERAGE column', async () => {
     await render(<CoverageTab />)
     await waitForText('ENTITY COVERAGE')
 
-    expect(matrixHeaders()).toEqual([
-      'JURISDICTION',
-      'LLC',
-      'Partnership',
-      'S-Corp',
-      'C-Corp',
-      'Sole prop',
+    expect(tableHeaders()).toEqual([
+      'JUR',
+      'NAME',
+      'ENTITY COVERAGE',
+      'ACTIVE',
+      'PENDING',
+      'SOURCES',
+      'STATUS',
     ])
   })
 
-  it('switches the matrix to personal and all entity groups', async () => {
-    await render(<CoverageTab />)
+  it('fires onEntityDrillIn when a verified or review entity dot is clicked', async () => {
+    const onEntityDrillIn = vi.fn()
+    await render(<CoverageTab onEntityDrillIn={onEntityDrillIn} />)
     await waitForText('ENTITY COVERAGE')
 
-    const personalButton = entityViewButton('Personal & fiduciary')
-    expect(personalButton).toBeInstanceOf(HTMLButtonElement)
+    // Find the first row's entity strip and the first interactive dot in it.
+    // Each interactive dot is a button rendered inside the ENTITY COVERAGE
+    // cell. Non-interactive ("no rule") dots render as <span>, so the
+    // querySelector returns only the actionable dots.
+    const firstRow = document.querySelector('tbody tr')
+    const entityCell = firstRow?.querySelectorAll('td')[2]
+    const firstDotButton = entityCell?.querySelector('button')
+    expect(firstDotButton).toBeInstanceOf(HTMLButtonElement)
 
     await act(async () => {
-      personalButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+      firstDotButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
     })
-    expect(matrixHeaders()).toEqual(['JURISDICTION', 'Individual', 'Trust'])
 
-    const allButton = entityViewButton('All')
-    await act(async () => {
-      allButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-    })
-    expect(matrixHeaders()).toEqual([
-      'JURISDICTION',
-      'Individual',
-      'Trust',
-      'LLC',
-      'Partnership',
-      'S-Corp',
-      'C-Corp',
-      'Sole prop',
-    ])
+    expect(onEntityDrillIn).toHaveBeenCalledTimes(1)
+    const [jurisdiction, , state] = onEntityDrillIn.mock.calls[0] ?? []
+    expect(jurisdiction).toBeTypeOf('string')
+    expect(['verified', 'review']).toContain(state)
   })
 })
