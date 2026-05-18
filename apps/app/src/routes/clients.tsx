@@ -246,13 +246,13 @@ export function ClientsRoute() {
         <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex min-w-0 flex-col gap-2">
             <div className="flex flex-col gap-1">
-              <h1 className="text-xl font-semibold text-text-primary">
-                <Trans>Client facts</Trans>
+              <h1 className="text-2xl leading-tight font-semibold text-text-primary">
+                <Trans>Clients</Trans>
               </h1>
-              <p className="max-w-3xl text-sm text-text-secondary">
+              <p className="max-w-3xl text-sm leading-5 text-text-secondary">
                 <Trans>
                   Validate the practice client facts that generate obligations, dashboard risk, and
-                  Pulse matches.
+                  Radar matches.
                 </Trans>
               </p>
             </div>

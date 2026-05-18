@@ -12,14 +12,16 @@ const MESSAGE_BY_CODE: Partial<Record<ErrorCode, MessageDescriptor>> = {
   [ErrorCodes.PULSE_APPLY_CONFLICT]: msg`Some obligations have changed since you opened this alert. Refresh to load the latest list.`,
   [ErrorCodes.PULSE_REVERT_EXPIRED]: msg`The 24h undo window has expired for this alert.`,
   [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: msg`No eligible obligations are selected.`,
-  [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: msg`This Pulse alert is closed and cannot be sent for review.`,
-  [ErrorCodes.FIRM_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
-  [ErrorCodes.MEMBER_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
+  [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: msg`This Radar alert is closed and cannot be sent for review.`,
+  [ErrorCodes.FIRM_FORBIDDEN]: msg`Only owners and managers can apply Radar changes.`,
+  [ErrorCodes.MEMBER_FORBIDDEN]: msg`Only owners and managers can apply Radar changes.`,
 }
 
+// LEFT-side keys MUST match the raw backend error strings (which still say
+// "Pulse") — only the user-facing message values switch to "Radar".
 const MESSAGE_BY_RAW: Record<string, MessageDescriptor> = {
-  'Production Pulse actions require Pro or above.': msg`Production Pulse actions require Pro or above.`,
-  'Priority Pulse matching and review confirmation require Team or above.': msg`Priority Pulse matching and review confirmation require Team or above.`,
+  'Production Pulse actions require Pro or above.': msg`Production Radar actions require Pro or above.`,
+  'Priority Pulse matching and review confirmation require Team or above.': msg`Priority Radar matching and review confirmation require Team or above.`,
 }
 
 const FALLBACK = msg`Something went wrong. Please try again.`

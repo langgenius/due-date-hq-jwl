@@ -167,7 +167,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'rules-temporary',
         label: t`Temporary rules`,
-        description: t`Review applied Pulse exceptions changing due dates.`,
+        description: t`Review applied Radar exceptions changing due dates.`,
         group: 'navigate',
         icon: HourglassIcon,
         onSelect: () => navigate('/rules/temporary'),

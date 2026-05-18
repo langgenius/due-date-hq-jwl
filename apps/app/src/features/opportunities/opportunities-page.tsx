@@ -1,5 +1,4 @@
 import { Link } from 'react-router'
-import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
 import { ArrowUpRightIcon, SparklesIcon } from 'lucide-react'
@@ -16,6 +15,7 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { KpiStat } from '@/components/patterns/kpi-stat'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -39,10 +39,10 @@ export function OpportunitiesPage() {
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-semibold text-text-primary">
+            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
               <Trans>Opportunities</Trans>
             </h1>
-            <p className="max-w-3xl text-sm text-text-secondary">
+            <p className="max-w-3xl text-sm leading-5 text-text-secondary">
               <Trans>
                 Lightweight client conversation cues for future service, retention, and engagement
                 scope. DueDateHQ does not generate tax strategies here.
@@ -64,14 +64,20 @@ export function OpportunitiesPage() {
       ) : null}
 
       <section className="grid gap-3 md:grid-cols-3">
-        <SummaryCard
+        <KpiStat
           label={<Trans>Advisory conversations</Trans>}
-          value={summary?.advisoryConversationCount}
+          value={summary?.advisoryConversationCount ?? '—'}
+          isLoading={summary === undefined}
         />
-        <SummaryCard label={<Trans>Scope reviews</Trans>} value={summary?.scopeReviewCount} />
-        <SummaryCard
+        <KpiStat
+          label={<Trans>Scope reviews</Trans>}
+          value={summary?.scopeReviewCount ?? '—'}
+          isLoading={summary === undefined}
+        />
+        <KpiStat
           label={<Trans>Retention check-ins</Trans>}
-          value={summary?.retentionCheckInCount}
+          value={summary?.retentionCheckInCount ?? '—'}
+          isLoading={summary === undefined}
         />
       </section>
 
@@ -116,21 +122,6 @@ export function OpportunitiesPage() {
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-function SummaryCard({ label, value }: { label: ReactNode; value: number | undefined }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <span className="text-sm text-text-secondary">{label}</span>
-        {value === undefined ? (
-          <Skeleton className="h-7 w-10" />
-        ) : (
-          <span className="text-2xl font-semibold tabular-nums text-text-primary">{value}</span>
-        )}
-      </CardContent>
-    </Card>
   )
 }
 

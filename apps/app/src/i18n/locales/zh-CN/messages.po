@@ -934,8 +934,8 @@ msgid "Applied a rule change."
 msgstr "已应用一项规则变更。"
 
 #: src/routes/rules.temporary.tsx
-msgid "Applied Pulse exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Pulse detail when a temporary rule needs revert or follow-up."
-msgstr "当前正在改变义务截止日的已应用 Pulse 例外。可查看范围、来源证据、活跃义务数量，并在临时规则需要撤销或跟进时打开 Pulse 详情。"
+msgid "Applied Radar exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Radar detail when a temporary rule needs revert or follow-up."
+msgstr "已生效、当前正在调整义务到期日的雷达例外。审核范围、源证据、生效义务数量;在临时规则需要回滚或跟进时打开雷达详情。"
 
 #. placeholder {0}: result.appliedCount
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -1407,8 +1407,8 @@ msgid "Checking official tax source health…"
 msgstr "正在检查官方税务来源健康状态…"
 
 #: src/features/pulse/PulseAlertsBanner.tsx
-msgid "Checking Pulse source health…"
-msgstr "正在检查 Pulse 来源健康状态…"
+msgid "Checking Radar source health…"
+msgstr "正在检查雷达来源健康状况……"
 
 #: src/features/workload/workload-page.tsx
 msgid "Checking the active practice plan before loading workload metrics."
@@ -1571,7 +1571,6 @@ msgid "Client email opt-outs"
 msgstr "客户邮件退订"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/clients.tsx
 #: src/routes/migration.new.tsx
 msgid "Client facts"
 msgstr "客户事实"
@@ -1634,6 +1633,7 @@ msgstr "客户"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/clients.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
 msgstr "客户"
@@ -1826,8 +1826,8 @@ msgid "Couldn't accept selected rules"
 msgstr "无法接受所选规则"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Couldn't apply Pulse"
-msgstr "无法应用监管提醒"
+msgid "Couldn't apply Radar"
+msgstr "无法应用雷达"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't apply reviewed set"
@@ -2134,8 +2134,8 @@ msgid "Couldn't undo import"
 msgstr "无法撤销导入"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Couldn't undo Pulse"
-msgstr "无法撤销该应用"
+msgid "Couldn't undo Radar"
+msgstr "无法撤销雷达"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Couldn't update calendar subscription"
@@ -2320,8 +2320,8 @@ msgid "Dashboard"
 msgstr "仪表盘"
 
 #: src/routes/billing.tsx
-msgid "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
-msgstr "Dashboard brief、Pulse 摘要、客户风险摘要和正式客户数据的智能导入辅助。"
+msgid "Dashboard briefs, Radar summaries, client risk summaries, and guided import AI for live client data."
+msgstr "面板简报、雷达摘要、客户风险摘要,以及面向真实客户数据的引导式导入 AI。"
 
 #: src/routes/migration.new.tsx
 msgid "Dashboard risk"
@@ -2369,6 +2369,10 @@ msgstr "截止日提醒"
 #: src/features/notifications/notifications-page.tsx
 msgid "Deadline reminders"
 msgstr "截止日提醒"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Deadline reminders, audit packages, and Radar alerts in one inbox."
+msgstr "到期提醒、审计包与雷达提醒,集中于一个收件箱。"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Deadline shift"
@@ -3038,8 +3042,8 @@ msgid "Filing-only extension; payment is not extended."
 msgstr "仅延期申报；付款不延期。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Filing, payment, Pulse, contact, and audit context for this client."
-msgstr "该客户的申报、付款、Pulse、联系人和审计上下文。"
+msgid "Filing, payment, Radar, contact, and audit context for this client."
+msgstr "该客户的申报、付款、雷达、联系方式与审计上下文。"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filter by alert status"
@@ -3085,8 +3089,8 @@ msgid "For practices coordinating a larger operations team."
 msgstr "适合协调较大运营团队的事务所。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "for Pulse matching"
-msgstr "用于 Pulse 匹配"
+msgid "for Radar matching"
+msgstr "用于雷达匹配"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -4246,8 +4250,8 @@ msgid "No client response yet."
 msgstr "客户尚未回复。"
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "No client-matching Pulse changes right now."
-msgstr "当前没有匹配客户的 Pulse 变更。"
+msgid "No client-matching Radar changes right now."
+msgstr "当前没有匹配客户的雷达变更。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/dashboard.tsx
@@ -4350,8 +4354,8 @@ msgid "No matching clients in this practice."
 msgstr "该事务所没有匹配客户。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No matching Pulse changes"
-msgstr "暂无匹配的 Pulse 变更"
+msgid "No matching Radar changes"
+msgstr "无匹配的雷达变更"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "No morning digests have run yet."
@@ -4581,12 +4585,9 @@ msgstr "备注"
 msgid "Notes"
 msgstr "备注"
 
-#: src/features/notifications/notifications-page.tsx
-msgid "Notification center"
-msgstr "通知中心"
-
 #: src/components/patterns/app-shell.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Notifications"
@@ -4681,8 +4682,8 @@ msgid "Official sources · pending rules"
 msgstr "官方来源 · 待审核规则"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Official-source changes from Pulse that touch this client."
-msgstr "Pulse 中影响该客户的官方来源变更。"
+msgid "Official-source changes from Radar that touch this client."
+msgstr "来自雷达、影响该客户的官方源变更。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding alternate path used"
@@ -4730,8 +4731,8 @@ msgstr "引导对话轮次已打开"
 
 #: src/features/pulse/lib/error-mapping.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Only owners and managers can apply Pulse changes."
-msgstr "仅 Owner 与 Manager 可应用监管提醒。"
+msgid "Only owners and managers can apply Radar changes."
+msgstr "仅 Owner 与 Manager 可应用雷达变更。"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Only owners and managers can enable the practice-wide calendar feed."
@@ -4853,8 +4854,8 @@ msgid "Open portal"
 msgstr "打开门户"
 
 #: src/features/rules/temporary-rules-tab.tsx
-msgid "Open Pulse detail"
-msgstr "打开 Pulse 详情"
+msgid "Open Radar detail"
+msgstr "打开雷达详情"
 
 #. placeholder {0}: rule.title
 #: src/features/rules/rule-library-tab.tsx
@@ -5584,8 +5585,8 @@ msgid "Priority onboarding and audit exports"
 msgstr "优先 onboarding 与审计导出"
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "Priority Pulse matching and review confirmation require Team or above."
-msgstr "优先 Pulse 匹配和审核确认需要 Team 或更高计划。"
+msgid "Priority Radar matching and review confirmation require Team or above."
+msgstr "优先级雷达匹配与审核确认需要 Team 或以上计划。"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy"
@@ -5605,8 +5606,8 @@ msgid "Pro"
 msgstr "Pro"
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "Production Pulse actions require Pro or above."
-msgstr "Production Pulse 操作需要 Pro 或更高计划。"
+msgid "Production Radar actions require Pro or above."
+msgstr "生产环境雷达操作需要 Pro 或以上计划。"
 
 #: src/routes/obligations.tsx
 msgid "Projected 90-day risk"
@@ -5637,113 +5638,10 @@ msgstr "服务商客户记录"
 msgid "Provider hosted"
 msgstr "服务商托管"
 
-#: src/features/audit/audit-log-page.tsx
-#: src/features/concepts/concept-help.tsx
-msgid "Pulse"
-msgstr "动态"
-
-#: src/features/audit/audit-log-labels.ts
-#: src/features/notifications/notifications-page.tsx
-msgid "Pulse alert"
-msgstr "Pulse 提醒"
-
 #. placeholder {0}: alert.title
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Pulse alert: {0}"
 msgstr "监管提醒：{0}"
-
-#: src/routes/billing.tsx
-msgid "Pulse and Obligations access"
-msgstr "Pulse 与义务访问权限"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse application"
-msgstr "Pulse 应用"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse applied"
-msgstr "Pulse 已应用"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse approved"
-msgstr "Pulse 已批准"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse changed due date from {previous} to {next}"
-msgstr "Pulse 将截止日从 {previous} 变更为 {next}"
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Pulse Changes"
-msgstr "Pulse 变更"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse dismissed"
-msgstr "Pulse 已忽略"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Pulse evidence linked to each obligation"
-msgstr "为每条义务关联监管证据"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pulse impact"
-msgstr "Pulse 影响"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pulse matches"
-msgstr "Pulse 匹配"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse quarantined"
-msgstr "Pulse 已隔离"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse reactivated"
-msgstr "Pulse 已重新激活"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse rejected"
-msgstr "Pulse 已拒绝"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse reverted"
-msgstr "Pulse 已回滚"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse review requested"
-msgstr "已请求 Pulse 审核"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse snoozed"
-msgstr "Pulse 已暂缓"
-
-#: src/features/pulse/AlertsListPage.tsx
-#: src/features/pulse/PulseAlertsBanner.tsx
-msgid "Pulse source checks degraded · Monitoring continues"
-msgstr "Pulse 来源检查降级 · 持续监控中"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse source ingested"
-msgstr "Pulse 来源已摄取"
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Pulse source needs attention"
-msgstr "Pulse 来源需要处理"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse source revoked"
-msgstr "Pulse 来源已撤销"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse status"
-msgstr "Pulse 状态"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse update extracted"
-msgstr "Pulse 更新已抽取"
-
-#: src/features/notifications/notifications-page.tsx
-msgid "Pulse updates"
-msgstr "Pulse 更新"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
@@ -5757,10 +5655,107 @@ msgstr "已入队"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-page.tsx
+#: src/features/concepts/concept-help.tsx
+#: src/features/pulse/AlertsListPage.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.pulse.tsx
 msgid "Radar"
 msgstr "雷达"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/features/notifications/notifications-page.tsx
+msgid "Radar alert"
+msgstr "雷达提醒"
+
+#: src/routes/billing.tsx
+msgid "Radar and Obligations access"
+msgstr "雷达与义务访问"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar application"
+msgstr "雷达应用"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar applied"
+msgstr "雷达已应用"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar approved"
+msgstr "雷达已批准"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar changed due date from {previous} to {next}"
+msgstr "雷达将到期日从 {previous} 改为 {next}"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar dismissed"
+msgstr "雷达已忽略"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Radar evidence linked to each obligation"
+msgstr "已为每项义务关联雷达证据"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Radar impact"
+msgstr "雷达影响"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Radar matches"
+msgstr "雷达匹配"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar quarantined"
+msgstr "雷达已隔离"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar reactivated"
+msgstr "雷达已重新激活"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar rejected"
+msgstr "雷达已拒绝"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar reverted"
+msgstr "雷达已回滚"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar review requested"
+msgstr "已请求雷达审核"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar snoozed"
+msgstr "雷达已暂缓"
+
+#: src/features/pulse/AlertsListPage.tsx
+#: src/features/pulse/PulseAlertsBanner.tsx
+msgid "Radar source checks degraded · Monitoring continues"
+msgstr "雷达来源检查降级 · 监控继续"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar source ingested"
+msgstr "雷达来源已接入"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Radar source needs attention"
+msgstr "雷达来源需要关注"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar source revoked"
+msgstr "雷达来源已撤销"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar status"
+msgstr "雷达状态"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar update extracted"
+msgstr "已提取雷达更新"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Radar updates"
+msgstr "雷达更新"
 
 #: src/routes/practice.tsx
 msgid "Rank"
@@ -5979,10 +5974,6 @@ msgstr "重新生成"
 msgid "Regenerate URL"
 msgstr "重新生成 URL"
 
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-msgstr "匹配你事务所客户的监管 Pulse 信号。复核、批量应用截止日变更、暂缓，或重新查看已关闭变更。"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Reject"
 msgstr "拒绝"
@@ -6054,8 +6045,8 @@ msgid "Request export"
 msgstr "请求导出"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Request Pulse review"
-msgstr "请求 Pulse 审核"
+msgid "Request Radar review"
+msgstr "请求雷达审核"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Request review"
@@ -6066,8 +6057,8 @@ msgid "Required for rule applicability."
 msgstr "规则适用性判断必需。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Required for rules and Pulse matching."
-msgstr "规则生成与 Pulse 匹配必需。"
+msgid "Required for rules and Radar matching."
+msgstr "规则与雷达匹配所必需。"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
@@ -6205,8 +6196,8 @@ msgid "Review and confirm column mapping"
 msgstr "请审阅并确认字段映射"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Review applied Pulse exceptions changing due dates."
-msgstr "审核已生效、影响到期日的 Pulse 例外。"
+msgid "Review applied Radar exceptions changing due dates."
+msgstr "审核已生效、影响到期日的雷达例外。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review lightweight client business cues."
@@ -7143,6 +7134,10 @@ msgstr "来源已撤销"
 msgid "Source-backed evidence"
 msgstr "带来源的证据"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Source-backed government changes that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgstr "源自官方、匹配本事务所客户的政府变更。审核、批量应用到期日调整、暂缓或回顾已关闭的变更。"
+
 #: src/routes/rules.pulse.tsx
 msgid "Source-backed government changes that may affect client deadlines. Review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here."
 msgstr "源自官方、可能影响客户到期日的政府变更。在此审核受影响客户、应用临时例外、忽略噪声或回顾已关闭的变更。"
@@ -7457,6 +7452,7 @@ msgid "Team member"
 msgstr "团队成员"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/workload/workload-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Team workload"
@@ -7582,8 +7578,8 @@ msgid "The numbers above are computed from your confirmed mappings, tax type sug
 msgstr "以上数字基于你已确认的映射、税种建议和已生效事务所规则计算。“导入并生成”会创建客户、截止日、证据和审计记录。"
 
 #: src/features/concepts/concept-help.tsx
-msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
-msgstr "支撑规则、截止日、AI 解释或 Pulse 变更的官方来源、摘录或审计记录。"
+msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Radar change."
+msgstr "支撑规则、到期日、AI 解释或雷达变更的官方来源、引述或审计记录。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for obligation work: filter, sort, assign owners, update status, and open evidence for each obligation."
@@ -7675,8 +7671,8 @@ msgid "This clears the unfinished draft so you can start a new import. No client
 msgstr "这会清除未完成的草稿，方便你开始新的导入。目前还没有创建任何客户或截止日。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "This client is clear of the current practice-scoped Pulse queue."
-msgstr "当前事务所范围的 Pulse 队列中没有影响该客户的事项。"
+msgid "This client is clear of the current practice-scoped Radar queue."
+msgstr "该客户在当前事务所范围内的雷达队列中无未决项。"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "This import can be undone for 24 hours and keeps an audit record"
@@ -7703,8 +7699,8 @@ msgid "This practice already has the selected plan."
 msgstr "此事务所已经是所选计划。"
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "This Pulse alert is closed and cannot be sent for review."
-msgstr "此 Pulse 提醒已关闭，无法发送审核请求。"
+msgid "This Radar alert is closed and cannot be sent for review."
+msgstr "该雷达提醒已关闭,无法提交审核。"
 
 #: src/routes/readiness.tsx
 msgid "This readiness link is expired, revoked, or invalid."
@@ -8035,8 +8031,8 @@ msgid "UTC time"
 msgstr "UTC 时间"
 
 #: src/routes/clients.tsx
-msgid "Validate the practice client facts that generate obligations, dashboard risk, and Pulse matches."
-msgstr "核验事务所客户事实，这些事实会生成义务、仪表盘风险和 Pulse 匹配。"
+msgid "Validate the practice client facts that generate obligations, dashboard risk, and Radar matches."
+msgstr "验证生成义务、面板风险与雷达匹配的事务所客户事实。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
@@ -8242,10 +8238,6 @@ msgstr "本事务所的工作区配置——身份、团队、账单、合规与
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Workspace configuration hub — Practice, team, billing, automation."
 msgstr "工作区配置中心——事务所、团队、账单、自动化。"
-
-#: src/routes/route-summary.ts
-msgid "Workspace settings"
-msgstr "工作区设置"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"

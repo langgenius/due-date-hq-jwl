@@ -253,7 +253,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
         toast.success(t`Reverted ${result.revertedCount} clients`)
       },
       onError: (err) => {
-        toast.error(t`Couldn't undo Pulse`, {
+        toast.error(t`Couldn't undo Radar`, {
           description: i18n._(pulseErrorDescriptor(err)),
         })
       },
@@ -292,7 +292,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
       onError: (err) => {
         const description = i18n._(pulseErrorDescriptor(err)) || (rpcErrorMessage(err) ?? '')
         if (isPulseConflict(err)) {
-          toast.error(t`Couldn't apply Pulse`, {
+          toast.error(t`Couldn't apply Radar`, {
             description,
             action: {
               label: t`Refresh`,
@@ -301,7 +301,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
           })
           return
         }
-        toast.error(t`Couldn't apply Pulse`, { description })
+        toast.error(t`Couldn't apply Radar`, { description })
       },
     }),
   )
@@ -497,7 +497,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                     <Trans>Read-only view</Trans>
                   </AlertTitle>
                   <AlertDescription>
-                    <Trans>Only owners and managers can apply Pulse changes.</Trans>
+                    <Trans>Only owners and managers can apply Radar changes.</Trans>
                   </AlertDescription>
                 </Alert>
               ) : null}
@@ -957,7 +957,7 @@ function PulseReviewRequestDialog({
         >
           <DialogHeader>
             <DialogTitle>
-              <Trans>Request Pulse review</Trans>
+              <Trans>Request Radar review</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>
@@ -1040,7 +1040,7 @@ function SelectionSummary({ stats }: { stats: SelectionStats }) {
 function ApplySafetyChecklist() {
   const items: Array<[string, React.ReactNode]> = [
     ['audit', <Trans key="audit">Logged to audit trail</Trans>],
-    ['evidence', <Trans key="evidence">Pulse evidence linked to each obligation</Trans>],
+    ['evidence', <Trans key="evidence">Radar evidence linked to each obligation</Trans>],
     [
       'email',
       <Trans key="email">Owner and manager digest will be sent when email is available</Trans>,

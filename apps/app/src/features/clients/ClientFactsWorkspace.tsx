@@ -237,7 +237,7 @@ export function ClientFactsWorkspace({
       {
         label: t`States covered`,
         value: String(factsModel.summary.statesCovered),
-        detail: t`for Pulse matching`,
+        detail: t`for Radar matching`,
         icon: MapPinnedIcon,
         tone: 'neutral',
       },
@@ -916,7 +916,7 @@ function ClientDetailWorkspace({
               <p className="mt-1 text-sm text-text-secondary">
                 {entityLabels[client.entityType]}
                 {' / '}
-                <Trans>Filing, payment, Pulse, contact, and audit context for this client.</Trans>
+                <Trans>Filing, payment, Radar, contact, and audit context for this client.</Trans>
               </p>
             </div>
           </div>
@@ -961,7 +961,7 @@ function ClientDetailWorkspace({
             tone={workPlan.estimatedTaxDueCents > 0 ? 'attention' : 'neutral'}
           />
           <ClientWorkMetric
-            label={<Trans>Pulse matches</Trans>}
+            label={<Trans>Radar matches</Trans>}
             value={String(pulseMatches.length)}
             detail={<Trans>{workPlan.needsReviewCount} obligations need review</Trans>}
             icon={AlertTriangleIcon}
@@ -1242,10 +1242,10 @@ function ClientPulsePanel({
     <Card>
       <CardHeader>
         <CardTitle>
-          <Trans>Pulse impact</Trans>
+          <Trans>Radar impact</Trans>
         </CardTitle>
         <CardDescription>
-          <Trans>Official-source changes from Pulse that touch this client.</Trans>
+          <Trans>Official-source changes from Radar that touch this client.</Trans>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -1257,8 +1257,8 @@ function ClientPulsePanel({
         ) : matches.length === 0 ? (
           <PanelEmptyState
             icon={AlertTriangleIcon}
-            title={<Trans>No matching Pulse changes</Trans>}
-            detail={<Trans>This client is clear of the current practice-scoped Pulse queue.</Trans>}
+            title={<Trans>No matching Radar changes</Trans>}
+            detail={<Trans>This client is clear of the current practice-scoped Radar queue.</Trans>}
           />
         ) : (
           <div className="grid gap-2">
@@ -1935,7 +1935,7 @@ function ClientFactChecklist({
       <FactCheckRow
         isComplete={!readiness?.missingRequiredFacts.includes('state')}
         label={<Trans>Filing jurisdiction</Trans>}
-        detail={<Trans>Required for rules and Pulse matching.</Trans>}
+        detail={<Trans>Required for rules and Radar matching.</Trans>}
       />
       <FactCheckRow
         isComplete={!readiness?.missingRequiredFacts.includes('entityType')}

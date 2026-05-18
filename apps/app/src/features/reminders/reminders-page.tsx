@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -10,7 +10,6 @@ import {
   MailWarningIcon,
   PauseCircleIcon,
   SendIcon,
-  type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -44,6 +43,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { KpiStat } from '@/components/patterns/kpi-stat'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -88,37 +88,6 @@ function offsetLabel(offsetDays: number) {
   if (offsetDays === 0) return <Trans>Overdue</Trans>
   if (offsetDays === 1) return <Trans>1 day before</Trans>
   return <Trans>{offsetDays} days before</Trans>
-}
-
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  caption,
-}: {
-  icon: LucideIcon
-  label: ReactNode
-  value: number
-  caption: ReactNode
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-start justify-between gap-3 p-4">
-        <div className="grid gap-1">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-            {label}
-          </span>
-          <span className="text-2xl leading-none font-semibold tabular-nums text-text-primary">
-            {value}
-          </span>
-          <span className="text-xs text-text-tertiary">{caption}</span>
-        </div>
-        <span className="rounded-md bg-background-subtle p-2 text-text-secondary">
-          <Icon className="size-4" aria-hidden />
-        </span>
-      </CardContent>
-    </Card>
-  )
 }
 
 export function RemindersPage() {
@@ -166,25 +135,25 @@ export function RemindersPage() {
       ) : null}
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <StatTile
+        <KpiStat
           icon={CheckCircle2Icon}
           label={<Trans>Active templates</Trans>}
           value={overview?.activeTemplateCount ?? 0}
           caption={<Trans>Practice-level delivery copy</Trans>}
         />
-        <StatTile
+        <KpiStat
           icon={AlarmClockIcon}
           label={<Trans>Upcoming</Trans>}
           value={overview?.upcomingCount ?? 0}
           caption={<Trans>30 / 7 / 1 day and overdue</Trans>}
         />
-        <StatTile
+        <KpiStat
           icon={SendIcon}
           label={<Trans>Sent last 7 days</Trans>}
           value={overview?.sentLast7DaysCount ?? 0}
           caption={<Trans>Outbox-confirmed sends</Trans>}
         />
-        <StatTile
+        <KpiStat
           icon={MailWarningIcon}
           label={<Trans>Suppressed</Trans>}
           value={overview?.suppressedEmailCount ?? 0}

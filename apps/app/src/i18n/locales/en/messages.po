@@ -934,8 +934,8 @@ msgid "Applied a rule change."
 msgstr "Applied a rule change."
 
 #: src/routes/rules.temporary.tsx
-msgid "Applied Pulse exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Pulse detail when a temporary rule needs revert or follow-up."
-msgstr "Applied Pulse exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Pulse detail when a temporary rule needs revert or follow-up."
+msgid "Applied Radar exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Radar detail when a temporary rule needs revert or follow-up."
+msgstr "Applied Radar exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Radar detail when a temporary rule needs revert or follow-up."
 
 #. placeholder {0}: result.appliedCount
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -1407,8 +1407,8 @@ msgid "Checking official tax source health…"
 msgstr "Checking official tax source health…"
 
 #: src/features/pulse/PulseAlertsBanner.tsx
-msgid "Checking Pulse source health…"
-msgstr "Checking Pulse source health…"
+msgid "Checking Radar source health…"
+msgstr "Checking Radar source health…"
 
 #: src/features/workload/workload-page.tsx
 msgid "Checking the active practice plan before loading workload metrics."
@@ -1571,7 +1571,6 @@ msgid "Client email opt-outs"
 msgstr "Client email opt-outs"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/routes/clients.tsx
 #: src/routes/migration.new.tsx
 msgid "Client facts"
 msgstr "Client facts"
@@ -1634,6 +1633,7 @@ msgstr "clients"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/clients.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
 msgstr "Clients"
@@ -1826,8 +1826,8 @@ msgid "Couldn't accept selected rules"
 msgstr "Couldn't accept selected rules"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Couldn't apply Pulse"
-msgstr "Couldn't apply Pulse"
+msgid "Couldn't apply Radar"
+msgstr "Couldn't apply Radar"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't apply reviewed set"
@@ -2134,8 +2134,8 @@ msgid "Couldn't undo import"
 msgstr "Couldn't undo import"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Couldn't undo Pulse"
-msgstr "Couldn't undo Pulse"
+msgid "Couldn't undo Radar"
+msgstr "Couldn't undo Radar"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Couldn't update calendar subscription"
@@ -2320,8 +2320,8 @@ msgid "Dashboard"
 msgstr "Dashboard"
 
 #: src/routes/billing.tsx
-msgid "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
-msgstr "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
+msgid "Dashboard briefs, Radar summaries, client risk summaries, and guided import AI for live client data."
+msgstr "Dashboard briefs, Radar summaries, client risk summaries, and guided import AI for live client data."
 
 #: src/routes/migration.new.tsx
 msgid "Dashboard risk"
@@ -2369,6 +2369,10 @@ msgstr "Deadline reminder"
 #: src/features/notifications/notifications-page.tsx
 msgid "Deadline reminders"
 msgstr "Deadline reminders"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Deadline reminders, audit packages, and Radar alerts in one inbox."
+msgstr "Deadline reminders, audit packages, and Radar alerts in one inbox."
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Deadline shift"
@@ -3038,8 +3042,8 @@ msgid "Filing-only extension; payment is not extended."
 msgstr "Filing-only extension; payment is not extended."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Filing, payment, Pulse, contact, and audit context for this client."
-msgstr "Filing, payment, Pulse, contact, and audit context for this client."
+msgid "Filing, payment, Radar, contact, and audit context for this client."
+msgstr "Filing, payment, Radar, contact, and audit context for this client."
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filter by alert status"
@@ -3085,8 +3089,8 @@ msgid "For practices coordinating a larger operations team."
 msgstr "For practices coordinating a larger operations team."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "for Pulse matching"
-msgstr "for Pulse matching"
+msgid "for Radar matching"
+msgstr "for Radar matching"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -4246,8 +4250,8 @@ msgid "No client response yet."
 msgstr "No client response yet."
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "No client-matching Pulse changes right now."
-msgstr "No client-matching Pulse changes right now."
+msgid "No client-matching Radar changes right now."
+msgstr "No client-matching Radar changes right now."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/dashboard.tsx
@@ -4350,8 +4354,8 @@ msgid "No matching clients in this practice."
 msgstr "No matching clients in this practice."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No matching Pulse changes"
-msgstr "No matching Pulse changes"
+msgid "No matching Radar changes"
+msgstr "No matching Radar changes"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "No morning digests have run yet."
@@ -4581,12 +4585,9 @@ msgstr "Note"
 msgid "Notes"
 msgstr "Notes"
 
-#: src/features/notifications/notifications-page.tsx
-msgid "Notification center"
-msgstr "Notification center"
-
 #: src/components/patterns/app-shell.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Notifications"
@@ -4681,8 +4682,8 @@ msgid "Official sources · pending rules"
 msgstr "Official sources · pending rules"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Official-source changes from Pulse that touch this client."
-msgstr "Official-source changes from Pulse that touch this client."
+msgid "Official-source changes from Radar that touch this client."
+msgstr "Official-source changes from Radar that touch this client."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding alternate path used"
@@ -4730,8 +4731,8 @@ msgstr "Onboarding turn opened"
 
 #: src/features/pulse/lib/error-mapping.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Only owners and managers can apply Pulse changes."
-msgstr "Only owners and managers can apply Pulse changes."
+msgid "Only owners and managers can apply Radar changes."
+msgstr "Only owners and managers can apply Radar changes."
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Only owners and managers can enable the practice-wide calendar feed."
@@ -4853,8 +4854,8 @@ msgid "Open portal"
 msgstr "Open portal"
 
 #: src/features/rules/temporary-rules-tab.tsx
-msgid "Open Pulse detail"
-msgstr "Open Pulse detail"
+msgid "Open Radar detail"
+msgstr "Open Radar detail"
 
 #. placeholder {0}: rule.title
 #: src/features/rules/rule-library-tab.tsx
@@ -5584,8 +5585,8 @@ msgid "Priority onboarding and audit exports"
 msgstr "Priority onboarding and audit exports"
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "Priority Pulse matching and review confirmation require Team or above."
-msgstr "Priority Pulse matching and review confirmation require Team or above."
+msgid "Priority Radar matching and review confirmation require Team or above."
+msgstr "Priority Radar matching and review confirmation require Team or above."
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy"
@@ -5605,8 +5606,8 @@ msgid "Pro"
 msgstr "Pro"
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "Production Pulse actions require Pro or above."
-msgstr "Production Pulse actions require Pro or above."
+msgid "Production Radar actions require Pro or above."
+msgstr "Production Radar actions require Pro or above."
 
 #: src/routes/obligations.tsx
 msgid "Projected 90-day risk"
@@ -5637,113 +5638,10 @@ msgstr "Provider client records"
 msgid "Provider hosted"
 msgstr "Provider hosted"
 
-#: src/features/audit/audit-log-page.tsx
-#: src/features/concepts/concept-help.tsx
-msgid "Pulse"
-msgstr "Pulse"
-
-#: src/features/audit/audit-log-labels.ts
-#: src/features/notifications/notifications-page.tsx
-msgid "Pulse alert"
-msgstr "Pulse alert"
-
 #. placeholder {0}: alert.title
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Pulse alert: {0}"
 msgstr "Pulse alert: {0}"
-
-#: src/routes/billing.tsx
-msgid "Pulse and Obligations access"
-msgstr "Pulse and Obligations access"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse application"
-msgstr "Pulse application"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse applied"
-msgstr "Pulse applied"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse approved"
-msgstr "Pulse approved"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse changed due date from {previous} to {next}"
-msgstr "Pulse changed due date from {previous} to {next}"
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Pulse Changes"
-msgstr "Pulse Changes"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse dismissed"
-msgstr "Pulse dismissed"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Pulse evidence linked to each obligation"
-msgstr "Pulse evidence linked to each obligation"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pulse impact"
-msgstr "Pulse impact"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pulse matches"
-msgstr "Pulse matches"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse quarantined"
-msgstr "Pulse quarantined"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse reactivated"
-msgstr "Pulse reactivated"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse rejected"
-msgstr "Pulse rejected"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse reverted"
-msgstr "Pulse reverted"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse review requested"
-msgstr "Pulse review requested"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse snoozed"
-msgstr "Pulse snoozed"
-
-#: src/features/pulse/AlertsListPage.tsx
-#: src/features/pulse/PulseAlertsBanner.tsx
-msgid "Pulse source checks degraded · Monitoring continues"
-msgstr "Pulse source checks degraded · Monitoring continues"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse source ingested"
-msgstr "Pulse source ingested"
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Pulse source needs attention"
-msgstr "Pulse source needs attention"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse source revoked"
-msgstr "Pulse source revoked"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse status"
-msgstr "Pulse status"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Pulse update extracted"
-msgstr "Pulse update extracted"
-
-#: src/features/notifications/notifications-page.tsx
-msgid "Pulse updates"
-msgstr "Pulse updates"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
@@ -5757,10 +5655,107 @@ msgstr "Queued"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-page.tsx
+#: src/features/concepts/concept-help.tsx
+#: src/features/pulse/AlertsListPage.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.pulse.tsx
 msgid "Radar"
 msgstr "Radar"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/features/notifications/notifications-page.tsx
+msgid "Radar alert"
+msgstr "Radar alert"
+
+#: src/routes/billing.tsx
+msgid "Radar and Obligations access"
+msgstr "Radar and Obligations access"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar application"
+msgstr "Radar application"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar applied"
+msgstr "Radar applied"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar approved"
+msgstr "Radar approved"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar changed due date from {previous} to {next}"
+msgstr "Radar changed due date from {previous} to {next}"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar dismissed"
+msgstr "Radar dismissed"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Radar evidence linked to each obligation"
+msgstr "Radar evidence linked to each obligation"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Radar impact"
+msgstr "Radar impact"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Radar matches"
+msgstr "Radar matches"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar quarantined"
+msgstr "Radar quarantined"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar reactivated"
+msgstr "Radar reactivated"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar rejected"
+msgstr "Radar rejected"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar reverted"
+msgstr "Radar reverted"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar review requested"
+msgstr "Radar review requested"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar snoozed"
+msgstr "Radar snoozed"
+
+#: src/features/pulse/AlertsListPage.tsx
+#: src/features/pulse/PulseAlertsBanner.tsx
+msgid "Radar source checks degraded · Monitoring continues"
+msgstr "Radar source checks degraded · Monitoring continues"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar source ingested"
+msgstr "Radar source ingested"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Radar source needs attention"
+msgstr "Radar source needs attention"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar source revoked"
+msgstr "Radar source revoked"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar status"
+msgstr "Radar status"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Radar update extracted"
+msgstr "Radar update extracted"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Radar updates"
+msgstr "Radar updates"
 
 #: src/routes/practice.tsx
 msgid "Rank"
@@ -5979,10 +5974,6 @@ msgstr "Regenerate"
 msgid "Regenerate URL"
 msgstr "Regenerate URL"
 
-#: src/features/pulse/AlertsListPage.tsx
-msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Reject"
 msgstr "Reject"
@@ -6054,8 +6045,8 @@ msgid "Request export"
 msgstr "Request export"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Request Pulse review"
-msgstr "Request Pulse review"
+msgid "Request Radar review"
+msgstr "Request Radar review"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Request review"
@@ -6066,8 +6057,8 @@ msgid "Required for rule applicability."
 msgstr "Required for rule applicability."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Required for rules and Pulse matching."
-msgstr "Required for rules and Pulse matching."
+msgid "Required for rules and Radar matching."
+msgstr "Required for rules and Radar matching."
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
@@ -6205,8 +6196,8 @@ msgid "Review and confirm column mapping"
 msgstr "Review and confirm column mapping"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Review applied Pulse exceptions changing due dates."
-msgstr "Review applied Pulse exceptions changing due dates."
+msgid "Review applied Radar exceptions changing due dates."
+msgstr "Review applied Radar exceptions changing due dates."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review lightweight client business cues."
@@ -7143,6 +7134,10 @@ msgstr "Source revoked"
 msgid "Source-backed evidence"
 msgstr "Source-backed evidence"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Source-backed government changes that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgstr "Source-backed government changes that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+
 #: src/routes/rules.pulse.tsx
 msgid "Source-backed government changes that may affect client deadlines. Review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here."
 msgstr "Source-backed government changes that may affect client deadlines. Review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here."
@@ -7457,6 +7452,7 @@ msgid "Team member"
 msgstr "Team member"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/workload/workload-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Team workload"
@@ -7582,8 +7578,8 @@ msgid "The numbers above are computed from your confirmed mappings, tax type sug
 msgstr "The numbers above are computed from your confirmed mappings, tax type suggestions, and active practice rules. Import & Generate will create clients, deadlines, evidence, and audit records."
 
 #: src/features/concepts/concept-help.tsx
-msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
-msgstr "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
+msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Radar change."
+msgstr "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Radar change."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for obligation work: filter, sort, assign owners, update status, and open evidence for each obligation."
@@ -7675,8 +7671,8 @@ msgid "This clears the unfinished draft so you can start a new import. No client
 msgstr "This clears the unfinished draft so you can start a new import. No clients or deadlines have been created yet."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "This client is clear of the current practice-scoped Pulse queue."
-msgstr "This client is clear of the current practice-scoped Pulse queue."
+msgid "This client is clear of the current practice-scoped Radar queue."
+msgstr "This client is clear of the current practice-scoped Radar queue."
 
 #: src/features/migration/Step4Preview.tsx
 msgid "This import can be undone for 24 hours and keeps an audit record"
@@ -7703,8 +7699,8 @@ msgid "This practice already has the selected plan."
 msgstr "This practice already has the selected plan."
 
 #: src/features/pulse/lib/error-mapping.ts
-msgid "This Pulse alert is closed and cannot be sent for review."
-msgstr "This Pulse alert is closed and cannot be sent for review."
+msgid "This Radar alert is closed and cannot be sent for review."
+msgstr "This Radar alert is closed and cannot be sent for review."
 
 #: src/routes/readiness.tsx
 msgid "This readiness link is expired, revoked, or invalid."
@@ -8035,8 +8031,8 @@ msgid "UTC time"
 msgstr "UTC time"
 
 #: src/routes/clients.tsx
-msgid "Validate the practice client facts that generate obligations, dashboard risk, and Pulse matches."
-msgstr "Validate the practice client facts that generate obligations, dashboard risk, and Pulse matches."
+msgid "Validate the practice client facts that generate obligations, dashboard risk, and Radar matches."
+msgstr "Validate the practice client facts that generate obligations, dashboard risk, and Radar matches."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
@@ -8242,10 +8238,6 @@ msgstr "Workspace configuration for this practice — identity, team, billing, c
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Workspace configuration hub — Practice, team, billing, automation."
 msgstr "Workspace configuration hub — Practice, team, billing, automation."
-
-#: src/routes/route-summary.ts
-msgid "Workspace settings"
-msgstr "Workspace settings"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"

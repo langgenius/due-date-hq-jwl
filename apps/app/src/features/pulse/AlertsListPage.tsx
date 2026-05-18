@@ -135,13 +135,13 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
                 <PulsingDot tone={isEmpty ? 'success' : 'warning'} active />
-                <Trans>Pulse Changes</Trans>
+                <Trans>Radar</Trans>
               </h1>
-              <p className="max-w-[640px] text-md text-text-secondary">
+              <p className="max-w-[640px] text-sm leading-5 text-text-secondary">
                 <ConceptLabel concept="pulse">
                   <Trans>
-                    Regulatory Pulse signals that match your practice's clients. Review, batch-apply
-                    due-date changes, snooze, or revisit closed changes.
+                    Source-backed government changes that match your practice's clients. Review,
+                    batch-apply due-date changes, snooze, or revisit closed changes.
                   </Trans>
                 </ConceptLabel>
               </p>
@@ -330,7 +330,7 @@ function SourceAttentionAlert({
       <AlertTriangleIcon />
       <AlertTitle className="flex min-w-0 flex-wrap items-center gap-2">
         <span>
-          <Trans>Pulse source needs attention</Trans>
+          <Trans>Radar source needs attention</Trans>
         </span>
         <Badge variant="warning" className="tabular-nums">
           <Plural value={sourceCount} one="# source" other="# sources" />
@@ -371,7 +371,7 @@ function PassiveSourceHealthNotice() {
     <Alert id="pulse-source-health" variant="info" className="scroll-mt-24">
       <InfoIcon />
       <AlertTitle>
-        <Trans>Pulse source checks degraded · Monitoring continues</Trans>
+        <Trans>Radar source checks degraded · Monitoring continues</Trans>
       </AlertTitle>
       <AlertDescription>
         <Trans>
@@ -565,7 +565,7 @@ function NoClientMatchesState() {
     <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default px-4 py-5 text-md text-text-secondary">
       <PulsingDot tone="disabled" />
       <span className="flex-1">
-        <Trans>No client-matching Pulse changes right now.</Trans>
+        <Trans>No client-matching Radar changes right now.</Trans>
       </span>
     </div>
   )

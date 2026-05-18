@@ -27,6 +27,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
+import { KpiStat } from '@/components/patterns/kpi-stat'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { workloadRowDueSoonHref, workloadRowHref, workloadRowOverdueHref } from './workload-links'
@@ -73,10 +74,13 @@ export function WorkloadPage() {
     <section className="grid gap-6 p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
+          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
+            <Trans>Team workload</Trans>
+          </h1>
+          <p className="text-sm leading-5 text-text-secondary">
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
           </p>
-          <p className="text-xs tabular-nums text-text-muted">
+          <p className="mt-1 text-xs tabular-nums text-text-muted">
             <Trans>
               As of {asOfDate} · next {windowDays} days
             </Trans>
@@ -107,12 +111,12 @@ export function WorkloadPage() {
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <MetricCard label={t`Open`} value={data?.summary.open} />
-        <MetricCard label={t`Due soon`} value={data?.summary.dueSoon} />
-        <MetricCard label={t`Overdue`} value={data?.summary.overdue} intent="critical" />
-        <MetricCard label={t`Waiting`} value={data?.summary.waiting} />
-        <MetricCard label={t`Review`} value={data?.summary.review} />
-        <MetricCard label={t`Unassigned`} value={data?.summary.unassigned} intent="warning" />
+        <KpiStat label={t`Open`} value={data?.summary.open ?? '—'} />
+        <KpiStat label={t`Due soon`} value={data?.summary.dueSoon ?? '—'} />
+        <KpiStat label={t`Overdue`} value={data?.summary.overdue ?? '—'} intent="critical" />
+        <KpiStat label={t`Waiting`} value={data?.summary.waiting ?? '—'} />
+        <KpiStat label={t`Review`} value={data?.summary.review ?? '—'} />
+        <KpiStat label={t`Unassigned`} value={data?.summary.unassigned ?? '—'} intent="warning" />
       </div>
 
       {data?.managerInsights ? <ManagerInsights insights={data.managerInsights} /> : null}
@@ -240,33 +244,6 @@ function ManagerInsightMetric({ label, value }: { label: ReactNode; value: React
       <p className="text-xs font-medium uppercase text-text-tertiary">{label}</p>
       <p className="mt-2 truncate text-sm font-semibold text-text-primary">{value}</p>
     </div>
-  )
-}
-
-function MetricCard({
-  label,
-  value,
-  intent = 'neutral',
-}: {
-  label: string
-  value: number | undefined
-  intent?: 'neutral' | 'critical' | 'warning'
-}) {
-  return (
-    <Card size="sm" className="min-h-[104px]">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
-        <CardDescription
-          className={cn(
-            'text-3xl font-semibold tabular-nums text-text-primary',
-            intent === 'critical' && 'text-text-destructive',
-            intent === 'warning' && 'text-text-warning',
-          )}
-        >
-          {value ?? '—'}
-        </CardDescription>
-      </CardHeader>
-    </Card>
   )
 }
 

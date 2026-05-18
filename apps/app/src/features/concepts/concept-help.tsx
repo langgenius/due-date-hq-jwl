@@ -107,7 +107,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'evidence':
       return {
         title: t`Evidence`,
-        description: t`The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change.`,
+        description: t`The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Radar change.`,
       }
     case 'evidenceGap':
       return {
@@ -116,7 +116,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'pulse':
       return {
-        title: t`Pulse`,
+        title: t`Radar`,
         description: t`A regulatory change signal detected from watched official sources. Matching client deadlines still need review before changes are applied.`,
       }
     case 'verifiedRule':

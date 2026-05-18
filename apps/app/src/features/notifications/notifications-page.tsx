@@ -39,7 +39,7 @@ function notificationTypeLabel(type: NotificationType): React.ReactNode {
   if (type === 'deadline_reminder') return <Trans>Deadline reminder</Trans>
   if (type === 'overdue') return <Trans>Overdue</Trans>
   if (type === 'client_reminder') return <Trans>Client reminder</Trans>
-  if (type === 'pulse_alert') return <Trans>Pulse alert</Trans>
+  if (type === 'pulse_alert') return <Trans>Radar alert</Trans>
   if (type === 'audit_package_ready') return <Trans>Audit package</Trans>
   return <Trans>System notification</Trans>
 }
@@ -147,8 +147,11 @@ export function NotificationsPage() {
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Notification center</Trans>
+            <Trans>Notifications</Trans>
           </h1>
+          <p className="text-sm leading-5 text-text-secondary">
+            <Trans>Deadline reminders, audit packages, and Radar alerts in one inbox.</Trans>
+          </p>
         </div>
         <Button
           variant="primary"
@@ -271,7 +274,7 @@ export function NotificationsPage() {
                       ['emailEnabled', t`Email`],
                       ['inAppEnabled', t`In-app`],
                       ['remindersEnabled', t`Deadline reminders`],
-                      ['pulseEnabled', t`Pulse updates`],
+                      ['pulseEnabled', t`Radar updates`],
                       ['unassignedRemindersEnabled', t`Unassigned work`],
                     ] as const
                   ).map(([key, label]) => (

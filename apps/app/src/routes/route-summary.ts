@@ -38,7 +38,7 @@ export const routeSummaries = {
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },
   billingCheckout: { eyebrow: msg`Billing`, title: msg`Checkout` },
   accountSecurity: { eyebrow: msg`Account`, title: msg`Security` },
-  settings: { eyebrow: msg`Settings`, title: msg`Workspace settings` },
+  settings: { eyebrow: msg`Settings`, title: msg`Settings` },
 } satisfies Record<string, RouteSummaryMessages>
 
 export function routeHandle(routeSummary: RouteSummaryMessages): RouteHandle {

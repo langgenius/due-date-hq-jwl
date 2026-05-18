@@ -52,6 +52,8 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
+import { KpiStat } from '@/components/patterns/kpi-stat'
 import {
   Table,
   TableBody,
@@ -233,10 +235,10 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
       <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl leading-[30px] font-semibold text-text-primary">
+          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
             <Trans>Members</Trans>
           </h1>
-          <p className="mt-1 text-base leading-5 text-text-secondary">
+          <p className="mt-1 text-sm leading-5 text-text-secondary">
             <Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>
           </p>
         </div>
@@ -258,25 +260,23 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         </div>
       </header>
 
-      <section className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-        <div className="grid divide-y divide-divider-subtle md:grid-cols-4 md:divide-x md:divide-y-0">
-          <SeatStat data={data} />
-          <KpiStat
-            label={t`Active members`}
-            value={activeMembers.length}
-            detail={t`${ownerCount} owner · ${managedCount} managed`}
-          />
-          <KpiStat
-            label={t`Pending invites`}
-            value={pendingCount}
-            detail={t`${expiredCount} expired needs resend`}
-          />
-          <KpiStat
-            label={t`Suspended`}
-            value={suspendedMembers.length}
-            detail={t`access revoked, history kept`}
-          />
-        </div>
+      <section className="grid gap-3 md:grid-cols-4">
+        <SeatStat data={data} />
+        <KpiStat
+          label={t`Active members`}
+          value={activeMembers.length}
+          caption={t`${ownerCount} owner · ${managedCount} managed`}
+        />
+        <KpiStat
+          label={t`Pending invites`}
+          value={pendingCount}
+          caption={t`${expiredCount} expired needs resend`}
+        />
+        <KpiStat
+          label={t`Suspended`}
+          value={suspendedMembers.length}
+          caption={t`access revoked, history kept`}
+        />
       </section>
 
       {mutationError ? (
@@ -377,38 +377,28 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
 function SeatStat({ data }: { data: MembersListOutput }) {
   const usedRatio = data.seatLimit > 0 ? Math.min(data.usedSeats / data.seatLimit, 1) : 0
   return (
-    <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-        <Trans>Seats used</Trans>
-      </p>
-      <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
-          {data.usedSeats}
+    <Card>
+      <CardContent className="flex min-h-[96px] flex-col gap-1 p-4">
+        <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+          <Trans>Seats used</Trans>
         </span>
-        <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
-      </div>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">
-        <Trans>{data.availableSeats} available seats</Trans>
-      </p>
-      <div className="mt-2 h-0.5 rounded-full bg-divider-subtle">
-        <div
-          className="h-full rounded-full bg-state-accent-solid"
-          style={{ width: `${Math.round(usedRatio * 100)}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function KpiStat({ label, value, detail }: { label: string; value: number; detail: string }) {
-  return (
-    <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">{label}</p>
-      <span className="mt-1 text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
-        {value}
-      </span>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">{detail}</p>
-    </div>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl leading-tight font-semibold tabular-nums text-text-primary">
+            {data.usedSeats}
+          </span>
+          <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
+        </div>
+        <span className="text-xs leading-5 text-text-muted">
+          <Trans>{data.availableSeats} available seats</Trans>
+        </span>
+        <div className="mt-1 h-0.5 rounded-full bg-divider-subtle">
+          <div
+            className="h-full rounded-full bg-state-accent-solid"
+            style={{ width: `${Math.round(usedRatio * 100)}%` }}
+          />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

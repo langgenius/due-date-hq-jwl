@@ -96,7 +96,7 @@ function useAuditCategoryLabels(): Record<AuditCategoryOption, string> {
     rules: t`Rules`,
     auth: t`Auth`,
     team: t`Team`,
-    pulse: t`Pulse`,
+    pulse: t`Radar`,
     export: t`Export`,
     ai: t`AI`,
     system: t`System`,

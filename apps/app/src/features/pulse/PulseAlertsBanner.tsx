@@ -376,7 +376,7 @@ function LoadingLabel({ sources }: { sources: readonly PulseSourceHealth[] }) {
       {sourceCount > 0 ? (
         <Trans>Checking official tax source health…</Trans>
       ) : (
-        <Trans>Checking Pulse source health…</Trans>
+        <Trans>Checking Radar source health…</Trans>
       )}
     </span>
   )
@@ -411,7 +411,7 @@ function AttentionLabel({ sources }: { sources: readonly PulseSourceHealth[] }) 
 function PassiveDegradedLabel() {
   return (
     <span className="truncate text-text-secondary">
-      <Trans>Pulse source checks degraded · Monitoring continues</Trans>
+      <Trans>Radar source checks degraded · Monitoring continues</Trans>
     </span>
   )
 }

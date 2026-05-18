@@ -177,7 +177,7 @@ function TemporaryRuleRow({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={t`Open Pulse detail`}
+              aria-label={t`Open Radar detail`}
               onClick={() => onOpenPulse(rule.alertId!)}
             >
               <RotateCcwIcon className="size-4" aria-hidden />
