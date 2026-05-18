@@ -1,5 +1,8 @@
-import { type ReactNode } from 'react'
+import { useCallback, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
+
+import type { RuleJurisdiction } from '@duedatehq/contracts'
 
 import { CoverageTab } from '@/features/rules/coverage-tab'
 import { RuleLibraryTab } from '@/features/rules/rule-library-tab'
@@ -26,13 +29,40 @@ import { SourcesTab } from '@/features/rules/sources-tab'
  */
 export function RulesLibraryRoute() {
   const { t } = useLingui()
+  const [, setSearchParams] = useSearchParams()
+
+  // Coverage's pending-count cells drill into the Library section by pushing
+  // the matching filters into the URL — Library's filter state lives in
+  // `?library` / `?jur` (see `rule-library-tab.tsx`) so an external setter
+  // is just a URL update. Scroll the Library heading into view after the
+  // params land so the user sees the filtered table without manual scrolling.
+  const handleJurisdictionDrillIn = useCallback(
+    (jurisdiction: RuleJurisdiction) => {
+      setSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current)
+          next.set('library', 'pending_review')
+          next.set('jur', jurisdiction)
+          return next
+        },
+        { replace: true },
+      )
+      // Defer the scroll one tick so the URL-driven re-render commits and
+      // the table reflects the new filter before the viewport moves.
+      requestAnimationFrame(() => {
+        document.getElementById('library')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    },
+    [setSearchParams],
+  )
+
   return (
     <RulesPageShell
       title={t`Rule library`}
       description={t`Practice rule catalog — coverage map at the top, source-watcher health, pending review queue, and the active rule ledger in one place. Only accepted rules can generate client obligations or reminders.`}
     >
       <MergedSection id="coverage" heading={t`Coverage`}>
-        <CoverageTab />
+        <CoverageTab onJurisdictionDrillIn={handleJurisdictionDrillIn} />
       </MergedSection>
       <MergedSection id="sources" heading={t`Sources`}>
         <SourcesTab />
