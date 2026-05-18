@@ -38,10 +38,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import {
-  appleCalendarSubscriptionUrl,
-  canManageFirmCalendar,
-} from '@/features/calendar/calendar-model'
+import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { PermissionObscuredContent } from '@/features/permissions/permission-gate'
@@ -125,18 +122,11 @@ export function CalendarPage() {
     }),
   )
 
-  const canManageFirm = canManageFirmCalendar(currentFirm)
   const cards: CalendarCardConfig[] = [
     {
       scope: 'my',
       title: t`My deadlines`,
       description: t`A personal feed for deadlines assigned to you.`,
-    },
-    {
-      scope: 'firm',
-      title: t`Practice-wide calendar`,
-      description: t`All open practice deadlines for owner and manager planning.`,
-      locked: !canManageFirm,
     },
   ]
 
@@ -161,12 +151,9 @@ export function CalendarPage() {
       </div>
 
       {subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Skeleton className="h-72 rounded-lg" />
-          <Skeleton className="h-72 rounded-lg" />
-        </div>
+        <Skeleton className="h-72 max-w-2xl rounded-lg" />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4">
           {cards.map((card) => (
             <CalendarSubscriptionCard
               key={card.scope}
