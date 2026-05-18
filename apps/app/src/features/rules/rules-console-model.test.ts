@@ -7,19 +7,16 @@ import {
   ENTITY_COLUMN_GROUPS,
   countSourcesByHealth,
   DEFAULT_PREVIEW_CALENDAR_YEAR,
-  DEFAULT_RULES_TAB,
   filterRules,
   filterSources,
   groupPreviewRows,
   humanizeDueDateLogic,
-  isRulesTab,
   previewCalendarYearFromObligations,
   previewCalendarYearFromFormDates,
   previewCalendarYearToFormDates,
   previewFormValuesForClient,
   previewFormToInput,
   previewTaxTypesFromObligations,
-  RULES_TAB_VALUES,
 } from './rules-console-model'
 
 describe('rules console model', () => {
@@ -54,20 +51,6 @@ describe('rules console model', () => {
     expect(coverageCellState('FED', 'sole_prop')).toBe('review')
     expect(coverageCellState('FED', 'individual')).toBe('review')
     expect(coverageCellState('FED', 'trust')).toBe('review')
-  })
-
-  it('guards tab values from the shared literal tuple', () => {
-    expect(DEFAULT_RULES_TAB).toBe('coverage')
-    expect(RULES_TAB_VALUES).toEqual([
-      'coverage',
-      'sources',
-      'library',
-      'pulse',
-      'temporary',
-      'preview',
-    ])
-    expect(RULES_TAB_VALUES.every(isRulesTab)).toBe(true)
-    expect(isRulesTab('publish')).toBe(false)
   })
 
   it('converts preview form values into contract input', () => {

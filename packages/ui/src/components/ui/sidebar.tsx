@@ -41,7 +41,7 @@ import {
  * `accent` variant on `SidebarMenuButton`.
  */
 
-const SIDEBAR_WIDTH = '13.75rem' // 220px — DESIGN §4.9
+const SIDEBAR_WIDTH = '15rem' // 240px — DESIGN §4.9
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer is slightly wider
 
 type SidebarContextValue = {

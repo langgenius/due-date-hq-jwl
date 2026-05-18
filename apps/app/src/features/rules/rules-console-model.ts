@@ -1,5 +1,4 @@
 import * as z from 'zod'
-import { parseAsStringLiteral, type inferParserType } from 'nuqs'
 
 import {
   RuleGenerationPreviewInputSchema,
@@ -17,22 +16,6 @@ import {
   type RuleSource,
 } from '@duedatehq/contracts'
 
-export const RULES_TAB_VALUES = [
-  'coverage',
-  'sources',
-  'library',
-  'pulse',
-  'temporary',
-  'preview',
-] as const
-export const DEFAULT_RULES_TAB = 'coverage'
-export const rulesConsoleSearchParamsParsers = {
-  tab: parseAsStringLiteral(RULES_TAB_VALUES)
-    .withDefault(DEFAULT_RULES_TAB)
-    .withOptions({ history: 'replace' }),
-} as const
-export type RulesConsoleSearchParams = inferParserType<typeof rulesConsoleSearchParamsParsers>
-export type RulesTab = RulesConsoleSearchParams['tab']
 export type SourceHealthFilter = 'all' | RuleSource['healthStatus']
 export type RuleLibraryFilter =
   | 'all'
@@ -45,18 +28,6 @@ export type RuleLibraryFilter =
   | 'applicability_review'
   | 'exception'
 export type CoverageCellState = 'verified' | 'review' | 'none'
-
-// Pure value tables only — i18n labels live with the consuming component
-// (rendered through `useLingui` so Lingui can extract them and so we never
-// pay re-extraction cost for non-React modules).
-export const RULES_TABS: ReadonlyArray<{ value: RulesTab; count?: number }> = [
-  { value: 'coverage' },
-  { value: 'sources' },
-  { value: 'library' },
-  { value: 'pulse' },
-  { value: 'temporary' },
-  { value: 'preview' },
-]
 
 export const RULE_JURISDICTIONS: RuleJurisdiction[] = [...RuleJurisdictionValues]
 export const RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
@@ -285,10 +256,6 @@ export function previewCalendarYearFromFormDates(
   if (endYear !== null) return endYear + 1
 
   return DEFAULT_PREVIEW_CALENDAR_YEAR
-}
-
-export function isRulesTab(value: string): value is RulesTab {
-  return (RULES_TAB_VALUES as readonly string[]).includes(value)
 }
 
 export function previewFormToInput(values: PreviewFormValues): RuleGenerationPreviewInput {
