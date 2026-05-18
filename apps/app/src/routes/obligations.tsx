@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { Link } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   flexRender,
@@ -69,14 +68,7 @@ import {
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
@@ -97,7 +89,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@duedatehq/ui/components/ui/popover'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -1603,14 +1603,10 @@ export function ObligationQueueRoute() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" size="sm" render={<Link to="/obligations/calendar" />}>
-              <CalendarDaysIcon data-icon="inline-start" />
-              <Trans>Calendar sync</Trans>
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="outline" size="sm">
+                  <Button variant="primary" size="sm">
                     <SaveIcon data-icon="inline-start" />
                     <Trans>Saved views</Trans>
                   </Button>
@@ -1678,6 +1674,7 @@ export function ObligationQueueRoute() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            <CalendarSyncPopover />
             <Button variant="outline" size="sm" onClick={resetObligationQueue}>
               <FilterIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
@@ -1687,24 +1684,7 @@ export function ObligationQueueRoute() {
       </header>
 
       <Card>
-        <CardHeader>
-          <CardTitle>
-            <ConceptLabel concept="obligations">
-              <Trans>Queue controls</Trans>
-            </ConceptLabel>
-          </CardTitle>
-          <CardDescription>
-            <Trans>
-              Use table headers to filter by client, geography, form, owner, risk, and timing.
-            </Trans>
-          </CardDescription>
-          <CardAction>
-            <Badge variant="outline" className="font-mono text-xs tabular-nums">
-              <Plural value={totalShown} one="# row" other="# rows" />
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-4 pt-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-90">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
@@ -1729,22 +1709,6 @@ export function ObligationQueueRoute() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Tabs
-                value={density}
-                onValueChange={(value) => {
-                  if (value !== 'comfortable' && value !== 'compact') return
-                  void setObligationQueueQuery({ density: withDefaultDensityCleared(value) })
-                }}
-              >
-                <TabsList>
-                  <TabsTrigger value="comfortable">
-                    <Trans>Comfortable</Trans>
-                  </TabsTrigger>
-                  <TabsTrigger value="compact">
-                    <Trans>Compact</Trans>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
@@ -1809,48 +1773,60 @@ export function ObligationQueueRoute() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
-              }
-            >
-              <Badge variant={thisWeekFilterActive ? 'default' : 'ghost'}>
-                <Trans>This week</Trans>
-              </Badge>
-            </button>
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery({
-                  exposure: exposure === 'needs_input' ? null : 'needs_input',
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Badge variant={exposure === 'needs_input' ? 'default' : 'ghost'}>
-                <Trans>Needs input</Trans>
-              </Badge>
-            </button>
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery({
-                  evidence: evidence === 'needs' ? null : 'needs',
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Badge variant={evidence === 'needs' ? 'default' : 'ghost'}>
-                <Trans>Needs evidence</Trans>
-              </Badge>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Window</Trans>
+              </span>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
+                }
+              >
+                <Badge variant={thisWeekFilterActive ? 'default' : 'ghost'}>
+                  <Trans>This week</Trans>
+                </Badge>
+              </button>
+              <Separator orientation="vertical" className="mx-1 h-4" />
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Needs action</Trans>
+              </span>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    exposure: exposure === 'needs_input' ? null : 'needs_input',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Badge variant={exposure === 'needs_input' ? 'default' : 'ghost'}>
+                  <Trans>Penalty input</Trans>
+                </Badge>
+              </button>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    evidence: evidence === 'needs' ? null : 'needs',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Badge variant={evidence === 'needs' ? 'default' : 'ghost'}>
+                  <Trans>Evidence</Trans>
+                </Badge>
+              </button>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs tabular-nums">
+              <Plural value={totalShown} one="# row" other="# rows" />
+            </Badge>
           </div>
 
           {selectedIds.length > 0 ? (
@@ -3995,8 +3971,144 @@ function EmptyState({
         </Trans>
       </p>
       <Button size="sm" className="text-xs" onClick={onOpenWizard} disabled={!canRunMigration}>
-        <Trans>Run migration</Trans>
+        <Trans>Import clients</Trans>
       </Button>
     </div>
+  )
+}
+
+function CalendarSyncPopover() {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  const queryClient = useQueryClient()
+  const subscriptionsQuery = useQuery({
+    ...orpc.calendar.listSubscriptions.queryOptions({ input: undefined }),
+    enabled: open,
+  })
+  const subscription =
+    subscriptionsQuery.data?.find((entry) => entry.scope === 'my' && entry.feedUrl) ?? null
+  const feedUrl = subscription?.feedUrl ?? null
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: orpc.calendar.key() })
+
+  const upsertMutation = useMutation(
+    orpc.calendar.upsertSubscription.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Calendar subscription enabled`)
+        void invalidate()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't enable calendar subscription`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const regenerateMutation = useMutation(
+    orpc.calendar.regenerateSubscription.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Calendar URL regenerated`)
+        void invalidate()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't regenerate calendar URL`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+
+  async function copyFeedUrl() {
+    if (!feedUrl) return
+    try {
+      await navigator.clipboard.writeText(feedUrl)
+      toast.success(t`Calendar URL copied`)
+    } catch {
+      toast.error(t`Couldn't copy calendar URL`)
+    }
+  }
+
+  return (
+    <>
+      {open ? (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-40 bg-black/30"
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          render={
+            <Button variant="outline" size="sm">
+              <CalendarDaysIcon data-icon="inline-start" />
+              <Trans>Calendar sync</Trans>
+            </Button>
+          }
+        />
+        <PopoverContent align="end" className="w-80 gap-3">
+          <PopoverHeader>
+            <PopoverTitle>
+              <Trans>My deadlines</Trans>
+            </PopoverTitle>
+            <p className="text-xs text-text-tertiary">
+              <Trans>
+                Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the
+                source of truth.
+              </Trans>
+            </p>
+          </PopoverHeader>
+          {subscriptionsQuery.isLoading ? (
+            <div className="grid gap-2">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ) : feedUrl ? (
+            <div className="grid gap-2">
+              <Input
+                readOnly
+                value={feedUrl}
+                className="font-mono text-xs"
+                aria-label={t`Calendar URL`}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => void copyFeedUrl()} className="flex-1">
+                  <CopyIcon data-icon="inline-start" />
+                  <Trans>Copy URL</Trans>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => subscription && regenerateMutation.mutate({ id: subscription.id })}
+                  disabled={regenerateMutation.isPending}
+                >
+                  <RefreshCwIcon
+                    data-icon="inline-start"
+                    className={cn(regenerateMutation.isPending && 'animate-spin')}
+                  />
+                  <Trans>Regenerate</Trans>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <p className="text-xs text-text-secondary">
+                <Trans>
+                  Generate a private subscription URL so deadlines assigned to you appear in your
+                  personal calendar.
+                </Trans>
+              </p>
+              <Button
+                size="sm"
+                onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
+                disabled={upsertMutation.isPending}
+              >
+                <Trans>Enable subscription</Trans>
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </>
   )
 }
