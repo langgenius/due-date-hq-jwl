@@ -822,10 +822,6 @@ msgstr "All ignored"
 msgid "All impact"
 msgstr "All impact"
 
-#: src/features/calendar/calendar-page.tsx
-msgid "All open practice deadlines for owner and manager planning."
-msgstr "All open practice deadlines for owner and manager planning."
-
 #: src/features/rules/coverage-tab.tsx
 msgid "All review-flagged"
 msgstr "All review-flagged"
@@ -1289,6 +1285,10 @@ msgstr "Calculating…"
 msgid "Calendar subscription disabled"
 msgstr "Calendar subscription disabled"
 
+#: src/routes/obligations.tsx
+msgid "Calendar subscription enabled"
+msgstr "Calendar subscription enabled"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription updated"
 msgstr "Calendar subscription updated"
@@ -1299,11 +1299,17 @@ msgstr "Calendar subscription updated"
 msgid "Calendar sync"
 msgstr "Calendar sync"
 
+#: src/routes/obligations.tsx
+msgid "Calendar URL"
+msgstr "Calendar URL"
+
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Calendar URL copied"
 msgstr "Calendar URL copied"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Calendar URL regenerated"
 msgstr "Calendar URL regenerated"
 
@@ -1654,10 +1660,6 @@ msgstr "Columns"
 msgid "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can power the penalty exposure preview."
 msgstr "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can power the penalty exposure preview."
 
-#: src/routes/obligations.tsx
-msgid "Comfortable"
-msgstr "Comfortable"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 msgstr "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
@@ -1669,10 +1671,6 @@ msgstr "Coming soon"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Command palette"
 msgstr "Command palette"
-
-#: src/routes/obligations.tsx
-msgid "Compact"
-msgstr "Compact"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Complete"
@@ -1796,6 +1794,7 @@ msgid "Copy URI"
 msgstr "Copy URI"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "Copy URL"
 
@@ -1828,6 +1827,7 @@ msgid "Couldn't calculate preview"
 msgstr "Couldn't calculate preview"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
 msgstr "Couldn't copy calendar URL"
 
@@ -1883,6 +1883,10 @@ msgstr "Couldn't discard draft import"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't dismiss alert"
 msgstr "Couldn't dismiss alert"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't enable calendar subscription"
+msgstr "Couldn't enable calendar subscription"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't export selected rows"
@@ -2001,6 +2005,7 @@ msgid "Couldn't reactivate alert"
 msgstr "Couldn't reactivate alert"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Couldn't regenerate calendar URL"
 msgstr "Couldn't regenerate calendar URL"
 
@@ -2635,6 +2640,10 @@ msgstr "Enable full feed"
 msgid "Enable redacted feed"
 msgstr "Enable redacted feed"
 
+#: src/routes/obligations.tsx
+msgid "Enable subscription"
+msgstr "Enable subscription"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Enabled cells"
 msgstr "Enabled cells"
@@ -3121,6 +3130,10 @@ msgid "Generate a checklist or add items before sending a portal link."
 msgstr "Generate a checklist or add items before sending a portal link."
 
 #: src/routes/obligations.tsx
+msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
+msgstr "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
+
+#: src/routes/obligations.tsx
 msgid "Generate checklist"
 msgstr "Generate checklist"
 
@@ -3233,6 +3246,7 @@ msgstr "Import cleanup"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
+#: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Import clients"
 msgstr "Import clients"
@@ -3951,6 +3965,7 @@ msgid "Multiple values"
 msgstr "Multiple values"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "My deadlines"
 msgstr "My deadlines"
 
@@ -3976,6 +3991,7 @@ msgid "Needs {labels}"
 msgstr "Needs {labels}"
 
 #: src/features/pulse/AlertsListPage.tsx
+#: src/routes/obligations.tsx
 msgid "Needs action"
 msgstr "Needs action"
 
@@ -4003,7 +4019,6 @@ msgid "needs input"
 msgstr "needs input"
 
 #: src/routes/dashboard.tsx
-#: src/routes/obligations.tsx
 msgid "Needs input"
 msgstr "Needs input"
 
@@ -5343,10 +5358,6 @@ msgstr "Practice-level delivery copy"
 msgid "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
 msgstr "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
 
-#: src/features/calendar/calendar-page.tsx
-msgid "Practice-wide calendar"
-msgstr "Practice-wide calendar"
-
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "Practice-wide weights for deterministic deadline ranking."
@@ -5645,10 +5656,6 @@ msgstr "Pulse updates"
 msgid "Quarantined"
 msgstr "Quarantined"
 
-#: src/routes/obligations.tsx
-msgid "Queue controls"
-msgstr "Queue controls"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -5863,6 +5870,10 @@ msgstr "Refresh confidence"
 #: src/features/migration/WizardShell.tsx
 msgid "Refreshing the AI mapping"
 msgstr "Refreshing the AI mapping"
+
+#: src/routes/obligations.tsx
+msgid "Regenerate"
+msgstr "Regenerate"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Regenerate URL"
@@ -6360,7 +6371,6 @@ msgstr "Rules accepted in bulk"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/dashboard.tsx
-#: src/routes/obligations.tsx
 msgid "Run migration"
 msgstr "Run migration"
 
@@ -7135,6 +7145,10 @@ msgstr "Submit readiness response"
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the source of truth for deadline changes."
 msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the source of truth for deadline changes."
 
+#: src/routes/obligations.tsx
+msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
+msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from web calendar URL"
 msgstr "Subscribe from web calendar URL"
@@ -7880,10 +7894,6 @@ msgstr "Use a deployed app URL or a trusted local HTTPS tunnel for direct Apple 
 msgid "Use a whole number from 0 to 99"
 msgstr "Use a whole number from 0 to 99"
 
-#: src/routes/obligations.tsx
-msgid "Use table headers to filter by client, geography, form, owner, risk, and timing."
-msgstr "Use table headers to filter by client, geography, form, owner, risk, and timing."
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Use the source-backed path for deadline changes, then prepare client communication from the same selected obligations."
 msgstr "Use the source-backed path for deadline changes, then prepare client communication from the same selected obligations."
@@ -8062,6 +8072,7 @@ msgid "Will create"
 msgstr "Will create"
 
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/obligations.tsx
 msgid "Window"
 msgstr "Window"
 
