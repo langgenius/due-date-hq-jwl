@@ -7,7 +7,6 @@ import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   CheckIcon,
-  ChevronsUpDownIcon,
   GlobeIcon,
   LogOutIcon,
   MonitorIcon,
@@ -34,9 +33,11 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { isThemePreference, type ThemePreference } from '@duedatehq/ui/theme'
 import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
+import type { FirmPublic } from '@duedatehq/contracts'
 import { useLocaleSwitch } from '@/i18n/provider'
 import { initialsFromName, signOut, type AuthUser } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { roleLabel } from './app-shell-nav'
 
 type DemoRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
 type DemoPlan = 'solo' | 'pro' | 'team'
@@ -147,16 +148,18 @@ function demoPlanLabel(plan: DemoPlan, i18n: I18n): string {
 
 function UserMenuTrigger({
   user,
+  firm,
   themePreference,
   switchThemePreference,
 }: {
   user: AuthUser
+  firm: FirmPublic
   themePreference: ThemePreference
   switchThemePreference: (next: ThemePreference) => void
 }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useLingui()
+  const { i18n, t } = useLingui()
   const { locale, switchLocale } = useLocaleSwitch()
   const [isSigningOut, startSignOut] = useTransition()
   const demoEnabled = isDemoUser(user)
@@ -188,6 +191,8 @@ function UserMenuTrigger({
   const demoAccounts = demoAccountsQuery.data?.accounts ?? []
   const showDemoSwitcher = demoEnabled && demoAccounts.length > 0
   const currentPath = currentPathForDemoSwitch(location)
+  const role = roleLabel(firm.role, i18n)
+  const roleAtFirm = t`${role} at ${firm.name}`
 
   return (
     <DropdownMenu>
@@ -197,26 +202,20 @@ function UserMenuTrigger({
             type="button"
             aria-label={accountLabel}
             className={cn(
-              'group/user flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 px-3 text-left outline-none transition-colors',
-              'hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'inline-flex size-7 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full outline-none transition-opacity',
+              'hover:opacity-85 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
             )}
           />
         }
       >
-        <UserAvatarWithStatus user={user} />
-        <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-sm font-medium text-text-primary">{displayName}</span>
-          <span className="truncate font-mono text-xs tabular-nums text-text-muted">
-            {user.email}
-          </span>
-        </span>
-        <ChevronsUpDownIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+        <UserAvatar user={user} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" side="top" sideOffset={8} className="w-56">
+      <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col gap-0.5 text-left">
             <span className="text-sm font-medium text-text-primary">{displayName}</span>
             <span className="truncate text-xs text-text-tertiary">{user.email}</span>
+            <span className="mt-1 text-xs text-text-tertiary">{roleAtFirm}</span>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -319,26 +318,26 @@ function DemoAccountMenuItems({
   )
 }
 
-function UserAvatarWithStatus({ user }: { user: AuthUser }) {
+function UserAvatar({ user }: { user: AuthUser }) {
   const initials = initialsFromName(user.name || user.email)
 
+  if (user.image) {
+    return (
+      <img
+        src={user.image}
+        alt=""
+        aria-hidden
+        referrerPolicy="no-referrer"
+        className="size-7 rounded-full object-cover"
+      />
+    )
+  }
   return (
-    <span aria-hidden className="relative inline-block size-7 shrink-0">
-      {user.image ? (
-        <img
-          src={user.image}
-          alt=""
-          referrerPolicy="no-referrer"
-          className="size-7 rounded-full object-cover"
-        />
-      ) : (
-        <span className="grid size-7 place-items-center rounded-full bg-state-accent-hover-alt text-sm font-semibold text-text-accent">
-          {initials}
-        </span>
-      )}
-      <span className="absolute -right-0.5 -bottom-0.5 grid size-2.5 place-items-center rounded-full bg-components-panel-bg">
-        <span className="size-1.5 rounded-full bg-state-success-solid" />
-      </span>
+    <span
+      aria-hidden
+      className="grid size-7 place-items-center rounded-full bg-state-accent-hover-alt text-xs font-semibold text-text-accent"
+    >
+      {initials}
     </span>
   )
 }

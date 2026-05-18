@@ -29,10 +29,16 @@ export const routeSummaries = {
   audit: { eyebrow: msg`Practice`, title: msg`Audit log` },
   practice: { eyebrow: msg`Practice`, title: msg`Practice profile` },
   members: { eyebrow: msg`Practice`, title: msg`Members` },
-  rules: { eyebrow: msg`Operations`, title: msg`Rules` },
+  rulesCoverage: { eyebrow: msg`Rules`, title: msg`Coverage` },
+  rulesSources: { eyebrow: msg`Rules`, title: msg`Sources` },
+  rulesLibrary: { eyebrow: msg`Rules`, title: msg`Rule library` },
+  rulesPulse: { eyebrow: msg`Rules`, title: msg`Pulse changes` },
+  rulesTemporary: { eyebrow: msg`Rules`, title: msg`Temporary rules` },
+  rulesPreview: { eyebrow: msg`Rules`, title: msg`Obligation preview` },
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },
   billingCheckout: { eyebrow: msg`Billing`, title: msg`Checkout` },
   accountSecurity: { eyebrow: msg`Account`, title: msg`Security` },
+  settings: { eyebrow: msg`Settings`, title: msg`Workspace settings` },
 } satisfies Record<string, RouteSummaryMessages>
 
 export function routeHandle(routeSummary: RouteSummaryMessages): RouteHandle {

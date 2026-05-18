@@ -11,25 +11,25 @@ test.skip(
 
 test.use({ authSeed: 'obligations' })
 
-test('AC: E2E-RULES-TABS persists implemented tab state', async ({
+test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async ({
   authenticatedPage,
   rulesConsolePage,
 }) => {
   await rulesConsolePage.goto()
 
-  await expect(rulesConsolePage.coverageTab).toHaveAttribute('aria-selected', 'true')
+  await expect(authenticatedPage).toHaveURL(/\/rules\/coverage$/)
   await expect(authenticatedPage.getByText('Active rules', { exact: true })).toBeVisible()
   await expect(authenticatedPage.getByText('Pending review', { exact: true })).toBeVisible()
 
   await rulesConsolePage.sourcesTab.click()
-  await expect(authenticatedPage).toHaveURL(/\/rules\?tab=sources$/)
+  await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
   await authenticatedPage.getByRole('button', { name: /^Healthy\s+\d+$/ }).click()
   await expect(
     authenticatedPage.getByText('IRS Publication 509 (2026), Tax Calendars'),
   ).toBeVisible()
 
   await rulesConsolePage.libraryTab.click()
-  await expect(authenticatedPage).toHaveURL(/\/rules\?tab=library$/)
+  await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.getByRole('button', { name: /^Needs review\s+\d+$/ }).click()
   await expect(
     authenticatedPage.getByText('al.individual_income_return.candidate.2026'),
@@ -62,10 +62,9 @@ test('AC: E2E-RULES-PREVIEW runs the implemented obligation preview', async ({
   authenticatedPage,
   rulesConsolePage,
 }) => {
-  await rulesConsolePage.goto()
-  await rulesConsolePage.previewTab.click()
+  await rulesConsolePage.gotoPreview()
 
-  await expect(authenticatedPage).toHaveURL(/\/rules\?tab=preview$/)
+  await expect(authenticatedPage).toHaveURL(/\/rules\/preview$/)
   const obligationPreviewForm = authenticatedPage.locator('form').filter({
     has: authenticatedPage.getByRole('button', { name: /Run preview/ }),
   })

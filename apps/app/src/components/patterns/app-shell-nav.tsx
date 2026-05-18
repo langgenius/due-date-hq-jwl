@@ -5,17 +5,14 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
-  Building2Icon,
-  AlarmClockIcon,
+  ActivityIcon,
   CalendarClockIcon,
   CheckIcon,
   ChevronsUpDownIcon,
-  ClipboardListIcon,
-  CreditCardIcon,
-  FileCheck2Icon,
   LayoutDashboardIcon,
+  LibraryIcon,
   PlusIcon,
-  ScaleIcon,
+  SettingsIcon,
   SparklesIcon,
   UsersIcon,
   type LucideIcon,
@@ -58,7 +55,7 @@ import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
-import { canCreateAdditionalFirm, ownedActiveFirms, paidPlanActive } from '@/features/billing/model'
+import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
 import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
@@ -79,9 +76,14 @@ type NavItem = {
 }
 
 type NavConfig = {
-  operations: NavItem[]
-  clients: NavItem[]
-  practice: NavItem[]
+  // Primary daily / weekly destinations. Flat list, no section labels —
+  // at 6 items the headers were adding visual weight without information.
+  primary: NavItem[]
+  // Bottom of the sidebar. Holds the Settings hub for workspace
+  // configuration (Practice profile, Members, Billing, Audit, automation
+  // settings — see `apps/app/src/routes/settings.tsx`). Personal account
+  // settings live in the `UserMenuTrigger` dropdown, not here.
+  footer: NavItem[]
 }
 
 function firmMonogram(name: string): string {
@@ -141,7 +143,6 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
     }),
   )
   const currentMonogram = firmMonogram(firm.name)
-  const currentMeta = firmMeta(firm, i18n)
 
   const handleSwitch = useCallback(
     (firmId: string) => {
@@ -183,11 +184,11 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
           >
             {currentMonogram}
           </span>
-          <span className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-sm font-medium text-text-primary" translate="no">
-              {firm.name}
-            </span>
-            <span className="truncate text-xs text-text-muted">{currentMeta}</span>
+          <span
+            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+            translate="no"
+          >
+            {firm.name}
           </span>
           <ChevronsUpDownIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
         </DropdownMenuTrigger>
@@ -405,14 +406,13 @@ function usePulseAlertCount(): number {
   return query.data?.alerts.length ?? 0
 }
 
-function useNavItems(firm: FirmPublic): NavConfig {
+function useNavItems(_firm: FirmPublic): NavConfig {
   const { t } = useLingui()
   const pulseCount = usePulseAlertCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
-  const workloadPaid = paidPlanActive(firm)
   return useMemo<NavConfig>(
     () => ({
-      operations: [
+      primary: [
         { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
         {
           href: '/obligations',
@@ -420,44 +420,35 @@ function useNavItems(firm: FirmPublic): NavConfig {
           icon: CalendarClockIcon,
           end: false,
         },
+        // Pulse is the spine of the product (per the canonical product
+        // spec — "you won't be the last CPA in your state to find out about
+        // a filing extension"). It lives as a direct entry, not buried
+        // under Rules, because it's operational/real-time work — not
+        // governance. The sidebar badge counts incoming alerts only.
         {
-          href: '/rules',
-          label: t`Rules`,
-          icon: FileCheck2Icon,
+          href: '/rules/pulse',
+          label: t`Pulse`,
+          icon: ActivityIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
         },
-        {
-          href: '/reminders',
-          label: t`Reminders`,
-          icon: AlarmClockIcon,
-          end: false,
-        },
-      ],
-      clients: [
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
-      ],
-      practice: [
-        { href: '/practice', label: t`Practice profile`, icon: Building2Icon, end: false },
+        // Rule library is a single direct entry. Coverage and Sources are
+        // not separate sidebar destinations — they're aggregate views of
+        // the catalog, rendered as sections inside the Library page. The
+        // route stays at `/rules/library` for now; a future pass merges the
+        // three pages into a single `/rules` URL.
         {
-          href: '/workload',
-          label: t`Team workload`,
-          icon: ClipboardListIcon,
+          href: '/rules/library',
+          label: t`Rule library`,
+          icon: LibraryIcon,
           end: false,
-          ...(workloadPaid
-            ? {}
-            : {
-                tag: t`Pro`,
-                disabledReason: t`Team workload is available on Pro, Team, and Enterprise plans.`,
-              }),
         },
-        { href: '/members', label: t`Members`, icon: UsersIcon, end: false },
-        { href: '/billing', label: t`Billing`, icon: CreditCardIcon, end: false },
-        { href: '/audit', label: t`Audit log`, icon: ScaleIcon, end: false },
       ],
+      footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
     }),
-    [t, pulseBadge, workloadPaid],
+    [t, pulseBadge],
   )
 }
 
@@ -466,19 +457,14 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
   const items = useNavItems(firm)
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
-      <NavGroupSection label={t`Operations`}>
-        {items.operations.map((item) => (
+      <NavGroupSection>
+        {items.primary.map((item) => (
           <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
         ))}
       </NavGroupSection>
-      <NavGroupSection label={t`Clients`}>
-        {items.clients.map((item) => (
+      <NavGroupSection muted>
+        {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
-        ))}
-      </NavGroupSection>
-      <NavGroupSection label={t`Practice`}>
-        {items.practice.map((item) => (
-          <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
         ))}
       </NavGroupSection>
     </nav>
@@ -490,13 +476,17 @@ function NavGroupSection({
   muted = false,
   children,
 }: {
-  label: string
+  // Labels are intentionally omitted at the call site for the current sidebar
+  // shape — at 6 entries split into 3 groups of 1–3, headers were adding
+  // visual weight without information. Kept optional so denser future
+  // structures can re-label without changing this component.
+  label?: string
   muted?: boolean
   children: ReactNode
 }) {
   return (
     <SidebarGroup className={muted ? 'opacity-55' : undefined}>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>
@@ -532,4 +522,4 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
   )
 }
 
-export { FirmSwitcherTrigger, NavGroups }
+export { FirmSwitcherTrigger, NavGroups, roleLabel }

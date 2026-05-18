@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
+  ActivityIcon,
   AlarmClockIcon,
   BellIcon,
   BotIcon,
@@ -10,9 +11,13 @@ import {
   CalendarClockIcon,
   ClipboardListIcon,
   CreditCardIcon,
-  FileCheck2Icon,
+  HourglassIcon,
   LayoutDashboardIcon,
+  LibraryIcon,
+  MapIcon,
+  RssIcon,
   ScaleIcon,
+  SettingsIcon,
   SparklesIcon,
   UploadCloudIcon,
   UsersIcon,
@@ -128,13 +133,49 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         onSelect: () => navigate('/practice'),
       },
       {
-        id: 'rules',
-        label: t`Rules`,
-        description: t`Review source coverage, rule inventory, and obligation preview.`,
+        id: 'rules-coverage',
+        label: t`Coverage`,
+        description: t`Review per-jurisdiction rule coverage by entity.`,
         group: 'navigate',
-        icon: FileCheck2Icon,
-        onSelect: () => navigate('/rules'),
+        icon: MapIcon,
+        onSelect: () => navigate('/rules/coverage'),
       },
+      {
+        id: 'rules-sources',
+        label: t`Sources`,
+        description: t`Inspect official sources and their watcher health.`,
+        group: 'navigate',
+        icon: RssIcon,
+        onSelect: () => navigate('/rules/sources'),
+      },
+      {
+        id: 'rules-library',
+        label: t`Rule library`,
+        description: t`Browse pending, active, rejected, and archived rules.`,
+        group: 'navigate',
+        icon: LibraryIcon,
+        onSelect: () => navigate('/rules/library'),
+      },
+      {
+        id: 'rules-pulse',
+        label: t`Pulse changes`,
+        description: t`Triage source-backed government changes affecting clients.`,
+        group: 'navigate',
+        icon: ActivityIcon,
+        onSelect: () => navigate('/rules/pulse'),
+      },
+      {
+        id: 'rules-temporary',
+        label: t`Temporary rules`,
+        description: t`Review applied Pulse exceptions changing due dates.`,
+        group: 'navigate',
+        icon: HourglassIcon,
+        onSelect: () => navigate('/rules/temporary'),
+      },
+      // Obligation preview (/rules/preview) is intentionally not listed
+      // in the Command Palette navigate group. See app-shell-nav.tsx for
+      // the rationale — it's a sandbox, not a day-to-day surface. The
+      // route stays accessible by direct URL.
       {
         id: 'members',
         label: t`Members`,
@@ -161,6 +202,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         icon: ScaleIcon,
         permission: 'audit.read',
         onSelect: () => navigate('/audit'),
+      },
+      {
+        id: 'settings',
+        label: t`Settings`,
+        description: t`Workspace configuration hub — Practice, team, billing, automation.`,
+        group: 'navigate',
+        icon: SettingsIcon,
+        onSelect: () => navigate('/settings'),
       },
       {
         id: 'calendar-sync',
