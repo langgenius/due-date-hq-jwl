@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 
@@ -123,10 +123,46 @@ function aggregateCoverage(rows: readonly RuleCoverageRow[]) {
   return { active, pending, sources, fullyCovered, jurisdictions: rows.length }
 }
 
-export function CoverageTab() {
+export function CoverageTab({
+  onJurisdictionDrillIn,
+}: {
+  // Optional callback fired when a pending-count cell in the jurisdiction
+  // summary is activated. The merged Library page wires this to a handler
+  // that pushes `library=pending_review&jur=<jurisdiction>` into the URL
+  // (which Library's filter state reads) and scrolls the Library section
+  // into view. Standalone /rules/coverage callers (none today, but reserved)
+  // can omit this — pending cells render as plain text instead of buttons.
+  onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+} = {}) {
   const { t } = useLingui()
   const [entityGroup, setEntityGroup] = useState<CoverageEntityGroup>(DEFAULT_COVERAGE_ENTITY_GROUP)
+  const [showAllReview, setShowAllReview] = useState(false)
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
+
+  const entityColumns = ENTITY_COLUMN_GROUPS[entityGroup]
+  // Partition jurisdictions so the dense matrix doesn't drown the eye in
+  // identical yellow "review" dots. A jurisdiction is "interesting" when at
+  // least one of its visible entity columns has an active or no-rule cell;
+  // those rows go above the fold. The remainder collapse under a single
+  // expander row — when ~95% of states default to review across all entity
+  // types, hiding them by default makes the matrix's signal visible. Hook
+  // is called before the loading / error early returns so hook order is
+  // stable across renders.
+  const { interestingJurisdictions, allReviewJurisdictions } = useMemo(() => {
+    const interesting: RuleJurisdiction[] = []
+    const allReview: RuleJurisdiction[] = []
+    for (const jurisdiction of RULE_JURISDICTIONS) {
+      const hasNonReviewCell = entityColumns.some(
+        (entity) => coverageCellState(jurisdiction, entity) !== 'review',
+      )
+      if (hasNonReviewCell) {
+        interesting.push(jurisdiction)
+      } else {
+        allReview.push(jurisdiction)
+      }
+    }
+    return { interestingJurisdictions: interesting, allReviewJurisdictions: allReview }
+  }, [entityColumns])
 
   const coverageStatusLabels: Partial<Record<RuleJurisdiction, string>> = {
     FED: t`Practice review required`,
@@ -147,7 +183,9 @@ export function CoverageTab() {
 
   const rows = coverageQuery.data ?? []
   const stats = aggregateCoverage(rows)
-  const entityColumns = ENTITY_COLUMN_GROUPS[entityGroup]
+  const visibleJurisdictions = showAllReview
+    ? [...interestingJurisdictions, ...allReviewJurisdictions]
+    : interestingJurisdictions
   const entityGroupOptions: Array<{ value: CoverageEntityGroup; label: string }> = [
     { value: 'business', label: t`Business` },
     { value: 'personal', label: t`Personal & fiduciary` },
@@ -247,7 +285,19 @@ export function CoverageTab() {
                           : 'text-text-muted',
                       )}
                     >
-                      {row.pendingReviewCount ?? row.candidateCount}
+                      {onJurisdictionDrillIn &&
+                      (row.pendingReviewCount ?? row.candidateCount) > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => onJurisdictionDrillIn(row.jurisdiction)}
+                          aria-label={t`Review ${row.pendingReviewCount ?? row.candidateCount} pending rules for ${jurisdictionLabel(row.jurisdiction)}`}
+                          className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          {row.pendingReviewCount ?? row.candidateCount}
+                        </button>
+                      ) : (
+                        (row.pendingReviewCount ?? row.candidateCount)
+                      )}
                     </TableCell>
                     <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
                       {row.sourceCount}
@@ -318,7 +368,7 @@ export function CoverageTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {RULE_JURISDICTIONS.map((jurisdiction) => (
+                {visibleJurisdictions.map((jurisdiction) => (
                   <TableRow key={jurisdiction} className="h-11 hover:bg-transparent">
                     <TableCell className="py-2 text-xs font-medium">
                       {jurisdictionLabel(jurisdiction)}
@@ -330,6 +380,30 @@ export function CoverageTab() {
                     ))}
                   </TableRow>
                 ))}
+                {allReviewJurisdictions.length > 0 ? (
+                  <TableRow className="h-10 hover:bg-transparent">
+                    <TableCell
+                      colSpan={entityColumns.length + 1}
+                      className="border-t border-divider-subtle py-2 text-center"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setShowAllReview((value) => !value)}
+                        className="text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                      >
+                        {showAllReview ? (
+                          <Trans>
+                            Hide {allReviewJurisdictions.length} jurisdictions defaulting to review
+                          </Trans>
+                        ) : (
+                          <Trans>
+                            Show {allReviewJurisdictions.length} jurisdictions defaulting to review
+                          </Trans>
+                        )}
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ) : null}
               </TableBody>
             </Table>
           </SectionFrame>
