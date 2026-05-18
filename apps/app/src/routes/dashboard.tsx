@@ -254,7 +254,7 @@ function ExposureBadge({ row, canSeeDollars }: { row: DashboardTopRow; canSeeDol
   }
   if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
     return (
-      <Badge variant="warning" className="font-mono tabular-nums">
+      <Badge variant="warning" className="tabular-nums">
         {formatCents(row.estimatedExposureCents)}
       </Badge>
     )
@@ -729,7 +729,7 @@ function daysUntilDueFromAsOf(dueDate: string, asOfDate: string | null): number 
 function DashboardCountdownBadge({ days }: { days: number }) {
   const variant = days <= 2 ? 'destructive' : days <= 7 ? 'warning' : 'outline'
   return (
-    <Badge variant={variant} className="min-w-18 justify-start font-mono text-xs tabular-nums">
+    <Badge variant={variant} className="min-w-18 justify-start text-xs tabular-nums">
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : days < 0 ? (
@@ -861,7 +861,7 @@ function DashboardTriagePanel({
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
                     <span>{tabLabels[tab.key]}</span>
-                    <Badge variant="secondary" className="font-mono tabular-nums">
+                    <Badge variant="secondary" className="tabular-nums">
                       {tab.count}
                     </Badge>
                   </TabsTrigger>
@@ -1032,7 +1032,7 @@ function DashboardTriageTable({
           )
         },
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 font-mono tabular-nums">
+          <div className="flex items-center gap-2 tabular-nums">
             <DashboardCountdownBadge
               days={daysUntilDueFromAsOf(row.original.currentDueDate, asOfDate)}
             />
@@ -1205,7 +1205,7 @@ function DashboardTriageTable({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {tableRows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={visibleColumnCount} className="py-8 text-xs text-text-secondary">
@@ -1219,7 +1219,7 @@ function DashboardTriageTable({
                 role="button"
                 tabIndex={0}
                 aria-label={`${t`Open obligations`}: ${tableRow.original.clientName} ${tableRow.original.taxType}`}
-                className="cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                className="cursor-pointer rounded-md outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                 onClick={(event) => {
                   if (isDashboardRowControlClick(event.target, event.currentTarget)) return
                   onOpenObligation(tableRow.original)
