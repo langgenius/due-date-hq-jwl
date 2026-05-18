@@ -143,7 +143,6 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
     }),
   )
   const currentMonogram = firmMonogram(firm.name)
-  const currentMeta = firmMeta(firm, i18n)
 
   const handleSwitch = useCallback(
     (firmId: string) => {
@@ -185,11 +184,11 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
           >
             {currentMonogram}
           </span>
-          <span className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-sm font-medium text-text-primary" translate="no">
-              {firm.name}
-            </span>
-            <span className="truncate text-xs text-text-muted">{currentMeta}</span>
+          <span
+            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+            translate="no"
+          >
+            {firm.name}
           </span>
           <ChevronsUpDownIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
         </DropdownMenuTrigger>
@@ -523,4 +522,4 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
   )
 }
 
-export { FirmSwitcherTrigger, NavGroups }
+export { FirmSwitcherTrigger, NavGroups, roleLabel }
