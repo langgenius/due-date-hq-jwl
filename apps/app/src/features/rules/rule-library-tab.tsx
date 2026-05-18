@@ -97,6 +97,12 @@ const entityParser = parseAsArrayOf(parseAsString)
   .withDefault([])
   .withOptions({ history: 'replace' })
 
+// Origin tag — set by cross-page drill-ins (e.g. `?from=coverage` when a
+// dot or PENDING count on Coverage status drilled here). Renders a small
+// breadcrumb pill above the table so the cross-page filter isn't
+// invisible. Clearing the pill resets all pre-filter URL state.
+const originParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
+
 function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
   return `${rule.id}:${rule.version}:${rule.status}`
 }
@@ -121,6 +127,16 @@ export function RuleLibraryTab() {
     },
     [setEntityFiltersQuery],
   )
+  const [origin, setOrigin] = useQueryState('from', originParser)
+  // Origin-tag clear: drop the cross-page pre-filter URL state and the
+  // `?from=` tag in one shot. Filters back to the page's defaults
+  // (pending_review, no jur, no entity).
+  const clearOriginAndFilters = useCallback(() => {
+    void setLibraryFilter('pending_review')
+    void setJurisdictionFilters([])
+    void setEntityFiltersQuery([])
+    void setOrigin('')
+  }, [setEntityFiltersQuery, setJurisdictionFilters, setLibraryFilter, setOrigin])
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<RuleHeaderFilterId | null>(null)
@@ -394,6 +410,13 @@ export function RuleLibraryTab() {
 
   return (
     <div className="flex flex-col gap-3">
+      {origin === 'coverage' ? (
+        <OriginBreadcrumb
+          label={t`Pre-filtered from Coverage status`}
+          onClear={clearOriginAndFilters}
+          clearLabel={t`Clear and back to default`}
+        />
+      ) : null}
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}
@@ -820,6 +843,43 @@ function RuleRow({
       <TableCell className="py-2 font-mono text-xs text-text-tertiary">v{rule.version}</TableCell>
       <TableCell className="py-2 text-right text-xs text-text-tertiary">›</TableCell>
     </TableRow>
+  )
+}
+
+/**
+ * Cross-page origin breadcrumb. Rendered above the filter chips when
+ * the Library was reached via a drill-in URL carrying `?from=…`. Shows
+ * the origin name + a clear-and-dismiss action so the user always
+ * knows why their default Library view looks pre-filtered, and can
+ * return to defaults in one click.
+ *
+ * Today the only origin we tag is `from=coverage` (Coverage status
+ * drill-ins). Future origins (e.g. Dashboard digest banner, Radar
+ * "view affected rules") add their own labels here.
+ */
+function OriginBreadcrumb({
+  label,
+  onClear,
+  clearLabel,
+}: {
+  label: string
+  onClear: () => void
+  clearLabel: string
+}) {
+  return (
+    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
+      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={clearLabel}
+        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Clear</Trans>
+        <span aria-hidden>×</span>
+      </button>
+    </div>
   )
 }
 
