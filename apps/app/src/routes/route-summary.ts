@@ -29,7 +29,7 @@ export const routeSummaries = {
   audit: { eyebrow: msg`Practice`, title: msg`Audit log` },
   practice: { eyebrow: msg`Practice`, title: msg`Practice profile` },
   members: { eyebrow: msg`Practice`, title: msg`Members` },
-  rulesCoverage: { eyebrow: msg`Rules`, title: msg`Coverage` },
+  rulesCoverage: { eyebrow: msg`Rules`, title: msg`Coverage status` },
   rulesSources: { eyebrow: msg`Rules`, title: msg`Sources` },
   rulesLibrary: { eyebrow: msg`Rules`, title: msg`Rule library` },
   rulesPulse: { eyebrow: msg`Operations`, title: msg`Radar` },

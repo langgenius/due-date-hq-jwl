@@ -11,26 +11,23 @@ export function RulesCoverageRoute() {
   const { t } = useLingui()
   const navigate = useNavigate()
 
-  // Per-jurisdiction drill-in from the standalone Coverage page.
-  // In v2 of the Library merge, this drill behavior lived inline because
-  // Coverage and Library were on the same scroll. The v3 summary-strip
-  // rewrite moved Library to `/rules/library`, so clicking a pending
-  // cell here now navigates across pages — same destination, one
-  // additional viewport (Coverage detail → Library). The Library page
-  // reads `?library` / `?jur` from the URL via nuqs, so we just push the
-  // matching params.
+  // Per-jurisdiction drill-in from the Coverage status page. Clicking a
+  // pending cell pushes ?library + ?jur and navigates to the Library; the
+  // Library reads those params via nuqs and shows the matching slice.
+  // No #library fragment needed — the Library page no longer has a strip
+  // section above it.
   const handleJurisdictionDrillIn = useCallback(
     (jurisdiction: RuleJurisdiction) => {
       const params = new URLSearchParams({ library: 'pending_review', jur: jurisdiction })
-      void navigate(`/rules/library?${params.toString()}#library`)
+      void navigate(`/rules/library?${params.toString()}`)
     },
     [navigate],
   )
 
   return (
     <RulesPageShell
-      title={t`Coverage`}
-      description={t`Sources are official federal, state, and DC materials. Only practice-accepted rules can generate reminder-ready obligations; pending templates remain review-only until an owner or manager accepts them. Click a pending count to drill into the Rule library.`}
+      title={t`Coverage status`}
+      description={t`Do we have rules where clients file? Each cell shows active rules and pending templates per jurisdiction × entity. Click a pending count to drill into the Rule library. Source citations carry through — every count traces back to the official federal, state, or DC document.`}
     >
       <CoverageTab onJurisdictionDrillIn={handleJurisdictionDrillIn} />
     </RulesPageShell>

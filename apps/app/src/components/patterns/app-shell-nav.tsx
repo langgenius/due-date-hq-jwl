@@ -11,6 +11,7 @@ import {
   ChevronsUpDownIcon,
   LayoutDashboardIcon,
   LibraryIcon,
+  MapIcon,
   PlusIcon,
   SettingsIcon,
   SparklesIcon,
@@ -443,10 +444,24 @@ function useNavItems(_firm: FirmPublic): NavConfig {
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
-      // Rule library is a single direct entry. Coverage and Sources are
-      // not separate sidebar destinations — they're aggregate views of
-      // the catalog, rendered as sections inside the Library page.
+      // Two RULES destinations:
+      //  - Coverage status: situational read of the catalog by jurisdiction
+      //    and entity. "Do we have rules where clients file?" Daily check
+      //    for managers; first stop when a Radar change lands.
+      //  - Rule library: the catalog itself — accept / activate / reject /
+      //    archive workflow on rule templates.
+      // Sources (watcher health, last-checked, change-detected) is
+      // operational sysops — surfaced as inline pointers from Coverage
+      // status header and Radar attention callouts, accessed at
+      // /rules/sources but intentionally NOT a sidebar slot. It's
+      // incident-driven, not daily-use.
       rules: [
+        {
+          href: '/rules/coverage',
+          label: t`Coverage status`,
+          icon: MapIcon,
+          end: false,
+        },
         {
           href: '/rules/library',
           label: t`Rule library`,
