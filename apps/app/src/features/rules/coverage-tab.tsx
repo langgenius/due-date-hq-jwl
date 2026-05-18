@@ -1,6 +1,8 @@
 import { type ReactNode, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -16,6 +18,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
 import {
   coverageCellState,
@@ -81,38 +84,6 @@ function CoverageStatusPill({
   )
 }
 
-function StatCell({
-  label,
-  value,
-  caption,
-  emphasis,
-}: {
-  label: ReactNode
-  value: number
-  caption: string
-  emphasis?: 'accent' | 'warning'
-}) {
-  const valueClass =
-    emphasis === 'accent'
-      ? 'text-status-review'
-      : emphasis === 'warning'
-        ? 'text-severity-medium'
-        : 'text-text-primary'
-  return (
-    <div className="flex flex-col gap-2 px-5 py-4">
-      <span className="text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
-        {label}
-      </span>
-      <span
-        className={cn('font-mono text-2xl leading-none font-semibold tabular-nums', valueClass)}
-      >
-        {value}
-      </span>
-      <span className="text-xs text-text-tertiary">{caption}</span>
-    </div>
-  )
-}
-
 function aggregateCoverage(rows: readonly RuleCoverageRow[]) {
   const active = rows.reduce((sum, row) => sum + (row.activeRuleCount ?? row.verifiedRuleCount), 0)
   const pending = rows.reduce((sum, row) => sum + (row.pendingReviewCount ?? row.candidateCount), 0)
@@ -121,6 +92,168 @@ function aggregateCoverage(rows: readonly RuleCoverageRow[]) {
     (row) => (row.pendingReviewCount ?? row.candidateCount) === 0,
   ).length
   return { active, pending, sources, fullyCovered, jurisdictions: rows.length }
+}
+
+/**
+ * One-line situational read at the top of the Coverage status page.
+ *
+ *   3 active · 123 needs review · 52 jurisdictions      88 sources watched →
+ *   3 active · 123 needs review · 52 jurisdictions   ⚠ 11 degraded · 1 failing → Sources
+ *
+ * Replaces the earlier 4-card KPI grid (hero-metrics pattern, AI-slop tell)
+ * with a newspaper-kicker rhythm. Left cluster is *catalog state* (what the
+ * library contains); right cluster is *source-of-truth state* (whether the
+ * official documents backing those rules are still being watched). The
+ * source-health pointer is always visible — when fully healthy it carries a
+ * neutral count, when degraded/failing it gains tone (severity) and a
+ * pointer to /rules/sources where the bad rows can be triaged.
+ *
+ * The right-side pointer is the page's source-of-truth credential: every
+ * count on the page traces back to those watched documents.
+ */
+function CoverageSnapshotStrip({
+  active,
+  pending,
+  jurisdictions,
+  sourcesWatched,
+  sourcesDegraded,
+  sourcesFailing,
+}: {
+  active: number
+  pending: number
+  jurisdictions: number
+  sourcesWatched: number
+  sourcesDegraded: number
+  sourcesFailing: number
+}) {
+  const hasIncident = sourcesDegraded > 0 || sourcesFailing > 0
+  return (
+    <div className="flex h-10 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-divider-regular bg-background-default px-3">
+      <SnapshotNumber value={active} label={<Trans>active</Trans>} conceptKey="verifiedRule" />
+      <SnapshotSeparator />
+      <SnapshotNumber
+        value={pending}
+        label={<Trans>needs review</Trans>}
+        conceptKey="candidateRule"
+        tone={pending > 0 ? 'review' : 'muted'}
+      />
+      <SnapshotSeparator />
+      <SnapshotNumber
+        value={jurisdictions}
+        label={<Trans>jurisdictions</Trans>}
+        conceptKey="coverage"
+      />
+      <span aria-hidden className="ml-auto" />
+      {hasIncident ? (
+        <Link
+          to="/rules/sources"
+          className={cn(
+            'group/sources inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md',
+            'border border-divider-regular bg-background-subtle px-2',
+            'text-xs text-text-secondary outline-none',
+            'hover:border-state-accent-active-alt hover:bg-background-default hover:text-text-accent',
+            'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          )}
+        >
+          <AlertTriangleIcon aria-hidden className="size-3.5 text-severity-medium" />
+          {sourcesDegraded > 0 ? (
+            <span className="inline-flex items-baseline gap-1">
+              <span className="font-mono text-sm font-semibold tabular-nums text-severity-medium">
+                {sourcesDegraded}
+              </span>
+              <span>
+                <Trans>degraded</Trans>
+              </span>
+            </span>
+          ) : null}
+          {sourcesDegraded > 0 && sourcesFailing > 0 ? (
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+          ) : null}
+          {sourcesFailing > 0 ? (
+            <span className="inline-flex items-baseline gap-1">
+              <span className="font-mono text-sm font-semibold tabular-nums text-text-destructive">
+                {sourcesFailing}
+              </span>
+              <span>
+                <Trans>failing</Trans>
+              </span>
+            </span>
+          ) : null}
+          <span className="mx-1 font-medium">
+            <Trans>Sources</Trans>
+          </span>
+          <ChevronRightIcon
+            aria-hidden
+            className="size-3.5 text-text-tertiary transition-transform group-hover/sources:translate-x-0.5 group-hover/sources:text-text-accent"
+          />
+        </Link>
+      ) : (
+        <Link
+          to="/rules/sources"
+          className={cn(
+            'group/sources inline-flex h-6 shrink-0 items-baseline gap-1 rounded-md px-2',
+            'text-xs text-text-tertiary outline-none',
+            'hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          )}
+        >
+          <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
+            {sourcesWatched}
+          </span>
+          <span>
+            <Trans>sources watched</Trans>
+          </span>
+          <ChevronRightIcon aria-hidden className="size-3.5 self-center text-text-tertiary" />
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/**
+ * `<value> <label>` stat used inside CoverageSnapshotStrip.
+ *
+ * Tone vs affordance (same contract as the old Library SummaryNumber):
+ *  - `tone` signals severity only — `review` blue for "needs CPA attention",
+ *    `muted` for deprioritized counts, `default` for neutral ones.
+ *  - The stat is never interactive on its own. Click-targets live as
+ *    bordered pills on the right side of the strip; the per-jurisdiction
+ *    drill-in happens on the table below.
+ */
+function SnapshotNumber({
+  value,
+  label,
+  conceptKey,
+  tone = 'default',
+}: {
+  value: number
+  label: ReactNode
+  conceptKey: 'verifiedRule' | 'candidateRule' | 'coverage'
+  tone?: 'default' | 'muted' | 'review'
+}) {
+  const toneClass =
+    tone === 'review'
+      ? 'text-status-review'
+      : tone === 'muted'
+        ? 'text-text-muted'
+        : 'text-text-primary'
+  return (
+    <span className="inline-flex shrink-0 items-baseline gap-1">
+      <span className={cn('font-mono text-sm font-semibold tabular-nums', toneClass)}>{value}</span>
+      <ConceptLabel concept={conceptKey}>
+        <span className="text-xs text-text-secondary">{label}</span>
+      </ConceptLabel>
+    </span>
+  )
+}
+
+function SnapshotSeparator() {
+  return (
+    <span aria-hidden className="shrink-0 text-text-tertiary">
+      ·
+    </span>
+  )
 }
 
 export function CoverageTab({
@@ -138,6 +271,22 @@ export function CoverageTab({
   const [entityGroup, setEntityGroup] = useState<CoverageEntityGroup>(DEFAULT_COVERAGE_ENTITY_GROUP)
   const [showAllReview, setShowAllReview] = useState(false)
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
+  // Live source-of-truth health from Pulse. Surfaces in the snapshot strip
+  // header so every page view carries the credential "are the documents
+  // backing our rules still being watched?". `usePulseSourceHealthQueryOptions`
+  // refetches in the background per its interval; we don't gate the page on it
+  // (registry counts already render without it).
+  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const sourceHealthCounts = useMemo(() => {
+    const entries = sourceHealthQuery.data?.sources ?? []
+    let degraded = 0
+    let failing = 0
+    for (const entry of entries) {
+      if (entry.healthStatus === 'degraded') degraded += 1
+      else if (entry.healthStatus === 'failing') failing += 1
+    }
+    return { degraded, failing }
+  }, [sourceHealthQuery.data])
 
   const entityColumns = ENTITY_COLUMN_GROUPS[entityGroup]
   // Partition jurisdictions so the dense matrix doesn't drown the eye in
@@ -194,37 +343,14 @@ export function CoverageTab({
 
   return (
     <div className="flex flex-col gap-6">
-      {/*
-        KPI strip — flat panel anchored to the same `left=24` as the tab nav.
-        Four cells separated by 1 px hairlines (Level 1 surface, no shadow per
-        DESIGN.md §6). Numbers are tabular-nums Geist Mono so the row reads as
-        a financial scoreboard, not a marketing block.
-      */}
-      <SectionFrame>
-        <div className="grid grid-cols-2 divide-y divide-divider-regular sm:grid-cols-4 sm:divide-x sm:divide-y-0">
-          <StatCell
-            label={<ConceptLabel concept="verifiedRule">{t`Active rules`}</ConceptLabel>}
-            value={stats.active}
-            caption={t`accepted by this practice`}
-          />
-          <StatCell
-            label={<ConceptLabel concept="candidateRule">{t`Needs review`}</ConceptLabel>}
-            value={stats.pending}
-            caption={t`owner or manager approval required`}
-            {...(stats.pending > 0 ? { emphasis: 'accent' as const } : {})}
-          />
-          <StatCell
-            label={<ConceptLabel concept="evidence">{t`Sources watched`}</ConceptLabel>}
-            value={stats.sources}
-            caption={t`official channels under monitor`}
-          />
-          <StatCell
-            label={<ConceptLabel concept="coverage">{t`Jurisdictions`}</ConceptLabel>}
-            value={stats.jurisdictions}
-            caption={t`${stats.fullyCovered} fully active · ${stats.jurisdictions - stats.fullyCovered} with open reviews`}
-          />
-        </div>
-      </SectionFrame>
+      <CoverageSnapshotStrip
+        active={stats.active}
+        pending={stats.pending}
+        jurisdictions={stats.jurisdictions}
+        sourcesWatched={stats.sources}
+        sourcesDegraded={sourceHealthCounts.degraded}
+        sourcesFailing={sourceHealthCounts.failing}
+      />
 
       {/*
         Two-column governance layout:
@@ -300,7 +426,23 @@ export function CoverageTab({
                       )}
                     </TableCell>
                     <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
-                      {row.sourceCount}
+                      {/*
+                        Source provenance per row — clicking the count lands on
+                        /rules/sources pre-filtered to this jurisdiction (the
+                        Sources page reads `?jur=` via nuqs). The chain back to
+                        official documents is one click, not buried.
+                      */}
+                      {row.sourceCount > 0 ? (
+                        <Link
+                          to={`/rules/sources?jur=${row.jurisdiction}`}
+                          aria-label={t`View ${row.sourceCount} watched sources for ${jurisdictionLabel(row.jurisdiction)}`}
+                          className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        >
+                          {row.sourceCount}
+                        </Link>
+                      ) : (
+                        row.sourceCount
+                      )}
                     </TableCell>
                     <TableCell className="py-2">
                       <CoverageStatusPill

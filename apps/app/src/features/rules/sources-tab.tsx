@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
+import { parseAsArrayOf, parseAsString, useQueryState } from 'nuqs'
 
 import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import {
@@ -43,10 +44,26 @@ type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence' | 'method'
 const SOURCE_PAGE_SIZE = 25
 const EMPTY_SOURCE_ROWS: RuleSource[] = []
 
+// Jurisdiction filter is URL-state via `?jur=AL,CA,NY` so cross-page links
+// (e.g. Coverage status per-row SOURCES cell) can land here pre-filtered.
+// Library uses the same `?jur=` convention — see rule-library-tab.tsx.
+const jurisdictionParser = parseAsArrayOf(parseAsString)
+  .withDefault([])
+  .withOptions({ history: 'replace' })
+
 export function SourcesTab() {
   const { t } = useLingui()
   const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
-  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>([])
+  const [jurisdictionFilters, setJurisdictionFiltersQuery] = useQueryState(
+    'jur',
+    jurisdictionParser,
+  )
+  const setJurisdictionFilters = useCallback(
+    (values: string[]) => {
+      void setJurisdictionFiltersQuery(values)
+    },
+    [setJurisdictionFiltersQuery],
+  )
   const [sourceTypeFilters, setSourceTypeFilters] = useState<string[]>([])
   const [cadenceFilters, setCadenceFilters] = useState<string[]>([])
   const [methodFilters, setMethodFilters] = useState<string[]>([])

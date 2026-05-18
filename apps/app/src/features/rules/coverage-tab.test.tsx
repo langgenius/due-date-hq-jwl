@@ -1,6 +1,7 @@
 import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { MemoryRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuleCoverageRow } from '@duedatehq/contracts'
@@ -13,6 +14,7 @@ import { CoverageTab } from './coverage-tab'
 
 const rpcMocks = vi.hoisted(() => ({
   coverageQueryFn: vi.fn(),
+  sourceHealthQueryFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -22,6 +24,14 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: () => ({
           queryKey: ['rules', 'coverage'],
           queryFn: rpcMocks.coverageQueryFn,
+        }),
+      },
+    },
+    pulse: {
+      listSourceHealth: {
+        queryOptions: () => ({
+          queryKey: ['pulse', 'listSourceHealth'],
+          queryFn: rpcMocks.sourceHealthQueryFn,
         }),
       },
     },
@@ -63,7 +73,9 @@ async function render(children: ReactNode) {
   await act(async () => {
     root?.render(
       <QueryClientProvider client={client}>
-        <AppI18nProvider>{children}</AppI18nProvider>
+        <AppI18nProvider>
+          <MemoryRouter>{children}</MemoryRouter>
+        </AppI18nProvider>
       </QueryClientProvider>,
     )
   })
@@ -98,6 +110,8 @@ beforeEach(() => {
   bootstrapI18n()
   rpcMocks.coverageQueryFn.mockReset()
   rpcMocks.coverageQueryFn.mockResolvedValue(coverageRows)
+  rpcMocks.sourceHealthQueryFn.mockReset()
+  rpcMocks.sourceHealthQueryFn.mockResolvedValue({ sources: [] })
 })
 
 afterEach(() => {
