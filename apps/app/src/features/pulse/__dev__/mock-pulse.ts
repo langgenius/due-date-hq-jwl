@@ -353,7 +353,7 @@ export function seedPulseMock(queryClient: QueryClient): void {
 
   // eslint-disable-next-line no-console
   console.info(
-    '[mock-pulse] seeded %d alerts. Open /rules?tab=pulse or the dashboard banner to verify.',
+    '[mock-pulse] seeded %d alerts. Open /rules/pulse or the dashboard banner to verify.',
     ALERTS.length,
   )
 }

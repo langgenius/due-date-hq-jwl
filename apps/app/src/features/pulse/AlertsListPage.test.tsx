@@ -124,7 +124,7 @@ function source(overrides: Partial<PulseSourceHealth> = {}): PulseSourceHealth {
   }
 }
 
-async function render(children: ReactNode, initialEntry = '/rules?tab=pulse') {
+async function render(children: ReactNode, initialEntry = '/rules/pulse') {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -190,7 +190,7 @@ describe('PulseChangesTab source health review', () => {
       ],
     })
 
-    await render(<PulseChangesTab embedded />, '/rules?tab=pulse&sourceReview=1')
+    await render(<PulseChangesTab embedded />, '/rules/pulse?sourceReview=1')
 
     await waitForText('Pulse source needs attention')
     expect(document.body.textContent).toContain('IRS Disaster Relief')
@@ -208,7 +208,7 @@ describe('PulseChangesTab source health review', () => {
       sources: [source(), source({ sourceId: 'fema.declarations', label: 'FEMA Declarations' })],
     })
 
-    await render(<PulseChangesTab embedded />, '/rules?tab=pulse&sourceReview=1')
+    await render(<PulseChangesTab embedded />, '/rules/pulse?sourceReview=1')
 
     await waitForText('Pulse source checks degraded · Monitoring continues')
     expect(document.body.textContent).toContain('No client-matching Pulse changes right now.')

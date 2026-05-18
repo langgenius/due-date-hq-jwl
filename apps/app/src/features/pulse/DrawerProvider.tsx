@@ -13,10 +13,7 @@ interface PulseDrawerProviderProps {
 export function PulseDrawerProvider({ children }: PulseDrawerProviderProps) {
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const urlAlertId =
-    location.pathname === '/rules' && searchParams.get('tab') === 'pulse'
-      ? searchParams.get('alert')
-      : null
+  const urlAlertId = location.pathname === '/rules/pulse' ? searchParams.get('alert') : null
   const [localAlertId, setLocalAlertId] = useState<string | null>(null)
   const alertId = urlAlertId ?? localAlertId
 

@@ -453,12 +453,71 @@ export function createAppRouter() {
             },
             {
               path: 'rules',
-              handle: routeHandle(routeSummaries.rules),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
-                const { RulesRoute } = await import('@/routes/rules')
+                const { rulesIndexLoader } = await import('@/routes/rules')
 
-                return { Component: RulesRoute }
+                return { loader: rulesIndexLoader }
+              },
+            },
+            {
+              path: 'rules/coverage',
+              handle: routeHandle(routeSummaries.rulesCoverage),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesCoverageRoute } = await import('@/routes/rules.coverage')
+
+                return { Component: RulesCoverageRoute }
+              },
+            },
+            {
+              path: 'rules/sources',
+              handle: routeHandle(routeSummaries.rulesSources),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesSourcesRoute } = await import('@/routes/rules.sources')
+
+                return { Component: RulesSourcesRoute }
+              },
+            },
+            {
+              path: 'rules/library',
+              handle: routeHandle(routeSummaries.rulesLibrary),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesLibraryRoute } = await import('@/routes/rules.library')
+
+                return { Component: RulesLibraryRoute }
+              },
+            },
+            {
+              path: 'rules/pulse',
+              handle: routeHandle(routeSummaries.rulesPulse),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesPulseRoute } = await import('@/routes/rules.pulse')
+
+                return { Component: RulesPulseRoute }
+              },
+            },
+            {
+              path: 'rules/temporary',
+              handle: routeHandle(routeSummaries.rulesTemporary),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesTemporaryRoute } = await import('@/routes/rules.temporary')
+
+                return { Component: RulesTemporaryRoute }
+              },
+            },
+            {
+              path: 'rules/preview',
+              handle: routeHandle(routeSummaries.rulesPreview),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesPreviewRoute } = await import('@/routes/rules.preview')
+
+                return { Component: RulesPreviewRoute }
               },
             },
             {

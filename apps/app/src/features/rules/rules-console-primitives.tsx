@@ -18,16 +18,41 @@ type FilterOption<T extends string> = {
   count: number
 }
 
-export function RulesPageHeader({ description }: { description: string }) {
+export function RulesPageHeader({ title, description }: { title: string; description: string }) {
   return (
     <header className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl leading-7 font-semibold text-text-primary">
-          <Trans>Rules</Trans>
-        </h1>
+        <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
       </div>
       <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
     </header>
+  )
+}
+
+/**
+ * Layout shell for each Rules sub-page. Mirrors the old Rules Console layout
+ * (24 px padding · single scroll region · header + content column) so each
+ * extracted page keeps the visual rhythm it had as a tab, just without the
+ * tab nav rib that previously sat above it.
+ */
+export function RulesPageShell({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="flex w-full flex-col gap-6 px-6 py-6">
+          <RulesPageHeader title={title} description={description} />
+          {children}
+        </div>
+      </div>
+    </div>
   )
 }
 
