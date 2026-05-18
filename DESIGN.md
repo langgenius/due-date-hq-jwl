@@ -577,3 +577,52 @@ Demo Sprint 期间新增的 Migration Copilot 相关 token 已追加到 front-ma
 Do use gray for OK or not urgent states. Do express risk in dollars before days. Do keep amount, date, deadline, EIN, and source labels in mono tabular numerals. Do keep UI dense, flat, and scannable.
 
 Don't use gradients, decorative glows, large shadows, or rounded SaaS template styling. Don't use green for safe states; green is only for filed, done, or applied. Don't render AI advice without evidence. Don't use raw Tailwind color utilities in business components.
+
+## Voice & Terminology
+
+DueDateHQ writes for working CPAs. Copy must be plain, precise, and quiet — a workbench tool, not a marketing site or chatbot. The rules below are enforced by code review; pair them with the i18n catalog (`apps/app/src/i18n/locales/en/messages.po`) as the source of truth.
+
+### Voice
+
+- **Calm and direct.** State what is, what happened, or what to do. No exclamations, no hype, no encouragement copy.
+- **Active over passive.** "Reverted import" beats "Import was reverted." Toast titles and audit-feed entries always lead with a verb.
+- **Contractions in errors and toasts.** "Couldn't save changes" not "Could not save changes." Reserve the formal "Could not / Cannot" for legal, security, and billing surfaces where formality signals weight.
+- **CPA register, not engineer register.** Prefer the professional word a CPA would use to a partner ("filing", "obligation", "jurisdiction") over the internal data-model word ("record", "row", "entity"). Never expose vendor names (Resend, Stripe, Cloudflare) or internal state codes (`pending_review`, `quarantined`) in user-facing copy — translate them first.
+- **One thought per string.** If you need two sentences, the second is doing different work (an instruction after a fact). Otherwise cut.
+
+### Mechanical rules
+
+| Surface                          | Rule                                                                                                                |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Buttons, tabs, chips, nav labels | Sentence case, no trailing punctuation. `Save changes` not `Save Changes.`                                          |
+| Toast titles                     | Sentence case, no trailing period. `Couldn't save changes`                                                          |
+| Toast / panel descriptions       | Sentence case, period only if multi-sentence.                                                                       |
+| Loading                          | `Loading {thing}…` with a unicode ellipsis (`…` not `...`), no period.                                              |
+| Empty states                     | `No {plural-thing}` for the bare label; full sentence with period for the explanation.                              |
+| Audit / evidence feed entries    | Active past tense verb first: `Reverted import.` not `An import was undone.` Period required.                       |
+| Role names in body copy          | Lowercase: "Ask an owner or manager." Capitalized only as table column headers or chip labels (`Owner`, `Manager`). |
+| Numbers, dates, dollar amounts   | Mono tabular (`font-mono tabular-nums`), no thousands-separator inside `{count}` placeholders.                      |
+
+### Terminology
+
+These are decisions, not suggestions. If you need a new term, add it here before shipping copy.
+
+| Concept                                                          | Use                                                                                                      | Don't use                                                |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| The CPA business unit (workspace)                                | **practice**                                                                                             | firm, organization, tenant, workspace                    |
+| The end customer of the practice                                 | **client**                                                                                               | customer, account, user (in body)                        |
+| The official channel monitored for regulatory changes            | **source**                                                                                               | channel, feed, signal                                    |
+| A rule the practice has accepted and that may generate reminders | **rule** (state: `active`)                                                                               | active rule (redundant), live rule                       |
+| A rule awaiting owner/manager review                             | **pending rule**                                                                                         | rule template, pending template, candidate rule          |
+| The CSV / XLSX mapping used to onboard client records            | **import template**                                                                                      | source template, mapping template                        |
+| The customizable email body sent to a client                     | **reminder template**                                                                                    | (always qualify with "reminder" — never bare "template") |
+| The US state where a client files                                | **state** (when scope is 50 states) / **jurisdiction** (when federal, DC, or counties are also included) | filing state + jurisdiction in the same sentence         |
+| A regulatory change detected from a source                       | **Pulse change** (internal-facing) / **incoming change** (user-facing labels)                            | alert, signal, notification                              |
+| Status awaiting human review                                     | **Needs review** (long label) · `Pending` (short chip)                                                   | Pending review, Awaiting review                          |
+| The end-product work item the practice must complete             | **obligation** (nav, titles, formal copy) / **deadline** (body, onboarding, friendly copy)               | task, item, deadline + obligation in the same context    |
+| A practice member you're adding                                  | **member** (verb: **invite**)                                                                            | teammate, colleague, seat                                |
+| Time-limited rule override applied from a Pulse change           | **active override** / **relief** (IRS register)                                                          | temporary rule, exception (in nav)                       |
+
+### When in doubt
+
+Read the message aloud as if you were the CPA owner saying it to a junior preparer over coffee. If it sounds bureaucratic, mechanical, or sales-y, rewrite it. If it sounds confusing, the underlying concept is probably leaking through — fix the term in this table first, then the copy.

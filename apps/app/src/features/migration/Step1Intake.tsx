@@ -497,9 +497,9 @@ export function Step1Intake({
             </AlertTitle>
             <AlertDescription>
               <Trans>
-                Most provider exports are CSV or XLSX. Use Paste / Upload with a source template for
-                those. This path is for records copied from integration tools or converted provider
-                reports, and generated obligations still require enough imported facts.
+                Most provider exports are CSV or XLSX. Use Paste / Upload with an import template
+                for those. This path is for records copied from integration tools or converted
+                provider reports, and generated obligations still require enough imported facts.
               </Trans>
             </AlertDescription>
           </Alert>
@@ -516,7 +516,7 @@ export function Step1Intake({
               value={intake.integrationRawText}
               onChange={(event) => handleIntegrationText(event.target.value)}
               onPaste={handleIntegrationPaste}
-              placeholder={t`Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose a source template.`}
+              placeholder={t`Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose an import template.`}
               className="h-[180px] resize-y bg-background-body font-mono text-base tabular-nums"
             />
           </div>
@@ -688,7 +688,7 @@ export function Step1Intake({
             </div>
             <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
               <Trans>
-                The AI mapper runs first. Selecting a source template adds source context and
+                The AI mapper runs first. Selecting an import template adds source context and
                 provides default suggestions if AI is unavailable.
               </Trans>
             </p>
@@ -1200,7 +1200,7 @@ function friendlyParseError(error: TabularParseError): string {
     case 'no_data_rows':
       return "We couldn't find a header row. Make sure the first line lists your column names."
     case 'xlsx_not_supported':
-      return 'XLSX could not be parsed. Export as CSV and re-upload.'
+      return "XLSX couldn't be parsed. Export as CSV and re-upload."
     default:
       return "We couldn't read that file. Try exporting as CSV."
   }

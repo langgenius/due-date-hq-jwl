@@ -39,7 +39,7 @@ async function fetchInvitation(id: string): Promise<InvitationPreview> {
       credentials: 'include',
     },
   )
-  if (!response.ok) throw new Error('Invitation could not load.')
+  if (!response.ok) throw new Error("Invitation couldn't load.")
   return response.json()
 }
 
@@ -52,7 +52,7 @@ async function acceptInvitation(id: string): Promise<void> {
   })
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new Error(body?.message || body?.error || 'Invitation could not be accepted.')
+    throw new Error(body?.message || body?.error || "Invitation couldn't be accepted.")
   }
 }
 
@@ -91,7 +91,7 @@ export function AcceptInviteRoute() {
       toast.success(t`Invitation accepted`)
       await navigate('/', { replace: true })
     } catch (err) {
-      toast.error(t`Could not accept invitation`, {
+      toast.error(t`Couldn't accept invitation`, {
         description: err instanceof Error ? err.message : t`Please try again.`,
       })
       setSubmitting(null)
@@ -107,7 +107,7 @@ export function AcceptInviteRoute() {
         await signInWithMicrosoft(currentPath)
       }
     } catch (err) {
-      toast.error(t`Could not start sign-in`, {
+      toast.error(t`Couldn't start sign-in`, {
         description: err instanceof Error ? err.message : t`Please try again.`,
       })
       setSubmitting(null)
@@ -157,7 +157,7 @@ export function AcceptInviteRoute() {
             <Alert variant="destructive">
               <AlertCircleIcon />
               <AlertTitle>
-                <Trans>Invitation could not load</Trans>
+                <Trans>Invitation couldn't load</Trans>
               </AlertTitle>
               <AlertDescription>{inviteQuery.error.message}</AlertDescription>
             </Alert>

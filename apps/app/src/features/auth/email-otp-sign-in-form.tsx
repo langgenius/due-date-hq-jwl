@@ -76,7 +76,7 @@ export function EmailOtpSignInForm({
       setSentEmail(target)
       setCode('')
     } catch (err) {
-      setError(readErrorMessage(err, t`Could not send the code`))
+      setError(readErrorMessage(err, t`Couldn't send the code`))
     } finally {
       setPending(null)
     }
@@ -107,7 +107,7 @@ export function EmailOtpSignInForm({
     })
       .then(() => onSignedIn())
       .catch((err: unknown) => {
-        setError(readErrorMessage(err, t`Could not verify the code`))
+        setError(readErrorMessage(err, t`Couldn't verify the code`))
       })
       .finally(() => setPending(null))
   }

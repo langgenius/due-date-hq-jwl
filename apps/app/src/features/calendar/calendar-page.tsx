@@ -92,7 +92,7 @@ export function CalendarPage() {
         void queryClient.invalidateQueries({ queryKey: calendarKey })
       },
       onError: (err) => {
-        toast.error(t`Could not update calendar subscription`, {
+        toast.error(t`Couldn't update calendar subscription`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -105,7 +105,7 @@ export function CalendarPage() {
         void queryClient.invalidateQueries({ queryKey: calendarKey })
       },
       onError: (err) => {
-        toast.error(t`Could not regenerate calendar URL`, {
+        toast.error(t`Couldn't regenerate calendar URL`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -118,7 +118,7 @@ export function CalendarPage() {
         void queryClient.invalidateQueries({ queryKey: calendarKey })
       },
       onError: (err) => {
-        toast.error(t`Could not disable calendar subscription`, {
+        toast.error(t`Couldn't disable calendar subscription`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -134,8 +134,8 @@ export function CalendarPage() {
     },
     {
       scope: 'firm',
-      title: t`Firm-wide calendar`,
-      description: t`All open firm deadlines for owner and manager planning.`,
+      title: t`Practice-wide calendar`,
+      description: t`All open practice deadlines for owner and manager planning.`,
       locked: !canManageFirm,
     },
   ]
@@ -265,7 +265,9 @@ function CalendarSubscriptionCard({
             permission="firm.calendar.manage"
             currentRole={currentRole}
             fallback={<CalendarSubscriptionRedactedContent />}
-            notice={<Trans>Only owners and managers can enable the firm-wide calendar feed.</Trans>}
+            notice={
+              <Trans>Only owners and managers can enable the practice-wide calendar feed.</Trans>
+            }
           >
             <CalendarSubscriptionRedactedContent />
           </PermissionObscuredContent>
@@ -326,7 +328,7 @@ function CalendarSubscriptionCard({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      copyUrl(feedUrl, t`Calendar URL copied`, t`Could not copy calendar URL`)
+                      copyUrl(feedUrl, t`Calendar URL copied`, t`Couldn't copy calendar URL`)
                     }
                   >
                     <CopyIcon data-icon="inline-start" />

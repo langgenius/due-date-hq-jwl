@@ -290,7 +290,7 @@ export function BillingRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Billing portal could not open</Trans>
+            <Trans>Billing portal couldn't open</Trans>
           </AlertTitle>
           <AlertDescription>{portalMutation.error.message}</AlertDescription>
         </Alert>
@@ -300,7 +300,7 @@ export function BillingRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Practice context could not load</Trans>
+            <Trans>Practice context couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{firmsQuery.error.message}</AlertDescription>
         </Alert>
@@ -310,7 +310,7 @@ export function BillingRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Billing status could not load</Trans>
+            <Trans>Billing status couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{subscriptionsQuery.error.message}</AlertDescription>
         </Alert>

@@ -57,7 +57,7 @@ async function submitReadinessPortal(input: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input.body),
   })
-  if (!response.ok) throw new Error('Readiness response could not be submitted.')
+  if (!response.ok) throw new Error("Readiness response couldn't be submitted.")
   const data: unknown = await response.json()
   return ReadinessPublicSubmitOutputSchema.parse(data)
 }

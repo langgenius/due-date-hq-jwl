@@ -158,7 +158,7 @@ function CandidateReviewForm({ rule }: { rule: ObligationRule }) {
           <Trans>Practice review</Trans>
         </SectionLabel>
         <span className="text-xs text-status-review">
-          <Trans>Pending review</Trans>
+          <Trans>Needs review</Trans>
         </span>
       </div>
       <p className="text-sm text-text-secondary">
@@ -209,7 +209,7 @@ function RuleStatusInline({ status }: { status: ObligationRule['status'] }) {
       <span className="inline-flex items-center gap-1.5 text-status-review">
         <ToneDot tone="review" />
         <ConceptLabel concept="candidateRule">
-          <Trans>Pending review</Trans>
+          <Trans>Needs review</Trans>
         </ConceptLabel>
       </span>
     )
@@ -367,7 +367,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
     return (
       <section className="rounded-md border border-state-accent-active-alt bg-accent-tint px-3 py-2 text-xs">
         <p className="font-medium text-status-review">
-          <Trans>Pending review · never generates user reminders.</Trans>
+          <Trans>Needs review · never generates user reminders.</Trans>
         </p>
         <p className="mt-1 text-text-secondary">{rule.defaultTip}</p>
       </section>

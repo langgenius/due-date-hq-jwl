@@ -54,11 +54,11 @@ export function TemporaryRulesTab() {
   )
 
   if (rulesQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading temporary rules.`} />
+    return <QueryPanelState state="loading" message={t`Loading temporary rules…`} />
   }
 
   if (rulesQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load temporary rules.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load temporary rules`} />
   }
 
   if (rules.length === 0) {
