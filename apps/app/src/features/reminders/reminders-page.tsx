@@ -163,7 +163,7 @@ export function RemindersPage() {
       {overviewQuery.isError ? (
         <Card>
           <CardContent className="p-4 text-sm text-text-destructive">
-            {rpcErrorMessage(overviewQuery.error) ?? t`Could not load reminder overview.`}
+            {rpcErrorMessage(overviewQuery.error) ?? t`Couldn't load reminder overview`}
           </CardContent>
         </Card>
       ) : null}
@@ -173,7 +173,7 @@ export function RemindersPage() {
           icon={CheckCircle2Icon}
           label={<Trans>Active templates</Trans>}
           value={overview?.activeTemplateCount ?? 0}
-          caption={<Trans>Firm-level delivery copy</Trans>}
+          caption={<Trans>Practice-level delivery copy</Trans>}
         />
         <StatTile
           icon={AlarmClockIcon}
@@ -252,7 +252,7 @@ function TemplatesPanel({
       <CardContent>
         {loading ? (
           <p className="text-sm text-text-secondary">
-            <Trans>Loading templates.</Trans>
+            <Trans>Loading templates…</Trans>
           </p>
         ) : (
           <Table>
@@ -326,7 +326,7 @@ function UpcomingPanel({
       <CardContent>
         {loading ? (
           <p className="text-sm text-text-secondary">
-            <Trans>Loading upcoming reminders.</Trans>
+            <Trans>Loading upcoming reminders…</Trans>
           </p>
         ) : reminders.length === 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
@@ -402,7 +402,7 @@ function RecentSendsPanel({
       <CardContent>
         {loading ? (
           <p className="text-sm text-text-secondary">
-            <Trans>Loading recent delivery.</Trans>
+            <Trans>Loading recent delivery…</Trans>
           </p>
         ) : reminders.length === 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
@@ -477,7 +477,7 @@ function SuppressionsPanel({
       <CardContent className="grid gap-3">
         {loading ? (
           <p className="text-sm text-text-secondary">
-            <Trans>Loading suppressions.</Trans>
+            <Trans>Loading suppressions…</Trans>
           </p>
         ) : suppressions.length === 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
@@ -528,7 +528,7 @@ function TemplateDialog({
         onOpenChange(false)
       },
       onError: (error) => {
-        toast.error(t`Could not update reminder template`, {
+        toast.error(t`Couldn't update reminder template`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },

@@ -122,7 +122,7 @@ export function PracticeRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Practice profile could not load</Trans>
+            <Trans>Practice profile couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{currentQuery.error.message}</AlertDescription>
         </Alert>
@@ -200,7 +200,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       onError: (err) => {
         const message = rpcErrorMessage(err) ?? t`Please try again.`
         setError(message)
-        toast.error(t`Could not update practice.`, {
+        toast.error(t`Couldn't update practice`, {
           description: message,
         })
       },
@@ -225,7 +225,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       onError: (err) => {
         const message = rpcErrorMessage(err) ?? t`Please try again.`
         setError(message)
-        toast.error(t`Could not update Smart Priority.`, {
+        toast.error(t`Couldn't update Smart Priority`, {
           description: message,
         })
       },
@@ -239,7 +239,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       },
       onError: (err) => {
         const message = rpcErrorMessage(err) ?? t`Please try again.`
-        toast.error(t`Could not calculate preview.`, {
+        toast.error(t`Couldn't calculate preview`, {
           description: message,
         })
       },
@@ -253,7 +253,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         void navigate(result.nextFirmId ? '/' : '/onboarding', { replace: true })
       },
       onError: (err) => {
-        setError(err.message || t`Could not delete practice.`)
+        setError(err.message || t`Couldn't delete practice`)
       },
     }),
   )
@@ -264,7 +264,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     if (trimmed.length < 2) {
       const message = t`Please enter at least 2 characters.`
       setError(message)
-      toast.error(t`Could not update practice.`, {
+      toast.error(t`Couldn't update practice`, {
         description: message,
       })
       return

@@ -22,7 +22,7 @@ export async function createCheckout(input: {
     returnUrl: input.returnUrl,
     disableRedirect: true,
   })
-  if (error) throw new Error(error.message || 'Could not start Stripe Checkout.')
+  if (error) throw new Error(error.message || "Couldn't start Stripe Checkout.")
   if (!data?.url) throw new Error('Stripe Checkout did not return a redirect URL.')
   return data.url
 }
@@ -34,7 +34,7 @@ export async function createBillingPortal(input: { referenceId: string; returnUr
     returnUrl: input.returnUrl,
     disableRedirect: true,
   })
-  if (error) throw new Error(error.message || 'Could not open the billing portal.')
+  if (error) throw new Error(error.message || "Couldn't open the billing portal.")
   if (!data?.url) throw new Error('Stripe Billing Portal did not return a redirect URL.')
   return data.url
 }

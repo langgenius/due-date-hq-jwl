@@ -228,7 +228,7 @@ export function RuleLibraryTab() {
     orpc.rules.previewBulkRuleImpact.mutationOptions({
       onSuccess: (result) => setPreview(result),
       onError: (error) => {
-        toast.error(t`Could not preview selected rules`, {
+        toast.error(t`Couldn't preview selected rules`, {
           description: rpcErrorMessage(error) ?? t`Check the selected rows and try again.`,
         })
       },
@@ -247,7 +247,7 @@ export function RuleLibraryTab() {
         })
       },
       onError: (error) => {
-        toast.error(t`Could not accept selected rules`, {
+        toast.error(t`Couldn't accept selected rules`, {
           description: rpcErrorMessage(error) ?? t`Add a review note and try again.`,
         })
       },
@@ -255,11 +255,11 @@ export function RuleLibraryTab() {
   )
 
   if (rulesQuery.isLoading || tasksQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading rule library.`} />
+    return <QueryPanelState state="loading" message={t`Loading rule library…`} />
   }
 
   if (rulesQuery.isError || tasksQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load rule library.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load rule library`} />
   }
 
   const emptyFilterLabel = t`No options`
@@ -706,7 +706,7 @@ function RuleRow({
         <span className="block truncate font-mono text-xs text-text-tertiary">{rule.id}</span>
         {reviewTask ? (
           <span className="mt-0.5 inline-flex text-[11px] font-medium text-severity-medium">
-            {reviewTask.reason === 'source_changed' ? t`Update available` : t`New template`}
+            {reviewTask.reason === 'source_changed' ? t`Update available` : t`New rule`}
           </span>
         ) : null}
       </TableCell>
@@ -754,12 +754,12 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
   }
 
   const skipReasonLabels: Record<RuleBulkImpactPreview['skipped'][number]['reason'], string> = {
-    template_not_found: t`Template not found`,
+    template_not_found: t`Rule not found`,
     version_conflict: t`Version conflict`,
     already_active: t`Already active`,
     rejected: t`Rejected`,
     archived: t`Archived`,
-    invalid_template: t`Invalid template`,
+    invalid_template: t`Invalid rule`,
     source_changed_requires_review: t`Source changed requires single-rule review`,
   }
 
@@ -898,11 +898,11 @@ function useRuleStatusLabels(): Record<StatusKey, string> {
   return useMemo(
     () => ({
       active: t`Active`,
-      pending_review: t`Pending review`,
+      pending_review: t`Needs review`,
       rejected: t`Rejected`,
       archived: t`Archived`,
       verified: t`Active`,
-      candidate: t`Pending review`,
+      candidate: t`Needs review`,
       deprecated: t`Deprecated`,
     }),
     [t],

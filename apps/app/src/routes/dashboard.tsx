@@ -39,15 +39,7 @@ import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent, CardFooter } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -77,7 +69,7 @@ import {
 } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatCents, formatDate } from '@/lib/utils'
+import { formatCents } from '@/lib/utils'
 
 type DashboardExposureStatus = DashboardTopRow['exposureStatus']
 type DashboardStatusFilter = 'pending' | 'in_progress' | 'waiting_on_client' | 'review'
@@ -173,38 +165,12 @@ function isDashboardStatus(value: string): value is (typeof DASHBOARD_STATUS_FIL
   return (DASHBOARD_STATUS_FILTERS as readonly string[]).includes(value)
 }
 
-function isDashboardSeverity(value: string): value is DashboardSeverity {
-  return ['critical', 'high', 'medium', 'neutral'].includes(value)
-}
-
 function isDashboardExposureStatus(value: string): value is DashboardTopRow['exposureStatus'] {
   return (DASHBOARD_EXPOSURE_STATUSES as readonly string[]).includes(value)
 }
 
 function isDashboardEvidenceFilter(value: string): value is DashboardEvidenceFilter {
   return (DASHBOARD_EVIDENCE_FILTERS as readonly string[]).includes(value)
-}
-
-const severityVariant: Record<
-  DashboardSeverity,
-  'destructive' | 'warning' | 'secondary' | 'outline'
-> = {
-  critical: 'destructive',
-  high: 'warning',
-  medium: 'secondary',
-  neutral: 'outline',
-}
-const severityDot: Record<DashboardSeverity, 'error' | 'warning' | 'disabled' | 'normal'> = {
-  critical: 'error',
-  high: 'warning',
-  medium: 'disabled',
-  neutral: 'normal',
-}
-const severitySortValue: Record<DashboardSeverity, number> = {
-  critical: 3,
-  high: 2,
-  medium: 1,
-  neutral: 0,
 }
 
 const dashboardDateSortingFn: SortingFn<DashboardTopRow> = (rowA, rowB, columnId) =>
@@ -215,10 +181,6 @@ const dashboardExposureSortingFn: SortingFn<DashboardTopRow> = (rowA, rowB) =>
 
 const dashboardPrioritySortingFn: SortingFn<DashboardTopRow> = (rowA, rowB) =>
   rowA.original.smartPriority.score - rowB.original.smartPriority.score
-
-const dashboardSeveritySortingFn: SortingFn<DashboardTopRow> = (rowA, rowB, columnId) =>
-  severitySortValue[rowA.getValue<DashboardSeverity>(columnId)] -
-  severitySortValue[rowB.getValue<DashboardSeverity>(columnId)]
 
 function exposureSortValue(row: DashboardTopRow): number {
   if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
@@ -503,34 +465,27 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
           <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Operations command</Trans>
           </span>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
-              <Trans>Deadline risk workbench</Trans>
-            </h1>
-            <p className="max-w-3xl text-md text-text-secondary">
-              <Trans>
-                Start with the money and deadline pressure, then work the evidence-backed priority
-                list.
-              </Trans>
-            </p>
-          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
+            {dashboardQuery.isLoading || !data?.asOfDate ? (
+              <Trans>Today</Trans>
+            ) : (
+              <Trans>Today, {formatTodayHeader(data.asOfDate)}</Trans>
+            )}
+          </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="font-mono tabular-nums text-xs">
-            {dashboardQuery.isLoading ? <Trans>Loading…</Trans> : data?.asOfDate}
-          </Badge>
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
             <FileSearchIcon data-icon="inline-start" />
-            <Trans>Run migration</Trans>
+            <Trans>Import clients</Trans>
           </Button>
           <Button size="sm" onClick={() => void navigate('/obligations')}>
-            <Trans>Review priority list</Trans>
+            <Trans>See all obligations</Trans>
             <ArrowUpRightIcon data-icon="inline-end" />
           </Button>
         </div>
@@ -555,16 +510,16 @@ export function DashboardRoute() {
         </Alert>
       ) : null}
 
-      <div id="pulse">
+      <div id="pulse" className="flex flex-col gap-2">
         <PulseAlertsBanner />
+        <NeedsReviewBanner
+          isLoading={dashboardQuery.isLoading}
+          needsReviewCount={data?.summary?.needsReviewCount ?? 0}
+          evidenceGapCount={data?.summary?.evidenceGapCount ?? 0}
+          onResolve={() => void navigate('/obligations?status=review')}
+          onResolveEvidence={() => void navigate('/obligations?evidence=missing_source')}
+        />
       </div>
-
-      <DashboardMetricStrip
-        isLoading={dashboardQuery.isLoading}
-        summary={data?.summary ?? null}
-        canSeeDollars={canSeeDollars}
-        onResolveNeedsReview={() => void navigate('/obligations?status=review')}
-      />
 
       <section>
         <DashboardTriagePanel
@@ -574,6 +529,7 @@ export function DashboardRoute() {
           selectedKey={selectedTriageTab?.key ?? triage}
           tabLabels={triageTabLabels}
           filtersDisabled={filtersDisabled}
+          summary={data?.summary ?? null}
           filterOptions={{
             clients: clientOptions,
             taxTypes: taxTypeOptions,
@@ -592,7 +548,6 @@ export function DashboardRoute() {
             exposure,
             evidence,
           }}
-          severityLabels={severityLabels}
           statusLabels={statusLabels}
           statusDisabled={updateStatusMutation.isPending}
           canRunMigration={canRunMigration}
@@ -618,136 +573,120 @@ export function DashboardRoute() {
   )
 }
 
-function DashboardMetricStrip({
+function formatTodayHeader(asOfDate: string): string {
+  const date = new Date(`${asOfDate.slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return asOfDate
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
+
+function NeedsReviewBanner({
   isLoading,
-  summary,
-  canSeeDollars,
-  onResolveNeedsReview,
+  needsReviewCount,
+  evidenceGapCount,
+  onResolve,
+  onResolveEvidence,
 }: {
   isLoading: boolean
+  needsReviewCount: number
+  evidenceGapCount: number
+  onResolve: () => void
+  onResolveEvidence: () => void
+}) {
+  if (isLoading) {
+    return <Skeleton className="h-9 w-full rounded-md" />
+  }
+  if (needsReviewCount === 0 && evidenceGapCount === 0) return null
+  const hasReady = needsReviewCount > 0
+  const hasEvidence = evidenceGapCount > 0
+  return (
+    <div
+      className={cn(
+        'group flex min-h-9 items-center gap-3 rounded-md border px-3 py-1.5 text-xs',
+        hasReady
+          ? 'border-state-warning-border bg-state-warning-bg text-text-primary'
+          : 'border-border-default bg-bg-panel text-text-secondary',
+      )}
+    >
+      <BadgeStatusDot tone={hasReady ? 'warning' : 'normal'} />
+      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="font-medium text-text-primary">
+          <Trans>Needs review</Trans>
+        </span>
+        {hasReady ? (
+          <span className="font-mono tabular-nums text-text-primary">
+            <Plural value={needsReviewCount} one="# row ready" other="# rows ready" />
+          </span>
+        ) : null}
+        {hasEvidence ? (
+          <span className="font-mono tabular-nums text-text-tertiary">
+            <Plural
+              value={evidenceGapCount}
+              one="# needs evidence first"
+              other="# need evidence first"
+            />
+          </span>
+        ) : null}
+      </span>
+      <span className="flex shrink-0 items-center gap-1">
+        {hasReady ? (
+          <Button type="button" size="xs" variant="ghost" onClick={onResolve}>
+            <Trans>Resolve</Trans>
+            <ArrowRightIcon data-icon="inline-end" className="size-3" aria-hidden />
+          </Button>
+        ) : null}
+        {hasEvidence ? (
+          <Button type="button" size="xs" variant="ghost" onClick={onResolveEvidence}>
+            <Trans>Attach evidence</Trans>
+            <ArrowRightIcon data-icon="inline-end" className="size-3" aria-hidden />
+          </Button>
+        ) : null}
+      </span>
+    </div>
+  )
+}
+
+function ProjectedRiskInline({
+  summary,
+  canSeeDollars,
+}: {
   summary: DashboardSummary | null
   canSeeDollars: boolean
-  onResolveNeedsReview: () => void
 }) {
-  const { t } = useLingui()
-  const metrics = (
-    summary
-      ? [
-          {
-            id: 'open',
-            label: <Trans>Open obligations</Trans>,
-            value: String(summary.openObligationCount),
-            detail: <Trans>Active client deadlines in the operating window.</Trans>,
-            valueClassName: 'text-text-primary',
-          },
-          {
-            id: 'due',
-            label: <Trans>Due this week</Trans>,
-            value: String(summary.dueThisWeekCount),
-            detail: <Trans>Includes overdue and next-seven-day obligations.</Trans>,
-            valueClassName: 'text-severity-critical',
-          },
-          {
-            id: 'review',
-            label: <Trans>Needs review</Trans>,
-            value: String(summary.needsReviewCount),
-            detail: <Trans>Rows waiting for final human action.</Trans>,
-            valueClassName: 'text-severity-high',
-          },
-          {
-            id: 'evidence',
-            label: (
-              <ConceptLabel concept="evidenceGap">
-                <Trans>Evidence gaps</Trans>
-              </ConceptLabel>
-            ),
-            value: String(summary.evidenceGapCount),
-            detail: <Trans>Rows that still need a source before review.</Trans>,
-            valueClassName: 'text-severity-medium',
-          },
-          {
-            id: 'exposure',
-            label: <Trans>90-day projected risk</Trans>,
-            value: canSeeDollars ? formatCents(summary.totalExposureCents) : t`Hidden by role`,
-            hiddenWhenZeroCents: summary.totalExposureCents,
-            detail: canSeeDollars ? (
-              <Trans>
-                {summary.exposureReadyCount} ready · {summary.exposureNeedsInputCount} needs input ·{' '}
-                {summary.exposureUnsupportedCount} unsupported
-              </Trans>
-            ) : (
-              <Trans>Projected risk dollars are hidden for your current role.</Trans>
-            ),
-            valueClassName: canSeeDollars ? 'text-text-primary' : 'text-text-muted',
-          },
-          {
-            id: 'accrued',
-            label: <Trans>Accrued penalty</Trans>,
-            value: canSeeDollars
-              ? formatCents(summary.totalAccruedPenaltyCents)
-              : t`Hidden by role`,
-            hiddenWhenZeroCents: summary.totalAccruedPenaltyCents,
-            detail: canSeeDollars ? (
-              <Trans>
-                {summary.accruedPenaltyReadyCount} overdue ready ·{' '}
-                {summary.accruedPenaltyNeedsInputCount} needs input ·{' '}
-                {summary.accruedPenaltyUnsupportedCount} unsupported
-              </Trans>
-            ) : (
-              <Trans>Projected risk dollars are hidden for your current role.</Trans>
-            ),
-            valueClassName: canSeeDollars ? 'text-severity-critical' : 'text-text-muted',
-          },
-        ]
-      : []
-  ).filter((metric) => metric.hiddenWhenZeroCents !== 0)
-
+  if (!summary) return null
+  if (!canSeeDollars) {
+    return (
+      <span className="pb-2 text-xs text-text-tertiary">
+        <Trans>Risk dollars hidden by role</Trans>
+      </span>
+    )
+  }
+  const exposure = summary.totalExposureCents
+  const accrued = summary.totalAccruedPenaltyCents
+  if (exposure === 0 && accrued === 0) return null
   return (
-    <section className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
-      {isLoading
-        ? [0, 1, 2, 3, 4, 5].map((item) => (
-            <Card key={item} size="sm">
-              <CardContent className="grid gap-3">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-8 w-28" />
-                <Skeleton className="h-3 w-full" />
-              </CardContent>
-            </Card>
-          ))
-        : metrics.map((metric) => (
-            <Card key={metric.id} size="sm">
-              <CardContent className="grid gap-2">
-                <div className="flex min-w-0 items-center justify-between gap-2">
-                  <span className="min-w-0 text-xs font-medium uppercase tracking-wider text-text-tertiary">
-                    {metric.label}
-                  </span>
-                  {metric.id === 'review' ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="xs"
-                      aria-label={t`Resolve needs review clients`}
-                      className="-mr-1 h-6 px-1.5 text-xs text-text-accent hover:bg-state-accent-hover hover:text-text-accent"
-                      onClick={onResolveNeedsReview}
-                    >
-                      <Trans>Resolve</Trans>
-                      <ArrowRightIcon data-icon="inline-end" className="size-3" aria-hidden />
-                    </Button>
-                  ) : null}
-                </div>
-                <span
-                  className={cn(
-                    'font-mono text-3xl font-semibold tabular-nums',
-                    metric.valueClassName,
-                  )}
-                >
-                  {metric.value}
-                </span>
-                <span className="text-sm text-text-secondary">{metric.detail}</span>
-              </CardContent>
-            </Card>
-          ))}
-    </section>
+    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 pb-2 text-xs">
+      {exposure !== 0 ? (
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-text-tertiary uppercase tracking-wider">
+            <Trans>90-day projected risk</Trans>
+          </span>
+          <span className="font-mono tabular-nums text-text-primary">{formatCents(exposure)}</span>
+        </span>
+      ) : null}
+      {accrued !== 0 ? (
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-text-tertiary uppercase tracking-wider">
+            <Trans>Accrued penalty</Trans>
+          </span>
+          <span className="font-mono tabular-nums text-severity-critical">
+            {formatCents(accrued)}
+          </span>
+        </span>
+      ) : null}
+    </div>
   )
 }
 
@@ -865,9 +804,9 @@ function DashboardTriagePanel({
   selectedKey,
   tabLabels,
   filtersDisabled,
+  summary,
   filterOptions,
   filterState,
-  severityLabels,
   statusLabels,
   statusDisabled,
   canRunMigration,
@@ -886,9 +825,9 @@ function DashboardTriagePanel({
   selectedKey: DashboardTriageTabKey
   tabLabels: Record<DashboardTriageTabKey, string>
   filtersDisabled: boolean
+  summary: DashboardSummary | null
   filterOptions: DashboardFilterOptions
   filterState: DashboardFilterState
-  severityLabels: Record<DashboardSeverity, string>
   statusLabels: Record<ObligationStatus, string>
   statusDisabled: boolean
   canRunMigration: boolean
@@ -905,27 +844,7 @@ function DashboardTriagePanel({
 
   return (
     <Card className="min-w-0">
-      <CardHeader>
-        <CardTitle>
-          <ConceptLabel concept="triageQueue">
-            <Trans>Priority list</Trans>
-          </ConceptLabel>
-        </CardTitle>
-        <CardDescription>
-          <Trans>
-            Work each risk window with deterministic priority, row-level drivers, and the next
-            check.
-          </Trans>
-        </CardDescription>
-        <CardAction>
-          {selectedTab ? (
-            <Badge variant="outline" className="font-mono tabular-nums">
-              {canSeeDollars ? formatCents(selectedTab.totalExposureCents) : <Trans>Hidden</Trans>}
-            </Badge>
-          ) : null}
-        </CardAction>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="grid gap-4 pt-4">
         {isLoading ? (
           <div className="grid gap-2">
             <Skeleton className="h-10 w-full" />
@@ -942,17 +861,19 @@ function DashboardTriagePanel({
             }}
             className="gap-4"
           >
-            <TabsList variant="line">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
-                  <span>{tabLabels[tab.key]}</span>
-                  <span className="font-mono tabular-nums">
-                    {tab.count} ·{' '}
-                    {canSeeDollars ? formatCents(tab.totalExposureCents) : <Trans>Hidden</Trans>}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-divider-regular">
+              <TabsList variant="line" className="-mb-px border-0">
+                {tabs.map((tab) => (
+                  <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
+                    <span>{tabLabels[tab.key]}</span>
+                    <Badge variant="secondary" className="font-mono tabular-nums">
+                      {tab.count}
+                    </Badge>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <ProjectedRiskInline summary={summary} canSeeDollars={canSeeDollars} />
+            </div>
             {tabs.map((tab) => (
               <TabsContent key={tab.key} value={tab.key}>
                 <DashboardTriageTable
@@ -961,7 +882,6 @@ function DashboardTriagePanel({
                   filtersDisabled={filtersDisabled}
                   filterOptions={filterOptions}
                   filterState={filterState}
-                  severityLabels={severityLabels}
                   statusLabels={statusLabels}
                   statusDisabled={statusDisabled}
                   canSeeDollars={canSeeDollars}
@@ -996,7 +916,6 @@ function DashboardTriageTable({
   filtersDisabled,
   filterOptions,
   filterState,
-  severityLabels,
   statusLabels,
   statusDisabled,
   canSeeDollars,
@@ -1010,7 +929,6 @@ function DashboardTriageTable({
   filtersDisabled: boolean
   filterOptions: DashboardFilterOptions
   filterState: DashboardFilterState
-  severityLabels: Record<DashboardSeverity, string>
   statusLabels: Record<ObligationStatus, string>
   statusDisabled: boolean
   canSeeDollars: boolean
@@ -1123,7 +1041,6 @@ function DashboardTriageTable({
             <DashboardCountdownBadge
               days={daysUntilDueFromAsOf(row.original.currentDueDate, asOfDate)}
             />
-            <span className="text-xs">{formatDate(row.original.currentDueDate)}</span>
           </div>
         ),
       },
@@ -1157,44 +1074,6 @@ function DashboardTriageTable({
             disabled={statusDisabled}
             onChange={(_, status) => onChangeStatus(row.original, status)}
           />
-        ),
-      },
-      {
-        accessorKey: 'severity',
-        enableSorting: true,
-        sortingFn: dashboardSeveritySortingFn,
-        sortDescFirst: true,
-        header: ({ column }) => {
-          const label = t`Severity`
-          return (
-            <DashboardSortableFilterHeader column={column} sortLabel={`${t`Sort`} ${label}`}>
-              <TableHeaderMultiFilter
-                trigger="header"
-                label={label}
-                open={openHeaderFilter === 'severity'}
-                onOpenChange={(nextOpen) => setHeaderFilterOpen('severity', nextOpen)}
-                options={filterOptions.severity}
-                selected={filterState.severity}
-                disabled={filtersDisabled}
-                emptyLabel={t`No severities`}
-                onSelectedChange={(nextSeverity) => {
-                  const typedSeverity = nextSeverity.filter(isDashboardSeverity)
-                  onFilterChange({ severity: typedSeverity.length > 0 ? typedSeverity : null })
-                }}
-              />
-            </DashboardSortableFilterHeader>
-          )
-        },
-        cell: ({ row }) => (
-          <DashboardCellButton label={t`Severity: ${severityLabels[row.original.severity]}`}>
-            <Badge
-              variant={severityVariant[row.original.severity]}
-              className="h-7 px-2.5 text-xs uppercase tracking-wide"
-            >
-              <BadgeStatusDot tone={severityDot[row.original.severity]} />
-              {severityLabels[row.original.severity]}
-            </Badge>
-          </DashboardCellButton>
         ),
       },
       {
@@ -1276,7 +1155,6 @@ function DashboardTriageTable({
       onFilterChange,
       onOpenEvidence,
       openHeaderFilter,
-      severityLabels,
       statusDisabled,
       statusLabels,
       t,

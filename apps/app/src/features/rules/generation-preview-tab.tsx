@@ -98,11 +98,11 @@ export function GenerationPreviewTab() {
   )
 
   if (clientsQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading clients for preview.`} />
+    return <QueryPanelState state="loading" message={t`Loading clients for preview…`} />
   }
 
   if (clientsQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load clients for preview.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load clients for preview`} />
   }
 
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
@@ -153,11 +153,11 @@ function GenerationPreviewClientWorkbench({
   )
 
   if (obligationsQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading client tax types.`} />
+    return <QueryPanelState state="loading" message={t`Loading client tax types…`} />
   }
 
   if (obligationsQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load client tax types.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load client tax types`} />
   }
 
   const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
@@ -212,7 +212,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
         })
       },
       onError: (error) => {
-        toast.error(t`Could not generate annual rollover`, {
+        toast.error(t`Couldn't generate annual rollover`, {
           description: rpcErrorMessage(error) ?? t`Try previewing again before generating.`,
         })
       },
@@ -326,7 +326,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
                       <span className="flex min-w-0 flex-col leading-tight">
                         <span className="truncate">{client.name}</span>
                         <span className="font-mono text-[11px] text-text-tertiary">
-                          {client.state ?? t`No state`}
+                          {client.state ?? t`No filing state`}
                         </span>
                       </span>
                     </SelectItem>
@@ -362,9 +362,9 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
         ) : null}
 
         {previewQuery.isLoading ? (
-          <QueryPanelState state="loading" message={t`Loading annual rollover preview.`} />
+          <QueryPanelState state="loading" message={t`Loading annual rollover preview…`} />
         ) : previewQuery.isError ? (
-          <QueryPanelState state="error" message={t`Could not run annual rollover preview.`} />
+          <QueryPanelState state="error" message={t`Couldn't run annual rollover preview`} />
         ) : result ? (
           <AnnualRolloverResults result={result} />
         ) : null}
@@ -469,7 +469,7 @@ function GenerationPreviewForm({
                         <span className="flex min-w-0 flex-col leading-tight">
                           <span className="truncate">{client.name}</span>
                           <span className="font-mono text-[11px] text-text-tertiary">
-                            {client.state ?? t`Needs state`} ·{' '}
+                            {client.state ?? t`Needs filing state`} ·{' '}
                             {previewEntityLabel(client.entityType)}
                           </span>
                         </span>
@@ -591,9 +591,9 @@ function GenerationPreviewForm({
       </SectionFrame>
 
       {previewQuery.isLoading ? (
-        <QueryPanelState state="loading" message={t`Loading obligation preview.`} />
+        <QueryPanelState state="loading" message={t`Loading obligation preview…`} />
       ) : previewQuery.isError ? (
-        <QueryPanelState state="error" message={t`Could not run obligation preview.`} />
+        <QueryPanelState state="error" message={t`Couldn't run obligation preview`} />
       ) : (
         <PreviewResultsCard
           reminderReady={groups.reminderReady}

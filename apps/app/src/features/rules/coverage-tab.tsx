@@ -138,11 +138,11 @@ export function CoverageTab() {
   }
 
   if (coverageQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading rules coverage.`} />
+    return <QueryPanelState state="loading" message={t`Loading rules coverage…`} />
   }
 
   if (coverageQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load rules coverage.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load rules coverage`} />
   }
 
   const rows = coverageQuery.data ?? []
@@ -170,7 +170,7 @@ export function CoverageTab() {
             caption={t`accepted by this practice`}
           />
           <StatCell
-            label={<ConceptLabel concept="candidateRule">{t`Pending review`}</ConceptLabel>}
+            label={<ConceptLabel concept="candidateRule">{t`Needs review`}</ConceptLabel>}
             value={stats.pending}
             caption={t`owner or manager approval required`}
             {...(stats.pending > 0 ? { emphasis: 'accent' as const } : {})}
@@ -257,7 +257,7 @@ export function CoverageTab() {
                         jurisdiction={row.jurisdiction}
                         label={
                           coverageStatusLabels[row.jurisdiction] ??
-                          t`Official sources · pending templates`
+                          t`Official sources · pending rules`
                         }
                       />
                     </TableCell>

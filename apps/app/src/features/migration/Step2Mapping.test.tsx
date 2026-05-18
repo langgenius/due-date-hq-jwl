@@ -123,7 +123,7 @@ describe('Step2Mapping capability disclosure', () => {
     ])
 
     expect(document.body.textContent).toContain(
-      'We could not recognize the entity type. Review the mapped entity type before import.',
+      "We couldn't recognize the entity type. Review the mapped entity type before import.",
     )
     expect(document.body.textContent).not.toContain('ENTITY_ENUM')
     expect(document.body.textContent).not.toContain('8-item enum')

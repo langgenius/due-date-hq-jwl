@@ -13,8 +13,8 @@ const MESSAGE_BY_CODE: Partial<Record<ErrorCode, MessageDescriptor>> = {
   [ErrorCodes.PULSE_REVERT_EXPIRED]: msg`The 24h undo window has expired for this alert.`,
   [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: msg`No eligible obligations are selected.`,
   [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: msg`This Pulse alert is closed and cannot be sent for review.`,
-  [ErrorCodes.FIRM_FORBIDDEN]: msg`Only Owners and Managers can apply Pulse changes.`,
-  [ErrorCodes.MEMBER_FORBIDDEN]: msg`Only Owners and Managers can apply Pulse changes.`,
+  [ErrorCodes.FIRM_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
+  [ErrorCodes.MEMBER_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
 }
 
 const MESSAGE_BY_RAW: Record<string, MessageDescriptor> = {

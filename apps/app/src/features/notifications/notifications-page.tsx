@@ -106,7 +106,7 @@ export function NotificationsPage() {
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
       },
       onError: (error) => {
-        toast.error(t`Could not mark notification read`, {
+        toast.error(t`Couldn't mark notification read`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },
@@ -132,7 +132,7 @@ export function NotificationsPage() {
         toast.success(t`Morning digest preview queued`)
       },
       onError: (error) => {
-        toast.error(t`Could not queue morning digest preview`, {
+        toast.error(t`Couldn't queue morning digest preview`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },
@@ -175,7 +175,7 @@ export function NotificationsPage() {
             {notificationsQuery.isError ? (
               <Alert variant="destructive">
                 <AlertTitle>
-                  <Trans>Could not load notifications</Trans>
+                  <Trans>Couldn't load notifications</Trans>
                 </AlertTitle>
                 <AlertDescription>
                   {rpcErrorMessage(notificationsQuery.error) ?? t`Please try again.`}
@@ -412,7 +412,7 @@ function MorningDigestCard({
           </span>
           {loadingRuns ? (
             <p className="text-sm text-text-secondary">
-              <Trans>Loading recent digest runs.</Trans>
+              <Trans>Loading recent digest runs…</Trans>
             </p>
           ) : runs.length === 0 ? (
             <p className="rounded-md border border-divider-subtle p-3 text-sm text-text-secondary">
