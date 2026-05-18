@@ -94,7 +94,7 @@ export function PulseAlertsBanner() {
                   type="button"
                   size="sm"
                   onClick={() => {
-                    void navigate('/rules?tab=pulse&sourceReview=1#pulse-source-health')
+                    void navigate('/rules/pulse?sourceReview=1#pulse-source-health')
                   }}
                 >
                   <Trans>Review sources</Trans>
