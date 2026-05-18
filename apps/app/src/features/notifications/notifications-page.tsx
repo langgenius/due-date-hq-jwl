@@ -201,7 +201,7 @@ export function NotificationsPage() {
                     </h2>
                     <p className="text-sm text-text-secondary">{item.body}</p>
                   </div>
-                  <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+                  <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
                     {formatDateTimeWithTimezone(item.createdAt, practiceTimezone)}
                   </span>
                 </div>
@@ -420,7 +420,7 @@ function MorningDigestCard({
               {runs.slice(0, 7).map((run) => (
                 <li key={run.id} className="grid gap-1 rounded-md border border-divider-subtle p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs tabular-nums text-text-secondary">
+                    <span className="text-xs tabular-nums text-text-secondary">
                       {run.localDate}
                     </span>
                     {digestStatusBadge(run.status)}

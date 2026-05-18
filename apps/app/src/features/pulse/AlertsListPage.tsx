@@ -147,7 +147,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               </p>
             </div>
             {!alertsQuery.isLoading ? (
-              <span className="hidden font-mono text-xs tabular-nums text-text-tertiary md:inline">
+              <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
                 {alerts.length === 0 ? (
                   <Trans>0 active</Trans>
                 ) : filtersActive ? (
@@ -332,7 +332,7 @@ function SourceAttentionAlert({
         <span>
           <Trans>Pulse source needs attention</Trans>
         </span>
-        <Badge variant="warning" className="font-mono tabular-nums">
+        <Badge variant="warning" className="tabular-nums">
           <Plural value={sourceCount} one="# source" other="# sources" />
         </Badge>
       </AlertTitle>
@@ -417,7 +417,7 @@ function PulseSourceHealthTable({
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {sources.map((source) => (
             <TableRow key={source.sourceId}>
               <TableCell className="min-w-[220px]">
@@ -434,7 +434,7 @@ function PulseSourceHealthTable({
               <TableCell className="whitespace-nowrap text-text-secondary">
                 {formatSourceDate(source.lastSuccessAt, i18n, t`Never`)}
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums text-text-primary">
+              <TableCell className="text-right tabular-nums text-text-primary">
                 {source.consecutiveFailures}
               </TableCell>
               <TableCell className="whitespace-nowrap text-text-secondary">

@@ -127,9 +127,7 @@ function SummaryCard({ label, value }: { label: ReactNode; value: number | undef
         {value === undefined ? (
           <Skeleton className="h-7 w-10" />
         ) : (
-          <span className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
-            {value}
-          </span>
+          <span className="text-2xl font-semibold tabular-nums text-text-primary">{value}</span>
         )}
       </CardContent>
     </Card>
