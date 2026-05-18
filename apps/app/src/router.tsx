@@ -541,6 +541,16 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'settings',
+              handle: routeHandle(routeSummaries.settings),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { SettingsRoute } = await import('@/routes/settings')
+
+                return { Component: SettingsRoute }
+              },
+            },
+            {
               path: 'account/security',
               handle: routeHandle(routeSummaries.accountSecurity),
               HydrateFallback: RouteHydrateFallback,

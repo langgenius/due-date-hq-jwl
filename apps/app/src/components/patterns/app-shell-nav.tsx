@@ -1,27 +1,18 @@
 import { useCallback, useMemo, useState, type SyntheticEvent, type ReactNode } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router'
+import { Link, NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   ActivityIcon,
-  Building2Icon,
-  AlarmClockIcon,
   CalendarClockIcon,
   CheckIcon,
-  ChevronRightIcon,
   ChevronsUpDownIcon,
-  ClipboardListIcon,
-  CreditCardIcon,
-  FileCheck2Icon,
-  HourglassIcon,
   LayoutDashboardIcon,
   LibraryIcon,
-  MapIcon,
   PlusIcon,
-  RssIcon,
-  ScaleIcon,
+  SettingsIcon,
   SparklesIcon,
   UsersIcon,
   type LucideIcon,
@@ -64,7 +55,7 @@ import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
-import { canCreateAdditionalFirm, ownedActiveFirms, paidPlanActive } from '@/features/billing/model'
+import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
 import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
@@ -84,18 +75,15 @@ type NavItem = {
   disabledReason?: string
 }
 
-type NavGroupItem = NavItem & {
-  // When present this item renders as a collapsible parent: clicking the row
-  // toggles a chevron and reveals the children indented underneath. The
-  // parent itself is not a destination — its `href` is only used as the
-  // "default" target when the group is auto-expanded from a child route.
-  children?: NavItem[]
-}
-
 type NavConfig = {
-  operations: NavGroupItem[]
-  clients: NavItem[]
-  practice: NavItem[]
+  // Primary daily / weekly destinations. Flat list, no section labels —
+  // at 6 items the headers were adding visual weight without information.
+  primary: NavItem[]
+  // Bottom of the sidebar. Holds the Settings hub for workspace
+  // configuration (Practice profile, Members, Billing, Audit, automation
+  // settings — see `apps/app/src/routes/settings.tsx`). Personal account
+  // settings live in the `UserMenuTrigger` dropdown, not here.
+  footer: NavItem[]
 }
 
 function firmMonogram(name: string): string {
@@ -419,14 +407,13 @@ function usePulseAlertCount(): number {
   return query.data?.alerts.length ?? 0
 }
 
-function useNavItems(firm: FirmPublic): NavConfig {
+function useNavItems(_firm: FirmPublic): NavConfig {
   const { t } = useLingui()
   const pulseCount = usePulseAlertCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
-  const workloadPaid = paidPlanActive(firm)
   return useMemo<NavConfig>(
     () => ({
-      operations: [
+      primary: [
         { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
         {
           href: '/obligations',
@@ -434,71 +421,35 @@ function useNavItems(firm: FirmPublic): NavConfig {
           icon: CalendarClockIcon,
           end: false,
         },
+        // Pulse is the spine of the product (per the canonical product
+        // spec — "you won't be the last CPA in your state to find out about
+        // a filing extension"). It lives as a direct entry, not buried
+        // under Rules, because it's operational/real-time work — not
+        // governance. The sidebar badge counts incoming alerts only.
         {
-          // Collapsible parent — the Rules workspace expands inline to reveal
-          // its six dedicated pages. `href` points at the default landing
-          // route used when a child auto-expands the group.
-          href: '/rules/coverage',
-          label: t`Rules`,
-          icon: FileCheck2Icon,
+          href: '/rules/pulse',
+          label: t`Pulse`,
+          icon: ActivityIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
-          children: [
-            { href: '/rules/coverage', label: t`Coverage`, icon: MapIcon, end: false },
-            { href: '/rules/sources', label: t`Sources`, icon: RssIcon, end: false },
-            { href: '/rules/library', label: t`Rule library`, icon: LibraryIcon, end: false },
-            {
-              href: '/rules/pulse',
-              label: t`Pulse changes`,
-              icon: ActivityIcon,
-              end: false,
-              ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
-            },
-            {
-              href: '/rules/temporary',
-              label: t`Temporary rules`,
-              icon: HourglassIcon,
-              end: false,
-            },
-            // Obligation preview (/rules/preview) is intentionally not
-            // surfaced in the sidebar. It's a dry-run sandbox that tests
-            // what the rules engine would generate for a given client
-            // and tax year — closer to client onboarding / admin tooling
-            // than to the day-to-day rule governance workflow. Route
-            // stays alive for direct links and engineering use.
-          ],
         },
-        {
-          href: '/reminders',
-          label: t`Reminders`,
-          icon: AlarmClockIcon,
-          end: false,
-        },
-      ],
-      clients: [
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
-      ],
-      practice: [
-        { href: '/practice', label: t`Practice profile`, icon: Building2Icon, end: false },
+        // Rule library is a single direct entry. Coverage and Sources are
+        // not separate sidebar destinations — they're aggregate views of
+        // the catalog, rendered as sections inside the Library page. The
+        // route stays at `/rules/library` for now; a future pass merges the
+        // three pages into a single `/rules` URL.
         {
-          href: '/workload',
-          label: t`Team workload`,
-          icon: ClipboardListIcon,
+          href: '/rules/library',
+          label: t`Rule library`,
+          icon: LibraryIcon,
           end: false,
-          ...(workloadPaid
-            ? {}
-            : {
-                tag: t`Pro`,
-                disabledReason: t`Team workload is available on Pro, Team, and Enterprise plans.`,
-              }),
         },
-        { href: '/members', label: t`Members`, icon: UsersIcon, end: false },
-        { href: '/billing', label: t`Billing`, icon: CreditCardIcon, end: false },
-        { href: '/audit', label: t`Audit log`, icon: ScaleIcon, end: false },
       ],
+      footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
     }),
-    [t, pulseBadge, workloadPaid],
+    [t, pulseBadge],
   )
 }
 
@@ -507,23 +458,14 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
   const items = useNavItems(firm)
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
-      <NavGroupSection label={t`Operations`}>
-        {items.operations.map((item) =>
-          item.children ? (
-            <NavMenuCollapsibleItem key={item.href} item={item} />
-          ) : (
-            <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
-          ),
-        )}
-      </NavGroupSection>
-      <NavGroupSection label={t`Clients`}>
-        {items.clients.map((item) => (
-          <NavMenuItem key={item.href} item={item} />
+      <NavGroupSection>
+        {items.primary.map((item) => (
+          <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
         ))}
       </NavGroupSection>
-      <NavGroupSection label={t`Practice`}>
-        {items.practice.map((item) => (
-          <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
+      <NavGroupSection muted>
+        {items.footer.map((item) => (
+          <NavMenuItem key={item.href} item={item} />
         ))}
       </NavGroupSection>
     </nav>
@@ -535,13 +477,17 @@ function NavGroupSection({
   muted = false,
   children,
 }: {
-  label: string
+  // Labels are intentionally omitted at the call site for the current sidebar
+  // shape — at 6 entries split into 3 groups of 1–3, headers were adding
+  // visual weight without information. Kept optional so denser future
+  // structures can re-label without changing this component.
+  label?: string
   muted?: boolean
   children: ReactNode
 }) {
   return (
     <SidebarGroup className={muted ? 'opacity-55' : undefined}>
-      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>
@@ -574,66 +520,6 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
         ) : null}
       </SidebarMenuButton>
     </SidebarMenuItem>
-  )
-}
-
-function pathMatchesPrefix(pathname: string, prefix: string): boolean {
-  return pathname === prefix || pathname.startsWith(`${prefix}/`)
-}
-
-function NavMenuCollapsibleItem({ item }: { item: NavGroupItem }) {
-  const Icon = item.icon
-  const children = item.children ?? []
-  const location = useLocation()
-  // Treat any descendant match as "active" so the parent stays highlighted
-  // and the group auto-expands when navigating directly to a child URL.
-  const parentPrefix = item.href.replace(/\/[^/]+$/, '') || item.href
-  const matchesChild = children.some((child) => pathMatchesPrefix(location.pathname, child.href))
-  const matchesParentPrefix = pathMatchesPrefix(location.pathname, parentPrefix)
-  const isActiveBranch = matchesChild || matchesParentPrefix
-  const [manualOpen, setManualOpen] = useState<boolean | null>(null)
-  const open = manualOpen ?? isActiveBranch
-  const toggle = useCallback(() => {
-    setManualOpen((current) => !(current ?? isActiveBranch))
-  }, [isActiveBranch])
-
-  return (
-    <>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          render={
-            <button
-              type="button"
-              aria-expanded={open}
-              aria-controls={`nav-children-${item.href}`}
-              onClick={toggle}
-            />
-          }
-          data-active={isActiveBranch || undefined}
-        >
-          <Icon aria-hidden />
-          <span>{item.label}</span>
-          {item.badge ? <SidebarMenuBadge>{item.badge}</SidebarMenuBadge> : null}
-          <ChevronRightIcon
-            aria-hidden
-            className={cn(
-              'ml-auto size-3.5 shrink-0 text-text-muted transition-transform duration-150',
-              open && 'rotate-90',
-            )}
-          />
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      {open ? (
-        <ul
-          id={`nav-children-${item.href}`}
-          className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-divider-subtle pl-2"
-        >
-          {children.map((child) => (
-            <NavMenuItem key={child.href} item={child} />
-          ))}
-        </ul>
-      ) : null}
-    </>
   )
 }
 
