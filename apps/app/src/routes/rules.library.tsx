@@ -28,7 +28,7 @@ export function RulesLibraryRoute() {
   return (
     <RulesPageShell
       title={t`Rule library`}
-      description={t`Catalog of practice rules. Review pending templates, activate them into production, and inspect rejected or archived evidence.`}
+      description={t`Catalog of practice rules. Review pending templates, activate them into production, and inspect rejected or archived evidence. Each row carries its source — click the citation to open the official document.`}
     >
       <RuleLibraryTab />
     </RulesPageShell>

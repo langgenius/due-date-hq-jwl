@@ -1,11 +1,16 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, EyeIcon } from 'lucide-react'
+import { CheckIcon, ExternalLinkIcon, EyeIcon } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
-import type { ObligationRule, RuleBulkImpactPreview, RuleReviewTask } from '@duedatehq/contracts'
+import type {
+  ObligationRule,
+  RuleBulkImpactPreview,
+  RuleReviewTask,
+  RuleSource,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Sheet,
@@ -57,6 +62,7 @@ type StatusKey = ObligationRule['status']
 const RULE_PAGE_SIZE = 25
 const EMPTY_RULE_ROWS: ObligationRule[] = []
 const EMPTY_REVIEW_TASKS: RuleReviewTask[] = []
+const EMPTY_SOURCES: RuleSource[] = []
 
 // The library filter and jurisdiction filter are URL-state instead of
 // local component state so the Coverage section above can drill into a
@@ -118,9 +124,23 @@ export function RuleLibraryTab() {
   const tasksQuery = useQuery(
     orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
   )
+  // Source-of-truth lookup: every row in the Library traces back to one or
+  // more RuleSource entries (IRS Pub, state tax code, DC government doc).
+  // We fetch the full registry once and join in the row to render an inline
+  // citation under the rule id. Per user directive 2026-05-19: "include
+  // sources of truth as much as possible" — the catalog should never read
+  // as floating claims, every rule should carry its provenance.
+  const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
 
   const rows = useMemo(() => rulesQuery.data ?? EMPTY_RULE_ROWS, [rulesQuery.data])
   const reviewTasks = useMemo(() => tasksQuery.data ?? EMPTY_REVIEW_TASKS, [tasksQuery.data])
+  const sourceById = useMemo(() => {
+    const map = new Map<string, RuleSource>()
+    for (const source of sourcesQuery.data ?? EMPTY_SOURCES) {
+      map.set(source.id, source)
+    }
+    return map
+  }, [sourcesQuery.data])
   const openTaskByRuleVersion = useMemo(
     () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
     [reviewTasks],
@@ -455,6 +475,7 @@ export function RuleLibraryTab() {
                   selectedRuleKeys.includes(ruleRowKey(rule)) &&
                   canBulkReviewRule(rule, openTaskByRuleVersion)
                 }
+                sourceById={sourceById}
                 onSelectedChange={toggleRule}
                 onSelect={handleRuleSelect}
               />
@@ -702,12 +723,17 @@ function RuleRow({
   rule,
   reviewTask,
   selected,
+  sourceById,
   onSelectedChange,
   onSelect,
 }: {
   rule: ObligationRule
   reviewTask: RuleReviewTask | null
   selected: boolean
+  // Lookup table of all watched sources so the inline citation can render
+  // the source title + link to the official document. Map vs. searching
+  // an array per row keeps the per-row cost O(1) at 100+ rule rows.
+  sourceById: ReadonlyMap<string, RuleSource>
   onSelectedChange: (rowKey: string, checked: boolean) => void
   onSelect: (rule: ObligationRule) => void
 }) {
@@ -764,6 +790,7 @@ function RuleRow({
             {reviewTask.reason === 'source_changed' ? t`Update available` : t`New rule`}
           </span>
         ) : null}
+        <RuleSourceCitation rule={rule} sourceById={sourceById} />
       </TableCell>
       <TableCell className="py-2 text-xs text-text-secondary">{rule.formName}</TableCell>
       <TableCell className="max-w-[168px] py-2 text-xs text-text-secondary">
@@ -780,6 +807,58 @@ function RuleRow({
       <TableCell className="py-2 font-mono text-xs text-text-tertiary">v{rule.version}</TableCell>
       <TableCell className="py-2 text-right text-xs text-text-tertiary">›</TableCell>
     </TableRow>
+  )
+}
+
+/**
+ * Inline source-of-truth citation rendered under the rule id in the
+ * Library table. Shows the first watched source (title + external link
+ * to the official document) and, if the rule cites multiple sources, a
+ * `+N` chip indicating how many more.
+ *
+ * Affordance: the citation is an inline link with hover underline, NOT
+ * a styled pill. We don't want it to compete visually with the row
+ * itself (which is a click-to-open affordance). Clicking the citation
+ * stops the row click and opens the source document in a new tab.
+ *
+ * If the rule has no sources or sources haven't loaded yet, the
+ * citation is omitted — better to render nothing than a placeholder
+ * that lies about provenance.
+ */
+function RuleSourceCitation({
+  rule,
+  sourceById,
+}: {
+  rule: ObligationRule
+  sourceById: ReadonlyMap<string, RuleSource>
+}) {
+  const { t } = useLingui()
+  const sourceIds = rule.sourceIds
+  if (sourceIds.length === 0) return null
+  const firstSource = sourceById.get(sourceIds[0] ?? '')
+  if (!firstSource) return null
+  const extraCount = sourceIds.length - 1
+  return (
+    <a
+      href={firstSource.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+      aria-label={t`Open source document: ${firstSource.title}`}
+      className="mt-1 inline-flex max-w-full items-center gap-1 rounded-sm text-[11px] text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      <span className="shrink-0 font-medium tracking-[0.04em] text-text-tertiary uppercase">
+        <Trans>Source</Trans>
+      </span>
+      <span className="min-w-0 truncate">{firstSource.title}</span>
+      <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
+      {extraCount > 0 ? (
+        <span className="shrink-0 text-text-muted">
+          <Trans>+{extraCount}</Trans>
+        </span>
+      ) : null}
+    </a>
   )
 }
 
