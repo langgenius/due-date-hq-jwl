@@ -86,16 +86,16 @@ describe('Step2Mapping capability disclosure', () => {
     )
   })
 
-  it('shows Source template when AI uses the selected source template', () => {
+  it('shows Import template when AI uses the selected import template', () => {
     renderStep(mappingState({ status: 'fallback', fallback: 'preset' }))
 
-    expect(document.body.textContent).toContain('Source template')
+    expect(document.body.textContent).toContain('Import template')
     expect(document.body.textContent).toContain('Automatic field matching is unavailable')
     expect(
-      document.querySelector('button[aria-label="Explain source template suggestions"]'),
+      document.querySelector('button[aria-label="Explain import template suggestions"]'),
     ).toHaveProperty(
       'title',
-      'Source template suggestions mean AI was unavailable and the selected source template filled defaults.',
+      'Import template suggestions mean AI was unavailable and the selected import template filled defaults.',
     )
   })
 
@@ -105,7 +105,7 @@ describe('Step2Mapping capability disclosure', () => {
     expect(document.body.textContent).toContain('Manual mapping')
     expect(document.querySelector('button[aria-label="Explain Manual mapping"]')).toHaveProperty(
       'title',
-      'Manual mapping means no AI or source template result was available.',
+      'Manual mapping means no AI or import template result was available.',
     )
   })
 
