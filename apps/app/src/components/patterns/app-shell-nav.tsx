@@ -15,7 +15,6 @@ import {
   ClipboardListIcon,
   CreditCardIcon,
   FileCheck2Icon,
-  FlaskConicalIcon,
   HourglassIcon,
   LayoutDashboardIcon,
   LibraryIcon,
@@ -461,12 +460,12 @@ function useNavItems(firm: FirmPublic): NavConfig {
               icon: HourglassIcon,
               end: false,
             },
-            {
-              href: '/rules/preview',
-              label: t`Obligation preview`,
-              icon: FlaskConicalIcon,
-              end: false,
-            },
+            // Obligation preview (/rules/preview) is intentionally not
+            // surfaced in the sidebar. It's a dry-run sandbox that tests
+            // what the rules engine would generate for a given client
+            // and tax year — closer to client onboarding / admin tooling
+            // than to the day-to-day rule governance workflow. Route
+            // stays alive for direct links and engineering use.
           ],
         },
         {

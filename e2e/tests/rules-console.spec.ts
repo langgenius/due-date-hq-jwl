@@ -62,8 +62,7 @@ test('AC: E2E-RULES-PREVIEW runs the implemented obligation preview', async ({
   authenticatedPage,
   rulesConsolePage,
 }) => {
-  await rulesConsolePage.goto()
-  await rulesConsolePage.previewTab.click()
+  await rulesConsolePage.gotoPreview()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/preview$/)
   const obligationPreviewForm = authenticatedPage.locator('form').filter({

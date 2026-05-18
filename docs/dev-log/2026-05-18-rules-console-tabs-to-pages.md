@@ -54,6 +54,28 @@ existing layout invariants (24 px padding, single scrollable content column)
 intact. The inline layout commentary that lived in `rules-console.tsx` is now
 encoded in `RulesPageShell` inside [rules-console-primitives.tsx](apps/app/src/features/rules/rules-console-primitives.tsx).
 
+## Addendum — Obligation preview hidden from the sidebar
+
+After the initial split, Obligation preview was reconsidered against the
+canonical product spec
+(`美国小型会计事务所报税种类、流程与规则产品指南.pdf`). The page is a
+dry-run sandbox that tests _what the rules engine would generate_ for a
+given client and tax year — it validates _output_, not rule governance.
+That makes it conceptually closer to client onboarding or admin/dev
+tooling than to the day-to-day owner/manager rules workflow.
+
+Action:
+
+- Removed from `useNavItems` operations children
+  ([app-shell-nav.tsx](apps/app/src/components/patterns/app-shell-nav.tsx))
+- Removed from Command Palette navigate group
+  ([CommandPalette.tsx](apps/app/src/components/patterns/keyboard-shell/CommandPalette.tsx))
+- Route, route summary, and `RulesPreviewRoute` component all stay; the
+  page remains reachable at `/rules/preview` for direct links and
+  engineering use
+- e2e fixture exposes `gotoPreview()` for the preview spec (was a
+  sidebar click before)
+
 ## Validation
 
 - `pnpm check`
