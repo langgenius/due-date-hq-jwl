@@ -269,26 +269,26 @@ function evidenceSourceLabel(sourceType: string): ReactNode {
 function evidenceHeadline(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule')
     return <Trans>An active practice rule supports this deadline.</Trans>
-  if (sourceType === 'ai_mapper') return <Trans>An imported column was matched to DueDateHQ.</Trans>
-  if (sourceType === 'ai_normalizer') return <Trans>An imported value was cleaned up.</Trans>
+  if (sourceType === 'ai_mapper') return <Trans>Matched an imported column to DueDateHQ.</Trans>
+  if (sourceType === 'ai_normalizer') return <Trans>Cleaned up an imported value.</Trans>
   if (sourceType === 'readiness_checklist_ai') {
-    return <Trans>A readiness checklist was prepared.</Trans>
+    return <Trans>Prepared a readiness checklist.</Trans>
   }
   if (sourceType === 'readiness_client_response') {
     return <Trans>The client answered readiness questions.</Trans>
   }
-  if (sourceType === 'penalty_override') return <Trans>Penalty inputs were updated.</Trans>
-  if (sourceType === 'extension_decision') return <Trans>An extension decision was recorded.</Trans>
-  if (sourceType === 'pulse_apply') return <Trans>A rule change was applied.</Trans>
-  if (sourceType === 'pulse_revert') return <Trans>A rule change was undone.</Trans>
-  if (sourceType === 'migration_revert') return <Trans>An import was undone.</Trans>
-  return <Trans>Evidence was added to this deadline.</Trans>
+  if (sourceType === 'penalty_override') return <Trans>Updated penalty inputs.</Trans>
+  if (sourceType === 'extension_decision') return <Trans>Recorded an extension decision.</Trans>
+  if (sourceType === 'pulse_apply') return <Trans>Applied a rule change.</Trans>
+  if (sourceType === 'pulse_revert') return <Trans>Reverted a rule change.</Trans>
+  if (sourceType === 'migration_revert') return <Trans>Reverted an import.</Trans>
+  return <Trans>Added evidence to this deadline.</Trans>
 }
 
 function evidenceDescription(item: EvidencePublic): ReactNode {
   if (item.sourceType === 'readiness_checklist_ai') {
     const count = readJsonArray(item.normalizedValue)?.length ?? 0
-    if (count > 0) return <Trans>{count} checklist items were suggested.</Trans>
+    if (count > 0) return <Trans>Suggested {count} checklist items.</Trans>
   }
   if (item.sourceType === 'readiness_client_response') {
     const readiness = readRecordString(readJsonRecord(item.normalizedValue), 'readiness')

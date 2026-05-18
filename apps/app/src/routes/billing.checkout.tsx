@@ -172,7 +172,7 @@ export function BillingCheckoutRoute() {
         throw new Error(t`Enterprise plan changes require sales support.`)
       if (checkoutConfigQuery.isPending)
         throw new Error(t`Checkout configuration is not ready yet.`)
-      if (checkoutConfigQuery.isError) throw new Error(t`Checkout configuration could not load.`)
+      if (checkoutConfigQuery.isError) throw new Error(t`Checkout configuration couldn't load.`)
       if (!checkoutConfiguredFor(checkoutConfigQuery.data, plan, interval))
         throw new Error(t`Checkout is temporarily unavailable for this plan. Contact support.`)
       return createCheckout({
@@ -300,7 +300,7 @@ export function BillingCheckoutRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Billing status could not load</Trans>
+            <Trans>Billing status couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{subscriptionsQuery.error.message}</AlertDescription>
         </Alert>
@@ -310,7 +310,7 @@ export function BillingCheckoutRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Checkout configuration could not load</Trans>
+            <Trans>Checkout configuration couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{checkoutConfigQuery.error.message}</AlertDescription>
         </Alert>
@@ -332,7 +332,7 @@ export function BillingCheckoutRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Checkout could not start</Trans>
+            <Trans>Checkout couldn't start</Trans>
           </AlertTitle>
           <AlertDescription>{checkoutMutation.error.message}</AlertDescription>
         </Alert>

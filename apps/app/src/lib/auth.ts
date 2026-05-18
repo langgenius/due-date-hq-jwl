@@ -123,7 +123,7 @@ export async function sendEmailSignInCode(email: string) {
     email,
     type: 'sign-in',
   })
-  assertNoAuthClientError(result, 'Could not send the sign-in code')
+  assertNoAuthClientError(result, "Couldn't send the sign-in code")
   return result
 }
 
@@ -133,7 +133,7 @@ export async function signInWithEmailCode(input: { email: string; otp: string; n
     otp: input.otp,
     name: input.name ?? displayNameFromEmail(input.email),
   })
-  assertNoAuthClientError(result, 'Could not verify the sign-in code')
+  assertNoAuthClientError(result, "Couldn't verify the sign-in code")
   return result
 }
 

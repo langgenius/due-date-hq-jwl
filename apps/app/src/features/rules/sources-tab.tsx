@@ -107,11 +107,11 @@ export function SourcesTab() {
   )
 
   if (sourcesQuery.isLoading) {
-    return <QueryPanelState state="loading" message={t`Loading rule sources.`} />
+    return <QueryPanelState state="loading" message={t`Loading rule sources…`} />
   }
 
   if (sourcesQuery.isError) {
-    return <QueryPanelState state="error" message={t`Could not load rule sources.`} />
+    return <QueryPanelState state="error" message={t`Couldn't load rule sources`} />
   }
 
   const emptyFilterLabel = t`No options`

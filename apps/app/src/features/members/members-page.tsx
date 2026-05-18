@@ -125,7 +125,7 @@ export function MembersPageRoute() {
         <Alert variant="destructive">
           <AlertTriangleIcon />
           <AlertTitle>
-            <Trans>Members could not load</Trans>
+            <Trans>Members couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{membersQuery.error.message}</AlertDescription>
         </Alert>
@@ -321,7 +321,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <SectionHeader
           title={t`Pending invitations`}
           count={data.invitations.length}
-          note={t`${pendingCount} pending · ${expiredCount} expired · magic-link via Resend, 7-day expiry`}
+          note={t`${pendingCount} pending · ${expiredCount} expired · magic link, 7-day expiry`}
         />
         <PendingInvitationsTable
           invitations={data.invitations}
@@ -830,7 +830,7 @@ function InviteMemberDialog({
       <DialogContent className="w-[420px] rounded-md p-5" showCloseButton={false}>
         <DialogHeader className="gap-1">
           <DialogTitle className="text-base">
-            <Trans>Invite a teammate</Trans>
+            <Trans>Invite member</Trans>
           </DialogTitle>
           <DialogDescription className="text-xs">
             <Trans>Send a 7-day magic link to add a member to this practice.</Trans>

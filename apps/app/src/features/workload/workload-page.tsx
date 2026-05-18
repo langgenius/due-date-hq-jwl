@@ -52,7 +52,7 @@ export function WorkloadPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              <Trans>Loading team workload</Trans>
+              <Trans>Loading team workload…</Trans>
             </CardTitle>
             <CardDescription>
               <Trans>Checking the active practice plan before loading workload metrics.</Trans>
@@ -97,7 +97,7 @@ export function WorkloadPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              <Trans>Could not load team workload</Trans>
+              <Trans>Couldn't load team workload</Trans>
             </CardTitle>
             <CardDescription>
               {rpcErrorMessage(workloadQuery.error) ?? t`Please try again.`}

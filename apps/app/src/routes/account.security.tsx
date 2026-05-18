@@ -50,7 +50,7 @@ export function AccountSecurityRoute() {
         toast.success(t`Authenticator setup started`)
       },
       onError: (err) => {
-        toast.error(t`Could not start authenticator setup`, {
+        toast.error(t`Couldn't start authenticator setup`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },
@@ -66,7 +66,7 @@ export function AccountSecurityRoute() {
         toast.success(t`Two-factor authentication enabled`)
       },
       onError: (err) => {
-        toast.error(t`Could not verify the code`, {
+        toast.error(t`Couldn't verify the code`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },
@@ -80,7 +80,7 @@ export function AccountSecurityRoute() {
         toast.success(t`Two-factor authentication disabled`)
       },
       onError: (err) => {
-        toast.error(t`Could not disable two-factor authentication`, {
+        toast.error(t`Couldn't disable two-factor authentication`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },
@@ -98,7 +98,7 @@ export function AccountSecurityRoute() {
         if (revokedCurrent) void navigate('/login', { replace: true })
       },
       onError: (err) => {
-        toast.error(t`Could not revoke session`, {
+        toast.error(t`Couldn't revoke session`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },
@@ -112,7 +112,7 @@ export function AccountSecurityRoute() {
         toast.success(t`Other sessions revoked`)
       },
       onError: (err) => {
-        toast.error(t`Could not revoke other sessions`, {
+        toast.error(t`Couldn't revoke other sessions`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },
@@ -131,7 +131,7 @@ export function AccountSecurityRoute() {
       await navigator.clipboard.writeText(value)
       toast.success(successMessage)
     } catch {
-      toast.error(t`Could not copy to clipboard`)
+      toast.error(t`Couldn't copy to clipboard`)
     }
   }
 
@@ -160,7 +160,7 @@ export function AccountSecurityRoute() {
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
-            <Trans>Security settings could not load</Trans>
+            <Trans>Security settings couldn't load</Trans>
           </AlertTitle>
           <AlertDescription>{statusQuery.error.message}</AlertDescription>
         </Alert>

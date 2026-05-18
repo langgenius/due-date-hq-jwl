@@ -84,9 +84,9 @@ export function RulesConsole() {
 
   const tabDescriptions = useMemo<Record<RulesTab, string>>(
     () => ({
-      coverage: t`Sources are official federal, state, and DC materials. Only practice-accepted rules can generate reminder-ready obligations; pending templates remain review-only until an owner or manager accepts them.`,
-      sources: t`Official channels watched for rule changes — health, cadence, and acquisition method per source. Click any row to open the official page in a new tab. Source changes create practice review tasks; they never silently update active rules.`,
-      library: t`Review pending templates, activate practice rules, and inspect active, rejected, or archived rule evidence in one table. Only active practice rules can generate client obligations or reminders.`,
+      coverage: t`Sources are official federal, state, and DC materials. Only practice-accepted rules can generate reminder-ready obligations; pending rules remain review-only until an owner or manager accepts them.`,
+      sources: t`Official sources watched for rule changes — health, cadence, and acquisition method per source. Click any row to open the official page in a new tab. Source changes create practice review tasks; they never silently update active rules.`,
+      library: t`Review pending rules, activate them, and inspect active, rejected, or archived rule evidence in one table. Only active rules can generate client obligations or reminders.`,
       pulse: t`Source-backed government changes that may affect client deadlines. Owners and managers review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here.`,
       temporary: t`Applied Pulse exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Pulse detail when a temporary rule needs revert or follow-up.`,
       preview: t`Input client facts → dry-run rules engine → see which obligations would be created. Reminder-ready obligations fire 30 / 7 / 1-day reminders; requires-review items surface for CPA confirmation, never auto-reminded.`,

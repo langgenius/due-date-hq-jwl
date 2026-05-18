@@ -1258,7 +1258,7 @@ function ClientPulsePanel({
           <PanelEmptyState
             icon={AlertTriangleIcon}
             title={<Trans>No matching Pulse changes</Trans>}
-            detail={<Trans>This client is clear of the current firm-scoped Pulse queue.</Trans>}
+            detail={<Trans>This client is clear of the current practice-scoped Pulse queue.</Trans>}
           />
         ) : (
           <div className="grid gap-2">
@@ -2006,7 +2006,7 @@ function ClientReadinessBadge({
 
 function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
   if (readiness.missingRequiredFacts.includes('state')) {
-    return <Trans>Needs state</Trans>
+    return <Trans>Needs filing state</Trans>
   }
   return <Trans>Needs facts</Trans>
 }

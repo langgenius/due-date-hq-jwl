@@ -32,7 +32,7 @@ export function TwoFactorRoute() {
         await navigate(search.get('redirectTo') || '/', { replace: true })
       },
       onError: (err) => {
-        toast.error(t`Could not verify the code`, {
+        toast.error(t`Couldn't verify the code`, {
           description: rpcErrorMessage(err) ?? err.message,
         })
       },

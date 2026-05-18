@@ -280,7 +280,7 @@ function AuditLogPagination({
           aria-label={t`Next page`}
         >
           {isFetchingNextPage ? (
-            <Trans>Loading...</Trans>
+            <Trans>Loading…</Trans>
           ) : (
             <>
               <Trans>Next</Trans>
@@ -315,7 +315,7 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
       },
       onError: (error) => {
-        window.alert(rpcErrorMessage(error) ?? t`Could not request export.`)
+        window.alert(rpcErrorMessage(error) ?? t`Couldn't request export`)
       },
     }),
   )
@@ -713,7 +713,7 @@ export function AuditLogPage() {
           {auditQuery.isError ? (
             <Alert variant="destructive">
               <AlertTitle>
-                <Trans>Could not load audit events</Trans>
+                <Trans>Couldn't load audit events</Trans>
               </AlertTitle>
               <AlertDescription>
                 {rpcErrorMessage(auditQuery.error) ?? t`Please try again.`}

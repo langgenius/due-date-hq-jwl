@@ -134,7 +134,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
         void navigate('/', { replace: true })
       },
       onError: (err) => {
-        toast.error(t`Could not switch practice.`, {
+        toast.error(t`Couldn't switch practice`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -283,7 +283,7 @@ function AddFirmDialog({
         void navigate('/', { replace: true })
       },
       onError: (err) => {
-        setError(rpcErrorMessage(err) ?? t`Could not create practice.`)
+        setError(rpcErrorMessage(err) ?? t`Couldn't create practice`)
       },
     }),
   )

@@ -3594,7 +3594,7 @@ function EvidenceInlineItem({
       {penaltyRows ? (
         <div className="mt-2 grid gap-2">
           <p className="text-sm text-text-secondary">
-            <Trans>Penalty inputs were updated.</Trans>
+            <Trans>Updated penalty inputs.</Trans>
           </p>
           <AuditSummaryRows rows={penaltyRows} />
         </div>

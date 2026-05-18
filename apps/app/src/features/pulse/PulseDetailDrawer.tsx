@@ -497,7 +497,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                     <Trans>Read-only view</Trans>
                   </AlertTitle>
                   <AlertDescription>
-                    <Trans>Only Owners and Managers can apply Pulse changes.</Trans>
+                    <Trans>Only owners and managers can apply Pulse changes.</Trans>
                   </AlertDescription>
                 </Alert>
               ) : null}
@@ -961,7 +961,7 @@ function PulseReviewRequestDialog({
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Ask an Owner or Manager to review and apply this Pulse. This does not change any
+                Ask an owner or manager to review and apply this Pulse. This does not change any
                 deadlines.
               </Trans>
             </DialogDescription>

@@ -94,7 +94,7 @@ export function formatMigrationErrorMessage(
     return 'The state should be a two-letter US state code.'
   }
   if (error.errorCode === 'ENTITY_ENUM') {
-    return 'We could not recognize the entity type. Review the mapped entity type before import.'
+    return "We couldn't recognize the entity type. Review the mapped entity type before import."
   }
 
   return replaceInternalTargetNames(error.errorMessage, labels)

@@ -94,7 +94,7 @@ export function ImportHistoryDrawer({
         toast.success(t`Import reverted`)
       },
       onError: (error) => {
-        toast.error(t`Could not revert import`, {
+        toast.error(t`Couldn't revert import`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },
@@ -108,7 +108,7 @@ export function ImportHistoryDrawer({
         toast.success(t`Client import undone`)
       },
       onError: (error) => {
-        toast.error(t`Could not undo client`, {
+        toast.error(t`Couldn't undo client`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },
@@ -122,7 +122,7 @@ export function ImportHistoryDrawer({
         toast.success(t`Draft import discarded`)
       },
       onError: (error) => {
-        toast.error(t`Could not discard draft import`, {
+        toast.error(t`Couldn't discard draft import`, {
           description: rpcErrorMessage(error) ?? t`Please try again.`,
         })
       },
@@ -171,7 +171,7 @@ export function ImportHistoryDrawer({
             {batchesQuery.isError ? (
               <Alert variant="destructive">
                 <AlertTitle>
-                  <Trans>Could not load import history</Trans>
+                  <Trans>Couldn't load import history</Trans>
                 </AlertTitle>
                 <AlertDescription>
                   {rpcErrorMessage(batchesQuery.error) ?? t`Please try again.`}
@@ -207,7 +207,7 @@ export function ImportHistoryDrawer({
                     permission="migration.revert"
                     currentRole={permission.firm?.role}
                   >
-                    <Trans>Only Owners and Managers can undo migration imports.</Trans>
+                    <Trans>Only owners and managers can undo migration imports.</Trans>
                   </PermissionInlineNotice>
                 ) : null}
                 {batches.map((batch) => {

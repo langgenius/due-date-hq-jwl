@@ -122,7 +122,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'verifiedRule':
       return {
         title: t`Active practice rule`,
-        description: t`A deadline rule accepted by this practice's owner or manager. It can generate customer-facing reminders when it matches a client.`,
+        description: t`A deadline rule accepted by this practice's owner or manager. It can generate client-facing reminders when it matches a client.`,
       }
     case 'candidateRule':
       return {
@@ -146,8 +146,8 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'triageQueue':
       return {
-        title: t`Priority list`,
-        description: t`A risk-window view of open obligations so the team can decide what to handle first this week or month.`,
+        title: t`Top obligations by risk`,
+        description: t`The highest-risk open obligations for the chosen window — work these first.`,
       }
     case 'aiWeeklyBrief':
       return {
@@ -187,7 +187,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'practice':
       return {
         title: t`Practice`,
-        description: t`The active CPA firm workspace. Settings, clients, deadlines, members, billing, and audit logs are scoped to the selected practice.`,
+        description: t`The active CPA practice workspace. Settings, clients, deadlines, members, billing, and audit logs are scoped to the selected practice.`,
       }
     case 'owner':
       return {

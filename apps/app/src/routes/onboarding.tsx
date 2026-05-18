@@ -75,7 +75,7 @@ export function OnboardingRoute() {
       .catch((err: unknown) => {
         const message = readErrorMessage(err, t`Please try again.`)
         setError(message)
-        toast.error(t`Could not create your practice`, { description: message })
+        toast.error(t`Couldn't create your practice`, { description: message })
       })
       .finally(() => setIsSubmitting(false))
   }

@@ -85,9 +85,7 @@ export function BillingSuccessRoute() {
                 <Trans>Still waiting on confirmation</Trans>
               </AlertTitle>
               <AlertDescription>
-                <Trans>
-                  We could not refresh billing status yet. This page will keep checking.
-                </Trans>
+                <Trans>We couldn't refresh billing status yet. This page will keep checking.</Trans>
               </AlertDescription>
             </Alert>
           ) : firmsQuery.isLoading || subscriptionsQuery.isLoading ? (
