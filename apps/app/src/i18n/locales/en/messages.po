@@ -5039,6 +5039,14 @@ msgstr "Parsed scope"
 msgid "Partially applied"
 msgstr "Partially applied"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/app-shell-user-menu.tsx
+#: src/features/audit/audit-log-labels.ts
+#: src/features/permissions/permission-gate.tsx
+#: src/routes/practice.tsx
+msgid "Partner"
+msgstr "Partner"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Partner count"
 msgstr "Partner count"

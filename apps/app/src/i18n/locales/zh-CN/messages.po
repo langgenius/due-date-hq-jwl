@@ -5039,6 +5039,14 @@ msgstr "解析范围"
 msgid "Partially applied"
 msgstr "部分已应用"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/app-shell-user-menu.tsx
+#: src/features/audit/audit-log-labels.ts
+#: src/features/permissions/permission-gate.tsx
+#: src/routes/practice.tsx
+msgid "Partner"
+msgstr "合伙人"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Partner count"
 msgstr "合伙人数量"

@@ -21,6 +21,8 @@ seeded only the older Brightline role accounts.
 - Exported the server demo account contract for tests.
 - Added a regression test that checks every server demo account has matching user and member rows
   in `mock/demo.sql`.
+- Aligned the Pulse E2E review-request assertion with the current Partner/Manager notification copy.
+- Synced Lingui catalogs and added the zh-CN translation for the new `Partner` role label.
 
 ## Docs Check
 
@@ -31,6 +33,9 @@ sidebar user-menu affordance, not a production UX or product behavior change.
 
 - `pnpm --filter @duedatehq/server test -- src/app.test.ts`
 - `pnpm --filter @duedatehq/app test -- src/components/patterns/app-shell-user-menu.test.ts`
+- `pnpm --filter @duedatehq/app i18n:extract`
+- `pnpm --filter @duedatehq/app i18n:compile`
+- `pnpm test:e2e e2e/tests/pulse.spec.ts --grep "E2E-PULSE-REQUEST-REVIEW"`
 - `pnpm check`
 - `pnpm db:seed:demo`
 - `curl -sS http://127.0.0.1:8787/api/e2e/demo-accounts` returned all 8 configured demo

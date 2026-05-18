@@ -133,7 +133,7 @@ test.describe('seeded Pulse alerts', () => {
   test.describe('preparer role', () => {
     test.use({ authRole: 'preparer' })
 
-    test('AC: E2E-PULSE-REQUEST-REVIEW notifies Owner/Manager without applying', async ({
+    test('AC: E2E-PULSE-REQUEST-REVIEW notifies Partner/Manager without applying', async ({
       appShellPage,
       authSession,
       authenticatedPage,
@@ -169,7 +169,7 @@ test.describe('seeded Pulse alerts', () => {
       const notification = authenticatedPage
         .getByRole('article')
         .filter({ hasText: 'Review requested: IRS CA storm relief' })
-      await expect(notification).toContainText('E2E Preparer requested Owner/Manager review')
+      await expect(notification).toContainText('E2E Preparer requested Partner/Manager review')
       await expect(notification).toContainText('Please confirm LA County applicability.')
 
       await notification.getByRole('link', { name: 'Open' }).click()
