@@ -1155,7 +1155,7 @@ export function ObligationQueueRoute() {
           )
         },
         cell: (info) => formatDate(info.getValue<string>()),
-        meta: { cellClassName: 'font-mono text-xs tabular-nums' },
+        meta: { cellClassName: 'text-xs tabular-nums' },
       },
       {
         accessorKey: 'daysUntilDue',
@@ -1821,14 +1821,14 @@ export function ObligationQueueRoute() {
                 </Badge>
               </button>
             </div>
-            <Badge variant="outline" className="font-mono text-xs tabular-nums">
+            <Badge variant="outline" className="text-xs tabular-nums">
               <Plural value={totalShown} one="# row" other="# rows" />
             </Badge>
           </div>
 
           {selectedIds.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
-              <Badge variant="info" className="font-mono tabular-nums">
+              <Badge variant="info" className="tabular-nums">
                 <Plural value={selectedIds.length} one="# selected" other="# selected" />
               </Badge>
               <DropdownMenu>
@@ -1938,7 +1938,7 @@ export function ObligationQueueRoute() {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody>
+                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -2117,7 +2117,7 @@ function ExposurePill({
       <div className="grid min-w-0 gap-1">
         <Badge
           variant="warning"
-          className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} font-mono tabular-nums`}
+          className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} tabular-nums`}
         >
           {formatCents(row.estimatedExposureCents)}
         </Badge>
@@ -2206,7 +2206,7 @@ function DueDaysPill({ days }: { days: number }) {
   return (
     <Badge
       variant={tone.variant}
-      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start font-mono tabular-nums ${tone.badgeClassName ?? ''}`}
+      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tone.badgeClassName ?? ''}`}
     >
       <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
       {days === 0 ? (
@@ -2947,7 +2947,7 @@ function ObligationQueueDetailDrawer({
                             <span className="min-w-0 truncate text-text-secondary">
                               {factor.label} · {factor.sourceLabel}
                             </span>
-                            <span className="font-mono tabular-nums text-text-primary">
+                            <span className="tabular-nums text-text-primary">
                               +{factor.contribution.toFixed(1)}
                             </span>
                           </div>
@@ -3143,7 +3143,7 @@ function PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreak
     <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
       <div className="flex justify-between gap-3">
         <span className="font-medium">{item.label}</span>
-        <span className="font-mono">{formatCents(item.amountCents)}</span>
+        <span className="tabular-nums">{formatCents(item.amountCents)}</span>
       </div>
       <span className="text-xs text-text-tertiary">{formatPenaltyFormula(item.formula)}</span>
       {inputs.length > 0 ? (
@@ -3151,7 +3151,7 @@ function PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreak
           {inputs.map(([key, value]) => (
             <div key={key} className="flex justify-between gap-3">
               <span>{penaltyInputLabel(key)}</span>
-              <span className="font-mono text-text-secondary">
+              <span className="tabular-nums text-text-secondary">
                 {formatPenaltyInputValue(key, value)}
               </span>
             </div>
@@ -3685,7 +3685,7 @@ function ReadinessChecklistEvidence({
             className="grid gap-1 border-t border-divider-subtle pt-2 first:border-0 first:pt-0"
           >
             <div className="flex min-w-0 gap-2">
-              <span className="font-mono text-xs text-text-tertiary">{index + 1}.</span>
+              <span className="text-xs tabular-nums text-text-tertiary">{index + 1}.</span>
               <span className="min-w-0 font-medium text-text-primary">{entry.label}</span>
             </div>
             {entry.description ? (
