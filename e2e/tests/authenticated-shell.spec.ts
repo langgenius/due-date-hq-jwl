@@ -31,11 +31,12 @@ test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
   await expect(
     appShellPage.primaryNavigation.getByRole('link', { name: /^Calendar$/ }),
   ).toHaveCount(0)
-  await expect(
-    authenticatedPage.getByRole('heading', { name: 'Deadline risk workbench' }),
-  ).toBeVisible()
-  await expect(authenticatedPage.getByText('Due this week', { exact: true })).toBeVisible()
-  await expect(authenticatedPage.getByText('Priority list', { exact: true })).toBeVisible()
+  // Pass-1 spec-alignment dropped the "Deadline risk workbench" hero and the
+  // "Due this week" / "Priority list" headings; the dashboard now leads with
+  // "Today {date}" followed by the priority tabs. Anchor on the surviving
+  // header and tabs to confirm the workbench rendered.
+  await expect(authenticatedPage.getByText('Today', { exact: true }).first()).toBeVisible()
+  await expect(authenticatedPage.getByRole('tab', { name: /This Week/ })).toBeVisible()
   await expect(appShellPage.importClientsButton).toBeVisible()
 })
 
@@ -48,6 +49,9 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
 
   await appShellPage.openCommandPalette()
   await expect(appShellPage.commandDialog).toBeVisible()
+  // The Rules-tabs-to-pages refactor split the old single "Rules" entry into
+  // per-area items (Coverage / Sources / Rule library / Radar / Temporary rules);
+  // verify the per-area entries plus the navigation-mode items still seeded.
   await Promise.all(
     [
       'Dashboard',
@@ -57,7 +61,7 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
       'Team workload',
       'Clients',
       'Practice profile',
-      'Rules',
+      'Rule library',
       'Members',
       'Billing',
       'Audit log',
@@ -73,13 +77,12 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   ).toHaveAttribute('href', '/obligations')
 
   await appShellPage.openCommandPalette()
-  await appShellPage.commandItem('Rules').click()
+  await appShellPage.commandItem('Rule library').click()
 
-  await expect(authenticatedPage).toHaveURL(/\/rules$/)
-  await expect(authenticatedPage.getByRole('tab', { name: /Coverage/ })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  )
+  // After the rules-tabs-to-pages refactor, the rule library is its own route
+  // (`/rules/library`) and no longer renders Coverage as a tab — Coverage and
+  // Sources are now separate routes reachable from the command palette.
+  await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
 
   await appShellPage.openCommandPalette()
   await expect(appShellPage.commandDialog).toBeVisible()

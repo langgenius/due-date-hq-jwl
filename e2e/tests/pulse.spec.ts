@@ -51,7 +51,8 @@ test.describe('seeded Pulse alerts', () => {
       name: 'Evidence for this deadline',
     })
     await expect(evidenceDrawer).toContainText('Rule update')
-    await expect(evidenceDrawer).toContainText('A rule change was applied.')
+    // Copy polish (commit b8da3ba) rephrased the evidence description.
+    await expect(evidenceDrawer).toContainText('Applied a rule change.')
     await expect(evidenceDrawer).toContainText('Individuals and businesses in Los Angeles County')
     await evidenceDrawer.getByRole('button', { name: 'Close' }).click()
     await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('2026-03-15')
@@ -61,14 +62,17 @@ test.describe('seeded Pulse alerts', () => {
     await expect(auditPage.eventRowFor('pulse.apply')).toContainText('Pulse applied')
 
     await appShellPage.goto('/?asOfDate=2026-05-03&triage=long_term')
-    await expect(authenticatedPage.getByText('Due this week', { exact: true })).toBeVisible()
+    // "Due this week" KPI tile was removed in the spec-alignment pass; assert
+    // the priority tabs are present and Long-term is the selected tab.
+    await expect(authenticatedPage.getByRole('tab', { name: /This Week/ })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: /Long-term/ })).toHaveAttribute(
       'aria-selected',
       'true',
     )
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('2026-10-15')
 
-    await appShellPage.goto('/rules?tab=pulse')
+    // The Pulse alerts page is `/rules/pulse` now (previously `/rules?tab=pulse`).
+    await appShellPage.goto('/rules/pulse')
     const appliedAlert = authenticatedPage.getByRole('region', {
       name: /Pulse alert: IRS CA storm relief/,
     })
@@ -93,7 +97,7 @@ test.describe('seeded Pulse alerts', () => {
     request,
   }) => {
     await seedBillingSubscription(request, { firmId: authSession.firmId, plan: 'team' })
-    await appShellPage.goto('/rules?tab=pulse')
+    await appShellPage.goto('/rules/pulse')
 
     await expect(authenticatedPage.getByRole('button', { name: 'Priority Queue' })).toHaveCount(0)
     await expect(authenticatedPage.getByRole('button', { name: 'All Pulse' })).toHaveCount(0)
@@ -173,7 +177,7 @@ test.describe('seeded Pulse alerts', () => {
       await expect(notification).toContainText('Please confirm LA County applicability.')
 
       await notification.getByRole('link', { name: 'Open' }).click()
-      await expect(authenticatedPage).toHaveURL(/\/rules\?tab=pulse&alert=/)
+      await expect(authenticatedPage).toHaveURL(/\/rules\/pulse\?alert=/)
       await expect(
         authenticatedPage.getByRole('dialog').getByRole('heading', { name: /IRS CA storm relief/ }),
       ).toBeVisible()
