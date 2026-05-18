@@ -1114,7 +1114,7 @@ function PreviewResultRow({
       <div className="flex flex-col gap-1">
         <span
           className={cn(
-            'font-mono text-base leading-none font-bold tabular-nums',
+            'font-mono text-base leading-none font-semibold tabular-nums',
             row.reminderReady ? 'text-text-primary' : 'text-text-disabled',
           )}
         >

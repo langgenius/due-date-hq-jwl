@@ -29,7 +29,9 @@ import {
 function MetadataRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
-      <dt className="text-xs font-medium tracking-wider text-text-tertiary uppercase">{label}</dt>
+      <dt className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+        {label}
+      </dt>
       <dd className="break-all text-sm text-text-primary">{value}</dd>
     </div>
   )
@@ -133,12 +135,12 @@ function AuditEventDrawerContent({
 function AuditChangeDetails({ changeView }: { changeView: AuditChangeView }) {
   return (
     <section className="grid gap-3">
-      <h3 className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+      <h3 className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
         <Trans>What changed</Trans>
       </h3>
       {changeView.changes.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-divider-subtle">
-          <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+          <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(0,1fr)_minmax(0,1fr)] gap-0 border-b border-divider-subtle bg-background-subtle px-3 py-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
             <span>
               <Trans>Field</Trans>
             </span>

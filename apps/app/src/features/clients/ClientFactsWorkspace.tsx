@@ -691,7 +691,7 @@ function ClientMetricCard({ metric }: { metric: ClientMetric }) {
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm font-medium text-text-secondary">{metric.label}</span>
-          <span className="text-3xl font-semibold tabular-nums text-text-primary">
+          <span className="text-2xl font-semibold tabular-nums text-text-primary">
             {metric.value}
           </span>
           <span className="truncate text-xs text-text-tertiary">{metric.detail}</span>
@@ -1015,7 +1015,7 @@ function ClientDetailWorkspace({
             />
             <ClientFactChecklist client={client} readiness={readiness} />
             <div className="rounded-md border border-divider-regular bg-background-section p-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+              <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
                 <Trans>Notes</Trans>
               </span>
               <p className="mt-2 text-sm text-text-secondary">
@@ -1314,7 +1314,7 @@ function ClientContactPlanPanel({ plan }: { plan: ClientContactPlan }) {
   return (
     <div className="grid gap-3 rounded-md border border-divider-regular p-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Contact chain</Trans>
         </span>
         <MailIcon className="size-4 text-text-tertiary" aria-hidden />
@@ -1566,7 +1566,7 @@ function ClientJurisdictionPanel({
   return (
     <div className="grid gap-3 rounded-md border border-divider-regular p-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Filing jurisdictions</Trans>
         </span>
         <MapPinnedIcon className="size-4 text-text-tertiary" aria-hidden />
@@ -1716,7 +1716,7 @@ function ClientRiskInputsPanel({
   return (
     <div className="grid gap-3 rounded-md border border-divider-regular p-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Risk inputs</Trans>
         </span>
         <ShieldAlertIcon className="size-4 text-text-tertiary" aria-hidden />
@@ -1805,7 +1805,7 @@ function ClientRiskSummaryPanel({
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <SparklesIcon className="size-4 text-text-secondary" aria-hidden />
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>Client Risk Summary</Trans>
           </span>
         </div>
@@ -1929,7 +1929,7 @@ function ClientFactChecklist({
 }) {
   return (
     <div className="grid gap-2 rounded-md border border-divider-regular p-3">
-      <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+      <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         <Trans>Fact readiness</Trans>
       </span>
       <FactCheckRow

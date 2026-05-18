@@ -128,7 +128,7 @@ export function ReadinessPortalRoute() {
     <main className="min-h-full w-full bg-background-default p-4 text-text-primary md:p-8">
       <div className="mx-auto grid max-w-3xl gap-4">
         <header className="grid gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>DueDateHQ readiness portal</Trans>
           </span>
           <h1 className="text-2xl font-semibold">

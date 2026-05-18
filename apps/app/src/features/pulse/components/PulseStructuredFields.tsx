@@ -118,7 +118,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
 
       <div className="grid gap-1 rounded-md bg-background-default p-3">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>Source excerpt</Trans>
           </span>
           <Tooltip>
@@ -150,7 +150,9 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{children}</h3>
+    <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+      {children}
+    </h3>
   )
 }
 

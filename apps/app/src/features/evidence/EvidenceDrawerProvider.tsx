@@ -108,7 +108,7 @@ function EvidenceDrawer({
 function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
   return (
     <section className="grid gap-2 rounded-lg border border-divider-subtle p-3">
-      <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+      <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         <Trans>Deadline</Trans>
       </span>
       <div className="text-sm font-medium text-text-primary">
@@ -130,7 +130,7 @@ function EvidenceTimeline({
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>What this evidence says</Trans>
         </h3>
         <Badge variant="outline">{evidence.length}</Badge>
@@ -185,7 +185,7 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
       {details.length > 0 ? <EvidenceDetailList details={details} /> : null}
       {item.verbatimQuote ? (
         <div className="rounded-lg bg-severity-medium-tint px-3 py-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>Source excerpt</Trans>
           </p>
           <blockquote className="mt-1 text-sm text-text-primary">{item.verbatimQuote}</blockquote>
@@ -232,7 +232,7 @@ function EvidenceDetailList({ details }: { details: EvidenceDetail[] }) {
 function EvidenceDetailRow({ detail }: { detail: EvidenceDetail }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[128px_1fr] sm:gap-3">
-      <dt className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+      <dt className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         {detail.label}
       </dt>
       <dd className="break-words text-text-primary">{detail.value}</dd>
@@ -589,7 +589,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Audit timeline</Trans>
         </h3>
         <Badge variant="outline">{events.length}</Badge>

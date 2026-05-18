@@ -175,7 +175,7 @@ export function AccountSecurityRoute() {
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
       <section className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>Account</Trans>
           </span>
           <h1 className="mt-1 text-2xl font-semibold text-text-primary">

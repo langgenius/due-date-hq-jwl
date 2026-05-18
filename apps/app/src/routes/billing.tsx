@@ -796,7 +796,7 @@ function TooltipText({ children, className }: { children: ReactNode; className?:
 function CurrentPlanRibbon() {
   return (
     <div className="pointer-events-none absolute -top-2 -right-2 z-10 h-28 w-28" aria-hidden="true">
-      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-[10px] leading-none font-bold text-primary-foreground uppercase shadow-sm">
+      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-[10px] leading-none font-semibold text-primary-foreground uppercase shadow-sm">
         <Trans>current</Trans>
       </span>
     </div>

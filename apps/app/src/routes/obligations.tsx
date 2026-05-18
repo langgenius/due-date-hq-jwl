@@ -1148,7 +1148,7 @@ export function ObligationQueueRoute() {
               sortLabel={`${t`Sort`} ${label}`}
               onSortChange={changeSort}
             >
-              <span className="-mx-2 inline-flex h-7 items-center rounded-md px-2 text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase">
+              <span className="-mx-2 inline-flex h-7 items-center rounded-md px-2 text-xs font-medium tracking-[0.08em] whitespace-nowrap text-text-tertiary uppercase">
                 {label}
               </span>
             </ObligationQueueSortableHeader>
@@ -1772,7 +1772,7 @@ export function ObligationQueueRoute() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+              <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
                 <Trans>Window</Trans>
               </span>
               <button
@@ -1787,7 +1787,7 @@ export function ObligationQueueRoute() {
                 </Badge>
               </button>
               <Separator orientation="vertical" className="mx-1 h-4" />
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+              <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
                 <Trans>Needs action</Trans>
               </span>
               <button
@@ -3848,7 +3848,9 @@ function AuditSummaryRows({ rows }: { rows: AuditSummaryRow[] }) {
 function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="grid grid-cols-[96px_1fr] gap-3 text-sm">
-      <dt className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</dt>
+      <dt className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        {label}
+      </dt>
       <dd className="break-words text-text-primary">{value}</dd>
     </div>
   )

@@ -54,6 +54,7 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { KpiStat } from '@/components/patterns/kpi-stat'
+import { SectionLabel } from '@/components/patterns/typography'
 import {
   Table,
   TableBody,
@@ -439,7 +440,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
-      <h2 className="font-medium tracking-[0.08em] uppercase">{title}</h2>
+      <SectionLabel>{title}</SectionLabel>
       <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-medium tabular-nums">
         {count}
       </span>

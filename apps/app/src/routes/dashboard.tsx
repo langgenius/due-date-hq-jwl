@@ -667,7 +667,7 @@ function ProjectedRiskInline({
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 pb-2 text-xs">
       {exposure !== 0 ? (
         <span className="flex items-baseline gap-1.5">
-          <span className="text-text-tertiary uppercase tracking-wider">
+          <span className="text-text-tertiary uppercase tracking-[0.08em]">
             <Trans>90-day projected risk</Trans>
           </span>
           <span className="tabular-nums text-text-primary">{formatCents(exposure)}</span>
@@ -675,7 +675,7 @@ function ProjectedRiskInline({
       ) : null}
       {accrued !== 0 ? (
         <span className="flex items-baseline gap-1.5">
-          <span className="text-text-tertiary uppercase tracking-wider">
+          <span className="text-text-tertiary uppercase tracking-[0.08em]">
             <Trans>Accrued penalty</Trans>
           </span>
           <span className="tabular-nums text-severity-critical">{formatCents(accrued)}</span>

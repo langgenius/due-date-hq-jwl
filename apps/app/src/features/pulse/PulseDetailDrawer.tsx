@@ -657,7 +657,7 @@ function SuggestedActionsPanel({
   return (
     <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-3">
       <header className="flex flex-col gap-1">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Suggested actions</Trans>
         </h3>
         <p className="text-sm text-text-secondary">

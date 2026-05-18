@@ -351,7 +351,7 @@ function MorningDigestCard({
         {preferences.morningDigestEnabled ? (
           <div className="grid gap-4">
             <div className="grid gap-2 text-sm">
-              <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+              <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
                 <Trans>Send hour</Trans>
               </span>
               <Select
@@ -375,7 +375,7 @@ function MorningDigestCard({
             </div>
 
             <div className="grid gap-2 text-sm">
-              <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+              <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
                 <Trans>Days</Trans>
               </span>
               <div className="flex gap-1">
@@ -407,7 +407,7 @@ function MorningDigestCard({
         </Button>
 
         <div className="grid gap-2 border-t border-divider-subtle pt-4">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+          <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
             <Trans>Recent digest runs</Trans>
           </span>
           {loadingRuns ? (
