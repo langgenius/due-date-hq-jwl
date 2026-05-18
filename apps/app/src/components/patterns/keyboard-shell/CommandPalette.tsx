@@ -11,7 +11,6 @@ import {
   CalendarClockIcon,
   ClipboardListIcon,
   CreditCardIcon,
-  FlaskConicalIcon,
   HourglassIcon,
   LayoutDashboardIcon,
   LibraryIcon,
@@ -172,14 +171,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         icon: HourglassIcon,
         onSelect: () => navigate('/rules/temporary'),
       },
-      {
-        id: 'rules-preview',
-        label: t`Obligation preview`,
-        description: t`Dry-run the rules engine against a client and tax year.`,
-        group: 'navigate',
-        icon: FlaskConicalIcon,
-        onSelect: () => navigate('/rules/preview'),
-      },
+      // Obligation preview (/rules/preview) is intentionally not listed
+      // in the Command Palette navigate group. See app-shell-nav.tsx for
+      // the rationale — it's a sandbox, not a day-to-day surface. The
+      // route stays accessible by direct URL.
       {
         id: 'members',
         label: t`Members`,
