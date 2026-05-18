@@ -14,9 +14,9 @@ import { redirect, type LoaderFunctionArgs } from 'react-router'
 // equivalent. The three merged-tab values resolve to the same Library URL
 // with the matching section anchor.
 const LEGACY_TAB_TO_PATH: Record<string, string> = {
-  coverage: '/rules/library#coverage',
-  sources: '/rules/library#sources',
-  library: '/rules/library#library',
+  coverage: '/rules/coverage',
+  sources: '/rules/sources',
+  library: '/rules/library',
   pulse: '/rules/pulse',
   temporary: '/rules/temporary',
   preview: '/rules/preview',
