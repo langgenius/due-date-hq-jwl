@@ -182,20 +182,10 @@ msgstr "{0} 条可确认 · 预计匹配 {1} 个义务"
 msgid "{0} rows changed"
 msgstr "已变更 {0} 行"
 
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell.tsx
-msgid "{0} seat"
-msgstr "{0} 个席位"
-
 #. placeholder {0}: currentFirm.seatLimit
 #: src/routes/billing.tsx
 msgid "{0} seat limit"
 msgstr "{0} 个席位上限"
-
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell.tsx
-msgid "{0} seats"
-msgstr "{0} 个席位"
 
 #. placeholder {0}: stats.selectedCount
 #. placeholder {1}: stats.selectableCount
@@ -361,6 +351,11 @@ msgstr "{role} · {plan} · {0} 个席位"
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{role} · {plan} · {0} seats"
 msgstr "{role} · {plan} · {0} 个席位"
+
+#. placeholder {0}: firm.name
+#: src/components/patterns/app-shell-user-menu.tsx
+msgid "{role} at {0}"
+msgstr "{0} 的 {role}"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "{selectedCount} selected"
@@ -595,6 +590,7 @@ msgid "Actions"
 msgstr "操作"
 
 #: src/features/rules/rules-console-primitives.tsx
+#: src/routes/rules.library.tsx
 msgid "active"
 msgstr "已生效"
 
@@ -620,6 +616,10 @@ msgstr "已生效 · 待审核 · 来源 · 当前状态"
 #: src/features/members/members-page.tsx
 msgid "Active members"
 msgstr "活跃成员"
+
+#: src/routes/settings.tsx
+msgid "Active plan, seat usage, and subscription portal."
+msgstr "当前计划、席位使用情况与订阅入口。"
 
 #: src/routes/billing.tsx
 msgid "Active practice"
@@ -933,7 +933,7 @@ msgstr "已应用"
 msgid "Applied a rule change."
 msgstr "已应用一项规则变更。"
 
-#: src/features/rules/rules-console.tsx
+#: src/routes/rules.temporary.tsx
 msgid "Applied Pulse exceptions that are currently changing obligation due dates. Review scope, source evidence, active obligation count, and open the Pulse detail when a temporary rule needs revert or follow-up."
 msgstr "当前正在改变义务截止日的已应用 Pulse 例外。可查看范围、来源证据、活跃义务数量，并在临时规则需要撤销或跟进时打开 Pulse 详情。"
 
@@ -1070,10 +1070,10 @@ msgstr "审计导出需要 Team 或 Enterprise 计划。"
 msgid "Audit filters"
 msgstr "审计筛选"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Audit log"
 msgstr "审计日志"
 
@@ -1092,6 +1092,10 @@ msgstr "审计时间线"
 #: src/features/concepts/concept-help.tsx
 msgid "Audit trail"
 msgstr "审计轨迹"
+
+#: src/routes/settings.tsx
+msgid "Audit trail for client, rule, status, and team changes."
+msgstr "客户、规则、状态与团队变更的审计追踪。"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Auth"
@@ -1124,6 +1128,10 @@ msgstr "发布机构"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable — using default suggestions"
 msgstr "自动字段匹配暂不可用 —— 已使用默认建议"
+
+#: src/routes/settings.tsx
+msgid "Automation"
+msgstr "自动化"
 
 #. placeholder {0}: einDetected ? '100%' : '0%'
 #: src/features/migration/Step2Mapping.tsx
@@ -1191,10 +1199,10 @@ msgstr "按年支付 · 每年省 $360"
 msgid "Billed yearly · Save $96/year"
 msgstr "按年支付 · 每年省 $96"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/billing.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Billing"
 msgstr "账单"
 
@@ -1234,6 +1242,10 @@ msgstr "账单状态尚未准备好。"
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "正文"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Browse pending, active, rejected, and archived rules."
+msgstr "浏览待审、生效、已拒、已归档的规则。"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Building the import preview"
@@ -1296,6 +1308,7 @@ msgstr "日历订阅已更新"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Calendar sync"
 msgstr "日历同步"
 
@@ -1677,6 +1690,10 @@ msgstr "已完成"
 #: src/routes/dashboard.tsx
 msgid "Complete CPA review and close the row."
 msgstr "完成 CPA 复核并关闭该行。"
+
+#: src/routes/settings.tsx
+msgid "Compliance"
+msgstr "合规"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Confidence"
@@ -2170,8 +2187,11 @@ msgstr "县"
 msgid "County"
 msgstr "县"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
-#: src/features/rules/rules-console.tsx
+#: src/routes/route-summary.ts
+#: src/routes/rules.coverage.tsx
+#: src/routes/rules.library.tsx
 msgid "Coverage"
 msgstr "覆盖"
 
@@ -2403,6 +2423,10 @@ msgstr "决策备注"
 msgid "Default tax type suggestions apply only where imported rows do not already include tax types."
 msgstr "默认税种建议仅在导入行尚未包含税种时应用。"
 
+#: src/routes/rules.library.tsx
+msgid "degraded"
+msgstr "性能下降"
+
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
@@ -2496,6 +2520,10 @@ msgstr "忽略"
 #: src/features/pulse/components/PulseStatusBadge.tsx
 msgid "Dismissed"
 msgstr "已忽略"
+
+#: src/routes/settings.tsx
+msgid "Distribution of prep work across the team."
+msgstr "团队中准备工作的分配情况。"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
@@ -2675,7 +2703,6 @@ msgid "Enter the code from your authenticator app."
 msgstr "输入身份验证器应用中的代码。"
 
 #: src/components/patterns/app-shell-nav.tsx
-#: src/components/patterns/app-shell.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -2906,6 +2933,10 @@ msgstr "事实"
 #: src/routes/obligations.tsx
 msgid "Failed"
 msgstr "失败"
+
+#: src/routes/rules.library.tsx
+msgid "failing"
+msgstr "故障"
 
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/rules/rules-console-primitives.tsx
@@ -3187,6 +3218,11 @@ msgstr "因角色隐藏"
 msgid "Hide"
 msgstr "隐藏"
 
+#. placeholder {0}: allReviewJurisdictions.length
+#: src/features/rules/coverage-tab.tsx
+msgid "Hide {0} jurisdictions defaulting to review"
+msgstr "隐藏 {0} 个默认进入审核的辖区"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Hide sources"
 msgstr "隐藏来源"
@@ -3205,6 +3241,10 @@ msgstr "高"
 msgid "High confidence"
 msgstr "高置信度"
 
+#: src/routes/settings.tsx
+msgid "How DueDateHQ reaches your team, your clients, and your calendars."
+msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "I'm coming from… (optional)"
 msgstr "我正在从…迁移过来（可选）"
@@ -3212,6 +3252,10 @@ msgstr "我正在从…迁移过来（可选）"
 #: src/features/calendar/calendar-page.tsx
 msgid "ICS is one-way: external calendar edits never update DueDateHQ."
 msgstr "ICS 是单向订阅：外部日历编辑不会更新 DueDateHQ。"
+
+#: src/routes/settings.tsx
+msgid "Identity, team, and capacity for this practice workspace."
+msgstr "本事务所工作区的身份、团队与容量。"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Ignore this column"
@@ -3365,9 +3409,13 @@ msgstr "收件箱"
 msgid "Individual"
 msgstr "个人"
 
-#: src/features/rules/rules-console.tsx
+#: src/routes/rules.preview.tsx
 msgid "Input client facts → dry-run rules engine → see which obligations would be created. Reminder-ready obligations fire 30 / 7 / 1-day reminders; requires-review items surface for CPA confirmation, never auto-reminded."
 msgstr "输入客户事实 → 干运行规则引擎 → 查看会生成哪些义务。提醒就绪的义务会触发 30 / 7 / 1 天提醒；待复核项需 CPA 确认，绝不会自动提醒。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Inspect official sources and their watcher health."
+msgstr "查看官方来源及其监视器健康状况。"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Installments"
@@ -3417,6 +3465,10 @@ msgstr "邀请链接缺少参数"
 msgid "Invite member"
 msgstr "邀请成员"
 
+#: src/routes/settings.tsx
+msgid "Invite teammates and manage roles."
+msgstr "邀请团队成员并管理角色。"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "IP hash"
 msgstr "IP 哈希"
@@ -3443,6 +3495,10 @@ msgstr "辖区汇总"
 #: src/features/rules/rule-library-tab.tsx
 msgid "Jurisdictions"
 msgstr "辖区"
+
+#: src/routes/rules.library.tsx
+msgid "jurisdictions with gaps"
+msgstr "存在缺口的辖区"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Keep editing"
@@ -3480,6 +3536,11 @@ msgstr "最近 7 天"
 #: src/features/calendar/calendar-page.tsx
 msgid "Last accessed"
 msgstr "上次访问"
+
+#. placeholder {0}: health.lastError
+#: src/features/rules/sources-tab.tsx
+msgid "Last error: {0}"
+msgstr "上次错误：{0}"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Last success"
@@ -3622,6 +3683,7 @@ msgstr "正在加载负载指标…"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
+#: src/routes/rules.library.tsx
 msgid "Loading…"
 msgstr "加载中…"
 
@@ -3650,10 +3712,6 @@ msgstr "AI 置信度低。应用前请复核来源详情。"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Lower-priority source checks are recovering in the background. Existing Pulse alerts remain reviewable."
 msgstr "低优先级来源检查正在后台恢复。现有 Pulse 提醒仍可复核。"
-
-#: src/components/patterns/app-shell.tsx
-msgid "Manage"
-msgstr "管理"
 
 #: src/routes/billing.tsx
 msgid "Manage billing"
@@ -3848,10 +3906,10 @@ msgstr "成员已暂停"
 msgid "member@example.com"
 msgstr "member@example.com"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Members"
 msgstr "成员"
 
@@ -4020,6 +4078,10 @@ msgstr "需要输入"
 msgid "Needs input"
 msgstr "需要输入"
 
+#: src/routes/rules.library.tsx
+msgid "needs review"
+msgstr "待审核"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -4138,6 +4200,10 @@ msgstr "未选择当前事务所。"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "No alerts match these filters."
 msgstr "没有提醒匹配这些筛选条件。"
+
+#: src/features/rules/rule-library-tab.tsx
+msgid "No archived rules in this view. Archived rules are no longer active but stay visible for audit."
+msgstr "当前视图无已归档规则。已归档规则不再生效,但仍保留以备审计。"
 
 #: src/routes/obligations.tsx
 msgid "No assignable members"
@@ -4356,6 +4422,10 @@ msgstr "暂无可复用的平台导入记录。"
 msgid "No readiness states"
 msgstr "没有就绪状态"
 
+#: src/features/rules/rule-library-tab.tsx
+msgid "No rejected rules in this view. Rejections appear here with timestamp and reviewer so the decision stays auditable."
+msgstr "当前视图无已拒规则。已拒规则会附带时间戳与审核人,便于决策可追溯。"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "no reminder"
 msgstr "无提醒"
@@ -4376,6 +4446,14 @@ msgstr "无规则 —— 不在 MVP 范围"
 msgid "No rule extension or unknown"
 msgstr "规则未允许延期或未知"
 
+#: src/features/rules/rule-library-tab.tsx
+msgid "No rules in the catalog yet. Source watchers will surface candidates here as changes are detected."
+msgstr "目录中暂无规则。来源监视器在检测到变化时会在此处推送候选项。"
+
+#: src/features/rules/rule-library-tab.tsx
+msgid "No rules match these filters. Clear filters above to see more."
+msgstr "没有规则匹配当前筛选。清除上方筛选可查看更多。"
+
 #: src/routes/obligations.tsx
 msgid "No saved views"
 msgstr "没有已保存视图"
@@ -4387,6 +4465,14 @@ msgstr "没有可用席位。请先升级或暂停一名成员再邀请。"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No source types"
 msgstr "没有来源类型"
+
+#: src/features/rules/sources-tab.tsx
+msgid "No sources match these filters. Clear filters above to see all watched sources."
+msgstr "没有来源匹配当前筛选。清除上方筛选可查看所有受监视来源。"
+
+#: src/features/rules/sources-tab.tsx
+msgid "No sources registered yet. Source watchers feed the rule catalog — once configured, they appear here with health and cadence."
+msgstr "尚未注册任何来源。来源监视器为规则目录提供数据;配置完成后会在此处显示其健康状况与采集节奏。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
@@ -4502,6 +4588,7 @@ msgstr "通知中心"
 #: src/components/patterns/app-shell.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Notifications"
 msgstr "通知"
 
@@ -4539,8 +4626,12 @@ msgstr "义务证据"
 msgid "Obligation needs-input update"
 msgstr "义务需补输入更新"
 
+#: src/routes/route-summary.ts
+#: src/routes/rules.preview.tsx
+msgid "Obligation preview"
+msgstr "义务预览"
+
 #: src/features/concepts/concept-help.tsx
-#: src/features/rules/rules-console.tsx
 msgid "Obligation Preview"
 msgstr "义务预览"
 
@@ -4577,6 +4668,10 @@ msgstr "义务已导出"
 msgid "official channels under monitor"
 msgstr "正在监听的官方渠道"
 
+#: src/routes/rules.sources.tsx
+msgid "Official channels watched for rule changes — health, cadence, and acquisition method per source. Click any row to open the official page in a new tab. Source changes create practice review tasks; they never silently update active rules."
+msgstr "用于监视规则变更的官方渠道——按来源显示健康状况、采集节奏与获取方式。点击任意行可在新标签页打开官方页面。来源变更会创建事务所审核任务,绝不会静默更新生效规则。"
+
 #: src/routes/obligations.tsx
 msgid "Official form or method"
 msgstr "官方表格或方式"
@@ -4584,10 +4679,6 @@ msgstr "官方表格或方式"
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources · pending rules"
 msgstr "官方来源 · 待审核规则"
-
-#: src/features/rules/rules-console.tsx
-msgid "Official sources watched for rule changes — health, cadence, and acquisition method per source. Click any row to open the official page in a new tab. Source changes create practice review tasks; they never silently update active rules."
-msgstr "用于监听规则变化的官方来源，包括每个来源的健康状态、频率和获取方式。点击任意行会在新标签页打开官方页面。来源变化只会创建事务所审核任务，不会静默更新已生效规则。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Official-source changes from Pulse that touch this client."
@@ -4693,10 +4784,6 @@ msgstr "展开"
 #: src/routes/billing.success.tsx
 msgid "Open Billing"
 msgstr "打开账单"
-
-#: src/components/patterns/app-shell.tsx
-msgid "Open billing for {plan} plan"
-msgstr "打开 {plan} 计划的账单"
 
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Open client"
@@ -4856,6 +4943,10 @@ msgstr "其他日历 -> 通过 URL 添加"
 #: src/routes/account.security.tsx
 msgid "Other sessions revoked"
 msgstr "其他会话已撤销"
+
+#: src/routes/settings.tsx
+msgid "Outbound deadline reminders to clients and team."
+msgstr "向客户与团队发送的到期提醒。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Outbox-confirmed sends"
@@ -5167,6 +5258,10 @@ msgstr "个人与信托"
 msgid "Personal inbox"
 msgstr "个人收件箱"
 
+#: src/routes/settings.tsx
+msgid "Personal morning digest preferences and types."
+msgstr "个人晨间摘要偏好与类型。"
+
 #: src/routes/obligations.tsx
 msgid "Pin view"
 msgstr "置顶视图"
@@ -5190,6 +5285,10 @@ msgstr "计划选项"
 #: src/routes/billing.checkout.tsx
 msgid "Plan summary"
 msgstr "计划摘要"
+
+#: src/routes/settings.tsx
+msgid "Plan, seats, and invoices."
+msgstr "计划、席位与发票。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -5223,12 +5322,12 @@ msgstr "请稍后重试。"
 msgid "Portal link copied"
 msgstr "门户链接已复制"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Practice"
 msgstr "事务所"
 
@@ -5278,10 +5377,14 @@ msgstr "事务所限制"
 msgid "Practice name"
 msgstr "事务所名称"
 
-#: src/components/patterns/app-shell-nav.tsx
+#: src/routes/settings.tsx
+msgid "Practice name, timezone, smart priority weighting."
+msgstr "事务所名称、时区、智能优先级权重。"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Practice profile"
 msgstr "事务所资料"
 
@@ -5316,6 +5419,10 @@ msgstr "需要事务所审核"
 #: src/features/audit/audit-log-labels.ts
 msgid "Practice rule archived"
 msgstr "事务所规则已归档"
+
+#: src/routes/rules.library.tsx
+msgid "Practice rule catalog — review pending rule templates, activate them into production, and inspect rejected or archived evidence. Coverage and source-watcher health summarized above; click numbers to filter."
+msgstr "事务所规则目录——审核待审规则模板、激活上线,并查看已拒或已归档的依据。上方汇总了覆盖情况与来源监视器健康状况;点击数字可筛选。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Practice rule updated"
@@ -5490,7 +5597,6 @@ msgstr "隐私模式"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
-#: src/components/patterns/app-shell.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -5567,7 +5673,6 @@ msgid "Pulse changed due date from {previous} to {next}"
 msgstr "Pulse 将截止日从 {previous} 变更为 {next}"
 
 #: src/features/pulse/AlertsListPage.tsx
-#: src/features/rules/rules-console.tsx
 msgid "Pulse Changes"
 msgstr "Pulse 变更"
 
@@ -5649,6 +5754,13 @@ msgstr "已隔离"
 #: src/features/reminders/reminders-page.tsx
 msgid "Queued"
 msgstr "已入队"
+
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/routes/route-summary.ts
+#: src/routes/rules.pulse.tsx
+msgid "Radar"
+msgstr "雷达"
 
 #: src/routes/practice.tsx
 msgid "Rank"
@@ -5910,10 +6022,10 @@ msgstr "提醒模板"
 msgid "Reminder-ready"
 msgstr "提醒就绪"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Reminders"
 msgstr "提醒"
 
@@ -6082,17 +6194,27 @@ msgstr "查看"
 msgid "review — needs CPA confirmation"
 msgstr "复核 —— 需 CPA 确认"
 
+#. placeholder {0}: row.pendingReviewCount ?? row.candidateCount
+#. placeholder {1}: jurisdictionLabel(row.jurisdiction)
+#: src/features/rules/coverage-tab.tsx
+msgid "Review {0} pending rules for {1}"
+msgstr "审核 {1} 的 {0} 条待审规则"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Review and confirm column mapping"
 msgstr "请审阅并确认字段映射"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Review applied Pulse exceptions changing due dates."
+msgstr "审核已生效、影响到期日的 Pulse 例外。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review lightweight client business cues."
 msgstr "查看轻量客户业务提示。"
 
-#: src/features/rules/rules-console.tsx
-msgid "Review pending rules, activate them, and inspect active, rejected, or archived rule evidence in one table. Only active rules can generate client obligations or reminders."
-msgstr "在同一张表中复核待审核规则、启用规则，并查看已生效、已拒绝或已归档规则的证据。只有已生效的规则才能生成客户义务或提醒。"
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Review per-jurisdiction rule coverage by entity."
+msgstr "按实体审核各辖区的规则覆盖情况。"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Review plans"
@@ -6129,10 +6251,6 @@ msgstr "审核所选规则"
 #: src/routes/account.security.tsx
 msgid "Review signed-in browsers and revoke stale access."
 msgstr "查看已登录的浏览器，并撤销过期访问。"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Review source coverage, rule inventory, and obligation preview."
-msgstr "查看来源覆盖、规则清单与义务预览。"
 
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/PulseAlertsBanner.tsx
@@ -6300,6 +6418,13 @@ msgstr "规则延期政策"
 msgid "Rule issue reported"
 msgstr "规则问题已报告"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/routes/route-summary.ts
+#: src/routes/rules.library.tsx
+msgid "Rule library"
+msgstr "规则库"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "Rule not found"
 msgstr "未找到规则"
@@ -6340,10 +6465,7 @@ msgid "Rule updated"
 msgstr "规则已更新"
 
 #: src/components/patterns/app-shell-nav.tsx
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/rules/rules-console-primitives.tsx
-#: src/features/rules/rules-console.tsx
 #: src/routes/route-summary.ts
 msgid "Rules"
 msgstr "规则"
@@ -6765,6 +6887,13 @@ msgstr "设置你的事务所。"
 msgid "Setting up your practice…"
 msgstr "正在设置你的事务所…"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/routes/route-summary.ts
+#: src/routes/settings.tsx
+msgid "Settings"
+msgstr "设置"
+
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "设置"
@@ -6789,6 +6918,11 @@ msgstr "Pro、Team 和 Enterprise 计划支持共享截止日运营。"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Shareholder count"
 msgstr "股东数量"
+
+#. placeholder {0}: allReviewJurisdictions.length
+#: src/features/rules/coverage-tab.tsx
+msgid "Show {0} jurisdictions defaulting to review"
+msgstr "显示 {0} 个默认进入审核的辖区"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} loaded events"
@@ -6899,7 +7033,6 @@ msgstr "个体经营"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
-#: src/components/patterns/app-shell.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -7010,9 +7143,9 @@ msgstr "来源已撤销"
 msgid "Source-backed evidence"
 msgstr "带来源的证据"
 
-#: src/features/rules/rules-console.tsx
-msgid "Source-backed government changes that may affect client deadlines. Owners and managers review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here."
-msgstr "有来源依据、可能影响客户截止日的政府变更。Owner 和 Manager 可在这里复核受影响客户、应用临时例外、忽略噪音，或重新查看已关闭变更。"
+#: src/routes/rules.pulse.tsx
+msgid "Source-backed government changes that may affect client deadlines. Review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here."
+msgstr "源自官方、可能影响客户到期日的政府变更。在此审核受影响客户、应用临时例外、忽略噪声或回顾已关闭的变更。"
 
 #: src/routes/billing.tsx
 msgid "Source-backed previews and lightweight migration help for one owner."
@@ -7038,13 +7171,16 @@ msgstr "来源约束摘要"
 msgid "Source-defined cal"
 msgstr "来源定义日历"
 
-#: src/features/rules/rules-console.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/routes/route-summary.ts
+#: src/routes/rules.library.tsx
+#: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "来源"
 
-#: src/features/rules/rules-console.tsx
-msgid "Sources are official federal, state, and DC materials. Only practice-accepted rules can generate reminder-ready obligations; pending rules remain review-only until an owner or manager accepts them."
-msgstr "来源是联邦、州和 DC 的官方材料。只有当前事务所已接受的规则才能生成可提醒的义务；待审核规则在 owner 或 manager 接受前仅供审核。"
+#: src/routes/rules.coverage.tsx
+msgid "Sources are official federal, state, and DC materials. Only practice-accepted rules can generate reminder-ready obligations; pending templates remain review-only until an owner or manager accepts them."
+msgstr "来源为联邦、州及华盛顿特区的官方材料。仅事务所已接受的规则可生成可提醒的义务;待审模板在 Owner 或 Manager 接受前仅供审核。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Sources watched"
@@ -7104,6 +7240,10 @@ msgstr "状态"
 msgid "Status changes write an audit row in the same call so the trail stays trustworthy."
 msgstr "状态变更会在同一次调用中写入审计记录，确保审计链可信。"
 
+#: src/features/rules/sources-tab.tsx
+msgid "Status set by Pulse · open Radar for full watcher diagnostics"
+msgstr "状态由 Pulse 设置 · 打开雷达查看完整监视器诊断"
+
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "Status updated"
@@ -7140,6 +7280,10 @@ msgstr "通过 Google Calendar、Apple Calendar 或 Outlook 订阅。DueDateHQ �
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from web calendar URL"
 msgstr "通过网页日历 URL 订阅"
+
+#: src/routes/settings.tsx
+msgid "Subscribe to deadlines from Apple / Google calendars."
+msgstr "从 Apple / Google 日历订阅到期日。"
 
 #: src/routes/billing.success.tsx
 msgid "Subscription active"
@@ -7295,7 +7439,6 @@ msgstr "税务年度"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
-#: src/components/patterns/app-shell.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/billing.checkout.tsx
@@ -7313,9 +7456,9 @@ msgstr "Team 和 Enterprise 计划会为每周工作负载分诊增加产能压�
 msgid "Team member"
 msgstr "团队成员"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.tsx
 msgid "Team workload"
 msgstr "团队工作负载"
 
@@ -7327,10 +7470,6 @@ msgstr "团队工作负载与共享分诊"
 #: src/features/workload/workload-page.tsx
 msgid "Team workload is available on Pro and above"
 msgstr "Team workload 适用于 Pro 及以上计划"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Team workload is available on Pro, Team, and Enterprise plans."
-msgstr "Team workload 适用于 Pro、Team 和 Enterprise 计划。"
 
 #: src/routes/billing.tsx
 msgid "Team-scale fair-use protection"
@@ -7348,8 +7487,10 @@ msgstr "模板"
 msgid "Template active"
 msgstr "启用模板"
 
-#: src/features/rules/rules-console.tsx
-msgid "Temporary Rules"
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/routes/route-summary.ts
+#: src/routes/rules.temporary.tsx
+msgid "Temporary rules"
 msgstr "临时规则"
 
 #: src/features/rules/temporary-rules-tab.tsx
@@ -7630,6 +7771,10 @@ msgstr "时间"
 msgid "Time range"
 msgstr "时间范围"
 
+#: src/routes/settings.tsx
+msgid "Timestamped event log across the workspace."
+msgstr "工作区内带时间戳的事件日志。"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
@@ -7652,6 +7797,10 @@ msgstr "按风险排序的重点义务"
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "合计"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Triage source-backed government changes affecting clients."
+msgstr "分流来自官方、影响客户的政府变更。"
 
 #: src/routes/clients.tsx
 msgid "Trust"
@@ -7830,10 +7979,6 @@ msgstr "更新于 {0}"
 msgid "Updated penalty inputs."
 msgstr "已更新罚款输入。"
 
-#: src/components/patterns/app-shell.tsx
-msgid "Upgrade"
-msgstr "升级"
-
 #: src/features/members/members-page.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Upgrade plan"
@@ -7927,7 +8072,6 @@ msgstr "核对负责人、来源和申报截止时间。"
 msgid "Version conflict"
 msgstr "版本冲突"
 
-#: src/components/patterns/app-shell.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View"
 msgstr "查看"
@@ -7953,6 +8097,14 @@ msgstr "查看审计日志"
 msgid "View billing"
 msgstr "查看账单"
 
+#: src/routes/rules.library.tsx
+msgid "View coverage map"
+msgstr "查看覆盖地图"
+
+#: src/routes/rules.library.tsx
+msgid "View sources"
+msgstr "查看来源"
+
 #: src/routes/obligations.tsx
 msgid "Visible columns"
 msgstr "可见列"
@@ -7970,6 +8122,10 @@ msgstr "等待中"
 #: src/features/obligations/status-control.tsx
 msgid "Waiting on client"
 msgstr "等待客户回复"
+
+#: src/routes/rules.library.tsx
+msgid "watched"
+msgstr "监视中"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "We block SSN-like patterns before sending anything to the AI."
@@ -8078,6 +8234,18 @@ msgstr "工作台"
 #: src/features/migration/WizardShell.tsx
 msgid "Working…"
 msgstr "处理中…"
+
+#: src/routes/settings.tsx
+msgid "Workspace configuration for this practice — identity, team, billing, compliance, and automation. Personal account settings live in the user menu in the sidebar footer."
+msgstr "本事务所的工作区配置——身份、团队、账单、合规与自动化。个人账户设置位于侧边栏底部的用户菜单中。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Workspace configuration hub — Practice, team, billing, automation."
+msgstr "工作区配置中心——事务所、团队、账单、自动化。"
+
+#: src/routes/route-summary.ts
+msgid "Workspace settings"
+msgstr "工作区设置"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"
