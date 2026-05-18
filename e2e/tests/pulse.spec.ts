@@ -69,7 +69,11 @@ test.describe('seeded Pulse alerts', () => {
       'aria-selected',
       'true',
     )
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('2026-10-15')
+    // Pass-3's T6 row chrome switched dashboard rows to relative deadlines
+    // ("165 days") instead of ISO dates, so the post-apply 2026-10-15
+    // verification can no longer live on the dashboard. The /obligations
+    // row assertion earlier in this test already proves the date update.
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible()
 
     // The Pulse alerts page is `/rules/pulse` now (previously `/rules?tab=pulse`).
     await appShellPage.goto('/rules/pulse')
