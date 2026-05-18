@@ -57,6 +57,7 @@ DELETE FROM member WHERE organization_id IN ('mock_firm_brightline', 'mock_firm_
 DELETE FROM session WHERE user_id IN (
   'mock_user_owner_sarah',
   'mock_user_manager_miguel',
+  'mock_user_partner_priya',
   'mock_user_preparer_avery',
   'mock_user_coordinator_jules',
   'mock_user_plan_solo',
@@ -70,6 +71,7 @@ DELETE FROM session WHERE user_id IN (
 DELETE FROM account WHERE user_id IN (
   'mock_user_owner_sarah',
   'mock_user_manager_miguel',
+  'mock_user_partner_priya',
   'mock_user_preparer_avery',
   'mock_user_coordinator_jules',
   'mock_user_plan_solo',
@@ -85,6 +87,7 @@ DELETE FROM organization WHERE id IN ('mock_firm_brightline', 'mock_firm_solo', 
 DELETE FROM user WHERE id IN (
   'mock_user_owner_sarah',
   'mock_user_manager_miguel',
+  'mock_user_partner_priya',
   'mock_user_preparer_avery',
   'mock_user_coordinator_jules',
   'mock_user_plan_solo',
@@ -100,6 +103,7 @@ INSERT INTO user (id, name, email, email_verified, image, created_at, updated_at
 VALUES
   ('mock_user_owner_sarah', 'Sarah Martinez', 'sarah.demo@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:00:00') * 1000 AS INTEGER)),
   ('mock_user_manager_miguel', 'Miguel Chen', 'miguel.manager@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:01:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:01:00') * 1000 AS INTEGER)),
+  ('mock_user_partner_priya', 'Priya Shah', 'priya.partner@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:01:30') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:01:30') * 1000 AS INTEGER)),
   ('mock_user_preparer_avery', 'Avery Patel', 'avery.preparer@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:02:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:02:00') * 1000 AS INTEGER)),
   ('mock_user_coordinator_jules', 'Jules Rivera', 'jules.coordinator@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:03:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:03:00') * 1000 AS INTEGER)),
   ('mock_user_plan_solo', 'Sofia Solo', 'sofia.solo@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:04:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:04:00') * 1000 AS INTEGER)),
@@ -118,6 +122,7 @@ INSERT INTO member (id, organization_id, user_id, role, created_at, status)
 VALUES
   ('mock_member_owner_sarah', 'mock_firm_brightline', 'mock_user_owner_sarah', 'owner', CAST(unixepoch('2026-05-01 08:10:00') * 1000 AS INTEGER), 'active'),
   ('mock_member_manager_miguel', 'mock_firm_brightline', 'mock_user_manager_miguel', 'manager', CAST(unixepoch('2026-05-01 08:11:00') * 1000 AS INTEGER), 'active'),
+  ('mock_member_partner_priya', 'mock_firm_brightline', 'mock_user_partner_priya', 'partner', CAST(unixepoch('2026-05-01 08:11:30') * 1000 AS INTEGER), 'active'),
   ('mock_member_preparer_avery', 'mock_firm_brightline', 'mock_user_preparer_avery', 'preparer', CAST(unixepoch('2026-05-01 08:12:00') * 1000 AS INTEGER), 'active'),
   ('mock_member_coordinator_jules', 'mock_firm_brightline', 'mock_user_coordinator_jules', 'coordinator', CAST(unixepoch('2026-05-01 08:13:00') * 1000 AS INTEGER), 'active'),
   ('mock_member_solo_sarah', 'mock_firm_solo', 'mock_user_owner_sarah', 'owner', CAST(unixepoch('2026-05-01 08:14:00') * 1000 AS INTEGER), 'active'),

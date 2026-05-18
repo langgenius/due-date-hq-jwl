@@ -26,7 +26,7 @@ interface E2ESwitchRoleRequest {
 const COOKIE_NAME = 'duedatehq.session_token'
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
 const DEMO_FIRM_ID = 'mock_firm_brightline'
-const DEMO_ACCOUNTS = [
+export const DEMO_ACCOUNTS = [
   {
     id: 'brightline-owner',
     role: 'owner',

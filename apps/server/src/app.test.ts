@@ -1,6 +1,12 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { createApp } from './app'
-import { pickSafeDemoRedirect, readDemoAccountParam, readDemoRoleParam } from './routes/e2e'
+import {
+  DEMO_ACCOUNTS,
+  pickSafeDemoRedirect,
+  readDemoAccountParam,
+  readDemoRoleParam,
+} from './routes/e2e'
 
 describe('@duedatehq/server app', () => {
   it('serves the public health route', async () => {
@@ -125,6 +131,7 @@ describe('@duedatehq/server app', () => {
     expect(readDemoRoleParam(null)).toBe('owner')
     expect(readDemoRoleParam('')).toBe('owner')
     expect(readDemoRoleParam('owner')).toBe('owner')
+    expect(readDemoRoleParam('partner')).toBe('partner')
     expect(readDemoRoleParam('manager')).toBe('manager')
     expect(readDemoRoleParam('preparer')).toBe('preparer')
     expect(readDemoRoleParam('coordinator')).toBe('coordinator')
@@ -138,6 +145,17 @@ describe('@duedatehq/server app', () => {
     expect(readDemoAccountParam('plan-pro')).toBe('plan-pro')
     expect(readDemoAccountParam('plan-team')).toBe('plan-team')
     expect(readDemoAccountParam('enterprise')).toBeNull()
+  })
+
+  it('keeps live-demo account contracts aligned with the mock seed SQL', () => {
+    const seedSql = readFileSync(new URL('../../../mock/demo.sql', import.meta.url), 'utf8')
+
+    for (const account of DEMO_ACCOUNTS) {
+      expect(seedSql).toContain(`('${account.userId}',`)
+      expect(seedSql).toMatch(
+        new RegExp(`'[^']+',\\s*'${account.firmId}',\\s*'${account.userId}',\\s*'${account.role}'`),
+      )
+    }
   })
 
   it('keeps demo login redirects inside the app', () => {
