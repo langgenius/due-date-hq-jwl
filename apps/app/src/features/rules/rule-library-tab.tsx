@@ -98,10 +98,16 @@ const entityParser = parseAsArrayOf(parseAsString)
   .withOptions({ history: 'replace' })
 
 // Origin tag — set by cross-page drill-ins (e.g. `?from=coverage` when a
-// dot or PENDING count on Coverage status drilled here). Renders a small
+// dot or PENDING count on Coverage status drilled here; `?from=sources`
+// when a "Used by N rules" link on Sources drilled here). Renders a small
 // breadcrumb pill above the table so the cross-page filter isn't
 // invisible. Clearing the pill resets all pre-filter URL state.
 const originParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
+
+// Source filter — set programmatically by Sources page "Used by N rules"
+// link. Single-value (rule cites one source). No header-filter UI today;
+// only entered via cross-page drill.
+const sourceParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
 
 function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
   return `${rule.id}:${rule.version}:${rule.status}`
@@ -128,15 +134,17 @@ export function RuleLibraryTab() {
     [setEntityFiltersQuery],
   )
   const [origin, setOrigin] = useQueryState('from', originParser)
+  const [sourceFilter, setSourceFilter] = useQueryState('source', sourceParser)
   // Origin-tag clear: drop the cross-page pre-filter URL state and the
   // `?from=` tag in one shot. Filters back to the page's defaults
-  // (pending_review, no jur, no entity).
+  // (pending_review, no jur, no entity, no source).
   const clearOriginAndFilters = useCallback(() => {
     void setLibraryFilter('pending_review')
     void setJurisdictionFilters([])
     void setEntityFiltersQuery([])
+    void setSourceFilter('')
     void setOrigin('')
-  }, [setEntityFiltersQuery, setJurisdictionFilters, setLibraryFilter, setOrigin])
+  }, [setEntityFiltersQuery, setJurisdictionFilters, setLibraryFilter, setSourceFilter, setOrigin])
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<RuleHeaderFilterId | null>(null)
@@ -184,9 +192,20 @@ export function RuleLibraryTab() {
           matchesSelected(rule.jurisdiction, jurisdictionFilters) &&
           matchesAnySelected(rule.entityApplicability, entityFilters) &&
           matchesSelected(rule.ruleTier, tierFilters) &&
-          matchesSelected(rule.status, statusFilters),
+          matchesSelected(rule.status, statusFilters) &&
+          // Single-value source filter: include rule only if its sourceIds
+          // list contains the URL-param value. Empty string = no filter.
+          (sourceFilter === '' || rule.sourceIds.includes(sourceFilter)),
       ),
-    [entityFilters, jurisdictionFilters, libraryFilter, rows, statusFilters, tierFilters],
+    [
+      entityFilters,
+      jurisdictionFilters,
+      libraryFilter,
+      rows,
+      sourceFilter,
+      statusFilters,
+      tierFilters,
+    ],
   )
   const selectedRows = useMemo(
     () =>
@@ -410,9 +429,15 @@ export function RuleLibraryTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      {origin === 'coverage' ? (
+      {origin === 'coverage' || origin === 'sources' ? (
         <OriginBreadcrumb
-          label={t`Pre-filtered from Coverage status`}
+          label={
+            origin === 'sources' && sourceById.get(sourceFilter)
+              ? t`Filtered to rules citing: ${sourceById.get(sourceFilter)?.title ?? sourceFilter}`
+              : origin === 'sources'
+                ? t`Pre-filtered from Sources`
+                : t`Pre-filtered from Coverage status`
+          }
           onClear={clearOriginAndFilters}
           clearLabel={t`Clear and back to default`}
         />
