@@ -67,7 +67,7 @@ export function AuditLogTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
+      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
           const actor = event.actorLabel ?? event.actorId ?? t`System`
           const actionLabel = formatAuditActionLabel(event.action, actionLabels)
@@ -130,7 +130,7 @@ function AuditLogRow({
       onKeyDown={handleKeyDown}
       className="cursor-pointer align-top outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
     >
-      <TableCell className="font-mono text-xs tabular-nums">
+      <TableCell className="text-xs tabular-nums">
         <div className="grid gap-1">
           <span className="text-text-primary">
             {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}

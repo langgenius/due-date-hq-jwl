@@ -204,7 +204,7 @@ function AuditFilterSelect({
           >
             <span className="truncate">{option.label}</span>
             {option.count > 0 ? (
-              <span className="ml-auto pr-2 font-mono text-xs tabular-nums text-text-tertiary">
+              <span className="ml-auto pr-2 text-xs tabular-nums text-text-tertiary">
                 {option.count}
               </span>
             ) : null}
@@ -604,7 +604,7 @@ export function AuditLogPage() {
             <Trans>Filter by time range, action category, action, actor, or entity type.</Trans>
           </CardDescription>
           <CardAction>
-            <Badge variant="outline" className="font-mono tabular-nums">
+            <Badge variant="outline" className="tabular-nums">
               {events.length}
             </Badge>
           </CardAction>
