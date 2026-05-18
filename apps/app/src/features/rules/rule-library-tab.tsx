@@ -217,6 +217,13 @@ export function RuleLibraryTab() {
     setPreview(null)
   }, [])
 
+  // Chip rail = cross-cutting catalog *status* only. Tier filtering
+  // (Applicability review / Exception / Basic / Annual rolling) lives in
+  // the TIER header filter — putting it both places creates the
+  // redundant-axes problem where one chip saturates ~80% of the table
+  // and adds no signal beyond what the Tier column already shows.
+  // Status (Needs review / Active / Rejected / Archived) is the right
+  // axis for prominent chips because rules move through these states.
   const filterOptions = useMemo(
     () => [
       {
@@ -228,12 +235,6 @@ export function RuleLibraryTab() {
       { value: 'all' as const, label: t`All`, count: counts.all },
       { value: 'rejected' as const, label: t`Rejected`, count: counts.rejected },
       { value: 'archived' as const, label: t`Archived`, count: counts.archived },
-      {
-        value: 'applicability_review' as const,
-        label: t`Applicability review`,
-        count: counts.applicability_review,
-      },
-      { value: 'exception' as const, label: t`Exception`, count: counts.exception },
     ],
     [counts, t],
   )

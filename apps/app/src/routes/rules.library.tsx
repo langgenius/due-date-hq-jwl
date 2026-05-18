@@ -66,7 +66,7 @@ export function RulesLibraryRoute() {
   return (
     <RulesPageShell
       title={t`Rule library`}
-      description={t`Practice rule catalog — review pending rule templates, activate them into production, and inspect rejected or archived evidence. Coverage and source-watcher health summarized above; click numbers to filter.`}
+      description={t`Catalog of practice rules. Review pending templates, activate them into production, and inspect rejected or archived evidence.`}
     >
       <CoverageSummaryStrip onDrillIn={drillIntoLibrary} />
       <SourcesSummaryStrip />
@@ -115,10 +115,18 @@ function CoverageSummaryStrip({
         onClick={() => onDrillIn('pending_review')}
       />
       <SummarySeparator />
+      {/*
+        `jurisdictions with gaps` is informational here — it doesn't drill
+        into a filtered Library view because gaps live in the Coverage
+        domain, not the catalog. Tone stays `muted` regardless of the
+        count: per the SummaryNumber tone contract, color signals
+        severity-with-action, not "look how big this number is". The full
+        gap map is one click away on `/rules/coverage`.
+      */}
       <SummaryNumber
         value={stats.jurisdictionsWithGaps}
         label={t`jurisdictions with gaps`}
-        tone={stats.jurisdictionsWithGaps > 0 ? 'warning' : 'muted'}
+        tone="muted"
       />
     </SummaryStrip>
   )
@@ -184,6 +192,21 @@ function SourcesSummaryStrip() {
   )
 }
 
+/**
+ * One-row context strip — newspaper-kicker rhythm.
+ *
+ * Layout decisions worth keeping stable so a future DESIGN.md update
+ * stays a one-place change:
+ *  - Label is inline (no fixed-width gutter) so the strip doesn't read
+ *    as a settings-form row. Separator dot bridges label and content.
+ *  - Trailing "View →" link wears a small pill (bordered + bg-subtle)
+ *    so the *escape hatch* outweighs any individual count number in
+ *    the row — affordance > data density.
+ *  - Single `h-10` rib aligned with all other strips in the app.
+ *
+ * If DESIGN.md adjusts pill borders / kicker spacing, edit only this
+ * component — every Coverage / Sources / future strip inherits.
+ */
 function SummaryStrip({
   label,
   loading,
@@ -198,12 +221,15 @@ function SummaryStrip({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-10 items-center gap-3 rounded-md border border-divider-regular bg-background-default px-4">
-      <span className="w-[80px] shrink-0 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+    <div className="flex h-10 items-center gap-2 rounded-md border border-divider-regular bg-background-default px-3">
+      <span className="shrink-0 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         {label}
       </span>
+      <span aria-hidden className="shrink-0 text-text-tertiary">
+        ·
+      </span>
       <div
-        className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto"
+        className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto"
         aria-busy={loading || undefined}
       >
         {loading ? (
@@ -216,15 +242,46 @@ function SummaryStrip({
       </div>
       <Link
         to={detailHref}
-        className="inline-flex shrink-0 items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className={cn(
+          'group/detail inline-flex h-6 shrink-0 items-center gap-0.5 rounded-md',
+          'border border-divider-regular bg-background-subtle px-2',
+          'text-xs font-medium text-text-secondary outline-none',
+          'hover:border-state-accent-active-alt hover:bg-background-default hover:text-text-accent',
+          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        )}
       >
         {detailLabel}
-        <ChevronRightIcon className="size-3.5" aria-hidden />
+        <ChevronRightIcon
+          className="size-3.5 text-text-tertiary transition-transform group-hover/detail:translate-x-0.5 group-hover/detail:text-text-accent"
+          aria-hidden
+        />
       </Link>
     </div>
   )
 }
 
+/**
+ * A single stat in a SummaryStrip — `<value> <label>`, e.g. `123 needs review`.
+ *
+ * **Tone vs affordance** (the rule worth keeping stable):
+ *   - `tone` signals *severity* (the data is bad / needs attention) and
+ *     is read by the human as urgency. Maps directly to existing design
+ *     tokens (`text-status-review`, `text-severity-medium`, etc.).
+ *   - `onClick` / `href` signal *affordance* (this count is actionable).
+ *     Interactivity is shown via underline-on-hover + focus ring, NOT
+ *     via tone. Hover state is the universal teacher.
+ *
+ *   ❌ Don't use a warning tone on a count that isn't actionable —
+ *      that conflates "this is bad" with "click me to fix it" and the
+ *      user learns the wrong rule.
+ *   ❌ Don't make a count clickable without a destination — every
+ *      interactive number drills somewhere (Library filter or detail
+ *      page).
+ *
+ * If DESIGN.md tweaks the severity color stack later, change the
+ * tone-to-class map here and every Coverage / Sources / future strip
+ * updates in one place.
+ */
 function SummaryNumber({
   value,
   label,
@@ -234,6 +291,13 @@ function SummaryNumber({
 }: {
   value: number
   label: string
+  /**
+   * Severity signal only. `default` for ordinary counts (`88 watched`),
+   * `muted` for deprioritized counts (`52 jurisdictions with gaps`),
+   * `review` for catalog-state attention (`123 needs review`),
+   * `warning` for sysops degraded state (`11 degraded`),
+   * `destructive` for sysops failure state (`1 failing`).
+   */
   tone?: 'default' | 'muted' | 'review' | 'warning' | 'destructive'
   onClick?: () => void
   href?: string
