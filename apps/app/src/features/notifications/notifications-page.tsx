@@ -146,9 +146,6 @@ export function NotificationsPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-            <Trans>Notifications</Trans>
-          </span>
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
             <Trans>Notification center</Trans>
           </h1>
