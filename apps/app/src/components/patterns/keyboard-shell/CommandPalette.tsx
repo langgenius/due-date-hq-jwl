@@ -158,7 +158,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'rules-pulse',
-        label: t`Pulse changes`,
+        label: t`Radar`,
         description: t`Triage source-backed government changes affecting clients.`,
         group: 'navigate',
         icon: ActivityIcon,

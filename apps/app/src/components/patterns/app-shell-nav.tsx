@@ -76,9 +76,13 @@ type NavItem = {
 }
 
 type NavConfig = {
-  // Primary daily / weekly destinations. Flat list, no section labels —
-  // at 6 items the headers were adding visual weight without information.
-  primary: NavItem[]
+  // Primary daily / weekly destinations, split into small labeled groups so
+  // the eye can scan by "what kind of work am I doing?". Each group is
+  // 1–3 items — labels are muted (uppercase 11px tracking) so they read
+  // as orientation hints rather than chrome.
+  operations: NavItem[]
+  clients: NavItem[]
+  rules: NavItem[]
   // Bottom of the sidebar. Holds the Settings hub for workspace
   // configuration (Practice profile, Members, Billing, Audit, automation
   // settings — see `apps/app/src/routes/settings.tsx`). Personal account
@@ -413,7 +417,7 @@ function useNavItems(_firm: FirmPublic): NavConfig {
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
   return useMemo<NavConfig>(
     () => ({
-      primary: [
+      operations: [
         { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
         {
           href: '/obligations',
@@ -421,25 +425,29 @@ function useNavItems(_firm: FirmPublic): NavConfig {
           icon: CalendarClockIcon,
           end: false,
         },
-        // Pulse is the spine of the product (per the canonical product
+        // Radar is the spine of the product (per the canonical product
         // spec — "you won't be the last CPA in your state to find out about
-        // a filing extension"). It lives as a direct entry, not buried
-        // under Rules, because it's operational/real-time work — not
-        // governance. The sidebar badge counts incoming alerts only.
+        // a filing extension"). Direct entry, not buried under Rules: it's
+        // operational/real-time work, not governance. The sidebar badge
+        // counts incoming alerts only. Internal product name "Pulse" is
+        // preserved in code (component names, database tables, ORPC
+        // routes); only the user-facing label is "Radar".
         {
           href: '/rules/pulse',
-          label: t`Pulse`,
+          label: t`Radar`,
           icon: ActivityIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
         },
+      ],
+      clients: [
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
-        // Rule library is a single direct entry. Coverage and Sources are
-        // not separate sidebar destinations — they're aggregate views of
-        // the catalog, rendered as sections inside the Library page. The
-        // route stays at `/rules/library` for now; a future pass merges the
-        // three pages into a single `/rules` URL.
+      ],
+      // Rule library is a single direct entry. Coverage and Sources are
+      // not separate sidebar destinations — they're aggregate views of
+      // the catalog, rendered as sections inside the Library page.
+      rules: [
         {
           href: '/rules/library',
           label: t`Rule library`,
@@ -458,9 +466,19 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
   const items = useNavItems(firm)
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
-      <NavGroupSection>
-        {items.primary.map((item) => (
+      <NavGroupSection label={t`Operations`}>
+        {items.operations.map((item) => (
           <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
+        ))}
+      </NavGroupSection>
+      <NavGroupSection label={t`Clients`}>
+        {items.clients.map((item) => (
+          <NavMenuItem key={item.href} item={item} />
+        ))}
+      </NavGroupSection>
+      <NavGroupSection label={t`Rules`}>
+        {items.rules.map((item) => (
+          <NavMenuItem key={item.href} item={item} />
         ))}
       </NavGroupSection>
       <NavGroupSection muted>
