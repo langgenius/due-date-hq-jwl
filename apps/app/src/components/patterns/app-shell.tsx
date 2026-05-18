@@ -1,12 +1,11 @@
 import { Link, Outlet, useNavigation } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
-import { BellIcon, CreditCardIcon, PanelLeftIcon } from 'lucide-react'
+import { BellIcon, PanelLeftIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarInset,
   SidebarProvider,
   SidebarSeparator,
@@ -16,7 +15,6 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
 import { UserMenuTrigger } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
-import { isFirmOwner, paidPlanActive } from '@/features/billing/model'
 import type { AuthUser } from '@/lib/auth'
 import {
   COMMAND_PALETTE_HOTKEY,
@@ -64,7 +62,7 @@ export function AppShell(props: AppShellProps) {
         clips overflow, so the sidebar stays pinned while only `<main>` (the
         route's content) scrolls. Setting `h-svh` on the row + `overflow-hidden`
         is the simplest path that doesn't require `position: sticky` games on
-        the sidebar — and it keeps the bottom CTA / user row always visible.
+        the sidebar.
       */}
       <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-body text-text-primary">
         <PendingBar />
@@ -79,20 +77,15 @@ export function AppShell(props: AppShellProps) {
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>
-          <SidebarFooter>
-            <PlanStatusLink firm={props.firm} />
-            <SidebarSeparator />
-            <UserMenuTrigger
-              user={props.user}
-              themePreference={props.themePreference}
-              switchThemePreference={props.switchThemePreference}
-            />
-          </SidebarFooter>
         </Sidebar>
         <SidebarInset>
           <RouteHeader
             eyebrow={props.route.eyebrow}
             title={props.route.title}
+            user={props.user}
+            firm={props.firm}
+            themePreference={props.themePreference}
+            switchThemePreference={props.switchThemePreference}
             unreadNotificationCount={props.unreadNotificationCount ?? 0}
           />
           {/*
@@ -109,54 +102,6 @@ export function AppShell(props: AppShellProps) {
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
-}
-
-function PlanStatusLink({ firm }: { firm: FirmPublic }) {
-  const { t } = useLingui()
-  const owner = isFirmOwner(firm)
-  const paid = paidPlanActive(firm)
-  const plan =
-    firm.plan === 'firm'
-      ? t`Enterprise`
-      : firm.plan === 'team'
-        ? t`Team`
-        : firm.plan === 'pro'
-          ? t`Pro`
-          : t`Solo`
-  const seats = firm.seatLimit === 1 ? t`${firm.seatLimit} seat` : t`${firm.seatLimit} seats`
-  const action = owner ? (paid ? t`Manage` : t`Upgrade`) : t`View`
-
-  return (
-    <div className="px-2 py-1.5">
-      <Link
-        to="/billing"
-        aria-label={t`Open billing for ${plan} plan`}
-        className={cn(
-          'group/plan flex h-12 w-full touch-manipulation items-center gap-2.5 rounded-md border border-divider-regular bg-background-section px-3 outline-none transition-colors',
-          'hover:border-divider-deep hover:bg-background-default-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        )}
-      >
-        <span
-          aria-hidden
-          className={cn(
-            'grid size-8 shrink-0 place-items-center rounded-md border',
-            paid
-              ? 'border-brand-primary bg-brand-primary text-text-inverted'
-              : 'border-state-accent-active bg-state-accent-hover-alt text-text-accent',
-          )}
-        >
-          <CreditCardIcon className="size-4" />
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col leading-tight">
-          <span className="truncate text-sm font-semibold text-text-primary">{plan}</span>
-          <span className="truncate font-mono text-xs tabular-nums text-text-muted">{seats}</span>
-        </span>
-        <span className="shrink-0 rounded-sm border border-divider-regular bg-background-default px-1.5 py-0.5 font-mono text-xs font-medium tabular-nums text-text-secondary group-hover/plan:text-text-primary">
-          {action}
-        </span>
-      </Link>
-    </div>
   )
 }
 
@@ -194,10 +139,18 @@ const KBD_CMDK = formatCompactShortcutForDisplay(COMMAND_PALETTE_HOTKEY)
 function RouteHeader({
   eyebrow,
   title,
+  user,
+  firm,
+  themePreference,
+  switchThemePreference,
   unreadNotificationCount,
 }: {
   eyebrow: string
   title: string
+  user: AuthUser
+  firm: FirmPublic
+  themePreference: ThemePreference
+  switchThemePreference: (next: ThemePreference) => void
   unreadNotificationCount: number
 }) {
   return (
@@ -222,6 +175,12 @@ function RouteHeader({
           {KBD_CMDK}
         </kbd>
         <NotificationsBell unreadCount={unreadNotificationCount} />
+        <UserMenuTrigger
+          user={user}
+          firm={firm}
+          themePreference={themePreference}
+          switchThemePreference={switchThemePreference}
+        />
       </div>
     </header>
   )
