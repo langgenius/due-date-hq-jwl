@@ -7,10 +7,11 @@ export class ObligationQueuePage {
   readonly sortSelect: Locator
   readonly statusFilterTrigger: Locator
   readonly savedViewsButton: Locator
-  readonly calendarSyncLink: Locator
+  // Calendar sync is now an in-place popover button on the Obligations page
+  // (it used to be a link to /obligations/calendar). The dedicated route
+  // still exists and is reachable via ⌘K → "Calendar sync".
+  readonly calendarSyncButton: Locator
   readonly columnsButton: Locator
-  readonly compactTab: Locator
-  readonly comfortableTab: Locator
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Obligations' })
@@ -19,10 +20,8 @@ export class ObligationQueuePage {
     this.sortSelect = page.getByRole('combobox').first()
     this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })
     this.savedViewsButton = page.getByRole('button', { name: 'Saved views' })
-    this.calendarSyncLink = page.getByRole('link', { name: 'Calendar sync' })
+    this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
     this.columnsButton = page.getByRole('button', { name: 'Columns' })
-    this.compactTab = page.getByRole('tab', { name: 'Compact' })
-    this.comfortableTab = page.getByRole('tab', { name: 'Comfortable' })
   }
 
   async goto(path = '/obligations') {

@@ -204,7 +204,7 @@ function AuditFilterSelect({
           >
             <span className="truncate">{option.label}</span>
             {option.count > 0 ? (
-              <span className="ml-auto pr-2 font-mono text-xs tabular-nums text-text-tertiary">
+              <span className="ml-auto pr-2 text-xs tabular-nums text-text-tertiary">
                 {option.count}
               </span>
             ) : null}
@@ -573,9 +573,6 @@ export function AuditLogPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-col gap-2">
-        <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-          <Trans>Practice</Trans>
-        </span>
         <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl leading-tight font-semibold text-text-primary">
@@ -607,7 +604,7 @@ export function AuditLogPage() {
             <Trans>Filter by time range, action category, action, actor, or entity type.</Trans>
           </CardDescription>
           <CardAction>
-            <Badge variant="outline" className="font-mono tabular-nums">
+            <Badge variant="outline" className="tabular-nums">
               {events.length}
             </Badge>
           </CardAction>

@@ -108,7 +108,7 @@ function StatTile({
           <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
             {label}
           </span>
-          <span className="font-mono text-2xl leading-none font-semibold tabular-nums text-text-primary">
+          <span className="text-2xl leading-none font-semibold tabular-nums text-text-primary">
             {value}
           </span>
           <span className="text-xs text-text-tertiary">{caption}</span>
@@ -141,9 +141,6 @@ export function RemindersPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-            <Trans>Operations</Trans>
-          </span>
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
             <Trans>Reminders</Trans>
           </h1>
@@ -270,7 +267,7 @@ function TemplatesPanel({
                 <TableHead className="w-[96px]" />
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
               {templates.map((template) => (
                 <TableRow key={template.templateKey}>
                   <TableCell>
@@ -291,7 +288,7 @@ function TemplatesPanel({
                     )}
                   </TableCell>
                   <TableCell>
-                    <span className="font-mono tabular-nums">{template.usageCount}</span>
+                    <span className="tabular-nums">{template.usageCount}</span>
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => onEdit(template)}>
@@ -353,7 +350,7 @@ function UpcomingPanel({
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
               {reminders.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
@@ -369,9 +366,7 @@ function UpcomingPanel({
                   </TableCell>
                   <TableCell>{recipientLabel(item.recipientKind)}</TableCell>
                   <TableCell>{offsetLabel(item.offsetDays)}</TableCell>
-                  <TableCell className="font-mono tabular-nums">
-                    {formatDate(item.dueDate)}
-                  </TableCell>
+                  <TableCell className="tabular-nums">{formatDate(item.dueDate)}</TableCell>
                   <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
                 </TableRow>
               ))}
@@ -426,7 +421,7 @@ function RecentSendsPanel({
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
               {reminders.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
@@ -445,7 +440,7 @@ function RecentSendsPanel({
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                  <TableCell className="font-mono tabular-nums">
+                  <TableCell className="tabular-nums">
                     {formatDateTimeWithTimezone(item.createdAt, timezone)}
                   </TableCell>
                 </TableRow>
@@ -495,7 +490,7 @@ function SuppressionsPanel({
                 </span>
                 <Badge variant="secondary">{item.reason}</Badge>
               </div>
-              <span className="font-mono text-xs tabular-nums text-text-tertiary">
+              <span className="text-xs tabular-nums text-text-tertiary">
                 {formatDateTimeWithTimezone(item.createdAt, timezone)}
               </span>
             </article>

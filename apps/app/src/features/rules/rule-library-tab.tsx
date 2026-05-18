@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { CheckIcon, EyeIcon } from 'lucide-react'
+import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
 import type { ObligationRule, RuleBulkImpactPreview, RuleReviewTask } from '@duedatehq/contracts'
@@ -57,6 +58,32 @@ const RULE_PAGE_SIZE = 25
 const EMPTY_RULE_ROWS: ObligationRule[] = []
 const EMPTY_REVIEW_TASKS: RuleReviewTask[] = []
 
+// The library filter and jurisdiction filter are URL-state instead of
+// local component state so the Coverage section above can drill into a
+// pre-filtered view (e.g. clicking the `7` pending cell on CA pushes
+// `?library=pending_review&jur=CA` and the Library section re-renders to
+// match). Other filter axes (entity, tier, status, header) stay local —
+// they're table-internal controls with no cross-section coupling.
+const LIBRARY_FILTER_VALUES = [
+  'all',
+  'active',
+  'pending_review',
+  'rejected',
+  'archived',
+  'verified',
+  'candidate',
+  'applicability_review',
+  'exception',
+] as const satisfies readonly RuleLibraryFilter[]
+
+const libraryFilterParser = parseAsStringLiteral(LIBRARY_FILTER_VALUES)
+  .withDefault('pending_review')
+  .withOptions({ history: 'replace' })
+
+const jurisdictionParser = parseAsArrayOf(parseAsString)
+  .withDefault([])
+  .withOptions({ history: 'replace' })
+
 function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
   return `${rule.id}:${rule.version}:${rule.status}`
 }
@@ -72,8 +99,8 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
 export function RuleLibraryTab() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const [libraryFilter, setLibraryFilter] = useState<RuleLibraryFilter>('pending_review')
-  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>([])
+  const [libraryFilter, setLibraryFilter] = useQueryState('library', libraryFilterParser)
+  const [jurisdictionFilters, setJurisdictionFilters] = useQueryState('jur', jurisdictionParser)
   const [entityFilters, setEntityFilters] = useState<string[]>([])
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
@@ -275,7 +302,7 @@ export function RuleLibraryTab() {
   }
 
   function updateLibraryFilter(value: RuleLibraryFilter) {
-    setLibraryFilter(value)
+    void setLibraryFilter(value)
     setPageIndex(0)
     clearBulkSelection()
   }
@@ -431,6 +458,33 @@ export function RuleLibraryTab() {
                 onSelect={handleRuleSelect}
               />
             ))}
+            {visibleRows.length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={9}
+                  className="px-4 py-10 text-center text-xs text-text-tertiary"
+                >
+                  {rows.length === 0 ? (
+                    <Trans>
+                      No rules in the catalog yet. Source watchers will surface candidates here as
+                      changes are detected.
+                    </Trans>
+                  ) : libraryFilter === 'rejected' ? (
+                    <Trans>
+                      No rejected rules in this view. Rejections appear here with timestamp and
+                      reviewer so the decision stays auditable.
+                    </Trans>
+                  ) : libraryFilter === 'archived' ? (
+                    <Trans>
+                      No archived rules in this view. Archived rules are no longer active but stay
+                      visible for audit.
+                    </Trans>
+                  ) : (
+                    <Trans>No rules match these filters. Clear filters above to see more.</Trans>
+                  )}
+                </TableCell>
+              </TableRow>
+            ) : null}
           </TableBody>
         </Table>
         <TablePaginationFooter

@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
 
-import type { RuleSource } from '@duedatehq/contracts'
+import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
+import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 import { orpc } from '@/lib/rpc'
 
 import {
@@ -53,6 +54,19 @@ export function SourcesTab() {
   const [pageIndex, setPageIndex] = useState(0)
 
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
+  // Pulse maintains the watcher health record per source (when the scraper
+  // last ran, when it'll run next, and the most recent error if any). The
+  // RuleSource registry doesn't carry these — they're operational signals
+  // owned by the Pulse subsystem. Join here by id so the Sources table can
+  // surface diagnostic columns alongside the registry metadata.
+  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const sourceHealthBySourceId = useMemo(() => {
+    const map = new Map<string, PulseSourceHealth>()
+    for (const entry of sourceHealthQuery.data?.sources ?? []) {
+      map.set(entry.sourceId, entry)
+    }
+    return map
+  }, [sourceHealthQuery.data])
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
@@ -200,13 +214,40 @@ export function SourcesTab() {
                 />
               </TableHead>
               <TableHead className="w-[112px] px-2">HEALTH</TableHead>
+              <TableHead className="w-[92px] px-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text-tertiary">
+                LAST CHECKED
+              </TableHead>
               <TableHead className="w-[42px] px-0" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {visibleRows.map((source) => (
-              <SourceRow key={source.id} source={source} />
+              <SourceRow
+                key={source.id}
+                source={source}
+                health={sourceHealthBySourceId.get(source.id)}
+              />
             ))}
+            {visibleRows.length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={8}
+                  className="px-4 py-10 text-center text-xs text-text-tertiary"
+                >
+                  {rows.length === 0 ? (
+                    <Trans>
+                      No sources registered yet. Source watchers feed the rule catalog — once
+                      configured, they appear here with health and cadence.
+                    </Trans>
+                  ) : (
+                    <Trans>
+                      No sources match these filters. Clear filters above to see all watched
+                      sources.
+                    </Trans>
+                  )}
+                </TableCell>
+              </TableRow>
+            ) : null}
           </TableBody>
         </Table>
         <TablePaginationFooter
@@ -227,6 +268,31 @@ function matchesSelected(value: string, selected: readonly string[]): boolean {
   return selected.length === 0 || selected.includes(value)
 }
 
+/**
+ * Compact relative-time formatter for the Sources table's `LAST CHECKED`
+ * column. Returns `"2m"`, `"3h"`, `"5d"`, `"3w"` — short enough to fit a
+ * narrow column without truncating, precise enough to distinguish "fresh"
+ * from "stale" at a glance. Exact ISO timestamp is exposed via the cell's
+ * `title` attribute for the precise-detail case.
+ */
+function relativeTimeShort(iso: string): string {
+  const checked = new Date(iso).getTime()
+  if (Number.isNaN(checked)) return '—'
+  const ms = Date.now() - checked
+  if (ms < 0) return 'now'
+  const minutes = Math.floor(ms / 60_000)
+  if (minutes < 1) return 'now'
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days < 14) return `${days}d`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 12) return `${weeks}w`
+  const months = Math.floor(days / 30)
+  return `${months}mo`
+}
+
 function sourceFilterOptions<T extends string>(
   sources: readonly RuleSource[],
   getValue: (source: RuleSource) => T,
@@ -243,7 +309,13 @@ function sourceFilterOptions<T extends string>(
     .toSorted((left, right) => left.label.localeCompare(right.label))
 }
 
-function SourceRow({ source }: { source: RuleSource }) {
+function SourceRow({
+  source,
+  health,
+}: {
+  source: RuleSource
+  health: PulseSourceHealth | undefined
+}) {
   const { t } = useLingui()
 
   // Keep every interactive affordance on this row pointed at the exact
@@ -312,8 +384,29 @@ function SourceRow({ source }: { source: RuleSource }) {
       >
         {compactAcquisitionMethod(source.acquisitionMethod)}
       </TableCell>
-      <TableCell className="px-2 py-1.5">
+      <TableCell
+        className="px-2 py-1.5"
+        // The HealthBadge by itself is a verdict with no evidence — the
+        // CPA opening Sources to triage "why is X degraded?" gets a yellow
+        // pill and nothing else. Surface the most recent error from Pulse
+        // on hover so the diagnostic answer is one tooltip away.
+        title={
+          health?.lastError
+            ? t`Last error: ${health.lastError}`
+            : source.healthStatus === 'degraded' || source.healthStatus === 'failing'
+              ? t`Status set by Pulse · open Radar for full watcher diagnostics`
+              : undefined
+        }
+      >
         <HealthBadge health={source.healthStatus} />
+      </TableCell>
+      <TableCell
+        className="px-2 py-1.5 font-mono text-xs tabular-nums text-text-tertiary"
+        // Exact ISO timestamp on hover; relative-time label in the cell
+        // keeps the column scannable at a glance.
+        title={health?.lastCheckedAt ?? undefined}
+      >
+        {health?.lastCheckedAt ? relativeTimeShort(health.lastCheckedAt) : '—'}
       </TableCell>
       <TableCell className="px-0 py-1.5 text-center">
         <a

@@ -76,7 +76,7 @@ export function WorkloadPage() {
           <p className="text-sm text-text-secondary">
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
           </p>
-          <p className="font-mono text-xs tabular-nums text-text-muted">
+          <p className="text-xs tabular-nums text-text-muted">
             <Trans>
               As of {asOfDate} · next {windowDays} days
             </Trans>
@@ -258,7 +258,7 @@ function MetricCard({
         <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
         <CardDescription
           className={cn(
-            'font-mono text-3xl font-semibold tabular-nums text-text-primary',
+            'text-3xl font-semibold tabular-nums text-text-primary',
             intent === 'critical' && 'text-text-destructive',
             intent === 'warning' && 'text-text-warning',
           )}
@@ -310,7 +310,7 @@ function WorkloadTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
+      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {rows.map((row) => (
           <TableRow
             key={row.id}
@@ -346,7 +346,7 @@ function WorkloadTable({
                     style={{ width: `${row.loadScore}%` }}
                   />
                 </div>
-                <span className="w-10 text-right font-mono text-xs tabular-nums text-text-secondary">
+                <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
                   {row.kind === 'unassigned' ? t`Risk` : `${row.loadScore}%`}
                 </span>
               </div>
@@ -382,7 +382,7 @@ function NumericCell({
       <Link
         to={href}
         className={cn(
-          'font-mono text-xs font-medium tabular-nums underline-offset-4 hover:underline',
+          'text-xs font-medium tabular-nums underline-offset-4 hover:underline',
           danger && value > 0 ? 'text-text-destructive' : 'text-text-primary',
         )}
       >

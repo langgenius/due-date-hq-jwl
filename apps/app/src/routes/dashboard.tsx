@@ -56,7 +56,6 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { severityRowClass } from '@/features/dashboard/severity-row'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
@@ -255,7 +254,7 @@ function ExposureBadge({ row, canSeeDollars }: { row: DashboardTopRow; canSeeDol
   }
   if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
     return (
-      <Badge variant="warning" className="font-mono tabular-nums">
+      <Badge variant="warning" className="tabular-nums">
         {formatCents(row.estimatedExposureCents)}
       </Badge>
     )
@@ -465,20 +464,18 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 p-4 md:p-6">
+    <div className="flex flex-col gap-5 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Operations command</Trans>
+        <h1 className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight text-text-primary">
+          <span>
+            <Trans>Today</Trans>
           </span>
-          <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
-            {dashboardQuery.isLoading || !data?.asOfDate ? (
-              <Trans>Today</Trans>
-            ) : (
-              <Trans>Today, {formatTodayHeader(data.asOfDate)}</Trans>
-            )}
-          </h1>
-        </div>
+          {data?.asOfDate ? (
+            <span className="font-normal tabular-nums text-text-tertiary">
+              {formatTodayHeader(data.asOfDate)}
+            </span>
+          ) : null}
+        </h1>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
             <FileSearchIcon data-icon="inline-start" />
@@ -616,12 +613,12 @@ function NeedsReviewBanner({
           <Trans>Needs review</Trans>
         </span>
         {hasReady ? (
-          <span className="font-mono tabular-nums text-text-primary">
+          <span className="tabular-nums text-text-primary">
             <Plural value={needsReviewCount} one="# row ready" other="# rows ready" />
           </span>
         ) : null}
         {hasEvidence ? (
-          <span className="font-mono tabular-nums text-text-tertiary">
+          <span className="tabular-nums text-text-tertiary">
             <Plural
               value={evidenceGapCount}
               one="# needs evidence first"
@@ -673,7 +670,7 @@ function ProjectedRiskInline({
           <span className="text-text-tertiary uppercase tracking-wider">
             <Trans>90-day projected risk</Trans>
           </span>
-          <span className="font-mono tabular-nums text-text-primary">{formatCents(exposure)}</span>
+          <span className="tabular-nums text-text-primary">{formatCents(exposure)}</span>
         </span>
       ) : null}
       {accrued !== 0 ? (
@@ -681,9 +678,7 @@ function ProjectedRiskInline({
           <span className="text-text-tertiary uppercase tracking-wider">
             <Trans>Accrued penalty</Trans>
           </span>
-          <span className="font-mono tabular-nums text-severity-critical">
-            {formatCents(accrued)}
-          </span>
+          <span className="tabular-nums text-severity-critical">{formatCents(accrued)}</span>
         </span>
       ) : null}
     </div>
@@ -734,7 +729,7 @@ function daysUntilDueFromAsOf(dueDate: string, asOfDate: string | null): number 
 function DashboardCountdownBadge({ days }: { days: number }) {
   const variant = days <= 2 ? 'destructive' : days <= 7 ? 'warning' : 'outline'
   return (
-    <Badge variant={variant} className="min-w-18 justify-start font-mono text-xs tabular-nums">
+    <Badge variant={variant} className="min-w-18 justify-start text-xs tabular-nums">
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : days < 0 ? (
@@ -866,7 +861,7 @@ function DashboardTriagePanel({
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
                     <span>{tabLabels[tab.key]}</span>
-                    <Badge variant="secondary" className="font-mono tabular-nums">
+                    <Badge variant="secondary" className="tabular-nums">
                       {tab.count}
                     </Badge>
                   </TabsTrigger>
@@ -1037,7 +1032,7 @@ function DashboardTriageTable({
           )
         },
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 font-mono tabular-nums">
+          <div className="flex items-center gap-2 tabular-nums">
             <DashboardCountdownBadge
               days={daysUntilDueFromAsOf(row.original.currentDueDate, asOfDate)}
             />
@@ -1177,7 +1172,7 @@ function DashboardTriageTable({
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[1280px]">
+      <Table className="min-w-[1040px]">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -1210,7 +1205,7 @@ function DashboardTriageTable({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {tableRows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={visibleColumnCount} className="py-8 text-xs text-text-secondary">
@@ -1224,10 +1219,7 @@ function DashboardTriageTable({
                 role="button"
                 tabIndex={0}
                 aria-label={`${t`Open obligations`}: ${tableRow.original.clientName} ${tableRow.original.taxType}`}
-                className={cn(
-                  'cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
-                  severityRowClass(tableRow.original.severity),
-                )}
+                className="cursor-pointer rounded-md outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                 onClick={(event) => {
                   if (isDashboardRowControlClick(event.target, event.currentTarget)) return
                   onOpenObligation(tableRow.original)

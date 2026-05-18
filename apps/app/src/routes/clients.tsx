@@ -245,9 +245,6 @@ export function ClientsRoute() {
       {selectedClient ? null : (
         <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex min-w-0 flex-col gap-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Clients</Trans>
-            </span>
             <div className="flex flex-col gap-1">
               <h1 className="text-xl font-semibold text-text-primary">
                 <Trans>Client facts</Trans>

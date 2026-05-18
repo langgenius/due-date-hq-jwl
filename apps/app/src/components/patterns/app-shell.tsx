@@ -80,7 +80,6 @@ export function AppShell(props: AppShellProps) {
         </Sidebar>
         <SidebarInset>
           <RouteHeader
-            eyebrow={props.route.eyebrow}
             title={props.route.title}
             user={props.user}
             firm={props.firm}
@@ -97,7 +96,9 @@ export function AppShell(props: AppShellProps) {
           */}
           <div className="h-px shrink-0 bg-divider-regular" aria-hidden />
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
-            <Outlet />
+            <div className="mx-auto w-full max-w-[1080px]">
+              <Outlet />
+            </div>
           </main>
         </SidebarInset>
       </div>
@@ -137,7 +138,6 @@ function PendingBar() {
 const KBD_CMDK = formatCompactShortcutForDisplay(COMMAND_PALETTE_HOTKEY)
 
 function RouteHeader({
-  eyebrow,
   title,
   user,
   firm,
@@ -145,7 +145,6 @@ function RouteHeader({
   switchThemePreference,
   unreadNotificationCount,
 }: {
-  eyebrow: string
   title: string
   user: AuthUser
   firm: FirmPublic
@@ -159,10 +158,7 @@ function RouteHeader({
         <SidebarTrigger>
           <PanelLeftIcon className="size-4" aria-hidden />
         </SidebarTrigger>
-        <div className="flex min-w-0 flex-col leading-tight">
-          <span className="truncate font-mono text-xs tabular-nums text-text-muted">{eyebrow}</span>
-          <span className="truncate text-sm font-semibold text-text-primary">{title}</span>
-        </div>
+        <span className="truncate text-sm font-semibold text-text-primary">{title}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {/*
