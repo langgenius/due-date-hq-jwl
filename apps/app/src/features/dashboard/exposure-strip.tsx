@@ -75,24 +75,27 @@ function ExposureStrip({
   }
 
   // Build segments — drop zero-count entries (per brief §7).
+  // Tone discipline: only `blocked` uses destructive (it's the one
+  // genuinely-stuck signal). Everything else is neutral text so the
+  // dashboard stops feeling like a fire alarm. Per design call
+  // 2026-05-19 ("too much use of red").
   const segments: Segment[] = []
   if (needDecisionCount > 0) {
     segments.push({
       label: t`${needDecisionCount} need your decision`,
       href: '/obligations?status=review',
-      tone: 'warning',
+      tone: 'neutral',
     })
   }
   if (canSeeDollars && totalExposureCents > 0) {
     segments.push({
       label: t`${formatCents(totalExposureCents)} at risk`,
       href: '/obligations?sort=exposure-desc',
-      tone: 'destructive',
+      tone: 'neutral',
     })
   }
   if (blockedCount > 0) {
     segments.push({
-      // Plural is intentional — single chip shows "1 blocked" or "2 blocked".
       label: t`${blockedCount} blocked`,
       href: '/obligations?status=blocked',
       tone: 'destructive',

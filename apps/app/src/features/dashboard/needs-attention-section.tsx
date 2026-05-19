@@ -133,19 +133,23 @@ function NeedsAttentionSection() {
           ) : null}
 
           {alerts.length > 0 ? (
-            // Layout by count:
+            // Layout by count, with deterministic equal-width columns
+            // for the visible cards (grid > flex here — chip content
+            // length was making flex cards look slightly different
+            // widths in practice):
             //  - 1 alert  → capped max-width so it doesn't span the row
-            //  - 2 alerts → fill the row, two equal cards
-            //  - 3+       → two equal cards + a smaller square "+N" tile
-            <div className="flex flex-row items-stretch gap-3">
+            //  - 2 alerts → grid-cols-2, two equal cards
+            //  - 3+       → two equal cards + a fixed-width "+N" tile
+            <div
+              className={cn(
+                'grid items-stretch gap-3',
+                alerts.length === 1 && 'grid-cols-1 max-w-[560px]',
+                alerts.length === 2 && 'grid-cols-2',
+                overflowCount > 0 && 'grid-cols-[1fr_1fr_160px]',
+              )}
+            >
               {visibleAlerts.map((alert) => (
-                <div
-                  key={alert.id}
-                  className={cn(
-                    'min-w-0 flex-1',
-                    alerts.length === 1 && 'max-w-[560px] flex-none basis-[560px]',
-                  )}
-                >
+                <div key={alert.id} className="min-w-0">
                   <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
                 </div>
               ))}

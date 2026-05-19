@@ -122,8 +122,11 @@ function ActionLine({
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
   const urgencyText = days < 0 ? t`${-days}d late` : days === 0 ? t`due today` : t`due in ${days}d`
+  // Red is reserved for genuinely critical (>7 days past due). Amber
+  // for the rest of "past due or due soon" window. Muted for future.
+  // Avoids red-on-red-on-red overload per design call 2026-05-19.
   const urgencyTone =
-    days < 0 ? 'text-text-destructive' : days <= 2 ? 'text-text-warning' : 'text-text-tertiary'
+    days < -7 ? 'text-text-destructive' : days <= 2 ? 'text-text-warning' : 'text-text-tertiary'
   const forward = forwardTransitionFor(row.status)
   return (
     <div
@@ -138,7 +141,9 @@ function ActionLine({
         onClick={onToggle}
         aria-expanded={expanded}
         aria-label={t`${prompt} for ${row.clientName}`}
-        className="group flex w-full items-baseline gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        // Grid columns: arrow · prompt (1fr) · days (w-20 left) · risk (w-24 left).
+        // Fixed-width meta columns make the urgency + risk align vertically across rows.
+        className="group grid w-full grid-cols-[12px_1fr_5rem_6rem] items-baseline gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <ArrowRightIcon
           className={cn(
@@ -149,14 +154,13 @@ function ActionLine({
           )}
           aria-hidden
         />
-        <span className="min-w-0 flex-1 truncate">
-          <span className="text-sm font-medium text-text-primary">{prompt} for </span>
-          <span className="text-sm font-medium text-text-primary">{row.clientName}</span>
+        <span className="min-w-0 truncate text-base font-medium text-text-primary">
+          {prompt} for {row.clientName}
         </span>
-        <span className={cn('shrink-0 font-mono text-xs tabular-nums', urgencyTone)}>
+        <span className={cn('text-left font-mono text-xs tabular-nums', urgencyTone)}>
           {urgencyText}
         </span>
-        <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+        <span className="text-left font-mono text-xs tabular-nums text-text-secondary">
           {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
             ? formatCents(row.estimatedExposureCents)
             : t`needs input`}
