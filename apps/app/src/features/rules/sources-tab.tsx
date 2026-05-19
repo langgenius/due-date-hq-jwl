@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, ExternalLinkIcon } from 'lucide-react'
-import { parseAsArrayOf, parseAsString, useQueryState } from 'nuqs'
+import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import {
@@ -59,9 +59,23 @@ const jurisdictionParser = parseAsArrayOf(parseAsString)
 // clearable (same pattern as the Library breadcrumb).
 const originParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
 
+// Health filter via URL state so cross-page links can land here
+// pre-filtered (Coverage's SourceHealthCallout points at
+// `/rules/sources?health=degraded`).
+const HEALTH_FILTER_VALUES = ['all', 'healthy', 'degraded', 'failing', 'paused'] as const
+const healthFilterParser = parseAsStringLiteral(HEALTH_FILTER_VALUES)
+  .withDefault('all')
+  .withOptions({ history: 'replace' })
+
 export function SourcesTab() {
   const { t } = useLingui()
-  const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
+  const [healthFilter, setHealthFilterQuery] = useQueryState('health', healthFilterParser)
+  const setHealthFilter = useCallback(
+    (value: SourceHealthFilter) => {
+      void setHealthFilterQuery(value)
+    },
+    [setHealthFilterQuery],
+  )
   const [jurisdictionFilters, setJurisdictionFiltersQuery] = useQueryState(
     'jur',
     jurisdictionParser,

@@ -29,94 +29,105 @@ official federal / state / DC document.
 ## 3. Surface architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  Coverage status                                          │
-│  Do we have rules where clients file? ...                 │
-│                                                           │
-│  [Snapshot strip]                                         │
-│    3 active · 123 needs review · 52 jurisdictions   ⚠ 11 │
-│                                                  → Sources│
-│                                                           │
-│  DOT ORDER · LLC · Partnership · S-Corp · C-Corp · ...   │
-│  ● active   ● review   ○ no rule                          │
-│                                                           │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ JUR  NAME      ENTITY  ACT  PEND  SRC  STATUS      │  │
-│  │ CA   California ●●●○●●● 0    7    6    Needs ...   │  │
-│  │ FL   Florida   ●●○○○●● 0    3    4    Calendar... │  │
-│  │ ... (6 attention rows)                              │  │
-│  │ ─────────────────────────────────────────────────  │  │
-│  │           Show 46 other jurisdictions               │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Coverage status                                                 │
+│  Do we have rules where clients file? …                          │
+│                                                                  │
+│  ⚠ 11 sources degraded · Review sources →    ← SourceHealthCallout
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │ JUR  NAME    ENTITY COVERAGE   ACT PEND SRC  STATUS       │   │
+│  │ CA   Calif.  2 active · 1 n/a ▾  0   7   6  Owner: …7 pend│   │
+│  │ FL   Florida 3 not in MVP    ▾   0   3   4  Auto-tracks…  │   │
+│  │ NY   N.York  1 active        ▾   0   9   7  Owner: …9 pend│   │
+│  │ FED  Federal 2 active        ▾   3  14  15  Owner: …14    │   │
+│  │ TX   Texas   All 7 in review ▾   0   4   6  Approve all 4 │   │
+│  │ WA   Wash.   All 7 in review ▾   0   3   4  Verify cadence│   │
+│  │ ─────────────────────────────────────────────────         │   │
+│  │  Show 46 jurisdictions in standard review queue           │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 Snapshot strip (top)
+### 3.1 SourceHealthCallout (top)
 
-One-line aggregate read. Layout:
+Focused single-line read of source-of-truth health — the only
+catalog-level signal the table doesn't carry. Two states:
 
-- **Left cluster** — catalog state:
-  - `N active` (verifiedRule concept tooltip)
-  - `N needs review` (candidateRule concept tooltip)
-  - `N jurisdictions` (coverage concept tooltip)
-- **Right cluster** — source-of-truth state:
-  - **Healthy state** — `N sources watched →` (link to /rules/sources)
-  - **Incident state** — `⚠ N degraded · N failing → Sources` (bordered pill, link to /rules/sources)
+- **Incident** (`degraded > 0 || failing > 0`): bordered pill with
+  warning-tone counts and label "Review sources", linking to
+  `/rules/sources?health=degraded` so the CPA lands on the affected
+  rows directly.
+- **Healthy** (everything clean): muted line "All N watched sources
+  are healthy →" linking to `/rules/sources` (no filter).
 
-The pointer is always visible. Snapshot stats themselves are
-informational; only the Sources pointer is clickable today.
+Catalog aggregate stats (active / needs review / jurisdictions) are
+NOT shown at the top — they're literally column sums of the table
+below. Showing them twice = noise. Removed in the 2026-05-19 UX
+audit.
 
-**Open gap**: the catalog stats (`123 needs review`) could be
-clickable drills into Library to surface the "review queue"
-workflow from a single click.
-
-### 3.2 Legend (mid)
-
-Two-row guide directly above the table:
-
-- **Dot order row** — sequence of entity types in the 7-dot strip
-  (LLC · Partnership · S-Corp · C-Corp · Sole prop · Trust ·
-  Individual). Eliminates the "what are these dots?" question.
-- **Tone meaning row** — ● active · ● review · ○ no rule.
-
-### 3.3 Table (main)
+### 3.2 Table (main)
 
 Single jurisdiction table. Two zones:
 
-**Zone 1 — Needs attention** (always visible):
-Rows where (pending > 2) OR (jurisdiction has non-default status) OR
-(at least one entity dot is not in the default "review" state).
-Currently ~6 rows.
+**Zone 1 — Needs attention** (always visible): rows where (pending > 2) OR (jurisdiction is in `SPECIAL_STATUS_JURISDICTIONS`: FED, CA,
+NY, TX, FL, WA) OR (at least one entity has a non-review state).
+Typically ~6 rows.
 
-**Zone 2 — All clear** (collapsed by default):
-Everything else. Hidden under "Show N other jurisdictions" expander.
-When expanded, rows render with the STATUS pill replaced by a muted
-em-dash (the default pill repeated 40+ times was pure noise).
+**Zone 2 — Standard review queue** (collapsed by default): everything
+else. Hidden under "Show N jurisdictions in standard review queue"
+expander (named to give the zone a clear concept). When expanded,
+STATUS column shows a muted em-dash (the default pill repeated 40+
+times was pure noise).
 
 Columns:
 
-| Column          | Type                    | Affordance                                            |
-| --------------- | ----------------------- | ----------------------------------------------------- |
-| JUR             | Jurisdiction code badge | Static                                                |
-| NAME            | Jurisdiction name       | Static                                                |
-| ENTITY COVERAGE | 7 tone-coded dots       | Verified/review dots are buttons → drill into Library |
-| ACTIVE          | Count                   | Static                                                |
-| PENDING         | Count                   | Button when > 0 → drill into Library                  |
-| SOURCES         | Count                   | Link when > 0 → drill into Sources                    |
-| STATUS          | Plain-English pill      | Static                                                |
+| Column          | Type                                    | Affordance                                                                         |
+| --------------- | --------------------------------------- | ---------------------------------------------------------------------------------- |
+| JUR             | Jurisdiction code badge                 | Static                                                                             |
+| NAME            | Jurisdiction name                       | Static                                                                             |
+| ENTITY COVERAGE | Text summary + popover trigger (button) | Click → popover with per-entity matrix and drill links                             |
+| ACTIVE          | Count                                   | Static                                                                             |
+| PENDING         | Count                                   | Button when > 0 → drill into Library `?library=pending_review&jur=X&from=coverage` |
+| SOURCES         | Count                                   | Link when > 0 → drill into Sources `?jur=X&from=coverage`                          |
+| STATUS          | Action-first pill with pending count    | Static                                                                             |
 
-### 3.4 Status pill labels
+### 3.3 ENTITY COVERAGE column (cell + popover)
 
-Heuristic per-jurisdiction tags answering "why is this row
-noteworthy?":
+Each cell shows one of three shapes:
 
-- **Needs owner approval** (FED, CA, NY) — pending rules require
-  practice-owner judgment
-- **Calendar from official source** (FL) — due dates come from
-  IRS/state publication, not fixed dates
-- **All rules pending** (TX) — no rules accepted yet
-- **Filing cadence varies** (WA) — quarterly/monthly variance
-- **Awaiting CPA review** (default) — standard pending state
+1. **Mixed state**: "2 active · 1 not in MVP" — only mentions counts
+   that deviate from the default "review" state. The eye lands on
+   exceptions, not noise.
+2. **All-review default**: "All 7 in review queue" — muted text.
+3. The whole cell is a click target (chevron-down icon). Click opens
+   a popover with the 7-entity matrix:
+   - Header: "ENTITY COVERAGE" / jurisdiction name
+   - 7 rows, one per entity type, in canonical order (Individual,
+     Trust, LLC, Partnership, S-Corp, C-Corp, Sole prop)
+   - Each row: tone dot + entity label + state text ("active" /
+     "review" / "no rule")
+   - Verified / review rows are buttons → drill into Library; no-rule
+     rows are plain text
+
+The popover replaces the previous 7-dot inline strip which required
+a separate legend to decode. Per-entity granularity is preserved via
+the popover; default cell stays compact.
+
+### 3.4 STATUS pill labels
+
+Action-first, with the pending count baked in. Reads as a to-do, not
+a category tag:
+
+- **Owner: approve {N} pending** (FED, CA, NY) — needs practice-owner
+  judgment
+- **Approve all {N} pending** (TX) — all rules in jurisdiction await review
+- **Auto-tracks IRS calendar** (FL) — due dates come from IRS
+  publication, no manual approval
+- **Verify cadence per client** (WA) — quarterly/monthly variance
+- **Approve {N} pending** (default for needs-attention rows)
+- **No pending review** (rare: default + no pending)
+- **—** (em-dash, all-clear zone)
 
 ## 4. Cross-page wiring
 
@@ -268,11 +279,15 @@ tone is the same as a non-click target's tone of the same kind. Hover
 
 ## 10. Known issues and follow-ups
 
-1. **Snapshot stats not clickable** — `123 needs review` should drill
-   into Library. Today only the right-side Sources pill is clickable.
-2. **Degraded pill destination is unfiltered** — links to /rules/sources
-   (88 rows) instead of /rules/sources?health=degraded (11 rows). Fix:
-   migrate `healthFilter` to nuqs URL state.
+1. ~~**Snapshot stats not clickable**~~ — _resolved 2026-05-19 UX
+   audit_: catalog stats dropped from the page (they were column sums
+   of the table below). Source-health is now the only top-of-page
+   signal and IS clickable.
+2. ~~**Degraded pill destination is unfiltered**~~ — _resolved
+   2026-05-19 UX audit_: pill now points to
+   `/rules/sources?health=degraded`. Sources page still needs
+   nuqs migration on `healthFilter` for the filter to actually
+   activate — tracked as a separate follow-up.
 3. **`any_business` wildcard ignored in Library filter** — entity-dot
    drill to `?entity=llc` misses rules with
    `entityApplicability: ['any_business']`. Fix: update
