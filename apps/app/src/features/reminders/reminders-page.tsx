@@ -44,6 +44,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -141,23 +142,21 @@ export function RemindersPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <SettingsBackLink />
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Reminders</Trans>
-          </h1>
-          <p className="max-w-[760px] text-sm text-text-secondary">
-            <Trans>
-              Manage the reminder schedule, message templates, recent delivery status, and client
-              email suppressions for deadline work.
-            </Trans>
-          </p>
-        </div>
-        <Button render={<Link to="/notifications" />} variant="outline" size="sm">
-          <BellIcon data-icon="inline-start" />
-          <Trans>Personal inbox</Trans>
-        </Button>
-      </header>
+      <PageHeader
+        title={<Trans>Reminders</Trans>}
+        description={
+          <Trans>
+            Manage the reminder schedule, message templates, recent delivery status, and client
+            email suppressions for deadline work.
+          </Trans>
+        }
+        actions={
+          <Button render={<Link to="/notifications" />} variant="outline" size="sm">
+            <BellIcon data-icon="inline-start" />
+            <Trans>Personal inbox</Trans>
+          </Button>
+        }
+      />
 
       {overviewQuery.isError ? (
         <Card>

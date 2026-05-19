@@ -56,7 +56,7 @@ export function RuleDetailDrawer({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
+      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(880px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
         {rule ? <RuleDetailContent rule={rule} /> : null}
       </SheetContent>
     </Sheet>

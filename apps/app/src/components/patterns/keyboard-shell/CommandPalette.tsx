@@ -5,7 +5,6 @@ import {
   ActivityIcon,
   AlarmClockIcon,
   BellIcon,
-  BotIcon,
   Building2Icon,
   CalendarDaysIcon,
   CalendarClockIcon,
@@ -50,7 +49,7 @@ type CommandEntry = {
   id: string
   label: string
   description: string
-  group: 'navigate' | 'actions' | 'ask'
+  group: 'navigate' | 'actions'
   disabled?: boolean
   permission?: FirmPermission
   onSelect: () => void
@@ -228,25 +227,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         permission: 'migration.run',
         onSelect: openWizard,
       },
-      {
-        id: 'ask',
-        label: t`Ask DueDateHQ`,
-        description: t`Coming soon`,
-        group: 'ask',
-        icon: BotIcon,
-        disabled: true,
-        onSelect: () => undefined,
-      },
     ],
     [navigate, openWizard, t],
   )
 
+  // The `ask` group previously held a single "Ask DueDateHQ" placeholder
+  // with a "Coming soon" badge — a UX dead-end. Until the assistant lands,
+  // the palette stays focused on the two real groups (Navigate / Actions);
+  // the search input itself is the natural fast-find affordance.
   const groups = useMemo(
     () =>
       [
         { id: 'navigate', heading: t`Navigate` },
         { id: 'actions', heading: t`Actions` },
-        { id: 'ask', heading: t`Ask` },
       ] satisfies Array<{ id: CommandGroupId; heading: string }>,
     [t],
   )

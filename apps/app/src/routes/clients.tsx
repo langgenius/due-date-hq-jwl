@@ -9,6 +9,7 @@ import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedate
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import {
@@ -329,36 +330,32 @@ export function ClientsRoute() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-semibold text-text-primary">
-              <Trans>Client facts</Trans>
-            </h1>
-            <p className="max-w-3xl text-sm text-text-secondary">
-              <Trans>
-                Validate the practice client facts that generate obligations, dashboard risk, and
-                Pulse matches.
-              </Trans>
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
-            <FileClockIcon data-icon="inline-start" />
-            <Trans>Import history</Trans>
-          </Button>
-          <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
-            <FileSearchIcon data-icon="inline-start" />
-            <Trans>Import clients</Trans>
-          </Button>
-          <CreateClientDialog
-            entityLabels={entityLabels}
-            isPending={createMutation.isPending}
-            onCreate={handleCreateClient}
-          />
-        </div>
-      </header>
+      <PageHeader
+        title={<Trans>Client facts</Trans>}
+        description={
+          <Trans>
+            Validate the practice client facts that generate obligations, dashboard risk, and Pulse
+            matches.
+          </Trans>
+        }
+        actions={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => handleImportHistoryOpenChange(true)}>
+              <FileClockIcon data-icon="inline-start" />
+              <Trans>Import history</Trans>
+            </Button>
+            <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
+              <FileSearchIcon data-icon="inline-start" />
+              <Trans>Import clients</Trans>
+            </Button>
+            <CreateClientDialog
+              entityLabels={entityLabels}
+              isPending={createMutation.isPending}
+              onCreate={handleCreateClient}
+            />
+          </>
+        }
+      />
 
       {clientsQuery.isError ? (
         <Alert variant="destructive">

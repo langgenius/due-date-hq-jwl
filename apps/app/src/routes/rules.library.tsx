@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon } from 'lucide-react'
 
 import type { RuleCoverageRow } from '@duedatehq/contracts'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
@@ -207,9 +208,11 @@ function SummaryStrip({
         aria-busy={loading || undefined}
       >
         {loading ? (
-          <span className="text-xs text-text-tertiary">
-            <Trans>Loading…</Trans>
-          </span>
+          <div className="flex items-center gap-2" aria-label="Loading">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-4 w-20" />
+          </div>
         ) : (
           children
         )}
