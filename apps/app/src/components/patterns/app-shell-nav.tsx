@@ -14,6 +14,7 @@ import {
   GaugeIcon,
   LayoutDashboardIcon,
   LibraryIcon,
+  MapIcon,
   PlusIcon,
   ScrollTextIcon,
   SettingsIcon,
