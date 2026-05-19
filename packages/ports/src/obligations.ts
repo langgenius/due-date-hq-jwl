@@ -53,6 +53,7 @@ export interface ObligationInstanceRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  blockedByObligationInstanceId: string | null
   readiness: ObligationReadiness
   extensionDecision: ObligationExtensionDecision
   extensionMemo: string | null

@@ -153,6 +153,7 @@ import {
   useReadinessLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
@@ -1300,6 +1301,10 @@ export function ObligationQueueRoute() {
             status: obligationQueueRow.status,
             efileRejectedAt: obligationQueueRow.efileRejectedAt,
           })
+          const showBlockedBy = isBlockedByVisible({
+            status: obligationQueueRow.status,
+            blockedByObligationInstanceId: obligationQueueRow.blockedByObligationInstanceId,
+          })
           return (
             <div className="flex items-center gap-1.5">
               <ObligationQueueStatusControl
@@ -1309,6 +1314,17 @@ export function ObligationQueueRoute() {
                 disabled={statusUpdatePending}
                 onChange={(id, status) => updateStatus({ id, status })}
               />
+              {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
+                <BlockedByChip
+                  parentObligationId={obligationQueueRow.blockedByObligationInstanceId}
+                  onOpen={(parentId) =>
+                    void setObligationQueueQuery({
+                      obligation: parentId,
+                      row: null,
+                    })
+                  }
+                />
+              ) : null}
               {showRejection ? <RejectionChip /> : null}
             </div>
           )

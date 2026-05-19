@@ -176,6 +176,14 @@ export const obligationInstance = sqliteTable(
     })
       .notNull()
       .default('pending'),
+    // Lifecycle v2 (slice 2b): when status === 'blocked', this column
+    // records *which other obligation* is blocking this one. Encodes
+    // the K-1 dependency graph from PDF anti-pattern #4 — the
+    // partnership 1065 that's holding up N partner 1040s. Auto-clears
+    // when status transitions away from 'blocked'. Soft self-reference
+    // (no FK constraint) — the upstream may belong to a different
+    // firm in v3 (K-1 partners across practices).
+    blockedByObligationInstanceId: text('blocked_by_obligation_instance_id'),
     extensionDecision: text('extension_decision', { enum: OBLIGATION_EXTENSION_DECISIONS })
       .notNull()
       .default('not_considered'),

@@ -98,6 +98,7 @@ function makeObligation(over: Partial<ObligationInstanceRow>): ObligationInstanc
     baseDueDate: new Date('2026-03-15T00:00:00.000Z'),
     currentDueDate: new Date('2026-03-15T00:00:00.000Z'),
     status: 'pending',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,

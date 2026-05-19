@@ -75,6 +75,7 @@ function makeSeed(overrides: Partial<ObligationInstanceRow> = {}): ObligationIns
     baseDueDate: due,
     currentDueDate: due,
     status: 'paid',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,

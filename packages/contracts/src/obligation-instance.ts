@@ -57,6 +57,11 @@ export const ObligationInstancePublicSchema = z.object({
   baseDueDate: z.iso.date(),
   currentDueDate: z.iso.date(),
   status: ObligationStatusSchema,
+  // Lifecycle v2 (slice 2b): the upstream obligation that's blocking
+  // this row when status === 'blocked'. NULL otherwise. Soft pointer
+  // — no FK constraint at the DB layer. See K-1 dependency graph
+  // (PDF anti-pattern #4).
+  blockedByObligationInstanceId: EntityIdSchema.nullable(),
   readiness: ObligationReadinessSchema,
   extensionDecision: ObligationExtensionDecisionSchema,
   extensionMemo: z.string().nullable(),

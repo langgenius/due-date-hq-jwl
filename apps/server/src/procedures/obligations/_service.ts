@@ -35,6 +35,7 @@ interface ObligationRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationInstancePublic['status']
+  blockedByObligationInstanceId?: string | null
   readiness: ObligationInstancePublic['readiness']
   extensionDecision: ObligationInstancePublic['extensionDecision']
   extensionMemo: string | null
@@ -128,6 +129,7 @@ export function toObligationPublic(
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    blockedByObligationInstanceId: row.blockedByObligationInstanceId ?? null,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,

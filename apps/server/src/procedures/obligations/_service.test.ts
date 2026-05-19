@@ -492,6 +492,7 @@ function makeRow(over: Partial<Row> = {}): Row {
     baseDueDate: now,
     currentDueDate: now,
     status: 'pending',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,
