@@ -48,6 +48,7 @@ import {
 import {
   FilterChips,
   JurisdictionCode,
+  OriginBreadcrumb,
   QueryPanelState,
   SectionFrame,
   SectionLabel,
@@ -908,43 +909,6 @@ function RuleRow({
 }
 
 /**
- * Cross-page origin breadcrumb. Rendered above the filter chips when
- * the Library was reached via a drill-in URL carrying `?from=…`. Shows
- * the origin name + a clear-and-dismiss action so the user always
- * knows why their default Library view looks pre-filtered, and can
- * return to defaults in one click.
- *
- * Today the only origin we tag is `from=coverage` (Coverage status
- * drill-ins). Future origins (e.g. Dashboard digest banner, Radar
- * "view affected rules") add their own labels here.
- */
-function OriginBreadcrumb({
-  label,
-  onClear,
-  clearLabel,
-}: {
-  label: string
-  onClear: () => void
-  clearLabel: string
-}) {
-  return (
-    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
-      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
-      <span>{label}</span>
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label={clearLabel}
-        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <Trans>Clear</Trans>
-        <span aria-hidden>×</span>
-      </button>
-    </div>
-  )
-}
-
-/**
  * Inline source-of-truth citation rendered under the rule id in the
  * Library table. Shows the first watched source (title + external link
  * to the official document) and, if the rule cites multiple sources, a
@@ -975,7 +939,8 @@ function RuleSourceCitation({
   if (sourceById.size === 0) return null
   if (sourceIds.length === 0) {
     return (
-      <span className="mt-1 inline-flex text-[11px] text-text-muted">
+      <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted">
+        <ExternalLinkIcon aria-hidden className="size-3 shrink-0 opacity-50" />
         <Trans>No source on file</Trans>
       </span>
     )
@@ -983,7 +948,8 @@ function RuleSourceCitation({
   const firstSource = sourceById.get(sourceIds[0] ?? '')
   if (!firstSource) {
     return (
-      <span className="mt-1 inline-flex text-[11px] text-text-muted">
+      <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted">
+        <ExternalLinkIcon aria-hidden className="size-3 shrink-0 opacity-50" />
         <Trans>Source unavailable</Trans>
       </span>
     )
@@ -999,11 +965,8 @@ function RuleSourceCitation({
       aria-label={t`Open source document: ${firstSource.title}`}
       className="mt-1 inline-flex max-w-full items-center gap-1 rounded-sm text-[11px] text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      <span className="shrink-0 font-medium tracking-[0.04em] text-text-tertiary uppercase">
-        <Trans>Source</Trans>
-      </span>
-      <span className="min-w-0 truncate">{firstSource.title}</span>
       <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
+      <span className="min-w-0 truncate">{firstSource.title}</span>
       {extraCount > 0 ? (
         <span className="shrink-0 text-text-muted">
           <Trans>+{extraCount}</Trans>

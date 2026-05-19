@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -151,6 +151,97 @@ function EntityCoverageStrip({
         )
       })}
     </div>
+  )
+}
+
+/**
+ * Single jurisdiction row used in both Coverage zones (needs-attention
+ * and all-clear). Factored out of the table body so the zone partition
+ * doesn't duplicate row markup.
+ *
+ * `compactStatus`: when rendered in the all-clear zone, hide the status
+ * pill entirely. All-clear rows by definition have the default
+ * "Official sources · pending rules" pill, repeating it 40+ times adds
+ * pure noise. The expander caption already explains the zone meaning.
+ */
+function CoverageRow({
+  row,
+  coverageStatusLabels,
+  compactStatus,
+  onJurisdictionDrillIn,
+  onEntityDrillIn,
+}: {
+  row: RuleCoverageRow
+  coverageStatusLabels: Partial<Record<RuleJurisdiction, string>>
+  compactStatus?: boolean
+  onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onEntityDrillIn?: (
+    jurisdiction: RuleJurisdiction,
+    entity: CoverageEntityColumn,
+    state: CoverageCellState,
+  ) => void
+}) {
+  const { t } = useLingui()
+  const pending = row.pendingReviewCount ?? row.candidateCount
+  const active = row.activeRuleCount ?? row.verifiedRuleCount
+  return (
+    <TableRow className="h-11 hover:bg-transparent">
+      <TableCell className="py-2">
+        <JurisdictionCode code={row.jurisdiction} />
+      </TableCell>
+      <TableCell className="max-w-[110px] truncate py-2 text-xs font-medium">
+        {jurisdictionLabel(row.jurisdiction)}
+      </TableCell>
+      <TableCell className="py-2">
+        <EntityCoverageStrip
+          jurisdiction={row.jurisdiction}
+          {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+        />
+      </TableCell>
+      <TableCell className="py-2 text-right font-mono text-xs tabular-nums">{active}</TableCell>
+      <TableCell
+        className={cn(
+          'py-2 text-right font-mono text-xs tabular-nums',
+          pending > 0 ? 'text-status-review' : 'text-text-muted',
+        )}
+      >
+        {onJurisdictionDrillIn && pending > 0 ? (
+          <button
+            type="button"
+            onClick={() => onJurisdictionDrillIn(row.jurisdiction)}
+            aria-label={t`Review ${pending} pending rules for ${jurisdictionLabel(row.jurisdiction)}`}
+            className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            {pending}
+          </button>
+        ) : (
+          pending
+        )}
+      </TableCell>
+      <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
+        {row.sourceCount > 0 ? (
+          <Link
+            to={`/rules/sources?jur=${row.jurisdiction}&from=coverage`}
+            aria-label={t`View ${row.sourceCount} watched sources for ${jurisdictionLabel(row.jurisdiction)}`}
+            className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            {row.sourceCount}
+          </Link>
+        ) : (
+          row.sourceCount
+        )}
+      </TableCell>
+      <TableCell className="py-2">
+        {compactStatus ? (
+          <span className="text-xs text-text-tertiary">—</span>
+        ) : (
+          <CoverageStatusPill
+            jurisdiction={row.jurisdiction}
+            label={coverageStatusLabels[row.jurisdiction] ?? t`Official sources · pending rules`}
+          />
+        )}
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -381,6 +472,71 @@ export function CoverageTab({
   const rows = coverageQuery.data ?? []
   const stats = aggregateCoverage(rows)
 
+  // Zone sort: partition jurisdictions into "needs attention" (top, always
+  // visible) and "all clear" (collapsed under expander). A jurisdiction
+  // earns the top zone when:
+  //   - PENDING count > 2 (substantial review backlog), OR
+  //   - it has a non-default status pill (FED, CA, NY, TX, FL, WA today),
+  //     OR
+  //   - any of its entity dots are NOT in `review` state (i.e. there's a
+  //     verified rule or an explicit "no rule" gap worth noticing).
+  // The bottom zone is everything else — mostly "1 pending, all-review
+  // entity dots" rows that repeat 40+ times in alphabetical order. Hiding
+  // them by default cuts the wall of repetition without losing the data:
+  // expander reveals the full alphabetical list.
+  const needsAttention = needsAttentionRows(rows, coverageStatusLabels)
+  const allClear = rows.filter((row) => !needsAttention.includes(row))
+  return (
+    <CoverageTable
+      stats={stats}
+      sourceHealthCounts={sourceHealthCounts}
+      needsAttention={needsAttention}
+      allClear={allClear}
+      coverageStatusLabels={coverageStatusLabels}
+      {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+      {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+    />
+  )
+}
+
+function needsAttentionRows(
+  rows: readonly RuleCoverageRow[],
+  statusLabels: Partial<Record<RuleJurisdiction, string>>,
+): RuleCoverageRow[] {
+  return rows.filter((row) => {
+    const pending = row.pendingReviewCount ?? row.candidateCount
+    if (pending > 2) return true
+    if (statusLabels[row.jurisdiction]) return true
+    // Has at least one non-review entity dot (active or explicit no-rule)
+    const hasInteresting = ALL_ENTITIES.some(
+      (entity) => coverageCellState(row.jurisdiction, entity) !== 'review',
+    )
+    return hasInteresting
+  })
+}
+
+function CoverageTable({
+  stats,
+  sourceHealthCounts,
+  needsAttention,
+  allClear,
+  coverageStatusLabels,
+  onJurisdictionDrillIn,
+  onEntityDrillIn,
+}: {
+  stats: ReturnType<typeof aggregateCoverage>
+  sourceHealthCounts: { degraded: number; failing: number }
+  needsAttention: readonly RuleCoverageRow[]
+  allClear: readonly RuleCoverageRow[]
+  coverageStatusLabels: Partial<Record<RuleJurisdiction, string>>
+  onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onEntityDrillIn?: (
+    jurisdiction: RuleJurisdiction,
+    entity: CoverageEntityColumn,
+    state: CoverageCellState,
+  ) => void
+}) {
+  const [showAllClear, setShowAllClear] = useState(false)
   return (
     <div className="flex flex-col gap-6">
       <CoverageSnapshotStrip
@@ -416,67 +572,48 @@ export function CoverageTab({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.jurisdiction} className="h-11 hover:bg-transparent">
-                <TableCell className="py-2">
-                  <JurisdictionCode code={row.jurisdiction} />
-                </TableCell>
-                <TableCell className="max-w-[110px] truncate py-2 text-xs font-medium">
-                  {jurisdictionLabel(row.jurisdiction)}
-                </TableCell>
-                <TableCell className="py-2">
-                  <EntityCoverageStrip
-                    jurisdiction={row.jurisdiction}
-                    {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
-                  />
-                </TableCell>
-                <TableCell className="py-2 text-right font-mono text-xs tabular-nums">
-                  {row.activeRuleCount ?? row.verifiedRuleCount}
-                </TableCell>
+            {needsAttention.map((row) => (
+              <CoverageRow
+                key={row.jurisdiction}
+                row={row}
+                coverageStatusLabels={coverageStatusLabels}
+                {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+                {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+              />
+            ))}
+            {allClear.length > 0 ? (
+              <TableRow className="h-10 hover:bg-transparent">
                 <TableCell
-                  className={cn(
-                    'py-2 text-right font-mono text-xs tabular-nums',
-                    (row.pendingReviewCount ?? row.candidateCount) > 0
-                      ? 'text-status-review'
-                      : 'text-text-muted',
-                  )}
+                  colSpan={7}
+                  className="border-t border-divider-subtle bg-background-subtle/40 py-2 text-center"
                 >
-                  {onJurisdictionDrillIn && (row.pendingReviewCount ?? row.candidateCount) > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => onJurisdictionDrillIn(row.jurisdiction)}
-                      aria-label={t`Review ${row.pendingReviewCount ?? row.candidateCount} pending rules for ${jurisdictionLabel(row.jurisdiction)}`}
-                      className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    >
-                      {row.pendingReviewCount ?? row.candidateCount}
-                    </button>
-                  ) : (
-                    (row.pendingReviewCount ?? row.candidateCount)
-                  )}
-                </TableCell>
-                <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
-                  {row.sourceCount > 0 ? (
-                    <Link
-                      to={`/rules/sources?jur=${row.jurisdiction}&from=coverage`}
-                      aria-label={t`View ${row.sourceCount} watched sources for ${jurisdictionLabel(row.jurisdiction)}`}
-                      className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    >
-                      {row.sourceCount}
-                    </Link>
-                  ) : (
-                    row.sourceCount
-                  )}
-                </TableCell>
-                <TableCell className="py-2">
-                  <CoverageStatusPill
-                    jurisdiction={row.jurisdiction}
-                    label={
-                      coverageStatusLabels[row.jurisdiction] ?? t`Official sources · pending rules`
-                    }
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAllClear((value) => !value)}
+                    aria-expanded={showAllClear}
+                    className="text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    {showAllClear ? (
+                      <Trans>Hide {allClear.length} jurisdictions with default review queue</Trans>
+                    ) : (
+                      <Trans>Show {allClear.length} jurisdictions with default review queue</Trans>
+                    )}
+                  </button>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : null}
+            {showAllClear
+              ? allClear.map((row) => (
+                  <CoverageRow
+                    key={row.jurisdiction}
+                    row={row}
+                    coverageStatusLabels={coverageStatusLabels}
+                    compactStatus
+                    {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+                    {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+                  />
+                ))
+              : null}
           </TableBody>
         </Table>
       </SectionFrame>

@@ -229,6 +229,42 @@ export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) 
   )
 }
 
+/**
+ * Cross-page origin breadcrumb. Renders above a filtered table when the
+ * user landed via a drill-in URL (e.g. `?from=coverage`, `?from=sources`,
+ * `?from=cmd`). Shows the origin label + a Clear button that resets the
+ * page to its default state.
+ *
+ * Each page owns its own Clear semantics (Library clears 4 filters,
+ * Sources clears 2). The component itself is just the chrome — pass the
+ * resolved label and onClear callback in.
+ */
+export function OriginBreadcrumb({
+  label,
+  onClear,
+  clearLabel,
+}: {
+  label: string
+  onClear: () => void
+  clearLabel: string
+}) {
+  return (
+    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
+      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={clearLabel}
+        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Clear</Trans>
+        <span aria-hidden>×</span>
+      </button>
+    </div>
+  )
+}
+
 export function TableFooterBar({
   note,
   action,

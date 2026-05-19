@@ -35,6 +35,7 @@ import {
   FilterChips,
   HealthBadge,
   JurisdictionCode,
+  OriginBreadcrumb,
   QueryPanelState,
   SectionFrame,
   TablePaginationFooter,
@@ -190,7 +191,7 @@ export function SourcesTab() {
   return (
     <div className="flex flex-col gap-3">
       {origin === 'coverage' && jurisdictionFilters.length > 0 ? (
-        <SourcesOriginBreadcrumb
+        <OriginBreadcrumb
           label={t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`}
           onClear={clearOriginAndFilters}
           clearLabel={t`Clear and back to default`}
@@ -363,43 +364,6 @@ function sourceFilterOptions<T extends string>(
   return Array.from(counts.entries())
     .map(([value, count]) => ({ value, label: getLabel(value), count }))
     .toSorted((left, right) => left.label.localeCompare(right.label))
-}
-
-/**
- * Cross-page origin breadcrumb on Sources. Renders above the filter
- * chips when the user landed here via Coverage status' per-row SOURCES
- * drill (URL: `/rules/sources?jur=NY&from=coverage`). Lets the user
- * clear back to the default Sources view in one click.
- *
- * Mirrors the OriginBreadcrumb pattern in rule-library-tab.tsx —
- * intentionally a separate component rather than a shared primitive,
- * so each page can give it page-specific clear semantics (Library
- * clears 4 filters; Sources only clears jur + from).
- */
-function SourcesOriginBreadcrumb({
-  label,
-  onClear,
-  clearLabel,
-}: {
-  label: string
-  onClear: () => void
-  clearLabel: string
-}) {
-  return (
-    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
-      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
-      <span>{label}</span>
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label={clearLabel}
-        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <Trans>Clear</Trans>
-        <span aria-hidden>×</span>
-      </button>
-    </div>
-  )
 }
 
 function SourceRow({
