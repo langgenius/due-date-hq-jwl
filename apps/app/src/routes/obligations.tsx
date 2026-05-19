@@ -593,7 +593,7 @@ export function ObligationQueueRoute() {
       daysMin,
       daysMax,
       asOf,
-      sort,
+      sort: urlSort,
       density,
       hide: hiddenColumns,
       view: activeSavedViewId,
@@ -601,6 +601,17 @@ export function ObligationQueueRoute() {
     },
     setObligationQueueQuery,
   ] = useQueryStates(obligationQueueSearchParamsParsers)
+  // Slice D: when ?lifecycle=v2 is active AND the URL has no explicit
+  // ?sort= param, default the queue to Due date ascending instead of
+  // Smart Priority. Smart Priority remains in the sort dropdown — it's
+  // just no longer the implicit ranking. Reinforces "Dashboard
+  // curates, Obligations sorts" per the design brief.
+  const sort: ObligationQueueSort = useMemo(() => {
+    if (!lifecycleV2) return urlSort
+    const hasExplicitSort =
+      typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('sort')
+    return hasExplicitSort ? urlSort : 'due_asc'
+  }, [urlSort, lifecycleV2])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [savedViewDraft, setSavedViewDraft] = useState<{
