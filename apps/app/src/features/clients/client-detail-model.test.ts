@@ -1,10 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import type { ClientPublic, ObligationInstancePublic, PulseDetail } from '@duedatehq/contracts'
+import type {
+  ClientPublic,
+  ObligationInstancePublic,
+  ObligationQueueRow,
+  OpportunityPublic,
+  PulseDetail,
+} from '@duedatehq/contracts'
 
 import {
   buildClientContactPlan,
+  buildClientObligationListSummaries,
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
+  buildOpportunityCountByClient,
+  buildPulseMatchesByClient,
+  findExtensionWithoutPaymentObligations,
 } from './client-detail-model'
 
 function obligation(overrides: Partial<ObligationInstancePublic> = {}): ObligationInstancePublic {
@@ -111,6 +121,26 @@ function client(overrides: Partial<ClientPublic> = {}): ClientPublic {
     updatedAt: '2026-04-01T00:00:00.000Z',
     deletedAt: null,
     ...overrides,
+  }
+}
+
+function makeOpportunity(id: string, clientId: string): OpportunityPublic {
+  return {
+    id,
+    kind: 'advisory_conversation',
+    client: {
+      id: clientId,
+      name: clientId,
+      entityType: 'llc',
+      state: 'CA',
+      assigneeName: null,
+    },
+    title: 'Title',
+    summary: 'Summary',
+    timing: 'now',
+    severity: 'medium',
+    evidence: [{ label: 'l', value: 'v' }],
+    primaryAction: { label: 'Act', href: '/x' },
   }
 }
 
@@ -233,5 +263,160 @@ describe('client detail model', () => {
       internalOwner: null,
       missing: ['primary_contact', 'internal_owner', 'fallback_contact'],
     })
+  })
+
+  it('summarizes the firm obligations queue into next-due and open-count per client', () => {
+    const queueRow = (overrides: Partial<ObligationQueueRow>): ObligationQueueRow => ({
+      ...obligation(),
+      clientName: 'Client',
+      clientState: 'CA',
+      clientCounty: null,
+      assigneeName: null,
+      readiness: 'ready',
+      daysUntilDue: 0,
+      evidenceCount: 0,
+      smartPriority: { version: 'smart-priority-v1', score: 0, rank: null, factors: [] },
+      ...overrides,
+    })
+
+    const rows: ObligationQueueRow[] = [
+      queueRow({
+        id: 'a1',
+        clientId: 'client_a',
+        currentDueDate: '2026-06-15',
+        taxType: 'CA Form 100',
+        status: 'pending',
+      }),
+      queueRow({
+        id: 'a2',
+        clientId: 'client_a',
+        currentDueDate: '2026-05-30',
+        taxType: 'CA Payroll',
+        status: 'waiting_on_client',
+      }),
+      queueRow({
+        id: 'a3',
+        clientId: 'client_a',
+        currentDueDate: '2026-04-15',
+        taxType: 'CA Past Due',
+        status: 'done',
+      }),
+      queueRow({
+        id: 'b1',
+        clientId: 'client_b',
+        currentDueDate: '2026-07-01',
+        taxType: 'NY Form CT-3',
+        status: 'in_progress',
+      }),
+    ]
+
+    const summaries = buildClientObligationListSummaries(rows)
+
+    expect(summaries.get('client_a')).toEqual({
+      openCount: 2,
+      nextDueDate: '2026-05-30',
+      nextTaxType: 'CA Payroll',
+    })
+    expect(summaries.get('client_b')).toEqual({
+      openCount: 1,
+      nextDueDate: '2026-07-01',
+      nextTaxType: 'NY Form CT-3',
+    })
+  })
+
+  it('counts opportunities per client', () => {
+    const counts = buildOpportunityCountByClient([
+      makeOpportunity('1', 'client_a'),
+      makeOpportunity('2', 'client_a'),
+      makeOpportunity('3', 'client_b'),
+    ])
+
+    expect(counts.get('client_a')).toBe(2)
+    expect(counts.get('client_b')).toBe(1)
+    expect(counts.get('client_c')).toBeUndefined()
+  })
+
+  it('groups active pulse matches by client and ignores resolved or reverted matches', () => {
+    const baseAffected = pulseDetail().affectedClients[0]!
+    const detail = pulseDetail({
+      affectedClients: [
+        { ...baseAffected, clientId: 'client_a', obligationId: 'ob_a', matchStatus: 'eligible' },
+        {
+          ...baseAffected,
+          clientId: 'client_b',
+          obligationId: 'ob_b',
+          matchStatus: 'needs_review',
+        },
+        {
+          ...baseAffected,
+          clientId: 'client_c',
+          obligationId: 'ob_c',
+          matchStatus: 'already_applied',
+        },
+        {
+          ...baseAffected,
+          clientId: 'client_d',
+          obligationId: 'ob_d',
+          matchStatus: 'reverted',
+        },
+      ],
+    })
+    const secondDetail = pulseDetail({
+      alert: {
+        ...pulseDetail().alert,
+        id: 'alert_2',
+        publishedAt: '2026-05-10T00:00:00.000Z',
+      },
+      affectedClients: [
+        { ...baseAffected, clientId: 'client_a', obligationId: 'ob_a2', matchStatus: 'eligible' },
+      ],
+    })
+
+    const byClient = buildPulseMatchesByClient([detail, secondDetail])
+
+    expect([...byClient.keys()].toSorted()).toEqual(['client_a', 'client_b'])
+    const matchesForA = byClient.get('client_a')!
+    expect(matchesForA).toHaveLength(2)
+    // Newest first
+    expect(matchesForA[0]!.alertId).toBe('alert_2')
+    expect(matchesForA[1]!.alertId).toBe('alert_1')
+  })
+
+  it('flags obligations where the filing extension is filed but payment is not settled (anti-pattern #1)', () => {
+    const filed = obligation({
+      id: 'filed_unpaid',
+      extensionState: 'filed',
+      paymentState: 'estimate_needed',
+    })
+    const accepted = obligation({
+      id: 'accepted_scheduled',
+      extensionState: 'accepted',
+      paymentState: 'scheduled',
+    })
+    const settled = obligation({
+      id: 'filed_settled',
+      extensionState: 'filed',
+      paymentState: 'confirmed',
+    })
+    const noExtension = obligation({
+      id: 'no_extension',
+      extensionState: 'not_started',
+      paymentState: 'estimate_needed',
+    })
+    const noPayment = obligation({
+      id: 'no_payment',
+      extensionState: 'filed',
+      paymentState: 'not_applicable',
+    })
+
+    const flagged = findExtensionWithoutPaymentObligations([
+      filed,
+      accepted,
+      settled,
+      noExtension,
+      noPayment,
+    ])
+
+    expect(flagged.map((row) => row.id)).toEqual(['filed_unpaid', 'accepted_scheduled'])
   })
 })

@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
   getCoreRowModel,
@@ -16,21 +17,19 @@ import {
 } from '@tanstack/react-table'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  ArrowLeftIcon,
+  ActivityIcon,
   AlertTriangleIcon,
-  CalendarClockIcon,
+  ChevronDownIcon,
+  PencilIcon,
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
   ExternalLinkIcon,
   FileInputIcon,
   FileSearchIcon,
-  MailIcon,
   MapPinnedIcon,
   RefreshCwIcon,
-  ShieldAlertIcon,
   SparklesIcon,
-  Trash2Icon,
   UsersRoundIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -42,18 +41,13 @@ import type {
   ClientPublic,
   ObligationInstancePublic,
 } from '@duedatehq/contracts'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from '@duedatehq/ui/components/ui/collapsible'
 import {
   Card,
   CardContent,
@@ -71,6 +65,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -97,6 +92,7 @@ import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportu
 
 import {
   CLIENT_ENTITY_TYPES,
+  CLIENT_PULSE_FILTERS,
   CLIENT_READINESS_FILTERS,
   CLIENT_SOURCE_FILTERS,
   CLIENT_UNASSIGNED_OWNER_FILTER,
@@ -104,15 +100,16 @@ import {
   getClientSourceType,
   type ClientEntityType,
   type ClientFactsModel,
+  type ClientPulseFilter,
   type ClientReadiness,
   type ClientReadinessStatus,
   type ClientSourceType,
 } from './client-readiness'
 import {
-  buildClientContactPlan,
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
-  type ClientContactPlan,
+  findExtensionWithoutPaymentObligations,
+  type ClientObligationListSummary,
   type ClientPulseMatch,
   type ClientWorkPlanSummary,
 } from './client-detail-model'
@@ -148,18 +145,21 @@ type ClientFactsWorkspaceProps = {
   readinessFilter: readonly ClientReadinessStatus[]
   sourceFilter: readonly ClientSourceType[]
   ownerFilter: readonly string[]
+  pulseFilter: readonly ClientPulseFilter[]
+  pulseMatchesByClient: ReadonlyMap<string, readonly ClientPulseMatch[]>
+  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
+  opportunityCountByClient: ReadonlyMap<string, number>
   onClientFilterChange: (value: string[]) => void
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
   onReadinessFilterChange: (value: string[]) => void
   onSourceFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
+  onPulseFilterChange: (value: string[]) => void
   onSelectClient: (clientId: string) => void
   onClearSelectedClient: () => void
   onImport: () => void
   canImport: boolean
-  canDelete: boolean
-  onClientDeleted: () => void
 }
 
 const metricToneClassName = {
@@ -170,6 +170,39 @@ const metricToneClassName = {
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
 
+function DetailSection({
+  title,
+  summary,
+  defaultOpen = false,
+  children,
+}: {
+  title: ReactNode
+  summary?: ReactNode
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  return (
+    <Collapsible
+      defaultOpen={defaultOpen}
+      className="rounded-md border border-divider-subtle bg-background-default"
+    >
+      <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 rounded-md px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">{title}</span>
+          {summary ? <span className="truncate text-xs text-text-tertiary">{summary}</span> : null}
+        </div>
+        <ChevronDownIcon
+          className="size-4 shrink-0 text-text-tertiary transition-transform group-data-[panel-open]:rotate-180"
+          aria-hidden
+        />
+      </CollapsibleTrigger>
+      <CollapsiblePanel className="border-t border-divider-subtle px-4 py-3">
+        {children}
+      </CollapsiblePanel>
+    </Collapsible>
+  )
+}
+
 function formatFilingJurisdictions(client: ClientPublic): string {
   const states = getClientFilingStates(client)
   if (states.length === 0) return 'N/A'
@@ -177,6 +210,90 @@ function formatFilingJurisdictions(client: ClientPublic): string {
   const primaryCounty = primary?.counties[0] ?? client.county
   const suffix = states.length > 1 ? ` +${states.length - 1}` : ''
   return [states[0], primaryCounty].filter(Boolean).join(' / ') + suffix
+}
+
+function ClientFilingStateChips({ client }: { client: ClientPublic }) {
+  const states = getClientFilingStates(client)
+  if (states.length === 0) return null
+  const visible = states.slice(0, 3)
+  const overflow = states.length - visible.length
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {visible.map((state) => (
+        <Badge
+          key={state}
+          variant="secondary"
+          className="rounded-sm font-mono text-[11px] uppercase tabular-nums"
+        >
+          {state}
+        </Badge>
+      ))}
+      {overflow > 0 ? (
+        <Badge variant="outline" className="rounded-sm font-mono text-[11px] tabular-nums">
+          +{overflow}
+        </Badge>
+      ) : null}
+    </div>
+  )
+}
+
+function taxClassificationLabel(value: ClientPublic['taxClassification']): string | null {
+  switch (value) {
+    case 'partnership':
+      return 'taxed as partnership'
+    case 's_corp':
+      return 'taxed as S corp'
+    case 'c_corp':
+      return 'taxed as C corp'
+    case 'disregarded_entity':
+      return 'disregarded entity'
+    case 'individual':
+    case 'trust':
+    case 'estate':
+    case 'nonprofit':
+    case 'foreign_reporting_company':
+    case 'unknown':
+    default:
+      return null
+  }
+}
+
+function formatClientIdentitySubLine({
+  workPlan,
+  entityType,
+  taxClassification,
+}: {
+  workPlan: ClientWorkPlanSummary
+  entityType: ClientPublic['entityType']
+  taxClassification: ClientPublic['taxClassification']
+}): string {
+  const parts: string[] = []
+  const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
+  if (taxLabel) parts.push(taxLabel)
+  parts.push(workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`)
+  if (workPlan.nextDueDate) {
+    parts.push(`next due ${formatDate(workPlan.nextDueDate)}`)
+  }
+  if (workPlan.overdueOpenCount > 0) {
+    parts.push(workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`)
+  } else if (workPlan.openCount > 0) {
+    parts.push('all on track')
+  }
+  return parts.join(' · ')
+}
+
+function formatJurisdictionSummary(client: ClientPublic): string {
+  const stateCount = getClientFilingStates(client).length
+  if (stateCount === 0) return 'Needs filing state'
+  const taxTypeCount = new Set(client.filingProfiles.flatMap((profile) => profile.taxTypes)).size
+  const statesLabel = stateCount === 1 ? '1 state' : `${stateCount} states`
+  const taxTypesLabel =
+    taxTypeCount === 0
+      ? 'no tax types'
+      : taxTypeCount === 1
+        ? '1 tax type'
+        : `${taxTypeCount} tax types`
+  return `${statesLabel} · ${taxTypesLabel}`
 }
 
 export function ClientFactsWorkspace({
@@ -193,18 +310,21 @@ export function ClientFactsWorkspace({
   readinessFilter,
   sourceFilter,
   ownerFilter,
+  pulseFilter,
+  pulseMatchesByClient,
+  obligationSummariesByClient,
+  opportunityCountByClient,
   onClientFilterChange,
   onEntityFilterChange,
   onStateFilterChange,
   onReadinessFilterChange,
   onSourceFilterChange,
   onOwnerFilterChange,
+  onPulseFilterChange,
   onSelectClient,
   onClearSelectedClient,
   onImport,
   canImport,
-  canDelete,
-  onClientDeleted,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -258,6 +378,13 @@ export function ClientFactsWorkspace({
     }),
     [t],
   )
+  const pulseLabels = useMemo<Record<ClientPulseFilter, string>>(
+    () => ({
+      affected: t`Has Radar alert`,
+      clear: t`No Radar alert`,
+    }),
+    [t],
+  )
   const clientOptions = useMemo<FilterOption[]>(
     () =>
       clients
@@ -308,6 +435,15 @@ export function ClientFactsWorkspace({
       })).filter((option) => option.count > 0),
     [factsModel.summary.imported, factsModel.summary.manual, sourceLabels],
   )
+  const pulseOptions = useMemo<FilterOption[]>(() => {
+    const affectedCount = pulseMatchesByClient.size
+    const clearCount = Math.max(clients.length - affectedCount, 0)
+    return CLIENT_PULSE_FILTERS.map((value) => ({
+      value,
+      label: pulseLabels[value],
+      count: value === 'affected' ? affectedCount : clearCount,
+    })).filter((option) => option.count > 0)
+  }, [clients.length, pulseLabels, pulseMatchesByClient])
   const ownerOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>()
     const labels = new Map<string, string>()
@@ -350,17 +486,23 @@ export function ClientFactsWorkspace({
             onSelectedChange={onClientFilterChange}
           />
         ),
-        cell: ({ row }) => (
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="truncate font-medium text-text-primary">{row.original.name}</span>
-            <span className="truncate text-xs text-text-tertiary">
-              {row.original.email ?? t`No email`}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const matches = pulseMatchesByClient.get(row.original.id)
+          return (
+            <div className="flex min-w-0 flex-col gap-1">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-medium text-text-primary">{row.original.name}</span>
+                {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
+              </div>
+              <span className="truncate text-xs text-text-tertiary">
+                {entityLabels[row.original.entityType]}
+              </span>
+            </div>
+          )
+        },
         meta: {
-          headerClassName: 'w-[300px]',
-          cellClassName: 'w-[300px] min-w-[260px]',
+          headerClassName: 'w-[260px]',
+          cellClassName: 'w-[260px] min-w-[220px]',
         },
       },
       {
@@ -384,28 +526,8 @@ export function ClientFactsWorkspace({
           />
         ),
         meta: {
-          headerClassName: 'w-[170px]',
-          cellClassName: 'w-[170px]',
-        },
-      },
-      {
-        accessorKey: 'entityType',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Entity`}
-            open={openHeaderFilter === 'entity'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
-            options={entityOptions}
-            selected={entityFilter}
-            emptyLabel={t`No entities`}
-            onSelectedChange={onEntityFilterChange}
-          />
-        ),
-        cell: (info) => entityLabels[info.getValue<ClientEntityType>()],
-        meta: {
-          headerClassName: 'w-[150px]',
-          cellClassName: 'w-[150px]',
+          headerClassName: 'w-[160px]',
+          cellClassName: 'w-[160px]',
         },
       },
       {
@@ -428,25 +550,60 @@ export function ClientFactsWorkspace({
           </span>
         ),
         meta: {
-          headerClassName: 'w-[210px]',
-          cellClassName: 'w-[210px]',
+          headerClassName: 'w-[190px]',
+          cellClassName: 'w-[190px]',
         },
       },
       {
-        accessorKey: 'migrationBatchId',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Source`}
-            open={openHeaderFilter === 'source'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('source', nextOpen)}
-            options={sourceOptions}
-            selected={sourceFilter}
-            emptyLabel={t`No source types`}
-            onSelectedChange={onSourceFilterChange}
-          />
-        ),
-        cell: ({ row }) => <ClientSourceBadge client={row.original} />,
+        id: 'nextDue',
+        header: t`Next due`,
+        cell: ({ row }) => {
+          const summary = obligationSummariesByClient.get(row.original.id)
+          if (!summary || !summary.nextDueDate) {
+            return <span className="text-text-tertiary">—</span>
+          }
+          return (
+            <div className="flex min-w-0 flex-col">
+              <span className="whitespace-nowrap tabular-nums text-text-primary">
+                {formatDate(summary.nextDueDate)}
+              </span>
+              {summary.nextTaxType ? (
+                <span className="truncate text-xs text-text-tertiary">{summary.nextTaxType}</span>
+              ) : null}
+            </div>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[170px]',
+          cellClassName: 'w-[170px]',
+        },
+      },
+      {
+        id: 'openObligations',
+        header: t`Open`,
+        cell: ({ row }) => {
+          const summary = obligationSummariesByClient.get(row.original.id)
+          const count = summary?.openCount ?? 0
+          if (count === 0) {
+            return <span className="text-text-tertiary tabular-nums">0</span>
+          }
+          return <span className="tabular-nums text-text-primary">{count}</span>
+        },
+        meta: {
+          headerClassName: 'w-[80px] text-right',
+          cellClassName: 'w-[80px] text-right',
+        },
+      },
+      {
+        id: 'opportunities',
+        header: t`Opportunities`,
+        cell: ({ row }) => {
+          const count = opportunityCountByClient.get(row.original.id) ?? 0
+          if (count === 0) {
+            return <span className="text-text-tertiary tabular-nums">—</span>
+          }
+          return <ClientOpportunityCountBadge count={count} />
+        },
         meta: {
           headerClassName: 'w-[130px]',
           cellClassName: 'w-[130px]',
@@ -470,41 +627,48 @@ export function ClientFactsWorkspace({
         ),
         cell: (info) => info.getValue<string | null>() ?? t`Unassigned`,
         meta: {
-          headerClassName: 'w-[170px]',
-          cellClassName: 'w-[170px]',
+          headerClassName: 'w-[160px]',
+          cellClassName: 'w-[160px]',
         },
       },
       {
-        accessorKey: 'updatedAt',
-        header: t`Updated`,
-        cell: (info) => (
-          <span className="tabular-nums">
-            {formatDateTimeWithTimezone(info.getValue<string>(), firmTimezone)}
-          </span>
+        accessorKey: 'migrationBatchId',
+        header: () => (
+          <TableHeaderMultiFilter
+            trigger="header"
+            label={t`Source`}
+            open={openHeaderFilter === 'source'}
+            onOpenChange={(nextOpen) => setHeaderFilterOpen('source', nextOpen)}
+            options={sourceOptions}
+            selected={sourceFilter}
+            emptyLabel={t`No source types`}
+            onSelectedChange={onSourceFilterChange}
+          />
         ),
+        cell: ({ row }) => <ClientSourceCell client={row.original} firmTimezone={firmTimezone} />,
         meta: {
-          headerClassName: 'w-[230px]',
-          cellClassName: 'w-[230px] whitespace-nowrap',
+          headerClassName: 'w-[200px]',
+          cellClassName: 'w-[200px]',
         },
       },
     ],
     [
       clientFilter,
       clientOptions,
-      entityFilter,
       entityLabels,
-      entityOptions,
       factsModel.readinessById,
       firmTimezone,
+      obligationSummariesByClient,
       onClientFilterChange,
-      onEntityFilterChange,
       onOwnerFilterChange,
       onReadinessFilterChange,
       onSourceFilterChange,
       onStateFilterChange,
       openHeaderFilter,
+      opportunityCountByClient,
       ownerFilter,
       ownerOptions,
+      pulseMatchesByClient,
       readinessFilter,
       readinessOptions,
       setHeaderFilterOpen,
@@ -528,21 +692,6 @@ export function ClientFactsWorkspace({
     },
     [onSelectClient],
   )
-
-  if (selectedClient) {
-    return (
-      <ClientDetailWorkspace
-        client={selectedClient}
-        entityLabels={entityLabels}
-        readiness={factsModel.readinessById.get(selectedClient.id)}
-        firmTimezone={firmTimezone}
-        practiceAiEnabled={practiceAiEnabled}
-        canDelete={canDelete}
-        onBack={onClearSelectedClient}
-        onClientDeleted={onClientDeleted}
-      />
-    )
-  }
 
   return (
     <>
@@ -608,6 +757,14 @@ export function ClientFactsWorkspace({
                   emptyLabel={t`No states`}
                   onSelectedChange={onStateFilterChange}
                 />
+                <TableHeaderMultiFilter
+                  label={t`Radar`}
+                  options={pulseOptions}
+                  selected={pulseFilter}
+                  disabled={isLoading || pulseOptions.length === 0}
+                  emptyLabel={t`No Radar alerts`}
+                  onSelectedChange={onPulseFilterChange}
+                />
               </div>
             </div>
           </CardHeader>
@@ -670,6 +827,46 @@ export function ClientFactsWorkspace({
           </CardContent>
         </Card>
       </section>
+      <Sheet
+        open={selectedClient !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) onClearSelectedClient()
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>{selectedClient?.name ?? t`Client detail`}</SheetTitle>
+          </SheetHeader>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6 md:py-5">
+            {selectedClient ? (
+              <>
+                <div className="mb-4 flex items-center justify-end">
+                  <Button
+                    nativeButton={false}
+                    variant="outline"
+                    size="sm"
+                    aria-label={t`Open full view`}
+                    render={<Link to={`/clients/${selectedClient.id}`} />}
+                  >
+                    <ExternalLinkIcon data-icon="inline-start" />
+                    <Trans>Open full view</Trans>
+                  </Button>
+                </div>
+                <ClientDetailWorkspace
+                  client={selectedClient}
+                  entityLabels={entityLabels}
+                  readiness={factsModel.readinessById.get(selectedClient.id)}
+                  firmTimezone={firmTimezone}
+                  practiceAiEnabled={practiceAiEnabled}
+                />
+              </>
+            ) : null}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
@@ -773,30 +970,23 @@ function ClientEmptyState({
   )
 }
 
-function ClientDetailWorkspace({
+export function ClientDetailWorkspace({
   client,
   entityLabels,
   readiness,
   firmTimezone,
   practiceAiEnabled,
-  canDelete,
-  onBack,
-  onClientDeleted,
 }: {
   client: ClientPublic
   entityLabels: Record<ClientEntityType, string>
   readiness: ClientReadiness | undefined
   firmTimezone: string
   practiceAiEnabled: boolean
-  canDelete: boolean
-  onBack: () => void
-  onClientDeleted: () => void
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
   const canReadAudit = permission.can('audit.read')
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const riskSummaryQuery = useQuery(
     orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
   )
@@ -820,11 +1010,12 @@ function ClientDetailWorkspace({
     () => buildClientWorkPlanSummary(obligations, formatDate(new Date().toISOString())),
     [obligations],
   )
+  const extensionPaymentMismatches = useMemo(
+    () => findExtensionWithoutPaymentObligations(obligations),
+    [obligations],
+  )
   const pulseDetails = pulseDetailsQueries.flatMap((query) => (query.data ? [query.data] : []))
   const pulseMatches = buildClientPulseMatches(pulseDetails, client.id)
-  const contactPlan = buildClientContactPlan(client)
-  const pulseLoading =
-    pulseHistoryQuery.isLoading || pulseDetailsQueries.some((query) => query.isLoading)
   const updateRiskProfileMutation = useMutation(
     orpc.clients.updateRiskProfile.mutationOptions({
       onSuccess: (result) => {
@@ -874,246 +1065,132 @@ function ClientDetailWorkspace({
       },
     }),
   )
-  const deleteClientMutation = useMutation(
-    orpc.clients.delete.mutationOptions({
-      onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
-        onClientDeleted()
-        toast.success(t`Client deleted`)
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't delete client`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
-        })
-      },
-    }),
-  )
 
   return (
     <>
       <section className="flex min-h-0 flex-col gap-5">
-        <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={onBack}>
-          <ArrowLeftIcon data-icon="inline-start" />
-          <Trans>Back to clients</Trans>
-        </Button>
-
-        <header className="grid gap-4 rounded-md border border-divider-subtle bg-background-default p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="flex min-w-0 flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <ClientSourceBadge client={client} />
-              <ClientReadinessBadge readiness={readiness} compact={false} />
-              <Badge variant="outline" className="tabular-nums">
-                {formatFilingJurisdictions(client)}
-              </Badge>
-            </div>
-            <div className="min-w-0">
-              <h2 className="truncate text-2xl font-semibold text-text-primary">{client.name}</h2>
-              <p className="mt-1 text-sm text-text-secondary">
-                {entityLabels[client.entityType]}
-                {' / '}
-                <Trans>Filing, payment, Pulse, contact, and audit context for this client.</Trans>
-              </p>
-            </div>
+        <header className="flex flex-col gap-3 rounded-md border border-divider-subtle bg-background-default p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <ClientSourceBadge client={client} />
+            <ClientReadinessBadge readiness={readiness} compact={false} />
+            {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
           </div>
-          <div className="grid gap-2 text-sm lg:min-w-[280px]">
-            <DetailRow label={<Trans>EIN</Trans>} value={client.ein ?? 'N/A'} mono />
-            <DetailRow label={<Trans>Email</Trans>} value={client.email ?? 'N/A'} />
-            <DetailRow label={<Trans>Owner</Trans>} value={client.assigneeName ?? 'N/A'} />
-            <DetailRow
-              label={<Trans>Updated</Trans>}
-              value={formatDateTimeWithTimezone(client.updatedAt, firmTimezone)}
-              mono
-            />
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <h2 className="truncate text-2xl font-semibold text-text-primary">{client.name}</h2>
+            <Badge variant="info" className="text-xs uppercase tracking-wider">
+              {entityLabels[client.entityType]}
+            </Badge>
+            <ClientFilingStateChips client={client} />
           </div>
+          <p className="text-sm text-text-secondary">
+            {formatClientIdentitySubLine({
+              workPlan,
+              entityType: client.entityType,
+              taxClassification: client.taxClassification,
+            })}
+          </p>
         </header>
 
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <ClientWorkMetric
-            label={<Trans>Open work</Trans>}
-            value={String(workPlan.openCount)}
-            detail={
-              workPlan.nextDueDate ? (
-                <Trans>Next due {formatDate(workPlan.nextDueDate)}</Trans>
-              ) : (
-                <Trans>No open due dates</Trans>
-              )
+        <ClientAlertsBand
+          client={client}
+          pulseMatches={pulseMatches}
+          readiness={readiness}
+          extensionPaymentMismatches={extensionPaymentMismatches}
+        />
+
+        <ClientWorkPlanPanel
+          obligations={obligations}
+          isLoading={obligationsQuery.isLoading}
+          summary={workPlan}
+        />
+
+        <DetailSection
+          title={t`Client summary (AI)`}
+          summary={
+            riskSummaryQuery.data?.generatedAt
+              ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
+              : t`No summary yet`
+          }
+          defaultOpen
+        >
+          <ClientRiskSummaryPanel
+            insight={riskSummaryQuery.data ?? null}
+            isLoading={riskSummaryQuery.isLoading}
+            isRefreshing={requestRiskSummaryMutation.isPending}
+            canRefresh={practiceAiEnabled}
+            firmTimezone={firmTimezone}
+            onRefresh={() =>
+              requestRiskSummaryMutation.mutate({
+                clientId: client.id,
+              })
             }
-            icon={ClipboardListIcon}
-            tone={workPlan.overdueOpenCount > 0 ? 'attention' : 'neutral'}
           />
-          <ClientWorkMetric
-            label={<Trans>Projected risk</Trans>}
-            value={formatCents(workPlan.projectedExposureCents)}
-            detail={<Trans>{workPlan.exposureNeedsInputCount} need exposure inputs</Trans>}
-            icon={ShieldAlertIcon}
-            tone={workPlan.projectedExposureCents > 0 ? 'attention' : 'neutral'}
-          />
-          <ClientWorkMetric
-            label={<Trans>Payment track</Trans>}
-            value={formatCents(workPlan.estimatedTaxDueCents)}
-            detail={<Trans>{workPlan.paymentTrackCount} obligations carry payment data</Trans>}
-            icon={CalendarClockIcon}
-            tone={workPlan.estimatedTaxDueCents > 0 ? 'attention' : 'neutral'}
-          />
-          <ClientWorkMetric
-            label={<Trans>Pulse matches</Trans>}
-            value={String(pulseMatches.length)}
-            detail={<Trans>{workPlan.needsReviewCount} obligations need review</Trans>}
-            icon={AlertTriangleIcon}
-            tone={pulseMatches.length > 0 ? 'attention' : 'neutral'}
-          />
-        </section>
+        </DetailSection>
 
-        <ClientPulsePanel matches={pulseMatches} isLoading={pulseLoading} />
+        <DetailSection title={t`Filing jurisdictions`} summary={formatJurisdictionSummary(client)}>
+          <ClientJurisdictionPanel
+            key={`${client.id}:jurisdiction`}
+            client={client}
+            isSaving={replaceFilingProfilesMutation.isPending}
+            onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+          />
+        </DetailSection>
 
-        <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="flex min-w-0 flex-col gap-5">
-            <ClientWorkPlanPanel
-              obligations={obligations}
-              isLoading={obligationsQuery.isLoading}
-              summary={workPlan}
-            />
-            <ClientJurisdictionPanel
-              key={`${client.id}:jurisdiction`}
-              client={client}
-              isSaving={replaceFilingProfilesMutation.isPending}
-              onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-            />
-            <ClientRiskSummaryPanel
-              insight={riskSummaryQuery.data ?? null}
-              isLoading={riskSummaryQuery.isLoading}
-              isRefreshing={requestRiskSummaryMutation.isPending}
-              canRefresh={practiceAiEnabled}
-              firmTimezone={firmTimezone}
-              onRefresh={() =>
-                requestRiskSummaryMutation.mutate({
-                  clientId: client.id,
-                })
-              }
-            />
-            <ClientActivityPanel
-              events={auditQuery.data?.events ?? []}
-              canReadAudit={canReadAudit}
-              isLoading={auditQuery.isLoading}
-              firmTimezone={firmTimezone}
-            />
-          </div>
+        <DetailSection title={t`Risk inputs`} summary={t`Penalty inputs and tax-attribute flags`}>
+          <ClientRiskInputsPanel
+            key={`${client.id}:risk`}
+            client={client}
+            isSaving={updateRiskProfileMutation.isPending}
+            onSave={(input) => updateRiskProfileMutation.mutate(input)}
+          />
+        </DetailSection>
 
-          <aside className="flex min-w-0 flex-col gap-5">
-            <ClientContactPlanPanel plan={contactPlan} />
-            <ClientOpportunitiesCard clientId={client.id} />
-            <ClientRiskInputsPanel
-              key={`${client.id}:risk`}
-              client={client}
-              isSaving={updateRiskProfileMutation.isPending}
-              onSave={(input) => updateRiskProfileMutation.mutate(input)}
-            />
-            <ClientFactChecklist client={client} readiness={readiness} />
-            <div className="rounded-md border border-divider-regular bg-background-section p-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-                <Trans>Notes</Trans>
-              </span>
-              <p className="mt-2 text-sm text-text-secondary">
-                {client.notes || <Trans>No notes.</Trans>}
-              </p>
-            </div>
-            <div className="rounded-md border border-state-destructive-hover-alt bg-state-destructive-hover p-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <span className="text-sm font-medium text-text-primary">
-                    <Trans>Delete client record</Trans>
-                  </span>
-                  <p className="mt-1 text-sm text-text-destructive-secondary">
-                    <Trans>
-                      This removes the client from active practice views and records an audit event.
-                    </Trans>
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="destructive-secondary"
-                  disabled={!canDelete || deleteClientMutation.isPending}
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2Icon data-icon="inline-start" />
-                  <Trans>Delete</Trans>
-                </Button>
-              </div>
-            </div>
-          </aside>
-        </section>
+        <DetailSection
+          title={t`Fact readiness`}
+          summary={
+            readiness && readiness.missingRequiredFacts.length > 0
+              ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+              : t`All required facts present`
+          }
+        >
+          <ClientFactChecklist client={client} readiness={readiness} />
+        </DetailSection>
+
+        <DetailSection
+          title={t`Future business cues`}
+          summary={t`Advisory, scope, and retention opportunities`}
+        >
+          <ClientOpportunitiesCard clientId={client.id} />
+        </DetailSection>
+
+        <div className="rounded-md border border-divider-regular bg-background-section p-3">
+          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Notes</Trans>
+          </span>
+          <p className="mt-2 text-sm text-text-secondary">
+            {client.notes || <Trans>No notes.</Trans>}
+          </p>
+        </div>
+
+        <DetailSection
+          title={t`Activity log`}
+          summary={t`Recent audited changes for this client record`}
+        >
+          <ClientActivityPanel
+            events={auditQuery.data?.events ?? []}
+            canReadAudit={canReadAudit}
+            isLoading={auditQuery.isLoading}
+            firmTimezone={firmTimezone}
+          />
+        </DetailSection>
       </section>
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Delete this client?</Trans>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Trans>
-                This will remove {client?.name ?? 'this client'} from the active client directory,
-                dashboard, and Obligations. The audit log will keep the deletion record.
-              </Trans>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel size="sm" disabled={deleteClientMutation.isPending}>
-              <Trans>Cancel</Trans>
-            </AlertDialogCancel>
-            <AlertDialogAction
-              size="sm"
-              variant="destructive-primary"
-              disabled={!canDelete || deleteClientMutation.isPending}
-              onClick={() => {
-                deleteClientMutation.mutate({ id: client.id })
-              }}
-            >
-              <Trash2Icon data-icon="inline-start" />
-              <Trans>Delete client</Trans>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
 
-function ClientWorkMetric({
-  label,
-  value,
-  detail,
-  icon: Icon,
-  tone,
-}: {
-  label: ReactNode
-  value: string
-  detail: ReactNode
-  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-  tone: ClientMetric['tone']
-}) {
-  return (
-    <Card role="group" aria-label={typeof label === 'string' ? label : undefined}>
-      <CardContent className="flex items-center justify-between gap-4 p-4">
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-sm font-medium text-text-secondary">{label}</span>
-          <span className="truncate text-2xl font-semibold tabular-nums text-text-primary">
-            {value}
-          </span>
-          <span className="truncate text-xs text-text-tertiary">{detail}</span>
-        </div>
-        <div
-          className={`grid size-9 shrink-0 place-items-center rounded-md ${metricToneClassName[tone]}`}
-        >
-          <Icon className="size-4" aria-hidden />
-        </div>
-      </CardContent>
-    </Card>
-  )
+function obligationDrawerHref(obligationId: string): string {
+  const params = new URLSearchParams({ id: obligationId, drawer: 'obligation' })
+  return `/obligations?${params.toString()}`
 }
 
 function ClientWorkPlanPanel({
@@ -1125,18 +1202,32 @@ function ClientWorkPlanPanel({
   isLoading: boolean
   summary: ClientWorkPlanSummary
 }) {
+  const navigate = useNavigate()
   const visible = obligations.slice(0, 8)
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Trans>Work plan</Trans>
-        </CardTitle>
-        <CardDescription>
-          <Trans>Filing and payment work tied to this client, ordered by due date.</Trans>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">
+            <Trans>Filings &amp; deadlines</Trans>
+          </span>
+          <span className="truncate text-xs text-text-tertiary">
+            {`${summary.openCount} open · ${summary.overdueOpenCount} overdue · ${summary.needsReviewCount} need review`}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant={summary.overdueOpenCount > 0 ? 'warning' : 'outline'}>
+            <Trans>{summary.overdueOpenCount} overdue</Trans>
+          </Badge>
+          <Badge variant={summary.needsReviewCount > 0 ? 'warning' : 'outline'}>
+            <Trans>{summary.needsReviewCount} need review</Trans>
+          </Badge>
+          <Badge variant="outline">
+            <Trans>{summary.paymentTrackCount} payment-linked</Trans>
+          </Badge>
+        </div>
+      </div>
+      <div className="border-t border-divider-subtle px-4 py-3">
         {isLoading ? (
           <div className="grid gap-2">
             <Skeleton className="h-12 w-full" />
@@ -1153,17 +1244,6 @@ function ClientWorkPlanPanel({
           />
         ) : (
           <div className="grid gap-3">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant={summary.overdueOpenCount > 0 ? 'warning' : 'outline'}>
-                <Trans>{summary.overdueOpenCount} overdue</Trans>
-              </Badge>
-              <Badge variant={summary.needsReviewCount > 0 ? 'warning' : 'outline'}>
-                <Trans>{summary.needsReviewCount} need review</Trans>
-              </Badge>
-              <Badge variant="outline">
-                <Trans>{summary.paymentTrackCount} payment-linked</Trans>
-              </Badge>
-            </div>
             <div className="overflow-x-auto rounded-md border border-divider-subtle">
               <Table className="min-w-[760px] table-fixed">
                 <TableHeader>
@@ -1186,36 +1266,53 @@ function ClientWorkPlanPanel({
                   </TableRow>
                 </TableHeader>
                 <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-                  {visible.map((obligation) => (
-                    <TableRow key={obligation.id}>
-                      <TableCell>
-                        <div className="flex min-w-0 flex-col">
-                          <span className="truncate font-medium text-text-primary">
-                            {obligation.taxType}
-                          </span>
-                          <span className="truncate font-mono text-xs text-text-tertiary">
-                            {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {formatDate(obligation.currentDueDate)}
-                      </TableCell>
-                      <TableCell>
-                        <ObligationStatusBadge obligation={obligation} />
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {obligation.estimatedExposureCents !== null
-                          ? formatCents(obligation.estimatedExposureCents)
-                          : 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {obligation.estimatedTaxDueCents !== null
-                          ? formatCents(obligation.estimatedTaxDueCents)
-                          : 'N/A'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {visible.map((obligation) => {
+                    const href = obligationDrawerHref(obligation.id)
+                    const open = () => void navigate(href)
+                    return (
+                      <TableRow
+                        key={obligation.id}
+                        tabIndex={0}
+                        role="link"
+                        aria-label={`${obligation.taxType} — ${formatDate(obligation.currentDueDate)}`}
+                        className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
+                        onClick={open}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            open()
+                          }
+                        }}
+                      >
+                        <TableCell>
+                          <div className="flex min-w-0 flex-col">
+                            <span className="truncate font-medium text-text-primary">
+                              {obligation.taxType}
+                            </span>
+                            <span className="truncate font-mono text-xs text-text-tertiary">
+                              {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="tabular-nums">
+                          {formatDate(obligation.currentDueDate)}
+                        </TableCell>
+                        <TableCell>
+                          <ObligationStatusBadge obligation={obligation} />
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {obligation.estimatedExposureCents !== null
+                            ? formatCents(obligation.estimatedExposureCents)
+                            : 'N/A'}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {obligation.estimatedTaxDueCents !== null
+                            ? formatCents(obligation.estimatedTaxDueCents)
+                            : 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -1226,120 +1323,113 @@ function ClientWorkPlanPanel({
             ) : null}
           </div>
         )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function ClientPulsePanel({
-  matches,
-  isLoading,
-}: {
-  matches: readonly ClientPulseMatch[]
-  isLoading: boolean
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Trans>Pulse impact</Trans>
-        </CardTitle>
-        <CardDescription>
-          <Trans>Official-source changes from Pulse that touch this client.</Trans>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="grid gap-2">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
-          </div>
-        ) : matches.length === 0 ? (
-          <PanelEmptyState
-            icon={AlertTriangleIcon}
-            title={<Trans>No matching Pulse changes</Trans>}
-            detail={<Trans>This client is clear of the current practice-scoped Pulse queue.</Trans>}
-          />
-        ) : (
-          <div className="grid gap-2">
-            {matches.slice(0, 6).map((match) => (
-              <div
-                key={`${match.alertId}:${match.taxType}:${match.currentDueDate}`}
-                className="rounded-md border border-divider-subtle bg-background-section p-3"
-              >
-                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-text-primary">{match.title}</p>
-                    <p className="mt-1 text-xs text-text-tertiary">
-                      {match.source}
-                      {' / '}
-                      {formatDate(match.publishedAt)}
-                    </p>
-                  </div>
-                  <PulseMatchBadge status={match.status} />
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                  <Badge variant="outline" className="tabular-nums">
-                    {match.taxType}
-                  </Badge>
-                  <span className="tabular-nums text-text-secondary">
-                    {formatDate(match.currentDueDate)} -&gt; {formatDate(match.newDueDate)}
-                  </span>
-                  <span className="text-text-tertiary">
-                    <Trans>Confidence {Math.round(match.confidence * 100)}%</Trans>
-                  </span>
-                  <a
-                    href={match.sourceUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-text-accent hover:underline"
-                  >
-                    <ExternalLinkIcon className="size-3" aria-hidden />
-                    <Trans>Source</Trans>
-                  </a>
-                </div>
-                {match.reason ? (
-                  <p className="mt-2 text-xs text-text-tertiary">{match.reason}</p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function ClientContactPlanPanel({ plan }: { plan: ClientContactPlan }) {
-  return (
-    <div className="grid gap-3 rounded-md border border-divider-regular p-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Contact chain</Trans>
-        </span>
-        <MailIcon className="size-4 text-text-tertiary" aria-hidden />
       </div>
-      <FactCheckRow
-        isComplete={Boolean(plan.primaryContact)}
-        label={<Trans>Primary client contact</Trans>}
-        detail={
-          plan.primaryContact ?? <Trans>Add an email before client notification drafts.</Trans>
-        }
-      />
-      <FactCheckRow
-        isComplete={Boolean(plan.internalOwner)}
-        label={<Trans>Internal owner</Trans>}
-        detail={
-          plan.internalOwner ?? <Trans>Assign a team member for follow-up accountability.</Trans>
-        }
-      />
-      <FactCheckRow
-        isComplete={!plan.missing.includes('fallback_contact')}
-        label={<Trans>Fallback contact</Trans>}
-        detail={
-          <Trans>Not modeled yet. Keep escalation in notes until the contact schema expands.</Trans>
-        }
-      />
+    </div>
+  )
+}
+
+function ClientAlertsBand({
+  client,
+  pulseMatches,
+  readiness,
+  extensionPaymentMismatches,
+}: {
+  client: ClientPublic
+  pulseMatches: readonly ClientPulseMatch[]
+  readiness: ClientReadiness | undefined
+  extensionPaymentMismatches: readonly ObligationInstancePublic[]
+}) {
+  const radarCount = pulseMatches.length
+  const missingFacts = readiness?.missingRequiredFacts ?? []
+  const extensionMismatchCount = extensionPaymentMismatches.length
+  if (radarCount === 0 && missingFacts.length === 0 && extensionMismatchCount === 0) {
+    return null
+  }
+  return (
+    <div className="grid gap-2.5 rounded-md border border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/60 p-3">
+      {radarCount > 0 ? <ClientAlertsBandRadarRow matches={pulseMatches} /> : null}
+      {extensionMismatchCount > 0 ? (
+        <ClientAlertsBandExtensionRow obligations={extensionPaymentMismatches} />
+      ) : null}
+      {missingFacts.length > 0 ? (
+        <ClientAlertsBandMissingFactsRow clientId={client.id} missing={missingFacts} />
+      ) : null}
+    </div>
+  )
+}
+
+function ClientAlertsBandRadarRow({ matches }: { matches: readonly ClientPulseMatch[] }) {
+  const taxTypes = Array.from(new Set(matches.map((match) => match.taxType))).slice(0, 3)
+  return (
+    <div className="flex flex-wrap items-start gap-3">
+      <ActivityIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-text-primary">
+          {matches.length === 1 ? (
+            <Trans>1 Radar alert affecting this client</Trans>
+          ) : (
+            <Trans>{matches.length} Radar alerts affecting this client</Trans>
+          )}
+        </p>
+        <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
+      </div>
+      <a
+        href="/rules/pulse"
+        className="inline-flex items-center gap-1 text-xs font-medium text-text-accent hover:underline"
+      >
+        <Trans>View on Radar</Trans>
+        <ExternalLinkIcon className="size-3" aria-hidden />
+      </a>
+    </div>
+  )
+}
+
+function ClientAlertsBandExtensionRow({
+  obligations,
+}: {
+  obligations: readonly ObligationInstancePublic[]
+}) {
+  const taxTypes = Array.from(new Set(obligations.map((row) => row.taxType))).slice(0, 3)
+  return (
+    <div className="flex flex-wrap items-start gap-3">
+      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-text-primary">
+          {obligations.length === 1 ? (
+            <Trans>1 filing extended — payment is NOT extended</Trans>
+          ) : (
+            <Trans>{obligations.length} filings extended — payment is NOT extended</Trans>
+          )}
+        </p>
+        <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
+      </div>
+    </div>
+  )
+}
+
+function ClientAlertsBandMissingFactsRow({
+  clientId,
+  missing,
+}: {
+  clientId: string
+  missing: readonly ('state' | 'entityType')[]
+}) {
+  const labels = missing.map((fact) => (fact === 'state' ? 'filing state' : 'entity type'))
+  return (
+    <div className="flex flex-wrap items-start gap-3">
+      <ClipboardListIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-text-primary">
+          <Trans>Missing required facts</Trans>
+        </p>
+        <p className="mt-0.5 text-xs text-text-secondary">{labels.join(' · ')}</p>
+      </div>
+      <Link
+        to={`/clients/${clientId}`}
+        className="inline-flex items-center gap-1 text-xs font-medium text-text-accent hover:underline"
+      >
+        <Trans>Add facts</Trans>
+      </Link>
     </div>
   )
 }
@@ -1355,58 +1445,51 @@ function ClientActivityPanel({
   isLoading: boolean
   firmTimezone: string
 }) {
+  if (!canReadAudit) {
+    return (
+      <PanelEmptyState
+        icon={ClipboardCheckIcon}
+        title={<Trans>Audit access is role-gated</Trans>}
+        detail={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
+      />
+    )
+  }
+  if (isLoading) {
+    return (
+      <div className="grid gap-2">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+    )
+  }
+  if (events.length === 0) {
+    return (
+      <PanelEmptyState
+        icon={ClipboardCheckIcon}
+        title={<Trans>No audited client changes yet</Trans>}
+        detail={<Trans>Future edits to facts, risk inputs, or deletion will appear here.</Trans>}
+      />
+    )
+  }
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          <Trans>Activity log</Trans>
-        </CardTitle>
-        <CardDescription>
-          <Trans>Recent audited changes for this client record.</Trans>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {!canReadAudit ? (
-          <PanelEmptyState
-            icon={ClipboardCheckIcon}
-            title={<Trans>Audit access is role-gated</Trans>}
-            detail={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
-          />
-        ) : isLoading ? (
-          <div className="grid gap-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+    <div className="grid gap-2">
+      {events.map((event) => (
+        <div
+          key={event.id}
+          className="grid gap-1 rounded-md border border-divider-subtle bg-background-section p-3"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-medium text-text-primary">{event.action}</span>
+            <span className="text-xs tabular-nums text-text-tertiary">
+              {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
+            </span>
           </div>
-        ) : events.length === 0 ? (
-          <PanelEmptyState
-            icon={ClipboardCheckIcon}
-            title={<Trans>No audited client changes yet</Trans>}
-            detail={
-              <Trans>Future edits to facts, risk inputs, or deletion will appear here.</Trans>
-            }
-          />
-        ) : (
-          <div className="grid gap-2">
-            {events.map((event) => (
-              <div
-                key={event.id}
-                className="grid gap-1 rounded-md border border-divider-subtle bg-background-section p-3"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-text-primary">{event.action}</span>
-                  <span className="text-xs tabular-nums text-text-tertiary">
-                    {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
-                  </span>
-                </div>
-                <p className="text-xs text-text-tertiary">
-                  {event.actorLabel ?? event.actorId ?? 'System'}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          <p className="text-xs text-text-tertiary">
+            {event.actorLabel ?? event.actorId ?? 'System'}
+          </p>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -1453,35 +1536,6 @@ function ObligationStatusBadge({ obligation }: { obligation: ObligationInstanceP
     )
   }
   return <Badge variant="outline">{obligation.status.replaceAll('_', ' ')}</Badge>
-}
-
-function PulseMatchBadge({ status }: { status: ClientPulseMatch['status'] }) {
-  if (status === 'eligible') {
-    return (
-      <Badge variant="success">
-        <Trans>Eligible</Trans>
-      </Badge>
-    )
-  }
-  if (status === 'needs_review') {
-    return (
-      <Badge variant="warning">
-        <Trans>Needs review</Trans>
-      </Badge>
-    )
-  }
-  if (status === 'already_applied') {
-    return (
-      <Badge variant="secondary">
-        <Trans>Already applied</Trans>
-      </Badge>
-    )
-  }
-  return (
-    <Badge variant="outline">
-      <Trans>Reverted</Trans>
-    </Badge>
-  )
 }
 
 function importanceLabel(value: number): ReactNode {
@@ -1563,87 +1617,61 @@ function ClientJurisdictionPanel({
   )
   const hasChanges = currentSignature !== nextSignature
 
-  return (
-    <div className="grid gap-3 rounded-md border border-divider-regular p-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Filing jurisdictions</Trans>
-        </span>
-        <MapPinnedIcon className="size-4 text-text-tertiary" aria-hidden />
-      </div>
-      <div className="flex flex-wrap gap-1.5">
+  const [isEditing, setIsEditing] = useState(false)
+  const cancelEdit = () => {
+    setStatesText(getClientFilingStates(client).join(', '))
+    setCountiesText((primaryProfile?.counties ?? (client.county ? [client.county] : [])).join(', '))
+    setIsEditing(false)
+  }
+
+  if (!isEditing) {
+    return (
+      <div className="grid gap-3">
         {client.filingProfiles.length > 0 ? (
-          client.filingProfiles.map((profile) => (
-            <Badge key={profile.id} variant={profile.isPrimary ? 'default' : 'outline'}>
-              {profile.state}
-              {profile.isPrimary ? ` ${t`primary`}` : ''}
-            </Badge>
-          ))
+          <ul className="grid gap-2">
+            {client.filingProfiles
+              .toSorted(
+                (a, b) =>
+                  Number(b.isPrimary) - Number(a.isPrimary) || a.state.localeCompare(b.state),
+              )
+              .map((profile) => (
+                <li
+                  key={profile.id}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
+                >
+                  <Badge variant={profile.isPrimary ? 'default' : 'outline'}>
+                    {profile.state}
+                    {profile.isPrimary ? ` ${t`primary`}` : ''}
+                  </Badge>
+                  <span className="text-text-tertiary">
+                    {profile.counties.length > 0 ? profile.counties.join(', ') : t`Any county`}
+                  </span>
+                  <span className="text-text-secondary">·</span>
+                  {profile.taxTypes.length > 0 ? (
+                    <span className="text-text-secondary">{profile.taxTypes.join(', ')}</span>
+                  ) : (
+                    <span className="text-text-warning">{t`Needs tax type review`}</span>
+                  )}
+                </li>
+              ))}
+          </ul>
         ) : (
-          <Badge variant="outline">
-            <Trans>Needs filing state</Trans>
-          </Badge>
+          <p className="text-sm text-text-tertiary">
+            <Trans>No filing jurisdictions on file yet.</Trans>
+          </p>
         )}
-      </div>
-      {client.filingProfiles.length > 0 ? (
-        <div className="overflow-x-auto rounded-md border border-divider-subtle">
-          <Table className="min-w-[520px] table-fixed">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[92px]">
-                  <Trans>State</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Counties</Trans>
-                </TableHead>
-                <TableHead>
-                  <Trans>Tax types</Trans>
-                </TableHead>
-                <TableHead className="w-[132px]">
-                  <Trans>Status</Trans>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-              {client.filingProfiles
-                .toSorted(
-                  (a, b) =>
-                    Number(b.isPrimary) - Number(a.isPrimary) || a.state.localeCompare(b.state),
-                )
-                .map((profile) => {
-                  const sourceLabel =
-                    profile.source === 'imported'
-                      ? t`Imported`
-                      : profile.source === 'demo_seed'
-                        ? t`Demo seed`
-                        : profile.source === 'backfill'
-                          ? t`Backfilled`
-                          : t`Manual`
-                  return (
-                    <TableRow key={profile.id}>
-                      <TableCell>
-                        <span className="tabular-nums">{profile.state}</span>
-                      </TableCell>
-                      <TableCell className="truncate">
-                        {profile.counties.length > 0 ? profile.counties.join(', ') : t`Any county`}
-                      </TableCell>
-                      <TableCell className="truncate">
-                        {profile.taxTypes.length > 0
-                          ? profile.taxTypes.join(', ')
-                          : t`Needs tax type review`}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={profile.taxTypes.length > 0 ? 'outline' : 'warning'}>
-                          {sourceLabel}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-            </TableBody>
-          </Table>
+        <div className="flex">
+          <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+            <PencilIcon data-icon="inline-start" />
+            <Trans>Edit</Trans>
+          </Button>
         </div>
-      ) : null}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid gap-3">
       <div className="grid gap-3">
         <Field>
           <FieldLabel htmlFor="client-jurisdiction-states">
@@ -1674,20 +1702,26 @@ function ClientJurisdictionPanel({
           ) : null}
         </Field>
       </div>
-      <Button
-        type="button"
-        size="sm"
-        disabled={!hasChanges || stateInvalid || countyInvalid || isSaving}
-        onClick={() =>
-          onSave({
-            id: client.id,
-            profiles: nextProfiles,
-            reason: 'Fact profile filing jurisdiction edit',
-          })
-        }
-      >
-        {isSaving ? t`Saving...` : t`Save filing jurisdictions`}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          disabled={!hasChanges || stateInvalid || countyInvalid || isSaving}
+          onClick={() => {
+            onSave({
+              id: client.id,
+              profiles: nextProfiles,
+              reason: 'Fact profile filing jurisdiction edit',
+            })
+            setIsEditing(false)
+          }}
+        >
+          {isSaving ? t`Saving...` : t`Save`}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
+          <Trans>Cancel</Trans>
+        </Button>
+      </div>
     </div>
   )
 }
@@ -1714,13 +1748,7 @@ function ClientRiskInputsPanel({
     lateFilingNumber !== client.lateFilingCountLast12mo
 
   return (
-    <div className="grid gap-3 rounded-md border border-divider-regular p-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Risk inputs</Trans>
-        </span>
-        <ShieldAlertIcon className="size-4 text-text-tertiary" aria-hidden />
-      </div>
+    <div className="grid gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <Field>
           <FieldLabel>
@@ -1801,14 +1829,8 @@ function ClientRiskSummaryPanel({
   onRefresh: () => void
 }) {
   return (
-    <div className="grid gap-3 rounded-md border border-divider-regular bg-background-section p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <SparklesIcon className="size-4 text-text-secondary" aria-hidden />
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Client Risk Summary</Trans>
-          </span>
-        </div>
+    <div className="grid gap-3">
+      <div className="flex items-center justify-end gap-2">
         <div className="flex shrink-0 items-center gap-2">
           {insight ? <InsightStatusBadge status={insight.status} /> : null}
           {canRefresh ? (
@@ -1928,10 +1950,7 @@ function ClientFactChecklist({
   readiness: ClientReadiness | undefined
 }) {
   return (
-    <div className="grid gap-2 rounded-md border border-divider-regular p-3">
-      <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-        <Trans>Fact readiness</Trans>
-      </span>
+    <div className="grid gap-2">
       <FactCheckRow
         isComplete={!readiness?.missingRequiredFacts.includes('state')}
         label={<Trans>Filing jurisdiction</Trans>}
@@ -2024,19 +2043,58 @@ function ClientSourceBadge({ client }: { client: ClientPublic }) {
   )
 }
 
-function DetailRow({
-  label,
-  value,
-  mono = false,
+function ClientSourceCell({
+  client,
+  firmTimezone,
 }: {
-  label: ReactNode
-  value: string
-  mono?: boolean
+  client: ClientPublic
+  firmTimezone: string
 }) {
   return (
-    <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 text-sm">
-      <span className="text-text-tertiary">{label}</span>
-      <span className={mono ? 'tabular-nums text-text-primary' : 'text-text-primary'}>{value}</span>
+    <div className="flex min-w-0 flex-col gap-1">
+      <ClientSourceBadge client={client} />
+      {getClientSourceType(client) === 'imported' ? (
+        <span className="truncate text-xs text-text-tertiary tabular-nums">
+          <Trans>Synced {formatDateTimeWithTimezone(client.updatedAt, firmTimezone)}</Trans>
+        </span>
+      ) : null}
     </div>
+  )
+}
+
+function ClientOpportunityCountBadge({ count }: { count: number }) {
+  const { t } = useLingui()
+  return (
+    <Badge variant="secondary" className="text-xs" aria-label={t`${count} opportunity match(es)`}>
+      <SparklesIcon data-icon="inline-start" aria-hidden />
+      {count}
+    </Badge>
+  )
+}
+
+function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] }) {
+  const { t } = useLingui()
+  const count = matches.length
+  const titles = matches
+    .slice(0, 3)
+    .map((match) => match.title)
+    .join('\n')
+  const tooltip = count > 3 ? `${titles}\n+${count - 3} more` : titles
+  const label =
+    count > 1
+      ? t`Radar · ${count}`
+      : matches[0]?.taxType
+        ? t`Radar · ${matches[0].taxType}`
+        : t`Radar`
+  return (
+    <Badge
+      variant="warning"
+      className="shrink-0"
+      title={tooltip}
+      aria-label={t`Radar alert: ${tooltip}`}
+    >
+      <ActivityIcon data-icon="inline-start" aria-hidden />
+      {label}
+    </Badge>
   )
 }
