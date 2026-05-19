@@ -155,7 +155,7 @@ function NeedsAttentionSection() {
               )}
             >
               {visibleAlerts.map((alert) => (
-                <div key={alert.id} className="min-w-0">
+                <div key={alert.id} className="h-full min-w-0">
                   <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
                 </div>
               ))}

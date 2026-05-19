@@ -474,7 +474,7 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         {dashboardV2 ? (
           <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
