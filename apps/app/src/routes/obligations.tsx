@@ -1973,7 +1973,11 @@ export function ObligationQueueRoute() {
             </div>
           ) : (
             <>
-              <Table>
+              {/* Override the Table primitive's default `whitespace-nowrap`
+                on BOTH heads and cells, letting long values (client names,
+                tax type codes) wrap so the 12-column queue fits within
+                the page content width instead of forcing horizontal scroll. */}
+              <Table className="[&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:break-words">
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>

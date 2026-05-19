@@ -6,17 +6,13 @@ import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   ActivityIcon,
-  BuildingIcon,
   CalendarClockIcon,
   CheckIcon,
   ChevronsUpDownIcon,
-  CreditCardIcon,
-  GaugeIcon,
   LayoutDashboardIcon,
   LibraryIcon,
   MapIcon,
   PlusIcon,
-  ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
@@ -474,6 +470,10 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         clients: [],
         rules: [],
         coverage: [],
+        // Team / Workload / Practice profile / Billing / Audit log live
+        // inside `/settings` (the workspace-config hub). Surfacing them
+        // here too would be duplicate chrome — sidebar keeps only the
+        // daily client-facing destinations.
         practice: [
           { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
           {
@@ -482,16 +482,6 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             icon: SparklesIcon,
             end: false,
           },
-          { href: '/members', label: t`Team`, icon: UsersIcon, end: false },
-          { href: '/workload', label: t`Workload`, icon: GaugeIcon, end: false },
-          {
-            href: '/practice',
-            label: t`Practice profile`,
-            icon: BuildingIcon,
-            end: false,
-          },
-          { href: '/billing', label: t`Billing`, icon: CreditCardIcon, end: false },
-          { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
         ],
         footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
       }
@@ -581,7 +571,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             ))}
           </NavGroupSection>
         ) : null}
-        <NavGroupSection label={t`Practice`}>
+        <NavGroupSection label={t`Clients`}>
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
           ))}
