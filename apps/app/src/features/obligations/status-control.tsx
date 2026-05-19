@@ -138,11 +138,19 @@ function useReadinessLabels(): ReadinessLabels {
 function ObligationQueueStatusControl({
   row,
   labels,
+  statuses = ALL_STATUSES,
   disabled,
   onChange,
 }: {
   row: StatusControlRow
   labels: StatusLabels
+  // Subset of statuses to surface in the dropdown. Defaults to the
+  // full ALL_STATUSES (legacy 10-value set). v2 callers pass
+  // LIFECYCLE_V2_STATUSES so the dropdown shows only the 6 target
+  // states. The trigger still renders `labels[row.status]` so a row
+  // currently in a legacy state (e.g. `in_progress`) keeps a readable
+  // label even when its value isn't in the dropdown options.
+  statuses?: readonly ObligationStatus[]
   disabled: boolean
   onChange: (id: string, status: ObligationStatus) => void
 }) {
@@ -175,7 +183,7 @@ function ObligationQueueStatusControl({
             onChange(row.id, value)
           }}
         >
-          {ALL_STATUSES.map((status) => (
+          {statuses.map((status) => (
             <DropdownMenuRadioItem
               key={status}
               value={status}

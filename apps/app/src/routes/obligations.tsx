@@ -146,11 +146,14 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
   ALL_STATUSES,
+  LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
+  useLifecycleV2StatusLabels,
   useStatusLabels,
   useReadinessLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -554,7 +557,15 @@ export function ObligationQueueRoute() {
   const practiceAiEnabled = paidPlanActive(permission.firm)
   const { openEvidence } = useEvidenceDrawer()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  const statusLabels = useStatusLabels()
+  // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
+  // page: dropdown shows 6 target states instead of legacy 10, and
+  // `review` re-labels to "In review". See
+  // docs/Design/obligation-lifecycle-design-brief.md.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
+  const statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   const sortLabels = useSortLabels()
   const [
     {
@@ -1276,6 +1287,7 @@ export function ObligationQueueRoute() {
             <ObligationQueueStatusControl
               row={obligationQueueRow}
               labels={statusLabels}
+              statuses={statusDropdownOptions}
               disabled={statusUpdatePending}
               onChange={(id, status) => updateStatus({ id, status })}
             />
@@ -1303,6 +1315,7 @@ export function ObligationQueueRoute() {
       sort,
       stateOptions,
       stateQuery,
+      statusDropdownOptions,
       statusLabels,
       statusOptions,
       statusQuery,
