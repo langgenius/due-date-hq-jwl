@@ -19,6 +19,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   CalendarDaysIcon,
+  CheckCircle2Icon,
   ChevronDownIcon,
   Columns3Icon,
   CopyIcon,
@@ -2593,6 +2594,25 @@ function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // Lifecycle v2 slice 2d.3: manual acceptance — when a filed return has
+  // been accepted by the authority (e-file accepted / paper return
+  // received with no rejection), the preparer marks it complete from the
+  // drawer header. Closes the "Filed ≠ Done" loop (PDF anti-pattern #3).
+  const markAcceptedMutation = useMutation(
+    orpc.obligations.updateStatus.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        toast.success(t`Marked accepted`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't mark accepted`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
   function updateChecklistItem(index: number, patch: Partial<ReadinessChecklistItem>) {
     if (!row) return
     const base = checklist.length > 0 ? checklist : EMPTY_CHECKLIST
@@ -2659,10 +2679,24 @@ function ObligationQueueDetailDrawer({
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(1120px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none xl:data-[side=right]:w-[min(1180px,calc(100vw-2rem))] overflow-y-auto">
         <SheetHeader className="border-b border-divider-subtle">
-          <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
-          <SheetDescription>
-            {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
-          </SheetDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
+              <SheetDescription>
+                {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
+              </SheetDescription>
+            </div>
+            {lifecycleV2 && row && (row.status === 'done' || row.status === 'paid') ? (
+              <Button
+                size="sm"
+                onClick={() => markAcceptedMutation.mutate({ id: row.id, status: 'completed' })}
+                disabled={markAcceptedMutation.isPending}
+              >
+                <CheckCircle2Icon aria-hidden="true" />
+                <Trans>Mark accepted</Trans>
+              </Button>
+            ) : null}
+          </div>
         </SheetHeader>
         <div className="px-6 pb-6">
           {detailQuery.isLoading ? (
