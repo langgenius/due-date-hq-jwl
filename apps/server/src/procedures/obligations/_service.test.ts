@@ -93,6 +93,9 @@ function buildScoped(firmId: string, rows: Row[]) {
         }
       }
     },
+    async unblockChildrenOf() {
+      return []
+    },
     async updateExtensionDecision() {},
     async deleteByBatch() {
       return 0
@@ -492,6 +495,7 @@ function makeRow(over: Partial<Row> = {}): Row {
     baseDueDate: now,
     currentDueDate: now,
     status: 'pending',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,

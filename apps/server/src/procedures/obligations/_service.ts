@@ -8,6 +8,7 @@ import type {
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
 } from '@duedatehq/contracts'
+import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { calculateAccruedPenalty } from '../_penalty-exposure'
 
@@ -34,6 +35,7 @@ interface ObligationRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationInstancePublic['status']
+  blockedByObligationInstanceId?: string | null
   readiness: ObligationInstancePublic['readiness']
   extensionDecision: ObligationInstancePublic['extensionDecision']
   extensionMemo: string | null
@@ -127,6 +129,7 @@ export function toObligationPublic(
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    blockedByObligationInstanceId: row.blockedByObligationInstanceId ?? null,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,
@@ -280,6 +283,18 @@ export async function updateObligationStatus(
     }
   }
 
+  // Lifecycle v2 transition validation. The matrix lives in
+  // packages/core/src/obligation-workflow — see "Filed ≠ Done"
+  // (PDF anti-pattern #3) for the load-bearing invariant: `completed`
+  // can only follow `done` or `paid`. The legacy 8 states still
+  // transition freely among themselves; the new `completed` is the
+  // strict gate.
+  if (!isLegalObligationTransition(before.status, input.status)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition: ${before.status} → ${input.status}.`,
+    })
+  }
+
   await scoped.obligations.updateStatus(input.id, input.status)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
@@ -308,6 +323,33 @@ export async function updateObligationStatus(
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 
+  // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
+  // When this row reaches `completed`, every obligation that was
+  // `blocked_by` this row flips back to `pending` (with blocked_by
+  // cleared). Each cascade writes its own audit row so the child's
+  // timeline reads "Unblocked by Lakeview Partnership · federal_1065"
+  // instead of just a bare parent UUID. (Slice 2d.4 polish.)
+  if (after.status === 'completed') {
+    const unblockedIds = await scoped.obligations.unblockChildrenOf(input.id)
+    if (unblockedIds.length > 0) {
+      const parentClient = await scoped.clients.findById(after.clientId)
+      const parentLabel = `${parentClient?.name ?? 'Unknown client'} · ${after.taxType}`
+      await Promise.all(
+        unblockedIds.map((childId) =>
+          scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentLabel} (parent #${input.id.slice(0, 8)}).`,
+          }),
+        ),
+      )
+    }
+  }
+
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),
     auditId,
@@ -330,6 +372,19 @@ export async function bulkUpdateObligationStatus(
   const changedRows = beforeRows.filter((row) => row.status !== input.status)
   if (changedRows.length === 0) {
     return { updatedCount: 0, auditIds: [] }
+  }
+
+  // Lifecycle v2: bulk transitions must each pass the matrix. Any
+  // illegal source row blocks the entire batch so the partial-failure
+  // surprise doesn't bite preparers mid-tax-week. (Per the brief's
+  // bulk-error contract: "<N> rows skipped — illegal status transition")
+  const illegalRow = changedRows.find(
+    (row) => !isLegalObligationTransition(row.status, input.status),
+  )
+  if (illegalRow) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition for obligation ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
+    })
   }
 
   await scoped.obligations.updateStatusMany(
@@ -356,6 +411,47 @@ export async function bulkUpdateObligationStatus(
       return event
     }),
   )
+
+  // Lifecycle v2 (slice 2d.4): cascade parent→child unblock for each
+  // row in the bulk that landed at `completed`. Mirrors the single-
+  // row path. Failures don't block the bulk write; cascades are
+  // best-effort with their own audit trail. Reason includes the
+  // parent's client name + tax type for readable child timelines
+  // (slice 2d.4 polish).
+  if (input.status === 'completed') {
+    const cascades = await Promise.all(
+      changedRows.map((row) =>
+        scoped.obligations.unblockChildrenOf(row.id).then((childIds) =>
+          childIds.map((childId) => ({
+            parentId: row.id,
+            parentClientId: row.clientId,
+            parentTaxType: row.taxType,
+            childId,
+          })),
+        ),
+      ),
+    )
+    const allCascades = cascades.flat()
+    if (allCascades.length > 0) {
+      const parentClientIds = [...new Set(allCascades.map((c) => c.parentClientId))]
+      const parentClients = await scoped.clients.findManyByIds(parentClientIds)
+      const parentClientNameById = new Map(parentClients.map((c) => [c.id, c.name]))
+      await Promise.all(
+        allCascades.map(({ parentId, parentClientId, parentTaxType, childId }) => {
+          const parentClientName = parentClientNameById.get(parentClientId) ?? 'Unknown client'
+          return scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentClientName} · ${parentTaxType} (parent #${parentId.slice(0, 8)}, bulk).`,
+          })
+        }),
+      )
+    }
+  }
 
   return {
     updatedCount: changedRows.length,

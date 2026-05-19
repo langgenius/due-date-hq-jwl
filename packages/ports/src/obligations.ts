@@ -53,6 +53,7 @@ export interface ObligationInstanceRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  blockedByObligationInstanceId: string | null
   readiness: ObligationReadiness
   extensionDecision: ObligationExtensionDecision
   extensionMemo: string | null
@@ -186,5 +187,13 @@ export interface ObligationsRepo {
     },
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>
+  /**
+   * Lifecycle v2: when the obligation identified by
+   * `parentObligationInstanceId` reaches `completed`, every child row
+   * that was `blocked_by` it AND in `blocked` state flips back to
+   * `pending` with `blockedBy` cleared. Returns the list of child IDs
+   * so the caller can audit the cascade.
+   */
+  unblockChildrenOf(parentObligationInstanceId: string): Promise<string[]>
   deleteByBatch(batchId: string): Promise<number>
 }

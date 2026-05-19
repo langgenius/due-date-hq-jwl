@@ -33,6 +33,8 @@ export const SMART_PRIORITY_DEFAULT_PROFILE = {
   historyCapCount: 5,
 } as const satisfies SmartPriorityProfile
 
+// Mirrors ObligationStatus; updated for lifecycle v2 (see
+// docs/Design/obligation-lifecycle-design-brief.md).
 export type SmartPriorityStatus =
   | 'pending'
   | 'in_progress'
@@ -42,6 +44,8 @@ export type SmartPriorityStatus =
   | 'waiting_on_client'
   | 'review'
   | 'not_applicable'
+  | 'blocked'
+  | 'completed'
 
 export type SmartPriorityExposureStatus = 'ready' | 'needs_input' | 'unsupported'
 

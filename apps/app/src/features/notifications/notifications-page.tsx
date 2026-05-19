@@ -146,9 +146,6 @@ export function NotificationsPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
-          <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
-            <Trans>Notifications</Trans>
-          </span>
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
             <Trans>Notification center</Trans>
           </h1>
@@ -204,7 +201,7 @@ export function NotificationsPage() {
                     </h2>
                     <p className="text-sm text-text-secondary">{item.body}</p>
                   </div>
-                  <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+                  <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
                     {formatDateTimeWithTimezone(item.createdAt, practiceTimezone)}
                   </span>
                 </div>
@@ -423,7 +420,7 @@ function MorningDigestCard({
               {runs.slice(0, 7).map((run) => (
                 <li key={run.id} className="grid gap-1 rounded-md border border-divider-subtle p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs tabular-nums text-text-secondary">
+                    <span className="text-xs tabular-nums text-text-secondary">
                       {run.localDate}
                     </span>
                     {digestStatusBadge(run.status)}

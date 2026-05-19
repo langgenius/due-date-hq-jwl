@@ -6,12 +6,17 @@ import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   ActivityIcon,
+  BuildingIcon,
   CalendarClockIcon,
   CheckIcon,
   ChevronsUpDownIcon,
+  CreditCardIcon,
+  GaugeIcon,
   LayoutDashboardIcon,
+  LibraryIcon,
   MapIcon,
   PlusIcon,
+  ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
@@ -60,6 +65,7 @@ import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import { FIRM_SWITCHER_HOTKEY } from '@/components/patterns/keyboard-shell/display'
+import { useNavV2 } from '@/components/patterns/use-nav-v2'
 import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
@@ -83,6 +89,14 @@ type NavConfig = {
   operations: NavItem[]
   clients: NavItem[]
   rules: NavItem[]
+  // v2-only: a "Practice" group consolidates workspace management
+  // destinations (Team, Workload, Billing, Audit log, Practice
+  // profile) that today are scattered between Clients group and
+  // Settings sub-pages. Empty in legacy mode.
+  practice: NavItem[]
+  // v2-only: Coverage replaces the legacy Rules group label. The
+  // legacy `rules` array stays populated in v1 mode for back-compat.
+  coverage: NavItem[]
   // Bottom of the sidebar. Holds the Settings hub for workspace
   // configuration (Practice profile, Members, Billing, Audit, automation
   // settings — see `apps/app/src/routes/settings.tsx`). Personal account
@@ -410,12 +424,70 @@ function usePulseAlertCount(): number {
   return query.data?.alerts.length ?? 0
 }
 
-function useNavItems(_firm: FirmPublic): NavConfig {
+function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
   const pulseCount = usePulseAlertCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
-  return useMemo<NavConfig>(
-    () => ({
+  return useMemo<NavConfig>(() => {
+    if (navV2) {
+      // v2 IA per 2026-05-19 design mockup. Radar disappears from the
+      // sidebar — it lives as the NEEDS ATTENTION surface on the
+      // dashboard. Coverage / Library consolidate under their own
+      // group. Practice management gathers Team, Workload, Billing,
+      // Audit log, Practice profile into one group instead of
+      // scattering them across Clients group + Settings sub-pages.
+      // Contacts and Payments aren't built yet — deferred until
+      // those routes exist.
+      return {
+        operations: [
+          { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
+          {
+            href: '/obligations',
+            label: t`Obligations`,
+            icon: CalendarClockIcon,
+            end: false,
+          },
+        ],
+        clients: [],
+        rules: [],
+        coverage: [
+          {
+            href: '/rules/coverage',
+            label: t`Coverage status`,
+            icon: MapIcon,
+            end: false,
+          },
+          {
+            href: '/rules/library',
+            label: t`Rule library`,
+            icon: LibraryIcon,
+            end: false,
+          },
+        ],
+        practice: [
+          { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
+          {
+            href: '/opportunities',
+            label: t`Opportunities`,
+            icon: SparklesIcon,
+            end: false,
+          },
+          { href: '/members', label: t`Team`, icon: UsersIcon, end: false },
+          { href: '/workload', label: t`Workload`, icon: GaugeIcon, end: false },
+          {
+            href: '/practice',
+            label: t`Practice profile`,
+            icon: BuildingIcon,
+            end: false,
+          },
+          { href: '/billing', label: t`Billing`, icon: CreditCardIcon, end: false },
+          { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
+        ],
+        footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
+      }
+    }
+    // Legacy (default) sidebar.
+    return {
       operations: [
         { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
         {
@@ -443,31 +515,54 @@ function useNavItems(_firm: FirmPublic): NavConfig {
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
-      // RULES destination — Coverage is the single rules surface.
-      // Catalog (`/rules/library`) was hidden from the sidebar once
-      // Coverage absorbed the daily Accept / Reject flow into its
-      // expanded-row + docked-panel pattern; the route still exists
-      // for direct links and as a bulk view we may bring back later.
-      // Sources (`/rules/sources`) is operational sysops — surfaced
-      // as inline pointers from Coverage's source-attention banner
-      // and Radar callouts; not a daily-use sidebar slot.
+      // Rule library is a single direct entry. Coverage and Sources are
+      // not separate sidebar destinations — they're aggregate views of
+      // the catalog, rendered as sections inside the Library page.
       rules: [
         {
-          href: '/rules/coverage',
-          label: t`Coverage`,
-          icon: MapIcon,
+          href: '/rules/library',
+          label: t`Rule library`,
+          icon: LibraryIcon,
           end: false,
         },
       ],
+      coverage: [],
+      practice: [],
       footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
-    }),
-    [t, pulseBadge],
-  )
+    }
+  }, [t, pulseBadge, navV2])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
   const { t } = useLingui()
-  const items = useNavItems(firm)
+  const navV2 = useNavV2()
+  const items = useNavItems(firm, navV2)
+  if (navV2) {
+    return (
+      <nav aria-label={t`Primary navigation`} className="contents">
+        <NavGroupSection label={t`Operations`}>
+          {items.operations.map((item) => (
+            <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
+          ))}
+        </NavGroupSection>
+        <NavGroupSection label={t`Coverage`}>
+          {items.coverage.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+        <NavGroupSection label={t`Practice`}>
+          {items.practice.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+        <NavGroupSection muted>
+          {items.footer.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+      </nav>
+    )
+  }
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
       <NavGroupSection label={t`Operations`}>

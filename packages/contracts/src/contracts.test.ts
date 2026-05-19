@@ -435,6 +435,9 @@ describe('@duedatehq/contracts', () => {
       'waiting_on_client',
       'review',
       'not_applicable',
+      // Lifecycle v2 additions — see docs/Design/obligation-lifecycle-design-brief.md.
+      'blocked',
+      'completed',
     ])
   })
 
@@ -487,6 +490,7 @@ describe('@duedatehq/contracts', () => {
         baseDueDate: '2026-04-15',
         currentDueDate: '2026-04-15',
         status: 'in_progress',
+        blockedByObligationInstanceId: null,
         readiness: 'ready',
         extensionDecision: 'not_considered',
         extensionMemo: null,

@@ -19,17 +19,14 @@ test.describe('seeded team workload', () => {
   })
 
   test('AC: E2E-WORKLOAD-SOLO-UPGRADE keeps Solo locked but discoverable', async ({
-    appShellPage,
     authenticatedPage,
     workloadPage,
   }) => {
-    await appShellPage.goto()
-
-    const sidebarItem = appShellPage.primaryNavigation.getByRole('link', {
-      name: /Team workload.*Pro/,
-    })
-    await expect(sidebarItem).toHaveAttribute('aria-disabled', 'true')
-
+    // Team workload moved out of the primary sidebar in the sidebar-tidy
+    // pass (commit 4abdd53) — it lives behind the Settings hub now. The
+    // upgrade gate on the /workload page itself is the surviving paywall
+    // surface, so we test it directly instead of asserting on a sidebar
+    // link that no longer exists.
     await workloadPage.goto()
 
     await expect(authenticatedPage).toHaveURL(/\/workload$/)

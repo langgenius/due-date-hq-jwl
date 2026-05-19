@@ -1,10 +1,12 @@
 // Resolve the apps/app entry URL for marketing CTAs.
 // Preference order:
-//   1. `PUBLIC_APP_URL` env (Cloudflare Pages var, wrangler.toml in prod)
+//   1. `PUBLIC_APP_URL` env (wrangler.toml in production)
 //   2. apps/app vite dev server (http://localhost:5173) when running `astro dev`
 //   3. internal deployment URL as a safe last-resort fallback
 
-const PROD_APP_URL = 'https://app.due.langgenius.app'
+import { APP_SITE_URL } from './site'
+
+const PROD_APP_URL = APP_SITE_URL
 const DEV_APP_URL = 'http://localhost:5173'
 
 function resolveBase(): string {

@@ -423,7 +423,7 @@ export function ClientFactsWorkspace({
           />
         ),
         cell: ({ row }) => (
-          <span className="whitespace-nowrap font-mono tabular-nums">
+          <span className="whitespace-nowrap tabular-nums">
             {formatFilingJurisdictions(row.original)}
           </span>
         ),
@@ -478,7 +478,7 @@ export function ClientFactsWorkspace({
         accessorKey: 'updatedAt',
         header: t`Updated`,
         cell: (info) => (
-          <span className="font-mono tabular-nums">
+          <span className="tabular-nums">
             {formatDateTimeWithTimezone(info.getValue<string>(), firmTimezone)}
           </span>
         ),
@@ -568,7 +568,7 @@ export function ClientFactsWorkspace({
                 </CardDescription>
               </div>
               <div className="flex w-full min-w-0 flex-wrap items-center gap-2 xl:w-auto xl:max-w-[880px] xl:shrink-0 xl:justify-end">
-                <Badge variant="outline" className="font-mono tabular-nums">
+                <Badge variant="outline" className="tabular-nums">
                   {filteredClients.length}/{clients.length}
                 </Badge>
                 <Button
@@ -633,7 +633,7 @@ export function ClientFactsWorkspace({
                       </TableRow>
                     ))}
                   </TableHeader>
-                  <TableBody>
+                  <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
                     {table.getRowModel().rows.length > 0 ? (
                       table.getRowModel().rows.map((row) => (
                         <TableRow
@@ -691,7 +691,7 @@ function ClientMetricCard({ metric }: { metric: ClientMetric }) {
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm font-medium text-text-secondary">{metric.label}</span>
-          <span className="font-mono text-3xl font-semibold tabular-nums text-text-primary">
+          <span className="text-3xl font-semibold tabular-nums text-text-primary">
             {metric.value}
           </span>
           <span className="truncate text-xs text-text-tertiary">{metric.detail}</span>
@@ -907,7 +907,7 @@ function ClientDetailWorkspace({
             <div className="flex flex-wrap items-center gap-2">
               <ClientSourceBadge client={client} />
               <ClientReadinessBadge readiness={readiness} compact={false} />
-              <Badge variant="outline" className="font-mono tabular-nums">
+              <Badge variant="outline" className="tabular-nums">
                 {formatFilingJurisdictions(client)}
               </Badge>
             </div>
@@ -1101,7 +1101,7 @@ function ClientWorkMetric({
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm font-medium text-text-secondary">{label}</span>
-          <span className="truncate font-mono text-2xl font-semibold tabular-nums text-text-primary">
+          <span className="truncate text-2xl font-semibold tabular-nums text-text-primary">
             {value}
           </span>
           <span className="truncate text-xs text-text-tertiary">{detail}</span>
@@ -1185,7 +1185,7 @@ function ClientWorkPlanPanel({
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
                   {visible.map((obligation) => (
                     <TableRow key={obligation.id}>
                       <TableCell>
@@ -1198,18 +1198,18 @@ function ClientWorkPlanPanel({
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono tabular-nums">
+                      <TableCell className="tabular-nums">
                         {formatDate(obligation.currentDueDate)}
                       </TableCell>
                       <TableCell>
                         <ObligationStatusBadge obligation={obligation} />
                       </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">
+                      <TableCell className="text-right tabular-nums">
                         {obligation.estimatedExposureCents !== null
                           ? formatCents(obligation.estimatedExposureCents)
                           : 'N/A'}
                       </TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">
+                      <TableCell className="text-right tabular-nums">
                         {obligation.estimatedTaxDueCents !== null
                           ? formatCents(obligation.estimatedTaxDueCents)
                           : 'N/A'}
@@ -1279,10 +1279,10 @@ function ClientPulsePanel({
                   <PulseMatchBadge status={match.status} />
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                  <Badge variant="outline" className="font-mono tabular-nums">
+                  <Badge variant="outline" className="tabular-nums">
                     {match.taxType}
                   </Badge>
-                  <span className="font-mono tabular-nums text-text-secondary">
+                  <span className="tabular-nums text-text-secondary">
                     {formatDate(match.currentDueDate)} -&gt; {formatDate(match.newDueDate)}
                   </span>
                   <span className="text-text-tertiary">
@@ -1394,7 +1394,7 @@ function ClientActivityPanel({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium text-text-primary">{event.action}</span>
-                  <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                  <span className="text-xs tabular-nums text-text-tertiary">
                     {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
                   </span>
                 </div>
@@ -1604,7 +1604,7 @@ function ClientJurisdictionPanel({
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
               {client.filingProfiles
                 .toSorted(
                   (a, b) =>
@@ -1622,7 +1622,7 @@ function ClientJurisdictionPanel({
                   return (
                     <TableRow key={profile.id}>
                       <TableCell>
-                        <span className="font-mono tabular-nums">{profile.state}</span>
+                        <span className="tabular-nums">{profile.state}</span>
                       </TableCell>
                       <TableCell className="truncate">
                         {profile.counties.length > 0 ? profile.counties.join(', ') : t`Any county`}
@@ -1651,7 +1651,7 @@ function ClientJurisdictionPanel({
           </FieldLabel>
           <Input
             id="client-jurisdiction-states"
-            className="font-mono uppercase tabular-nums"
+            className="uppercase tabular-nums"
             placeholder="WA, CA"
             value={statesText}
             aria-invalid={stateInvalid}
@@ -1759,7 +1759,7 @@ function ClientRiskInputsPanel({
             type="number"
             min={0}
             max={99}
-            className="font-mono tabular-nums"
+            className="tabular-nums"
             value={lateFilingCount}
             aria-invalid={lateFilingInvalid}
             onChange={(event) => setLateFilingCount(event.target.value)}
@@ -2036,9 +2036,7 @@ function DetailRow({
   return (
     <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-3 text-sm">
       <span className="text-text-tertiary">{label}</span>
-      <span className={mono ? 'font-mono tabular-nums text-text-primary' : 'text-text-primary'}>
-        {value}
-      </span>
+      <span className={mono ? 'tabular-nums text-text-primary' : 'text-text-primary'}>{value}</span>
     </div>
   )
 }

@@ -39,7 +39,6 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { requiredRolesLabel, useFirmPermission } from '@/features/permissions/permission-gate'
-import { jurisdictionLabel, RULE_JURISDICTIONS } from '@/features/rules/rules-console-model'
 import { COMMAND_PALETTE_HOTKEY, formatShortcutForDisplay } from './display'
 
 interface CommandPaletteProps {
@@ -51,7 +50,7 @@ type CommandEntry = {
   id: string
   label: string
   description: string
-  group: 'navigate' | 'actions' | 'jurisdictions' | 'ask'
+  group: 'navigate' | 'actions' | 'ask'
   disabled?: boolean
   permission?: FirmPermission
   onSelect: () => void
@@ -135,7 +134,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'rules-coverage',
-        label: t`Coverage status`,
+        label: t`Coverage`,
         description: t`Review per-jurisdiction rule coverage by entity.`,
         group: 'navigate',
         icon: MapIcon,
@@ -238,22 +237,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         disabled: true,
         onSelect: () => undefined,
       },
-      // Jurisdiction commands — one per RuleJurisdiction (52 entries).
-      // Visible in the default unfiltered palette but cmdk natural
-      // filtering narrows as the user types (e.g. typing "NY" or
-      // "new york" surfaces the matching entry). Lands on Rule library
-      // pre-filtered to that jurisdiction with `from=cmd` so the
-      // origin breadcrumb explains why the library is filtered.
-      ...RULE_JURISDICTIONS.map(
-        (code): CommandEntry => ({
-          id: `jur:${code}`,
-          label: jurisdictionLabel(code),
-          description: t`Filter Rules library to ${code}`,
-          group: 'jurisdictions',
-          icon: MapIcon,
-          onSelect: () => navigate(`/rules/library?jur=${code}&from=cmd`),
-        }),
-      ),
     ],
     [navigate, openWizard, t],
   )
@@ -263,7 +246,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       [
         { id: 'navigate', heading: t`Navigate` },
         { id: 'actions', heading: t`Actions` },
-        { id: 'jurisdictions', heading: t`Jurisdictions` },
         { id: 'ask', heading: t`Ask` },
       ] satisfies Array<{ id: CommandGroupId; heading: string }>,
     [t],

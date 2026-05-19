@@ -9,7 +9,9 @@ export class MembersPage {
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Members', level: 1 })
     this.inviteButton = page.getByRole('button', { name: /Invite member/ })
-    this.inviteDialog = page.getByRole('dialog', { name: 'Invite a teammate' })
+    // Copy polish (commit b8da3ba) renamed the dialog title from "Invite a
+    // teammate" to "Invite member" to match the trigger button.
+    this.inviteDialog = page.getByRole('dialog', { name: 'Invite member' })
     this.sendInviteButton = this.inviteDialog.getByRole('button', { name: 'Send invite' })
   }
 

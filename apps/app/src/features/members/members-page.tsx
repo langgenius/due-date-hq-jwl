@@ -233,10 +233,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
       <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-            <Trans>Practice</Trans>
-          </p>
-          <h1 className="mt-0.5 text-2xl leading-[30px] font-semibold text-text-primary">
+          <h1 className="text-2xl leading-[30px] font-semibold text-text-primary">
             <Trans>Members</Trans>
           </h1>
           <p className="mt-1 text-base leading-5 text-text-secondary">
@@ -385,7 +382,7 @@ function SeatStat({ data }: { data: MembersListOutput }) {
         <Trans>Seats used</Trans>
       </p>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="font-mono text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+        <span className="text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
           {data.usedSeats}
         </span>
         <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
@@ -407,7 +404,7 @@ function KpiStat({ label, value, detail }: { label: string; value: number; detai
   return (
     <div className="flex min-h-24 flex-col px-5 py-4">
       <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">{label}</p>
-      <span className="mt-1 font-mono text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+      <span className="mt-1 text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
         {value}
       </span>
       <p className="mt-auto text-xs leading-[18px] text-text-muted">{detail}</p>
@@ -453,7 +450,7 @@ function SectionHeader({
   return (
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
       <h2 className="font-medium tracking-[0.08em] uppercase">{title}</h2>
-      <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-mono font-medium tabular-nums">
+      <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-medium tabular-nums">
         {count}
       </span>
       <span>{note}</span>
@@ -493,7 +490,7 @@ function ActiveMembersTable({
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {members.map((member) => {
             const mutable = member.role !== 'owner' && !member.isCurrentUser
             return (
@@ -567,7 +564,7 @@ function PendingInvitationsTable({
             <TableHead className="w-24">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {invitations.map((invitation) => (
             <TableRow key={invitation.id} className="h-14">
               <TableCell className="px-4 py-2">

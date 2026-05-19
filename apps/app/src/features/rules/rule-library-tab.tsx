@@ -1,16 +1,11 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, ExternalLinkIcon, EyeIcon } from 'lucide-react'
+import { CheckIcon, EyeIcon } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
-import type {
-  ObligationRule,
-  RuleBulkImpactPreview,
-  RuleReviewTask,
-  RuleSource,
-} from '@duedatehq/contracts'
+import type { ObligationRule, RuleBulkImpactPreview, RuleReviewTask } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Sheet,
@@ -48,7 +43,6 @@ import {
 import {
   FilterChips,
   JurisdictionCode,
-  OriginBreadcrumb,
   QueryPanelState,
   SectionFrame,
   SectionLabel,
@@ -63,7 +57,6 @@ type StatusKey = ObligationRule['status']
 const RULE_PAGE_SIZE = 25
 const EMPTY_RULE_ROWS: ObligationRule[] = []
 const EMPTY_REVIEW_TASKS: RuleReviewTask[] = []
-const EMPTY_SOURCES: RuleSource[] = []
 
 // The library filter and jurisdiction filter are URL-state instead of
 // local component state so the Coverage section above can drill into a
@@ -91,25 +84,6 @@ const jurisdictionParser = parseAsArrayOf(parseAsString)
   .withDefault([])
   .withOptions({ history: 'replace' })
 
-// Entity filter is URL-state so the Coverage status entity-dot drill can
-// land here with `?entity=llc` (or any subset of entities) pre-applied.
-// Same convention as `?jur=` and `?library=`.
-const entityParser = parseAsArrayOf(parseAsString)
-  .withDefault([])
-  .withOptions({ history: 'replace' })
-
-// Origin tag — set by cross-page drill-ins (e.g. `?from=coverage` when a
-// dot or PENDING count on Coverage status drilled here; `?from=sources`
-// when a "Used by N rules" link on Sources drilled here). Renders a small
-// breadcrumb pill above the table so the cross-page filter isn't
-// invisible. Clearing the pill resets all pre-filter URL state.
-const originParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
-
-// Source filter — set programmatically by Sources page "Used by N rules"
-// link. Single-value (rule cites one source). No header-filter UI today;
-// only entered via cross-page drill.
-const sourceParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
-
 function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
   return `${rule.id}:${rule.version}:${rule.status}`
 }
@@ -122,56 +96,12 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
   return `${rule.id}:${rule.version}`
 }
 
-const ENTITY_LABELS: Record<string, string> = {
-  llc: 'LLC',
-  partnership: 'Partnership',
-  s_corp: 'S-Corp',
-  c_corp: 'C-Corp',
-  sole_prop: 'Sole prop',
-  individual: 'Individual',
-  trust: 'Trust',
-  any_business: 'Any business',
-}
-
-function entityLabel(entity: string): string {
-  return ENTITY_LABELS[entity] ?? formatEnumLabel(entity)
-}
-
-/**
- * Resolve the OriginBreadcrumb label based on the active origin tag and
- * filter state. Each origin gets a context-aware label so the user sees
- * exactly which slice they're looking at, not just where they came from.
- *
- * The four supported origins:
- *  - `coverage` — drilled in from Coverage status (entity dot or PENDING)
- *  - `sources`  — drilled in from Sources "Used by N rules" link
- *  - `cmd`      — entered via ⌘K jurisdiction command
- */
-
 export function RuleLibraryTab() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const [libraryFilter, setLibraryFilter] = useQueryState('library', libraryFilterParser)
   const [jurisdictionFilters, setJurisdictionFilters] = useQueryState('jur', jurisdictionParser)
-  const [entityFilters, setEntityFiltersQuery] = useQueryState('entity', entityParser)
-  const setEntityFilters = useCallback(
-    (values: string[]) => {
-      void setEntityFiltersQuery(values)
-    },
-    [setEntityFiltersQuery],
-  )
-  const [origin, setOrigin] = useQueryState('from', originParser)
-  const [sourceFilter, setSourceFilter] = useQueryState('source', sourceParser)
-  // Origin-tag clear: drop the cross-page pre-filter URL state and the
-  // `?from=` tag in one shot. Filters back to the page's defaults
-  // (pending_review, no jur, no entity, no source).
-  const clearOriginAndFilters = useCallback(() => {
-    void setLibraryFilter('pending_review')
-    void setJurisdictionFilters([])
-    void setEntityFiltersQuery([])
-    void setSourceFilter('')
-    void setOrigin('')
-  }, [setEntityFiltersQuery, setJurisdictionFilters, setLibraryFilter, setSourceFilter, setOrigin])
+  const [entityFilters, setEntityFilters] = useState<string[]>([])
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<RuleHeaderFilterId | null>(null)
@@ -188,23 +118,9 @@ export function RuleLibraryTab() {
   const tasksQuery = useQuery(
     orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
   )
-  // Source-of-truth lookup: every row in the Library traces back to one or
-  // more RuleSource entries (IRS Pub, state tax code, DC government doc).
-  // We fetch the full registry once and join in the row to render an inline
-  // citation under the rule id. Per user directive 2026-05-19: "include
-  // sources of truth as much as possible" — the catalog should never read
-  // as floating claims, every rule should carry its provenance.
-  const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
 
   const rows = useMemo(() => rulesQuery.data ?? EMPTY_RULE_ROWS, [rulesQuery.data])
   const reviewTasks = useMemo(() => tasksQuery.data ?? EMPTY_REVIEW_TASKS, [tasksQuery.data])
-  const sourceById = useMemo(() => {
-    const map = new Map<string, RuleSource>()
-    for (const source of sourcesQuery.data ?? EMPTY_SOURCES) {
-      map.set(source.id, source)
-    }
-    return map
-  }, [sourcesQuery.data])
   const openTaskByRuleVersion = useMemo(
     () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
     [reviewTasks],
@@ -219,20 +135,9 @@ export function RuleLibraryTab() {
           matchesSelected(rule.jurisdiction, jurisdictionFilters) &&
           matchesAnySelected(rule.entityApplicability, entityFilters) &&
           matchesSelected(rule.ruleTier, tierFilters) &&
-          matchesSelected(rule.status, statusFilters) &&
-          // Single-value source filter: include rule only if its sourceIds
-          // list contains the URL-param value. Empty string = no filter.
-          (sourceFilter === '' || rule.sourceIds.includes(sourceFilter)),
+          matchesSelected(rule.status, statusFilters),
       ),
-    [
-      entityFilters,
-      jurisdictionFilters,
-      libraryFilter,
-      rows,
-      sourceFilter,
-      statusFilters,
-      tierFilters,
-    ],
+    [entityFilters, jurisdictionFilters, libraryFilter, rows, statusFilters, tierFilters],
   )
   const selectedRows = useMemo(
     () =>
@@ -312,13 +217,6 @@ export function RuleLibraryTab() {
     setPreview(null)
   }, [])
 
-  // Chip rail = cross-cutting catalog *status* only. Tier filtering
-  // (Applicability review / Exception / Basic / Annual rolling) lives in
-  // the TIER header filter — putting it both places creates the
-  // redundant-axes problem where one chip saturates ~80% of the table
-  // and adds no signal beyond what the Tier column already shows.
-  // Status (Needs review / Active / Rejected / Archived) is the right
-  // axis for prominent chips because rules move through these states.
   const filterOptions = useMemo(
     () => [
       {
@@ -330,6 +228,12 @@ export function RuleLibraryTab() {
       { value: 'all' as const, label: t`All`, count: counts.all },
       { value: 'rejected' as const, label: t`Rejected`, count: counts.rejected },
       { value: 'archived' as const, label: t`Archived`, count: counts.archived },
+      {
+        value: 'applicability_review' as const,
+        label: t`Applicability review`,
+        count: counts.applicability_review,
+      },
+      { value: 'exception' as const, label: t`Exception`, count: counts.exception },
     ],
     [counts, t],
   )
@@ -456,29 +360,6 @@ export function RuleLibraryTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      {origin === 'coverage' || origin === 'sources' || origin === 'cmd' ? (
-        <OriginBreadcrumb
-          label={
-            origin === 'sources' && sourceById.get(sourceFilter)
-              ? t`Filtered to rules citing: ${sourceById.get(sourceFilter)?.title ?? sourceFilter}`
-              : origin === 'sources'
-                ? t`Pre-filtered from Sources`
-                : origin === 'cmd' && jurisdictionFilters.length === 1
-                  ? t`Filtered to jurisdiction: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`
-                  : origin === 'cmd'
-                    ? t`Filtered via command palette`
-                    : origin === 'coverage' &&
-                        jurisdictionFilters.length === 1 &&
-                        entityFilters.length === 1
-                      ? t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')} · ${entityLabel(entityFilters[0] ?? '')}`
-                      : origin === 'coverage' && jurisdictionFilters.length === 1
-                        ? t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`
-                        : t`Pre-filtered from Coverage status`
-          }
-          onClear={clearOriginAndFilters}
-          clearLabel={t`Clear and back to default`}
-        />
-      ) : null}
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}
@@ -573,7 +454,6 @@ export function RuleLibraryTab() {
                   selectedRuleKeys.includes(ruleRowKey(rule)) &&
                   canBulkReviewRule(rule, openTaskByRuleVersion)
                 }
-                sourceById={sourceById}
                 onSelectedChange={toggleRule}
                 onSelect={handleRuleSelect}
               />
@@ -821,17 +701,12 @@ function RuleRow({
   rule,
   reviewTask,
   selected,
-  sourceById,
   onSelectedChange,
   onSelect,
 }: {
   rule: ObligationRule
   reviewTask: RuleReviewTask | null
   selected: boolean
-  // Lookup table of all watched sources so the inline citation can render
-  // the source title + link to the official document. Map vs. searching
-  // an array per row keeps the per-row cost O(1) at 100+ rule rows.
-  sourceById: ReadonlyMap<string, RuleSource>
   onSelectedChange: (rowKey: string, checked: boolean) => void
   onSelect: (rule: ObligationRule) => void
 }) {
@@ -888,7 +763,6 @@ function RuleRow({
             {reviewTask.reason === 'source_changed' ? t`Update available` : t`New rule`}
           </span>
         ) : null}
-        <RuleSourceCitation rule={rule} sourceById={sourceById} />
       </TableCell>
       <TableCell className="py-2 text-xs text-text-secondary">{rule.formName}</TableCell>
       <TableCell className="max-w-[168px] py-2 text-xs text-text-secondary">
@@ -905,74 +779,6 @@ function RuleRow({
       <TableCell className="py-2 font-mono text-xs text-text-tertiary">v{rule.version}</TableCell>
       <TableCell className="py-2 text-right text-xs text-text-tertiary">›</TableCell>
     </TableRow>
-  )
-}
-
-/**
- * Inline source-of-truth citation rendered under the rule id in the
- * Library table. Shows the first watched source (title + external link
- * to the official document) and, if the rule cites multiple sources, a
- * `+N` chip indicating how many more.
- *
- * Affordance: the citation is an inline link with hover underline, NOT
- * a styled pill. We don't want it to compete visually with the row
- * itself (which is a click-to-open affordance). Clicking the citation
- * stops the row click and opens the source document in a new tab.
- *
- * If the rule has no sources or sources haven't loaded yet, the
- * citation is omitted — better to render nothing than a placeholder
- * that lies about provenance.
- */
-function RuleSourceCitation({
-  rule,
-  sourceById,
-}: {
-  rule: ObligationRule
-  sourceById: ReadonlyMap<string, RuleSource>
-}) {
-  const { t } = useLingui()
-  const sourceIds = rule.sourceIds
-  // While the sources registry is still loading the map is empty; render
-  // nothing rather than flicker a "No source on file" placeholder that
-  // would replace itself a beat later. Once `sourceById.size > 0` the map
-  // is settled and the placeholder cases below become honest.
-  if (sourceById.size === 0) return null
-  if (sourceIds.length === 0) {
-    return (
-      <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted">
-        <ExternalLinkIcon aria-hidden className="size-3 shrink-0 opacity-50" />
-        <Trans>No source on file</Trans>
-      </span>
-    )
-  }
-  const firstSource = sourceById.get(sourceIds[0] ?? '')
-  if (!firstSource) {
-    return (
-      <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted">
-        <ExternalLinkIcon aria-hidden className="size-3 shrink-0 opacity-50" />
-        <Trans>Source unavailable</Trans>
-      </span>
-    )
-  }
-  const extraCount = sourceIds.length - 1
-  return (
-    <a
-      href={firstSource.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
-      aria-label={t`Open source document: ${firstSource.title}`}
-      className="mt-1 inline-flex max-w-full items-center gap-1 rounded-sm text-[11px] text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-    >
-      <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
-      <span className="min-w-0 truncate">{firstSource.title}</span>
-      {extraCount > 0 ? (
-        <span className="shrink-0 text-text-muted">
-          <Trans>+{extraCount}</Trans>
-        </span>
-      ) : null}
-    </a>
   )
 }
 

@@ -37,14 +37,14 @@
 ┌────────────────────────────────────────────────────────────────────────┐
 │              DueDateHQ · Marketing + SaaS on Cloudflare                │
 │                                                                        │
-│   Visitor ──► https://duedatehq.com                                    │
+│   Visitor ──► https://due.langgenius.app                                    │
 │                 │                                                      │
 │                 ▼                                                      │
 │          apps/marketing · Astro static site                            │
 │          Landing / SEO / OG / future content pages                     │
 │                 │ CTA                                                  │
 │                 ▼                                                      │
-│   User ─────► https://app.duedatehq.com                                │
+│   User ─────► https://app.due.langgenius.app                                │
 │                         │                                              │
 │                         ▼                                              │
 │   ┌──────────────────────────────────────────────────────────────┐    │
@@ -71,7 +71,7 @@
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **两个部署单元，一个产品入口**：`apps/marketing` 部署到 `duedatehq.com`；`apps/server` + `apps/app` 部署到 `app.duedatehq.com`
+- **两个部署单元，一个产品入口**：`apps/marketing` 部署到 `due.langgenius.app`；`apps/server` + `apps/app` 部署到 `app.due.langgenius.app`
 - **前后端物理隔离 / 逻辑共契约**：`apps/app`（Vite SPA）静态化产物被 SaaS Worker 的 Assets binding 托管；`packages/contracts` 是 app/server 共享的 oRPC 契约
 - **公开站不复用内部 RPC**：marketing 首版只输出静态 HTML；后续公开规则页通过静态 snapshot 或 `/api/v1/*` 读 verified 规则，不调用内部 `/rpc`
 - **路由分层遵循 oRPC 官方惯例**：`/rpc/`_ 走 RPC Protocol（内部前端），`/api/`_ 走 REST（auth / webhook / 未来公网 OpenAPI）；两者可共用同一份契约

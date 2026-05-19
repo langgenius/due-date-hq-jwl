@@ -3,7 +3,7 @@ compatibility_date = "2025-04-01"
 
 # -------------------------------------------------------------
 # Static Assets · Astro static output (no SSR adapter).
-# Serves the marketing site at https://duedatehq.com.
+# Serves the marketing site at https://due.langgenius.app.
 # `not_found_handling = "404-page"` looks for /404.html on misses
 # (vs SPA fallback used by apps/server). Astro emits 404.html when
 # present; otherwise Workers returns its default 404.

@@ -3,6 +3,7 @@ import { THEME_INIT_SCRIPT } from '@duedatehq/ui/theme/no-flash-script'
 import type { Locale } from '@duedatehq/i18n/locales'
 import StructuredData from '../components/StructuredData.astro'
 import type { JsonLdDocument } from '../lib/structured-data'
+import { MARKETING_SITE_URL, getMarketingUrl } from '../lib/site'
 import '../styles/globals.css'
 
 interface Props {
@@ -18,7 +19,6 @@ interface Props {
   structuredData?: JsonLdDocument | JsonLdDocument[]
 }
 
-const SITE = 'https://duedatehq.com'
 const OG_LOCALE: Record<Locale, string> = {
   en: 'en_US',
   'zh-CN': 'zh_CN',
@@ -30,12 +30,12 @@ const ALTERNATE_OG_LOCALE: Record<Locale, readonly string[]> = {
 
 const { lang, pathname, title, description, ogImage, noindex = false, structuredData } =
   Astro.props
-const canonical = `${SITE}${pathname === '/' ? '' : pathname}`
-const ogImageUrl = `${SITE}${ogImage}`
+const canonical = getMarketingUrl(pathname)
+const ogImageUrl = `${MARKETING_SITE_URL}${ogImage}`
 const localeFreePath =
   pathname === '/zh-CN' ? '/' : pathname.startsWith('/zh-CN/') ? pathname.slice('/zh-CN'.length) : pathname
-const enHref = `${SITE}${localeFreePath === '/' ? '' : localeFreePath}`
-const zhHref = `${SITE}${localeFreePath === '/' ? '/zh-CN' : `/zh-CN${localeFreePath}`}`
+const enHref = getMarketingUrl(localeFreePath)
+const zhHref = getMarketingUrl(localeFreePath === '/' ? '/zh-CN' : `/zh-CN${localeFreePath}`)
 ---
 
 <!doctype html>

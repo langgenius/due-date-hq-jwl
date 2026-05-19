@@ -10,7 +10,7 @@ third-party operational surfaces.
 The stable architecture already describes:
 
 - `apps/server` as the SaaS Worker that serves `/rpc/*`, `/api/*`, and `apps/app` static assets.
-- `apps/marketing` as a separate Astro static site for `duedatehq.com`.
+- `apps/marketing` as a separate Astro static site for `due.langgenius.app`.
 - Cloudflare D1, KV, R2, Queues, Cron, Workflows, Vectorize, Workers Assets, and AI Gateway as the
   default infrastructure primitives.
 

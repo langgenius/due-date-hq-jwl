@@ -26,5 +26,5 @@
     "typescript": "catalog:",
     "wrangler": "catalog:"
   },
-  "//": "Astro static marketing site (duedatehq.com). Shares @duedatehq/ui design tokens and @duedatehq/i18n locale contract; deployed separately as Cloudflare Workers + Static Assets."
+  "//": "Astro static marketing site (due.langgenius.app). Shares @duedatehq/ui design tokens and @duedatehq/i18n locale contract; deployed separately as Cloudflare Workers + Static Assets."
 }

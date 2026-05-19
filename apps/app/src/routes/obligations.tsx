@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { Link } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   flexRender,
@@ -20,6 +19,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   CalendarDaysIcon,
+  CheckCircle2Icon,
   ChevronDownIcon,
   Columns3Icon,
   CopyIcon,
@@ -69,14 +69,7 @@ import {
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
@@ -97,7 +90,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@duedatehq/ui/components/ui/popover'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -146,11 +147,18 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
   ALL_STATUSES,
+  LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
+  useLifecycleV2StatusLabels,
   useStatusLabels,
   useReadinessLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
+import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
+import { ObligationTimeline } from '@/features/obligations/timeline'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
+import { formatTaxType } from '@/features/dashboard/format-tax-type'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -554,7 +562,15 @@ export function ObligationQueueRoute() {
   const practiceAiEnabled = paidPlanActive(permission.firm)
   const { openEvidence } = useEvidenceDrawer()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
-  const statusLabels = useStatusLabels()
+  // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
+  // page: dropdown shows 6 target states instead of legacy 10, and
+  // `review` re-labels to "In review". See
+  // docs/Design/obligation-lifecycle-design-brief.md.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
+  const statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
   const sortLabels = useSortLabels()
   const [
     {
@@ -580,7 +596,7 @@ export function ObligationQueueRoute() {
       daysMin,
       daysMax,
       asOf,
-      sort,
+      sort: urlSort,
       density,
       hide: hiddenColumns,
       view: activeSavedViewId,
@@ -588,6 +604,17 @@ export function ObligationQueueRoute() {
     },
     setObligationQueueQuery,
   ] = useQueryStates(obligationQueueSearchParamsParsers)
+  // Slice D: when ?lifecycle=v2 is active AND the URL has no explicit
+  // ?sort= param, default the queue to Due date ascending instead of
+  // Smart Priority. Smart Priority remains in the sort dropdown — it's
+  // just no longer the implicit ranking. Reinforces "Dashboard
+  // curates, Obligations sorts" per the design brief.
+  const sort: ObligationQueueSort = useMemo(() => {
+    if (!lifecycleV2) return urlSort
+    const hasExplicitSort =
+      typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('sort')
+    return hasExplicitSort ? urlSort : 'due_asc'
+  }, [urlSort, lifecycleV2])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [savedViewDraft, setSavedViewDraft] = useState<{
@@ -1155,7 +1182,7 @@ export function ObligationQueueRoute() {
           )
         },
         cell: (info) => formatDate(info.getValue<string>()),
-        meta: { cellClassName: 'font-mono text-xs tabular-nums' },
+        meta: { cellClassName: 'text-xs tabular-nums' },
       },
       {
         accessorKey: 'daysUntilDue',
@@ -1272,13 +1299,41 @@ export function ObligationQueueRoute() {
         ),
         cell: ({ row: tableRow }) => {
           const obligationQueueRow = tableRow.original
+          const showRejection = isRejectionVisible({
+            status: obligationQueueRow.status,
+            efileRejectedAt: obligationQueueRow.efileRejectedAt,
+          })
+          const showBlockedBy = isBlockedByVisible({
+            status: obligationQueueRow.status,
+            blockedByObligationInstanceId: obligationQueueRow.blockedByObligationInstanceId,
+          })
           return (
-            <ObligationQueueStatusControl
-              row={obligationQueueRow}
-              labels={statusLabels}
-              disabled={statusUpdatePending}
-              onChange={(id, status) => updateStatus({ id, status })}
-            />
+            <div className="flex items-center gap-1.5">
+              <ObligationQueueStatusControl
+                row={obligationQueueRow}
+                labels={statusLabels}
+                statuses={statusDropdownOptions}
+                disabled={statusUpdatePending}
+                onChange={(id, status) => updateStatus({ id, status })}
+              />
+              {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
+                <BlockedByChip
+                  parentObligationId={obligationQueueRow.blockedByObligationInstanceId}
+                  parentLabel={(() => {
+                    const parent = rowsById.get(obligationQueueRow.blockedByObligationInstanceId)
+                    if (!parent) return null
+                    return `${parent.clientName} · ${formatTaxType(parent.taxType)}`
+                  })()}
+                  onOpen={(parentId) =>
+                    void setObligationQueueQuery({
+                      obligation: parentId,
+                      row: null,
+                    })
+                  }
+                />
+              ) : null}
+              {showRejection ? <RejectionChip /> : null}
+            </div>
           )
         },
       },
@@ -1298,11 +1353,13 @@ export function ObligationQueueRoute() {
       ownerQuery,
       riskMax,
       riskMin,
+      rowsById,
       setHeaderFilterOpen,
       setObligationQueueQuery,
       sort,
       stateOptions,
       stateQuery,
+      statusDropdownOptions,
       statusLabels,
       statusOptions,
       statusQuery,
@@ -1586,9 +1643,6 @@ export function ObligationQueueRoute() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-col gap-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Obligations</Trans>
-        </span>
         <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold leading-tight text-text-primary">
@@ -1603,14 +1657,10 @@ export function ObligationQueueRoute() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" size="sm" render={<Link to="/obligations/calendar" />}>
-              <CalendarDaysIcon data-icon="inline-start" />
-              <Trans>Calendar sync</Trans>
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="outline" size="sm">
+                  <Button variant="primary" size="sm">
                     <SaveIcon data-icon="inline-start" />
                     <Trans>Saved views</Trans>
                   </Button>
@@ -1678,6 +1728,7 @@ export function ObligationQueueRoute() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            <CalendarSyncPopover />
             <Button variant="outline" size="sm" onClick={resetObligationQueue}>
               <FilterIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
@@ -1687,24 +1738,7 @@ export function ObligationQueueRoute() {
       </header>
 
       <Card>
-        <CardHeader>
-          <CardTitle>
-            <ConceptLabel concept="obligations">
-              <Trans>Queue controls</Trans>
-            </ConceptLabel>
-          </CardTitle>
-          <CardDescription>
-            <Trans>
-              Use table headers to filter by client, geography, form, owner, risk, and timing.
-            </Trans>
-          </CardDescription>
-          <CardAction>
-            <Badge variant="outline" className="font-mono text-xs tabular-nums">
-              <Plural value={totalShown} one="# row" other="# rows" />
-            </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-4 pt-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-90">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
@@ -1729,22 +1763,6 @@ export function ObligationQueueRoute() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Tabs
-                value={density}
-                onValueChange={(value) => {
-                  if (value !== 'comfortable' && value !== 'compact') return
-                  void setObligationQueueQuery({ density: withDefaultDensityCleared(value) })
-                }}
-              >
-                <TabsList>
-                  <TabsTrigger value="comfortable">
-                    <Trans>Comfortable</Trans>
-                  </TabsTrigger>
-                  <TabsTrigger value="compact">
-                    <Trans>Compact</Trans>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
@@ -1809,53 +1827,65 @@ export function ObligationQueueRoute() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
-              }
-            >
-              <Badge variant={thisWeekFilterActive ? 'default' : 'ghost'}>
-                <Trans>This week</Trans>
-              </Badge>
-            </button>
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery({
-                  exposure: exposure === 'needs_input' ? null : 'needs_input',
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Badge variant={exposure === 'needs_input' ? 'default' : 'ghost'}>
-                <Trans>Needs input</Trans>
-              </Badge>
-            </button>
-            <button
-              type="button"
-              className="cursor-pointer focus-visible:outline-none"
-              onClick={() =>
-                void setObligationQueueQuery({
-                  evidence: evidence === 'needs' ? null : 'needs',
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Badge variant={evidence === 'needs' ? 'default' : 'ghost'}>
-                <Trans>Needs evidence</Trans>
-              </Badge>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Window</Trans>
+              </span>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
+                }
+              >
+                <Badge variant={thisWeekFilterActive ? 'default' : 'ghost'}>
+                  <Trans>This week</Trans>
+                </Badge>
+              </button>
+              <Separator orientation="vertical" className="mx-1 h-4" />
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Needs action</Trans>
+              </span>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    exposure: exposure === 'needs_input' ? null : 'needs_input',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Badge variant={exposure === 'needs_input' ? 'default' : 'ghost'}>
+                  <Trans>Penalty input</Trans>
+                </Badge>
+              </button>
+              <button
+                type="button"
+                className="cursor-pointer focus-visible:outline-none"
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    evidence: evidence === 'needs' ? null : 'needs',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Badge variant={evidence === 'needs' ? 'default' : 'ghost'}>
+                  <Trans>Evidence</Trans>
+                </Badge>
+              </button>
+            </div>
+            <Badge variant="outline" className="text-xs tabular-nums">
+              <Plural value={totalShown} one="# row" other="# rows" />
+            </Badge>
           </div>
 
           {selectedIds.length > 0 ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
-              <Badge variant="info" className="font-mono tabular-nums">
+              <Badge variant="info" className="tabular-nums">
                 <Plural value={selectedIds.length} one="# selected" other="# selected" />
               </Badge>
               <DropdownMenu>
@@ -1965,7 +1995,7 @@ export function ObligationQueueRoute() {
                     </TableRow>
                   ))}
                 </TableHeader>
-                <TableBody>
+                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -2144,7 +2174,7 @@ function ExposurePill({
       <div className="grid min-w-0 gap-1">
         <Badge
           variant="warning"
-          className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} font-mono tabular-nums`}
+          className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} tabular-nums`}
         >
           {formatCents(row.estimatedExposureCents)}
         </Badge>
@@ -2233,7 +2263,7 @@ function DueDaysPill({ days }: { days: number }) {
   return (
     <Badge
       variant={tone.variant}
-      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start font-mono tabular-nums ${tone.badgeClassName ?? ''}`}
+      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tone.badgeClassName ?? ''}`}
     >
       <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
       {days === 0 ? (
@@ -2353,6 +2383,11 @@ function ObligationQueueDetailDrawer({
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
+  // and its content swaps to the milestone-grouped timeline. See
+  // docs/Design/obligation-lifecycle-design-brief.md.
+  const lifecycleV2 = useLifecycleV2()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
   const [checklistDraft, setChecklistDraft] = useState<{
     obligationId: string
     items: ReadinessChecklistItem[]
@@ -2566,6 +2601,25 @@ function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // Lifecycle v2 slice 2d.3: manual acceptance — when a filed return has
+  // been accepted by the authority (e-file accepted / paper return
+  // received with no rejection), the preparer marks it complete from the
+  // drawer header. Closes the "Filed ≠ Done" loop (PDF anti-pattern #3).
+  const markAcceptedMutation = useMutation(
+    orpc.obligations.updateStatus.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        toast.success(t`Marked accepted`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't mark accepted`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
   function updateChecklistItem(index: number, patch: Partial<ReadinessChecklistItem>) {
     if (!row) return
     const base = checklist.length > 0 ? checklist : EMPTY_CHECKLIST
@@ -2632,10 +2686,24 @@ function ObligationQueueDetailDrawer({
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(1120px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none xl:data-[side=right]:w-[min(1180px,calc(100vw-2rem))] overflow-y-auto">
         <SheetHeader className="border-b border-divider-subtle">
-          <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
-          <SheetDescription>
-            {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
-          </SheetDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
+              <SheetDescription>
+                {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
+              </SheetDescription>
+            </div>
+            {lifecycleV2 && row && (row.status === 'done' || row.status === 'paid') ? (
+              <Button
+                size="sm"
+                onClick={() => markAcceptedMutation.mutate({ id: row.id, status: 'completed' })}
+                disabled={markAcceptedMutation.isPending}
+              >
+                <CheckCircle2Icon aria-hidden="true" />
+                <Trans>Mark accepted</Trans>
+              </Button>
+            ) : null}
+          </div>
         </SheetHeader>
         <div className="px-6 pb-6">
           {detailQuery.isLoading ? (
@@ -2674,7 +2742,7 @@ function ObligationQueueDetailDrawer({
                   <Trans>Evidence</Trans>
                 </TabsTrigger>
                 <TabsTrigger value="audit">
-                  <Trans>Audit</Trans>
+                  {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="readiness">
@@ -2974,7 +3042,7 @@ function ObligationQueueDetailDrawer({
                             <span className="min-w-0 truncate text-text-secondary">
                               {factor.label} · {factor.sourceLabel}
                             </span>
-                            <span className="font-mono tabular-nums text-text-primary">
+                            <span className="tabular-nums text-text-primary">
                               +{factor.contribution.toFixed(1)}
                             </span>
                           </div>
@@ -3129,10 +3197,23 @@ function ObligationQueueDetailDrawer({
                 <div className="grid gap-3">
                   <div className="text-sm font-medium text-text-primary">
                     <ConceptLabel concept="auditTrail">
-                      <Trans>Audit</Trans>
+                      {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
                     </ConceptLabel>
                   </div>
-                  {detail.auditEvents.length > 0 ? (
+                  {lifecycleV2 ? (
+                    detail.auditEvents.length > 0 || row !== null ? (
+                      <ObligationTimeline
+                        currentStatus={row.status}
+                        events={detail.auditEvents}
+                        labels={v2StatusLabels}
+                        practiceTimezone={practiceTimezone}
+                      />
+                    ) : (
+                      <EmptyPanel>
+                        <Trans>No activity yet. The first transition will log a note here.</Trans>
+                      </EmptyPanel>
+                    )
+                  ) : detail.auditEvents.length > 0 ? (
                     detail.auditEvents.map((event) => (
                       <ObligationQueueAuditEventCard
                         key={event.id}
@@ -3170,7 +3251,7 @@ function PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreak
     <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
       <div className="flex justify-between gap-3">
         <span className="font-medium">{item.label}</span>
-        <span className="font-mono">{formatCents(item.amountCents)}</span>
+        <span className="tabular-nums">{formatCents(item.amountCents)}</span>
       </div>
       <span className="text-xs text-text-tertiary">{formatPenaltyFormula(item.formula)}</span>
       {inputs.length > 0 ? (
@@ -3178,7 +3259,7 @@ function PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreak
           {inputs.map(([key, value]) => (
             <div key={key} className="flex justify-between gap-3">
               <span>{penaltyInputLabel(key)}</span>
-              <span className="font-mono text-text-secondary">
+              <span className="tabular-nums text-text-secondary">
                 {formatPenaltyInputValue(key, value)}
               </span>
             </div>
@@ -3712,7 +3793,7 @@ function ReadinessChecklistEvidence({
             className="grid gap-1 border-t border-divider-subtle pt-2 first:border-0 first:pt-0"
           >
             <div className="flex min-w-0 gap-2">
-              <span className="font-mono text-xs text-text-tertiary">{index + 1}.</span>
+              <span className="text-xs tabular-nums text-text-tertiary">{index + 1}.</span>
               <span className="min-w-0 font-medium text-text-primary">{entry.label}</span>
             </div>
             {entry.description ? (
@@ -3995,8 +4076,144 @@ function EmptyState({
         </Trans>
       </p>
       <Button size="sm" className="text-xs" onClick={onOpenWizard} disabled={!canRunMigration}>
-        <Trans>Run migration</Trans>
+        <Trans>Import clients</Trans>
       </Button>
     </div>
+  )
+}
+
+function CalendarSyncPopover() {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  const queryClient = useQueryClient()
+  const subscriptionsQuery = useQuery({
+    ...orpc.calendar.listSubscriptions.queryOptions({ input: undefined }),
+    enabled: open,
+  })
+  const subscription =
+    subscriptionsQuery.data?.find((entry) => entry.scope === 'my' && entry.feedUrl) ?? null
+  const feedUrl = subscription?.feedUrl ?? null
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: orpc.calendar.key() })
+
+  const upsertMutation = useMutation(
+    orpc.calendar.upsertSubscription.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Calendar subscription enabled`)
+        void invalidate()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't enable calendar subscription`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const regenerateMutation = useMutation(
+    orpc.calendar.regenerateSubscription.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Calendar URL regenerated`)
+        void invalidate()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't regenerate calendar URL`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+
+  async function copyFeedUrl() {
+    if (!feedUrl) return
+    try {
+      await navigator.clipboard.writeText(feedUrl)
+      toast.success(t`Calendar URL copied`)
+    } catch {
+      toast.error(t`Couldn't copy calendar URL`)
+    }
+  }
+
+  return (
+    <>
+      {open ? (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-40 bg-black/30"
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          render={
+            <Button variant="outline" size="sm">
+              <CalendarDaysIcon data-icon="inline-start" />
+              <Trans>Calendar sync</Trans>
+            </Button>
+          }
+        />
+        <PopoverContent align="end" className="w-80 gap-3">
+          <PopoverHeader>
+            <PopoverTitle>
+              <Trans>My deadlines</Trans>
+            </PopoverTitle>
+            <p className="text-xs text-text-tertiary">
+              <Trans>
+                Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the
+                source of truth.
+              </Trans>
+            </p>
+          </PopoverHeader>
+          {subscriptionsQuery.isLoading ? (
+            <div className="grid gap-2">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ) : feedUrl ? (
+            <div className="grid gap-2">
+              <Input
+                readOnly
+                value={feedUrl}
+                className="font-mono text-xs"
+                aria-label={t`Calendar URL`}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => void copyFeedUrl()} className="flex-1">
+                  <CopyIcon data-icon="inline-start" />
+                  <Trans>Copy URL</Trans>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => subscription && regenerateMutation.mutate({ id: subscription.id })}
+                  disabled={regenerateMutation.isPending}
+                >
+                  <RefreshCwIcon
+                    data-icon="inline-start"
+                    className={cn(regenerateMutation.isPending && 'animate-spin')}
+                  />
+                  <Trans>Regenerate</Trans>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <p className="text-xs text-text-secondary">
+                <Trans>
+                  Generate a private subscription URL so deadlines assigned to you appear in your
+                  personal calendar.
+                </Trans>
+              </p>
+              <Button
+                size="sm"
+                onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
+                disabled={upsertMutation.isPending}
+              >
+                <Trans>Enable subscription</Trans>
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </>
   )
 }

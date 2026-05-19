@@ -8,13 +8,14 @@ import type {
   StateCoverageCopy,
   StatePageCopy,
 } from '../i18n/types'
+import { MARKETING_SITE_URL, getMarketingUrl } from './site'
 
 export type JsonLdDocument = Record<string, unknown>
 
-export const SITE = 'https://duedatehq.com'
+export const SITE = MARKETING_SITE_URL
 
 function absoluteUrl(pathname: string): string {
-  return `${SITE}${pathname === '/' ? '' : pathname}`
+  return getMarketingUrl(pathname)
 }
 
 function baseGraph(t: LandingCopy, lang: Locale): JsonLdDocument[] {

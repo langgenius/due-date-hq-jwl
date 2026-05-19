@@ -1,9 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ChevronRightIcon, ExternalLinkIcon } from 'lucide-react'
-import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { ExternalLinkIcon } from 'lucide-react'
 
 import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import {
@@ -35,7 +33,6 @@ import {
   FilterChips,
   HealthBadge,
   JurisdictionCode,
-  OriginBreadcrumb,
   QueryPanelState,
   SectionFrame,
   TablePaginationFooter,
@@ -46,54 +43,10 @@ type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence' | 'method'
 const SOURCE_PAGE_SIZE = 25
 const EMPTY_SOURCE_ROWS: RuleSource[] = []
 
-// Jurisdiction filter is URL-state via `?jur=AL,CA,NY` so cross-page links
-// (e.g. Coverage status per-row SOURCES cell) can land here pre-filtered.
-// Library uses the same `?jur=` convention — see rule-library-tab.tsx.
-const jurisdictionParser = parseAsArrayOf(parseAsString)
-  .withDefault([])
-  .withOptions({ history: 'replace' })
-
-// Origin tag — when the Sources page is reached via Coverage status'
-// per-row SOURCES count, the URL carries `?from=coverage`. We render a
-// breadcrumb pill so the cross-page filter is visible and one-click
-// clearable (same pattern as the Library breadcrumb).
-const originParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
-
-// Health filter via URL state so cross-page links can land here
-// pre-filtered (Coverage's SourceHealthCallout points at
-// `/rules/sources?health=degraded`).
-const HEALTH_FILTER_VALUES = ['all', 'healthy', 'degraded', 'failing', 'paused'] as const
-const healthFilterParser = parseAsStringLiteral(HEALTH_FILTER_VALUES)
-  .withDefault('all')
-  .withOptions({ history: 'replace' })
-
 export function SourcesTab() {
   const { t } = useLingui()
-  const [healthFilter, setHealthFilterQuery] = useQueryState('health', healthFilterParser)
-  const setHealthFilter = useCallback(
-    (value: SourceHealthFilter) => {
-      void setHealthFilterQuery(value)
-    },
-    [setHealthFilterQuery],
-  )
-  const [jurisdictionFilters, setJurisdictionFiltersQuery] = useQueryState(
-    'jur',
-    jurisdictionParser,
-  )
-  const setJurisdictionFilters = useCallback(
-    (values: string[]) => {
-      void setJurisdictionFiltersQuery(values)
-    },
-    [setJurisdictionFiltersQuery],
-  )
-  const [origin, setOrigin] = useQueryState('from', originParser)
-  // Origin clear: drop the jurisdiction filter and the `?from=` tag.
-  // Other filters (health, type, cadence, method) stay local and
-  // unaffected — clearing only undoes the cross-page-applied state.
-  const clearOriginAndFilters = useCallback(() => {
-    void setJurisdictionFiltersQuery([])
-    void setOrigin('')
-  }, [setJurisdictionFiltersQuery, setOrigin])
+  const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
+  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>([])
   const [sourceTypeFilters, setSourceTypeFilters] = useState<string[]>([])
   const [cadenceFilters, setCadenceFilters] = useState<string[]>([])
   const [methodFilters, setMethodFilters] = useState<string[]>([])
@@ -101,22 +54,6 @@ export function SourcesTab() {
   const [pageIndex, setPageIndex] = useState(0)
 
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
-  // Reverse lookup: which rules cite each source? Used to render the
-  // "Used by N rules" link on each source row, which drills into
-  // /rules/library?source=<id>&from=sources. listRules includes both
-  // active and pending so the count reflects all catalog usage.
-  const rulesQuery = useQuery(
-    orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
-  )
-  const ruleCountBySourceId = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const rule of rulesQuery.data ?? []) {
-      for (const sourceId of rule.sourceIds) {
-        counts.set(sourceId, (counts.get(sourceId) ?? 0) + 1)
-      }
-    }
-    return counts
-  }, [rulesQuery.data])
   // Pulse maintains the watcher health record per source (when the scraper
   // last ran, when it'll run next, and the most recent error if any). The
   // RuleSource registry doesn't carry these — they're operational signals
@@ -204,13 +141,6 @@ export function SourcesTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      {origin === 'coverage' && jurisdictionFilters.length > 0 ? (
-        <OriginBreadcrumb
-          label={t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`}
-          onClear={clearOriginAndFilters}
-          clearLabel={t`Clear and back to default`}
-        />
-      ) : null}
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}
@@ -296,7 +226,6 @@ export function SourcesTab() {
                 key={source.id}
                 source={source}
                 health={sourceHealthBySourceId.get(source.id)}
-                ruleCount={ruleCountBySourceId.get(source.id) ?? 0}
               />
             ))}
             {visibleRows.length === 0 ? (
@@ -383,14 +312,9 @@ function sourceFilterOptions<T extends string>(
 function SourceRow({
   source,
   health,
-  ruleCount,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
-  // How many rules in the catalog cite this source. Renders inline below
-  // the source.id as a Library drill link ("Used by 3 rules →"). Zero
-  // shows as muted "Not yet cited" so the absence is visible.
-  ruleCount: number
 }) {
   const { t } = useLingui()
 
@@ -439,22 +363,6 @@ function SourceRow({
           </span>
           <span className="block truncate font-mono text-xs text-text-tertiary">{source.id}</span>
         </a>
-        {ruleCount > 0 ? (
-          <Link
-            to={`/rules/library?source=${source.id}&from=sources`}
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-            aria-label={t`View ${ruleCount} rules citing ${source.title}`}
-            className="mt-1 inline-flex items-center gap-1 rounded-sm text-[11px] text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>Used by {ruleCount} rules</Trans>
-            <ChevronRightIcon aria-hidden className="size-3" />
-          </Link>
-        ) : (
-          <span className="mt-1 inline-flex text-[11px] text-text-muted">
-            <Trans>Not yet cited</Trans>
-          </span>
-        )}
       </TableCell>
       <TableCell className="px-0 py-1.5">
         <JurisdictionCode code={source.jurisdiction} />

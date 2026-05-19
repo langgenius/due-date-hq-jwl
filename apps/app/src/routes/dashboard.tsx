@@ -56,10 +56,14 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { severityRowClass } from '@/features/dashboard/severity-row'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { DashboardActionsList } from '@/features/dashboard/actions-list'
+import { ExposureStrip } from '@/features/dashboard/exposure-strip'
+import { formatTaxType } from '@/features/dashboard/format-tax-type'
+import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
@@ -255,7 +259,7 @@ function ExposureBadge({ row, canSeeDollars }: { row: DashboardTopRow; canSeeDol
   }
   if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
     return (
-      <Badge variant="warning" className="font-mono tabular-nums">
+      <Badge variant="warning" className="tabular-nums">
         {formatCents(row.estimatedExposureCents)}
       </Badge>
     )
@@ -358,6 +362,10 @@ export function DashboardRoute() {
   const canRunMigration = permission.can('migration.run')
   const canSeeDollars = permission.can('dollars.read')
   const { openEvidence } = useEvidenceDrawer()
+  // Dashboard v2 (?dashboard=v2): the new NEEDS ATTENTION surface
+  // promotes Radar alerts from a thin banner to first-class cards.
+  // See apps/app/src/features/dashboard/needs-attention-section.tsx.
+  const dashboardV2 = useDashboardV2()
   const severityLabels = useSeverityLabels()
   const triageTabLabels = useTriageTabLabels()
   const dueBucketLabels = useDueBucketLabels()
@@ -465,29 +473,40 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 p-4 md:p-6">
+    <div className="flex flex-col gap-5 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Operations command</Trans>
-          </span>
-          <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
-            {dashboardQuery.isLoading || !data?.asOfDate ? (
-              <Trans>Today</Trans>
-            ) : (
-              <Trans>Today, {formatTodayHeader(data.asOfDate)}</Trans>
-            )}
+        {dashboardV2 ? (
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+            <Trans>Today</Trans>{' '}
+            <span className="font-medium text-text-tertiary">
+              {dashboardQuery.isLoading || !data?.asOfDate
+                ? null
+                : formatTodayHeader(data.asOfDate)}
+            </span>
           </h1>
-        </div>
+        ) : (
+          <h1 className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight text-text-primary">
+            <span>
+              <Trans>Today</Trans>
+            </span>
+            {data?.asOfDate ? (
+              <span className="font-normal tabular-nums text-text-tertiary">
+                {formatTodayHeader(data.asOfDate)}
+              </span>
+            ) : null}
+          </h1>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
             <FileSearchIcon data-icon="inline-start" />
             <Trans>Import clients</Trans>
           </Button>
-          <Button size="sm" onClick={() => void navigate('/obligations')}>
-            <Trans>See all obligations</Trans>
-            <ArrowUpRightIcon data-icon="inline-end" />
-          </Button>
+          {dashboardV2 ? null : (
+            <Button size="sm" onClick={() => void navigate('/obligations')}>
+              <Trans>See all obligations</Trans>
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          )}
         </div>
       </header>
 
@@ -510,64 +529,99 @@ export function DashboardRoute() {
         </Alert>
       ) : null}
 
-      <div id="pulse" className="flex flex-col gap-2">
-        <PulseAlertsBanner />
-        <NeedsReviewBanner
+      {dashboardV2 ? (
+        <NeedsAttentionSection />
+      ) : (
+        <div id="pulse" className="flex flex-col gap-2">
+          <PulseAlertsBanner />
+          <NeedsReviewBanner
+            isLoading={dashboardQuery.isLoading}
+            needsReviewCount={data?.summary?.needsReviewCount ?? 0}
+            evidenceGapCount={data?.summary?.evidenceGapCount ?? 0}
+            onResolve={() => void navigate('/obligations?status=review')}
+            onResolveEvidence={() => void navigate('/obligations?evidence=missing_source')}
+          />
+        </div>
+      )}
+
+      {dashboardV2 ? (
+        <ExposureStrip
           isLoading={dashboardQuery.isLoading}
-          needsReviewCount={data?.summary?.needsReviewCount ?? 0}
-          evidenceGapCount={data?.summary?.evidenceGapCount ?? 0}
-          onResolve={() => void navigate('/obligations?status=review')}
-          onResolveEvidence={() => void navigate('/obligations?evidence=missing_source')}
+          needDecisionCount={data?.summary?.needsReviewCount ?? 0}
+          totalExposureCents={data?.summary?.totalExposureCents ?? 0}
+          blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
+          waitingOnClientCount={
+            facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
+          }
+          canSeeDollars={canSeeDollars}
         />
-      </div>
+      ) : null}
 
       <section>
-        <DashboardTriagePanel
-          isLoading={dashboardQuery.isLoading}
-          asOfDate={data?.asOfDate ?? null}
-          tabs={triageTabs}
-          selectedKey={selectedTriageTab?.key ?? triage}
-          tabLabels={triageTabLabels}
-          filtersDisabled={filtersDisabled}
-          summary={data?.summary ?? null}
-          filterOptions={{
-            clients: clientOptions,
-            taxTypes: taxTypeOptions,
-            due: dueOptions,
-            status: statusOptions,
-            severity: severityOptions,
-            exposure: exposureOptions,
-            evidence: evidenceOptions,
-          }}
-          filterState={{
-            client: clientQuery,
-            taxType: taxTypeQuery,
-            due,
-            status: statusFilter,
-            severity,
-            exposure,
-            evidence,
-          }}
-          statusLabels={statusLabels}
-          statusDisabled={updateStatusMutation.isPending}
-          canRunMigration={canRunMigration}
-          canSeeDollars={canSeeDollars}
-          onSelect={(key) => void setDashboardQuery({ triage: key })}
-          onFilterChange={(patch) => void setDashboardQuery(patch)}
-          onOpenWizard={openWizard}
-          onOpenObligationQueue={(key) => void navigate(obligationQueueHrefForTriage(key))}
-          onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
-          onOpenEvidence={(row) =>
-            openEvidence({
-              obligationId: row.obligationId,
-              label: `${row.clientName} - ${row.taxType}`,
-              focusEvidenceId: row.primaryEvidence?.id ?? null,
-            })
-          }
-          onChangeStatus={(row, nextStatus) =>
-            updateStatusMutation.mutate({ id: row.obligationId, status: nextStatus })
-          }
-        />
+        {dashboardV2 ? (
+          <DashboardActionsList
+            isLoading={dashboardQuery.isLoading}
+            asOfDate={data?.asOfDate ?? null}
+            // v2 scope is implicit "this week" per design brief — no time-bucket tabs.
+            rows={triageTabs.find((tab) => tab.key === 'this_week')?.rows ?? []}
+            totalThisWeek={triageTabs.find((tab) => tab.key === 'this_week')?.count ?? 0}
+            canRunMigration={canRunMigration}
+            onOpenWizard={openWizard}
+            onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
+            onOpenAllObligations={() => void navigate('/obligations')}
+            onForwardTransition={(row, next) =>
+              updateStatusMutation.mutate({ id: row.obligationId, status: next })
+            }
+          />
+        ) : (
+          <DashboardTriagePanel
+            isLoading={dashboardQuery.isLoading}
+            asOfDate={data?.asOfDate ?? null}
+            tabs={triageTabs}
+            selectedKey={selectedTriageTab?.key ?? triage}
+            tabLabels={triageTabLabels}
+            filtersDisabled={filtersDisabled}
+            summary={data?.summary ?? null}
+            filterOptions={{
+              clients: clientOptions,
+              taxTypes: taxTypeOptions,
+              due: dueOptions,
+              status: statusOptions,
+              severity: severityOptions,
+              exposure: exposureOptions,
+              evidence: evidenceOptions,
+            }}
+            filterState={{
+              client: clientQuery,
+              taxType: taxTypeQuery,
+              due,
+              status: statusFilter,
+              severity,
+              exposure,
+              evidence,
+            }}
+            statusLabels={statusLabels}
+            statusDisabled={updateStatusMutation.isPending}
+            canRunMigration={canRunMigration}
+            canSeeDollars={canSeeDollars}
+            dashboardV2={dashboardV2}
+            onSelect={(key) => void setDashboardQuery({ triage: key })}
+            onFilterChange={(patch) => void setDashboardQuery(patch)}
+            onOpenWizard={openWizard}
+            onOpenObligationQueue={(key) => void navigate(obligationQueueHrefForTriage(key))}
+            onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
+            onOpenEvidence={(row) =>
+              openEvidence({
+                obligationId: row.obligationId,
+                label: `${row.clientName} - ${row.taxType}`,
+                focusEvidenceId: row.primaryEvidence?.id ?? null,
+              })
+            }
+            onChangeStatus={(row, nextStatus) =>
+              updateStatusMutation.mutate({ id: row.obligationId, status: nextStatus })
+            }
+          />
+        )}
       </section>
     </div>
   )
@@ -616,12 +670,12 @@ function NeedsReviewBanner({
           <Trans>Needs review</Trans>
         </span>
         {hasReady ? (
-          <span className="font-mono tabular-nums text-text-primary">
+          <span className="tabular-nums text-text-primary">
             <Plural value={needsReviewCount} one="# row ready" other="# rows ready" />
           </span>
         ) : null}
         {hasEvidence ? (
-          <span className="font-mono tabular-nums text-text-tertiary">
+          <span className="tabular-nums text-text-tertiary">
             <Plural
               value={evidenceGapCount}
               one="# needs evidence first"
@@ -673,7 +727,7 @@ function ProjectedRiskInline({
           <span className="text-text-tertiary uppercase tracking-wider">
             <Trans>90-day projected risk</Trans>
           </span>
-          <span className="font-mono tabular-nums text-text-primary">{formatCents(exposure)}</span>
+          <span className="tabular-nums text-text-primary">{formatCents(exposure)}</span>
         </span>
       ) : null}
       {accrued !== 0 ? (
@@ -681,9 +735,7 @@ function ProjectedRiskInline({
           <span className="text-text-tertiary uppercase tracking-wider">
             <Trans>Accrued penalty</Trans>
           </span>
-          <span className="font-mono tabular-nums text-severity-critical">
-            {formatCents(accrued)}
-          </span>
+          <span className="tabular-nums text-severity-critical">{formatCents(accrued)}</span>
         </span>
       ) : null}
     </div>
@@ -734,7 +786,7 @@ function daysUntilDueFromAsOf(dueDate: string, asOfDate: string | null): number 
 function DashboardCountdownBadge({ days }: { days: number }) {
   const variant = days <= 2 ? 'destructive' : days <= 7 ? 'warning' : 'outline'
   return (
-    <Badge variant={variant} className="min-w-18 justify-start font-mono text-xs tabular-nums">
+    <Badge variant={variant} className="min-w-18 justify-start text-xs tabular-nums">
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : days < 0 ? (
@@ -746,11 +798,11 @@ function DashboardCountdownBadge({ days }: { days: number }) {
   )
 }
 
-function DashboardClientCell({ row }: { row: DashboardTopRow }) {
+function DashboardClientCell({ row, compact }: { row: DashboardTopRow; compact?: boolean }) {
   const { t } = useLingui()
 
   return (
-    <div className="grid min-w-56 gap-1">
+    <div className={cn('grid gap-1', compact ? 'min-w-40' : 'min-w-56')}>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <Link
           to={clientProfileHref(row.clientId)}
@@ -760,9 +812,14 @@ function DashboardClientCell({ row }: { row: DashboardTopRow }) {
           {row.clientName}
         </Link>
       </div>
-      <span className="truncate text-xs leading-5 text-text-tertiary">
-        {row.clientEmail ?? t`No email`}
-      </span>
+      {/* Email line is dropped in compact mode — it's a facet detail
+          that belongs on the Obligations queue or the client profile.
+          The dashboard is "what to do today", not a contact list. */}
+      {compact ? null : (
+        <span className="truncate text-xs leading-5 text-text-tertiary">
+          {row.clientEmail ?? t`No email`}
+        </span>
+      )}
     </div>
   )
 }
@@ -811,6 +868,7 @@ function DashboardTriagePanel({
   statusDisabled,
   canRunMigration,
   canSeeDollars,
+  dashboardV2,
   onSelect,
   onFilterChange,
   onOpenWizard,
@@ -832,6 +890,7 @@ function DashboardTriagePanel({
   statusDisabled: boolean
   canRunMigration: boolean
   canSeeDollars: boolean
+  dashboardV2: boolean
   onSelect: (key: DashboardTriageTabKey) => void
   onFilterChange: (patch: DashboardQueryPatch) => void
   onOpenWizard: () => void
@@ -866,7 +925,7 @@ function DashboardTriagePanel({
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
                     <span>{tabLabels[tab.key]}</span>
-                    <Badge variant="secondary" className="font-mono tabular-nums">
+                    <Badge variant="secondary" className="tabular-nums">
                       {tab.count}
                     </Badge>
                   </TabsTrigger>
@@ -885,6 +944,7 @@ function DashboardTriagePanel({
                   statusLabels={statusLabels}
                   statusDisabled={statusDisabled}
                   canSeeDollars={canSeeDollars}
+                  dashboardV2={dashboardV2}
                   onFilterChange={onFilterChange}
                   onOpenObligation={onOpenObligation}
                   onOpenEvidence={onOpenEvidence}
@@ -919,6 +979,7 @@ function DashboardTriageTable({
   statusLabels,
   statusDisabled,
   canSeeDollars,
+  dashboardV2,
   onFilterChange,
   onOpenObligation,
   onOpenEvidence,
@@ -932,6 +993,7 @@ function DashboardTriageTable({
   statusLabels: Record<ObligationStatus, string>
   statusDisabled: boolean
   canSeeDollars: boolean
+  dashboardV2: boolean
   onFilterChange: (patch: DashboardQueryPatch) => void
   onOpenObligation: (row: DashboardTopRow) => void
   onOpenEvidence: (row: DashboardTopRow) => void
@@ -982,7 +1044,7 @@ function DashboardTriageTable({
             }
           />
         ),
-        cell: ({ row }) => <DashboardClientCell row={row.original} />,
+        cell: ({ row }) => <DashboardClientCell row={row.original} compact={dashboardV2} />,
       },
       {
         id: 'nextCheck',
@@ -1008,7 +1070,13 @@ function DashboardTriageTable({
             }
           />
         ),
-        cell: (info) => info.getValue<string>(),
+        cell: (info) => {
+          const raw = info.getValue<string>()
+          // v2 surfaces human-readable form names; legacy mode keeps
+          // the raw matrix code for backwards-compat with anything
+          // that screen-reads the cell.
+          return dashboardV2 ? formatTaxType(raw) : raw
+        },
       },
       {
         accessorKey: 'currentDueDate',
@@ -1037,7 +1105,7 @@ function DashboardTriageTable({
           )
         },
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 font-mono tabular-nums">
+          <div className="flex items-center gap-2 tabular-nums">
             <DashboardCountdownBadge
               days={daysUntilDueFromAsOf(row.original.currentDueDate, asOfDate)}
             />
@@ -1148,6 +1216,7 @@ function DashboardTriageTable({
     [
       asOfDate,
       canSeeDollars,
+      dashboardV2,
       filterOptions,
       filterState,
       filtersDisabled,
@@ -1160,9 +1229,37 @@ function DashboardTriageTable({
       t,
     ],
   )
+  // Dashboard v2 column projection:
+  //  - drop the Evidence column (facet belongs on Obligations queue,
+  //    not the curated dashboard view)
+  //  - reorder so Status sits adjacent to Next check (decision pair)
+  // Concrete final order: Priority · Client · Next check · Status ·
+  // Deadline · Tax type · Projected risk.
+  const projectedColumns = useMemo<ColumnDef<DashboardTopRow>[]>(() => {
+    if (!dashboardV2) return columns
+    const byId = new Map<string, ColumnDef<DashboardTopRow>>()
+    for (const col of columns) {
+      const key =
+        'id' in col && col.id ? col.id : 'accessorKey' in col ? String(col.accessorKey) : null
+      if (key) byId.set(key, col)
+    }
+    const order = [
+      'smartPriority',
+      'clientName',
+      'nextCheck',
+      'status',
+      'currentDueDate',
+      'taxType',
+      'estimatedExposureCents',
+    ]
+    return order
+      .map((key) => byId.get(key))
+      .filter((c): c is ColumnDef<DashboardTopRow> => c !== undefined)
+  }, [columns, dashboardV2])
+
   const table = useReactTable({
     data: rows,
-    columns,
+    columns: projectedColumns,
     state: {
       sorting,
     },
@@ -1177,7 +1274,12 @@ function DashboardTriageTable({
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[1280px]">
+      {/*
+        Legacy 7-column layout keeps a min-width so the filter facets
+        stay readable. v2 (Evidence dropped, Status pulled in next to
+        Next check) sizes to the container — no horizontal clip.
+      */}
+      <Table className={cn(dashboardV2 ? 'w-full' : 'min-w-[1040px]')}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -1210,7 +1312,7 @@ function DashboardTriageTable({
             </TableRow>
           ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {tableRows.length === 0 ? (
             <TableRow>
               <TableCell colSpan={visibleColumnCount} className="py-8 text-xs text-text-secondary">
@@ -1224,10 +1326,7 @@ function DashboardTriageTable({
                 role="button"
                 tabIndex={0}
                 aria-label={`${t`Open obligations`}: ${tableRow.original.clientName} ${tableRow.original.taxType}`}
-                className={cn(
-                  'cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset',
-                  severityRowClass(tableRow.original.severity),
-                )}
+                className="cursor-pointer rounded-md outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                 onClick={(event) => {
                   if (isDashboardRowControlClick(event.target, event.currentTarget)) return
                   onOpenObligation(tableRow.original)

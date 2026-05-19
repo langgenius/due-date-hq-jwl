@@ -79,10 +79,10 @@ packages/ui/
 
 ## 1.1 多前端应用边界
 
-| 应用      | 路径             | 域名                | 渲染模型                                    | 共享                                                 |
-| --------- | ---------------- | ------------------- | ------------------------------------------- | ---------------------------------------------------- |
-| SaaS app  | `apps/app`       | `app.duedatehq.com` | Vite SPA + React Router data mode           | `packages/contracts`、`packages/ui`、locale contract |
-| Marketing | `apps/marketing` | `duedatehq.com`     | Astro static HTML + selective React islands | `packages/ui`、locale contract                       |
+| 应用      | 路径             | 域名                     | 渲染模型                                    | 共享                                                 |
+| --------- | ---------------- | ------------------------ | ------------------------------------------- | ---------------------------------------------------- |
+| SaaS app  | `apps/app`       | `app.due.langgenius.app` | Vite SPA + React Router data mode           | `packages/contracts`、`packages/ui`、locale contract |
+| Marketing | `apps/marketing` | `due.langgenius.app`     | Astro static HTML + selective React islands | `packages/ui`、locale contract                       |
 
 `apps/marketing` 不导入 `apps/app/src/*`，不调用内部 `/rpc`，不复用 app 的 Lingui catalog。它可以通过 `@astrojs/react` 在需要交互的局部 island 中使用 `@duedatehq/ui/components/ui/*`。静态 landing section 优先写 `.astro`，避免把公开站做成第二个 SPA。
 
