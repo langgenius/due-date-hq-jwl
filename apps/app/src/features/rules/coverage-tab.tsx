@@ -237,7 +237,7 @@ function CoverageRow({
         ) : (
           <CoverageStatusPill
             jurisdiction={row.jurisdiction}
-            label={coverageStatusLabels[row.jurisdiction] ?? t`Official sources · pending rules`}
+            label={coverageStatusLabels[row.jurisdiction] ?? t`Awaiting CPA review`}
           />
         )}
       </TableCell>
@@ -453,12 +453,12 @@ export function CoverageTab({
   }, [sourceHealthQuery.data])
 
   const coverageStatusLabels: Partial<Record<RuleJurisdiction, string>> = {
-    FED: t`Practice review required`,
-    CA: t`Practice review required`,
-    NY: t`Practice review required`,
-    TX: t`All review-flagged`,
-    FL: t`Source-defined cal`,
-    WA: t`Filing-frequency review`,
+    FED: t`Needs owner approval`,
+    CA: t`Needs owner approval`,
+    NY: t`Needs owner approval`,
+    TX: t`All rules pending`,
+    FL: t`Calendar from official source`,
+    WA: t`Filing cadence varies`,
   }
 
   if (coverageQuery.isLoading) {
