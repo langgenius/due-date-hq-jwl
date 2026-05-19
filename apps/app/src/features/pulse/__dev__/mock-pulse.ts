@@ -343,6 +343,20 @@ const SOURCE_HEALTH: PulseSourceHealth[] = [
 // --- Public API -----------------------------------------------------------
 
 export function seedPulseMock(queryClient: QueryClient): void {
+  // Pin the mock seed: `setQueryData` alone is shadowed the moment a
+  // live `useQuery` for the same key fires and returns from the server
+  // (typically `[]`). Setting `staleTime: Infinity` + disabling refetch
+  // on the pulse query key keeps the seeded alerts sticky for the whole
+  // session. Reviewers want the cards to STAY visible regardless of
+  // what the dev backend has — this is mock-driven, not server-driven.
+  queryClient.setQueryDefaults(orpc.pulse.key(), {
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
   queryClient.setQueryData(orpc.firms.listMine.queryKey({ input: undefined }), [MOCK_FIRM])
 
   // Three call sites read listAlerts with different limits — seed each shape.

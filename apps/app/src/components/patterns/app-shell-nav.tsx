@@ -466,6 +466,17 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             icon: LibraryIcon,
             end: false,
           },
+          // Radar restored as a sidebar destination — the v2 design
+          // brief moved it to the Dashboard's NEEDS ATTENTION surface,
+          // but users still want a direct entry point to the full
+          // Radar queue + source-health board.
+          {
+            href: '/rules/pulse',
+            label: t`Radar`,
+            icon: ActivityIcon,
+            end: false,
+            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          },
         ],
         clients: [],
         rules: [],
