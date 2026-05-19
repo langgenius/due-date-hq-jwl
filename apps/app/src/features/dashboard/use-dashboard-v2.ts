@@ -1,33 +1,26 @@
-import { useSyncExternalStore } from 'react'
+import { useLocation } from 'react-router'
 
 // Dashboard v2 feature flag — driven by `?dashboard=v2` URL param so
 // the new "Needs attention" surface can be previewed side by side
 // with the current dashboard without a rebuild. When the redesign
 // becomes default-on, this hook collapses to `() => true`.
 //
-// See docs/Design/obligation-lifecycle-design-brief.md (dashboard
-// notes) and the design mockup pinned in the 2026-05-19 session.
+// Reads the search param via React Router's `useLocation`, which
+// re-renders on both `popstate` (browser back/forward) and
+// programmatic `history.pushState` (React Router link clicks).
+// The previous `useSyncExternalStore` + `popstate` subscription
+// missed `pushState` events, so the flag silently stuck on its
+// initial value across in-app navigations.
+//
+// See apps/app/src/features/dashboard/needs-attention-section.tsx
+// and the design mockup from 2026-05-19.
 
 const FLAG_PARAM = 'dashboard'
 const FLAG_VALUE = 'v2'
 
-function read(): boolean {
-  if (typeof window === 'undefined') return false
-  return new URLSearchParams(window.location.search).get(FLAG_PARAM) === FLAG_VALUE
-}
-
-function subscribe(callback: () => void): () => void {
-  if (typeof window === 'undefined') return () => undefined
-  window.addEventListener('popstate', callback)
-  window.addEventListener('pushstate', callback)
-  return () => {
-    window.removeEventListener('popstate', callback)
-    window.removeEventListener('pushstate', callback)
-  }
-}
-
 function useDashboardV2(): boolean {
-  return useSyncExternalStore(subscribe, read, () => false)
+  const { search } = useLocation()
+  return new URLSearchParams(search).get(FLAG_PARAM) === FLAG_VALUE
 }
 
 export { useDashboardV2 }
