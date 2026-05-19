@@ -158,6 +158,7 @@ import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocke
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
+import { formatTaxType } from '@/features/dashboard/format-tax-type'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -1318,6 +1319,11 @@ export function ObligationQueueRoute() {
               {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                 <BlockedByChip
                   parentObligationId={obligationQueueRow.blockedByObligationInstanceId}
+                  parentLabel={(() => {
+                    const parent = rowsById.get(obligationQueueRow.blockedByObligationInstanceId)
+                    if (!parent) return null
+                    return `${parent.clientName} · ${formatTaxType(parent.taxType)}`
+                  })()}
                   onOpen={(parentId) =>
                     void setObligationQueueQuery({
                       obligation: parentId,
@@ -1347,6 +1353,7 @@ export function ObligationQueueRoute() {
       ownerQuery,
       riskMax,
       riskMin,
+      rowsById,
       setHeaderFilterOpen,
       setObligationQueueQuery,
       sort,

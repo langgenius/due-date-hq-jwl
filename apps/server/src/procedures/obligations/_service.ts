@@ -326,23 +326,28 @@ export async function updateObligationStatus(
   // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
   // When this row reaches `completed`, every obligation that was
   // `blocked_by` this row flips back to `pending` (with blocked_by
-  // cleared). Each cascade writes its own audit row so the trail
-  // shows "Unblocked by parent #X on YYYY-MM-DD" on the child.
+  // cleared). Each cascade writes its own audit row so the child's
+  // timeline reads "Unblocked by Lakeview Partnership · federal_1065"
+  // instead of just a bare parent UUID. (Slice 2d.4 polish.)
   if (after.status === 'completed') {
     const unblockedIds = await scoped.obligations.unblockChildrenOf(input.id)
-    await Promise.all(
-      unblockedIds.map((childId) =>
-        scoped.audit.write({
-          actorId: userId,
-          entityType: 'obligation_instance',
-          entityId: childId,
-          action: 'obligation.status.auto_unblocked',
-          before: { status: 'blocked', readiness: 'needs_review' },
-          after: { status: 'pending', readiness: 'ready' },
-          reason: `Unblocked by parent obligation ${input.id}.`,
-        }),
-      ),
-    )
+    if (unblockedIds.length > 0) {
+      const parentClient = await scoped.clients.findById(after.clientId)
+      const parentLabel = `${parentClient?.name ?? 'Unknown client'} · ${after.taxType}`
+      await Promise.all(
+        unblockedIds.map((childId) =>
+          scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentLabel} (parent #${input.id.slice(0, 8)}).`,
+          }),
+        ),
+      )
+    }
   }
 
   return {
@@ -410,29 +415,42 @@ export async function bulkUpdateObligationStatus(
   // Lifecycle v2 (slice 2d.4): cascade parent→child unblock for each
   // row in the bulk that landed at `completed`. Mirrors the single-
   // row path. Failures don't block the bulk write; cascades are
-  // best-effort with their own audit trail.
+  // best-effort with their own audit trail. Reason includes the
+  // parent's client name + tax type for readable child timelines
+  // (slice 2d.4 polish).
   if (input.status === 'completed') {
     const cascades = await Promise.all(
       changedRows.map((row) =>
-        scoped.obligations
-          .unblockChildrenOf(row.id)
-          .then((childIds) => childIds.map((childId) => ({ parentId: row.id, childId }))),
+        scoped.obligations.unblockChildrenOf(row.id).then((childIds) =>
+          childIds.map((childId) => ({
+            parentId: row.id,
+            parentClientId: row.clientId,
+            parentTaxType: row.taxType,
+            childId,
+          })),
+        ),
       ),
     )
     const allCascades = cascades.flat()
-    await Promise.all(
-      allCascades.map(({ parentId, childId }) =>
-        scoped.audit.write({
-          actorId: userId,
-          entityType: 'obligation_instance',
-          entityId: childId,
-          action: 'obligation.status.auto_unblocked',
-          before: { status: 'blocked', readiness: 'needs_review' },
-          after: { status: 'pending', readiness: 'ready' },
-          reason: `Unblocked by parent obligation ${parentId} (bulk).`,
+    if (allCascades.length > 0) {
+      const parentClientIds = [...new Set(allCascades.map((c) => c.parentClientId))]
+      const parentClients = await scoped.clients.findManyByIds(parentClientIds)
+      const parentClientNameById = new Map(parentClients.map((c) => [c.id, c.name]))
+      await Promise.all(
+        allCascades.map(({ parentId, parentClientId, parentTaxType, childId }) => {
+          const parentClientName = parentClientNameById.get(parentClientId) ?? 'Unknown client'
+          return scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentClientName} · ${parentTaxType} (parent #${parentId.slice(0, 8)}, bulk).`,
+          })
         }),
-      ),
-    )
+      )
+    }
   }
 
   return {
