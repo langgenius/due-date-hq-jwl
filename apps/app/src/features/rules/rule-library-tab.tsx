@@ -429,14 +429,18 @@ export function RuleLibraryTab() {
 
   return (
     <div className="flex flex-col gap-3">
-      {origin === 'coverage' || origin === 'sources' ? (
+      {origin === 'coverage' || origin === 'sources' || origin === 'cmd' ? (
         <OriginBreadcrumb
           label={
             origin === 'sources' && sourceById.get(sourceFilter)
               ? t`Filtered to rules citing: ${sourceById.get(sourceFilter)?.title ?? sourceFilter}`
               : origin === 'sources'
                 ? t`Pre-filtered from Sources`
-                : t`Pre-filtered from Coverage status`
+                : origin === 'cmd' && jurisdictionFilters.length === 1
+                  ? t`Filtered to jurisdiction: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`
+                  : origin === 'cmd'
+                    ? t`Filtered via command palette`
+                    : t`Pre-filtered from Coverage status`
           }
           onClear={clearOriginAndFilters}
           clearLabel={t`Clear and back to default`}
