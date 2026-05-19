@@ -153,6 +153,7 @@ import {
   useReadinessLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
@@ -1284,14 +1285,21 @@ export function ObligationQueueRoute() {
         ),
         cell: ({ row: tableRow }) => {
           const obligationQueueRow = tableRow.original
+          const showRejection = isRejectionVisible({
+            status: obligationQueueRow.status,
+            efileRejectedAt: obligationQueueRow.efileRejectedAt,
+          })
           return (
-            <ObligationQueueStatusControl
-              row={obligationQueueRow}
-              labels={statusLabels}
-              statuses={statusDropdownOptions}
-              disabled={statusUpdatePending}
-              onChange={(id, status) => updateStatus({ id, status })}
-            />
+            <div className="flex items-center gap-1.5">
+              <ObligationQueueStatusControl
+                row={obligationQueueRow}
+                labels={statusLabels}
+                statuses={statusDropdownOptions}
+                disabled={statusUpdatePending}
+                onChange={(id, status) => updateStatus({ id, status })}
+              />
+              {showRejection ? <RejectionChip /> : null}
+            </div>
           )
         },
       },
