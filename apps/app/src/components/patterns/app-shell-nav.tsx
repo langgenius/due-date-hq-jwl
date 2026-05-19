@@ -10,7 +10,6 @@ import {
   CheckIcon,
   ChevronsUpDownIcon,
   LayoutDashboardIcon,
-  LibraryIcon,
   MapIcon,
   PlusIcon,
   SettingsIcon,
@@ -444,34 +443,19 @@ function useNavItems(_firm: FirmPublic): NavConfig {
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
-      // Two RULES destinations:
-      //  - Coverage status: situational read of the catalog by jurisdiction
-      //    and entity. "Do we have rules where clients file?" Daily check
-      //    for managers; first stop when a Radar change lands.
-      //  - Rule library: the catalog itself — accept / activate / reject /
-      //    archive workflow on rule templates.
-      // Sources (watcher health, last-checked, change-detected) is
-      // operational sysops — surfaced as inline pointers from Coverage
-      // status header and Radar attention callouts, accessed at
-      // /rules/sources but intentionally NOT a sidebar slot. It's
-      // incident-driven, not daily-use.
+      // RULES destination — Coverage is the single rules surface.
+      // Catalog (`/rules/library`) was hidden from the sidebar once
+      // Coverage absorbed the daily Accept / Reject flow into its
+      // expanded-row + docked-panel pattern; the route still exists
+      // for direct links and as a bulk view we may bring back later.
+      // Sources (`/rules/sources`) is operational sysops — surfaced
+      // as inline pointers from Coverage's source-attention banner
+      // and Radar callouts; not a daily-use sidebar slot.
       rules: [
         {
           href: '/rules/coverage',
-          label: t`Coverage status`,
+          label: t`Coverage`,
           icon: MapIcon,
-          end: false,
-        },
-        {
-          href: '/rules/coverage-v2',
-          label: t`Coverage status (v2)`,
-          icon: MapIcon,
-          end: false,
-        },
-        {
-          href: '/rules/library',
-          label: t`Rule library`,
-          icon: LibraryIcon,
           end: false,
         },
       ],

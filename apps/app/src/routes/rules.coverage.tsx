@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import { useLingui } from '@lingui/react/macro'
+import { parseAsString, useQueryState } from 'nuqs'
 
 import type { RuleJurisdiction } from '@duedatehq/contracts'
 
@@ -11,6 +12,13 @@ import type { CoverageCellState, CoverageEntityColumn } from '@/features/rules/r
 export function RulesCoverageRoute() {
   const { t } = useLingui()
   const navigate = useNavigate()
+
+  // Read the same `rule` URL state that CoverageTab writes when the
+  // user opens a pending rule. When set, the page enters review
+  // mode and the RulesPageShell collapses its title + description
+  // chrome so the workspace can occupy the full viewport.
+  const [selectedRuleId] = useQueryState('rule', parseAsString)
+  const inReview = selectedRuleId !== null && selectedRuleId.length > 0
 
   // Per-jurisdiction drill-in (PENDING column). Lands on Library
   // pre-filtered by jurisdiction + pending_review.
@@ -41,6 +49,21 @@ export function RulesCoverageRoute() {
     [navigate],
   )
 
+  // Source-cell drill: lands on Sources page filtered to this
+  // jurisdiction. `from=coverage` preserves the origin breadcrumb so
+  // Sources can render a "Pre-filtered from Coverage: California"
+  // chip + Clear button.
+  const handleSourceDrillIn = useCallback(
+    (jurisdiction: RuleJurisdiction) => {
+      const params = new URLSearchParams({
+        jur: jurisdiction,
+        from: 'coverage',
+      })
+      void navigate(`/rules/sources?${params.toString()}`)
+    },
+    [navigate],
+  )
+
   // Entity-dot drill-in. Verified dot → active rules; review dot →
   // pending_review queue; gray "no rule" dots never call this handler.
   // The `?from=coverage` tag lets Library show a "Pre-filtered from
@@ -61,12 +84,14 @@ export function RulesCoverageRoute() {
 
   return (
     <RulesPageShell
-      title={t`Coverage status`}
-      description={t`Do we have rules where clients file? Pending counts and source documents are clickable. Every count traces back to the official federal, state, or DC document.`}
+      title={t`Rules`}
+      description={t`Source rules determine filings, status, and C/O materials. Only practice-approved rules can generate reminder-ready obligations; pending rules remain hidden — only their owner or admin can review or edit them.`}
+      compact={inReview}
     >
       <CoverageTab
         onJurisdictionDrillIn={handleJurisdictionDrillIn}
         onActiveDrillIn={handleActiveDrillIn}
+        onSourceDrillIn={handleSourceDrillIn}
         onEntityDrillIn={handleEntityDrillIn}
       />
     </RulesPageShell>

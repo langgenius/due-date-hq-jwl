@@ -34,21 +34,33 @@ export function RulesPageHeader({ title, description }: { title: string; descrip
  * (24 px padding · single scroll region · header + content column) so each
  * extracted page keeps the visual rhythm it had as a tab, just without the
  * tab nav rib that previously sat above it.
+ *
+ * `compact` collapses the page header (title + description) — used by
+ * pages that enter a focused "review mode" where the orientation
+ * header just steals vertical space. The collapse is animated via a
+ * max-height + opacity + margin transition so the transition between
+ * the two modes feels smooth instead of snapping.
  */
 export function RulesPageShell({
   title,
   description,
+  compact = false,
   children,
 }: {
   title: string
   description: string
+  compact?: boolean
   children: ReactNode
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="flex w-full flex-col gap-6 px-6 py-6">
-          <RulesPageHeader title={title} description={description} />
+          {/* Header is unmounted in compact mode — not just visually
+            collapsed. A collapsed-but-mounted div still consumes a
+            flex `gap-6` slot above the next child, which created a
+            ~48-72px dead space at the top of the review surface. */}
+          {!compact ? <RulesPageHeader title={title} description={description} /> : null}
           {children}
         </div>
       </div>

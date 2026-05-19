@@ -127,42 +127,37 @@ afterEach(() => {
   activateLocale('en')
 })
 
-describe('CoverageTab single-table layout', () => {
-  it('renders the unified jurisdiction table with named entity columns', async () => {
+describe('CoverageTab canonical layout', () => {
+  it('renders the unified table with grouped Rules + Entity coverage columns', async () => {
     await render(<CoverageTab />)
-    await waitForText('ENTITY COVERAGE')
+    await waitForText('Entity coverage')
 
-    // The header has TWO rows now: row 1 has the major column labels
-    // (JURISDICTION / ENTITY COVERAGE colSpan / ACTIVE / PENDING /
-    // ACTION / SOURCES); row 2 has the entity sub-codes (LLC / PRT /
-    // S-C / C-C / SP / TR / IN). We verify the combined header set.
+    // Single header row — Jurisdiction / Active / Pending / Source /
+    // LLC / Partner. / S-Corp / C-Corp / Sole Prop / Individual /
+    // Trust. The group-eyebrow strip ("Rules" / "Entity coverage")
+    // was dropped — the section heading above the table already
+    // names the grouping.
     expect(tableHeaders()).toEqual([
-      'JURISDICTION',
-      'ENTITY COVERAGE',
-      'ACTIVE',
-      'PENDING',
-      'ACTION',
-      'Sources',
-      'IN',
-      'TR',
+      'Jurisdiction',
+      'Active',
+      'Pending',
+      'Source',
       'LLC',
-      'PRT',
-      'S-C',
-      'C-C',
-      'SP',
+      'Partner.',
+      'S-Corp',
+      'C-Corp',
+      'Sole Prop',
+      'Individual',
+      'Trust',
     ])
   })
 
-  it('renders per-entity coverage cells inline (not behind a popover)', async () => {
+  it('renders 11 cells per row (Jurisdiction + Active + Pending + Source + 7 entity)', async () => {
     await render(<CoverageTab />)
-    await waitForText('ENTITY COVERAGE')
+    await waitForText('Entity coverage')
 
-    // The first row's entity cells are now per-column tone dots (visible
-    // by default). Verify there are exactly 7 entity cells in the first
-    // row and that they're aligned beneath the entity sub-header codes.
     const firstRow = document.querySelector('tbody tr')
     const cells = firstRow?.querySelectorAll('td') ?? []
-    // Layout: JURISDICTION (1) + 7 entity cells + ACTIVE + PENDING + ACTION + SOURCES = 12 cells
-    expect(cells.length).toBe(12)
+    expect(cells.length).toBe(11)
   })
 })
