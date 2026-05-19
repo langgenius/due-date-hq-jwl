@@ -41,7 +41,7 @@ export function PulseAlertCard({
   return (
     <article
       role="region"
-      aria-label={t`Pulse alert: ${alert.title}`}
+      aria-label={t`Radar alert: ${alert.title}`}
       className={cn(
         'flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 transition-colors hover:border-divider-regular',
         veryLowConfidence &&

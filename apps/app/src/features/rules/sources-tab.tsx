@@ -394,7 +394,7 @@ function SourceRow({
           health?.lastError
             ? t`Last error: ${health.lastError}`
             : source.healthStatus === 'degraded' || source.healthStatus === 'failing'
-              ? t`Status set by Pulse · open Radar for full watcher diagnostics`
+              ? t`Status set by Radar · open Radar for full watcher diagnostics`
               : undefined
         }
       >

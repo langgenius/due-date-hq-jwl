@@ -1306,6 +1306,7 @@ msgid "Calendar subscription updated"
 msgstr "日历订阅已更新"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
@@ -5326,7 +5327,6 @@ msgstr "门户链接已复制"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/routes/billing.checkout.tsx
-#: src/routes/billing.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Practice"
@@ -5638,11 +5638,6 @@ msgstr "服务商客户记录"
 msgid "Provider hosted"
 msgstr "服务商托管"
 
-#. placeholder {0}: alert.title
-#: src/features/pulse/components/PulseAlertCard.tsx
-msgid "Pulse alert: {0}"
-msgstr "监管提醒：{0}"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
 msgstr "已隔离"
@@ -5667,6 +5662,11 @@ msgstr "雷达"
 #: src/features/notifications/notifications-page.tsx
 msgid "Radar alert"
 msgstr "雷达提醒"
+
+#. placeholder {0}: alert.title
+#: src/features/pulse/components/PulseAlertCard.tsx
+msgid "Radar alert: {0}"
+msgstr "雷达提醒：{0}"
 
 #: src/routes/billing.tsx
 msgid "Radar and Obligations access"
@@ -6703,8 +6703,8 @@ msgid "Search, ask, or navigate..."
 msgstr "搜索、提问或导航..."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Search, segment, and inspect the filing facts that feed rules, risk, and Pulse matching."
-msgstr "搜索、分组并检查用于规则、风险和 Pulse 匹配的报税事实。"
+msgid "Search, segment, and inspect the filing facts that feed rules, risk, and Radar matching."
+msgstr "搜索、分群、并查看驱动规则、风险与雷达匹配的客户事实。"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/billing.tsx
@@ -7236,8 +7236,8 @@ msgid "Status changes write an audit row in the same call so the trail stays tru
 msgstr "状态变更会在同一次调用中写入审计记录，确保审计链可信。"
 
 #: src/features/rules/sources-tab.tsx
-msgid "Status set by Pulse · open Radar for full watcher diagnostics"
-msgstr "状态由 Pulse 设置 · 打开雷达查看完整监视器诊断"
+msgid "Status set by Radar · open Radar for full watcher diagnostics"
+msgstr "状态由雷达设置 · 打开雷达查看完整监视器诊断"
 
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx

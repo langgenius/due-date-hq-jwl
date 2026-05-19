@@ -562,7 +562,7 @@ export function ClientFactsWorkspace({
                 </CardTitle>
                 <CardDescription>
                   <Trans>
-                    Search, segment, and inspect the filing facts that feed rules, risk, and Pulse
+                    Search, segment, and inspect the filing facts that feed rules, risk, and Radar
                     matching.
                   </Trans>
                 </CardDescription>

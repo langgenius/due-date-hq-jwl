@@ -50,7 +50,7 @@ export function WorkloadPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <section className="grid gap-6 p-6">
+      <PageShell>
         <Card>
           <CardHeader>
             <CardTitle>
@@ -61,7 +61,7 @@ export function WorkloadPage() {
             </CardDescription>
           </CardHeader>
         </Card>
-      </section>
+      </PageShell>
     )
   }
 

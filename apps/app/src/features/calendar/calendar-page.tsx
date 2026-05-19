@@ -42,6 +42,7 @@ import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { PermissionObscuredContent } from '@/features/permissions/permission-gate'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -131,24 +132,27 @@ export function CalendarPage() {
   ]
 
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
+    <PageShell>
+      <PageHeader
+        title={<Trans>Calendar sync</Trans>}
+        subtitle={
+          <>
             <Trans>
               Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the
               source of truth for deadline changes.
             </Trans>
-          </p>
-          <p className="font-mono text-xs text-text-muted">
-            <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
-          </p>
-        </div>
-        <Button variant="secondary" size="sm" render={<Link to="/obligations" />}>
-          <ArrowLeftIcon data-icon="inline-start" />
-          <Trans>Back to Obligations</Trans>
-        </Button>
-      </div>
+            <span className="mt-1 block font-mono text-xs text-text-muted">
+              <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
+            </span>
+          </>
+        }
+        actions={
+          <Button variant="secondary" size="sm" render={<Link to="/obligations" />}>
+            <ArrowLeftIcon data-icon="inline-start" />
+            <Trans>Back to Obligations</Trans>
+          </Button>
+        }
+      />
 
       {subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
         <Skeleton className="h-72 max-w-2xl rounded-lg" />
@@ -191,7 +195,7 @@ export function CalendarPage() {
           <IntegrationNote title={t`Outlook`} body={t`Subscribe from web calendar URL`} />
         </CardContent>
       </Card>
-    </section>
+    </PageShell>
   )
 }
 

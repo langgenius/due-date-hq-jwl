@@ -233,10 +233,10 @@ export function BillingRoute() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
+      <PageShell>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-72 w-full" />
-      </div>
+      </PageShell>
     )
   }
 

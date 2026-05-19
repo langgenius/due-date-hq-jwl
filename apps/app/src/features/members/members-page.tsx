@@ -125,7 +125,7 @@ export function MembersPageRoute() {
 
   if (membersQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-4 px-4 py-6 md:px-6">
+      <PageShell>
         <Alert variant="destructive">
           <AlertTriangleIcon />
           <AlertTitle>
@@ -133,7 +133,7 @@ export function MembersPageRoute() {
           </AlertTitle>
           <AlertDescription>{membersQuery.error.message}</AlertDescription>
         </Alert>
-      </div>
+      </PageShell>
     )
   }
 
@@ -894,7 +894,7 @@ function InviteMemberDialog({
 
 function MembersSkeleton() {
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <PageShell>
       <div className="flex min-h-20 justify-between gap-4">
         <div className="grid gap-2">
           <Skeleton className="h-4 w-20" />
@@ -906,6 +906,6 @@ function MembersSkeleton() {
       <Skeleton className="h-24 w-full" />
       <Skeleton className="h-56 w-full" />
       <Skeleton className="h-40 w-full" />
-    </div>
+    </PageShell>
   )
 }
