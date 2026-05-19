@@ -1,4 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
+import { GaugeIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -28,7 +29,7 @@ function ExposureSegment({ segment }: { segment: Segment }) {
       // reads as a target, not a label. Resolves the "discoverability"
       // P2 from the post-redesign critique 2026-05-19.
       className={cn(
-        'inline-flex items-center rounded-md border border-divider-subtle px-2 py-0.5 font-mono text-xs tabular-nums transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary',
+        'inline-flex items-center rounded-md border border-divider-regular bg-background-default px-2.5 py-1 font-mono text-xs font-medium tabular-nums transition-colors hover:border-text-tertiary hover:text-text-primary',
         segment.tone === 'destructive' && 'text-text-destructive',
         segment.tone === 'warning' && 'text-text-warning',
         segment.tone === 'neutral' && 'text-text-secondary',
@@ -62,7 +63,8 @@ function ExposureStrip({
         aria-label={t`This week's exposure`}
         className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-4 py-3"
       >
-        <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
+          <GaugeIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
           <Trans>This week's exposure</Trans>
         </h2>
         <Skeleton className="h-4 w-3/5" />
@@ -113,7 +115,8 @@ function ExposureStrip({
       aria-label={t`This week's exposure`}
       className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-4 py-3"
     >
-      <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
+        <GaugeIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
         <Trans>This week's exposure</Trans>
       </h2>
       <div className="flex flex-wrap items-center gap-1.5">

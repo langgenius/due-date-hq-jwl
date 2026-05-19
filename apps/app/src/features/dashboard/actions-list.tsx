@@ -1,5 +1,5 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon, ListChecksIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -78,17 +78,17 @@ function ActionLine({
       // for each. Single click → open in the Obligations queue;
       // dashboard doesn't carry inline action state, it just routes
       // you to where the action happens.
-      className="group grid w-full grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group grid w-full grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       <ArrowRightIcon
-        className="size-3 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
+        className="size-3.5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
         aria-hidden
       />
       <span className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex shrink-0 items-center rounded-sm bg-background-subtle px-1.5 py-0.5 text-xs font-medium text-text-secondary">
+        <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 py-0.5 text-xs font-medium text-text-secondary">
           {row.clientName}
         </span>
-        <span className="truncate text-sm text-text-primary">{prompt}</span>
+        <span className="truncate text-sm font-medium text-text-primary">{prompt}</span>
       </span>
       <span className="inline-flex shrink-0 items-baseline gap-1.5 font-mono text-xs tabular-nums">
         <span className={cn(urgencyTone)}>{urgencyText}</span>
@@ -133,7 +133,8 @@ function DashboardActionsList({
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
+          <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
           <Trans>Actions this week</Trans>
         </h2>
         <div className="flex flex-col gap-2">
@@ -148,7 +149,8 @@ function DashboardActionsList({
   if (visible.length === 0) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
+          <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
           <Trans>Actions this week</Trans>
         </h2>
         <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-sm text-text-tertiary">
@@ -175,7 +177,8 @@ function DashboardActionsList({
 
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-      <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
+        <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
         <Trans>Actions this week</Trans>
       </h2>
       <ul className="flex flex-col">
