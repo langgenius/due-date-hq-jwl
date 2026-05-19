@@ -1395,7 +1395,7 @@ const zhCN: LandingCopy = {
         ],
       },
     ],
-    copyright: '© 2026 DueDateHQ Inc. · duedatehq.com',
+    copyright: '© 2026 DueDateHQ Inc. · due.langgenius.app',
     theme: {
       label: '主题',
       system: '跟随系统',
