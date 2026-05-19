@@ -555,6 +555,9 @@ export function DashboardRoute() {
             onOpenWizard={openWizard}
             onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
             onOpenAllObligations={() => void navigate('/obligations')}
+            onForwardTransition={(row, next) =>
+              updateStatusMutation.mutate({ id: row.obligationId, status: next })
+            }
           />
         ) : (
           <DashboardTriagePanel
