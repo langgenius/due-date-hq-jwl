@@ -457,7 +457,7 @@ export function CoverageTab({
                 <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
                   {row.sourceCount > 0 ? (
                     <Link
-                      to={`/rules/sources?jur=${row.jurisdiction}`}
+                      to={`/rules/sources?jur=${row.jurisdiction}&from=coverage`}
                       aria-label={t`View ${row.sourceCount} watched sources for ${jurisdictionLabel(row.jurisdiction)}`}
                       className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                     >

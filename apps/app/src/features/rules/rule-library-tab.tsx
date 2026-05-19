@@ -121,6 +121,32 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
   return `${rule.id}:${rule.version}`
 }
 
+const ENTITY_LABELS: Record<string, string> = {
+  llc: 'LLC',
+  partnership: 'Partnership',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  sole_prop: 'Sole prop',
+  individual: 'Individual',
+  trust: 'Trust',
+  any_business: 'Any business',
+}
+
+function entityLabel(entity: string): string {
+  return ENTITY_LABELS[entity] ?? formatEnumLabel(entity)
+}
+
+/**
+ * Resolve the OriginBreadcrumb label based on the active origin tag and
+ * filter state. Each origin gets a context-aware label so the user sees
+ * exactly which slice they're looking at, not just where they came from.
+ *
+ * The four supported origins:
+ *  - `coverage` — drilled in from Coverage status (entity dot or PENDING)
+ *  - `sources`  — drilled in from Sources "Used by N rules" link
+ *  - `cmd`      — entered via ⌘K jurisdiction command
+ */
+
 export function RuleLibraryTab() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -440,7 +466,13 @@ export function RuleLibraryTab() {
                   ? t`Filtered to jurisdiction: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`
                   : origin === 'cmd'
                     ? t`Filtered via command palette`
-                    : t`Pre-filtered from Coverage status`
+                    : origin === 'coverage' &&
+                        jurisdictionFilters.length === 1 &&
+                        entityFilters.length === 1
+                      ? t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')} · ${entityLabel(entityFilters[0] ?? '')}`
+                      : origin === 'coverage' && jurisdictionFilters.length === 1
+                        ? t`Pre-filtered from Coverage status: ${jurisdictionLabel(jurisdictionFilters[0] ?? '')}`
+                        : t`Pre-filtered from Coverage status`
           }
           onClear={clearOriginAndFilters}
           clearLabel={t`Clear and back to default`}
