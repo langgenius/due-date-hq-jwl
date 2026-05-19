@@ -118,7 +118,7 @@ export function PracticeRoute() {
 
   if (currentQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 p-4 md:p-6">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -132,7 +132,7 @@ export function PracticeRoute() {
 
   if (!currentQuery.data) {
     return (
-      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 p-4 md:p-6">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -356,7 +356,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 p-4 md:p-6">
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -776,7 +776,7 @@ function SmartPriorityRedactedContent() {
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 p-4 md:p-6">
       <Skeleton className="h-10 w-56" />
       <Skeleton className="h-52 w-full rounded-lg" />
       <Skeleton className="h-40 w-full rounded-lg" />

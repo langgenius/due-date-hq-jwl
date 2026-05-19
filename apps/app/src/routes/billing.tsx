@@ -258,17 +258,14 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
           <div className="min-w-0">
-            <span className="text-xs font-medium uppercase text-text-tertiary">
-              <Trans>Practice</Trans>
-            </span>
-            <h1 className="mt-1 text-2xl font-semibold text-text-primary">
+            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
               <Trans>Billing</Trans>
             </h1>
-            <p className="mt-1 max-w-[680px] text-sm leading-6 text-text-secondary">
+            <p className="mt-1 max-w-[680px] text-sm leading-5 text-text-secondary">
               <Trans>
                 Review the active practice plan, open billing controls, and choose the right
                 workspace tier.

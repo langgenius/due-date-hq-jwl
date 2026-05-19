@@ -128,7 +128,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const filtersActive = impactFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all'
 
   return (
-    <div className={embedded ? 'flex flex-col gap-5' : 'flex flex-col gap-5 p-4 md:p-6'}>
+    <div className={embedded ? 'flex flex-col gap-6' : 'flex flex-col gap-6 p-4 md:p-6'}>
       {!embedded ? (
         <header className="flex flex-col gap-2">
           <div className="flex items-end justify-between gap-3">

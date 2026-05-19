@@ -233,7 +233,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   })
 
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
@@ -897,7 +897,7 @@ function InviteMemberDialog({
 
 function MembersSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       <div className="flex min-h-20 justify-between gap-4">
         <div className="grid gap-2">
           <Skeleton className="h-4 w-20" />

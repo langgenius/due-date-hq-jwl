@@ -71,9 +71,9 @@ export function WorkloadPage() {
   const data = workloadQuery.data
 
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
+    <section className="flex flex-col gap-6 p-4 md:p-6">
+      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
             <Trans>Team workload</Trans>
           </h1>
@@ -95,7 +95,7 @@ export function WorkloadPage() {
           <RefreshCwIcon data-icon="inline-start" />
           <Trans>Refresh</Trans>
         </Button>
-      </div>
+      </header>
 
       {workloadQuery.isError ? (
         <Card>
