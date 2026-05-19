@@ -471,6 +471,16 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'rules/coverage-v2',
+              handle: routeHandle(routeSummaries.rulesCoverageV2),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesCoverageV2Route } = await import('@/routes/rules.coverage-v2')
+
+                return { Component: RulesCoverageV2Route }
+              },
+            },
+            {
               path: 'rules/sources',
               handle: routeHandle(routeSummaries.rulesSources),
               HydrateFallback: RouteHydrateFallback,

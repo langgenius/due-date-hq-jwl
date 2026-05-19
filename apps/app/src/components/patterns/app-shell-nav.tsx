@@ -463,6 +463,12 @@ function useNavItems(_firm: FirmPublic): NavConfig {
           end: false,
         },
         {
+          href: '/rules/coverage-v2',
+          label: t`Coverage status (v2)`,
+          icon: MapIcon,
+          end: false,
+        },
+        {
           href: '/rules/library',
           label: t`Rule library`,
           icon: LibraryIcon,
