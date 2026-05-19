@@ -766,11 +766,11 @@ function DashboardCountdownBadge({ days }: { days: number }) {
   )
 }
 
-function DashboardClientCell({ row }: { row: DashboardTopRow }) {
+function DashboardClientCell({ row, compact }: { row: DashboardTopRow; compact?: boolean }) {
   const { t } = useLingui()
 
   return (
-    <div className="grid min-w-56 gap-1">
+    <div className={cn('grid gap-1', compact ? 'min-w-40' : 'min-w-56')}>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <Link
           to={clientProfileHref(row.clientId)}
@@ -780,9 +780,14 @@ function DashboardClientCell({ row }: { row: DashboardTopRow }) {
           {row.clientName}
         </Link>
       </div>
-      <span className="truncate text-xs leading-5 text-text-tertiary">
-        {row.clientEmail ?? t`No email`}
-      </span>
+      {/* Email line is dropped in compact mode — it's a facet detail
+          that belongs on the Obligations queue or the client profile.
+          The dashboard is "what to do today", not a contact list. */}
+      {compact ? null : (
+        <span className="truncate text-xs leading-5 text-text-tertiary">
+          {row.clientEmail ?? t`No email`}
+        </span>
+      )}
     </div>
   )
 }
@@ -1007,7 +1012,7 @@ function DashboardTriageTable({
             }
           />
         ),
-        cell: ({ row }) => <DashboardClientCell row={row.original} />,
+        cell: ({ row }) => <DashboardClientCell row={row.original} compact={dashboardV2} />,
       },
       {
         id: 'nextCheck',
@@ -1237,7 +1242,12 @@ function DashboardTriageTable({
 
   return (
     <div className="overflow-x-auto">
-      <Table className="min-w-[1040px]">
+      {/*
+        Legacy 7-column layout keeps a min-width so the filter facets
+        stay readable. v2 (Evidence dropped, Status pulled in next to
+        Next check) sizes to the container — no horizontal clip.
+      */}
+      <Table className={cn(dashboardV2 ? 'w-full' : 'min-w-[1040px]')}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
