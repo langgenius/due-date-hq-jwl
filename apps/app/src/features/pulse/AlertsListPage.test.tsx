@@ -21,6 +21,7 @@ const rpcMocks = vi.hoisted(() => ({
   listMineQueryFn: vi.fn(),
   listSourceHealthQueryFn: vi.fn(),
   retrySourceHealthMutationFn: vi.fn(),
+  dismissMutationFn: vi.fn(),
 }))
 const nuqsMocks = vi.hoisted(() => ({
   setSourceReviewParam: vi.fn(),
@@ -66,6 +67,12 @@ vi.mock('@/lib/rpc', () => ({
         mutationOptions: (options: Record<string, unknown>) => ({
           ...options,
           mutationFn: rpcMocks.retrySourceHealthMutationFn,
+        }),
+      },
+      dismiss: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          ...options,
+          mutationFn: rpcMocks.dismissMutationFn,
         }),
       },
     },

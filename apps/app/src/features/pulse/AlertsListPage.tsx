@@ -95,6 +95,27 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
     'sourceReview',
     parseAsStringLiteral(['1']).withOptions({ history: 'replace' }),
   )
+  const invalidatePulse = usePulseInvalidation()
+  // Dismiss alerts directly from the Radar list (Rules › Radar). Mirrors
+  // the dashboard banner's dismiss flow — same orpc.pulse.dismiss
+  // mutation, same toast + invalidation on success. The optional
+  // onDismiss prop on PulseAlertCard already renders a "Dismiss" button
+  // when provided; wiring this handler turns it on for the in-Rules
+  // surface so CPAs reviewing alerts at depth don't have to go back to
+  // the dashboard banner just to dismiss noise.
+  const dismissAlertMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert dismissed`)
+        invalidatePulse()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description: rpcErrorMessage(err) ?? undefined,
+        })
+      },
+    }),
+  )
   const alertsQuery = useQuery(usePulseListHistoryQueryOptions(50))
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
@@ -285,14 +306,24 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             <FilteredEmptyState />
           ) : (
             <div className="flex flex-col gap-2">
-              {filteredAlerts.map((alert) => (
-                <PulseAlertCard
-                  key={alert.id}
-                  alert={alert}
-                  breathing={alert.id === breathingAlertId}
-                  onReview={() => openDrawer(alert.id)}
-                />
-              ))}
+              {filteredAlerts.map((alert) => {
+                // Dismiss only on `matched` (still-open) alerts. Other statuses
+                // are terminal or already-actioned (dismissed / applied /
+                // partially_applied / reverted / snoozed) — growing a Dismiss
+                // button there would imply a no-op or a misleading retreat.
+                const canDismiss = alert.status === 'matched'
+                return (
+                  <PulseAlertCard
+                    key={alert.id}
+                    alert={alert}
+                    breathing={alert.id === breathingAlertId}
+                    onReview={() => openDrawer(alert.id)}
+                    {...(canDismiss
+                      ? { onDismiss: () => dismissAlertMutation.mutate({ alertId: alert.id }) }
+                      : {})}
+                  />
+                )
+              })}
             </div>
           )}
         </>
