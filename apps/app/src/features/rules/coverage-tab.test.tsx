@@ -134,27 +134,18 @@ describe('CoverageTab single-table layout', () => {
     ])
   })
 
-  it('fires onEntityDrillIn when a verified or review entity dot is clicked', async () => {
-    const onEntityDrillIn = vi.fn()
-    await render(<CoverageTab onEntityDrillIn={onEntityDrillIn} />)
+  it('renders an entity-coverage summary trigger per row', async () => {
+    await render(<CoverageTab />)
     await waitForText('ENTITY COVERAGE')
 
-    // Find the first row's entity strip and the first interactive dot in it.
-    // Each interactive dot is a button rendered inside the ENTITY COVERAGE
-    // cell. Non-interactive ("no rule") dots render as <span>, so the
-    // querySelector returns only the actionable dots.
+    // Each row's ENTITY COVERAGE cell now renders a single popover trigger
+    // (button) showing the text summary instead of 7 inline dots. Verify the
+    // trigger exists and carries an accessible label naming the
+    // jurisdiction so screen readers announce the target.
     const firstRow = document.querySelector('tbody tr')
     const entityCell = firstRow?.querySelectorAll('td')[2]
-    const firstDotButton = entityCell?.querySelector('button')
-    expect(firstDotButton).toBeInstanceOf(HTMLButtonElement)
-
-    await act(async () => {
-      firstDotButton?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
-    })
-
-    expect(onEntityDrillIn).toHaveBeenCalledTimes(1)
-    const [jurisdiction, , state] = onEntityDrillIn.mock.calls[0] ?? []
-    expect(jurisdiction).toBeTypeOf('string')
-    expect(['verified', 'review']).toContain(state)
+    const trigger = entityCell?.querySelector('button')
+    expect(trigger).toBeInstanceOf(HTMLButtonElement)
+    expect(trigger?.getAttribute('aria-label')).toMatch(/Open entity breakdown for /)
   })
 })

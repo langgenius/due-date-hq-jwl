@@ -2,9 +2,10 @@ import { type ReactNode, useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
+import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Table,
   TableBody,
@@ -16,7 +17,6 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
 import {
@@ -27,7 +27,6 @@ import {
   type CoverageEntityColumn,
 } from './rules-console-model'
 import {
-  CoverageLegend,
   JurisdictionCode,
   QueryPanelState,
   SectionFrame,
@@ -80,25 +79,25 @@ function CoverageStatusPill({
 }
 
 /**
- * Inline per-jurisdiction strip of 7 small dots, one per entity type
- * (LLC · Partnership · S-Corp · C-Corp · Sole prop · Trust · Individual).
+ * Per-jurisdiction entity coverage summary.
  *
- * Each dot is tone-coded for that (jurisdiction, entity) cell's coverage
- * state: green (active), orange (review), gray (no rule). When an
- * `onEntityDrillIn` callback is provided AND the cell has rules (verified
- * or review), the dot becomes a button that drills into the Library
- * pre-filtered by jurisdiction × entity × library-filter. Dots with
- * `none` state stay non-interactive — there's nothing to show.
+ * Replaces the previous 7-dot strip (which required a separate legend
+ * to be decoded) with an explicit text count + a popover that reveals
+ * the per-entity breakdown on demand.
  *
- * Hover affordance is `title` text ("LLC — active / review / no rule")
- * so the user can verify the meaning without leaving the row. Focus
- * affordance is a ring on the dot button.
+ * Default cell renders one of three shapes:
+ *   1. Mixed state (any active or any "no rule"): "2 active · 2 not in MVP"
+ *      — only mentions entity counts that DIFFER from the default
+ *      "review" state. Most jurisdictions have all 7 entities in
+ *      "review" by default, so this cell shows the genuinely interesting
+ *      signal.
+ *   2. All-review default: "All 7 in review queue" — quiet text.
+ *   3. The whole cell is the click target. Click opens a popover with
+ *      the full 7-entity matrix, including a per-entity drill link to
+ *      Library when there are rules to see.
  *
- * Replaces the separate "Entity coverage" matrix table that used to sit
- * to the right of the jurisdiction summary. The matrix added a second
- * 52-row scan axis without answering a question CPAs ask here; entity-
- * level filtering is more naturally a Library concern. See dev log
- * 2026-05-19-coverage-status-single-table.md for the rationale.
+ * The popover is the path to per-entity granularity; the cell text is
+ * the at-a-glance summary that doesn't need decoding.
  */
 const ALL_ENTITIES: readonly CoverageEntityColumn[] = ENTITY_COLUMN_GROUPS.all
 
@@ -108,15 +107,77 @@ function entityCellState(state: CoverageCellState) {
   return { tone: 'disabled' as const, label: 'no rule' as const }
 }
 
-function EntityCoverageStrip({
+function summarizeEntityCoverage(jurisdiction: RuleJurisdiction) {
+  let active = 0
+  let review = 0
+  let noRule = 0
+  for (const entity of ALL_ENTITIES) {
+    const state = coverageCellState(jurisdiction, entity)
+    if (state === 'verified') active += 1
+    else if (state === 'review') review += 1
+    else noRule += 1
+  }
+  return { active, review, noRule, total: ALL_ENTITIES.length }
+}
+
+function EntityCoverageSummary({
   jurisdiction,
   onEntityDrillIn,
 }: {
   jurisdiction: RuleJurisdiction
-  // Fires when a verified or review dot is clicked. Receives the cell
-  // state so the caller can choose the right library-filter (active for
-  // verified, pending_review for review). Omit the callback to render
-  // dots non-interactively (e.g. embedded contexts with no router).
+  onEntityDrillIn?: (
+    jurisdiction: RuleJurisdiction,
+    entity: CoverageEntityColumn,
+    state: CoverageCellState,
+  ) => void
+}) {
+  const { t } = useLingui()
+  const summary = summarizeEntityCoverage(jurisdiction)
+  const isAllReview = summary.review === summary.total
+  // Compose the summary line. We only mention counts that deviate from the
+  // default "review" state so the eye lands on exceptions, not noise.
+  const parts: string[] = []
+  if (summary.active > 0) parts.push(t`${summary.active} active`)
+  if (summary.noRule > 0) parts.push(t`${summary.noRule} not in MVP`)
+  const summaryLine = isAllReview ? t`All ${summary.total} in review queue` : parts.join(' · ')
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            className={cn(
+              'group/entity inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5',
+              'text-xs outline-none',
+              isAllReview ? 'text-text-tertiary' : 'text-text-secondary',
+              'hover:bg-background-subtle hover:text-text-primary',
+              'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+            )}
+            aria-label={t`Open entity breakdown for ${jurisdictionLabel(jurisdiction)}`}
+          >
+            <span>{summaryLine}</span>
+            <ChevronDownIcon
+              aria-hidden
+              className="size-3 text-text-tertiary transition-transform group-hover/entity:text-text-secondary"
+            />
+          </button>
+        }
+      />
+      <PopoverContent align="start" className="w-72 p-0">
+        <EntityCoveragePopoverBody
+          jurisdiction={jurisdiction}
+          {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function EntityCoveragePopoverBody({
+  jurisdiction,
+  onEntityDrillIn,
+}: {
+  jurisdiction: RuleJurisdiction
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
     entity: CoverageEntityColumn,
@@ -125,31 +186,43 @@ function EntityCoverageStrip({
 }) {
   const { t } = useLingui()
   return (
-    <div className="inline-flex items-center gap-1.5">
-      {ALL_ENTITIES.map((entity) => {
-        const state = coverageCellState(jurisdiction, entity)
-        const { tone, label } = entityCellState(state)
-        const tooltip = `${entityLabel(entity)} — ${label}`
-        if (state === 'none' || !onEntityDrillIn) {
-          return (
-            <span key={entity} title={tooltip} aria-label={tooltip} className="inline-flex">
+    <div className="flex flex-col">
+      <div className="border-b border-divider-subtle px-3 py-2">
+        <p className="text-xs font-medium tracking-[0.04em] text-text-tertiary uppercase">
+          <Trans>Entity coverage</Trans>
+        </p>
+        <p className="text-sm font-medium text-text-primary">{jurisdictionLabel(jurisdiction)}</p>
+      </div>
+      <ul className="flex flex-col py-1">
+        {ALL_ENTITIES.map((entity) => {
+          const state = coverageCellState(jurisdiction, entity)
+          const { tone, label } = entityCellState(state)
+          const canDrill = state !== 'none' && onEntityDrillIn
+          const Inner = (
+            <>
               <ToneDot tone={tone} />
-            </span>
+              <span className="flex-1 text-sm text-text-primary">{entityLabel(entity)}</span>
+              <span className="text-xs text-text-tertiary">{label}</span>
+            </>
           )
-        }
-        return (
-          <button
-            key={entity}
-            type="button"
-            title={tooltip}
-            aria-label={t`Drill to ${entityLabel(entity)} rules for ${jurisdictionLabel(jurisdiction)} — ${label}`}
-            onClick={() => onEntityDrillIn(jurisdiction, entity, state)}
-            className="inline-flex rounded-full outline-none transition-transform hover:scale-125 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
-          >
-            <ToneDot tone={tone} />
-          </button>
-        )
-      })}
+          return (
+            <li key={entity}>
+              {canDrill ? (
+                <button
+                  type="button"
+                  onClick={() => onEntityDrillIn(jurisdiction, entity, state)}
+                  aria-label={t`Open ${entityLabel(entity)} rules for ${jurisdictionLabel(jurisdiction)} — ${label}`}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left outline-none hover:bg-background-subtle focus-visible:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                >
+                  {Inner}
+                </button>
+              ) : (
+                <div className="flex w-full items-center gap-2 px-3 py-1.5">{Inner}</div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }
@@ -166,13 +239,13 @@ function EntityCoverageStrip({
  */
 function CoverageRow({
   row,
-  coverageStatusLabels,
+  statusLabel,
   compactStatus,
   onJurisdictionDrillIn,
   onEntityDrillIn,
 }: {
   row: RuleCoverageRow
-  coverageStatusLabels: Partial<Record<RuleJurisdiction, string>>
+  statusLabel: string
   compactStatus?: boolean
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onEntityDrillIn?: (
@@ -193,7 +266,7 @@ function CoverageRow({
         {jurisdictionLabel(row.jurisdiction)}
       </TableCell>
       <TableCell className="py-2">
-        <EntityCoverageStrip
+        <EntityCoverageSummary
           jurisdiction={row.jurisdiction}
           {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
         />
@@ -235,10 +308,7 @@ function CoverageRow({
         {compactStatus ? (
           <span className="text-xs text-text-tertiary">—</span>
         ) : (
-          <CoverageStatusPill
-            jurisdiction={row.jurisdiction}
-            label={coverageStatusLabels[row.jurisdiction] ?? t`Awaiting CPA review`}
-          />
+          <CoverageStatusPill jurisdiction={row.jurisdiction} label={statusLabel} />
         )}
       </TableCell>
     </TableRow>
@@ -256,164 +326,94 @@ function aggregateCoverage(rows: readonly RuleCoverageRow[]) {
 }
 
 /**
- * One-line situational read at the top of the Coverage status page.
+ * Source-health callout. The Coverage table below shows per-jurisdiction
+ * counts (active / pending / sources) — those don't need to be repeated
+ * at the top. What IS unique to this slot is source health: a credential
+ * the table can't show because it's an aggregate of the Pulse subsystem,
+ * not the registry.
  *
- *   3 active · 123 needs review · 52 jurisdictions      88 sources watched →
- *   3 active · 123 needs review · 52 jurisdictions   ⚠ 11 degraded · 1 failing → Sources
- *
- * Replaces the earlier 4-card KPI grid (hero-metrics pattern, AI-slop tell)
- * with a newspaper-kicker rhythm. Left cluster is *catalog state* (what the
- * library contains); right cluster is *source-of-truth state* (whether the
- * official documents backing those rules are still being watched). The
- * source-health pointer is always visible — when fully healthy it carries a
- * neutral count, when degraded/failing it gains tone (severity) and a
- * pointer to /rules/sources where the bad rows can be triaged.
- *
- * The right-side pointer is the page's source-of-truth credential: every
- * count on the page traces back to those watched documents.
+ * Behavior:
+ *   - When degraded > 0 OR failing > 0: render a bordered pill with the
+ *     incident counts, linking to /rules/sources?health=degraded so the
+ *     CPA lands on the affected rows.
+ *   - When everything is healthy: render a quiet line "All N watched
+ *     sources are healthy →" with the link still active so the user can
+ *     verify on demand.
  */
-function CoverageSnapshotStrip({
-  active,
-  pending,
-  jurisdictions,
+function SourceHealthCallout({
   sourcesWatched,
   sourcesDegraded,
   sourcesFailing,
 }: {
-  active: number
-  pending: number
-  jurisdictions: number
   sourcesWatched: number
   sourcesDegraded: number
   sourcesFailing: number
 }) {
   const hasIncident = sourcesDegraded > 0 || sourcesFailing > 0
-  return (
-    <div className="flex h-10 flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-divider-regular bg-background-default px-3">
-      <SnapshotNumber value={active} label={<Trans>active</Trans>} conceptKey="verifiedRule" />
-      <SnapshotSeparator />
-      <SnapshotNumber
-        value={pending}
-        label={<Trans>needs review</Trans>}
-        conceptKey="candidateRule"
-        tone={pending > 0 ? 'review' : 'muted'}
-      />
-      <SnapshotSeparator />
-      <SnapshotNumber
-        value={jurisdictions}
-        label={<Trans>jurisdictions</Trans>}
-        conceptKey="coverage"
-      />
-      <span aria-hidden className="ml-auto" />
-      {hasIncident ? (
-        <Link
-          to="/rules/sources"
-          className={cn(
-            'group/sources inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md',
-            'border border-divider-regular bg-background-subtle px-2',
-            'text-xs text-text-secondary outline-none',
-            'hover:border-state-accent-active-alt hover:bg-background-default hover:text-text-accent',
-            'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          )}
-        >
-          <AlertTriangleIcon aria-hidden className="size-3.5 text-severity-medium" />
-          {sourcesDegraded > 0 ? (
-            <span className="inline-flex items-baseline gap-1">
-              <span className="font-mono text-sm font-semibold tabular-nums text-severity-medium">
-                {sourcesDegraded}
-              </span>
-              <span>
-                <Trans>degraded</Trans>
-              </span>
+  if (hasIncident) {
+    return (
+      <Link
+        to="/rules/sources?health=degraded"
+        className={cn(
+          'group/sources inline-flex h-8 w-fit items-center gap-2 rounded-md',
+          'border border-divider-regular bg-background-subtle px-3',
+          'text-xs text-text-secondary outline-none',
+          'hover:border-state-accent-active-alt hover:bg-background-default hover:text-text-accent',
+          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        )}
+      >
+        <AlertTriangleIcon aria-hidden className="size-3.5 text-severity-medium" />
+        {sourcesDegraded > 0 ? (
+          <span className="inline-flex items-baseline gap-1">
+            <span className="font-mono text-sm font-semibold tabular-nums text-severity-medium">
+              {sourcesDegraded}
             </span>
-          ) : null}
-          {sourcesDegraded > 0 && sourcesFailing > 0 ? (
-            <span aria-hidden className="text-text-tertiary">
-              ·
+            <span>
+              <Trans>sources degraded</Trans>
             </span>
-          ) : null}
-          {sourcesFailing > 0 ? (
-            <span className="inline-flex items-baseline gap-1">
-              <span className="font-mono text-sm font-semibold tabular-nums text-text-destructive">
-                {sourcesFailing}
-              </span>
-              <span>
-                <Trans>failing</Trans>
-              </span>
+          </span>
+        ) : null}
+        {sourcesDegraded > 0 && sourcesFailing > 0 ? (
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+        ) : null}
+        {sourcesFailing > 0 ? (
+          <span className="inline-flex items-baseline gap-1">
+            <span className="font-mono text-sm font-semibold tabular-nums text-text-destructive">
+              {sourcesFailing}
             </span>
-          ) : null}
-          <span className="mx-1 font-medium">
-            <Trans>Sources</Trans>
+            <span>
+              <Trans>failing</Trans>
+            </span>
           </span>
-          <ChevronRightIcon
-            aria-hidden
-            className="size-3.5 text-text-tertiary transition-transform group-hover/sources:translate-x-0.5 group-hover/sources:text-text-accent"
-          />
-        </Link>
-      ) : (
-        <Link
-          to="/rules/sources"
-          className={cn(
-            'group/sources inline-flex h-6 shrink-0 items-baseline gap-1 rounded-md px-2',
-            'text-xs text-text-tertiary outline-none',
-            'hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          )}
-        >
-          <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
-            {sourcesWatched}
-          </span>
-          <span>
-            <Trans>sources watched</Trans>
-          </span>
-          <ChevronRightIcon aria-hidden className="size-3.5 self-center text-text-tertiary" />
-        </Link>
-      )}
-    </div>
-  )
-}
-
-/**
- * `<value> <label>` stat used inside CoverageSnapshotStrip.
- *
- * Tone vs affordance (same contract as the old Library SummaryNumber):
- *  - `tone` signals severity only — `review` blue for "needs CPA attention",
- *    `muted` for deprioritized counts, `default` for neutral ones.
- *  - The stat is never interactive on its own. Click-targets live as
- *    bordered pills on the right side of the strip; the per-jurisdiction
- *    drill-in happens on the table below.
- */
-function SnapshotNumber({
-  value,
-  label,
-  conceptKey,
-  tone = 'default',
-}: {
-  value: number
-  label: ReactNode
-  conceptKey: 'verifiedRule' | 'candidateRule' | 'coverage'
-  tone?: 'default' | 'muted' | 'review'
-}) {
-  const toneClass =
-    tone === 'review'
-      ? 'text-status-review'
-      : tone === 'muted'
-        ? 'text-text-muted'
-        : 'text-text-primary'
+        ) : null}
+        <span className="ml-1 font-medium">
+          <Trans>Review sources</Trans>
+        </span>
+        <ChevronRightIcon
+          aria-hidden
+          className="size-3.5 text-text-tertiary transition-transform group-hover/sources:translate-x-0.5 group-hover/sources:text-text-accent"
+        />
+      </Link>
+    )
+  }
   return (
-    <span className="inline-flex shrink-0 items-baseline gap-1">
-      <span className={cn('font-mono text-sm font-semibold tabular-nums', toneClass)}>{value}</span>
-      <ConceptLabel concept={conceptKey}>
-        <span className="text-xs text-text-secondary">{label}</span>
-      </ConceptLabel>
-    </span>
-  )
-}
-
-function SnapshotSeparator() {
-  return (
-    <span aria-hidden className="shrink-0 text-text-tertiary">
-      ·
-    </span>
+    <Link
+      to="/rules/sources"
+      className="group/sources inline-flex h-8 w-fit items-baseline gap-1 rounded-md px-2 text-xs text-text-tertiary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      <span>
+        <Trans>All</Trans>
+      </span>
+      <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
+        {sourcesWatched}
+      </span>
+      <span>
+        <Trans>watched sources are healthy</Trans>
+      </span>
+      <ChevronRightIcon aria-hidden className="size-3.5 self-center text-text-tertiary" />
+    </Link>
   )
 }
 
@@ -452,13 +452,25 @@ export function CoverageTab({
     return { degraded, failing }
   }, [sourceHealthQuery.data])
 
-  const coverageStatusLabels: Partial<Record<RuleJurisdiction, string>> = {
-    FED: t`Needs owner approval`,
-    CA: t`Needs owner approval`,
-    NY: t`Needs owner approval`,
-    TX: t`All rules pending`,
-    FL: t`Calendar from official source`,
-    WA: t`Filing cadence varies`,
+  // Build per-jurisdiction action labels with the pending count baked in
+  // so users see what to DO (and how many), not just a category tag.
+  // Example: "Owner: approve 7 pending" vs the prior "Needs owner approval".
+  const statusLabelFor = (row: RuleCoverageRow): string => {
+    const pending = row.pendingReviewCount ?? row.candidateCount
+    switch (row.jurisdiction) {
+      case 'FED':
+      case 'CA':
+      case 'NY':
+        return t`Owner: approve ${pending} pending`
+      case 'TX':
+        return t`Approve all ${pending} pending`
+      case 'FL':
+        return t`Auto-tracks IRS calendar`
+      case 'WA':
+        return t`Verify cadence per client`
+      default:
+        return pending > 0 ? t`Approve ${pending} pending` : t`No pending review`
+    }
   }
 
   if (coverageQuery.isLoading) {
@@ -484,7 +496,7 @@ export function CoverageTab({
   // entity dots" rows that repeat 40+ times in alphabetical order. Hiding
   // them by default cuts the wall of repetition without losing the data:
   // expander reveals the full alphabetical list.
-  const needsAttention = needsAttentionRows(rows, coverageStatusLabels)
+  const needsAttention = needsAttentionRows(rows)
   const allClear = rows.filter((row) => !needsAttention.includes(row))
   return (
     <CoverageTable
@@ -492,21 +504,31 @@ export function CoverageTab({
       sourceHealthCounts={sourceHealthCounts}
       needsAttention={needsAttention}
       allClear={allClear}
-      coverageStatusLabels={coverageStatusLabels}
+      statusLabelFor={statusLabelFor}
       {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
       {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
     />
   )
 }
 
-function needsAttentionRows(
-  rows: readonly RuleCoverageRow[],
-  statusLabels: Partial<Record<RuleJurisdiction, string>>,
-): RuleCoverageRow[] {
+// Jurisdictions that get a unique action label rather than the generic
+// "Approve N pending" — these are the rows that earn the needs-attention
+// zone even when their PENDING count is small. Single source of truth so
+// the predicate and the label resolver stay in sync.
+const SPECIAL_STATUS_JURISDICTIONS = new Set<RuleJurisdiction>([
+  'FED',
+  'CA',
+  'NY',
+  'TX',
+  'FL',
+  'WA',
+])
+
+function needsAttentionRows(rows: readonly RuleCoverageRow[]): RuleCoverageRow[] {
   return rows.filter((row) => {
     const pending = row.pendingReviewCount ?? row.candidateCount
     if (pending > 2) return true
-    if (statusLabels[row.jurisdiction]) return true
+    if (SPECIAL_STATUS_JURISDICTIONS.has(row.jurisdiction)) return true
     // Has at least one non-review entity dot (active or explicit no-rule)
     const hasInteresting = ALL_ENTITIES.some(
       (entity) => coverageCellState(row.jurisdiction, entity) !== 'review',
@@ -520,7 +542,7 @@ function CoverageTable({
   sourceHealthCounts,
   needsAttention,
   allClear,
-  coverageStatusLabels,
+  statusLabelFor,
   onJurisdictionDrillIn,
   onEntityDrillIn,
 }: {
@@ -528,7 +550,7 @@ function CoverageTable({
   sourceHealthCounts: { degraded: number; failing: number }
   needsAttention: readonly RuleCoverageRow[]
   allClear: readonly RuleCoverageRow[]
-  coverageStatusLabels: Partial<Record<RuleJurisdiction, string>>
+  statusLabelFor: (row: RuleCoverageRow) => string
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
@@ -539,15 +561,11 @@ function CoverageTable({
   const [showAllClear, setShowAllClear] = useState(false)
   return (
     <div className="flex flex-col gap-6">
-      <CoverageSnapshotStrip
-        active={stats.active}
-        pending={stats.pending}
-        jurisdictions={stats.jurisdictions}
+      <SourceHealthCallout
         sourcesWatched={stats.sources}
         sourcesDegraded={sourceHealthCounts.degraded}
         sourcesFailing={sourceHealthCounts.failing}
       />
-      <CoverageLegend />
 
       {/*
         Single per-jurisdiction table. Each row carries ACTIVE / PENDING /
@@ -577,7 +595,7 @@ function CoverageTable({
               <CoverageRow
                 key={row.jurisdiction}
                 row={row}
-                coverageStatusLabels={coverageStatusLabels}
+                statusLabel={statusLabelFor(row)}
                 {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
                 {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
               />
@@ -595,9 +613,9 @@ function CoverageTable({
                     className="text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     {showAllClear ? (
-                      <Trans>Hide {allClear.length} other jurisdictions</Trans>
+                      <Trans>Hide {allClear.length} jurisdictions in standard review queue</Trans>
                     ) : (
-                      <Trans>Show {allClear.length} other jurisdictions</Trans>
+                      <Trans>Show {allClear.length} jurisdictions in standard review queue</Trans>
                     )}
                   </button>
                 </TableCell>
@@ -608,7 +626,7 @@ function CoverageTable({
                   <CoverageRow
                     key={row.jurisdiction}
                     row={row}
-                    coverageStatusLabels={coverageStatusLabels}
+                    statusLabel={statusLabelFor(row)}
                     compactStatus
                     {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
                     {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
