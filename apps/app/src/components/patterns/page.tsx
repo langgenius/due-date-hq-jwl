@@ -45,31 +45,48 @@ export function PageShell({
  *
  * Visual contract:
  *   - Two-column flex at md+, stacked at mobile, gap-3 between rows
- *   - Title column: H1 (text-2xl leading-tight font-semibold) over an
- *     optional subtitle (text-sm leading-5 text-text-secondary)
+ *   - Title column: optional leading slot (icon/avatar) · H1 + optional
+ *     subtitle
+ *   - H1: text-2xl leading-tight font-semibold text-text-primary
+ *   - Subtitle: text-sm leading-5 text-text-secondary, max-w-[760px]
  *   - Actions column: right-aligned, items-end so buttons baseline-align
  *     with the H1
- *   - max-w-[760px] on subtitle so it doesn't run the full page width
  *
  * Use this for every list-page header. Don't roll your own.
+ *
+ * `leading` is for icons/avatars next to the title (e.g. Practice profile).
+ * `actions` is for top-right buttons / badges / pills.
  */
 export function PageHeader({
   title,
   subtitle,
+  leading,
   actions,
 }: {
   title: ReactNode
   subtitle?: ReactNode
+  leading?: ReactNode
   actions?: ReactNode
 }) {
+  const titleColumn = (
+    <div className="flex min-w-0 flex-col gap-1">
+      <h1 className="text-2xl leading-tight font-semibold text-text-primary">{title}</h1>
+      {subtitle ? (
+        <p className="max-w-[760px] text-sm leading-5 text-text-secondary">{subtitle}</p>
+      ) : null}
+    </div>
+  )
+
   return (
     <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <div className="flex min-w-0 flex-col gap-1">
-        <h1 className="text-2xl leading-tight font-semibold text-text-primary">{title}</h1>
-        {subtitle ? (
-          <p className="max-w-[760px] text-sm leading-5 text-text-secondary">{subtitle}</p>
-        ) : null}
-      </div>
+      {leading ? (
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="shrink-0">{leading}</span>
+          {titleColumn}
+        </div>
+      ) : (
+        titleColumn
+      )}
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
   )

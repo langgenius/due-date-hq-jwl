@@ -61,6 +61,7 @@ import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import {
   ObligationQueueStatusControl,
   useStatusLabels,
@@ -464,29 +465,31 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <h1 className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight text-text-primary">
-          <span>
+    <PageShell>
+      <PageHeader
+        title={
+          <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
+            {data?.asOfDate ? (
+              <span className="font-normal tabular-nums text-text-tertiary">
+                {formatTodayHeader(data.asOfDate)}
+              </span>
+            ) : null}
           </span>
-          {data?.asOfDate ? (
-            <span className="font-normal tabular-nums text-text-tertiary">
-              {formatTodayHeader(data.asOfDate)}
-            </span>
-          ) : null}
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
-            <FileSearchIcon data-icon="inline-start" />
-            <Trans>Import clients</Trans>
-          </Button>
-          <Button size="sm" onClick={() => void navigate('/obligations')}>
-            <Trans>See all obligations</Trans>
-            <ArrowUpRightIcon data-icon="inline-end" />
-          </Button>
-        </div>
-      </header>
+        }
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
+              <FileSearchIcon data-icon="inline-start" />
+              <Trans>Import clients</Trans>
+            </Button>
+            <Button size="sm" onClick={() => void navigate('/obligations')}>
+              <Trans>See all obligations</Trans>
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          </>
+        }
+      />
 
       {dashboardQuery.isError ? (
         <Alert variant="destructive">
@@ -566,7 +569,7 @@ export function DashboardRoute() {
           }
         />
       </section>
-    </div>
+    </PageShell>
   )
 }
 

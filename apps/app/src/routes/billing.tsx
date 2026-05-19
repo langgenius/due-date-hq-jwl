@@ -42,6 +42,7 @@ import {
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 import { PermissionGate } from '@/features/permissions/permission-gate'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant']
 
@@ -258,30 +259,26 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-              <Trans>Billing</Trans>
-            </h1>
-            <p className="mt-1 max-w-[680px] text-sm leading-5 text-text-secondary">
-              <Trans>
-                Review the active practice plan, open billing controls, and choose the right
-                workspace tier.
-              </Trans>
-            </p>
-          </div>
-        </div>
-        {currentFirm ? (
-          <Badge
-            variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
-            className="font-mono tabular-nums"
-          >
-            {currentPlanName}
-          </Badge>
-        ) : null}
-      </header>
+    <PageShell>
+      <PageHeader
+        title={<Trans>Billing</Trans>}
+        subtitle={
+          <Trans>
+            Review the active practice plan, open billing controls, and choose the right workspace
+            tier.
+          </Trans>
+        }
+        actions={
+          currentFirm ? (
+            <Badge
+              variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
+              className="font-mono tabular-nums"
+            >
+              {currentPlanName}
+            </Badge>
+          ) : null
+        }
+      />
 
       {portalMutation.isError ? (
         <Alert variant="destructive">
@@ -519,7 +516,7 @@ export function BillingRoute() {
           </CardContent>
         </Card>
       </section>
-    </div>
+    </PageShell>
   )
 }
 

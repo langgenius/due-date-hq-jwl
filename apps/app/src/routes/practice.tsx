@@ -54,6 +54,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import {
   PermissionInlineNotice,
   PermissionObscuredContent,
@@ -356,31 +357,28 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-6 p-4 md:p-6">
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted">
-              <Building2Icon className="size-4" aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold leading-tight text-text-primary">
-                <Trans>Practice profile</Trans>
-              </h1>
-              <p
-                role="note"
-                aria-label={firmSummaryLabel}
-                className="truncate text-sm text-text-secondary"
-              >
-                {firmSummary}
-              </p>
-            </div>
-          </div>
+    <PageShell narrow>
+      <PageHeader
+        leading={
+          <span
+            aria-hidden
+            className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+          >
+            <Building2Icon className="size-4" />
+          </span>
+        }
+        title={<Trans>Practice profile</Trans>}
+        subtitle={
+          <span role="note" aria-label={firmSummaryLabel}>
+            {firmSummary}
+          </span>
+        }
+        actions={
           <Badge variant="outline" className="font-mono tabular-nums text-xs">
             {currentRole}
           </Badge>
-        </div>
-      </section>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -673,7 +671,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   )
 }
 

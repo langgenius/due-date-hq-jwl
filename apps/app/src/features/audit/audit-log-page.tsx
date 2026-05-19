@@ -36,6 +36,7 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -545,10 +546,10 @@ export function AuditLogPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="flex flex-col gap-6 p-4 md:p-6">
+      <PageShell>
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-60 w-full rounded-lg" />
-      </div>
+      </PageShell>
     )
   }
 
@@ -571,19 +572,17 @@ export function AuditLogPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-              <ConceptLabel concept="auditTrail">
-                <Trans>Audit log</Trans>
-              </ConceptLabel>
-            </h1>
-            <p className="max-w-180 text-md text-text-secondary">
-              <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
-            </p>
-          </div>
+    <PageShell>
+      <PageHeader
+        title={
+          <ConceptLabel concept="auditTrail">
+            <Trans>Audit log</Trans>
+          </ConceptLabel>
+        }
+        subtitle={
+          <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
+        }
+        actions={
           <div className="flex flex-col items-start gap-2 md:items-end">
             <AuditExportButton firm={currentFirm} />
             {currentFirm?.role !== 'owner' ? (
@@ -592,8 +591,8 @@ export function AuditLogPage() {
               </PermissionInlineNotice>
             ) : null}
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -769,6 +768,6 @@ export function AuditLogPage() {
         open={Boolean(selectedEvent)}
         onOpenChange={closeEvent}
       />
-    </div>
+    </PageShell>
   )
 }

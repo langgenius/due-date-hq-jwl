@@ -31,6 +31,7 @@ import {
 import { ImportHistoryDrawer } from '@/features/migration/ImportHistoryDrawer'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -241,38 +242,34 @@ export function ClientsRoute() {
   }, [setClientsQuery])
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    <PageShell>
       {selectedClient ? null : (
-        <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex min-w-0 flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-                <Trans>Clients</Trans>
-              </h1>
-              <p className="max-w-3xl text-sm leading-5 text-text-secondary">
-                <Trans>
-                  Validate the practice client facts that generate obligations, dashboard risk, and
-                  Radar matches.
-                </Trans>
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
-              <FileClockIcon data-icon="inline-start" />
-              <Trans>Import history</Trans>
-            </Button>
-            <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
-              <FileSearchIcon data-icon="inline-start" />
-              <Trans>Import clients</Trans>
-            </Button>
-            <CreateClientDialog
-              entityLabels={entityLabels}
-              isPending={createMutation.isPending}
-              onCreate={handleCreateClient}
-            />
-          </div>
-        </header>
+        <PageHeader
+          title={<Trans>Clients</Trans>}
+          subtitle={
+            <Trans>
+              Validate the practice client facts that generate obligations, dashboard risk, and
+              Radar matches.
+            </Trans>
+          }
+          actions={
+            <>
+              <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
+                <FileClockIcon data-icon="inline-start" />
+                <Trans>Import history</Trans>
+              </Button>
+              <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
+                <FileSearchIcon data-icon="inline-start" />
+                <Trans>Import clients</Trans>
+              </Button>
+              <CreateClientDialog
+                entityLabels={entityLabels}
+                isPending={createMutation.isPending}
+                onCreate={handleCreateClient}
+              />
+            </>
+          }
+        />
       )}
 
       {clientsQuery.isError ? (
@@ -322,6 +319,6 @@ export function ClientsRoute() {
         canDelete={canDeleteClients}
         onClientDeleted={handleClientDeleted}
       />
-    </div>
+    </PageShell>
   )
 }

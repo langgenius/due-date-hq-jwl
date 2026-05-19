@@ -28,6 +28,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { KpiStat } from '@/components/patterns/kpi-stat'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { workloadRowDueSoonHref, workloadRowHref, workloadRowOverdueHref } from './workload-links'
@@ -71,31 +72,31 @@ export function WorkloadPage() {
   const data = workloadQuery.data
 
   return (
-    <section className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Team workload</Trans>
-          </h1>
-          <p className="text-sm leading-5 text-text-secondary">
+    <PageShell>
+      <PageHeader
+        title={<Trans>Team workload</Trans>}
+        subtitle={
+          <>
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
-          </p>
-          <p className="mt-1 text-xs tabular-nums text-text-muted">
-            <Trans>
-              As of {asOfDate} · next {windowDays} days
-            </Trans>
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void workloadQuery.refetch()}
-          disabled={workloadQuery.isFetching}
-        >
-          <RefreshCwIcon data-icon="inline-start" />
-          <Trans>Refresh</Trans>
-        </Button>
-      </header>
+            <span className="mt-1 block text-xs tabular-nums text-text-muted">
+              <Trans>
+                As of {asOfDate} · next {windowDays} days
+              </Trans>
+            </span>
+          </>
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void workloadQuery.refetch()}
+            disabled={workloadQuery.isFetching}
+          >
+            <RefreshCwIcon data-icon="inline-start" />
+            <Trans>Refresh</Trans>
+          </Button>
+        }
+      />
 
       {workloadQuery.isError ? (
         <Card>
@@ -153,13 +154,13 @@ export function WorkloadPage() {
           )}
         </CardContent>
       </Card>
-    </section>
+    </PageShell>
   )
 }
 
 function WorkloadUpgradePanel() {
   return (
-    <section className="grid gap-6 p-6">
+    <PageShell>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -193,7 +194,7 @@ function WorkloadUpgradePanel() {
           </Button>
         </CardContent>
       </Card>
-    </section>
+    </PageShell>
   )
 }
 

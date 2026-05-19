@@ -16,6 +16,7 @@ import {
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { KpiStat } from '@/components/patterns/kpi-stat'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -35,22 +36,16 @@ export function OpportunitiesPage() {
   const summary = opportunitiesQuery.data?.summary
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-              <Trans>Opportunities</Trans>
-            </h1>
-            <p className="max-w-3xl text-sm leading-5 text-text-secondary">
-              <Trans>
-                Lightweight client conversation cues for future service, retention, and engagement
-                scope. DueDateHQ does not generate tax strategies here.
-              </Trans>
-            </p>
-          </div>
-        </div>
-      </header>
+    <PageShell>
+      <PageHeader
+        title={<Trans>Opportunities</Trans>}
+        subtitle={
+          <Trans>
+            Lightweight client conversation cues for future service, retention, and engagement
+            scope. DueDateHQ does not generate tax strategies here.
+          </Trans>
+        }
+      />
 
       {opportunitiesQuery.isError ? (
         <Alert variant="destructive">
@@ -121,7 +116,7 @@ export function OpportunitiesPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   )
 }
 

@@ -31,6 +31,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -143,26 +144,22 @@ export function NotificationsPage() {
   const preferences = preferencesQuery.data
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Notifications</Trans>
-          </h1>
-          <p className="text-sm leading-5 text-text-secondary">
-            <Trans>Deadline reminders, audit packages, and Radar alerts in one inbox.</Trans>
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => markAllRead.mutate(undefined)}
-          disabled={markAllRead.isPending || notifications.every((item) => item.readAt)}
-        >
-          <CheckCheckIcon data-icon="inline-start" />
-          <Trans>Mark all read</Trans>
-        </Button>
-      </header>
+    <PageShell>
+      <PageHeader
+        title={<Trans>Notifications</Trans>}
+        subtitle={<Trans>Deadline reminders, audit packages, and Radar alerts in one inbox.</Trans>}
+        actions={
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => markAllRead.mutate(undefined)}
+            disabled={markAllRead.isPending || notifications.every((item) => item.readAt)}
+          >
+            <CheckCheckIcon data-icon="inline-start" />
+            <Trans>Mark all read</Trans>
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Card>
@@ -291,7 +288,7 @@ export function NotificationsPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageShell>
   )
 }
 

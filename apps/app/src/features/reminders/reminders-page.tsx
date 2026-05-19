@@ -44,6 +44,7 @@ import {
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
 import { KpiStat } from '@/components/patterns/kpi-stat'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -107,24 +108,22 @@ export function RemindersPage() {
   const timezone = overview?.practiceTimezone ?? 'America/New_York'
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Reminders</Trans>
-          </h1>
-          <p className="max-w-[760px] text-sm text-text-secondary">
-            <Trans>
-              Manage the reminder schedule, message templates, recent delivery status, and client
-              email suppressions for deadline work.
-            </Trans>
-          </p>
-        </div>
-        <Button render={<Link to="/notifications" />} variant="outline" size="sm">
-          <BellIcon data-icon="inline-start" />
-          <Trans>Personal inbox</Trans>
-        </Button>
-      </header>
+    <PageShell>
+      <PageHeader
+        title={<Trans>Reminders</Trans>}
+        subtitle={
+          <Trans>
+            Manage the reminder schedule, message templates, recent delivery status, and client
+            email suppressions for deadline work.
+          </Trans>
+        }
+        actions={
+          <Button render={<Link to="/notifications" />} variant="outline" size="sm">
+            <BellIcon data-icon="inline-start" />
+            <Trans>Personal inbox</Trans>
+          </Button>
+        }
+      />
 
       {overviewQuery.isError ? (
         <Card>
@@ -195,7 +194,7 @@ export function RemindersPage() {
           }}
         />
       ) : null}
-    </div>
+    </PageShell>
   )
 }
 

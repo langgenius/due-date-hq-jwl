@@ -142,6 +142,7 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { paidPlanActive } from '@/features/billing/model'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
@@ -1584,22 +1585,20 @@ export function ObligationQueueRoute() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold leading-tight text-text-primary">
-              <ConceptLabel concept="obligation">
-                <Trans>Obligations</Trans>
-              </ConceptLabel>
-            </h1>
-            <p className="max-w-180 text-md text-text-secondary">
-              <Trans>
-                Status changes write an audit row in the same call so the trail stays trustworthy.
-              </Trans>
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+    <PageShell>
+      <PageHeader
+        title={
+          <ConceptLabel concept="obligation">
+            <Trans>Obligations</Trans>
+          </ConceptLabel>
+        }
+        subtitle={
+          <Trans>
+            Status changes write an audit row in the same call so the trail stays trustworthy.
+          </Trans>
+        }
+        actions={
+          <>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -1676,9 +1675,9 @@ export function ObligationQueueRoute() {
               <FilterIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <Card>
         <CardContent className="flex flex-col gap-4 pt-4">
@@ -2100,7 +2099,7 @@ export function ObligationQueueRoute() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }
 

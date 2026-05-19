@@ -54,6 +54,7 @@ import {
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { KpiStat } from '@/components/patterns/kpi-stat'
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { SectionLabel } from '@/components/patterns/typography'
 import {
   Table,
@@ -233,33 +234,29 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   })
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Members</Trans>
-          </h1>
-          <p className="mt-1 text-sm leading-5 text-text-secondary">
-            <Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Button variant="outline" size="lg" render={<Link to="/audit" />}>
-            <Trans>View audit log</Trans>
-          </Button>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => setInviteOpen(true)}
-            aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
-            aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            <Trans>Invite member</Trans>
-            <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
-          </Button>
-        </div>
-      </header>
+    <PageShell>
+      <PageHeader
+        title={<Trans>Members</Trans>}
+        subtitle={<Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>}
+        actions={
+          <>
+            <Button variant="outline" size="lg" render={<Link to="/audit" />}>
+              <Trans>View audit log</Trans>
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => setInviteOpen(true)}
+              aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
+              aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
+            >
+              <PlusIcon className="size-3.5" aria-hidden />
+              <Trans>Invite member</Trans>
+              <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
+            </Button>
+          </>
+        }
+      />
 
       <section className="grid gap-3 md:grid-cols-4">
         <SeatStat data={data} />
@@ -371,7 +368,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   )
 }
 

@@ -38,6 +38,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 
+import { PageHeader, PageShell } from '@/components/patterns/page'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -127,42 +128,22 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const breathingAlertId = filteredAlerts.find(isBreathingAlertRow)?.id
   const filtersActive = impactFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all'
 
-  return (
-    <div className={embedded ? 'flex flex-col gap-6' : 'flex flex-col gap-6 p-4 md:p-6'}>
-      {!embedded ? (
-        <header className="flex flex-col gap-2">
-          <div className="flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
-                <PulsingDot tone={isEmpty ? 'success' : 'warning'} active />
-                <Trans>Radar</Trans>
-              </h1>
-              <p className="max-w-[640px] text-sm leading-5 text-text-secondary">
-                <ConceptLabel concept="pulse">
-                  <Trans>
-                    Source-backed government changes that match your practice's clients. Review,
-                    batch-apply due-date changes, snooze, or revisit closed changes.
-                  </Trans>
-                </ConceptLabel>
-              </p>
-            </div>
-            {!alertsQuery.isLoading ? (
-              <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
-                {alerts.length === 0 ? (
-                  <Trans>0 active</Trans>
-                ) : filtersActive ? (
-                  <Trans>
-                    {filteredAlerts.length} shown · {alerts.length} total
-                  </Trans>
-                ) : (
-                  <Plural value={alerts.length} one="# active" other="# active" />
-                )}
-              </span>
-            ) : null}
-          </div>
-        </header>
-      ) : null}
+  const headerCountBadge = !alertsQuery.isLoading ? (
+    <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
+      {alerts.length === 0 ? (
+        <Trans>0 active</Trans>
+      ) : filtersActive ? (
+        <Trans>
+          {filteredAlerts.length} shown · {alerts.length} total
+        </Trans>
+      ) : (
+        <Plural value={alerts.length} one="# active" other="# active" />
+      )}
+    </span>
+  ) : null
 
+  const body = (
+    <>
       {alertsQuery.isError ? (
         <Alert variant="destructive">
           <AlertCircleIcon />
@@ -294,7 +275,30 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
           )}
         </>
       )}
-    </div>
+    </>
+  )
+
+  if (embedded) {
+    return <div className="flex flex-col gap-6">{body}</div>
+  }
+
+  return (
+    <PageShell>
+      <PageHeader
+        leading={<PulsingDot tone={isEmpty ? 'success' : 'warning'} active />}
+        title={<Trans>Radar</Trans>}
+        subtitle={
+          <ConceptLabel concept="pulse">
+            <Trans>
+              Source-backed government changes that match your practice's clients. Review,
+              batch-apply due-date changes, snooze, or revisit closed changes.
+            </Trans>
+          </ConceptLabel>
+        }
+        actions={headerCountBadge}
+      />
+      {body}
+    </PageShell>
   )
 }
 
