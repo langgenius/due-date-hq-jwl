@@ -60,6 +60,7 @@ import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
+import { ExposureStrip } from '@/features/dashboard/exposure-strip'
 import { formatTaxType } from '@/features/dashboard/format-tax-type'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
@@ -542,6 +543,19 @@ export function DashboardRoute() {
           />
         </div>
       )}
+
+      {dashboardV2 ? (
+        <ExposureStrip
+          isLoading={dashboardQuery.isLoading}
+          needDecisionCount={data?.summary?.needsReviewCount ?? 0}
+          totalExposureCents={data?.summary?.totalExposureCents ?? 0}
+          blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
+          waitingOnClientCount={
+            facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
+          }
+          canSeeDollars={canSeeDollars}
+        />
+      ) : null}
 
       <section>
         {dashboardV2 ? (
