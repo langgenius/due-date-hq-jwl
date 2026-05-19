@@ -93,6 +93,9 @@ function buildScoped(firmId: string, rows: Row[]) {
         }
       }
     },
+    async unblockChildrenOf() {
+      return []
+    },
     async updateExtensionDecision() {},
     async deleteByBatch() {
       return 0

@@ -279,6 +279,9 @@ function buildScopedRepo(input: {
       async updateStatus() {},
       async updateExtensionDecision() {},
       async updateStatusMany() {},
+      async unblockChildrenOf() {
+        return []
+      },
       async deleteByBatch() {
         return 0
       },

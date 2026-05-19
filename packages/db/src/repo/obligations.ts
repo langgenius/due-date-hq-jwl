@@ -469,6 +469,41 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    /**
+     * Lifecycle v2 (slice 2d.4) — parent→children unblock cascade.
+     *
+     * When `parentObligationInstanceId` transitions to `completed`,
+     * find every row where `blocked_by_obligation_instance_id` points
+     * at it AND status is `blocked`, and flip them:
+     *   - status: 'blocked' → 'pending'  (start-of-queue, requires re-pickup)
+     *   - blocked_by: → NULL              (clear the pointer)
+     *
+     * Returns the list of unblocked child IDs so the caller can write
+     * audit entries ("Unblocked by parent #X on YYYY-MM-DD").
+     *
+     * Single-statement update; PDF anti-pattern #4 (K-1 dependency
+     * graph). See docs/Design/obligation-lifecycle-design-brief.md.
+     */
+    async unblockChildrenOf(parentObligationInstanceId: string): Promise<string[]> {
+      const children = await db
+        .select({ id: obligationInstance.id })
+        .from(obligationInstance)
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(obligationInstance.blockedByObligationInstanceId, parentObligationInstanceId),
+            eq(obligationInstance.status, 'blocked'),
+          ),
+        )
+      const childIds = children.map((row) => row.id)
+      if (childIds.length === 0) return []
+      await db
+        .update(obligationInstance)
+        .set({ status: 'pending', blockedByObligationInstanceId: null })
+        .where(and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, childIds)))
+      return childIds
+    },
+
     async updateStatusMany(ids: string[], status: ObligationStatus): Promise<void> {
       if (ids.length === 0) return
       const uniqueIds = [...new Set(ids)]

@@ -323,6 +323,28 @@ export async function updateObligationStatus(
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 
+  // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
+  // When this row reaches `completed`, every obligation that was
+  // `blocked_by` this row flips back to `pending` (with blocked_by
+  // cleared). Each cascade writes its own audit row so the trail
+  // shows "Unblocked by parent #X on YYYY-MM-DD" on the child.
+  if (after.status === 'completed') {
+    const unblockedIds = await scoped.obligations.unblockChildrenOf(input.id)
+    await Promise.all(
+      unblockedIds.map((childId) =>
+        scoped.audit.write({
+          actorId: userId,
+          entityType: 'obligation_instance',
+          entityId: childId,
+          action: 'obligation.status.auto_unblocked',
+          before: { status: 'blocked', readiness: 'needs_review' },
+          after: { status: 'pending', readiness: 'ready' },
+          reason: `Unblocked by parent obligation ${input.id}.`,
+        }),
+      ),
+    )
+  }
+
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),
     auditId,
@@ -384,6 +406,34 @@ export async function bulkUpdateObligationStatus(
       return event
     }),
   )
+
+  // Lifecycle v2 (slice 2d.4): cascade parent→child unblock for each
+  // row in the bulk that landed at `completed`. Mirrors the single-
+  // row path. Failures don't block the bulk write; cascades are
+  // best-effort with their own audit trail.
+  if (input.status === 'completed') {
+    const cascades = await Promise.all(
+      changedRows.map((row) =>
+        scoped.obligations
+          .unblockChildrenOf(row.id)
+          .then((childIds) => childIds.map((childId) => ({ parentId: row.id, childId }))),
+      ),
+    )
+    const allCascades = cascades.flat()
+    await Promise.all(
+      allCascades.map(({ parentId, childId }) =>
+        scoped.audit.write({
+          actorId: userId,
+          entityType: 'obligation_instance',
+          entityId: childId,
+          action: 'obligation.status.auto_unblocked',
+          before: { status: 'blocked', readiness: 'needs_review' },
+          after: { status: 'pending', readiness: 'ready' },
+          reason: `Unblocked by parent obligation ${parentId} (bulk).`,
+        }),
+      ),
+    )
+  }
 
   return {
     updatedCount: changedRows.length,
