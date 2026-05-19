@@ -5,6 +5,7 @@ import { AlertTriangleIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
 import {
@@ -91,9 +92,21 @@ function NeedsAttentionSection() {
       ) : null}
 
       {alerts.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        // Layout by count:
+        //  - 1 alert  → capped max-width so it doesn't span the row
+        //  - 2 alerts → fill the row, two equal cards
+        //  - 3+       → two equal cards + a smaller square "+N" tile
+        <div className="flex flex-row items-stretch gap-3">
           {visibleAlerts.map((alert) => (
-            <NeedsAttentionCard key={alert.id} alert={alert} onReview={() => openAlert(alert.id)} />
+            <div
+              key={alert.id}
+              className={cn(
+                'min-w-0 flex-1',
+                alerts.length === 1 && 'max-w-[560px] flex-none basis-[560px]',
+              )}
+            >
+              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+            </div>
           ))}
           {overflowCount > 0 ? (
             <NeedsAttentionOverflowCard

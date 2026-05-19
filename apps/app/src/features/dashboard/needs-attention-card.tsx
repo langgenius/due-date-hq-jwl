@@ -1,29 +1,51 @@
+import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ExternalLinkIcon } from 'lucide-react'
+import {
+  ArrowUpRightIcon,
+  AlertTriangleIcon,
+  ChevronRightIcon,
+  ExternalLinkIcon,
+} from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { PulsingDot } from '@/features/pulse/components/PulsingDot'
 
-// Dashboard variant of the Pulse alert card. Same visual hierarchy as
-// PulseAlertCard on the Radar page, but with a fixed two-column
-// header (source · confidence) and a compact footer suited to the
-// 2-up grid on the dashboard. The full PulseAlertCard remains the
-// canonical Radar-page surface.
-//
-// "Same style, same hierarchy, just less information" — per the
-// 2026-05-19 design call.
+// Dashboard variant of the Pulse alert card. Reuses PulseAlertCard's
+// visual hierarchy (pulsing dot, source label, title, affected
+// clients) but tuned for the dashboard's "scan-and-act" mode:
+// - The whole card is the action target — no separate Review button.
+// - AI confidence is hidden by default; surfaced only as a small
+//   warning chip when it's low enough to warrant manual review.
+//   Bare "96%" was confusing per design call 2026-05-19.
+// - Affected client names are listed inline (via detail fetch),
+//   collapsing the tail into "+N more" when space runs out.
 
-function tonalConfidence(value: number): 'success' | 'warning' | 'error' {
-  if (value >= 0.8) return 'success'
-  if (value >= 0.5) return 'warning'
-  return 'error'
-}
+const LOW_CONFIDENCE_THRESHOLD = 0.7
+const VISIBLE_CLIENT_NAMES = 2
 
-function formatConfidence(value: number): string {
-  return `${Math.round(value * 100)}%`
+function useUniqueAffectedClientNames(alertId: string): {
+  names: string[]
+  hasMore: number
+  isLoading: boolean
+} {
+  const detailQuery = useQuery(usePulseDetailQueryOptions(alertId))
+  const affected = detailQuery.data?.affectedClients ?? []
+  const seen = new Set<string>()
+  const ordered: string[] = []
+  for (const row of affected) {
+    if (!seen.has(row.clientName)) {
+      seen.add(row.clientName)
+      ordered.push(row.clientName)
+    }
+  }
+  return {
+    names: ordered.slice(0, VISIBLE_CLIENT_NAMES),
+    hasMore: Math.max(ordered.length - VISIBLE_CLIENT_NAMES, 0),
+    isLoading: detailQuery.isLoading,
+  }
 }
 
 function NeedsAttentionCard({
@@ -36,13 +58,15 @@ function NeedsAttentionCard({
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
   const tone = impacted === 0 ? 'success' : 'warning'
-  const confidenceTone = tonalConfidence(alert.confidence)
+  const lowConfidence = alert.confidence < LOW_CONFIDENCE_THRESHOLD
+  const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
   return (
-    <article
-      role="region"
-      aria-label={t`Radar alert: ${alert.title}`}
-      className="flex h-full min-w-0 flex-col gap-3 rounded-lg border border-divider-subtle bg-background-default p-4 transition-colors hover:border-divider-regular"
+    <button
+      type="button"
+      onClick={onReview}
+      aria-label={t`Review Radar alert: ${alert.title}`}
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-3 rounded-lg border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
@@ -50,50 +74,72 @@ function NeedsAttentionCard({
           <PulsingDot tone={tone} active />
           <span className="font-medium text-text-primary">{alert.source}</span>
         </div>
-        <span
-          className={cn(
-            'shrink-0 font-mono text-sm tabular-nums',
-            confidenceTone === 'success' && 'text-text-success',
-            confidenceTone === 'warning' && 'text-text-warning',
-            confidenceTone === 'error' && 'text-text-destructive',
-          )}
-        >
-          {formatConfidence(alert.confidence)}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {lowConfidence ? (
+            <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-warning">
+              <AlertTriangleIcon className="size-3" aria-hidden />
+              <Trans>Low confidence</Trans>
+            </span>
+          ) : null}
+          <ChevronRightIcon
+            className="size-4 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
+            aria-hidden
+          />
+        </div>
       </header>
 
       <p className="line-clamp-2 text-sm text-text-secondary">{alert.title}</p>
 
-      <p className="text-xs text-text-tertiary">
-        {impacted === 0 ? (
-          <Trans>No matching clients in this practice.</Trans>
-        ) : (
-          <Plural
-            value={impacted}
-            one="# client may be affected"
-            other="# clients may be affected"
-          />
-        )}
-      </p>
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <p className="text-xs text-text-tertiary">
+          {impacted === 0 ? (
+            <Trans>No matching clients in this practice.</Trans>
+          ) : (
+            <Plural
+              value={impacted}
+              one="# client may be affected"
+              other="# clients may be affected"
+            />
+          )}
+        </p>
+        {impacted > 0 && !clientsLoading && names.length > 0 ? (
+          <ul className="flex flex-wrap items-center gap-1.5">
+            {names.map((name) => (
+              <li
+                key={name}
+                className={cn(
+                  'inline-flex max-w-[160px] truncate rounded-sm border border-divider-subtle bg-background-subtle px-1.5 py-0.5 text-xs text-text-secondary',
+                )}
+                title={name}
+              >
+                {name}
+              </li>
+            ))}
+            {hasMore > 0 ? (
+              <li className="inline-flex text-xs text-text-tertiary">
+                <Trans>+{hasMore} more</Trans>
+              </li>
+            ) : null}
+          </ul>
+        ) : null}
+      </div>
 
-      <footer className="mt-auto flex items-center justify-between gap-2 pt-1">
+      <footer className="mt-auto flex items-center pt-1">
         <a
           href={alert.sourceUrl}
           target="_blank"
           rel="noreferrer"
+          onClick={(event) => event.stopPropagation()}
           className="inline-flex min-w-0 items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary"
         >
           <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
           <span className="truncate">
             <Trans>Source: {alert.source}</Trans>
           </span>
+          <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" aria-hidden />
         </a>
-        <Button size="sm" variant="outline" onClick={onReview}>
-          <Trans>Review</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
       </footer>
-    </article>
+    </button>
   )
 }
 
@@ -104,7 +150,10 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       type="button"
       onClick={onOpen}
       aria-label={t`Open ${count} more Radar alert${count === 1 ? '' : 's'}`}
-      className="flex h-full min-w-0 items-center justify-center rounded-lg border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
+      // Square-ish tile fixed to a narrower width so the inline alert
+      // cards keep the visual weight. Aspect-ratio square keeps it
+      // proportional regardless of card height.
+      className="flex aspect-square h-full w-[160px] shrink-0 items-center justify-center rounded-lg border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
     >
       <span className="text-2xl font-medium tracking-tight">+{count}</span>
     </button>
