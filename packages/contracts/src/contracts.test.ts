@@ -435,6 +435,9 @@ describe('@duedatehq/contracts', () => {
       'waiting_on_client',
       'review',
       'not_applicable',
+      // Lifecycle v2 additions — see docs/Design/obligation-lifecycle-design-brief.md.
+      'blocked',
+      'completed',
     ])
   })
 

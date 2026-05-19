@@ -27,6 +27,8 @@ export type ClientLegalEntity =
   | 'foreign_entity'
   | 'other'
 
+// Lifecycle v2: `blocked` and `completed` are non-breaking additions.
+// See docs/Design/obligation-lifecycle-design-brief.md.
 export type ObligationStatus =
   | 'pending'
   | 'in_progress'
@@ -36,6 +38,8 @@ export type ObligationStatus =
   | 'waiting_on_client'
   | 'review'
   | 'not_applicable'
+  | 'blocked'
+  | 'completed'
 
 export type ObligationReadiness = 'ready' | 'waiting' | 'needs_review'
 

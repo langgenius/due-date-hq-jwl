@@ -17,8 +17,15 @@ describe('obligation workflow state model', () => {
       'in_progress',
       'waiting_on_client',
       'review',
+      'blocked',
     ])
-    expect(CLOSED_OBLIGATION_STATUSES).toEqual(['done', 'extended', 'paid', 'not_applicable'])
+    expect(CLOSED_OBLIGATION_STATUSES).toEqual([
+      'done',
+      'extended',
+      'paid',
+      'not_applicable',
+      'completed',
+    ])
 
     expect(isOpenObligationStatus('pending')).toBe(true)
     expect(isOpenObligationStatus('paid')).toBe(false)
@@ -44,6 +51,8 @@ describe('obligation workflow state model', () => {
       extended: defaultReadinessForStatus('extended', 'waiting'),
       paid: defaultReadinessForStatus('paid', 'needs_review'),
       not_applicable: defaultReadinessForStatus('not_applicable', 'needs_review'),
+      blocked: defaultReadinessForStatus('blocked', 'needs_review'),
+      completed: defaultReadinessForStatus('completed', 'waiting'),
     }
 
     expect(defaults).toEqual({
@@ -55,6 +64,8 @@ describe('obligation workflow state model', () => {
       extended: 'ready',
       paid: 'ready',
       not_applicable: 'ready',
+      blocked: 'needs_review',
+      completed: 'ready',
     })
   })
 

@@ -52,6 +52,11 @@ export const StateCodeSchema = z.string().regex(/^[A-Z]{2}$/, {
 export type StateCode = z.infer<typeof StateCodeSchema>
 
 // Obligation status (PRD §5.2).
+// Lifecycle v2 (in flight): the queue is migrating to a 6-state model
+// (not_started, waiting_on_client, blocked, in_review, filed, completed).
+// `blocked` and `completed` are added below as non-breaking enum
+// additions. Existing 8 values stay valid through the migration.
+// See docs/Design/obligation-lifecycle-design-brief.md.
 export const ObligationStatusSchema = z.enum([
   'pending',
   'in_progress',
@@ -61,6 +66,8 @@ export const ObligationStatusSchema = z.enum([
   'waiting_on_client',
   'review',
   'not_applicable',
+  'blocked',
+  'completed',
 ])
 export type ObligationStatus = z.infer<typeof ObligationStatusSchema>
 

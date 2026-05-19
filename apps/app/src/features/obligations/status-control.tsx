@@ -18,6 +18,11 @@ type StatusLabels = Record<ObligationStatus, string>
 type ReadinessLabels = Record<ObligationReadiness, string>
 type StatusControlRow = Pick<ObligationQueueRow, 'clientName' | 'status'> & { id: string }
 
+// Legacy 8-state vocabulary. Lifecycle v2 introduces `blocked` and
+// `completed` as additions (see docs/Design/obligation-lifecycle-design-brief.md).
+// They are included here so exhaustive maps below stay typesafe; the
+// 6-state v2 UI surface (LIFECYCLE_V2_STATUSES) is chosen behind the
+// ?lifecycle=v2 flag in `use-lifecycle-v2.ts`.
 const ALL_STATUSES = [
   'pending',
   'in_progress',
@@ -27,6 +32,19 @@ const ALL_STATUSES = [
   'paid',
   'extended',
   'not_applicable',
+  'blocked',
+  'completed',
+] as const satisfies readonly ObligationStatus[]
+
+// The 6 states that compose the v2 queue surface. Order is also the
+// dropdown display order (and keyboard 1-6 mapping).
+const LIFECYCLE_V2_STATUSES = [
+  'pending', // displays as "Not started"
+  'waiting_on_client',
+  'blocked',
+  'review', // displays as "In review"
+  'done', // displays as "Filed" — unchanged from today's label
+  'completed',
 ] as const satisfies readonly ObligationStatus[]
 
 const STATUS_VARIANT: Record<
@@ -41,6 +59,8 @@ const STATUS_VARIANT: Record<
   extended: 'info',
   paid: 'success',
   not_applicable: 'outline',
+  blocked: 'destructive',
+  completed: 'success',
 }
 
 const STATUS_DOT: Record<
@@ -55,6 +75,8 @@ const STATUS_DOT: Record<
   extended: 'normal',
   paid: 'success',
   not_applicable: 'disabled',
+  blocked: 'error',
+  completed: 'success',
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {
@@ -73,6 +95,29 @@ function useStatusLabels(): StatusLabels {
       paid: t`Paid`,
       extended: t`Extended`,
       not_applicable: t`Not applicable`,
+      blocked: t`Blocked`,
+      completed: t`Completed`,
+    }),
+    [t],
+  )
+}
+
+// Lifecycle v2 label overrides — used when the ?lifecycle=v2 flag is
+// active. Same map shape as useStatusLabels so the consumer is unaware.
+function useLifecycleV2StatusLabels(): StatusLabels {
+  const { t } = useLingui()
+  return useMemo(
+    () => ({
+      pending: t`Not started`,
+      in_progress: t`In progress`, // legacy rows; queue shouldn't show this in v2
+      waiting_on_client: t`Waiting on client`,
+      review: t`In review`, // renamed from "Needs review"
+      done: t`Filed`, // current label already matches v2 vocabulary
+      paid: t`Paid`, // legacy; folds into completed at migration time
+      extended: t`Extended`, // legacy; retires at migration time
+      not_applicable: t`Not applicable`,
+      blocked: t`Blocked`,
+      completed: t`Completed`,
     }),
     [t],
   )
@@ -149,8 +194,10 @@ function ObligationQueueStatusControl({
 
 export {
   ALL_STATUSES,
+  LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   isObligationStatus,
+  useLifecycleV2StatusLabels,
   useReadinessLabels,
   useStatusLabels,
   type ObligationReadiness,

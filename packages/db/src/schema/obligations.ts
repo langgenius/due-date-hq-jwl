@@ -168,6 +168,10 @@ export const obligationInstance = sqliteTable(
         'waiting_on_client',
         'review',
         'not_applicable',
+        // Lifecycle v2 additions (behind the ?lifecycle=v2 flag until migration).
+        // See docs/Design/obligation-lifecycle-design-brief.md.
+        'blocked',
+        'completed',
       ],
     })
       .notNull()
@@ -378,5 +382,8 @@ export const OBLIGATION_STATUSES = [
   'waiting_on_client',
   'review',
   'not_applicable',
+  // Lifecycle v2 additions. See docs/Design/obligation-lifecycle-design-brief.md.
+  'blocked',
+  'completed',
 ] as const
 export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number]

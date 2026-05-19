@@ -1,3 +1,6 @@
+// Lifecycle v2: `blocked` and `completed` are non-breaking additions
+// to support the 6-state migration. See
+// docs/Design/obligation-lifecycle-design-brief.md.
 export const OBLIGATION_STATUSES = [
   'pending',
   'in_progress',
@@ -7,6 +10,8 @@ export const OBLIGATION_STATUSES = [
   'waiting_on_client',
   'review',
   'not_applicable',
+  'blocked',
+  'completed',
 ] as const
 
 export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number]
@@ -17,18 +22,23 @@ export type ObligationReadiness = (typeof OBLIGATION_READINESSES)[number]
 export const READINESS_RESPONSE_STATUSES = ['ready', 'not_yet', 'need_help'] as const
 export type ReadinessResponseStatus = (typeof READINESS_RESPONSE_STATUSES)[number]
 
+// `blocked` is open work (waiting on an upstream obligation to clear).
 export const OPEN_OBLIGATION_STATUSES = [
   'pending',
   'in_progress',
   'waiting_on_client',
   'review',
+  'blocked',
 ] as const satisfies readonly ObligationStatus[]
 
+// `completed` (v2 terminal — acceptance landed) joins `done` and friends in
+// the closed set.
 export const CLOSED_OBLIGATION_STATUSES = [
   'done',
   'extended',
   'paid',
   'not_applicable',
+  'completed',
 ] as const satisfies readonly ObligationStatus[]
 
 export type OpenObligationStatus = (typeof OPEN_OBLIGATION_STATUSES)[number]
@@ -43,6 +53,8 @@ export type ObligationStatusDisplayKey =
   | 'waiting_on_client'
   | 'needs_review'
   | 'not_applicable'
+  | 'blocked'
+  | 'completed'
 
 export const OBLIGATION_STATUS_DISPLAY_KEYS: Record<ObligationStatus, ObligationStatusDisplayKey> =
   {
@@ -54,6 +66,8 @@ export const OBLIGATION_STATUS_DISPLAY_KEYS: Record<ObligationStatus, Obligation
     waiting_on_client: 'waiting_on_client',
     review: 'needs_review',
     not_applicable: 'not_applicable',
+    blocked: 'blocked',
+    completed: 'completed',
   }
 
 export function isOpenObligationStatus(status: ObligationStatus): status is OpenObligationStatus {
