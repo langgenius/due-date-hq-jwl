@@ -8,6 +8,7 @@ import type {
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
 } from '@duedatehq/contracts'
+import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { calculateAccruedPenalty } from '../_penalty-exposure'
 
@@ -280,6 +281,18 @@ export async function updateObligationStatus(
     }
   }
 
+  // Lifecycle v2 transition validation. The matrix lives in
+  // packages/core/src/obligation-workflow — see "Filed ≠ Done"
+  // (PDF anti-pattern #3) for the load-bearing invariant: `completed`
+  // can only follow `done` or `paid`. The legacy 8 states still
+  // transition freely among themselves; the new `completed` is the
+  // strict gate.
+  if (!isLegalObligationTransition(before.status, input.status)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition: ${before.status} → ${input.status}.`,
+    })
+  }
+
   await scoped.obligations.updateStatus(input.id, input.status)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
@@ -330,6 +343,19 @@ export async function bulkUpdateObligationStatus(
   const changedRows = beforeRows.filter((row) => row.status !== input.status)
   if (changedRows.length === 0) {
     return { updatedCount: 0, auditIds: [] }
+  }
+
+  // Lifecycle v2: bulk transitions must each pass the matrix. Any
+  // illegal source row blocks the entire batch so the partial-failure
+  // surprise doesn't bite preparers mid-tax-week. (Per the brief's
+  // bulk-error contract: "<N> rows skipped — illegal status transition")
+  const illegalRow = changedRows.find(
+    (row) => !isLegalObligationTransition(row.status, input.status),
+  )
+  if (illegalRow) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition for obligation ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
+    })
   }
 
   await scoped.obligations.updateStatusMany(

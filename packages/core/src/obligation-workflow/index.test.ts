@@ -3,9 +3,11 @@ import {
   CLOSED_OBLIGATION_STATUSES,
   OBLIGATION_STATUS_DISPLAY_KEYS,
   OPEN_OBLIGATION_STATUSES,
+  allowedObligationTargets,
   deriveObligationReadiness,
   defaultReadinessForStatus,
   isClosedObligationStatus,
+  isLegalObligationTransition,
   isOpenObligationStatus,
   type ObligationStatus,
 } from './index'
@@ -100,5 +102,47 @@ describe('obligation workflow state model', () => {
         responseStatuses: ['need_help'],
       }),
     ).toBe('needs_review')
+  })
+
+  describe('lifecycle v2 transition matrix', () => {
+    it('treats no-op transitions as always legal', () => {
+      expect(isLegalObligationTransition('pending', 'pending')).toBe(true)
+      expect(isLegalObligationTransition('completed', 'completed')).toBe(true)
+    })
+
+    it("enforces 'Filed ≠ Done' — completed only follows done or paid", () => {
+      // Blocked jumps from open states straight to completed.
+      expect(isLegalObligationTransition('pending', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('waiting_on_client', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('blocked', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('in_progress', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('review', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('extended', 'completed')).toBe(false)
+      expect(isLegalObligationTransition('not_applicable', 'completed')).toBe(false)
+      // Legitimate paths to completed.
+      expect(isLegalObligationTransition('done', 'completed')).toBe(true)
+      expect(isLegalObligationTransition('paid', 'completed')).toBe(true)
+    })
+
+    it('keeps completed as terminal (no manual transitions out)', () => {
+      expect(allowedObligationTargets('completed')).toEqual([])
+      expect(isLegalObligationTransition('completed', 'pending')).toBe(false)
+      expect(isLegalObligationTransition('completed', 'review')).toBe(false)
+    })
+
+    it('supports rejection unwind from filed back to in-review', () => {
+      expect(isLegalObligationTransition('done', 'review')).toBe(true)
+      expect(isLegalObligationTransition('done', 'waiting_on_client')).toBe(true)
+    })
+
+    it('keeps legacy in_progress transitions permissive for migration', () => {
+      const targets = allowedObligationTargets('in_progress')
+      // Every non-completed target is reachable so legacy rows can
+      // migrate forward into the v2 vocabulary.
+      expect(targets).toContain('pending')
+      expect(targets).toContain('review')
+      expect(targets).toContain('done')
+      expect(targets).not.toContain('completed')
+    })
   })
 })

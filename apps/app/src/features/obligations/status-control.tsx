@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic, ObligationQueueRow } from '@duedatehq/contracts'
+import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import { BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import {
   DropdownMenu,
@@ -183,17 +184,26 @@ function ObligationQueueStatusControl({
             onChange(row.id, value)
           }}
         >
-          {statuses.map((status) => (
-            <DropdownMenuRadioItem
-              key={status}
-              value={status}
-              className="gap-2"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <BadgeStatusDot tone={STATUS_DOT[status]} />
-              <span>{labels[status]}</span>
-            </DropdownMenuRadioItem>
-          ))}
+          {statuses.map((status) => {
+            // Illegal transitions are surfaced as disabled items rather
+            // than hidden — preparers learn the state machine by
+            // seeing which targets aren't reachable, with the cell
+            // tooltip explaining when relevant. Server rejects too.
+            const illegal = !isLegalObligationTransition(row.status, status)
+            return (
+              <DropdownMenuRadioItem
+                key={status}
+                value={status}
+                disabled={illegal}
+                className="gap-2"
+                onClick={(event) => event.stopPropagation()}
+                title={illegal ? t`Not reachable from ${labels[row.status]}.` : undefined}
+              >
+                <BadgeStatusDot tone={STATUS_DOT[status]} />
+                <span>{labels[status]}</span>
+              </DropdownMenuRadioItem>
+            )
+          })}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

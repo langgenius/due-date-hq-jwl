@@ -90,6 +90,126 @@ export function defaultReadinessForStatus(
   return currentReadiness ?? 'ready'
 }
 
+// Lifecycle v2 transition matrix — defines which target statuses are
+// reachable from each source. Enforces "Filed ≠ Done" (PDF anti-
+// pattern #3): `completed` can only follow a state that means the
+// return was actually filed (`done`, the legacy paid-only `paid`,
+// or admin reset from `completed → pending`). Encodes the rejection
+// unwind (`done → review`) and admin-reset-from-completed.
+//
+// The matrix is conservative — legacy transitions that were always
+// allowed before this slice stay allowed (back-compat). Only the
+// two semantically-invalid jumps are blocked:
+//   1. completed reached from anything other than done/paid/completed
+//   2. pending reached from completed (admin reset only — opt-in via
+//      a future override flag, not exposed in the dropdown today)
+//
+// Note: auto-transitions (parent unblock, e-file → filed, etc.) go
+// through the same matrix from a 'system' actor in later slices.
+const OBLIGATION_TRANSITIONS: Record<ObligationStatus, readonly ObligationStatus[]> = {
+  pending: [
+    'in_progress',
+    'waiting_on_client',
+    'blocked',
+    'review',
+    'done',
+    'extended',
+    'paid',
+    'not_applicable',
+  ],
+  in_progress: [
+    'pending',
+    'waiting_on_client',
+    'blocked',
+    'review',
+    'done',
+    'extended',
+    'paid',
+    'not_applicable',
+  ],
+  waiting_on_client: [
+    'pending',
+    'in_progress',
+    'blocked',
+    'review',
+    'done',
+    'extended',
+    'paid',
+    'not_applicable',
+  ],
+  blocked: [
+    'pending',
+    'in_progress',
+    'waiting_on_client',
+    'review',
+    'done',
+    'extended',
+    'paid',
+    'not_applicable',
+  ],
+  review: [
+    'pending',
+    'in_progress',
+    'waiting_on_client',
+    'blocked',
+    'done',
+    'extended',
+    'paid',
+    'not_applicable',
+  ],
+  done: [
+    // From filed, the legitimate forward step is `completed` (acceptance
+    // landed). Rejection unwinds to `review` with a `rejected` chip
+    // (slice 2c). Sliding back to pending/waiting_on_client is allowed
+    // for forms that need re-prep after rejection.
+    'completed',
+    'review',
+    'waiting_on_client',
+    'paid',
+    'not_applicable',
+  ],
+  extended: [
+    // Legacy state — `extended` is retired in v2 as a status (becomes a
+    // deadline mutation). Allow transitions out so existing rows can
+    // migrate forward.
+    'pending',
+    'in_progress',
+    'waiting_on_client',
+    'blocked',
+    'review',
+    'done',
+    'paid',
+    'not_applicable',
+  ],
+  paid: [
+    // Legacy state — folds into `completed` per the brief.
+    'completed',
+    'review',
+    'not_applicable',
+  ],
+  not_applicable: [
+    // Allow turning N/A back on if a row was suppressed in error.
+    'pending',
+    'in_progress',
+    'waiting_on_client',
+    'review',
+  ],
+  completed: [
+    // Terminal in v2. Admin reset to `pending` is intentionally NOT
+    // exposed in the manual dropdown — must be an explicit override
+    // path (future slice).
+  ],
+}
+
+export function isLegalObligationTransition(from: ObligationStatus, to: ObligationStatus): boolean {
+  if (from === to) return true // no-op transitions are always legal
+  return OBLIGATION_TRANSITIONS[from].includes(to)
+}
+
+export function allowedObligationTargets(from: ObligationStatus): readonly ObligationStatus[] {
+  return OBLIGATION_TRANSITIONS[from]
+}
+
 export function deriveObligationReadiness(input: {
   status: ObligationStatus
   requestStatus?: 'sent' | 'opened' | 'responded' | 'revoked' | 'expired' | null
