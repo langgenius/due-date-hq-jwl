@@ -43,6 +43,7 @@ import {
 import {
   FilterChips,
   JurisdictionCode,
+  OriginBreadcrumb,
   QueryPanelState,
   SectionFrame,
   SectionLabel,
@@ -101,6 +102,14 @@ export function RuleLibraryTab() {
   const queryClient = useQueryClient()
   const [libraryFilter, setLibraryFilter] = useQueryState('library', libraryFilterParser)
   const [jurisdictionFilters, setJurisdictionFilters] = useQueryState('jur', jurisdictionParser)
+  // ?from=coverage is set when the user drills in from a Coverage cell.
+  // It enables the `OriginBreadcrumb` so the user has a clear path back
+  // to where they came from. Without this, the drill-in is a one-way
+  // trip and they lose context.
+  const [originFrom, setOriginFrom] = useQueryState(
+    'from',
+    parseAsString.withOptions({ history: 'replace' }),
+  )
   const [entityFilters, setEntityFilters] = useState<string[]>([])
   const [tierFilters, setTierFilters] = useState<string[]>([])
   const [statusFilters, setStatusFilters] = useState<string[]>([])
@@ -360,6 +369,26 @@ export function RuleLibraryTab() {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Origin breadcrumb — when the user drilled in from another
+        page (e.g. Coverage cell click), surface a "from {origin}"
+        chip with a Clear that resets the filters this drill applied.
+        Without this the drill-in is a one-way trip and the user
+        loses context. */}
+      {originFrom ? (
+        <OriginBreadcrumb
+          label={
+            originFrom === 'coverage'
+              ? t`From Coverage${jurisdictionFilters.length > 0 ? `: ${jurisdictionFilters.map(jurisdictionLabel).join(', ')}` : ''}`
+              : t`From ${originFrom}`
+          }
+          clearLabel={t`Clear the Coverage drill-in and return to the full library`}
+          onClear={() => {
+            void setOriginFrom(null)
+            void setLibraryFilter(null)
+            void setJurisdictionFilters(null)
+          }}
+        />
+      ) : null}
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}

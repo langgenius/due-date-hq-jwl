@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
+import { Link } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   flexRender,
@@ -18,6 +19,7 @@ import {
   ArrowDownIcon,
   ArrowUpDownIcon,
   ArrowUpIcon,
+  ArrowUpRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
@@ -2719,6 +2721,18 @@ function ObligationQueueDetailDrawer({
               <SheetDescription>
                 {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
               </SheetDescription>
+              {/* Cross-link the drawer to the client detail page —
+                without this the drawer is a dead-end on the most-
+                traversed entity. */}
+              {row?.clientId ? (
+                <Link
+                  to={`/clients/${row.clientId}`}
+                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <Trans>Open client detail</Trans>
+                  <ArrowUpRightIcon aria-hidden className="size-3" />
+                </Link>
+              ) : null}
             </div>
             {lifecycleV2 && row && (row.status === 'done' || row.status === 'paid') ? (
               <Button

@@ -66,7 +66,7 @@ function NeedsAttentionCard({
       type="button"
       onClick={onReview}
       aria-label={t`Review Radar alert: ${alert.title}`}
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-3 rounded-lg border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-3 rounded-md border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
@@ -159,7 +159,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       // cards keep the visual weight. The "+N alerts" label
       // disambiguates from the "+N more" client-overflow chip on the
       // alert cards themselves (different meanings, same notation).
-      className="flex aspect-square h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
+      className="flex aspect-square h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
     >
       <span className="text-2xl font-medium tracking-tight">+{count}</span>
       <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
