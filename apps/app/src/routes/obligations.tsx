@@ -153,6 +153,7 @@ import {
   useReadinessLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
@@ -2339,6 +2340,11 @@ function ObligationQueueDetailDrawer({
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
+  // and its content swaps to the milestone-grouped timeline. See
+  // docs/Design/obligation-lifecycle-design-brief.md.
+  const lifecycleV2 = useLifecycleV2()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
   const [checklistDraft, setChecklistDraft] = useState<{
     obligationId: string
     items: ReadinessChecklistItem[]
@@ -2660,7 +2666,7 @@ function ObligationQueueDetailDrawer({
                   <Trans>Evidence</Trans>
                 </TabsTrigger>
                 <TabsTrigger value="audit">
-                  <Trans>Audit</Trans>
+                  {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="readiness">
@@ -3115,10 +3121,23 @@ function ObligationQueueDetailDrawer({
                 <div className="grid gap-3">
                   <div className="text-sm font-medium text-text-primary">
                     <ConceptLabel concept="auditTrail">
-                      <Trans>Audit</Trans>
+                      {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
                     </ConceptLabel>
                   </div>
-                  {detail.auditEvents.length > 0 ? (
+                  {lifecycleV2 ? (
+                    detail.auditEvents.length > 0 || row !== null ? (
+                      <ObligationTimeline
+                        currentStatus={row.status}
+                        events={detail.auditEvents}
+                        labels={v2StatusLabels}
+                        practiceTimezone={practiceTimezone}
+                      />
+                    ) : (
+                      <EmptyPanel>
+                        <Trans>No activity yet. The first transition will log a note here.</Trans>
+                      </EmptyPanel>
+                    )
+                  ) : detail.auditEvents.length > 0 ? (
                     detail.auditEvents.map((event) => (
                       <ObligationQueueAuditEventCard
                         key={event.id}
