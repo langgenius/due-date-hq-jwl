@@ -35,7 +35,6 @@ export const clientsSearchParamsParsers = {
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
   owner: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  client: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   importHistory: parseAsStringLiteral(['open']).withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 

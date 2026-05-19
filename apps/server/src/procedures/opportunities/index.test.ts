@@ -54,7 +54,7 @@ describe('opportunities read model', () => {
     ])
     expect(opportunities[2]?.summary).toContain('does not generate tax strategies')
     expect(opportunities[0]?.primaryAction.href).toBe(
-      '/clients?client=11111111-1111-4111-8111-111111111111',
+      '/clients/11111111-1111-4111-8111-111111111111',
     )
     expect(summarizeOpportunities(opportunities)).toEqual({
       total: 3,

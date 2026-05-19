@@ -3,6 +3,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, FileClockIcon, FileSearchIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
@@ -80,6 +81,7 @@ export function useEntityLabels(): Record<ClientEntityType, string> {
 
 export function ClientsRoute() {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
@@ -94,7 +96,6 @@ export function ClientsRoute() {
       source: sourceFilter,
       pulse: pulseFilter,
       owner: ownerFilter,
-      client: selectedClientId,
       importHistory,
     },
     setClientsQuery,
@@ -170,27 +171,12 @@ export function ClientsRoute() {
     () => filterClients(clients, filters, { affectedClientIds }),
     [affectedClientIds, clients, filters],
   )
-  const selectedClient = selectedClientId
-    ? (clients.find((client) => client.id === selectedClientId) ?? null)
-    : null
-  const activeClient = selectedClient ?? filteredClients[0] ?? null
-
   const createMutation = useMutation(
     orpc.clients.create.mutationOptions({
       onSuccess: (client) => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
-        void setClientsQuery({
-          q: null,
-          clients: null,
-          entity: null,
-          state: null,
-          readiness: null,
-          source: null,
-          pulse: null,
-          owner: null,
-          client: client.id,
-        })
         toast.success(t`Client created`, { description: client.name })
+        void navigate(`/clients/${client.id}`)
       },
       onError: (err) => {
         toast.error(t`Couldn't create client`, {
@@ -206,7 +192,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         clients: nullableQueryArray(clientIds),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -218,7 +203,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         entity: nullableQueryArray(typedEntities),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -230,7 +214,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         state: nullableQueryArray(states),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -242,7 +225,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         readiness: nullableQueryArray(typedReadiness),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -254,7 +236,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         source: nullableQueryArray(typedSources),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -266,7 +247,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         owner: nullableQueryArray(owners),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -278,15 +258,7 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         pulse: nullableQueryArray(typedPulse),
-        client: null,
       })
-    },
-    [setClientsQuery],
-  )
-
-  const handleSelectClient = useCallback(
-    (clientId: string) => {
-      void setClientsQuery({ client: clientId })
     },
     [setClientsQuery],
   )
@@ -300,20 +272,10 @@ export function ClientsRoute() {
 
   const handleViewImportedClient = useCallback(
     (clientId: string) => {
-      void setClientsQuery({
-        q: null,
-        clients: null,
-        entity: null,
-        state: null,
-        readiness: null,
-        source: null,
-        pulse: null,
-        owner: null,
-        client: clientId,
-        importHistory: null,
-      })
+      void setClientsQuery({ importHistory: null })
+      void navigate(`/clients/${clientId}`)
     },
-    [setClientsQuery],
+    [navigate, setClientsQuery],
   )
 
   const handleCreateClient = useCallback(
@@ -322,10 +284,6 @@ export function ClientsRoute() {
     },
     [createMutation],
   )
-
-  const handleClearSelectedClient = useCallback(() => {
-    void setClientsQuery({ client: null })
-  }, [setClientsQuery])
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -383,8 +341,6 @@ export function ClientsRoute() {
       <ClientFactsWorkspace
         clients={clients}
         filteredClients={filteredClients}
-        activeClient={activeClient}
-        selectedClient={selectedClient}
         factsModel={factsModel}
         entityLabels={entityLabels}
         isLoading={clientsQuery.isLoading}
@@ -405,8 +361,6 @@ export function ClientsRoute() {
         onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
         onPulseFilterChange={handlePulseFilterChange}
-        onSelectClient={handleSelectClient}
-        onClearSelectedClient={handleClearSelectedClient}
         onImport={openWizard}
         canImport={canRunMigration}
       />
