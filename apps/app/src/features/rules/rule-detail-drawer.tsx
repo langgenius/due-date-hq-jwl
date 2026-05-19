@@ -24,6 +24,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
   formatEnumLabel,
@@ -431,7 +432,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
         <span className="text-text-tertiary">
           <Trans>Tax type</Trans>
         </span>
-        <span className="font-mono text-sm text-text-secondary">{rule.taxType}</span>
+        <span className="text-sm text-text-secondary">
+          <TaxCodeLabel code={rule.taxType} />
+        </span>
         <span className="text-text-tertiary">
           <Trans>Form</Trans>
         </span>

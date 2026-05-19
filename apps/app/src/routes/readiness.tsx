@@ -33,6 +33,7 @@ import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { formatDate } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
 
 interface ResponseDraft {
   itemId: string
@@ -136,7 +137,8 @@ export function ReadinessPortalRoute() {
           </h1>
           {portal ? (
             <p className="text-sm text-text-secondary">
-              {portal.firmName} · {portal.taxType} · {formatDate(portal.currentDueDate)}
+              {portal.firmName} · {formatTaxCode(portal.taxType)} ·{' '}
+              {formatDate(portal.currentDueDate)}
             </p>
           ) : null}
         </header>

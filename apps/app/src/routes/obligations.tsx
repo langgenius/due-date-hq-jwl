@@ -160,7 +160,8 @@ import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocke
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
-import { formatTaxType } from '@/features/dashboard/format-tax-type'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -709,7 +710,12 @@ export function ObligationQueueRoute() {
       )
   }, [facetsQuery.data?.counties, stateQuery])
   const taxTypeOptions = useMemo<FilterOption[]>(
-    () => facetsQuery.data?.taxTypes.map(facetOptionToFilterOption) ?? EMPTY_FACET_OPTIONS,
+    () =>
+      facetsQuery.data?.taxTypes.map((option) => ({
+        value: option.value,
+        label: formatTaxCode(option.value),
+        count: option.count,
+      })) ?? EMPTY_FACET_OPTIONS,
     [facetsQuery.data?.taxTypes],
   )
   const assigneeOptions = useMemo<FilterOption[]>(
@@ -1161,7 +1167,7 @@ export function ObligationQueueRoute() {
             }
           />
         ),
-        cell: (info) => info.getValue<string>(),
+        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} />,
         meta: { cellClassName: 'text-text-secondary' },
       },
       {
@@ -1265,7 +1271,7 @@ export function ObligationQueueRoute() {
               event.stopPropagation()
               openEvidence({
                 obligationId: tableRow.original.id,
-                label: `${tableRow.original.clientName} - ${tableRow.original.taxType}`,
+                label: `${tableRow.original.clientName} - ${formatTaxCode(tableRow.original.taxType)}`,
               })
             }}
           >
@@ -1324,7 +1330,7 @@ export function ObligationQueueRoute() {
                   parentLabel={(() => {
                     const parent = rowsById.get(obligationQueueRow.blockedByObligationInstanceId)
                     if (!parent) return null
-                    return `${parent.clientName} · ${formatTaxType(parent.taxType)}`
+                    return `${parent.clientName} · ${formatTaxCode(parent.taxType)}`
                   })()}
                   onOpen={(parentId) =>
                     void setObligationQueueQuery({
@@ -1491,7 +1497,7 @@ export function ObligationQueueRoute() {
       if (!activeRow) return
       openEvidence({
         obligationId: activeRow.id,
-        label: `${activeRow.clientName} - ${activeRow.taxType}`,
+        label: `${activeRow.clientName} - ${formatTaxCode(activeRow.taxType)}`,
       })
     },
     {
@@ -2719,7 +2725,11 @@ function ObligationQueueDetailDrawer({
             <div className="min-w-0 flex-1">
               <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
               <SheetDescription>
-                {row ? `${row.taxType} - ${formatDate(row.currentDueDate)}` : null}
+                {row ? (
+                  <>
+                    <TaxCodeLabel code={row.taxType} /> · {formatDate(row.currentDueDate)}
+                  </>
+                ) : null}
               </SheetDescription>
               {/* Cross-link the drawer to the client detail page —
                 without this the drawer is a dead-end on the most-
@@ -4052,7 +4062,9 @@ function PenaltyInputDialog({
           <DialogTitle>
             <Trans>Penalty inputs</Trans>
           </DialogTitle>
-          <DialogDescription>{row ? `${row.clientName} - ${row.taxType}` : null}</DialogDescription>
+          <DialogDescription>
+            {row ? `${row.clientName} - ${formatTaxCode(row.taxType)}` : null}
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <Input

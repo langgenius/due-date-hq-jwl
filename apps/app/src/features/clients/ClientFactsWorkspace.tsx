@@ -83,6 +83,8 @@ import {
 import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { paidPlanActive } from '@/features/billing/model'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -1274,7 +1276,7 @@ function ClientWorkPlanPanel({
                         key={obligation.id}
                         tabIndex={0}
                         role="link"
-                        aria-label={`${obligation.taxType} — ${formatDate(obligation.currentDueDate)}`}
+                        aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
                         className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
                         onClick={open}
                         onKeyDown={(event) => {
@@ -1287,7 +1289,7 @@ function ClientWorkPlanPanel({
                         <TableCell>
                           <div className="flex min-w-0 flex-col">
                             <span className="truncate font-medium text-text-primary">
-                              {obligation.taxType}
+                              <TaxCodeLabel code={obligation.taxType} />
                             </span>
                             <span className="truncate font-mono text-xs text-text-tertiary">
                               {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
@@ -1359,7 +1361,10 @@ function ClientAlertsBand({
 }
 
 function ClientAlertsBandRadarRow({ matches }: { matches: readonly ClientPulseMatch[] }) {
-  const taxTypes = Array.from(new Set(matches.map((match) => match.taxType))).slice(0, 3)
+  const taxTypes = Array.from(new Set(matches.map((match) => formatTaxCode(match.taxType)))).slice(
+    0,
+    3,
+  )
   return (
     <div className="flex flex-wrap items-start gap-3">
       <ActivityIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
@@ -1389,7 +1394,10 @@ function ClientAlertsBandExtensionRow({
 }: {
   obligations: readonly ObligationInstancePublic[]
 }) {
-  const taxTypes = Array.from(new Set(obligations.map((row) => row.taxType))).slice(0, 3)
+  const taxTypes = Array.from(new Set(obligations.map((row) => formatTaxCode(row.taxType)))).slice(
+    0,
+    3,
+  )
   return (
     <div className="flex flex-wrap items-start gap-3">
       <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
@@ -2082,10 +2090,10 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
   const tooltip = count > 3 ? `${titles}\n+${count - 3} more` : titles
   const label =
     count > 1
-      ? t`Radar · ${count}`
+      ? t`Pulse · ${count}`
       : matches[0]?.taxType
-        ? t`Radar · ${matches[0].taxType}`
-        : t`Radar`
+        ? t`Pulse · ${formatTaxCode(matches[0].taxType)}`
+        : t`Pulse`
   return (
     <Badge
       variant="warning"

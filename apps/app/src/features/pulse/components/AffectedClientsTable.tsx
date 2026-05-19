@@ -15,6 +15,7 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDate } from '@/lib/utils'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
 
@@ -103,8 +104,8 @@ export function AffectedClientsTable({
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="font-mono tabular-nums text-text-secondary">
-                {row.taxType}
+              <TableCell className="text-text-secondary">
+                <TaxCodeLabel code={row.taxType} />
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1.5 font-mono text-xs tabular-nums text-text-primary">

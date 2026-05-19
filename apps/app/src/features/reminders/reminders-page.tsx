@@ -48,6 +48,7 @@ import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 function statusBadge(status: ReminderDeliveryStatus) {
   if (status === 'sent')
@@ -363,7 +364,9 @@ function UpcomingPanel({
                       >
                         {item.clientName}
                       </Link>
-                      <span className="text-xs text-text-tertiary">{item.taxType}</span>
+                      <span className="text-xs text-text-tertiary">
+                        <TaxCodeLabel code={item.taxType} />
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>{recipientLabel(item.recipientKind)}</TableCell>
@@ -429,7 +432,9 @@ function RecentSendsPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <span className="font-medium text-text-primary">{item.clientName}</span>
-                      <span className="text-xs text-text-tertiary">{item.taxType}</span>
+                      <span className="text-xs text-text-tertiary">
+                        <TaxCodeLabel code={item.taxType} />
+                      </span>
                       {item.failureReason ? (
                         <span className="text-xs text-text-destructive">{item.failureReason}</span>
                       ) : null}

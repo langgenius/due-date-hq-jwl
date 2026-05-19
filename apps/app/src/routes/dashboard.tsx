@@ -61,7 +61,8 @@ import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { ExposureStrip } from '@/features/dashboard/exposure-strip'
-import { formatTaxType } from '@/features/dashboard/format-tax-type'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
@@ -432,7 +433,7 @@ export function DashboardRoute() {
     () =>
       facets?.taxTypes.map((option) => ({
         value: option.value,
-        label: option.label,
+        label: formatTaxCode(option.value),
         count: option.count,
       })) ?? [],
     [facets?.taxTypes],
@@ -610,7 +611,7 @@ export function DashboardRoute() {
             onOpenEvidence={(row) =>
               openEvidence({
                 obligationId: row.obligationId,
-                label: `${row.clientName} - ${row.taxType}`,
+                label: `${row.clientName} - ${formatTaxCode(row.taxType)}`,
                 focusEvidenceId: row.primaryEvidence?.id ?? null,
               })
             }
@@ -1069,10 +1070,10 @@ function DashboardTriageTable({
         ),
         cell: (info) => {
           const raw = info.getValue<string>()
-          // v2 surfaces human-readable form names; legacy mode keeps
-          // the raw matrix code for backwards-compat with anything
-          // that screen-reads the cell.
-          return dashboardV2 ? formatTaxType(raw) : raw
+          // v2 surfaces human-readable form names + a tooltip exposing
+          // the raw code; legacy mode keeps the raw matrix code for
+          // backwards-compat with anything that screen-reads the cell.
+          return dashboardV2 ? <TaxCodeLabel code={raw} /> : raw
         },
       },
       {
@@ -1322,7 +1323,7 @@ function DashboardTriageTable({
                 key={tableRow.id}
                 role="button"
                 tabIndex={0}
-                aria-label={`${t`Open obligations`}: ${tableRow.original.clientName} ${tableRow.original.taxType}`}
+                aria-label={`${t`Open obligations`}: ${tableRow.original.clientName} ${formatTaxCode(tableRow.original.taxType)}`}
                 className="cursor-pointer rounded-md outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                 onClick={(event) => {
                   if (isDashboardRowControlClick(event.target, event.currentTarget)) return

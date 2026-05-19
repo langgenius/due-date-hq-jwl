@@ -42,6 +42,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
   formatEnumLabel,
@@ -702,8 +703,8 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                   <RolloverDispositionBadge disposition={row.disposition} />
                 </span>
                 <span className="min-w-0 truncate text-text-primary">{row.clientName}</span>
-                <span className="min-w-0 truncate font-mono text-[11px] text-text-secondary">
-                  {row.taxType}
+                <span className="min-w-0 truncate text-[11px] text-text-secondary">
+                  <TaxCodeLabel code={row.taxType} />
                 </span>
                 <span className="font-mono text-[11px] tabular-nums text-text-secondary">
                   {row.preview?.dueDate ?? '—'}

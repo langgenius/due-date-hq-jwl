@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { formatCents } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
@@ -114,7 +115,7 @@ export function Step4Preview({ summary }: Step4Props) {
                 {exposure.topRows.slice(0, 3).map((row) => (
                   <li key={row.obligationId} className="flex items-center justify-between gap-3">
                     <span>
-                      {row.clientName} - {row.taxType}
+                      {row.clientName} - {formatTaxCode(row.taxType)}
                     </span>
                     <span className="font-mono tabular-nums">
                       {formatCents(row.estimatedExposureCents)}

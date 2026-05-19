@@ -61,6 +61,7 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
   'exposure',
@@ -714,7 +715,9 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
               <TableCell>
                 <div className="grid gap-0.5">
                   <span className="font-medium text-text-primary">{row.clientName}</span>
-                  <span className="text-text-tertiary">{row.taxType}</span>
+                  <span className="text-text-tertiary">
+                    <TaxCodeLabel code={row.taxType} />
+                  </span>
                 </div>
               </TableCell>
               <TableCell className="font-mono tabular-nums text-text-secondary">
