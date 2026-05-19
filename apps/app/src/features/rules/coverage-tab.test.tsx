@@ -15,6 +15,7 @@ import { CoverageTab } from './coverage-tab'
 const rpcMocks = vi.hoisted(() => ({
   coverageQueryFn: vi.fn(),
   sourceHealthQueryFn: vi.fn(),
+  listSourcesQueryFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -24,6 +25,12 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: () => ({
           queryKey: ['rules', 'coverage'],
           queryFn: rpcMocks.coverageQueryFn,
+        }),
+      },
+      listSources: {
+        queryOptions: () => ({
+          queryKey: ['rules', 'listSources'],
+          queryFn: rpcMocks.listSourcesQueryFn,
         }),
       },
     },
@@ -105,6 +112,8 @@ beforeEach(() => {
   rpcMocks.coverageQueryFn.mockResolvedValue(coverageRows)
   rpcMocks.sourceHealthQueryFn.mockReset()
   rpcMocks.sourceHealthQueryFn.mockResolvedValue({ sources: [] })
+  rpcMocks.listSourcesQueryFn.mockReset()
+  rpcMocks.listSourcesQueryFn.mockResolvedValue([])
 })
 
 afterEach(() => {

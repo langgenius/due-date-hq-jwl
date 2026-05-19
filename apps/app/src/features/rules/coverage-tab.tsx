@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
+import { AlertTriangleIcon, ChevronRightIcon, ExternalLinkIcon } from 'lucide-react'
 
-import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
+import type { RuleCoverageRow, RuleJurisdiction, RuleSource } from '@duedatehq/contracts'
 import {
   Table,
   TableBody,
@@ -117,6 +117,7 @@ function EntityCell({
 function CoverageRow({
   row,
   statusLabel,
+  sources,
   compactStatus,
   onJurisdictionDrillIn,
   onActiveDrillIn,
@@ -124,6 +125,7 @@ function CoverageRow({
 }: {
   row: RuleCoverageRow
   statusLabel: string
+  sources: readonly RuleSource[]
   compactStatus?: boolean
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
@@ -207,17 +209,30 @@ function CoverageRow({
           </span>
         )}
       </TableCell>
-      <TableCell className="border-l border-divider-subtle py-2 text-right font-mono text-[11px] tabular-nums text-text-tertiary">
-        {row.sourceCount > 0 ? (
-          <Link
-            to={`/rules/sources?jur=${row.jurisdiction}&from=coverage`}
-            aria-label={t`View ${row.sourceCount} watched sources for ${jurisdictionLabel(row.jurisdiction)}`}
-            className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            {row.sourceCount}
-          </Link>
+      <TableCell className="border-l border-divider-subtle py-2 align-top">
+        {sources.length === 0 ? (
+          <span className="text-[11px] text-text-tertiary">—</span>
         ) : (
-          row.sourceCount
+          <ul className="flex flex-col gap-0.5">
+            {sources.map((source) => (
+              <li key={source.id}>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={t`Open source: ${source.title}`}
+                  className="inline-flex max-w-full items-center gap-1 rounded-sm text-[11px] text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  title={source.title}
+                >
+                  <ExternalLinkIcon
+                    aria-hidden
+                    className="size-3 shrink-0 opacity-60 group-hover:opacity-100"
+                  />
+                  <span className="truncate">{source.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
       </TableCell>
     </TableRow>
@@ -355,6 +370,19 @@ export function CoverageTab({
   // refetches in the background per its interval; we don't gate the page on it
   // (registry counts already render without it).
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  // Sources registry — full list of watched documents. Per-jurisdiction
+  // sources are grouped from this list so each Coverage row can list
+  // its sources inline (instead of just a count).
+  const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
+  const sourcesByJurisdiction = useMemo(() => {
+    const map = new Map<RuleJurisdiction, RuleSource[]>()
+    for (const source of sourcesQuery.data ?? []) {
+      const list = map.get(source.jurisdiction) ?? []
+      list.push(source)
+      map.set(source.jurisdiction, list)
+    }
+    return map
+  }, [sourcesQuery.data])
   const sourceHealthCounts = useMemo(() => {
     const entries = sourceHealthQuery.data?.sources ?? []
     let degraded = 0
@@ -419,6 +447,7 @@ export function CoverageTab({
       needsAttention={needsAttention}
       allClear={allClear}
       statusLabelFor={statusLabelFor}
+      sourcesByJurisdiction={sourcesByJurisdiction}
       {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
       {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
       {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
@@ -458,6 +487,7 @@ function CoverageTable({
   needsAttention,
   allClear,
   statusLabelFor,
+  sourcesByJurisdiction,
   onJurisdictionDrillIn,
   onActiveDrillIn,
   onEntityDrillIn,
@@ -467,6 +497,7 @@ function CoverageTable({
   needsAttention: readonly RuleCoverageRow[]
   allClear: readonly RuleCoverageRow[]
   statusLabelFor: (row: RuleCoverageRow) => string
+  sourcesByJurisdiction: ReadonlyMap<RuleJurisdiction, readonly RuleSource[]>
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onEntityDrillIn?: (
@@ -514,7 +545,7 @@ function CoverageTable({
                 ACTION
               </TableHead>
               <TableHead
-                className="w-[64px] border-l border-divider-subtle text-right text-[10px] font-medium tracking-[0.06em] text-text-tertiary uppercase"
+                className="w-[240px] border-l border-divider-subtle text-[10px] font-medium tracking-[0.06em] text-text-tertiary uppercase"
                 rowSpan={2}
               >
                 Sources
@@ -537,6 +568,7 @@ function CoverageTable({
                 key={row.jurisdiction}
                 row={row}
                 statusLabel={statusLabelFor(row)}
+                sources={sourcesByJurisdiction.get(row.jurisdiction) ?? []}
                 {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
                 {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
                 {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
@@ -569,6 +601,7 @@ function CoverageTable({
                     key={row.jurisdiction}
                     row={row}
                     statusLabel={statusLabelFor(row)}
+                    sources={sourcesByJurisdiction.get(row.jurisdiction) ?? []}
                     compactStatus
                     {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
                     {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
