@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon } from 'lucide-react'
+import { AlertTriangleIcon, ChevronsDownUpIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -62,6 +62,11 @@ function NeedsAttentionSection() {
   const navigate = useNavigate()
   const { openDrawer: openAlert } = usePulseDrawer()
   const [bannerHidden, setBannerHidden] = useState(false)
+  // Section-level collapse. The toggle reveals on hover at the end of
+  // the section header row — keeps the chrome quiet by default but
+  // gives the user an explicit way to dismiss the row when they've
+  // already triaged today's alerts. Per design call 2026-05-19.
+  const [collapsed, setCollapsed] = useState(false)
 
   const alertsQuery = useQuery(usePulseListAlertsQueryOptions(5))
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
@@ -77,45 +82,83 @@ function NeedsAttentionSection() {
 
   if (!hasContent) return null
 
+  const totalCount = alerts.length + (showSourceBanner ? attentionSources.length : 0)
+
   return (
-    <section aria-label={t`Needs attention`} className="flex flex-col gap-3">
-      <h2 className="text-xs font-medium uppercase tracking-wider text-text-destructive">
-        <Trans>Needs attention</Trans>
-      </h2>
+    <section aria-label={t`Needs attention`} className="group/needsAttention flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-destructive">
+          <Trans>Needs attention</Trans>
+          {collapsed && totalCount > 0 ? (
+            <span className="font-mono normal-case tracking-normal text-text-tertiary">
+              ({totalCount})
+            </span>
+          ) : null}
+        </h2>
+        <button
+          type="button"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? t`Expand needs attention` : t`Collapse needs attention`}
+          className={cn(
+            'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs text-text-tertiary transition-opacity hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+            // Hidden by default; appears on hover anywhere in the
+            // section. Always visible when already collapsed so the
+            // expand affordance isn't itself hidden.
+            collapsed ? 'opacity-100' : 'opacity-0 group-hover/needsAttention:opacity-100',
+          )}
+        >
+          {collapsed ? (
+            <>
+              <ChevronsUpDownIcon className="size-3.5" aria-hidden />
+              <Trans>Expand</Trans>
+            </>
+          ) : (
+            <>
+              <ChevronsDownUpIcon className="size-3.5" aria-hidden />
+              <Trans>Collapse</Trans>
+            </>
+          )}
+        </button>
+      </div>
 
-      {showSourceBanner ? (
-        <SourceNeedsAttentionBanner
-          count={attentionSources.length}
-          onReview={() => void navigate('/rules/pulse?sourceReview=1#pulse-source-health')}
-          onHide={() => setBannerHidden(true)}
-        />
-      ) : null}
-
-      {alerts.length > 0 ? (
-        // Layout by count:
-        //  - 1 alert  → capped max-width so it doesn't span the row
-        //  - 2 alerts → fill the row, two equal cards
-        //  - 3+       → two equal cards + a smaller square "+N" tile
-        <div className="flex flex-row items-stretch gap-3">
-          {visibleAlerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={cn(
-                'min-w-0 flex-1',
-                alerts.length === 1 && 'max-w-[560px] flex-none basis-[560px]',
-              )}
-            >
-              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
-            </div>
-          ))}
-          {overflowCount > 0 ? (
-            <NeedsAttentionOverflowCard
-              count={overflowCount}
-              onOpen={() => void navigate('/rules/pulse')}
+      {collapsed ? null : (
+        <>
+          {showSourceBanner ? (
+            <SourceNeedsAttentionBanner
+              count={attentionSources.length}
+              onReview={() => void navigate('/rules/pulse?sourceReview=1#pulse-source-health')}
+              onHide={() => setBannerHidden(true)}
             />
           ) : null}
-        </div>
-      ) : null}
+
+          {alerts.length > 0 ? (
+            // Layout by count:
+            //  - 1 alert  → capped max-width so it doesn't span the row
+            //  - 2 alerts → fill the row, two equal cards
+            //  - 3+       → two equal cards + a smaller square "+N" tile
+            <div className="flex flex-row items-stretch gap-3">
+              {visibleAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={cn(
+                    'min-w-0 flex-1',
+                    alerts.length === 1 && 'max-w-[560px] flex-none basis-[560px]',
+                  )}
+                >
+                  <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+                </div>
+              ))}
+              {overflowCount > 0 ? (
+                <NeedsAttentionOverflowCard
+                  count={overflowCount}
+                  onOpen={() => void navigate('/rules/pulse')}
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </>
+      )}
     </section>
   )
 }

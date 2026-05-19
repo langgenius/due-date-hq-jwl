@@ -72,7 +72,7 @@ function NeedsAttentionCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <PulsingDot tone={tone} active />
-          <span className="font-medium text-text-primary">{alert.source}</span>
+          <span className="text-sm font-medium text-text-secondary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {lowConfidence ? (
@@ -88,7 +88,12 @@ function NeedsAttentionCard({
         </div>
       </header>
 
-      <p className="line-clamp-2 text-sm text-text-secondary">{alert.title}</p>
+      {/* Title is the primary visual anchor — bigger, semibold, primary
+          text — per design call 2026-05-19. Source label above is the
+          eyebrow context, no longer competing for emphasis. */}
+      <p className="line-clamp-2 text-base font-semibold leading-snug text-text-primary">
+        {alert.title}
+      </p>
 
       <div className="flex min-w-0 flex-col gap-1.5">
         <p className="text-xs text-text-tertiary">
