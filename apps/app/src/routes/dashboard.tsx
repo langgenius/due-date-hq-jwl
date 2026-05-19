@@ -59,6 +59,8 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
@@ -357,6 +359,10 @@ export function DashboardRoute() {
   const canRunMigration = permission.can('migration.run')
   const canSeeDollars = permission.can('dollars.read')
   const { openEvidence } = useEvidenceDrawer()
+  // Dashboard v2 (?dashboard=v2): the new NEEDS ATTENTION surface
+  // promotes Radar alerts from a thin banner to first-class cards.
+  // See apps/app/src/features/dashboard/needs-attention-section.tsx.
+  const dashboardV2 = useDashboardV2()
   const severityLabels = useSeverityLabels()
   const triageTabLabels = useTriageTabLabels()
   const dueBucketLabels = useDueBucketLabels()
@@ -466,25 +472,38 @@ export function DashboardRoute() {
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <h1 className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight text-text-primary">
-          <span>
-            <Trans>Today</Trans>
-          </span>
-          {data?.asOfDate ? (
-            <span className="font-normal tabular-nums text-text-tertiary">
-              {formatTodayHeader(data.asOfDate)}
+        {dashboardV2 ? (
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+            <Trans>Today</Trans>{' '}
+            <span className="font-medium text-text-tertiary">
+              {dashboardQuery.isLoading || !data?.asOfDate
+                ? null
+                : formatTodayHeader(data.asOfDate)}
             </span>
-          ) : null}
-        </h1>
+          </h1>
+        ) : (
+          <h1 className="flex items-baseline gap-2 text-2xl font-semibold tracking-tight text-text-primary">
+            <span>
+              <Trans>Today</Trans>
+            </span>
+            {data?.asOfDate ? (
+              <span className="font-normal tabular-nums text-text-tertiary">
+                {formatTodayHeader(data.asOfDate)}
+              </span>
+            ) : null}
+          </h1>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
             <FileSearchIcon data-icon="inline-start" />
             <Trans>Import clients</Trans>
           </Button>
-          <Button size="sm" onClick={() => void navigate('/obligations')}>
-            <Trans>See all obligations</Trans>
-            <ArrowUpRightIcon data-icon="inline-end" />
-          </Button>
+          {dashboardV2 ? null : (
+            <Button size="sm" onClick={() => void navigate('/obligations')}>
+              <Trans>See all obligations</Trans>
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          )}
         </div>
       </header>
 
@@ -507,16 +526,20 @@ export function DashboardRoute() {
         </Alert>
       ) : null}
 
-      <div id="pulse" className="flex flex-col gap-2">
-        <PulseAlertsBanner />
-        <NeedsReviewBanner
-          isLoading={dashboardQuery.isLoading}
-          needsReviewCount={data?.summary?.needsReviewCount ?? 0}
-          evidenceGapCount={data?.summary?.evidenceGapCount ?? 0}
-          onResolve={() => void navigate('/obligations?status=review')}
-          onResolveEvidence={() => void navigate('/obligations?evidence=missing_source')}
-        />
-      </div>
+      {dashboardV2 ? (
+        <NeedsAttentionSection />
+      ) : (
+        <div id="pulse" className="flex flex-col gap-2">
+          <PulseAlertsBanner />
+          <NeedsReviewBanner
+            isLoading={dashboardQuery.isLoading}
+            needsReviewCount={data?.summary?.needsReviewCount ?? 0}
+            evidenceGapCount={data?.summary?.evidenceGapCount ?? 0}
+            onResolve={() => void navigate('/obligations?status=review')}
+            onResolveEvidence={() => void navigate('/obligations?evidence=missing_source')}
+          />
+        </div>
+      )}
 
       <section>
         <DashboardTriagePanel

@@ -1,0 +1,110 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { AlertTriangleIcon } from 'lucide-react'
+import { useNavigate } from 'react-router'
+
+import { Button } from '@duedatehq/ui/components/ui/button'
+
+import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import {
+  usePulseListAlertsQueryOptions,
+  usePulseSourceHealthQueryOptions,
+} from '@/features/pulse/api'
+import { sourcesNeedingAttention } from '@/features/pulse/lib/source-health-labels'
+
+import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
+
+// Dashboard "Needs attention" section — the new top surface that
+// promotes Radar alerts from a thin banner to first-class cards.
+// Surfaces up to 2 active alerts inline; remaining alerts collapse
+// into a "+N" tile that opens the Radar page. A thin
+// "Source needs attention" banner sits above the cards when any
+// monitored source is unhealthy.
+
+const VISIBLE_ALERTS = 2
+
+function SourceNeedsAttentionBanner({
+  count,
+  onReview,
+  onHide,
+}: {
+  count: number
+  onReview: () => void
+  onHide: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-state-warning-border bg-state-warning-hover px-4 py-3">
+      <div className="flex items-center gap-2 text-sm">
+        <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+        <span className="font-medium text-text-primary">
+          <Trans>Source needs attention</Trans>
+        </span>
+        <span className="font-mono text-xs tabular-nums text-text-secondary">
+          <Trans>{count} source</Trans>
+        </span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" onClick={onReview}>
+          <Trans>Review</Trans>
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onHide}>
+          <Trans>Hide</Trans>
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function NeedsAttentionSection() {
+  const { t } = useLingui()
+  const navigate = useNavigate()
+  const { openDrawer: openAlert } = usePulseDrawer()
+  const [bannerHidden, setBannerHidden] = useState(false)
+
+  const alertsQuery = useQuery(usePulseListAlertsQueryOptions(5))
+  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+
+  const alerts = alertsQuery.data?.alerts ?? []
+  const sourceHealth = sourceHealthQuery.data?.sources ?? []
+  const attentionSources = sourcesNeedingAttention(sourceHealth)
+  const showSourceBanner = !bannerHidden && attentionSources.length > 0
+
+  const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
+  const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
+  const hasContent = showSourceBanner || alerts.length > 0
+
+  if (!hasContent) return null
+
+  return (
+    <section aria-label={t`Needs attention`} className="flex flex-col gap-3">
+      <h2 className="text-xs font-medium uppercase tracking-wider text-text-destructive">
+        <Trans>Needs attention</Trans>
+      </h2>
+
+      {showSourceBanner ? (
+        <SourceNeedsAttentionBanner
+          count={attentionSources.length}
+          onReview={() => void navigate('/rules/pulse?sourceReview=1#pulse-source-health')}
+          onHide={() => setBannerHidden(true)}
+        />
+      ) : null}
+
+      {alerts.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleAlerts.map((alert) => (
+            <NeedsAttentionCard key={alert.id} alert={alert} onReview={() => openAlert(alert.id)} />
+          ))}
+          {overflowCount > 0 ? (
+            <NeedsAttentionOverflowCard
+              count={overflowCount}
+              onOpen={() => void navigate('/rules/pulse')}
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+export { NeedsAttentionSection }
