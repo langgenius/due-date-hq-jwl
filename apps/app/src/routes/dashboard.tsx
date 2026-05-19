@@ -59,6 +59,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { formatTaxType } from '@/features/dashboard/format-tax-type'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
@@ -543,53 +544,67 @@ export function DashboardRoute() {
       )}
 
       <section>
-        <DashboardTriagePanel
-          isLoading={dashboardQuery.isLoading}
-          asOfDate={data?.asOfDate ?? null}
-          tabs={triageTabs}
-          selectedKey={selectedTriageTab?.key ?? triage}
-          tabLabels={triageTabLabels}
-          filtersDisabled={filtersDisabled}
-          summary={data?.summary ?? null}
-          filterOptions={{
-            clients: clientOptions,
-            taxTypes: taxTypeOptions,
-            due: dueOptions,
-            status: statusOptions,
-            severity: severityOptions,
-            exposure: exposureOptions,
-            evidence: evidenceOptions,
-          }}
-          filterState={{
-            client: clientQuery,
-            taxType: taxTypeQuery,
-            due,
-            status: statusFilter,
-            severity,
-            exposure,
-            evidence,
-          }}
-          statusLabels={statusLabels}
-          statusDisabled={updateStatusMutation.isPending}
-          canRunMigration={canRunMigration}
-          canSeeDollars={canSeeDollars}
-          dashboardV2={dashboardV2}
-          onSelect={(key) => void setDashboardQuery({ triage: key })}
-          onFilterChange={(patch) => void setDashboardQuery(patch)}
-          onOpenWizard={openWizard}
-          onOpenObligationQueue={(key) => void navigate(obligationQueueHrefForTriage(key))}
-          onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
-          onOpenEvidence={(row) =>
-            openEvidence({
-              obligationId: row.obligationId,
-              label: `${row.clientName} - ${row.taxType}`,
-              focusEvidenceId: row.primaryEvidence?.id ?? null,
-            })
-          }
-          onChangeStatus={(row, nextStatus) =>
-            updateStatusMutation.mutate({ id: row.obligationId, status: nextStatus })
-          }
-        />
+        {dashboardV2 ? (
+          <DashboardActionsList
+            isLoading={dashboardQuery.isLoading}
+            asOfDate={data?.asOfDate ?? null}
+            // v2 scope is implicit "this week" per design brief — no time-bucket tabs.
+            rows={triageTabs.find((tab) => tab.key === 'this_week')?.rows ?? []}
+            totalThisWeek={triageTabs.find((tab) => tab.key === 'this_week')?.count ?? 0}
+            canRunMigration={canRunMigration}
+            onOpenWizard={openWizard}
+            onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
+            onOpenAllObligations={() => void navigate('/obligations')}
+          />
+        ) : (
+          <DashboardTriagePanel
+            isLoading={dashboardQuery.isLoading}
+            asOfDate={data?.asOfDate ?? null}
+            tabs={triageTabs}
+            selectedKey={selectedTriageTab?.key ?? triage}
+            tabLabels={triageTabLabels}
+            filtersDisabled={filtersDisabled}
+            summary={data?.summary ?? null}
+            filterOptions={{
+              clients: clientOptions,
+              taxTypes: taxTypeOptions,
+              due: dueOptions,
+              status: statusOptions,
+              severity: severityOptions,
+              exposure: exposureOptions,
+              evidence: evidenceOptions,
+            }}
+            filterState={{
+              client: clientQuery,
+              taxType: taxTypeQuery,
+              due,
+              status: statusFilter,
+              severity,
+              exposure,
+              evidence,
+            }}
+            statusLabels={statusLabels}
+            statusDisabled={updateStatusMutation.isPending}
+            canRunMigration={canRunMigration}
+            canSeeDollars={canSeeDollars}
+            dashboardV2={dashboardV2}
+            onSelect={(key) => void setDashboardQuery({ triage: key })}
+            onFilterChange={(patch) => void setDashboardQuery(patch)}
+            onOpenWizard={openWizard}
+            onOpenObligationQueue={(key) => void navigate(obligationQueueHrefForTriage(key))}
+            onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
+            onOpenEvidence={(row) =>
+              openEvidence({
+                obligationId: row.obligationId,
+                label: `${row.clientName} - ${row.taxType}`,
+                focusEvidenceId: row.primaryEvidence?.id ?? null,
+              })
+            }
+            onChangeStatus={(row, nextStatus) =>
+              updateStatusMutation.mutate({ id: row.obligationId, status: nextStatus })
+            }
+          />
+        )}
       </section>
     </div>
   )
