@@ -26,6 +26,21 @@ export function RulesCoverageRoute() {
     [navigate],
   )
 
+  // ACTIVE-count drill (catalog state — "rules accepted by this
+  // practice for this jurisdiction"). Lands on Library filtered to
+  // active rules. Links the cold number to the rules it represents.
+  const handleActiveDrillIn = useCallback(
+    (jurisdiction: RuleJurisdiction) => {
+      const params = new URLSearchParams({
+        library: 'active',
+        jur: jurisdiction,
+        from: 'coverage',
+      })
+      void navigate(`/rules/library?${params.toString()}`)
+    },
+    [navigate],
+  )
+
   // Entity-dot drill-in. Verified dot → active rules; review dot →
   // pending_review queue; gray "no rule" dots never call this handler.
   // The `?from=coverage` tag lets Library show a "Pre-filtered from
@@ -51,6 +66,7 @@ export function RulesCoverageRoute() {
     >
       <CoverageTab
         onJurisdictionDrillIn={handleJurisdictionDrillIn}
+        onActiveDrillIn={handleActiveDrillIn}
         onEntityDrillIn={handleEntityDrillIn}
       />
     </RulesPageShell>

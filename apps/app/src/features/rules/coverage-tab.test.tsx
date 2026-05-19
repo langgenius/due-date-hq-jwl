@@ -119,33 +119,41 @@ afterEach(() => {
 })
 
 describe('CoverageTab single-table layout', () => {
-  it('renders the unified jurisdiction table with the ENTITY COVERAGE column', async () => {
+  it('renders the unified jurisdiction table with named entity columns', async () => {
     await render(<CoverageTab />)
     await waitForText('ENTITY COVERAGE')
 
+    // The header has TWO rows now: row 1 has the major column labels
+    // (JURISDICTION / ENTITY COVERAGE colSpan / ACTIVE / PENDING /
+    // ACTION / SOURCES); row 2 has the entity sub-codes (LLC / PRT /
+    // S-C / C-C / SP / TR / IN). We verify the combined header set.
     expect(tableHeaders()).toEqual([
-      'JUR',
-      'NAME',
+      'JURISDICTION',
       'ENTITY COVERAGE',
       'ACTIVE',
       'PENDING',
-      'SOURCES',
-      'STATUS',
+      'ACTION',
+      'Sources',
+      'IN',
+      'TR',
+      'LLC',
+      'PRT',
+      'S-C',
+      'C-C',
+      'SP',
     ])
   })
 
-  it('renders an entity-coverage summary trigger per row', async () => {
+  it('renders per-entity coverage cells inline (not behind a popover)', async () => {
     await render(<CoverageTab />)
     await waitForText('ENTITY COVERAGE')
 
-    // Each row's ENTITY COVERAGE cell now renders a single popover trigger
-    // (button) showing the text summary instead of 7 inline dots. Verify the
-    // trigger exists and carries an accessible label naming the
-    // jurisdiction so screen readers announce the target.
+    // The first row's entity cells are now per-column tone dots (visible
+    // by default). Verify there are exactly 7 entity cells in the first
+    // row and that they're aligned beneath the entity sub-header codes.
     const firstRow = document.querySelector('tbody tr')
-    const entityCell = firstRow?.querySelectorAll('td')[2]
-    const trigger = entityCell?.querySelector('button')
-    expect(trigger).toBeInstanceOf(HTMLButtonElement)
-    expect(trigger?.getAttribute('aria-label')).toMatch(/Open entity breakdown for /)
+    const cells = firstRow?.querySelectorAll('td') ?? []
+    // Layout: JURISDICTION (1) + 7 entity cells + ACTIVE + PENDING + ACTION + SOURCES = 12 cells
+    expect(cells.length).toBe(12)
   })
 })

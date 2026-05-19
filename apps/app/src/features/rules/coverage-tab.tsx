@@ -1,11 +1,10 @@
-import { type ReactNode, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
+import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
-import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Table,
   TableBody,
@@ -33,73 +32,27 @@ import {
   ToneDot,
 } from './rules-console-primitives'
 
-type StatusTone = 'candidate' | 'basicReview' | 'review'
-
-function entityLabel(entity: CoverageEntityColumn): string {
-  const labels: Record<CoverageEntityColumn, string> = {
-    llc: 'LLC',
-    partnership: 'Partnership',
-    s_corp: 'S-Corp',
-    c_corp: 'C-Corp',
-    sole_prop: 'Sole prop',
-    individual: 'Individual',
-    trust: 'Trust',
-  }
-  return labels[entity]
-}
-
-function CoverageStatusPill({
-  jurisdiction,
-  label,
-}: {
-  jurisdiction: RuleJurisdiction
-  label: ReactNode
-}) {
-  // FED's "candidate watch" pill uses the *review* blue token,
-  // not `text-text-accent`. The latter is reserved
-  // for read-only badges and active filter chips.
-  const tone: StatusTone =
-    jurisdiction === 'FED'
-      ? 'candidate'
-      : jurisdiction === 'TX' || jurisdiction === 'FL' || jurisdiction === 'WA'
-        ? 'review'
-        : 'basicReview'
-  const className =
-    tone === 'review'
-      ? 'inline-flex h-[22px] items-center gap-2 rounded bg-severity-medium-tint px-2 text-xs font-medium text-severity-medium'
-      : tone === 'candidate'
-        ? 'inline-flex h-[22px] items-center gap-2 rounded bg-accent-tint px-2 text-xs font-medium text-status-review'
-        : 'inline-flex h-[22px] items-center gap-2 rounded bg-background-subtle px-2 text-xs font-medium text-text-secondary'
-  return (
-    <span className={className}>
-      <ToneDot tone={tone === 'candidate' ? 'review' : tone === 'review' ? 'warning' : 'success'} />
-      {label}
-    </span>
-  )
-}
-
-/**
- * Per-jurisdiction entity coverage summary.
- *
- * Replaces the previous 7-dot strip (which required a separate legend
- * to be decoded) with an explicit text count + a popover that reveals
- * the per-entity breakdown on demand.
- *
- * Default cell renders one of three shapes:
- *   1. Mixed state (any active or any "no rule"): "2 active · 2 not in MVP"
- *      — only mentions entity counts that DIFFER from the default
- *      "review" state. Most jurisdictions have all 7 entities in
- *      "review" by default, so this cell shows the genuinely interesting
- *      signal.
- *   2. All-review default: "All 7 in review queue" — quiet text.
- *   3. The whole cell is the click target. Click opens a popover with
- *      the full 7-entity matrix, including a per-entity drill link to
- *      Library when there are rules to see.
- *
- * The popover is the path to per-entity granularity; the cell text is
- * the at-a-glance summary that doesn't need decoding.
- */
 const ALL_ENTITIES: readonly CoverageEntityColumn[] = ENTITY_COLUMN_GROUPS.all
+
+const ENTITY_SHORT_CODES: Record<CoverageEntityColumn, string> = {
+  llc: 'LLC',
+  partnership: 'PRT',
+  s_corp: 'S-C',
+  c_corp: 'C-C',
+  sole_prop: 'SP',
+  trust: 'TR',
+  individual: 'IN',
+}
+
+const ENTITY_FULL_LABELS: Record<CoverageEntityColumn, string> = {
+  llc: 'LLC',
+  partnership: 'Partnership',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  sole_prop: 'Sole prop',
+  trust: 'Trust',
+  individual: 'Individual',
+}
 
 function entityCellState(state: CoverageCellState) {
   if (state === 'verified') return { tone: 'success' as const, label: 'active' as const }
@@ -107,123 +60,47 @@ function entityCellState(state: CoverageCellState) {
   return { tone: 'disabled' as const, label: 'no rule' as const }
 }
 
-function summarizeEntityCoverage(jurisdiction: RuleJurisdiction) {
-  let active = 0
-  let review = 0
-  let noRule = 0
-  for (const entity of ALL_ENTITIES) {
-    const state = coverageCellState(jurisdiction, entity)
-    if (state === 'verified') active += 1
-    else if (state === 'review') review += 1
-    else noRule += 1
+/**
+ * One (jurisdiction, entity) cell — a single tone-coded dot rendered as
+ * the only content of its own table cell. Visible by default (no
+ * popover), self-documenting via the entity sub-header above it
+ * (LLC / PRT / S-C / C-C / SP / TR / IN). Verified/review dots are
+ * interactive buttons that drill into Library; no-rule dots are static.
+ */
+function EntityCell({
+  jurisdiction,
+  entity,
+  onEntityDrillIn,
+}: {
+  jurisdiction: RuleJurisdiction
+  entity: CoverageEntityColumn
+  onEntityDrillIn?: (
+    jurisdiction: RuleJurisdiction,
+    entity: CoverageEntityColumn,
+    state: CoverageCellState,
+  ) => void
+}) {
+  const { t } = useLingui()
+  const state = coverageCellState(jurisdiction, entity)
+  const { tone, label } = entityCellState(state)
+  const tooltip = `${ENTITY_FULL_LABELS[entity]} — ${label}`
+  if (state === 'none' || !onEntityDrillIn) {
+    return (
+      <span title={tooltip} aria-label={tooltip} className="inline-flex justify-center">
+        <ToneDot tone={tone} />
+      </span>
+    )
   }
-  return { active, review, noRule, total: ALL_ENTITIES.length }
-}
-
-function EntityCoverageSummary({
-  jurisdiction,
-  onEntityDrillIn,
-}: {
-  jurisdiction: RuleJurisdiction
-  onEntityDrillIn?: (
-    jurisdiction: RuleJurisdiction,
-    entity: CoverageEntityColumn,
-    state: CoverageCellState,
-  ) => void
-}) {
-  const { t } = useLingui()
-  const summary = summarizeEntityCoverage(jurisdiction)
-  const isAllReview = summary.review === summary.total
-  // Compose the summary line. We only mention counts that deviate from the
-  // default "review" state so the eye lands on exceptions, not noise.
-  const parts: string[] = []
-  if (summary.active > 0) parts.push(t`${summary.active} active`)
-  if (summary.noRule > 0) parts.push(t`${summary.noRule} not in MVP`)
-  const summaryLine = isAllReview ? t`All ${summary.total} in review queue` : parts.join(' · ')
   return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className={cn(
-              'group/entity inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5',
-              'text-xs outline-none',
-              isAllReview ? 'text-text-tertiary' : 'text-text-secondary',
-              'hover:bg-background-subtle hover:text-text-primary',
-              'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-            )}
-            aria-label={t`Open entity breakdown for ${jurisdictionLabel(jurisdiction)}`}
-          >
-            <span>{summaryLine}</span>
-            <ChevronDownIcon
-              aria-hidden
-              className="size-3 text-text-tertiary transition-transform group-hover/entity:text-text-secondary"
-            />
-          </button>
-        }
-      />
-      <PopoverContent align="start" className="w-72 p-0">
-        <EntityCoveragePopoverBody
-          jurisdiction={jurisdiction}
-          {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
-        />
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function EntityCoveragePopoverBody({
-  jurisdiction,
-  onEntityDrillIn,
-}: {
-  jurisdiction: RuleJurisdiction
-  onEntityDrillIn?: (
-    jurisdiction: RuleJurisdiction,
-    entity: CoverageEntityColumn,
-    state: CoverageCellState,
-  ) => void
-}) {
-  const { t } = useLingui()
-  return (
-    <div className="flex flex-col">
-      <div className="border-b border-divider-subtle px-3 py-2">
-        <p className="text-xs font-medium tracking-[0.04em] text-text-tertiary uppercase">
-          <Trans>Entity coverage</Trans>
-        </p>
-        <p className="text-sm font-medium text-text-primary">{jurisdictionLabel(jurisdiction)}</p>
-      </div>
-      <ul className="flex flex-col py-1">
-        {ALL_ENTITIES.map((entity) => {
-          const state = coverageCellState(jurisdiction, entity)
-          const { tone, label } = entityCellState(state)
-          const canDrill = state !== 'none' && onEntityDrillIn
-          const Inner = (
-            <>
-              <ToneDot tone={tone} />
-              <span className="flex-1 text-sm text-text-primary">{entityLabel(entity)}</span>
-              <span className="text-xs text-text-tertiary">{label}</span>
-            </>
-          )
-          return (
-            <li key={entity}>
-              {canDrill ? (
-                <button
-                  type="button"
-                  onClick={() => onEntityDrillIn(jurisdiction, entity, state)}
-                  aria-label={t`Open ${entityLabel(entity)} rules for ${jurisdictionLabel(jurisdiction)} — ${label}`}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left outline-none hover:bg-background-subtle focus-visible:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
-                >
-                  {Inner}
-                </button>
-              ) : (
-                <div className="flex w-full items-center gap-2 px-3 py-1.5">{Inner}</div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+    <button
+      type="button"
+      title={tooltip}
+      aria-label={t`Open ${ENTITY_FULL_LABELS[entity]} rules for ${jurisdictionLabel(jurisdiction)} — ${label}`}
+      onClick={() => onEntityDrillIn(jurisdiction, entity, state)}
+      className="inline-flex justify-center rounded-full outline-none transition-transform hover:scale-125 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+    >
+      <ToneDot tone={tone} />
+    </button>
   )
 }
 
@@ -242,12 +119,14 @@ function CoverageRow({
   statusLabel,
   compactStatus,
   onJurisdictionDrillIn,
+  onActiveDrillIn,
   onEntityDrillIn,
 }: {
   row: RuleCoverageRow
   statusLabel: string
   compactStatus?: boolean
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
     entity: CoverageEntityColumn,
@@ -260,18 +139,41 @@ function CoverageRow({
   return (
     <TableRow className="h-11 hover:bg-transparent">
       <TableCell className="py-2">
-        <JurisdictionCode code={row.jurisdiction} />
+        <div className="flex items-center gap-2">
+          <JurisdictionCode code={row.jurisdiction} />
+          <span className="truncate text-xs font-medium">
+            {jurisdictionLabel(row.jurisdiction)}
+          </span>
+        </div>
       </TableCell>
-      <TableCell className="max-w-[110px] truncate py-2 text-xs font-medium">
-        {jurisdictionLabel(row.jurisdiction)}
+      {ALL_ENTITIES.map((entity) => (
+        <TableCell key={entity} className="px-1 py-2 text-center">
+          <EntityCell
+            jurisdiction={row.jurisdiction}
+            entity={entity}
+            {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
+          />
+        </TableCell>
+      ))}
+      <TableCell
+        className={cn(
+          'border-l border-divider-subtle py-2 text-right font-mono text-xs tabular-nums',
+          active > 0 ? 'text-text-primary' : 'text-text-muted',
+        )}
+      >
+        {onActiveDrillIn && active > 0 ? (
+          <button
+            type="button"
+            onClick={() => onActiveDrillIn(row.jurisdiction)}
+            aria-label={t`View ${active} active rules for ${jurisdictionLabel(row.jurisdiction)}`}
+            className="rounded-sm outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            {active}
+          </button>
+        ) : (
+          active
+        )}
       </TableCell>
-      <TableCell className="py-2">
-        <EntityCoverageSummary
-          jurisdiction={row.jurisdiction}
-          {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
-        />
-      </TableCell>
-      <TableCell className="py-2 text-right font-mono text-xs tabular-nums">{active}</TableCell>
       <TableCell
         className={cn(
           'py-2 text-right font-mono text-xs tabular-nums',
@@ -291,7 +193,21 @@ function CoverageRow({
           pending
         )}
       </TableCell>
-      <TableCell className="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
+      <TableCell className="py-2">
+        {compactStatus ? (
+          <span className="text-xs text-text-tertiary">—</span>
+        ) : (
+          <span
+            className={cn(
+              'text-xs',
+              pending > 0 ? 'font-medium text-text-primary' : 'text-text-tertiary',
+            )}
+          >
+            {statusLabel}
+          </span>
+        )}
+      </TableCell>
+      <TableCell className="border-l border-divider-subtle py-2 text-right font-mono text-[11px] tabular-nums text-text-tertiary">
         {row.sourceCount > 0 ? (
           <Link
             to={`/rules/sources?jur=${row.jurisdiction}&from=coverage`}
@@ -302,13 +218,6 @@ function CoverageRow({
           </Link>
         ) : (
           row.sourceCount
-        )}
-      </TableCell>
-      <TableCell className="py-2">
-        {compactStatus ? (
-          <span className="text-xs text-text-tertiary">—</span>
-        ) : (
-          <CoverageStatusPill jurisdiction={row.jurisdiction} label={statusLabel} />
         )}
       </TableCell>
     </TableRow>
@@ -419,11 +328,16 @@ function SourceHealthCallout({
 
 export function CoverageTab({
   onJurisdictionDrillIn,
+  onActiveDrillIn,
   onEntityDrillIn,
 }: {
-  // Fired when the PENDING count is clicked. The standalone route handler
-  // pushes `library=pending_review&jur=<jurisdiction>` to the Library.
+  // Fired when the PENDING count is clicked → Library filtered to
+  // pending_review for the jurisdiction.
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  // Fired when the ACTIVE count is clicked → Library filtered to
+  // active for the jurisdiction. Lets the count link to the rules
+  // it represents instead of staying a cold number.
+  onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
   // Fired when an entity dot is clicked (verified or review state only;
   // `none` dots are inert). Caller chooses the right library filter based
   // on the cell state (active for verified, pending_review for review).
@@ -455,19 +369,19 @@ export function CoverageTab({
   // Build per-jurisdiction action labels with the pending count baked in
   // so users see what to DO (and how many), not just a category tag.
   // Example: "Owner: approve 7 pending" vs the prior "Needs owner approval".
+  // Plain-language action label per row. No role prefix ("Owner:")
+  // — permission to act is gated elsewhere; surfacing it on every row
+  // adds cognitive load without adding agency. Reads as a to-do, not a
+  // category tag.
   const statusLabelFor = (row: RuleCoverageRow): string => {
     const pending = row.pendingReviewCount ?? row.candidateCount
     switch (row.jurisdiction) {
-      case 'FED':
-      case 'CA':
-      case 'NY':
-        return t`Owner: approve ${pending} pending`
-      case 'TX':
-        return t`Approve all ${pending} pending`
       case 'FL':
         return t`Auto-tracks IRS calendar`
       case 'WA':
         return t`Verify cadence per client`
+      case 'TX':
+        return pending > 0 ? t`Approve all ${pending} pending` : t`No pending review`
       default:
         return pending > 0 ? t`Approve ${pending} pending` : t`No pending review`
     }
@@ -506,6 +420,7 @@ export function CoverageTab({
       allClear={allClear}
       statusLabelFor={statusLabelFor}
       {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+      {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
       {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
     />
   )
@@ -544,6 +459,7 @@ function CoverageTable({
   allClear,
   statusLabelFor,
   onJurisdictionDrillIn,
+  onActiveDrillIn,
   onEntityDrillIn,
 }: {
   stats: ReturnType<typeof aggregateCoverage>
@@ -552,6 +468,7 @@ function CoverageTable({
   allClear: readonly RuleCoverageRow[]
   statusLabelFor: (row: RuleCoverageRow) => string
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
     entity: CoverageEntityColumn,
@@ -581,13 +498,37 @@ function CoverageTable({
         <Table>
           <TableHeader className="bg-background-subtle">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-[60px]">JUR</TableHead>
-              <TableHead className="w-[110px]">NAME</TableHead>
-              <TableHead className="w-[200px]">ENTITY COVERAGE</TableHead>
-              <TableHead className="w-[80px] text-right">ACTIVE</TableHead>
-              <TableHead className="w-[80px] text-right">PENDING</TableHead>
-              <TableHead className="w-[80px] text-right">SOURCES</TableHead>
-              <TableHead>STATUS</TableHead>
+              <TableHead className="w-[170px]" rowSpan={2}>
+                JURISDICTION
+              </TableHead>
+              <TableHead colSpan={ALL_ENTITIES.length} className="border-b-0 text-center">
+                ENTITY COVERAGE
+              </TableHead>
+              <TableHead className="w-[72px] border-l border-divider-subtle text-right" rowSpan={2}>
+                ACTIVE
+              </TableHead>
+              <TableHead className="w-[72px] text-right" rowSpan={2}>
+                PENDING
+              </TableHead>
+              <TableHead className="w-[220px]" rowSpan={2}>
+                ACTION
+              </TableHead>
+              <TableHead
+                className="w-[64px] border-l border-divider-subtle text-right text-[10px] font-medium tracking-[0.06em] text-text-tertiary uppercase"
+                rowSpan={2}
+              >
+                Sources
+              </TableHead>
+            </TableRow>
+            <TableRow className="hover:bg-transparent">
+              {ALL_ENTITIES.map((entity) => (
+                <TableHead
+                  key={entity}
+                  className="w-[36px] px-1 text-center text-[10px] font-medium tracking-[0.04em] text-text-tertiary uppercase"
+                >
+                  {ENTITY_SHORT_CODES[entity]}
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -597,13 +538,14 @@ function CoverageTable({
                 row={row}
                 statusLabel={statusLabelFor(row)}
                 {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+                {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
                 {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
               />
             ))}
             {allClear.length > 0 ? (
               <TableRow className="h-10 hover:bg-transparent">
                 <TableCell
-                  colSpan={7}
+                  colSpan={ALL_ENTITIES.length + 5}
                   className="border-t border-divider-subtle bg-background-subtle/40 py-2 text-center"
                 >
                   <button
@@ -629,6 +571,7 @@ function CoverageTable({
                     statusLabel={statusLabelFor(row)}
                     compactStatus
                     {...(onJurisdictionDrillIn ? { onJurisdictionDrillIn } : {})}
+                    {...(onActiveDrillIn ? { onActiveDrillIn } : {})}
                     {...(onEntityDrillIn ? { onEntityDrillIn } : {})}
                   />
                 ))
