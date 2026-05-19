@@ -515,10 +515,18 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
-      // Rule library is a single direct entry. Coverage and Sources are
-      // not separate sidebar destinations — they're aggregate views of
-      // the catalog, rendered as sections inside the Library page.
+      // Preview-integration adjustment: surface Coverage alongside
+      // Rule library in the legacy nav so the Coverage rebuild is
+      // reachable without the navV2 flag. (Their original v1 rules
+      // group treated Coverage as a section inside Library; the
+      // merged tree wants both as first-class destinations.)
       rules: [
+        {
+          href: '/rules/coverage',
+          label: t`Coverage`,
+          icon: MapIcon,
+          end: false,
+        },
         {
           href: '/rules/library',
           label: t`Rule library`,
