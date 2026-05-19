@@ -59,6 +59,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { formatTaxType } from '@/features/dashboard/format-tax-type'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
@@ -572,6 +573,7 @@ export function DashboardRoute() {
           statusDisabled={updateStatusMutation.isPending}
           canRunMigration={canRunMigration}
           canSeeDollars={canSeeDollars}
+          dashboardV2={dashboardV2}
           onSelect={(key) => void setDashboardQuery({ triage: key })}
           onFilterChange={(patch) => void setDashboardQuery(patch)}
           onOpenWizard={openWizard}
@@ -829,6 +831,7 @@ function DashboardTriagePanel({
   statusDisabled,
   canRunMigration,
   canSeeDollars,
+  dashboardV2,
   onSelect,
   onFilterChange,
   onOpenWizard,
@@ -850,6 +853,7 @@ function DashboardTriagePanel({
   statusDisabled: boolean
   canRunMigration: boolean
   canSeeDollars: boolean
+  dashboardV2: boolean
   onSelect: (key: DashboardTriageTabKey) => void
   onFilterChange: (patch: DashboardQueryPatch) => void
   onOpenWizard: () => void
@@ -903,6 +907,7 @@ function DashboardTriagePanel({
                   statusLabels={statusLabels}
                   statusDisabled={statusDisabled}
                   canSeeDollars={canSeeDollars}
+                  dashboardV2={dashboardV2}
                   onFilterChange={onFilterChange}
                   onOpenObligation={onOpenObligation}
                   onOpenEvidence={onOpenEvidence}
@@ -937,6 +942,7 @@ function DashboardTriageTable({
   statusLabels,
   statusDisabled,
   canSeeDollars,
+  dashboardV2,
   onFilterChange,
   onOpenObligation,
   onOpenEvidence,
@@ -950,6 +956,7 @@ function DashboardTriageTable({
   statusLabels: Record<ObligationStatus, string>
   statusDisabled: boolean
   canSeeDollars: boolean
+  dashboardV2: boolean
   onFilterChange: (patch: DashboardQueryPatch) => void
   onOpenObligation: (row: DashboardTopRow) => void
   onOpenEvidence: (row: DashboardTopRow) => void
@@ -1026,7 +1033,13 @@ function DashboardTriageTable({
             }
           />
         ),
-        cell: (info) => info.getValue<string>(),
+        cell: (info) => {
+          const raw = info.getValue<string>()
+          // v2 surfaces human-readable form names; legacy mode keeps
+          // the raw matrix code for backwards-compat with anything
+          // that screen-reads the cell.
+          return dashboardV2 ? formatTaxType(raw) : raw
+        },
       },
       {
         accessorKey: 'currentDueDate',
@@ -1166,6 +1179,7 @@ function DashboardTriageTable({
     [
       asOfDate,
       canSeeDollars,
+      dashboardV2,
       filterOptions,
       filterState,
       filtersDisabled,
@@ -1178,9 +1192,37 @@ function DashboardTriageTable({
       t,
     ],
   )
+  // Dashboard v2 column projection:
+  //  - drop the Evidence column (facet belongs on Obligations queue,
+  //    not the curated dashboard view)
+  //  - reorder so Status sits adjacent to Next check (decision pair)
+  // Concrete final order: Priority · Client · Next check · Status ·
+  // Deadline · Tax type · Projected risk.
+  const projectedColumns = useMemo<ColumnDef<DashboardTopRow>[]>(() => {
+    if (!dashboardV2) return columns
+    const byId = new Map<string, ColumnDef<DashboardTopRow>>()
+    for (const col of columns) {
+      const key =
+        'id' in col && col.id ? col.id : 'accessorKey' in col ? String(col.accessorKey) : null
+      if (key) byId.set(key, col)
+    }
+    const order = [
+      'smartPriority',
+      'clientName',
+      'nextCheck',
+      'status',
+      'currentDueDate',
+      'taxType',
+      'estimatedExposureCents',
+    ]
+    return order
+      .map((key) => byId.get(key))
+      .filter((c): c is ColumnDef<DashboardTopRow> => c !== undefined)
+  }, [columns, dashboardV2])
+
   const table = useReactTable({
     data: rows,
-    columns,
+    columns: projectedColumns,
     state: {
       sorting,
     },
