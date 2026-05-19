@@ -114,6 +114,6 @@ test.describe('seeded client facts', () => {
     await expect(clientsPage.detailSection('Work plan')).toBeVisible()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
-    await expect(authenticatedPage).toHaveURL(/\/clients\?client=/)
+    await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
 })

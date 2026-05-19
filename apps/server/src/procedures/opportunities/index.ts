@@ -39,7 +39,7 @@ const SEVERITY_ORDER: Record<OpportunityPublic['severity'], number> = {
 }
 
 function clientHref(clientId: string): string {
-  return `/clients?client=${encodeURIComponent(clientId)}`
+  return `/clients/${encodeURIComponent(clientId)}`
 }
 
 function clientShell(client: OpportunityClientInput): OpportunityPublic['client'] {

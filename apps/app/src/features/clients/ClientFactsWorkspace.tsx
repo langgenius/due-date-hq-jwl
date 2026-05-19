@@ -65,7 +65,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -85,7 +84,6 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { paidPlanActive } from '@/features/billing/model'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -136,8 +134,6 @@ type FilterOption = TableFilterOption
 type ClientFactsWorkspaceProps = {
   clients: ClientPublic[]
   filteredClients: ClientPublic[]
-  activeClient: ClientPublic | null
-  selectedClient: ClientPublic | null
   factsModel: ClientFactsModel
   entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
@@ -158,8 +154,6 @@ type ClientFactsWorkspaceProps = {
   onSourceFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
   onPulseFilterChange: (value: string[]) => void
-  onSelectClient: (clientId: string) => void
-  onClearSelectedClient: () => void
   onImport: () => void
   canImport: boolean
 }
@@ -301,8 +295,6 @@ function formatJurisdictionSummary(client: ClientPublic): string {
 export function ClientFactsWorkspace({
   clients,
   filteredClients,
-  activeClient,
-  selectedClient,
   factsModel,
   entityLabels,
   isLoading,
@@ -323,15 +315,13 @@ export function ClientFactsWorkspace({
   onSourceFilterChange,
   onOwnerFilterChange,
   onPulseFilterChange,
-  onSelectClient,
-  onClearSelectedClient,
   onImport,
   canImport,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
-  const practiceAiEnabled = paidPlanActive(currentFirm)
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
   const metrics = useMemo<ClientMetric[]>(
     () => [
@@ -690,9 +680,9 @@ export function ClientFactsWorkspace({
   })
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
-      onSelectClient(clientId)
+      void navigate(`/clients/${clientId}`)
     },
-    [onSelectClient],
+    [navigate],
   )
 
   return (
@@ -722,17 +712,6 @@ export function ClientFactsWorkspace({
                 <Badge variant="outline" className="tabular-nums">
                   {filteredClients.length}/{clients.length}
                 </Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!activeClient}
-                  onClick={() => {
-                    if (activeClient) handleOpenClientDetail(activeClient.id)
-                  }}
-                >
-                  <ClipboardListIcon data-icon="inline-start" />
-                  <Trans>Client detail</Trans>
-                </Button>
                 <TableHeaderMultiFilter
                   label={t`Client`}
                   options={clientOptions}
@@ -797,7 +776,6 @@ export function ClientFactsWorkspace({
                       table.getRowModel().rows.map((row) => (
                         <TableRow
                           key={row.id}
-                          data-state={activeClient?.id === row.original.id ? 'selected' : undefined}
                           role="button"
                           tabIndex={0}
                           aria-label={t`Open client detail for ${row.original.name}`}
@@ -829,46 +807,6 @@ export function ClientFactsWorkspace({
           </CardContent>
         </Card>
       </section>
-      <Sheet
-        open={selectedClient !== null}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) onClearSelectedClient()
-        }}
-      >
-        <SheetContent
-          side="right"
-          className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>{selectedClient?.name ?? t`Client detail`}</SheetTitle>
-          </SheetHeader>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 md:px-6 md:py-5">
-            {selectedClient ? (
-              <>
-                <div className="mb-4 flex items-center justify-end">
-                  <Button
-                    nativeButton={false}
-                    variant="outline"
-                    size="sm"
-                    aria-label={t`Open full view`}
-                    render={<Link to={`/clients/${selectedClient.id}`} />}
-                  >
-                    <ExternalLinkIcon data-icon="inline-start" />
-                    <Trans>Open full view</Trans>
-                  </Button>
-                </div>
-                <ClientDetailWorkspace
-                  client={selectedClient}
-                  entityLabels={entityLabels}
-                  readiness={factsModel.readinessById.get(selectedClient.id)}
-                  firmTimezone={firmTimezone}
-                  practiceAiEnabled={practiceAiEnabled}
-                />
-              </>
-            ) : null}
-          </div>
-        </SheetContent>
-      </Sheet>
     </>
   )
 }
@@ -876,11 +814,11 @@ export function ClientFactsWorkspace({
 function handleClientRowKeyDown(
   event: KeyboardEvent<HTMLTableRowElement>,
   clientId: string,
-  onSelectClient: (clientId: string) => void,
+  onOpenDetail: (clientId: string) => void,
 ) {
   if (event.key !== 'Enter' && event.key !== ' ') return
   event.preventDefault()
-  onSelectClient(clientId)
+  onOpenDetail(clientId)
 }
 
 function ClientMetricCard({ metric }: { metric: ClientMetric }) {

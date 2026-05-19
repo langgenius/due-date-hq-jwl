@@ -40,7 +40,7 @@ test.describe('seeded opportunities', () => {
     await expect(retentionRow).toContainText('Late filings in 12 months: 2')
 
     await retentionRow.getByRole('link', { name: 'Open client' }).click()
-    await expect(authenticatedPage).toHaveURL(/\/clients\?client=/)
+    await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
     await expect(
       authenticatedPage.getByRole('heading', { name: 'Copperline Studios' }),
     ).toBeVisible()

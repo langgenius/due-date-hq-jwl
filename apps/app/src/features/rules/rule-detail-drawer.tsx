@@ -12,13 +12,6 @@ import type {
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@duedatehq/ui/components/ui/sheet'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -35,57 +28,17 @@ import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
 /**
- * Right-side drawer that surfaces the full audit footprint behind a single
- * `ObligationRule` row. Pure presentation: parents pass the already-fetched
- * rule from the `rules.listRules` cache; the drawer never re-issues a query
- * for the rule itself, only for the shared source registry through
- * `useSourceLookup`.
- *
- * Section order is fixed: Applicability → Due-date logic → Extension →
- * Review reasons (conditional) → Evidence → pending review actions →
- * Verification footer. The default review path accepts or rejects the rule as
- * displayed; rule editing stays out of the practice review flow.
- */
-export function RuleDetailDrawer({
-  rule,
-  open,
-  onOpenChange,
-}: {
-  rule: ObligationRule | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
-        {rule ? <RuleDetailContent rule={rule} /> : null}
-      </SheetContent>
-    </Sheet>
-  )
-}
-
-function RuleDetailContent({ rule }: { rule: ObligationRule }) {
-  return (
-    <>
-      <RuleDrawerHeader rule={rule} />
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        <RuleDetailInline rule={rule} />
-      </div>
-    </>
-  )
-}
-
-/**
- * Inline-renderable version of the rule detail — same section list as
- * the drawer, but without the Sheet header (caller provides its own
- * title cue) and without the overflow-scroll viewport. Use this when
- * the detail should live inside the page flow (e.g. expanded inside a
- * Coverage row) rather than being isolated in a slide-over.
+ * Inline-renderable version of the rule detail — full section list, no
+ * Sheet header (caller provides its own title cue) and no overflow-scroll
+ * viewport. The canonical rule detail surface lives inline in the
+ * Coverage page; the standalone drawer was deprecated as part of the
+ * detail-surface unification (drawer for triage, page/inline for deep
+ * work).
  *
  * Includes its own compact header with `id · v{version} · status` so
  * the audit footprint is still visible inline, and the
  * `CandidateReviewSection` (Accept / Reject) so the inline view can
- * complete the daily-triage flow without falling back to the drawer.
+ * complete the daily-triage flow.
  */
 export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   const sourceLookup = useSourceLookup()
@@ -360,24 +313,6 @@ function CandidateReviewForm({
         </Button>
       </div>
     </section>
-  )
-}
-
-function RuleDrawerHeader({ rule }: { rule: ObligationRule }) {
-  return (
-    <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
-      <div className="flex items-center gap-2 text-xs text-text-tertiary">
-        <span className="font-mono text-text-secondary">{rule.id}</span>
-        <span aria-hidden>·</span>
-        <span className="font-mono">v{rule.version}</span>
-        <span aria-hidden>·</span>
-        <RuleStatusInline status={rule.status} />
-      </div>
-      <SheetTitle className="text-md text-text-primary">{rule.title}</SheetTitle>
-      <SheetDescription className="sr-only">
-        <Trans>Rule detail and evidence</Trans>
-      </SheetDescription>
-    </SheetHeader>
   )
 }
 

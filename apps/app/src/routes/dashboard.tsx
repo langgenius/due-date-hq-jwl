@@ -754,8 +754,7 @@ function obligationQueueHrefForObligationFilter(row: DashboardTopRow): string {
 }
 
 function clientProfileHref(clientId: string): string {
-  const params = new URLSearchParams({ clients: clientId, client: clientId })
-  return `/clients?${params.toString()}`
+  return `/clients/${clientId}`
 }
 
 function isDashboardRowControlClick(target: EventTarget | null, rowElement: HTMLElement): boolean {

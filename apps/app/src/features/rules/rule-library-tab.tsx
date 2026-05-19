@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { CheckIcon, EyeIcon } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import type { ObligationRule, RuleBulkImpactPreview, RuleReviewTask } from '@duedatehq/contracts'
@@ -32,7 +33,6 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
-import { RuleDetailDrawer } from './rule-detail-drawer'
 import {
   countRulesByFilter,
   filterRules,
@@ -115,8 +115,8 @@ export function RuleLibraryTab() {
   const [statusFilters, setStatusFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<RuleHeaderFilterId | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
-  const [selectedRuleKey, setSelectedRuleKey] = useState<string | null>(null)
   const [selectedRuleKeys, setSelectedRuleKeys] = useState<string[]>([])
+  const navigate = useNavigate()
   const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
   const [preview, setPreview] = useState<RuleBulkImpactPreview | null>(null)
@@ -176,11 +176,6 @@ export function RuleLibraryTab() {
   )
   const allVisibleSelected =
     visibleSelectableRows.length > 0 && visibleSelectedRows.length === visibleSelectableRows.length
-  const selectedRule = useMemo(
-    () =>
-      selectedRuleKey ? (rows.find((rule) => ruleRowKey(rule) === selectedRuleKey) ?? null) : null,
-    [rows, selectedRuleKey],
-  )
   const jurisdictionOptions = useMemo(
     () => ruleFilterOptions(rows, (rule) => [rule.jurisdiction], jurisdictionLabel),
     [rows],
@@ -214,12 +209,13 @@ export function RuleLibraryTab() {
   )
 
   const handleRuleSelect = useCallback(
-    (rule: ObligationRule) => setSelectedRuleKey(ruleRowKey(rule)),
-    [],
+    (rule: ObligationRule) => {
+      // Canonical rule detail lives inline in Coverage; deep-link there
+      // instead of opening a one-off drawer.
+      void navigate(`/rules/coverage?rule=${encodeURIComponent(rule.id)}`)
+    },
+    [navigate],
   )
-  const handleDrawerOpenChange = useCallback((open: boolean) => {
-    if (!open) setSelectedRuleKey(null)
-  }, [])
   const clearBulkSelection = useCallback(() => {
     setSelectedRuleKeys([])
     setBulkDrawerOpen(false)
@@ -526,11 +522,6 @@ export function RuleLibraryTab() {
           onNextPage={() => setPageIndex(Math.min(pageCount - 1, currentPageIndex + 1))}
         />
       </SectionFrame>
-      <RuleDetailDrawer
-        rule={selectedRule}
-        open={selectedRule !== null}
-        onOpenChange={handleDrawerOpenChange}
-      />
       <BulkReviewDrawer
         open={bulkDrawerOpen}
         onOpenChange={setBulkDrawerOpen}
