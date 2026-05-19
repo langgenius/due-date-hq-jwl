@@ -87,7 +87,13 @@ function NeedsAttentionSection() {
   return (
     <section aria-label={t`Needs attention`} className="group/needsAttention flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-destructive">
+        {/* Bumped from `text-xs font-medium` to a heavier presence —
+          a tiny uppercase-red label reads as muted at glance, even
+          though the CSS color IS destructive-red. Section-level
+          attention badges should land like a banner header, not an
+          eyebrow. Added an alert icon for redundant color signal. */}
+        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-destructive">
+          <AlertTriangleIcon aria-hidden className="size-4 shrink-0" />
           <Trans>Needs attention</Trans>
           {collapsed && totalCount > 0 ? (
             <span className="font-mono normal-case tracking-normal text-text-tertiary">
