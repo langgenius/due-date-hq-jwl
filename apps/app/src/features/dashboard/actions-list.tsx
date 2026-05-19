@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
@@ -8,7 +7,6 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import type { ObligationStatus } from '@/features/obligations/status-control'
 import { formatCents } from '@/lib/utils'
 
 // Dashboard v2 "Actions this week" — verb-led action list that
@@ -33,57 +31,6 @@ import { formatCents } from '@/lib/utils'
 //   in_progress       → in_review   ("Send to review")  (legacy state)
 //   review            → done         ("Mark filed")
 //   done              → completed   ("Mark accepted")
-// Statuses without a sensible forward transition (extended, paid,
-// not_applicable, completed) return null and the primary button is
-// suppressed — only the "Open in Obligations" link is shown.
-const FORWARD_TRANSITIONS: Partial<
-  Record<ObligationStatus, { next: ObligationStatus; label: string }>
-> = {
-  pending: { next: 'review', label: 'Start review' },
-  waiting_on_client: { next: 'review', label: 'Mark responded' },
-  blocked: { next: 'review', label: 'Mark unblocked' },
-  in_progress: { next: 'review', label: 'Send to review' },
-  review: { next: 'done', label: 'Mark filed' },
-  done: { next: 'completed', label: 'Mark accepted' },
-}
-
-function forwardTransitionFor(
-  status: ObligationStatus,
-): { next: ObligationStatus; label: string } | null {
-  return FORWARD_TRANSITIONS[status] ?? null
-}
-
-// v2 display labels for the reason line. Mirrors the labels in
-// status-control.tsx (`useLifecycleV2StatusLabels`) so the dashboard
-// expansion speaks the same vocabulary as the queue.
-const STATUS_DISPLAY_LABEL: Record<ObligationStatus, string> = {
-  pending: 'Not started',
-  in_progress: 'In progress',
-  waiting_on_client: 'Waiting on client',
-  blocked: 'Blocked',
-  review: 'In review',
-  done: 'Filed',
-  paid: 'Paid',
-  extended: 'Extended',
-  completed: 'Completed',
-  not_applicable: 'Not applicable',
-}
-
-function reasonLineFor(row: DashboardTopRow, asOfDate: string | null): string {
-  const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  const lateness =
-    days < 0 ? `${-days} days past due` : days === 0 ? 'due today' : `due in ${days} days`
-  const label = STATUS_DISPLAY_LABEL[row.status]
-  if (row.status === 'blocked')
-    return `Status: ${label} · ${lateness} · waiting on upstream obligation`
-  if (row.status === 'waiting_on_client')
-    return `Status: ${label} · ${lateness} · send a reminder to unblock`
-  if (row.evidenceCount === 0) return `Status: ${label} · ${lateness} · no source attached yet`
-  if (row.exposureStatus === 'needs_input')
-    return `Status: ${label} · ${lateness} · penalty inputs missing`
-  return `Status: ${label} · ${lateness}`
-}
-
 function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string {
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   if (row.status === 'waiting_on_client') return 'Follow up for client materials'
@@ -105,18 +52,10 @@ function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): 
 function ActionLine({
   row,
   asOfDate,
-  expanded,
-  dimmed,
-  onToggle,
-  onPrimary,
   onOpenObligation,
 }: {
   row: DashboardTopRow
   asOfDate: string | null
-  expanded: boolean
-  dimmed: boolean
-  onToggle: () => void
-  onPrimary: (next: ObligationStatus) => void
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
@@ -125,83 +64,44 @@ function ActionLine({
   const urgencyText = days < 0 ? t`${-days}d late` : days === 0 ? t`due today` : t`due in ${days}d`
   // Red is reserved for genuinely critical (>7 days past due). Amber
   // for the rest of "past due or due soon" window. Muted for future.
-  // Avoids red-on-red-on-red overload per design call 2026-05-19.
   const urgencyTone =
     days < -7 ? 'text-text-destructive' : days <= 2 ? 'text-text-warning' : 'text-text-tertiary'
-  const forward = forwardTransitionFor(row.status)
   return (
-    <div
-      className={cn(
-        'transition-opacity',
-        dimmed && !expanded && 'opacity-60',
-        expanded && 'bg-background-subtle',
-      )}
+    <button
+      type="button"
+      onClick={onOpenObligation}
+      aria-label={t`${prompt} for ${row.clientName}`}
+      // Row reshape:
+      //  [Client badge] · {task}    {urgency · risk}
+      // The client is now the leading anchor — visually pinned as a
+      // pill so the eye scans clients first, then reads what to do
+      // for each. Single click → open in the Obligations queue;
+      // dashboard doesn't carry inline action state, it just routes
+      // you to where the action happens.
+      className="group grid w-full grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        aria-label={t`${prompt} for ${row.clientName}`}
-        // Three columns now: arrow · prompt (1fr) · meta cluster (auto).
-        // Days + risk group together on the right with a soft middot
-        // separator — reads as one phrase, not two columns. Avoids the
-        // "4 alignment edges" table-feel the previous critique flagged.
-        className="group grid w-full grid-cols-[12px_1fr_auto] items-baseline gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <ArrowRightIcon
-          className={cn(
-            'size-3 shrink-0 self-center text-text-tertiary transition-transform',
-            expanded
-              ? 'rotate-90 text-text-primary'
-              : 'group-hover:translate-x-0.5 group-hover:text-text-primary',
-          )}
-          aria-hidden
-        />
-        <span className="min-w-0 truncate text-base font-medium text-text-primary">
-          {prompt} · {row.clientName}
+      <ArrowRightIcon
+        className="size-3 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
+        aria-hidden
+      />
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="inline-flex shrink-0 items-center rounded-sm bg-background-subtle px-1.5 py-0.5 text-xs font-medium text-text-secondary">
+          {row.clientName}
         </span>
-        <span className="inline-flex shrink-0 items-baseline gap-1.5 font-mono text-xs tabular-nums">
-          <span className={cn(urgencyTone)}>{urgencyText}</span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <span className="text-text-secondary">
-            {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
-              ? formatCents(row.estimatedExposureCents)
-              : t`needs input`}
-          </span>
+        <span className="truncate text-sm text-text-primary">{prompt}</span>
+      </span>
+      <span className="inline-flex shrink-0 items-baseline gap-1.5 font-mono text-xs tabular-nums">
+        <span className={cn(urgencyTone)}>{urgencyText}</span>
+        <span aria-hidden className="text-text-tertiary">
+          ·
         </span>
-      </button>
-      {expanded ? (
-        <div className="flex items-center justify-between gap-3 px-3 pb-3 pl-9">
-          <p className="text-xs text-text-secondary">{reasonLineFor(row, asOfDate)}</p>
-          <div className="flex shrink-0 items-center gap-1.5">
-            {forward ? (
-              <Button
-                size="sm"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onPrimary(forward.next)
-                }}
-              >
-                {forward.label}
-              </Button>
-            ) : null}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(event) => {
-                event.stopPropagation()
-                onOpenObligation()
-              }}
-            >
-              <Trans>Open in Obligations</Trans>
-              <ArrowUpRightIcon data-icon="inline-end" />
-            </Button>
-          </div>
-        </div>
-      ) : null}
-    </div>
+        <span className="text-text-secondary">
+          {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
+            ? formatCents(row.estimatedExposureCents)
+            : t`needs input`}
+        </span>
+      </span>
+    </button>
   )
 }
 
@@ -214,7 +114,6 @@ function DashboardActionsList({
   onOpenWizard,
   onOpenObligation,
   onOpenAllObligations,
-  onForwardTransition,
 }: {
   rows: DashboardTopRow[]
   asOfDate: string | null
@@ -225,25 +124,11 @@ function DashboardActionsList({
   onOpenWizard: () => void
   onOpenObligation: (row: DashboardTopRow) => void
   onOpenAllObligations: () => void
-  // Slice B: primary-button action — advance the row's status one
-  // step forward. Returns void; the dashboard route owns the
-  // mutation + toast.
-  onForwardTransition: (row: DashboardTopRow, next: ObligationStatus) => void
 }) {
   const { t } = useLingui()
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
   const overflow = Math.max(totalThisWeek - visible.length, 0)
-  // Slice B: only one row is expanded at a time. Click same row to
-  // collapse. Esc collapses any open row.
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && expandedId !== null) setExpandedId(null)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [expandedId])
 
   if (isLoading) {
     return (
@@ -299,15 +184,6 @@ function DashboardActionsList({
             <ActionLine
               row={row}
               asOfDate={asOfDate}
-              expanded={expandedId === row.obligationId}
-              dimmed={expandedId !== null && expandedId !== row.obligationId}
-              onToggle={() =>
-                setExpandedId((current) => (current === row.obligationId ? null : row.obligationId))
-              }
-              onPrimary={(next) => {
-                setExpandedId(null)
-                onForwardTransition(row, next)
-              }}
               onOpenObligation={() => onOpenObligation(row)}
             />
           </li>
