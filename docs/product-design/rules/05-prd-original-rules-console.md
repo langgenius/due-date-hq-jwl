@@ -258,3 +258,43 @@ the new IA.
 - The Source row → external URL behavior (with security attrs)
 - The data model (no contract changes)
 - Authority gates on mutating actions (`rules.accept`, `pulse.apply`)
+
+## 9. Retroactive observations
+
+This is a reference PRD describing the pre-redesign state, written
+after the v4 IA shipped. Things we'd want to have measured if we'd
+PRD'd this design originally:
+
+| Dimension                   | Original Rules Console                                             |
+| --------------------------- | ------------------------------------------------------------------ |
+| Sidebar entries             | 1 (Rules)                                                          |
+| Default tab                 | Coverage (matrix-heavy)                                            |
+| Tabs to reach Library       | 1 click (after landing on Coverage)                                |
+| Tabs to reach Pulse / Radar | 1 click                                                            |
+| Tab switch state            | URL-preserved (`?tab=`)                                            |
+| Cross-tab filter context    | None (each tab's filters were local)                               |
+| Page weight at default      | ~5700 px scroll (Coverage matrix + Library)                        |
+| Affordance vocabulary       | Mixed (Library uses drawers; Pulse uses cards; Coverage uses dots) |
+
+## 10. Migration path (in case of partial rollback)
+
+If we ever need to restore parts of the original design:
+
+- The tabbed `/rules` route was not deleted — it now redirects via
+  `rulesIndexLoader` to the corresponding standalone page.
+- Old deep links (`/rules?tab=coverage`, `/rules?tab=library`, etc.)
+  continue to work.
+- Component files like `CoverageTab`, `RuleLibraryTab`, `SourcesTab`,
+  `PulseChangesTab` still exist — they're rendered by the new
+  standalone routes, just without the tab nav above them.
+- The `RulesPageShell` wrapper unifies the page-header treatment.
+
+A partial rollback would mean: restore the tabbed page that mounts
+all four tabs. The data + procedures didn't change.
+
+## 11. What this PRD does NOT cover
+
+Same as the v4 PRD: this document is the design + IA story. PM
+artifacts (success metrics, rollout phases, acceptance criteria) for
+the historical version were never written — captured implicitly via
+the user-feedback that drove the redesign.

@@ -297,18 +297,203 @@ tone is the same as a non-click target's tone of the same kind. Hover
 - Temporary rules and Preview — unlisted in sidebar; reachable by
   URL only
 
-## 12. Open product questions
+## 12. Success metrics
 
-1. Should the snapshot strip aggregate change when the user filters
-   the table (currently no filter), OR remain a global catalog read?
+| Metric                                    | Target                                                                                           | Measurement                                                        |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Owner / manager weekly visit rate         | ≥ 80% of seats in those roles touch /rules/coverage at least 1×/wk during tax season (Jan–Apr)   | Analytics page_view event                                          |
+| Drill-through rate (Coverage → Library)   | ≥ 30% of Coverage sessions include at least one PENDING / entity drill                           | Click instrumentation on the drill targets                         |
+| Source-incident response time (SLA proxy) | Median time from "11 degraded" first paint to /rules/sources visit < 5 minutes during work hours | Time delta between SourceHealthCallout impression and route change |
+| Action completion from Coverage           | ≥ 50% of users who drill from Coverage to Library then Accept ≥ 1 rule in the same session       | Funnel: Coverage drill → Library row click → drawer Accept         |
+
+These are guides, not gates. The page is read-only; success looks
+like CPAs trusting it as the daily situational read.
+
+## 13. Acceptance criteria
+
+### 13.1 Snapshot / SourceHealthCallout
+
+- [ ] When `sourceHealthCounts.degraded > 0 || failing > 0`: renders a
+      bordered pill with the incident counts, label "Review sources", and
+      links to `/rules/sources?health=degraded`.
+- [ ] When all healthy: renders a quiet "All N watched sources are
+      healthy →" link to `/rules/sources` (no filter).
+- [ ] Pill is keyboard focusable; focus ring matches the rest of the app.
+
+### 13.2 Coverage table
+
+- [ ] Renders columns in order: JUR · NAME · ENTITY COVERAGE · ACTIVE
+      · PENDING · SOURCES · STATUS.
+- [ ] Needs-attention zone always visible; "all clear" zone collapsed
+      by default behind an aria-expanded button.
+- [ ] PENDING count > 0 renders as a `<button>` with `aria-label`
+      "Review N pending rules for {jurisdiction}".
+- [ ] SOURCES count > 0 renders as a `<Link>` to
+      `/rules/sources?jur={code}&from=coverage`.
+- [ ] ENTITY COVERAGE cell renders a `<button>` (popover trigger)
+      with `aria-label` "Open entity breakdown for {jurisdiction}".
+
+### 13.3 Entity popover
+
+- [ ] Opens on trigger click and Enter / Space keypress.
+- [ ] Closes on Esc, outside click, and second trigger click.
+- [ ] Lists all 7 entity types in the canonical order (Individual,
+      Trust, LLC, Partnership, S-Corp, C-Corp, Sole prop).
+- [ ] Each row shows tone dot + entity label + state label.
+- [ ] Verified / review entities render as drillable buttons that
+      call `onEntityDrillIn(jurisdiction, entity, state)`.
+- [ ] No-rule entities render as plain text rows.
+
+### 13.4 STATUS column
+
+- [ ] Each needs-attention row shows an action-first pill with the
+      pending count baked in.
+- [ ] All-clear rows show a muted em-dash in this column.
+
+### 13.5 Cross-page wiring
+
+- [ ] Every drill target carries `?from=coverage`.
+- [ ] Origin breadcrumb on the destination page resolves the context
+      (jurisdiction / entity / source) into the label.
+
+## 14. State specs
+
+### 14.1 Loading state
+
+- Use `QueryPanelState state="loading"` while either `coverageQuery`
+  or `sourceHealthQuery` is `isLoading`.
+- The query that lands first does NOT block render — the page can
+  paint with partial data:
+  - Registry counts (active/pending/sources) render as soon as
+    `orpc.rules.coverage` resolves.
+  - SourceHealthCallout paints as soon as `pulse.listSourceHealth`
+    resolves. Until then, the callout slot is empty (no skeleton —
+    avoids implying a problem).
+
+### 14.2 Empty state
+
+- `rows.length === 0` (no jurisdictions tracked — practically
+  unreachable in production for a US-focused product, but defined
+  for completeness):
+  - Title and description still render.
+  - Table body shows a single centered row:
+    "No jurisdictions tracked yet. Source watchers populate this view
+    as adapters land."
+  - No SourceHealthCallout (nothing to point at).
+- `needsAttention.length === 0 && allClear.length === 52` (the rare
+  case where every jurisdiction is in standard queue):
+  - Skip the needs-attention zone entirely.
+  - Render only the expander, expanded by default, with caption
+    "All 52 jurisdictions in standard review queue".
+
+### 14.3 Error state
+
+- `coverageQuery.isError`: full-page error via
+  `QueryPanelState state="error"` with message "Couldn't load rules
+  coverage." Refetch button (future).
+- `sourceHealthQuery.isError`: degrade silently — render the table
+  but omit the SourceHealthCallout. The signal is gated on Pulse, not
+  a blocker for the Coverage view.
+
+## 15. Mobile / responsive spec
+
+The page is desktop-first (CPA workflow). At narrow widths:
+
+- Sidebar collapses to a sheet via the shadcn sidebar pattern.
+- Coverage table horizontal-scrolls (`overflow-x-auto` already set by
+  `SectionFrame`). All 7 columns remain; the user scrolls right.
+- SourceHealthCallout wraps to two lines if necessary.
+- Entity popover renders at 90vw on screens narrower than 360px,
+  same content.
+- No "mobile-only" alternative layout. If real mobile usage emerges,
+  revisit.
+
+## 16. Accessibility
+
+- All interactive elements are `<button>` or `<a>` (no `div`
+  onClick).
+- `aria-label` on every drill target naming the target context
+  (jurisdiction, entity, state).
+- Expander uses `aria-expanded` toggling true/false.
+- Popover uses Radix Popover, which manages `aria-expanded`,
+  `aria-haspopup`, focus trap on open, focus restore on close.
+- Color tones are paired with text labels — no color-only signal in
+  the entity popover (e.g., "active / review / no rule" always
+  present alongside dot tone).
+- Focus rings use `focus-visible:ring-2 ring-state-accent-active-alt`
+  (matches the rest of the app).
+
+## 17. Performance budget
+
+- LCP: < 1.5s on desktop broadband for the first paint of the table.
+- Time-to-interactive: < 2.5s.
+- Coverage query payload: 52 rows × ~200B = ~10KB.
+- Source-health query payload: ~88 rows × ~300B = ~26KB.
+- Re-renders on filter change: O(1) per row — no global recomputation
+  beyond the partition predicate.
+
+The page renders in jsdom for tests in < 5s including QueryClient
+setup; no streaming requirement.
+
+## 18. Analytics events
+
+| Event                                 | Trigger                                               | Properties                                       |
+| ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
+| `coverage_status.view`                | Route mount                                           | `firmId`, `role`, `degradedCount`                |
+| `coverage_status.expander_toggle`     | "Show / Hide N jurisdictions in standard queue" click | `expanded: boolean`, `hiddenCount`               |
+| `coverage_status.entity_popover_open` | Trigger click                                         | `jurisdiction`, `active`, `review`, `noRule`     |
+| `coverage_status.entity_drill`        | Entity row inside popover click                       | `jurisdiction`, `entity`, `state`                |
+| `coverage_status.pending_drill`       | PENDING button click                                  | `jurisdiction`, `pendingCount`                   |
+| `coverage_status.sources_drill`       | SOURCES cell or callout click                         | `jurisdiction?`, `degradedCount`, `failingCount` |
+
+All events fire client-side; no PII beyond `firmId` (already in the
+session). Wire via the app's existing analytics hook (TBD which one).
+
+## 19. Rollout
+
+This page is part of the v4 IA redesign — a single coordinated
+release, not a phased rollout. Gating:
+
+1. **Internal verification** — preview builds run E2E click-throughs
+   on a seeded firm. Pass: every drill round-trip works; popover
+   opens/closes; breadcrumb resolves.
+2. **Beta firm** — one design-partner practice gets the redesign on
+   a feature flag for one week. Watch session recordings and capture
+   confusion.
+3. **General rollout** — flag flipped for all firms once beta
+   feedback is incorporated.
+
+Backwards compatibility: the old `/rules?tab=coverage` URL redirects
+to `/rules/coverage` via the existing `rulesIndexLoader` mapper.
+Existing deep links continue to work.
+
+## 20. Decision log
+
+| Date       | Decision                                                                        | Why                                                                                              |
+| ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| 2026-05-18 | Promote Coverage status to its own sidebar entry                                | Daily-use page deserves direct access; tabbed IA was burying it                                  |
+| 2026-05-19 | Single table with 7-dot entity strip (Option A) over drop-the-matrix (Option B) | User preferred entity context inline; design accepted on first iteration                         |
+| 2026-05-19 | Zone sort: needs-attention top, all-clear collapsed                             | Eliminates wall of 48 identical orange-dot rows                                                  |
+| 2026-05-19 | Plain-English status pills with action verbs + counts                           | "Needs owner approval" → "Owner: approve 7 pending" — reads as a to-do                           |
+| 2026-05-19 | Drop snapshot strip catalog stats                                               | Column sums duplicated the table; only source-health callout earned its place                    |
+| 2026-05-19 | Entity coverage → text summary + popover                                        | 7-dot strip required a legend to decode; popover is self-documenting; cell shows exceptions only |
+| 2026-05-19 | Expander label: "standard review queue"                                         | Names the concept; "other jurisdictions" was vague                                               |
+
+## 21. Open product questions
+
+1. Should the snapshot stats ever become clickable (drill into
+   Library showing all 123 pending rules), OR is the per-row PENDING
+   drill enough?
 2. Should the all-clear zone be hidden permanently (e.g. "46 other
    jurisdictions tracked — open Sources to verify") instead of
    click-to-expand?
-3. Should the entity dots remain, or move to a row-expansion pattern
-   for progressive disclosure?
-4. Should STATUS pill copy include the pending count
-   ("Owner must approve 7 pending rules" vs current
-   "Needs owner approval")?
-5. When the practice has 0 active rules across the catalog (early
+3. Should entity coverage column be droppable (Option B from the
+   original Q3 menu)? The popover satisfies per-entity granularity;
+   the cell still adds ~16% horizontal weight.
+4. When the practice has 0 active rules across the catalog (early
    onboarding), what's the empty-state copy and the "next best
    action"?
+5. Should "where clients file?" become literal — i.e., filter the
+   table to jurisdictions where the practice has clients? Requires
+   joining the clients dataset into Coverage. Different page job;
+   document as a deferred direction.
