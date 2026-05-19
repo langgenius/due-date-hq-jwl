@@ -1,4 +1,12 @@
-import { useCallback, useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   flexRender,
@@ -530,6 +538,57 @@ function facetOptionToFilterOption(option: ObligationQueueFacetOption): FilterOp
   }
 }
 
+// Compute the next row-selection state when shift-clicking a checkbox.
+// Selects every id in `orderedIds` between `anchorId` and `targetId` inclusive.
+// If `anchorId` is missing or not in the list, falls back to a single-row toggle.
+export function rangeSelectionUpdate({
+  current,
+  orderedIds,
+  anchorId,
+  targetId,
+  nextChecked,
+}: {
+  current: RowSelectionState
+  orderedIds: readonly string[]
+  anchorId: string | null
+  targetId: string
+  nextChecked: boolean
+}): RowSelectionState {
+  const targetIndex = orderedIds.indexOf(targetId)
+  if (targetIndex === -1) return current
+  const anchorIndex = anchorId ? orderedIds.indexOf(anchorId) : -1
+  if (anchorIndex === -1) {
+    const next = { ...current }
+    if (nextChecked) next[targetId] = true
+    else delete next[targetId]
+    return next
+  }
+  const [start, end] =
+    anchorIndex <= targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex]
+  const next = { ...current }
+  for (let i = start; i <= end; i += 1) {
+    const id = orderedIds[i]
+    if (!id) continue
+    if (nextChecked) next[id] = true
+    else delete next[id]
+  }
+  return next
+}
+
+export function selectionHeaderState(
+  selection: RowSelectionState,
+  orderedIds: readonly string[],
+): 'none' | 'all' | 'partial' {
+  if (orderedIds.length === 0) return 'none'
+  let selectedCount = 0
+  for (const id of orderedIds) {
+    if (selection[id]) selectedCount += 1
+  }
+  if (selectedCount === 0) return 'none'
+  if (selectedCount === orderedIds.length) return 'all'
+  return 'partial'
+}
+
 function dueDaysTone(days: number): DueDaysTone {
   if (days < 0) {
     return {
@@ -590,6 +649,8 @@ export function ObligationQueueRoute() {
   ] = useQueryStates(obligationQueueSearchParamsParsers)
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  // Anchor for shift-click range selection — last id the user clicked.
+  const lastSelectedIdRef = useRef<string | null>(null)
   const [savedViewDraft, setSavedViewDraft] = useState<{
     mode: 'create' | 'rename'
     id?: string
@@ -979,19 +1040,47 @@ export function ObligationQueueRoute() {
       {
         id: 'select',
         enableHiding: false,
-        header: ({ table }) => (
-          <Checkbox
-            aria-label={t`Select all visible rows`}
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked)}
-          />
-        ),
-        cell: ({ row: tableRow }) => (
+        header: ({ table }) => {
+          const allSelected = table.getIsAllPageRowsSelected()
+          const someSelected = table.getIsSomePageRowsSelected()
+          return (
+            <Checkbox
+              aria-label={t`Select all visible rows`}
+              checked={allSelected}
+              indeterminate={!allSelected && someSelected}
+              onCheckedChange={(checked) => {
+                table.toggleAllPageRowsSelected(checked)
+                lastSelectedIdRef.current = null
+              }}
+            />
+          )
+        },
+        cell: ({ row: tableRow, table }) => (
           <Checkbox
             aria-label={t`Select ${tableRow.original.clientName}`}
             checked={tableRow.getIsSelected()}
-            onClick={(event) => event.stopPropagation()}
-            onCheckedChange={(checked) => tableRow.toggleSelected(checked)}
+            onClick={(event) => {
+              event.stopPropagation()
+              if (event.shiftKey && lastSelectedIdRef.current) {
+                event.preventDefault()
+                const nextChecked = !tableRow.getIsSelected()
+                const orderedIds = table.getRowModel().rows.map((r) => r.original.id)
+                table.setRowSelection((current) =>
+                  rangeSelectionUpdate({
+                    current,
+                    orderedIds,
+                    anchorId: lastSelectedIdRef.current,
+                    targetId: tableRow.original.id,
+                    nextChecked,
+                  }),
+                )
+                lastSelectedIdRef.current = tableRow.original.id
+              }
+            }}
+            onCheckedChange={(checked) => {
+              tableRow.toggleSelected(checked)
+              lastSelectedIdRef.current = tableRow.original.id
+            }}
           />
         ),
         meta: { headerClassName: 'w-10', cellClassName: 'w-10' },
@@ -1345,6 +1434,13 @@ export function ObligationQueueRoute() {
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
   const thisWeekFilterActive = isThisWeekFilterActive(daysMin, daysMax)
 
+  // Keep the j/k focused row in view as the user navigates.
+  useEffect(() => {
+    if (!activeRow?.id) return
+    const node = document.querySelector<HTMLElement>(`[data-row-id="${activeRow.id}"]`)
+    node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [activeRow?.id])
+
   const moveActiveRow = useCallback(
     (direction: 1 | -1) => {
       const currentRows = table.getRowModel().rows
@@ -1472,17 +1568,55 @@ export function ObligationQueueRoute() {
     },
   })
 
-  useAppHotkey('X', (event) => updateActiveRowStatus('extended', event.target), {
-    enabled: keyboardEnabled,
-    requireReset: true,
-    meta: {
-      id: 'obligations.mark-extended',
-      name: 'Mark extended',
-      description: 'Mark the active row as extended.',
-      category: 'obligations',
-      scope: 'route',
+  useAppHotkey(
+    'X',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      if (!activeRow) return
+      setRowSelection((current) => {
+        const next = { ...current }
+        if (next[activeRow.id]) delete next[activeRow.id]
+        else next[activeRow.id] = true
+        return next
+      })
+      lastSelectedIdRef.current = activeRow.id
     },
-  })
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'obligations.toggle-select',
+        name: 'Toggle selection',
+        description: 'Toggle selection on the focused row.',
+        category: 'obligations',
+        scope: 'route',
+      },
+    },
+  )
+
+  useAppHotkey(
+    'Escape',
+    () => {
+      if (drawer === 'obligation') {
+        void setObligationQueueQuery({ drawer: null, id: null })
+        return
+      }
+      if (row) {
+        void setObligationQueueQuery({ row: null })
+      }
+    },
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'obligations.dismiss',
+        name: 'Close drawer or clear focus',
+        description: 'Close the obligation drawer or clear the focused row.',
+        category: 'obligations',
+        scope: 'route',
+      },
+    },
+  )
 
   useAppHotkey('I', (event) => updateActiveRowStatus('in_progress', event.target), {
     enabled: keyboardEnabled,
@@ -1569,13 +1703,22 @@ export function ObligationQueueRoute() {
     })
   }
 
-  function changeSelectedAssignee(assigneeId: string | null) {
+  function changeSelectedAssignee(assigneeId: string | null, assigneeName?: string) {
     if (selectedClientIds.length === 0) return
-    bulkAssigneeMutation.mutate({
-      clientIds: selectedClientIds,
-      assigneeId,
-      reason: t`Obligations bulk owner change`,
-    })
+    bulkAssigneeMutation.mutate(
+      {
+        clientIds: selectedClientIds,
+        assigneeId,
+        reason: t`Obligations bulk owner change`,
+      },
+      {
+        onSuccess: () => {
+          const count = selectedIds.length
+          const label = assigneeName ?? t`Unassigned`
+          toast.success(t`Assigned ${count} obligations to ${label}`)
+        },
+      },
+    )
   }
 
   function exportSelected(format: 'csv' | 'pdf_zip') {
@@ -1827,32 +1970,20 @@ export function ObligationQueueRoute() {
           </div>
 
           {selectedIds.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
-              <Badge variant="info" className="tabular-nums">
-                <Plural value={selectedIds.length} one="# selected" other="# selected" />
-              </Badge>
+            <div
+              role="region"
+              aria-label={t`Bulk actions`}
+              className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-subtle px-3 py-2 shadow-sm"
+            >
+              <span className="text-xs font-medium tabular-nums text-text-primary">
+                <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
+              </span>
+              <Separator orientation="vertical" className="mx-0.5 h-4" />
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <Button size="sm">
-                      <Trans>Change status</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  {ALL_STATUSES.map((status) => (
-                    <DropdownMenuItem key={status} onClick={() => changeSelectedStatus(status)}>
-                      {statusLabels[status]}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm">
-                      <Trans>Change assignee</Trans>
+                    <Button variant="ghost" size="sm">
+                      <Trans>Assign owner</Trans>
                       <ChevronDownIcon data-icon="inline-end" />
                     </Button>
                   }
@@ -1870,7 +2001,7 @@ export function ObligationQueueRoute() {
                     assignableMembers.map((member) => (
                       <DropdownMenuItem
                         key={member.assigneeId}
-                        onClick={() => changeSelectedAssignee(member.assigneeId)}
+                        onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
                       >
                         <span className="truncate">{member.name}</span>
                       </DropdownMenuItem>
@@ -1878,28 +2009,70 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setExtendedMemo('')
-                  setExtendedMemoOpen(true)
-                }}
-              >
-                <Trans>Mark extended</Trans>
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => exportSelected('csv')}>
-                <DownloadIcon data-icon="inline-start" />
-                <Trans>CSV</Trans>
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => exportSelected('pdf_zip')}>
-                <FileArchiveIcon data-icon="inline-start" />
-                <Trans>PDF zip</Trans>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setRowSelection({})}>
-                <XIcon data-icon="inline-start" />
-                <Trans>Clear</Trans>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="ghost" size="sm">
+                      <Trans>Set status</Trans>
+                      <ChevronDownIcon data-icon="inline-end" />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="start">
+                  {ALL_STATUSES.map((status) =>
+                    status === 'extended' ? (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => {
+                          setExtendedMemo('')
+                          setExtendedMemoOpen(true)
+                        }}
+                      >
+                        {statusLabels[status]}
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem key={status} onClick={() => changeSelectedStatus(status)}>
+                        {statusLabels[status]}
+                      </DropdownMenuItem>
+                    ),
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="ghost" size="sm">
+                      <DownloadIcon data-icon="inline-start" />
+                      <Trans>Export</Trans>
+                      <ChevronDownIcon data-icon="inline-end" />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => exportSelected('csv')}>
+                    <DownloadIcon data-icon="inline-start" />
+                    <Trans>CSV</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportSelected('pdf_zip')}>
+                    <FileArchiveIcon data-icon="inline-start" />
+                    <Trans>PDF zip</Trans>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="ml-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setRowSelection({})
+                    lastSelectedIdRef.current = null
+                  }}
+                  aria-label={t`Clear selection`}
+                >
+                  <XIcon data-icon="inline-start" />
+                  <Trans>Clear</Trans>
+                </Button>
+              </div>
             </div>
           ) : null}
 
@@ -1950,6 +2123,7 @@ export function ObligationQueueRoute() {
                       <TableRow
                         key={tableRow.id}
                         aria-selected={tableRow.original.id === activeRow?.id}
+                        data-row-id={tableRow.original.id}
                         data-state={tableRow.getIsSelected() ? 'selected' : undefined}
                         className={
                           tableRow.original.id === activeRow?.id
