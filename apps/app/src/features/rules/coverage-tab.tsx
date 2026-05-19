@@ -547,6 +547,7 @@ function CoverageTable({
         sourcesDegraded={sourceHealthCounts.degraded}
         sourcesFailing={sourceHealthCounts.failing}
       />
+      <CoverageLegend />
 
       {/*
         Single per-jurisdiction table. Each row carries ACTIVE / PENDING /
@@ -594,9 +595,9 @@ function CoverageTable({
                     className="text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     {showAllClear ? (
-                      <Trans>Hide {allClear.length} jurisdictions with default review queue</Trans>
+                      <Trans>Hide {allClear.length} other jurisdictions</Trans>
                     ) : (
-                      <Trans>Show {allClear.length} jurisdictions with default review queue</Trans>
+                      <Trans>Show {allClear.length} other jurisdictions</Trans>
                     )}
                   </button>
                 </TableCell>
@@ -617,8 +618,6 @@ function CoverageTable({
           </TableBody>
         </Table>
       </SectionFrame>
-
-      <CoverageLegend />
     </div>
   )
 }

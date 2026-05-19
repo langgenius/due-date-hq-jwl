@@ -183,25 +183,52 @@ export function CoverageCell({ state }: { state: CoverageCellState }) {
   )
 }
 
+/**
+ * Compact legend describing both axes of the Coverage status entity-dot
+ * strip: *which entity each dot represents* (left-to-right order) and
+ * *what tone means* (active / review / no rule). Lives above the table
+ * rather than below so users see it before they encounter the dots.
+ */
 export function CoverageLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-7 gap-y-1 text-xs text-text-tertiary">
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="success" />
-        <ConceptLabel concept="verifiedRule">
-          <Trans>active — accepted by this practice</Trans>
-        </ConceptLabel>
-      </span>
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="warning" />
-        <ConceptLabel concept="requiresReview">
-          <Trans>review — needs CPA confirmation</Trans>
-        </ConceptLabel>
-      </span>
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="disabled" />
-        <Trans>no rule — not in MVP scope</Trans>
-      </span>
+    <div className="flex flex-col gap-2 text-xs text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="shrink-0 font-medium tracking-[0.04em] text-text-tertiary uppercase">
+          <Trans>Dot order</Trans>
+        </span>
+        <span aria-hidden>·</span>
+        <span>LLC</span>
+        <span aria-hidden>·</span>
+        <span>Partnership</span>
+        <span aria-hidden>·</span>
+        <span>S-Corp</span>
+        <span aria-hidden>·</span>
+        <span>C-Corp</span>
+        <span aria-hidden>·</span>
+        <span>Sole prop</span>
+        <span aria-hidden>·</span>
+        <span>Trust</span>
+        <span aria-hidden>·</span>
+        <span>Individual</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="success" />
+          <ConceptLabel concept="verifiedRule">
+            <Trans>active — accepted by this practice</Trans>
+          </ConceptLabel>
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="warning" />
+          <ConceptLabel concept="requiresReview">
+            <Trans>review — needs CPA confirmation</Trans>
+          </ConceptLabel>
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="disabled" />
+          <Trans>no rule — not in MVP scope</Trans>
+        </span>
+      </div>
     </div>
   )
 }

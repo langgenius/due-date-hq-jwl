@@ -47,7 +47,7 @@ export function RulesCoverageRoute() {
   return (
     <RulesPageShell
       title={t`Coverage status`}
-      description={t`Do we have rules where clients file? Each row shows per-entity coverage as small dots — click any dot to drill into the matching rules. PENDING and SOURCES counts also drill. Every count traces back to the official federal, state, or DC document.`}
+      description={t`Do we have rules where clients file? Pending counts and source documents are clickable. Every count traces back to the official federal, state, or DC document.`}
     >
       <CoverageTab
         onJurisdictionDrillIn={handleJurisdictionDrillIn}
