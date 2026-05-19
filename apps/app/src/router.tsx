@@ -427,6 +427,16 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'clients/:clientId',
+              handle: routeHandle(routeSummaries.clientDetail),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ClientDetailRoute } = await import('@/routes/clients.$clientId')
+
+                return { Component: ClientDetailRoute }
+              },
+            },
+            {
               path: 'opportunities',
               handle: routeHandle(routeSummaries.opportunities),
               HydrateFallback: RouteHydrateFallback,

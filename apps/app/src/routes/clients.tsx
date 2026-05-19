@@ -1,16 +1,21 @@
 import { useCallback, useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, FileClockIcon, FileSearchIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { toast } from 'sonner'
 
-import type { ClientCreateInput, ClientPublic } from '@duedatehq/contracts'
+import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
+import {
+  buildClientObligationListSummaries,
+  buildOpportunityCountByClient,
+  buildPulseMatchesByClient,
+} from '@/features/clients/client-detail-model'
 import {
   CLIENT_LIST_LIMIT,
   clientsSearchParamsParsers,
@@ -24,6 +29,7 @@ import {
   buildClientFactsModel,
   filterClients,
   isClientEntityType,
+  isClientPulseFilter,
   isClientReadinessStatus,
   isClientSourceType,
   type ClientEntityType,
@@ -35,8 +41,27 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
 const EMPTY_CLIENTS: ClientPublic[] = []
+const EMPTY_AFFECTED_CLIENT_IDS: ReadonlySet<string> = new Set()
+const PULSE_HISTORY_LIMIT = 50
+const OBLIGATION_LIST_LIMIT = 100
+const OPPORTUNITY_LIST_LIMIT = 50
+const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
+  'pending',
+  'in_progress',
+  'extended',
+  'waiting_on_client',
+  'review',
+]
+const OBLIGATIONS_LIST_INPUT = {
+  status: OPEN_OBLIGATION_STATUSES,
+  sort: 'due_asc' as const,
+  limit: OBLIGATION_LIST_LIMIT,
+}
+const OPPORTUNITIES_LIST_INPUT = { limit: OPPORTUNITY_LIST_LIMIT }
+const PULSE_HISTORY_INPUT = { limit: PULSE_HISTORY_LIMIT }
+const CLIENTS_LIST_INPUT = { limit: CLIENT_LIST_LIMIT }
 
-function useEntityLabels(): Record<ClientEntityType, string> {
+export function useEntityLabels(): Record<ClientEntityType, string> {
   const { t } = useLingui()
   return useMemo(
     () => ({
@@ -59,7 +84,6 @@ export function ClientsRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
-  const canDeleteClients = permission.can('client.write')
   const entityLabels = useEntityLabels()
   const [
     {
@@ -68,6 +92,7 @@ export function ClientsRoute() {
       state: stateFilter,
       readiness: readinessFilter,
       source: sourceFilter,
+      pulse: pulseFilter,
       owner: ownerFilter,
       client: selectedClientId,
       importHistory,
@@ -75,11 +100,51 @@ export function ClientsRoute() {
     setClientsQuery,
   ] = useQueryStates(clientsSearchParamsParsers)
 
-  const clientsQuery = useQuery(
-    orpc.clients.listByFirm.queryOptions({ input: { limit: CLIENT_LIST_LIMIT } }),
-  )
+  const clientsQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
   const factsModel = useMemo(() => buildClientFactsModel(clients), [clients])
+  const obligationsListQuery = useQuery(
+    orpc.obligations.list.queryOptions({ input: OBLIGATIONS_LIST_INPUT }),
+  )
+  const obligationListRows = obligationsListQuery.data?.rows
+  const obligationSummariesByClient = useMemo(
+    () => buildClientObligationListSummaries(obligationListRows ?? []),
+    [obligationListRows],
+  )
+  const opportunitiesQuery = useQuery(
+    orpc.opportunities.list.queryOptions({ input: OPPORTUNITIES_LIST_INPUT }),
+  )
+  const opportunitiesList = opportunitiesQuery.data?.opportunities
+  const opportunityCountByClient = useMemo(
+    () => buildOpportunityCountByClient(opportunitiesList ?? []),
+    [opportunitiesList],
+  )
+  const pulseHistoryQuery = useQuery(
+    orpc.pulse.listHistory.queryOptions({ input: PULSE_HISTORY_INPUT }),
+  )
+  const pulseAlerts = pulseHistoryQuery.data?.alerts
+  const pulseDetailsQueries = useQueries({
+    queries: useMemo(
+      () =>
+        (pulseAlerts ?? []).map((alert) =>
+          orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
+        ),
+      [pulseAlerts],
+    ),
+  })
+  const pulseDetails = pulseDetailsQueries
+    .map((query) => query.data)
+    .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail))
+  const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
+  const pulseMatchesByClient = useMemo(
+    () => buildPulseMatchesByClient(pulseDetails),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pulseDetailsKey],
+  )
+  const affectedClientIds = useMemo<ReadonlySet<string>>(() => {
+    if (pulseMatchesByClient.size === 0) return EMPTY_AFFECTED_CLIENT_IDS
+    return new Set(pulseMatchesByClient.keys())
+  }, [pulseMatchesByClient])
   const filters = useMemo(
     () =>
       normalizeClientsQueryFilters({
@@ -89,10 +154,22 @@ export function ClientsRoute() {
         readiness: readinessFilter,
         source: sourceFilter,
         owner: ownerFilter,
+        pulse: pulseFilter,
       }),
-    [clientFilter, entityFilter, ownerFilter, readinessFilter, sourceFilter, stateFilter],
+    [
+      clientFilter,
+      entityFilter,
+      ownerFilter,
+      pulseFilter,
+      readinessFilter,
+      sourceFilter,
+      stateFilter,
+    ],
   )
-  const filteredClients = useMemo(() => filterClients(clients, filters), [clients, filters])
+  const filteredClients = useMemo(
+    () => filterClients(clients, filters, { affectedClientIds }),
+    [affectedClientIds, clients, filters],
+  )
   const selectedClient = selectedClientId
     ? (clients.find((client) => client.id === selectedClientId) ?? null)
     : null
@@ -109,6 +186,7 @@ export function ClientsRoute() {
           state: null,
           readiness: null,
           source: null,
+          pulse: null,
           owner: null,
           client: client.id,
         })
@@ -194,6 +272,18 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
+  const handlePulseFilterChange = useCallback(
+    (values: string[]) => {
+      const typedPulse = values.filter(isClientPulseFilter)
+      void setClientsQuery({
+        q: null,
+        pulse: nullableQueryArray(typedPulse),
+        client: null,
+      })
+    },
+    [setClientsQuery],
+  )
+
   const handleSelectClient = useCallback(
     (clientId: string) => {
       void setClientsQuery({ client: clientId })
@@ -217,6 +307,7 @@ export function ClientsRoute() {
         state: null,
         readiness: null,
         source: null,
+        pulse: null,
         owner: null,
         client: clientId,
         importHistory: null,
@@ -232,48 +323,42 @@ export function ClientsRoute() {
     [createMutation],
   )
 
-  const handleClientDeleted = useCallback(() => {
-    void setClientsQuery({ client: null, clients: null })
-  }, [setClientsQuery])
-
   const handleClearSelectedClient = useCallback(() => {
     void setClientsQuery({ client: null })
   }, [setClientsQuery])
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      {selectedClient ? null : (
-        <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex min-w-0 flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-xl font-semibold text-text-primary">
-                <Trans>Client facts</Trans>
-              </h1>
-              <p className="max-w-3xl text-sm text-text-secondary">
-                <Trans>
-                  Validate the practice client facts that generate obligations, dashboard risk, and
-                  Pulse matches.
-                </Trans>
-              </p>
-            </div>
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-xl font-semibold text-text-primary">
+              <Trans>Client facts</Trans>
+            </h1>
+            <p className="max-w-3xl text-sm text-text-secondary">
+              <Trans>
+                Validate the practice client facts that generate obligations, dashboard risk, and
+                Pulse matches.
+              </Trans>
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
-              <FileClockIcon data-icon="inline-start" />
-              <Trans>Import history</Trans>
-            </Button>
-            <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
-              <FileSearchIcon data-icon="inline-start" />
-              <Trans>Import clients</Trans>
-            </Button>
-            <CreateClientDialog
-              entityLabels={entityLabels}
-              isPending={createMutation.isPending}
-              onCreate={handleCreateClient}
-            />
-          </div>
-        </header>
-      )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
+            <FileClockIcon data-icon="inline-start" />
+            <Trans>Import history</Trans>
+          </Button>
+          <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
+            <FileSearchIcon data-icon="inline-start" />
+            <Trans>Import clients</Trans>
+          </Button>
+          <CreateClientDialog
+            entityLabels={entityLabels}
+            isPending={createMutation.isPending}
+            onCreate={handleCreateClient}
+          />
+        </div>
+      </header>
 
       {clientsQuery.isError ? (
         <Alert variant="destructive">
@@ -309,18 +394,21 @@ export function ClientsRoute() {
         readinessFilter={filters.readinessFilters}
         sourceFilter={filters.sourceFilters}
         ownerFilter={filters.ownerFilters}
+        pulseFilter={filters.pulseFilters}
+        pulseMatchesByClient={pulseMatchesByClient}
+        obligationSummariesByClient={obligationSummariesByClient}
+        opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
         onReadinessFilterChange={handleReadinessFilterChange}
         onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
+        onPulseFilterChange={handlePulseFilterChange}
         onSelectClient={handleSelectClient}
         onClearSelectedClient={handleClearSelectedClient}
         onImport={openWizard}
         canImport={canRunMigration}
-        canDelete={canDeleteClients}
-        onClientDeleted={handleClientDeleted}
       />
     </div>
   )

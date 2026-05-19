@@ -18,6 +18,7 @@ describe('client query state', () => {
         readiness: ['ready', 'done'],
         source: ['imported', 'synced'],
         owner: [' Casey ', 'Casey', ''],
+        pulse: ['affected', 'unknown'],
       }),
     ).toEqual({
       search: '',
@@ -27,6 +28,7 @@ describe('client query state', () => {
       readinessFilters: ['ready'],
       sourceFilters: ['imported'],
       ownerFilters: ['Casey'],
+      pulseFilters: ['affected'],
     })
   })
 

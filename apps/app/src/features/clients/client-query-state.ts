@@ -3,10 +3,12 @@ import { parseAsArrayOf, parseAsString, parseAsStringLiteral, type inferParserTy
 import type { ClientFilters } from './client-readiness'
 import {
   CLIENT_ENTITY_TYPES,
+  CLIENT_PULSE_FILTERS,
   CLIENT_READINESS_FILTERS,
   CLIENT_SOURCE_FILTERS,
   STATE_FILTER_ALL,
   isClientEntityType,
+  isClientPulseFilter,
   isClientReadinessStatus,
   isClientSourceType,
 } from './client-readiness'
@@ -29,6 +31,9 @@ export const clientsSearchParamsParsers = {
   source: parseAsArrayOf(parseAsStringLiteral(CLIENT_SOURCE_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
+  pulse: parseAsArrayOf(parseAsStringLiteral(CLIENT_PULSE_FILTERS))
+    .withDefault([])
+    .withOptions(REPLACE_HISTORY_OPTIONS),
   owner: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
   client: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   importHistory: parseAsStringLiteral(['open']).withOptions(REPLACE_HISTORY_OPTIONS),
@@ -43,6 +48,7 @@ export function normalizeClientsQueryFilters(input: {
   readiness: readonly string[]
   source: readonly string[]
   owner: readonly string[]
+  pulse: readonly string[]
 }): ClientFilters {
   return {
     search: '',
@@ -52,6 +58,7 @@ export function normalizeClientsQueryFilters(input: {
     readinessFilters: input.readiness.filter(isClientReadinessStatus),
     sourceFilters: input.source.filter(isClientSourceType),
     ownerFilters: cleanStringFilters(input.owner),
+    pulseFilters: input.pulse.filter(isClientPulseFilter),
   }
 }
 
