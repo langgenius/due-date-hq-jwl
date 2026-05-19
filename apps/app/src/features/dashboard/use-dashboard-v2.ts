@@ -19,8 +19,14 @@ const FLAG_PARAM = 'dashboard'
 const FLAG_VALUE = 'v2'
 
 function useDashboardV2(): boolean {
+  // Preview-integration: v2 is the default-on surface on this branch
+  // so reviewers don't need to remember the URL flag. URL param still
+  // overrides to `false` for explicit fallback comparison
+  // (`?dashboard=v1` or anything that isn't `v2`).
   const { search } = useLocation()
-  return new URLSearchParams(search).get(FLAG_PARAM) === FLAG_VALUE
+  const explicit = new URLSearchParams(search).get(FLAG_PARAM)
+  if (explicit === null) return true
+  return explicit === FLAG_VALUE
 }
 
 export { useDashboardV2 }

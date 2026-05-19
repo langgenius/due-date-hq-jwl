@@ -375,9 +375,12 @@ export function seedPulseMock(queryClient: QueryClient): void {
 }
 
 export function installMockPulse(queryClient: QueryClient): void {
+  // Preview-integration: default-on in dev so the NEEDS ATTENTION
+  // surface always has cards to render. Explicit `?mockPulse=0`
+  // turns it off for users who want an empty-state preview.
   if (!import.meta.env.DEV) return
   if (typeof window === 'undefined') return
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('mockPulse') !== '1') return
+  const explicit = new URLSearchParams(window.location.search).get('mockPulse')
+  if (explicit === '0') return
   seedPulseMock(queryClient)
 }

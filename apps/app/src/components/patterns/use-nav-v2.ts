@@ -11,8 +11,12 @@ const FLAG_PARAM = 'nav'
 const FLAG_VALUE = 'v2'
 
 function useNavV2(): boolean {
+  // Preview-integration: default-on, URL param still overrides for
+  // explicit fallback (`?nav=v1` etc).
   const { search } = useLocation()
-  return new URLSearchParams(search).get(FLAG_PARAM) === FLAG_VALUE
+  const explicit = new URLSearchParams(search).get(FLAG_PARAM)
+  if (explicit === null) return true
+  return explicit === FLAG_VALUE
 }
 
 export { useNavV2 }

@@ -96,7 +96,11 @@ export function AppShell(props: AppShellProps) {
           */}
           <div className="h-px shrink-0 bg-divider-regular" aria-hidden />
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="mx-auto w-full max-w-[1080px]">
+            {/* Bumped from 1080px → 2xl (1536px) so wide table surfaces
+              like Coverage's 52×11 matrix fit without clipping.
+              Prose-heavy pages still get the page's own internal
+              padding; only the outer cap moved. */}
+            <div className="mx-auto w-full max-w-screen-2xl">
               <Outlet />
             </div>
           </main>
