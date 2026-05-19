@@ -33,7 +33,7 @@ export const routeSummaries = {
   rulesCoverage: { eyebrow: msg`Rules`, title: msg`Coverage` },
   rulesSources: { eyebrow: msg`Rules`, title: msg`Sources` },
   rulesLibrary: { eyebrow: msg`Rules`, title: msg`Rule library` },
-  rulesPulse: { eyebrow: msg`Operations`, title: msg`Radar` },
+  rulesPulse: { eyebrow: msg`Operations`, title: msg`Pulse` },
   rulesTemporary: { eyebrow: msg`Rules`, title: msg`Temporary rules` },
   rulesPreview: { eyebrow: msg`Rules`, title: msg`Obligation preview` },
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },

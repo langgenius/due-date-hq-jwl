@@ -472,7 +472,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
           // Radar queue + source-health board.
           {
             href: '/rules/pulse',
-            label: t`Radar`,
+            label: t`Pulse`,
             icon: ActivityIcon,
             end: false,
             ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
@@ -517,7 +517,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         // routes); only the user-facing label is "Radar".
         {
           href: '/rules/pulse',
-          label: t`Radar`,
+          label: t`Pulse`,
           icon: ActivityIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),

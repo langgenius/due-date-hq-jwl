@@ -17,7 +17,7 @@ import { sourcesNeedingAttention } from '@/features/pulse/lib/source-health-labe
 import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
 
 // Dashboard "Needs attention" section — the new top surface that
-// promotes Radar alerts from a thin banner to first-class cards.
+// promotes Pulse alerts from a thin banner to first-class cards.
 // Surfaces up to 2 active alerts inline; remaining alerts collapse
 // into a "+N" tile that opens the Radar page. A thin
 // "Source needs attention" banner sits above the cards when any

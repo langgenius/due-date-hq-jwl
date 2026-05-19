@@ -84,8 +84,8 @@ export function RulesCoverageRoute() {
 
   return (
     <RulesPageShell
-      title={t`Rules`}
-      description={t`Source rules determine filings, status, and C/O materials. Only practice-approved rules can generate reminder-ready obligations; pending rules remain hidden — only their owner or admin can review or edit them.`}
+      title={t`Coverage`}
+      description={t`See where you have rules covering each jurisdiction × entity, where pending rules await your review, and which sources are healthy.`}
       compact={inReview}
     >
       <CoverageTab

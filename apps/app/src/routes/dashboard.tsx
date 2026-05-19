@@ -363,7 +363,7 @@ export function DashboardRoute() {
   const canSeeDollars = permission.can('dollars.read')
   const { openEvidence } = useEvidenceDrawer()
   // Dashboard v2 (?dashboard=v2): the new NEEDS ATTENTION surface
-  // promotes Radar alerts from a thin banner to first-class cards.
+  // promotes Pulse alerts from a thin banner to first-class cards.
   // See apps/app/src/features/dashboard/needs-attention-section.tsx.
   const dashboardV2 = useDashboardV2()
   const severityLabels = useSeverityLabels()

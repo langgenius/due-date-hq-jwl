@@ -380,8 +380,8 @@ export function ClientFactsWorkspace({
   )
   const pulseLabels = useMemo<Record<ClientPulseFilter, string>>(
     () => ({
-      affected: t`Has Radar alert`,
-      clear: t`No Radar alert`,
+      affected: t`Has Pulse alert`,
+      clear: t`No Pulse alert`,
     }),
     [t],
   )
@@ -707,12 +707,12 @@ export function ClientFactsWorkspace({
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="flex min-w-0 flex-col gap-1">
                 <CardTitle>
-                  <Trans>Client facts</Trans>
+                  <Trans>Clients</Trans>
                 </CardTitle>
                 <CardDescription>
                   <Trans>
-                    Search, segment, and inspect the filing facts that feed rules, risk, and Pulse
-                    matching.
+                    Search, segment, and inspect every client — their filings, owners, risk, and the
+                    source rules that apply.
                   </Trans>
                 </CardDescription>
               </div>
@@ -762,7 +762,7 @@ export function ClientFactsWorkspace({
                   options={pulseOptions}
                   selected={pulseFilter}
                   disabled={isLoading || pulseOptions.length === 0}
-                  emptyLabel={t`No Radar alerts`}
+                  emptyLabel={t`No Pulse alerts`}
                   onSelectedChange={onPulseFilterChange}
                 />
               </div>
@@ -1366,9 +1366,9 @@ function ClientAlertsBandRadarRow({ matches }: { matches: readonly ClientPulseMa
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-text-primary">
           {matches.length === 1 ? (
-            <Trans>1 Radar alert affecting this client</Trans>
+            <Trans>1 Pulse alert affecting this client</Trans>
           ) : (
-            <Trans>{matches.length} Radar alerts affecting this client</Trans>
+            <Trans>{matches.length} Pulse alerts affecting this client</Trans>
           )}
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
@@ -2091,7 +2091,7 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
       variant="warning"
       className="shrink-0"
       title={tooltip}
-      aria-label={t`Radar alert: ${tooltip}`}
+      aria-label={t`Pulse alert: ${tooltip}`}
     >
       <ActivityIcon data-icon="inline-start" aria-hidden />
       {label}

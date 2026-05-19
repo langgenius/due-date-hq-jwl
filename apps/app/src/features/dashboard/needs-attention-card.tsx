@@ -65,7 +65,7 @@ function NeedsAttentionCard({
     <button
       type="button"
       onClick={onReview}
-      aria-label={t`Review Radar alert: ${alert.title}`}
+      aria-label={t`Review Pulse alert: ${alert.title}`}
       className="group flex h-full min-w-0 cursor-pointer flex-col gap-3 rounded-md border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
@@ -154,7 +154,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
     <button
       type="button"
       onClick={onOpen}
-      aria-label={t`Open ${count} more Radar alert${count === 1 ? '' : 's'}`}
+      aria-label={t`Open ${count} more Pulse alert${count === 1 ? '' : 's'}`}
       // Square-ish tile fixed to a narrower width so the inline alert
       // cards keep the visual weight. The "+N alerts" label
       // disambiguates from the "+N more" client-overflow chip on the
