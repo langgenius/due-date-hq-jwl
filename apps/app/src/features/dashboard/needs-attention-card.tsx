@@ -156,11 +156,15 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       onClick={onOpen}
       aria-label={t`Open ${count} more Radar alert${count === 1 ? '' : 's'}`}
       // Square-ish tile fixed to a narrower width so the inline alert
-      // cards keep the visual weight. Aspect-ratio square keeps it
-      // proportional regardless of card height.
-      className="flex aspect-square h-full w-[160px] shrink-0 items-center justify-center rounded-lg border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
+      // cards keep the visual weight. The "+N alerts" label
+      // disambiguates from the "+N more" client-overflow chip on the
+      // alert cards themselves (different meanings, same notation).
+      className="flex aspect-square h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-divider-regular bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
     >
       <span className="text-2xl font-medium tracking-tight">+{count}</span>
+      <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        <Trans>alerts</Trans>
+      </span>
     </button>
   )
 }

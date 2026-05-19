@@ -74,10 +74,11 @@ function reasonLineFor(row: DashboardTopRow, asOfDate: string | null): string {
   const lateness =
     days < 0 ? `${-days} days past due` : days === 0 ? 'due today' : `due in ${days} days`
   const label = STATUS_DISPLAY_LABEL[row.status]
-  if (row.status === 'blocked') return `Status: ${label} · ${lateness} · awaiting upstream`
+  if (row.status === 'blocked')
+    return `Status: ${label} · ${lateness} · waiting on upstream obligation`
   if (row.status === 'waiting_on_client')
-    return `Status: ${label} · ${lateness} · ping client to unblock`
-  if (row.evidenceCount === 0) return `Status: ${label} · ${lateness} · no source on record yet`
+    return `Status: ${label} · ${lateness} · send a reminder to unblock`
+  if (row.evidenceCount === 0) return `Status: ${label} · ${lateness} · no source attached yet`
   if (row.exposureStatus === 'needs_input')
     return `Status: ${label} · ${lateness} · penalty inputs missing`
   return `Status: ${label} · ${lateness}`
@@ -141,9 +142,11 @@ function ActionLine({
         onClick={onToggle}
         aria-expanded={expanded}
         aria-label={t`${prompt} for ${row.clientName}`}
-        // Grid columns: arrow · prompt (1fr) · days (w-20 left) · risk (w-24 left).
-        // Fixed-width meta columns make the urgency + risk align vertically across rows.
-        className="group grid w-full grid-cols-[12px_1fr_5rem_6rem] items-baseline gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        // Three columns now: arrow · prompt (1fr) · meta cluster (auto).
+        // Days + risk group together on the right with a soft middot
+        // separator — reads as one phrase, not two columns. Avoids the
+        // "4 alignment edges" table-feel the previous critique flagged.
+        className="group grid w-full grid-cols-[12px_1fr_auto] items-baseline gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <ArrowRightIcon
           className={cn(
@@ -155,15 +158,18 @@ function ActionLine({
           aria-hidden
         />
         <span className="min-w-0 truncate text-base font-medium text-text-primary">
-          {prompt} for {row.clientName}
+          {prompt} · {row.clientName}
         </span>
-        <span className={cn('text-left font-mono text-xs tabular-nums', urgencyTone)}>
-          {urgencyText}
-        </span>
-        <span className="text-left font-mono text-xs tabular-nums text-text-secondary">
-          {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
-            ? formatCents(row.estimatedExposureCents)
-            : t`needs input`}
+        <span className="inline-flex shrink-0 items-baseline gap-1.5 font-mono text-xs tabular-nums">
+          <span className={cn(urgencyTone)}>{urgencyText}</span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="text-text-secondary">
+            {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
+              ? formatCents(row.estimatedExposureCents)
+              : t`needs input`}
+          </span>
         </span>
       </button>
       {expanded ? (

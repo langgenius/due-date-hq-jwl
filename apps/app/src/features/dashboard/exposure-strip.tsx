@@ -20,26 +20,22 @@ type Segment = {
   tone: 'neutral' | 'warning' | 'destructive'
 }
 
-function ExposureSegment({ segment, isFirst }: { segment: Segment; isFirst: boolean }) {
+function ExposureSegment({ segment }: { segment: Segment }) {
   return (
-    <>
-      {isFirst ? null : (
-        <span aria-hidden className="text-text-tertiary">
-          ·
-        </span>
+    <Link
+      to={segment.href}
+      // Chip-like affordance: subtle border + hover bg so the segment
+      // reads as a target, not a label. Resolves the "discoverability"
+      // P2 from the post-redesign critique 2026-05-19.
+      className={cn(
+        'inline-flex items-center rounded-md border border-divider-subtle px-2 py-0.5 font-mono text-xs tabular-nums transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary',
+        segment.tone === 'destructive' && 'text-text-destructive',
+        segment.tone === 'warning' && 'text-text-warning',
+        segment.tone === 'neutral' && 'text-text-secondary',
       )}
-      <Link
-        to={segment.href}
-        className={cn(
-          'inline-flex items-center font-mono text-xs tabular-nums transition-colors hover:text-text-primary',
-          segment.tone === 'destructive' && 'text-text-destructive',
-          segment.tone === 'warning' && 'text-text-warning',
-          segment.tone === 'neutral' && 'text-text-secondary',
-        )}
-      >
-        {segment.label}
-      </Link>
-    </>
+    >
+      {segment.label}
+    </Link>
   )
 }
 
@@ -120,9 +116,9 @@ function ExposureStrip({
       <h2 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
         <Trans>This week's exposure</Trans>
       </h2>
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        {segments.map((segment, index) => (
-          <ExposureSegment key={segment.href} segment={segment} isFirst={index === 0} />
+      <div className="flex flex-wrap items-center gap-1.5">
+        {segments.map((segment) => (
+          <ExposureSegment key={segment.href} segment={segment} />
         ))}
       </div>
     </section>
