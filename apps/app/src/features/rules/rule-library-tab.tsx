@@ -936,9 +936,26 @@ function RuleSourceCitation({
 }) {
   const { t } = useLingui()
   const sourceIds = rule.sourceIds
-  if (sourceIds.length === 0) return null
+  // While the sources registry is still loading the map is empty; render
+  // nothing rather than flicker a "No source on file" placeholder that
+  // would replace itself a beat later. Once `sourceById.size > 0` the map
+  // is settled and the placeholder cases below become honest.
+  if (sourceById.size === 0) return null
+  if (sourceIds.length === 0) {
+    return (
+      <span className="mt-1 inline-flex text-[11px] text-text-muted">
+        <Trans>No source on file</Trans>
+      </span>
+    )
+  }
   const firstSource = sourceById.get(sourceIds[0] ?? '')
-  if (!firstSource) return null
+  if (!firstSource) {
+    return (
+      <span className="mt-1 inline-flex text-[11px] text-text-muted">
+        <Trans>Source unavailable</Trans>
+      </span>
+    )
+  }
   const extraCount = sourceIds.length - 1
   return (
     <a
