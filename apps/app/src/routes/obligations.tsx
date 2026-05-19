@@ -2003,7 +2003,30 @@ export function ObligationQueueRoute() {
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
-                        <EmptyState onOpenWizard={openWizard} canRunMigration={canRunMigration} />
+                        <EmptyState
+                          onOpenWizard={openWizard}
+                          canRunMigration={canRunMigration}
+                          hasActiveFilters={Boolean(
+                            searchInput ||
+                            statusFilter?.length ||
+                            clientFilter?.length ||
+                            stateFilter?.length ||
+                            countyFilter?.length ||
+                            taxTypeFilter?.length ||
+                            assignee ||
+                            assigneeFilter?.length ||
+                            owner ||
+                            due ||
+                            dueWithin ||
+                            exposure?.length ||
+                            evidence?.length ||
+                            riskMin !== null ||
+                            riskMax !== null ||
+                            daysMin !== null ||
+                            daysMax !== null,
+                          )}
+                          onClearFilters={resetObligationQueue}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -4065,23 +4088,45 @@ function parseOwnerCount(value: string): number | null {
 function EmptyState({
   onOpenWizard,
   canRunMigration,
+  hasActiveFilters,
+  onClearFilters,
 }: {
   onOpenWizard: () => void
   canRunMigration: boolean
+  hasActiveFilters: boolean
+  onClearFilters: () => void
 }) {
+  // Branch on whether the user has narrowed the queue via filters.
+  // With filters: "Clear filters" CTA (do NOT recommend Import — the
+  // workspace may very well have data hidden by the filter).
+  // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider-regular py-10 px-6 text-center">
       <span className="text-xs font-semibold text-text-primary">
-        <Trans>No obligations match these filters.</Trans>
+        {hasActiveFilters ? (
+          <Trans>No obligations match these filters.</Trans>
+        ) : (
+          <Trans>No obligations yet.</Trans>
+        )}
       </span>
       <p className="max-w-105 text-xs text-text-secondary">
-        <Trans>
-          Run the migration wizard to import a CSV of clients, or change the filters above.
-        </Trans>
+        {hasActiveFilters ? (
+          <Trans>
+            Try a different filter combination, or clear all filters to see the full queue.
+          </Trans>
+        ) : (
+          <Trans>Import a CSV of clients to start tracking their obligations.</Trans>
+        )}
       </p>
-      <Button size="sm" className="text-xs" onClick={onOpenWizard} disabled={!canRunMigration}>
-        <Trans>Import clients</Trans>
-      </Button>
+      {hasActiveFilters ? (
+        <Button size="sm" className="text-xs" onClick={onClearFilters}>
+          <Trans>Clear filters</Trans>
+        </Button>
+      ) : (
+        <Button size="sm" className="text-xs" onClick={onOpenWizard} disabled={!canRunMigration}>
+          <Trans>Import clients</Trans>
+        </Button>
+      )}
     </div>
   )
 }

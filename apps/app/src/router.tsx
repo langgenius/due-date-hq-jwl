@@ -610,11 +610,19 @@ export function createAppRouter() {
                 return { Component: BillingCancelRoute }
               },
             },
+            // In-shell 404 — wildcard sits inside the protected layout
+            // so authenticated users hitting a bad URL still see the
+            // sidebar + nav and can recover. Unauth users get bounced
+            // to login by `protectedLoader` first, same as any other
+            // protected path.
+            {
+              path: '*',
+              lazy: async () => {
+                const { NotFoundRoute } = await import('@/routes/not-found')
+                return { Component: NotFoundRoute }
+              },
+            },
           ],
-        },
-        {
-          path: '*',
-          loader: notFoundLoader,
         },
       ],
     },

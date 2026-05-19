@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
+import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -144,6 +145,7 @@ export function NotificationsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
+      <SettingsBackLink />
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">

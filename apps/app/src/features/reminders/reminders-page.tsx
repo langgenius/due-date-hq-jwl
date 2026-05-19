@@ -44,6 +44,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -139,6 +140,7 @@ export function RemindersPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
+      <SettingsBackLink />
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div className="grid gap-1">
           <h1 className="text-2xl leading-tight font-semibold text-text-primary">
