@@ -82,6 +82,10 @@ type NavItem = {
 }
 
 type NavConfig = {
+  // v2-only: standalone item(s) above the first labelled group.
+  // Dashboard sits here as the "home" surface — visually separate
+  // from OPERATIONS (which is the daily-work group).
+  primary: NavItem[]
   // Primary daily / weekly destinations, split into small labeled groups so
   // the eye can scan by "what kind of work am I doing?". Each group is
   // 1–3 items — labels are muted (uppercase 11px tracking) so they read
@@ -439,21 +443,24 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       // Contacts and Payments aren't built yet — deferred until
       // those routes exist.
       return {
+        // Dashboard sits above the OPERATIONS group as a standalone
+        // "home" link — not part of any group label, so the eye reads
+        // it as the surface you keep returning to rather than another
+        // daily-work destination.
+        primary: [{ href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true }],
+        // Daily-work surfaces. Coverage moves here from its own group
+        // because reviewing pending rules is part of the daily flow,
+        // not a separate "area of the app".
         operations: [
-          { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
           {
             href: '/obligations',
             label: t`Obligations`,
             icon: CalendarClockIcon,
             end: false,
           },
-        ],
-        clients: [],
-        rules: [],
-        coverage: [
           {
             href: '/rules/coverage',
-            label: t`Coverage status`,
+            label: t`Coverage`,
             icon: MapIcon,
             end: false,
           },
@@ -464,6 +471,9 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             end: false,
           },
         ],
+        clients: [],
+        rules: [],
+        coverage: [],
         practice: [
           { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
           {
@@ -488,6 +498,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
     }
     // Legacy (default) sidebar.
     return {
+      primary: [],
       operations: [
         { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
         {
@@ -548,16 +559,28 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
   if (navV2) {
     return (
       <nav aria-label={t`Primary navigation`} className="contents">
+        {/* Dashboard sits as a standalone item above OPERATIONS — no
+          group label so the eye reads it as "home", separate from
+          the daily-work group below. */}
+        {items.primary.length > 0 ? (
+          <NavGroupSection>
+            {items.primary.map((item) => (
+              <NavMenuItem key={item.href} item={item} />
+            ))}
+          </NavGroupSection>
+        ) : null}
         <NavGroupSection label={t`Operations`}>
           {items.operations.map((item) => (
             <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
           ))}
         </NavGroupSection>
-        <NavGroupSection label={t`Coverage`}>
-          {items.coverage.map((item) => (
-            <NavMenuItem key={item.href} item={item} />
-          ))}
-        </NavGroupSection>
+        {items.coverage.length > 0 ? (
+          <NavGroupSection label={t`Coverage`}>
+            {items.coverage.map((item) => (
+              <NavMenuItem key={item.href} item={item} />
+            ))}
+          </NavGroupSection>
+        ) : null}
         <NavGroupSection label={t`Practice`}>
           {items.practice.map((item) => (
             <NavMenuItem key={item.href} item={item} />
