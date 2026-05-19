@@ -16,6 +16,8 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { EmptyState } from '@/components/patterns/empty-state'
+import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -36,21 +38,15 @@ export function OpportunitiesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-xl font-semibold text-text-primary">
-              <Trans>Opportunities</Trans>
-            </h1>
-            <p className="max-w-3xl text-sm text-text-secondary">
-              <Trans>
-                Lightweight client conversation cues for future service, retention, and engagement
-                scope. DueDateHQ does not generate tax strategies here.
-              </Trans>
-            </p>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title={<Trans>Opportunities</Trans>}
+        description={
+          <Trans>
+            Lightweight client conversation cues for future service, retention, and engagement
+            scope. DueDateHQ does not generate tax strategies here.
+          </Trans>
+        }
+      />
 
       {opportunitiesQuery.isError ? (
         <Alert variant="destructive">
@@ -92,20 +88,16 @@ export function OpportunitiesPage() {
               <Skeleton className="h-24 w-full" />
             </div>
           ) : opportunities.length === 0 ? (
-            <div className="grid min-h-48 place-items-center rounded-md border border-dashed border-divider-subtle bg-background-subtle p-6 text-center">
-              <div className="max-w-md">
-                <SparklesIcon className="mx-auto size-8 text-text-tertiary" aria-hidden />
-                <h2 className="mt-3 text-sm font-medium text-text-primary">
-                  <Trans>No opportunity cues yet</Trans>
-                </h2>
-                <p className="mt-1 text-sm text-text-secondary">
-                  <Trans>
-                    Add client facts, filing profiles, and due-date work before the guidance queue
-                    has enough signal.
-                  </Trans>
-                </p>
-              </div>
-            </div>
+            <EmptyState
+              icon={SparklesIcon}
+              title={<Trans>No opportunity cues yet</Trans>}
+              description={
+                <Trans>
+                  Add client facts, filing profiles, and due-date work before the guidance queue has
+                  enough signal.
+                </Trans>
+              }
+            />
           ) : (
             <div className="divide-y divide-divider-subtle">
               {opportunities.map((opportunity) => (

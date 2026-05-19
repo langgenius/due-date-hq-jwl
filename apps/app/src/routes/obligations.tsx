@@ -143,6 +143,8 @@ import {
   tableHeaderFilterTrigger,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
+import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { buildAuditChangeView, type AuditChangeView } from '@/features/audit/audit-change-view'
 import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/audit-log-labels'
@@ -1793,21 +1795,19 @@ export function ObligationQueueRoute() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold leading-tight text-text-primary">
-              <ConceptLabel concept="obligation">
-                <Trans>Obligations</Trans>
-              </ConceptLabel>
-            </h1>
-            <p className="max-w-180 text-md text-text-secondary">
-              <Trans>
-                Status changes write an audit row in the same call so the trail stays trustworthy.
-              </Trans>
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+      <PageHeader
+        title={
+          <ConceptLabel concept="obligation">
+            <Trans>Obligations</Trans>
+          </ConceptLabel>
+        }
+        description={
+          <Trans>
+            Status changes write an audit row in the same call so the trail stays trustworthy.
+          </Trans>
+        }
+        actions={
+          <>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -1884,9 +1884,9 @@ export function ObligationQueueRoute() {
               <FilterIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <Card>
         <CardContent className="flex flex-col gap-4 pt-4">
@@ -2893,7 +2893,7 @@ function ObligationQueueDetailDrawer({
 
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(1120px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none xl:data-[side=right]:w-[min(1180px,calc(100vw-2rem))] overflow-y-auto">
+      <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(880px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] overflow-y-auto">
         <SheetHeader className="border-b border-divider-subtle">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -4301,33 +4301,35 @@ function EmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider-regular py-10 px-6 text-center">
-      <span className="text-xs font-semibold text-text-primary">
-        {hasActiveFilters ? (
+    <SharedEmptyState
+      title={
+        hasActiveFilters ? (
           <Trans>No obligations match these filters.</Trans>
         ) : (
           <Trans>No obligations yet.</Trans>
-        )}
-      </span>
-      <p className="max-w-105 text-xs text-text-secondary">
-        {hasActiveFilters ? (
+        )
+      }
+      description={
+        hasActiveFilters ? (
           <Trans>
             Try a different filter combination, or clear all filters to see the full queue.
           </Trans>
         ) : (
           <Trans>Import a CSV of clients to start tracking their obligations.</Trans>
-        )}
-      </p>
-      {hasActiveFilters ? (
-        <Button size="sm" className="text-xs" onClick={onClearFilters}>
-          <Trans>Clear filters</Trans>
-        </Button>
-      ) : (
-        <Button size="sm" className="text-xs" onClick={onOpenWizard} disabled={!canRunMigration}>
-          <Trans>Import clients</Trans>
-        </Button>
-      )}
-    </div>
+        )
+      }
+      cta={
+        hasActiveFilters ? (
+          <Button size="sm" onClick={onClearFilters}>
+            <Trans>Clear filters</Trans>
+          </Button>
+        ) : (
+          <Button size="sm" onClick={onOpenWizard} disabled={!canRunMigration}>
+            <Trans>Import clients</Trans>
+          </Button>
+        )
+      }
+    />
   )
 }
 

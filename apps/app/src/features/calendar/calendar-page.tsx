@@ -38,6 +38,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { PageHeader } from '@/components/patterns/page-header'
 import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -131,24 +132,27 @@ export function CalendarPage() {
   ]
 
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
+    <section className="grid gap-6 p-4 md:p-6">
+      <PageHeader
+        title={<Trans>Calendar sync</Trans>}
+        description={
+          <>
             <Trans>
               Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the
               source of truth for deadline changes.
             </Trans>
-          </p>
-          <p className="font-mono text-xs text-text-muted">
-            <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
-          </p>
-        </div>
-        <Button variant="secondary" size="sm" render={<Link to="/obligations" />}>
-          <ArrowLeftIcon data-icon="inline-start" />
-          <Trans>Back to Obligations</Trans>
-        </Button>
-      </div>
+            <span className="mt-1 block font-mono text-[11px] tabular-nums text-text-muted">
+              <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
+            </span>
+          </>
+        }
+        actions={
+          <Button variant="outline" size="sm" render={<Link to="/obligations" />}>
+            <ArrowLeftIcon data-icon="inline-start" />
+            <Trans>Back to Obligations</Trans>
+          </Button>
+        }
+      />
 
       {subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
         <Skeleton className="h-72 max-w-2xl rounded-lg" />

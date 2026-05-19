@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
+import { EmptyState } from '@/components/patterns/empty-state'
+import { PageHeader } from '@/components/patterns/page-header'
 import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
@@ -146,22 +148,21 @@ export function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <SettingsBackLink />
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Notification center</Trans>
-          </h1>
-        </div>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => markAllRead.mutate(undefined)}
-          disabled={markAllRead.isPending || notifications.every((item) => item.readAt)}
-        >
-          <CheckCheckIcon data-icon="inline-start" />
-          <Trans>Mark all read</Trans>
-        </Button>
-      </header>
+      <PageHeader
+        title={<Trans>Notification center</Trans>}
+        description={<Trans>Inbox and delivery preferences for practice-wide notifications.</Trans>}
+        actions={
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => markAllRead.mutate(undefined)}
+            disabled={markAllRead.isPending || notifications.every((item) => item.readAt)}
+          >
+            <CheckCheckIcon data-icon="inline-start" />
+            <Trans>Mark all read</Trans>
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <Card>
@@ -183,12 +184,7 @@ export function NotificationsPage() {
             ) : null}
 
             {!notificationsQuery.isLoading && notifications.length === 0 ? (
-              <div className="grid place-items-center gap-2 rounded-lg border border-divider-subtle p-8 text-center">
-                <InboxIcon className="size-5 text-text-tertiary" aria-hidden />
-                <p className="text-sm text-text-secondary">
-                  <Trans>No notifications yet.</Trans>
-                </p>
-              </div>
+              <EmptyState icon={InboxIcon} title={<Trans>No notifications yet.</Trans>} />
             ) : null}
 
             {notifications.map((item) => (

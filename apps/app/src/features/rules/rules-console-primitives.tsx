@@ -8,6 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { CoverageCellState } from './rules-console-model'
@@ -18,15 +19,15 @@ type FilterOption<T extends string> = {
   count: number
 }
 
+/**
+ * Thin wrapper around the shared `PageHeader`. Kept for the string-based
+ * call sites in `rules.{coverage,library,sources,pulse,temporary,preview}.tsx`
+ * — the shared primitive accepts ReactNode, but rules pages still pass
+ * plain strings through their loaders, so this adapter keeps that
+ * ergonomics-of-strings while routing through the single source of truth.
+ */
 export function RulesPageHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <header className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
-      </div>
-      <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
-    </header>
-  )
+  return <PageHeader title={title} description={description} />
 }
 
 /**

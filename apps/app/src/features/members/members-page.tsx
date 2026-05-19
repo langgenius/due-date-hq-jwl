@@ -62,6 +62,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
   useAppHotkey,
@@ -231,32 +232,28 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
 
   return (
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
-      <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl leading-[30px] font-semibold text-text-primary">
-            <Trans>Members</Trans>
-          </h1>
-          <p className="mt-1 text-base leading-5 text-text-secondary">
-            <Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Button variant="outline" size="lg" render={<Link to="/audit" />}>
-            <Trans>View audit log</Trans>
-          </Button>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => setInviteOpen(true)}
-            aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
-            aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            <Trans>Invite member</Trans>
-            <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title={<Trans>Members</Trans>}
+        description={<Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>}
+        actions={
+          <>
+            <Button variant="outline" size="sm" render={<Link to="/audit" />}>
+              <Trans>View audit log</Trans>
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setInviteOpen(true)}
+              aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
+              aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
+            >
+              <PlusIcon className="size-3.5" aria-hidden />
+              <Trans>Invite member</Trans>
+              <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
+            </Button>
+          </>
+        }
+      />
 
       <section className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
         <div className="grid divide-y divide-divider-subtle md:grid-cols-4 md:divide-x md:divide-y-0">

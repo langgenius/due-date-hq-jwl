@@ -365,13 +365,13 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               <Building2Icon className="size-4" aria-hidden />
             </span>
             <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold leading-tight text-text-primary">
+              <h1 className="truncate text-2xl leading-7 font-semibold text-text-primary">
                 <Trans>Practice profile</Trans>
               </h1>
               <p
                 role="note"
                 aria-label={firmSummaryLabel}
-                className="truncate text-sm text-text-secondary"
+                className="truncate text-[13px] leading-5 text-text-secondary"
               >
                 {firmSummary}
               </p>

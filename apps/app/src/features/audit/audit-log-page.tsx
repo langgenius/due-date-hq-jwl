@@ -42,6 +42,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 
 import { AuditEventDrawer } from './audit-event-drawer'
@@ -575,18 +576,16 @@ export function AuditLogPage() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <SettingsBackLink />
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-              <ConceptLabel concept="auditTrail">
-                <Trans>Audit log</Trans>
-              </ConceptLabel>
-            </h1>
-            <p className="max-w-180 text-md text-text-secondary">
-              <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
-            </p>
-          </div>
+      <PageHeader
+        title={
+          <ConceptLabel concept="auditTrail">
+            <Trans>Audit log</Trans>
+          </ConceptLabel>
+        }
+        description={
+          <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
+        }
+        actions={
           <div className="flex flex-col items-start gap-2 md:items-end">
             <AuditExportButton firm={currentFirm} />
             {currentFirm?.role !== 'owner' ? (
@@ -595,8 +594,8 @@ export function AuditLogPage() {
               </PermissionInlineNotice>
             ) : null}
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <Card>
         <CardHeader>

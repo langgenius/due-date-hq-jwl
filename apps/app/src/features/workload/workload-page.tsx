@@ -25,6 +25,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { orpc } from '@/lib/rpc'
@@ -70,28 +71,31 @@ export function WorkloadPage() {
   const data = workloadQuery.data
 
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
+    <section className="grid gap-6 p-4 md:p-6">
+      <PageHeader
+        title={<Trans>Team workload</Trans>}
+        description={
+          <>
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
-          </p>
-          <p className="text-xs tabular-nums text-text-muted">
-            <Trans>
-              As of {asOfDate} · next {windowDays} days
-            </Trans>
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void workloadQuery.refetch()}
-          disabled={workloadQuery.isFetching}
-        >
-          <RefreshCwIcon data-icon="inline-start" />
-          <Trans>Refresh</Trans>
-        </Button>
-      </div>
+            <span className="mt-1 block font-mono text-[11px] tabular-nums text-text-muted">
+              <Trans>
+                As of {asOfDate} · next {windowDays} days
+              </Trans>
+            </span>
+          </>
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void workloadQuery.refetch()}
+            disabled={workloadQuery.isFetching}
+          >
+            <RefreshCwIcon data-icon="inline-start" />
+            <Trans>Refresh</Trans>
+          </Button>
+        }
+      />
 
       {workloadQuery.isError ? (
         <Card>
