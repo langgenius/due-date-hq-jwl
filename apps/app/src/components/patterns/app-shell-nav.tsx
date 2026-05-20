@@ -463,10 +463,23 @@ function useInboxUnreadCount(): number {
   return query.data?.count ?? 0
 }
 
+function useRuleLibraryPendingCount(): number {
+  // Aggregate pending-review rule count across all jurisdictions for the
+  // sidebar badge next to "Rule library". Pulls from the same coverage
+  // query the page uses, so no extra fetch.
+  const query = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
+  const rows = query.data ?? []
+  let total = 0
+  for (const row of rows) total += row.pendingReviewCount ?? row.candidateCount ?? 0
+  return total
+}
+
 function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
   const pulseCount = useInboxUnreadCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
+  const ruleReviewCount = useRuleLibraryPendingCount()
+  const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
   return useMemo<NavConfig>(() => {
     if (navV2) {
       // v2 IA per 2026-05-19 design mockup. Radar disappears from the
@@ -503,16 +516,11 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         clients: [],
         rules: [
           {
-            href: '/rules/coverage',
-            label: t`Coverage`,
-            icon: MapIcon,
-            end: false,
-          },
-          {
             href: '/rules/library',
             label: t`Rule library`,
             icon: LibraryIcon,
             end: false,
+            ...(ruleReviewBadge !== undefined ? { badge: ruleReviewBadge } : {}),
           },
         ],
         coverage: [],
@@ -588,7 +596,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       practice: [],
       footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
     }
-  }, [t, pulseBadge, navV2])
+  }, [t, pulseBadge, ruleReviewBadge, navV2])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
