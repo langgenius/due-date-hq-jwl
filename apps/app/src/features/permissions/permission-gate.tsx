@@ -171,7 +171,7 @@ export function PermissionRequiredPanel({
         </CardContent>
         <CardFooter className="flex flex-wrap gap-2 border-t border-divider-regular">
           <Button nativeButton={false} render={<Link to="/" />}>
-            <Trans>Return to dashboard</Trans>
+            <Trans>Return to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
           {secondaryAction ? (

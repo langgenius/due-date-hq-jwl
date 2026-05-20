@@ -17,7 +17,7 @@ export const routeSummaries = {
   twoFactor: { eyebrow: msg`Entry`, title: msg`Two-factor verification` },
   acceptInvite: { eyebrow: msg`Entry`, title: msg`Accept invitation` },
   onboarding: { eyebrow: msg`Entry`, title: msg`Create practice` },
-  dashboard: { eyebrow: msg`Operations`, title: msg`Dashboard` },
+  dashboard: { eyebrow: msg`Operations`, title: msg`Today` },
   migrationNew: { eyebrow: msg`Setup`, title: msg`Import clients` },
   obligations: { eyebrow: msg`Operations`, title: msg`Obligations` },
   calendarSync: { eyebrow: msg`Obligations`, title: msg`Calendar sync` },

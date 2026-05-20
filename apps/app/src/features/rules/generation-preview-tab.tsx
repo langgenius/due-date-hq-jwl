@@ -655,8 +655,8 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           description={t`Obligations actually created after Generate runs. Preview results show zero here until generation succeeds.`}
         />
       </div>
-      <div className="max-h-[420px] overflow-auto">
-        <div className="grid min-w-[920px] grid-cols-[132px_180px_160px_96px_120px_1fr_120px] border-b border-divider-regular bg-background-default px-3 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="max-h-[420px] overflow-y-auto">
+        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
           <RolloverColumnHeader
             label={t`Status`}
             description={t`The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date.`}
@@ -697,7 +697,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
             return (
               <div
                 key={`${row.clientId}-${row.taxType}-${row.preview?.ruleId ?? 'missing'}-${row.preview?.period ?? index}`}
-                className="grid min-h-12 min-w-[920px] grid-cols-[132px_180px_160px_96px_120px_1fr_120px] items-center gap-0 border-b border-divider-subtle px-3 py-2 text-xs last:border-b-0"
+                className="grid min-h-12 grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] items-center gap-0 border-b border-divider-subtle px-3 py-2 text-xs last:border-b-0"
               >
                 <span>
                   <RolloverDispositionBadge disposition={row.disposition} />
@@ -706,10 +706,10 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                 <span className="min-w-0 truncate text-[11px] text-text-secondary">
                   <TaxCodeLabel code={row.taxType} />
                 </span>
-                <span className="font-mono text-[11px] tabular-nums text-text-secondary">
+                <span className="min-w-0 truncate font-mono text-[11px] tabular-nums text-text-secondary">
                   {row.preview?.dueDate ?? '—'}
                 </span>
-                <span className="text-text-secondary">
+                <span className="min-w-0 truncate text-text-secondary">
                   {row.targetStatus ? targetStatusLabel(row.targetStatus, t) : '—'}
                 </span>
                 <span className="min-w-0 truncate text-text-tertiary">

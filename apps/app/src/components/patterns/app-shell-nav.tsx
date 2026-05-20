@@ -477,11 +477,11 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       // Contacts and Payments aren't built yet — deferred until
       // those routes exist.
       return {
-        // Dashboard sits above the OPERATIONS group as a standalone
+        // Today sits above the OPERATIONS group as a standalone
         // "home" link — not part of any group label, so the eye reads
         // it as the surface you keep returning to rather than another
         // daily-work destination.
-        primary: [{ href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true }],
+        primary: [{ href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true }],
         // Daily-work surfaces. Rule-related destinations (Coverage,
         // Rule library) live in their own "Rule" group below so the
         // operations row stays focused on the daily action queue.
@@ -536,7 +536,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
     return {
       primary: [],
       operations: [
-        { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
+        { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
         {
           href: '/obligations',
           label: t`Obligations`,
@@ -595,7 +595,7 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
   if (navV2) {
     return (
       <nav aria-label={t`Primary navigation`} className="contents">
-        {/* Dashboard sits as a standalone item above OPERATIONS — no
+        {/* Today sits as a standalone item above OPERATIONS — no
           group label so the eye reads it as "home", separate from
           the daily-work group below. */}
         {items.primary.length > 0 ? (

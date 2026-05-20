@@ -185,10 +185,39 @@ export type ObligationQueueDeleteSavedViewInput = z.infer<
   typeof ObligationQueueDeleteSavedViewInputSchema
 >
 
-export const ObligationQueueExportSelectedInputSchema = z.object({
-  ids: z.array(EntityIdSchema).min(1).max(100),
-  format: z.enum(['csv', 'pdf_zip']),
+export const ObligationQueueExportQuerySchema = ObligationQueueListInputSchema.omit({
+  cursor: true,
+  limit: true,
 })
+export type ObligationQueueExportQuery = z.infer<typeof ObligationQueueExportQuerySchema>
+export const ObligationQueueExportScopeSchema = z.enum(['selected', 'filtered', 'all_active'])
+export type ObligationQueueExportScope = z.infer<typeof ObligationQueueExportScopeSchema>
+export const ObligationQueueExportFormatSchema = z.enum(['pdf_zip', 'csv', 'ics'])
+export type ObligationQueueExportFormat = z.infer<typeof ObligationQueueExportFormatSchema>
+
+export const ObligationQueueExportSelectedInputSchema = z
+  .object({
+    ids: z.array(EntityIdSchema).max(1000).optional(),
+    scope: ObligationQueueExportScopeSchema.default('selected'),
+    query: ObligationQueueExportQuerySchema.optional(),
+    format: ObligationQueueExportFormatSchema,
+  })
+  .superRefine((input, ctx) => {
+    if (input.scope === 'selected' && (!input.ids || input.ids.length === 0)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['ids'],
+        message: 'Select at least one obligation to export.',
+      })
+    }
+    if (input.scope === 'filtered' && !input.query) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['query'],
+        message: 'Filtered exports require a query.',
+      })
+    }
+  })
 export type ObligationQueueExportSelectedInput = z.infer<
   typeof ObligationQueueExportSelectedInputSchema
 >

@@ -29,7 +29,7 @@ function ExposureSegment({ segment }: { segment: Segment }) {
     <Link
       to={segment.href}
       className={cn(
-        'flex min-w-[140px] flex-col gap-0.5 rounded-md border border-divider-subtle bg-background-default px-3 py-2 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
+        'flex basis-[140px] flex-col gap-0.5 rounded-md border border-divider-subtle bg-background-default px-3 py-2 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
       )}
     >
       <span

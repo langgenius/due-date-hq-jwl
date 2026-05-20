@@ -832,9 +832,10 @@ describe('@duedatehq/contracts', () => {
     ).toBe(false)
     const exportInput = ObligationQueueExportSelectedInputSchema.parse({
       ids: ['11111111-1111-4111-8111-111111111111'],
-      format: 'pdf_zip',
+      format: 'ics',
     })
-    expect(exportInput.format).toBe('pdf_zip')
+    expect(exportInput.format).toBe('ics')
+    expect(exportInput.scope).toBe('selected')
     expect(
       ObligationQueueExportSelectedOutputSchema.parse({
         fileName: 'obligations.zip',

@@ -154,15 +154,15 @@
   --color-util-colors-orange-600: #e04f16;
   --color-util-colors-orange-700: #b93815;
 
-  /* ===== Util-colors: warning (amber) ==================================== */
-  --color-util-colors-warning-50: #fffaeb;
-  --color-util-colors-warning-100: #fef0c7;
-  --color-util-colors-warning-200: #fedf89;
-  --color-util-colors-warning-300: #fec84b;
-  --color-util-colors-warning-400: #fdb022;
-  --color-util-colors-warning-500: #f79009;
-  --color-util-colors-warning-600: #dc6803;
-  --color-util-colors-warning-700: #b54708;
+  /* ===== Util-colors: warning (peach/coral) ============================== */
+  --color-util-colors-warning-50: #fff4f1;
+  --color-util-colors-warning-100: #ffe4dd;
+  --color-util-colors-warning-200: #ffc7bd;
+  --color-util-colors-warning-300: #ffa091;
+  --color-util-colors-warning-400: #f77865;
+  --color-util-colors-warning-500: #f25f4c;
+  --color-util-colors-warning-600: #c83d2f;
+  --color-util-colors-warning-700: #a83227;
 
   /* ===== Util-colors: blue =============================================== */
   --color-util-colors-blue-50: #eff8ff;

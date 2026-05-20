@@ -4,6 +4,7 @@ import { PDFDocument, StandardFonts } from 'pdf-lib'
 import type {
   AuditEventPublic,
   EvidencePublic,
+  ObligationQueueListInput,
   ObligationQueueMatchedRule,
   ObligationQueueRow,
 } from '@duedatehq/contracts'
@@ -93,6 +94,20 @@ interface RawRow {
   evidenceCount: number
   smartPriority: ObligationQueueRow['smartPriority']
 }
+
+type ObligationQueueRepoListInput = NonNullable<
+  Parameters<ReturnType<typeof requireTenant>['scoped']['obligationQueue']['list']>[0]
+>
+
+const EXPORT_MAX_ROWS = 1000
+const ACTIVE_EXPORT_STATUSES = [
+  'pending',
+  'in_progress',
+  'waiting_on_client',
+  'review',
+  'extended',
+  'blocked',
+] as const satisfies readonly ObligationQueueRow['status'][]
 
 interface SavedViewRow {
   id: string
@@ -468,13 +483,17 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
   return pdf.save()
 }
 
-const list = os.obligations.list.handler(async ({ input, context }) => {
-  const { scoped, tenant, userId } = requireTenant(context)
-  const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
-  const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
-  const hideSmartPriorityFactors = actor?.role !== 'owner'
-
-  const repoInput: NonNullable<Parameters<typeof scoped.obligationQueue.list>[0]> = {}
+function toRepoListInput(
+  input: ObligationQueueListInput,
+  {
+    hideDollars,
+    limit,
+  }: {
+    hideDollars: boolean
+    limit?: number
+  },
+): ObligationQueueRepoListInput {
+  const repoInput: ObligationQueueRepoListInput = {}
   if (input.status !== undefined) repoInput.status = input.status
   if (input.search !== undefined) repoInput.search = input.search
   if (input.obligationIds !== undefined) repoInput.obligationIds = input.obligationIds
@@ -501,7 +520,58 @@ const list = os.obligations.list.handler(async ({ input, context }) => {
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor
-  if (input.limit !== undefined) repoInput.limit = input.limit
+  const outputLimit = limit ?? input.limit
+  if (outputLimit !== undefined) repoInput.limit = outputLimit
+  return repoInput
+}
+
+function escapeIcsText(value: string): string {
+  return value
+    .replaceAll('\\', '\\\\')
+    .replaceAll(';', '\\;')
+    .replaceAll(',', '\\,')
+    .replace(/\r?\n/g, '\\n')
+}
+
+function toIcsDate(value: string): string {
+  return value.replaceAll('-', '')
+}
+
+function rowsToIcs(rows: ObligationQueueRow[], timestamp: Date): string {
+  const stamp = timestamp
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DueDateHQ//Obligations Export//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ]
+  for (const row of rows) {
+    const dueDate = toIcsDate(row.currentDueDate)
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${row.id}@duedatehq`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${dueDate}`,
+      `SUMMARY:${escapeIcsText(`${row.clientName} - ${row.taxType}`)}`,
+      `DESCRIPTION:${escapeIcsText(`Status: ${row.status}\nAuthority: ${row.authority ?? 'Unknown'}\nDueDateHQ obligation ${row.id}`)}`,
+      'END:VEVENT',
+    )
+  }
+  lines.push('END:VCALENDAR')
+  return `${lines.join('\r\n')}\r\n`
+}
+
+const list = os.obligations.list.handler(async ({ input, context }) => {
+  const { scoped, tenant, userId } = requireTenant(context)
+  const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
+  const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
+  const hideSmartPriorityFactors = actor?.role !== 'owner'
+
+  const repoInput = toRepoListInput(input, { hideDollars })
 
   const result = await scoped.obligationQueue.list(repoInput)
 
@@ -632,23 +702,44 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
   const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
   const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
   const hideSmartPriorityFactors = actor?.role !== 'owner'
-  const selectedIds = [...new Set(input.ids)]
-  const rawRows = await scoped.obligationQueue.listByIds(selectedIds, {
-    asOfDate: dateInTimezone(tenant.timezone),
-  })
-  if (rawRows.length !== selectedIds.length) {
-    throw new ORPCError('NOT_FOUND', {
-      message: 'One or more selected obligations were not found in the current firm.',
+  let rawRows: RawRow[]
+  if (input.scope === 'selected') {
+    const selectedIds = [...new Set(input.ids ?? [])]
+    rawRows = await scoped.obligationQueue.listByIds(selectedIds, {
+      asOfDate: dateInTimezone(tenant.timezone),
+    })
+    if (rawRows.length !== selectedIds.length) {
+      throw new ORPCError('NOT_FOUND', {
+        message: 'One or more selected obligations were not found in the current firm.',
+      })
+    }
+  } else {
+    const query =
+      input.scope === 'all_active'
+        ? { status: [...ACTIVE_EXPORT_STATUSES], sort: 'due_asc' as const }
+        : input.query
+    if (!query) {
+      throw new ORPCError('BAD_REQUEST', { message: 'Export scope requires a query.' })
+    }
+    const result = await scoped.obligationQueue.list(
+      toRepoListInput(query, { hideDollars, limit: EXPORT_MAX_ROWS }),
+    )
+    rawRows = result.rows
+  }
+  if (rawRows.length === 0) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'No obligations matched this export.',
     })
   }
   const rows = rawRows.map((row) => toRow(row, { hideDollars, hideSmartPriorityFactors }))
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
     entityType: 'obligations_export',
-    entityId: selectedIds[0] ?? 'empty',
+    entityId: rows[0]?.id ?? 'empty',
     action: 'obligations.exported',
     after: {
       format: input.format,
+      scope: input.scope,
       rowCount: rows.length,
       clientCount: new Set(rows.map((row) => row.clientId)).size,
     },
@@ -659,6 +750,14 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
       fileName: `obligations-${dateInTimezone(tenant.timezone)}.csv`,
       contentType: 'text/csv',
       contentBase64: base64Text(rowsToCsv(rows)),
+      auditId,
+    }
+  }
+  if (input.format === 'ics') {
+    return {
+      fileName: `obligations-${dateInTimezone(tenant.timezone)}.ics`,
+      contentType: 'text/calendar',
+      contentBase64: base64Text(rowsToIcs(rows, new Date())),
       auditId,
     }
   }

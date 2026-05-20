@@ -29,9 +29,9 @@ colors:
   severity-high: '#EA580C'
   severity-high-tint: '#FFF7ED'
   severity-high-border: '#FDBA74'
-  severity-medium: '#CA8A04'
-  severity-medium-tint: '#FEFCE8'
-  severity-medium-border: '#FDE68A'
+  severity-medium: '#C83D2F'
+  severity-medium-tint: '#FFF4F1'
+  severity-medium-border: '#FFC7BD'
   severity-neutral: '#475569'
   severity-neutral-tint: '#F8FAFC'
   status-done: '#059669'
@@ -65,9 +65,9 @@ colorsDark:
   severity-high: '#F97316'
   severity-high-tint: 'rgba(249, 115, 22, 0.12)'
   severity-high-border: 'rgba(249, 115, 22, 0.4)'
-  severity-medium: '#EAB308'
-  severity-medium-tint: 'rgba(234, 179, 8, 0.12)'
-  severity-medium-border: 'rgba(234, 179, 8, 0.4)'
+  severity-medium: '#F77865'
+  severity-medium-tint: 'rgba(242, 95, 76, 0.14)'
+  severity-medium-border: 'rgba(242, 95, 76, 0.4)'
   severity-neutral: '#64748B'
   severity-neutral-tint: 'rgba(100, 116, 139, 0.08)'
   status-done: '#10B981'
@@ -251,7 +251,6 @@ components:
     textColor: '{colors.text-primary}'
     typography: '{typography.body}'
     rounded: '{rounded.md}'
-    borderColor: '{colors.border-default}'
   evidence-chip:
     backgroundColor: '{colors.surface-elevated}'
     textColor: '{colors.text-secondary}'
@@ -409,6 +408,9 @@ components:
     textColor: '{colors.tertiary}'
     typography: '{typography.body-medium}'
 componentExtensions:
+  filing-jurisdictions-panel:
+    borderColor: '{colors.border-default}'
+    note: 'Border color is intentionally documented outside components: google/design.md component entries only allow the eight scalar properties linted above.'
   toast:
     shadow: '{shadows.subtle}'
     variant:

@@ -69,7 +69,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     () => [
       {
         id: 'dashboard',
-        label: t`Dashboard`,
+        label: t`Today`,
         description: t`Review risk and operating pressure.`,
         group: 'navigate',
         icon: LayoutDashboardIcon,

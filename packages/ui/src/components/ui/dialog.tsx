@@ -49,7 +49,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          'fixed top-1/2 left-1/2 z-50 grid w-[480px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-2xl border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-2xl outline-none',
+          'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-lg border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-overlay outline-none',
           overlayPopupAnimationClassName,
           className,
         )}
@@ -102,7 +102,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-lg leading-none font-semibold text-text-primary', className)}
+      className={cn('text-lg leading-none font-medium text-text-primary', className)}
       {...props}
     />
   )

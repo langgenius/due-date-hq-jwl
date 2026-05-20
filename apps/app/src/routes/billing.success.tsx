@@ -134,7 +134,7 @@ export function BillingSuccessRoute() {
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
           <Button variant="outline" render={<Link to="/" />}>
-            <Trans>Go to Dashboard</Trans>
+            <Trans>Go to Today</Trans>
           </Button>
         </CardFooter>
       </Card>

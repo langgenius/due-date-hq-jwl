@@ -52,7 +52,7 @@ export function MigrationNewRoute() {
           </AlertDescription>
         </Alert>
         <Button className="w-fit" onClick={skipToDashboard}>
-          <Trans>Return to dashboard</Trans>
+          <Trans>Return to Today</Trans>
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </div>
@@ -90,7 +90,7 @@ function MigrationActivationIntro({ onSkip }: { onSkip: () => void }) {
           />
           <ActivationOutcome
             icon={<GaugeIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Dashboard risk</Trans>}
+            label={<Trans>Today risk</Trans>}
           />
         </div>
         <h1 className="mt-3 text-xl font-semibold tracking-tight text-text-primary">
@@ -99,8 +99,8 @@ function MigrationActivationIntro({ onSkip }: { onSkip: () => void }) {
         <p className="mt-1 max-w-4xl text-sm leading-relaxed text-text-secondary">
           <Trans>
             Your practice workspace is ready. Import a spreadsheet now to turn client facts into
-            deadlines, evidence, and the first dashboard risk view. You can skip and import later
-            from Dashboard, Clients, or Command Palette.
+            deadlines, evidence, and the first Today risk view. You can skip and import later from
+            Today, Clients, or Command Palette.
           </Trans>
         </p>
       </div>

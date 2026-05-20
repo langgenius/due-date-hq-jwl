@@ -1,12 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react'
+import { useCallback, useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -74,6 +66,8 @@ import {
   type ObligationQueueRow,
   type ObligationQueueSavedView,
   type ObligationQueueSort,
+  type ObligationQueueExportFormat,
+  type ObligationQueueExportSelectedInput,
   type AiInsightPublic,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
@@ -185,6 +179,9 @@ declare module '@tanstack/react-table' {
 }
 type ObligationQueueCursor = NonNullable<ObligationQueueListInput['cursor']> | null
 type ObligationQueueListInputWithoutCursor = Omit<ObligationQueueListInput, 'cursor'>
+type ObligationQueueExportQuery = Omit<ObligationQueueListInput, 'cursor' | 'limit'>
+type ObligationExportDialogScope = 'selected' | 'filtered' | 'all_active' | 'date_range' | 'client'
+type ObligationExportRecipient = 'download' | 'email_self' | 'email_teammate'
 
 const ALL_SORTS = [
   'smart_priority',
@@ -221,6 +218,7 @@ const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
 const THIS_WEEK_MAX_DAYS = 7
+const DAY_MS = 86_400_000
 const UNASSIGNED_OWNER_OPTION = '__unassigned__'
 const OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME = 'text-xs'
 const NON_HIDEABLE_COLUMNS = new Set(['select'])
@@ -487,6 +485,35 @@ function isObligationQueueRowControlClick(target: EventTarget | null): boolean {
   return Boolean(target.closest(OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR))
 }
 
+function scrollObligationRowIntoView(rowId: string | null): void {
+  if (!rowId || typeof document === 'undefined') return
+  window.requestAnimationFrame(() => {
+    const escapedRowId =
+      typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
+        ? CSS.escape(rowId)
+        : rowId.replace(/["\\]/g, '\\$&')
+    const node = document.querySelector<HTMLElement>(`[data-row-id="${escapedRowId}"]`)
+    node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  })
+}
+
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function diffIsoDateDays(fromIso: string, toIso: string): number {
+  return Math.round(
+    (Date.parse(`${toIso}T00:00:00.000Z`) - Date.parse(`${fromIso}T00:00:00.000Z`)) / DAY_MS,
+  )
+}
+
+function exportQueryFromListInput(
+  input: ObligationQueueListInputWithoutCursor,
+): ObligationQueueExportQuery {
+  const { limit: _limit, ...query } = input
+  return query
+}
+
 function stringArrayFromUnknown(value: unknown): string[] {
   return Array.isArray(value)
     ? cleanStringFilters(value.filter((item): item is string => typeof item === 'string'))
@@ -691,6 +718,13 @@ export function ObligationQueueRoute() {
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
   const [extendedMemoOpen, setExtendedMemoOpen] = useState(false)
   const [extendedMemo, setExtendedMemo] = useState('')
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [exportScope, setExportScope] = useState<ObligationExportDialogScope>('filtered')
+  const [exportFormat, setExportFormat] = useState<ObligationQueueExportFormat>('pdf_zip')
+  const [exportRecipient, setExportRecipient] = useState<ObligationExportRecipient>('download')
+  const [exportDateStart, setExportDateStart] = useState(todayIsoDate)
+  const [exportDateEnd, setExportDateEnd] = useState(todayIsoDate)
+  const [exportClientId, setExportClientId] = useState<string | null>(null)
 
   const debouncedSearch = useDebouncedQueryInput(searchInput, {
     maxLength: OBLIGATION_QUEUE_SEARCH_MAX_LENGTH,
@@ -1500,13 +1534,10 @@ export function ObligationQueueRoute() {
   const selectedIds = selectedRows.map((selectedRow) => selectedRow.id)
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
   const thisWeekFilterActive = isThisWeekFilterActive(daysMin, daysMax)
-
-  // Keep the j/k focused row in view as the user navigates.
-  useEffect(() => {
-    if (!activeRow?.id) return
-    const node = document.querySelector<HTMLElement>(`[data-row-id="${activeRow.id}"]`)
-    node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-  }, [activeRow?.id])
+  const currentExportQuery = useMemo(
+    () => exportQueryFromListInput(queryInputWithoutCursor),
+    [queryInputWithoutCursor],
+  )
 
   const moveActiveRow = useCallback(
     (direction: 1 | -1) => {
@@ -1521,6 +1552,7 @@ export function ObligationQueueRoute() {
           : Math.min(currentRows.length - 1, Math.max(0, currentIndex + direction))
       const nextRowId = currentRows[nextIndex]?.original.id ?? null
       void setObligationQueueQuery({ row: nextRowId })
+      scrollObligationRowIntoView(nextRowId)
     },
     [activeRow?.id, setObligationQueueQuery, table],
   )
@@ -1788,9 +1820,56 @@ export function ObligationQueueRoute() {
     )
   }
 
-  function exportSelected(format: 'csv' | 'pdf_zip') {
-    if (selectedIds.length === 0) return
-    exportMutation.mutate({ ids: selectedIds, format })
+  function openExportDialog(scope: ObligationExportDialogScope = 'filtered') {
+    setExportScope(scope === 'selected' && selectedIds.length === 0 ? 'filtered' : scope)
+    if (!exportClientId && clientOptions[0]) setExportClientId(clientOptions[0].value)
+    setExportRecipient('download')
+    setExportModalOpen(true)
+  }
+
+  function buildExportInput(): ObligationQueueExportSelectedInput | null {
+    if (exportRecipient !== 'download') return null
+    if (exportScope === 'selected') {
+      if (selectedIds.length === 0) return null
+      return { scope: 'selected', ids: selectedIds, format: exportFormat }
+    }
+    if (exportScope === 'all_active') {
+      return { scope: 'all_active', format: exportFormat }
+    }
+    if (exportScope === 'client') {
+      if (!exportClientId) return null
+      return {
+        scope: 'filtered',
+        query: { clientIds: [exportClientId], sort: 'due_asc' },
+        format: exportFormat,
+      }
+    }
+    if (exportScope === 'date_range') {
+      if (!isValidIsoDate(exportDateStart) || !isValidIsoDate(exportDateEnd)) return null
+      const today = todayIsoDate()
+      const exportMinDaysUntilDue = diffIsoDateDays(today, exportDateStart)
+      const exportMaxDaysUntilDue = diffIsoDateDays(today, exportDateEnd)
+      if (exportMinDaysUntilDue > exportMaxDaysUntilDue) return null
+      return {
+        scope: 'filtered',
+        query: {
+          asOfDate: today,
+          minDaysUntilDue: exportMinDaysUntilDue,
+          maxDaysUntilDue: exportMaxDaysUntilDue,
+          sort: 'due_asc',
+        },
+        format: exportFormat,
+      }
+    }
+    return { scope: 'filtered', query: currentExportQuery, format: exportFormat }
+  }
+
+  function submitExport() {
+    const input = buildExportInput()
+    if (!input) return
+    exportMutation.mutate(input, {
+      onSuccess: () => setExportModalOpen(false),
+    })
   }
 
   return (
@@ -1874,6 +1953,10 @@ export function ObligationQueueRoute() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
+              <DownloadIcon data-icon="inline-start" />
+              <Trans>Export</Trans>
+            </Button>
             <CalendarSyncPopover />
             <Button variant="outline" size="sm" onClick={resetObligationQueue}>
               <FilterIcon data-icon="inline-start" />
@@ -2098,27 +2181,10 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm">
-                      <DownloadIcon data-icon="inline-start" />
-                      <Trans>Export</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={() => exportSelected('csv')}>
-                    <DownloadIcon data-icon="inline-start" />
-                    <Trans>CSV</Trans>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportSelected('pdf_zip')}>
-                    <FileArchiveIcon data-icon="inline-start" />
-                    <Trans>PDF zip</Trans>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
+                <DownloadIcon data-icon="inline-start" />
+                <Trans>Export</Trans>
+              </Button>
               <div className="ml-auto">
                 <Button
                   variant="ghost"
@@ -2286,6 +2352,174 @@ export function ObligationQueueRoute() {
           void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         }}
       />
+      <Dialog open={exportModalOpen} onOpenChange={setExportModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Export obligations</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>Choose one option in each row. Export writes an audit event.</Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-5">
+            <ExportAxis label={t`What`}>
+              <ExportAxisOption
+                selected={exportScope === 'filtered'}
+                title={<Trans>Current filtered view</Trans>}
+                description={<Trans>Matches the filters and sort currently on this page.</Trans>}
+                onSelect={() => setExportScope('filtered')}
+              />
+              <ExportAxisOption
+                selected={exportScope === 'all_active'}
+                title={<Trans>All active obligations</Trans>}
+                description={<Trans>Open, waiting, review, blocked, and extended work.</Trans>}
+                onSelect={() => setExportScope('all_active')}
+              />
+              <ExportAxisOption
+                selected={exportScope === 'selected'}
+                disabled={selectedIds.length === 0}
+                title={<Trans>Selected obligations</Trans>}
+                description={
+                  selectedIds.length > 0 ? (
+                    <Plural
+                      value={selectedIds.length}
+                      one="# selected obligation"
+                      other="# selected obligations"
+                    />
+                  ) : (
+                    <Trans>Select rows to use this scope.</Trans>
+                  )
+                }
+                onSelect={() => setExportScope('selected')}
+              />
+              <div className="grid gap-2">
+                <ExportAxisOption
+                  selected={exportScope === 'date_range'}
+                  title={<Trans>Specific date range</Trans>}
+                  description={
+                    <Trans>Exports obligations due within the selected date window.</Trans>
+                  }
+                  onSelect={() => setExportScope('date_range')}
+                />
+                {exportScope === 'date_range' ? (
+                  <div className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-2 sm:grid-cols-2">
+                    <IsoDatePicker
+                      value={exportDateStart}
+                      invalid={!isValidIsoDate(exportDateStart)}
+                      ariaLabel={t`Export start date`}
+                      onValueChange={setExportDateStart}
+                    />
+                    <IsoDatePicker
+                      value={exportDateEnd}
+                      invalid={
+                        !isValidIsoDate(exportDateEnd) ||
+                        diffIsoDateDays(exportDateStart, exportDateEnd) < 0
+                      }
+                      ariaLabel={t`Export end date`}
+                      onValueChange={setExportDateEnd}
+                    />
+                  </div>
+                ) : null}
+              </div>
+              <div className="grid gap-2">
+                <ExportAxisOption
+                  selected={exportScope === 'client'}
+                  disabled={clientOptions.length === 0}
+                  title={<Trans>Specific client</Trans>}
+                  description={<Trans>Exports all obligations for one client.</Trans>}
+                  onSelect={() => setExportScope('client')}
+                />
+                {exportScope === 'client' ? (
+                  <Select
+                    value={exportClientId ?? ''}
+                    onValueChange={(value) => {
+                      if (typeof value === 'string') setExportClientId(value)
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue>
+                        {clientOptions.find((option) => option.value === exportClientId)?.label ??
+                          t`Select client`}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clientOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
+              </div>
+            </ExportAxis>
+
+            <ExportAxis label={t`Format`}>
+              <ExportAxisOption
+                selected={exportFormat === 'pdf_zip'}
+                icon={<FileArchiveIcon className="size-4" aria-hidden />}
+                title={<Trans>PDF report</Trans>}
+                description={<Trans>Firm-branded client-facing PDFs grouped by client.</Trans>}
+                onSelect={() => setExportFormat('pdf_zip')}
+              />
+              <ExportAxisOption
+                selected={exportFormat === 'csv'}
+                icon={<DownloadIcon className="size-4" aria-hidden />}
+                title={<Trans>CSV</Trans>}
+                description={<Trans>Raw data for spreadsheets and portability.</Trans>}
+                onSelect={() => setExportFormat('csv')}
+              />
+              <ExportAxisOption
+                selected={exportFormat === 'ics'}
+                icon={<CalendarDaysIcon className="size-4" aria-hidden />}
+                title={<Trans>iCal .ics</Trans>}
+                description={<Trans>Calendar events dated to each internal deadline.</Trans>}
+                onSelect={() => setExportFormat('ics')}
+              />
+            </ExportAxis>
+
+            <ExportAxis label={t`Recipient`}>
+              <ExportAxisOption
+                selected={exportRecipient === 'download'}
+                icon={<DownloadIcon className="size-4" aria-hidden />}
+                title={<Trans>Download</Trans>}
+                description={<Trans>Creates the file in this browser.</Trans>}
+                onSelect={() => setExportRecipient('download')}
+              />
+              <ExportAxisOption
+                selected={exportRecipient === 'email_self'}
+                disabled
+                title={<Trans>Email to self</Trans>}
+                description={
+                  <Trans>Email delivery is not connected for obligation exports yet.</Trans>
+                }
+                onSelect={() => setExportRecipient('email_self')}
+              />
+              <ExportAxisOption
+                selected={exportRecipient === 'email_teammate'}
+                disabled
+                title={<Trans>Email to teammate</Trans>}
+                description={
+                  <Trans>Team recipient delivery will use the notification queue.</Trans>
+                }
+                onSelect={() => setExportRecipient('email_teammate')}
+              />
+            </ExportAxis>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportModalOpen(false)}>
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button
+              onClick={submitExport}
+              disabled={exportMutation.isPending || !buildExportInput()}
+            >
+              {exportMutation.isPending ? <Trans>Exporting…</Trans> : <Trans>Export</Trans>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog
         open={savedViewDraft !== null}
         onOpenChange={(open) => (!open ? setSavedViewDraft(null) : undefined)}
@@ -2362,6 +2596,67 @@ export function ObligationQueueRoute() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+function ExportAxis({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-2 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
+      <div className="pt-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+        {label}
+      </div>
+      <div role="radiogroup" aria-label={label} className="grid gap-2">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function ExportAxisOption({
+  selected,
+  disabled = false,
+  icon,
+  title,
+  description,
+  onSelect,
+}: {
+  selected: boolean
+  disabled?: boolean
+  icon?: ReactNode
+  title: ReactNode
+  description: ReactNode
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      disabled={disabled}
+      className={cn(
+        'flex min-h-12 w-full cursor-pointer items-start gap-2 rounded-md border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors',
+        'hover:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+        selected && 'border-divider-deep bg-state-base-active',
+        disabled && 'cursor-not-allowed opacity-50',
+      )}
+      onClick={() => {
+        if (!disabled) onSelect()
+      }}
+    >
+      <span
+        aria-hidden
+        className={cn(
+          'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-divider-deep',
+          selected && 'border-text-primary bg-text-primary text-text-inverted',
+        )}
+      >
+        {selected ? <CheckCircle2Icon className="size-3" /> : icon}
+      </span>
+      <span className="grid min-w-0 gap-0.5">
+        <span className="text-sm font-medium text-text-primary">{title}</span>
+        <span className="text-xs leading-4 text-text-tertiary">{description}</span>
+      </span>
+    </button>
   )
 }
 

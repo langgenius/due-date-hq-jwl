@@ -28,6 +28,7 @@ import {
 } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { PermissionInlineNotice, useFirmPermission } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
@@ -132,6 +133,9 @@ export function ImportHistoryDrawer({
   const batches = batchesQuery.data?.batches ?? []
   const recoveryPending = revert.isPending || singleUndo.isPending || discardDraft.isPending
   const hasRevertibleBatch = batches.some(isBatchRevertible)
+  const pendingBatch = pendingRecovery
+    ? batches.find((batch) => batch.id === pendingRecovery.batchId)
+    : null
 
   const handleConfirmRecovery = useCallback(() => {
     if (!pendingRecovery) return
@@ -330,6 +334,51 @@ export function ImportHistoryDrawer({
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendingRecovery ? (
+            <DestructiveChangePreview
+              title={
+                pendingRecovery.kind === 'client' ? (
+                  <Trans>Undoing this import will commit these changes</Trans>
+                ) : pendingRecovery.kind === 'draft' ? (
+                  <Trans>Discarding this draft will commit these changes</Trans>
+                ) : (
+                  <Trans>Reverting this batch will commit these changes</Trans>
+                )
+              }
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Removes</Trans>,
+                  detail:
+                    pendingRecovery.kind === 'client' ? (
+                      <Trans>{pendingRecovery.client.name} and its imported deadlines</Trans>
+                    ) : pendingRecovery.kind === 'draft' ? (
+                      <Trans>One unfinished draft import</Trans>
+                    ) : (
+                      <Trans>
+                        {pendingBatch?.successCount ?? 0} imported clients and their generated
+                        deadlines
+                      </Trans>
+                    ),
+                },
+                {
+                  tone: 'add',
+                  label: <Trans>Adds</Trans>,
+                  detail:
+                    pendingRecovery.kind === 'draft' ? (
+                      <Trans>No production records</Trans>
+                    ) : (
+                      <Trans>No replacement client or deadline records</Trans>
+                    ),
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: <Trans>Audit history retained for compliance</Trans>,
+                },
+              ]}
+            />
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel size="sm" disabled={recoveryPending}>
               <Trans>Cancel</Trans>
@@ -341,11 +390,11 @@ export function ImportHistoryDrawer({
               onClick={handleConfirmRecovery}
             >
               {pendingRecovery?.kind === 'client' ? (
-                <Trans>Undo client</Trans>
+                <Trans>Undo client (1)</Trans>
               ) : pendingRecovery?.kind === 'draft' ? (
                 <Trans>Discard draft</Trans>
               ) : (
-                <Trans>Revert batch</Trans>
+                <Trans>Revert batch ({pendingBatch?.successCount ?? 0})</Trans>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

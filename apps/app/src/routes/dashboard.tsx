@@ -1270,13 +1270,8 @@ function DashboardTriageTable({
   const visibleColumnCount = table.getVisibleLeafColumns().length
 
   return (
-    <div className="overflow-x-auto">
-      {/*
-        Legacy 7-column layout keeps a min-width so the filter facets
-        stay readable. v2 (Evidence dropped, Status pulled in next to
-        Next check) sizes to the container — no horizontal clip.
-      */}
-      <Table className={cn(dashboardV2 ? 'w-full' : 'min-w-[1040px]')}>
+    <div className="w-full">
+      <Table className="w-full table-fixed [&_td]:whitespace-normal [&_td]:break-words [&_th]:whitespace-normal">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>

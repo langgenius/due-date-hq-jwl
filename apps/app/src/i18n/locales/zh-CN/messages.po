@@ -48,7 +48,12 @@ msgstr "{0, plural, other {# 行已准备就绪可以导入}}"
 #. placeholder {0}: selectedIds.length
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# row selected} other {# rows selected}}"
-msgstr ""
+msgstr "{0, plural, one {# row selected} other {# rows selected}}"
+
+#. placeholder {0}: selectedIds.length
+#: src/routes/obligations.tsx
+msgid "{0, plural, one {# selected obligation} other {# selected obligations}}"
+msgstr "{0, plural, one {# selected obligation} other {# selected obligations}}"
 
 #. placeholder {0}: row.original.evidenceCount
 #. placeholder {0}: tableRow.original.evidenceCount
@@ -71,13 +76,18 @@ msgstr "{0, plural, other {共 # 行，我们仅读取了前 1000 行。请拆�
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
 #: src/features/rules/coverage-tab.tsx
 msgid "{0} — click to {1} detail"
-msgstr ""
+msgstr "{0} — click to {1} detail"
 
 #. placeholder {0}: result.accepted.length
 #. placeholder {1}: result.skipped.length
 #: src/features/rules/rule-library-tab.tsx
 msgid "{0} accepted · {1} skipped."
 msgstr "{0} 已接受 · {1} 已跳过。"
+
+#. placeholder {0}: pendingRecovery.client.name
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "{0} and its imported deadlines"
+msgstr "{0} and its imported deadlines"
 
 #. placeholder {0}: data.availableSeats
 #: src/features/members/members-page.tsx
@@ -101,7 +111,12 @@ msgstr "{0} 个客户，{1} 条义务，{2} 风险暴露，{3} 个需要补输�
 #. placeholder {0}: obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} filings extended — payment is NOT extended"
-msgstr ""
+msgstr "{0} filings extended — payment is NOT extended"
+
+#. placeholder {0}: pendingBatch?.successCount ?? 0
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "{0} imported clients and their generated deadlines"
+msgstr "{0} imported clients and their generated deadlines"
 
 #. placeholder {0}: inviteQuery.data.inviterEmail
 #. placeholder {1}: inviteQuery.data.organizationName
@@ -150,7 +165,7 @@ msgstr "{0} 条义务仍需要罚金输入。"
 #. placeholder {1}: clients.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} of {1}"
-msgstr ""
+msgstr "{0} of {1}"
 
 #. placeholder {0}: summary.overdueOpenCount
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -165,7 +180,7 @@ msgstr "{0} 个关联付款"
 #. placeholder {0}: matches.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} Pulse alerts affecting this client"
-msgstr ""
+msgstr "{0} Pulse alerts affecting this client"
 
 #. placeholder {0}: exposure.readyCount
 #: src/features/migration/Step4Preview.tsx
@@ -181,7 +196,7 @@ msgstr "{0} 条可确认 · 预计匹配 {1} 个义务"
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} required fact(s) missing"
-msgstr ""
+msgstr "{0} required fact(s) missing"
 
 #. placeholder {0}: result.updatedCount
 #: src/routes/obligations.tsx
@@ -246,7 +261,7 @@ msgstr "{0}/500 个字符"
 #. placeholder {0}: -days
 #: src/features/dashboard/actions-list.tsx
 msgid "{0}d late"
-msgstr ""
+msgstr "{0}d late"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "{action} recorded"
@@ -266,7 +281,7 @@ msgstr "{activeFirmCount} / {activeFirmLimitLabel} 个 active 事务所"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{attentionCount} sources need attention"
-msgstr ""
+msgstr "{attentionCount} sources need attention"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{availableCount} available"
@@ -286,11 +301,11 @@ msgstr "另有 {count} 个字段已变更"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{count} opportunity match(es)"
-msgstr ""
+msgstr "{count} opportunity match(es)"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "{count} source"
-msgstr ""
+msgstr "{count} source"
 
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -323,7 +338,7 @@ msgstr "{ignoredCount, plural, other {# 列当前被忽略。}}"
 
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
-msgstr ""
+msgstr "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
 
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
@@ -355,7 +370,7 @@ msgstr "提前 {offsetDays} 天"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
-msgstr ""
+msgstr "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{ownedFirmCount} of 1 included"
@@ -372,7 +387,7 @@ msgstr "{pendingCount} 个待处理 · {expiredCount} 个已过期 · magic link
 #. placeholder {0}: row.clientName
 #: src/features/dashboard/actions-list.tsx
 msgid "{prompt} for {0}"
-msgstr ""
+msgstr "{prompt} for {0}"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
@@ -432,7 +447,7 @@ msgstr "{totalImpact, plural, other {# 个客户}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalPending} rules"
-msgstr ""
+msgstr "{totalPending} rules"
 
 #: src/routes/obligations.tsx
 msgid "{totalShown, plural, one {# obligation} other {# obligations}}"
@@ -450,7 +465,7 @@ msgstr "/ 月"
 #. placeholder {0}: parentObligationId.slice(0, 8)
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "#{0}"
-msgstr ""
+msgstr "#{0}"
 
 #. placeholder {0}: new Date().getFullYear()
 #: src/routes/_entry-layout.tsx
@@ -460,15 +475,15 @@ msgstr "© {0} DueDateHQ Inc."
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
-msgstr ""
+msgstr "+{0} more"
 
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "+{hasMore} more"
-msgstr ""
+msgstr "+{hasMore} more"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "~{estimatedMinutes} min"
-msgstr ""
+msgstr "~{estimatedMinutes} min"
 
 #: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
@@ -488,7 +503,7 @@ msgstr "提前 1 天"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filing extended — payment is NOT extended"
-msgstr ""
+msgstr "1 filing extended — payment is NOT extended"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -505,7 +520,7 @@ msgstr "1 个生产事务所"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 Pulse alert affecting this client"
-msgstr ""
+msgstr "1 Pulse alert affecting this client"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -528,7 +543,7 @@ msgstr "30 / 7 / 1 天和逾期"
 
 #: src/routes/not-found.tsx
 msgid "404"
-msgstr ""
+msgstr "404"
 
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -603,7 +618,7 @@ msgstr "已按规则详情所示原样接受。"
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
-msgstr ""
+msgstr "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Access denied"
@@ -658,7 +673,7 @@ msgstr "操作"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Actions this week"
-msgstr ""
+msgstr "Actions this week"
 
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/rules.library.tsx
@@ -710,7 +725,7 @@ msgstr "当前事务所摘要"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule"
-msgstr ""
+msgstr "Active rule"
 
 #: src/routes/account.security.tsx
 msgid "Active sessions"
@@ -756,7 +771,7 @@ msgstr "补充给审核人的说明"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Add facts"
-msgstr ""
+msgstr "Add facts"
 
 #: src/routes/obligations.tsx
 msgid "Add item"
@@ -774,6 +789,11 @@ msgstr "添加事务所"
 msgid "Added evidence to this deadline."
 msgstr "已为该截止日添加证据。"
 
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Adds"
+msgstr "Adds"
+
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Advisory"
 msgstr "顾问对话"
@@ -784,7 +804,7 @@ msgstr "顾问对话"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Advisory, scope, and retention opportunities"
-msgstr ""
+msgstr "Advisory, scope, and retention opportunities"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Affected clients"
@@ -850,7 +870,7 @@ msgstr "提醒状态"
 
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "alerts"
-msgstr ""
+msgstr "alerts"
 
 #: src/features/rules/rule-library-tab.tsx
 #: src/features/rules/sources-tab.tsx
@@ -860,11 +880,15 @@ msgstr "全部"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "All {total} sources working"
-msgstr ""
+msgstr "All {total} sources working"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actions"
 msgstr "全部操作"
+
+#: src/routes/obligations.tsx
+msgid "All active obligations"
+msgstr "All active obligations"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actors"
@@ -904,7 +928,7 @@ msgstr "全部影响"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "All required facts present"
-msgstr ""
+msgstr "All required facts present"
 
 #: src/features/members/members-page.tsx
 msgid "All seats are in use. Upgrade to invite more, or suspend an active member to free a seat."
@@ -929,7 +953,7 @@ msgstr "全部时间"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Allowed"
-msgstr ""
+msgstr "Allowed"
 
 #: src/features/rules/rule-library-tab.tsx
 #: src/routes/billing.checkout.tsx
@@ -1068,11 +1092,11 @@ msgstr "请事务所 Owner 重新发送邀请。"
 
 #: src/routes/obligations.tsx
 msgid "Assign owner"
-msgstr ""
+msgstr "Assign owner"
 
 #: src/routes/obligations.tsx
 msgid "Assigned {count} obligations to {label}"
-msgstr ""
+msgstr "Assigned {count} obligations to {label}"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/mapping-target-labels.ts
@@ -1081,7 +1105,7 @@ msgstr "经办人"
 
 #: src/features/dashboard/exposure-strip.tsx
 msgid "At risk"
-msgstr ""
+msgstr "At risk"
 
 #: src/features/migration/Wizard.tsx
 msgid "at risk this week"
@@ -1148,6 +1172,14 @@ msgstr "审计导出需要 Team 或 Enterprise 计划。"
 #: src/features/audit/audit-log-page.tsx
 msgid "Audit filters"
 msgstr "审计筛选"
+
+#: src/features/members/members-page.tsx
+msgid "Audit history and existing client work"
+msgstr "Audit history and existing client work"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Audit history retained for compliance"
+msgstr "Audit history retained for compliance"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -1219,7 +1251,7 @@ msgstr "平均置信度 <0>{avgConfidence}%</0> · EIN 识别率 <1>{0}</1>"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
-msgstr ""
+msgstr "Awaiting sources"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Back"
@@ -1243,7 +1275,7 @@ msgstr "返回义务"
 
 #: src/components/patterns/settings-back-link.tsx
 msgid "Back to Settings"
-msgstr ""
+msgstr "Back to Settings"
 
 #: src/routes/account.security.tsx
 msgid "Backup codes copied"
@@ -1329,7 +1361,7 @@ msgstr "账单状态尚未准备好。"
 #: src/features/dashboard/exposure-strip.tsx
 #: src/features/obligations/status-control.tsx
 msgid "Blocked"
-msgstr ""
+msgstr "Blocked"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -1345,7 +1377,7 @@ msgstr "正在生成导入预览"
 
 #: src/routes/obligations.tsx
 msgid "Bulk actions"
-msgstr ""
+msgstr "Bulk actions"
 
 #. placeholder {0}: rule.title
 #: src/features/rules/rule-library-tab.tsx
@@ -1362,7 +1394,7 @@ msgstr "业务提示队列"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "by {label}"
-msgstr ""
+msgstr "by {label}"
 
 #: src/routes/login.tsx
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
@@ -1388,6 +1420,10 @@ msgstr "已计算"
 #: src/routes/practice.tsx
 msgid "Calculating…"
 msgstr "正在计算…"
+
+#: src/routes/obligations.tsx
+msgid "Calendar events dated to each internal deadline."
+msgstr "Calendar events dated to each internal deadline."
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
@@ -1575,6 +1611,10 @@ msgstr "选择工作区套餐"
 msgid "Choose another plan"
 msgstr "选择其他计划"
 
+#: src/routes/obligations.tsx
+msgid "Choose one option in each row. Export writes an audit event."
+msgstr "Choose one option in each row. Export writes an audit event."
+
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "选择 Solo、Pro 或 Team 以开始托管 checkout 流程。"
@@ -1592,7 +1632,7 @@ msgstr "清除"
 
 #: src/routes/obligations.tsx
 msgid "Clear filters"
-msgstr ""
+msgstr "Clear filters"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Clear search or filters to return to the full practice directory."
@@ -1600,11 +1640,11 @@ msgstr "清除搜索或筛选以返回完整事务所目录。"
 
 #: src/routes/obligations.tsx
 msgid "Clear selection"
-msgstr ""
+msgstr "Clear selection"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "Clear the Coverage drill-in and return to the full library"
-msgstr ""
+msgstr "Clear the Coverage drill-in and return to the full library"
 
 #. placeholder {0}: before.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -1703,7 +1743,7 @@ msgstr "客户名称"
 
 #: src/routes/clients.$clientId.tsx
 msgid "Client not found"
-msgstr ""
+msgstr "Client not found"
 
 #: src/routes/obligations.tsx
 msgid "Client readiness response"
@@ -1719,7 +1759,7 @@ msgstr "客户回复"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Client summary (AI)"
-msgstr ""
+msgstr "Client summary (AI)"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Client suppressions"
@@ -1753,7 +1793,7 @@ msgstr "关闭"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Close rule detail"
-msgstr ""
+msgstr "Close rule detail"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Close wizard"
@@ -1801,7 +1841,7 @@ msgstr "完成 CPA 复核并关闭该行。"
 
 #: src/features/obligations/status-control.tsx
 msgid "Completed"
-msgstr ""
+msgstr "Completed"
 
 #: src/routes/settings.tsx
 msgid "Compliance"
@@ -2093,11 +2133,11 @@ msgstr "无法加载该提醒"
 
 #: src/routes/clients.$clientId.tsx
 msgid "Couldn't load this client"
-msgstr ""
+msgstr "Couldn't load this client"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't mark accepted"
-msgstr ""
+msgstr "Couldn't mark accepted"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Couldn't mark notification read"
@@ -2346,6 +2386,10 @@ msgstr "创建时间"
 msgid "Created deadlines"
 msgstr "已创建截止日"
 
+#: src/routes/obligations.tsx
+msgid "Creates the file in this browser."
+msgstr "Creates the file in this browser."
+
 #: src/features/migration/WizardShell.tsx
 msgid "Creating a safe import batch, uploading rows, and mapping your columns."
 msgstr "正在创建安全导入批次、上传行数据并映射字段。"
@@ -2379,6 +2423,10 @@ msgstr "当前"
 #: src/routes/account.security.tsx
 msgid "Current"
 msgstr "当前"
+
+#: src/routes/obligations.tsx
+msgid "Current filtered view"
+msgstr "Current filtered view"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2421,20 +2469,6 @@ msgstr "自定义规则已创建"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "深色"
-
-#: src/components/patterns/app-shell-nav.tsx
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/routes/route-summary.ts
-msgid "Dashboard"
-msgstr "仪表盘"
-
-#: src/routes/billing.tsx
-msgid "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
-msgstr "Dashboard brief、Pulse 摘要、客户风险摘要和正式客户数据的智能导入辅助。"
-
-#: src/routes/migration.new.tsx
-msgid "Dashboard risk"
-msgstr "Dashboard 风险"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Data cleanup warning"
@@ -2593,6 +2627,10 @@ msgstr "要丢弃此次导入吗？"
 msgid "Discard this draft import?"
 msgstr "丢弃这个导入草稿？"
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Discarding this draft will commit these changes"
+msgstr "Discarding this draft will commit these changes"
+
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/pulse/PulseAlertsBanner.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -2611,7 +2649,11 @@ msgstr "团队中准备工作的分配情况。"
 
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Dot order"
-msgstr ""
+msgstr "Dot order"
+
+#: src/routes/obligations.tsx
+msgid "Download"
+msgstr "Download"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
@@ -2656,7 +2698,7 @@ msgstr "截止日逻辑"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "due in {days}d"
-msgstr ""
+msgstr "due in {days}d"
 
 #: src/features/workload/workload-page.tsx
 msgid "Due soon"
@@ -2664,7 +2706,7 @@ msgstr "即将到期"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "due today"
-msgstr ""
+msgstr "due today"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Due-date extension"
@@ -2738,9 +2780,21 @@ msgstr "邮箱"
 msgid "Email address"
 msgstr "邮箱地址"
 
+#: src/routes/obligations.tsx
+msgid "Email delivery is not connected for obligation exports yet."
+msgstr "Email delivery is not connected for obligation exports yet."
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Email me a code"
 msgstr "发送验证码"
+
+#: src/routes/obligations.tsx
+msgid "Email to self"
+msgstr "Email to self"
+
+#: src/routes/obligations.tsx
+msgid "Email to teammate"
+msgstr "Email to teammate"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Enable full feed"
@@ -2819,7 +2873,7 @@ msgstr "实体"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Entity coverage"
-msgstr ""
+msgstr "Entity coverage"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Entity id"
@@ -2912,7 +2966,7 @@ msgstr "从经理审核中排除 {0}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Exit review · Esc"
-msgstr ""
+msgstr "Exit review · Esc"
 
 #: src/routes/obligations.tsx
 msgid "Expected extended date"
@@ -2958,8 +3012,32 @@ msgid "Export"
 msgstr "导出"
 
 #: src/routes/obligations.tsx
+msgid "Export end date"
+msgstr "Export end date"
+
+#: src/routes/obligations.tsx
+msgid "Export obligations"
+msgstr "Export obligations"
+
+#: src/routes/obligations.tsx
 msgid "Export ready"
 msgstr "导出已就绪"
+
+#: src/routes/obligations.tsx
+msgid "Export start date"
+msgstr "Export start date"
+
+#: src/routes/obligations.tsx
+msgid "Exporting…"
+msgstr "Exporting…"
+
+#: src/routes/obligations.tsx
+msgid "Exports all obligations for one client."
+msgstr "Exports all obligations for one client."
+
+#: src/routes/obligations.tsx
+msgid "Exports obligations due within the selected date window."
+msgstr "Exports obligations due within the selected date window."
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Exposure preview"
@@ -3112,7 +3190,7 @@ msgstr "仅延期申报；付款不延期。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filings & deadlines"
-msgstr ""
+msgstr "Filings & deadlines"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filter by alert status"
@@ -3138,6 +3216,10 @@ msgstr "筛选辖区"
 #: src/features/audit/audit-log-labels.ts
 msgid "Firm"
 msgstr "Firm"
+
+#: src/routes/obligations.tsx
+msgid "Firm-branded client-facing PDFs grouped by client."
+msgstr "Firm-branded client-facing PDFs grouped by client."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
@@ -3181,6 +3263,7 @@ msgid "Form"
 msgstr "表单"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
 msgid "Format"
 msgstr "格式"
 
@@ -3195,7 +3278,7 @@ msgstr "公式"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "From {originFrom}"
-msgstr ""
+msgstr "From {originFrom}"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -3210,7 +3293,7 @@ msgstr "$399 起"
 #. placeholder {0}: jurisdictionFilters.length > 0 ? `: ${jurisdictionFilters.map(jurisdictionLabel).join(', ')}` : ''
 #: src/features/rules/rule-library-tab.tsx
 msgid "From Coverage{0}"
-msgstr ""
+msgstr "From Coverage{0}"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Full client names"
@@ -3267,15 +3350,12 @@ msgstr "正在生成…"
 
 #: src/routes/not-found.tsx
 msgid "Go back"
-msgstr ""
-
-#: src/routes/not-found.tsx
-msgid "Go to dashboard"
-msgstr ""
+msgstr "Go back"
 
 #: src/routes/billing.success.tsx
-msgid "Go to Dashboard"
-msgstr "前往仪表盘"
+#: src/routes/not-found.tsx
+msgid "Go to Today"
+msgstr "Go to Today"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Google Calendar"
@@ -3291,7 +3371,7 @@ msgstr "总收入"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Has Pulse alert"
-msgstr ""
+msgstr "Has Pulse alert"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "have jurisdiction facts"
@@ -3340,6 +3420,10 @@ msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
 msgid "I'm coming from… (optional)"
 msgstr "我正在从…迁移过来（可选）"
 
+#: src/routes/obligations.tsx
+msgid "iCal .ics"
+msgstr "iCal .ics"
+
 #: src/routes/settings.tsx
 msgid "Identity, team, and capacity for this practice workspace."
 msgstr "本事务所工作区的身份、团队与容量。"
@@ -3358,7 +3442,7 @@ msgstr "导入并生成"
 
 #: src/routes/obligations.tsx
 msgid "Import a CSV of clients to start tracking their obligations."
-msgstr ""
+msgstr "Import a CSV of clients to start tracking their obligations."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Import a CSV or create the first manual client record."
@@ -3487,7 +3571,7 @@ msgstr "进行中"
 
 #: src/features/obligations/status-control.tsx
 msgid "In review"
-msgstr ""
+msgstr "In review"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "In-app"
@@ -3633,6 +3717,11 @@ msgstr "继续编辑"
 msgid "Keep import"
 msgstr "保留导入"
 
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Keeps"
+msgstr "Keeps"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Keeps obligation follow-up accountable."
 msgstr "用于确保义务后续跟进可追责。"
@@ -3700,7 +3789,7 @@ msgstr "最新状态"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Legend"
-msgstr ""
+msgstr "Legend"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Light"
@@ -3835,7 +3924,7 @@ msgstr "AI 置信度低。应用前请复核来源详情。"
 
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "Low confidence"
-msgstr ""
+msgstr "Low confidence"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Lower-priority source checks are recovering in the background. Existing Pulse alerts remain reviewable."
@@ -3922,7 +4011,7 @@ msgstr "字段映射"
 
 #: src/routes/obligations.tsx
 msgid "Mark accepted"
-msgstr ""
+msgstr "Mark accepted"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
@@ -3942,7 +4031,7 @@ msgstr "将所选项标记为已延期"
 
 #: src/routes/obligations.tsx
 msgid "Marked accepted"
-msgstr ""
+msgstr "Marked accepted"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Match"
@@ -3959,6 +4048,10 @@ msgstr "已将导入列匹配到 DueDateHQ。"
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched clients"
 msgstr "已匹配客户"
+
+#: src/routes/obligations.tsx
+msgid "Matches the filters and sort currently on this page."
+msgstr "Matches the filters and sort currently on this page."
 
 #: src/routes/obligations.tsx
 msgid "Max $"
@@ -4107,7 +4200,7 @@ msgstr "缺少 penalty 事实"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Missing required facts"
-msgstr ""
+msgstr "Missing required facts"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing rule"
@@ -4167,7 +4260,7 @@ msgstr "我的事务所"
 
 #: src/routes/obligations.tsx
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
@@ -4184,7 +4277,7 @@ msgstr "需要帮助"
 
 #: src/features/dashboard/exposure-strip.tsx
 msgid "Need your decision"
-msgstr ""
+msgstr "Need your decision"
 
 #: src/routes/obligations.tsx
 msgid "Needs {labels}"
@@ -4308,7 +4401,7 @@ msgstr "下一步检查"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Next due"
-msgstr ""
+msgstr "Next due"
 
 #: src/components/primitives/iso-date-picker.tsx
 msgid "Next month"
@@ -4343,7 +4436,7 @@ msgstr "未选择当前事务所。"
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
-msgstr ""
+msgstr "No activity yet. The first transition will log a note here."
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "No alerts match these filters."
@@ -4465,7 +4558,7 @@ msgstr "没有风险暴露状态"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No filing jurisdictions on file yet."
-msgstr ""
+msgstr "No filing jurisdictions on file yet."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
@@ -4486,7 +4579,7 @@ msgstr "尚无导入批次"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No jurisdictions match this filter."
-msgstr ""
+msgstr "No jurisdictions match this filter."
 
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "No lightweight opportunity cues for this client yet."
@@ -4527,7 +4620,7 @@ msgstr "没有义务符合当前筛选。"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "No obligations this week. Import clients to get started."
-msgstr ""
+msgstr "No obligations this week. Import clients to get started."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No obligations yet"
@@ -4535,7 +4628,7 @@ msgstr "暂无义务"
 
 #: src/routes/obligations.tsx
 msgid "No obligations yet."
-msgstr ""
+msgstr "No obligations yet."
 
 #: src/routes/practice.tsx
 msgid "No open obligations available for preview."
@@ -4568,11 +4661,11 @@ msgstr "尚无可用的罚金明细。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No pending rules for this jurisdiction."
-msgstr ""
+msgstr "No pending rules for this jurisdiction."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No pending rules to review."
-msgstr ""
+msgstr "No pending rules to review."
 
 #: src/routes/billing.checkout.tsx
 msgid "No practice selected"
@@ -4582,13 +4675,17 @@ msgstr "未选择事务所"
 msgid "No previous provider imports are available yet."
 msgstr "暂无可复用的平台导入记录。"
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "No production records"
+msgstr "No production records"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No Pulse alert"
-msgstr ""
+msgstr "No Pulse alert"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No Pulse alerts"
-msgstr ""
+msgstr "No Pulse alerts"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No readiness states"
@@ -4606,13 +4703,21 @@ msgstr "无提醒"
 msgid "No reminder deliveries have been recorded yet."
 msgstr "尚未记录提醒投递。"
 
+#: src/features/members/members-page.tsx
+msgid "No replacement assignments or records"
+msgstr "No replacement assignments or records"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "No replacement client or deadline records"
+msgstr "No replacement client or deadline records"
+
 #: src/features/rules/rules-console-primitives.tsx
 msgid "no rule"
 msgstr "无规则"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No rule"
-msgstr ""
+msgstr "No rule"
 
 #: src/features/rules/rules-console-primitives.tsx
 msgid "no rule — not in MVP scope"
@@ -4644,7 +4749,7 @@ msgstr "没有来源类型"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No sources for this jurisdiction yet."
-msgstr ""
+msgstr "No sources for this jurisdiction yet."
 
 #: src/features/rules/sources-tab.tsx
 msgid "No sources match these filters. Clear filters above to see all watched sources."
@@ -4669,7 +4774,7 @@ msgstr "订阅没有发生变化。准备好后可以重新开始支付。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No summary yet"
-msgstr ""
+msgstr "No summary yet"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
@@ -4703,7 +4808,7 @@ msgstr "规范化"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Not allowed."
-msgstr ""
+msgstr "Not allowed."
 
 #: src/features/obligations/status-control.tsx
 msgid "Not applicable"
@@ -4728,7 +4833,7 @@ msgstr "未填写"
 #. placeholder {0}: labels[row.status]
 #: src/features/obligations/status-control.tsx
 msgid "Not reachable from {0}."
-msgstr ""
+msgstr "Not reachable from {0}."
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -4856,7 +4961,7 @@ msgstr "官方表格或方式"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
-msgstr ""
+msgstr "Official sources — pending rules"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding alternate path used"
@@ -4901,6 +5006,10 @@ msgstr "引导状态已推进"
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding turn opened"
 msgstr "引导对话轮次已打开"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "One unfinished draft import"
+msgstr "One unfinished draft import"
 
 #: src/features/pulse/lib/error-mapping.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -4959,23 +5068,23 @@ msgstr "展开"
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {active} active rules for {0}"
-msgstr ""
+msgstr "Open {active} active rules for {0}"
 
 #. placeholder {0}: count === 1 ? '' : 's'
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "Open {count} more Pulse alert{0}"
-msgstr ""
+msgstr "Open {count} more Pulse alert{0}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: labelForState(state)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {fullName} rules for {0} — {1}"
-msgstr ""
+msgstr "Open {fullName} rules for {0} — {1}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {pending} pending rules for {0}"
-msgstr ""
+msgstr "Open {pending} pending rules for {0}"
 
 #: src/routes/billing.success.tsx
 msgid "Open Billing"
@@ -4984,7 +5093,7 @@ msgstr "打开账单"
 #. placeholder {0}: ruleSource.title
 #: src/features/rules/coverage-tab.tsx
 msgid "Open cited source: {0}"
-msgstr ""
+msgstr "Open cited source: {0}"
 
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Open client"
@@ -4992,7 +5101,7 @@ msgstr "打开客户"
 
 #: src/routes/obligations.tsx
 msgid "Open client detail"
-msgstr ""
+msgstr "Open client detail"
 
 #. placeholder {0}: row.original.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -5025,7 +5134,7 @@ msgstr "打开完整义务列表"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Open full queue"
-msgstr ""
+msgstr "Open full queue"
 
 #: src/features/members/members-page.tsx
 msgid "Open member actions"
@@ -5078,7 +5187,7 @@ msgstr "打开来源"
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open sources for {0}"
-msgstr ""
+msgstr "Open sources for {0}"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Open the Apple Calendar link"
@@ -5094,7 +5203,7 @@ msgstr "打开 Migration Copilot 向导。"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
-msgstr ""
+msgstr "Open the upstream obligation that's blocking this row."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
@@ -5103,6 +5212,10 @@ msgstr "打开你的身份验证器应用，添加新账户，然后扫描此二
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open your personal notification inbox."
 msgstr "打开你的个人通知收件箱。"
+
+#: src/routes/obligations.tsx
+msgid "Open, waiting, review, blocked, and extended work."
+msgstr "Open, waiting, review, blocked, and extended work."
 
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"
@@ -5153,7 +5266,7 @@ msgstr "其他"
 
 #: src/features/obligations/timeline.tsx
 msgid "Other activity"
-msgstr ""
+msgstr "Other activity"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Other calendars -> From URL"
@@ -5370,8 +5483,8 @@ msgid "Payments and credits"
 msgstr "付款和抵免"
 
 #: src/routes/obligations.tsx
-msgid "PDF zip"
-msgstr "PDF 压缩包"
+msgid "PDF report"
+msgstr "PDF report"
 
 #: src/routes/obligations.tsx
 msgid "Penalty calculation available"
@@ -5388,7 +5501,7 @@ msgstr "Penalty 输入"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Penalty inputs and tax-attribute flags"
-msgstr ""
+msgstr "Penalty inputs and tax-attribute flags"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Penalty inputs changed"
@@ -5441,7 +5554,7 @@ msgstr "待处理邀请"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Pending review queue"
-msgstr ""
+msgstr "Pending review queue"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pending rule queued"
@@ -5449,7 +5562,7 @@ msgstr "待审核规则已进入队列"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Pending rules"
-msgstr ""
+msgstr "Pending rules"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "Pending rules selected for practice review."
@@ -5549,6 +5662,11 @@ msgstr "门户链接已复制"
 msgid "Practice"
 msgstr "事务所"
 
+#. placeholder {0}: pendingRemoval.name
+#: src/features/members/members-page.tsx
+msgid "Practice access for {0}"
+msgstr "Practice access for {0}"
+
 #: src/routes/migration.new.tsx
 msgid "PRACTICE ACTIVATION"
 msgstr "事务所激活"
@@ -5597,7 +5715,7 @@ msgstr "事务所名称"
 
 #: src/routes/settings.tsx
 msgid "Practice name, timezone, internal deadline policy, smart priority weighting."
-msgstr ""
+msgstr "Practice name, timezone, internal deadline policy, smart priority weighting."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/practice.tsx
@@ -5859,11 +5977,11 @@ msgstr "动态"
 #. placeholder {0}: formatTaxCode(matches[0].taxType)
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Pulse · {0}"
-msgstr ""
+msgstr "Pulse · {0}"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Pulse · {count}"
-msgstr ""
+msgstr "Pulse · {count}"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/notifications/notifications-page.tsx
@@ -5877,11 +5995,11 @@ msgstr "监管提醒：{0}"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Pulse alert: {tooltip}"
-msgstr ""
+msgstr "Pulse alert: {tooltip}"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "Pulse alerts"
-msgstr ""
+msgstr "Pulse alerts"
 
 #: src/routes/billing.tsx
 msgid "Pulse and Obligations access"
@@ -5918,7 +6036,7 @@ msgstr "为每条义务关联监管证据"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/rules.pulse.tsx
 msgid "Pulse Notification"
-msgstr ""
+msgstr "Pulse Notification"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pulse quarantined"
@@ -5986,6 +6104,10 @@ msgstr "已入队"
 #: src/routes/practice.tsx
 msgid "Rank"
 msgstr "排名"
+
+#: src/routes/obligations.tsx
+msgid "Raw data for spreadsheets and portability."
+msgstr "Raw data for spreadsheets and portability."
 
 #: src/features/migration/WizardShell.tsx
 msgid "Re-map fields"
@@ -6106,7 +6228,7 @@ msgstr "收入区间"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Recent audited changes for this client record"
-msgstr ""
+msgstr "Recent audited changes for this client record"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Recent delivery"
@@ -6121,6 +6243,7 @@ msgid "Recently updated"
 msgstr "最近更新"
 
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/obligations.tsx
 msgid "Recipient"
 msgstr "收件人"
 
@@ -6191,7 +6314,7 @@ msgstr "刷新置信度"
 #. placeholder {0}: formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Refreshed {0}"
-msgstr ""
+msgstr "Refreshed {0}"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Refreshing the AI mapping"
@@ -6265,8 +6388,21 @@ msgid "Remove from practice"
 msgstr "从事务所移除"
 
 #: src/features/members/members-page.tsx
+msgid "Remove from practice (1)"
+msgstr "Remove from practice (1)"
+
+#: src/features/members/members-page.tsx
 msgid "Remove member?"
 msgstr "移除成员？"
+
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Removes"
+msgstr "Removes"
+
+#: src/features/members/members-page.tsx
+msgid "Removing this member will commit these changes"
+msgstr "Removing this member will commit these changes"
 
 #: src/routes/obligations.tsx
 msgid "Rename saved view"
@@ -6366,12 +6502,12 @@ msgstr "返回首页"
 
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/migration.new.tsx
-msgid "Return to dashboard"
-msgstr "返回仪表盘"
+msgid "Return to Today"
+msgstr "Return to Today"
 
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
-msgstr ""
+msgstr "Returned from filed status — IRS/state rejected the submission."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reuse provider import"
@@ -6380,6 +6516,11 @@ msgstr "复用平台导入"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
 msgstr "撤销批次"
+
+#. placeholder {0}: pendingBatch?.successCount ?? 0
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Revert batch ({0})"
+msgstr "Revert batch ({0})"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert this import batch?"
@@ -6409,6 +6550,10 @@ msgstr "已撤销一项规则变更。"
 msgid "Reverted an import."
 msgstr "已撤销一次导入。"
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Reverting this batch will commit these changes"
+msgstr "Reverting this batch will commit these changes"
+
 #: src/features/rules/rules-console-primitives.tsx
 msgid "review"
 msgstr "复核"
@@ -6427,7 +6572,7 @@ msgstr "复核 —— 需 CPA 确认"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Review {pendingCount} pending rules"
-msgstr ""
+msgstr "Review {pendingCount} pending rules"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Review and confirm column mapping"
@@ -6456,7 +6601,7 @@ msgstr "查看事务所范围内的审计事件。"
 #. placeholder {0}: alert.title
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "Review Pulse alert: {0}"
-msgstr ""
+msgstr "Review Pulse alert: {0}"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "Review reasons"
@@ -6539,11 +6684,11 @@ msgstr "复核中"
 #. placeholder {1}: queuePosition.total
 #: src/features/rules/coverage-tab.tsx
 msgid "Reviewing {0} of {1}"
-msgstr ""
+msgstr "Reviewing {0} of {1}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Reviewing rule"
-msgstr ""
+msgstr "Reviewing rule"
 
 #: src/routes/account.security.tsx
 msgid "Revoke"
@@ -6767,7 +6912,7 @@ msgstr "样例"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Save"
-msgstr ""
+msgstr "Save"
 
 #: src/routes/billing.tsx
 msgid "Save $192/year"
@@ -6926,11 +7071,11 @@ msgstr "搜索县"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Search jurisdictions or rules"
-msgstr ""
+msgstr "Search jurisdictions or rules"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Search jurisdictions or rules…"
-msgstr ""
+msgstr "Search jurisdictions or rules…"
 
 #: src/routes/obligations.tsx
 msgid "Search obligations"
@@ -7002,6 +7147,10 @@ msgstr "选择所有可见行"
 msgid "Select at least one pending rule."
 msgstr "请至少选择一条待审核规则。"
 
+#: src/routes/obligations.tsx
+msgid "Select client"
+msgstr "Select client"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Select clients and apply again."
 msgstr "请选择客户后再次应用。"
@@ -7026,6 +7175,10 @@ msgstr "选择要应用的义务"
 msgid "Select pending rules from the table."
 msgstr "请从表格中选择待复核规则。"
 
+#: src/routes/obligations.tsx
+msgid "Select rows to use this scope."
+msgstr "Select rows to use this scope."
+
 #. placeholder {0}: rule.title
 #: src/features/rules/rule-library-tab.tsx
 msgid "Select rule {0}"
@@ -7042,6 +7195,10 @@ msgstr "选择当前可见的待复核规则"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Selected obligation"
 msgstr "已选义务"
+
+#: src/routes/obligations.tsx
+msgid "Selected obligations"
+msgstr "Selected obligations"
 
 #: src/routes/billing.checkout.tsx
 msgid "Selected plan"
@@ -7105,7 +7262,7 @@ msgstr "会话已撤销"
 
 #: src/routes/obligations.tsx
 msgid "Set status"
-msgstr ""
+msgstr "Set status"
 
 #. placeholder {0}: after.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -7223,15 +7380,15 @@ msgstr "正在退出…"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Skip"
-msgstr ""
+msgstr "Skip"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Skip — review next pending rule (j)"
-msgstr ""
+msgstr "Skip — review next pending rule (j)"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Skip · j"
-msgstr ""
+msgstr "Skip · j"
 
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
@@ -7418,7 +7575,7 @@ msgstr "来源约束摘要"
 #. placeholder {0}: alert.source
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "Source: {0}"
-msgstr ""
+msgstr "Source: {0}"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/route-summary.ts
@@ -7426,6 +7583,14 @@ msgstr ""
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "来源"
+
+#: src/routes/obligations.tsx
+msgid "Specific client"
+msgstr "Specific client"
+
+#: src/routes/obligations.tsx
+msgid "Specific date range"
+msgstr "Specific date range"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
@@ -7442,7 +7607,7 @@ msgstr "已过期"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Start reviewing {pendingCount} pending rules"
-msgstr ""
+msgstr "Start reviewing {pendingCount} pending rules"
 
 #: src/routes/billing.tsx
 msgid "Start Solo"
@@ -7488,7 +7653,7 @@ msgstr "状态由 Pulse 设置 · 打开雷达查看完整监视器诊断"
 #. placeholder {0}: label.toLowerCase()
 #: src/features/obligations/timeline.tsx
 msgid "Status set to {0}."
-msgstr ""
+msgstr "Status set to {0}."
 
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -7533,7 +7698,7 @@ msgstr "通过 Google Calendar、Apple Calendar 或 Outlook 订阅。DueDateHQ �
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't change DueDateHQ."
-msgstr ""
+msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't change DueDateHQ."
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Subscribe from web calendar URL"
@@ -7617,7 +7782,7 @@ msgstr "切换到年付"
 #. placeholder {0}: formatDateTimeWithTimezone(client.updatedAt, firmTimezone)
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Synced {0}"
-msgstr ""
+msgstr "Synced {0}"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-event-drawer.tsx
@@ -7718,6 +7883,10 @@ msgstr "Team 和 Enterprise 计划会为每周工作负载分诊增加产能压�
 #: src/features/audit/audit-log-labels.ts
 msgid "Team member"
 msgstr "团队成员"
+
+#: src/routes/obligations.tsx
+msgid "Team recipient delivery will use the notification queue."
+msgstr "Team recipient delivery will use the notification queue."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/workload/workload-page.tsx
@@ -7855,7 +8024,7 @@ msgstr "处理义务工作的操作界面：筛选、排序、分配负责人、
 
 #: src/routes/not-found.tsx
 msgid "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
-msgstr ""
+msgstr "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 
 #: src/routes/billing.tsx
 msgid "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
@@ -7944,7 +8113,7 @@ msgstr "这会清除未完成的草稿，方便你开始新的导入。目前还
 
 #: src/routes/clients.$clientId.tsx
 msgid "This client may have been deleted or you may not have access."
-msgstr ""
+msgstr "This client may have been deleted or you may not have access."
 
 #: src/features/migration/Step4Preview.tsx
 msgid "This import can be undone for 24 hours and keeps an audit record"
@@ -8020,7 +8189,7 @@ msgstr "本周"
 
 #: src/features/dashboard/exposure-strip.tsx
 msgid "This week's exposure"
-msgstr ""
+msgstr "This week's exposure"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "TIER"
@@ -8036,7 +8205,7 @@ msgstr "时间范围"
 
 #: src/routes/obligations.tsx
 msgid "Timeline"
-msgstr ""
+msgstr "Timeline"
 
 #: src/routes/settings.tsx
 msgid "Timestamped event log across the workspace."
@@ -8048,10 +8217,21 @@ msgstr "工作区内带时间戳的事件日志。"
 msgid "Timezone"
 msgstr "时区"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
+#: src/routes/route-summary.ts
 msgid "Today"
 msgstr "今天"
+
+#: src/routes/billing.tsx
+msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
+msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
+
+#: src/routes/migration.new.tsx
+msgid "Today risk"
+msgstr "Today risk"
 
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."
@@ -8075,7 +8255,7 @@ msgstr "信托"
 
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
-msgstr ""
+msgstr "Try a different filter combination, or clear all filters to see the full queue."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Try previewing again before generating."
@@ -8171,8 +8351,8 @@ msgid "Undo available for 24 hours"
 msgstr "24 小时内可撤销"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Undo client"
-msgstr "撤销客户"
+msgid "Undo client (1)"
+msgstr "Undo client (1)"
 
 #: src/features/migration/Wizard.tsx
 msgid "Undo import"
@@ -8185,6 +8365,10 @@ msgstr "撤销这次导入？"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Undo this imported client?"
 msgstr "撤销这个导入的客户？"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undoing this import will commit these changes"
+msgstr "Undoing this import will commit these changes"
 
 #: src/routes/error.tsx
 msgid "Unexpected route error"
@@ -8346,7 +8530,7 @@ msgstr "查看 {0}"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "View all"
-msgstr ""
+msgstr "View all"
 
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "View all opportunities"
@@ -8370,7 +8554,7 @@ msgstr "查看覆盖地图"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View on Radar"
-msgstr ""
+msgstr "View on Radar"
 
 #: src/routes/rules.library.tsx
 msgid "View sources"
@@ -8401,7 +8585,7 @@ msgstr "监视中"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Watched sources"
-msgstr ""
+msgstr "Watched sources"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "We block SSN-like patterns before sending anything to the AI."
@@ -8461,6 +8645,10 @@ msgstr "粘贴或上传都行 —— 我们会自动识别格式。"
 #: src/routes/login.tsx
 msgid "Welcome to the workbench."
 msgstr "欢迎来到工作台。"
+
+#: src/routes/obligations.tsx
+msgid "What"
+msgstr "What"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "What changed"
@@ -8554,7 +8742,7 @@ msgstr "你即将创建"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "You're caught up. Next deadline appears here when one's within a week."
-msgstr ""
+msgstr "You're caught up. Next deadline appears here when one's within a week."
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@firm.com"
@@ -8593,8 +8781,8 @@ msgid "Your practice plan is ready."
 msgstr "你的事务所计划已就绪。"
 
 #: src/routes/migration.new.tsx
-msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first dashboard risk view. You can skip and import later from Dashboard, Clients, or Command Palette."
-msgstr "你的事务所工作区已准备好。现在导入电子表格，把客户事实转换成截止日、证据和第一版 Dashboard 风险视图。你也可以跳过，之后从 Dashboard、客户页或命令面板再导入。"
+msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
+msgstr "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
 
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."

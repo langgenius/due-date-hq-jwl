@@ -116,7 +116,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`3 seats included`,
       firms: t`1 production practice`,
       aiLabel: t`Practice AI included`,
-      aiDescription: t`Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data.`,
+      aiDescription: t`Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data.`,
       aiFeatures: [t`Full practice AI workflows`, t`Same AI capability as Team`],
       description: t`For small practices that need shared deadline operations.`,
       features: [

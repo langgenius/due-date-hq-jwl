@@ -14,8 +14,8 @@ export const NAVIGATION_SHORTCUTS = [
     id: 'nav.dashboard',
     sequence: ['G', 'D'],
     path: '/',
-    name: 'Go to Dashboard',
-    description: 'Navigate to the dashboard.',
+    name: 'Go to Today',
+    description: 'Navigate to Today.',
     displayKeys: 'G then D',
   },
   {

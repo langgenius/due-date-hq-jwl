@@ -62,6 +62,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
@@ -350,6 +351,28 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendingRemoval ? (
+            <DestructiveChangePreview
+              title={<Trans>Removing this member will commit these changes</Trans>}
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Removes</Trans>,
+                  detail: t`Practice access for ${pendingRemoval.name}`,
+                },
+                {
+                  tone: 'add',
+                  label: <Trans>Adds</Trans>,
+                  detail: <Trans>No replacement assignments or records</Trans>,
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: <Trans>Audit history and existing client work</Trans>,
+                },
+              ]}
+            />
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel>
               <Trans>Cancel</Trans>
@@ -361,7 +384,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 if (pendingRemoval) removeMutation.mutate({ memberId: pendingRemoval.id })
               }}
             >
-              <Trans>Remove from practice</Trans>
+              <Trans>Remove from practice (1)</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

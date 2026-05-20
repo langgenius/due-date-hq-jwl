@@ -201,7 +201,7 @@ function SummaryStrip({
         {label}
       </span>
       <div
-        className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto"
+        className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
         aria-busy={loading || undefined}
       >
         {loading ? (

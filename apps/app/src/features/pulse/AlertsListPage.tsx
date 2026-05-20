@@ -451,7 +451,7 @@ function PulseSourceHealthTable({
         <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
           {sources.map((source) => (
             <TableRow key={source.sourceId}>
-              <TableCell className="min-w-[220px]">
+              <TableCell className="w-[220px]">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate font-medium text-text-primary">{source.label}</span>
                   <span className="truncate font-mono text-xs text-text-tertiary">

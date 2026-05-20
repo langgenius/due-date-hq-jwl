@@ -2,10 +2,15 @@ import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
+import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuleCoverageRow } from '@duedatehq/contracts'
 
+import {
+  KeyboardShellContext,
+  type KeyboardShellContextValue,
+} from '@/components/patterns/keyboard-shell/state'
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
@@ -16,6 +21,14 @@ const rpcMocks = vi.hoisted(() => ({
   coverageQueryFn: vi.fn(),
   sourceHealthQueryFn: vi.fn(),
   listSourcesQueryFn: vi.fn(),
+  listRulesQueryFn: vi.fn(),
+}))
+const nuqsMocks = vi.hoisted(() => ({
+  filter: 'all',
+  search: '',
+  setFilter: vi.fn(),
+  setSearch: vi.fn(),
+  setRule: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -33,6 +46,12 @@ vi.mock('@/lib/rpc', () => ({
           queryFn: rpcMocks.listSourcesQueryFn,
         }),
       },
+      listRules: {
+        queryOptions: () => ({
+          queryKey: ['rules', 'listRules'],
+          queryFn: rpcMocks.listRulesQueryFn,
+        }),
+      },
     },
     pulse: {
       listSourceHealth: {
@@ -44,6 +63,18 @@ vi.mock('@/lib/rpc', () => ({
     },
   },
 }))
+
+vi.mock('nuqs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('nuqs')>()
+  return {
+    ...actual,
+    useQueryState: (key: string) => {
+      if (key === 'filter') return [nuqsMocks.filter, nuqsMocks.setFilter]
+      if (key === 'q') return [nuqsMocks.search, nuqsMocks.setSearch]
+      return [null, nuqsMocks.setRule]
+    },
+  }
+})
 
 declare global {
   // eslint-disable-next-line no-var
@@ -71,6 +102,16 @@ const coverageRows: RuleCoverageRow[] = [
   },
 ]
 
+const keyboardShellTestValue: KeyboardShellContextValue = {
+  commandPaletteOpen: false,
+  shortcutHelpOpen: false,
+  shortcutsBlocked: false,
+  openCommandPalette: () => undefined,
+  closeCommandPalette: () => undefined,
+  openShortcutHelp: () => undefined,
+  closeShortcutHelp: () => undefined,
+}
+
 async function render(children: ReactNode) {
   container = document.createElement('div')
   document.body.append(container)
@@ -81,7 +122,13 @@ async function render(children: ReactNode) {
     root?.render(
       <QueryClientProvider client={client}>
         <AppI18nProvider>
-          <MemoryRouter>{children}</MemoryRouter>
+          <MemoryRouter>
+            <HotkeysProvider>
+              <KeyboardShellContext.Provider value={keyboardShellTestValue}>
+                {children}
+              </KeyboardShellContext.Provider>
+            </HotkeysProvider>
+          </MemoryRouter>
         </AppI18nProvider>
       </QueryClientProvider>,
     )
@@ -114,6 +161,13 @@ beforeEach(() => {
   rpcMocks.sourceHealthQueryFn.mockResolvedValue({ sources: [] })
   rpcMocks.listSourcesQueryFn.mockReset()
   rpcMocks.listSourcesQueryFn.mockResolvedValue([])
+  rpcMocks.listRulesQueryFn.mockReset()
+  rpcMocks.listRulesQueryFn.mockResolvedValue([])
+  nuqsMocks.filter = 'all'
+  nuqsMocks.search = ''
+  nuqsMocks.setFilter.mockReset()
+  nuqsMocks.setSearch.mockReset()
+  nuqsMocks.setRule.mockReset()
 })
 
 afterEach(() => {

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { Fragment, useMemo, useState, type MouseEvent } from 'react'
 import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -32,6 +32,11 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import {
+  isInteractiveEventTarget,
+  useAppHotkey,
+  useKeyboardShortcutsBlocked,
+} from '@/components/patterns/keyboard-shell'
 import { orpc } from '@/lib/rpc'
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
@@ -84,6 +89,7 @@ export function CoverageTab({
   ) => void
 } = {}) {
   const { t } = useLingui()
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
   // Filter + search live in URL state (nuqs) — survives refresh,
   // back/forward navigation, and shareable links to "Coverage filtered
   // to attention". Component state would have lost the user's view
@@ -298,28 +304,104 @@ export function CoverageTab({
   // Ignored when focus is inside an input / textarea / contentEditable
   // so the user can still type into the search box.
   const panelOpenForKeys = selectedRuleId !== null
-  useEffect(() => {
-    if (!panelOpenForKeys) return
-    const handler = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null
-      const tag = target?.tagName.toLowerCase()
-      if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (event.key === 'j' || event.key === 'ArrowDown') {
-        event.preventDefault()
-        goNext()
-      } else if (event.key === 'k' || event.key === 'ArrowUp') {
-        event.preventDefault()
-        goPrev()
-      } else if (event.key === 'Escape') {
-        event.preventDefault()
-        void setSelectedRuleId(null)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panelOpenForKeys, selectedRuleId, pendingQueue])
+  const reviewHotkeysEnabled = panelOpenForKeys && !shortcutsBlocked
+  const ignoreReviewHotkey = (target: EventTarget | null) => isInteractiveEventTarget(target)
+
+  useAppHotkey(
+    'J',
+    (event) => {
+      if (ignoreReviewHotkey(event.target)) return
+      event.preventDefault()
+      goNext()
+    },
+    {
+      enabled: reviewHotkeysEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.review-next',
+        name: 'Next pending rule',
+        description: 'Move to the next rule in the review queue.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'ArrowDown',
+    (event) => {
+      if (ignoreReviewHotkey(event.target)) return
+      event.preventDefault()
+      goNext()
+    },
+    {
+      enabled: reviewHotkeysEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.review-next-arrow',
+        name: 'Next pending rule',
+        description: 'Move to the next rule in the review queue.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'K',
+    (event) => {
+      if (ignoreReviewHotkey(event.target)) return
+      event.preventDefault()
+      goPrev()
+    },
+    {
+      enabled: reviewHotkeysEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.review-previous',
+        name: 'Previous pending rule',
+        description: 'Move to the previous rule in the review queue.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'ArrowUp',
+    (event) => {
+      if (ignoreReviewHotkey(event.target)) return
+      event.preventDefault()
+      goPrev()
+    },
+    {
+      enabled: reviewHotkeysEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.review-previous-arrow',
+        name: 'Previous pending rule',
+        description: 'Move to the previous rule in the review queue.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'Escape',
+    (event) => {
+      if (ignoreReviewHotkey(event.target)) return
+      event.preventDefault()
+      void setSelectedRuleId(null)
+    },
+    {
+      enabled: reviewHotkeysEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.review-exit',
+        name: 'Exit review',
+        description: 'Close the active rule review panel.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
 
   if (coverageQuery.isLoading) {
     return <QueryPanelState state="loading" message={t`Loading rules coverage…`} />
@@ -816,13 +898,15 @@ function CoverageRow({
   // target.closest('button') guard catches the case where a click
   // bubbles up from a button that didn't stop propagation.
   const handleRowClick = (event: MouseEvent<HTMLTableRowElement>) => {
-    const target = event.target as HTMLElement
+    if (!(event.target instanceof HTMLElement)) return
+    const target = event.target
     if (target.closest('button, a')) return
     onToggleExpanded()
   }
   const handleRowKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') return
-    const target = event.target as HTMLElement
+    if (!(event.target instanceof HTMLElement)) return
+    const target = event.target
     if (target.closest('button, a')) return
     event.preventDefault()
     onToggleExpanded()

@@ -50,6 +50,11 @@ msgstr "{0, plural, one {# row ready to import} other {# rows ready to import}}"
 msgid "{0, plural, one {# row selected} other {# rows selected}}"
 msgstr "{0, plural, one {# row selected} other {# rows selected}}"
 
+#. placeholder {0}: selectedIds.length
+#: src/routes/obligations.tsx
+msgid "{0, plural, one {# selected obligation} other {# selected obligations}}"
+msgstr "{0, plural, one {# selected obligation} other {# selected obligations}}"
+
 #. placeholder {0}: row.original.evidenceCount
 #. placeholder {0}: tableRow.original.evidenceCount
 #: src/routes/dashboard.tsx
@@ -79,6 +84,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} accepted · {1} skipped."
 msgstr "{0} accepted · {1} skipped."
 
+#. placeholder {0}: pendingRecovery.client.name
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "{0} and its imported deadlines"
+msgstr "{0} and its imported deadlines"
+
 #. placeholder {0}: data.availableSeats
 #: src/features/members/members-page.tsx
 msgid "{0} available seats"
@@ -102,6 +112,11 @@ msgstr "{0} clients, {1} obligations, {2} exposure, {3} need input"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} filings extended — payment is NOT extended"
 msgstr "{0} filings extended — payment is NOT extended"
+
+#. placeholder {0}: pendingBatch?.successCount ?? 0
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "{0} imported clients and their generated deadlines"
+msgstr "{0} imported clients and their generated deadlines"
 
 #. placeholder {0}: inviteQuery.data.inviterEmail
 #. placeholder {1}: inviteQuery.data.organizationName
@@ -774,6 +789,11 @@ msgstr "Add practice"
 msgid "Added evidence to this deadline."
 msgstr "Added evidence to this deadline."
 
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Adds"
+msgstr "Adds"
+
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Advisory"
 msgstr "Advisory"
@@ -865,6 +885,10 @@ msgstr "All {total} sources working"
 #: src/features/audit/audit-log-page.tsx
 msgid "All actions"
 msgstr "All actions"
+
+#: src/routes/obligations.tsx
+msgid "All active obligations"
+msgstr "All active obligations"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actors"
@@ -1149,6 +1173,14 @@ msgstr "Audit exports require the Team or Enterprise plan."
 msgid "Audit filters"
 msgstr "Audit filters"
 
+#: src/features/members/members-page.tsx
+msgid "Audit history and existing client work"
+msgstr "Audit history and existing client work"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Audit history retained for compliance"
+msgstr "Audit history retained for compliance"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
@@ -1389,6 +1421,10 @@ msgstr "Calculated"
 msgid "Calculating…"
 msgstr "Calculating…"
 
+#: src/routes/obligations.tsx
+msgid "Calendar events dated to each internal deadline."
+msgstr "Calendar events dated to each internal deadline."
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
 msgstr "Calendar subscription disabled"
@@ -1574,6 +1610,10 @@ msgstr "Choose a workspace tier"
 #: src/routes/billing.checkout.tsx
 msgid "Choose another plan"
 msgstr "Choose another plan"
+
+#: src/routes/obligations.tsx
+msgid "Choose one option in each row. Export writes an audit event."
+msgstr "Choose one option in each row. Export writes an audit event."
 
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
@@ -2346,6 +2386,10 @@ msgstr "Created"
 msgid "Created deadlines"
 msgstr "Created deadlines"
 
+#: src/routes/obligations.tsx
+msgid "Creates the file in this browser."
+msgstr "Creates the file in this browser."
+
 #: src/features/migration/WizardShell.tsx
 msgid "Creating a safe import batch, uploading rows, and mapping your columns."
 msgstr "Creating a safe import batch, uploading rows, and mapping your columns."
@@ -2379,6 +2423,10 @@ msgstr "current"
 #: src/routes/account.security.tsx
 msgid "Current"
 msgstr "Current"
+
+#: src/routes/obligations.tsx
+msgid "Current filtered view"
+msgstr "Current filtered view"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2421,20 +2469,6 @@ msgstr "Custom rule created"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "Dark"
-
-#: src/components/patterns/app-shell-nav.tsx
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/routes/route-summary.ts
-msgid "Dashboard"
-msgstr "Dashboard"
-
-#: src/routes/billing.tsx
-msgid "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
-msgstr "Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
-
-#: src/routes/migration.new.tsx
-msgid "Dashboard risk"
-msgstr "Dashboard risk"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Data cleanup warning"
@@ -2593,6 +2627,10 @@ msgstr "Discard import?"
 msgid "Discard this draft import?"
 msgstr "Discard this draft import?"
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Discarding this draft will commit these changes"
+msgstr "Discarding this draft will commit these changes"
+
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/pulse/PulseAlertsBanner.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -2612,6 +2650,10 @@ msgstr "Distribution of prep work across the team."
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Dot order"
 msgstr "Dot order"
+
+#: src/routes/obligations.tsx
+msgid "Download"
+msgstr "Download"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
@@ -2738,9 +2780,21 @@ msgstr "Email"
 msgid "Email address"
 msgstr "Email address"
 
+#: src/routes/obligations.tsx
+msgid "Email delivery is not connected for obligation exports yet."
+msgstr "Email delivery is not connected for obligation exports yet."
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Email me a code"
 msgstr "Email me a code"
+
+#: src/routes/obligations.tsx
+msgid "Email to self"
+msgstr "Email to self"
+
+#: src/routes/obligations.tsx
+msgid "Email to teammate"
+msgstr "Email to teammate"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Enable full feed"
@@ -2958,8 +3012,32 @@ msgid "Export"
 msgstr "Export"
 
 #: src/routes/obligations.tsx
+msgid "Export end date"
+msgstr "Export end date"
+
+#: src/routes/obligations.tsx
+msgid "Export obligations"
+msgstr "Export obligations"
+
+#: src/routes/obligations.tsx
 msgid "Export ready"
 msgstr "Export ready"
+
+#: src/routes/obligations.tsx
+msgid "Export start date"
+msgstr "Export start date"
+
+#: src/routes/obligations.tsx
+msgid "Exporting…"
+msgstr "Exporting…"
+
+#: src/routes/obligations.tsx
+msgid "Exports all obligations for one client."
+msgstr "Exports all obligations for one client."
+
+#: src/routes/obligations.tsx
+msgid "Exports obligations due within the selected date window."
+msgstr "Exports obligations due within the selected date window."
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Exposure preview"
@@ -3139,6 +3217,10 @@ msgstr "Filter jurisdictions"
 msgid "Firm"
 msgstr "Firm"
 
+#: src/routes/obligations.tsx
+msgid "Firm-branded client-facing PDFs grouped by client."
+msgstr "Firm-branded client-facing PDFs grouped by client."
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
 msgstr "FL tentative tax"
@@ -3181,6 +3263,7 @@ msgid "Form"
 msgstr "Form"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
 msgid "Format"
 msgstr "Format"
 
@@ -3269,13 +3352,10 @@ msgstr "Generating…"
 msgid "Go back"
 msgstr "Go back"
 
-#: src/routes/not-found.tsx
-msgid "Go to dashboard"
-msgstr "Go to dashboard"
-
 #: src/routes/billing.success.tsx
-msgid "Go to Dashboard"
-msgstr "Go to Dashboard"
+#: src/routes/not-found.tsx
+msgid "Go to Today"
+msgstr "Go to Today"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Google Calendar"
@@ -3339,6 +3419,10 @@ msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
 #: src/features/migration/Step1Intake.tsx
 msgid "I'm coming from… (optional)"
 msgstr "I'm coming from… (optional)"
+
+#: src/routes/obligations.tsx
+msgid "iCal .ics"
+msgstr "iCal .ics"
 
 #: src/routes/settings.tsx
 msgid "Identity, team, and capacity for this practice workspace."
@@ -3632,6 +3716,11 @@ msgstr "Keep editing"
 #: src/features/migration/Wizard.tsx
 msgid "Keep import"
 msgstr "Keep import"
+
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Keeps"
+msgstr "Keeps"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Keeps obligation follow-up accountable."
@@ -3959,6 +4048,10 @@ msgstr "Matched an imported column to DueDateHQ."
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched clients"
 msgstr "Matched clients"
+
+#: src/routes/obligations.tsx
+msgid "Matches the filters and sort currently on this page."
+msgstr "Matches the filters and sort currently on this page."
 
 #: src/routes/obligations.tsx
 msgid "Max $"
@@ -4582,6 +4675,10 @@ msgstr "No practice selected"
 msgid "No previous provider imports are available yet."
 msgstr "No previous provider imports are available yet."
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "No production records"
+msgstr "No production records"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No Pulse alert"
 msgstr "No Pulse alert"
@@ -4605,6 +4702,14 @@ msgstr "no reminder"
 #: src/features/reminders/reminders-page.tsx
 msgid "No reminder deliveries have been recorded yet."
 msgstr "No reminder deliveries have been recorded yet."
+
+#: src/features/members/members-page.tsx
+msgid "No replacement assignments or records"
+msgstr "No replacement assignments or records"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "No replacement client or deadline records"
+msgstr "No replacement client or deadline records"
 
 #: src/features/rules/rules-console-primitives.tsx
 msgid "no rule"
@@ -4902,6 +5007,10 @@ msgstr "Onboarding state advanced"
 msgid "Onboarding turn opened"
 msgstr "Onboarding turn opened"
 
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "One unfinished draft import"
+msgstr "One unfinished draft import"
+
 #: src/features/pulse/lib/error-mapping.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Only owners and managers can apply Pulse changes."
@@ -5103,6 +5212,10 @@ msgstr "Open your authenticator app, add a new account, then scan this code. Use
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open your personal notification inbox."
 msgstr "Open your personal notification inbox."
+
+#: src/routes/obligations.tsx
+msgid "Open, waiting, review, blocked, and extended work."
+msgstr "Open, waiting, review, blocked, and extended work."
 
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"
@@ -5370,8 +5483,8 @@ msgid "Payments and credits"
 msgstr "Payments and credits"
 
 #: src/routes/obligations.tsx
-msgid "PDF zip"
-msgstr "PDF zip"
+msgid "PDF report"
+msgstr "PDF report"
 
 #: src/routes/obligations.tsx
 msgid "Penalty calculation available"
@@ -5548,6 +5661,11 @@ msgstr "Portal link copied"
 #: src/routes/settings.tsx
 msgid "Practice"
 msgstr "Practice"
+
+#. placeholder {0}: pendingRemoval.name
+#: src/features/members/members-page.tsx
+msgid "Practice access for {0}"
+msgstr "Practice access for {0}"
 
 #: src/routes/migration.new.tsx
 msgid "PRACTICE ACTIVATION"
@@ -5987,6 +6105,10 @@ msgstr "Queued"
 msgid "Rank"
 msgstr "Rank"
 
+#: src/routes/obligations.tsx
+msgid "Raw data for spreadsheets and portability."
+msgstr "Raw data for spreadsheets and portability."
+
 #: src/features/migration/WizardShell.tsx
 msgid "Re-map fields"
 msgstr "Re-map fields"
@@ -6121,6 +6243,7 @@ msgid "Recently updated"
 msgstr "Recently updated"
 
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/obligations.tsx
 msgid "Recipient"
 msgstr "Recipient"
 
@@ -6265,8 +6388,21 @@ msgid "Remove from practice"
 msgstr "Remove from practice"
 
 #: src/features/members/members-page.tsx
+msgid "Remove from practice (1)"
+msgstr "Remove from practice (1)"
+
+#: src/features/members/members-page.tsx
 msgid "Remove member?"
 msgstr "Remove member?"
+
+#: src/features/members/members-page.tsx
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Removes"
+msgstr "Removes"
+
+#: src/features/members/members-page.tsx
+msgid "Removing this member will commit these changes"
+msgstr "Removing this member will commit these changes"
 
 #: src/routes/obligations.tsx
 msgid "Rename saved view"
@@ -6366,8 +6502,8 @@ msgstr "Return home"
 
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/migration.new.tsx
-msgid "Return to dashboard"
-msgstr "Return to dashboard"
+msgid "Return to Today"
+msgstr "Return to Today"
 
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
@@ -6380,6 +6516,11 @@ msgstr "Reuse provider import"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
 msgstr "Revert batch"
+
+#. placeholder {0}: pendingBatch?.successCount ?? 0
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Revert batch ({0})"
+msgstr "Revert batch ({0})"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert this import batch?"
@@ -6408,6 +6549,10 @@ msgstr "Reverted a rule change."
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Reverted an import."
 msgstr "Reverted an import."
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Reverting this batch will commit these changes"
+msgstr "Reverting this batch will commit these changes"
 
 #: src/features/rules/rules-console-primitives.tsx
 msgid "review"
@@ -7002,6 +7147,10 @@ msgstr "Select all visible rows"
 msgid "Select at least one pending rule."
 msgstr "Select at least one pending rule."
 
+#: src/routes/obligations.tsx
+msgid "Select client"
+msgstr "Select client"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Select clients and apply again."
 msgstr "Select clients and apply again."
@@ -7026,6 +7175,10 @@ msgstr "Select obligations to apply"
 msgid "Select pending rules from the table."
 msgstr "Select pending rules from the table."
 
+#: src/routes/obligations.tsx
+msgid "Select rows to use this scope."
+msgstr "Select rows to use this scope."
+
 #. placeholder {0}: rule.title
 #: src/features/rules/rule-library-tab.tsx
 msgid "Select rule {0}"
@@ -7042,6 +7195,10 @@ msgstr "Select visible pending rules"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Selected obligation"
 msgstr "Selected obligation"
+
+#: src/routes/obligations.tsx
+msgid "Selected obligations"
+msgstr "Selected obligations"
 
 #: src/routes/billing.checkout.tsx
 msgid "Selected plan"
@@ -7427,6 +7584,14 @@ msgstr "Source: {0}"
 msgid "Sources"
 msgstr "Sources"
 
+#: src/routes/obligations.tsx
+msgid "Specific client"
+msgstr "Specific client"
+
+#: src/routes/obligations.tsx
+msgid "Specific date range"
+msgstr "Specific date range"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
 msgstr "SSN-like columns blocked"
@@ -7718,6 +7883,10 @@ msgstr "Team and Enterprise plans add capacity pressure, unassigned risk, and re
 #: src/features/audit/audit-log-labels.ts
 msgid "Team member"
 msgstr "Team member"
+
+#: src/routes/obligations.tsx
+msgid "Team recipient delivery will use the notification queue."
+msgstr "Team recipient delivery will use the notification queue."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/workload/workload-page.tsx
@@ -8048,10 +8217,21 @@ msgstr "Timestamped event log across the workspace."
 msgid "Timezone"
 msgstr "Timezone"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
+#: src/routes/route-summary.ts
 msgid "Today"
 msgstr "Today"
+
+#: src/routes/billing.tsx
+msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
+msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
+
+#: src/routes/migration.new.tsx
+msgid "Today risk"
+msgstr "Today risk"
 
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."
@@ -8171,8 +8351,8 @@ msgid "Undo available for 24 hours"
 msgstr "Undo available for 24 hours"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Undo client"
-msgstr "Undo client"
+msgid "Undo client (1)"
+msgstr "Undo client (1)"
 
 #: src/features/migration/Wizard.tsx
 msgid "Undo import"
@@ -8185,6 +8365,10 @@ msgstr "Undo this import?"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Undo this imported client?"
 msgstr "Undo this imported client?"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undoing this import will commit these changes"
+msgstr "Undoing this import will commit these changes"
 
 #: src/routes/error.tsx
 msgid "Unexpected route error"
@@ -8462,6 +8646,10 @@ msgstr "We'll figure out the shape — paste or upload, your call."
 msgid "Welcome to the workbench."
 msgstr "Welcome to the workbench."
 
+#: src/routes/obligations.tsx
+msgid "What"
+msgstr "What"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "What changed"
 msgstr "What changed"
@@ -8593,8 +8781,8 @@ msgid "Your practice plan is ready."
 msgstr "Your practice plan is ready."
 
 #: src/routes/migration.new.tsx
-msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first dashboard risk view. You can skip and import later from Dashboard, Clients, or Command Palette."
-msgstr "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first dashboard risk view. You can skip and import later from Dashboard, Clients, or Command Palette."
+msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
+msgstr "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
 
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."

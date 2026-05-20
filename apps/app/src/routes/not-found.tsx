@@ -36,7 +36,7 @@ export function NotFoundRoute() {
         <div className="flex flex-wrap items-center gap-2">
           <Button render={<Link to="/" />}>
             <HomeIcon data-icon="inline-start" />
-            <Trans>Go to dashboard</Trans>
+            <Trans>Go to Today</Trans>
           </Button>
           <Button variant="secondary" onClick={() => navigate(-1)}>
             <ArrowLeftIcon data-icon="inline-start" />

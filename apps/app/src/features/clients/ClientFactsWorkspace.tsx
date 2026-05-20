@@ -488,7 +488,7 @@ export function ClientFactsWorkspace({
         },
         meta: {
           headerClassName: 'w-[260px]',
-          cellClassName: 'w-[260px] min-w-[220px]',
+          cellClassName: 'w-[260px]',
         },
       },
       {

@@ -13,16 +13,15 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * Backward-compat keys (callers prior to migration): default → primary,
  * outline → secondary, destructive → destructive-secondary.
  *
- * Sizes (heights match Dify three-tier scale): xs (24, small) /
- * default & sm (32, medium) / lg (36, large) plus matching icon-*.
- * `sm` is kept as an alias of medium for backward compatibility with call-sites.
+ * Sizes match DESIGN.md's shadcn base-vega contract: default 36px,
+ * sm 32px, xs 28px, and square icon controls on the same scale.
  */
 const buttonVariants = cva(
   cn(
     'group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-colors outline-none select-none',
-    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
     'disabled:pointer-events-none disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed',
-    'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
+    'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ),
   {
@@ -99,20 +98,17 @@ const buttonVariants = cva(
         ),
       },
       size: {
-        // Dify medium: h-8 / px-3.5 / rounded-lg / 13px / font-medium
+        // DESIGN.md: default button is 36px tall, rounded-md, 12px / 500.
         default:
-          'h-8 gap-1.5 rounded-lg px-3.5 text-base in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        // Dify small: h-6 / px-2 / rounded-md / 12px (project text-xs is 11px; keep current xs token)
-        xs: "h-6 gap-1 rounded-md px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        // sm is a legacy alias merged into Dify medium so call-sites stay valid.
-        sm: 'h-8 gap-1.5 rounded-lg px-3.5 text-base in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        // Dify large: h-9 / px-4 / rounded-[10px] / 14px / font-semibold
-        lg: 'h-9 gap-1.5 rounded-[10px] px-4 text-md font-semibold has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3',
-        icon: 'size-8 rounded-lg in-data-[slot=button-group]:rounded-lg',
+          'h-9 gap-1.5 rounded-md px-2.5 text-sm in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-7 gap-1 rounded-md px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1.5 rounded-md px-2.5 text-sm in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        lg: 'h-10 gap-1.5 rounded-md px-3 text-md font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
+        icon: 'size-9 rounded-md in-data-[slot=button-group]:rounded-md',
         'icon-xs':
-          "size-6 rounded-md in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-7 rounded-md in-data-[slot=button-group]:rounded-md',
-        'icon-lg': 'size-10 rounded-[10px] in-data-[slot=button-group]:rounded-[10px]',
+          "size-7 rounded-md in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8 rounded-md in-data-[slot=button-group]:rounded-md',
+        'icon-lg': 'size-10 rounded-md in-data-[slot=button-group]:rounded-md',
       },
     },
     defaultVariants: {
