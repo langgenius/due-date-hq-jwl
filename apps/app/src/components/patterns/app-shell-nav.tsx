@@ -477,29 +477,28 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       // Contacts and Payments aren't built yet — deferred until
       // those routes exist.
       return {
-        // Today sits above the OPERATIONS group as a standalone
-        // "home" link — not part of any group label, so the eye reads
-        // it as the surface you keep returning to rather than another
-        // daily-work destination.
-        primary: [{ href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true }],
-        // Daily-work surfaces. Rule-related destinations (Coverage,
-        // Rule library) live in their own "Rule" group below so the
-        // operations row stays focused on the daily action queue.
-        operations: [
+        // 2026-05-20 layout: three standalone items above the RULE
+        // group — no "Operations" label. Order reads as the CPA's
+        // morning routine: glance Today → scan Notifications →
+        // triage Obligations. The label-less group keeps the top of
+        // the sidebar visually quiet.
+        primary: [
+          { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
+          {
+            href: '/rules/pulse',
+            label: t`Notification`,
+            icon: ActivityIcon,
+            end: false,
+            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          },
           {
             href: '/obligations',
             label: t`Obligations`,
             icon: CalendarClockIcon,
             end: false,
           },
-          {
-            href: '/rules/pulse',
-            label: t`Pulse Notification`,
-            icon: ActivityIcon,
-            end: false,
-            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
-          },
         ],
+        operations: [],
         clients: [],
         rules: [
           {
@@ -605,11 +604,13 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             ))}
           </NavGroupSection>
         ) : null}
-        <NavGroupSection label={t`Operations`}>
-          {items.operations.map((item) => (
-            <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
-          ))}
-        </NavGroupSection>
+        {items.operations.length > 0 ? (
+          <NavGroupSection label={t`Operations`}>
+            {items.operations.map((item) => (
+              <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
+            ))}
+          </NavGroupSection>
+        ) : null}
         {items.rules.length > 0 ? (
           <NavGroupSection label={t`Rule`}>
             {items.rules.map((item) => (

@@ -1,6 +1,4 @@
-import { Link, Outlet, useNavigation } from 'react-router'
-import { useLingui } from '@lingui/react/macro'
-import { BellIcon } from 'lucide-react'
+import { Outlet, useNavigation } from 'react-router'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
@@ -12,6 +10,7 @@ import {
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
+import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
 import type { AuthUser } from '@/lib/auth'
@@ -46,7 +45,6 @@ export type AppShellProps = {
   route: RouteSummary
   themePreference: ThemePreference
   switchThemePreference: (next: ThemePreference) => void
-  unreadNotificationCount?: number
 }
 
 export function AppShell(props: AppShellProps) {
@@ -77,7 +75,7 @@ export function AppShell(props: AppShellProps) {
             sit at the sidebar bottom alongside Settings, which is
             where personal-account controls belong. */}
           <div className="flex items-center gap-3 border-t border-divider-regular px-2 py-2">
-            <NotificationsBell unreadCount={props.unreadNotificationCount ?? 0} />
+            <PulseNotificationsBell />
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}
@@ -128,29 +126,5 @@ function PendingBar() {
         )}
       />
     </div>
-  )
-}
-
-function NotificationsBell({ unreadCount }: { unreadCount: number }) {
-  const { t } = useLingui()
-  const hasUnread = unreadCount > 0
-  return (
-    <Link
-      to="/notifications"
-      aria-label={hasUnread ? t`Notifications, ${unreadCount} unread` : t`Notifications`}
-      className={cn(
-        'relative inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
-        'hover:bg-background-default-hover hover:text-text-primary',
-        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-      )}
-    >
-      <BellIcon className="size-4" aria-hidden />
-      {hasUnread ? (
-        <span
-          aria-hidden
-          className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-state-destructive-solid"
-        />
-      ) : null}
-    </Link>
   )
 }

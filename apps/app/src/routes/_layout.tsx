@@ -77,9 +77,6 @@ function RootLayoutShell({
   const { i18n } = useLingui()
   const matches = useMatches()
   const firmsQuery = useQuery(orpc.firms.listMine.queryOptions({ input: undefined }))
-  const notificationsQuery = useQuery(
-    orpc.notifications.unreadCount.queryOptions({ input: undefined }),
-  )
   const firm = pickCurrentFirm(firmsQuery.data, user)
   const routeMessages = getRouteSummaryMessages(matches)
   const route = {
@@ -114,7 +111,6 @@ function RootLayoutShell({
                 route={route}
                 themePreference={themePreference}
                 switchThemePreference={switchThemePreference}
-                unreadNotificationCount={notificationsQuery.data?.count ?? 0}
               />
             </PulseDrawerProvider>
           </EvidenceDrawerProvider>
