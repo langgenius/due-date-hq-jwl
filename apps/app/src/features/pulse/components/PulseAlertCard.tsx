@@ -43,9 +43,10 @@ export function PulseAlertCard({
       role="region"
       aria-label={t`Pulse alert: ${alert.title}`}
       className={cn(
+        // T4: neutral card surface in all states. Severity is carried
+        // by the in-card badges (LOW CONFIDENCE, etc.) — never the
+        // card background.
         'flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 transition-colors hover:border-divider-regular',
-        veryLowConfidence &&
-          'border-state-destructive-border bg-state-destructive-hover hover:border-state-destructive-border',
         breathing && 'pulse-strip-breathing',
         compact && 'p-2.5',
       )}

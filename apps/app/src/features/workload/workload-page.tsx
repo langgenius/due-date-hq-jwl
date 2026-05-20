@@ -316,10 +316,7 @@ function WorkloadTable({
       </TableHeader>
       <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {rows.map((row) => (
-          <TableRow
-            key={row.id}
-            className={row.kind === 'unassigned' ? 'bg-state-warning-hover' : ''}
-          >
+          <TableRow key={row.id}>
             <TableCell>
               <div className="flex min-w-0 items-center gap-2">
                 <ClipboardListIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
