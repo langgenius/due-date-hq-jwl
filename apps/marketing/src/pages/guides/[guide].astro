@@ -39,6 +39,11 @@ const secondaryHref = page.slug === 'cpa-deadline-risk' ? '/rules' : '/state-cov
   structuredData={resourceStructuredData(t, page, 'en', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />
-  <GeoResourcePage page={page} primaryHref={primaryHref} secondaryHref={secondaryHref} />
+  <GeoResourcePage
+    page={page}
+    primaryHref={primaryHref}
+    secondaryHref={secondaryHref}
+    locale="en"
+  />
   <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
 </BaseLayout>

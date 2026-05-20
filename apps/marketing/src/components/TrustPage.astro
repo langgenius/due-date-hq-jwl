@@ -1,15 +1,13 @@
 ---
-import type { GuidePageCopy, ResourcePageCopy } from '../i18n/types'
 import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
+import type { TrustPageCopy } from '../lib/trust-pages'
 
 interface Props {
-  page: ResourcePageCopy | GuidePageCopy
-  primaryHref: string
-  secondaryHref: string
+  page: TrustPageCopy
   locale: 'en' | 'zh-CN'
 }
 
-const { page, primaryHref, secondaryHref, locale } = Astro.props
+const { page, locale } = Astro.props
 const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
 ---
 
@@ -20,7 +18,7 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
         {page.hero.eyebrow}
       </span>
       <h1
-        class="mt-5 max-w-[900px] text-display-large font-semibold leading-[1.1] tracking-tight text-text-primary"
+        class="mt-5 max-w-[920px] text-display-large font-semibold leading-[1.1] tracking-tight text-text-primary"
       >
         {page.hero.title}
       </h1>
@@ -44,10 +42,10 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
             <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
               {section.eyebrow}
             </span>
-            <h2 class="mt-4 max-w-[620px] text-[28px] font-semibold leading-[1.2] tracking-tight text-text-primary">
+            <h2 class="mt-4 max-w-[640px] text-[28px] font-semibold leading-[1.2] tracking-tight text-text-primary">
               {section.title}
             </h2>
-            <p class="mt-5 max-w-[640px] text-[15px] leading-[1.7] text-text-secondary">
+            <p class="mt-5 max-w-[660px] text-[15px] leading-[1.7] text-text-secondary">
               {section.body}
             </p>
           </div>
@@ -68,56 +66,23 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
     ))
   }
 
-  <section class="border-b border-border-default bg-bg-canvas">
-    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
-      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
-        {page.faqHeader.eyebrow}
-      </span>
-      <h2 class="mt-4 text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-        {page.faqHeader.title}
-      </h2>
-      <div class="mt-8 grid gap-4 lg:grid-cols-3">
-        {
-          page.faq.map((item) => (
-            <section class="rounded-xl border border-border-default bg-bg-panel p-6">
-              <h3 class="text-[15px] font-semibold leading-[1.4] text-text-primary">
-                {item.question}
-              </h3>
-              <p class="mt-3 text-[13px] leading-[1.65] text-text-secondary">
-                {item.answer}
-              </p>
-            </section>
-          ))
-        }
-      </div>
-    </div>
-  </section>
-
   <section class="bg-bg-canvas">
     <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
       <div class="rounded-xl border border-border-default bg-bg-panel p-8 lg:flex lg:items-center lg:justify-between lg:gap-10">
         <div>
           <h2 class="max-w-[720px] text-[26px] font-semibold leading-[1.25] tracking-tight text-text-primary">
-            {page.cta.title}
+            {page.contact.title}
           </h2>
           <p class="mt-4 max-w-[760px] text-[14px] leading-[1.7] text-text-secondary">
-            {page.cta.body}
+            {page.contact.body}
           </p>
         </div>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-0 lg:shrink-0">
-          <a
-            href={primaryHref}
-            class="inline-flex h-11 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover"
-          >
-            {page.cta.primary}
-          </a>
-          <a
-            href={secondaryHref}
-            class="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elevated px-4 text-[13px] font-medium text-text-primary transition-colors hover:border-text-muted hover:bg-bg-canvas"
-          >
-            {page.cta.secondary}
-          </a>
-        </div>
+        <a
+          href={page.contact.href}
+          class="mt-8 inline-flex h-11 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover lg:mt-0 lg:shrink-0"
+        >
+          {page.contact.label}
+        </a>
       </div>
     </div>
   </section>

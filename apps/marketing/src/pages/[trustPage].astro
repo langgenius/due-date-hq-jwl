@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import TopNav from '../components/TopNav.astro'
+import TrustPage from '../components/TrustPage.astro'
+import Footer from '../components/Footer.astro'
+import en from '../i18n/en'
+import { getCtaHref } from '../lib/app-url'
+import { trustPageStructuredData } from '../lib/structured-data'
+import { trustPages, type TrustPageCopy } from '../lib/trust-pages'
+
+export function getStaticPaths() {
+  return trustPages.en.map((page) => ({
+    params: { trustPage: page.slug },
+    props: { page },
+  }))
+}
+
+interface Props {
+  page: TrustPageCopy
+}
+
+const t = en
+const { page } = Astro.props
+const pathname = `/${page.slug}`
+const ctaHref = getCtaHref()
+---
+
+<BaseLayout
+  lang="en"
+  pathname={pathname}
+  title={page.meta.title}
+  description={page.meta.description}
+  ogImage={page.meta.ogImage}
+  structuredData={trustPageStructuredData(t, page, 'en', pathname)}
+>
+  <TopNav t={t.nav} ctaHref={ctaHref} />
+  <TrustPage page={page} locale="en" />
+  <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
+</BaseLayout>

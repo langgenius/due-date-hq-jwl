@@ -8,7 +8,9 @@ import type {
   StateCoverageCopy,
   StatePageCopy,
 } from '../i18n/types'
+import { CONTENT_REVIEWED_ON } from './content-metadata'
 import { MARKETING_SITE_URL, getMarketingUrl } from './site'
+import type { TrustPageCopy } from './trust-pages'
 
 export type JsonLdDocument = Record<string, unknown>
 
@@ -66,6 +68,20 @@ function webPageDocument(
     url: absoluteUrl(pathname),
     inLanguage: lang,
     description,
+    dateModified: CONTENT_REVIEWED_ON,
+  }
+}
+
+function breadcrumbDocument(items: { name: string; pathname: string }[]): JsonLdDocument {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.pathname),
+    })),
   }
 }
 
@@ -103,12 +119,38 @@ function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument
   }
 }
 
+function articleDocument(
+  pathname: string,
+  title: string,
+  description: string,
+  lang: Locale,
+): JsonLdDocument {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: title,
+    description,
+    url: absoluteUrl(pathname),
+    inLanguage: lang,
+    dateModified: CONTENT_REVIEWED_ON,
+    publisher: {
+      '@type': 'Organization',
+      name: 'DueDateHQ',
+      url: SITE,
+    },
+  }
+}
+
 function withoutNulls(items: Array<JsonLdDocument | null>): JsonLdDocument[] {
   return items.filter((item): item is JsonLdDocument => item !== null)
 }
 
 export function homeStructuredData(t: LandingCopy, lang: Locale): JsonLdDocument[] {
-  return [...baseGraph(t, lang), webPageDocument('/', t.meta.title, t.meta.description, lang)]
+  return [
+    ...baseGraph(t, lang),
+    webPageDocument('/', t.meta.title, t.meta.description, lang),
+    breadcrumbDocument([{ name: 'Home', pathname: '/' }]),
+  ]
 }
 
 export function pricingStructuredData(
@@ -121,6 +163,10 @@ export function pricingStructuredData(
     webPageDocument(pathname, t.pricing.meta.title, t.pricing.meta.description, lang),
     productDocument(t.pricing, pathname),
     faqDocument(t.pricing.faq),
+    breadcrumbDocument([
+      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+      { name: 'Pricing', pathname },
+    ]),
   ])
 }
 
@@ -133,7 +179,13 @@ export function resourceStructuredData(
   return withoutNulls([
     ...baseGraph(siteCopy, lang),
     webPageDocument(pathname, page.meta.title, page.meta.description, lang),
+    'slug' in page ? articleDocument(pathname, page.meta.title, page.meta.description, lang) : null,
     faqDocument(page.faq),
+    breadcrumbDocument([
+      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+      { name: 'Resources', pathname: lang === 'zh-CN' ? '/zh-CN/rules' : '/rules' },
+      { name: page.hero.title, pathname },
+    ]),
   ])
 }
 
@@ -147,6 +199,10 @@ export function stateCoverageStructuredData(
     ...baseGraph(siteCopy, lang),
     webPageDocument(pathname, page.meta.title, page.meta.description, lang),
     faqDocument(page.faq),
+    breadcrumbDocument([
+      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+      { name: 'State coverage', pathname },
+    ]),
   ])
 }
 
@@ -160,5 +216,29 @@ export function statePageStructuredData(
     ...baseGraph(siteCopy, lang),
     webPageDocument(pathname, page.meta.title, page.meta.description, lang),
     faqDocument(page.faq),
+    breadcrumbDocument([
+      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+      {
+        name: 'State coverage',
+        pathname: lang === 'zh-CN' ? '/zh-CN/state-coverage' : '/state-coverage',
+      },
+      { name: page.name, pathname },
+    ]),
   ])
+}
+
+export function trustPageStructuredData(
+  siteCopy: LandingCopy,
+  page: TrustPageCopy,
+  lang: Locale,
+  pathname: string,
+): JsonLdDocument[] {
+  return [
+    ...baseGraph(siteCopy, lang),
+    webPageDocument(pathname, page.meta.title, page.meta.description, lang),
+    breadcrumbDocument([
+      { name: 'Home', pathname: lang === 'zh-CN' ? '/zh-CN' : '/' },
+      { name: page.hero.title, pathname },
+    ]),
+  ]
 }

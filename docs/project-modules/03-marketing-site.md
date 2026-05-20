@@ -2,7 +2,7 @@
 
 ## 功能定位
 
-`apps/marketing` 是 DueDateHQ 的公开营销站，基于 Astro 静态构建，部署为 Cloudflare Workers Static Assets。它负责产品叙事、价格页、规则库说明、州覆盖页面、指南内容、SEO metadata、结构化数据和中英文落地页。
+`apps/marketing` 是 DueDateHQ 的公开营销站，基于 Astro 静态构建，部署为 Cloudflare Workers Static Assets。它负责产品叙事、价格页、规则库说明、州覆盖页面、指南内容、公开信任页、SEO metadata、结构化数据和中英文落地页。
 
 营销站和主产品 SPA 分离部署，避免营销内容影响应用 bundle，也让公开页面可以更容易做静态优化。
 
@@ -13,10 +13,10 @@
 | `apps/marketing/astro.config.mjs`             | Astro 配置、站点 URL、sitemap、i18n、Tailwind                   |
 | `apps/marketing/wrangler.toml`                | Cloudflare Worker static assets 部署配置                        |
 | `apps/marketing/src/layouts/BaseLayout.astro` | HTML shell、canonical/hreflang、OG/Twitter、theme init、JSON-LD |
-| `apps/marketing/src/pages`                    | 首页、价格、规则、州覆盖、指南和中文版本                        |
+| `apps/marketing/src/pages`                    | 首页、价格、规则、州覆盖、指南、信任页和中文版本                |
 | `apps/marketing/src/components`               | TopNav、Hero、SLA strip、workflow、security、footer 等          |
 | `apps/marketing/src/i18n`                     | typed copy dictionary                                           |
-| `apps/marketing/src/lib`                      | CTA URL、SEO helpers、state/guide data                          |
+| `apps/marketing/src/lib`                      | CTA URL、SEO helpers、content metadata、state/guide/trust data  |
 
 ## 主要功能
 
@@ -25,8 +25,9 @@
 - Rules 页面，回答“申报规则如何变成带来源、已复核的事务所工作”。
 - State coverage 总览和单州页面，回答“哪些州级更新会进入 Pulse 复核并影响客户截止日工作”。
 - Guides 内容页，回答“本周先处理哪个客户截止日”和“截止日变更前应具备什么证据”。
+- Trust 页面：`/about`、`/security`、`/privacy`、`/terms`、`/status`，提供公开信任面和联系入口。
 - SEO：canonical、alternate hreflang、sitemap、OG/Twitter metadata。
-- JSON-LD structured data。
+- JSON-LD structured data，包括 WebPage、BreadcrumbList、FAQPage、Product/Offer 和 guide TechArticle。
 - CTA 连接到 app 域名，并通过 query 进行 locale handoff。
 
 ## 创新点
@@ -120,16 +121,17 @@ flowchart TB
 
 ## 内容模型
 
-| 内容类型       | 实现方式                           | 说明                             |
-| -------------- | ---------------------------------- | -------------------------------- |
-| Landing copy   | `src/i18n` typed dictionaries      | 英中分别维护                     |
-| State coverage | static data + dynamic Astro routes | 围绕 Pulse、客户适用性和证据复核 |
-| Guides         | guide data + dynamic pages         | 围绕分诊优先级和审计证据         |
-| CTA            | helper 生成                        | app URL 来自 public env          |
+| 内容类型       | 实现方式                           | 说明                                     |
+| -------------- | ---------------------------------- | ---------------------------------------- |
+| Landing copy   | `src/i18n` typed dictionaries      | 英中分别维护                             |
+| State coverage | static data + dynamic Astro routes | 围绕 Pulse、客户适用性和证据复核         |
+| Guides         | guide data + dynamic pages         | 围绕分诊优先级和审计证据                 |
+| Trust pages    | trust page data + dynamic pages    | 围绕 about/security/privacy/terms/status |
+| CTA            | helper 生成                        | app URL 来自 public env                  |
 
 ## 后续演进关注点
 
 - 如果引入交互式 pricing calculator，应保持 island 体积可控，避免把整个站点变成 React 应用。
 - 州覆盖页面应与 `packages/core/rules` 的 jurisdiction coverage 建立更自动的同步机制。
-- 指南内容应加入更新时间和来源链接，增强专业可信度。
+- 指南和州覆盖页的 visible review date、官方来源链接与 JSON-LD `dateModified` 必须保持一致。
 - 需要定期核对 `PUBLIC_APP_URL` 与实际 app 域名。

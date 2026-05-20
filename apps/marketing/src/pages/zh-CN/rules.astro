@@ -22,6 +22,11 @@ const ctaHref = getCtaHref('zh-CN')
   structuredData={resourceStructuredData(t, page, 'zh-CN', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />
-  <GeoResourcePage page={page} primaryHref="/zh-CN/state-coverage" secondaryHref="/zh-CN/pricing" />
+  <GeoResourcePage
+    page={page}
+    primaryHref="/zh-CN/state-coverage"
+    secondaryHref="/zh-CN/pricing"
+    locale="zh-CN"
+  />
   <Footer t={t.footer} enHref="/rules" zhHref="/zh-CN/rules" currentLocale="zh-CN" />
 </BaseLayout>
