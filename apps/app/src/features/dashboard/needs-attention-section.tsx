@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { AlertTriangleIcon, ArrowUpRightIcon } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -35,13 +35,16 @@ function SourceNeedsAttentionBanner({
   onHide: () => void
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-state-warning-border bg-state-warning-hover px-4 py-3">
+    // Banner: keep the warning-tinted bg (T4 allows banner tints) but
+    // soften the chrome — drop the visible border, calmer typography
+    // — per Q1 "no amber as a primary tone."
+    <div className="flex items-center justify-between gap-3 rounded-md bg-state-warning-hover px-4 py-2.5">
       <div className="flex items-center gap-2 text-sm">
         <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <span className="font-medium text-text-primary">
           <Trans>Source needs attention</Trans>
         </span>
-        <span className="font-mono text-xs tabular-nums text-text-secondary">
+        <span className="text-xs tabular-nums text-text-tertiary">
           <Trans>{count} source</Trans>
         </span>
       </div>
@@ -73,12 +76,31 @@ function NeedsAttentionSection() {
 
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
+  const totalAlertCount = alerts.length
   const hasContent = showSourceBanner || alerts.length > 0
 
   if (!hasContent) return null
 
   return (
-    <section aria-label={t`Needs attention`} className="flex flex-col gap-3">
+    <section aria-label={t`Pulse alerts`} className="flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-base font-semibold text-text-primary">
+          <Trans>Pulse alerts</Trans>
+          {totalAlertCount > 0 ? (
+            <span className="ml-2 font-mono text-sm font-normal tabular-nums text-text-tertiary">
+              {totalAlertCount}
+            </span>
+          ) : null}
+        </h2>
+        <Link
+          to="/rules/pulse"
+          className="inline-flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-text-primary"
+        >
+          <Trans>View all</Trans>
+          <ArrowUpRightIcon className="size-3" aria-hidden />
+        </Link>
+      </div>
+
       {showSourceBanner ? (
         <SourceNeedsAttentionBanner
           count={attentionSources.length}
@@ -88,14 +110,15 @@ function NeedsAttentionSection() {
       ) : null}
 
       {alerts.length > 0 ? (
-        // Cards fill the full content width: 1 alert spans alone,
-        // 2 alerts split equally, 3+ adds a fixed-width "+N" tile.
+        // Cards fill the full content width. The +N overflow tile sits
+        // as a third equal-width column so the row reads as three peers,
+        // not "two cards plus a stub" — per the calm density register.
         <div
           className={cn(
             'grid items-stretch gap-3',
             alerts.length === 1 && 'grid-cols-1',
             alerts.length === 2 && 'grid-cols-2',
-            overflowCount > 0 && 'grid-cols-[1fr_1fr_160px]',
+            overflowCount > 0 && 'grid-cols-3',
           )}
         >
           {visibleAlerts.map((alert) => (

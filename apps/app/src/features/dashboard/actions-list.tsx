@@ -182,6 +182,11 @@ function DashboardActionsList({
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-base font-semibold text-text-primary">
           <Trans>Actions this week</Trans>
+          {totalThisWeek > 0 ? (
+            <span className="ml-2 font-mono text-sm font-normal tabular-nums text-text-tertiary">
+              {totalThisWeek}
+            </span>
+          ) : null}
         </h2>
         <Link
           to="/obligations"

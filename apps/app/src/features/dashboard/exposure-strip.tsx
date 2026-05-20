@@ -15,26 +15,34 @@ import { formatCents } from '@/lib/utils'
 // Per docs/Design/dashboard-actions-design-brief.md §4 / §6.
 
 type Segment = {
+  value: string
   label: string
   href: string
   tone: 'neutral' | 'warning' | 'destructive'
 }
 
 function ExposureSegment({ segment }: { segment: Segment }) {
+  // KPI mini-tile: big number / label below. Reads as a workbench
+  // summary, not as a font-mono chip. The number carries the load
+  // (T1); the label is supporting context.
   return (
     <Link
       to={segment.href}
-      // Chip-like affordance: subtle border + hover bg so the segment
-      // reads as a target, not a label. Resolves the "discoverability"
-      // P2 from the post-redesign critique 2026-05-19.
       className={cn(
-        'inline-flex items-center rounded-md border border-divider-regular bg-background-default px-2.5 py-1 font-mono text-xs font-medium tabular-nums transition-colors hover:border-text-tertiary hover:text-text-primary',
-        segment.tone === 'destructive' && 'text-text-destructive',
-        segment.tone === 'warning' && 'text-text-warning',
-        segment.tone === 'neutral' && 'text-text-secondary',
+        'flex min-w-[140px] flex-col gap-0.5 rounded-md border border-divider-subtle bg-background-default px-3 py-2 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
       )}
     >
-      {segment.label}
+      <span
+        className={cn(
+          'font-mono text-base font-semibold tabular-nums',
+          segment.tone === 'destructive' && 'text-text-destructive',
+          segment.tone === 'warning' && 'text-text-warning',
+          segment.tone === 'neutral' && 'text-text-primary',
+        )}
+      >
+        {segment.value}
+      </span>
+      <span className="text-xs text-text-tertiary">{segment.label}</span>
     </Link>
   )
 }
@@ -75,28 +83,32 @@ function ExposureStrip({
   const segments: Segment[] = []
   if (needDecisionCount > 0) {
     segments.push({
-      label: t`${needDecisionCount} need your decision`,
+      value: String(needDecisionCount),
+      label: t`Need your decision`,
       href: '/obligations?status=review',
       tone: 'neutral',
     })
   }
   if (canSeeDollars && totalExposureCents > 0) {
     segments.push({
-      label: t`${formatCents(totalExposureCents)} at risk`,
+      value: formatCents(totalExposureCents),
+      label: t`At risk`,
       href: '/obligations?sort=exposure-desc',
       tone: 'neutral',
     })
   }
   if (blockedCount > 0) {
     segments.push({
-      label: t`${blockedCount} blocked`,
+      value: String(blockedCount),
+      label: t`Blocked`,
       href: '/obligations?status=blocked',
       tone: 'destructive',
     })
   }
   if (waitingOnClientCount > 0) {
     segments.push({
-      label: t`${waitingOnClientCount} waiting on client`,
+      value: String(waitingOnClientCount),
+      label: t`Waiting on client`,
       href: '/obligations?status=waiting_on_client',
       tone: 'neutral',
     })
@@ -110,7 +122,7 @@ function ExposureStrip({
       <h2 className="text-base font-semibold text-text-primary">
         <Trans>This week's exposure</Trans>
       </h2>
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap gap-2">
         {segments.map((segment) => (
           <ExposureSegment key={segment.href} segment={segment} />
         ))}
