@@ -269,4 +269,20 @@ describe('CoverageTab canonical layout', () => {
     expect(tableFrame?.className).toContain('overscroll-auto')
     expect(tableFrame?.className).not.toContain('overflow-hidden')
   })
+
+  it('separates missing-source and not-applicable states in the legend', async () => {
+    await render(<CoverageTab />)
+    await waitForText('Missing source')
+    await waitForText('Not applicable')
+
+    const missingSourceLegendIcon = document.querySelector(
+      '[data-coverage-legend-icon="missing_source"]',
+    )
+    const notApplicableLegendIcon = document.querySelector(
+      '[data-coverage-legend-icon="not_applicable"]',
+    )
+
+    expect(missingSourceLegendIcon?.classList.contains('lucide-x')).toBe(true)
+    expect(notApplicableLegendIcon?.textContent?.trim()).toBe('—')
+  })
 })

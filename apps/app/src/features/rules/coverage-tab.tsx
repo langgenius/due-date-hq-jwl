@@ -788,8 +788,22 @@ function EntityCoverageLegend() {
         <Trans>Source only</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <XIcon aria-hidden className="size-3.5 text-text-muted" />
-        <Trans>No source</Trans>
+        <XIcon
+          aria-hidden
+          data-coverage-legend-icon="missing_source"
+          className="size-3.5 text-text-muted"
+        />
+        <Trans>Missing source</Trans>
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span
+          aria-hidden
+          data-coverage-legend-icon="not_applicable"
+          className="inline-flex size-3.5 items-center justify-center text-sm text-text-muted"
+        >
+          —
+        </span>
+        <Trans>Not applicable</Trans>
       </span>
     </div>
   )

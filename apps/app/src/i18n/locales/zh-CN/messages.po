@@ -27,7 +27,9 @@ msgstr "{0, plural, other {# 个 {3} × {4} 客户}}"
 msgid "{0, plural, one {# active} other {# active}}"
 msgstr "{0, plural, other {# 条活跃}}"
 
+#. placeholder {0}: -days
 #. placeholder {0}: Math.abs(days)
+#: src/features/dashboard/actions-list.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# day late} other {# days late}}"
@@ -54,6 +56,11 @@ msgstr "{0, plural, one {# row selected} other {# rows selected}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# selected obligation} other {# selected obligations}}"
 msgstr "{0, plural, one {# selected obligation} other {# selected obligations}}"
+
+#. placeholder {0}: row.evidenceCount
+#: src/features/dashboard/actions-list.tsx
+msgid "{0, plural, one {# source attached} other {# sources attached}}"
+msgstr "{0, plural, other {# 个来源已关联}}"
 
 #. placeholder {0}: row.original.evidenceCount
 #. placeholder {0}: tableRow.original.evidenceCount
@@ -258,11 +265,6 @@ msgstr "{0} 将失去对该事务所的访问权限。审计历史会保留。"
 msgid "{0}/500 characters"
 msgstr "{0}/500 个字符"
 
-#. placeholder {0}: -days
-#: src/features/dashboard/actions-list.tsx
-msgid "{0}d late"
-msgstr "{0}d late"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "{action} recorded"
 msgstr "已记录 {action}"
@@ -303,14 +305,14 @@ msgstr "另有 {count} 个字段已变更"
 msgid "{count} opportunity match(es)"
 msgstr "{count} opportunity match(es)"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{count} source"
-msgstr "{count} source"
-
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, other {# 天}}"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "{days, plural, one {in # day} other {in # days}}"
+msgstr "{days, plural, other {# 天后}}"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths} months"
@@ -351,6 +353,10 @@ msgstr "{lowConfCount, plural, other {# 列需要你复核}}"
 #: src/features/pulse/PulseAlertsBanner.tsx
 msgid "{minutes, plural, one {# min ago} other {# min ago}}"
 msgstr "{minutes, plural, other {# 分钟前}}"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "{missingSourceCount} source gaps"
+msgstr "{missingSourceCount} 个来源缺口"
 
 #: src/routes/dashboard.tsx
 msgid "{needsReviewCount, plural, one {# row ready} other {# rows ready}}"
@@ -457,6 +463,10 @@ msgstr "{totalShown, plural, other {# 条义务}}"
 msgid "{totalShown, plural, one {# row} other {# rows}}"
 msgstr "{totalShown, plural, other {# 行}}"
 
+#: src/components/patterns/pulse-notifications-bell.tsx
+msgid "{unreadCount} unread"
+msgstr "{unreadCount} 条未读"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "/ mo"
@@ -480,6 +490,15 @@ msgstr "+{0} more"
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "+{hasMore} more"
 msgstr "+{hasMore} more"
+
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "+{overflow} more"
+msgstr "另有 {overflow} 条"
+
+#. placeholder {0}: sources.length
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "<0>{0}</0> source needs attention"
+msgstr "<0>{0}</0> 个来源需要处理"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "~{estimatedMinutes} min"
@@ -610,6 +629,10 @@ msgstr "接受规则"
 #: src/features/rules/rule-library-tab.tsx
 msgid "Accept selected"
 msgstr "接受所选"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Accepted AI concrete draft from rule detail review."
+msgstr "已从规则详情审核接受 AI 具体草案。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepted as shown from rule detail review."
@@ -826,9 +849,33 @@ msgstr "AI"
 msgid "AI {percent}%"
 msgstr "AI {percent}%"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "AI concrete draft"
+msgstr "AI 具体草案"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "AI concrete draft could not be generated."
+msgstr "无法生成 AI 具体草案。"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "AI concrete draft is not ready."
+msgstr "AI 具体草案尚未就绪。"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "AI concrete draft is still generating."
+msgstr "AI 具体草案仍在生成。"
+
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
 msgstr "AI 置信度"
+
+#: src/features/rules/rule-library-tab.tsx
+msgid "AI draft review required"
+msgstr "需要审核 AI 草案"
+
+#: src/features/rules/rule-library-tab.tsx
+msgid "AI draft review required before activation."
+msgstr "启用前需要审核 AI 草案。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "AI guard failed"
@@ -1848,6 +1895,7 @@ msgid "Compliance"
 msgstr "合规"
 
 #: src/features/migration/Step2Mapping.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "置信度"
 
@@ -2341,6 +2389,7 @@ msgstr "县"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
+#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.coverage.tsx
 #: src/routes/rules.library.tsx
@@ -2708,17 +2757,9 @@ msgstr "截止日变更"
 msgid "Due date logic"
 msgstr "截止日逻辑"
 
-#: src/features/dashboard/actions-list.tsx
-msgid "due in {days}d"
-msgstr "due in {days}d"
-
 #: src/features/workload/workload-page.tsx
 msgid "Due soon"
 msgstr "即将到期"
-
-#: src/features/dashboard/actions-list.tsx
-msgid "due today"
-msgstr "due today"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Due-date extension"
@@ -2942,6 +2983,10 @@ msgstr "事件流"
 #: src/features/audit/audit-log-labels.ts
 msgid "events"
 msgstr "事件"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Everything that wants your attention — Pulse alerts, deadline reminders, system updates."
+msgstr "所有需要你关注的事项 —— Pulse 提醒、截止日提醒、系统更新。"
 
 #: src/features/concepts/concept-help.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -3281,6 +3326,7 @@ msgstr "适合运营单个事务所工作区的个人 Owner。"
 msgid "For US CPA practices"
 msgstr "面向美国注册会计师事务所"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Form"
@@ -3363,6 +3409,10 @@ msgstr "生成截止日"
 #: src/routes/migration.new.tsx
 msgid "Generate your first deadline list."
 msgstr "生成你的第一份截止日清单。"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Generating concrete due-date logic for review…"
+msgstr "正在生成待审核的具体截止日逻辑…"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generating your deadline list"
@@ -3605,9 +3655,15 @@ msgstr "站内"
 msgid "Inactive"
 msgstr "未生效"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
 msgid "Inbox"
 msgstr "收件箱"
+
+#: src/components/patterns/pulse-notifications-bell.tsx
+msgid "Inbox, {unreadCount} unread"
+msgstr "收件箱，{unreadCount} 条未读"
 
 #: src/routes/clients.tsx
 msgid "Individual"
@@ -3935,6 +3991,7 @@ msgstr "正在加载即将触发的提醒…"
 msgid "Loading workload metrics…"
 msgstr "正在加载负载指标…"
 
+#: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
 msgid "Loading…"
@@ -4053,6 +4110,7 @@ msgstr "字段映射"
 msgid "Mark accepted"
 msgstr "Mark accepted"
 
+#: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
 msgstr "全部标记已读"
@@ -4250,6 +4308,10 @@ msgstr "缺少规则"
 msgid "missing rule inputs"
 msgstr "缺少规则输入"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Missing source"
+msgstr "缺少来源"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Monthly"
@@ -4324,6 +4386,14 @@ msgstr "需要 {labels}"
 msgid "Needs action"
 msgstr "需处理"
 
+#: src/features/rules/rule-library-tab.tsx
+msgid "Needs AI draft review"
+msgstr "需要审核 AI 草案"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "needs applicability review"
+msgstr "需要适用性审核"
+
 #. placeholder {0}: needsClientFacts.length
 #: src/features/rules/generation-preview-tab.tsx
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
@@ -4351,7 +4421,6 @@ msgstr "需要财政年度结束日"
 msgid "Needs follow-up"
 msgstr "需要跟进"
 
-#: src/features/dashboard/actions-list.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 msgid "needs input"
@@ -4753,10 +4822,6 @@ msgstr "No replacement client or deadline records"
 msgid "no rule"
 msgstr "无规则"
 
-#: src/features/rules/coverage-tab.tsx
-msgid "No rule"
-msgstr "No rule"
-
 #: src/features/rules/rules-console-primitives.tsx
 msgid "no rule — not in MVP scope"
 msgstr "无规则 —— 不在 MVP 范围"
@@ -4840,6 +4905,10 @@ msgstr "未记录面向用户的字段变更。"
 msgid "None"
 msgstr "无"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "None attached"
+msgstr "未关联"
+
 #: src/features/migration/Stepper.tsx
 msgid "Normalize"
 msgstr "规范化"
@@ -4849,6 +4918,7 @@ msgid "Not allowed."
 msgstr "Not allowed."
 
 #: src/features/obligations/status-control.tsx
+#: src/features/rules/coverage-tab.tsx
 msgid "Not applicable"
 msgstr "不适用"
 
@@ -4913,17 +4983,15 @@ msgstr "备注"
 msgid "Notes"
 msgstr "备注"
 
-#: src/components/patterns/app-shell.tsx
+#: src/components/patterns/pulse-notifications-bell.tsx
+msgid "Nothing here."
+msgstr "这里暂无内容。"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/notifications/notifications-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Notifications"
 msgstr "通知"
-
-#: src/components/patterns/app-shell.tsx
-msgid "Notifications, {unreadCount} unread"
-msgstr "通知 · {unreadCount} 条未读"
 
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Now"
@@ -5114,7 +5182,7 @@ msgid "Open {count} more Pulse alert{0}"
 msgstr "Open {count} more Pulse alert{0}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
-#. placeholder {1}: labelForState(state)
+#. placeholder {1}: labelForSourceState(sourceState)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {fullName} rules for {0} — {1}"
 msgstr "Open {fullName} rules for {0} — {1}"
@@ -5173,6 +5241,10 @@ msgstr "打开完整义务列表"
 #: src/features/dashboard/actions-list.tsx
 msgid "Open full queue"
 msgstr "Open full queue"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Open in Obligations"
+msgstr "在义务中打开"
 
 #: src/features/members/members-page.tsx
 msgid "Open member actions"
@@ -5564,6 +5636,10 @@ msgstr "Penalty Radar"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Penalty readiness is computed from the confirmed tax type plus any estimated tax due and owner count columns mapped in Step 2."
 msgstr "Penalty readiness 会根据已确认的税种，以及 Step 2 映射出的预计应纳税额和所有者数量列计算。"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Penalty rule"
+msgstr "罚金规则"
 
 #: src/routes/obligations.tsx
 msgid "Penalty sources"
@@ -6071,7 +6147,6 @@ msgstr "Pulse 已忽略"
 msgid "Pulse evidence linked to each obligation"
 msgstr "为每条义务关联监管证据"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/rules.pulse.tsx
 msgid "Pulse Notification"
 msgstr "Pulse Notification"
@@ -6750,6 +6825,10 @@ msgstr "风险输入"
 msgid "Risk inputs saved"
 msgstr "风险输入已保存"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Risk of losing"
+msgstr "流失风险"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "风险摘要刷新已排队"
@@ -7198,10 +7277,6 @@ msgstr "选择日期"
 msgid "Select eligible obligations before applying."
 msgstr "应用前请选择符合条件的义务。"
 
-#: src/routes/obligations.tsx
-msgid "Select fiscal year end"
-msgstr "选择财政年度结束日"
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Select obligations"
 msgstr "选择义务"
@@ -7567,11 +7642,14 @@ msgstr "来源申报年度"
 msgid "SOURCE FILING YEAR"
 msgstr "来源申报年度"
 
-#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/pulse/PulseAlertsBanner.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "Source needs attention"
 msgstr "来源需要处理"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Source only"
+msgstr "仅有来源"
 
 #: src/routes/obligations.tsx
 msgid "Source or confirmation reference"
@@ -7611,12 +7689,17 @@ msgstr "来源已变更的规则在接受前应先对照证据检查。"
 msgid "Source-constrained summaries"
 msgstr "来源约束摘要"
 
+#: src/features/rules/rule-library-tab.tsx
+msgid "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
+msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI 草案。"
+
 #. placeholder {0}: alert.source
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "Source: {0}"
 msgstr "Source: {0}"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
 #: src/routes/rules.sources.tsx
@@ -7673,6 +7756,7 @@ msgstr "覆盖州"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/generation-preview-tab.tsx
@@ -8218,6 +8302,10 @@ msgstr "这条规则允许申请延期。"
 msgid "This rule does not allow an extension."
 msgstr "这条规则不允许申请延期。"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
+msgstr "此规则只有来源监控元数据。请打开官方来源，并在审核后添加具体规则。"
+
 #: src/routes/obligations.tsx
 msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
 msgstr "这会保存事务所针对此义务的内部延期计划。内部目标日期必须早于或等于申报截止日。它不会更新截止日、修改客户记录，也不确认已向税务机关提交。付款可能仍需在原始日期前完成。"
@@ -8225,6 +8313,10 @@ msgstr "这会保存事务所针对此义务的内部延期计划。内部目标
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."
 msgstr "此来源不再受信任。历史提醒仍可查看，但新的应用、忽略、暂缓和撤销操作已停用。"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "This source-defined rule is missing an official source."
+msgstr "此来源定义规则缺少官方来源。"
 
 #: src/routes/obligations.tsx
 msgid "This week"
@@ -8266,6 +8358,7 @@ msgstr "时区"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
@@ -8582,6 +8675,10 @@ msgstr "查看 {0}"
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "View all"
 msgstr "View all"
+
+#: src/components/patterns/pulse-notifications-bell.tsx
+msgid "View all in Inbox"
+msgstr "在收件箱中查看全部"
 
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "View all opportunities"
