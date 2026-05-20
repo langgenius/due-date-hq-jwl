@@ -289,6 +289,8 @@ function buildScopedRepo(input: {
       async updateStatus() {},
       async updateExtensionDecision() {},
       async updateStatusMany() {},
+      async setEfileRejected() {},
+      async setBlockedBy() {},
       async unblockChildrenOf() {
         return []
       },

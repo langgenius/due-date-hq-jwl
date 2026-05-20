@@ -86,6 +86,8 @@ export const router = os.router({
     updateDueDate: obligationsHandlers.updateDueDate,
     updateTaxYearProfile: obligationsHandlers.updateTaxYearProfile,
     updateStatus: obligationsHandlers.updateStatus,
+    markFiledRejected: obligationsHandlers.markFiledRejected,
+    updateBlockedBy: obligationsHandlers.updateBlockedBy,
     bulkUpdateStatus: obligationsHandlers.bulkUpdateStatus,
     decideExtension: obligationsHandlers.decideExtension,
     listByClient: obligationsHandlers.listByClient,

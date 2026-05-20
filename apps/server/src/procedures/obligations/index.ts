@@ -17,7 +17,9 @@ import { recalculateObligationExposure } from '../_penalty-exposure'
 import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
+  markObligationFiledRejected,
   toObligationPublic,
+  updateObligationBlockedBy,
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
@@ -360,6 +362,28 @@ const updateStatus = os.obligations.updateStatus.handler(async ({ input, context
   return result
 })
 
+const markFiledRejected = os.obligations.markFiledRejected.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await markObligationFiledRejected(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
+const updateBlockedBy = os.obligations.updateBlockedBy.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await updateObligationBlockedBy(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
 const bulkUpdateStatus = os.obligations.bulkUpdateStatus.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -634,6 +658,8 @@ export const obligationsHandlers = {
   updateTaxYearProfile,
   listByClient,
   updateStatus,
+  markFiledRejected,
+  updateBlockedBy,
   bulkUpdateStatus,
   decideExtension,
   getDeadlineTip,

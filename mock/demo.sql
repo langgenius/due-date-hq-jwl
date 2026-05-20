@@ -743,4 +743,23 @@ VALUES
   ('67000000-0000-4000-8000-000000002001', 'mock_firm_plan_pro', 'mock_user_plan_pro', 'dashboard-brief@v1', 'openai/gpt-5-mini', 'mockhash-plan-pro-dashboard-2026-05-03', 1240, 148, 910, 0.008, 'allowed', NULL, 1, NULL, CAST(unixepoch('2026-05-03 09:05:00') * 1000 AS INTEGER)),
   ('67000000-0000-4000-8000-000000003001', 'mock_firm_plan_team', 'mock_user_plan_team', 'dashboard-brief@v1', 'openai/gpt-5-mini', 'mockhash-plan-team-dashboard-2026-05-03', 1510, 172, 1030, 0.011, 'allowed', NULL, 1, NULL, CAST(unixepoch('2026-05-03 09:10:00') * 1000 AS INTEGER));
 
+-- K-1 dependency demo (PDF anti-pattern #4): Lakeview Medical Partners'
+-- federal 1120-S waits on Brightline's federal 1065 K-1. When the
+-- parent (#001) reaches `completed`, the child auto-unblocks.
+UPDATE obligation_instance
+SET
+  status = 'blocked',
+  blocked_by_obligation_instance_id = '20000000-0000-4000-8000-000000000001'
+WHERE id = '20000000-0000-4000-8000-000000000020';
+
+-- Rejection demo (PDF anti-pattern #3, Filed != Done): Brightline trust
+-- 1041 was e-filed, the IRS rejected. Status unwinds to `review` with
+-- an efile_rejected_at stamp so the Rejected chip renders.
+UPDATE obligation_instance
+SET
+  status = 'review',
+  efile_rejected_at = CAST(unixepoch('2026-05-10 14:23:00') * 1000 AS INTEGER),
+  efile_accepted_at = NULL
+WHERE id = '20000000-0000-4000-8000-000000000007';
+
 COMMIT;

@@ -224,6 +224,24 @@ export interface ObligationsRepo {
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>
   /**
+   * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
+   * Stamps `efile_rejected_at`, clears any acceptance timestamp, and
+   * transitions status (typically `done → review`).
+   */
+  setEfileRejected(
+    id: string,
+    patch: { rejectedAt: Date; nextStatus: ObligationStatus },
+  ): Promise<void>
+  /**
+   * K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Set or clear
+   * the upstream-blocker pointer. The caller decides the next status
+   * based on whether `blockedBy` is non-null.
+   */
+  setBlockedBy(
+    id: string,
+    patch: { blockedBy: string | null; nextStatus: ObligationStatus },
+  ): Promise<void>
+  /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row
    * that was `blocked_by` it AND in `blocked` state flips back to

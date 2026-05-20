@@ -2520,6 +2520,7 @@ export function ObligationQueueRoute() {
         onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
         onNeedsInput={setPenaltyRow}
         practiceAiEnabled={practiceAiEnabled}
+        blockerCandidates={rows}
       />
       <PenaltyInputDialog
         row={penaltyRow}
@@ -3064,6 +3065,7 @@ function ObligationQueueDetailDrawer({
   onClose,
   onNeedsInput,
   practiceAiEnabled,
+  blockerCandidates,
 }: {
   obligationId: string | null
   activeTab: ObligationQueueDetailTab
@@ -3071,6 +3073,7 @@ function ObligationQueueDetailDrawer({
   onClose: () => void
   onNeedsInput: (row: ObligationQueueRow) => void
   practiceAiEnabled: boolean
+  blockerCandidates: ObligationQueueRow[]
 }) {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
@@ -3386,6 +3389,46 @@ function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // PDF anti-pattern #3 (Filed ≠ Done): when the IRS / state rejects an
+  // e-filed return, the preparer unwinds the row from `done` ("Filed")
+  // back to `review` ("In review") with an `efile_rejected_at` stamp.
+  // The Rejected chip auto-renders on the queue thereafter.
+  const markFiledRejectedMutation = useMutation(
+    orpc.obligations.markFiledRejected.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        toast.success(t`Marked e-file rejected`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't mark e-file rejected`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  // PDF anti-pattern #4 (K-1 dependency graph): set or clear the
+  // upstream-blocker pointer. When set, status flips to `blocked` and
+  // the BlockedByChip renders on the queue row.
+  const updateBlockedByMutation = useMutation(
+    orpc.obligations.updateBlockedBy.mutationOptions({
+      onSuccess: (result, variables) => {
+        invalidateDetail()
+        toast.success(
+          variables.blockedByObligationInstanceId !== null
+            ? t`Blocker set`
+            : t`Blocker cleared`,
+          { description: t`Audit ${result.auditId.slice(0, 8)}` },
+        )
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update blocker`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
   function updateChecklistItem(index: number, patch: Partial<ReadinessChecklistItem>) {
     if (!row) return
     const base = checklist.length > 0 ? checklist : EMPTY_CHECKLIST
@@ -3494,14 +3537,26 @@ function ObligationQueueDetailDrawer({
               ) : null}
             </div>
             {lifecycleV2 && row && (row.status === 'done' || row.status === 'paid') ? (
-              <Button
-                size="sm"
-                onClick={() => markAcceptedMutation.mutate({ id: row.id, status: 'completed' })}
-                disabled={markAcceptedMutation.isPending}
-              >
-                <CheckCircle2Icon aria-hidden="true" />
-                <Trans>Mark accepted</Trans>
-              </Button>
+              <div className="flex flex-col gap-1.5">
+                <Button
+                  size="sm"
+                  onClick={() => markAcceptedMutation.mutate({ id: row.id, status: 'completed' })}
+                  disabled={markAcceptedMutation.isPending}
+                >
+                  <CheckCircle2Icon aria-hidden="true" />
+                  <Trans>Mark accepted</Trans>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => markFiledRejectedMutation.mutate({ id: row.id })}
+                  disabled={markFiledRejectedMutation.isPending}
+                  title={t`Authority rejected the e-filed return — unwinds row back to In review with a Rejected chip.`}
+                >
+                  <AlertTriangleIcon aria-hidden="true" />
+                  <Trans>Mark e-file rejected</Trans>
+                </Button>
+              </div>
             ) : null}
           </div>
         </SheetHeader>
@@ -3635,6 +3690,19 @@ function ObligationQueueDetailDrawer({
                           </p>
                         ) : null}
                       </div>
+                    ) : null}
+                    {row ? (
+                      <ObligationBlockerSection
+                        row={row}
+                        blockerCandidates={blockerCandidates}
+                        onSet={(blockedByObligationInstanceId) =>
+                          updateBlockedByMutation.mutate({
+                            id: row.id,
+                            blockedByObligationInstanceId,
+                          })
+                        }
+                        pending={updateBlockedByMutation.isPending}
+                      />
                     ) : null}
                     <div className="flex flex-wrap gap-2">
                       {practiceAiEnabled ? (
@@ -5035,6 +5103,111 @@ function ObligationQueueActionChip({
     >
       {children}
     </button>
+  )
+}
+
+// K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Lives in the
+// Readiness tab because "what's upstream of us" is part of the
+// readiness picture — if a partner's 1040 is waiting on a
+// partnership's K-1, that's the binding blocker, not whether the W-2
+// landed. Renders one of three states:
+//   - currently blocked: shows the parent label + Clear button
+//   - not blocked, candidates available: shows a Select to set one
+//   - not blocked, no candidates loaded: minimal hint only
+function ObligationBlockerSection({
+  row,
+  blockerCandidates,
+  onSet,
+  pending,
+}: {
+  row: ObligationQueueRow
+  blockerCandidates: ObligationQueueRow[]
+  onSet: (blockedByObligationInstanceId: string | null) => void
+  pending: boolean
+}) {
+  const { t } = useLingui()
+  const currentBlocker = row.blockedByObligationInstanceId
+    ? blockerCandidates.find(
+        (candidate) => candidate.id === row.blockedByObligationInstanceId,
+      ) ?? null
+    : null
+  // Candidate filter: any other obligation in the same firm that
+  // isn't this row and isn't already completed (no point blocking on
+  // something done).
+  const eligibleCandidates = useMemo(
+    () =>
+      blockerCandidates.filter(
+        (candidate) => candidate.id !== row.id && candidate.status !== 'completed',
+      ),
+    [blockerCandidates, row.id],
+  )
+  return (
+    <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-medium text-text-primary">
+          <Trans>Upstream dependency</Trans>
+        </h3>
+        {row.blockedByObligationInstanceId ? (
+          <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">
+            <Trans>Blocked</Trans>
+          </Badge>
+        ) : null}
+      </div>
+      {row.blockedByObligationInstanceId ? (
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-text-secondary">
+            {currentBlocker ? (
+              <Trans>
+                Waiting on {currentBlocker.clientName} · {formatTaxCode(currentBlocker.taxType)}
+              </Trans>
+            ) : (
+              <Trans>Waiting on obligation #{row.blockedByObligationInstanceId.slice(0, 8)}</Trans>
+            )}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onSet(null)}
+            disabled={pending}
+          >
+            <Trans>Clear blocker</Trans>
+          </Button>
+        </div>
+      ) : eligibleCandidates.length > 0 ? (
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+          <Select
+            value=""
+            onValueChange={(value) => {
+              if (typeof value === 'string' && value.length > 0) onSet(value)
+            }}
+            disabled={pending}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue
+                placeholder={t`Pick the upstream obligation that's blocking this row…`}
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {eligibleCandidates.map((candidate) => (
+                <SelectItem key={candidate.id} value={candidate.id}>
+                  {candidate.clientName} · {formatTaxCode(candidate.taxType)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : (
+        <p className="text-xs text-text-tertiary">
+          <Trans>No other obligations loaded — page through the queue to surface candidates.</Trans>
+        </p>
+      )}
+      <p className="text-[11px] text-text-tertiary">
+        <Trans>
+          K-1 cascade: when the upstream obligation reaches Completed, this row auto-unblocks
+          back to Not started with a system note.
+        </Trans>
+      </p>
+    </div>
   )
 }
 
