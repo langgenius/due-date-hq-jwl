@@ -1,25 +1,36 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { useQuery } from '@tanstack/react-query'
-import { ArrowUpRightIcon, BellIcon, MegaphoneIcon } from 'lucide-react'
-import { Link } from 'react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  ArrowUpRightIcon,
+  BellIcon,
+  CalendarClockIcon,
+  CheckCheckIcon,
+  CircleAlertIcon,
+  MegaphoneIcon,
+  SettingsIcon,
+  type LucideIcon,
+} from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { InAppNotificationPublic, NotificationType } from '@duedatehq/contracts'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
-import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import { orpc } from '@/lib/rpc'
 
 // PulseNotificationsBell — top-right utility bell that opens a popover
-// listing the most recent Pulse alerts. Translated from the
-// `BellDropdown.tsx` pattern in `/Users/yuqi/Documents/_GitHub/DueDateHQ`
-// (the prior project) and adapted to this codebase's primitives.
+// listing recent in-app notifications. The destination is the unified
+// Inbox at /notifications; this bell is the ambient ping.
 //
 // Three surfaces, three roles (per 2026-05-20 designer call):
-//   - Bell = ambient ping, glance + click-to-review
-//   - Dashboard top "Pulse alerts" section = daily scan
-//   - Sidebar `Notification` entry = canonical destination
+//   - Bell = ambient ping, glance + click-to-open
+//   - Dashboard "Pulse alerts" section = daily Pulse scan
+//   - Sidebar `Inbox` entry = canonical destination (all types)
+//   - ⌘K palette "What's new" = power-user shortcut to the same place
+//
+// Originally translated from the BellDropdown pattern in
+// `/Users/yuqi/Documents/_GitHub/DueDateHQ` (prior project).
 
 type FilterKind = 'unread' | 'all'
 
@@ -28,24 +39,61 @@ const FILTER_LABELS: Record<FilterKind, string> = {
   all: 'All',
 }
 
-function isUnread(alert: PulseAlertPublic): boolean {
-  // "Matched" is the freshly-arrived state — no action taken yet.
-  // Applied / partially_applied / dismissed / snoozed / reverted all
-  // count as "read" (the CPA already touched them).
-  return alert.status === 'matched'
+const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
+  pulse_alert: MegaphoneIcon,
+  deadline_reminder: CalendarClockIcon,
+  overdue: CircleAlertIcon,
+  client_reminder: BellIcon,
+  audit_package_ready: CheckCheckIcon,
+  system: SettingsIcon,
+}
+
+function isUnread(notification: InAppNotificationPublic): boolean {
+  return notification.readAt === null
 }
 
 function PulseNotificationsBell() {
   const { t } = useLingui()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<FilterKind>('unread')
-  const query = useQuery(usePulseListAlertsQueryOptions(10))
-  const alerts = useMemo<PulseAlertPublic[]>(() => query.data?.alerts ?? [], [query.data])
-  const unreadCount = useMemo(() => alerts.filter(isUnread).length, [alerts])
-  const filtered = useMemo(
-    () => (filter === 'unread' ? alerts.filter(isUnread) : alerts),
-    [alerts, filter],
+  const query = useQuery(orpc.notifications.list.queryOptions({ input: { limit: 20 } }))
+  const notifications = useMemo<InAppNotificationPublic[]>(
+    () => query.data?.notifications ?? [],
+    [query.data],
   )
+  const unreadCount = useMemo(() => notifications.filter(isUnread).length, [notifications])
+  const filtered = useMemo(
+    () => (filter === 'unread' ? notifications.filter(isUnread) : notifications),
+    [notifications, filter],
+  )
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.notifications.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.notifications.unreadCount.key() })
+  }
+
+  const markReadMutation = useMutation(
+    orpc.notifications.markRead.mutationOptions({
+      onSuccess: invalidate,
+    }),
+  )
+  const markAllReadMutation = useMutation(
+    orpc.notifications.markAllRead.mutationOptions({
+      onSuccess: invalidate,
+    }),
+  )
+
+  function handleItemClick(notification: InAppNotificationPublic) {
+    if (isUnread(notification)) {
+      markReadMutation.mutate({ id: notification.id })
+    }
+    if (notification.href) {
+      void navigate(notification.href)
+    }
+    setOpen(false)
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,9 +101,7 @@ function PulseNotificationsBell() {
         render={
           <button
             type="button"
-            aria-label={
-              unreadCount > 0 ? t`Notifications, ${unreadCount} unread` : t`Notifications`
-            }
+            aria-label={unreadCount > 0 ? t`Inbox, ${unreadCount} unread` : t`Inbox`}
             className={cn(
               'relative inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
               'hover:bg-background-default-hover hover:text-text-primary',
@@ -83,7 +129,7 @@ function PulseNotificationsBell() {
         <header className="flex items-center justify-between gap-2 border-b border-divider-subtle px-4 py-3">
           <div className="flex items-baseline gap-2">
             <h3 className="text-md font-semibold text-text-primary">
-              <Trans>Notifications</Trans>
+              <Trans>Inbox</Trans>
             </h3>
             {unreadCount > 0 ? (
               <span className="text-sm tabular-nums text-text-tertiary">
@@ -91,6 +137,16 @@ function PulseNotificationsBell() {
               </span>
             ) : null}
           </div>
+          {unreadCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => markAllReadMutation.mutate(undefined)}
+              disabled={markAllReadMutation.isPending}
+              className="text-sm text-text-secondary hover:text-text-primary disabled:opacity-40"
+            >
+              <Trans>Mark all read</Trans>
+            </button>
+          ) : null}
         </header>
 
         <div className="flex gap-1 border-b border-divider-subtle px-3 py-2">
@@ -121,19 +177,23 @@ function PulseNotificationsBell() {
               <Trans>Nothing here.</Trans>
             </li>
           ) : (
-            filtered.map((alert) => (
-              <NotificationItem key={alert.id} alert={alert} onClose={() => setOpen(false)} />
+            filtered.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onClick={() => handleItemClick(notification)}
+              />
             ))
           )}
         </ul>
 
         <footer className="border-t border-divider-subtle px-4 py-2.5">
           <Link
-            to="/rules/pulse"
+            to="/notifications"
             onClick={() => setOpen(false)}
             className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
           >
-            <Trans>View all in Notifications</Trans>
+            <Trans>View all in Inbox</Trans>
             <ArrowUpRightIcon className="size-3.5" aria-hidden />
           </Link>
         </footer>
@@ -142,25 +202,27 @@ function PulseNotificationsBell() {
   )
 }
 
-function NotificationItem({ alert, onClose }: { alert: PulseAlertPublic; onClose: () => void }) {
-  const unread = isUnread(alert)
-  const { openDrawer } = usePulseDrawer()
-  const impacted = alert.matchedCount + alert.needsReviewCount
+function NotificationItem({
+  notification,
+  onClick,
+}: {
+  notification: InAppNotificationPublic
+  onClick: () => void
+}) {
+  const unread = isUnread(notification)
+  const Icon = TYPE_ICONS[notification.type]
   return (
     <li>
       <button
         type="button"
-        onClick={() => {
-          openDrawer(alert.id)
-          onClose()
-        }}
+        onClick={onClick}
         className={cn(
           'flex w-full items-start gap-3 border-b border-divider-subtle px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none',
           unread && 'bg-state-accent-hover-alt/40',
         )}
       >
         <span className="grid size-6 shrink-0 place-items-center pt-0.5 text-text-secondary">
-          <MegaphoneIcon className="size-4" aria-hidden />
+          <Icon className="size-4" aria-hidden />
         </span>
         <div className="flex-1 min-w-0">
           <div
@@ -169,19 +231,11 @@ function NotificationItem({ alert, onClose }: { alert: PulseAlertPublic; onClose
               unread ? 'font-medium text-text-primary' : 'text-text-secondary',
             )}
           >
-            {alert.title}
+            {notification.title}
           </div>
-          <div className="truncate text-sm text-text-tertiary">
-            {impacted > 0 ? (
-              <Trans>
-                {impacted} clients · {alert.source}
-              </Trans>
-            ) : (
-              <Trans>{alert.source}</Trans>
-            )}
-          </div>
+          <div className="line-clamp-2 text-sm text-text-tertiary">{notification.body}</div>
           <div className="mt-0.5 text-xs text-text-tertiary tabular-nums">
-            {formatRelativeTime(alert.publishedAt)}
+            {formatRelativeTime(notification.createdAt)}
           </div>
         </div>
         {unread ? (

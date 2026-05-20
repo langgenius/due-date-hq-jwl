@@ -32,7 +32,6 @@ import {
 import { Switch } from '@duedatehq/ui/components/ui/switch'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
-import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -147,9 +146,13 @@ export function NotificationsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <SettingsBackLink />
       <PageHeader
-        title={<Trans>Notifications</Trans>}
+        title={<Trans>Inbox</Trans>}
+        description={
+          <Trans>
+            Everything that wants your attention — Pulse alerts, deadline reminders, system updates.
+          </Trans>
+        }
         actions={
           <Button
             variant="primary"

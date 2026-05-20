@@ -9,6 +9,7 @@ import {
   CalendarClockIcon,
   CheckIcon,
   ChevronsUpDownIcon,
+  InboxIcon,
   LayoutDashboardIcon,
   LibraryIcon,
   MapIcon,
@@ -63,7 +64,6 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import { FIRM_SWITCHER_HOTKEY } from '@/components/patterns/keyboard-shell/display'
@@ -455,16 +455,16 @@ function AddFirmDialog({
   )
 }
 
-function usePulseAlertCount(): number {
-  // Surface the real Pulse alert count next to the nav entry. Uses the
-  // shared cache primed by the dashboard banner so we don't double-fetch.
-  const query = useQuery(usePulseListAlertsQueryOptions(5))
-  return query.data?.alerts.length ?? 0
+function useInboxUnreadCount(): number {
+  // Surface the unified Inbox unread count next to the sidebar entry.
+  // Shares the cache with the bell popover.
+  const query = useQuery(orpc.notifications.unreadCount.queryOptions({ input: undefined }))
+  return query.data?.count ?? 0
 }
 
 function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
-  const pulseCount = usePulseAlertCount()
+  const pulseCount = useInboxUnreadCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
   return useMemo<NavConfig>(() => {
     if (navV2) {
@@ -485,9 +485,9 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         primary: [
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
           {
-            href: '/rules/pulse',
-            label: t`Notification`,
-            icon: ActivityIcon,
+            href: '/notifications',
+            label: t`Inbox`,
+            icon: InboxIcon,
             end: false,
             ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
           },
