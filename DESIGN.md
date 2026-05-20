@@ -539,11 +539,28 @@ Do not place raw color utilities in business components. Use semantic utilities 
 
 ## Typography
 
-Inter is the UI font. Geist Mono is reserved for aligned operational data: amounts, days, dates, EINs, rule IDs, URLs, and source labels.
+Inter is the UI font. **Numerals are sans-serif by default** — the mono face was creating an ATM-receipt feel on the dashboard and hurting at-a-glance readability (per 2026-05-20 review). Use `tabular-nums` on Inter for column alignment; reserve Geist Mono for the genuinely operational data classes that benefit from monospaced grids: rule IDs, EINs, URLs, raw codes, and the hero risk-strip metric on the legacy dashboard.
 
-Default UI text is 13px. Metadata, table headers, and badges use 11px. Badges use Inter Medium. Page and drawer titles use 16px. The dashboard risk hero uses 56px Geist Mono with tabular numbers and tight letter spacing.
+### Size ladder (the only sizes you should reach for)
 
-All numbers that need vertical comparison must use mono tabular numerals.
+| Token                      | Tailwind                                                 | Use                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | The page's anchor word — "Today", "Obligations", "Clients"                                                                                        |
+| **H2 section**             | `text-xl font-semibold tracking-tight`                   | "Pulse alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`. |
+| **KPI numeral**            | `text-2xl font-semibold tabular-nums tracking-tight`     | The number on an exposure tile. Label below at `text-sm text-text-secondary`.                                                                     |
+| **Row primary**            | `text-base font-medium text-text-primary`                | The thing the user is scanning for — client name in action rows, alert title on cards.                                                            |
+| **Row secondary**          | `text-sm text-text-secondary`                            | Task prompt under a row primary, supporting metadata.                                                                                             |
+| **Pill / chip**            | `text-sm` (no weight by default)                         | Date pill, penalty pill, client chip. Add `font-medium` only when the chip itself is the signal (e.g., the dollar amount).                        |
+| **Tertiary label**         | `text-sm text-text-tertiary`                             | Sidebar group labels, "View all" links, footer source link.                                                                                       |
+| **Microlabel (uppercase)** | `text-xs uppercase tracking-[0.08em] text-text-tertiary` | Sparingly — reserved for KPI tile suffix, badge-style labels.                                                                                     |
+
+### Weight discipline
+
+Use `font-semibold` only on H1 / H2 / KPI numerals. Use `font-medium` only on primary anchor text (row primary). Everything else stays at the default 400. Sprinkling `font-medium` on every metadata chip flattens hierarchy — that's the visual mush we walked away from in this revision.
+
+### Numerals
+
+Default to Inter `tabular-nums`. Drop `font-mono` unless the number is part of a grid that needs literal monospace alignment (rule IDs, raw codes, fixed-width source identifiers). Currency, day counts, exposure totals, and counters are sans-serif.
 
 ## Layout
 
@@ -819,12 +836,27 @@ If a component spec doesn't answer all 7, send it back.
 The dashboard has one rhythm rule: spacing doubles between scopes (4 → 8 → 16 → 24 → 48). Page sections, top to bottom:
 
 1. **Page header** (date / route name inline, single line)
-2. **Source needs attention banner** — auto-hides at zero unhealthy sources
-3. **Needs attention cards** — Pulse alerts as first-class cards. Auto-hides at zero
-4. **This week's exposure** — chip row of count + dollars (decision needs, dollar at risk, blocked, waiting)
-5. **Actions this week** — the daily action queue (verb-led rows with inline primary action)
+2. **Pulse alerts** — a single grouped section. Header `<h2>` plus, when sources are unhealthy, a "_N_ source needs attention" warning row that lives **inside** the section (tight gap) so it never reads as an orphan banner above the cards. Source labels are shown as inline chips. The warning's primary action is **Review** (filled button); **Hide** is a ghost button — Review is the desired path, Hide is the lesser one.
+3. **This week's exposure** — KPI mini-tiles (number on top, label below). Sans-serif tabular numerals at `text-2xl semibold`. Each tile is a deep-link into the matching Obligations filter.
+4. **Actions this week** — the daily action queue.
 
-That is the dashboard. There is no sixth section. Every section auto-hides at zero rather than rendering an "empty state" with chrome.
+That is the dashboard. There is no fifth section. Every section auto-hides at zero rather than rendering an "empty state" with chrome.
+
+### Actions this week — row anatomy
+
+The row carries five signals, in this scan order:
+
+```
+[ penalty pill ] [ due-date pill ]  Client name                          [ ⌄ ]
+                                    Task prompt
+```
+
+- **Penalty pill** (left) — the dollar stake. Red-filled when past-due with accrued penalty; neutral outline when projected; muted dash when no figure. Always sized identically so a long list reads as a column.
+- **Due-date pill** — encapsulated, never floaty. Red-filled when past due; neutral when due today / upcoming. Drop the bare red-text-on-white pattern — pills with backgrounds read as urgency, raw red text reads as bug.
+- **Client name** at `text-base font-medium`; task prompt below at `text-sm text-text-secondary`.
+- **Chevron** rotates 180° when expanded.
+
+Click expands a small detail panel inline: status sentence, form, attached sources, penalty rule, plus a primary "Open in Obligations" link. Click-to-expand (not hover) — hover-expanding a long list causes layout jitter and is fragile on trackpads.
 
 ## Information hierarchy — failure modes
 

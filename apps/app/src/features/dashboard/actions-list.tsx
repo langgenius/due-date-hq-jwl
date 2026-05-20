@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
+import { ArrowUpRightIcon, ChevronDownIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -7,30 +8,27 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { formatCents } from '@/lib/utils'
 
-// Dashboard v2 "Actions this week" — verb-led action list that
+// Dashboard v2 "Actions this week" — the verb-led action queue that
 // replaces the legacy triage table when `?dashboard=v2` is on.
-// Per docs/Design/dashboard-actions-design-brief.md:
-//
-// - No table; no tab strip; no sort or filter controls.
-// - Each line reads like a Slack message: action prompt + client +
-//   urgency + risk. System-ordered by Smart Priority (already
-//   ranked upstream).
-// - Reuses the same nextCheck-style prompt the legacy table already
-//   produced — no new verb dictionary.
-// - Click sends the user into Obligations (slice A behavior). The
-//   inline accordion expansion lands in slice B.
+// Layout philosophy (post 2026-05-20 redesign):
+//   [penalty pill] [due pill]  Client                    [chevron]
+//                              Task prompt
+//   --- expanded on click ---
+//   Status sentence · evidence · open-in-obligations
+// The two pills sit at the front because dollars + due-date are the
+// signals a CPA uses to triage. Client carries primary weight (medium,
+// base size); the task prompt is the readable sub-line.
 
-// Slice B: maps a row's current status to its forward transition —
-// the "advance one step" move the primary button performs. Matches
-// the lifecycle v2 vocabulary (project_status_taxonomy.md).
-//   pending           → in_review   ("Start review")
-//   waiting_on_client → in_review   ("Mark responded")
-//   blocked           → in_review   ("Mark unblocked")
-//   in_progress       → in_review   ("Send to review")  (legacy state)
-//   review            → done         ("Mark filed")
-//   done              → completed   ("Mark accepted")
+function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
+  if (!asOfDate) return 0
+  const due = new Date(currentDueDate).getTime()
+  const as = new Date(asOfDate).getTime()
+  return Math.round((due - as) / (1000 * 60 * 60 * 24))
+}
+
 function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string {
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   if (row.status === 'waiting_on_client') return 'Follow up for client materials'
@@ -42,66 +40,192 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   return 'Open evidence and confirm the source still matches'
 }
 
-function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
-  if (!asOfDate) return 0
-  const due = new Date(currentDueDate).getTime()
-  const as = new Date(asOfDate).getTime()
-  return Math.round((due - as) / (1000 * 60 * 60 * 24))
+function statusLabel(status: DashboardTopRow['status']): string {
+  switch (status) {
+    case 'pending':
+      return 'Not started'
+    case 'in_progress':
+      return 'In progress'
+    case 'waiting_on_client':
+      return 'Waiting on client'
+    case 'blocked':
+      return 'Blocked'
+    case 'review':
+      return 'In review'
+    case 'completed':
+      return 'Completed'
+    default:
+      return status
+  }
 }
 
-function ActionLine({
+// Tone for the penalty pill. Past-due with accrued penalty is the only
+// case that warrants red — projected risk stays neutral so the eye
+// isn't pulled to every row.
+function penaltyTone(row: DashboardTopRow, days: number): 'critical' | 'neutral' | 'muted' {
+  if (days < 0 && (row.accruedPenaltyCents ?? 0) > 0) return 'critical'
+  if (row.exposureStatus === 'ready' && (row.estimatedExposureCents ?? 0) > 0) return 'neutral'
+  return 'muted'
+}
+
+function penaltyValue(row: DashboardTopRow, days: number): string | null {
+  if (days < 0 && (row.accruedPenaltyCents ?? 0) > 0) {
+    return formatCents(row.accruedPenaltyCents!)
+  }
+  if (row.exposureStatus === 'ready' && (row.estimatedExposureCents ?? 0) > 0) {
+    return formatCents(row.estimatedExposureCents!)
+  }
+  return null
+}
+
+function PenaltyPill({ row, days }: { row: DashboardTopRow; days: number }) {
+  const { t } = useLingui()
+  const tone = penaltyTone(row, days)
+  const value = penaltyValue(row, days)
+  if (!value) {
+    return (
+      <span
+        className="inline-flex h-7 min-w-[88px] items-center justify-center rounded-md border border-divider-subtle bg-background-subtle px-2.5 text-sm text-text-tertiary"
+        title={row.exposureStatus === 'needs_input' ? t`Needs penalty inputs` : t`No exposure`}
+      >
+        <Trans>—</Trans>
+      </span>
+    )
+  }
+  return (
+    <span
+      className={cn(
+        'inline-flex h-7 min-w-[88px] items-center justify-center rounded-md px-2.5 text-sm font-medium tabular-nums',
+        tone === 'critical' && 'bg-state-destructive-hover text-text-destructive',
+        tone === 'neutral' &&
+          'border border-divider-subtle bg-background-default text-text-primary',
+      )}
+      title={tone === 'critical' ? t`Accrued penalty` : t`Projected risk`}
+    >
+      {value}
+    </span>
+  )
+}
+
+function DueDatePill({ days }: { days: number }) {
+  const past = days < 0
+  return (
+    <span
+      className={cn(
+        'inline-flex h-7 min-w-[84px] items-center justify-center rounded-md px-2.5 text-sm tabular-nums',
+        past
+          ? 'bg-state-destructive-hover font-medium text-text-destructive'
+          : days === 0
+            ? 'bg-background-subtle font-medium text-text-primary'
+            : 'border border-divider-subtle bg-background-default text-text-secondary',
+      )}
+    >
+      {past ? (
+        <Plural value={-days} one="# day late" other="# days late" />
+      ) : days === 0 ? (
+        <Trans>Today</Trans>
+      ) : (
+        <Plural value={days} one="in # day" other="in # days" />
+      )}
+    </span>
+  )
+}
+
+function ActionRow({
   row,
   asOfDate,
+  expanded,
+  onToggle,
   onOpenObligation,
 }: {
   row: DashboardTopRow
   asOfDate: string | null
+  expanded: boolean
+  onToggle: () => void
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
-  const urgencyText = days < 0 ? t`${-days}d late` : days === 0 ? t`due today` : t`due in ${days}d`
-  // Per Q1 quiet register: red is reserved for genuinely critical
-  // (>7 days past due). Everything else flattens to secondary —
-  // amber was reading as caution-tape against the calm canvas.
-  const urgencyTone = days < -7 ? 'text-text-destructive' : 'text-text-secondary'
+
   return (
-    <button
-      type="button"
-      onClick={onOpenObligation}
-      aria-label={t`${prompt} for ${row.clientName}`}
-      // Row reshape:
-      //  [Client badge] · {task}    {urgency · risk}
-      // The client is now the leading anchor — visually pinned as a
-      // pill so the eye scans clients first, then reads what to do
-      // for each. Single click → open in the Obligations queue;
-      // dashboard doesn't carry inline action state, it just routes
-      // you to where the action happens.
-      className="group grid w-full grid-cols-[12px_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-    >
-      <ArrowRightIcon
-        className="size-3.5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
-        aria-hidden
-      />
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 py-0.5 text-xs font-medium text-text-secondary">
-          {row.clientName}
+    <div className="flex flex-col">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={`action-detail-${row.obligationId}`}
+        aria-label={t`${prompt} for ${row.clientName}`}
+        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <PenaltyPill row={row} days={days} />
+        <DueDatePill days={days} />
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
+          <span className="truncate text-sm text-text-secondary">{prompt}</span>
         </span>
-        <span className="truncate text-sm font-medium text-text-primary">{prompt}</span>
-      </span>
-      <span className="inline-flex shrink-0 items-baseline gap-1.5 font-mono text-xs tabular-nums">
-        <span className={cn(urgencyTone)}>{urgencyText}</span>
-        <span aria-hidden className="text-text-tertiary">
-          ·
-        </span>
-        <span className="text-text-secondary">
-          {row.estimatedExposureCents !== null && row.exposureStatus === 'ready'
-            ? formatCents(row.estimatedExposureCents)
-            : t`needs input`}
-        </span>
-      </span>
-    </button>
+        <ChevronDownIcon
+          className={cn(
+            'size-4 shrink-0 text-text-tertiary transition-transform',
+            expanded && 'rotate-180 text-text-primary',
+          )}
+          aria-hidden
+        />
+      </button>
+
+      {expanded ? (
+        <div
+          id={`action-detail-${row.obligationId}`}
+          className="ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-sm"
+        >
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
+            <dt className="text-text-tertiary">
+              <Trans>Status</Trans>
+            </dt>
+            <dd className="text-text-primary">{statusLabel(row.status)}</dd>
+
+            <dt className="text-text-tertiary">
+              <Trans>Form</Trans>
+            </dt>
+            <dd className="text-text-primary">
+              <TaxCodeLabel code={row.taxType} />
+            </dd>
+
+            <dt className="text-text-tertiary">
+              <Trans>Sources</Trans>
+            </dt>
+            <dd className="text-text-primary tabular-nums">
+              {row.evidenceCount > 0 ? (
+                <Plural
+                  value={row.evidenceCount}
+                  one="# source attached"
+                  other="# sources attached"
+                />
+              ) : (
+                <span className="text-text-warning">
+                  <Trans>None attached</Trans>
+                </span>
+              )}
+            </dd>
+
+            {row.penaltyFormulaLabel ? (
+              <>
+                <dt className="text-text-tertiary">
+                  <Trans>Penalty rule</Trans>
+                </dt>
+                <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
+              </>
+            ) : null}
+          </dl>
+          <div>
+            <Button variant="primary" size="sm" onClick={onOpenObligation}>
+              <Trans>Open in Obligations</Trans>
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -118,7 +242,6 @@ function DashboardActionsList({
   rows: DashboardTopRow[]
   asOfDate: string | null
   isLoading: boolean
-  // Total this-week count (used to render "… N more" footer when capped).
   totalThisWeek: number
   canRunMigration: boolean
   onOpenWizard: () => void
@@ -129,17 +252,16 @@ function DashboardActionsList({
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
   const overflow = Math.max(totalThisWeek - visible.length, 0)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   if (isLoading) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-text-primary">
-          <Trans>Actions this week</Trans>
-        </h2>
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+        <SectionHeader count={null} onOpenAll={onOpenAllObligations} />
         <div className="flex flex-col gap-2">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
         </div>
       </section>
     )
@@ -147,11 +269,9 @@ function DashboardActionsList({
 
   if (visible.length === 0) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-text-primary">
-          <Trans>Actions this week</Trans>
-        </h2>
-        <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-sm text-text-tertiary">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+        <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
+        <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-sm text-text-secondary">
           {canRunMigration ? (
             <>
               <Trans>No obligations this week. Import clients to get started.</Trans>{' '}
@@ -174,45 +294,25 @@ function DashboardActionsList({
   }
 
   return (
-    <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-      {/* Section header: title left, "Open full queue" right-aligned on
-        the same line. The link is the dashboard's only escape into the
-        full /obligations filter surface — every other row click opens
-        the obligation drawer in place (don't bounce). */}
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-base font-semibold text-text-primary">
-          <Trans>Actions this week</Trans>
-          {totalThisWeek > 0 ? (
-            <span className="ml-2 font-mono text-sm font-normal tabular-nums text-text-tertiary">
-              {totalThisWeek}
-            </span>
-          ) : null}
-        </h2>
-        <Link
-          to="/obligations"
-          onClick={(event) => {
-            event.preventDefault()
-            onOpenAllObligations()
-          }}
-          className="inline-flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-text-primary"
-        >
-          <Trans>Open full queue</Trans>
-          <ArrowUpRightIcon className="size-3" aria-hidden />
-        </Link>
-      </div>
-      <ul className="flex flex-col">
+    <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+      <SectionHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
+      <ul className="flex flex-col gap-0.5">
         {visible.map((row) => (
           <li key={row.obligationId} className="border-b border-divider-subtle last:border-b-0">
-            <ActionLine
+            <ActionRow
               row={row}
               asOfDate={asOfDate}
+              expanded={expandedId === row.obligationId}
+              onToggle={() =>
+                setExpandedId((id) => (id === row.obligationId ? null : row.obligationId))
+              }
               onOpenObligation={() => onOpenObligation(row)}
             />
           </li>
         ))}
       </ul>
       {overflow > 0 ? (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-sm text-text-tertiary">
           <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
         </p>
       ) : null}
@@ -220,6 +320,28 @@ function DashboardActionsList({
   )
 }
 
-// Re-export the helper so other dashboard surfaces (the aggregate
-// strip in slice C) can reuse the same days computation.
+function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <h2 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight text-text-primary">
+        <Trans>Actions this week</Trans>
+        {count !== null && count > 0 ? (
+          <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
+        ) : null}
+      </h2>
+      <Link
+        to="/obligations"
+        onClick={(event) => {
+          event.preventDefault()
+          onOpenAll()
+        }}
+        className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+      >
+        <Trans>Open full queue</Trans>
+        <ArrowUpRightIcon className="size-3.5" aria-hidden />
+      </Link>
+    </div>
+  )
+}
+
 export { DashboardActionsList, daysUntilDueFromAsOf }
