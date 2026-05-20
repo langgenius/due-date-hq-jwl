@@ -203,6 +203,38 @@ export const DueDateLogicSchema = z.discriminatedUnion('kind', [
 ])
 export type DueDateLogic = z.infer<typeof DueDateLogicSchema>
 
+export const ConcreteDueDateLogicSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('fixed_date'),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    holidayRollover: z.enum(['source_adjusted', 'next_business_day']),
+  }),
+  z.object({
+    kind: z.literal('nth_day_after_tax_year_end'),
+    monthOffset: z.number().int().min(1).max(12),
+    day: z.number().int().min(1).max(31),
+    holidayRollover: z.literal('next_business_day'),
+  }),
+  z.object({
+    kind: z.literal('nth_day_after_tax_year_begin'),
+    monthOffset: z.number().int().min(1).max(12),
+    day: z.number().int().min(1).max(31),
+    holidayRollover: z.literal('next_business_day'),
+  }),
+  z.object({
+    kind: z.literal('period_table'),
+    frequency: z.enum(['semiweekly', 'monthly', 'quarterly', 'annual']),
+    periods: z.array(
+      z.object({
+        period: z.string().min(1),
+        dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      }),
+    ),
+    holidayRollover: z.literal('source_adjusted'),
+  }),
+])
+export type ConcreteDueDateLogic = z.infer<typeof ConcreteDueDateLogicSchema>
+
 export const ExtensionPolicySchema = z.object({
   available: z.boolean(),
   formName: z.string().min(1).optional(),
@@ -239,6 +271,7 @@ export type RuleEvidenceLocator = z.infer<typeof RuleEvidenceLocatorSchema>
 
 export const RuleEvidenceSchema = z.object({
   sourceId: z.string().min(1),
+  aiOutputId: EntityIdSchema.nullable().optional(),
   authorityRole: RuleEvidenceAuthorityRoleSchema,
   locator: RuleEvidenceLocatorSchema,
   summary: z.string().min(1),
@@ -293,6 +326,15 @@ export const RuleCoverageRowSchema = z.object({
   rejectedRuleCount: z.number().int().nonnegative().optional(),
   archivedRuleCount: z.number().int().nonnegative().optional(),
   customRuleCount: z.number().int().nonnegative().optional(),
+  entityCoverage: z.object({
+    llc: z.enum(['active', 'review', 'none']),
+    partnership: z.enum(['active', 'review', 'none']),
+    s_corp: z.enum(['active', 'review', 'none']),
+    c_corp: z.enum(['active', 'review', 'none']),
+    sole_prop: z.enum(['active', 'review', 'none']),
+    individual: z.enum(['active', 'review', 'none']),
+    trust: z.enum(['active', 'review', 'none']),
+  }),
 })
 export type RuleCoverageRow = z.infer<typeof RuleCoverageRowSchema>
 
@@ -432,6 +474,7 @@ export const RuleBulkAcceptSkipSchema = z.object({
     'archived',
     'invalid_template',
     'source_changed_requires_review',
+    'source_defined_requires_ai_review',
   ]),
 })
 export type RuleBulkAcceptSkip = z.infer<typeof RuleBulkAcceptSkipSchema>
@@ -521,6 +564,7 @@ export const RuleVerifyCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
   sourceSignalId: EntityIdSchema.optional(),
+  aiOutputId: EntityIdSchema.optional(),
   sourceHeading: z.string().min(1),
   sourceExcerpt: z.string().min(1),
   sourceUpdatedOn: z
@@ -537,6 +581,27 @@ export const RuleVerifyCandidateInputSchema = z.object({
   reviewNote: z.string().trim().max(1000).optional(),
 })
 export type RuleVerifyCandidateInput = z.infer<typeof RuleVerifyCandidateInputSchema>
+
+export const RuleDraftConcreteRuleInputSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.optional(),
+})
+export type RuleDraftConcreteRuleInput = z.infer<typeof RuleDraftConcreteRuleInputSchema>
+
+export const RuleConcreteDraftSchema = z.object({
+  aiOutputId: EntityIdSchema,
+  dueDateLogic: ConcreteDueDateLogicSchema,
+  extensionPolicy: ExtensionPolicySchema,
+  coverageStatus: CoverageStatusSchema,
+  requiresApplicabilityReview: z.boolean(),
+  quality: RuleQualityChecklistSchema,
+  sourceHeading: z.string().min(1),
+  sourceExcerpt: z.string().min(1),
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string().min(1),
+})
+export type RuleConcreteDraft = z.infer<typeof RuleConcreteDraftSchema>
 
 export const RuleRejectCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
@@ -580,6 +645,7 @@ export const rulesContract = oc.router({
   previewBulkRuleImpact: oc
     .input(RuleBulkImpactPreviewInputSchema)
     .output(RuleBulkImpactPreviewSchema),
+  draftConcreteRule: oc.input(RuleDraftConcreteRuleInputSchema).output(RuleConcreteDraftSchema),
   verifyCandidate: oc.input(RuleVerifyCandidateInputSchema).output(RuleReviewDecisionSchema),
   rejectCandidate: oc.input(RuleRejectCandidateInputSchema).output(RuleReviewDecisionSchema),
   coverage: oc.input(z.undefined()).output(z.array(RuleCoverageRowSchema)),

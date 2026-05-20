@@ -32,6 +32,11 @@ const STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES = [
   '_state_individual_income_tax',
   '_state_individual_estimated_tax',
 ] as const
+const STATE_BUSINESS_CANDIDATE_TAX_TYPE_SUFFIXES = [
+  '_state_business_income_tax',
+  '_state_business_estimated_tax',
+  '_state_franchise_or_entity_tax',
+] as const
 const IMPRECISE_INCOME_SOURCE_PATHS = new Set(['/', '/individuals', '/income-tax'])
 
 function expectUnique(ids: readonly string[]) {
@@ -173,7 +178,6 @@ describe('@duedatehq/core/rules', () => {
   it('does not generate source-backed candidates for domains without precise sources', () => {
     const coarseCandidateTaxTypeFragments = [
       '_state_fiduciary_income_tax',
-      '_state_business_income_franchise_tax',
       '_state_pte_composite_ptet',
       '_state_sales_use_tax',
       '_state_withholding_tax',
@@ -188,6 +192,49 @@ describe('@duedatehq/core/rules', () => {
         `${rule.id} should wait for a precise domain source before generation`,
       ).toBe(false)
     }
+  })
+
+  it('keeps personal and business source-backed candidates separated by source domain', () => {
+    const businessCandidates = OBLIGATION_RULES.filter(
+      (rule) =>
+        rule.status === 'candidate' &&
+        STATE_BUSINESS_CANDIDATE_TAX_TYPE_SUFFIXES.some((suffix) => rule.taxType.endsWith(suffix)),
+    )
+    const personalCandidates = OBLIGATION_RULES.filter(
+      (rule) =>
+        rule.status === 'candidate' &&
+        STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES.some((suffix) => rule.taxType.endsWith(suffix)),
+    )
+
+    expect(personalCandidates.length).toBeGreaterThan(0)
+    expect(businessCandidates.length).toBeGreaterThan(0)
+    expect(
+      personalCandidates.every((rule) =>
+        rule.entityApplicability.every(
+          (entity) => entity === 'individual' || entity === 'sole_prop',
+        ),
+      ),
+    ).toBe(true)
+    expect(
+      businessCandidates.every((rule) =>
+        rule.entityApplicability.every(
+          (entity) =>
+            entity === 'llc' ||
+            entity === 'partnership' ||
+            entity === 's_corp' ||
+            entity === 'c_corp',
+        ),
+      ),
+    ).toBe(true)
+
+    expect(findRuleById('ca.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'ca.ftb_business_due_dates',
+    ])
+    expect(findRuleById('tx.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'tx.franchise_home',
+    ])
+    expect(findRuleById('ma.business_income_return.candidate.2026')).toBeUndefined()
+    expect(findRuleById('ma.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
   })
 
   it('covers every US jurisdiction with official sources and safe rule states', () => {
@@ -278,6 +325,25 @@ describe('@duedatehq/core/rules', () => {
           taxType: 'ny_ptet',
           requiresReview: true,
         }),
+      ]),
+    )
+    expect(normalizeRuleTaxTypeCandidates('ma_state_business_income_franchise_tax')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          taxType: 'ma_state_business_income_tax',
+          requiresReview: true,
+        }),
+        expect.objectContaining({
+          taxType: 'ma_state_franchise_or_entity_tax',
+          requiresReview: true,
+        }),
+      ]),
+    )
+    expect(normalizeRuleTaxTypeCandidates('ca_100_franchise')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ taxType: 'ca_100' }),
+        expect.objectContaining({ taxType: 'ca_state_business_income_tax' }),
+        expect.objectContaining({ taxType: 'ca_state_franchise_or_entity_tax' }),
       ]),
     )
   })

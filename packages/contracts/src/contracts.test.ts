@@ -117,6 +117,7 @@ import {
 import {
   ObligationRuleSchema,
   ObligationGenerationPreviewSchema,
+  RuleConcreteDraftSchema,
   RuleBulkAcceptSkipSchema,
   RuleGenerationPreviewInputSchema,
   RuleCoverageRowSchema,
@@ -1398,6 +1399,7 @@ describe('@duedatehq/contracts', () => {
       'archivePracticeRule',
       'previewRuleImpact',
       'previewBulkRuleImpact',
+      'draftConcreteRule',
       'verifyCandidate',
       'rejectCandidate',
       'coverage',
@@ -1485,6 +1487,35 @@ describe('@duedatehq/contracts', () => {
       nextReviewOn: '2027-01-15',
     })
     expect(verifyInput.sourceSignalId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+
+    const concreteDraft = RuleConcreteDraftSchema.parse({
+      aiOutputId: '44444444-4444-4444-8444-444444444444',
+      sourceHeading: 'Personal filing due dates',
+      sourceExcerpt: 'California personal income tax returns are due April 15.',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'No source-backed extension policy identified.',
+      },
+      coverageStatus: 'full',
+      requiresApplicabilityReview: false,
+      quality: {
+        filingPaymentDistinguished: true,
+        extensionHandled: true,
+        calendarFiscalSpecified: true,
+        holidayRolloverHandled: true,
+        crossVerified: true,
+        exceptionChannel: true,
+      },
+      confidence: 0.92,
+      reasoning: 'Official source names an April 15 filing deadline.',
+    })
+    expect(concreteDraft.dueDateLogic.kind).toBe('fixed_date')
 
     const rule = ObligationRuleSchema.parse({
       id: 'fed.1065.return.2025',
@@ -1652,6 +1683,15 @@ describe('@duedatehq/contracts', () => {
         verifiedRuleCount: 5,
         candidateCount: 0,
         highPrioritySourceCount: 5,
+        entityCoverage: {
+          llc: 'review',
+          partnership: 'none',
+          s_corp: 'active',
+          c_corp: 'active',
+          sole_prop: 'review',
+          individual: 'review',
+          trust: 'none',
+        },
       }).jurisdiction,
     ).toBe('CA')
   })

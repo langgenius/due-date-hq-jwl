@@ -97,6 +97,10 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
   return `${rule.id}:${rule.version}`
 }
 
+function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
 export function RuleLibraryTab() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -731,10 +735,13 @@ function RuleRow({
   onSelect: (rule: ObligationRule) => void
 }) {
   const { t } = useLingui()
-  const bulkReviewDisabledReason =
-    reviewTask?.reason === 'source_changed'
+  const sourceDefined = isSourceDefinedRule(rule)
+  const bulkReviewDisabledReason = sourceDefined
+    ? t`AI draft review required before activation.`
+    : reviewTask?.reason === 'source_changed'
       ? t`Source-changed rules require single-rule review.`
       : null
+  const bulkReviewDisabled = !canBulkReviewTask(reviewTask) || sourceDefined
   const handleClick = useCallback(() => onSelect(rule), [onSelect, rule])
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTableRowElement>) => {
@@ -765,7 +772,7 @@ function RuleRow({
           }
           title={bulkReviewDisabledReason ?? undefined}
           checked={selected}
-          disabled={!canBulkReviewTask(reviewTask)}
+          disabled={bulkReviewDisabled}
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
           onChange={(event) => onSelectedChange(ruleRowKey(rule), event.target.checked)}
@@ -780,7 +787,11 @@ function RuleRow({
         <span className="block truncate font-mono text-xs text-text-tertiary">{rule.id}</span>
         {reviewTask ? (
           <span className="mt-0.5 inline-flex text-[11px] font-medium text-severity-medium">
-            {reviewTask.reason === 'source_changed' ? t`Update available` : t`New rule`}
+            {sourceDefined
+              ? t`Needs AI draft review`
+              : reviewTask.reason === 'source_changed'
+                ? t`Update available`
+                : t`New rule`}
           </span>
         ) : null}
       </TableCell>
@@ -808,6 +819,7 @@ function canBulkReviewRule(
 ): boolean {
   return (
     rule.status === 'pending_review' &&
+    !isSourceDefinedRule(rule) &&
     canBulkReviewTask(openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null)
   )
 }
@@ -835,6 +847,7 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
     archived: t`Archived`,
     invalid_template: t`Invalid rule`,
     source_changed_requires_review: t`Source changed requires single-rule review`,
+    source_defined_requires_ai_review: t`AI draft review required`,
   }
 
   return (
@@ -876,6 +889,17 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
           <span>
             <Trans>
               Source-changed rules are skipped from bulk accept. Review them one by one.
+            </Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.some((row) => row.reason === 'source_defined_requires_ai_review') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <ToneDot tone="warning" />
+          <span>
+            <Trans>
+              Source-defined rules are skipped from bulk accept. Generate and review their AI draft
+              one by one.
             </Trans>
           </span>
         </div>

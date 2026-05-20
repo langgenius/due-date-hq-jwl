@@ -216,7 +216,6 @@ const EMPTY_CLIENT_OPTIONS: ClientFilterOption[] = []
 const EMPTY_COUNTY_OPTIONS: CountyFilterOption[] = []
 const INITIAL_CURSOR: ObligationQueueCursor = null
 const PAGE_SIZE = 50
-const FISCAL_YEAR_END_PICKER_YEAR = 2024
 const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
@@ -250,16 +249,21 @@ function formatFiscalYearEnd(month: number, day: number): string {
   return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
 }
 
-function fiscalYearEndIsoDate(month: number | null, day: number | null): string {
+function fiscalYearEndDraftValue(month: number | null, day: number | null): string {
   if (!month || !day) return ''
-  return `${FISCAL_YEAR_END_PICKER_YEAR}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  return formatFiscalYearEnd(month, day)
 }
 
 function fiscalYearEndParts(value: string): { month: number; day: number } | null {
-  if (!isValidIsoDate(value)) return null
+  const match = /^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*$/.exec(value)
+  if (!match) return null
+  const month = Number(match[1])
+  const day = Number(match[2])
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
   return {
-    month: Number(value.slice(5, 7)),
-    day: Number(value.slice(8, 10)),
+    month,
+    day,
   }
 }
 
@@ -3047,7 +3051,7 @@ function ObligationQueueDetailDrawer({
     : false
   const fiscalYearEnd = fiscalYearEndParts(taxYearDraft.fiscalYearEndDate)
   const taxYearFiscalMissing =
-    taxYearDraft.taxYearType === 'fiscal' && !taxYearDraft.fiscalYearEndDate
+    taxYearDraft.taxYearType === 'fiscal' && !taxYearDraft.fiscalYearEndDate.trim()
   const taxYearFiscalInvalid =
     taxYearDraft.taxYearType === 'fiscal' &&
     Boolean(taxYearDraft.fiscalYearEndDate) &&
@@ -3079,7 +3083,7 @@ function ObligationQueueDetailDrawer({
     setTaxYearDraft({
       obligationId: row.id,
       taxYearType: row.taxYearType,
-      fiscalYearEndDate: fiscalYearEndIsoDate(row.fiscalYearEndMonth, row.fiscalYearEndDay),
+      fiscalYearEndDate: fiscalYearEndDraftValue(row.fiscalYearEndMonth, row.fiscalYearEndDay),
     })
   }
 
@@ -3430,22 +3434,32 @@ function ObligationQueueDetailDrawer({
                               </SelectItem>
                             </SelectContent>
                           </Select>
-                          <IsoDatePicker
+                          <Input
                             value={taxYearDraft.fiscalYearEndDate}
-                            {...(fiscalYearEnd
-                              ? {
-                                  displayValue: formatFiscalYearEnd(
-                                    fiscalYearEnd.month,
-                                    fiscalYearEnd.day,
-                                  ),
-                                }
-                              : {})}
                             disabled={taxYearDraft.taxYearType === 'calendar'}
-                            invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
-                            ariaLabel={t`Select fiscal year end`}
-                            placeholder={t`Fiscal year end`}
-                            onValueChange={(fiscalYearEndDate) =>
-                              setTaxYearDraft((current) => ({ ...current, fiscalYearEndDate }))
+                            aria-label={t`Fiscal year end`}
+                            aria-invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
+                            inputMode="numeric"
+                            placeholder="MM/DD"
+                            onBlur={(event) => {
+                              const nextFiscalYearEnd = fiscalYearEndParts(
+                                event.currentTarget.value,
+                              )
+                              if (nextFiscalYearEnd) {
+                                setTaxYearDraft((current) => ({
+                                  ...current,
+                                  fiscalYearEndDate: formatFiscalYearEnd(
+                                    nextFiscalYearEnd.month,
+                                    nextFiscalYearEnd.day,
+                                  ),
+                                }))
+                              }
+                            }}
+                            onChange={(event) =>
+                              setTaxYearDraft((current) => ({
+                                ...current,
+                                fiscalYearEndDate: event.target.value,
+                              }))
                             }
                           />
                           <Button

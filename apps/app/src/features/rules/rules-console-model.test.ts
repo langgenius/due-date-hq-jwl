@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  coverageCellState,
   COVERAGE_ENTITY_GROUPS,
   countRulesByFilter,
   ENTITY_COLUMN_GROUPS,
@@ -40,17 +39,6 @@ describe('rules console model', () => {
       'sole_prop',
     ])
     expect(ENTITY_COLUMN_GROUPS.all).not.toContain('other')
-  })
-
-  it('returns valid coverage states for every displayable entity', () => {
-    const validStates = ['verified', 'review', 'none']
-
-    for (const entity of ENTITY_COLUMN_GROUPS.all) {
-      expect(validStates).toContain(coverageCellState('CA', entity))
-    }
-    expect(coverageCellState('FED', 'sole_prop')).toBe('review')
-    expect(coverageCellState('FED', 'individual')).toBe('review')
-    expect(coverageCellState('FED', 'trust')).toBe('review')
   })
 
   it('converts preview form values into contract input', () => {

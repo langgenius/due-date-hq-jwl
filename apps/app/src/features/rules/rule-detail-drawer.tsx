@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
   ObligationRule,
+  RuleConcreteDraft,
   RuleEvidence,
   RuleEvidenceAuthorityRole,
   RuleSource,
@@ -226,6 +227,14 @@ function CandidateReviewForm({
     null,
   )
   const acceptTooltipTimeoutRef = useRef<number | null>(null)
+  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
+  const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+  const draftQuery = useQuery({
+    ...orpc.rules.draftConcreteRule.queryOptions({
+      input: { ruleId: rule.id, sourceId: reviewSourceId },
+    }),
+    enabled: sourceDefined && reviewSourceId.length > 0,
+  })
 
   const invalidateRules = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
@@ -256,20 +265,30 @@ function CandidateReviewForm({
     }, ACCEPT_RULE_TOOLTIP_MS)
   }
 
+  function handleAcceptSuccess() {
+    setAcceptTooltipState('accepted')
+    toast.success(t`Rule accepted`)
+    scheduleAcceptCompletion()
+  }
+
+  function handleAcceptError(error: unknown) {
+    clearAcceptTooltipTimeout()
+    setAcceptTooltipState(null)
+    toast.error(t`Couldn't accept rule`, {
+      description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
+    })
+  }
+
   const acceptMutation = useMutation(
     orpc.rules.acceptTemplate.mutationOptions({
-      onSuccess: () => {
-        setAcceptTooltipState('accepted')
-        toast.success(t`Rule accepted`)
-        scheduleAcceptCompletion()
-      },
-      onError: (error) => {
-        clearAcceptTooltipTimeout()
-        setAcceptTooltipState(null)
-        toast.error(t`Couldn't accept rule`, {
-          description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-        })
-      },
+      onSuccess: handleAcceptSuccess,
+      onError: handleAcceptError,
+    }),
+  )
+  const verifyMutation = useMutation(
+    orpc.rules.verifyCandidate.mutationOptions({
+      onSuccess: handleAcceptSuccess,
+      onError: handleAcceptError,
     }),
   )
   const rejectMutation = useMutation(
@@ -291,6 +310,29 @@ function CandidateReviewForm({
     if (acceptTooltipState === 'accepted') return
     clearAcceptTooltipTimeout()
     setAcceptTooltipState('accepting')
+    if (sourceDefined) {
+      const draft = draftQuery.data
+      if (!draft || reviewSourceId.length === 0) {
+        setAcceptTooltipState(null)
+        return
+      }
+      verifyMutation.mutate({
+        ruleId: rule.id,
+        sourceId: reviewSourceId,
+        aiOutputId: draft.aiOutputId,
+        sourceHeading: draft.sourceHeading,
+        sourceExcerpt: draft.sourceExcerpt,
+        dueDateLogic: draft.dueDateLogic,
+        extensionPolicy: draft.extensionPolicy,
+        ruleTier: rule.ruleTier,
+        coverageStatus: draft.coverageStatus,
+        requiresApplicabilityReview: draft.requiresApplicabilityReview,
+        quality: draft.quality,
+        nextReviewOn: rule.nextReviewOn,
+        reviewNote: t`Accepted AI concrete draft from rule detail review.`,
+      })
+      return
+    }
     acceptMutation.mutate({
       ruleId: rule.id,
       expectedVersion: rule.version,
@@ -306,8 +348,23 @@ function CandidateReviewForm({
     })
   }
 
-  const isPending = acceptMutation.isPending || rejectMutation.isPending
+  const isPending = acceptMutation.isPending || verifyMutation.isPending || rejectMutation.isPending
   const reviewDisabled = isPending || acceptTooltipState === 'accepted'
+  const draftErrorMessage = draftQuery.isError
+    ? (rpcErrorMessage(draftQuery.error) ?? t`AI concrete draft could not be generated.`)
+    : null
+  const acceptDisabledReason = sourceDefined
+    ? reviewSourceId.length === 0
+      ? t`This source-defined rule is missing an official source.`
+      : draftQuery.isPending && !draftQuery.data
+        ? t`AI concrete draft is still generating.`
+        : draftErrorMessage && !draftQuery.data
+          ? draftErrorMessage
+          : !draftQuery.data
+            ? t`AI concrete draft is not ready.`
+            : null
+    : null
+  const acceptDisabled = reviewDisabled || acceptDisabledReason !== null
 
   const entitySummary = rule.entityApplicability.join(', ')
   return (
@@ -327,6 +384,20 @@ function CandidateReviewForm({
           handling should not become active.
         </Trans>
       </p>
+      {sourceDefined ? (
+        <AiDraftReviewPanel
+          draft={draftQuery.data ?? null}
+          errorMessage={draftErrorMessage}
+          generating={draftQuery.isPending || draftQuery.isFetching}
+          onRegenerate={() => {
+            void draftQuery.refetch()
+          }}
+          regenerateDisabled={reviewDisabled || draftQuery.isFetching}
+        />
+      ) : null}
+      {acceptDisabledReason ? (
+        <p className="text-xs text-severity-medium">{acceptDisabledReason}</p>
+      ) : null}
       <div className="flex justify-end gap-2">
         <Button
           type="button"
@@ -341,7 +412,7 @@ function CandidateReviewForm({
           <TooltipTrigger
             render={
               <span className="inline-flex">
-                <Button type="button" size="sm" onClick={submitAccept} disabled={reviewDisabled}>
+                <Button type="button" size="sm" onClick={submitAccept} disabled={acceptDisabled}>
                   <Trans>Accept rule</Trans>
                 </Button>
               </span>
@@ -357,6 +428,75 @@ function CandidateReviewForm({
         </Tooltip>
       </div>
     </section>
+  )
+}
+
+function AiDraftReviewPanel({
+  draft,
+  errorMessage,
+  generating,
+  onRegenerate,
+  regenerateDisabled,
+}: {
+  draft: RuleConcreteDraft | null
+  errorMessage: string | null
+  generating: boolean
+  onRegenerate: () => void
+  regenerateDisabled: boolean
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium text-text-secondary">
+          <Trans>AI concrete draft</Trans>
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onRegenerate}
+          disabled={regenerateDisabled}
+        >
+          <Trans>Regenerate AI draft</Trans>
+        </Button>
+      </div>
+      {generating && !draft ? (
+        <p className="text-xs text-text-tertiary">
+          <Trans>Generating concrete due-date logic for review…</Trans>
+        </p>
+      ) : null}
+      {errorMessage && !draft ? (
+        <p className="text-xs text-severity-medium">{errorMessage}</p>
+      ) : null}
+      {draft ? (
+        <div className="flex flex-col gap-2 text-sm">
+          <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
+          <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1 text-xs">
+            <span className="text-text-tertiary">
+              <Trans>Coverage</Trans>
+            </span>
+            <span className="text-text-secondary">
+              {formatEnumLabel(draft.coverageStatus)}
+              {draft.requiresApplicabilityReview ? (
+                <span className="ml-1 text-severity-medium">
+                  <Trans>needs applicability review</Trans>
+                </span>
+              ) : null}
+            </span>
+            <span className="text-text-tertiary">
+              <Trans>Confidence</Trans>
+            </span>
+            <span className="font-mono text-text-secondary">
+              {Math.round(draft.confidence * 100)}%
+            </span>
+          </div>
+          <blockquote className="border-l border-state-accent-active-alt pl-2 text-xs text-text-secondary italic">
+            “{draft.sourceExcerpt}”
+          </blockquote>
+          <p className="text-xs text-text-tertiary">{draft.reasoning}</p>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

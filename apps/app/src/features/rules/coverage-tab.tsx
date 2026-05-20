@@ -40,7 +40,6 @@ import { orpc } from '@/lib/rpc'
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
 import {
-  coverageCellState,
   jurisdictionLabel,
   type CoverageCellState,
   type CoverageEntityColumn,
@@ -1037,7 +1036,7 @@ function CoverageRow({
         review state into a REVIEW pill instead of a dot fixes the
         a11y gap and the asymmetry the critique flagged. */}
         {visibleEntityColumns.map(({ col, fullName }) => {
-          const state = coverageCellState(row.jurisdiction, col)
+          const state = row.entityCoverage[col]
           const drillable = state !== 'none' && Boolean(onEntityDrillIn)
           const cellInner = <EntityCellContent state={state} />
           return (
@@ -1464,12 +1463,12 @@ function SourceCountBadge({ count, attention }: { count: number; attention?: boo
  * fraction of the ink, and the `title` attribute keeps the spoken
  * label one hover away for first-time users.
  *
- *   - 'verified' (active) → green check
+ *   - 'active' → green check
  *   - 'review' → orange alert triangle
  *   - 'none' (no rule) → muted em dash
  */
 function EntityCellContent({ state }: { state: CoverageCellState }) {
-  if (state === 'verified') {
+  if (state === 'active') {
     return (
       <span
         title="Active rule for this entity"
@@ -1502,7 +1501,7 @@ function EntityCellContent({ state }: { state: CoverageCellState }) {
 }
 
 function labelForState(state: CoverageCellState): string {
-  if (state === 'verified') return 'active'
+  if (state === 'active') return 'active'
   if (state === 'review') return 'review'
   return 'no rule'
 }

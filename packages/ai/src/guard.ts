@@ -73,6 +73,22 @@ export function verifyPulseSourceExcerpt(input: unknown, output: unknown): void 
   )
 }
 
+export function verifyRuleConcreteDraft(input: unknown, output: unknown): void {
+  if (!isRecord(input) || !isRecord(output)) return
+  const sourceText = input.sourceText
+  const sourceExcerpt = output.sourceExcerpt
+  if (typeof sourceText !== 'string' || typeof sourceExcerpt !== 'string') return
+
+  const normalizedText = normalizeForExcerpt(sourceText)
+  const normalizedExcerpt = normalizeForExcerpt(sourceExcerpt)
+  if (!normalizedExcerpt || normalizedText.includes(normalizedExcerpt)) return
+
+  throw new GuardRejection(
+    'Rule draft rejected because source excerpt could not be located in source text.',
+    'SOURCE_EXCERPT_NOT_FOUND',
+  )
+}
+
 export function verifyInsightOutput(input: unknown, output: unknown): void {
   if (!isRecord(input) || !isRecord(output)) return
   const sources = input.sources

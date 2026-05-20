@@ -518,6 +518,8 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   Readiness tab, not Client facts. CPA can switch one obligation between calendar/fiscal year and
   maintain fiscal year end without changing the client's other obligations; the editor appears only
   when the obligation's rule is tax-year driven, with legacy fiscal obligations kept editable.
+  Saving requires the server to resolve the statutory due date from that obligation's tax period and
+  updates internal, filing, and payment deadlines as one unit.
 - **表头筛选**：Client / Owner / State / County / Tax type / Days / Projected risk /
   Readiness / Status 的筛选入口直接挂在 TanStack Table header 上；顶部控制区只保留搜索、排序、
   Reset 和少量 triage 快捷 chip，避免 Obligations 出现两套筛选面。

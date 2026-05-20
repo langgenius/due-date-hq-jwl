@@ -319,6 +319,29 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal?.code).toBe('GUARD_REJECTED')
   })
 
+  it('rejects rule concrete drafts when the source excerpt is not source-backed', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt: 'made up rule quote',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v1',
+      { sourceText: 'Official source says returns are due April 15, 2026.' },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
   it('returns AI_GATEWAY_ERROR with stable trace when the gateway throws', async () => {
     callGatewayMock.mockRejectedValueOnce(new Error('upstream failed'))
     const ai = createAI(CONFIGURED_ENV)

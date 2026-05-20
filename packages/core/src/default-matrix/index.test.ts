@@ -25,7 +25,9 @@ describe('inferTaxTypes', () => {
     const result = inferTaxTypes('llc', 'MA')
     expect(result.taxTypes).toEqual([
       'federal_1065_or_1040',
-      'ma_state_business_income_franchise_tax',
+      'ma_state_business_income_tax',
+      'ma_state_business_estimated_tax',
+      'ma_state_franchise_or_entity_tax',
       'ma_state_sales_use_tax',
       'ma_state_withholding_tax',
       'ma_state_ui_wage_report',

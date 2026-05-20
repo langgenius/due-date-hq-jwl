@@ -27,7 +27,7 @@ export type RuleLibraryFilter =
   | 'candidate'
   | 'applicability_review'
   | 'exception'
-export type CoverageCellState = 'verified' | 'review' | 'none'
+export type CoverageCellState = 'active' | 'review' | 'none'
 
 export const RULE_JURISDICTIONS: RuleJurisdiction[] = [...RuleJurisdictionValues]
 export const RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
@@ -40,7 +40,6 @@ export const COVERAGE_ENTITY_GROUPS = ['business', 'personal', 'all'] as const
 export const DEFAULT_COVERAGE_ENTITY_GROUP = 'business'
 export type CoverageEntityGroup = (typeof COVERAGE_ENTITY_GROUPS)[number]
 export type CoverageEntityColumn = (typeof ENTITY_COLUMN_GROUPS)['all'][number]
-type EntityCoverageState = Record<CoverageEntityColumn, CoverageCellState>
 
 export const RULE_JURISDICTION_LABELS: Record<string, string> = {
   FED: 'Federal',
@@ -99,80 +98,6 @@ export const RULE_JURISDICTION_LABELS: Record<string, string> = {
 
 export function jurisdictionLabel(jurisdiction: string): string {
   return RULE_JURISDICTION_LABELS[jurisdiction] ?? jurisdiction
-}
-
-const REVIEW_COVERAGE: EntityCoverageState = {
-  llc: 'review',
-  partnership: 'review',
-  s_corp: 'review',
-  c_corp: 'review',
-  sole_prop: 'review',
-  individual: 'review',
-  trust: 'review',
-}
-
-const COVERAGE_OVERRIDES: Partial<Record<RuleJurisdiction, EntityCoverageState>> = {
-  FED: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'verified',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  CA: {
-    llc: 'review',
-    partnership: 'none',
-    s_corp: 'verified',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  NY: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  TX: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  FL: {
-    llc: 'none',
-    partnership: 'none',
-    s_corp: 'none',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  WA: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-}
-
-export function coverageCellState(
-  jurisdiction: RuleJurisdiction,
-  entity: CoverageEntityColumn,
-): CoverageCellState {
-  return (COVERAGE_OVERRIDES[jurisdiction] ?? REVIEW_COVERAGE)[entity]
 }
 
 export const PREVIEW_ENTITY_OPTIONS = [

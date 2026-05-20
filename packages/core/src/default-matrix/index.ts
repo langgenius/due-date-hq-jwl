@@ -273,7 +273,12 @@ function genericStateTaxTypes(entityType: EntityType, state: string): string[] {
     `${prefix}_state_withholding_tax`,
     `${prefix}_state_ui_wage_report`,
   ]
-  const business = [`${prefix}_state_business_income_franchise_tax`, ...recurring]
+  const business = [
+    `${prefix}_state_business_income_tax`,
+    `${prefix}_state_business_estimated_tax`,
+    `${prefix}_state_franchise_or_entity_tax`,
+    ...recurring,
+  ]
   const passThrough = [`${prefix}_state_pte_composite_ptet`]
 
   if (entityType === 'individual') return individual

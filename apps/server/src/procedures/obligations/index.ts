@@ -1,16 +1,7 @@
 import { ORPCError } from '@orpc/server'
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
-import {
-  canEditTaxYearProfileForObligation,
-  findRuleById,
-  previewObligationsFromRules,
-  STATE_RULE_JURISDICTIONS,
-  type RuleGenerationState,
-} from '@duedatehq/core/rules'
-import { resolveClientReturnTaxPeriod } from '@duedatehq/core/tax-periods'
-import type { ClientRow } from '@duedatehq/ports/clients'
-import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
+import { canEditTaxYearProfileForObligation, findRuleById } from '@duedatehq/core/rules'
 import { requireTenant } from '../_context'
 import {
   MIGRATION_RUN_ROLES,
@@ -30,6 +21,7 @@ import {
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
+import { resolveUpdatedTaxYearProfilePlan } from './_tax-year-profile'
 
 /**
  * obligations.* — Demo Sprint subset of the Obligation Domain Contract.
@@ -421,56 +413,6 @@ function deadlineTipFallback(obligationId: string) {
   ]
 }
 
-function dateOrNull(value: string | null): Date | null {
-  return value ? new Date(`${value}T00:00:00.000Z`) : null
-}
-
-const RULE_GENERATION_STATES = new Set<string>(STATE_RULE_JURISDICTIONS)
-
-function isRuleGenerationState(value: string | null | undefined): value is RuleGenerationState {
-  return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
-}
-
-async function previewUpdatedTaxYearDueDate(input: {
-  row: ObligationInstanceRow
-  client: ClientRow
-  taxYearType: ObligationInstancePublic['taxYearType']
-  fiscalYearEndMonth: number | null
-  fiscalYearEndDay: number | null
-}): Promise<Date | null> {
-  if (!input.row.ruleId) return null
-  const rule = findRuleById(input.row.ruleId)
-  if (!rule) return null
-  const generationState =
-    input.row.jurisdiction === 'FED' || !isRuleGenerationState(input.row.jurisdiction)
-      ? input.client.state
-      : input.row.jurisdiction
-  if (!isRuleGenerationState(generationState)) return null
-  const previews = previewObligationsFromRules({
-    client: {
-      id: input.client.id,
-      entityType: input.client.entityType,
-      state: generationState,
-      taxTypes: [input.row.taxType],
-      taxYearType: input.taxYearType,
-      fiscalYearEndMonth: input.fiscalYearEndMonth,
-      fiscalYearEndDay: input.fiscalYearEndDay,
-      taxPeriodSource: 'manual_cpa_confirmed',
-      ...(input.client.taxClassification
-        ? { taxClassification: input.client.taxClassification }
-        : {}),
-    },
-    rules: [rule],
-  })
-  const preview =
-    previews.find(
-      (candidate) =>
-        candidate.ruleId === input.row.ruleId &&
-        (input.row.rulePeriod === null || candidate.period === input.row.rulePeriod),
-    ) ?? previews[0]
-  return preview?.dueDate ? new Date(`${preview.dueDate}T00:00:00.000Z`) : null
-}
-
 const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
@@ -502,48 +444,55 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
 
     const nextFiscalYearEndMonth = input.taxYearType === 'fiscal' ? input.fiscalYearEndMonth : null
     const nextFiscalYearEndDay = input.taxYearType === 'fiscal' ? input.fiscalYearEndDay : null
-    const taxPeriod = resolveClientReturnTaxPeriod({
-      taxYear: before.taxYear,
-      client: {
-        taxYearType: input.taxYearType,
-        fiscalYearEndMonth: nextFiscalYearEndMonth,
-        fiscalYearEndDay: nextFiscalYearEndDay,
-      },
-      source: 'manual_cpa_confirmed',
-    })
     const client = await scoped.clients.findById(before.clientId)
-    const nextBaseDueDate = client
-      ? await previewUpdatedTaxYearDueDate({
-          row: before,
-          client,
-          taxYearType: input.taxYearType,
-          fiscalYearEndMonth: nextFiscalYearEndMonth,
-          fiscalYearEndDay: nextFiscalYearEndDay,
-        })
-      : null
+    if (!client) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Client ${before.clientId} for obligation ${input.id} was not found.`,
+      })
+    }
+    const plan = resolveUpdatedTaxYearProfilePlan({
+      row: before,
+      client,
+      taxYearType: input.taxYearType,
+      fiscalYearEndMonth: nextFiscalYearEndMonth,
+      fiscalYearEndDay: nextFiscalYearEndDay,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+    })
+    if (!plan) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Could not determine the statutory due date for this tax year profile.',
+      })
+    }
+    if (plan.currentDueDate.getTime() > plan.baseDueDate.getTime()) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Internal deadline must be on or before the statutory deadline.',
+      })
+    }
+    if (
+      plan.filingDueDate &&
+      plan.taxPeriodEnd &&
+      plan.filingDueDate.getTime() < plan.taxPeriodEnd.getTime()
+    ) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Statutory filing deadline must be on or after the tax period end.',
+      })
+    }
 
     await scoped.obligations.updateTaxYearProfile(input.id, {
       taxYearType: input.taxYearType,
       fiscalYearEndMonth: nextFiscalYearEndMonth,
       fiscalYearEndDay: nextFiscalYearEndDay,
-      taxPeriodStart: dateOrNull(taxPeriod.taxPeriodStart),
-      taxPeriodEnd: dateOrNull(taxPeriod.taxPeriodEnd),
-      taxPeriodKind: taxPeriod.taxPeriodKind,
-      taxPeriodSource: taxPeriod.taxPeriodSource,
-      taxPeriodReviewReason: taxPeriod.taxPeriodReviewReason,
-      ...(nextBaseDueDate
-        ? {
-            baseDueDate: nextBaseDueDate,
-            currentDueDate: internalDeadlineFromBaseDueDate(
-              nextBaseDueDate,
-              tenant.internalDeadlineOffsetDays,
-            ),
-            filingDueDate: before.filingDueDate ? nextBaseDueDate : null,
-            paymentDueDate: before.paymentDueDate ? nextBaseDueDate : null,
-          }
-        : {}),
+      taxPeriodStart: plan.taxPeriodStart,
+      taxPeriodEnd: plan.taxPeriodEnd,
+      taxPeriodKind: plan.taxPeriodKind,
+      taxPeriodSource: plan.taxPeriodSource,
+      taxPeriodReviewReason: plan.taxPeriodReviewReason,
+      baseDueDate: plan.baseDueDate,
+      currentDueDate: plan.currentDueDate,
+      filingDueDate: plan.filingDueDate,
+      paymentDueDate: plan.paymentDueDate,
     })
-    if (nextBaseDueDate) await recalculateObligationExposure(scoped, input.id)
+    await recalculateObligationExposure(scoped, input.id)
     const after = await scoped.obligations.findById(input.id)
     if (!after) {
       throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -564,6 +513,8 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
         taxPeriodEnd: before.taxPeriodEnd?.toISOString().slice(0, 10) ?? null,
         baseDueDate: before.baseDueDate.toISOString().slice(0, 10),
         currentDueDate: before.currentDueDate.toISOString().slice(0, 10),
+        filingDueDate: before.filingDueDate?.toISOString().slice(0, 10) ?? null,
+        paymentDueDate: before.paymentDueDate?.toISOString().slice(0, 10) ?? null,
       },
       after: {
         taxYearType: after.taxYearType,
@@ -573,6 +524,8 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
         taxPeriodEnd: after.taxPeriodEnd?.toISOString().slice(0, 10) ?? null,
         baseDueDate: after.baseDueDate.toISOString().slice(0, 10),
         currentDueDate: after.currentDueDate.toISOString().slice(0, 10),
+        filingDueDate: after.filingDueDate?.toISOString().slice(0, 10) ?? null,
+        paymentDueDate: after.paymentDueDate?.toISOString().slice(0, 10) ?? null,
       },
       ...(input.reason !== undefined ? { reason: input.reason } : {}),
     })

@@ -154,6 +154,7 @@ export type AiOutputKind =
   | 'summary'
   | 'ask_answer'
   | 'pulse_extract'
+  | 'rule_concrete_draft'
   | 'migration_map'
   | 'migration_normalize'
   | 'readiness_checklist'

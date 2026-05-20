@@ -192,7 +192,8 @@ Deferred.
 Reads from:
 
 - `orpc.rules.coverage` — returns `RuleCoverageRow[]` with per-
-  jurisdiction counts
+  jurisdiction counts and `entityCoverage` for `llc | partnership |
+s_corp | c_corp | sole_prop | individual | trust`
 - `orpc.pulse.listSourceHealth` (via `usePulseSourceHealthQueryOptions`) —
   live source health, joined for the snapshot strip's degraded/failing
   counts
@@ -204,10 +205,10 @@ Dependent data:
 - The PENDING / SOURCES drill destinations rely on Library's `?jur=`
   and Sources's `?jur=` URL state (both nuqs-backed)
 - The entity-dot drill relies on Library's `?entity=` URL state
-  (nuqs-backed) AND on `filterRules` honoring `matchesAnySelected(
-rule.entityApplicability, entityFilters)` — known gap: rules with
-  `entityApplicability: ['any_business']` are missed by an entity=llc
-  drill
+  (nuqs-backed) AND on `filterRules` honoring entity applicability. Coverage
+  itself is computed server-side from active concrete rules and pending /
+  source-defined review rows; `any_business` maps to business entities only,
+  not individual or trust.
 
 ## 7. User journeys
 
@@ -484,15 +485,16 @@ Existing deep links continue to work.
 
 ## 20. Decision log
 
-| Date       | Decision                                                                        | Why                                                                                              |
-| ---------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 2026-05-18 | Promote Coverage status to its own sidebar entry                                | Daily-use page deserves direct access; tabbed IA was burying it                                  |
-| 2026-05-19 | Single table with 7-dot entity strip (Option A) over drop-the-matrix (Option B) | User preferred entity context inline; design accepted on first iteration                         |
-| 2026-05-19 | Zone sort: needs-attention top, all-clear collapsed                             | Eliminates wall of 48 identical orange-dot rows                                                  |
-| 2026-05-19 | Plain-English status pills with action verbs + counts                           | "Needs owner approval" → "Owner: approve 7 pending" — reads as a to-do                           |
-| 2026-05-19 | Drop snapshot strip catalog stats                                               | Column sums duplicated the table; only source-health callout earned its place                    |
-| 2026-05-19 | Entity coverage → text summary + popover                                        | 7-dot strip required a legend to decode; popover is self-documenting; cell shows exceptions only |
-| 2026-05-19 | Expander label: "standard review queue"                                         | Names the concept; "other jurisdictions" was vague                                               |
+| Date       | Decision                                                                        | Why                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 2026-05-18 | Promote Coverage status to its own sidebar entry                                | Daily-use page deserves direct access; tabbed IA was burying it                                             |
+| 2026-05-19 | Single table with 7-dot entity strip (Option A) over drop-the-matrix (Option B) | User preferred entity context inline; design accepted on first iteration                                    |
+| 2026-05-19 | Zone sort: needs-attention top, all-clear collapsed                             | Eliminates wall of 48 identical orange-dot rows                                                             |
+| 2026-05-19 | Plain-English status pills with action verbs + counts                           | "Needs owner approval" → "Owner: approve 7 pending" — reads as a to-do                                      |
+| 2026-05-19 | Drop snapshot strip catalog stats                                               | Column sums duplicated the table; only source-health callout earned its place                               |
+| 2026-05-19 | Entity coverage → text summary + popover                                        | 7-dot strip required a legend to decode; popover is self-documenting; cell shows exceptions only            |
+| 2026-05-19 | Expander label: "standard review queue"                                         | Names the concept; "other jurisdictions" was vague                                                          |
+| 2026-05-20 | Entity coverage comes from backend `entityCoverage`                             | Green coverage must mean active practice rule with concrete due-date logic, not frontend static assumptions |
 
 ## 21. Open product questions
 

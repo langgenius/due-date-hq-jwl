@@ -181,13 +181,13 @@ export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'di
 
 export function CoverageCell({ state }: { state: CoverageCellState }) {
   const { t } = useLingui()
-  const tone = state === 'verified' ? 'success' : state === 'review' ? 'warning' : 'disabled'
-  const label = state === 'verified' ? t`active` : state === 'review' ? t`review` : t`no rule`
+  const tone = state === 'active' ? 'success' : state === 'review' ? 'warning' : 'disabled'
+  const label = state === 'active' ? t`active` : state === 'review' ? t`review` : t`no rule`
   return (
     <span
       className={cn(
         'inline-flex items-center gap-2 text-sm',
-        state === 'verified' && 'text-text-primary',
+        state === 'active' && 'text-text-primary',
         state === 'review' && 'text-severity-medium',
         state === 'none' && 'text-text-disabled',
       )}

@@ -92,6 +92,15 @@ const coverageRows: RuleCoverageRow[] = [
     verifiedRuleCount: 2,
     candidateCount: 1,
     highPrioritySourceCount: 1,
+    entityCoverage: {
+      llc: 'review',
+      partnership: 'review',
+      s_corp: 'active',
+      c_corp: 'active',
+      sole_prop: 'review',
+      individual: 'review',
+      trust: 'none',
+    },
   },
   {
     jurisdiction: 'CA',
@@ -99,6 +108,15 @@ const coverageRows: RuleCoverageRow[] = [
     verifiedRuleCount: 2,
     candidateCount: 1,
     highPrioritySourceCount: 1,
+    entityCoverage: {
+      llc: 'review',
+      partnership: 'review',
+      s_corp: 'active',
+      c_corp: 'active',
+      sole_prop: 'review',
+      individual: 'review',
+      trust: 'none',
+    },
   },
 ]
 

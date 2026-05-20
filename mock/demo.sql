@@ -260,6 +260,101 @@ VALUES
   ('20000000-0000-4000-8000-000000000013', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000002', 'federal_1120s', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'done', NULL, 9400000, 0, 'ready', '[{"key":"closed","label":"Annual rollover seed","amountCents":0,"formula":"Closed 2026 source-year S corporation return"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000014', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000007', 'federal_1065', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'paid', '30000000-0000-4000-8000-000000000001', 18500000, 0, 'ready', '[{"key":"closed","label":"Annual rollover seed","amountCents":0,"formula":"Closed 2026 source-year partnership return"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER));
 
+WITH inferred_period AS (
+  SELECT
+    id,
+    CASE
+      WHEN tax_year_type = 'fiscal'
+        AND fiscal_year_end_month IS NOT NULL
+        AND fiscal_year_end_day IS NOT NULL
+        THEN
+          CASE
+            WHEN date(
+              printf(
+                '%04d-%02d-%02d',
+                CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer),
+                fiscal_year_end_month,
+                fiscal_year_end_day
+              )
+            ) >= date(base_due_date / 1000, 'unixepoch')
+              THEN CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer) - 1
+            ELSE CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer)
+          END
+      WHEN tax_type IN (
+        'federal_1040',
+        'federal_1041',
+        'federal_1065',
+        'federal_1120',
+        'federal_1120s',
+        'ny_ct3s',
+        'ny_it204',
+        'ca_100',
+        'ca_100s',
+        'ca_568',
+        'fl_corp_income',
+        'co_partnership'
+      )
+        THEN CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer) - 1
+      ELSE COALESCE(tax_year, CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer))
+    END AS period_year
+  FROM obligation_instance
+  WHERE tax_year IS NOT NULL
+    AND tax_period_start IS NULL
+    AND tax_period_end IS NULL
+)
+UPDATE obligation_instance
+SET
+  tax_period_start = (
+    SELECT
+      CASE
+        WHEN obligation_instance.tax_year_type = 'fiscal'
+          AND obligation_instance.fiscal_year_end_month IS NOT NULL
+          AND obligation_instance.fiscal_year_end_day IS NOT NULL
+          THEN CAST(unixepoch(date(
+            printf(
+              '%04d-%02d-%02d',
+              inferred_period.period_year,
+              obligation_instance.fiscal_year_end_month,
+              obligation_instance.fiscal_year_end_day
+            ),
+            '+1 day',
+            '-1 year'
+          )) * 1000 AS integer)
+        ELSE CAST(unixepoch(printf('%04d-01-01 00:00:00', inferred_period.period_year)) * 1000 AS integer)
+      END
+    FROM inferred_period
+    WHERE inferred_period.id = obligation_instance.id
+  ),
+  tax_period_end = (
+    SELECT
+      CASE
+        WHEN obligation_instance.tax_year_type = 'fiscal'
+          AND obligation_instance.fiscal_year_end_month IS NOT NULL
+          AND obligation_instance.fiscal_year_end_day IS NOT NULL
+          THEN CAST(unixepoch(printf(
+            '%04d-%02d-%02d 00:00:00',
+            inferred_period.period_year,
+            obligation_instance.fiscal_year_end_month,
+            obligation_instance.fiscal_year_end_day
+          )) * 1000 AS integer)
+        ELSE CAST(unixepoch(printf('%04d-12-31 00:00:00', inferred_period.period_year)) * 1000 AS integer)
+      END
+    FROM inferred_period
+    WHERE inferred_period.id = obligation_instance.id
+  ),
+  tax_period_kind = CASE
+    WHEN tax_year_type = 'fiscal'
+      AND fiscal_year_end_month IS NOT NULL
+      AND fiscal_year_end_day IS NOT NULL THEN 'fiscal'
+    ELSE 'calendar'
+  END,
+  tax_period_source = CASE
+    WHEN tax_period_source = 'unknown' THEN 'migration'
+    ELSE tax_period_source
+  END,
+  tax_period_review_reason = NULL
+WHERE id IN (SELECT id FROM inferred_period);
+
 INSERT INTO pulse
   (id, source, source_url, raw_r2_key, published_at, ai_summary, verbatim_quote, parsed_jurisdiction, parsed_counties, parsed_forms, parsed_entity_types, parsed_original_due_date, parsed_new_due_date, parsed_effective_from, confidence, status, reviewed_by, reviewed_at, requires_human_review, is_sample, created_at, updated_at)
 VALUES

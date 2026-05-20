@@ -192,6 +192,7 @@ export const router = os.router({
     archivePracticeRule: rulesHandlers.archivePracticeRule,
     previewRuleImpact: rulesHandlers.previewRuleImpact,
     previewBulkRuleImpact: rulesHandlers.previewBulkRuleImpact,
+    draftConcreteRule: rulesHandlers.draftConcreteRule,
     verifyCandidate: rulesHandlers.verifyCandidate,
     rejectCandidate: rulesHandlers.rejectCandidate,
     coverage: rulesHandlers.coverage,

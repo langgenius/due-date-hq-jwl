@@ -78,6 +78,7 @@ function toCoreLocator(
 function toCoreEvidence(evidence: ContractObligationRule['evidence'][number]): RuleEvidence {
   return {
     sourceId: evidence.sourceId,
+    ...(evidence.aiOutputId !== undefined ? { aiOutputId: evidence.aiOutputId } : {}),
     authorityRole: evidence.authorityRole,
     locator: toCoreLocator(evidence.locator),
     summary: evidence.summary,

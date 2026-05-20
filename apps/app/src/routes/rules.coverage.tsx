@@ -64,13 +64,13 @@ export function RulesCoverageRoute() {
     [navigate],
   )
 
-  // Entity-dot drill-in. Verified dot → active rules; review dot →
+  // Entity-dot drill-in. Active dot → active rules; review dot →
   // pending_review queue; gray "no rule" dots never call this handler.
   // The `?from=coverage` tag lets Library show a "Pre-filtered from
   // Coverage status" pill so the cross-page origin isn't invisible.
   const handleEntityDrillIn = useCallback(
     (jurisdiction: RuleJurisdiction, entity: CoverageEntityColumn, state: CoverageCellState) => {
-      const libraryFilter = state === 'verified' ? 'active' : 'pending_review'
+      const libraryFilter = state === 'active' ? 'active' : 'pending_review'
       const params = new URLSearchParams({
         library: libraryFilter,
         jur: jurisdiction,

@@ -6,6 +6,7 @@ import {
   verifyInsightOutput,
   verifyMapperEinHitRate,
   verifyPulseSourceExcerpt,
+  verifyRuleConcreteDraft,
 } from './guard'
 import { redactMigrationInput } from './pii'
 import { PulseExtractOutputSchema, type PulseExtractInput, type PulseExtractOutput } from './pulse'
@@ -201,6 +202,7 @@ export function createAI(env: AiEnv = {}) {
 
       if (name === 'mapper@v1') verifyMapperEinHitRate(input, parsed.data)
       if (name === 'pulse-extract@v1') verifyPulseSourceExcerpt(input, parsed.data)
+      if (name === 'rule-concrete-draft@v1') verifyRuleConcreteDraft(input, parsed.data)
       if (name === 'client-risk-summary@v1' || name === 'deadline-tip@v1') {
         verifyInsightOutput(input, parsed.data)
       }

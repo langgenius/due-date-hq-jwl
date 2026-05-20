@@ -200,6 +200,7 @@ export interface RuleEvidenceLocator {
 
 export interface RuleEvidence {
   sourceId: string
+  aiOutputId?: string | null
   authorityRole: RuleEvidenceAuthorityRole
   locator: RuleEvidenceLocator
   summary: string
@@ -322,16 +323,41 @@ const RULE_TAX_TYPE_ALIASES: Record<
 > = {
   federal_1040_sch_c: [{ taxType: 'federal_1040' }],
   federal_4868: [{ taxType: 'federal_1040_extension' }],
-  ca_100_franchise: [{ taxType: 'ca_100' }],
-  ca_100s_franchise: [{ taxType: 'ca_100s' }],
+  ca_100_franchise: [
+    { taxType: 'ca_100' },
+    { taxType: 'ca_state_business_income_tax' },
+    { taxType: 'ca_state_franchise_or_entity_tax' },
+  ],
+  ca_100: [
+    { taxType: 'ca_state_business_income_tax' },
+    { taxType: 'ca_state_franchise_or_entity_tax' },
+  ],
+  ca_100s: [
+    { taxType: 'ca_state_business_income_tax' },
+    { taxType: 'ca_state_franchise_or_entity_tax' },
+  ],
+  ca_100s_franchise: [
+    { taxType: 'ca_100s' },
+    { taxType: 'ca_state_business_income_tax' },
+    { taxType: 'ca_state_franchise_or_entity_tax' },
+  ],
+  ca_565_partnership: [{ taxType: 'ca_state_business_income_tax' }],
   ca_llc_fee_gross_receipts: [
     {
       taxType: 'ca_llc_estimated_fee',
       requiresReview: true,
       reason: 'ca_llc_fee_depends_on_california_source_income',
     },
+    {
+      taxType: 'ca_state_franchise_or_entity_tax',
+      requiresReview: true,
+      reason: 'ca_llc_fee_depends_on_california_source_income',
+    },
   ],
-  ca_llc_franchise_min_800: [{ taxType: 'ca_llc_annual_tax' }],
+  ca_llc_franchise_min_800: [
+    { taxType: 'ca_llc_annual_tax' },
+    { taxType: 'ca_state_franchise_or_entity_tax' },
+  ],
   federal_1065_or_1040: [
     {
       taxType: 'federal_1065',
@@ -345,6 +371,20 @@ const RULE_TAX_TYPE_ALIASES: Record<
       requiresReview: true,
       reason: 'ny_it204ll_applicability_required',
     },
+    {
+      taxType: 'ny_state_franchise_or_entity_tax',
+      requiresReview: true,
+      reason: 'ny_it204ll_applicability_required',
+    },
+  ],
+  ny_it204: [{ taxType: 'ny_state_business_income_tax' }],
+  ny_ct3: [
+    { taxType: 'ny_state_business_income_tax' },
+    { taxType: 'ny_state_franchise_or_entity_tax' },
+  ],
+  ny_ct3s: [
+    { taxType: 'ny_state_business_income_tax' },
+    { taxType: 'ny_state_franchise_or_entity_tax' },
   ],
   ny_ptet_optional: [
     {
@@ -366,6 +406,11 @@ const RULE_TAX_TYPE_ALIASES: Record<
   tx_franchise_tax: [
     {
       taxType: 'tx_franchise_report',
+      requiresReview: true,
+      reason: 'tx_franchise_taxability_required',
+    },
+    {
+      taxType: 'tx_state_franchise_or_entity_tax',
       requiresReview: true,
       reason: 'tx_franchise_taxability_required',
     },
@@ -399,7 +444,16 @@ interface StateRuleSourceSeed {
   name: string
 }
 
-type StateCandidateRuleSlug = 'individual_income_return' | 'individual_estimated_tax'
+type StateCandidateRuleSlug =
+  | 'individual_income_return'
+  | 'individual_estimated_tax'
+  | 'business_income_return'
+  | 'business_estimated_tax'
+  | 'franchise_or_entity_tax'
+type BusinessStateCandidateRuleSlug = Extract<
+  StateCandidateRuleSlug,
+  'business_income_return' | 'business_estimated_tax' | 'franchise_or_entity_tax'
+>
 
 interface StateIncomeTaxSourceSeed {
   jurisdiction: RuleGenerationState
@@ -885,6 +939,64 @@ const STATE_INCOME_TAX_SOURCE_BY_JURISDICTION = new Map<
   RuleGenerationState,
   StateIncomeTaxSourceSeed
 >(STATE_INCOME_TAX_SOURCE_SEEDS.map((seed) => [seed.jurisdiction, seed]))
+
+interface StateBusinessTaxSourceSeed {
+  jurisdiction: RuleGenerationState
+  sourceId: string
+  candidateDomainSlugs: readonly BusinessStateCandidateRuleSlug[]
+}
+
+const STATE_BUSINESS_TAX_SOURCE_SEEDS = [
+  {
+    jurisdiction: 'CA',
+    sourceId: 'ca.ftb_business_due_dates',
+    candidateDomainSlugs: [
+      'business_income_return',
+      'business_estimated_tax',
+      'franchise_or_entity_tax',
+    ],
+  },
+  {
+    jurisdiction: 'NY',
+    sourceId: 'ny.tax_calendar.2026',
+    candidateDomainSlugs: ['business_income_return', 'franchise_or_entity_tax'],
+  },
+  {
+    jurisdiction: 'TX',
+    sourceId: 'tx.franchise_home',
+    candidateDomainSlugs: ['franchise_or_entity_tax'],
+  },
+  {
+    jurisdiction: 'FL',
+    sourceId: 'fl.cit_due_dates_2026',
+    candidateDomainSlugs: ['business_income_return', 'business_estimated_tax'],
+  },
+  {
+    jurisdiction: 'WA',
+    sourceId: 'wa.excise_due_dates_2026',
+    candidateDomainSlugs: ['franchise_or_entity_tax'],
+  },
+] as const satisfies readonly StateBusinessTaxSourceSeed[]
+
+const STATE_BUSINESS_TAX_SOURCES_BY_JURISDICTION = STATE_BUSINESS_TAX_SOURCE_SEEDS.reduce(
+  (map, seed) => {
+    const sources = map.get(seed.jurisdiction) ?? []
+    sources.push(seed)
+    map.set(seed.jurisdiction, sources)
+    return map
+  },
+  new Map<RuleGenerationState, StateBusinessTaxSourceSeed[]>(),
+)
+
+function isBusinessCandidateRuleSlug(
+  slug: StateCandidateRuleSlug,
+): slug is BusinessStateCandidateRuleSlug {
+  return (
+    slug === 'business_income_return' ||
+    slug === 'business_estimated_tax' ||
+    slug === 'franchise_or_entity_tax'
+  )
+}
 
 type StateRuleSourceIds = Readonly<{
   incomeTax: string
@@ -1669,16 +1781,59 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
     reviewReason:
       'Confirm state estimated tax thresholds, installment schedule, weekend/holiday rollover, and no-tax status where applicable.',
   },
+  {
+    slug: 'business_income_return',
+    title: 'business income return applicability',
+    taxType: 'state_business_income_tax',
+    formName: 'State business income return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
+    reviewReason:
+      'Confirm state business income return due date, entity applicability, extension, and tax-year handling against the business source.',
+  },
+  {
+    slug: 'business_estimated_tax',
+    title: 'business estimated tax payment schedule',
+    taxType: 'state_business_estimated_tax',
+    formName: 'State business estimated tax',
+    eventType: 'payment',
+    isFiling: false,
+    isPayment: true,
+    entityApplicability: ['s_corp', 'c_corp'],
+    reviewReason:
+      'Confirm business estimated tax installment schedule, threshold, and payment-only treatment against the business source.',
+  },
+  {
+    slug: 'franchise_or_entity_tax',
+    title: 'franchise or entity tax applicability',
+    taxType: 'state_franchise_or_entity_tax',
+    formName: 'State franchise or entity tax',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: true,
+    entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
+    reviewReason:
+      'Confirm franchise, entity, gross receipts, or margin tax due dates and entity-specific filing requirements against the business source.',
+  },
 ] as const satisfies readonly StateCandidateRuleDomain[]
 
 function sourceIdForStateCandidateRule(
   seed: (typeof STATE_RULE_SOURCE_SEEDS)[number],
   domain: StateCandidateRuleDomain,
 ): string | null {
+  const slug = domain.slug
+  if (isBusinessCandidateRuleSlug(slug)) {
+    const businessSources = STATE_BUSINESS_TAX_SOURCES_BY_JURISDICTION.get(seed.jurisdiction) ?? []
+    return (
+      businessSources.find((source) => source.candidateDomainSlugs.includes(slug))?.sourceId ?? null
+    )
+  }
+
   const ids = stateRuleSourceIds(seed.jurisdiction)
   const source = STATE_INCOME_TAX_SOURCE_BY_JURISDICTION.get(seed.jurisdiction)
   if (!source) return null
-
   const supportedSlugs = source.candidateDomainSlugs ?? DEFAULT_INCOME_CANDIDATE_DOMAIN_SLUGS
   if (!supportedSlugs.includes(domain.slug)) return null
 
@@ -3537,6 +3692,27 @@ export function normalizeRuleTaxTypeCandidates(taxType: string): readonly RuleTa
       reviewReason: null,
     },
   ]
+
+  const stateBusinessIncomeFranchise = /^([a-z]{2})_state_business_income_franchise_tax$/.exec(
+    taxType,
+  )
+  if (stateBusinessIncomeFranchise) {
+    const prefix = stateBusinessIncomeFranchise[1]
+    candidates.push(
+      {
+        inputTaxType: taxType,
+        taxType: `${prefix}_state_business_income_tax`,
+        requiresReview: true,
+        reviewReason: 'state_business_income_franchise_tax_split_required',
+      },
+      {
+        inputTaxType: taxType,
+        taxType: `${prefix}_state_franchise_or_entity_tax`,
+        requiresReview: true,
+        reviewReason: 'state_business_income_franchise_tax_split_required',
+      },
+    )
+  }
 
   for (const alias of RULE_TAX_TYPE_ALIASES[taxType] ?? []) {
     if (candidates.some((candidate) => candidate.taxType === alias.taxType)) continue

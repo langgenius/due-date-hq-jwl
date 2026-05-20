@@ -554,6 +554,7 @@ export {
 } from './pulse'
 
 export type {
+  ConcreteDueDateLogic,
   DueDateLogic,
   ObligationGenerationPreview,
   ObligationRule,
@@ -565,7 +566,9 @@ export type {
   RuleBulkAcceptTemplatesOutput,
   RuleBulkImpactPreview,
   RuleBulkImpactPreviewInput,
+  RuleConcreteDraft,
   RuleCustomRuleInput,
+  RuleDraftConcreteRuleInput,
   RuleGenerationClientFacts,
   RuleGenerationMissingClientFact,
   RuleGenerationPreviewInput,
@@ -597,6 +600,7 @@ export type {
 } from './rules'
 export {
   AcquisitionMethodSchema,
+  ConcreteDueDateLogicSchema,
   CoverageStatusSchema,
   DueDateLogicSchema,
   EntityApplicabilitySchema,
@@ -612,7 +616,9 @@ export {
   RuleBulkAcceptTemplatesOutputSchema,
   RuleBulkImpactPreviewInputSchema,
   RuleBulkImpactPreviewSchema,
+  RuleConcreteDraftSchema,
   RuleCustomRuleInputSchema,
+  RuleDraftConcreteRuleInputSchema,
   RuleGenerationClientFactsSchema,
   RuleGenerationEntitySchema,
   RuleGenerationMissingClientFactSchema,
