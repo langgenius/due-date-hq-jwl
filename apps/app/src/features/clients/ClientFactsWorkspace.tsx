@@ -45,6 +45,7 @@ import type {
   ObligationRule,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Collapsible,
@@ -1064,105 +1065,147 @@ export function ClientDetailWorkspace({
           onAddFacts={openMissingFacts}
         />
 
-        <ClientWorkPlanPanel
-          obligations={obligations}
-          isLoading={obligationsQuery.isLoading}
-          summary={workPlan}
-        />
+        <Tabs defaultValue="work" className="w-full">
+          <TabsList className="mb-3 flex w-full flex-wrap justify-start">
+            <TabsTrigger value="work">
+              <Trans>Work</Trans>
+            </TabsTrigger>
+            <TabsTrigger value="mailbox">
+              <Trans>Mailbox</Trans>
+            </TabsTrigger>
+            <TabsTrigger value="notes">
+              <Trans>Notes</Trans>
+            </TabsTrigger>
+          </TabsList>
 
-        <SuggestedFormsCatalogPanel
-          client={client}
-          existingObligations={obligations}
-        />
+          {/* Work tab — the day-to-day workspace: filing plan, gap
+              analysis, jurisdictions, risk inputs, fact readiness. */}
+          <TabsContent value="work" className="grid gap-4">
+            <ClientWorkPlanPanel
+              obligations={obligations}
+              isLoading={obligationsQuery.isLoading}
+              summary={workPlan}
+            />
 
-        <ClientMailboxPanel client={client} />
+            <SuggestedFormsCatalogPanel
+              client={client}
+              existingObligations={obligations}
+            />
 
-        <DetailSection
-          title={t`Client summary (AI)`}
-          summary={
-            riskSummaryQuery.data?.generatedAt
-              ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-              : t`No summary yet`
-          }
-          defaultOpen
-        >
-          <ClientRiskSummaryPanel
-            insight={riskSummaryQuery.data ?? null}
-            isLoading={riskSummaryQuery.isLoading}
-            isRefreshing={requestRiskSummaryMutation.isPending}
-            canRefresh={practiceAiEnabled}
-            firmTimezone={firmTimezone}
-            onRefresh={() =>
-              requestRiskSummaryMutation.mutate({
-                clientId: client.id,
-              })
-            }
-          />
-        </DetailSection>
+            <DetailSection
+              id="client-filing-jurisdictions"
+              title={t`Filing jurisdictions`}
+              summary={formatJurisdictionSummary(client)}
+              open={filingJurisdictionsOpen}
+              onOpenChange={setFilingJurisdictionsOpen}
+              attention={missingFilingState}
+            >
+              <ClientJurisdictionPanel
+                key={`${client.id}:jurisdiction`}
+                client={client}
+                isSaving={replaceFilingProfilesMutation.isPending}
+                onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+              />
+            </DetailSection>
 
-        <DetailSection
-          id="client-filing-jurisdictions"
-          title={t`Filing jurisdictions`}
-          summary={formatJurisdictionSummary(client)}
-          open={filingJurisdictionsOpen}
-          onOpenChange={setFilingJurisdictionsOpen}
-          attention={missingFilingState}
-        >
-          <ClientJurisdictionPanel
-            key={`${client.id}:jurisdiction`}
-            client={client}
-            isSaving={replaceFilingProfilesMutation.isPending}
-            onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-          />
-        </DetailSection>
+            <DetailSection
+              title={t`Risk inputs`}
+              summary={t`Penalty inputs and tax-attribute flags`}
+            >
+              <ClientRiskInputsPanel
+                key={`${client.id}:risk`}
+                client={client}
+                isSaving={updateRiskProfileMutation.isPending}
+                onSave={(input) => updateRiskProfileMutation.mutate(input)}
+              />
+            </DetailSection>
 
-        <DetailSection title={t`Risk inputs`} summary={t`Penalty inputs and tax-attribute flags`}>
-          <ClientRiskInputsPanel
-            key={`${client.id}:risk`}
-            client={client}
-            isSaving={updateRiskProfileMutation.isPending}
-            onSave={(input) => updateRiskProfileMutation.mutate(input)}
-          />
-        </DetailSection>
+            <DetailSection
+              title={t`Fact readiness`}
+              summary={
+                readiness && readiness.missingRequiredFacts.length > 0
+                  ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                  : t`All required facts present`
+              }
+            >
+              <ClientFactChecklist client={client} readiness={readiness} />
+            </DetailSection>
 
-        <DetailSection
-          title={t`Fact readiness`}
-          summary={
-            readiness && readiness.missingRequiredFacts.length > 0
-              ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-              : t`All required facts present`
-          }
-        >
-          <ClientFactChecklist client={client} readiness={readiness} />
-        </DetailSection>
+            <DetailSection
+              title={t`Future business cues`}
+              summary={t`Advisory, scope, and retention opportunities`}
+            >
+              <ClientOpportunitiesCard clientId={client.id} />
+            </DetailSection>
+          </TabsContent>
 
-        <DetailSection
-          title={t`Future business cues`}
-          summary={t`Advisory, scope, and retention opportunities`}
-        >
-          <ClientOpportunitiesCard clientId={client.id} />
-        </DetailSection>
+          {/* Mailbox tab — per-client forwarding address. Phase 2:
+              actual inbound email infrastructure will surface threaded
+              messages here. */}
+          <TabsContent value="mailbox" className="grid gap-4">
+            <ClientMailboxPanel client={client} />
+            <div className="rounded-md border border-dashed border-divider-regular p-6 text-center">
+              <MailIcon className="mx-auto mb-2 size-6 text-text-tertiary" aria-hidden />
+              <p className="text-sm font-medium text-text-primary">
+                <Trans>Inbound messages — Phase 2</Trans>
+              </p>
+              <p className="mt-1 text-xs text-text-tertiary">
+                <Trans>
+                  Once the forwarding address is live, threaded emails and uploaded
+                  attachments from the client will surface here, AI-classified into the
+                  matching task on the filing plan.
+                </Trans>
+              </p>
+            </div>
+          </TabsContent>
 
-        <div className="rounded-md border border-divider-regular bg-background-section p-3">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Notes</Trans>
-          </span>
-          <p className="mt-2 text-sm text-text-secondary">
-            {client.notes || <Trans>No notes.</Trans>}
-          </p>
-        </div>
+          {/* Notes tab — AI narrative, free-text notes, activity audit. */}
+          <TabsContent value="notes" className="grid gap-4">
+            <DetailSection
+              title={t`Client summary (AI)`}
+              summary={
+                riskSummaryQuery.data?.generatedAt
+                  ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
+                  : t`No summary yet`
+              }
+              defaultOpen
+            >
+              <ClientRiskSummaryPanel
+                insight={riskSummaryQuery.data ?? null}
+                isLoading={riskSummaryQuery.isLoading}
+                isRefreshing={requestRiskSummaryMutation.isPending}
+                canRefresh={practiceAiEnabled}
+                firmTimezone={firmTimezone}
+                onRefresh={() =>
+                  requestRiskSummaryMutation.mutate({
+                    clientId: client.id,
+                  })
+                }
+              />
+            </DetailSection>
 
-        <DetailSection
-          title={t`Activity log`}
-          summary={t`Recent audited changes for this client record`}
-        >
-          <ClientActivityPanel
-            events={auditQuery.data?.events ?? []}
-            canReadAudit={canReadAudit}
-            isLoading={auditQuery.isLoading}
-            firmTimezone={firmTimezone}
-          />
-        </DetailSection>
+            <div className="rounded-md border border-divider-regular bg-background-section p-3">
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Notes</Trans>
+              </span>
+              <p className="mt-2 text-sm text-text-secondary">
+                {client.notes || <Trans>No notes.</Trans>}
+              </p>
+            </div>
+
+            <DetailSection
+              title={t`Activity log`}
+              summary={t`Recent audited changes for this client record`}
+            >
+              <ClientActivityPanel
+                events={auditQuery.data?.events ?? []}
+                canReadAudit={canReadAudit}
+                isLoading={auditQuery.isLoading}
+                firmTimezone={firmTimezone}
+              />
+            </DetailSection>
+          </TabsContent>
+        </Tabs>
       </section>
     </>
   )
