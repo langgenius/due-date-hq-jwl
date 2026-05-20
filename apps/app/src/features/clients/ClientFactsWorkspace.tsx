@@ -42,6 +42,7 @@ import type {
   ClientFilingProfilesReplaceInput,
   ClientPublic,
   ObligationInstancePublic,
+  ObligationRule,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -2116,80 +2117,84 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
   )
 }
 
-// ─── Suggested-forms catalog ──────────────────────────────────────────
-// Per the reference CPA workbench (and PDF §3.3 "Classification") the
-// client page should answer "what could this client owe that we haven't
-// scheduled yet?". v1 ships a hardcoded entity-type → form-suggestions
-// mapping that filters out anything already in `existingObligations`.
-// The proper wiring is into the rule catalog filtered by client
-// classification + jurisdictions, which is a follow-up.
-
-type SuggestedForm = {
-  code: string
-  title: string
-  description: string
+// ─── Suggested-forms catalog (wired to rule catalog) ──────────────────
+// PDF §3.3 "Classification": what could this client owe that we haven't
+// scheduled yet? We query `rules.listRules` for all active firm rules,
+// filter to those whose entityApplicability matches the client's
+// entityType and whose jurisdiction matches federal-or-client-state, and
+// subtract anything the client already has a generated obligation for
+// (matched by ruleId). The "+ Add deadline" button calls
+// `obligations.createBatch` with the rule's identifiers; the server
+// resolves the dueDateLogic into a concrete baseDueDate.
+type SuggestedRule = {
+  rule: ObligationRule
+  // Computed default date for the Add-deadline form. Heuristic — see
+  // computeDefaultDueDateFromRule.
+  defaultBaseDueDate: string
 }
 
-const FORMS_BY_ENTITY_TYPE: Record<string, readonly SuggestedForm[]> = {
-  individual: [
-    { code: 'federal_1040_nr', title: 'Form 1040-NR', description: 'U.S. Nonresident Alien Income Tax Return — Apr 15 if wages subject to U.S. withholding; Jun 15 otherwise.' },
-    { code: 'federal_1040_sr', title: 'Form 1040-SR', description: 'U.S. Tax Return for Seniors — same due dates as 1040.' },
-    { code: 'federal_1040_es', title: 'Form 1040-ES', description: 'Estimated Tax for Individuals — Q1 Apr 15, Q2 Jun 15, Q3 Sep 15, Q4 Jan 15.' },
-    { code: 'federal_4868', title: 'Form 4868', description: 'Automatic 6-month filing extension. Does NOT extend the tax payment deadline.' },
-    { code: 'federal_fbar_114', title: 'FBAR / FinCEN 114', description: 'Report of Foreign Bank Accounts — Apr 15, auto-extends to Oct 15.' },
-  ],
-  partnership: [
-    { code: 'federal_1065', title: 'Form 1065', description: 'Partnership Return — due 15th day of the 3rd month after tax-year end.' },
-    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for partnerships.' },
-    { code: 'federal_k1', title: 'Schedule K-1', description: 'Partner Share of Income/Deductions/Credits — issued with Form 1065.' },
-    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return — Apr 30 / Jul 31 / Oct 31 / Jan 31.' },
-    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
-    { code: 'federal_w2_w3', title: 'W-2 / W-3', description: 'Employee wage statements — due Jan 31.' },
-    { code: 'federal_1099_nec', title: '1099-NEC', description: 'Nonemployee Compensation — due Jan 31.' },
-  ],
-  s_corp: [
-    { code: 'federal_1120s', title: 'Form 1120-S', description: 'S Corporation Income Tax Return — due 15th day of the 3rd month after tax-year end.' },
-    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for S corporations.' },
-    { code: 'federal_k1', title: 'Schedule K-1', description: 'Shareholder Share of Income/Deductions/Credits — issued with Form 1120-S.' },
-    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return — Apr 30 / Jul 31 / Oct 31 / Jan 31.' },
-    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
-    { code: 'federal_w2_w3', title: 'W-2 / W-3', description: 'Employee wage statements — due Jan 31.' },
-  ],
-  c_corp: [
-    { code: 'federal_1120', title: 'Form 1120', description: 'C Corporation Income Tax Return — due 15th day of the 4th month after tax-year end.' },
-    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for C corporations.' },
-    { code: 'federal_1120_es', title: 'Form 1120 estimated', description: 'Quarterly corporate estimated tax — Q1-Q4 in months 4/6/9/12 of the tax year.' },
-    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return.' },
-    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
-  ],
-  llc: [
-    { code: 'federal_1065', title: 'Form 1065', description: 'If LLC is taxed as a partnership.' },
-    { code: 'federal_1120s', title: 'Form 1120-S', description: 'If LLC has elected S-corp tax status.' },
-    { code: 'federal_1120', title: 'Form 1120', description: 'If LLC has elected C-corp tax status.' },
-    { code: 'state_llc_franchise', title: 'State LLC franchise', description: 'Many states impose an annual franchise/min tax on LLCs (e.g., CA $800).' },
-    { code: 'state_annual_report', title: 'State annual report', description: 'Most states require an annual report filing.' },
-  ],
-  trust: [
-    { code: 'federal_1041', title: 'Form 1041', description: 'Trust / Estate Income Tax Return — due 15th day of the 4th month after tax-year end.' },
-    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 5.5-month extension for trusts/estates.' },
-    { code: 'federal_k1', title: 'Schedule K-1', description: 'Beneficiary Share — issued with Form 1041.' },
-  ],
-  sole_prop: [
-    { code: 'federal_1040', title: 'Form 1040 + Schedule C', description: 'Personal return with Schedule C for self-employment income.' },
-    { code: 'federal_se', title: 'Schedule SE', description: 'Self-Employment Tax — filed with 1040.' },
-    { code: 'federal_1040_es', title: 'Form 1040-ES', description: 'Quarterly estimated tax payments.' },
-    { code: 'federal_1099_nec', title: '1099-NEC', description: 'If the business pays contractors $600+/year.' },
-  ],
-  other: [],
+function computeDefaultDueDateFromRule(rule: ObligationRule): string {
+  // Best-effort: handle the simple kinds. For period_table and
+  // source_defined_calendar, fall back to today + 30 days as a
+  // placeholder — the user can adjust before saving.
+  const logic = rule.dueDateLogic
+  if (logic.kind === 'fixed_date') return logic.date
+  if (logic.kind === 'nth_day_after_tax_year_end') {
+    // Assume calendar year — tax year ends Dec 31 of (applicableYear - 1)
+    const year = rule.applicableYear
+    const month = String(logic.monthOffset).padStart(2, '0')
+    const day = String(logic.day).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  if (logic.kind === 'nth_day_after_tax_year_begin') {
+    const year = rule.applicableYear
+    const month = String(logic.monthOffset).padStart(2, '0')
+    const day = String(logic.day).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  const fallback = new Date()
+  fallback.setDate(fallback.getDate() + 30)
+  return fallback.toISOString().slice(0, 10)
 }
 
-function suggestedFormsForClient(
+// Map our client.entityType to the rule's EntityApplicability vocabulary.
+// The rule schema uses 'any_business', 'any_entity', etc. as wildcards;
+// our client.entityType uses concrete values. A rule matches a client if
+// its applicability set contains the client's entityType OR a wildcard.
+function ruleAppliesToEntity(
+  rule: ObligationRule,
+  clientEntityType: ClientPublic['entityType'],
+): boolean {
+  return rule.entityApplicability.some(
+    (a) =>
+      a === clientEntityType || a === 'any_business' || a === 'any_entity' || a === 'any',
+  )
+}
+
+function ruleAppliesToJurisdiction(
+  rule: ObligationRule,
+  clientStates: Set<string>,
+): boolean {
+  // Rule jurisdiction is 'FED' for federal, or a state code for state rules.
+  if (rule.jurisdiction === 'FED') return true
+  return clientStates.has(rule.jurisdiction)
+}
+
+function suggestedRulesForClient(
+  allRules: readonly ObligationRule[],
   client: ClientPublic,
   existingObligations: readonly ObligationInstancePublic[],
-): SuggestedForm[] {
-  const candidates = FORMS_BY_ENTITY_TYPE[client.entityType] ?? []
-  const scheduled = new Set(existingObligations.map((o) => o.taxType))
-  return candidates.filter((form) => !scheduled.has(form.code))
+): SuggestedRule[] {
+  const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
+  const scheduledRuleIds = new Set(
+    existingObligations.flatMap((o) => (o.ruleId ? [o.ruleId] : [])),
+  )
+  return allRules
+    .filter((rule) => rule.status === 'active')
+    .filter((rule) => !scheduledRuleIds.has(rule.id))
+    .filter((rule) => ruleAppliesToJurisdiction(rule, clientStates))
+    .filter((rule) => ruleAppliesToEntity(rule, client.entityType))
+    .map((rule) => ({ rule, defaultBaseDueDate: computeDefaultDueDateFromRule(rule) }))
 }
 
 function SuggestedFormsCatalogPanel({
@@ -2200,22 +2205,89 @@ function SuggestedFormsCatalogPanel({
   existingObligations: readonly ObligationInstancePublic[]
 }) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const [hidden, setHidden] = useState(false)
-  const suggested = useMemo(
-    () => suggestedFormsForClient(client, existingObligations),
-    [client, existingObligations],
+  const [pendingRuleId, setPendingRuleId] = useState<string | null>(null)
+
+  const rulesQuery = useQuery(
+    orpc.rules.listRules.queryOptions({ input: { status: 'active' } }),
   )
-  const totalApplicable = (FORMS_BY_ENTITY_TYPE[client.entityType] ?? []).length
-  if (totalApplicable === 0) return null
+  const createMutation = useMutation(
+    orpc.obligations.createBatch.mutationOptions({
+      onMutate: (variables) => {
+        const first = variables.obligations[0]
+        if (first?.ruleId) setPendingRuleId(first.ruleId)
+      },
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(t`Deadline added`, {
+          description: t`${result.created} obligation created from the rule catalog.`,
+        })
+        setPendingRuleId(null)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't add deadline`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+        setPendingRuleId(null)
+      },
+    }),
+  )
+
+  const allRules = rulesQuery.data ?? EMPTY_RULES
+  const applicable = useMemo(() => {
+    const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
+    return allRules.filter(
+      (rule) =>
+        rule.status === 'active' &&
+        ruleAppliesToJurisdiction(rule, clientStates) &&
+        ruleAppliesToEntity(rule, client.entityType),
+    )
+  }, [allRules, client.entityType, client.filingProfiles])
+  const suggested = useMemo(
+    () => suggestedRulesForClient(allRules, client, existingObligations),
+    [allRules, client, existingObligations],
+  )
+
+  if (rulesQuery.isLoading) {
+    return (
+      <div className="rounded-md border border-divider-subtle bg-background-default p-4">
+        <Skeleton className="mb-2 h-4 w-40" />
+        <Skeleton className="h-3 w-72" />
+      </div>
+    )
+  }
+  if (applicable.length === 0) return null
+
+  function addDeadline(suggestion: SuggestedRule) {
+    createMutation.mutate({
+      obligations: [
+        {
+          clientId: client.id,
+          taxType: suggestion.rule.taxType,
+          taxYear: suggestion.rule.applicableYear,
+          ruleId: suggestion.rule.id,
+          ruleVersion: suggestion.rule.version,
+          generationSource: 'manual',
+          jurisdiction: suggestion.rule.jurisdiction,
+          formName: suggestion.rule.formName,
+          obligationType: suggestion.rule.obligationType,
+          baseDueDate: suggestion.defaultBaseDueDate,
+        },
+      ],
+    })
+  }
+
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">
-            <Trans>Federal forms catalog</Trans>
+            <Trans>Forms catalog</Trans>
           </span>
           <span className="truncate text-xs text-text-tertiary">
-            <Plural value={totalApplicable} one="# applicable" other="# applicable" /> ·{' '}
+            <Plural value={applicable.length} one="# applicable" other="# applicable" /> ·{' '}
             {client.name}
             {suggested.length > 0 ? (
               <>
@@ -2235,11 +2307,11 @@ function SuggestedFormsCatalogPanel({
         <div className="border-t border-divider-subtle px-4 py-3">
           <PanelEmptyState
             icon={CheckCircle2Icon}
-            title={<Trans>All applicable forms scheduled</Trans>}
+            title={<Trans>All applicable rules scheduled</Trans>}
             detail={
               <Trans>
-                Every form the catalog suggests for a {client.entityType.replace('_', ' ')} client
-                is already a deadline on this client.
+                Every active rule the catalog matches to this client already has a generated
+                obligation.
               </Trans>
             }
           />
@@ -2250,35 +2322,55 @@ function SuggestedFormsCatalogPanel({
             <p className="text-[11px] font-medium uppercase tracking-wider text-text-warning">
               <Trans>Suggested — applicable but no deadline yet</Trans>
               {' · '}
-              <Plural value={suggested.length} one="# form" other="# forms" />
+              <Plural value={suggested.length} one="# rule" other="# rules" />
             </p>
           </div>
           <div className="grid divide-y divide-divider-subtle">
-            {suggested.map((form) => (
-              <div key={form.code} className="grid gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-text-primary">
-                    {form.title}
-                  </p>
-                  <p className="text-xs leading-snug text-text-tertiary">{form.description}</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled
-                  title={t`Wire to rule catalog — coming in a follow-up.`}
+            {suggested.map((suggestion) => {
+              const isPending = pendingRuleId === suggestion.rule.id && createMutation.isPending
+              return (
+                <div
+                  key={suggestion.rule.id}
+                  className="grid gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
                 >
-                  <PlusIcon data-icon="inline-start" />
-                  <Trans>Add deadline</Trans>
-                </Button>
-              </div>
-            ))}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <p className="text-sm font-medium text-text-primary">
+                        {suggestion.rule.formName}
+                      </p>
+                      <span className="text-[11px] uppercase tracking-wide text-text-tertiary">
+                        {suggestion.rule.jurisdiction}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-snug text-text-tertiary">
+                      {suggestion.rule.title} ·{' '}
+                      <Trans>default due {formatDate(suggestion.defaultBaseDueDate)}</Trans>
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addDeadline(suggestion)}
+                    disabled={createMutation.isPending}
+                  >
+                    {isPending ? (
+                      <RefreshCwIcon data-icon="inline-start" className="animate-spin" />
+                    ) : (
+                      <PlusIcon data-icon="inline-start" />
+                    )}
+                    <Trans>Add deadline</Trans>
+                  </Button>
+                </div>
+              )
+            })}
           </div>
         </>
       )}
     </div>
   )
 }
+
+const EMPTY_RULES: readonly ObligationRule[] = []
 
 // ─── Per-client mailbox stub ──────────────────────────────────────────
 // The reference shows a per-task forwarding email address that ingests
