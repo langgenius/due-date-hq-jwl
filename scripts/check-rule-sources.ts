@@ -186,7 +186,22 @@ const penaltySourceFailures: string[] = []
 const sourceCoverageFailures: string[] = []
 const knownDomains = new Set<string>(RULE_SOURCE_DOMAINS)
 const sourceById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
-const COMPLETED_SOURCE_PACK_JURISDICTIONS = ['AL', 'CA', 'NY', 'TX', 'FL', 'WA'] as const
+const COMPLETED_SOURCE_PACK_JURISDICTIONS = [
+  'AL',
+  'CA',
+  'NY',
+  'TX',
+  'FL',
+  'WA',
+  'GA',
+  'IL',
+  'MA',
+  'NJ',
+  'PA',
+  'NC',
+  'VA',
+  'AZ',
+] as const
 
 for (const source of RULE_SOURCES) {
   if (source.domains.length === 0) {
