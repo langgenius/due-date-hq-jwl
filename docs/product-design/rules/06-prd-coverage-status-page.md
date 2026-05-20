@@ -205,9 +205,11 @@ sole_prop | individual | trust`; source coverage states distinguish
 state-level no-tax cases, such as TX/WA income tax or FL withholding,
 are returned as `not_applicable` and excluded from the required count.
 As of 2026-05-20, completed source packs enforced by
-`pnpm rules:check-sources` are `AL`, `CA`, `NY`, `TX`, `FL`, `WA`, `GA`,
-`IL`, `MA`, `NJ`, `PA`, `NC`, `VA`, `AZ`, `CO`, `MI`, `OH`, `OR`, `SC`,
-`TN`, `UT`, and `WI`.
+`pnpm rules:check-sources` cover all 51 state/DC jurisdictions: `AL`, `AK`, `AZ`,
+`AR`, `CA`, `CO`, `CT`, `DE`, `DC`, `FL`, `GA`, `HI`, `ID`, `IL`, `IN`, `IA`,
+`KS`, `KY`, `LA`, `ME`, `MD`, `MA`, `MI`, `MN`, `MS`, `MO`, `MT`, `NE`, `NV`,
+`NH`, `NJ`, `NM`, `NY`, `NC`, `ND`, `OH`, `OK`, `OR`, `PA`, `RI`, `SC`, `SD`,
+`TN`, `TX`, `UT`, `VT`, `VA`, `WA`, `WV`, `WI`, and `WY`.
 
 No writes. This page is a pure read.
 

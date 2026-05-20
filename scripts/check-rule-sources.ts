@@ -125,18 +125,26 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
     }
   }
 
-  try {
-    const headStatus = await curlStatus(source.url, 'HEAD')
-    if (headStatus >= 200 && headStatus < 400) {
-      return {
-        sourceId: source.id,
-        status: 'ok',
-        httpStatus: headStatus,
-        checkedUrl: source.url,
-        checkedMethod: 'HEAD',
-      }
-    }
+  let headStatus: number | null = null
+  let headError: string | null = null
 
+  try {
+    headStatus = await curlStatus(source.url, 'HEAD')
+  } catch (error) {
+    headError = error instanceof Error ? error.message : 'Unknown HEAD curl error'
+  }
+
+  if (headStatus !== null && headStatus >= 200 && headStatus < 400) {
+    return {
+      sourceId: source.id,
+      status: 'ok',
+      httpStatus: headStatus,
+      checkedUrl: source.url,
+      checkedMethod: 'HEAD',
+    }
+  }
+
+  try {
     const getStatus = await curlStatus(source.url, 'GET')
     if (getStatus >= 200 && getStatus < 400) {
       return {
@@ -157,13 +165,14 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
       reason: `HTTP ${getStatus}`,
     }
   } catch (error) {
+    const getError = error instanceof Error ? error.message : 'Unknown GET curl error'
     return {
       sourceId: source.id,
       status: 'failed',
-      httpStatus: null,
+      httpStatus: headStatus,
       checkedUrl: source.url,
       checkedMethod: 'GET',
-      reason: error instanceof Error ? error.message : 'Unknown curl error',
+      reason: headError ? `${headError}; ${getError}` : getError,
     }
   }
 }
@@ -209,6 +218,35 @@ const COMPLETED_SOURCE_PACK_JURISDICTIONS = [
   'TN',
   'UT',
   'WI',
+  'AK',
+  'AR',
+  'CT',
+  'DE',
+  'DC',
+  'HI',
+  'ID',
+  'IN',
+  'IA',
+  'KS',
+  'KY',
+  'LA',
+  'ME',
+  'MD',
+  'MN',
+  'MS',
+  'MO',
+  'MT',
+  'NE',
+  'NV',
+  'NH',
+  'NM',
+  'ND',
+  'OK',
+  'RI',
+  'SD',
+  'VT',
+  'WV',
+  'WY',
 ] as const
 
 for (const source of RULE_SOURCES) {

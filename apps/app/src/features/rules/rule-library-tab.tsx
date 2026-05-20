@@ -403,119 +403,124 @@ export function RuleLibraryTab() {
           onClear={clearBulkSelection}
         />
       ) : null}
-      <SectionFrame>
-        <Table>
-          <TableHeader className="bg-background-subtle">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="w-10 px-3">
-                <input
-                  type="checkbox"
-                  aria-label={t`Select visible pending rules`}
-                  checked={allVisibleSelected}
-                  disabled={visibleSelectableRows.length === 0}
-                  onChange={(event) => toggleVisible(event.target.checked)}
-                  className="size-4 disabled:opacity-40"
-                />
-              </TableHead>
-              <TableHead className="w-[82px] px-3">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`JUR`}
-                  open={openHeaderFilter === 'jurisdiction'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('jurisdiction', nextOpen)}
-                  options={jurisdictionOptions}
-                  selected={jurisdictionFilters}
-                  emptyLabel={emptyFilterLabel}
-                  searchable
-                  searchPlaceholder={t`Filter jurisdictions`}
-                  onSelectedChange={(next) => updateHeaderFilter(setJurisdictionFilters, next)}
-                />
-              </TableHead>
-              <TableHead>RULE</TableHead>
-              <TableHead className="w-[160px]">FORM</TableHead>
-              <TableHead className="w-[190px] px-3">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`ENTITY`}
-                  open={openHeaderFilter === 'entity'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
-                  options={entityOptions}
-                  selected={entityFilters}
-                  emptyLabel={emptyFilterLabel}
-                  onSelectedChange={(next) => updateHeaderFilter(setEntityFilters, next)}
-                />
-              </TableHead>
-              <TableHead className="w-[210px] px-3">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`TIER`}
-                  open={openHeaderFilter === 'tier'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('tier', nextOpen)}
-                  options={tierOptions}
-                  selected={tierFilters}
-                  emptyLabel={emptyFilterLabel}
-                  onSelectedChange={(next) => updateHeaderFilter(setTierFilters, next)}
-                />
-              </TableHead>
-              <TableHead className="w-[140px] px-3">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`STATUS`}
-                  open={openHeaderFilter === 'status'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('status', nextOpen)}
-                  options={statusOptions}
-                  selected={statusFilters}
-                  emptyLabel={emptyFilterLabel}
-                  onSelectedChange={(next) => updateHeaderFilter(setStatusFilters, next)}
-                />
-              </TableHead>
-              <TableHead className="w-[90px]">VERSION</TableHead>
-              <TableHead className="w-8" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleRows.map((rule) => (
-              <RuleRow
-                key={ruleRowKey(rule)}
-                rule={rule}
-                reviewTask={openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null}
-                selected={
-                  selectedRuleKeys.includes(ruleRowKey(rule)) &&
-                  canBulkReviewRule(rule, openTaskByRuleVersion)
-                }
-                onSelectedChange={toggleRule}
-                onSelect={handleRuleSelect}
-              />
-            ))}
-            {visibleRows.length === 0 ? (
+      <SectionFrame className="overflow-clip">
+        <div
+          data-slot="rule-library-table-scroll"
+          className="max-h-[clamp(420px,calc(100svh-16rem),920px)] overflow-auto overscroll-auto"
+        >
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-background-subtle">
               <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={9}
-                  className="px-4 py-10 text-center text-xs text-text-tertiary"
-                >
-                  {rows.length === 0 ? (
-                    <Trans>
-                      No rules in the catalog yet. Source watchers will surface candidates here as
-                      changes are detected.
-                    </Trans>
-                  ) : libraryFilter === 'rejected' ? (
-                    <Trans>
-                      No rejected rules in this view. Rejections appear here with timestamp and
-                      reviewer so the decision stays auditable.
-                    </Trans>
-                  ) : libraryFilter === 'archived' ? (
-                    <Trans>
-                      No archived rules in this view. Archived rules are no longer active but stay
-                      visible for audit.
-                    </Trans>
-                  ) : (
-                    <Trans>No rules match these filters. Clear filters above to see more.</Trans>
-                  )}
-                </TableCell>
+                <TableHead className="w-10 px-3">
+                  <input
+                    type="checkbox"
+                    aria-label={t`Select visible pending rules`}
+                    checked={allVisibleSelected}
+                    disabled={visibleSelectableRows.length === 0}
+                    onChange={(event) => toggleVisible(event.target.checked)}
+                    className="size-4 disabled:opacity-40"
+                  />
+                </TableHead>
+                <TableHead className="w-[82px] px-3">
+                  <TableHeaderMultiFilter
+                    trigger="header"
+                    label={t`JUR`}
+                    open={openHeaderFilter === 'jurisdiction'}
+                    onOpenChange={(nextOpen) => setHeaderFilterOpen('jurisdiction', nextOpen)}
+                    options={jurisdictionOptions}
+                    selected={jurisdictionFilters}
+                    emptyLabel={emptyFilterLabel}
+                    searchable
+                    searchPlaceholder={t`Filter jurisdictions`}
+                    onSelectedChange={(next) => updateHeaderFilter(setJurisdictionFilters, next)}
+                  />
+                </TableHead>
+                <TableHead>RULE</TableHead>
+                <TableHead className="w-[160px]">FORM</TableHead>
+                <TableHead className="w-[190px] px-3">
+                  <TableHeaderMultiFilter
+                    trigger="header"
+                    label={t`ENTITY`}
+                    open={openHeaderFilter === 'entity'}
+                    onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
+                    options={entityOptions}
+                    selected={entityFilters}
+                    emptyLabel={emptyFilterLabel}
+                    onSelectedChange={(next) => updateHeaderFilter(setEntityFilters, next)}
+                  />
+                </TableHead>
+                <TableHead className="w-[210px] px-3">
+                  <TableHeaderMultiFilter
+                    trigger="header"
+                    label={t`TIER`}
+                    open={openHeaderFilter === 'tier'}
+                    onOpenChange={(nextOpen) => setHeaderFilterOpen('tier', nextOpen)}
+                    options={tierOptions}
+                    selected={tierFilters}
+                    emptyLabel={emptyFilterLabel}
+                    onSelectedChange={(next) => updateHeaderFilter(setTierFilters, next)}
+                  />
+                </TableHead>
+                <TableHead className="w-[140px] px-3">
+                  <TableHeaderMultiFilter
+                    trigger="header"
+                    label={t`STATUS`}
+                    open={openHeaderFilter === 'status'}
+                    onOpenChange={(nextOpen) => setHeaderFilterOpen('status', nextOpen)}
+                    options={statusOptions}
+                    selected={statusFilters}
+                    emptyLabel={emptyFilterLabel}
+                    onSelectedChange={(next) => updateHeaderFilter(setStatusFilters, next)}
+                  />
+                </TableHead>
+                <TableHead className="w-[90px]">VERSION</TableHead>
+                <TableHead className="w-8" />
               </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {visibleRows.map((rule) => (
+                <RuleRow
+                  key={ruleRowKey(rule)}
+                  rule={rule}
+                  reviewTask={openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null}
+                  selected={
+                    selectedRuleKeys.includes(ruleRowKey(rule)) &&
+                    canBulkReviewRule(rule, openTaskByRuleVersion)
+                  }
+                  onSelectedChange={toggleRule}
+                  onSelect={handleRuleSelect}
+                />
+              ))}
+              {visibleRows.length === 0 ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell
+                    colSpan={9}
+                    className="px-4 py-10 text-center text-xs text-text-tertiary"
+                  >
+                    {rows.length === 0 ? (
+                      <Trans>
+                        No rules in the catalog yet. Source watchers will surface candidates here as
+                        changes are detected.
+                      </Trans>
+                    ) : libraryFilter === 'rejected' ? (
+                      <Trans>
+                        No rejected rules in this view. Rejections appear here with timestamp and
+                        reviewer so the decision stays auditable.
+                      </Trans>
+                    ) : libraryFilter === 'archived' ? (
+                      <Trans>
+                        No archived rules in this view. Archived rules are no longer active but stay
+                        visible for audit.
+                      </Trans>
+                    ) : (
+                      <Trans>No rules match these filters. Clear filters above to see more.</Trans>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </div>
         <TablePaginationFooter
           pageIndex={currentPageIndex}
           pageCount={pageCount}

@@ -58,8 +58,39 @@ source 覆盖。原 coverage table 只能表达 active / pending / none，无法
   - Completed source pack completeness 现在覆盖 22 个 jurisdictions：
     `AL`、`CA`、`NY`、`TX`、`FL`、`WA`、`GA`、`IL`、`MA`、`NJ`、`PA`、`NC`、`VA`、
     `AZ`、`CO`、`MI`、`OH`、`OR`、`SC`、`TN`、`UT`、`WI`。
-  - Registry 当前为 189 个官方 source、240 个 review-only/active-backed rule templates；
-    remaining states + `DC` seed 为 29 sources / 53 pending templates。
+  - 第三批结束时 registry 为 189 个官方 source、240 个 review-only/active-backed rule
+    templates；remaining states + `DC` seed 为 29 sources / 53 pending templates。
+- 第四批 completed source packs 扩展到 `CT`、`MD`、`MN`、`IN`、`MO`、`LA`、`KY`、
+  `OK`、`IA`、`KS`：
+  - 用州税务局 tax calendar / due-date / filing-deadline source 覆盖 income、fiduciary、
+    business、PTE、sales/use、withholding 的可适用 cells；用州 labor/workforce source
+    覆盖 UI wage report。
+  - `CT`、`MD`、`MN`、`IN`、`MO`、`IA`、`KS` 的无独立 franchise/entity tax cells 标为
+    `not_applicable`；`OK` 的 current franchise tax cells 标为 `not_applicable`。
+- 第五批 completed source packs 扩展到 `AR`、`DE`、`DC`、`HI`、`ID`、`ME`、`MS`、
+  `MT`、`NE`、`NM`、`ND`、`RI`、`VT`、`WV`：
+  - `AR`、`DE`、`DC`、`MS`、`NM`、`RI` 补齐 franchise/entity 或 corporation-scoped
+    source，并对 partnership / pass-through / repealed cells 做 entity-level
+    `not_applicable`。
+  - `DE`、`MT` 的 no-statewide-sales/use cells 标为 `not_applicable`；`HI`、`ID`、
+    `ME`、`NE`、`VT`、`WV` 等无独立 franchise/entity tax cells 标为 `not_applicable`。
+- 第六批 completed source packs 扩展到 `AK`、`NV`、`NH`、`SD`、`WY`：
+  - `AK` 用 corporate income + UI wage report source 覆盖可适用 cells；个人、
+    fiduciary、PTE、statewide sales/use、withholding、franchise cells 标为 `not_applicable`。
+  - `NV` 用 commerce tax、sales/use、UI source 覆盖可适用 cells；state income、
+    fiduciary、business income/PTE、withholding cells 标为 `not_applicable`。
+  - `NH` 用 BPT/BET + UI source 覆盖可适用 cells；I&D tax current-year、sales/use、
+    withholding cells 标为 `not_applicable`。
+  - `SD` 用 sales/use + UI source 覆盖可适用 cells；income/business/PTE/franchise/
+    withholding cells 标为 `not_applicable`。
+  - `WY` 用 sales/use、annual report license tax、UI source 覆盖可适用 cells；income/
+    business/PTE/withholding cells 标为 `not_applicable`。
+  - 新增 source 以 `manual_review` + `degraded` 登记，原因是这批官方来源混合 PDF、
+    dynamic CMS、portal 页面和非统一 tax calendar；本轮只声明人工可核验的 official source
+    coverage，不伪装成 machine watcher。
+  - Completed source pack completeness 现在覆盖全部 51 个 state/DC jurisdictions。
+  - Registry 当前为 271 个官方 source、459 个 review-only/active-backed rule templates；
+    remaining jurisdictions 为 0。
 
 ## 验证
 
@@ -74,6 +105,7 @@ source 覆盖。原 coverage table 只能表达 active / pending / none，无法
 
 ## 后续
 
-- 下一批建议补剩余 jurisdictions：`CT`、`MD`、`MN`、`IN`、`MO`、`LA`、`KY`、`OK`、
-  `IA`、`KS`，再继续 no-income-tax / small-state batch。
-- 对 no-income-tax states 继续优先建 `not_applicable` cells，再补 sales/use 和 UI wage source。
+- 后续 parser/source-health 工作应逐步把可稳定抓取的 `manual_review` source 升级为
+  `html_watch` / `pdf_watch`，但必须先通过 endpoint-specific health check。
+- 下一轮规则质量工作可以从 459 个 review-only/active-backed templates 中挑选高价值州种，
+  生成 concrete due-date drafts；source coverage 完整不等于 practice rule active。

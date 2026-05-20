@@ -42,6 +42,35 @@ const COMPLETED_SOURCE_PACK_JURISDICTIONS = new Set([
   'TN',
   'UT',
   'WI',
+  'AK',
+  'AR',
+  'CT',
+  'DE',
+  'DC',
+  'HI',
+  'ID',
+  'IN',
+  'IA',
+  'KS',
+  'KY',
+  'LA',
+  'ME',
+  'MD',
+  'MN',
+  'MS',
+  'MO',
+  'MT',
+  'NE',
+  'NV',
+  'NH',
+  'NM',
+  'ND',
+  'OK',
+  'RI',
+  'SD',
+  'VT',
+  'WV',
+  'WY',
 ])
 const OFFICIAL_NON_GOV_HOSTS = new Set([
   'www.irs.gov',
@@ -390,6 +419,35 @@ describe('@duedatehq/core/rules', () => {
       'TN',
       'UT',
       'WI',
+      'AK',
+      'AR',
+      'CT',
+      'DE',
+      'DC',
+      'HI',
+      'ID',
+      'IN',
+      'IA',
+      'KS',
+      'KY',
+      'LA',
+      'ME',
+      'MD',
+      'MN',
+      'MS',
+      'MO',
+      'MT',
+      'NE',
+      'NV',
+      'NH',
+      'NM',
+      'ND',
+      'OK',
+      'RI',
+      'SD',
+      'VT',
+      'WV',
+      'WY',
     ] as const) {
       expect(listSourceCoverageGaps(jurisdiction), `${jurisdiction} should have no gaps`).toEqual(
         [],
@@ -471,6 +529,61 @@ describe('@duedatehq/core/rules', () => {
         (cell) => cell.domain === 'business_estimated_tax' && cell.entity === 's_corp',
       )?.status,
     ).toBe('not_applicable')
+
+    const akCoverage = listRequiredSourceCoverage('AK')
+    expect(
+      akCoverage.find(
+        (cell) => cell.domain === 'individual_estimated_tax' && cell.entity === 'individual',
+      )?.status,
+    ).toBe('not_applicable')
+    expect(
+      akCoverage.find((cell) => cell.domain === 'sales_use_tax' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('ak.individual_income_return.candidate.2026')).toBeUndefined()
+    expect(findRuleById('ak.sales_use_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('ak.business_income_return.candidate.2026')).toMatchObject({
+      sourceIds: ['ak.corporate_income_tax'],
+      entityApplicability: ['c_corp'],
+    })
+
+    const deCoverage = listRequiredSourceCoverage('DE')
+    expect(
+      deCoverage.find((cell) => cell.domain === 'sales_use_tax' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('de.sales_use_tax.candidate.2026')).toBeUndefined()
+
+    const nvCoverage = listRequiredSourceCoverage('NV')
+    expect(
+      nvCoverage.find(
+        (cell) => cell.domain === 'business_income_return' && cell.entity === 'c_corp',
+      )?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('nv.business_income_return.candidate.2026')).toBeUndefined()
+    expect(findRuleById('nv.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'nv.commerce_tax',
+    ])
+
+    const nhCoverage = listRequiredSourceCoverage('NH')
+    expect(
+      nhCoverage.find((cell) => cell.domain === 'sales_use_tax' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('nh.sales_use_tax.candidate.2026')).toBeUndefined()
+
+    const okCoverage = listRequiredSourceCoverage('OK')
+    expect(
+      okCoverage.find((cell) => cell.domain === 'franchise_or_entity_tax' && cell.entity === 'llc')
+        ?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('ok.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+
+    const wyCoverage = listRequiredSourceCoverage('WY')
+    expect(
+      wyCoverage.find((cell) => cell.domain === 'withholding' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    expect(findRuleById('wy.withholding.candidate.2026')).toBeUndefined()
+    expect(findRuleById('wy.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'wy.annual_license_tax',
+    ])
   })
 
   it('covers every US jurisdiction with official sources and safe rule states', () => {

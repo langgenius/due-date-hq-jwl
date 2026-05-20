@@ -258,4 +258,15 @@ describe('CoverageTab canonical layout', () => {
     const cells = firstRow?.querySelectorAll('td') ?? []
     expect(cells.length).toBe(11)
   })
+
+  it('renders the coverage table in its own scroll region', async () => {
+    await render(<CoverageTab />)
+    await waitForText('Entity coverage')
+
+    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-md')
+
+    expect(tableFrame?.className).toContain('overflow-auto')
+    expect(tableFrame?.className).toContain('overscroll-auto')
+    expect(tableFrame?.className).not.toContain('overflow-hidden')
+  })
 })

@@ -506,7 +506,7 @@ export function CoverageTab({
             </div>
           ) : (
             <div className="flex-1 min-w-0">
-              <SectionFrame className="max-h-[clamp(320px,calc(100svh-18rem),920px)] overflow-auto">
+              <SectionFrame className="max-h-[clamp(420px,calc(100svh-12rem),920px)] overflow-auto overscroll-auto">
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-background-default">
                     {/* Single-row header — the group-eyebrow strip ("Rules"
