@@ -19,6 +19,8 @@ const EIN_PATTERN = /^\d{2}-\d{7}$/
 const BANNED_TAX_ADVICE_RE =
   /\b(guaranteed|no penalty will apply|qualifies for relief|you should file|do not file|tax advice|legal advice|safe harbor applies)\b/i
 const PLACEHOLDER_RE = /{{[^}]+}}|<[^>\n]+>/
+const SOURCE_WATCH_PLACEHOLDER_RE =
+  /\bofficial source registered\b|\btemplates require practice owner or manager acceptance\b/i
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -79,9 +81,14 @@ export function verifyRuleConcreteDraft(input: unknown, output: unknown): void {
   const sourceExcerpt = output.sourceExcerpt
   if (typeof sourceText !== 'string' || typeof sourceExcerpt !== 'string') return
 
-  const normalizedText = normalizeForExcerpt(sourceText)
-  const normalizedExcerpt = normalizeForExcerpt(sourceExcerpt)
-  if (!normalizedExcerpt || normalizedText.includes(normalizedExcerpt)) return
+  if (SOURCE_WATCH_PLACEHOLDER_RE.test(sourceExcerpt)) {
+    throw new GuardRejection(
+      'Rule draft rejected because source excerpt used source-watch metadata instead of official source text.',
+      'SOURCE_EXCERPT_NOT_FOUND',
+    )
+  }
+
+  if (sourceTextContainsExcerpt(sourceText, sourceExcerpt)) return
 
   throw new GuardRejection(
     'Rule draft rejected because source excerpt could not be located in source text.',
@@ -138,4 +145,19 @@ export function verifyInsightOutput(input: unknown, output: unknown): void {
 
 function normalizeForExcerpt(value: string): string {
   return value.replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
+  const normalizedText = normalizeForExcerpt(sourceText)
+  const normalizedExcerpt = normalizeForExcerpt(excerpt)
+  if (!normalizedExcerpt || normalizedText.includes(normalizedExcerpt)) return true
+
+  const sourceTokens = new Set(normalizedText.match(/[a-z0-9]+/g) ?? [])
+  const excerptTokens = Array.from(new Set(normalizedExcerpt.match(/[a-z0-9]+/g) ?? [])).filter(
+    (token) => token.length > 2,
+  )
+  if (excerptTokens.length < 4) return false
+
+  const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
+  return hitCount / excerptTokens.length >= 0.85
 }

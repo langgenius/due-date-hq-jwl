@@ -37,8 +37,10 @@ import { requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import { toContractRule, toCoreRule, toPracticeContractRule } from './runtime'
+import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source-text'
 
 const MAX_BULK_ACCEPT = 100
+const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
 const COVERAGE_ENTITY_COLUMNS = [
   'llc',
@@ -212,6 +214,10 @@ function validateConcreteRuleDraft(input: {
   const dueDateError = validateConcreteDueDateLogic(input)
   if (dueDateError) return dueDateError
 
+  if (SOURCE_WATCH_PLACEHOLDER_RE.test(input.sourceExcerpt)) {
+    return 'AI source excerpt used source-watch metadata instead of official source text.'
+  }
+
   if (!sourceTextContainsExcerpt(input.sourceText, input.sourceExcerpt)) {
     return 'AI source excerpt was not found in the selected official source text.'
   }
@@ -368,7 +374,11 @@ async function buildConcreteDraftSourceText(input: {
   }
 
   const evidenceChunks = input.base.evidence
-    .filter((evidence) => evidence.sourceId === input.source.id)
+    .filter(
+      (evidence) =>
+        evidence.sourceId === input.source.id &&
+        !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt),
+    )
     .map((evidence) =>
       [
         evidence.locator.heading ?? input.source.title,
@@ -378,6 +388,7 @@ async function buildConcreteDraftSourceText(input: {
         .filter((value): value is string => Boolean(value))
         .join('\n'),
     )
+  const officialSourceText = await fetchOfficialSourceText(input.source.url)
 
   chunks.push(
     [
@@ -385,12 +396,42 @@ async function buildConcreteDraftSourceText(input: {
       input.source.url,
       input.source.lastReviewedOn ? `Reviewed ${input.source.lastReviewedOn}` : null,
       ...evidenceChunks,
+      officialSourceText ? `Official source text\n${officialSourceText}` : null,
     ]
       .filter((value): value is string => Boolean(value))
       .join('\n'),
   )
 
   return chunks.filter(Boolean).join('\n\n')
+}
+
+async function fetchOfficialSourceText(url: string): Promise<string | null> {
+  let response: Response
+  try {
+    response = await fetch(url, {
+      headers: {
+        accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.1',
+        'user-agent': 'DueDateHQ rule review source fetcher',
+      },
+    })
+  } catch {
+    return null
+  }
+
+  if (!response.ok) return null
+  const contentType = response.headers.get('content-type') ?? ''
+  if (
+    !contentType.includes('text/html') &&
+    !contentType.includes('application/xhtml+xml') &&
+    !contentType.includes('text/plain')
+  ) {
+    return null
+  }
+
+  const raw = await response.text().catch(() => null)
+  if (!raw) return null
+  const text = extractOfficialSourceText(raw)
+  return text ? text.slice(0, MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS) : null
 }
 
 function toReviewDecision(row: RuleReviewDecisionRow): RuleReviewDecision {

@@ -342,6 +342,62 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal?.code).toBe('GUARD_REJECTED')
   })
 
+  it('accepts rule concrete drafts when the excerpt is source-backed but not contiguous', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt: 'Alabama individual income tax returns April 15 calendar year 2026',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v1',
+      {
+        sourceText:
+          'Alabama individual income tax returns should be filed by April 15 for calendar year 2026.',
+      },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result).toEqual({
+      sourceExcerpt: 'Alabama individual income tax returns April 15 calendar year 2026',
+      confidence: 0.9,
+    })
+    expect(result.refusal).toBeNull()
+  })
+
+  it('rejects rule concrete drafts that cite source-watch metadata as evidence', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt:
+          'Alabama official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v1',
+      {
+        sourceText:
+          'Alabama official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.',
+      },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
   it('returns AI_GATEWAY_ERROR with stable trace when the gateway throws', async () => {
     callGatewayMock.mockRejectedValueOnce(new Error('upstream failed'))
     const ai = createAI(CONFIGURED_ENV)
