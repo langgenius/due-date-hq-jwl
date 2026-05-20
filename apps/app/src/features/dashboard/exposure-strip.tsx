@@ -32,7 +32,7 @@ function ExposureTile({ segment }: { segment: Segment }) {
     >
       <span
         className={cn(
-          'text-2xl font-semibold leading-tight tabular-nums tracking-tight',
+          'text-xl font-semibold leading-tight tabular-nums tracking-tight',
           segment.tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
         )}
       >
