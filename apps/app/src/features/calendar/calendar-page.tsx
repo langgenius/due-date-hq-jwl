@@ -136,15 +136,10 @@ export function CalendarPage() {
       <PageHeader
         title={<Trans>Calendar sync</Trans>}
         description={
-          <>
-            <Trans>
-              Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the
-              source of truth for deadline changes.
-            </Trans>
-            <span className="mt-1 block font-mono text-[11px] tabular-nums text-text-muted">
-              <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
-            </span>
-          </>
+          <Trans>
+            Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't
+            change DueDateHQ.
+          </Trans>
         }
         actions={
           <Button variant="outline" size="sm" render={<Link to="/obligations" />}>

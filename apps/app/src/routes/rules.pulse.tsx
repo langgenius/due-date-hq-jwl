@@ -6,10 +6,7 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 export function RulesPulseRoute() {
   const { t } = useLingui()
   return (
-    <RulesPageShell
-      title={t`Pulse`}
-      description={t`Source-backed government changes that may affect client deadlines. Review affected clients, apply temporary exceptions, dismiss noise, or revisit closed changes here.`}
-    >
+    <RulesPageShell title={t`Pulse Notification`}>
       <PulseChangesTab embedded />
     </RulesPageShell>
   )

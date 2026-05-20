@@ -289,13 +289,7 @@ export function ClientsRoute() {
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <PageHeader
-        title={<Trans>Client facts</Trans>}
-        description={
-          <Trans>
-            Validate the practice client facts that generate obligations, dashboard risk, and Pulse
-            matches.
-          </Trans>
-        }
+        title={<Trans>Clients</Trans>}
         actions={
           <>
             <Button variant="ghost" size="sm" onClick={() => handleImportHistoryOpenChange(true)}>

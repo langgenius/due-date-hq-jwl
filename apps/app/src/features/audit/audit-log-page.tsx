@@ -582,9 +582,6 @@ export function AuditLogPage() {
             <Trans>Audit log</Trans>
           </ConceptLabel>
         }
-        description={
-          <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
-        }
         actions={
           <div className="flex flex-col items-start gap-2 md:items-end">
             <AuditExportButton firm={currentFirm} />

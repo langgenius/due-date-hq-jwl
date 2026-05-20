@@ -798,6 +798,112 @@ The product voice is **calm, factual, respectful of time**. CPAs are senior prof
 | `Mode A/B/C/D/E/F` in user-facing copy | Internal telemetry id only.                                           |
 | Emojis anywhere in product UI          | Breaks the calm register. Use Lucide icon or a status pill instead.   |
 
+## Component anatomy rules
+
+Every multi-element component (card, row, banner, dialog, table cell) MUST satisfy these before shipping. They prevent the most common layout failures (the "$79 hidden behind CTA" archetype):
+
+1. **Zone map first.** Name the areas — `[avatar] [name+meta] [status pill] [primary action]` — before pixel values. Elements never leak across zone boundaries.
+2. **Reading order explicit.** State the L→R / T→B scan path: e.g. `name → meta → status → primary action`. The DOM order matches the visual order.
+3. **Non-overlap guarantee for primary info.** The deadline date / client name / `Overdue Nd` pill is **never** covered by an interactive affordance. Primary-info zones get `min-w-*` so CTAs can't squeeze them out.
+4. **Hit-target separation.** Tappable rows containing nested tappables (Send button, ✕ dismiss, chevron) give each nested element its own 44×44 hit area + `e.stopPropagation()` on its click handler so the row click doesn't fire too.
+5. **Truncation policy per text element.** Declare: never / 1 line ellipsis / 2 lines ellipsis / hides-at-breakpoint. No `flex-1 truncate` without intention.
+6. **Responsive collapse stated.** What happens when the component narrows? (side-by-side → stacked? footer wraps to two rows? meta hides?)
+7. **All interaction states defined.** rest / hover / active / focus-visible / disabled (+ selected / loading where applicable). Missing states = fail unless explicit `N/A`.
+
+If a component spec doesn't answer all 7, send it back.
+
+## Page sections — the dashboard's heartbeat
+
+The dashboard has one rhythm rule: spacing doubles between scopes (4 → 8 → 16 → 24 → 48). Page sections, top to bottom:
+
+1. **Page header** (date / route name inline, single line)
+2. **Source needs attention banner** — auto-hides at zero unhealthy sources
+3. **Needs attention cards** — Pulse alerts as first-class cards. Auto-hides at zero
+4. **This week's exposure** — chip row of count + dollars (decision needs, dollar at risk, blocked, waiting)
+5. **Actions this week** — the daily action queue (verb-led rows with inline primary action)
+
+That is the dashboard. There is no sixth section. Every section auto-hides at zero rather than rendering an "empty state" with chrome.
+
+## Information hierarchy — failure modes
+
+Every screen must let the eye land in T1 → T2 → T3 order in under 5 seconds. The common failures (each is a hierarchy bug, not a styling bug):
+
+- **Tier inflation.** Three things competing for hero. Pick one; demote the others to T2.
+- **Tier flattening.** Every section uses the same heading weight. T1 must outweigh T2 must outweigh T3 _visually_, not just semantically.
+- **Decoration tax.** An icon, badge, dot, AND pill on every row. The eye has nothing to land on. Remove all but the one signal that changes a decision.
+- **Metadata creep.** Secondary info painted in the same weight as primary ("5 min ago" in `font-medium text-text-primary`). Push to `text-xs text-text-tertiary`, or drop.
+- **Repeat surfaces.** Same content rendered twice (count in tab AND same count in filter chip below). Pick one home; remove the other.
+
+When auditing a dense screen: print the tier of every visible element. If T2 outnumbers T1 by more than 5×, or T3 outnumbers T2 by more than 3×, the screen is over-decorated — cut the smaller tiers first.
+
+## Responsive behavior
+
+DueDateHQ is **desktop-first**. A CPA does focused work on a 13"+ screen; mobile is for triage glances. Optimize desktop fully; make mobile usable.
+
+### Breakpoints (Tailwind v4 + DueDateHQ extensions)
+
+| Name            | Min width | Layout                                                                                                            |
+| :-------------- | :-------- | :---------------------------------------------------------------------------------------------------------------- |
+| `mobile` / `sm` | < 769     | Mobile — sidebar hidden, sheet-style drawer takes over, single column                                             |
+| `tablet` / `md` | 769–1023  | Tablet — sidebar visible, single column, page content caps at default width                                       |
+| `lg`            | 1024–1279 | Small desktop — full sidebar, page content `max-w-screen-2xl`                                                     |
+| `xl` / `2xl`    | ≥ 1280    | Desktop / wide — same as `lg`, dashboard caps at `max-w-[1100px]` (mx-auto), Coverage / tables use the full width |
+
+### Page content widths
+
+- **Dashboard** caps at `max-w-[1100px]` (focused reading width).
+- **Obligations / other workbench tables** widen to `max-w-screen-2xl` so wide tables don't clip.
+- **Settings forms** cap at ~880px.
+- **Settings data surfaces** (Members / Billing) use ~1180px workbench width.
+- **Drawers** default 400px; workflow drawers (obligation triage, batch review) scale to 880px max.
+- **Modals** cap at `max-w-md` (~448px) for confirms, `max-w-lg` (~512px) for forms, 640px for the rare wide-form case.
+
+### Touch targets
+
+- Default: 44×44 minimum (WCAG 2.1 AA).
+- Mobile-primary surfaces: 48×48.
+- Inline icon-only actions: visual 32×32 with hit area expanded via padding to 44×44.
+
+## Accessibility
+
+WCAG 2.1 AA is the floor. The product is used by working CPAs at 7am with coffee and bifocals — readability isn't optional.
+
+### Required behaviors
+
+- **Focus visibility.** `:focus-visible` only (never `:focus`); 2px accent outline + 2px offset; **never `outline: none` without a replacement**.
+- **Color independence.** Every status carries an icon or label, never color alone. (`Overdue 3d` pill is a chip + colored ink; the word does the work for color-blind users.)
+- **Keyboard nav.** Tab order follows visible reading order. Modal closes on Escape. `j` / `k` between rows where supported. Drawer close returns focus to its trigger.
+- **Screen reader.** Every icon has an `aria-label` (decorative icons get `aria-hidden="true"`). Status pills announce as "Status: Overdue 3 days." Modals announce their title on open.
+- **Form errors.** `aria-invalid="true"` + `aria-describedby` linking to error message rendered in `text-text-destructive` below the input.
+- **Reduced motion.** `prefers-reduced-motion: reduce` is wired globally; per-moment fallbacks degrade to opacity-only or no animation.
+
+## Motion
+
+Motion confirms; it does not perform. Subtle, fast, professional. The product is used 30× a day; animation that doesn't earn its keep becomes friction.
+
+### Easing tokens
+
+```css
+--ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1); /* default for entries */
+--ease-out-quick: cubic-bezier(0.4, 0, 0.2, 1); /* for hover/state change */
+```
+
+**Forbidden:** CSS defaults (`ease`, `ease-in`, `ease-in-out`) — too soft, lack punch. `ease-in` specifically is forbidden on UI animations (sluggish at the watching moment).
+
+### Duration ladder
+
+| Element                  | Duration                               |
+| :----------------------- | :------------------------------------- |
+| Button press feedback    | 80–160 ms                              |
+| Tooltips, small popovers | 125–200 ms                             |
+| Sheet / drawer slide-in  | 200–250 ms                             |
+| Modal fade + scale       | 150–200 ms                             |
+| Page transitions         | none — instant navigation feels faster |
+| Toast in/out             | 200 / 150 ms                           |
+| Skeleton shimmer         | 1500 ms loop                           |
+
+Anything longer than 300 ms on a UI transition is a bug. Reserve longer durations (pulse-breathing 3800 ms) for ambient signal, not state changes.
+
 ## Do's and Don'ts
 
 ### Do

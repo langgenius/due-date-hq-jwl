@@ -38,15 +38,7 @@ export function OpportunitiesPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <PageHeader
-        title={<Trans>Opportunities</Trans>}
-        description={
-          <Trans>
-            Lightweight client conversation cues for future service, retention, and engagement
-            scope. DueDateHQ does not generate tax strategies here.
-          </Trans>
-        }
-      />
+      <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (
         <Alert variant="destructive">

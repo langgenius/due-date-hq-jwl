@@ -26,8 +26,8 @@ type FilterOption<T extends string> = {
  * plain strings through their loaders, so this adapter keeps that
  * ergonomics-of-strings while routing through the single source of truth.
  */
-export function RulesPageHeader({ title, description }: { title: string; description: string }) {
-  return <PageHeader title={title} description={description} />
+export function RulesPageHeader({ title, description }: { title: string; description?: string }) {
+  return <PageHeader title={title} {...(description ? { description } : {})} />
 }
 
 /**
@@ -49,7 +49,7 @@ export function RulesPageShell({
   children,
 }: {
   title: string
-  description: string
+  description?: string
   compact?: boolean
   children: ReactNode
 }) {
@@ -61,7 +61,9 @@ export function RulesPageShell({
             collapsed. A collapsed-but-mounted div still consumes a
             flex `gap-6` slot above the next child, which created a
             ~48-72px dead space at the top of the review surface. */}
-          {!compact ? <RulesPageHeader title={title} description={description} /> : null}
+          {!compact ? (
+            <RulesPageHeader title={title} {...(description ? { description } : {})} />
+          ) : null}
           {children}
         </div>
       </div>

@@ -145,12 +145,6 @@ export function RemindersPage() {
       <SettingsBackLink />
       <PageHeader
         title={<Trans>Reminders</Trans>}
-        description={
-          <Trans>
-            Manage the reminder schedule, message templates, recent delivery status, and client
-            email suppressions for deadline work.
-          </Trans>
-        }
         actions={
           <Button render={<Link to="/notifications" />} variant="outline" size="sm">
             <BellIcon data-icon="inline-start" />

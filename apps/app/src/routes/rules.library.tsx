@@ -65,10 +65,7 @@ export function RulesLibraryRoute() {
   )
 
   return (
-    <RulesPageShell
-      title={t`Rule library`}
-      description={t`Practice rule catalog — review pending rule templates, activate them into production, and inspect rejected or archived evidence. Coverage and source-watcher health summarized above; click numbers to filter.`}
-    >
+    <RulesPageShell title={t`Rule library`}>
       <CoverageSummaryStrip onDrillIn={drillIntoLibrary} />
       <SourcesSummaryStrip />
       <section id="library" className="scroll-mt-20">

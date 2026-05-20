@@ -19,14 +19,14 @@ without consistent triage vs. deep-work affordances.
 
 The approved decision map (from the design preview integration cycle):
 
-| Noun             | Target                                | Reason                       |
-|------------------|---------------------------------------|------------------------------|
-| Obligation       | Drawer (unchanged)                    | Quick triage, return to list |
-| Client           | Page (`/clients/<id>`)                | Deep context, multiple tabs  |
-| Rule             | Inline panel in Coverage              | Already canonical            |
-| Notification     | Drawer (unchanged)                    | Quick read + dismiss         |
-| Team member      | Settings page (unchanged)             | Admin                        |
-| Practice setting | Settings page (unchanged)             | Admin                        |
+| Noun             | Target                    | Reason                       |
+| ---------------- | ------------------------- | ---------------------------- |
+| Obligation       | Drawer (unchanged)        | Quick triage, return to list |
+| Client           | Page (`/clients/<id>`)    | Deep context, multiple tabs  |
+| Rule             | Inline panel in Coverage  | Already canonical            |
+| Notification     | Drawer (unchanged)        | Quick read + dismiss         |
+| Team member      | Settings page (unchanged) | Admin                        |
+| Practice setting | Settings page (unchanged) | Admin                        |
 
 Rule of thumb: drawer for triage, page for deep work, dialog reserved
 for confirmations and small forms only.
@@ -48,6 +48,7 @@ Three offending detail surfaces in scope:
    Client drawer rather than the page.
 
 Out of scope confirmed during audit (left alone):
+
 - Pulse drawer — Pulse keeps drawer per the map.
 - Obligation drawer — owned by another session; the existing "Open
   client detail" link in its header already points to `/clients/<id>`.

@@ -234,7 +234,6 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
       <PageHeader
         title={<Trans>Members</Trans>}
-        description={<Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>}
         actions={
           <>
             <Button variant="outline" size="sm" render={<Link to="/audit" />}>

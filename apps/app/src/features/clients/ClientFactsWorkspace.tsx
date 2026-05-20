@@ -48,13 +48,7 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger,
 } from '@duedatehq/ui/components/ui/collapsible'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import {
@@ -560,7 +554,9 @@ export function ClientFactsWorkspace({
                 {formatDate(summary.nextDueDate)}
               </span>
               {summary.nextTaxType ? (
-                <span className="truncate text-xs text-text-tertiary">{summary.nextTaxType}</span>
+                <span className="truncate text-xs text-text-tertiary">
+                  <TaxCodeLabel code={summary.nextTaxType} />
+                </span>
               ) : null}
             </div>
           )
@@ -695,23 +691,14 @@ export function ClientFactsWorkspace({
 
       <section>
         <Card>
-          <CardHeader className="gap-4">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="flex min-w-0 flex-col gap-1">
-                <CardTitle>
-                  <Trans>Clients</Trans>
-                </CardTitle>
-                <CardDescription>
-                  <Trans>
-                    Search, segment, and inspect every client — their filings, owners, risk, and the
-                    source rules that apply.
-                  </Trans>
-                </CardDescription>
-              </div>
+          <CardHeader className="gap-3">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <Badge variant="outline" className="tabular-nums">
+                <Trans>
+                  {filteredClients.length} of {clients.length}
+                </Trans>
+              </Badge>
               <div className="flex w-full min-w-0 flex-wrap items-center gap-2 xl:w-auto xl:max-w-[880px] xl:shrink-0 xl:justify-end">
-                <Badge variant="outline" className="tabular-nums">
-                  {filteredClients.length}/{clients.length}
-                </Badge>
                 <TableHeaderMultiFilter
                   label={t`Client`}
                   options={clientOptions}
@@ -739,7 +726,7 @@ export function ClientFactsWorkspace({
                   onSelectedChange={onStateFilterChange}
                 />
                 <TableHeaderMultiFilter
-                  label={t`Radar`}
+                  label={t`Pulse`}
                   options={pulseOptions}
                   selected={pulseFilter}
                   disabled={isLoading || pulseOptions.length === 0}

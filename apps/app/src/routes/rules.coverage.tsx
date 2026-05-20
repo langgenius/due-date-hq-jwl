@@ -83,11 +83,7 @@ export function RulesCoverageRoute() {
   )
 
   return (
-    <RulesPageShell
-      title={t`Coverage`}
-      description={t`See where you have rules covering each jurisdiction × entity, where pending rules await your review, and which sources are healthy.`}
-      compact={inReview}
-    >
+    <RulesPageShell title={t`Coverage`} compact={inReview}>
       <CoverageTab
         onJurisdictionDrillIn={handleJurisdictionDrillIn}
         onActiveDrillIn={handleActiveDrillIn}

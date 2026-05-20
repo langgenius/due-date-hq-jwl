@@ -149,8 +149,7 @@ export function NotificationsPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6">
       <SettingsBackLink />
       <PageHeader
-        title={<Trans>Notification center</Trans>}
-        description={<Trans>Inbox and delivery preferences for practice-wide notifications.</Trans>}
+        title={<Trans>Notifications</Trans>}
         actions={
           <Button
             variant="primary"
