@@ -931,6 +931,180 @@ Anything longer than 300 ms on a UI transition is a bug. Reserve longer duration
 - **Don't use raw Tailwind color utilities** (`text-blue-600`, `bg-red-50`) **in business components.** Always go through the semantic layer (`text-text-accent`, `bg-state-warning-hover`, etc.).
 - **Don't ship a display face larger than the page title** (`text-2xl` / 600 / `leading-7` / `tracking-[-0.01em]`). The legacy `display-hero` 54px, `display-large` 36px, `section-title` 32px, and `hero-metric` 56px Geist Mono tokens remain in the spec for marketing surfaces only; product surfaces use **at most** `text-2xl` (24px) for the page title (T8).
 
+## Quiet register — the four refinements
+
+This block tightens the product's taste filter. Apply uniformly; in conflict with anything earlier in the doc, this block wins.
+
+### Q1 · No yellow / amber as a primary tone
+
+Yellow / golden tones read as caution-tape — loud, dated, visually noisy on a calm canvas. Mercury's "Pending Review" (lavender) and "Declined" (peach) prove a quieter palette carries the same urgency vocabulary without amber.
+
+**Direction.** Keep the `warn` semantic but shift the visual tone toward soft peach / coral hues rather than golden amber. The amber palette survives only where state-of-the-art workflow status (Pulse "Needs review", Migration Copilot "Applicability review") is genuinely the right semantic — and even there, prefer a tinted pill over a tinted row background.
+
+**Where this changes existing surfaces:**
+
+- "Stuck >14d" / "Behind target" / "Awaiting reply" status pills — repaint with peach-leaning tones, not amber.
+- "Reminders out, awaiting reply" mail-card sub-zone — peach tint or migrate to `review` (lavender) since the semantic IS "waiting on client".
+- Pulse "Source needs attention" banner — keep peach/amber, but never elevate the row's _background_ on the list itself; the banner is the loud surface.
+- "Overdue −Nd" — stays `danger` red (unchanged; this is the one loud tier).
+
+There is **no middle tier between calm peach and alarm red.** If a future signal needs higher urgency than peach, it earns red.
+
+### Q2 · No thick lines
+
+Borders carry hierarchy by _presence_, not by _weight_. The hairline (1px) is the only stroke that earns its keep.
+
+**Forbidden:**
+
+- `border-2`, `border-l-4`, `border-r-4`, `border-b-2`, `border-t-2` — anything thicker than 1px on a content surface.
+- The 4px status left-rule on banners (`border-l-4 border-warn-solid` and friends). Status banners now carry their signal via tinted bg + status icon prefix only.
+
+**Permitted exceptions** (only these):
+
+| Element                            | Stroke                                                   | Reason                                                                                                       |
+| :--------------------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| Tab active marker                  | `border-b-1.5 border-text-primary`                       | The tab underline is the canonical "you are here" mark. 1.5px reads as intentional; 2px reads as decoration. |
+| Focus ring                         | `outline-2 outline-state-accent-active outline-offset-2` | Outline, not border — paints on top, doesn't shift layout. Required for keyboard a11y.                       |
+| Loud-archetype filter active state | `bg-text-primary text-text-inverted` (no border)         | Surface fill carries the signal; no border needed.                                                           |
+
+### Q3 · No dark borders
+
+Borders are `--divider-regular` (light hairline) only.
+
+- `border-divider-deep` on hover/hover-card states → **collapse to `--divider-regular`**. Hover communicates via bg-shift (`bg-state-base-hover`), never via a darker border. A 6% lightness shift on a 1px line is too subtle to register anyway.
+- `border-text-primary` / `border-black` / `border-foreground` as a card or chip stroke → **forbidden**. Using the _darkest_ surface as a 1px stroke around a card reads as harsh outline-art, not soft chrome. If a divider needs to read harder, promote to a sub-card structure (`<CardZone>` + `<CardDivider>`) or change the surface tint instead.
+
+The "selected/on" archetypes (§Element states) keep their existing definitions — `bg-text-primary text-text-inverted` (loud filter) is a _surface fill_, not a border, so it survives Q3 unchanged.
+
+### Q4 · Grouping discipline (no orphans)
+
+Every visible element belongs to a zone. Zones nest into sections; sections compose the page. **An orphan — a stray pill, a lone button, a one-off chip floating between two unrelated cards — is a bug**, not a styling choice.
+
+**The grouping ladder (T1–T3 made structural):**
+
+| Tier        | Example                                                   | Boundary                                                                               |
+| :---------- | :-------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| **Element** | A status pill, a button, a date label                     | None — elements never sit alone. They join a row.                                      |
+| **Row**     | A line of related elements (icon + label + meta + action) | Hairline `divide-y` if multiple rows; otherwise the parent zone provides the boundary. |
+| **Zone**    | A semantically homogeneous group of rows                  | The card surface or a sub-card between dividers.                                       |
+| **Section** | A semantically homogeneous group of zones                 | A section header + the cards beneath. Whitespace at `gap-12` (48px) above.             |
+| **Page**    | The whole work surface                                    | The page container + the page header.                                                  |
+
+**Failure modes** (each is a Q4 violation):
+
+- **Stray pill outside a zone.** A `Pro` pill in the top-bar that doesn't belong to a row, a card, or a header cluster.
+- **Banner outside a section.** A banner rendered between two section headers with no zone-membership.
+- **Lone button between cards.** A `+ Add` button rendered standalone between two cards.
+- **Sub-zone without a header.** A tinted sub-zone that has no eyebrow or count — readable but unnamed.
+- **Cards in the void.** Two cards stacked with no section header above and no `gap-12` below — they read as the same surface.
+
+The rule of thumb: if you can point to an element and ask "what does this belong to?", and the answer isn't immediate, it's an orphan. Promote, anchor, or remove.
+
+### Q5 · Subtle · Easy · Confident · Quiet
+
+A compact taste filter. Apply in this order when in doubt:
+
+1. **Subtle.** If two surfaces could read as one with a slight tonal shift, prefer the shift over a border.
+2. **Easy.** If a row asks the eye to scan more than three pieces of info before locking on the action, drop or move pieces until it doesn't.
+3. **Confident.** Pick one CTA per viewport and commit. No "or you could also" tertiary actions on a row that already has a primary.
+4. **Quiet.** When a tone could be loud (red), medium (peach), or quiet (neutral / lavender), default to the quietest tone the semantic allows.
+
+When these four conflict with a Mercury reference, this rule wins.
+
+## Invisible correctness
+
+The barely-audible voices that compound. Easy to forget, easy to spot when missing.
+
+| Surface                 | Rule                                                                                                               |
+| :---------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| Text selection          | `bg-text-primary/24` selection bg, `color: text-primary`                                                           |
+| Caret color             | `caret-color: var(--text-primary)` on inputs                                                                       |
+| Scrollbar               | thin (8px) · thumb `text-tertiary/32` · hover `text-tertiary/56`                                                   |
+| Link underline          | `text-underline-offset: 3px` · `text-decoration-thickness: 1.5px` · color matches text · hover dims to 70% opacity |
+| Tap-highlight           | `-webkit-tap-highlight-color: transparent` + custom `:active` state per component                                  |
+| Tooltip delay           | first hover: 400 ms · subsequent (within 300 ms): instant + no animation                                           |
+| Smooth scroll           | `scroll-behavior: smooth` on `<html>`                                                                              |
+| Anchor scroll-margin    | `scroll-margin-top: var(--nav-height) + 12px` on every scroll target                                               |
+| Focus-visible ring      | only on `:focus-visible`, never `:focus` · never `outline: none` · 2px accent + 2px offset                         |
+| Broken image fallback   | subtle bg + alt text in `text-tertiary` + 16px `<ImageOff>` icon                                                   |
+| `select-none` on chrome | sidebar items, button labels, status pills — prevent accidental drag-select                                        |
+| Number inputs           | `appearance: none` on currency inputs (kill browser spinners)                                                      |
+| Empty cell rendering    | render `—` (em dash) in `text-text-tertiary`, never blank                                                          |
+| Print stylesheet        | links unfurl URLs; `@page` margin 0.5in; brand fonts swap to system                                                |
+
+## KPI tile = filter trigger
+
+Some KPI tiles double as filter affordances on their page (Clients tiles filter the roster, Workload tiles filter the team table). When a tile is clickable:
+
+- Pass `onClick` + `active` props to the tile. `active` paints a ring + dark border; non-active is the standard line border.
+- **The tile's label IS the filter name** — don't duplicate the label as a separate filter chip below. ONE entrance, ONE name.
+- A second row of filter chips below KPI tiles is allowed only when the chips represent **a different filter dimension** (tiles surface "what needs attention", chips slice by attribute like entity / state).
+- The active state uses the loud-filter archetype (`bg-text-primary text-text-inverted`), not the you-are-here archetype — see §Element states.
+
+## Single drilldown destination per concept
+
+When two surfaces present the same concept, the click target on the secondary surface **navigates to the primary surface** — it does NOT open a duplicate drawer/modal showing the same content.
+
+- **Obligation detail.** Obligation drawer is the primary surface (right-side sheet). Every click target on a secondary surface (dashboard action row, calendar cell, client workspace row) navigates to a URL that opens the same drawer, not a duplicate inline view.
+- **Client detail.** `/clients/<id>` is the single drilldown. No duplicate drawers, no inline expansions that recreate the page.
+- **Pulse alert.** Pulse drawer is the primary surface. Dashboard cards click into the same drawer.
+- **Rule detail.** Coverage's inline rule panel is the canonical surface. Library row click navigates to `/rules/coverage?rule=…`, not a duplicate drawer.
+
+This rule prevents the "drawer that duplicates the page" failure mode and keeps deep-links to a single canonical URL per record.
+
+## Destructive change preview
+
+Any change that **adds, removes, or replaces multiple records on commit** opens a migration preview modal before the change applies. Never silently remove. Never silently duplicate.
+
+**Triggers:** client entity-type change · primary-state change · filing-bundle swap · undo-import · rule version replace.
+
+**Required preview shape — three diff lines, signed:**
+
+```
+Changing entity from LLC → S-Corp
+
+−  Removes  3 pending obligations (LLC-specific forms)
++  Adds     5 new obligations (S-Corp forms)
+✓  Keeps    2 overlapping obligations (federal)
+
+[Cancel]   [Apply changes]
+```
+
+- The `−` / `+` / `✓` glyphs are SVG (not unicode) for cross-platform fidelity, ink-tinted with the matching status family (`text-destructive` / `text-success` / `text-secondary`).
+- The audit log writes a single entry summarizing all three counts — not three separate entries.
+- The commit button label includes the magnitude when it's high enough to lose track of: `Apply changes (10)`.
+
+## Export modal — three-axis pattern
+
+Exports are decisions across three orthogonal axes. The modal renders one axis per row, radio groups inside each (no multi-select within an axis — one choice per axis).
+
+| Axis          | Choices                                                                                                                                 |
+| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| **What**      | Current filtered view · All active obligations · Specific date range (date picker) · Specific client (when launched from a client page) |
+| **Format**    | PDF (firm-branded client-facing report) · CSV (raw data, portability guarantee) · iCal `.ics` (subscription URL for calendar apps)      |
+| **Recipient** | Download (default) · Email to self · Email to teammate (paid tiers only)                                                                |
+
+**Trigger locations:** any `Export` button across the product points to the same modal — Obligations page header, Client detail's overflow menu, Pulse alert detail's affected-client list, Calendar / Audit log header. Same modal everywhere keeps the user's mental model intact (one entrance, one name).
+
+**No additional axes.** No "include archived?" checkbox, no "anonymize names?" toggle — options-creep. If a future case demands a fourth axis, it earns its own dialog with its own load-bearing rationale.
+
+## Microcopy reference (concrete examples)
+
+Pair this table with the existing Voice & Terminology section below. These are the rules in copy form — when in doubt, match the cell.
+
+| Surface                            | Copy                                                                      | Why                                                           |
+| :--------------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------ |
+| Page title (Today)                 | `Today May 19` (date inline, medium-weight)                               | Factual. Not "Welcome, Sarah" — desk, not stage.              |
+| Empty Pulse / Alerts               | `No active alerts.`                                                       | Calm fact. Not "All caught up!" — no celebration.             |
+| Empty Actions queue                | `Caught up. Next deadline due May 18.`                                    | Provides horizon, per the Do rule.                            |
+| Confirmation toast (status change) | `Marked filed.`                                                           | Past tense, terse, no exclamation.                            |
+| Error toast (send failed)          | `Couldn't send. Retry, or check the email address.`                       | Direct: what failed, what to try. Not "Oops!"                 |
+| Banner (state change)              | `IRS revised Form 941. 72 of your clients are affected. Review impacts →` | State → impact → verb.                                        |
+| Button: send reminder              | `Send reminder`                                                           | Verb + object. Plural-stable: `Send reminder (3)` when batch. |
+| Button: review reply               | `Open thread`                                                             | Domain term. Not "View" / "See".                              |
+| Loading state                      | `Loading…`                                                                | Boring is correct. Not "Just a moment!" / "Hang tight!"       |
+| Source-health (when healthy)       | `50/50 · all sources connected`                                           | The absence of bad news IS the message.                       |
+
 ## Voice & Terminology
 
 DueDateHQ writes for working CPAs. Copy must be plain, precise, and quiet — a workbench tool, not a marketing site or chatbot. The rules below are enforced by code review; pair them with the i18n catalog (`apps/app/src/i18n/locales/en/messages.po`) as the source of truth.
