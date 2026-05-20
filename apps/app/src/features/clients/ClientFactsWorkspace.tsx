@@ -20,7 +20,6 @@ import {
   ActivityIcon,
   AlertTriangleIcon,
   ChevronDownIcon,
-  PencilIcon,
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
@@ -1590,57 +1589,9 @@ function ClientJurisdictionPanel({
   )
   const hasChanges = currentSignature !== nextSignature
 
-  const [isEditing, setIsEditing] = useState(false)
   const cancelEdit = () => {
     setStatesText(getClientFilingStates(client).join(', '))
     setCountiesText((primaryProfile?.counties ?? (client.county ? [client.county] : [])).join(', '))
-    setIsEditing(false)
-  }
-
-  if (!isEditing) {
-    return (
-      <div className="grid gap-3">
-        {client.filingProfiles.length > 0 ? (
-          <ul className="grid gap-2">
-            {client.filingProfiles
-              .toSorted(
-                (a, b) =>
-                  Number(b.isPrimary) - Number(a.isPrimary) || a.state.localeCompare(b.state),
-              )
-              .map((profile) => (
-                <li
-                  key={profile.id}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-                >
-                  <Badge variant={profile.isPrimary ? 'default' : 'outline'}>
-                    {profile.state}
-                    {profile.isPrimary ? ` ${t`primary`}` : ''}
-                  </Badge>
-                  <span className="text-text-tertiary">
-                    {profile.counties.length > 0 ? profile.counties.join(', ') : t`Any county`}
-                  </span>
-                  <span className="text-text-secondary">·</span>
-                  {profile.taxTypes.length > 0 ? (
-                    <span className="text-text-secondary">{profile.taxTypes.join(', ')}</span>
-                  ) : (
-                    <span className="text-text-warning">{t`Needs tax type review`}</span>
-                  )}
-                </li>
-              ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-text-tertiary">
-            <Trans>No filing jurisdictions on file yet.</Trans>
-          </p>
-        )}
-        <div className="flex">
-          <Button type="button" size="sm" variant="outline" onClick={() => setIsEditing(true)}>
-            <PencilIcon data-icon="inline-start" />
-            <Trans>Edit</Trans>
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -1686,7 +1637,6 @@ function ClientJurisdictionPanel({
               profiles: nextProfiles,
               reason: 'Fact profile filing jurisdiction edit',
             })
-            setIsEditing(false)
           }}
         >
           {isSaving ? t`Saving...` : t`Save`}

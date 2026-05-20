@@ -1004,10 +1004,6 @@ msgstr "年度滚转已生成"
 msgid "Answer each item so your CPA can confirm filing readiness."
 msgstr "请回答每个项目，方便您的 CPA 确认申报准备状态。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Any county"
-msgstr "任意县"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "API access by contract"
@@ -2753,7 +2749,6 @@ msgstr "例如：Bright CPA Practice"
 msgid "Each county must be 120 characters or fewer"
 msgstr "每个县名最多 120 个字符"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
@@ -4355,10 +4350,6 @@ msgstr "需复核"
 msgid "Needs review · never generates user reminders."
 msgstr "待审核 · 永远不会生成用户提醒。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Needs tax type review"
-msgstr "需要复核税种"
-
 #: src/routes/dashboard.tsx
 msgid "neutral"
 msgstr "常规"
@@ -4572,10 +4563,6 @@ msgstr "暂无导出包。"
 #: src/routes/dashboard.tsx
 msgid "No exposure states"
 msgstr "没有风险暴露状态"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No filing jurisdictions on file yet."
-msgstr "No filing jurisdictions on file yet."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
@@ -5910,10 +5897,6 @@ msgstr "上一页"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Previous years"
 msgstr "上一组年份"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "primary"
-msgstr "主"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Primary counties"

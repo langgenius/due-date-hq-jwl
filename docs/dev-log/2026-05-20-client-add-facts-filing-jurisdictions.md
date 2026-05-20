@@ -13,6 +13,8 @@ missing filing state is edited.
   missing filing state, so the required input target is visible even before the user clicks.
 - Extended the shared Client detail `DetailSection` wrapper to support controlled open state,
   section ids, and attention styling while keeping existing uncontrolled sections unchanged.
+- Removed the extra read-only `No filing jurisdictions on file yet` / `Edit` layer inside
+  `Filing jurisdictions`; expanding the section now shows the filing-state inputs immediately.
 
 ## Design / Docs Alignment
 
@@ -25,6 +27,8 @@ missing filing state is edited.
 ## Validation
 
 - `pnpm --filter @duedatehq/app exec tsc --noEmit`
+- `pnpm --filter @duedatehq/app i18n:extract`
+- `pnpm --filter @duedatehq/app i18n:compile`
 - `pnpm check`
 - Playwright could not validate the authenticated page interaction because a fresh browser context
   is redirected to login and cannot reuse the current Codex in-app browser session.

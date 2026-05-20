@@ -1004,10 +1004,6 @@ msgstr "Annual rollover generated"
 msgid "Answer each item so your CPA can confirm filing readiness."
 msgstr "Answer each item so your CPA can confirm filing readiness."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Any county"
-msgstr "Any county"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "API access by contract"
@@ -2753,7 +2749,6 @@ msgstr "e.g. Bright CPA Practice"
 msgid "Each county must be 120 characters or fewer"
 msgstr "Each county must be 120 characters or fewer"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
@@ -4355,10 +4350,6 @@ msgstr "Needs review"
 msgid "Needs review · never generates user reminders."
 msgstr "Needs review · never generates user reminders."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Needs tax type review"
-msgstr "Needs tax type review"
-
 #: src/routes/dashboard.tsx
 msgid "neutral"
 msgstr "neutral"
@@ -4572,10 +4563,6 @@ msgstr "No export packages yet."
 #: src/routes/dashboard.tsx
 msgid "No exposure states"
 msgstr "No exposure states"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No filing jurisdictions on file yet."
-msgstr "No filing jurisdictions on file yet."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
@@ -5910,10 +5897,6 @@ msgstr "Previous page"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Previous years"
 msgstr "Previous years"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "primary"
-msgstr "primary"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Primary counties"
