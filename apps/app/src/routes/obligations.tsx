@@ -1801,11 +1801,6 @@ export function ObligationQueueRoute() {
             <Trans>Obligations</Trans>
           </ConceptLabel>
         }
-        description={
-          <Trans>
-            Status changes write an audit row in the same call so the trail stays trustworthy.
-          </Trans>
-        }
         actions={
           <>
             <DropdownMenu>
