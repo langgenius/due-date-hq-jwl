@@ -35,6 +35,7 @@ import {
   SendIcon,
   ShieldAlertIcon,
   PinIcon,
+  PlusIcon,
   SaveIcon,
   SearchIcon,
   Trash2Icon,
@@ -70,6 +71,8 @@ import {
   type ObligationQueueExportSelectedInput,
   type AiInsightPublic,
   type AuditEventPublic,
+  type ClientReadinessRequestPublic,
+  type ClientReadinessResponsePublic,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -3692,15 +3695,22 @@ function ObligationQueueDetailDrawer({
                 ) : null}
               </TabsList>
               <TabsContent value="readiness">
-                <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
-                  <div className="grid gap-3">
+                <div className="grid gap-3">
+                    {/* Top-of-tab summary — explains what readiness IS
+                        + shows the at-a-glance state (PRD §3.2 says the
+                        biggest deadline risk isn't "CPA doesn't know the
+                        date," it's "CPA doesn't have enough info to
+                        finish the return"). This anchor + the per-item
+                        rows below replace the prior right sidebar. */}
+                    <ReadinessOverview
+                      row={row}
+                      latestRequest={latestRequest ?? null}
+                      checklistCount={checklist.length}
+                    />
                     {/* Three-class deadline display (PRD §7.2 + §3.2):
-                        statutory, firm-internal, and client-action
-                        dates are three distinct concepts that must
-                        stay separate. The drawer header surfaces the
-                        first two (in the metadata strip). The chip
-                        below surfaces the third when a readiness
-                        request is outstanding. */}
+                        client-action chip when a readiness request is
+                        outstanding. The other two classes (statutory,
+                        firm-internal) live in the drawer header. */}
                     {latestRequest && latestRequest.status !== 'revoked' ? (
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <Badge
@@ -3817,47 +3827,63 @@ function ObligationQueueDetailDrawer({
                         pending={updateBlockedByMutation.isPending}
                       />
                     ) : null}
-                    <div className="flex flex-wrap gap-2">
-                      {practiceAiEnabled ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-text-primary">
+                          <Trans>Checklist</Trans>
+                        </span>
+                        {checklist.length > 0 ? (
+                          <span className="tabular-nums text-xs text-text-tertiary">
+                            <Plural value={checklist.length} one="# item" other="# items" />
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {practiceAiEnabled ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              generateChecklistMutation.mutate({ obligationId: row.id })
+                            }
+                            disabled={checklistGenerating}
+                          >
+                            <RefreshCwIcon
+                              data-icon="inline-start"
+                              className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                            />
+                            {checklistGenerating ? (
+                              <Trans>Preparing</Trans>
+                            ) : (
+                              <Trans>AI generate</Trans>
+                            )}
+                          </Button>
+                        ) : (
+                          <UpgradeCtaButton />
+                        )}
                         <Button
                           size="sm"
-                          onClick={() => generateChecklistMutation.mutate({ obligationId: row.id })}
-                          disabled={checklistGenerating}
+                          variant="ghost"
+                          onClick={addChecklistItem}
+                          disabled={checklistGenerating || checklist.length >= 8}
                         >
-                          <RefreshCwIcon
-                            data-icon="inline-start"
-                            className={cn(checklistGenerating ? 'animate-spin' : undefined)}
-                          />
-                          {checklistGenerating ? (
-                            <Trans>Preparing</Trans>
-                          ) : (
-                            <Trans>Generate checklist</Trans>
-                          )}
+                          <PlusIcon data-icon="inline-start" />
+                          <Trans>Add item</Trans>
                         </Button>
-                      ) : (
-                        <UpgradeCtaButton />
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={addChecklistItem}
-                        disabled={checklistGenerating || checklist.length >= 8}
-                      >
-                        <Trans>Add item</Trans>
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          sendRequestMutation.mutate({
-                            obligationId: row.id,
-                            checklist: validChecklist,
-                          })
-                        }
-                        disabled={sendRequestMutation.isPending || validChecklist.length === 0}
-                      >
-                        <SendIcon data-icon="inline-start" />
-                        <Trans>Send readiness check</Trans>
-                      </Button>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            sendRequestMutation.mutate({
+                              obligationId: row.id,
+                              checklist: validChecklist,
+                            })
+                          }
+                          disabled={sendRequestMutation.isPending || validChecklist.length === 0}
+                        >
+                          <SendIcon data-icon="inline-start" />
+                          <Trans>Send to client</Trans>
+                        </Button>
+                      </div>
                     </div>
                     {checklist.length === 0 ? (
                       autoGenerateChecklistQuery.isFetching ? (
@@ -3892,103 +3918,82 @@ function ObligationQueueDetailDrawer({
                         </EmptyPanel>
                       )
                     ) : (
-                      checklist.map((item, index) => (
-                        <div
-                          key={item.id}
-                          className="grid gap-2 rounded-lg border border-divider-regular p-3"
-                        >
-                          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-                            <Input
-                              aria-label={t`Checklist item label`}
-                              value={item.label}
-                              placeholder={t`Checklist item`}
-                              onChange={(event) =>
-                                updateChecklistItem(index, { label: event.target.value })
+                      <div className="grid gap-2">
+                        {checklist.map((item, index) => {
+                          const response = latestRequest?.responses.find(
+                            (r) => r.itemId === item.id,
+                          ) ?? null
+                          return (
+                            <ChecklistItemRow
+                              key={item.id}
+                              item={item}
+                              response={response}
+                              onLabelChange={(label) => updateChecklistItem(index, { label })}
+                              onDescriptionChange={(description) =>
+                                updateChecklistItem(index, { description: description || null })
                               }
+                              onRemove={() => removeChecklistItem(index)}
                             />
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="destructive-ghost"
-                              aria-label={t`Remove checklist item`}
-                              onClick={() => removeChecklistItem(index)}
-                            >
-                              <Trash2Icon />
-                            </Button>
-                          </div>
-                          <Textarea
-                            aria-label={t`Checklist item description`}
-                            value={item.description ?? ''}
-                            placeholder={t`Client-facing detail`}
-                            onChange={(event) =>
-                              updateChecklistItem(index, {
-                                description: event.target.value || null,
-                              })
-                            }
-                          />
-                          <p className="text-xs text-text-tertiary">{item.reason}</p>
-                        </div>
-                      ))
+                          )
+                        })}
+                      </div>
                     )}
-                  </div>
-                  <div className="grid content-start gap-3 rounded-lg border border-divider-regular p-3">
-                    {/* Renamed from "Readiness" — collided with the tab
-                        name and confused users into thinking the field
-                        was the workflow. */}
-                    <DetailRow label={<Trans>Overall readiness</Trans>} value={row.readiness} />
-                    <DetailRow label={<Trans>Tax year</Trans>} value={taxYearProfileSummary} />
-                    <DetailRow
-                      label={<Trans>Latest request</Trans>}
-                      value={latestRequest ? latestRequest.status : t`None`}
-                    />
-                    {latestRequest?.portalUrl ? (
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline" onClick={copyLatestLink}>
-                          <CopyIcon data-icon="inline-start" />
-                          <Trans>Copy link</Trans>
-                        </Button>
-                        <Button
-                          size="sm"
+                    {/* Sent request panel — visible only after a
+                        request has been sent. Combines the prior
+                        sidebar's portal buttons + revoke action into
+                        one block at the bottom of the checklist. */}
+                    {latestRequest ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-divider-subtle bg-background-section p-3">
+                        <Badge
                           variant="outline"
-                          render={
-                            <a href={latestRequest.portalUrl} target="_blank" rel="noreferrer" />
-                          }
+                          className="text-[10px] uppercase tracking-wide"
                         >
-                          <ExternalLinkIcon data-icon="inline-start" />
-                          <Trans>Open portal</Trans>
-                        </Button>
+                          {latestRequest.status}
+                        </Badge>
+                        <span className="text-xs text-text-secondary">
+                          <Trans>
+                            Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
+                            {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                          </Trans>
+                        </span>
+                        <div className="ml-auto flex items-center gap-1.5">
+                          {latestRequest.portalUrl ? (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={copyLatestLink}>
+                                <CopyIcon data-icon="inline-start" />
+                                <Trans>Copy link</Trans>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                render={
+                                  <a
+                                    href={latestRequest.portalUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  />
+                                }
+                              >
+                                <ExternalLinkIcon data-icon="inline-start" />
+                                <Trans>Open portal</Trans>
+                              </Button>
+                            </>
+                          ) : null}
+                          {latestRequest.status !== 'revoked' ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                revokeRequestMutation.mutate({ requestId: latestRequest.id })
+                              }
+                              disabled={revokeRequestMutation.isPending}
+                            >
+                              <Trans>Revoke</Trans>
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
                     ) : null}
-                    {latestRequest && latestRequest.status !== 'revoked' ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          revokeRequestMutation.mutate({ requestId: latestRequest.id })
-                        }
-                        disabled={revokeRequestMutation.isPending}
-                      >
-                        <Trans>Revoke request</Trans>
-                      </Button>
-                    ) : null}
-                    <Separator />
-                    <div className="grid gap-2">
-                      {latestRequest?.responses.length ? (
-                        latestRequest.responses.map((response) => (
-                          <div key={response.id} className="text-xs text-text-secondary">
-                            <span className="font-medium text-text-primary">{response.itemId}</span>
-                            {': '}
-                            {response.status}
-                            {response.note ? ` - ${response.note}` : null}
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-xs text-text-tertiary">
-                          <Trans>No client response yet.</Trans>
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </TabsContent>
               <TabsContent value="extension">
@@ -5164,6 +5169,165 @@ function ObligationForwardingPanel({ row }: { row: ObligationQueueRow }) {
           onto this task, and flags anything that needs review.
         </Trans>
       </p>
+    </div>
+  )
+}
+
+// Top-of-Readiness-tab overview. Answers "what does readiness mean
+// for this row?" in one read: status pill, request state, items
+// counter, and a one-line explainer pulled from PDF §3.2 ("the biggest
+// deadline risk isn't 'CPA doesn't know the date,' it's 'CPA doesn't
+// have enough info to finish the return'"). Replaces the prior right
+// sidebar which scattered the same info across separate rows.
+function ReadinessOverview({
+  row,
+  latestRequest,
+  checklistCount,
+}: {
+  row: ObligationQueueRow
+  latestRequest: ClientReadinessRequestPublic | null
+  checklistCount: number
+}) {
+  const { t } = useLingui()
+  const readinessLabel: Record<typeof row.readiness, string> = {
+    ready: t`Ready to prep`,
+    waiting: t`Waiting on client`,
+    needs_review: t`Needs your review`,
+  }
+  const readinessVariant: Record<typeof row.readiness, 'success' | 'warning' | 'info'> = {
+    ready: 'success',
+    waiting: 'warning',
+    needs_review: 'info',
+  }
+  const responseCount = latestRequest?.responses.length ?? 0
+  return (
+    <div className="grid gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant={readinessVariant[row.readiness]} className="text-[10px] uppercase tracking-wide">
+          {readinessLabel[row.readiness]}
+        </Badge>
+        {latestRequest ? (
+          <span className="text-xs text-text-secondary">
+            <Trans>
+              {responseCount} of {checklistCount} responded
+            </Trans>
+          </span>
+        ) : checklistCount > 0 ? (
+          <span className="text-xs text-text-secondary">
+            <Trans>{checklistCount} items drafted · not yet sent</Trans>
+          </span>
+        ) : (
+          <span className="text-xs text-text-tertiary">
+            <Trans>No checklist drafted yet.</Trans>
+          </span>
+        )}
+      </div>
+      <p className="text-[11px] leading-snug text-text-tertiary">
+        <Trans>
+          Readiness = can we start preparing this return? The biggest deadline risk isn't a missed
+          date; it's missing source docs. The checklist below is what you need from the client.
+        </Trans>
+      </p>
+    </div>
+  )
+}
+
+// One row in the readiness checklist. Compact by default; expanding
+// reveals the description editor + delete button. When a client
+// response exists for this item, the status pill switches to reflect
+// what the client said (Ready / Not yet / Need help) so the row reads
+// as the source of truth.
+function ChecklistItemRow({
+  item,
+  response,
+  onLabelChange,
+  onDescriptionChange,
+  onRemove,
+}: {
+  item: ReadinessChecklistItem
+  response: ClientReadinessResponsePublic | null
+  onLabelChange: (label: string) => void
+  onDescriptionChange: (description: string) => void
+  onRemove: () => void
+}) {
+  const { t } = useLingui()
+  const [expanded, setExpanded] = useState(false)
+  const responseBadge = response
+    ? (() => {
+        switch (response.status) {
+          case 'ready':
+            return { variant: 'success' as const, label: t`Client ready` }
+          case 'not_yet':
+            return { variant: 'warning' as const, label: t`Not yet` }
+          case 'need_help':
+            return { variant: 'destructive' as const, label: t`Needs help` }
+        }
+      })()
+    : null
+  return (
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex items-center gap-2 px-3 py-2">
+        <Input
+          aria-label={t`Checklist item label`}
+          value={item.label}
+          placeholder={t`Checklist item`}
+          onChange={(event) => onLabelChange(event.target.value)}
+          className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+        />
+        {responseBadge ? (
+          <Badge variant={responseBadge.variant} className="text-[10px] uppercase tracking-wide">
+            {responseBadge.label}
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+            <Trans>Outstanding</Trans>
+          </Badge>
+        )}
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          aria-label={expanded ? t`Collapse` : t`Expand`}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <ChevronDownIcon className={cn('size-4 transition-transform', expanded && 'rotate-180')} />
+        </Button>
+      </div>
+      {item.reason && !expanded ? (
+        <p className="border-t border-divider-subtle px-3 py-1.5 text-[11px] leading-snug text-text-tertiary">
+          {item.reason}
+        </p>
+      ) : null}
+      {expanded ? (
+        <div className="grid gap-2 border-t border-divider-subtle p-3">
+          <Textarea
+            aria-label={t`Checklist item description`}
+            value={item.description ?? ''}
+            placeholder={t`Client-facing detail`}
+            onChange={(event) => onDescriptionChange(event.target.value)}
+          />
+          {item.reason ? (
+            <p className="text-[11px] leading-snug text-text-tertiary">{item.reason}</p>
+          ) : null}
+          {response?.note ? (
+            <p className="rounded-sm bg-background-section px-2 py-1.5 text-xs text-text-secondary">
+              <Trans>Client note</Trans>: {response.note}
+              {response.etaDate ? <> · <Trans>ETA {formatDate(response.etaDate)}</Trans></> : null}
+            </p>
+          ) : null}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive-ghost"
+              onClick={onRemove}
+            >
+              <Trash2Icon data-icon="inline-start" />
+              <Trans>Remove</Trans>
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
