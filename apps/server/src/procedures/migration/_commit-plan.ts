@@ -218,8 +218,13 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           entityType: facts.entityType,
           state: profile.state,
           taxTypes: profile.taxTypes,
-          taxYearStart: '2026-01-01',
-          taxYearEnd: '2025-12-31',
+          ...(facts.penaltyFacts.periodStart && facts.penaltyFacts.periodEnd
+            ? {
+                taxYearStart: facts.penaltyFacts.periodStart,
+                taxYearEnd: facts.penaltyFacts.periodEnd,
+                taxPeriodSource: 'migration' as const,
+              }
+            : {}),
         },
         rules: runtimeRules,
       })
@@ -260,6 +265,15 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           taxType: preview.taxType,
           taxYear:
             ruleById.get(preview.ruleId)?.taxYear ?? findRuleById(preview.ruleId)?.taxYear ?? 2026,
+          taxPeriodStart: preview.taxPeriodStart
+            ? new Date(`${preview.taxPeriodStart}T00:00:00.000Z`)
+            : null,
+          taxPeriodEnd: preview.taxPeriodEnd
+            ? new Date(`${preview.taxPeriodEnd}T00:00:00.000Z`)
+            : null,
+          taxPeriodKind: preview.taxPeriodKind,
+          taxPeriodSource: preview.taxPeriodSource,
+          taxPeriodReviewReason: preview.taxPeriodReviewReason,
           ruleId: preview.ruleId,
           ruleVersion: preview.ruleVersion,
           rulePeriod: preview.period,

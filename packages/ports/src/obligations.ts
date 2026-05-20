@@ -11,6 +11,8 @@ import type {
   ObligationRiskLevel,
   ObligationStatus,
   ObligationType,
+  TaxPeriodKind,
+  TaxPeriodSource,
 } from './shared'
 
 export interface PenaltyBreakdownItem {
@@ -37,6 +39,11 @@ export interface ObligationInstanceRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -98,6 +105,11 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: TaxPeriodKind
+  taxPeriodSource?: TaxPeriodSource
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null

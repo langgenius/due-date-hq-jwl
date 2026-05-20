@@ -356,6 +356,30 @@ describe('@duedatehq/core/rules', () => {
     })
   })
 
+  it('uses fiscal return periods for fiscal-year S corporation deadlines', () => {
+    const previews = previewObligationsFromRules({
+      client: {
+        id: 'client_scorp_fiscal',
+        entityType: 's_corp',
+        state: 'NY',
+        taxTypes: ['federal_1120s'],
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: 6,
+        fiscalYearEndDay: 30,
+      },
+    })
+
+    expect(previews.find((preview) => preview.ruleId === 'fed.1120s.return.2025')).toMatchObject({
+      dueDate: '2026-09-15',
+      taxPeriodStart: '2025-07-01',
+      taxPeriodEnd: '2026-06-30',
+      taxPeriodKind: 'fiscal',
+      taxPeriodSource: 'client_default',
+      requiresReview: true,
+      reminderReady: false,
+    })
+  })
+
   it('tracks 1040 extensions without changing payment due dates', () => {
     const returnRule = findRuleById('fed.1040.return.2025')
     const extensionRule = findRuleById('fed.1040.extension.2025')

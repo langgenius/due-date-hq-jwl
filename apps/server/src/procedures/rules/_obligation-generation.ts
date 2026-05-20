@@ -39,12 +39,8 @@ function isRuleGenerationState(value: string | null | undefined): value is RuleG
   return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
 }
 
-function defaultRuleDates(now: Date): { taxYearStart: string; taxYearEnd: string } {
-  const year = now.getUTCFullYear()
-  return {
-    taxYearStart: `${year}-01-01`,
-    taxYearEnd: `${year - 1}-12-31`,
-  }
+function toDateOrNull(value: string | null): Date | null {
+  return value ? new Date(`${value}T00:00:00.000Z`) : null
 }
 
 function keyForGenerated(input: {
@@ -147,6 +143,11 @@ function buildCreateInput(input: {
     ruleId: input.rule.id,
     ruleVersion: input.preview.ruleVersion,
     rulePeriod: input.preview.period,
+    taxPeriodStart: toDateOrNull(input.preview.taxPeriodStart),
+    taxPeriodEnd: toDateOrNull(input.preview.taxPeriodEnd),
+    taxPeriodKind: input.preview.taxPeriodKind,
+    taxPeriodSource: input.preview.taxPeriodSource,
+    taxPeriodReviewReason: input.preview.taxPeriodReviewReason,
     generationSource: input.client.migrationBatchId ? 'migration' : 'manual',
     jurisdiction: input.preview.jurisdiction,
     obligationType: obligationTypeForPreview(input.preview),
@@ -224,7 +225,6 @@ export async function generateObligationsForAcceptedRules(
   )
   const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
-  const dates = defaultRuleDates(now)
   const createInputs: Array<ObligationCreateInput & { preview: ObligationGenerationPreview }> = []
   const clientIdsWithCandidates = new Set<string>()
   let candidateCount = 0
@@ -240,8 +240,10 @@ export async function generateObligationsForAcceptedRules(
         entityType: client.entityType,
         state: profile.state,
         taxTypes: profile.taxTypes,
-        taxYearStart: dates.taxYearStart,
-        taxYearEnd: dates.taxYearEnd,
+        taxYearType: client.taxYearType,
+        fiscalYearEndMonth: client.fiscalYearEndMonth,
+        fiscalYearEndDay: client.fiscalYearEndDay,
+        taxPeriodSource: 'client_default' as const,
         ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
       } as const
       const previews = previewObligationsFromRules({

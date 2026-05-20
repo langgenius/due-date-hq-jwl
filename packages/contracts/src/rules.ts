@@ -4,6 +4,8 @@ import {
   ClientTaxClassificationSchema,
   EntityTypeSchema,
   ObligationTypeSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
 } from './shared/enums'
 import { EntityIdSchema } from './shared/ids'
 
@@ -308,6 +310,10 @@ export const RuleGenerationClientFactsSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  taxYearType: z.enum(['calendar', 'fiscal']).nullable().optional(),
+  fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
+  fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
+  taxPeriodSource: TaxPeriodSourceSchema.optional(),
 })
 export type RuleGenerationClientFacts = z.infer<typeof RuleGenerationClientFactsSchema>
 
@@ -330,6 +336,11 @@ export const ObligationGenerationPreviewSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable(),
+  taxPeriodStart: z.iso.date().nullable(),
+  taxPeriodEnd: z.iso.date().nullable(),
+  taxPeriodKind: TaxPeriodKindSchema,
+  taxPeriodSource: TaxPeriodSourceSchema,
+  taxPeriodReviewReason: z.string().min(1).nullable(),
   eventType: ObligationEventTypeSchema,
   isFiling: z.boolean(),
   isPayment: z.boolean(),

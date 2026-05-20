@@ -17,6 +17,7 @@ import {
   DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   internalDeadlineFromBaseDueDate,
 } from '@duedatehq/core/deadlines'
+import { rollTaxPeriodForward } from '@duedatehq/core/tax-periods'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { toCoreRule } from '../rules/runtime'
@@ -34,6 +35,8 @@ type SourceBucket = {
   jurisdiction: string | null
   clientFilingProfileId: string | null
   taxType: string
+  taxPeriodStart: string | null
+  taxPeriodEnd: string | null
   sourceObligationIds: string[]
 }
 
@@ -41,13 +44,6 @@ const RULE_GENERATION_STATES = new Set<string>(STATE_RULE_JURISDICTIONS)
 
 function isRuleGenerationState(value: string | null | undefined): value is RuleGenerationState {
   return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
-}
-
-function rolloverDates(targetFilingYear: number): { taxYearStart: string; taxYearEnd: string } {
-  return {
-    taxYearStart: `${targetFilingYear}-01-01`,
-    taxYearEnd: `${targetFilingYear - 1}-12-31`,
-  }
 }
 
 function keyForDuplicate(input: {
@@ -120,6 +116,8 @@ function groupSeedBuckets(
         jurisdiction: seed.jurisdiction,
         clientFilingProfileId: seed.clientFilingProfileId,
         taxType: seed.taxType,
+        taxPeriodStart: seed.taxPeriodStart?.toISOString().slice(0, 10) ?? null,
+        taxPeriodEnd: seed.taxPeriodEnd?.toISOString().slice(0, 10) ?? null,
         sourceObligationIds: [],
       } satisfies SourceBucket)
     current.sourceObligationIds.push(seed.id)
@@ -241,7 +239,6 @@ export async function runAnnualRollover(input: {
       continue
     }
 
-    const { taxYearStart, taxYearEnd } = rolloverDates(input.params.targetFilingYear)
     for (const bucket of clientBuckets) {
       const generationState =
         isRuleGenerationState(bucket.jurisdiction) || bucket.jurisdiction === 'FED'
@@ -265,14 +262,27 @@ export async function runAnnualRollover(input: {
         continue
       }
 
+      const rolledTaxPeriod = rollTaxPeriodForward({
+        taxPeriodStart: bucket.taxPeriodStart,
+        taxPeriodEnd: bucket.taxPeriodEnd,
+      })
       const matchedPreviews = previewObligationsFromRules({
         client: {
           id: client.id,
           entityType: client.entityType,
           state: generationState,
           taxTypes: [bucket.taxType],
-          taxYearStart,
-          taxYearEnd,
+          ...(rolledTaxPeriod
+            ? {
+                taxYearStart: rolledTaxPeriod.taxPeriodStart,
+                taxYearEnd: rolledTaxPeriod.taxPeriodEnd,
+                taxPeriodSource: 'prior_obligation' as const,
+              }
+            : {
+                taxYearType: client.taxYearType,
+                fiscalYearEndMonth: client.fiscalYearEndMonth,
+                fiscalYearEndDay: client.fiscalYearEndDay,
+              }),
         },
         rules: runtimeRules,
       }).filter((preview) => preview.matchedTaxType === bucket.taxType)
@@ -360,6 +370,15 @@ export async function runAnnualRollover(input: {
             preview.jurisdiction === 'FED' ? null : bucket.clientFilingProfileId,
           taxType: preview.taxType,
           taxYear: rule.taxYear,
+          taxPeriodStart: preview.taxPeriodStart
+            ? new Date(`${preview.taxPeriodStart}T00:00:00.000Z`)
+            : null,
+          taxPeriodEnd: preview.taxPeriodEnd
+            ? new Date(`${preview.taxPeriodEnd}T00:00:00.000Z`)
+            : null,
+          taxPeriodKind: preview.taxPeriodKind,
+          taxPeriodSource: preview.taxPeriodSource,
+          taxPeriodReviewReason: preview.taxPeriodReviewReason,
           ruleId: rule.id,
           ruleVersion: preview.ruleVersion,
           rulePeriod: preview.period,

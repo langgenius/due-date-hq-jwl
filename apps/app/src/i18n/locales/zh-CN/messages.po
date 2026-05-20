@@ -620,6 +620,10 @@ msgstr "已按规则详情所示原样接受。"
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 msgstr "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Accepting rule…"
+msgstr "正在接受规则…"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Access denied"
 msgstr "访问被拒绝"
@@ -4343,6 +4347,7 @@ msgstr "待审核"
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/rule-library-tab.tsx
 #: src/routes/dashboard.tsx
+#: src/routes/obligations.tsx
 msgid "Needs review"
 msgstr "需复核"
 
@@ -7824,6 +7829,10 @@ msgstr "目标申报年度必须是来源申报年度的下一年。"
 #: src/routes/obligations.tsx
 msgid "Tax due"
 msgstr "应缴税款"
+
+#: src/routes/obligations.tsx
+msgid "Tax period"
+msgstr "税务期间"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/rules/generation-preview-tab.tsx

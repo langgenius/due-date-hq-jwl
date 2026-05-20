@@ -21,6 +21,8 @@ import {
   type ObligationRiskLevel,
   type ObligationStatus,
   type ObligationType,
+  type TaxPeriodKind,
+  type TaxPeriodSource,
 } from '../schema/obligations'
 import { obligationSavedView, type ObligationQueueDensity } from '../schema/obligation-saved-view'
 import { listActiveOverlayInternalDeadlines } from './overlay'
@@ -83,6 +85,11 @@ export interface ObligationQueueListRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -215,6 +222,11 @@ interface ObligationQueueRawJoinedRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -697,6 +709,11 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           clientFilingProfileId: obligationInstance.clientFilingProfileId,
           taxType: obligationInstance.taxType,
           taxYear: obligationInstance.taxYear,
+          taxPeriodStart: obligationInstance.taxPeriodStart,
+          taxPeriodEnd: obligationInstance.taxPeriodEnd,
+          taxPeriodKind: obligationInstance.taxPeriodKind,
+          taxPeriodSource: obligationInstance.taxPeriodSource,
+          taxPeriodReviewReason: obligationInstance.taxPeriodReviewReason,
           ruleId: obligationInstance.ruleId,
           ruleVersion: obligationInstance.ruleVersion,
           rulePeriod: obligationInstance.rulePeriod,
@@ -815,6 +832,11 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               clientFilingProfileId: obligationInstance.clientFilingProfileId,
               taxType: obligationInstance.taxType,
               taxYear: obligationInstance.taxYear,
+              taxPeriodStart: obligationInstance.taxPeriodStart,
+              taxPeriodEnd: obligationInstance.taxPeriodEnd,
+              taxPeriodKind: obligationInstance.taxPeriodKind,
+              taxPeriodSource: obligationInstance.taxPeriodSource,
+              taxPeriodReviewReason: obligationInstance.taxPeriodReviewReason,
               ruleId: obligationInstance.ruleId,
               ruleVersion: obligationInstance.ruleVersion,
               rulePeriod: obligationInstance.rulePeriod,

@@ -59,6 +59,11 @@ function makeSeed(overrides: Partial<ObligationInstanceRow> = {}): ObligationIns
     clientFilingProfileId: null,
     taxType: 'ca_100',
     taxYear: 2025,
+    taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
+    taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
+    taxPeriodKind: 'calendar',
+    taxPeriodSource: 'client_default',
+    taxPeriodReviewReason: null,
     ruleId: null,
     ruleVersion: null,
     rulePeriod: null,
@@ -275,6 +280,58 @@ describe('runAnnualRollover', () => {
         after: expect.objectContaining({ createdCount: 2 }),
       }),
     )
+  })
+
+  it('rolls fiscal source periods forward before calculating target deadlines', async () => {
+    const fiscalRule = makeRule({
+      id: 'fed.1120s.return.2025',
+      title: 'Federal Form 1120-S return for S corporations',
+      jurisdiction: 'FED',
+      taxType: 'federal_1120s',
+      formName: 'Form 1120-S',
+      taxYear: 2025,
+      applicableYear: 2026,
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_end',
+        monthOffset: 3,
+        day: 15,
+        holidayRollover: 'next_business_day',
+      },
+    })
+    const { scoped, createdInputs } = makeScoped({
+      clients: [makeClient({ entityType: 's_corp', taxClassification: 's_corp' })],
+      seeds: [
+        makeSeed({
+          taxType: 'federal_1120s',
+          jurisdiction: 'FED',
+          taxPeriodStart: new Date('2024-07-01T00:00:00.000Z'),
+          taxPeriodEnd: new Date('2025-06-30T00:00:00.000Z'),
+          taxPeriodKind: 'fiscal',
+          taxPeriodSource: 'manual_cpa_confirmed',
+          baseDueDate: new Date('2025-09-15T00:00:00.000Z'),
+        }),
+      ],
+    })
+
+    const result = await runAnnualRollover({
+      scoped,
+      userId: USER_ID,
+      params: { sourceFilingYear: 2025, targetFilingYear: 2026 },
+      mode: 'create',
+      rules: [fiscalRule],
+      now: new Date('2026-05-04T00:00:00.000Z'),
+    })
+
+    expect(result.summary.createdCount).toBe(1)
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
+        taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
+        taxPeriodKind: 'fiscal',
+        taxPeriodSource: 'prior_obligation',
+      }),
+    ])
   })
 
   it('skips duplicate target obligations by rule id, tax year, and period', async () => {

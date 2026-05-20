@@ -3,6 +3,8 @@ import type {
   MigrationBatchStatus,
   MigrationSource,
   ObligationStatus,
+  TaxPeriodKind,
+  TaxPeriodSource,
 } from './shared'
 
 export type MigrationIntegrationProvider =
@@ -220,6 +222,11 @@ export interface CommitObligationInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: TaxPeriodKind
+  taxPeriodSource?: TaxPeriodSource
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null

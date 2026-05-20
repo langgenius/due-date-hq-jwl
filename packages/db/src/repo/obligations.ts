@@ -13,13 +13,15 @@ import {
   type ObligationRecurrence,
   type ObligationReviewStage,
   type ObligationRiskLevel,
+  type TaxPeriodKind,
+  type TaxPeriodSource,
   type ObligationType,
 } from '../schema/obligations'
 import { listActiveOverlayInternalDeadlines } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
-const COLS_PER_OI_ROW = 45
-const OI_BATCH_SIZE = Math.floor(100 / COLS_PER_OI_ROW) // = 3
+const COLS_PER_OI_ROW = 50
+const OI_BATCH_SIZE = Math.floor(100 / COLS_PER_OI_ROW) // = 2
 const CLIENT_ASSERT_BATCH_SIZE = 90
 const OI_LOOKUP_IDS_PER_BATCH = 90
 const OI_UPDATE_IDS_PER_BATCH = 90
@@ -30,6 +32,11 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: TaxPeriodKind
+  taxPeriodSource?: TaxPeriodSource
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null
@@ -221,6 +228,11 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           clientFilingProfileId: i.clientFilingProfileId ?? null,
           taxType: i.taxType,
           taxYear: i.taxYear ?? null,
+          taxPeriodStart: i.taxPeriodStart ?? null,
+          taxPeriodEnd: i.taxPeriodEnd ?? null,
+          taxPeriodKind: i.taxPeriodKind ?? 'unknown',
+          taxPeriodSource: i.taxPeriodSource ?? 'unknown',
+          taxPeriodReviewReason: i.taxPeriodReviewReason ?? null,
           ruleId: i.ruleId ?? null,
           ruleVersion: i.ruleVersion ?? null,
           rulePeriod: i.rulePeriod ?? null,

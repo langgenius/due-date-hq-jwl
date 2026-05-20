@@ -1089,13 +1089,26 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
   const pendingReviewRules = templateRules()
     .filter((rule) => !reviewed.has(rule.id) && !activeIds.has(rule.id))
     .map(reviewOnlyCoreRule)
+  const generationClient: Parameters<typeof previewObligationsFromRules>[0]['client'] = {
+    id: input.client.id,
+    entityType: input.client.entityType,
+    state: input.client.state,
+    taxTypes: input.client.taxTypes,
+  }
+  if (input.client.taxYearType !== undefined) {
+    generationClient.taxYearType = input.client.taxYearType
+  }
+  if (input.client.fiscalYearEndMonth !== undefined) {
+    generationClient.fiscalYearEndMonth = input.client.fiscalYearEndMonth
+  }
+  if (input.client.fiscalYearEndDay !== undefined) {
+    generationClient.fiscalYearEndDay = input.client.fiscalYearEndDay
+  }
+  if (input.client.taxPeriodSource !== undefined) {
+    generationClient.taxPeriodSource = input.client.taxPeriodSource
+  }
   const generationInput: Parameters<typeof previewObligationsFromRules>[0] = {
-    client: {
-      id: input.client.id,
-      entityType: input.client.entityType,
-      state: input.client.state,
-      taxTypes: input.client.taxTypes,
-    },
+    client: generationClient,
     rules: [...activeRules, ...pendingReviewRules],
   }
 

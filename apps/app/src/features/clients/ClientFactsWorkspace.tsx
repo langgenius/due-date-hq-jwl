@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import {
   flexRender,
   getCoreRowModel,
@@ -68,6 +68,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
   TableHeaderMultiFilter,
@@ -164,19 +165,40 @@ function DetailSection({
   title,
   summary,
   defaultOpen = false,
+  open,
+  onOpenChange,
+  attention = false,
+  id,
   children,
 }: {
   title: ReactNode
   summary?: ReactNode
   defaultOpen?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  attention?: boolean
+  id?: string
   children: ReactNode
 }) {
+  const collapsibleStateProps = open === undefined ? { defaultOpen } : { open, onOpenChange }
+
   return (
     <Collapsible
-      defaultOpen={defaultOpen}
-      className="rounded-md border border-divider-subtle bg-background-default"
+      id={id}
+      {...collapsibleStateProps}
+      className={cn(
+        'scroll-mt-20 rounded-md border bg-background-default',
+        attention
+          ? 'border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/40'
+          : 'border-divider-subtle',
+      )}
     >
-      <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 rounded-md px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt">
+      <CollapsibleTrigger
+        className={cn(
+          'group flex w-full items-center justify-between gap-3 rounded-md px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt',
+          attention && 'hover:bg-components-badge-bg-warning-soft/70',
+        )}
+      >
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">{title}</span>
           {summary ? <span className="truncate text-xs text-text-tertiary">{summary}</span> : null}
@@ -913,6 +935,7 @@ export function ClientDetailWorkspace({
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
+  const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
   const riskSummaryQuery = useQuery(
     orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
@@ -992,6 +1015,15 @@ export function ClientDetailWorkspace({
       },
     }),
   )
+  const missingFilingState = Boolean(readiness?.missingRequiredFacts.includes('state'))
+  const openFilingJurisdictions = useCallback(() => {
+    setFilingJurisdictionsOpen(true)
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById('client-filing-jurisdictions')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
 
   return (
     <>
@@ -1019,10 +1051,10 @@ export function ClientDetailWorkspace({
         </header>
 
         <ClientAlertsBand
-          client={client}
           pulseMatches={pulseMatches}
           readiness={readiness}
           extensionPaymentMismatches={extensionPaymentMismatches}
+          onAddFacts={openFilingJurisdictions}
         />
 
         <ClientWorkPlanPanel
@@ -1054,7 +1086,14 @@ export function ClientDetailWorkspace({
           />
         </DetailSection>
 
-        <DetailSection title={t`Filing jurisdictions`} summary={formatJurisdictionSummary(client)}>
+        <DetailSection
+          id="client-filing-jurisdictions"
+          title={t`Filing jurisdictions`}
+          summary={formatJurisdictionSummary(client)}
+          open={filingJurisdictionsOpen}
+          onOpenChange={setFilingJurisdictionsOpen}
+          attention={missingFilingState}
+        >
           <ClientJurisdictionPanel
             key={`${client.id}:jurisdiction`}
             client={client}
@@ -1256,15 +1295,15 @@ function ClientWorkPlanPanel({
 }
 
 function ClientAlertsBand({
-  client,
   pulseMatches,
   readiness,
   extensionPaymentMismatches,
+  onAddFacts,
 }: {
-  client: ClientPublic
   pulseMatches: readonly ClientPulseMatch[]
   readiness: ClientReadiness | undefined
   extensionPaymentMismatches: readonly ObligationInstancePublic[]
+  onAddFacts: () => void
 }) {
   const radarCount = pulseMatches.length
   const missingFacts = readiness?.missingRequiredFacts ?? []
@@ -1279,7 +1318,7 @@ function ClientAlertsBand({
         <ClientAlertsBandExtensionRow obligations={extensionPaymentMismatches} />
       ) : null}
       {missingFacts.length > 0 ? (
-        <ClientAlertsBandMissingFactsRow clientId={client.id} missing={missingFacts} />
+        <ClientAlertsBandMissingFactsRow missing={missingFacts} onAddFacts={onAddFacts} />
       ) : null}
     </div>
   )
@@ -1341,11 +1380,11 @@ function ClientAlertsBandExtensionRow({
 }
 
 function ClientAlertsBandMissingFactsRow({
-  clientId,
   missing,
+  onAddFacts,
 }: {
-  clientId: string
   missing: readonly ('state' | 'entityType')[]
+  onAddFacts: () => void
 }) {
   const labels = missing.map((fact) => (fact === 'state' ? 'filing state' : 'entity type'))
   return (
@@ -1357,12 +1396,13 @@ function ClientAlertsBandMissingFactsRow({
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">{labels.join(' · ')}</p>
       </div>
-      <Link
-        to={`/clients/${clientId}`}
+      <button
+        type="button"
+        onClick={onAddFacts}
         className="inline-flex items-center gap-1 text-xs font-medium text-text-accent hover:underline"
       >
         <Trans>Add facts</Trans>
-      </Link>
+      </button>
     </div>
   )
 }

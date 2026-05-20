@@ -1,4 +1,10 @@
 import { expandDueDateLogic } from '../date-logic'
+import {
+  resolveClientReturnTaxPeriod,
+  resolveTaxPeriodFromExplicitDates,
+  type TaxPeriodKind,
+  type TaxPeriodSource,
+} from '../tax-periods'
 
 export const STATE_RULE_JURISDICTIONS = [
   'AL',
@@ -251,6 +257,10 @@ export interface RuleGenerationClientFacts {
   taxTypes: readonly string[]
   taxYearStart?: string
   taxYearEnd?: string
+  taxYearType?: 'calendar' | 'fiscal' | null
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
+  taxPeriodSource?: TaxPeriodSource
 }
 
 export interface RuleGenerationInput {
@@ -276,6 +286,11 @@ export interface ObligationGenerationPreview {
   matchedTaxType: string
   period: string
   dueDate: string | null
+  taxPeriodStart: string | null
+  taxPeriodEnd: string | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   eventType: ObligationEventType
   isFiling: boolean
   isPayment: boolean
@@ -3598,14 +3613,61 @@ export function previewObligationsFromRules(
     const match = taxTypeMatches.find((candidate) => candidate.taxType === rule.taxType)
     if (!match) continue
 
+    const fallbackTaxYear = rule.taxYear
+    const explicitPeriod = resolveTaxPeriodFromExplicitDates(
+      Object.assign(
+        { source: input.client.taxPeriodSource ?? 'manual_cpa_confirmed' },
+        input.client.taxYearStart !== undefined
+          ? { taxPeriodStart: input.client.taxYearStart }
+          : {},
+        input.client.taxYearEnd !== undefined ? { taxPeriodEnd: input.client.taxYearEnd } : {},
+      ),
+    )
+    const hasExplicitPeriod =
+      input.client.taxYearStart !== undefined && input.client.taxYearEnd !== undefined
+    const taxPeriod =
+      hasExplicitPeriod && explicitPeriod.taxPeriodStart && explicitPeriod.taxPeriodEnd
+        ? explicitPeriod
+        : hasExplicitPeriod
+          ? {
+              taxPeriodStart: null,
+              taxPeriodEnd: null,
+              taxPeriodKind: 'unknown' as const,
+              taxPeriodSource: input.client.taxPeriodSource ?? ('unknown' as const),
+              taxPeriodReviewReason: null,
+            }
+          : resolveClientReturnTaxPeriod({
+              taxYear: fallbackTaxYear,
+              client: Object.assign(
+                {},
+                input.client.taxYearType !== undefined
+                  ? { taxYearType: input.client.taxYearType }
+                  : {},
+                input.client.fiscalYearEndMonth !== undefined
+                  ? { fiscalYearEndMonth: input.client.fiscalYearEndMonth }
+                  : {},
+                input.client.fiscalYearEndDay !== undefined
+                  ? { fiscalYearEndDay: input.client.fiscalYearEndDay }
+                  : {},
+              ),
+              source: input.client.taxPeriodSource ?? 'client_default',
+            })
+
     const expandInput: {
       taxYearStart?: string
       taxYearEnd?: string
       holidays?: readonly string[]
     } = {}
-    if (input.client.taxYearStart !== undefined)
+    if (input.client.taxYearStart !== undefined) {
       expandInput.taxYearStart = input.client.taxYearStart
-    if (input.client.taxYearEnd !== undefined) expandInput.taxYearEnd = input.client.taxYearEnd
+    } else if (taxPeriod.taxPeriodStart) {
+      expandInput.taxYearStart = taxPeriod.taxPeriodStart
+    }
+    if (input.client.taxYearEnd !== undefined) {
+      expandInput.taxYearEnd = input.client.taxYearEnd
+    } else if (taxPeriod.taxPeriodEnd) {
+      expandInput.taxYearEnd = taxPeriod.taxPeriodEnd
+    }
     if (input.holidays !== undefined) expandInput.holidays = input.holidays
 
     const expandedDates = expandDueDateLogic(rule.dueDateLogic, expandInput)
@@ -3617,6 +3679,7 @@ export function previewObligationsFromRules(
         expanded.requiresReview,
         expanded.reason,
       )
+      if (taxPeriod.taxPeriodReviewReason) reviewReasons.push(taxPeriod.taxPeriodReviewReason)
       const requiresReview = reviewReasons.length > 0
 
       previews.push({
@@ -3629,6 +3692,11 @@ export function previewObligationsFromRules(
         matchedTaxType: match.inputTaxType,
         period: expanded.period,
         dueDate: expanded.dueDate,
+        taxPeriodStart: taxPeriod.taxPeriodStart,
+        taxPeriodEnd: taxPeriod.taxPeriodEnd,
+        taxPeriodKind: taxPeriod.taxPeriodKind,
+        taxPeriodSource: taxPeriod.taxPeriodSource,
+        taxPeriodReviewReason: taxPeriod.taxPeriodReviewReason,
         eventType: rule.eventType,
         isFiling: rule.isFiling,
         isPayment: rule.isPayment,

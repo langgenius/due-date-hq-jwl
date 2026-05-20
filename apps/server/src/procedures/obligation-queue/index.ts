@@ -30,6 +30,11 @@ interface RawRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: ObligationQueueRow['taxPeriodKind']
+  taxPeriodSource: ObligationQueueRow['taxPeriodSource']
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -155,6 +160,11 @@ function toRow(
     clientFilingProfileId: row.clientFilingProfileId,
     taxType: row.taxType,
     taxYear: row.taxYear,
+    taxPeriodStart: row.taxPeriodStart ? toIsoDate(row.taxPeriodStart) : null,
+    taxPeriodEnd: row.taxPeriodEnd ? toIsoDate(row.taxPeriodEnd) : null,
+    taxPeriodKind: row.taxPeriodKind,
+    taxPeriodSource: row.taxPeriodSource,
+    taxPeriodReviewReason: row.taxPeriodReviewReason,
     ruleId: row.ruleId,
     ruleVersion: row.ruleVersion,
     rulePeriod: row.rulePeriod,

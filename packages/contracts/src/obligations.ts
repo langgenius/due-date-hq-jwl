@@ -18,6 +18,8 @@ import {
   ObligationReviewStageSchema,
   ObligationRiskLevelSchema,
   ObligationStatusSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
   ObligationTypeSchema,
 } from './shared/enums'
 import { EntityIdSchema } from './shared/ids'
@@ -38,6 +40,11 @@ export const ObligationCreateInputSchema = z.object({
   clientFilingProfileId: EntityIdSchema.nullable().optional(),
   taxType: z.string().min(1),
   taxYear: z.number().int().min(1900).max(2100).nullable().optional(),
+  taxPeriodStart: z.iso.date().nullable().optional(),
+  taxPeriodEnd: z.iso.date().nullable().optional(),
+  taxPeriodKind: TaxPeriodKindSchema.optional(),
+  taxPeriodSource: TaxPeriodSourceSchema.optional(),
+  taxPeriodReviewReason: z.string().trim().min(1).nullable().optional(),
   ruleId: z.string().min(1).nullable().optional(),
   ruleVersion: z.number().int().positive().nullable().optional(),
   rulePeriod: z.string().min(1).nullable().optional(),

@@ -9,6 +9,16 @@ interface FakeRow {
   clientId: string
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
+  taxPeriodSource:
+    | 'client_default'
+    | 'prior_obligation'
+    | 'migration'
+    | 'manual_cpa_confirmed'
+    | 'unknown'
+  taxPeriodReviewReason: string | null
   filingDueDate: Date | null
   paymentDueDate: Date | null
   baseDueDate: Date
@@ -119,6 +129,11 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     clientId: over.clientId ?? '22222222-2222-4222-8222-222222222222',
     taxType: over.taxType ?? '1040',
     taxYear: over.taxYear ?? 2026,
+    taxPeriodStart: over.taxPeriodStart ?? null,
+    taxPeriodEnd: over.taxPeriodEnd ?? null,
+    taxPeriodKind: over.taxPeriodKind ?? 'unknown',
+    taxPeriodSource: over.taxPeriodSource ?? 'unknown',
+    taxPeriodReviewReason: over.taxPeriodReviewReason ?? null,
     baseDueDate: over.baseDueDate ?? due,
     filingDueDate: over.filingDueDate ?? null,
     paymentDueDate: over.paymentDueDate ?? null,

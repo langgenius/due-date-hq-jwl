@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { TriangleAlertIcon } from 'lucide-react'
@@ -12,6 +12,7 @@ import type {
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -26,6 +27,8 @@ import {
 } from './rules-console-model'
 import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
+
+const ACCEPT_RULE_TOOLTIP_MS = 1_200
 
 /**
  * Inline-renderable version of the rule detail — full section list, no
@@ -219,6 +222,10 @@ function CandidateReviewForm({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
+  const [acceptTooltipState, setAcceptTooltipState] = useState<'accepting' | 'accepted' | null>(
+    null,
+  )
+  const acceptTooltipTimeoutRef = useRef<number | null>(null)
 
   const invalidateRules = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
@@ -233,14 +240,32 @@ function CandidateReviewForm({
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
   }
 
+  function clearAcceptTooltipTimeout() {
+    if (acceptTooltipTimeoutRef.current === null) return
+    window.clearTimeout(acceptTooltipTimeoutRef.current)
+    acceptTooltipTimeoutRef.current = null
+  }
+
+  function scheduleAcceptCompletion() {
+    clearAcceptTooltipTimeout()
+    acceptTooltipTimeoutRef.current = window.setTimeout(() => {
+      setAcceptTooltipState(null)
+      invalidateAcceptedRuleOutputs()
+      onActionComplete?.()
+      acceptTooltipTimeoutRef.current = null
+    }, ACCEPT_RULE_TOOLTIP_MS)
+  }
+
   const acceptMutation = useMutation(
     orpc.rules.acceptTemplate.mutationOptions({
       onSuccess: () => {
-        invalidateAcceptedRuleOutputs()
+        setAcceptTooltipState('accepted')
         toast.success(t`Rule accepted`)
-        onActionComplete?.()
+        scheduleAcceptCompletion()
       },
       onError: (error) => {
+        clearAcceptTooltipTimeout()
+        setAcceptTooltipState(null)
         toast.error(t`Couldn't accept rule`, {
           description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
         })
@@ -263,6 +288,9 @@ function CandidateReviewForm({
   )
 
   function submitAccept() {
+    if (acceptTooltipState === 'accepted') return
+    clearAcceptTooltipTimeout()
+    setAcceptTooltipState('accepting')
     acceptMutation.mutate({
       ruleId: rule.id,
       expectedVersion: rule.version,
@@ -279,6 +307,7 @@ function CandidateReviewForm({
   }
 
   const isPending = acceptMutation.isPending || rejectMutation.isPending
+  const reviewDisabled = isPending || acceptTooltipState === 'accepted'
 
   const entitySummary = rule.entityApplicability.join(', ')
   return (
@@ -304,13 +333,28 @@ function CandidateReviewForm({
           variant="secondary"
           size="sm"
           onClick={submitReject}
-          disabled={isPending}
+          disabled={reviewDisabled}
         >
           <Trans>Reject</Trans>
         </Button>
-        <Button type="button" size="sm" onClick={submitAccept} disabled={isPending}>
-          <Trans>Accept rule</Trans>
-        </Button>
+        <Tooltip open={acceptTooltipState !== null}>
+          <TooltipTrigger
+            render={
+              <span className="inline-flex">
+                <Button type="button" size="sm" onClick={submitAccept} disabled={reviewDisabled}>
+                  <Trans>Accept rule</Trans>
+                </Button>
+              </span>
+            }
+          />
+          <TooltipContent>
+            {acceptTooltipState === 'accepting' ? (
+              <Trans>Accepting rule…</Trans>
+            ) : (
+              <Trans>Rule accepted</Trans>
+            )}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </section>
   )

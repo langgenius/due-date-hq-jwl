@@ -267,4 +267,47 @@ describe('generateObligationsForAcceptedRules', () => {
       ]),
     )
   })
+
+  it('generates fiscal-year S corporation obligations from the return tax period', async () => {
+    const client = makeClient({
+      entityType: 's_corp',
+      taxClassification: 's_corp',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      taxTypes: ['federal_1120s'],
+      migrationBatchId: null,
+    })
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [mustRule('fed.1120s.return.2025')],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({ candidateCount: 1, createdCount: 1, duplicateCount: 0 })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientFilingProfileId: null,
+        taxType: 'federal_1120s',
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        paymentDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
+        taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
+        taxPeriodKind: 'fiscal',
+        taxPeriodSource: 'client_default',
+        status: 'review',
+      }),
+    ])
+  })
 })

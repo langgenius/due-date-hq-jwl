@@ -620,6 +620,10 @@ msgstr "Accepted as shown from rule detail review."
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 msgstr "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Accepting rule…"
+msgstr "Accepting rule…"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Access denied"
 msgstr "Access denied"
@@ -4343,6 +4347,7 @@ msgstr "needs review"
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/rule-library-tab.tsx
 #: src/routes/dashboard.tsx
+#: src/routes/obligations.tsx
 msgid "Needs review"
 msgstr "Needs review"
 
@@ -7824,6 +7829,10 @@ msgstr "Target filing year must be the next year after source filing year."
 #: src/routes/obligations.tsx
 msgid "Tax due"
 msgstr "Tax due"
+
+#: src/routes/obligations.tsx
+msgid "Tax period"
+msgstr "Tax period"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/rules/generation-preview-tab.tsx

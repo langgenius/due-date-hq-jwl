@@ -59,6 +59,14 @@ export type ClientTaxClassification =
   | 'foreign_reporting_company'
   | 'unknown'
 
+export type TaxPeriodKind = 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
+export type TaxPeriodSource =
+  | 'client_default'
+  | 'prior_obligation'
+  | 'migration'
+  | 'manual_cpa_confirmed'
+  | 'unknown'
+
 export type ObligationType =
   | 'filing'
   | 'payment'

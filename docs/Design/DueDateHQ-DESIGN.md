@@ -302,6 +302,10 @@ display timezone and may show UTC as secondary audit metadata.
 filing 或 payment deadline，必须显式写出 `Filing Deadline` / `Payment Deadline`，不能和
 internal deadline 混用。
 
+Obligation detail 展示税务机关 deadline 时，必须同时展示 CPA-facing `Tax period`。Fiscal-year
+和 short-year return 的 deadline 以 obligation tax period 为依据；缺少确认 period 的 fiscal
+client 应进入 review 状态，不得静默显示 calendar-year deadline。
+
 ---
 
 ## 4. Component Stylings

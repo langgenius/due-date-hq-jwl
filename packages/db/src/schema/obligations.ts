@@ -33,6 +33,18 @@ export type ObligationRecurrence = (typeof OBLIGATION_RECURRENCES)[number]
 export const OBLIGATION_RISK_LEVELS = ['low', 'med', 'high'] as const
 export type ObligationRiskLevel = (typeof OBLIGATION_RISK_LEVELS)[number]
 
+export const TAX_PERIOD_KINDS = ['calendar', 'fiscal', 'short', '52_53_week', 'unknown'] as const
+export type TaxPeriodKind = (typeof TAX_PERIOD_KINDS)[number]
+
+export const TAX_PERIOD_SOURCES = [
+  'client_default',
+  'prior_obligation',
+  'migration',
+  'manual_cpa_confirmed',
+  'unknown',
+] as const
+export type TaxPeriodSource = (typeof TAX_PERIOD_SOURCES)[number]
+
 export const OBLIGATION_PREP_STAGES = [
   'not_started',
   'waiting_on_client',
@@ -139,6 +151,15 @@ export const obligationInstance = sqliteTable(
     // Optional: 4-digit tax year (e.g. '2026'). Some Demo obligations span
     // calendars; NULL means "non-year-specific" which is rare for Demo.
     taxYear: integer('tax_year'),
+    // Tax return/reporting period that the authority deadline is based on.
+    // For fiscal and short-year returns this is the CPA-facing source of truth.
+    taxPeriodStart: integer('tax_period_start', { mode: 'timestamp_ms' }),
+    taxPeriodEnd: integer('tax_period_end', { mode: 'timestamp_ms' }),
+    taxPeriodKind: text('tax_period_kind', { enum: TAX_PERIOD_KINDS }).notNull().default('unknown'),
+    taxPeriodSource: text('tax_period_source', { enum: TAX_PERIOD_SOURCES })
+      .notNull()
+      .default('unknown'),
+    taxPeriodReviewReason: text('tax_period_review_reason'),
     ruleId: text('rule_id'),
     ruleVersion: integer('rule_version'),
     rulePeriod: text('rule_period'),

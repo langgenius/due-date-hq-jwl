@@ -803,11 +803,15 @@ export {
   ObligationExtensionDecisionSchema,
   ObligationReadinessSchema,
   ObligationStatusSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
 } from './shared/enums'
 export type {
   ObligationExtensionDecision,
   ObligationReadiness,
   ObligationStatus,
+  TaxPeriodKind,
+  TaxPeriodSource,
 } from './shared/enums'
 export { EntityIdSchema, TenantIdSchema } from './shared/ids'
 export type { EntityId, TenantId } from './shared/ids'

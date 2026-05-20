@@ -40,6 +40,11 @@ interface ObligationRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: ObligationInstancePublic['taxPeriodKind']
+  taxPeriodSource: ObligationInstancePublic['taxPeriodSource']
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -105,6 +110,11 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       clientFilingProfileId?: string | null
       taxType: string
       taxYear: number | null
+      taxPeriodStart?: Date | null
+      taxPeriodEnd?: Date | null
+      taxPeriodKind?: ObligationInstancePublic['taxPeriodKind']
+      taxPeriodSource?: ObligationInstancePublic['taxPeriodSource']
+      taxPeriodReviewReason?: string | null
       ruleId?: string | null
       ruleVersion?: number | null
       rulePeriod?: string | null
@@ -145,6 +155,11 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       clientFilingProfileId: o.clientFilingProfileId ?? null,
       taxType: o.taxType,
       taxYear: o.taxYear ?? null,
+      taxPeriodStart: o.taxPeriodStart ? new Date(o.taxPeriodStart) : null,
+      taxPeriodEnd: o.taxPeriodEnd ? new Date(o.taxPeriodEnd) : null,
+      taxPeriodKind: o.taxPeriodKind ?? 'unknown',
+      taxPeriodSource: o.taxPeriodSource ?? 'unknown',
+      taxPeriodReviewReason: o.taxPeriodReviewReason ?? null,
       ruleId: o.ruleId ?? null,
       ruleVersion: o.ruleVersion ?? null,
       rulePeriod: o.rulePeriod ?? null,

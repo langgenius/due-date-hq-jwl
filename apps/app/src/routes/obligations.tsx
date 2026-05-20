@@ -4537,10 +4537,14 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const taxAuthorityFilingDeadline = row.filingDueDate ?? row.baseDueDate
   const taxAuthorityPaymentDeadline = row.paymentDueDate ?? row.baseDueDate
+  const taxPeriod =
+    row.taxPeriodStart && row.taxPeriodEnd
+      ? `${formatDate(row.taxPeriodStart)} - ${formatDate(row.taxPeriodEnd)}`
+      : t`Needs review`
   return (
     <dl
       aria-label={t`Statutory dates`}
-      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-3"
+      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <DetailRow label={<Trans>Internal deadline</Trans>} value={formatDate(row.currentDueDate)} />
       <DetailRow
@@ -4551,6 +4555,7 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
         label={<Trans>Payment Deadline</Trans>}
         value={formatDate(taxAuthorityPaymentDeadline)}
       />
+      <DetailRow label={<Trans>Tax period</Trans>} value={taxPeriod} />
     </dl>
   )
 }

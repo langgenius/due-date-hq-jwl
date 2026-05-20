@@ -45,6 +45,18 @@ export type ClientTaxClassification = z.infer<typeof ClientTaxClassificationSche
 export const ClientTaxYearTypeSchema = z.enum(['calendar', 'fiscal'])
 export type ClientTaxYearType = z.infer<typeof ClientTaxYearTypeSchema>
 
+export const TaxPeriodKindSchema = z.enum(['calendar', 'fiscal', 'short', '52_53_week', 'unknown'])
+export type TaxPeriodKind = z.infer<typeof TaxPeriodKindSchema>
+
+export const TaxPeriodSourceSchema = z.enum([
+  'client_default',
+  'prior_obligation',
+  'migration',
+  'manual_cpa_confirmed',
+  'unknown',
+])
+export type TaxPeriodSource = z.infer<typeof TaxPeriodSourceSchema>
+
 // US state code whitelist lives in packages/core/default-matrix.
 export const StateCodeSchema = z.string().regex(/^[A-Z]{2}$/, {
   error: 'Expected 2-letter state code',
