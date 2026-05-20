@@ -6,6 +6,14 @@ import { TenantIdSchema } from './shared/ids'
 export const FirmPlanSchema = z.enum(['solo', 'pro', 'team', 'firm'])
 export const FirmStatusSchema = z.enum(['active', 'suspended', 'deleted'])
 export const FirmRoleSchema = z.enum(['owner', 'partner', 'manager', 'preparer', 'coordinator'])
+export const DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS = 14
+export const MIN_INTERNAL_DEADLINE_OFFSET_DAYS = 0
+export const MAX_INTERNAL_DEADLINE_OFFSET_DAYS = 365
+export const InternalDeadlineOffsetDaysSchema = z
+  .number()
+  .int()
+  .min(MIN_INTERNAL_DEADLINE_OFFSET_DAYS)
+  .max(MAX_INTERNAL_DEADLINE_OFFSET_DAYS)
 export const US_FIRM_TIMEZONES = [
   'America/New_York',
   'America/Detroit',
@@ -101,6 +109,7 @@ export const FirmPublicSchema = z.object({
   plan: FirmPlanSchema,
   seatLimit: z.number().int().min(1),
   timezone: z.string().min(1),
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema,
   status: FirmStatusSchema,
   role: FirmRoleSchema,
   ownerUserId: z.string().min(1),
@@ -116,11 +125,15 @@ export const FirmPublicSchema = z.object({
 export const FirmCreateInputSchema = z.object({
   name: z.string().trim().min(2).max(120),
   timezone: USFirmTimezoneSchema.default('America/New_York'),
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema.default(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  ),
 })
 
 export const FirmUpdateInputSchema = z.object({
   name: z.string().trim().min(2).max(120),
   timezone: USFirmTimezoneSchema,
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema,
   coordinatorCanSeeDollars: z.boolean().optional(),
   smartPriorityProfile: SmartPriorityProfileSchema.optional(),
 })

@@ -133,6 +133,7 @@ describe('generateObligationsForAcceptedRules', () => {
       scoped,
       userId: USER_ID,
       rules: [mustRule('ca.llc.annual_tax.2026')],
+      internalDeadlineOffsetDays: 14,
       now: new Date('2026-05-06T00:00:00.000Z'),
       reason: 'Accepted during onboarding.',
     })
@@ -188,6 +189,7 @@ describe('generateObligationsForAcceptedRules', () => {
       scoped,
       userId: USER_ID,
       rules: [mustRule('ca.llc.annual_tax.2026')],
+      internalDeadlineOffsetDays: 14,
       now: new Date('2026-05-06T00:00:00.000Z'),
     })
 
@@ -204,6 +206,7 @@ describe('generateObligationsForAcceptedRules', () => {
       scoped,
       userId: USER_ID,
       rules: [mustRule('ca.llc.annual_tax.2026')],
+      internalDeadlineOffsetDays: 14,
       now: new Date('2026-05-06T00:00:00.000Z'),
     })
 
@@ -230,6 +233,7 @@ describe('generateObligationsForAcceptedRules', () => {
       scoped,
       userId: USER_ID,
       rules: [mustRule('fed.1040.return.2025'), mustRule('fed.1040.extension.2025')],
+      internalDeadlineOffsetDays: 14,
       now: new Date('2026-05-06T00:00:00.000Z'),
     })
 

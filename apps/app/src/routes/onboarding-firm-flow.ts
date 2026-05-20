@@ -1,4 +1,8 @@
-import type { FirmCreateInput, FirmPublic } from '@duedatehq/contracts'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  type FirmCreateInput,
+  type FirmPublic,
+} from '@duedatehq/contracts'
 
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 export const ONBOARDING_MIGRATION_TARGET = '/migration/new?source=onboarding'
@@ -16,6 +20,7 @@ export type OnboardingFirmActivationResult =
 export async function activateOrCreateOnboardingFirm(input: {
   gateway: OnboardingFirmGateway
   name: string
+  internalDeadlineOffsetDays?: number
 }): Promise<OnboardingFirmActivationResult> {
   const firms = await input.gateway.listMine()
   const existing = firms[0]
@@ -28,6 +33,8 @@ export async function activateOrCreateOnboardingFirm(input: {
   const firm = await input.gateway.create({
     name: input.name,
     timezone: DEFAULT_FIRM_TIMEZONE,
+    internalDeadlineOffsetDays:
+      input.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   })
   return { kind: 'created', firm }
 }

@@ -15,6 +15,7 @@ function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
     plan: 'solo',
     seatLimit: 1,
     timezone: 'America/New_York',
+    internalDeadlineOffsetDays: 14,
     status: 'active',
     role: 'owner',
     ownerUserId: 'user_1',
@@ -33,7 +34,9 @@ function gateway(overrides: Partial<OnboardingFirmGateway> = {}): OnboardingFirm
   return {
     listMine: vi.fn(async () => []),
     switchActive: vi.fn(async ({ firmId }) => firm({ id: firmId, isCurrent: true })),
-    create: vi.fn(async ({ name, timezone }) => firm({ id: 'firm_new', name, timezone })),
+    create: vi.fn(async ({ name, timezone, internalDeadlineOffsetDays }) =>
+      firm({ id: 'firm_new', name, timezone, internalDeadlineOffsetDays }),
+    ),
     ...overrides,
   }
 }
@@ -67,6 +70,7 @@ describe('activateOrCreateOnboardingFirm', () => {
     expect(api.create).toHaveBeenCalledWith({
       name: 'New Practice',
       timezone: 'America/New_York',
+      internalDeadlineOffsetDays: 14,
     })
     expect(api.switchActive).not.toHaveBeenCalled()
   })

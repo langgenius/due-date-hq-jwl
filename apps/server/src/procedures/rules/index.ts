@@ -480,7 +480,7 @@ async function acceptTemplateRule(input: {
   catalogSeeded?: boolean
   generateObligations?: boolean
 }): Promise<RuleReviewTask> {
-  const { scoped } = requireTenant(input.context)
+  const { scoped, tenant } = requireTenant(input.context)
   if (!input.catalogSeeded) await ensureGlobalTemplateCatalog(input.context)
   const contractRule =
     input.editedRule ??
@@ -526,6 +526,7 @@ async function acceptTemplateRule(input: {
       scoped,
       userId: input.reviewedBy,
       rules: [toCoreRule(activeRule)],
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
@@ -638,7 +639,7 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
 })
 
 const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input, context }) => {
-  const { scoped, userId } = requireTenant(context)
+  const { scoped, tenant, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
   const practiceById = new Map(
@@ -721,6 +722,7 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
     scoped,
     userId,
     rules: acceptInputs,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     now: reviewedAt,
     reason: input.reviewNote,
   })

@@ -358,8 +358,8 @@ function useSortLabels(): Record<ObligationQueueSort, string> {
   return useMemo(
     () => ({
       smart_priority: t`Smart Priority`,
-      due_asc: t`Due date — earliest first`,
-      due_desc: t`Due date — latest first`,
+      due_asc: t`Internal deadline — earliest first`,
+      due_desc: t`Internal deadline — latest first`,
       exposure_desc: `${t`Projected risk`} ↓`,
       exposure_asc: `${t`Projected risk`} ↑`,
       updated_desc: t`Recently updated`,
@@ -669,7 +669,7 @@ export function ObligationQueueRoute() {
     setObligationQueueQuery,
   ] = useQueryStates(obligationQueueSearchParamsParsers)
   // Slice D: when ?lifecycle=v2 is active AND the URL has no explicit
-  // ?sort= param, default the queue to Due date ascending instead of
+  // ?sort= param, default the queue to internal deadline ascending instead of
   // Smart Priority. Smart Priority remains in the sort dropdown — it's
   // just no longer the implicit ranking. Reinforces "Dashboard
   // curates, Obligations sorts" per the design brief.
@@ -705,7 +705,7 @@ export function ObligationQueueRoute() {
       clientState: t`State`,
       clientCounty: t`County`,
       taxType: t`Tax type`,
-      currentDueDate: t`Due date`,
+      currentDueDate: t`Internal deadline`,
       daysUntilDue: t`Days`,
       estimatedExposureCents: t`Projected risk`,
       evidenceCount: t`Evidence`,
@@ -1264,7 +1264,7 @@ export function ObligationQueueRoute() {
       {
         accessorKey: 'currentDueDate',
         header: () => {
-          const label = t`Due date`
+          const label = t`Internal deadline`
           return (
             <ObligationQueueSortableHeader
               sort={sort}
@@ -2896,7 +2896,8 @@ function ObligationQueueDetailDrawer({
               <SheetDescription>
                 {row ? (
                   <>
-                    <TaxCodeLabel code={row.taxType} /> · {formatDate(row.currentDueDate)}
+                    <TaxCodeLabel code={row.taxType} /> ·{' '}
+                    <Trans>Internal deadline {formatDate(row.currentDueDate)}</Trans>
                   </>
                 ) : null}
               </SheetDescription>
@@ -2948,6 +2949,7 @@ function ObligationQueueDetailDrawer({
                 if (isObligationQueueDetailTab(value)) onTabChange(value)
               }}
             >
+              <StatutoryDatesPanel row={row} />
               <TabsList className="mb-4 flex w-full flex-wrap justify-start">
                 <TabsTrigger value="readiness">
                   <Trans>Readiness</Trans>
@@ -4179,6 +4181,27 @@ function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
       <dt className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{label}</dt>
       <dd className="break-words text-text-primary">{value}</dd>
     </div>
+  )
+}
+
+function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
+  const { t } = useLingui()
+  return (
+    <dl
+      aria-label={t`Statutory dates`}
+      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-2 xl:grid-cols-4"
+    >
+      <DetailRow label={<Trans>Internal deadline</Trans>} value={formatDate(row.currentDueDate)} />
+      <DetailRow
+        label={<Trans>Statutory filing</Trans>}
+        value={row.filingDueDate ? formatDate(row.filingDueDate) : t`N/A`}
+      />
+      <DetailRow
+        label={<Trans>Statutory payment</Trans>}
+        value={row.paymentDueDate ? formatDate(row.paymentDueDate) : t`N/A`}
+      />
+      <DetailRow label={<Trans>Base statutory</Trans>} value={formatDate(row.baseDueDate)} />
+    </dl>
   )
 }
 

@@ -44,7 +44,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
     clientBatchCreated: 'Client batch created',
     memberRoleUpdated: 'Member role changed',
     migrationImported: 'Import completed',
-    obligationDueDateUpdated: 'Due date changed',
+    obligationDueDateUpdated: 'Internal deadline changed',
     obligationStatusUpdated: 'Deadline status changed',
     penaltyOverride: 'Penalty inputs changed',
     pulseApply: 'Pulse applied',
@@ -72,7 +72,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
     fields: {
       assigneeName: 'Assignee',
       clientCount: 'Clients',
-      currentDueDate: 'Due date',
+      currentDueDate: 'Internal deadline',
       equityOwnerCount: 'Owner count',
       estimatedTaxLiabilityCents: 'Estimated tax liability',
       isPinned: 'Pinned',
@@ -109,7 +109,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
       batchCreated: (action, count) =>
         count === null ? `${action} recorded` : `${action}: ${count} rows`,
       deadlineDueDateChanged: (previous, next) =>
-        `Deadline due date changed from ${previous} to ${next}`,
+        `Internal deadline changed from ${previous} to ${next}`,
       deadlineReadinessChanged: (previous, next) =>
         `Deadline readiness changed from ${previous} to ${next}`,
       deadlineStatusChanged: (previous, next) =>
@@ -211,8 +211,8 @@ describe('audit-log-model', () => {
         'America/Los_Angeles',
       ),
     ).toMatchObject({
-      headline: 'Deadline due date changed from 2026-04-15 to 2026-05-15',
-      changes: [{ field: 'Due date', previous: '2026-04-15', next: '2026-05-15' }],
+      headline: 'Internal deadline changed from 2026-04-15 to 2026-05-15',
+      changes: [{ field: 'Internal deadline', previous: '2026-04-15', next: '2026-05-15' }],
     })
   })
 

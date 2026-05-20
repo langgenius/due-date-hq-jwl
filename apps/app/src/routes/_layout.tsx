@@ -136,6 +136,7 @@ function pickCurrentFirm(firms: FirmPublic[] | undefined, user: AuthUser): FirmP
     plan: 'solo',
     seatLimit: 1,
     timezone: 'America/New_York',
+    internalDeadlineOffsetDays: 14,
     status: 'active',
     role: 'owner',
     ownerUserId: user.id,

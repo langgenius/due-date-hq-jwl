@@ -159,6 +159,7 @@ export type {
   USFirmTimezone,
 } from './firms'
 export {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   FirmBillingCheckoutConfigSchema,
   FirmBillingSubscriptionPublicSchema,
   FirmCreateInputSchema,
@@ -172,6 +173,9 @@ export {
   firmsContract,
   FirmStatusSchema,
   FirmUpdateInputSchema,
+  InternalDeadlineOffsetDaysSchema,
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
   US_FIRM_TIMEZONE_OPTIONS,
   US_FIRM_TIMEZONES,
   USFirmTimezoneSchema,

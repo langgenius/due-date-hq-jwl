@@ -21,6 +21,7 @@ function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
     plan: 'solo',
     seatLimit: 1,
     timezone: 'America/New_York',
+    internalDeadlineOffsetDays: 14,
     status: 'active',
     role: 'owner',
     ownerUserId: 'user_1',

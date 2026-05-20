@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { makeSignature } from 'better-auth/crypto'
 import { and, eq, inArray } from 'drizzle-orm'
 import { authSchema, createDb, firmSchema, scoped } from '@duedatehq/db'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ContextVars, Env } from '../env'
 
 type SeedMode = 'empty' | 'obligations' | 'pulse' | 'mfa'
@@ -174,6 +175,10 @@ function dateOnlyToUtcDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`)
 }
 
+function demoInternalDeadline(baseDueDate: Date): Date {
+  return internalDeadlineFromBaseDueDate(baseDueDate, 14)
+}
+
 function orderDemoAccounts<T extends { id: string }>(rows: T[]): T[] {
   const byId = new Map(rows.map((row) => [row.id, row]))
   return DEMO_ACCOUNT_IDS.map((id) => byId.get(id)).filter((row): row is T => Boolean(row))
@@ -260,6 +265,7 @@ export const e2eRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
       plan: firmPlan,
       seatLimit: billingSeatLimit(firmPlan),
       timezone: 'America/New_York',
+      internalDeadlineOffsetDays: 14,
       ownerUserId,
       status: 'active',
       createdAt: now,
@@ -744,14 +750,17 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
   const clients = [arbor, northstar, copperline, foundry]
 
   await repo.clients.createBatch(clients)
+  const arborDueDate = new Date('2026-03-15T00:00:00.000Z')
+  const northstarDueDate = new Date('2026-03-18T00:00:00.000Z')
+  const copperlineDueDate = new Date('2026-04-02T00:00:00.000Z')
   await repo.obligations.createBatch([
     {
       id: crypto.randomUUID(),
       clientId: arbor.id,
       taxType: 'federal_1065',
       taxYear: 2026,
-      baseDueDate: new Date('2026-03-15T00:00:00.000Z'),
-      currentDueDate: new Date('2026-03-15T00:00:00.000Z'),
+      baseDueDate: arborDueDate,
+      currentDueDate: demoInternalDeadline(arborDueDate),
       status: 'pending',
       migrationBatchId: null,
     },
@@ -760,8 +769,8 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
       clientId: northstar.id,
       taxType: 'ny_ct3s',
       taxYear: 2026,
-      baseDueDate: new Date('2026-03-18T00:00:00.000Z'),
-      currentDueDate: new Date('2026-03-18T00:00:00.000Z'),
+      baseDueDate: northstarDueDate,
+      currentDueDate: demoInternalDeadline(northstarDueDate),
       status: 'review',
       migrationBatchId: null,
     },
@@ -770,8 +779,8 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
       clientId: copperline.id,
       taxType: 'tx_franchise_report',
       taxYear: 2026,
-      baseDueDate: new Date('2026-04-02T00:00:00.000Z'),
-      currentDueDate: new Date('2026-04-02T00:00:00.000Z'),
+      baseDueDate: copperlineDueDate,
+      currentDueDate: demoInternalDeadline(copperlineDueDate),
       status: 'waiting_on_client',
       migrationBatchId: null,
     },
@@ -781,7 +790,7 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
       taxType: 'ca_568',
       taxYear: 2026,
       baseDueDate: workloadAsOfDate,
-      currentDueDate: workloadAsOfDate,
+      currentDueDate: demoInternalDeadline(workloadAsOfDate),
       status: 'pending',
       migrationBatchId: null,
     },
@@ -800,6 +809,7 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
 async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId: string) {
   const repo = scoped(db, firmId)
   const originalDueDate = new Date('2026-03-15T00:00:00.000Z')
+  const northstarDueDate = new Date('2026-03-18T00:00:00.000Z')
   const newDueDate = new Date('2026-10-15T00:00:00.000Z')
   const publishedAt = new Date('2026-04-15T17:00:00.000Z')
   const reviewedAt = new Date('2026-04-15T18:00:00.000Z')
@@ -840,7 +850,7 @@ async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId
       taxYear: 2026,
       jurisdiction: 'CA',
       baseDueDate: originalDueDate,
-      currentDueDate: originalDueDate,
+      currentDueDate: demoInternalDeadline(originalDueDate),
       status: 'pending',
       migrationBatchId: null,
     },
@@ -851,7 +861,7 @@ async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId
       taxYear: 2026,
       jurisdiction: 'CA',
       baseDueDate: originalDueDate,
-      currentDueDate: originalDueDate,
+      currentDueDate: demoInternalDeadline(originalDueDate),
       status: 'review',
       migrationBatchId: null,
     },
@@ -860,8 +870,8 @@ async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId
       clientId: northstar.id,
       taxType: 'ny_ct3s',
       taxYear: 2026,
-      baseDueDate: new Date('2026-03-18T00:00:00.000Z'),
-      currentDueDate: new Date('2026-03-18T00:00:00.000Z'),
+      baseDueDate: northstarDueDate,
+      currentDueDate: demoInternalDeadline(northstarDueDate),
       status: 'pending',
       migrationBatchId: null,
     },

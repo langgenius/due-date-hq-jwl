@@ -17,6 +17,7 @@ import {
   PENALTY_FACTS_VERSION,
   type PenaltyFacts,
 } from '@duedatehq/core/penalty'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { validateRows } from './_deterministic'
@@ -35,6 +36,7 @@ interface BuildCommitPlanInput {
   firmId: string
   userId: string
   payload: MappingJsonPayload
+  internalDeadlineOffsetDays: number
   rules?: readonly ObligationRule[]
 }
 
@@ -229,6 +231,10 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
 
         const obligationId = crypto.randomUUID()
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
+        const internalDueDate = internalDeadlineFromBaseDueDate(
+          dueDate,
+          input.internalDeadlineOffsetDays,
+        )
         const penaltyFacts = buildPenaltyFactsFromLegacy({
           taxType: preview.taxType,
           estimatedTaxLiabilityCents: facts.estimatedTaxLiabilityCents,
@@ -259,7 +265,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           rulePeriod: preview.period,
           generationSource: 'migration',
           baseDueDate: dueDate,
-          currentDueDate: dueDate,
+          currentDueDate: internalDueDate,
           status,
           migrationBatchId: batchId,
           estimatedTaxDueCents: exposure.estimatedTaxDueCents,

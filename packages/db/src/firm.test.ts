@@ -47,6 +47,7 @@ describe('firm_profile schema', () => {
         'plan',
         'seat_limit',
         'timezone',
+        'internal_deadline_offset_days',
         'owner_user_id',
         'status',
         'billing_customer_id',
@@ -62,6 +63,7 @@ describe('firm_profile schema', () => {
     // Spot-check SQL types (drizzle reports these as the underlying SQLite types).
     expect(byName.id?.getSQLType()).toBe('text')
     expect(byName.seat_limit?.getSQLType()).toBe('integer')
+    expect(byName.internal_deadline_offset_days?.getSQLType()).toBe('integer')
     expect(byName.coordinator_can_see_dollars?.getSQLType()).toBe('integer')
     expect(byName.smart_priority_profile_json?.getSQLType()).toBe('text')
     expect(byName.created_at?.getSQLType()).toBe('integer')
@@ -85,6 +87,7 @@ describe('firm_profile schema', () => {
     expect(findColumn('status').default).toBe('active')
     expect(findColumn('seat_limit').default).toBe(1)
     expect(findColumn('timezone').default).toBe('America/New_York')
+    expect(findColumn('internal_deadline_offset_days').default).toBe(14)
     expect(findColumn('coordinator_can_see_dollars').default).toBe(false)
   })
 
@@ -124,6 +127,7 @@ describe('firm_profile schema', () => {
       plan: 'solo',
       seatLimit: 1,
       timezone: 'America/New_York',
+      internalDeadlineOffsetDays: 14,
       ownerUserId: 'user_1',
       status: 'active',
       billingCustomerId: null,

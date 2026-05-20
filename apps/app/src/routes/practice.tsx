@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
   SMART_PRIORITY_DEFAULT_PROFILE,
   type FirmPublic,
   type FirmSmartPriorityPreviewOutput,
@@ -177,6 +179,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   const [name, setName] = useState(firm.name)
   const originalTimezone = resolveUSFirmTimezone(firm.timezone)
   const [timezone, setTimezone] = useState(originalTimezone)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    firm.internalDeadlineOffsetDays,
+  )
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [savedPriorityProfile, setSavedPriorityProfile] = useState(() =>
@@ -270,7 +275,18 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       })
       return
     }
-    updateMutation.mutate({ name: trimmed, timezone })
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      const message = t`Internal deadline offset must be between 0 and 365 days.`
+      setError(message)
+      toast.error(t`Couldn't update practice`, {
+        description: message,
+      })
+      return
+    }
+    updateMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
   }
 
   function updatePriorityWeight(key: SmartPriorityFactorKey, value: string) {
@@ -311,11 +327,18 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityUpdateMutation.mutate({
       name: trimmed.length >= 2 ? trimmed : firm.name,
       timezone,
+      internalDeadlineOffsetDays,
       smartPriorityProfile: priorityProfile,
     })
   }
 
-  const dirty = name.trim() !== firm.name || timezone !== originalTimezone
+  const dirty =
+    name.trim() !== firm.name ||
+    timezone !== originalTimezone ||
+    internalDeadlineOffsetDays !== firm.internalDeadlineOffsetDays
+  const internalDeadlineOffsetDaysValid =
+    internalDeadlineOffsetDays >= MIN_INTERNAL_DEADLINE_OFFSET_DAYS &&
+    internalDeadlineOffsetDays <= MAX_INTERNAL_DEADLINE_OFFSET_DAYS
   const weightTotal = priorityWeightTotal(priorityProfile)
   const priorityValid =
     weightTotal === 100 &&
@@ -422,6 +445,30 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 disabled={!canEditPractice || updateMutation.isPending}
               />
             </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="firm-internal-deadline-offset">
+                <Trans>Internal deadline</Trans>
+              </Label>
+              <Input
+                id="firm-internal-deadline-offset"
+                type="number"
+                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                step={1}
+                value={internalDeadlineOffsetDays}
+                onChange={(event) =>
+                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                }
+                disabled={!canEditPractice || updateMutation.isPending}
+                className="font-mono tabular-nums"
+              />
+              <p className="text-xs leading-5 text-text-tertiary">
+                <Trans>
+                  DueDateHQ shows work as due this many days before each statutory base deadline.
+                  Changing this recalculates current obligation deadlines.
+                </Trans>
+              </p>
+            </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">
                 {error}
@@ -430,7 +477,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={!canEditPractice || !dirty || updateMutation.isPending}
+                disabled={
+                  !canEditPractice ||
+                  !dirty ||
+                  !internalDeadlineOffsetDaysValid ||
+                  updateMutation.isPending
+                }
               >
                 {updateMutation.isPending ? <Trans>Saving…</Trans> : <Trans>Save changes</Trans>}
               </Button>
@@ -605,7 +657,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   <Button
                     type="button"
                     onClick={savePriorityProfile}
-                    disabled={!priorityValid || !priorityDirty || priorityUpdateMutation.isPending}
+                    disabled={
+                      !priorityValid ||
+                      !priorityDirty ||
+                      !internalDeadlineOffsetDaysValid ||
+                      priorityUpdateMutation.isPending
+                    }
                   >
                     {priorityUpdateMutation.isPending ? (
                       <Trans>Saving…</Trans>

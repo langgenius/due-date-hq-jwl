@@ -49,7 +49,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       migrationSingleUndo: t`Imported client undone`,
       obligationAnnualRolloverCreated: t`Annual rollover created`,
       obligationBatchCreated: t`Deadlines created`,
-      obligationDueDateUpdated: t`Due date changed`,
+      obligationDueDateUpdated: t`Internal deadline changed`,
       obligationReadinessUpdated: t`Deadline readiness changed`,
       obligationStatusUpdated: t`Deadline status changed`,
       onboardingAgentDryRunPreviewed: t`Onboarding dry run previewed`,
@@ -151,7 +151,7 @@ export function useAuditChangeLabels({
         contentType: t`File type`,
         count: t`Rows`,
         createdCount: t`Created deadlines`,
-        currentDueDate: t`Due date`,
+        currentDueDate: t`Internal deadline`,
         disabledCells: t`Disabled cells`,
         email: t`Email`,
         enabledCells: t`Enabled cells`,
@@ -232,7 +232,7 @@ export function useAuditChangeLabels({
         batchCreated: (action, count) =>
           count === null ? t`${action} recorded` : t`${action}: ${count} rows`,
         deadlineDueDateChanged: (previous, next) =>
-          t`Deadline due date changed from ${previous} to ${next}`,
+          t`Internal deadline changed from ${previous} to ${next}`,
         deadlineReadinessChanged: (previous, next) =>
           t`Deadline readiness changed from ${previous} to ${next}`,
         deadlineStatusChanged: (previous, next) =>

@@ -1,5 +1,6 @@
 import { ORPCError } from '@orpc/server'
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import { requireTenant } from '../_context'
 import {
   MIGRATION_RUN_ROLES,
@@ -98,6 +99,7 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
   const { scoped, tenant, userId } = requireTenant(context)
 
   const repoInputs = input.obligations.map((o) => {
+    const baseDueDate = new Date(o.baseDueDate)
     const repoInput: {
       clientId: string
       clientFilingProfileId?: string | null
@@ -156,8 +158,10 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       sourceEvidenceJson: o.sourceEvidence ?? null,
       recurrence: o.recurrence ?? 'once',
       riskLevel: o.riskLevel ?? 'low',
-      baseDueDate: new Date(o.baseDueDate),
-      currentDueDate: o.currentDueDate ? new Date(o.currentDueDate) : new Date(o.baseDueDate),
+      baseDueDate,
+      currentDueDate: o.currentDueDate
+        ? new Date(o.currentDueDate)
+        : internalDeadlineFromBaseDueDate(baseDueDate, tenant.internalDeadlineOffsetDays),
       prepStage: o.prepStage ?? 'not_started',
       reviewStage: o.reviewStage ?? 'not_required',
       extensionState: o.extensionState ?? 'not_started',
@@ -232,12 +236,13 @@ const listByClient = os.obligations.listByClient.handler(async ({ input, context
 const previewAnnualRollover = os.obligations.previewAnnualRollover.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
-    const { scoped, userId } = requireTenant(context)
+    const { scoped, tenant, userId } = requireTenant(context)
     return runAnnualRollover({
       scoped,
       userId,
       params: input,
       mode: 'preview',
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     })
   },
 )
@@ -251,6 +256,7 @@ const createAnnualRollover = os.obligations.createAnnualRollover.handler(
       userId,
       params: input,
       mode: 'create',
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     })
     if (result.summary.createdCount > 0) {
       await enqueueDashboardBriefRefresh(context.env, {

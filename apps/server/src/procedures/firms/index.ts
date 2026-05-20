@@ -52,6 +52,7 @@ function toFirmPublic(
     plan: row.plan,
     seatLimit: row.seatLimit,
     timezone: row.timezone,
+    internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
     status: row.status,
     role: row.role,
     ownerUserId: row.ownerUserId,
@@ -207,7 +208,11 @@ const create = os.firms.create.handler(async ({ input, context }) => {
     name: input.name,
   })
 
-  await firms.updateProfile(firmId, { name: input.name, timezone: input.timezone })
+  await firms.updateProfile(firmId, {
+    name: input.name,
+    timezone: input.timezone,
+    internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+  })
   await firms.setActiveSession(session.id, userId, firmId)
 
   const row = await firms.findActiveForUser(userId, firmId)
@@ -223,7 +228,11 @@ const create = os.firms.create.handler(async ({ input, context }) => {
     entityType: 'firm',
     entityId: firmId,
     action: 'firm.created',
-    after: { name: row.name, timezone: row.timezone },
+    after: {
+      name: row.name,
+      timezone: row.timezone,
+      internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
+    },
   })
 
   return toFirmPublic(row, firmId, userId)
@@ -268,6 +277,7 @@ const updateCurrent = os.firms.updateCurrent.handler(async ({ input, context }) 
   await firms.updateProfile(activeFirmId, {
     name: input.name,
     timezone: input.timezone,
+    internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
     ...(input.coordinatorCanSeeDollars !== undefined
       ? { coordinatorCanSeeDollars: input.coordinatorCanSeeDollars }
       : {}),
@@ -275,6 +285,11 @@ const updateCurrent = os.firms.updateCurrent.handler(async ({ input, context }) 
       ? { smartPriorityProfile: input.smartPriorityProfile }
       : {}),
   })
+  const deadlinePolicyChanged =
+    before.internalDeadlineOffsetDays !== input.internalDeadlineOffsetDays
+  const recalculatedObligationCount = deadlinePolicyChanged
+    ? await firms.applyInternalDeadlineOffset(activeFirmId, input.internalDeadlineOffsetDays)
+    : 0
   const after = await firms.findActiveForUser(userId, activeFirmId)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -291,14 +306,17 @@ const updateCurrent = os.firms.updateCurrent.handler(async ({ input, context }) 
     before: {
       name: before.name,
       timezone: before.timezone,
+      internalDeadlineOffsetDays: before.internalDeadlineOffsetDays,
       coordinatorCanSeeDollars: before.coordinatorCanSeeDollars,
       smartPriorityProfile: before.smartPriorityProfile,
     },
     after: {
       name: after.name,
       timezone: after.timezone,
+      internalDeadlineOffsetDays: after.internalDeadlineOffsetDays,
       coordinatorCanSeeDollars: after.coordinatorCanSeeDollars,
       smartPriorityProfile: after.smartPriorityProfile,
+      ...(deadlinePolicyChanged ? { recalculatedObligationCount } : {}),
     },
   })
 
@@ -393,7 +411,11 @@ const softDeleteCurrent = os.firms.softDeleteCurrent.handler(async ({ context })
     entityType: 'firm',
     entityId: activeFirmId,
     action: 'firm.deleted',
-    before: { name: current.name, timezone: current.timezone },
+    before: {
+      name: current.name,
+      timezone: current.timezone,
+      internalDeadlineOffsetDays: current.internalDeadlineOffsetDays,
+    },
   })
   await firms.softDelete(activeFirmId)
 

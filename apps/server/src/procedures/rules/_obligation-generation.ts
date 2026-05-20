@@ -11,6 +11,7 @@ import {
   estimateProjectedExposure,
   PENALTY_FACTS_VERSION,
 } from '@duedatehq/core/penalty'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
@@ -20,6 +21,7 @@ interface GenerateForAcceptedRulesInput {
   scoped: ScopedRepo
   userId: string
   rules: readonly ObligationRule[]
+  internalDeadlineOffsetDays: number
   now?: Date
   reason?: string | null
 }
@@ -117,9 +119,11 @@ function buildCreateInput(input: {
   profile: ClientFilingProfileRow
   rule: ObligationRule
   preview: ObligationGenerationPreview
+  internalDeadlineOffsetDays: number
   now: Date
 }): ObligationCreateInput & { preview: ObligationGenerationPreview } {
   const dueDate = new Date(`${input.preview.dueDate}T00:00:00.000Z`)
+  const internalDueDate = internalDeadlineFromBaseDueDate(dueDate, input.internalDeadlineOffsetDays)
   const paymentDueDate = paymentDueDateForPreview(input.preview, input.rule, dueDate)
   const penaltyFacts = buildPenaltyFactsFromLegacy({
     taxType: input.preview.taxType,
@@ -154,7 +158,7 @@ function buildCreateInput(input: {
     recurrence: recurrenceForPreview(input.preview, input.rule),
     riskLevel: input.rule.riskLevel,
     baseDueDate: dueDate,
-    currentDueDate: dueDate,
+    currentDueDate: internalDueDate,
     status: input.preview.requiresReview ? 'review' : 'pending',
     prepStage: input.preview.requiresReview ? 'ready_for_prep' : 'not_started',
     reviewStage: input.preview.requiresReview ? 'ready_for_review' : 'not_required',
@@ -264,7 +268,16 @@ export async function generateObligationsForAcceptedRules(
         }
 
         seenGeneratedKeys.add(key)
-        createInputs.push(buildCreateInput({ client, profile, rule, preview, now }))
+        createInputs.push(
+          buildCreateInput({
+            client,
+            profile,
+            rule,
+            preview,
+            internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+            now,
+          }),
+        )
       }
     }
   }

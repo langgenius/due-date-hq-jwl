@@ -20,7 +20,13 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import type { FirmPublic, USFirmTimezone } from '@duedatehq/contracts'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
+  type FirmPublic,
+  type USFirmTimezone,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Dialog,
@@ -288,6 +294,9 @@ function AddFirmDialog({
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [timezone, setTimezone] = useState<USFirmTimezone>(DEFAULT_US_FIRM_TIMEZONE)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  )
   const [error, setError] = useState<string | null>(null)
   const canCreate = canCreateAdditionalFirm(firms)
   const ownedFirmCount = ownedActiveFirms(firms).length
@@ -296,6 +305,7 @@ function AddFirmDialog({
       onSuccess: () => {
         setName('')
         setTimezone(DEFAULT_US_FIRM_TIMEZONE)
+        setInternalDeadlineOffsetDays(DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS)
         setError(null)
         onOpenChange(false)
         void resetPracticeScopedQueryCache(queryClient)
@@ -315,8 +325,15 @@ function AddFirmDialog({
       setError(t`Please enter at least 2 characters.`)
       return
     }
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      setError(t`Internal deadline offset must be between 0 and 365 days.`)
+      return
+    }
     setError(null)
-    createMutation.mutate({ name: trimmed, timezone })
+    createMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
   }
 
   return (
@@ -392,6 +409,27 @@ function AddFirmDialog({
                 onValueChange={setTimezone}
                 disabled={createMutation.isPending}
               />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="add-firm-internal-deadline-offset">
+                <Trans>Internal deadline</Trans>
+              </Label>
+              <Input
+                id="add-firm-internal-deadline-offset"
+                type="number"
+                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                step={1}
+                value={internalDeadlineOffsetDays}
+                onChange={(event) =>
+                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                }
+                disabled={createMutation.isPending}
+                className="font-mono tabular-nums"
+              />
+              <p className="text-xs text-text-tertiary">
+                <Trans>Show work as due this many days before the statutory deadline.</Trans>
+              </p>
             </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">

@@ -2,6 +2,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-
 import type { SQL } from 'drizzle-orm'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
 import type { PenaltyBreakdownItem } from '@duedatehq/core/penalty'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import { compareSmartPriority, rankSmartPriorities } from '@duedatehq/core/priority'
 import type { ObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
@@ -22,7 +23,7 @@ import {
   type ObligationType,
 } from '../schema/obligations'
 import { obligationSavedView, type ObligationQueueDensity } from '../schema/obligation-saved-view'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
@@ -545,7 +546,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
     const statuses = new Map(rawRows.map((row) => [row.id, row.status]))
     const [overlayDueDates, evidenceCounts, readinessById, smartPriorityProfile] =
       await Promise.all([
-        listActiveOverlayDueDates(db, firmId, obligationIds),
+        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
         listEvidenceCounts(obligationIds),
         loadDerivedReadinessByObligation(db, firmId, statuses),
         loadSmartPriorityProfile(),
@@ -559,7 +560,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           jurisdiction: row.clientState,
           taxType: row.taxType,
           entityType: row.clientEntityType,
-          dueDate: currentDueDate,
+          dueDate: statutoryPenaltyDueDate({ ...row, currentDueDate }),
           penaltyFactsJson: row.penaltyFactsJson,
         },
         { asOfDate: asOfDateOnly },

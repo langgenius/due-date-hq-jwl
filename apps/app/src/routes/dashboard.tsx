@@ -1081,7 +1081,7 @@ function DashboardTriageTable({
         sortingFn: dashboardDateSortingFn,
         sortDescFirst: false,
         header: ({ column }) => {
-          const label = t`Deadline`
+          const label = t`Internal deadline`
           return (
             <DashboardSortableFilterHeader column={column} sortLabel={`${t`Sort`} ${label}`}>
               <TableHeaderMultiFilter

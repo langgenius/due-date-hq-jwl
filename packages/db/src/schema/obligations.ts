@@ -107,12 +107,12 @@ export type ObligationDependencyStatus = (typeof OBLIGATION_DEPENDENCY_STATUSES)
  *     those are Pulse Pipeline owner's responsibility.
  *
  * Base vs current due date:
- *   - `base_due_date` — the statutory date for this (tax_type, tax_year);
- *     written at create-time and never mutated.
- *   - `current_due_date` — what the Dashboard / Obligations show. Pulse apply
- *     in Demo Sprint directly UPDATEs this value (no overlay); migration
- *     import and manual edits also write here. Phase 1: this column becomes
- *     generated/virtual from base + overlays.
+ *   - `base_due_date` — the statutory/base rule date for this
+ *     (tax_type, tax_year); written at create-time and never mutated.
+ *   - `current_due_date` — the internal practice deadline shown by Dashboard /
+ *     Obligations. It is normally `base_due_date - firm.internalDeadlineOffsetDays`.
+ *     Statutory filing/payment dates stay separate in `filing_due_date` and
+ *     `payment_due_date`.
  *
  * status workflow: full P0-16 surface with flexible corrective transitions.
  * Readiness is derived from status plus client readiness request responses.

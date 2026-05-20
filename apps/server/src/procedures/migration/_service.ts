@@ -10,6 +10,7 @@ import type { BillingPlan } from '@duedatehq/core/plan-entitlements'
 import { parseTabular, type ParsedTabular, type TabularKind } from '@duedatehq/core/csv-parser'
 import { normalizeEntityType, normalizeState } from '@duedatehq/core/normalize-dict'
 import { summarizePenaltyExposure } from '@duedatehq/core/penalty'
+import { DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS } from '@duedatehq/core/deadlines'
 import {
   listObligationRules,
   type ObligationRule as CoreObligationRule,
@@ -203,6 +204,7 @@ export interface MigrationDeps {
   ai: AI
   userId: string
   plan?: BillingPlan
+  internalDeadlineOffsetDays?: number
   firmCreatedAt?: Date
   rawBucket?: R2Bucket
 }
@@ -836,6 +838,8 @@ export class MigrationService {
         firmId: this.deps.scoped.firmId,
         userId: this.deps.userId,
         payload,
+        internalDeadlineOffsetDays:
+          this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
         rules,
       }),
     )
@@ -1091,6 +1095,8 @@ export class MigrationService {
         firmId: this.deps.scoped.firmId,
         userId: this.deps.userId,
         payload,
+        internalDeadlineOffsetDays:
+          this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
       }),
     }
     return DryRunSummarySchema.parse(summary)
@@ -1638,6 +1644,7 @@ function previewExposureReadiness(input: {
   firmId: string
   userId: string
   payload: MappingJsonPayload
+  internalDeadlineOffsetDays: number
 }): DryRunSummary['exposurePreview'] {
   if (!input.payload.rawInput || !input.payload.confirmedMappings) return undefined
   try {

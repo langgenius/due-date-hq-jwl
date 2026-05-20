@@ -5,6 +5,7 @@ import {
   PENALTY_FACTS_VERSION,
   type PenaltyEngineResult,
 } from '@duedatehq/core/penalty'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 
 interface ClientPenaltyFacts {
@@ -19,6 +20,9 @@ interface ObligationPenaltyFacts {
   id: string
   taxType: string
   jurisdiction?: string | null
+  filingDueDate?: Date | null
+  paymentDueDate?: Date | null
+  baseDueDate?: Date | null
   currentDueDate: Date
   penaltyFactsJson?: unknown
   penaltyFactsVersion?: string | null
@@ -33,7 +37,7 @@ export function calculateObligationExposure(
     jurisdiction: obligation.jurisdiction ?? client.state,
     taxType: obligation.taxType,
     entityType: client.entityType,
-    dueDate: obligation.currentDueDate,
+    dueDate: statutoryPenaltyDueDate(obligation),
     asOfDate: now,
     penaltyFactsJson: obligation.penaltyFactsJson,
   })
@@ -50,7 +54,7 @@ export function calculateAccruedPenalty(
       jurisdiction: obligation.jurisdiction ?? client.state,
       taxType: obligation.taxType,
       entityType: client.entityType,
-      dueDate: obligation.currentDueDate,
+      dueDate: statutoryPenaltyDueDate(obligation),
       asOfDate,
       penaltyFactsJson: obligation.penaltyFactsJson,
     },
@@ -107,7 +111,7 @@ export async function backfillPenaltyFactsAndExposure(
             jurisdiction: obligation.jurisdiction ?? client.state,
             taxType: obligation.taxType,
             entityType: client.entityType,
-            dueDate: obligation.currentDueDate,
+            dueDate: statutoryPenaltyDueDate(obligation),
             asOfDate: now,
             penaltyFactsJson: factsJson,
           })

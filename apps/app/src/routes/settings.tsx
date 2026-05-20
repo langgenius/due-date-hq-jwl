@@ -47,7 +47,7 @@ export function SettingsRoute() {
         {
           href: '/practice',
           label: t`Practice profile`,
-          description: t`Practice name, timezone, smart priority weighting.`,
+          description: t`Practice name, timezone, internal deadline policy, smart priority weighting.`,
           icon: Building2Icon,
         },
         {

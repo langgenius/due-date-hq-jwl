@@ -348,7 +348,7 @@ function readinessChecklistDetails(item: EvidencePublic): EvidenceDetail[] {
   const details: Array<EvidenceDetail | null> = [
     taxType ? { id: 'tax-type', label: <Trans>Tax type</Trans>, value: taxType } : null,
     currentDueDate
-      ? { id: 'due-date', label: <Trans>Due date</Trans>, value: currentDueDate }
+      ? { id: 'due-date', label: <Trans>Internal deadline</Trans>, value: currentDueDate }
       : null,
   ]
   return details.filter((detail): detail is EvidenceDetail => detail !== null)
@@ -544,7 +544,7 @@ function humanizeEvidenceValue(value: unknown): string {
 function humanizeFieldName(value: string): string {
   if (value === 'estimatedTaxLiabilityCents') return 'Estimated tax liability'
   if (value === 'equityOwnerCount') return 'Owner count'
-  if (value === 'currentDueDate') return 'Due date'
+  if (value === 'currentDueDate') return 'Internal deadline'
   if (value === 'taxType') return 'Tax type'
   if (value === 'entityType') return 'Entity type'
   if (value === 'readiness') return 'Readiness'

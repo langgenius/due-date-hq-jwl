@@ -223,10 +223,12 @@ describe('@duedatehq/contracts', () => {
       FirmUpdateInputSchema.parse({
         name: 'Bright CPA',
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         smartPriorityProfile: SMART_PRIORITY_DEFAULT_PROFILE,
       }).smartPriorityProfile?.weights.exposure,
     ).toBe(45)
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).timezone).toBe('America/New_York')
+    expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).internalDeadlineOffsetDays).toBe(14)
     expect(
       FirmPublicSchema.parse({
         id: 'firm_123',
@@ -235,6 +237,7 @@ describe('@duedatehq/contracts', () => {
         plan: 'pro',
         seatLimit: 5,
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         status: 'active',
         role: 'owner',
         ownerUserId: 'user_123',
@@ -255,6 +258,7 @@ describe('@duedatehq/contracts', () => {
         plan: 'pro',
         seatLimit: 5,
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         status: 'active',
         role: 'manager',
         ownerUserId: 'user_123',

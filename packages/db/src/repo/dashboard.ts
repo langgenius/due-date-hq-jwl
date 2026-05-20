@@ -17,6 +17,7 @@ import type {
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
 import type { PenaltyBreakdownItem, PenaltySourceRef } from '@duedatehq/core/penalty'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import { rankSmartPriorities } from '@duedatehq/core/priority'
 import type { SmartPriorityProfile } from '@duedatehq/core/priority'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
@@ -26,7 +27,7 @@ import { client } from '../schema/clients'
 import { dashboardBrief } from '../schema/dashboard'
 import { firmProfile } from '../schema/firm'
 import { obligationInstance, type ObligationStatus } from '../schema/obligations'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
@@ -94,6 +95,9 @@ export interface DashboardRawRow {
   clientName: string
   clientEmail: string | null
   taxType: string
+  filingDueDate: Date | null
+  paymentDueDate: Date | null
+  baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
   estimatedExposureCents: number | null
@@ -388,7 +392,7 @@ export function composeDashboardLoad(
         jurisdiction: row.clientState,
         taxType: row.taxType,
         entityType: row.clientEntityType,
-        dueDate: row.currentDueDate,
+        dueDate: statutoryPenaltyDueDate(row),
         penaltyFactsJson: row.penaltyFactsJson,
       },
       { asOfDate: input.asOfDate },
@@ -653,6 +657,9 @@ export function makeDashboardRepo(db: Db, firmId: string) {
           clientName: client.name,
           clientEmail: client.email,
           taxType: obligationInstance.taxType,
+          filingDueDate: obligationInstance.filingDueDate,
+          paymentDueDate: obligationInstance.paymentDueDate,
+          baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
           estimatedExposureCents: obligationInstance.estimatedExposureCents,
@@ -686,7 +693,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       const obligationIds = rows.map((row) => row.obligationId)
       const [evidenceRows, overlayDueDates, smartPriorityProfile] = await Promise.all([
         listEvidenceByObligations(obligationIds),
-        listActiveOverlayDueDates(db, firmId, obligationIds),
+        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
         loadSmartPriorityProfile(),
       ])
       const overlayRows = rows.map((row) =>

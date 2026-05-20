@@ -39,6 +39,7 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
           // Default tz is a P0 ICP assumption (PRD §2.1: US CPA).
           // P1 onboarding will let the user pick — see ADR 0010 follow-ups.
           timezone: 'America/New_York',
+          internalDeadlineOffsetDays: 14,
           ownerUserId: user.id,
           status: 'active',
           createdAt: now,

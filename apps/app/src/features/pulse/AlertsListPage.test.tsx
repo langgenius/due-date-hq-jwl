@@ -100,6 +100,7 @@ function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
     plan: 'team',
     seatLimit: 5,
     timezone: 'America/New_York',
+    internalDeadlineOffsetDays: 14,
     status: 'active',
     role: 'owner',
     ownerUserId: 'user_1',

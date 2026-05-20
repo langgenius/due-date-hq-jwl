@@ -15,7 +15,7 @@ import {
   type ObligationRiskLevel,
   type ObligationType,
 } from '../schema/obligations'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
 const COLS_PER_OI_ROW = 45
@@ -92,7 +92,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
   async function applyOverlayDueDates<T extends { id: string; currentDueDate: Date }>(
     rows: T[],
   ): Promise<T[]> {
-    const overlayDueDates = await listActiveOverlayDueDates(
+    const overlayDueDates = await listActiveOverlayInternalDeadlines(
       db,
       firmId,
       rows.map((row) => row.id),

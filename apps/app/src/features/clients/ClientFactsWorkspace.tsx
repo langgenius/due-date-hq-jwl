@@ -1179,7 +1179,7 @@ function ClientWorkPlanPanel({
                       <Trans>Filing</Trans>
                     </TableHead>
                     <TableHead className="w-[132px]">
-                      <Trans>Due</Trans>
+                      <Trans>Internal</Trans>
                     </TableHead>
                     <TableHead className="w-[132px]">
                       <Trans>Status</Trans>

@@ -6,6 +6,11 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, Loader2Icon } from 'lucide-react'
 
 import { derivePracticeName } from '@duedatehq/core/practice-name'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { type AuthUser } from '@/lib/auth'
@@ -43,6 +48,9 @@ export function OnboardingRoute() {
     [user.name, user.email, fallback],
   )
   const [name, setName] = useState(defaultName)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  )
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
@@ -57,10 +65,18 @@ export function OnboardingRoute() {
       setError(t`Please enter at least 2 characters.`)
       return
     }
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      setError(t`Internal deadline offset must be between 0 and 365 days.`)
+      return
+    }
 
     setIsSubmitting(true)
     void activateOrCreateOnboardingFirm({
       name: trimmed,
+      internalDeadlineOffsetDays,
       gateway: {
         listMine: () =>
           queryClient.fetchQuery(orpc.firms.listMine.queryOptions({ input: undefined })),
@@ -132,6 +148,34 @@ export function OnboardingRoute() {
               <Trans>This is what your team and clients will see.</Trans>
             </p>
           )}
+        </div>
+
+        <div className="mt-5 flex flex-col gap-1.5">
+          <label
+            htmlFor="internal-deadline-offset"
+            className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary"
+          >
+            <Trans>Internal deadline</Trans>
+          </label>
+          <Input
+            id="internal-deadline-offset"
+            name="internalDeadlineOffsetDays"
+            type="number"
+            min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+            max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+            step={1}
+            value={internalDeadlineOffsetDays}
+            onChange={(event) =>
+              setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+            }
+            aria-describedby="internal-deadline-offset-helper"
+          />
+          <p
+            id="internal-deadline-offset-helper"
+            className="text-[12px] leading-relaxed text-text-muted"
+          >
+            <Trans>Show work as due this many days before the statutory deadline.</Trans>
+          </p>
         </div>
 
         <Button

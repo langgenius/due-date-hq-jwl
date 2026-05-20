@@ -13,6 +13,10 @@ import {
   estimateProjectedExposure,
   PENALTY_FACTS_VERSION,
 } from '@duedatehq/core/penalty'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  internalDeadlineFromBaseDueDate,
+} from '@duedatehq/core/deadlines'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { toCoreRule } from '../rules/runtime'
@@ -175,6 +179,7 @@ export async function runAnnualRollover(input: {
   userId: string
   params: AnnualRolloverInput
   mode: AnnualRolloverMode
+  internalDeadlineOffsetDays?: number
   rules?: readonly ObligationRule[]
   now?: Date
 }): Promise<AnnualRolloverOutput> {
@@ -332,6 +337,10 @@ export async function runAnnualRollover(input: {
         if (input.mode !== 'create' || !rule || !preview.dueDate || duplicateId) continue
 
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
+        const internalDueDate = internalDeadlineFromBaseDueDate(
+          dueDate,
+          input.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+        )
         const penaltyFacts = buildPenaltyFactsFromLegacy({
           taxType: preview.taxType,
           estimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
@@ -357,7 +366,7 @@ export async function runAnnualRollover(input: {
           generationSource: 'annual_rollover',
           jurisdiction: preview.jurisdiction,
           baseDueDate: dueDate,
-          currentDueDate: dueDate,
+          currentDueDate: internalDueDate,
           status: targetStatus,
           estimatedTaxDueCents: exposure.estimatedTaxDueCents,
           estimatedExposureCents: exposure.estimatedExposureCents,

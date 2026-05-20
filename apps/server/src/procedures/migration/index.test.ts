@@ -64,6 +64,7 @@ function contextFor(plan: BillingPlan = 'solo') {
         plan,
         seatLimit: 1,
         status: 'active',
+        internalDeadlineOffsetDays: 14,
         ownerUserId: 'user_owner',
         coordinatorCanSeeDollars: false,
       },

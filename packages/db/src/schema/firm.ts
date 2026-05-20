@@ -48,6 +48,11 @@ export const firmProfile = sqliteTable('firm_profile', {
   // should let the user pick. Decision recorded in dev-log.
   timezone: text('timezone').notNull().default('America/New_York'),
 
+  // Firm target-date policy. UI-facing current_due_date is derived as
+  // base_due_date minus this many calendar days for newly generated
+  // obligations and when the practice profile policy changes.
+  internalDeadlineOffsetDays: integer('internal_deadline_offset_days').notNull().default(14),
+
   // onDelete:'restrict' — deleting a user must first transfer ownership (or
   // soft-delete the firm). Application layer (P1 owner transfer flow)
   // enforces this; D1 catches programmer errors.

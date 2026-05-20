@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, isNull, ne } from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { rankSmartPriorities, type SmartPriorityProfile } from '@duedatehq/core/priority'
 import type {
@@ -12,7 +12,7 @@ import { member, organization, session, subscription } from '../schema/auth'
 import { client } from '../schema/clients'
 import { firmProfile, type FirmProfile } from '../schema/firm'
 import { obligationInstance, type ObligationStatus } from '../schema/obligations'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { fromSmartPriorityProfile, toSmartPriorityProfile } from './priority-profile'
 
 export type FirmRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
@@ -24,6 +24,7 @@ export interface FirmMembershipRow {
   plan: FirmProfile['plan']
   seatLimit: number
   timezone: string
+  internalDeadlineOffsetDays: number
   status: FirmProfile['status']
   role: FirmRole
   ownerUserId: string
@@ -38,6 +39,7 @@ export interface FirmMembershipRow {
 export interface FirmUpdateInput {
   name: string
   timezone: string
+  internalDeadlineOffsetDays: number
   coordinatorCanSeeDollars?: boolean
   smartPriorityProfile?: SmartPriorityProfile
 }
@@ -83,6 +85,7 @@ function toMembershipRow(row: {
   plan: FirmProfile['plan']
   seatLimit: number
   timezone: string
+  internalDeadlineOffsetDays: number
   status: FirmProfile['status']
   role: string
   ownerUserId: string
@@ -100,6 +103,7 @@ function toMembershipRow(row: {
     plan: row.plan,
     seatLimit: row.seatLimit,
     timezone: row.timezone,
+    internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
     status: row.status,
     role: normalizeRole(row.role),
     ownerUserId: row.ownerUserId,
@@ -121,6 +125,7 @@ function baseFirmSelect(db: Db) {
       plan: firmProfile.plan,
       seatLimit: firmProfile.seatLimit,
       timezone: firmProfile.timezone,
+      internalDeadlineOffsetDays: firmProfile.internalDeadlineOffsetDays,
       status: firmProfile.status,
       role: member.role,
       ownerUserId: firmProfile.ownerUserId,
@@ -276,6 +281,7 @@ export function makeFirmsRepo(db: Db) {
       const patch: Partial<typeof firmProfile.$inferInsert> = {
         name: input.name,
         timezone: input.timezone,
+        internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
         updatedAt: now,
       }
       if (input.coordinatorCanSeeDollars !== undefined) {
@@ -288,6 +294,21 @@ export function makeFirmsRepo(db: Db) {
         db.update(firmProfile).set(patch).where(eq(firmProfile.id, firmId)),
         db.update(organization).set({ name: input.name }).where(eq(organization.id, firmId)),
       ])
+    },
+
+    async applyInternalDeadlineOffset(firmId: string, offsetDays: number): Promise<number> {
+      const [countRow] = await db
+        .select({ value: count() })
+        .from(obligationInstance)
+        .where(eq(obligationInstance.firmId, firmId))
+      await db
+        .update(obligationInstance)
+        .set({
+          currentDueDate: sql<Date>`${obligationInstance.baseDueDate} - (${offsetDays} * 86400000)`,
+          updatedAt: new Date(),
+        })
+        .where(eq(obligationInstance.firmId, firmId))
+      return countRow?.value ?? 0
     },
 
     async previewSmartPriorityProfile(
@@ -324,7 +345,7 @@ export function makeFirmsRepo(db: Db) {
 
       const obligationIds = rawRows.map((row) => row.obligationId)
       const [overlayDueDates, evidenceCounts] = await Promise.all([
-        listActiveOverlayDueDates(db, firmId, obligationIds),
+        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
         listEvidenceCounts(firmId, obligationIds),
       ])
       const priorityInputs = rawRows.map((row) =>

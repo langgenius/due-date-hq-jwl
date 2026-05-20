@@ -31,6 +31,7 @@ async function buildService(
     scoped,
     userId,
     plan: tenant.plan,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     ...(tenant.createdAt ? { firmCreatedAt: tenant.createdAt } : {}),
     ai: createAI(ctx.env),
     rawBucket: ctx.env.R2_MIGRATION,
