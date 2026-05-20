@@ -84,11 +84,13 @@ export function AppShell(props: AppShellProps) {
             />
           </div>
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="bg-background-default">
           {/* Route header strip removed — page title was redundant
             with the sidebar selection state, and notifications + user
             menu now live in the sidebar footer (alongside Settings)
-            where account-level controls belong. */}
+            where account-level controls belong.
+            bg-background-default makes the inset white (Notion/Linear
+            pattern: gray rail, white work surface). */}
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
             {/* Bumped from 1080px → 2xl (1536px) so wide table surfaces
               like Coverage's 52×11 matrix fit without clipping.
