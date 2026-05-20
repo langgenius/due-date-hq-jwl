@@ -161,6 +161,9 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       county:
         profileRows.find((profile) => profile.state === primaryState)?.counties[0] ?? facts.county,
       entityType: facts.entityType,
+      taxYearType: facts.taxYearType,
+      fiscalYearEndMonth: facts.fiscalYearEndMonth,
+      fiscalYearEndDay: facts.fiscalYearEndDay,
       email: facts.email,
       notes: facts.notes,
       assigneeName: facts.assigneeName,
@@ -218,6 +221,9 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           entityType: facts.entityType,
           state: profile.state,
           taxTypes: profile.taxTypes,
+          taxYearType: facts.taxYearType,
+          fiscalYearEndMonth: facts.fiscalYearEndMonth,
+          fiscalYearEndDay: facts.fiscalYearEndDay,
           ...(facts.penaltyFacts.periodStart && facts.penaltyFacts.periodEnd
             ? {
                 taxYearStart: facts.penaltyFacts.periodStart,
@@ -446,6 +452,9 @@ interface ClientImportFacts {
   state: RuleGenerationState | null
   county: string | null
   entityType: EntityType
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   email: string | null
   notes: string | null
   assigneeName: string | null
@@ -462,6 +471,8 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
   const rawFilingStates = readMappedValue(input, 'client.filing_states')
   const rawEntity = readMappedValue(input, 'client.entity_type')
   const rawTaxTypes = readMappedValue(input, 'client.tax_types')
+  const rawTaxYearType = readMappedValue(input, 'client.tax_year_type')
+  const rawFiscalYearEnd = readMappedValue(input, 'client.fiscal_year_end')
   const rawEstimatedTaxLiability = readMappedValue(input, 'client.estimated_tax_liability')
   const rawEquityOwnerCount = readMappedValue(input, 'client.equity_owner_count')
   const rawPenaltyTaxDue = readMappedValue(input, 'penalty.tax_due')
@@ -495,6 +506,7 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
   const entity = normalizeMappedValue(input.normalizations, 'entity_type', rawEntity)
   const entityCandidate = entity ?? ''
   const entityType: EntityType = isEntityType(entityCandidate) ? entityCandidate : 'other'
+  const taxYearProfile = resolveImportedTaxYearProfile(rawTaxYearType, rawFiscalYearEnd)
   const taxTypes = normalizeTaxTypes(input.normalizations, rawTaxTypes)
   const profiles = filingStates.map((state) =>
     buildProfileFacts({
@@ -516,6 +528,9 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
         : (profiles[0]?.state ?? null),
     county: readMappedValue(input, 'client.county'),
     entityType,
+    taxYearType: taxYearProfile.taxYearType,
+    fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
+    fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
     email: normalizeEmail(readMappedValue(input, 'client.email')),
     notes: readMappedValue(input, 'client.notes'),
     assigneeName: readMappedValue(input, 'client.assignee_name'),
@@ -553,6 +568,118 @@ function splitListValue(value: string | null): string[] {
     .split(/[;,|/]/)
     .map((item) => item.trim())
     .filter((item) => item.length > 0)
+}
+
+const EMPTY_TAX_YEAR_VALUES = new Set(['', 'n/a', 'na', 'none', 'null', '-', '--'])
+const MONTH_BY_NAME: ReadonlyMap<string, number> = new Map([
+  ['jan', 1],
+  ['january', 1],
+  ['feb', 2],
+  ['february', 2],
+  ['mar', 3],
+  ['march', 3],
+  ['apr', 4],
+  ['april', 4],
+  ['may', 5],
+  ['jun', 6],
+  ['june', 6],
+  ['jul', 7],
+  ['july', 7],
+  ['aug', 8],
+  ['august', 8],
+  ['sep', 9],
+  ['sept', 9],
+  ['september', 9],
+  ['oct', 10],
+  ['october', 10],
+  ['nov', 11],
+  ['november', 11],
+  ['dec', 12],
+  ['december', 12],
+] as const)
+
+function resolveImportedTaxYearProfile(
+  rawTaxYearType: string | null,
+  rawFiscalYearEnd: string | null,
+): {
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+} {
+  const taxYearType = normalizeImportedTaxYearType(rawTaxYearType)
+  const fiscalYearEndRaw = meaningfulTaxYearText(rawFiscalYearEnd)
+  const fiscalYearEnd = parseFiscalYearEnd(fiscalYearEndRaw)
+  const shouldUseFiscal =
+    taxYearType === 'fiscal' || fiscalYearEnd !== null || fiscalYearEndRaw !== null
+
+  if (!shouldUseFiscal) {
+    return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
+  }
+
+  return {
+    taxYearType: 'fiscal',
+    fiscalYearEndMonth: fiscalYearEnd?.month ?? null,
+    fiscalYearEndDay: fiscalYearEnd?.day ?? null,
+  }
+}
+
+function meaningfulTaxYearText(value: string | null): string | null {
+  const normalized = value?.trim().toLowerCase() ?? ''
+  if (EMPTY_TAX_YEAR_VALUES.has(normalized)) return null
+  if (normalized === 'calendar' || normalized === 'calendar year' || normalized === 'cy')
+    return null
+  return value?.trim() || null
+}
+
+function normalizeImportedTaxYearType(value: string | null): 'calendar' | 'fiscal' | null {
+  const normalized = value?.trim().toLowerCase() ?? ''
+  if (EMPTY_TAX_YEAR_VALUES.has(normalized)) return null
+  if (/^(f|fy|fiscal|fiscal year|fiscal-year)$/.test(normalized)) return 'fiscal'
+  if (/\bfiscal\b/.test(normalized) || /\bfye\b/.test(normalized)) return 'fiscal'
+  if (/^(c|cy|calendar|calendar year|calendar-year)$/.test(normalized)) return 'calendar'
+  if (/\bcalendar\b/.test(normalized)) return 'calendar'
+  return null
+}
+
+function parseFiscalYearEnd(value: string | null): { month: number; day: number } | null {
+  const raw = meaningfulTaxYearText(value)
+  if (!raw) return null
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replaceAll(',', ' ')
+    .replace(/\byear[-\s]+end\b/g, ' ')
+    .replace(/\b(fiscal|tax|year|end|ending|fy|fye)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(cleaned)
+  if (iso) return validMonthDay(Number(iso[2]), Number(iso[3]))
+
+  const numeric = /^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?$/.exec(cleaned)
+  if (numeric) return validMonthDay(Number(numeric[1]), Number(numeric[2]))
+
+  const monthNameFirst = /^([a-z]+)\s+(\d{1,2})(?:\s+\d{2,4})?$/.exec(cleaned)
+  if (monthNameFirst) {
+    const month = MONTH_BY_NAME.get(monthNameFirst[1] ?? '')
+    if (month) return validMonthDay(month, Number(monthNameFirst[2]))
+  }
+
+  const dayFirst = /^(\d{1,2})\s+([a-z]+)(?:\s+\d{2,4})?$/.exec(cleaned)
+  if (dayFirst) {
+    const month = MONTH_BY_NAME.get(dayFirst[2] ?? '')
+    if (month) return validMonthDay(month, Number(dayFirst[1]))
+  }
+
+  return null
+}
+
+function validMonthDay(month: number, day: number): { month: number; day: number } | null {
+  if (!Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return { month, day }
 }
 
 function normalizeStates(
@@ -624,6 +751,9 @@ function mergeClientFacts(a: ClientImportFacts, b: ClientImportFacts): ClientImp
     ein: a.ein ?? b.ein,
     state: a.state ?? b.state,
     county: a.county ?? b.county,
+    taxYearType: a.taxYearType === 'fiscal' || b.taxYearType === 'fiscal' ? 'fiscal' : 'calendar',
+    fiscalYearEndMonth: a.fiscalYearEndMonth ?? b.fiscalYearEndMonth,
+    fiscalYearEndDay: a.fiscalYearEndDay ?? b.fiscalYearEndDay,
     email: a.email ?? b.email,
     notes: uniqueStrings([a.notes ?? '', b.notes ?? '']).join('\n') || null,
     assigneeName: a.assigneeName ?? b.assigneeName,

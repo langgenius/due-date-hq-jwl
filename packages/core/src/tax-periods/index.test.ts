@@ -9,6 +9,7 @@ describe('@duedatehq/core/tax-periods', () => {
       taxPeriodKind: 'calendar',
       taxPeriodSource: 'client_default',
       taxPeriodReviewReason: null,
+      missingClientFacts: [],
     })
   })
 
@@ -27,10 +28,12 @@ describe('@duedatehq/core/tax-periods', () => {
       taxPeriodEnd: '2026-06-30',
       taxPeriodKind: 'fiscal',
       taxPeriodSource: 'client_default',
+      taxPeriodReviewReason: null,
+      missingClientFacts: [],
     })
   })
 
-  it('returns a review-only fiscal period when the fiscal year end is missing', () => {
+  it('returns a client-fact gap when an explicit fiscal client lacks a year end', () => {
     expect(
       resolveClientReturnTaxPeriod({
         taxYear: 2025,
@@ -42,6 +45,7 @@ describe('@duedatehq/core/tax-periods', () => {
       taxPeriodKind: 'fiscal',
       taxPeriodReviewReason:
         'Fiscal-year client is missing a confirmed tax year end month and day.',
+      missingClientFacts: ['fiscalYearEnd'],
     })
   })
 

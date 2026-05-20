@@ -162,6 +162,7 @@ function annualResult(overrides: Partial<AnnualRolloverOutput> = {}): AnnualRoll
           requiresReview: false,
           reminderReady: true,
           reviewReasons: [],
+          missingClientFacts: [],
         },
         disposition: 'will_create',
         targetStatus: 'pending',

@@ -98,6 +98,14 @@ export interface ClientsRepo {
       lateFilingCountLast12mo?: number
     },
   ): Promise<void>
+  updateTaxYearProfile(
+    id: string,
+    input: {
+      taxYearType: 'calendar' | 'fiscal'
+      fiscalYearEndMonth: number | null
+      fiscalYearEndDay: number | null
+    },
+  ): Promise<void>
   updateAssigneeMany(
     ids: string[],
     input: { assigneeId: string | null; assigneeName: string | null },

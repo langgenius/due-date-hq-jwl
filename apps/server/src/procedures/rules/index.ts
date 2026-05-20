@@ -50,6 +50,7 @@ function toPreview(
     sourceIds: [...preview.sourceIds],
     evidence: preview.evidence.map((item) => ({ ...item })),
     reviewReasons: [...preview.reviewReasons],
+    missingClientFacts: [...preview.missingClientFacts],
   }
 }
 

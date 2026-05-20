@@ -468,16 +468,14 @@ const replaceFilingProfiles = os.clients.replaceFilingProfiles.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
     const { scoped, tenant, userId } = requireTenant(context)
-    const [before, beforeProfiles] = await Promise.all([
-      scoped.clients.findById(input.id),
-      scoped.filingProfiles.listByClient(input.id),
-    ])
+    const before = await scoped.clients.findById(input.id)
     if (!before) {
       throw new ORPCError('NOT_FOUND', {
         message: `Client ${input.id} not found in current firm.`,
       })
     }
 
+    const beforeProfiles = await scoped.filingProfiles.listByClient(input.id)
     const afterProfiles = await scoped.filingProfiles.replaceForClient(
       input.id,
       buildReplacementProfiles(input.profiles),
@@ -540,6 +538,74 @@ const replaceFilingProfiles = os.clients.replaceFilingProfiles.handler(
     }
   },
 )
+
+const updateTaxYearProfile = os.clients.updateTaxYearProfile.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+
+  const nextFiscalYearEndMonth = input.taxYearType === 'fiscal' ? input.fiscalYearEndMonth : null
+  const nextFiscalYearEndDay = input.taxYearType === 'fiscal' ? input.fiscalYearEndDay : null
+  await scoped.clients.updateTaxYearProfile(input.id, {
+    taxYearType: input.taxYearType,
+    fiscalYearEndMonth: nextFiscalYearEndMonth,
+    fiscalYearEndDay: nextFiscalYearEndDay,
+  })
+  const recalculatedObligationCount = await recalculateClientExposure(scoped, input.id)
+  const [after, afterProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated client could not be re-read.',
+    })
+  }
+
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.tax_year_profile.updated',
+    before: {
+      taxYearType: before.taxYearType,
+      fiscalYearEndMonth: before.fiscalYearEndMonth,
+      fiscalYearEndDay: before.fiscalYearEndDay,
+    },
+    after: {
+      taxYearType: after.taxYearType,
+      fiscalYearEndMonth: after.fiscalYearEndMonth,
+      fiscalYearEndDay: after.fiscalYearEndDay,
+      recalculatedObligationCount,
+    },
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+  })
+
+  await Promise.all([
+    enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'client_facts_change',
+    }).catch(() => false),
+    enqueueAiInsightRefresh(context.env, {
+      firmId: tenant.firmId,
+      kind: 'client_risk_summary',
+      subjectId: input.id,
+      reason: 'client_tax_year_profile_update',
+    }).catch(() => false),
+  ])
+
+  const hideDollars = await shouldHideDollars(context)
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles: afterProfiles }),
+    recalculatedObligationCount,
+    auditId,
+  }
+})
 
 const updatePenaltyInputs = os.clients.updatePenaltyInputs.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
@@ -830,6 +896,7 @@ export const clientsHandlers = {
   get,
   listByFirm,
   updateJurisdiction,
+  updateTaxYearProfile,
   replaceFilingProfiles,
   updatePenaltyInputs,
   updateRiskProfile,

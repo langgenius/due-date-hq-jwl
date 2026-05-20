@@ -11,6 +11,8 @@ const labels: MappingTargetLabels = {
   'client.county': 'County',
   'client.entity_type': 'Entity type',
   'client.tax_types': 'Tax types',
+  'client.tax_year_type': 'Tax year type',
+  'client.fiscal_year_end': 'Fiscal year end',
   'client.email': 'Email',
   'client.assignee_name': 'Assignee',
   'client.estimated_tax_liability': 'Estimated tax liability',

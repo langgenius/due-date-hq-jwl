@@ -29,6 +29,8 @@ import {
   ClientDeleteOutputSchema,
   ClientJurisdictionUpdateOutputSchema,
   ClientJurisdictionUpdateSchema,
+  ClientTaxYearProfileUpdateOutputSchema,
+  ClientTaxYearProfileUpdateSchema,
   clientsContract,
 } from './clients'
 import {
@@ -494,6 +496,11 @@ describe('@duedatehq/contracts', () => {
         riskLevel: 'med',
         baseDueDate: '2026-04-15',
         currentDueDate: '2026-04-15',
+        taxPeriodStart: '2026-01-01',
+        taxPeriodEnd: '2026-12-31',
+        taxPeriodKind: 'calendar',
+        taxPeriodSource: 'client_default',
+        taxPeriodReviewReason: null,
         status: 'in_progress',
         blockedByObligationInstanceId: null,
         readiness: 'ready',
@@ -604,6 +611,11 @@ describe('@duedatehq/contracts', () => {
             matchedTaxType: 'ca_100',
             period: 'annual',
             dueDate: '2027-04-15',
+            taxPeriodStart: '2027-01-01',
+            taxPeriodEnd: '2027-12-31',
+            taxPeriodKind: 'calendar',
+            taxPeriodSource: 'client_default',
+            taxPeriodReviewReason: null,
             eventType: 'filing',
             isFiling: true,
             isPayment: false,
@@ -622,6 +634,7 @@ describe('@duedatehq/contracts', () => {
             requiresReview: false,
             reminderReady: true,
             reviewReasons: [],
+            missingClientFacts: [],
           },
           disposition: 'will_create',
           targetStatus: 'pending',
@@ -732,6 +745,27 @@ describe('@duedatehq/contracts', () => {
     })
     expect(output.client.state).toBe('WA')
     expect(output.recalculatedObligationCount).toBe(1)
+
+    expect(Object.keys(clientsContract)).toEqual(expect.arrayContaining(['updateTaxYearProfile']))
+    const taxYearInput = ClientTaxYearProfileUpdateSchema.parse({
+      id: '22222222-2222-4222-8222-222222222222',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+      reason: 'client fiscal year correction',
+    })
+    expect(taxYearInput.taxYearType).toBe('fiscal')
+    const taxYearOutput = ClientTaxYearProfileUpdateOutputSchema.parse({
+      client: {
+        ...output.client,
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: 6,
+        fiscalYearEndDay: 30,
+      },
+      recalculatedObligationCount: 1,
+      auditId: '33333333-3333-4333-8333-333333333333',
+    })
+    expect(taxYearOutput.client.fiscalYearEndMonth).toBe(6)
   })
 
   it('freezes obligations.list input shape', () => {
@@ -1550,6 +1584,11 @@ describe('@duedatehq/contracts', () => {
       matchedTaxType: 'ca_llc_franchise_min_800',
       period: 'tax_year',
       dueDate: '2026-04-15',
+      taxPeriodStart: '2026-01-01',
+      taxPeriodEnd: '2026-12-31',
+      taxPeriodKind: 'calendar',
+      taxPeriodSource: 'client_default',
+      taxPeriodReviewReason: null,
       eventType: 'payment',
       isFiling: false,
       isPayment: true,
@@ -1572,6 +1611,7 @@ describe('@duedatehq/contracts', () => {
       requiresReview: false,
       reminderReady: true,
       reviewReasons: [],
+      missingClientFacts: [],
     })
     expect(preview.reminderReady).toBe(true)
 

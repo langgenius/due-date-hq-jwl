@@ -14,11 +14,11 @@ import {
  * Procedures never call this constructor directly; they call
  * `scoped(db, firmId).clients` (packages/db/src/scoped.ts).
  *
- * D1 100-param budget: `client` inserts 17 cols -> 5 rows per batch INSERT.
+ * D1 100-param budget: `client` inserts 34 cols -> 2 rows per batch INSERT.
  */
 
 const COLS_PER_CLIENT_ROW = 34
-const CLIENT_BATCH_SIZE = Math.floor(100 / COLS_PER_CLIENT_ROW) // = 5
+const CLIENT_BATCH_SIZE = Math.floor(100 / COLS_PER_CLIENT_ROW) // = 2
 const CLIENT_LOOKUP_IDS_PER_BATCH = 99
 const CLIENT_UPDATE_IDS_PER_BATCH = 90
 
@@ -246,6 +246,24 @@ export function makeClientsRepo(db: Db, firmId: string) {
       await db
         .update(client)
         .set(patch)
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
+    async updateTaxYearProfile(
+      id: string,
+      input: {
+        taxYearType: 'calendar' | 'fiscal'
+        fiscalYearEndMonth: number | null
+        fiscalYearEndDay: number | null
+      },
+    ): Promise<void> {
+      await db
+        .update(client)
+        .set({
+          taxYearType: input.taxYearType,
+          fiscalYearEndMonth: input.taxYearType === 'fiscal' ? input.fiscalYearEndMonth : null,
+          fiscalYearEndDay: input.taxYearType === 'fiscal' ? input.fiscalYearEndDay : null,
+        })
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 

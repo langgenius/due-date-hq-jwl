@@ -18,6 +18,8 @@ const CALENDAR_WEEKDAY_ANCHOR_UTC = Date.UTC(2026, 0, 4)
 interface IsoDatePickerProps {
   value: string
   invalid?: boolean
+  disabled?: boolean
+  displayValue?: string
   ariaLabel?: string
   maxIsoDate?: string
   placeholder?: string
@@ -85,6 +87,8 @@ function appIntlLocale(): string {
 export function IsoDatePicker({
   value,
   invalid = false,
+  disabled = false,
+  displayValue,
   ariaLabel,
   maxIsoDate,
   placeholder,
@@ -137,6 +141,7 @@ export function IsoDatePicker({
   )
 
   function changeOpen(nextOpen: boolean) {
+    if (disabled) return
     setOpen(nextOpen)
     if (nextOpen) setVisibleMonth(visibleCalendarMonth(value))
   }
@@ -157,11 +162,13 @@ export function IsoDatePicker({
             aria-label={ariaLabel ?? t`Select date`}
             aria-expanded={open}
             aria-invalid={invalid || undefined}
+            disabled={disabled}
             className={cn(
               'flex h-8 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-transparent bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
               'hover:bg-components-input-bg-hover',
               'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
+              'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-components-input-bg-normal',
             )}
           >
             <span
@@ -172,7 +179,7 @@ export function IsoDatePicker({
                   : 'text-components-input-text-placeholder',
               )}
             >
-              {value || placeholder || t`Select date`}
+              {displayValue || value || placeholder || t`Select date`}
             </span>
             <CalendarDaysIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
           </button>
@@ -214,7 +221,7 @@ export function IsoDatePicker({
             const isoDate = isoDateFromUtcDate(date)
             const selected = isoDate === selectedIsoDate
             const currentMonth = date.getUTCMonth() === visibleMonth.getUTCMonth()
-            const disabled = isIsoDateAfterMax(isoDate, maxIsoDate)
+            const dateDisabled = isIsoDateAfterMax(isoDate, maxIsoDate)
             return (
               <Button
                 key={isoDate}
@@ -222,11 +229,11 @@ export function IsoDatePicker({
                 variant={selected ? 'accent' : 'ghost'}
                 size="xs"
                 aria-pressed={selected}
-                disabled={disabled}
+                disabled={dateDisabled}
                 className={cn(
                   'h-8 rounded-md px-0 font-mono text-xs tabular-nums',
                   !currentMonth && !selected ? 'text-text-muted' : undefined,
-                  disabled ? 'opacity-40' : undefined,
+                  dateDisabled ? 'opacity-40' : undefined,
                   isoDate === todayIsoDate && !selected ? 'border-divider-regular' : undefined,
                 )}
                 onClick={() => selectDate(date)}

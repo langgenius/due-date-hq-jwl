@@ -107,3 +107,41 @@ describe('makeClientsRepo.updateJurisdiction', () => {
     expect(fake.where).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('makeClientsRepo.updateTaxYearProfile', () => {
+  it('updates fiscal year profile in one tenant-scoped statement', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.updateTaxYearProfile('client_1', {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    expect(fake.update).toHaveBeenCalledTimes(1)
+    expect(fake.set).toHaveBeenCalledWith({
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+    expect(fake.where).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears fiscal year end fields for calendar-year clients', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.updateTaxYearProfile('client_1', {
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    expect(fake.set).toHaveBeenCalledWith({
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
+  })
+})

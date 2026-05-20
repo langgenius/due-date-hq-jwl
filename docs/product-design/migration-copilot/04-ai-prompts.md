@@ -36,22 +36,24 @@ PII 防护改由以下四道闸守住（对齐 PRD Part1B §6A.9 / Part2B §9.3 
 Preset fallback 不得自动命中税额、罚金、owner count 等客户自定义或 demo fixture 字段；这些字段需由
 AI 样本判断或用户手动确认。
 
-### 2.2 目标字段 Schema（严格 9 字段 + `IGNORE`）
+### 2.2 目标字段 Schema（严格 11 字段 + `IGNORE`）
 
 对齐 PRD Part1B §6A.2 + Part1A §4.1 P0-3。
 
-| target                 | 类型            | 必填     | 备注                                                                           |
-| ---------------------- | --------------- | -------- | ------------------------------------------------------------------------------ |
-| `client.name`          | string          | required | Client legal or DBA name                                                       |
-| `client.ein`           | string          | optional | 正则 `^\d{2}-\d{7}$`（9 位数字中间一连字符）                                   |
-| `client.state`         | string(2)       | required | 2-letter US state code；小写 / 全称经 Normalizer @ v1 归一                     |
-| `client.county`        | string          | optional | 州内 county；不归一（太细），异常字符告警                                      |
-| `client.entity_type`   | enum            | required | `llc / s_corp / partnership / c_corp / sole_prop / trust / individual / other` |
-| `client.tax_types`     | string[] (JSON) | optional | 缺失走 Default Matrix（见 [`./05-default-matrix.md`](./05-default-matrix.md)） |
-| `client.assignee_name` | string          | optional | 人名或邮箱；Demo Sprint 下不强制落 `assignee_id`                               |
-| `client.email`         | string          | optional | 客户联系邮箱                                                                   |
-| `client.notes`         | string          | optional | 自由文本                                                                       |
-| `IGNORE`               | —               | —        | 显式声明不使用该列（含 SSN 拦截列、未知列、重复列等）                          |
+| target                   | 类型            | 必填     | 备注                                                                           |
+| ------------------------ | --------------- | -------- | ------------------------------------------------------------------------------ |
+| `client.name`            | string          | required | Client legal or DBA name                                                       |
+| `client.ein`             | string          | optional | 正则 `^\d{2}-\d{7}$`（9 位数字中间一连字符）                                   |
+| `client.state`           | string(2)       | required | 2-letter US state code；小写 / 全称经 Normalizer @ v1 归一                     |
+| `client.county`          | string          | optional | 州内 county；不归一（太细），异常字符告警                                      |
+| `client.entity_type`     | enum            | required | `llc / s_corp / partnership / c_corp / sole_prop / trust / individual / other` |
+| `client.tax_types`       | string[] (JSON) | optional | 缺失走 Default Matrix（见 [`./05-default-matrix.md`](./05-default-matrix.md)） |
+| `client.tax_year_type`   | enum            | optional | `calendar / fiscal`；缺失、空值或无法可靠识别 fiscal 时按 calendar year 兜底   |
+| `client.fiscal_year_end` | string          | optional | 明确 fiscal-year client 的 year end；可含年份，写库只保留 month/day            |
+| `client.assignee_name`   | string          | optional | 人名或邮箱；Demo Sprint 下不强制落 `assignee_id`                               |
+| `client.email`           | string          | optional | 客户联系邮箱                                                                   |
+| `client.notes`           | string          | optional | 自由文本                                                                       |
+| `IGNORE`                 | —               | —        | 显式声明不使用该列（含 SSN 拦截列、未知列、重复列等）                          |
 
 > Entity type enum 本 Sprint 采 8 项（含 `individual`，对齐 PRD §6A.2 Schema）。数据层 `clients.entity_type` 若仍是 7 项 enum（`dev-file/03` §2.2），Mapper 输出经 post-processing 把 `individual` 保留；生效写库由 Client 模块兜底（追加 enum 成员或在迁移时做 v1→v1.1 的 enum 扩展，走契约 PR）。
 
@@ -113,6 +115,8 @@ export const MapperTarget = z.enum([
   'client.county',
   'client.entity_type',
   'client.tax_types',
+  'client.tax_year_type',
+  'client.fiscal_year_end',
   'client.assignee_name',
   'client.email',
   'client.notes',

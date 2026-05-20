@@ -9,6 +9,7 @@ export const TAX_PERIOD_SOURCES = [
   'unknown',
 ] as const
 export type TaxPeriodSource = (typeof TAX_PERIOD_SOURCES)[number]
+export type TaxPeriodMissingClientFact = 'fiscalYearEnd'
 
 export interface TaxPeriodResolution {
   taxPeriodStart: string | null
@@ -16,6 +17,7 @@ export interface TaxPeriodResolution {
   taxPeriodKind: TaxPeriodKind
   taxPeriodSource: TaxPeriodSource
   taxPeriodReviewReason: string | null
+  missingClientFacts: readonly TaxPeriodMissingClientFact[]
 }
 
 export interface ClientTaxPeriodFacts {
@@ -105,6 +107,7 @@ export function resolveTaxPeriodFromExplicitDates(input: {
       taxPeriodKind: 'unknown',
       taxPeriodSource: input.source,
       taxPeriodReviewReason: input.reviewReason ?? 'Tax period needs CPA confirmation.',
+      missingClientFacts: [],
     }
   }
 
@@ -114,6 +117,7 @@ export function resolveTaxPeriodFromExplicitDates(input: {
     taxPeriodKind: inferPeriodKind(input.taxPeriodStart, input.taxPeriodEnd),
     taxPeriodSource: input.source,
     taxPeriodReviewReason: input.reviewReason ?? null,
+    missingClientFacts: [],
   }
 }
 
@@ -132,6 +136,7 @@ export function resolveClientReturnTaxPeriod(input: {
       taxPeriodKind: 'calendar',
       taxPeriodSource: source,
       taxPeriodReviewReason: null,
+      missingClientFacts: [],
     }
   }
 
@@ -145,6 +150,7 @@ export function resolveClientReturnTaxPeriod(input: {
       taxPeriodSource: source,
       taxPeriodReviewReason:
         'Fiscal-year client is missing a confirmed tax year end month and day.',
+      missingClientFacts: ['fiscalYearEnd'],
     }
   }
 
@@ -158,6 +164,7 @@ export function resolveClientReturnTaxPeriod(input: {
       taxPeriodKind: 'fiscal',
       taxPeriodSource: source,
       taxPeriodReviewReason: 'Fiscal-year client has an invalid tax year end date.',
+      missingClientFacts: ['fiscalYearEnd'],
     }
   }
 
@@ -169,9 +176,8 @@ export function resolveClientReturnTaxPeriod(input: {
     taxPeriodEnd,
     taxPeriodKind: calendarEquivalent ? 'calendar' : 'fiscal',
     taxPeriodSource: source,
-    taxPeriodReviewReason: calendarEquivalent
-      ? 'Client is marked fiscal-year with a calendar year end; confirm the tax period.'
-      : 'Fiscal-year return period is based on client default fiscal year end; confirm the filed return period and fiscal-year basis.',
+    taxPeriodReviewReason: null,
+    missingClientFacts: [],
   }
 }
 

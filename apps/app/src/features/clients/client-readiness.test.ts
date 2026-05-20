@@ -73,6 +73,19 @@ describe('client readiness', () => {
     expect(readiness.missingRequiredFacts).toEqual(['state'])
   })
 
+  it('marks fiscal clients without a fiscal year end as needing facts', () => {
+    const readiness = getClientReadiness(
+      makeClient({
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: null,
+        fiscalYearEndDay: null,
+      }),
+    )
+
+    expect(readiness.status).toBe('needs_facts')
+    expect(readiness.missingRequiredFacts).toEqual(['fiscalYearEnd'])
+  })
+
   it('builds summary metrics from real client rows', () => {
     const model = buildClientFactsModel([
       makeClient({ id: '1', migrationBatchId: '00000000-0000-4000-8000-000000000001' }),

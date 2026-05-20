@@ -598,6 +598,7 @@ function GenerationPreviewForm({
       ) : (
         <PreviewResultsCard
           reminderReady={groups.reminderReady}
+          needsClientFacts={groups.needsClientFacts}
           requiresReview={groups.requiresReview}
         />
       )}
@@ -1040,9 +1041,11 @@ function isGenerationState(value: string | null): value is PreviewFormValues['st
 
 function PreviewResultsCard({
   reminderReady,
+  needsClientFacts,
   requiresReview,
 }: {
   reminderReady: ObligationGenerationPreview[]
+  needsClientFacts: ObligationGenerationPreview[]
   requiresReview: ObligationGenerationPreview[]
 }) {
   const { t } = useLingui()
@@ -1064,6 +1067,21 @@ function PreviewResultsCard({
           sourceLookup={sourceLookup}
         />
       ))}
+      {needsClientFacts.length > 0 ? (
+        <>
+          <PreviewGroupHeader
+            tone="review"
+            label={t`NEEDS CLIENT FACTS — ${needsClientFacts.length} items require client detail updates before deadlines can be created`}
+          />
+          {needsClientFacts.map((row) => (
+            <PreviewResultRow
+              key={`${row.ruleId}-${row.ruleVersion}-${row.period}`}
+              row={row}
+              sourceLookup={sourceLookup}
+            />
+          ))}
+        </>
+      ) : null}
       <PreviewGroupHeader
         tone="review"
         label={
@@ -1145,6 +1163,18 @@ function PreviewResultRow({
                 className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-[10px] text-severity-medium"
               >
                 {reason}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {row.missingClientFacts.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {row.missingClientFacts.map((fact) => (
+              <span
+                key={fact}
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium"
+              >
+                {fact === 'fiscalYearEnd' ? t`Needs fiscal year end` : fact}
               </span>
             ))}
           </div>

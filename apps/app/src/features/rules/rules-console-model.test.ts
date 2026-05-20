@@ -188,11 +188,13 @@ describe('rules console model', () => {
 
   it('groups preview rows by reminder readiness', () => {
     const rows = [
-      { ruleId: 'ready', reminderReady: true },
-      { ruleId: 'review', reminderReady: false },
+      { ruleId: 'ready', reminderReady: true, missingClientFacts: [] },
+      { ruleId: 'review', reminderReady: false, missingClientFacts: [] },
+      { ruleId: 'facts', reminderReady: false, missingClientFacts: ['fiscalYearEnd'] },
     ] as const
 
     expect(groupPreviewRows(rows).reminderReady.map((row) => row.ruleId)).toEqual(['ready'])
     expect(groupPreviewRows(rows).requiresReview.map((row) => row.ruleId)).toEqual(['review'])
+    expect(groupPreviewRows(rows).needsClientFacts.map((row) => row.ruleId)).toEqual(['facts'])
   })
 })

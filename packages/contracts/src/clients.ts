@@ -153,6 +153,48 @@ export const ClientJurisdictionUpdateOutputSchema = z.object({
 })
 export type ClientJurisdictionUpdateOutput = z.infer<typeof ClientJurisdictionUpdateOutputSchema>
 
+function isValidFiscalYearEnd(month: number, day: number): boolean {
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  return date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+}
+
+export const ClientTaxYearProfileUpdateSchema = z
+  .object({
+    id: EntityIdSchema,
+    taxYearType: ClientTaxYearTypeSchema,
+    fiscalYearEndMonth: z.number().int().min(1).max(12).nullable(),
+    fiscalYearEndDay: z.number().int().min(1).max(31).nullable(),
+    reason: z.string().max(280).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.taxYearType !== 'fiscal') return
+    if (!value.fiscalYearEndMonth || !value.fiscalYearEndDay) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndMonth'],
+        message: 'Fiscal-year clients require a fiscal year end month and day.',
+      })
+      return
+    }
+    if (!isValidFiscalYearEnd(value.fiscalYearEndMonth, value.fiscalYearEndDay)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndDay'],
+        message: 'Fiscal year end must be a valid month/day.',
+      })
+    }
+  })
+export type ClientTaxYearProfileUpdateInput = z.infer<typeof ClientTaxYearProfileUpdateSchema>
+
+export const ClientTaxYearProfileUpdateOutputSchema = z.object({
+  client: ClientPublicSchema,
+  recalculatedObligationCount: z.number().int().min(0),
+  auditId: EntityIdSchema,
+})
+export type ClientTaxYearProfileUpdateOutput = z.infer<
+  typeof ClientTaxYearProfileUpdateOutputSchema
+>
+
 export const ClientFilingProfilesReplaceSchema = z.object({
   id: EntityIdSchema,
   profiles: z.array(ClientFilingProfileInputSchema).max(25),
@@ -232,6 +274,9 @@ export const clientsContract = oc.router({
   updateJurisdiction: oc
     .input(ClientJurisdictionUpdateSchema)
     .output(ClientJurisdictionUpdateOutputSchema),
+  updateTaxYearProfile: oc
+    .input(ClientTaxYearProfileUpdateSchema)
+    .output(ClientTaxYearProfileUpdateOutputSchema),
   replaceFilingProfiles: oc
     .input(ClientFilingProfilesReplaceSchema)
     .output(ClientFilingProfilesReplaceOutputSchema),

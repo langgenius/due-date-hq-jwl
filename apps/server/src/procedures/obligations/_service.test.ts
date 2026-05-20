@@ -195,6 +195,7 @@ function buildScoped(firmId: string, rows: Row[]) {
     async updatePenaltyInputs() {},
     async updateJurisdiction() {},
     async updateRiskProfile() {},
+    async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
     async deleteByBatch() {

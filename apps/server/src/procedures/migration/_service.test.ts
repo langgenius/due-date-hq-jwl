@@ -111,10 +111,22 @@ function buildScopedRepo(firmId: string) {
   const audits: Array<{ action: string; firmId: string; entityId: string }> = []
   const evidences: Array<{ sourceType: string; firmId: string; aiOutputId?: string | null }> = []
   const aiRuns: Array<{ kind: string; aiOutputId: string }> = []
-  const importedClients: Array<{ id: string; migrationBatchId: string | null | undefined }> = []
+  const importedClients: Array<{
+    id: string
+    name?: string
+    taxYearType: 'calendar' | 'fiscal' | undefined
+    fiscalYearEndMonth: number | null | undefined
+    fiscalYearEndDay: number | null | undefined
+    migrationBatchId: string | null | undefined
+  }> = []
   const importedObligations: Array<{
     id: string
     clientId: string
+    taxType: string | undefined
+    baseDueDate: Date | undefined
+    taxPeriodStart: Date | null | undefined
+    taxPeriodEnd: Date | null | undefined
+    status: string | undefined
     migrationBatchId: string | null | undefined
   }> = []
   const stagingRows: Array<{
@@ -200,6 +212,7 @@ function buildScopedRepo(firmId: string) {
     async updatePenaltyInputs() {},
     async updateJurisdiction() {},
     async updateRiskProfile() {},
+    async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
     async deleteByBatch() {
@@ -417,6 +430,10 @@ function buildScopedRepo(firmId: string) {
       importedClients.push(
         ...input.clients.map((item) => ({
           id: item.id,
+          name: item.name,
+          taxYearType: item.taxYearType,
+          fiscalYearEndMonth: item.fiscalYearEndMonth,
+          fiscalYearEndDay: item.fiscalYearEndDay,
           migrationBatchId: item.migrationBatchId,
         })),
       )
@@ -424,6 +441,11 @@ function buildScopedRepo(firmId: string) {
         ...input.obligations.map((item) => ({
           id: item.id,
           clientId: item.clientId,
+          taxType: item.taxType,
+          baseDueDate: item.baseDueDate,
+          taxPeriodStart: item.taxPeriodStart,
+          taxPeriodEnd: item.taxPeriodEnd,
+          status: item.status,
           migrationBatchId: item.migrationBatchId,
         })),
       )
@@ -1758,6 +1780,110 @@ describe('MigrationService.apply', () => {
     expect(state.audits.some((item) => item.action === 'migration.imported')).toBe(true)
     expect(appliedBatch?.status).toBe('applied')
     expect(appliedBatch?.successCount).toBe(3)
+  })
+
+  it('uses calendar fallback unless imported client facts explicitly mark a fiscal year', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types,Tax Year Type,Fiscal Year End
+Calendar S Corp,CA,S-Corp,federal_1120s,,
+Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+        'Tax Year Type': 'client.tax_year_type',
+        'Fiscal Year End': 'client.fiscal_year_end',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    await service.apply(batch.id)
+
+    const calendarClient = state.importedClients.find((client) => client.name === 'Calendar S Corp')
+    const fiscalClient = state.importedClients.find((client) => client.name === 'Fiscal S Corp')
+    expect(calendarClient).toMatchObject({
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
+    expect(fiscalClient).toMatchObject({
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    const calendarObligation = state.importedObligations.find(
+      (obligation) =>
+        obligation.clientId === calendarClient?.id && obligation.taxType === 'federal_1120s',
+    )
+    const fiscalObligation = state.importedObligations.find(
+      (obligation) =>
+        obligation.clientId === fiscalClient?.id && obligation.taxType === 'federal_1120s',
+    )
+    expect(calendarObligation).toMatchObject({
+      baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
+      taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
+      taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
+      status: 'pending',
+    })
+    expect(fiscalObligation).toMatchObject({
+      baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+      taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
+      taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
+      status: 'pending',
+    })
+  })
+
+  it('creates the fiscal client but skips deadline creation when fiscal year end is missing', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types,Tax Year Type
+Fiscal Missing End,CA,S-Corp,federal_1120s,Fiscal`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+        'Tax Year Type': 'client.tax_year_type',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const result = await service.apply(batch.id)
+
+    expect(result.clientCount).toBe(1)
+    expect(result.obligationCount).toBe(0)
+    expect(state.importedClients[0]).toMatchObject({
+      name: 'Fiscal Missing End',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
+    expect(state.importedObligations).toHaveLength(0)
   })
 
   it('skips empty-name rows without blocking valid rows', async () => {

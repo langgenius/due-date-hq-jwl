@@ -63,6 +63,7 @@ export const router = os.router({
     listByFirm: clientsHandlers.listByFirm,
     updateJurisdiction: clientsHandlers.updateJurisdiction,
     replaceFilingProfiles: clientsHandlers.replaceFilingProfiles,
+    updateTaxYearProfile: clientsHandlers.updateTaxYearProfile,
     updatePenaltyInputs: clientsHandlers.updatePenaltyInputs,
     updateRiskProfile: clientsHandlers.updateRiskProfile,
     getRiskSummary: clientsHandlers.getRiskSummary,

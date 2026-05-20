@@ -303,8 +303,12 @@ filing 或 payment deadline，必须显式写出 `Filing Deadline` / `Payment De
 internal deadline 混用。
 
 Obligation detail 展示税务机关 deadline 时，必须同时展示 CPA-facing `Tax period`。Fiscal-year
-和 short-year return 的 deadline 以 obligation tax period 为依据；缺少确认 period 的 fiscal
-client 应进入 review 状态，不得静默显示 calendar-year deadline。
+和 short-year return 的 deadline 以 obligation tax period 为依据；如果客户没有明确标记为
+fiscal year，系统按 calendar year 兜底计算。只有明确 fiscal-year client 且缺少有效 fiscal
+year end 时，才显示 `Needs fiscal year end` 作为 client-level missing fact；这类客户不得生成
+占位 deadline，也不得静默显示 calendar-year deadline。有效 fiscal year end 是 CPA 导入或维护
+的客户事实，直接用于 Tax Period、Filing Deadline、Payment Deadline 和 Internal deadline，不进入
+Tax Period review。
 
 ---
 

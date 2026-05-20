@@ -206,6 +206,9 @@ export interface CommitClientInput {
   state?: string | null
   county?: string | null
   entityType: ClientEntityType
+  taxYearType?: 'calendar' | 'fiscal'
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
   email?: string | null
   notes?: string | null
   assigneeName?: string | null

@@ -169,6 +169,7 @@ function previewForOutput(
       locator: { ...evidence.locator },
     })),
     reviewReasons: [...preview.reviewReasons],
+    missingClientFacts: [...preview.missingClientFacts],
   }
 }
 

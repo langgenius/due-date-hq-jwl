@@ -375,8 +375,34 @@ describe('@duedatehq/core/rules', () => {
       taxPeriodEnd: '2026-06-30',
       taxPeriodKind: 'fiscal',
       taxPeriodSource: 'client_default',
-      requiresReview: true,
+      taxPeriodReviewReason: null,
+      requiresReview: false,
+      reminderReady: true,
+      reviewReasons: [],
+      missingClientFacts: [],
+    })
+  })
+
+  it('blocks fiscal-year deadlines when the fiscal year end is missing', () => {
+    const previews = previewObligationsFromRules({
+      client: {
+        id: 'client_scorp_fiscal_missing_end',
+        entityType: 's_corp',
+        state: 'NY',
+        taxTypes: ['federal_1120s'],
+        taxYearType: 'fiscal',
+      },
+    })
+
+    expect(previews.find((preview) => preview.ruleId === 'fed.1120s.return.2025')).toMatchObject({
+      dueDate: null,
+      taxPeriodStart: null,
+      taxPeriodEnd: null,
+      taxPeriodKind: 'fiscal',
+      requiresReview: false,
       reminderReady: false,
+      reviewReasons: [],
+      missingClientFacts: ['fiscalYearEnd'],
     })
   })
 

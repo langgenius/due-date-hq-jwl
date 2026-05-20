@@ -204,6 +204,8 @@ export type {
   ClientRiskSummaryInput,
   ClientRiskSummaryRefreshInput,
   ClientRiskSummaryRefreshOutput,
+  ClientTaxYearProfileUpdateInput,
+  ClientTaxYearProfileUpdateOutput,
   ClientsContract,
 } from './clients'
 export {
@@ -227,6 +229,8 @@ export {
   ClientRiskSummaryInputSchema,
   ClientRiskSummaryRefreshInputSchema,
   ClientRiskSummaryRefreshOutputSchema,
+  ClientTaxYearProfileUpdateOutputSchema,
+  ClientTaxYearProfileUpdateSchema,
   clientsContract,
 } from './clients'
 
@@ -559,6 +563,7 @@ export type {
   RuleBulkImpactPreviewInput,
   RuleCustomRuleInput,
   RuleGenerationClientFacts,
+  RuleGenerationMissingClientFact,
   RuleGenerationPreviewInput,
   RuleGenerationState,
   RuleCoverageRow,
@@ -606,6 +611,7 @@ export {
   RuleCustomRuleInputSchema,
   RuleGenerationClientFactsSchema,
   RuleGenerationEntitySchema,
+  RuleGenerationMissingClientFactSchema,
   RuleGenerationPreviewInputSchema,
   RuleGenerationStateSchema,
   RuleGenerationStateValues,

@@ -48,6 +48,7 @@ export const ClientAuditActions = [
   'client.filing_profiles.replaced',
   'client.jurisdiction.updated',
   'client.risk_profile.updated',
+  'client.tax_year_profile.updated',
 ] as const
 export const AuthAuditActions = [
   'auth.denied',

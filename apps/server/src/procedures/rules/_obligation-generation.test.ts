@@ -306,7 +306,8 @@ describe('generateObligationsForAcceptedRules', () => {
         taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
         taxPeriodKind: 'fiscal',
         taxPeriodSource: 'client_default',
-        status: 'review',
+        taxPeriodReviewReason: null,
+        status: 'pending',
       }),
     ])
   })

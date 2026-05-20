@@ -3,6 +3,7 @@ import {
   resolveClientReturnTaxPeriod,
   resolveTaxPeriodFromExplicitDates,
   type TaxPeriodKind,
+  type TaxPeriodMissingClientFact,
   type TaxPeriodSource,
 } from '../tax-periods'
 
@@ -300,6 +301,7 @@ export interface ObligationGenerationPreview {
   requiresReview: boolean
   reminderReady: boolean
   reviewReasons: readonly string[]
+  missingClientFacts: readonly TaxPeriodMissingClientFact[]
 }
 
 const VERIFIED_QUALITY: RuleQualityChecklist = {
@@ -3635,6 +3637,7 @@ export function previewObligationsFromRules(
               taxPeriodKind: 'unknown' as const,
               taxPeriodSource: input.client.taxPeriodSource ?? ('unknown' as const),
               taxPeriodReviewReason: null,
+              missingClientFacts: [],
             }
           : resolveClientReturnTaxPeriod({
               taxYear: fallbackTaxYear,
@@ -3671,15 +3674,18 @@ export function previewObligationsFromRules(
     if (input.holidays !== undefined) expandInput.holidays = input.holidays
 
     const expandedDates = expandDueDateLogic(rule.dueDateLogic, expandInput)
+    const missingClientFacts = taxPeriod.missingClientFacts
 
     for (const expanded of expandedDates) {
       const reviewReasons = reviewReasonsForRule(
         rule,
         match,
-        expanded.requiresReview,
-        expanded.reason,
+        missingClientFacts.length > 0 ? false : expanded.requiresReview,
+        missingClientFacts.length > 0 ? null : expanded.reason,
       )
-      if (taxPeriod.taxPeriodReviewReason) reviewReasons.push(taxPeriod.taxPeriodReviewReason)
+      if (taxPeriod.taxPeriodReviewReason && missingClientFacts.length === 0) {
+        reviewReasons.push(taxPeriod.taxPeriodReviewReason)
+      }
       const requiresReview = reviewReasons.length > 0
 
       previews.push({
@@ -3706,6 +3712,7 @@ export function previewObligationsFromRules(
         requiresReview,
         reminderReady: !requiresReview && expanded.dueDate !== null,
         reviewReasons,
+        missingClientFacts,
       })
     }
   }

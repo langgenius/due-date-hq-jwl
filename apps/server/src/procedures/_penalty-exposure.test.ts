@@ -227,6 +227,7 @@ function buildScopedRepo(input: {
       async updatePenaltyInputs() {},
       async updateJurisdiction() {},
       async updateRiskProfile() {},
+      async updateTaxYearProfile() {},
       async updateAssigneeMany() {},
       async softDelete() {},
       async deleteByBatch() {

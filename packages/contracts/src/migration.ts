@@ -81,6 +81,8 @@ export const MappingTargetSchema = z.enum([
   'client.county',
   'client.entity_type',
   'client.tax_types',
+  'client.tax_year_type',
+  'client.fiscal_year_end',
   'client.assignee_name',
   'client.email',
   'client.notes',

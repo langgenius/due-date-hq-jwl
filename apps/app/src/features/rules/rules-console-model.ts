@@ -298,7 +298,10 @@ export function compactSourceType(sourceType: RuleSource['sourceType']): string 
 
 type SourceHealthOnly = Pick<RuleSource, 'healthStatus'>
 type RuleFilterOnly = Pick<ObligationRule, 'ruleTier' | 'status'>
-type PreviewReadyOnly = Pick<ObligationGenerationPreview, 'reminderReady'>
+type PreviewReadyOnly = {
+  reminderReady: ObligationGenerationPreview['reminderReady']
+  missingClientFacts: readonly ObligationGenerationPreview['missingClientFacts'][number][]
+}
 
 export function countSourcesByHealth(sources: readonly SourceHealthOnly[]) {
   return {
@@ -359,7 +362,8 @@ export function filterRules<T extends RuleFilterOnly>(
 export function groupPreviewRows<T extends PreviewReadyOnly>(rows: readonly T[]) {
   return {
     reminderReady: rows.filter((row) => row.reminderReady),
-    requiresReview: rows.filter((row) => !row.reminderReady),
+    needsClientFacts: rows.filter((row) => !row.reminderReady && row.missingClientFacts.length > 0),
+    requiresReview: rows.filter((row) => !row.reminderReady && row.missingClientFacts.length === 0),
   }
 }
 

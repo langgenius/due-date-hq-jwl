@@ -323,6 +323,9 @@ export const RuleGenerationPreviewInputSchema = z.object({
 })
 export type RuleGenerationPreviewInput = z.infer<typeof RuleGenerationPreviewInputSchema>
 
+export const RuleGenerationMissingClientFactSchema = z.enum(['fiscalYearEnd'])
+export type RuleGenerationMissingClientFact = z.infer<typeof RuleGenerationMissingClientFactSchema>
+
 export const ObligationGenerationPreviewSchema = z.object({
   clientId: z.string().min(1),
   ruleId: z.string().min(1),
@@ -350,6 +353,7 @@ export const ObligationGenerationPreviewSchema = z.object({
   requiresReview: z.boolean(),
   reminderReady: z.boolean(),
   reviewReasons: z.array(z.string().min(1)),
+  missingClientFacts: z.array(RuleGenerationMissingClientFactSchema),
 })
 export type ObligationGenerationPreview = z.infer<typeof ObligationGenerationPreviewSchema>
 
