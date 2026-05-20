@@ -76,6 +76,7 @@ import {
   type ClientReadinessRequestPublic,
   type ClientReadinessResponsePublic,
 } from '@duedatehq/contracts'
+import { useIsLargeViewport } from '@duedatehq/ui/hooks/use-mobile'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -715,6 +716,11 @@ export function ObligationQueueRoute() {
   const practiceAiEnabled = paidPlanActive(permission.firm)
   const { openEvidence } = useEvidenceDrawer()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  // Hybrid detail-panel mode. At xl+ a selected row opens the panel
+  // inline beside the queue (non-modal, no scrim) so users can J/K
+  // through rows and the panel content swaps in place. Below xl the
+  // panel reverts to the historical Sheet overlay.
+  const isLargeViewport = useIsLargeViewport()
   // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
   // page: dropdown shows 6 target states instead of legacy 10, and
   // `review` re-labels to "In review". See
@@ -1151,6 +1157,10 @@ export function ObligationQueueRoute() {
   const activeRow = (row ? rowsById.get(row) : null) ?? rows[0] ?? null
   const activeDetailId =
     drawer === 'obligation' && detailId && rowsById.has(detailId) ? detailId : null
+  // 'inline' only when xl+ AND a row is actually open. The mode prop
+  // gets read inside the drawer to pick wrapper (aside vs Sheet).
+  const panelMode: 'inline' | 'modal' =
+    isLargeViewport && activeDetailId !== null ? 'inline' : 'modal'
 
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
@@ -2113,7 +2123,17 @@ export function ObligationQueueRoute() {
         }
       />
 
-      <div className="flex flex-col gap-3">
+      {/* Hybrid panel layout: at xl+ when a row is open, the queue
+          shrinks to leave a sticky right-column for the inline detail
+          panel. Below xl OR when no row is open, full-width queue. */}
+      <div
+        className={cn(
+          panelMode === 'inline'
+            ? 'grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]'
+            : '',
+        )}
+      >
+      <div className="flex min-w-0 flex-col gap-3 overflow-x-auto">
           {/* Single filter bar: lifecycle scope tabs left, dotted divider,
               cross-cutting action chips right. Zero-count scopes are
               auto-hidden so the bar respects the cognitive-load cap and
@@ -2548,15 +2568,17 @@ export function ObligationQueueRoute() {
             </>
           )}
         </div>
-      <ObligationQueueDetailDrawer
-        obligationId={activeDetailId}
-        activeTab={detailTab}
-        onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
-        onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
-        onNeedsInput={setPenaltyRow}
-        practiceAiEnabled={practiceAiEnabled}
-        blockerCandidates={rows}
-      />
+        <ObligationQueueDetailDrawer
+          obligationId={activeDetailId}
+          activeTab={detailTab}
+          onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
+          onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
+          onNeedsInput={setPenaltyRow}
+          practiceAiEnabled={practiceAiEnabled}
+          blockerCandidates={rows}
+          mode={panelMode}
+        />
+      </div>
       <PenaltyInputDialog
         row={penaltyRow}
         onClose={() => setPenaltyRow(null)}
@@ -3101,6 +3123,7 @@ function ObligationQueueDetailDrawer({
   onNeedsInput,
   practiceAiEnabled,
   blockerCandidates,
+  mode,
 }: {
   obligationId: string | null
   activeTab: ObligationQueueDetailTab
@@ -3108,6 +3131,11 @@ function ObligationQueueDetailDrawer({
   onClose: () => void
   onNeedsInput: (row: ObligationQueueRow) => void
   practiceAiEnabled: boolean
+  // 'inline' renders as a non-modal aside next to the queue (xl+
+  // viewports — coexists with the queue so users can J/K through rows
+  // and the panel content swaps in place). 'modal' renders inside a
+  // Sheet overlay (the historical default — used at md and below).
+  mode: 'inline' | 'modal'
   blockerCandidates: ObligationQueueRow[]
 }) {
   const { t } = useLingui()
@@ -3561,15 +3589,21 @@ function ObligationQueueDetailDrawer({
 
   const validChecklist = checklist.filter((item) => item.label.trim())
 
-  return (
-    <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
-        <SheetHeader className="border-b border-divider-subtle">
+  // The drawer body is identical between modes. Only the wrapper
+  // differs: <Sheet> (modal) vs <aside> (inline). Headings use plain
+  // h2/p so they render with no Dialog parent; modal mode adds a
+  // visually-hidden SheetTitle for screen-reader accessibility.
+  const titleText = row?.clientName ?? null
+  const body = (
+    <>
+      <header className="flex flex-col gap-1.5 border-b border-divider-subtle px-6 py-5">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
+              <h2 className="text-base font-semibold text-text-primary">
+                {titleText ?? <Trans>Obligation detail</Trans>}
+              </h2>
               {row ? (
-                <SheetDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-text-secondary">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-tertiary">
                   <span className="font-medium text-text-primary">
                     <TaxCodeLabel code={row.taxType} />
                   </span>
@@ -3591,10 +3625,8 @@ function ObligationQueueDetailDrawer({
                       <Trans>TY {row.taxYear}</Trans>
                     </span>
                   ) : null}
-                </SheetDescription>
-              ) : (
-                <SheetDescription />
-              )}
+                </p>
+              ) : null}
               {row ? (
                 <p className="mt-1 text-xs text-text-tertiary">
                   <Trans>Internal deadline {formatDate(row.currentDueDate)}</Trans>
@@ -3642,7 +3674,7 @@ function ObligationQueueDetailDrawer({
               </div>
             ) : null}
           </div>
-        </SheetHeader>
+      </header>
         <div className="px-6 pb-6">
           {detailQuery.isLoading ? (
             <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
@@ -4407,6 +4439,36 @@ function ObligationQueueDetailDrawer({
             </div>
           </div>
         ) : null}
+    </>
+  )
+
+  // Inline panel: at xl+ when a row is selected, render as a non-modal
+  // <aside> beside the queue. No backdrop, no focus trap, no portal —
+  // queue keyboard nav (J/K) keeps working and rows can be swapped
+  // without a close/open cycle.
+  if (mode === 'inline') {
+    if (obligationId === null) return null
+    return (
+      <aside
+        aria-label={titleText ?? t`Obligation detail`}
+        className="flex h-[calc(100vh-4rem)] flex-col overflow-y-auto rounded-lg border border-divider-regular bg-background-default"
+      >
+        {body}
+      </aside>
+    )
+  }
+
+  // Modal: md and below. Sheet provides backdrop, focus trap, scroll
+  // lock. A visually-hidden SheetTitle satisfies Radix Dialog's a11y
+  // requirement; the visible heading is the <h2> inside `body`.
+  return (
+    <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
+      <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
+        <SheetTitle className="sr-only">{titleText ?? t`Obligation detail`}</SheetTitle>
+        <SheetDescription className="sr-only">
+          <Trans>Obligation workflow detail panel.</Trans>
+        </SheetDescription>
+        {body}
       </SheetContent>
     </Sheet>
   )

@@ -23,3 +23,18 @@ export function useIsMobile(): boolean {
 }
 
 export const MOBILE_BREAKPOINT = 768
+
+/**
+ * Same pattern at Tailwind's `xl` breakpoint (1280px). Used to switch
+ * the obligation detail drawer between modal overlay (md and below) and
+ * an inline right panel that coexists with the queue (xl+). The
+ * `defaultMatches: false` mirrors useIsMobile — first paint assumes the
+ * smaller layout and reconciles after mount.
+ */
+const LARGE_VIEWPORT_QUERY = '(min-width: 1280px)'
+
+export function useIsLargeViewport(): boolean {
+  return useMediaQuery(LARGE_VIEWPORT_QUERY, { defaultMatches: false })
+}
+
+export const LARGE_VIEWPORT_BREAKPOINT = 1280
