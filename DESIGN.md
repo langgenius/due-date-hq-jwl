@@ -472,6 +472,54 @@ maxConcurrent: 30
 
 ## Overview
 
+DueDateHQ is a work surface for CPAs juggling 50–600 clients. It is an **audit + batch surface** the CPA visits to triage, then leaves — not a daily destination. Every pixel must justify itself by changing what the CPA does next.
+
+The aesthetic is **calm professional density**. Closer in spirit to Linear, Mercury, Stripe Dashboard, or a well-built financial terminal than to consumer SaaS. No greetings, no decorative gradients, no celebrations. The user is a senior pro doing batch work; the UI respects her time.
+
+### Reference inheritance — Mercury · Sana AI · Oku · Linear
+
+DueDateHQ inherits the visual register of several operational SaaS products. Each contributes specific moves; together they define the "look".
+
+| Reference                           | What we inherit                                                                                                                                                                    |
+| :---------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **[Mercury](https://mercury.com)**  | Number typography (`tabular-nums` everywhere) · soft-tint status pills · sidebar grouped by domain · "professional density" feeling · ⌘K search · single accent on the next action |
+| **[Sana AI](https://sanalabs.com)** | Cool-neutral canvas (not warm cream) · borderless surfaces with 1px hairline divisions · neutral category dots · warm but quiet tone · clean meta lines                            |
+| **[Oku](https://oku.so)**           | Content-first hierarchy (almost no chrome) · thin sidebar with no decoration · understated page titles · restraint — what's _removed_ matters more than what's added               |
+| **[Linear](https://linear.app)**    | Dense lists with comfortable row heights · keyboard-first interactions (j/k, gg, ⌘K) · status + assignee at row level · zero ornament                                              |
+
+All converge on the same principle: **a productivity tool earns trust by getting out of the way.**
+
+### Taste principles (T1–T8 — apply to every new screen)
+
+| #      | Principle                                              | How to apply                                                                                                                                                                                                                                                                                                                        |
+| :----- | :----------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **T1** | **Numbers are typographic objects.**                   | Every dollar / count / date uses `font-mono tabular-nums`. Page-level KPIs use the `numeric-lg`/`hero-metric` token. Generic body-render of a number is a fail.                                                                                                                                                                     |
+| **T2** | **One accent, one viewport, one action.**              | The indigo accent (`text-text-accent` / `bg-components-button-primary-bg`) appears on the **next action** only — primary CTA, currently-selected sidebar item, key "do this now" surface. Before painting accent, ask: "is this the ONE next action?" If no, demote to ghost / link.                                                |
+| **T3** | **Pills for indicators, soft rectangles for actions.** | Status pills, filter chips, count badges, jurisdiction tags — anything read-only or toggle — use `rounded-full` (or `rounded-sm` for dense chips). Buttons, inputs, cards, modals, dropdowns — anything you commit through — use `rounded-md` (6px). Shape distinguishes _"this labels something"_ from _"this acts on something."_ |
+| **T4** | **Status colors are pills, never paint.**              | Green / orange / red appear as small status pills (tinted bg + saturated text). They **never** become surface fills, **never** become row left-borders, **never** become full-card backgrounds. Risk-tinted row backgrounds were the legacy pattern; the new direction is neutral rows + a single pill in the right column.         |
+| **T5** | **Sidebar groups, surface unfolds.**                   | Left nav is grouped by domain (Operations / Rule / Clients). Main canvas opens flush — no nested chrome bars, minimal breadcrumbs. The sidebar IS the wayfinding.                                                                                                                                                                   |
+| **T6** | **Density via vertical air, not chrome.**              | Table/list rows use ≥40–44px row height with consistent vertical padding. Cramped density is anxiety; comfortable density is the product's value. The 4 / 8 / 16 / 24 / 48 rhythm does the structural work — drop the dividing borders and shadows wherever they aren't load-bearing.                                               |
+| **T7** | **Modal vs toast vs banner discipline.**               | Modals interrupt for input only. Toasts confirm "did the thing." Banners notify "I noticed." Bell holds the inbox. Pick the right surface — picking IS the message.                                                                                                                                                                 |
+| **T8** | **The dashboard is a desk, not a stage.**              | Page titles use one shared `<PageHeader>` (text-2xl / 600). No display face anywhere. No "Welcome, Sarah." No celebratory toasts. The product looks like a calm tool, not a marketing site — because the CPA opens it 30× a day.                                                                                                    |
+
+When a screen makes a decision the doc doesn't address, derive from these principles. The principles outlast any single token.
+
+### Information hierarchy — the 3-tier scan rule
+
+Every screen must let the eye land in this order, in under 5 seconds:
+
+| Tier                | What                                                                                      | Visual treatment                                                              |
+| :------------------ | :---------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| **T1 · Hero**       | The one thing the user came here to see / decide / act on. Singular per viewport.         | `text-2xl` + `font-semibold` + ample top whitespace; OR a single accent CTA.  |
+| **T2 · Support**    | The 3–5 items that justify or contextualize the hero (counts, supporting cards, filters). | `text-base font-semibold` titles, hairline-bordered cards or rows.            |
+| **T3 · Background** | Everything else — meta, timestamps, source attribution, "show more".                      | `text-xs text-text-tertiary`, no border, collapsed by default where possible. |
+
+Failure modes (each one is a hierarchy bug, not a styling bug): **tier inflation** (three things competing for hero — demote two), **tier flattening** (every section uses the same heading weight — T1 must outweigh T2 must outweigh T3 _visually_, not just semantically), **decoration tax** (icon + badge + dot + pill on every row — the eye has nothing to land on, remove all but the one signal that changes a decision).
+
+---
+
+## Direction (legacy)
+
 DueDateHQ uses a Ramp x Linear light workbench direction: precise, calm, dollar-aware, glass-box, and keyboard-first. The product is a CPA operational console, not a marketing site, financial app, or editorial surface.
 
 The UI must prioritize dense scanning, clear risk hierarchy, and traceable evidence. Use semantic color only when it carries business meaning. Favor 1px hairlines, compact tables, and tabular numbers over decorative panels.
@@ -574,9 +622,30 @@ Demo Sprint 期间新增的 Migration Copilot 相关 token 已追加到 front-ma
 
 ## Do's and Don'ts
 
-Do use gray for OK or not urgent states. Do express risk in dollars before days. Do keep amount, date, deadline, EIN, and source labels in mono tabular numerals. Do keep UI dense, flat, and scannable.
+### Do
 
-Don't use gradients, decorative glows, large shadows, or rounded SaaS template styling. Don't use green for safe states; green is only for filed, done, or applied. Don't render AI advice without evidence. Don't use raw Tailwind color utilities in business components.
+- **Privilege the gap.** Sections, labels, and counts surface what's missing first ("Still missing (3)" not "Resolved (12)"). Confirmed / done items collapse by default.
+- **One thing, one entrance, one name.** Never two UI paths to the same concept. Canonical verbs: `Send`, `Confirm`, `Open`, `Apply`. No synonym drift — see §Voice & Terminology.
+- **Show absolute date AND relative time** for every deadline. "May 12 · in 4 days." CPAs plan by date, triage by days-left.
+- **Use space, not chrome, for hierarchy.** The 4 / 8 / 16 / 24 / 48 ladder does most of the work. Reach for borders only when space alone can't separate.
+- **Keep escape hatches visible.** Tertiary affordances — `Undo`, `Not applicable`, `Skip`, manual override — sit in the same surface as the primary action, not buried in a settings page.
+- **Express risk in dollars before days.** Dollar exposure is the universal CPA scan; "$X at risk" beats "X overdue" at the same byte budget.
+- **Keep amount, date, deadline, EIN, and source labels in mono tabular numerals.** Vertical alignment is half the value of a workbench list.
+
+### Don't
+
+- **Don't use gradients, decorative glows, large shadows, or rounded SaaS template styling.** Cards stay flat: hairline border + surface tint. Modals/popovers may use `shadow-overlay` or `shadow-subtle`; nothing else.
+- **Don't paint status colors across a full row or card** (T4). Status colors are pills, never row backgrounds. The legacy risk-row tinting pattern (`bg-severity-*-tint` across an entire row) is deprecated; in new work, rows stay neutral and a single pill carries the signal. Status-tinted backgrounds are reserved for _banners_ (the dedicated "I noticed" surface) and sub-zone callouts inside expanded cards.
+- **Don't use the accent indigo for anything other than the next action.** Selected sidebar items use a subtle `bg-state-base-active` (you-are-here), not the saturated CTA accent. Focus rings on form inputs use 2px indigo + 2px offset (T2).
+- **Don't show times of day on deadlines.** Tax filings are whole-day. No "5:00 PM CT", no "7 hours remaining", no time-slot calendars. Date only.
+- **Don't render decorative dots before status text** (e.g. `● Overdue`). Tinted pill bg + colored ink already carry the signal; a leading filled circle is visual noise.
+- **Don't use emojis in product UI.** Not in nav labels, not as table-column glyphs, not on filter chips. Emojis break the calm register. Use a Lucide icon when needed; use a status pill when status urgency is needed.
+- **Don't introduce horizontal scroll on data tables.** If a table doesn't fit, drop or compact columns at the breakpoint — never `min-w-[Npx]` + `overflow-x-auto`. CPAs scan column-wise; a horizontal-scrolled table loses its first-column anchor.
+- **Don't separate metric values with middle dots (`·`) when a clean row works.** Use horizontal whitespace and let weight + color carry hierarchy. Middle dots stay valid as separators _inside_ a single metadata string (`Form 1120-S · Federal · S-corp return`).
+- **Don't write a custom `<h1>` per page.** Use the shared `<PageHeader title=… description=… actions=…>` component. Section titles use a shared treatment (`text-base font-semibold text-text-primary`). One-off typography is drift.
+- **Don't render AI advice without evidence.** If an AI output lacks `source_url`, `verified_at`, or `verbatim_quote`, show a verification-needed state instead of a recommendation.
+- **Don't use raw Tailwind color utilities** (`text-blue-600`, `bg-red-50`) **in business components.** Always go through the semantic layer (`text-text-accent`, `bg-state-warning-hover`, etc.).
+- **Don't ship a display face larger than the page title** (`text-2xl` / 600 / `leading-7` / `tracking-[-0.01em]`). The legacy `display-hero` 54px, `display-large` 36px, `section-title` 32px, and `hero-metric` 56px Geist Mono tokens remain in the spec for marketing surfaces only; product surfaces use **at most** `text-2xl` (24px) for the page title (T8).
 
 ## Voice & Terminology
 

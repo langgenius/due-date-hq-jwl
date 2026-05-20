@@ -13,8 +13,14 @@
  * -------------------------------------------------------------------------- */
 
 @theme {
-  /* ===== Fonts =========================================================== */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* ===== Fonts ===========================================================
+   * 2026-05-20: system-first per Mercury/Sana AI/Oku inheritance (DESIGN.md
+   * §Reference inheritance). Apple system on macOS/iOS, Segoe UI on
+   * Windows, Inter as a hosted fallback. Same metrics across the major
+   * platforms keeps tabular-nums alignment stable in numeric tables.
+   * --------------------------------------------------------------------- */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, Roboto, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
   /* ===== Font sizes ====================================================== */
