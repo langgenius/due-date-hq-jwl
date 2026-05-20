@@ -240,9 +240,6 @@ export async function generateObligationsForAcceptedRules(
         entityType: client.entityType,
         state: profile.state,
         taxTypes: profile.taxTypes,
-        taxYearType: client.taxYearType,
-        fiscalYearEndMonth: client.fiscalYearEndMonth,
-        fiscalYearEndDay: client.fiscalYearEndDay,
         taxPeriodSource: 'client_default' as const,
         ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
       } as const

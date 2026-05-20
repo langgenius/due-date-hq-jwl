@@ -38,7 +38,6 @@ import type {
   AuditEventPublic,
   ClientFilingProfilesReplaceInput,
   ClientPublic,
-  ClientTaxYearProfileUpdateInput,
   ObligationInstancePublic,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
@@ -70,7 +69,6 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import {
   TableHeaderMultiFilter,
   type TableFilterOption,
@@ -162,7 +160,6 @@ const metricToneClassName = {
 } satisfies Record<ClientMetric['tone'], string>
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
-const FISCAL_YEAR_END_PICKER_YEAR = 2024
 
 function DetailSection({
   title,
@@ -309,23 +306,6 @@ function formatJurisdictionSummary(client: ClientPublic): string {
         ? '1 tax type'
         : `${taxTypeCount} tax types`
   return `${statesLabel} · ${taxTypesLabel}`
-}
-
-function formatFiscalYearEnd(month: number, day: number): string {
-  return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
-}
-
-function fiscalYearEndIsoDate(month: number | null, day: number | null): string {
-  if (!month || !day) return ''
-  return `${FISCAL_YEAR_END_PICKER_YEAR}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
-function fiscalYearEndParts(value: string): { month: number; day: number } | null {
-  if (!isValidIsoDate(value)) return null
-  return {
-    month: Number(value.slice(5, 7)),
-    day: Number(value.slice(8, 10)),
-  }
 }
 
 export function ClientFactsWorkspace({
@@ -956,7 +936,6 @@ export function ClientDetailWorkspace({
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
-  const [taxYearProfileOpen, setTaxYearProfileOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
   const riskSummaryQuery = useQuery(
     orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
@@ -1023,25 +1002,6 @@ export function ClientDetailWorkspace({
       },
     }),
   )
-  const updateTaxYearProfileMutation = useMutation(
-    orpc.clients.updateTaxYearProfile.mutationOptions({
-      onSuccess: (result) => {
-        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.clients.getRiskSummary.key() })
-        toast.success(t`Tax year profile saved`, { description: result.client.name })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't save tax year profile`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
-        })
-      },
-    }),
-  )
   const requestRiskSummaryMutation = useMutation(
     orpc.clients.requestRiskSummaryRefresh.mutationOptions({
       onSuccess: () => {
@@ -1056,15 +1016,6 @@ export function ClientDetailWorkspace({
     }),
   )
   const missingFilingState = Boolean(readiness?.missingRequiredFacts.includes('state'))
-  const missingFiscalYearEnd = Boolean(readiness?.missingRequiredFacts.includes('fiscalYearEnd'))
-  const fiscalYearEndSummary =
-    client.fiscalYearEndMonth && client.fiscalYearEndDay
-      ? formatFiscalYearEnd(client.fiscalYearEndMonth, client.fiscalYearEndDay)
-      : t`Needs fiscal year end`
-  const taxYearProfileSummary =
-    client.taxYearType === 'fiscal'
-      ? `${t`Fiscal year`} · ${fiscalYearEndSummary}`
-      : t`Calendar year`
   const openFilingJurisdictions = useCallback(() => {
     setFilingJurisdictionsOpen(true)
     window.requestAnimationFrame(() => {
@@ -1073,21 +1024,9 @@ export function ClientDetailWorkspace({
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }, [])
-  const openTaxYearProfile = useCallback(() => {
-    setTaxYearProfileOpen(true)
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById('client-tax-year-profile')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }, [])
   const openMissingFacts = useCallback(() => {
-    if (readiness?.missingRequiredFacts.includes('fiscalYearEnd')) {
-      openTaxYearProfile()
-      return
-    }
     openFilingJurisdictions()
-  }, [openFilingJurisdictions, openTaxYearProfile, readiness?.missingRequiredFacts])
+  }, [openFilingJurisdictions])
 
   return (
     <>
@@ -1147,22 +1086,6 @@ export function ClientDetailWorkspace({
                 clientId: client.id,
               })
             }
-          />
-        </DetailSection>
-
-        <DetailSection
-          id="client-tax-year-profile"
-          title={t`Tax year profile`}
-          summary={taxYearProfileSummary}
-          open={taxYearProfileOpen}
-          onOpenChange={setTaxYearProfileOpen}
-          attention={missingFiscalYearEnd}
-        >
-          <ClientTaxYearProfilePanel
-            key={`${client.id}:tax-year-profile`}
-            client={client}
-            isSaving={updateTaxYearProfileMutation.isPending}
-            onSave={(input) => updateTaxYearProfileMutation.mutate(input)}
           />
         </DetailSection>
 
@@ -1468,7 +1391,6 @@ function ClientAlertsBandMissingFactsRow({
 }) {
   const labels = missing.map((fact) => {
     if (fact === 'state') return 'filing state'
-    if (fact === 'fiscalYearEnd') return 'fiscal year end'
     return 'entity type'
   })
   return (
@@ -1734,109 +1656,6 @@ function ClientJurisdictionPanel({
   )
 }
 
-function ClientTaxYearProfilePanel({
-  client,
-  isSaving,
-  onSave,
-}: {
-  client: ClientPublic
-  isSaving: boolean
-  onSave: (input: ClientTaxYearProfileUpdateInput) => void
-}) {
-  const { t } = useLingui()
-  const [taxYearType, setTaxYearType] = useState<'calendar' | 'fiscal'>(client.taxYearType)
-  const [fiscalYearEndDate, setFiscalYearEndDate] = useState(
-    fiscalYearEndIsoDate(client.fiscalYearEndMonth, client.fiscalYearEndDay),
-  )
-  const fiscalYearEnd = fiscalYearEndParts(fiscalYearEndDate)
-  const fiscalMissing = taxYearType === 'fiscal' && !fiscalYearEndDate
-  const fiscalInvalid = taxYearType === 'fiscal' && Boolean(fiscalYearEndDate) && !fiscalYearEnd
-  const hasChanges =
-    taxYearType !== client.taxYearType ||
-    (taxYearType === 'fiscal' &&
-      (fiscalYearEnd?.month !== client.fiscalYearEndMonth ||
-        fiscalYearEnd?.day !== client.fiscalYearEndDay)) ||
-    (taxYearType === 'calendar' &&
-      (client.fiscalYearEndMonth !== null || client.fiscalYearEndDay !== null))
-  const fiscalYearEndDisplay = fiscalYearEnd
-    ? formatFiscalYearEnd(fiscalYearEnd.month, fiscalYearEnd.day)
-    : ''
-
-  function cancelEdit() {
-    setTaxYearType(client.taxYearType)
-    setFiscalYearEndDate(fiscalYearEndIsoDate(client.fiscalYearEndMonth, client.fiscalYearEndDay))
-  }
-
-  return (
-    <div className="grid gap-3">
-      <div className="grid gap-3 sm:grid-cols-[180px_240px]">
-        <Field>
-          <FieldLabel>
-            <Trans>Tax year</Trans>
-          </FieldLabel>
-          <Select
-            value={taxYearType}
-            onValueChange={(value) => {
-              if (value === 'calendar' || value === 'fiscal') setTaxYearType(value)
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="calendar">
-                  <Trans>Calendar year</Trans>
-                </SelectItem>
-                <SelectItem value="fiscal">
-                  <Trans>Fiscal year</Trans>
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel>
-            <Trans>Fiscal year end</Trans>
-          </FieldLabel>
-          <IsoDatePicker
-            value={fiscalYearEndDate}
-            displayValue={fiscalYearEndDisplay}
-            placeholder="MM/DD"
-            disabled={taxYearType === 'calendar'}
-            invalid={fiscalMissing || fiscalInvalid}
-            ariaLabel={t`Select fiscal year end`}
-            onValueChange={setFiscalYearEndDate}
-          />
-        </Field>
-      </div>
-      {fiscalMissing ? <FieldError>{t`Fiscal-year clients require a year end.`}</FieldError> : null}
-      {fiscalInvalid ? <FieldError>{t`Use a valid month and day.`}</FieldError> : null}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          size="sm"
-          disabled={!hasChanges || fiscalMissing || fiscalInvalid || isSaving}
-          onClick={() => {
-            onSave({
-              id: client.id,
-              taxYearType,
-              fiscalYearEndMonth: taxYearType === 'fiscal' ? (fiscalYearEnd?.month ?? null) : null,
-              fiscalYearEndDay: taxYearType === 'fiscal' ? (fiscalYearEnd?.day ?? null) : null,
-              reason: 'Client tax year profile edit',
-            })
-          }}
-        >
-          {isSaving ? t`Saving...` : t`Save tax year profile`}
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
-          <Trans>Cancel</Trans>
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 function ClientRiskInputsPanel({
   client,
   isSaving,
@@ -2073,11 +1892,6 @@ function ClientFactChecklist({
         detail={<Trans>Required for rule applicability.</Trans>}
       />
       <FactCheckRow
-        isComplete={!readiness?.missingRequiredFacts.includes('fiscalYearEnd')}
-        label={<Trans>Fiscal year end</Trans>}
-        detail={<Trans>Required only when the client files on a fiscal year.</Trans>}
-      />
-      <FactCheckRow
         isComplete={Boolean(client.ein)}
         label={<Trans>EIN</Trans>}
         detail={<Trans>Improves identity matching and audit review.</Trans>}
@@ -2142,9 +1956,6 @@ function ClientReadinessBadge({
 function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
   if (readiness.missingRequiredFacts.includes('state')) {
     return <Trans>Needs filing state</Trans>
-  }
-  if (readiness.missingRequiredFacts.includes('fiscalYearEnd')) {
-    return <Trans>Needs fiscal year end</Trans>
   }
   return <Trans>Needs facts</Trans>
 }

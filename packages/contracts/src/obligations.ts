@@ -18,6 +18,7 @@ import {
   ObligationReviewStageSchema,
   ObligationRiskLevelSchema,
   ObligationStatusSchema,
+  ClientTaxYearTypeSchema,
   TaxPeriodKindSchema,
   TaxPeriodSourceSchema,
   ObligationTypeSchema,
@@ -40,6 +41,9 @@ export const ObligationCreateInputSchema = z.object({
   clientFilingProfileId: EntityIdSchema.nullable().optional(),
   taxType: z.string().min(1),
   taxYear: z.number().int().min(1900).max(2100).nullable().optional(),
+  taxYearType: ClientTaxYearTypeSchema.optional(),
+  fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
+  fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
   taxPeriodStart: z.iso.date().nullable().optional(),
   taxPeriodEnd: z.iso.date().nullable().optional(),
   taxPeriodKind: TaxPeriodKindSchema.optional(),
@@ -118,6 +122,49 @@ export const DueDateUpdateInputSchema = z.object({
   id: EntityIdSchema,
   currentDueDate: z.iso.date(),
 })
+
+function isValidFiscalYearEnd(month: number, day: number): boolean {
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  return date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+}
+
+export const ObligationTaxYearProfileUpdateInputSchema = z
+  .object({
+    id: EntityIdSchema,
+    taxYearType: ClientTaxYearTypeSchema,
+    fiscalYearEndMonth: z.number().int().min(1).max(12).nullable(),
+    fiscalYearEndDay: z.number().int().min(1).max(31).nullable(),
+    reason: z.string().max(280).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.taxYearType !== 'fiscal') return
+    if (!value.fiscalYearEndMonth || !value.fiscalYearEndDay) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndMonth'],
+        message: 'Fiscal-year obligations require a fiscal year end month and day.',
+      })
+      return
+    }
+    if (!isValidFiscalYearEnd(value.fiscalYearEndMonth, value.fiscalYearEndDay)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndDay'],
+        message: 'Fiscal year end must be a valid month/day.',
+      })
+    }
+  })
+export type ObligationTaxYearProfileUpdateInput = z.infer<
+  typeof ObligationTaxYearProfileUpdateInputSchema
+>
+
+export const ObligationTaxYearProfileUpdateOutputSchema = z.object({
+  obligation: ObligationInstancePublicSchema,
+  auditId: EntityIdSchema,
+})
+export type ObligationTaxYearProfileUpdateOutput = z.infer<
+  typeof ObligationTaxYearProfileUpdateOutputSchema
+>
 
 export const ObligationStatusUpdateInputSchema = z.object({
   id: EntityIdSchema,
@@ -246,6 +293,9 @@ export const obligationsContract = oc.router({
   previewAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   createAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
+  updateTaxYearProfile: oc
+    .input(ObligationTaxYearProfileUpdateInputSchema)
+    .output(ObligationTaxYearProfileUpdateOutputSchema),
   /**
    * Update one obligation's status. Handler must read `before`, write the
    * row, and append an `obligation.status.updated` audit row carrying both

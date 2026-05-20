@@ -23,7 +23,7 @@ export type ClientEntityType = ClientCreateInput['entityType']
 export type ClientSourceType = 'imported' | 'manual'
 export type ClientReadinessStatus = 'ready' | 'needs_facts'
 export type ClientPulseFilter = (typeof CLIENT_PULSE_FILTERS)[number]
-export type RequiredClientFact = 'state' | 'entityType' | 'fiscalYearEnd'
+export type RequiredClientFact = 'state' | 'entityType'
 export type OptionalClientFact = 'ein' | 'owner' | 'email'
 
 export type ClientReadiness = {
@@ -96,9 +96,6 @@ export function getClientReadiness(client: ClientPublic): ClientReadiness {
 
   if (getClientFilingStates(client).length === 0) missingRequiredFacts.push('state')
   if (!client.entityType) missingRequiredFacts.push('entityType')
-  if (client.taxYearType === 'fiscal' && (!client.fiscalYearEndMonth || !client.fiscalYearEndDay)) {
-    missingRequiredFacts.push('fiscalYearEnd')
-  }
   if (!client.ein) optionalGaps.push('ein')
   if (!client.assigneeName) optionalGaps.push('owner')
   if (!client.email) optionalGaps.push('email')

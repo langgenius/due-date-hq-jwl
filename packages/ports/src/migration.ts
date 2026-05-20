@@ -225,6 +225,9 @@ export interface CommitObligationInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxYearType?: 'calendar' | 'fiscal'
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
   taxPeriodStart?: Date | null
   taxPeriodEnd?: Date | null
   taxPeriodKind?: TaxPeriodKind

@@ -20,8 +20,8 @@ import {
 import { listActiveOverlayInternalDeadlines } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
-const COLS_PER_OI_ROW = 50
-const OI_BATCH_SIZE = Math.floor(100 / COLS_PER_OI_ROW) // = 2
+const COLS_PER_OI_ROW = 53
+const OI_BATCH_SIZE = Math.max(1, Math.floor(100 / COLS_PER_OI_ROW)) // D1 allows 100 bound params.
 const CLIENT_ASSERT_BATCH_SIZE = 90
 const OI_LOOKUP_IDS_PER_BATCH = 90
 const OI_UPDATE_IDS_PER_BATCH = 90
@@ -32,6 +32,9 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxYearType?: 'calendar' | 'fiscal'
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
   taxPeriodStart?: Date | null
   taxPeriodEnd?: Date | null
   taxPeriodKind?: TaxPeriodKind
@@ -82,6 +85,31 @@ function normalizeJurisdiction(value: string | null | undefined): string | null 
 
 function isFederalTaxType(taxType: string): boolean {
   return taxType.trim().toLowerCase().startsWith('federal')
+}
+
+function inferTaxYearProfile(input: ObligationCreateInput): {
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+} {
+  if (input.taxYearType === 'fiscal') {
+    return {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: input.fiscalYearEndMonth ?? null,
+      fiscalYearEndDay: input.fiscalYearEndDay ?? null,
+    }
+  }
+  if (input.taxYearType === 'calendar') {
+    return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
+  }
+  if (input.taxPeriodKind === 'fiscal' && input.taxPeriodEnd) {
+    return {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: input.taxPeriodEnd.getUTCMonth() + 1,
+      fiscalYearEndDay: input.taxPeriodEnd.getUTCDate(),
+    }
+  }
+  return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
 }
 
 export function makeObligationsRepo(db: Db, firmId: string) {
@@ -221,6 +249,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       const rows = inputs.map((i) => {
         const taxAuthorityFilingDueDate = i.filingDueDate ?? i.baseDueDate
         const taxAuthorityPaymentDueDate = i.paymentDueDate ?? i.baseDueDate
+        const taxYearProfile = inferTaxYearProfile(i)
         return {
           id: i.id ?? crypto.randomUUID(),
           firmId,
@@ -228,6 +257,9 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           clientFilingProfileId: i.clientFilingProfileId ?? null,
           taxType: i.taxType,
           taxYear: i.taxYear ?? null,
+          taxYearType: taxYearProfile.taxYearType,
+          fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
+          fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
           taxPeriodStart: i.taxPeriodStart ?? null,
           taxPeriodEnd: i.taxPeriodEnd ?? null,
           taxPeriodKind: i.taxPeriodKind ?? 'unknown',
@@ -423,6 +455,43 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       await db
         .update(obligationInstance)
         .set({ currentDueDate: newDate })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    async updateTaxYearProfile(
+      id: string,
+      patch: {
+        taxYearType: 'calendar' | 'fiscal'
+        fiscalYearEndMonth: number | null
+        fiscalYearEndDay: number | null
+        taxPeriodStart: Date | null
+        taxPeriodEnd: Date | null
+        taxPeriodKind: TaxPeriodKind
+        taxPeriodSource: TaxPeriodSource
+        taxPeriodReviewReason: string | null
+        baseDueDate?: Date
+        currentDueDate?: Date
+        filingDueDate?: Date | null
+        paymentDueDate?: Date | null
+      },
+    ): Promise<void> {
+      const set: Partial<ObligationInstance> = {
+        taxYearType: patch.taxYearType,
+        fiscalYearEndMonth: patch.taxYearType === 'fiscal' ? patch.fiscalYearEndMonth : null,
+        fiscalYearEndDay: patch.taxYearType === 'fiscal' ? patch.fiscalYearEndDay : null,
+        taxPeriodStart: patch.taxPeriodStart,
+        taxPeriodEnd: patch.taxPeriodEnd,
+        taxPeriodKind: patch.taxPeriodKind,
+        taxPeriodSource: patch.taxPeriodSource,
+        taxPeriodReviewReason: patch.taxPeriodReviewReason,
+      }
+      if (patch.baseDueDate !== undefined) set.baseDueDate = patch.baseDueDate
+      if (patch.currentDueDate !== undefined) set.currentDueDate = patch.currentDueDate
+      if (patch.filingDueDate !== undefined) set.filingDueDate = patch.filingDueDate
+      if (patch.paymentDueDate !== undefined) set.paymentDueDate = patch.paymentDueDate
+      await db
+        .update(obligationInstance)
+        .set(set)
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 

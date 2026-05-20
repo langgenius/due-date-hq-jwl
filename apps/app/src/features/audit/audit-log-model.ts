@@ -110,6 +110,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'obligation.due_date.updated': 'obligationDueDateUpdated',
   'obligation.readiness.updated': 'obligationReadinessUpdated',
   'obligation.status.updated': 'obligationStatusUpdated',
+  'obligation.tax_year_profile.updated': 'obligationTaxYearProfileUpdated',
   'onboarding.agent.dry_run.previewed': 'onboardingAgentDryRunPreviewed',
   'onboarding.agent.fallback.triggered': 'onboardingAgentFallbackTriggered',
   'onboarding.agent.handoff.chosen': 'onboardingAgentHandoffChosen',

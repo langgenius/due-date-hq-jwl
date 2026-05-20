@@ -216,6 +216,7 @@ const EMPTY_CLIENT_OPTIONS: ClientFilterOption[] = []
 const EMPTY_COUNTY_OPTIONS: CountyFilterOption[] = []
 const INITIAL_CURSOR: ObligationQueueCursor = null
 const PAGE_SIZE = 50
+const FISCAL_YEAR_END_PICKER_YEAR = 2024
 const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
@@ -244,6 +245,24 @@ export function canSaveInternalExtensionPlan({
     isInternalExtensionTargetDateValid(draftTargetDate, filingDeadline)
   )
 }
+
+function formatFiscalYearEnd(month: number, day: number): string {
+  return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
+}
+
+function fiscalYearEndIsoDate(month: number | null, day: number | null): string {
+  if (!month || !day) return ''
+  return `${FISCAL_YEAR_END_PICKER_YEAR}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function fiscalYearEndParts(value: string): { month: number; day: number } | null {
+  if (!isValidIsoDate(value)) return null
+  return {
+    month: Number(value.slice(5, 7)),
+    day: Number(value.slice(8, 10)),
+  }
+}
+
 const DAY_MS = 86_400_000
 const UNASSIGNED_OWNER_OPTION = '__unassigned__'
 const OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME = 'text-xs'
@@ -2925,6 +2944,15 @@ function ObligationQueueDetailDrawer({
     source: '',
     internalTargetDate: '',
   })
+  const [taxYearDraft, setTaxYearDraft] = useState<{
+    obligationId: string
+    taxYearType: ObligationQueueRow['taxYearType']
+    fiscalYearEndDate: string
+  }>({
+    obligationId: '',
+    taxYearType: 'calendar',
+    fiscalYearEndDate: '',
+  })
   const [extensionSaveSuccessOpen, setExtensionSaveSuccessOpen] = useState(false)
   const extensionSaveSuccessTimeoutRef = useRef<number | null>(null)
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
@@ -3017,6 +3045,27 @@ function ObligationQueueDetailDrawer({
         extensionFilingDeadline,
       )
     : false
+  const fiscalYearEnd = fiscalYearEndParts(taxYearDraft.fiscalYearEndDate)
+  const taxYearFiscalMissing =
+    taxYearDraft.taxYearType === 'fiscal' && !taxYearDraft.fiscalYearEndDate
+  const taxYearFiscalInvalid =
+    taxYearDraft.taxYearType === 'fiscal' &&
+    Boolean(taxYearDraft.fiscalYearEndDate) &&
+    !fiscalYearEnd
+  const taxYearProfileChanged = Boolean(
+    row &&
+    (taxYearDraft.taxYearType !== row.taxYearType ||
+      (taxYearDraft.taxYearType === 'fiscal' &&
+        (fiscalYearEnd?.month !== row.fiscalYearEndMonth ||
+          fiscalYearEnd?.day !== row.fiscalYearEndDay)) ||
+      (taxYearDraft.taxYearType === 'calendar' &&
+        (row.fiscalYearEndMonth !== null || row.fiscalYearEndDay !== null))),
+  )
+  const taxYearProfileSummary =
+    row?.taxYearType === 'fiscal' && row.fiscalYearEndMonth && row.fiscalYearEndDay
+      ? `${t`Fiscal year`} · ${formatFiscalYearEnd(row.fiscalYearEndMonth, row.fiscalYearEndDay)}`
+      : t`Calendar year`
+  const taxYearProfileEditable = Boolean(row?.taxYearProfileEditable)
 
   if (row && extensionDraft.obligationId !== row.id) {
     setExtensionDraft({
@@ -3024,6 +3073,13 @@ function ObligationQueueDetailDrawer({
       memo: row.extensionMemo ?? '',
       source: row.extensionSource ?? '',
       internalTargetDate: row.extensionInternalTargetDate ?? '',
+    })
+  }
+  if (row && taxYearDraft.obligationId !== row.id) {
+    setTaxYearDraft({
+      obligationId: row.id,
+      taxYearType: row.taxYearType,
+      fiscalYearEndDate: fiscalYearEndIsoDate(row.fiscalYearEndMonth, row.fiscalYearEndDay),
     })
   }
 
@@ -3112,6 +3168,21 @@ function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const updateTaxYearProfileMutation = useMutation(
+    orpc.obligations.updateTaxYearProfile.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        toast.success(t`Tax year profile saved`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't save tax year profile`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -3207,6 +3278,18 @@ function ObligationQueueDetailDrawer({
     if (!latestRequest?.portalUrl) return
     void navigator.clipboard.writeText(latestRequest.portalUrl)
     toast.success(t`Portal link copied`)
+  }
+
+  function saveTaxYearProfile() {
+    if (!row || !taxYearProfileEditable) return
+    updateTaxYearProfileMutation.mutate({
+      id: row.id,
+      taxYearType: taxYearDraft.taxYearType,
+      fiscalYearEndMonth:
+        taxYearDraft.taxYearType === 'fiscal' ? (fiscalYearEnd?.month ?? null) : null,
+      fiscalYearEndDay: taxYearDraft.taxYearType === 'fiscal' ? (fiscalYearEnd?.day ?? null) : null,
+      reason: 'Obligation readiness tax year profile edit',
+    })
   }
 
   function saveExtensionDecision() {
@@ -3318,6 +3401,83 @@ function ObligationQueueDetailDrawer({
               <TabsContent value="readiness">
                 <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
                   <div className="grid gap-3">
+                    {taxYearProfileEditable ? (
+                      <div className="grid gap-3 rounded-lg border border-divider-regular p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <h3 className="text-sm font-medium text-text-primary">
+                            <Trans>Tax year profile</Trans>
+                          </h3>
+                          <Badge variant="outline">{taxYearProfileSummary}</Badge>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-[180px_1fr_auto]">
+                          <Select
+                            value={taxYearDraft.taxYearType}
+                            onValueChange={(value) => {
+                              if (value === 'calendar' || value === 'fiscal') {
+                                setTaxYearDraft((current) => ({ ...current, taxYearType: value }))
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="calendar">
+                                <Trans>Calendar year</Trans>
+                              </SelectItem>
+                              <SelectItem value="fiscal">
+                                <Trans>Fiscal year</Trans>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <IsoDatePicker
+                            value={taxYearDraft.fiscalYearEndDate}
+                            {...(fiscalYearEnd
+                              ? {
+                                  displayValue: formatFiscalYearEnd(
+                                    fiscalYearEnd.month,
+                                    fiscalYearEnd.day,
+                                  ),
+                                }
+                              : {})}
+                            disabled={taxYearDraft.taxYearType === 'calendar'}
+                            invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
+                            ariaLabel={t`Select fiscal year end`}
+                            placeholder={t`Fiscal year end`}
+                            onValueChange={(fiscalYearEndDate) =>
+                              setTaxYearDraft((current) => ({ ...current, fiscalYearEndDate }))
+                            }
+                          />
+                          <Button
+                            size="sm"
+                            className="w-fit"
+                            onClick={saveTaxYearProfile}
+                            disabled={
+                              !taxYearProfileChanged ||
+                              taxYearFiscalMissing ||
+                              taxYearFiscalInvalid ||
+                              updateTaxYearProfileMutation.isPending
+                            }
+                          >
+                            {updateTaxYearProfileMutation.isPending ? (
+                              <Trans>Saving...</Trans>
+                            ) : (
+                              <Trans>Save tax year profile</Trans>
+                            )}
+                          </Button>
+                        </div>
+                        {taxYearFiscalMissing ? (
+                          <p className="text-xs text-text-destructive">
+                            <Trans>Fiscal-year obligations require a year end.</Trans>
+                          </p>
+                        ) : null}
+                        {taxYearFiscalInvalid ? (
+                          <p className="text-xs text-text-destructive">
+                            <Trans>Use a valid month and day.</Trans>
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                     <div className="flex flex-wrap gap-2">
                       {practiceAiEnabled ? (
                         <Button
@@ -3434,6 +3594,7 @@ function ObligationQueueDetailDrawer({
                   </div>
                   <div className="grid content-start gap-3 rounded-lg border border-divider-regular p-3">
                     <DetailRow label={<Trans>Readiness</Trans>} value={row.readiness} />
+                    <DetailRow label={<Trans>Tax year</Trans>} value={taxYearProfileSummary} />
                     <DetailRow
                       label={<Trans>Latest request</Trans>}
                       value={latestRequest ? latestRequest.status : t`None`}

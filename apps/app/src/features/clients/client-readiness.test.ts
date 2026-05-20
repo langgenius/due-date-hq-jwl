@@ -73,7 +73,7 @@ describe('client readiness', () => {
     expect(readiness.missingRequiredFacts).toEqual(['state'])
   })
 
-  it('marks fiscal clients without a fiscal year end as needing facts', () => {
+  it('keeps tax year profile out of client readiness', () => {
     const readiness = getClientReadiness(
       makeClient({
         taxYearType: 'fiscal',
@@ -82,8 +82,8 @@ describe('client readiness', () => {
       }),
     )
 
-    expect(readiness.status).toBe('needs_facts')
-    expect(readiness.missingRequiredFacts).toEqual(['fiscalYearEnd'])
+    expect(readiness.status).toBe('ready')
+    expect(readiness.missingRequiredFacts).toEqual([])
   })
 
   it('builds summary metrics from real client rows', () => {

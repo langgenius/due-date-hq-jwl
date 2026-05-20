@@ -19,6 +19,9 @@ interface ObligationRow {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: ObligationInstancePublic['taxYearType']
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart?: Date | null
   taxPeriodEnd?: Date | null
   taxPeriodKind?: ObligationInstancePublic['taxPeriodKind']
@@ -120,6 +123,9 @@ export function toObligationPublic(
     clientFilingProfileId: row.clientFilingProfileId ?? null,
     taxType: row.taxType,
     taxYear: row.taxYear,
+    taxYearType: row.taxYearType,
+    fiscalYearEndMonth: row.fiscalYearEndMonth,
+    fiscalYearEndDay: row.fiscalYearEndDay,
     taxPeriodStart: row.taxPeriodStart ? toIsoDate(row.taxPeriodStart) : null,
     taxPeriodEnd: row.taxPeriodEnd ? toIsoDate(row.taxPeriodEnd) : null,
     taxPeriodKind: row.taxPeriodKind ?? 'unknown',

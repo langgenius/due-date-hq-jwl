@@ -85,6 +85,9 @@ export interface ObligationQueueListRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart: Date | null
   taxPeriodEnd: Date | null
   taxPeriodKind: TaxPeriodKind
@@ -222,6 +225,9 @@ interface ObligationQueueRawJoinedRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart: Date | null
   taxPeriodEnd: Date | null
   taxPeriodKind: TaxPeriodKind
@@ -709,6 +715,9 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           clientFilingProfileId: obligationInstance.clientFilingProfileId,
           taxType: obligationInstance.taxType,
           taxYear: obligationInstance.taxYear,
+          taxYearType: obligationInstance.taxYearType,
+          fiscalYearEndMonth: obligationInstance.fiscalYearEndMonth,
+          fiscalYearEndDay: obligationInstance.fiscalYearEndDay,
           taxPeriodStart: obligationInstance.taxPeriodStart,
           taxPeriodEnd: obligationInstance.taxPeriodEnd,
           taxPeriodKind: obligationInstance.taxPeriodKind,
@@ -832,6 +841,9 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               clientFilingProfileId: obligationInstance.clientFilingProfileId,
               taxType: obligationInstance.taxType,
               taxYear: obligationInstance.taxYear,
+              taxYearType: obligationInstance.taxYearType,
+              fiscalYearEndMonth: obligationInstance.fiscalYearEndMonth,
+              fiscalYearEndDay: obligationInstance.fiscalYearEndDay,
               taxPeriodStart: obligationInstance.taxPeriodStart,
               taxPeriodEnd: obligationInstance.taxPeriodEnd,
               taxPeriodKind: obligationInstance.taxPeriodKind,

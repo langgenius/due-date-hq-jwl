@@ -271,6 +271,15 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           taxType: preview.taxType,
           taxYear:
             ruleById.get(preview.ruleId)?.taxYear ?? findRuleById(preview.ruleId)?.taxYear ?? 2026,
+          taxYearType: preview.taxPeriodKind === 'fiscal' ? 'fiscal' : 'calendar',
+          fiscalYearEndMonth:
+            preview.taxPeriodKind === 'fiscal' && preview.taxPeriodEnd
+              ? Number(preview.taxPeriodEnd.slice(5, 7))
+              : null,
+          fiscalYearEndDay:
+            preview.taxPeriodKind === 'fiscal' && preview.taxPeriodEnd
+              ? Number(preview.taxPeriodEnd.slice(8, 10))
+              : null,
           taxPeriodStart: preview.taxPeriodStart
             ? new Date(`${preview.taxPeriodStart}T00:00:00.000Z`)
             : null,

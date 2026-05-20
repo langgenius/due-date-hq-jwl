@@ -3489,6 +3489,45 @@ export function findRuleById(id: string): ObligationRule | undefined {
   return OBLIGATION_RULES.find((rule) => rule.id === id)
 }
 
+export function isTaxYearDrivenRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
+  return (
+    rule.dueDateLogic.kind === 'nth_day_after_tax_year_end' ||
+    rule.dueDateLogic.kind === 'nth_day_after_tax_year_begin'
+  )
+}
+
+export function isLegacyTaxYearProfileTaxType(taxType: string): boolean {
+  const normalized = taxType
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+
+  return [
+    /(^|_)1120_s($|_)/,
+    /(^|_)1120s($|_)/,
+    /(^|_)1120($|_)/,
+    /(^|_)1065($|_)/,
+    /(^|_)1041($|_)/,
+    /(^|_)990($|_)/,
+    /(^|_)990_ez($|_)/,
+    /(^|_)990_pf($|_)/,
+  ].some((pattern) => pattern.test(normalized))
+}
+
+export function canEditTaxYearProfileForObligation(input: {
+  rule?: Pick<ObligationRule, 'dueDateLogic'> | null | undefined
+  taxType: string
+  taxYearType?: 'calendar' | 'fiscal' | null | undefined
+  taxPeriodKind?: 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown' | null | undefined
+}): boolean {
+  if (input.rule && isTaxYearDrivenRule(input.rule)) return true
+  if (input.taxYearType === 'fiscal') return true
+  if (input.taxPeriodKind === 'fiscal' || input.taxPeriodKind === 'short') return true
+  if (input.rule) return false
+  return isLegacyTaxYearProfileTaxType(input.taxType)
+}
+
 export function normalizeRuleTaxTypeCandidates(taxType: string): readonly RuleTaxTypeCandidate[] {
   const candidates: RuleTaxTypeCandidate[] = [
     {

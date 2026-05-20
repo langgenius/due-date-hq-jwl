@@ -280,9 +280,7 @@ export async function runAnnualRollover(input: {
                 taxPeriodSource: 'prior_obligation' as const,
               }
             : {
-                taxYearType: client.taxYearType,
-                fiscalYearEndMonth: client.fiscalYearEndMonth,
-                fiscalYearEndDay: client.fiscalYearEndDay,
+                taxPeriodSource: 'client_default' as const,
               }),
         },
         rules: runtimeRules,

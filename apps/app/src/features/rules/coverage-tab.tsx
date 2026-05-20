@@ -3,7 +3,6 @@ import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertCircleIcon,
   AlertTriangleIcon,
   CheckCircle2Icon,
   CheckIcon,
@@ -748,7 +747,7 @@ function ActiveFilterChip({
 /**
  * Compact legend for the entity-coverage glyphs. Sits between the
  * source banner and the table so a first-time CPA can decode the
- * orange / green / em-dash glyphs without hover-discovering them.
+ * orange triangle / green check / em-dash glyphs without hover-discovering them.
  */
 function EntityCoverageLegend() {
   return (
@@ -761,7 +760,7 @@ function EntityCoverageLegend() {
         <Trans>Active rule</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <AlertCircleIcon aria-hidden className="size-3.5 text-severity-medium" />
+        <AlertTriangleIcon aria-hidden className="size-3.5 text-severity-medium" />
         <Trans>Needs review</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
@@ -1461,12 +1460,12 @@ function SourceCountBadge({ count, attention }: { count: number; attention?: boo
  * Per-entity coverage cell — a single glyph per state. After 7
  * columns × 52 rows the prior text-pill grammar (ACTIVE / REVIEW /
  * NO RULE repeated 364 times) reads as visual chatter. A check, an
- * alert circle, and an em dash carry the same meaning with a small
+ * alert triangle, and an em dash carry the same meaning with a small
  * fraction of the ink, and the `title` attribute keeps the spoken
  * label one hover away for first-time users.
  *
  *   - 'verified' (active) → green check
- *   - 'review' → orange alert circle
+ *   - 'review' → orange alert triangle
  *   - 'none' (no rule) → muted em dash
  */
 function EntityCellContent({ state }: { state: CoverageCellState }) {
@@ -1487,7 +1486,7 @@ function EntityCellContent({ state }: { state: CoverageCellState }) {
         title="Pending review for this entity"
         className="inline-flex size-5 items-center justify-center"
       >
-        <AlertCircleIcon aria-hidden className="size-4 text-severity-medium" />
+        <AlertTriangleIcon aria-hidden className="size-4 text-severity-medium" />
         <span className="sr-only">Review</span>
       </span>
     )

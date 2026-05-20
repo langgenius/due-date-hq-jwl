@@ -9,6 +9,9 @@ interface FakeRow {
   clientId: string
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart: Date | null
   taxPeriodEnd: Date | null
   taxPeriodKind: 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
@@ -129,6 +132,9 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     clientId: over.clientId ?? '22222222-2222-4222-8222-222222222222',
     taxType: over.taxType ?? '1040',
     taxYear: over.taxYear ?? 2026,
+    taxYearType: over.taxYearType ?? 'calendar',
+    fiscalYearEndMonth: over.fiscalYearEndMonth ?? null,
+    fiscalYearEndDay: over.fiscalYearEndDay ?? null,
     taxPeriodStart: over.taxPeriodStart ?? null,
     taxPeriodEnd: over.taxPeriodEnd ?? null,
     taxPeriodKind: over.taxPeriodKind ?? 'unknown',

@@ -13,6 +13,7 @@ import type {
   ObligationType,
   TaxPeriodKind,
   TaxPeriodSource,
+  TaxYearType,
 } from './shared'
 
 export interface PenaltyBreakdownItem {
@@ -39,6 +40,9 @@ export interface ObligationInstanceRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: TaxYearType
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart: Date | null
   taxPeriodEnd: Date | null
   taxPeriodKind: TaxPeriodKind
@@ -105,6 +109,9 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxYearType?: TaxYearType
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
   taxPeriodStart?: Date | null
   taxPeriodEnd?: Date | null
   taxPeriodKind?: TaxPeriodKind
@@ -169,6 +176,23 @@ export interface ObligationsRepo {
     }>
   >
   updateDueDate(id: string, newDate: Date): Promise<void>
+  updateTaxYearProfile(
+    id: string,
+    patch: {
+      taxYearType: TaxYearType
+      fiscalYearEndMonth: number | null
+      fiscalYearEndDay: number | null
+      taxPeriodStart: Date | null
+      taxPeriodEnd: Date | null
+      taxPeriodKind: TaxPeriodKind
+      taxPeriodSource: TaxPeriodSource
+      taxPeriodReviewReason: string | null
+      baseDueDate?: Date
+      currentDueDate?: Date
+      filingDueDate?: Date | null
+      paymentDueDate?: Date | null
+    },
+  ): Promise<void>
   updateExposure(
     id: string,
     patch: {

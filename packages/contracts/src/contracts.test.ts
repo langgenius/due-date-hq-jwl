@@ -39,6 +39,8 @@ import {
   ObligationBulkStatusUpdateInputSchema,
   ObligationBulkStatusUpdateOutputSchema,
   ObligationExtensionDecisionInputSchema,
+  ObligationTaxYearProfileUpdateInputSchema,
+  ObligationTaxYearProfileUpdateOutputSchema,
   ObligationStatusUpdateInputSchema,
   ObligationStatusUpdateOutputSchema,
   obligationsContract,
@@ -459,6 +461,7 @@ describe('@duedatehq/contracts', () => {
         'previewAnnualRollover',
         'createAnnualRollover',
         'updateDueDate',
+        'updateTaxYearProfile',
         'updateStatus',
         'bulkUpdateStatus',
         'decideExtension',
@@ -481,6 +484,9 @@ describe('@duedatehq/contracts', () => {
         clientFilingProfileId: null,
         taxType: '1040',
         taxYear: 2026,
+        taxYearType: 'calendar',
+        fiscalYearEndMonth: null,
+        fiscalYearEndDay: null,
         ruleId: null,
         ruleVersion: null,
         rulePeriod: null,
@@ -546,6 +552,30 @@ describe('@duedatehq/contracts', () => {
       auditId: '33333333-3333-4333-8333-333333333333',
     })
     expect(output.auditId).toMatch(/-/)
+
+    const taxYearInput = ObligationTaxYearProfileUpdateInputSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+      reason: 'specific obligation uses fiscal year',
+    })
+    expect(taxYearInput.taxYearType).toBe('fiscal')
+
+    const taxYearOutput = ObligationTaxYearProfileUpdateOutputSchema.parse({
+      obligation: {
+        ...output.obligation,
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: 6,
+        fiscalYearEndDay: 30,
+        taxPeriodStart: '2025-07-01',
+        taxPeriodEnd: '2026-06-30',
+        taxPeriodKind: 'fiscal',
+        taxPeriodSource: 'manual_cpa_confirmed',
+      },
+      auditId: '33333333-3333-4333-8333-333333333333',
+    })
+    expect(taxYearOutput.obligation.taxPeriodKind).toBe('fiscal')
 
     const extensionInput = ObligationExtensionDecisionInputSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',

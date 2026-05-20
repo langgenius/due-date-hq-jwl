@@ -278,6 +278,8 @@ export type {
   ObligationInstancePublic,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
+  ObligationTaxYearProfileUpdateInput,
+  ObligationTaxYearProfileUpdateOutput,
   ObligationsContract,
   PenaltyBreakdownItem,
 } from './obligations'
@@ -300,6 +302,8 @@ export {
   ObligationInstancePublicSchema,
   ObligationStatusUpdateInputSchema,
   ObligationStatusUpdateOutputSchema,
+  ObligationTaxYearProfileUpdateInputSchema,
+  ObligationTaxYearProfileUpdateOutputSchema,
   obligationsContract,
   PenaltyBreakdownItemSchema,
 } from './obligations'

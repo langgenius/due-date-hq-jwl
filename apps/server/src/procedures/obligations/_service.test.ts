@@ -82,6 +82,7 @@ function buildScoped(firmId: string, rows: Row[]) {
       return []
     },
     async updateDueDate() {},
+    async updateTaxYearProfile() {},
     async updateExposure() {},
     async updateStatus(id: string, status: Row['status']) {
       const row = map.get(id)
@@ -518,6 +519,9 @@ function makeRow(over: Partial<Row> = {}): Row {
     clientFilingProfileId: null,
     taxType: '1040',
     taxYear: 2026,
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
     taxPeriodStart: new Date('2026-01-01T00:00:00.000Z'),
     taxPeriodEnd: new Date('2026-12-31T00:00:00.000Z'),
     taxPeriodKind: 'calendar',

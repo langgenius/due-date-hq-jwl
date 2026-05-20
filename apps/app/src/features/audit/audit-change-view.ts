@@ -170,6 +170,7 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'obligation.due_date.updated': obligationDueDatePresenter,
   'obligation.readiness.updated': obligationReadinessPresenter,
   'obligation.status.updated': obligationStatusPresenter,
+  'obligation.tax_year_profile.updated': genericPresenter,
   'onboarding.agent.dry_run.previewed': genericPresenter,
   'onboarding.agent.fallback.triggered': genericPresenter,
   'onboarding.agent.handoff.chosen': genericPresenter,

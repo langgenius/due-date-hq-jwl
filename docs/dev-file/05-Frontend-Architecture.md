@@ -514,6 +514,10 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   Obligations readiness 由 read model 派生：closed status → `ready`；最新 Readiness Portal
   response 可产出 `ready` / `waiting` / `needs_review`；无 response 时由
   `waiting_on_client → waiting`、`review → needs_review`、其余 open status → `ready` 派生。
+- **Readiness tax year profile**：Tax year profile editor belongs in the obligation detail
+  Readiness tab, not Client facts. CPA can switch one obligation between calendar/fiscal year and
+  maintain fiscal year end without changing the client's other obligations; the editor appears only
+  when the obligation's rule is tax-year driven, with legacy fiscal obligations kept editable.
 - **表头筛选**：Client / Owner / State / County / Tax type / Days / Projected risk /
   Readiness / Status 的筛选入口直接挂在 TanStack Table header 上；顶部控制区只保留搜索、排序、
   Reset 和少量 triage 快捷 chip，避免 Obligations 出现两套筛选面。

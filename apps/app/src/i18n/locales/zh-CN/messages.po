@@ -1455,7 +1455,7 @@ msgstr "日历 URL 已复制"
 msgid "Calendar URL regenerated"
 msgstr "日历 URL 已重新生成"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Calendar year"
 msgstr "日历年"
 
@@ -2232,7 +2232,7 @@ msgstr "无法保存 penalty 输入"
 msgid "Couldn't save risk inputs"
 msgstr "无法保存风险输入"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Couldn't save tax year profile"
 msgstr "无法保存税务年度资料"
 
@@ -2523,6 +2523,10 @@ msgstr "截止日状态已更改"
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline status changed from {previous} to {next}"
 msgstr "截止日状态从 {previous} 变更为 {next}"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline tax year changed"
+msgstr "截止日税年已更改"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/obligations.tsx
@@ -3228,18 +3232,18 @@ msgstr "Firm"
 msgid "Firm-branded client-facing PDFs grouped by client."
 msgstr "Firm-branded client-facing PDFs grouped by client."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Fiscal year"
 msgstr "财政年度"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
+#: src/routes/obligations.tsx
 msgid "Fiscal year end"
 msgstr "财政年度结束日"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Fiscal-year clients require a year end."
-msgstr "财政年度客户必须填写年度结束日。"
+#: src/routes/obligations.tsx
+msgid "Fiscal-year obligations require a year end."
+msgstr "财政年度义务需要填写年度结束日。"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
@@ -4339,7 +4343,6 @@ msgstr "需要补充事实"
 msgid "Needs filing state"
 msgstr "需要报税州"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Needs fiscal year end"
 msgstr "需要财政年度结束日"
@@ -6459,10 +6462,6 @@ msgstr "规则适用性判断必需。"
 msgid "Required for rules and Pulse matching."
 msgstr "规则生成与 Pulse 匹配必需。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Required only when the client files on a fiscal year."
-msgstr "仅当客户按财政年度申报时需要。"
-
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
 msgstr "需要：{requiredRoleText}"
@@ -6998,7 +6997,7 @@ msgstr "保存风险输入"
 msgid "Save Smart Priority"
 msgstr "保存 Smart Priority"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Save tax year profile"
 msgstr "保存税务年度资料"
 
@@ -7062,6 +7061,7 @@ msgid "Saving your confirmed fields and grouping values for review."
 msgstr "正在保存已确认字段，并将值分组以供复核。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Saving..."
 msgstr "正在保存..."
 
@@ -7198,7 +7198,7 @@ msgstr "选择日期"
 msgid "Select eligible obligations before applying."
 msgstr "应用前请选择符合条件的义务。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Select fiscal year end"
 msgstr "选择财政年度结束日"
 
@@ -7892,8 +7892,8 @@ msgstr "税种来自现有义务。"
 msgid "Tax types inferred from suggestions."
 msgstr "税种由建议推断。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rule-detail-drawer.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year"
 msgstr "税年"
 
@@ -7901,11 +7901,11 @@ msgstr "税年"
 msgid "TAX YEAR"
 msgstr "税务年度"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "税务年度资料"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year profile saved"
 msgstr "税务年度资料已保存"
 
@@ -8516,7 +8516,7 @@ msgstr "使用 2 位州代码"
 msgid "Use a deployed app URL or a trusted local HTTPS tunnel for direct Apple Calendar subscriptions."
 msgstr "请使用已部署的应用 URL，或受信任的本地 HTTPS tunnel，来直接订阅 Apple Calendar。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Use a valid month and day."
 msgstr "请输入有效的月份和日期。"
 

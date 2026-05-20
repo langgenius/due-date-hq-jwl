@@ -2,6 +2,10 @@
 
 ## Summary
 
+Superseded by `2026-05-20-obligation-tax-year-readiness.md`: fiscal/calendar tax year profile is now
+edited per obligation in Readiness. Client-level fields remain as legacy/import defaults and
+backfill inputs.
+
 Aligned fiscal-year client handling with CPA import and maintenance reality:
 
 - Unmarked clients default to calendar year for deadline generation.

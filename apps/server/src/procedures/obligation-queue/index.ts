@@ -8,7 +8,12 @@ import type {
   ObligationQueueMatchedRule,
   ObligationQueueRow,
 } from '@duedatehq/contracts'
-import { listObligationRules, normalizeRuleTaxTypeCandidates } from '@duedatehq/core/rules'
+import {
+  canEditTaxYearProfileForObligation,
+  findRuleById,
+  listObligationRules,
+  normalizeRuleTaxTypeCandidates,
+} from '@duedatehq/core/rules'
 import { toAuditEventPublic } from '../audit'
 import { requireTenant } from '../_context'
 import { OBLIGATION_STATUS_WRITE_ROLES, requireCurrentFirmRole } from '../_permissions'
@@ -30,6 +35,9 @@ interface RawRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: ObligationQueueRow['taxYearType']
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
   taxPeriodStart: Date | null
   taxPeriodEnd: Date | null
   taxPeriodKind: ObligationQueueRow['taxPeriodKind']
@@ -153,6 +161,7 @@ function toRow(
 ): ObligationQueueRow {
   const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
   const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
+  const rule = row.ruleId ? findRuleById(row.ruleId) : null
   return {
     id: row.id,
     firmId: row.firmId,
@@ -160,6 +169,9 @@ function toRow(
     clientFilingProfileId: row.clientFilingProfileId,
     taxType: row.taxType,
     taxYear: row.taxYear,
+    taxYearType: row.taxYearType,
+    fiscalYearEndMonth: row.fiscalYearEndMonth,
+    fiscalYearEndDay: row.fiscalYearEndDay,
     taxPeriodStart: row.taxPeriodStart ? toIsoDate(row.taxPeriodStart) : null,
     taxPeriodEnd: row.taxPeriodEnd ? toIsoDate(row.taxPeriodEnd) : null,
     taxPeriodKind: row.taxPeriodKind,
@@ -229,6 +241,12 @@ function toRow(
     clientState: normalizeStateCode(row.clientState),
     clientCounty: normalizeNullableText(row.clientCounty),
     assigneeName: row.assigneeName?.trim() || null,
+    taxYearProfileEditable: canEditTaxYearProfileForObligation({
+      rule,
+      taxType: row.taxType,
+      taxYearType: row.taxYearType,
+      taxPeriodKind: row.taxPeriodKind,
+    }),
     daysUntilDue: row.daysUntilDue,
     evidenceCount: row.evidenceCount,
     smartPriority: opts.hideSmartPriorityFactors
@@ -381,16 +399,24 @@ function matchedRuleForRow(row: ObligationQueueRow): ObligationQueueMatchedRule 
     (candidate) => candidate.taxType,
   )
   const candidateSet = new Set([row.taxType, ...candidates])
-  const rule = listObligationRules({ includeCandidates: true }).find((item) => {
-    if (!candidateSet.has(item.taxType)) return false
-    if (item.jurisdiction === 'FED') return true
-    return row.clientState === item.jurisdiction
-  })
+  const rule =
+    (row.ruleId ? findRuleById(row.ruleId) : undefined) ??
+    listObligationRules({ includeCandidates: true }).find((item) => {
+      if (!candidateSet.has(item.taxType)) return false
+      if (item.jurisdiction === 'FED') return true
+      return row.clientState === item.jurisdiction
+    })
   if (!rule) return null
   return {
     id: rule.id,
     title: rule.title,
     defaultTip: rule.defaultTip,
+    taxYearProfileEditable: canEditTaxYearProfileForObligation({
+      rule,
+      taxType: row.taxType,
+      taxYearType: row.taxYearType,
+      taxPeriodKind: row.taxPeriodKind,
+    }),
     extensionPolicy: { ...rule.extensionPolicy },
     evidence: rule.evidence.map((item) => Object.assign({}, item)),
   }

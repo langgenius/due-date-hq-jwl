@@ -244,6 +244,7 @@ function buildScopedRepo(firmId: string) {
       return []
     },
     async updateDueDate() {},
+    async updateTaxYearProfile() {},
     async updateExposure() {},
     async updateStatus() {},
     async updateExtensionDecision() {},

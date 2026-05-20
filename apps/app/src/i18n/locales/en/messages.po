@@ -1455,7 +1455,7 @@ msgstr "Calendar URL copied"
 msgid "Calendar URL regenerated"
 msgstr "Calendar URL regenerated"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Calendar year"
 msgstr "Calendar year"
 
@@ -2232,7 +2232,7 @@ msgstr "Couldn't save penalty inputs"
 msgid "Couldn't save risk inputs"
 msgstr "Couldn't save risk inputs"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Couldn't save tax year profile"
 msgstr "Couldn't save tax year profile"
 
@@ -2523,6 +2523,10 @@ msgstr "Deadline status changed"
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline status changed from {previous} to {next}"
 msgstr "Deadline status changed from {previous} to {next}"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline tax year changed"
+msgstr "Deadline tax year changed"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/obligations.tsx
@@ -3228,18 +3232,18 @@ msgstr "Firm"
 msgid "Firm-branded client-facing PDFs grouped by client."
 msgstr "Firm-branded client-facing PDFs grouped by client."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Fiscal year"
 msgstr "Fiscal year"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
+#: src/routes/obligations.tsx
 msgid "Fiscal year end"
 msgstr "Fiscal year end"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Fiscal-year clients require a year end."
-msgstr "Fiscal-year clients require a year end."
+#: src/routes/obligations.tsx
+msgid "Fiscal-year obligations require a year end."
+msgstr "Fiscal-year obligations require a year end."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
@@ -4339,7 +4343,6 @@ msgstr "Needs facts"
 msgid "Needs filing state"
 msgstr "Needs filing state"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Needs fiscal year end"
 msgstr "Needs fiscal year end"
@@ -6459,10 +6462,6 @@ msgstr "Required for rule applicability."
 msgid "Required for rules and Pulse matching."
 msgstr "Required for rules and Pulse matching."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Required only when the client files on a fiscal year."
-msgstr "Required only when the client files on a fiscal year."
-
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
 msgstr "Required: {requiredRoleText}"
@@ -6998,7 +6997,7 @@ msgstr "Save risk inputs"
 msgid "Save Smart Priority"
 msgstr "Save Smart Priority"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Save tax year profile"
 msgstr "Save tax year profile"
 
@@ -7062,6 +7061,7 @@ msgid "Saving your confirmed fields and grouping values for review."
 msgstr "Saving your confirmed fields and grouping values for review."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -7198,7 +7198,7 @@ msgstr "Select date"
 msgid "Select eligible obligations before applying."
 msgstr "Select eligible obligations before applying."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Select fiscal year end"
 msgstr "Select fiscal year end"
 
@@ -7892,8 +7892,8 @@ msgstr "Tax types from existing obligations."
 msgid "Tax types inferred from suggestions."
 msgstr "Tax types inferred from suggestions."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rule-detail-drawer.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year"
 msgstr "Tax year"
 
@@ -7901,11 +7901,11 @@ msgstr "Tax year"
 msgid "TAX YEAR"
 msgstr "TAX YEAR"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "Tax year profile"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Tax year profile saved"
 msgstr "Tax year profile saved"
 
@@ -8516,7 +8516,7 @@ msgstr "Use 2-letter state codes"
 msgid "Use a deployed app URL or a trusted local HTTPS tunnel for direct Apple Calendar subscriptions."
 msgstr "Use a deployed app URL or a trusted local HTTPS tunnel for direct Apple Calendar subscriptions."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/routes/obligations.tsx
 msgid "Use a valid month and day."
 msgstr "Use a valid month and day."
 

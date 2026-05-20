@@ -82,6 +82,9 @@ function makeObligation(over: Partial<ObligationInstanceRow>): ObligationInstanc
     clientFilingProfileId: null,
     taxType: 'federal_1065',
     taxYear: 2026,
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
     taxPeriodStart: new Date('2026-01-01T00:00:00.000Z'),
     taxPeriodEnd: new Date('2026-12-31T00:00:00.000Z'),
     taxPeriodKind: 'calendar',
@@ -279,6 +282,7 @@ function buildScopedRepo(input: {
         return []
       },
       async updateDueDate() {},
+      async updateTaxYearProfile() {},
       async updateExposure(id: string, patch: ExposurePatch) {
         input.updates.push({ id, patch })
       },

@@ -268,7 +268,7 @@ describe('generateObligationsForAcceptedRules', () => {
     )
   })
 
-  it('generates fiscal-year S corporation obligations from the return tax period', async () => {
+  it('does not inherit fiscal-year S corporation periods from the client profile', async () => {
     const client = makeClient({
       entityType: 's_corp',
       taxClassification: 's_corp',
@@ -299,16 +299,17 @@ describe('generateObligationsForAcceptedRules', () => {
       expect.objectContaining({
         clientFilingProfileId: null,
         taxType: 'federal_1120s',
-        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
-        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
-        paymentDueDate: new Date('2026-09-15T00:00:00.000Z'),
-        taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
-        taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
-        taxPeriodKind: 'fiscal',
+        baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
+        filingDueDate: new Date('2026-03-16T00:00:00.000Z'),
+        paymentDueDate: new Date('2026-03-16T00:00:00.000Z'),
+        taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
+        taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
+        taxPeriodKind: 'calendar',
         taxPeriodSource: 'client_default',
         taxPeriodReviewReason: null,
         status: 'pending',
       }),
     ])
+    expect(createdInputs[0]?.taxYearType).toBeUndefined()
   })
 })

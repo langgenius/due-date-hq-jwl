@@ -92,6 +92,7 @@ export const ObligationQueueRowSchema = ObligationInstancePublicSchema.extend({
   clientState: StateCodeSchema.nullable(),
   clientCounty: ObligationQueueFilterValueSchema.nullable(),
   assigneeName: z.string().min(1).nullable(),
+  taxYearProfileEditable: z.boolean(),
   readiness: ObligationQueueReadinessSchema,
   daysUntilDue: z.number().int(),
   evidenceCount: z.number().int().min(0),
@@ -245,6 +246,7 @@ export const ObligationQueueMatchedRuleSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   defaultTip: z.string().min(1),
+  taxYearProfileEditable: z.boolean(),
   extensionPolicy: ExtensionPolicySchema,
   evidence: z.array(RuleEvidenceSchema),
 })

@@ -151,6 +151,13 @@ export const obligationInstance = sqliteTable(
     // Optional: 4-digit tax year (e.g. '2026'). Some Demo obligations span
     // calendars; NULL means "non-year-specific" which is rare for Demo.
     taxYear: integer('tax_year'),
+    // CPA-confirmed tax year basis for this specific obligation. Kept on the
+    // obligation because one client can have both calendar-year and fiscal-year work.
+    taxYearType: text('tax_year_type', { enum: ['calendar', 'fiscal'] })
+      .notNull()
+      .default('calendar'),
+    fiscalYearEndMonth: integer('fiscal_year_end_month'),
+    fiscalYearEndDay: integer('fiscal_year_end_day'),
     // Tax return/reporting period that the authority deadline is based on.
     // For fiscal and short-year returns this is the CPA-facing source of truth.
     taxPeriodStart: integer('tax_period_start', { mode: 'timestamp_ms' }),

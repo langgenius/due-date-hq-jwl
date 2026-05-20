@@ -135,7 +135,7 @@ deadline list 升级成可解释的 penalty-risk priority list：先处理真正
 
 **模块功能**
 
-Clients 模块管理事务所客户事实，包括客户名称、实体类型、EIN、tax year profile、filing
+Clients 模块管理事务所客户事实，包括客户名称、实体类型、EIN、filing
 jurisdictions、county、邮箱、负责人和 notes。客户事实会驱动规则适配、义务生成、Dashboard 风险和 Pulse
 匹配。`client.state/county` 只作为 primary filing jurisdiction 的兼容展示；真实规则和
 Pulse 匹配以 active filing profiles 与 obligation jurisdiction 为准。
@@ -150,14 +150,14 @@ Pulse 匹配以 active filing profiles 与 obligation jurisdiction 为准。
 1. 从 sidebar 点击 `Clients`。
 2. 查看顶部指标：
    - `Ready for rules`：具备规则生成所需事实的客户数量。
-   - `Needs facts`：缺少州、实体类型或明确 fiscal-year client 的 fiscal year end 等关键事实的客户数量。
+   - `Needs facts`：缺少州或实体类型等关键事实的客户数量。
    - `Imported`：由导入产生的客户数量。
    - `States covered`：可用于规则和 Pulse 匹配的 filing state 覆盖。
 3. 使用搜索框按客户名称检索。
 4. 使用 `Entity` 和 `State` 筛选客户；State 会匹配客户任一 active filing state。
-5. 点击客户行或 `Fact profile` 打开事实侧栏；可在 `Tax year profile` 中确认
-   `Calendar year` / `Fiscal year` 并维护 fiscal year end，也可在 `Filing jurisdictions` 中补充或修正
-   多个 filing states、primary counties，并查看每州 tax type review/source 状态。
+5. 点击客户行或 `Fact profile` 打开事实侧栏；可在 `Filing jurisdictions` 中补充或修正
+   多个 filing states、primary counties，并查看每州 tax type review/source 状态。Tax year profile 在
+   Obligations detail 的 Readiness tab 按单个 obligation 维护。
 6. 点击 `New client` 手动创建客户，填写 client name、entity type、EIN、state、county、email、owner 和 notes。
 7. 点击 `Import clients` 打开 Migration Copilot。
 8. 点击 `Import history` 查看导入批次，并可从历史记录跳转到导入客户。

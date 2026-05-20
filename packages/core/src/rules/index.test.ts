@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canEditTaxYearProfileForObligation,
   getMvpRuleCoverage,
   findRuleById,
+  isTaxYearDrivenRule,
   listObligationRules,
   listRuleSources,
   listSourcesByNotificationChannel,
@@ -278,6 +280,70 @@ describe('@duedatehq/core/rules', () => {
         }),
       ]),
     )
+  })
+
+  it('flags only tax-year-driven obligations as tax year profile editable by rule', () => {
+    const taxYearEndRule = findRuleById('fed.1120s.return.2025')
+    const taxYearBeginRule = findRuleById('ca.llc.annual_tax.2026')
+    const fixedDateRule = findRuleById('fed.1040.extension.2025')
+
+    expect(taxYearEndRule).toBeDefined()
+    expect(taxYearBeginRule).toBeDefined()
+    expect(fixedDateRule).toBeDefined()
+    expect(taxYearEndRule ? isTaxYearDrivenRule(taxYearEndRule) : false).toBe(true)
+    expect(taxYearBeginRule ? isTaxYearDrivenRule(taxYearBeginRule) : false).toBe(true)
+    expect(fixedDateRule ? isTaxYearDrivenRule(fixedDateRule) : true).toBe(false)
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: taxYearEndRule,
+        taxType: '1120-S',
+        taxYearType: 'calendar',
+        taxPeriodKind: 'calendar',
+      }),
+    ).toBe(true)
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: taxYearBeginRule,
+        taxType: 'CA LLC annual tax',
+        taxYearType: 'calendar',
+        taxPeriodKind: 'calendar',
+      }),
+    ).toBe(true)
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: fixedDateRule,
+        taxType: '1040 extension',
+        taxYearType: 'calendar',
+        taxPeriodKind: 'calendar',
+      }),
+    ).toBe(false)
+  })
+
+  it('keeps legacy fiscal obligations editable when rule metadata is unavailable', () => {
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: null,
+        taxType: 'CA Form 100',
+        taxYearType: 'fiscal',
+        taxPeriodKind: 'fiscal',
+      }),
+    ).toBe(true)
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: null,
+        taxType: '1120-S return',
+        taxYearType: 'calendar',
+        taxPeriodKind: 'calendar',
+      }),
+    ).toBe(true)
+    expect(
+      canEditTaxYearProfileForObligation({
+        rule: null,
+        taxType: 'quarterly payroll deposit',
+        taxYearType: 'calendar',
+        taxPeriodKind: 'calendar',
+      }),
+    ).toBe(false)
   })
 
   it('generates reminder-ready previews only for verified full rules with concrete dates', () => {

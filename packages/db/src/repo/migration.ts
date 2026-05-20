@@ -50,8 +50,8 @@ const EXTERNAL_REF_BATCH_SIZE = Math.floor(100 / 14)
 const CLIENT_BATCH_SIZE = Math.floor(100 / 17)
 // client_filing_profile has 12 columns -> 8/batch.
 const FILING_PROFILE_BATCH_SIZE = Math.floor(100 / 12)
-// obligation_instance commit rows bind 34 columns -> 2/batch.
-const OBLIGATION_BATCH_SIZE = Math.floor(100 / 34)
+// obligation_instance commit rows bind 37 columns -> 2/batch.
+const OBLIGATION_BATCH_SIZE = Math.floor(100 / 37)
 // evidence_link has 17 columns → 5/batch.
 const EVIDENCE_BATCH_SIZE = Math.floor(100 / 17)
 // audit_event has 12 columns → 8/batch.

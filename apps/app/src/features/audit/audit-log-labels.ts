@@ -52,6 +52,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       obligationDueDateUpdated: t`Internal deadline changed`,
       obligationReadinessUpdated: t`Deadline readiness changed`,
       obligationStatusUpdated: t`Deadline status changed`,
+      obligationTaxYearProfileUpdated: t`Deadline tax year changed`,
       onboardingAgentDryRunPreviewed: t`Onboarding dry run previewed`,
       onboardingAgentFallbackTriggered: t`Onboarding alternate path used`,
       onboardingAgentHandoffChosen: t`Onboarding handoff chosen`,

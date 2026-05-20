@@ -59,6 +59,7 @@ export type ClientTaxClassification =
   | 'foreign_reporting_company'
   | 'unknown'
 
+export type TaxYearType = 'calendar' | 'fiscal'
 export type TaxPeriodKind = 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
 export type TaxPeriodSource =
   | 'client_default'
