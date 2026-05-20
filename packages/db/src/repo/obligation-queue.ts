@@ -949,6 +949,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           >`coalesce(json_extract(${clientFilingProfile.countiesJson}, '$[0]'), ${client.county})`,
           taxType: obligationInstance.taxType,
           assigneeName: client.assigneeName,
+          status: obligationInstance.status,
         })
         .from(obligationInstance)
         .innerJoin(client, eq(obligationInstance.clientId, client.id))
@@ -971,6 +972,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
       const counties = new Map<string, ObligationQueueCountyFacetOption>()
       const taxTypes = new Map<string, ObligationQueueFacetOption>()
       const assigneeNames = new Map<string, ObligationQueueFacetOption>()
+      const statuses = new Map<string, ObligationQueueFacetOption>()
 
       for (const row of rawRows) {
         const clientState = normalizeStateCode(row.clientState)
@@ -1033,6 +1035,13 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             })
           }
         }
+
+        const statusFacet = statuses.get(row.status)
+        if (statusFacet) {
+          statusFacet.count += 1
+        } else {
+          statuses.set(row.status, { value: row.status, label: row.status, count: 1 })
+        }
       }
 
       return {
@@ -1043,6 +1052,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         assigneeNames: [...assigneeNames.values()]
           .toSorted(compareFacetLabels)
           .slice(0, MAX_FACET_OPTIONS),
+        statuses: [...statuses.values()],
       }
     },
 

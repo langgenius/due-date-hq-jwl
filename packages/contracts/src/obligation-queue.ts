@@ -135,6 +135,7 @@ export const ObligationQueueFacetsOutputSchema = z.object({
   counties: z.array(ObligationQueueCountyFacetOptionSchema),
   taxTypes: z.array(ObligationQueueFacetOptionSchema),
   assigneeNames: z.array(ObligationQueueFacetOptionSchema),
+  statuses: z.array(ObligationQueueFacetOptionSchema),
 })
 export type ObligationQueueFacetsOutput = z.infer<typeof ObligationQueueFacetsOutputSchema>
 

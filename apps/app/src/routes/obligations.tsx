@@ -73,7 +73,6 @@ import {
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
-import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
@@ -270,6 +269,9 @@ function fiscalYearEndParts(value: string): { month: number; day: number } | nul
 const DAY_MS = 86_400_000
 const UNASSIGNED_OWNER_OPTION = '__unassigned__'
 const OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME = 'text-xs'
+// Width of the Due column. Tokenized so the magic-number doesn't fight
+// long client-name wraps if the table layout shifts.
+const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'min-w-[148px]'
 const NON_HIDEABLE_COLUMNS = new Set(['select'])
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
@@ -679,18 +681,18 @@ export function selectionHeaderState(
 }
 
 function dueDaysTone(days: number): DueDaysTone {
-  if (days < 0) {
-    return {
-      variant: 'destructive',
-      dot: 'error',
-      badgeClassName:
-        'border-state-destructive-border bg-state-destructive-solid text-text-inverted',
-      dotClassName: 'bg-text-inverted shadow-none',
-    }
-  }
-  if (days <= 2) return { variant: 'destructive', dot: 'error' }
-  if (days <= 7) return { variant: 'warning', dot: 'warning' }
-  return { variant: 'success', dot: 'success' }
+  // Calmer color ladder. The previous tone used a solid white-on-red
+  // pill for *any* past-due row, which made every late filing scream
+  // and stripped urgency hierarchy from the queue. We now stay in soft
+  // tints and reserve the loudest red for rows that are both late AND
+  // imminent — the warning amber band carries everything else past
+  // due, and the future band stays neutral so the eye lands on
+  // genuinely urgent rows.
+  if (days < -7) return { variant: 'destructive', dot: 'error' }
+  if (days < 0) return { variant: 'warning', dot: 'error' }
+  if (days <= 2) return { variant: 'warning', dot: 'warning' }
+  if (days <= 7) return { variant: 'outline', dot: 'warning' }
+  return { variant: 'outline', dot: 'normal' }
 }
 
 export function ObligationQueueRoute() {
@@ -757,6 +759,7 @@ export function ObligationQueueRoute() {
   }, [urlSort, lifecycleV2])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   // Anchor for shift-click range selection — last id the user clicked.
   const lastSelectedIdRef = useRef<string | null>(null)
   const [savedViewDraft, setSavedViewDraft] = useState<{
@@ -1118,6 +1121,18 @@ export function ObligationQueueRoute() {
   const isError = listQuery.isError
   const keyboardEnabled = rows.length > 0 && !shortcutsBlocked
 
+  // Adjacency-based grouping: when two consecutive rows belong to the
+  // same client, mark the second one as a "continuation" so the Client
+  // cell renders as an indented connector instead of repeating the
+  // client name. Works for any sort order; visible when the sort places
+  // a client's filings next to each other (default is by due date).
+  const continuationRowIds = useMemo(() => {
+    const set = new Set<string>()
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
+    }
+    return set
+  }, [rows])
   const rowsById = useMemo(
     () => new Map(rows.map((obligationQueueRow) => [obligationQueueRow.id, obligationQueueRow])),
     [rows],
@@ -1206,14 +1221,6 @@ export function ObligationQueueRoute() {
         meta: { headerClassName: 'w-10', cellClassName: 'w-10' },
       },
       {
-        id: 'smartPriority',
-        header: () => <ConceptLabel concept="smartPriority">{t`Priority`}</ConceptLabel>,
-        cell: ({ row: tableRow }) => (
-          <SmartPriorityBadge smartPriority={tableRow.original.smartPriority} />
-        ),
-        meta: { headerClassName: 'w-[120px]', cellClassName: 'w-[120px]' },
-      },
-      {
         accessorKey: 'clientName',
         header: () => (
           <TableHeaderMultiFilter
@@ -1236,38 +1243,35 @@ export function ObligationQueueRoute() {
             }
           />
         ),
-        cell: (info) => info.getValue<string>(),
-        meta: { cellClassName: 'font-medium text-text-primary' },
-      },
-      {
-        accessorKey: 'assigneeName',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Owner`}
-            open={openHeaderFilter === 'owner'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('owner', nextOpen)}
-            options={ownerOptions}
-            selected={ownerQuery}
-            disabled={filtersDisabled}
-            emptyLabel={t`No assignees`}
-            searchable
-            searchPlaceholder={t`Search assignees`}
-            onSelectedChange={(nextOwner) => {
-              const isUnassigned = nextOwner.includes(UNASSIGNED_OWNER_OPTION)
-              const nextAssignee = nextOwner.filter((value) => value !== UNASSIGNED_OWNER_OPTION)
-              void setObligationQueueQuery({
-                owner: isUnassigned ? 'unassigned' : null,
-                assignee: null,
-                assignees: !isUnassigned && nextAssignee.length > 0 ? nextAssignee : null,
-                obligation: null,
-                row: null,
-              })
-            }}
-          />
-        ),
-        cell: (info) => info.getValue<string | null>() ?? t`Unassigned`,
-        meta: { cellClassName: 'text-text-secondary' },
+        cell: ({ row: tableRow }) => {
+          const isContinuation = continuationRowIds.has(tableRow.original.id)
+          if (isContinuation) {
+            // Same-client continuation: render a small indent + connector
+            // glyph in muted weight. The full name appears on the first
+            // row of the group, this row just carries the obligation's
+            // own data (tax type, due date, etc).
+            return (
+              <span
+                aria-hidden
+                className="ml-3 inline-flex h-4 items-center text-text-tertiary"
+                title={tableRow.original.clientName}
+              >
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.25">
+                  <path d="M3 1v9a3 3 0 0 0 3 3h7" strokeLinecap="round" />
+                </svg>
+              </span>
+            )
+          }
+          return (
+            <span
+              className="line-clamp-2 text-[13px] font-semibold text-text-primary"
+              title={tableRow.original.clientName}
+            >
+              {tableRow.original.clientName}
+            </span>
+          )
+        },
+        meta: { cellClassName: 'min-w-[200px] max-w-[280px] align-top' },
       },
       {
         accessorKey: 'clientState',
@@ -1292,33 +1296,7 @@ export function ObligationQueueRoute() {
           />
         ),
         cell: (info) => info.getValue<string | null>() ?? '—',
-        meta: { cellClassName: 'font-mono text-text-secondary' },
-      },
-      {
-        accessorKey: 'clientCounty',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`County`}
-            open={openHeaderFilter === 'county'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('county', nextOpen)}
-            options={countyOptions}
-            selected={countyQuery}
-            disabled={filtersDisabled || countyOptions.length === 0}
-            emptyLabel={t`No counties`}
-            searchable
-            searchPlaceholder={t`Search counties`}
-            onSelectedChange={(nextCounty) =>
-              void setObligationQueueQuery({
-                county: nextCounty.length > 0 ? nextCounty : null,
-                obligation: null,
-                row: null,
-              })
-            }
-          />
-        ),
-        cell: (info) => info.getValue<string | null>() ?? '—',
-        meta: { cellClassName: 'text-text-secondary' },
+        meta: { cellClassName: 'text-text-secondary tabular-nums' },
       },
       {
         accessorKey: 'taxType',
@@ -1347,7 +1325,7 @@ export function ObligationQueueRoute() {
       {
         accessorKey: 'currentDueDate',
         header: () => {
-          const label = t`Internal deadline`
+          const label = t`Due`
           return (
             <ObligationQueueSortableHeader
               sort={sort}
@@ -1357,41 +1335,61 @@ export function ObligationQueueRoute() {
               sortLabel={`${t`Sort`} ${label}`}
               onSortChange={changeSort}
             >
-              <span className="-mx-2 inline-flex h-7 items-center rounded-md px-2 text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase">
-                {label}
-              </span>
+              <RangeHeaderFilterDropdown
+                label={label}
+                minLabel={t`Minimum days until due`}
+                maxLabel={t`Maximum days until due`}
+                minPlaceholder={t`Min days`}
+                maxPlaceholder={t`Max days`}
+                minValue={daysMin}
+                maxValue={daysMax}
+                inputMode="numeric"
+                min={DAYS_FILTER_MIN}
+                max={DAYS_FILTER_MAX}
+                onCommit={(nextMin, nextMax) =>
+                  void setObligationQueueQuery({
+                    daysMin: integerFromInput(nextMin),
+                    daysMax: integerFromInput(nextMax),
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              />
             </ObligationQueueSortableHeader>
           )
         },
-        cell: (info) => formatDate(info.getValue<string>()),
-        meta: { cellClassName: 'text-xs tabular-nums' },
-      },
-      {
-        accessorKey: 'daysUntilDue',
-        header: () => (
-          <RangeHeaderFilterDropdown
-            label={t`Days`}
-            minLabel={t`Minimum days until due`}
-            maxLabel={t`Maximum days until due`}
-            minPlaceholder={t`Min days`}
-            maxPlaceholder={t`Max days`}
-            minValue={daysMin}
-            maxValue={daysMax}
-            inputMode="numeric"
-            min={DAYS_FILTER_MIN}
-            max={DAYS_FILTER_MAX}
-            onCommit={(nextMin, nextMax) =>
-              void setObligationQueueQuery({
-                daysMin: integerFromInput(nextMin),
-                daysMax: integerFromInput(nextMax),
-                obligation: null,
-                row: null,
-              })
-            }
-          />
-        ),
-        cell: (info) => <DueDaysPill days={info.getValue<number>()} />,
-        meta: { cellClassName: 'tabular-nums' },
+        // Stacked Due cell: relative-time pill (binding signal — what the
+        // team operates on) on top; internal-deadline absolute date in
+        // muted sans below. When the statutory deadline diverges from
+        // the internal one, render both dates inline (statutory in the
+        // even-quieter `text-text-quaternary` tone) so the audit anchor
+        // is discoverable without a hover. No asterisk — recall-only
+        // markers fail Jordan and confuse Sam.
+        cell: ({ row: tableRow }) => {
+          const internal = tableRow.original.currentDueDate
+          const statutory = tableRow.original.baseDueDate
+          const divergent = statutory && statutory !== internal
+          return (
+            <div className="flex flex-col gap-0.5 leading-tight">
+              <DueDaysPill days={tableRow.original.daysUntilDue} />
+              <span className="text-[11px] tabular-nums text-text-tertiary">
+                {formatDate(internal)}
+                {divergent ? (
+                  <>
+                    <span className="mx-1 text-text-quaternary">·</span>
+                    <span
+                      className="text-text-quaternary"
+                      title={t`Statutory deadline`}
+                    >
+                      {formatDate(statutory)}
+                    </span>
+                  </>
+                ) : null}
+              </span>
+            </div>
+          )
+        },
+        meta: { cellClassName: `align-top tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
       {
         accessorKey: 'estimatedExposureCents',
@@ -1524,6 +1522,7 @@ export function ObligationQueueRoute() {
       changeSort,
       clientOptions,
       clientQuery,
+      continuationRowIds,
       countyOptions,
       countyQuery,
       daysMax,
@@ -1583,6 +1582,68 @@ export function ObligationQueueRoute() {
   const selectedIds = selectedRows.map((selectedRow) => selectedRow.id)
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
   const thisWeekFilterActive = isThisWeekFilterActive(daysMin, daysMax)
+  // Stripe-style scope tabs across the top of the queue. Each tab maps
+  // to a single lifecycle v2 status. Counts come from the facets RPC's
+  // `statuses` field (a status-aware GROUP BY across the firm's
+  // obligations) when the server supplies it; in the gap before a
+  // wrangler restart picks up the contract addition, fall back to
+  // counting currently-loaded rows so the UI stays meaningful.
+  // Picking a tab sets `status=[that one]`; clicking "All" clears it.
+  const statusFacetCounts = useMemo(() => {
+    const map = new Map<ObligationStatus, number>()
+    const fromServer = facetsQuery.data?.statuses
+    if (fromServer && fromServer.length > 0) {
+      for (const facet of fromServer) {
+        if (isObligationStatus(facet.value)) map.set(facet.value, facet.count)
+      }
+      return map
+    }
+    for (const r of rows) {
+      map.set(r.status, (map.get(r.status) ?? 0) + 1)
+    }
+    return map
+  }, [facetsQuery.data?.statuses, rows])
+  const scopeTotal = useMemo(
+    () => Array.from(statusFacetCounts.values()).reduce((sum, n) => sum + n, 0),
+    [statusFacetCounts],
+  )
+  const scopeStatuses = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
+  const activeScope: ObligationStatus | 'all' =
+    statusQuery.length === 1 && isObligationStatus(statusQuery[0]!) ? statusQuery[0]! : 'all'
+  // Auto-hide zero-count scopes. Keeps the bar honest about what the
+  // user can actually triage — and respects the cognitive-load cap
+  // when the firm has nothing in `Blocked` or `Completed`. The active
+  // scope is always shown even if its count is zero (otherwise the
+  // selected tab vanishes and the UI looks broken).
+  const visibleScopeStatuses = useMemo(
+    () =>
+      scopeStatuses.filter(
+        (status) => (statusFacetCounts.get(status) ?? 0) > 0 || status === activeScope,
+      ),
+    [scopeStatuses, statusFacetCounts, activeScope],
+  )
+  // Applied-filter breadcrumb model. Renders only when 2+ filters are
+  // active (one filter doesn't need an explainer — the active chip
+  // already shows itself).
+  const appliedFilterChips = useMemo<{ key: string; label: string }[]>(() => {
+    const chips: { key: string; label: string }[] = []
+    if (activeScope !== 'all') chips.push({ key: 'scope', label: statusLabels[activeScope] })
+    if (due === 'overdue') chips.push({ key: 'due-overdue', label: t`Past due` })
+    if (isThisWeekFilterActive(daysMin, daysMax))
+      chips.push({ key: 'due-week', label: t`Due this week` })
+    if (evidence === 'needs') chips.push({ key: 'evidence', label: t`Needs evidence` })
+    if (exposure === 'needs_input')
+      chips.push({ key: 'penalty', label: t`Penalty input needed` })
+    if (searchInput) chips.push({ key: 'search', label: `"${searchInput}"` })
+    return chips
+  }, [activeScope, statusLabels, due, daysMin, daysMax, evidence, exposure, searchInput, t])
+  const hiddenColumnsCount = useMemo(
+    () =>
+      table
+        .getAllLeafColumns()
+        .filter((column) => column.getCanHide() && !column.getIsVisible()).length,
+    [table],
+  )
   const currentExportQuery = useMemo(
     () => exportQueryFromListInput(queryInputWithoutCursor),
     [queryInputWithoutCursor],
@@ -1619,6 +1680,27 @@ export function ObligationQueueRoute() {
       updateStatus({ id: activeRow.id, status })
     },
     [activeRow, statusUpdatePending, updateStatus],
+  )
+
+  // `/` focuses search — Linear/Slack convention. The kbd hint in the
+  // input's right gutter advertises it; this wires the actual binding.
+  useAppHotkey(
+    '/',
+    () => {
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    },
+    {
+      enabled: !shortcutsBlocked,
+      requireReset: true,
+      meta: {
+        id: 'obligations.focus-search',
+        name: 'Focus search',
+        description: 'Focus the Obligations search input.',
+        category: 'obligations',
+        scope: 'route',
+      },
+    },
   )
 
   useAppHotkey('J', () => moveActiveRow(1), {
@@ -1931,10 +2013,15 @@ export function ObligationQueueRoute() {
         }
         actions={
           <>
+            <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
+              <DownloadIcon data-icon="inline-start" />
+              <Trans>Export</Trans>
+            </Button>
+            <CalendarSyncPopover />
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="primary" size="sm">
+                  <Button variant="ghost" size="sm">
                     <SaveIcon data-icon="inline-start" />
                     <Trans>Saved views</Trans>
                   </Button>
@@ -2002,12 +2089,12 @@ export function ObligationQueueRoute() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
-              <DownloadIcon data-icon="inline-start" />
-              <Trans>Export</Trans>
-            </Button>
-            <CalendarSyncPopover />
-            <Button variant="outline" size="sm" onClick={resetObligationQueue}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetObligationQueue}
+              aria-label={t`Reset filters`}
+            >
               <FilterIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
             </Button>
@@ -2015,14 +2102,102 @@ export function ObligationQueueRoute() {
         }
       />
 
-      <Card>
-        <CardContent className="flex flex-col gap-4 pt-4">
+      <div className="flex flex-col gap-3">
+          {/* Single filter bar: lifecycle scope tabs left, dotted divider,
+              cross-cutting action chips right. Zero-count scopes are
+              auto-hidden so the bar respects the cognitive-load cap and
+              doesn't render `Blocked 0` decoration when there's nothing
+              there to triage. */}
+          <nav
+            aria-label={t`Status scopes and quick filters`}
+            className="-mb-px flex flex-wrap items-center gap-1 border-b border-divider-regular"
+          >
+            <ObligationQueueScopeTab
+              label={t`All`}
+              count={scopeTotal}
+              active={activeScope === 'all'}
+              onClick={() =>
+                void setObligationQueueQuery({
+                  status: null,
+                  obligation: null,
+                  row: null,
+                })
+              }
+            />
+            {visibleScopeStatuses.map((status) => (
+              <ObligationQueueScopeTab
+                key={status}
+                label={statusLabels[status]}
+                count={statusFacetCounts.get(status) ?? 0}
+                active={activeScope === status}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    status: [status],
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              />
+            ))}
+            <span
+              aria-hidden
+              className="mx-2 hidden h-5 border-r border-dotted border-divider-deep md:block"
+            />
+            <div className="flex flex-wrap items-center gap-1.5 py-1.5">
+              <ObligationQueueActionChip
+                active={due === 'overdue'}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    due: due === 'overdue' ? null : 'overdue',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Trans>Past due</Trans>
+              </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={thisWeekFilterActive}
+                onClick={() =>
+                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
+                }
+              >
+                <Trans>Due this week</Trans>
+              </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={evidence === 'needs'}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    evidence: evidence === 'needs' ? null : 'needs',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Trans>Needs evidence</Trans>
+              </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={exposure === 'needs_input'}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    exposure: exposure === 'needs_input' ? null : 'needs_input',
+                    obligation: null,
+                    row: null,
+                  })
+                }
+              >
+                <Trans>Penalty input needed</Trans>
+              </ObligationQueueActionChip>
+            </div>
+          </nav>
+
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative w-full md:max-w-90">
               <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
               <Input
+                ref={searchInputRef}
                 aria-label={t`Search obligations`}
-                className="pl-8"
+                className="pl-8 pr-12"
                 placeholder={t`Search clients`}
                 value={searchInput}
                 onChange={(event) => {
@@ -2039,14 +2214,50 @@ export function ObligationQueueRoute() {
                   )
                 }}
               />
+              <kbd
+                aria-hidden
+                className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-[10px] tabular-nums text-text-tertiary"
+              >
+                /
+              </kbd>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              {appliedFilterChips.length >= 2 ? (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-tertiary">
+                  <span className="uppercase tracking-wider">
+                    <Trans>Applied</Trans>
+                  </span>
+                  {appliedFilterChips.map((chip) => (
+                    <span
+                      key={chip.key}
+                      className="rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-text-secondary"
+                    >
+                      {chip.label}
+                    </span>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={resetObligationQueue}
+                    className="text-text-accent underline-offset-2 hover:underline"
+                  >
+                    <Trans>Clear filters</Trans>
+                  </button>
+                </div>
+              ) : null}
+              <span className="tabular-nums text-xs text-text-tertiary">
+                <Plural value={totalShown} one="# row" other="# rows" />
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
                     <Button variant="outline" size="sm">
                       <Columns3Icon data-icon="inline-start" />
                       <Trans>Columns</Trans>
+                      {hiddenColumnsCount > 0 ? (
+                        <span className="ml-1 tabular-nums text-text-tertiary">
+                          ({hiddenColumnsCount} <Trans>hidden</Trans>)
+                        </span>
+                      ) : null}
                     </Button>
                   }
                 />
@@ -2076,89 +2287,7 @@ export function ObligationQueueRoute() {
                     })}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <span className="text-sm text-text-secondary">
-                <Trans>Sort</Trans>
-              </span>
-              <Select
-                value={sort}
-                onValueChange={(value) => {
-                  if (typeof value !== 'string' || !isObligationQueueSort(value)) return
-                  void setObligationQueueQuery({
-                    sort: withDefaultSortCleared(value),
-                    obligation: null,
-                    row: null,
-                  })
-                }}
-              >
-                <SelectTrigger size="sm" className="min-w-50">
-                  <SelectValue>{sortLabels[sort]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="smart_priority">{sortLabels.smart_priority}</SelectItem>
-                  <SelectItem value="due_asc">{sortLabels.due_asc}</SelectItem>
-                  <SelectItem value="due_desc">{sortLabels.due_desc}</SelectItem>
-                  <SelectItem value="exposure_desc">{sortLabels.exposure_desc}</SelectItem>
-                  <SelectItem value="exposure_asc">{sortLabels.exposure_asc}</SelectItem>
-                  <SelectItem value="updated_desc">{sortLabels.updated_desc}</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-                <Trans>Window</Trans>
-              </span>
-              <button
-                type="button"
-                className="cursor-pointer focus-visible:outline-none"
-                onClick={() =>
-                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
-                }
-              >
-                <Badge variant={thisWeekFilterActive ? 'default' : 'ghost'}>
-                  <Trans>This week</Trans>
-                </Badge>
-              </button>
-              <Separator orientation="vertical" className="mx-1 h-4" />
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-                <Trans>Needs action</Trans>
-              </span>
-              <button
-                type="button"
-                className="cursor-pointer focus-visible:outline-none"
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    exposure: exposure === 'needs_input' ? null : 'needs_input',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Badge variant={exposure === 'needs_input' ? 'default' : 'ghost'}>
-                  <Trans>Penalty input</Trans>
-                </Badge>
-              </button>
-              <button
-                type="button"
-                className="cursor-pointer focus-visible:outline-none"
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    evidence: evidence === 'needs' ? null : 'needs',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Badge variant={evidence === 'needs' ? 'default' : 'ghost'}>
-                  <Trans>Evidence</Trans>
-                </Badge>
-              </button>
-            </div>
-            <Badge variant="outline" className="text-xs tabular-nums">
-              <Plural value={totalShown} one="# row" other="# rows" />
-            </Badge>
           </div>
 
           {selectedIds.length > 0 ? (
@@ -2383,8 +2512,7 @@ export function ObligationQueueRoute() {
               ) : null}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
       <ObligationQueueDetailDrawer
         obligationId={activeDetailId}
         activeTab={detailTab}
@@ -2716,15 +2844,31 @@ function ExposurePill({
   row: ObligationQueueRow
   onNeedsInput: (row: ObligationQueueRow) => void
 }) {
+  const { t } = useLingui()
   if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
     const showAccrued = row.daysUntilDue < 0
+    const exposureCents = row.estimatedExposureCents
+    // Zero dollars at risk is not data — it's the absence of risk. A
+    // pill containing `$0.00` is decoration tax that pulls the eye to
+    // rows that don't deserve it. Render a quiet em-dash instead and
+    // reserve pill chrome for non-zero exposure.
+    if (exposureCents === 0) {
+      return (
+        <span
+          className="tabular-nums text-text-tertiary"
+          aria-label={t`No projected risk`}
+        >
+          —
+        </span>
+      )
+    }
     return (
       <div className="grid min-w-0 gap-1">
         <Badge
           variant="warning"
           className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} tabular-nums`}
         >
-          {formatCents(row.estimatedExposureCents)}
+          {formatCents(exposureCents)}
         </Badge>
         {showAccrued ? (
           <span className="text-[11px] leading-none text-text-tertiary">
@@ -4831,6 +4975,67 @@ function parseOwnerCount(value: string): number | null {
   if (!/^\d+$/.test(normalized)) return null
   const parsed = Number(normalized)
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+// Scope tab — borderless, inline count, active state is a 2px accent
+// underline that overlaps the parent's bottom hairline (via -mb-px on
+// the parent and border-b-2 here). The count is a sibling tabular span,
+// not a nested pill — pill-inside-pill was visual stutter.
+function ObligationQueueScopeTab({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string
+  count: number
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-base whitespace-nowrap transition-colors ${
+        active
+          ? 'border-accent-default font-medium text-text-primary'
+          : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
+      }`}
+    >
+      <span>{label}</span>
+      <span className="tabular-nums text-text-tertiary">{count}</span>
+    </button>
+  )
+}
+
+// Quick-filter chip: ghost when off, soft-tinted when on. Used for the
+// 4 CPA action filters under the scope tabs (Past due, Due this week,
+// Needs evidence, Penalty growing). Pill-shaped per T3 — indicator,
+// not commit.
+function ObligationQueueActionChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+        active
+          ? 'border-accent-default bg-accent-tint font-medium text-text-accent'
+          : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-deep hover:text-text-primary'
+      }`}
+    >
+      {children}
+    </button>
+  )
 }
 
 function EmptyState({

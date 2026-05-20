@@ -593,7 +593,14 @@ function buildScopedRepo(firmId: string) {
       return []
     },
     async facets() {
-      return { clients: [], states: [], counties: [], taxTypes: [], assigneeNames: [] }
+      return {
+        clients: [],
+        states: [],
+        counties: [],
+        taxTypes: [],
+        assigneeNames: [],
+        statuses: [],
+      }
     },
     async listSavedViews() {
       return []
