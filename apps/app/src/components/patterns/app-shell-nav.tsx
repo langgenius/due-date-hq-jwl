@@ -444,9 +444,9 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         // it as the surface you keep returning to rather than another
         // daily-work destination.
         primary: [{ href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true }],
-        // Daily-work surfaces. Coverage moves here from its own group
-        // because reviewing pending rules is part of the daily flow,
-        // not a separate "area of the app".
+        // Daily-work surfaces. Rule-related destinations (Coverage,
+        // Rule library) live in their own "Rule" group below so the
+        // operations row stays focused on the daily action queue.
         operations: [
           {
             href: '/obligations',
@@ -454,6 +454,16 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             icon: CalendarClockIcon,
             end: false,
           },
+          {
+            href: '/rules/pulse',
+            label: t`Pulse Notification`,
+            icon: ActivityIcon,
+            end: false,
+            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          },
+        ],
+        clients: [],
+        rules: [
           {
             href: '/rules/coverage',
             label: t`Coverage`,
@@ -466,20 +476,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             icon: LibraryIcon,
             end: false,
           },
-          // Radar restored as a sidebar destination — the v2 design
-          // brief moved it to the Dashboard's NEEDS ATTENTION surface,
-          // but users still want a direct entry point to the full
-          // Radar queue + source-health board.
-          {
-            href: '/rules/pulse',
-            label: t`Pulse`,
-            icon: ActivityIcon,
-            end: false,
-            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
-          },
         ],
-        clients: [],
-        rules: [],
         coverage: [],
         // Team / Workload / Practice profile / Billing / Audit log live
         // inside `/settings` (the workspace-config hub). Surfacing them
@@ -575,9 +572,9 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
             <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
           ))}
         </NavGroupSection>
-        {items.coverage.length > 0 ? (
-          <NavGroupSection label={t`Coverage`}>
-            {items.coverage.map((item) => (
+        {items.rules.length > 0 ? (
+          <NavGroupSection label={t`Rule`}>
+            {items.rules.map((item) => (
               <NavMenuItem key={item.href} item={item} />
             ))}
           </NavGroupSection>

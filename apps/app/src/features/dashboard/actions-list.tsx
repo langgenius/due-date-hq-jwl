@@ -1,5 +1,5 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon, ListChecksIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -133,8 +133,7 @@ function DashboardActionsList({
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
-          <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>Actions this week</Trans>
         </h2>
         <div className="flex flex-col gap-2">
@@ -149,8 +148,7 @@ function DashboardActionsList({
   if (visible.length === 0) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
-          <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>Actions this week</Trans>
         </h2>
         <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-sm text-text-tertiary">
@@ -177,8 +175,7 @@ function DashboardActionsList({
 
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
-        <ListChecksIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
+      <h2 className="text-base font-semibold text-text-primary">
         <Trans>Actions this week</Trans>
       </h2>
       <ul className="flex flex-col">

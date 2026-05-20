@@ -1,5 +1,4 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { GaugeIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -59,12 +58,8 @@ function ExposureStrip({
 
   if (isLoading) {
     return (
-      <section
-        aria-label={t`This week's exposure`}
-        className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-4 py-3"
-      >
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
-          <GaugeIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
+      <section aria-label={t`This week's exposure`} className="flex flex-col gap-2">
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>This week's exposure</Trans>
         </h2>
         <Skeleton className="h-4 w-3/5" />
@@ -111,12 +106,8 @@ function ExposureStrip({
   if (segments.length === 0) return null
 
   return (
-    <section
-      aria-label={t`This week's exposure`}
-      className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-4 py-3"
-    >
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-text-primary">
-        <GaugeIcon aria-hidden className="size-4 shrink-0 text-text-secondary" />
+    <section aria-label={t`This week's exposure`} className="flex flex-col gap-2">
+      <h2 className="text-base font-semibold text-text-primary">
         <Trans>This week's exposure</Trans>
       </h2>
       <div className="flex flex-wrap items-center gap-1.5">

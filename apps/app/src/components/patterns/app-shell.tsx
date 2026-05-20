@@ -76,7 +76,7 @@ export function AppShell(props: AppShellProps) {
             strip — notifications bell + user menu (account, sign out)
             sit at the sidebar bottom alongside Settings, which is
             where personal-account controls belong. */}
-          <div className="flex items-center justify-between gap-1 border-t border-divider-regular px-2 py-2">
+          <div className="flex items-center gap-3 border-t border-divider-regular px-2 py-2">
             <NotificationsBell unreadCount={props.unreadNotificationCount ?? 0} />
             <UserMenuTrigger
               user={props.user}
