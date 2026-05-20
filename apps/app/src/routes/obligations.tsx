@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -161,6 +161,11 @@ import {
   type ObligationStatus,
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
+import {
+  isTabVisibleForType,
+  tabsForObligationType,
+  useObligationTypeLabels,
+} from '@/features/obligations/obligation-type'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { ObligationTimeline } from '@/features/obligations/timeline'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
@@ -3159,6 +3164,24 @@ function ObligationQueueDetailDrawer({
   })
   const detail = detailQuery.data
   const row = detail?.row ?? null
+  const obligationTypeLabels = useObligationTypeLabels()
+  // Type-aware drawer surface: per PRD §3.1 different obligation types
+  // expose different tabs. A `payment` row has no readiness checklist;
+  // a `client_action` row has no penalty exposure surface.
+  const visibleTabsList = useMemo(
+    () => tabsForObligationType(row?.obligationType ?? null),
+    [row?.obligationType],
+  )
+  const visibleTabs = useMemo(() => new Set(visibleTabsList), [visibleTabsList])
+  // If the URL pins a tab that this obligation type doesn't expose
+  // (e.g. ?tab=extension on a payment row), bounce to the first tab
+  // this type actually has. Otherwise the drawer body renders empty.
+  useEffect(() => {
+    if (row && !isTabVisibleForType(activeTab, row.obligationType)) {
+      const fallback = visibleTabsList[0]
+      if (fallback) onTabChange(fallback)
+    }
+  }, [row, activeTab, visibleTabsList, onTabChange])
   const deadlineTipInsight = deadlineTipQuery.data ?? null
   const deadlineTipGeneratedAtMs = deadlineTipInsight?.generatedAt
     ? Date.parse(deadlineTipInsight.generatedAt)
@@ -3515,21 +3538,51 @@ function ObligationQueueDetailDrawer({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <SheetTitle>{row?.clientName ?? <Trans>Obligation detail</Trans>}</SheetTitle>
-              <SheetDescription>
-                {row ? (
-                  <>
-                    <TaxCodeLabel code={row.taxType} /> ·{' '}
-                    <Trans>Internal deadline {formatDate(row.currentDueDate)}</Trans>
-                  </>
-                ) : null}
-              </SheetDescription>
+              {row ? (
+                <SheetDescription className="flex flex-wrap items-center gap-x-2 gap-y-1 text-text-secondary">
+                  <span className="font-medium text-text-primary">
+                    <TaxCodeLabel code={row.taxType} />
+                  </span>
+                  <span aria-hidden className="text-text-tertiary">·</span>
+                  <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                    {obligationTypeLabels[row.obligationType]}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] font-medium uppercase tracking-wide"
+                  >
+                    {statusLabels[row.status]}
+                  </Badge>
+                  {row.jurisdiction ? (
+                    <span className="tabular-nums text-text-tertiary">{row.jurisdiction}</span>
+                  ) : null}
+                  {row.taxYear ? (
+                    <span className="tabular-nums text-text-tertiary">
+                      <Trans>TY {row.taxYear}</Trans>
+                    </span>
+                  ) : null}
+                </SheetDescription>
+              ) : (
+                <SheetDescription />
+              )}
+              {row ? (
+                <p className="mt-1 text-xs text-text-tertiary">
+                  <Trans>Internal deadline {formatDate(row.currentDueDate)}</Trans>
+                  {row.baseDueDate && row.baseDueDate !== row.currentDueDate ? (
+                    <>
+                      <span aria-hidden className="mx-1">·</span>
+                      <Trans>Statutory {formatDate(row.baseDueDate)}</Trans>
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
               {/* Cross-link the drawer to the client detail page —
                 without this the drawer is a dead-end on the most-
                 traversed entity. */}
               {row?.clientId ? (
                 <Link
                   to={`/clients/${row.clientId}`}
-                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <Trans>Open client detail</Trans>
                   <ArrowUpRightIcon aria-hidden className="size-3" />
@@ -3585,21 +3638,31 @@ function ObligationQueueDetailDrawer({
             >
               <StatutoryDatesPanel row={row} />
               <TabsList className="mb-4 flex w-full flex-wrap justify-start">
-                <TabsTrigger value="readiness">
-                  <Trans>Readiness</Trans>
-                </TabsTrigger>
-                <TabsTrigger value="extension">
-                  <Trans>Extension</Trans>
-                </TabsTrigger>
-                <TabsTrigger value="risk">
-                  <Trans>Risk</Trans>
-                </TabsTrigger>
-                <TabsTrigger value="evidence">
-                  <Trans>Evidence</Trans>
-                </TabsTrigger>
-                <TabsTrigger value="audit">
-                  {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
-                </TabsTrigger>
+                {visibleTabs.has('readiness') ? (
+                  <TabsTrigger value="readiness">
+                    <Trans>Readiness</Trans>
+                  </TabsTrigger>
+                ) : null}
+                {visibleTabs.has('extension') ? (
+                  <TabsTrigger value="extension">
+                    <Trans>Extension</Trans>
+                  </TabsTrigger>
+                ) : null}
+                {visibleTabs.has('risk') ? (
+                  <TabsTrigger value="risk">
+                    <Trans>Risk</Trans>
+                  </TabsTrigger>
+                ) : null}
+                {visibleTabs.has('evidence') ? (
+                  <TabsTrigger value="evidence">
+                    <Trans>Evidence</Trans>
+                  </TabsTrigger>
+                ) : null}
+                {visibleTabs.has('audit') ? (
+                  <TabsTrigger value="audit">
+                    {lifecycleV2 ? <Trans>Timeline</Trans> : <Trans>Audit</Trans>}
+                  </TabsTrigger>
+                ) : null}
               </TabsList>
               <TabsContent value="readiness">
                 <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
@@ -3819,7 +3882,10 @@ function ObligationQueueDetailDrawer({
                     )}
                   </div>
                   <div className="grid content-start gap-3 rounded-lg border border-divider-regular p-3">
-                    <DetailRow label={<Trans>Readiness</Trans>} value={row.readiness} />
+                    {/* Renamed from "Readiness" — collided with the tab
+                        name and confused users into thinking the field
+                        was the workflow. */}
+                    <DetailRow label={<Trans>Overall readiness</Trans>} value={row.readiness} />
                     <DetailRow label={<Trans>Tax year</Trans>} value={taxYearProfileSummary} />
                     <DetailRow
                       label={<Trans>Latest request</Trans>}
@@ -3980,6 +4046,39 @@ function ObligationQueueDetailDrawer({
               <TabsContent value="risk">
                 <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
                   <div className="grid gap-3">
+                    {/* Top-of-tab callout when penalty math is incomplete.
+                        The previous layout buried this mid-scroll, so users
+                        read "$0 / not calculated" without realizing they
+                        owed an input. */}
+                    {row.missingPenaltyFacts.length > 0 ? (
+                      <div className="grid gap-2 rounded-lg border border-state-warning-border bg-state-warning-hover p-3">
+                        <p className="text-xs font-medium text-text-warning">
+                          <Trans>Missing penalty facts</Trans>
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {row.missingPenaltyFacts.map((fact) => (
+                            <Badge
+                              key={fact}
+                              variant="outline"
+                              className="bg-background-default text-[11px]"
+                            >
+                              {penaltyFactLabel(fact)}
+                            </Badge>
+                          ))}
+                        </div>
+                        <p className="text-[11px] leading-tight text-text-secondary">
+                          <Trans>
+                            Penalty exposure is calculated once these inputs are entered.
+                          </Trans>
+                        </p>
+                      </div>
+                    ) : null}
+                    <p className="text-[11px] leading-tight text-text-tertiary">
+                      <Trans>
+                        Projected = what could accrue over the next 90 days if no action.
+                        Accrued = penalties already assessed as of today.
+                      </Trans>
+                    </p>
                     <div className="rounded-lg border border-divider-regular p-3">
                       <div className="mb-3 flex items-center justify-between gap-3">
                         <span className="text-sm font-medium text-text-primary">
@@ -4053,20 +4152,6 @@ function ObligationQueueDetailDrawer({
                       }
                     />
                     <Separator />
-                    {row.missingPenaltyFacts.length > 0 ? (
-                      <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
-                        <p className="text-xs font-medium text-text-secondary">
-                          <Trans>Missing penalty facts</Trans>
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {row.missingPenaltyFacts.map((fact) => (
-                            <Badge key={fact} variant="outline" className="text-[11px]">
-                              {penaltyFactLabel(fact)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
                     {row.penaltyBreakdown.length > 0 ? (
                       <div className="grid gap-2">
                         <p className="text-xs font-medium text-text-secondary">
@@ -4114,19 +4199,70 @@ function ObligationQueueDetailDrawer({
               </TabsContent>
               <TabsContent value="evidence">
                 <div className="grid gap-3">
-                  <div className="text-sm font-medium text-text-primary">
-                    <ConceptLabel concept="evidence">
-                      <Trans>Evidence</Trans>
-                    </ConceptLabel>
-                  </div>
+                  {/* Source-backed deadline citation (PRD §7.1 Must,
+                      PDF anti-pattern #6). Every deadline links to a
+                      rule which links to an authority citation. Surface
+                      the chain so the CPA can defend the date in audit. */}
                   {detail.matchedRule ? (
-                    <div className="rounded-lg border border-divider-regular p-3">
-                      <p className="font-medium">{detail.matchedRule.title}</p>
-                      <p className="mt-1 text-sm text-text-secondary">
+                    <div className="grid gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="text-sm font-medium text-text-primary">
+                          {detail.matchedRule.title}
+                        </p>
+                        <span className="font-mono text-[11px] text-text-tertiary">
+                          {detail.matchedRule.id}
+                          {row?.ruleVersion ? `·v${row.ruleVersion}` : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs leading-snug text-text-secondary">
                         {detail.matchedRule.defaultTip}
                       </p>
                     </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-divider-regular p-3 text-xs text-text-tertiary">
+                      <Trans>
+                        This obligation isn't bound to a rule. Deadlines without a
+                        source citation can't be defended in audit — bind it before
+                        relying on the date.
+                      </Trans>
+                    </div>
+                  )}
+                  {detail.matchedRule?.evidence.length ? (
+                    <div className="grid gap-2">
+                      <p className="text-[11px] uppercase tracking-wider text-text-tertiary">
+                        <Trans>Authority citations</Trans>
+                      </p>
+                      {detail.matchedRule.evidence.map((item) => (
+                        <div
+                          key={`${item.sourceId}-${item.summary}`}
+                          className="grid gap-1 rounded-lg border border-divider-regular p-3"
+                        >
+                          <div className="flex items-baseline justify-between gap-2">
+                            <p className="text-sm font-medium text-text-primary">
+                              {item.summary}
+                            </p>
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] uppercase tracking-wide"
+                            >
+                              {item.authorityRole}
+                            </Badge>
+                          </div>
+                          <p className="text-xs leading-snug text-text-secondary">
+                            "{item.sourceExcerpt}"
+                          </p>
+                          <p className="text-[11px] text-text-tertiary">
+                            <Trans>Source #{item.sourceId} · retrieved {item.retrievedAt}</Trans>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   ) : null}
+                  <div className="text-sm font-medium text-text-primary">
+                    <ConceptLabel concept="evidence">
+                      <Trans>Client evidence</Trans>
+                    </ConceptLabel>
+                  </div>
                   {detail.evidence.length > 0 ? (
                     detail.evidence.map((item) => (
                       <EvidenceInlineItem
@@ -4140,15 +4276,6 @@ function ObligationQueueDetailDrawer({
                       <Trans>No evidence links are attached to this obligation.</Trans>
                     </EmptyPanel>
                   )}
-                  {detail.matchedRule?.evidence.map((item) => (
-                    <div
-                      key={`${item.sourceId}-${item.summary}`}
-                      className="rounded-lg border border-divider-regular p-3"
-                    >
-                      <p className="font-medium">{item.summary}</p>
-                      <p className="mt-1 text-xs text-text-tertiary">{item.sourceExcerpt}</p>
-                    </div>
-                  ))}
                 </div>
               </TabsContent>
               <TabsContent value="audit">
