@@ -136,7 +136,7 @@ export function toObligationPublic(
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,
     extensionSource: row.extensionSource,
-    extensionExpectedDueDate: row.extensionExpectedDueDate
+    extensionInternalTargetDate: row.extensionExpectedDueDate
       ? toIsoDate(row.extensionExpectedDueDate)
       : null,
     extensionDecidedAt: row.extensionDecidedAt?.toISOString() ?? null,
@@ -476,16 +476,24 @@ export async function decideObligationExtension(
   const decidedAt = new Date()
   const memo = input.memo?.trim() || null
   const source = input.source?.trim() || null
-  const expectedExtendedDueDate = input.expectedExtendedDueDate
-    ? new Date(`${input.expectedExtendedDueDate}T00:00:00.000Z`)
+  const filingDeadline = before.filingDueDate ?? before.baseDueDate
+  const filingDeadlineIso = toIsoDate(filingDeadline)
+  if (input.internalTargetDate && input.internalTargetDate > filingDeadlineIso) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Internal extension target date must be on or before filing deadline ${filingDeadlineIso}.`,
+    })
+  }
+
+  const internalTargetDate = input.internalTargetDate
+    ? new Date(`${input.internalTargetDate}T00:00:00.000Z`)
     : null
-  const nextStatus = input.decision === 'applied' ? 'extended' : before.status
+  const nextStatus = 'extended'
 
   await scoped.obligations.updateExtensionDecision(input.id, {
-    decision: input.decision,
+    decision: 'applied',
     memo,
     source,
-    expectedExtendedDueDate,
+    internalTargetDate,
     decidedAt,
     decidedByUserId: userId,
     status: nextStatus,
@@ -506,10 +514,10 @@ export async function decideObligationExtension(
       source: before.extensionSource,
     }),
     normalizedValue: JSON.stringify({
-      decision: input.decision,
+      decision: 'applied',
       memo,
       source,
-      expectedExtendedDueDate: input.expectedExtendedDueDate ?? null,
+      internalTargetDate: input.internalTargetDate ?? null,
       paymentStillDue: true,
     }),
     appliedBy: userId,
@@ -525,14 +533,16 @@ export async function decideObligationExtension(
       extensionDecision: before.extensionDecision,
       extensionMemo: before.extensionMemo,
       extensionSource: before.extensionSource,
-      extensionExpectedDueDate: before.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      extensionInternalTargetDate:
+        before.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
     },
     after: {
       status: after.status,
       extensionDecision: after.extensionDecision,
       extensionMemo: after.extensionMemo,
       extensionSource: after.extensionSource,
-      extensionExpectedDueDate: after.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      extensionInternalTargetDate:
+        after.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
       paymentStillDue: true,
     },
     ...(memo ? { reason: memo } : {}),

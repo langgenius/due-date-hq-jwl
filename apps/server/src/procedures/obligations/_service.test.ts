@@ -3,7 +3,12 @@ import { ObligationInstancePublicSchema } from '@duedatehq/contracts'
 import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
-import { bulkUpdateObligationStatus, toObligationPublic, updateObligationStatus } from './_service'
+import {
+  bulkUpdateObligationStatus,
+  decideObligationExtension,
+  toObligationPublic,
+  updateObligationStatus,
+} from './_service'
 
 type Row = ObligationInstanceRow
 
@@ -42,8 +47,16 @@ function buildScoped(firmId: string, rows: Row[]) {
     after: unknown
     reason?: string
   }> = []
+  const evidences: Array<{
+    obligationInstanceId: string | null
+    sourceType: string
+    rawValue: string | null
+    normalizedValue: string | null
+    appliedBy: string | null
+  }> = []
   const map = new Map<string, Row>(rows.map((r) => [r.id, r]))
   let auditCounter = 0
+  let evidenceCounter = 0
 
   const obligations: ScopedRepo['obligations'] = {
     firmId,
@@ -96,7 +109,24 @@ function buildScoped(firmId: string, rows: Row[]) {
     async unblockChildrenOf() {
       return []
     },
-    async updateExtensionDecision() {},
+    async updateExtensionDecision(id, patch) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      const status = patch.status ?? row.status
+      map.set(id, {
+        ...row,
+        extensionDecision: patch.decision,
+        extensionMemo: patch.memo,
+        extensionSource: patch.source,
+        extensionExpectedDueDate: patch.internalTargetDate,
+        extensionDecidedAt: patch.decidedAt,
+        extensionDecidedByUserId: patch.decidedByUserId,
+        extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
+        status,
+        readiness: deriveObligationReadiness({ status }),
+        updatedAt: new Date(),
+      })
+    },
     async deleteByBatch() {
       return 0
     },
@@ -262,8 +292,16 @@ function buildScoped(firmId: string, rows: Row[]) {
 
   const evidence: ScopedRepo['evidence'] = {
     firmId,
-    async write() {
-      return unused('evidence.write')
+    async write(event) {
+      evidenceCounter += 1
+      evidences.push({
+        obligationInstanceId: event.obligationInstanceId ?? null,
+        sourceType: event.sourceType,
+        rawValue: event.rawValue ?? null,
+        normalizedValue: event.normalizedValue ?? null,
+        appliedBy: event.appliedBy ?? null,
+      })
+      return { id: `evidence-${evidenceCounter}` }
     },
     async writeBatch() {
       return unused('evidence.writeBatch')
@@ -464,7 +502,7 @@ function buildScoped(firmId: string, rows: Row[]) {
     audit,
   }
 
-  return { repo, audits, map }
+  return { repo, audits, evidences, map }
 }
 
 const ROW_ID = '11111111-1111-4111-8111-111111111111'
@@ -595,6 +633,92 @@ describe('toObligationPublic', () => {
     expect(result.generationSource).toBeNull()
     expect(result.accruedPenaltyStatus).toBe('ready')
     expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
+  })
+})
+
+describe('decideObligationExtension', () => {
+  it('saves an internal extension plan as applied without accepting a caller decision', async () => {
+    const { repo, audits, evidences, map } = buildScoped(FIRM, [
+      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    const result = await decideObligationExtension(repo, 'user_1', {
+      id: ROW_ID,
+      internalTargetDate: '2026-04-15',
+      source: 'Partner approval',
+      memo: 'Client materials are late.',
+    })
+
+    expect(result.auditId).toBe('audit-1')
+    expect(result.evidenceId).toBe('evidence-1')
+    expect(result.obligation.status).toBe('extended')
+    expect(result.obligation.extensionDecision).toBe('applied')
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
+    expect(map.get(ROW_ID)).toMatchObject({
+      status: 'extended',
+      extensionDecision: 'applied',
+      extensionMemo: 'Client materials are late.',
+      extensionSource: 'Partner approval',
+      extensionState: 'filed',
+    })
+    expect(map.get(ROW_ID)?.extensionExpectedDueDate?.toISOString().slice(0, 10)).toBe('2026-04-15')
+    expect(evidences).toHaveLength(1)
+    const [evidence] = evidences
+    if (!evidence) throw new Error('Expected extension evidence')
+    expect(JSON.parse(evidence.normalizedValue ?? '{}')).toMatchObject({
+      decision: 'applied',
+      internalTargetDate: '2026-04-15',
+      paymentStillDue: true,
+    })
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.extension.decided',
+      before: {
+        status: 'pending',
+        extensionDecision: 'not_considered',
+        extensionInternalTargetDate: null,
+      },
+      after: {
+        status: 'extended',
+        extensionDecision: 'applied',
+        extensionInternalTargetDate: '2026-04-15',
+        paymentStillDue: true,
+      },
+      reason: 'Client materials are late.',
+    })
+  })
+
+  it('rejects an internal target date after the filing deadline', async () => {
+    const { repo, audits, evidences, map } = buildScoped(FIRM, [
+      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    await expect(
+      decideObligationExtension(repo, 'user_1', {
+        id: ROW_ID,
+        internalTargetDate: '2026-04-16',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+
+    expect(map.get(ROW_ID)?.extensionDecision).toBe('not_considered')
+    expect(audits).toHaveLength(0)
+    expect(evidences).toHaveLength(0)
+  })
+
+  it('uses base due date as the filing deadline fallback', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({
+        filingDueDate: null,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+    ])
+
+    const result = await decideObligationExtension(repo, 'user_1', {
+      id: ROW_ID,
+      internalTargetDate: '2026-04-15',
+    })
+
+    expect(result.obligation.extensionDecision).toBe('applied')
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
   })
 })
 

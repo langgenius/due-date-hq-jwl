@@ -46,7 +46,7 @@ function obligation(overrides: Partial<ObligationInstancePublic> = {}): Obligati
     extensionDecision: 'not_considered',
     extensionMemo: null,
     extensionSource: null,
-    extensionExpectedDueDate: null,
+    extensionInternalTargetDate: null,
     extensionDecidedAt: null,
     extensionDecidedByUserId: null,
     extensionState: 'not_started',

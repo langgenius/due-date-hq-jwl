@@ -66,7 +66,7 @@ export const ObligationInstancePublicSchema = z.object({
   extensionDecision: ObligationExtensionDecisionSchema,
   extensionMemo: z.string().nullable(),
   extensionSource: z.string().nullable(),
-  extensionExpectedDueDate: z.iso.date().nullable(),
+  extensionInternalTargetDate: z.iso.date().nullable(),
   extensionDecidedAt: z.iso.datetime().nullable(),
   extensionDecidedByUserId: z.string().nullable(),
   extensionState: ObligationExtensionStateSchema,

@@ -19,6 +19,7 @@ interface IsoDatePickerProps {
   value: string
   invalid?: boolean
   ariaLabel?: string
+  maxIsoDate?: string
   placeholder?: string
   onValueChange: (value: string) => void
 }
@@ -40,6 +41,12 @@ export function isValidIsoDate(value: string): boolean {
   const date = new Date(Date.UTC(year, month - 1, day))
   return (
     date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  )
+}
+
+export function isIsoDateAfterMax(value: string, maxIsoDate?: string): boolean {
+  return Boolean(
+    maxIsoDate && isValidIsoDate(value) && isValidIsoDate(maxIsoDate) && value > maxIsoDate,
   )
 }
 
@@ -79,6 +86,7 @@ export function IsoDatePicker({
   value,
   invalid = false,
   ariaLabel,
+  maxIsoDate,
   placeholder,
   onValueChange,
 }: IsoDatePickerProps) {
@@ -134,7 +142,9 @@ export function IsoDatePicker({
   }
 
   function selectDate(date: Date) {
-    onValueChange(isoDateFromUtcDate(date))
+    const isoDate = isoDateFromUtcDate(date)
+    if (isIsoDateAfterMax(isoDate, maxIsoDate)) return
+    onValueChange(isoDate)
     setOpen(false)
   }
 
@@ -204,6 +214,7 @@ export function IsoDatePicker({
             const isoDate = isoDateFromUtcDate(date)
             const selected = isoDate === selectedIsoDate
             const currentMonth = date.getUTCMonth() === visibleMonth.getUTCMonth()
+            const disabled = isIsoDateAfterMax(isoDate, maxIsoDate)
             return (
               <Button
                 key={isoDate}
@@ -211,9 +222,11 @@ export function IsoDatePicker({
                 variant={selected ? 'accent' : 'ghost'}
                 size="xs"
                 aria-pressed={selected}
+                disabled={disabled}
                 className={cn(
                   'h-8 rounded-md px-0 font-mono text-xs tabular-nums',
                   !currentMonth && !selected ? 'text-text-muted' : undefined,
+                  disabled ? 'opacity-40' : undefined,
                   isoDate === todayIsoDate && !selected ? 'border-divider-regular' : undefined,
                 )}
                 onClick={() => selectDate(date)}

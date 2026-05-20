@@ -12,7 +12,6 @@ import {
   ExposureStatusSchema,
   ObligationEfileStateSchema,
   ObligationExtensionStateSchema,
-  ObligationExtensionDecisionSchema,
   ObligationPaymentStateSchema,
   ObligationPrepStageSchema,
   ObligationRecurrenceSchema,
@@ -126,10 +125,9 @@ export const ObligationStatusUpdateOutputSchema = z.object({
 
 export const ObligationExtensionDecisionInputSchema = z.object({
   id: EntityIdSchema,
-  decision: ObligationExtensionDecisionSchema.exclude(['not_considered']),
   memo: z.string().trim().max(1000).optional(),
   source: z.string().trim().max(240).optional(),
-  expectedExtendedDueDate: z.iso.date().optional(),
+  internalTargetDate: z.iso.date().optional(),
 })
 
 export const ObligationExtensionDecisionOutputSchema = z.object({

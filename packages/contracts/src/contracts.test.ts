@@ -36,6 +36,7 @@ import {
   AnnualRolloverOutputSchema,
   ObligationBulkStatusUpdateInputSchema,
   ObligationBulkStatusUpdateOutputSchema,
+  ObligationExtensionDecisionInputSchema,
   ObligationStatusUpdateInputSchema,
   ObligationStatusUpdateOutputSchema,
   obligationsContract,
@@ -499,7 +500,7 @@ describe('@duedatehq/contracts', () => {
         extensionDecision: 'not_considered',
         extensionMemo: null,
         extensionSource: null,
-        extensionExpectedDueDate: null,
+        extensionInternalTargetDate: null,
         extensionDecidedAt: null,
         extensionDecidedByUserId: null,
         extensionState: 'not_started',
@@ -538,6 +539,15 @@ describe('@duedatehq/contracts', () => {
       auditId: '33333333-3333-4333-8333-333333333333',
     })
     expect(output.auditId).toMatch(/-/)
+
+    const extensionInput = ObligationExtensionDecisionInputSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      internalTargetDate: '2026-04-15',
+      memo: 'client material cutoff missed',
+      source: 'partner approval',
+    })
+    expect(extensionInput).not.toHaveProperty('decision')
+    expect(extensionInput.internalTargetDate).toBe('2026-04-15')
 
     const bulkInput = ObligationBulkStatusUpdateInputSchema.parse({
       ids: ['11111111-1111-4111-8111-111111111111'],

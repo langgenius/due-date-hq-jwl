@@ -176,7 +176,7 @@ function toRow(
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,
     extensionSource: row.extensionSource,
-    extensionExpectedDueDate: row.extensionExpectedDueDate
+    extensionInternalTargetDate: row.extensionExpectedDueDate
       ? toIsoDate(row.extensionExpectedDueDate)
       : null,
     extensionDecidedAt: row.extensionDecidedAt?.toISOString() ?? null,

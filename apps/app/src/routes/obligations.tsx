@@ -126,6 +126,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import {
   isInteractiveEventTarget,
@@ -205,6 +206,7 @@ const DEFAULT_SORT: ObligationQueueSort = 'smart_priority'
 const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
+const EXTENSION_SAVE_SUCCESS_TOOLTIP_MS = 1_800
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
 const EMPTY_SAVED_VIEWS: ObligationQueueSavedView[] = []
 const EMPTY_ASSIGNEES: MemberAssigneeOption[] = []
@@ -218,6 +220,30 @@ const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
 const THIS_WEEK_MAX_DAYS = 7
+
+export function isInternalExtensionTargetDateValid(value: string, filingDueDate: string): boolean {
+  if (value === '') return true
+  return isValidIsoDate(value) && isValidIsoDate(filingDueDate) && value <= filingDueDate
+}
+
+export function canSaveInternalExtensionPlan({
+  draftTargetDate,
+  filingDeadline,
+  isPending = false,
+  memo,
+}: {
+  draftTargetDate: string
+  filingDeadline: string
+  isPending?: boolean
+  memo: string
+}): boolean {
+  return (
+    !isPending &&
+    draftTargetDate !== '' &&
+    memo.trim().length > 0 &&
+    isInternalExtensionTargetDateValid(draftTargetDate, filingDeadline)
+  )
+}
 const DAY_MS = 86_400_000
 const UNASSIGNED_OWNER_OPTION = '__unassigned__'
 const OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME = 'text-xs'
@@ -2886,18 +2912,21 @@ function ObligationQueueDetailDrawer({
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
   const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const [checklistDraft, setChecklistDraft] = useState<{
     obligationId: string
     items: ReadinessChecklistItem[]
   } | null>(null)
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
-    decision: 'applied' as 'applied' | 'rejected',
     memo: '',
     source: '',
-    expectedExtendedDueDate: '',
+    internalTargetDate: '',
   })
+  const [extensionSaveSuccessOpen, setExtensionSaveSuccessOpen] = useState(false)
+  const extensionSaveSuccessTimeoutRef = useRef<number | null>(null)
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -2981,17 +3010,20 @@ function ObligationQueueDetailDrawer({
     generatedChecklistDraft && generatedChecklistDraft.createdAtMs > latestRequestCreatedAtMs
       ? generatedChecklistDraft.items
       : (latestRequest?.checklist ?? generatedChecklistDraft?.items ?? null)
-  const expectedExtendedDueDateInvalid =
-    extensionDraft.expectedExtendedDueDate !== '' &&
-    !isValidIsoDate(extensionDraft.expectedExtendedDueDate)
+  const extensionFilingDeadline = row?.filingDueDate ?? row?.baseDueDate ?? ''
+  const internalTargetDateInvalid = row
+    ? !isInternalExtensionTargetDateValid(
+        extensionDraft.internalTargetDate,
+        extensionFilingDeadline,
+      )
+    : false
 
   if (row && extensionDraft.obligationId !== row.id) {
     setExtensionDraft({
       obligationId: row.id,
-      decision: row.extensionDecision === 'rejected' ? 'rejected' : 'applied',
       memo: row.extensionMemo ?? '',
       source: row.extensionSource ?? '',
-      expectedExtendedDueDate: row.extensionExpectedDueDate ?? '',
+      internalTargetDate: row.extensionInternalTargetDate ?? '',
     })
   }
 
@@ -3089,17 +3121,33 @@ function ObligationQueueDetailDrawer({
     orpc.obligations.decideExtension.mutationOptions({
       onSuccess: (result) => {
         invalidateDetail()
-        toast.success(t`Extension decision saved`, {
+        setExtensionSaveSuccessOpen(true)
+        if (extensionSaveSuccessTimeoutRef.current !== null) {
+          window.clearTimeout(extensionSaveSuccessTimeoutRef.current)
+        }
+        extensionSaveSuccessTimeoutRef.current = window.setTimeout(() => {
+          setExtensionSaveSuccessOpen(false)
+          extensionSaveSuccessTimeoutRef.current = null
+        }, EXTENSION_SAVE_SUCCESS_TOOLTIP_MS)
+        toast.success(t`Extension plan saved`, {
           description: t`Audit ${result.auditId.slice(0, 8)}`,
         })
       },
       onError: (err) => {
-        toast.error(t`Couldn't save extension decision`, {
+        toast.error(t`Couldn't save extension plan`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
     }),
   )
+  const saveExtensionPlanDisabled =
+    !row ||
+    !canSaveInternalExtensionPlan({
+      draftTargetDate: extensionDraft.internalTargetDate,
+      filingDeadline: extensionFilingDeadline,
+      isPending: decideExtensionMutation.isPending,
+      memo: extensionDraft.memo,
+    })
   // Lifecycle v2 slice 2d.3: manual acceptance — when a filed return has
   // been accepted by the authority (e-file accepted / paper return
   // received with no rejection), the preparer marks it complete from the
@@ -3163,19 +3211,24 @@ function ObligationQueueDetailDrawer({
 
   function saveExtensionDecision() {
     if (!row) return
-    if (expectedExtendedDueDateInvalid) {
-      toast.error(t`The request was invalid. Please review your input and try again.`)
+    if (!extensionDraft.internalTargetDate) {
+      toast.error(t`Internal extension target date is required.`)
+      return
+    }
+    if (extensionDraft.memo.trim().length === 0) {
+      toast.error(t`Decision memo is required.`)
+      return
+    }
+    if (internalTargetDateInvalid) {
+      toast.error(t`Internal extension target date must be on or before the filing deadline.`)
       return
     }
 
     decideExtensionMutation.mutate({
       id: row.id,
-      decision: extensionDraft.decision,
-      ...(extensionDraft.memo.trim() ? { memo: extensionDraft.memo.trim() } : {}),
+      memo: extensionDraft.memo.trim(),
       ...(extensionDraft.source.trim() ? { source: extensionDraft.source.trim() } : {}),
-      ...(extensionDraft.expectedExtendedDueDate
-        ? { expectedExtendedDueDate: extensionDraft.expectedExtendedDueDate }
-        : {}),
+      internalTargetDate: extensionDraft.internalTargetDate,
     })
   }
 
@@ -3440,12 +3493,16 @@ function ObligationQueueDetailDrawer({
                   <div className="grid gap-3">
                     <AlertPanel>
                       <Trans>
-                        This records an internal decision for this obligation. It does not update
-                        the due date, change client records, or confirm an authority filing. Payment
-                        may still be due by the original date.
+                        This saves the firm's internal extension plan for this obligation. The
+                        internal target date must be on or before the filing deadline. It does not
+                        update the due date, change client records, or confirm an authority filing.
+                        Payment may still be due by the original date.
                       </Trans>
                     </AlertPanel>
                     <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
+                      <h3 className="text-sm font-medium text-text-primary">
+                        <Trans>Example</Trans>
+                      </h3>
                       <DetailRow
                         label={<Trans>Rule extension policy</Trans>}
                         value={
@@ -3463,31 +3520,14 @@ function ObligationQueueDetailDrawer({
                         value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
                       />
                     </div>
-                    <Select
-                      value={extensionDraft.decision}
-                      onValueChange={(value) => {
-                        if (value !== 'applied' && value !== 'rejected') return
-                        setExtensionDraft((current) => ({ ...current, decision: value }))
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="applied">
-                          <Trans>Record internal decision: extension applied</Trans>
-                        </SelectItem>
-                        <SelectItem value="rejected">
-                          <Trans>Record internal decision: extension rejected</Trans>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
                     <IsoDatePicker
-                      value={extensionDraft.expectedExtendedDueDate}
-                      invalid={expectedExtendedDueDateInvalid}
-                      ariaLabel={t`Expected extended due date (reference only)`}
-                      onValueChange={(expectedExtendedDueDate) =>
-                        setExtensionDraft((current) => ({ ...current, expectedExtendedDueDate }))
+                      value={extensionDraft.internalTargetDate}
+                      invalid={internalTargetDateInvalid}
+                      maxIsoDate={extensionFilingDeadline}
+                      ariaLabel={t`Internal extension target date`}
+                      placeholder={t`Internal extension target date`}
+                      onValueChange={(internalTargetDate) =>
+                        setExtensionDraft((current) => ({ ...current, internalTargetDate }))
                       }
                     />
                     <Input
@@ -3499,29 +3539,43 @@ function ObligationQueueDetailDrawer({
                       }
                     />
                     <Textarea
-                      aria-label={t`Extension memo`}
-                      placeholder={t`Decision memo`}
+                      aria-label={t`Decision memo`}
+                      aria-required="true"
+                      placeholder={t`Decision memo (required)`}
                       value={extensionDraft.memo}
                       onChange={(event) =>
                         setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
                       }
                     />
-                    <Button
-                      className="w-fit"
-                      onClick={saveExtensionDecision}
-                      disabled={decideExtensionMutation.isPending}
-                    >
-                      <Trans>Save internal decision</Trans>
-                    </Button>
+                    <Tooltip open={extensionSaveSuccessOpen}>
+                      <TooltipTrigger
+                        render={
+                          <span className="inline-flex w-fit">
+                            <Button
+                              className="w-fit"
+                              onClick={saveExtensionDecision}
+                              disabled={saveExtensionPlanDisabled}
+                            >
+                              <Trans>Save Extension</Trans>
+                            </Button>
+                          </span>
+                        }
+                      />
+                      <TooltipContent>
+                        <Trans>Extension plan saved</Trans>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                   <div className="grid content-start gap-3 rounded-lg border border-divider-regular p-3">
-                    <DetailRow label={<Trans>Current status</Trans>} value={row.status} />
-                    <DetailRow label={<Trans>Decision</Trans>} value={row.extensionDecision} />
                     <DetailRow
-                      label={<Trans>Expected extended date</Trans>}
+                      label={<Trans>Current status</Trans>}
+                      value={statusLabels[row.status]}
+                    />
+                    <DetailRow
+                      label={<Trans>Internal target date</Trans>}
                       value={
-                        row.extensionExpectedDueDate
-                          ? formatDate(row.extensionExpectedDueDate)
+                        row.extensionInternalTargetDate
+                          ? formatDate(row.extensionInternalTargetDate)
                           : t`Not set`
                       }
                     />

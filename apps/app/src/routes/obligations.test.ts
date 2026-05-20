@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  canSaveInternalExtensionPlan,
   isThisWeekFilterActive,
+  isInternalExtensionTargetDateValid,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
   selectionHeaderState,
@@ -34,6 +36,87 @@ describe('obligations quick filters', () => {
     expect(isThisWeekFilterActive(null, 7)).toBe(true)
     expect(isThisWeekFilterActive(0, 7)).toBe(false)
     expect(isThisWeekFilterActive(null, 14)).toBe(false)
+  })
+})
+
+describe('internal extension target date validation', () => {
+  it('allows an empty internal target date', () => {
+    expect(isInternalExtensionTargetDateValid('', '2026-04-15')).toBe(true)
+  })
+
+  it('rejects invalid ISO dates', () => {
+    expect(isInternalExtensionTargetDateValid('2026-02-31', '2026-04-15')).toBe(false)
+  })
+
+  it('allows the filing deadline date', () => {
+    expect(isInternalExtensionTargetDateValid('2026-04-15', '2026-04-15')).toBe(true)
+  })
+
+  it('rejects dates after the filing deadline', () => {
+    expect(isInternalExtensionTargetDateValid('2026-04-16', '2026-04-15')).toBe(false)
+  })
+})
+
+describe('internal extension plan save state', () => {
+  it('disables save when the internal target date is empty', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '',
+        filingDeadline: '2026-04-15',
+        memo: 'Proceed with extension.',
+      }),
+    ).toBe(false)
+  })
+
+  it('allows save when the internal target date is unchanged and the memo is filled', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '2026-04-10',
+        filingDeadline: '2026-04-15',
+        memo: 'Proceed with extension.',
+      }),
+    ).toBe(true)
+  })
+
+  it('disables save when the decision memo is blank', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '2026-04-11',
+        filingDeadline: '2026-04-15',
+        memo: '   ',
+      }),
+    ).toBe(false)
+  })
+
+  it('disables save when the internal target date is after the filing deadline', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '2026-04-16',
+        filingDeadline: '2026-04-15',
+        memo: 'Proceed with extension.',
+      }),
+    ).toBe(false)
+  })
+
+  it('allows save when the internal target date changed and the memo is filled', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '2026-04-15',
+        filingDeadline: '2026-04-15',
+        memo: 'Proceed with extension.',
+      }),
+    ).toBe(true)
+  })
+
+  it('disables save while the mutation is pending', () => {
+    expect(
+      canSaveInternalExtensionPlan({
+        draftTargetDate: '2026-04-15',
+        filingDeadline: '2026-04-15',
+        isPending: true,
+        memo: 'Proceed with extension.',
+      }),
+    ).toBe(false)
   })
 })
 

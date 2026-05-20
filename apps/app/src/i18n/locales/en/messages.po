@@ -2205,8 +2205,8 @@ msgid "Couldn't run obligation preview"
 msgstr "Couldn't run obligation preview"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't save extension decision"
-msgstr "Couldn't save extension decision"
+msgid "Couldn't save extension plan"
+msgstr "Couldn't save extension plan"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Couldn't save filing jurisdictions"
@@ -2546,12 +2546,16 @@ msgid "Decided at"
 msgstr "Decided at"
 
 #: src/routes/obligations.tsx
-msgid "Decision"
-msgstr "Decision"
-
-#: src/routes/obligations.tsx
 msgid "Decision memo"
 msgstr "Decision memo"
+
+#: src/routes/obligations.tsx
+msgid "Decision memo (required)"
+msgstr "Decision memo (required)"
+
+#: src/routes/obligations.tsx
+msgid "Decision memo is required."
+msgstr "Decision memo is required."
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default tax type suggestions apply only where imported rows do not already include tax types."
@@ -2947,6 +2951,10 @@ msgstr "Evidence gap"
 msgid "Evidence linked"
 msgstr "Evidence linked"
 
+#: src/routes/obligations.tsx
+msgid "Example"
+msgstr "Example"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "Exception"
 msgstr "Exception"
@@ -2963,14 +2971,6 @@ msgstr "Exclude {0} from manager review"
 #: src/features/rules/coverage-tab.tsx
 msgid "Exit review · Esc"
 msgstr "Exit review · Esc"
-
-#: src/routes/obligations.tsx
-msgid "Expected extended date"
-msgstr "Expected extended date"
-
-#: src/routes/obligations.tsx
-msgid "Expected extended due date (reference only)"
-msgstr "Expected extended due date (reference only)"
 
 #: src/features/members/members-page.tsx
 msgid "Expired"
@@ -3062,12 +3062,12 @@ msgid "Extension decision"
 msgstr "Extension decision"
 
 #: src/routes/obligations.tsx
-msgid "Extension decision saved"
-msgstr "Extension decision saved"
-
-#: src/routes/obligations.tsx
 msgid "Extension memo"
 msgstr "Extension memo"
+
+#: src/routes/obligations.tsx
+msgid "Extension plan saved"
+msgstr "Extension plan saved"
 
 #: src/routes/obligations.tsx
 msgid "Extension source"
@@ -3649,6 +3649,22 @@ msgstr "Internal deadline changed from {previous} to {next}"
 #: src/routes/practice.tsx
 msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "Internal deadline offset must be between 0 and 365 days."
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date"
+msgstr "Internal extension target date"
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date is required."
+msgstr "Internal extension target date is required."
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date must be on or before the filing deadline."
+msgstr "Internal extension target date must be on or before the filing deadline."
+
+#: src/routes/obligations.tsx
+msgid "Internal target date"
+msgstr "Internal target date"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "Invalid rule"
@@ -6255,14 +6271,6 @@ msgstr "Recommended"
 msgid "Record audit trail"
 msgstr "Record audit trail"
 
-#: src/routes/obligations.tsx
-msgid "Record internal decision: extension applied"
-msgstr "Record internal decision: extension applied"
-
-#: src/routes/obligations.tsx
-msgid "Record internal decision: extension rejected"
-msgstr "Record internal decision: extension rejected"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Recorded"
 msgstr "Recorded"
@@ -6939,13 +6947,13 @@ msgstr "Save changes"
 msgid "Save current view"
 msgstr "Save current view"
 
+#: src/routes/obligations.tsx
+msgid "Save Extension"
+msgstr "Save Extension"
+
 #: src/routes/billing.tsx
 msgid "Save from $960/year"
 msgstr "Save from $960/year"
-
-#: src/routes/obligations.tsx
-msgid "Save internal decision"
-msgstr "Save internal decision"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Save manager review"
@@ -8035,7 +8043,6 @@ msgid "The projected risk across the current deadline list. It helps prioritize 
 msgstr "The projected risk across the current deadline list. It helps prioritize work, but it is not an official penalty notice."
 
 #: src/lib/i18n-error.ts
-#: src/routes/obligations.tsx
 msgid "The request was invalid. Please review your input and try again."
 msgstr "The request was invalid. Please review your input and try again."
 
@@ -8139,10 +8146,6 @@ msgstr "This Pulse alert is closed and cannot be sent for review."
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "This readiness link is expired, revoked, or invalid."
 
-#: src/routes/obligations.tsx
-msgid "This records an internal decision for this obligation. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
-msgstr "This records an internal decision for this obligation. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
 msgstr "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
@@ -8166,6 +8169,10 @@ msgstr "This rule allows an extension."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule does not allow an extension."
 msgstr "This rule does not allow an extension."
+
+#: src/routes/obligations.tsx
+msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
+msgstr "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."

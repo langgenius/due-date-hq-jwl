@@ -2205,8 +2205,8 @@ msgid "Couldn't run obligation preview"
 msgstr "无法运行义务预览"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't save extension decision"
-msgstr "无法保存延期决策"
+msgid "Couldn't save extension plan"
+msgstr "无法保存延期计划"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Couldn't save filing jurisdictions"
@@ -2546,12 +2546,16 @@ msgid "Decided at"
 msgstr "决策时间"
 
 #: src/routes/obligations.tsx
-msgid "Decision"
-msgstr "决策"
-
-#: src/routes/obligations.tsx
 msgid "Decision memo"
 msgstr "决策备注"
+
+#: src/routes/obligations.tsx
+msgid "Decision memo (required)"
+msgstr "决策备注（必填）"
+
+#: src/routes/obligations.tsx
+msgid "Decision memo is required."
+msgstr "必须填写决策备注。"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default tax type suggestions apply only where imported rows do not already include tax types."
@@ -2947,6 +2951,10 @@ msgstr "证据缺口"
 msgid "Evidence linked"
 msgstr "已关联证据"
 
+#: src/routes/obligations.tsx
+msgid "Example"
+msgstr "示例"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "Exception"
 msgstr "例外"
@@ -2963,14 +2971,6 @@ msgstr "从经理审核中排除 {0}"
 #: src/features/rules/coverage-tab.tsx
 msgid "Exit review · Esc"
 msgstr "Exit review · Esc"
-
-#: src/routes/obligations.tsx
-msgid "Expected extended date"
-msgstr "预计延期后日期"
-
-#: src/routes/obligations.tsx
-msgid "Expected extended due date (reference only)"
-msgstr "预计延期后截止日期（仅供参考）"
 
 #: src/features/members/members-page.tsx
 msgid "Expired"
@@ -3062,12 +3062,12 @@ msgid "Extension decision"
 msgstr "延期决定"
 
 #: src/routes/obligations.tsx
-msgid "Extension decision saved"
-msgstr "延期决策已保存"
-
-#: src/routes/obligations.tsx
 msgid "Extension memo"
 msgstr "延期备注"
+
+#: src/routes/obligations.tsx
+msgid "Extension plan saved"
+msgstr "延期计划已保存"
 
 #: src/routes/obligations.tsx
 msgid "Extension source"
@@ -3649,6 +3649,22 @@ msgstr "内部截止日从 {previous} 改为 {next}"
 #: src/routes/practice.tsx
 msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "内部截止日提前天数必须在 0 到 365 天之间。"
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date"
+msgstr "内部延期目标日期"
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date is required."
+msgstr "必须填写内部延期目标日期。"
+
+#: src/routes/obligations.tsx
+msgid "Internal extension target date must be on or before the filing deadline."
+msgstr "内部延期目标日期必须早于或等于申报截止日。"
+
+#: src/routes/obligations.tsx
+msgid "Internal target date"
+msgstr "内部目标日期"
 
 #: src/features/rules/rule-library-tab.tsx
 msgid "Invalid rule"
@@ -6255,14 +6271,6 @@ msgstr "推荐"
 msgid "Record audit trail"
 msgstr "记录审计轨迹"
 
-#: src/routes/obligations.tsx
-msgid "Record internal decision: extension applied"
-msgstr "记录内部决策：已按延期处理"
-
-#: src/routes/obligations.tsx
-msgid "Record internal decision: extension rejected"
-msgstr "记录内部决策：不按延期处理"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Recorded"
 msgstr "已记录"
@@ -6939,13 +6947,13 @@ msgstr "保存更改"
 msgid "Save current view"
 msgstr "保存当前视图"
 
+#: src/routes/obligations.tsx
+msgid "Save Extension"
+msgstr "保存延期"
+
 #: src/routes/billing.tsx
 msgid "Save from $960/year"
 msgstr "每年省 $960 起"
-
-#: src/routes/obligations.tsx
-msgid "Save internal decision"
-msgstr "保存内部决策"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Save manager review"
@@ -8035,7 +8043,6 @@ msgid "The projected risk across the current deadline list. It helps prioritize 
 msgstr "当前截止日清单的预计风险。它用于安排优先级，但不是官方罚金通知。"
 
 #: src/lib/i18n-error.ts
-#: src/routes/obligations.tsx
 msgid "The request was invalid. Please review your input and try again."
 msgstr "请求无效，请检查输入后重试。"
 
@@ -8139,10 +8146,6 @@ msgstr "此 Pulse 提醒已关闭，无法发送审核请求。"
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "此准备状态链接已过期、已撤销或无效。"
 
-#: src/routes/obligations.tsx
-msgid "This records an internal decision for this obligation. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
-msgstr "这会为该义务记录一个内部决策。它不会更新截止日、修改客户资料，也不代表已向官方提交延期。付款可能仍需在原始日期前完成。"
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
 msgstr "这会移除此导入创建的所有客户和截止日。请改用“客户”来编辑单条记录。"
@@ -8166,6 +8169,10 @@ msgstr "这条规则允许申请延期。"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule does not allow an extension."
 msgstr "这条规则不允许申请延期。"
+
+#: src/routes/obligations.tsx
+msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
+msgstr "这会保存事务所针对此义务的内部延期计划。内部目标日期必须早于或等于申报截止日。它不会更新截止日、修改客户记录，也不确认已向税务机关提交。付款可能仍需在原始日期前完成。"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."

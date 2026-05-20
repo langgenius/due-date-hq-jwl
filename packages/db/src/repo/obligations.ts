@@ -452,7 +452,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         decision: 'applied' | 'rejected'
         memo: string | null
         source: string | null
-        expectedExtendedDueDate: Date | null
+        internalTargetDate: Date | null
         decidedAt: Date
         decidedByUserId: string
         status?: ObligationStatus
@@ -464,7 +464,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           extensionDecision: patch.decision,
           extensionMemo: patch.memo,
           extensionSource: patch.source,
-          extensionExpectedDueDate: patch.expectedExtendedDueDate,
+          extensionExpectedDueDate: patch.internalTargetDate,
           extensionDecidedAt: patch.decidedAt,
           extensionDecidedByUserId: patch.decidedByUserId,
           extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
