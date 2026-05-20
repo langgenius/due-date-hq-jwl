@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
   getCoreRowModel,
@@ -602,7 +602,21 @@ export function ClientFactsWorkspace({
           if (count === 0) {
             return <span className="text-text-tertiary tabular-nums">0</span>
           }
-          return <span className="tabular-nums text-text-primary">{count}</span>
+          // Count becomes a deep link into the queue pre-filtered to
+          // this client — the inverse of the drawer's "Open client
+          // detail" jump and the most-traversed cross-page hop.
+          // Stop click propagation so the row's "open client" click
+          // handler doesn't swallow the navigation.
+          return (
+            <Link
+              to={`/obligations?client=${row.original.id}`}
+              onClick={(event) => event.stopPropagation()}
+              className="tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+              aria-label={t`View ${count} open obligations for this client`}
+            >
+              {count}
+            </Link>
+          )
         },
         meta: {
           headerClassName: 'w-[80px] text-right',

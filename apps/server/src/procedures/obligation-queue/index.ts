@@ -536,6 +536,7 @@ function toRepoListInput(
   if (input.search !== undefined) repoInput.search = input.search
   if (input.obligationIds !== undefined) repoInput.obligationIds = input.obligationIds
   if (input.clientIds !== undefined) repoInput.clientIds = input.clientIds
+  if (input.ruleIds !== undefined) repoInput.ruleIds = input.ruleIds
   if (input.states !== undefined) repoInput.states = input.states
   if (input.counties !== undefined) repoInput.counties = input.counties
   if (input.taxTypes !== undefined) repoInput.taxTypes = input.taxTypes

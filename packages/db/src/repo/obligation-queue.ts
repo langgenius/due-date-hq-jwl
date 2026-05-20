@@ -57,6 +57,7 @@ export interface ObligationQueueListInput {
   search?: string
   obligationIds?: string[]
   clientIds?: string[]
+  ruleIds?: string[]
   states?: string[]
   counties?: string[]
   taxTypes?: string[]
@@ -649,6 +650,11 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
       const clientIds = uniqueNonEmpty(input.clientIds)
       if (clientIds.length > 0) {
         filters.push(inArray(obligationInstance.clientId, clientIds))
+      }
+
+      const ruleIds = uniqueNonEmpty(input.ruleIds)
+      if (ruleIds.length > 0) {
+        filters.push(inArray(obligationInstance.ruleId, ruleIds))
       }
 
       const states = uniqueNonEmpty(input.states)

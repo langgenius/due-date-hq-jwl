@@ -12,6 +12,7 @@ export interface ObligationQueueListInput {
   search?: string
   obligationIds?: string[]
   clientIds?: string[]
+  ruleIds?: string[]
   states?: string[]
   counties?: string[]
   taxTypes?: string[]
