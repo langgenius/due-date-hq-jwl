@@ -13,14 +13,14 @@ import { formatCents } from '@/lib/utils'
 
 // Dashboard v2 "Actions this week" — the verb-led action queue that
 // replaces the legacy triage table when `?dashboard=v2` is on.
-// Layout philosophy (post 2026-05-20 review #2):
-//   [due pill]   Client                          Risk of losing $X   [chevron]
-//                Task prompt
+// Layout philosophy (post 2026-05-20 review #3):
+//   [due pill]   Task prompt                     Risk of losing $X   [chevron]
+//                Client name
 //   --- expanded on click ---
 //   Status / Form / Sources / Open-in-Obligations
-// Only the due-date wears a pill — the dollar amount sits at the
-// row's right edge as a phrase, not a badge. Per designer note
-// 2026-05-20: "say risk of losing xxxxx. no badge."
+// Task carries primary weight — what to DO is what the CPA scans for.
+// Client name sits below as supporting context. The dollar amount
+// rides the right edge as a phrase, not a badge.
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -154,8 +154,8 @@ function ActionRow({
       >
         <DueDatePill days={days} />
         <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-md font-medium text-text-primary">{row.clientName}</span>
-          <span className="truncate text-base text-text-secondary">{prompt}</span>
+          <span className="truncate text-md font-medium text-text-primary">{prompt}</span>
+          <span className="truncate text-base text-text-secondary">{row.clientName}</span>
         </span>
         <RiskMeta row={row} days={days} />
         <ChevronDownIcon
@@ -170,7 +170,7 @@ function ActionRow({
       {expanded ? (
         <div
           id={`action-detail-${row.obligationId}`}
-          className="ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-base"
+          className="mt-2 ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-base"
         >
           <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
             <dt className="text-text-tertiary">
