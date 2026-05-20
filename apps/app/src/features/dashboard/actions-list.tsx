@@ -234,6 +234,7 @@ function DashboardActionsList({
   asOfDate,
   isLoading,
   totalThisWeek,
+  totalOpen,
   canRunMigration,
   onOpenWizard,
   onOpenObligation,
@@ -243,6 +244,11 @@ function DashboardActionsList({
   asOfDate: string | null
   isLoading: boolean
   totalThisWeek: number
+  // Total open obligations across the whole practice — used to split
+  // the empty state: zero rows in the queue means "import data";
+  // zero this week but rows elsewhere means "you're caught up,
+  // here's the rest."
+  totalOpen: number
   canRunMigration: boolean
   onOpenWizard: () => void
   onOpenObligation: (row: DashboardTopRow) => void
@@ -268,13 +274,38 @@ function DashboardActionsList({
   }
 
   if (visible.length === 0) {
+    // Three empty states, in order of how they should be tested:
+    //   1. The practice has obligations beyond this week — show the
+    //      count and route to /obligations. Avoids the "import again"
+    //      misread when the user already has data.
+    //   2. The practice has zero obligations AND no clients yet — keep
+    //      the import CTA.
+    //   3. Caught-up state (rows exist somewhere but Smart Priority
+    //      filtered them all out).
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
         <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
-          {canRunMigration ? (
+          {totalOpen > 0 ? (
             <>
-              <Trans>No obligations this week. Import clients to get started.</Trans>{' '}
+              <Trans>Nothing due this week.</Trans>{' '}
+              <Button
+                variant="link"
+                size="sm"
+                className="px-0 align-baseline"
+                onClick={onOpenAllObligations}
+              >
+                <Plural
+                  value={totalOpen}
+                  one="View # open obligation"
+                  other="View # open obligations"
+                />
+                <ArrowUpRightIcon data-icon="inline-end" />
+              </Button>
+            </>
+          ) : canRunMigration ? (
+            <>
+              <Trans>No obligations yet. Import clients to get started.</Trans>{' '}
               <Button
                 variant="link"
                 size="sm"

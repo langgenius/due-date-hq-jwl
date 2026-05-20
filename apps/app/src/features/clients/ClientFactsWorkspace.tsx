@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import {
   flexRender,
   getCoreRowModel,
@@ -15,7 +15,7 @@ import {
   type ColumnDef,
   type RowData,
 } from '@tanstack/react-table'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
@@ -23,10 +23,13 @@ import {
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
+  CopyIcon,
   ExternalLinkIcon,
   FileInputIcon,
   FileSearchIcon,
+  MailIcon,
   MapPinnedIcon,
+  PlusIcon,
   RefreshCwIcon,
   SparklesIcon,
   UsersRoundIcon,
@@ -39,8 +42,10 @@ import type {
   ClientFilingProfilesReplaceInput,
   ClientPublic,
   ObligationInstancePublic,
+  ObligationRule,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Collapsible,
@@ -597,7 +602,21 @@ export function ClientFactsWorkspace({
           if (count === 0) {
             return <span className="text-text-tertiary tabular-nums">0</span>
           }
-          return <span className="tabular-nums text-text-primary">{count}</span>
+          // Count becomes a deep link into the queue pre-filtered to
+          // this client — the inverse of the drawer's "Open client
+          // detail" jump and the most-traversed cross-page hop.
+          // Stop click propagation so the row's "open client" click
+          // handler doesn't swallow the navigation.
+          return (
+            <Link
+              to={`/obligations?client=${row.original.id}`}
+              onClick={(event) => event.stopPropagation()}
+              className="tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+              aria-label={t`View ${count} open obligations for this client`}
+            >
+              {count}
+            </Link>
+          )
         },
         meta: {
           headerClassName: 'w-[80px] text-right',
@@ -1060,98 +1079,144 @@ export function ClientDetailWorkspace({
           onAddFacts={openMissingFacts}
         />
 
-        <ClientWorkPlanPanel
-          obligations={obligations}
-          isLoading={obligationsQuery.isLoading}
-          summary={workPlan}
-        />
+        <Tabs defaultValue="work" className="w-full">
+          <TabsList className="mb-3 flex w-full flex-wrap justify-start">
+            <TabsTrigger value="work">
+              <Trans>Work</Trans>
+            </TabsTrigger>
+            <TabsTrigger value="mailbox">
+              <Trans>Mailbox</Trans>
+            </TabsTrigger>
+            <TabsTrigger value="notes">
+              <Trans>Notes</Trans>
+            </TabsTrigger>
+          </TabsList>
 
-        <DetailSection
-          title={t`Client summary (AI)`}
-          summary={
-            riskSummaryQuery.data?.generatedAt
-              ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-              : t`No summary yet`
-          }
-          defaultOpen
-        >
-          <ClientRiskSummaryPanel
-            insight={riskSummaryQuery.data ?? null}
-            isLoading={riskSummaryQuery.isLoading}
-            isRefreshing={requestRiskSummaryMutation.isPending}
-            canRefresh={practiceAiEnabled}
-            firmTimezone={firmTimezone}
-            onRefresh={() =>
-              requestRiskSummaryMutation.mutate({
-                clientId: client.id,
-              })
-            }
-          />
-        </DetailSection>
+          {/* Work tab — the day-to-day workspace: filing plan, gap
+              analysis, jurisdictions, risk inputs, fact readiness. */}
+          <TabsContent value="work" className="grid gap-4">
+            <ClientWorkPlanPanel
+              obligations={obligations}
+              isLoading={obligationsQuery.isLoading}
+              summary={workPlan}
+            />
 
-        <DetailSection
-          id="client-filing-jurisdictions"
-          title={t`Filing jurisdictions`}
-          summary={formatJurisdictionSummary(client)}
-          open={filingJurisdictionsOpen}
-          onOpenChange={setFilingJurisdictionsOpen}
-          attention={missingFilingState}
-        >
-          <ClientJurisdictionPanel
-            key={`${client.id}:jurisdiction`}
-            client={client}
-            isSaving={replaceFilingProfilesMutation.isPending}
-            onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-          />
-        </DetailSection>
+            <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
 
-        <DetailSection title={t`Risk inputs`} summary={t`Penalty inputs and tax-attribute flags`}>
-          <ClientRiskInputsPanel
-            key={`${client.id}:risk`}
-            client={client}
-            isSaving={updateRiskProfileMutation.isPending}
-            onSave={(input) => updateRiskProfileMutation.mutate(input)}
-          />
-        </DetailSection>
+            <DetailSection
+              id="client-filing-jurisdictions"
+              title={t`Filing jurisdictions`}
+              summary={formatJurisdictionSummary(client)}
+              open={filingJurisdictionsOpen}
+              onOpenChange={setFilingJurisdictionsOpen}
+              attention={missingFilingState}
+            >
+              <ClientJurisdictionPanel
+                key={`${client.id}:jurisdiction`}
+                client={client}
+                isSaving={replaceFilingProfilesMutation.isPending}
+                onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+              />
+            </DetailSection>
 
-        <DetailSection
-          title={t`Fact readiness`}
-          summary={
-            readiness && readiness.missingRequiredFacts.length > 0
-              ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-              : t`All required facts present`
-          }
-        >
-          <ClientFactChecklist client={client} readiness={readiness} />
-        </DetailSection>
+            <DetailSection
+              title={t`Risk inputs`}
+              summary={t`Penalty inputs and tax-attribute flags`}
+            >
+              <ClientRiskInputsPanel
+                key={`${client.id}:risk`}
+                client={client}
+                isSaving={updateRiskProfileMutation.isPending}
+                onSave={(input) => updateRiskProfileMutation.mutate(input)}
+              />
+            </DetailSection>
 
-        <DetailSection
-          title={t`Future business cues`}
-          summary={t`Advisory, scope, and retention opportunities`}
-        >
-          <ClientOpportunitiesCard clientId={client.id} />
-        </DetailSection>
+            <DetailSection
+              title={t`Fact readiness`}
+              summary={
+                readiness && readiness.missingRequiredFacts.length > 0
+                  ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                  : t`All required facts present`
+              }
+            >
+              <ClientFactChecklist client={client} readiness={readiness} />
+            </DetailSection>
 
-        <div className="rounded-md border border-divider-regular bg-background-section p-3">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Notes</Trans>
-          </span>
-          <p className="mt-2 text-sm text-text-secondary">
-            {client.notes || <Trans>No notes.</Trans>}
-          </p>
-        </div>
+            <DetailSection
+              title={t`Future business cues`}
+              summary={t`Advisory, scope, and retention opportunities`}
+            >
+              <ClientOpportunitiesCard clientId={client.id} />
+            </DetailSection>
+          </TabsContent>
 
-        <DetailSection
-          title={t`Activity log`}
-          summary={t`Recent audited changes for this client record`}
-        >
-          <ClientActivityPanel
-            events={auditQuery.data?.events ?? []}
-            canReadAudit={canReadAudit}
-            isLoading={auditQuery.isLoading}
-            firmTimezone={firmTimezone}
-          />
-        </DetailSection>
+          {/* Mailbox tab — per-client forwarding address. Phase 2:
+              actual inbound email infrastructure will surface threaded
+              messages here. */}
+          <TabsContent value="mailbox" className="grid gap-4">
+            <ClientMailboxPanel client={client} />
+            <div className="rounded-md border border-dashed border-divider-regular p-6 text-center">
+              <MailIcon className="mx-auto mb-2 size-6 text-text-tertiary" aria-hidden />
+              <p className="text-sm font-medium text-text-primary">
+                <Trans>Inbound messages — Phase 2</Trans>
+              </p>
+              <p className="mt-1 text-xs text-text-tertiary">
+                <Trans>
+                  Once the forwarding address is live, threaded emails and uploaded attachments from
+                  the client will surface here, AI-classified into the matching task on the filing
+                  plan.
+                </Trans>
+              </p>
+            </div>
+          </TabsContent>
+
+          {/* Notes tab — AI narrative, free-text notes, activity audit. */}
+          <TabsContent value="notes" className="grid gap-4">
+            <DetailSection
+              title={t`Client summary (AI)`}
+              summary={
+                riskSummaryQuery.data?.generatedAt
+                  ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
+                  : t`No summary yet`
+              }
+              defaultOpen
+            >
+              <ClientRiskSummaryPanel
+                insight={riskSummaryQuery.data ?? null}
+                isLoading={riskSummaryQuery.isLoading}
+                isRefreshing={requestRiskSummaryMutation.isPending}
+                canRefresh={practiceAiEnabled}
+                firmTimezone={firmTimezone}
+                onRefresh={() =>
+                  requestRiskSummaryMutation.mutate({
+                    clientId: client.id,
+                  })
+                }
+              />
+            </DetailSection>
+
+            <div className="rounded-md border border-divider-regular bg-background-section p-3">
+              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+                <Trans>Notes</Trans>
+              </span>
+              <p className="mt-2 text-sm text-text-secondary">
+                {client.notes || <Trans>No notes.</Trans>}
+              </p>
+            </div>
+
+            <DetailSection
+              title={t`Activity log`}
+              summary={t`Recent audited changes for this client record`}
+            >
+              <ClientActivityPanel
+                events={auditQuery.data?.events ?? []}
+                canReadAudit={canReadAudit}
+                isLoading={auditQuery.isLoading}
+                firmTimezone={firmTimezone}
+              />
+            </DetailSection>
+          </TabsContent>
+        </Tabs>
       </section>
     </>
   )
@@ -1161,6 +1226,66 @@ function obligationDrawerHref(obligationId: string): string {
   const params = new URLSearchParams({ id: obligationId, drawer: 'obligation' })
   return `/obligations?${params.toString()}`
 }
+
+type FilingPlanYearGroup = {
+  year: number | 'unknown'
+  isCurrent: boolean
+  obligations: readonly ObligationInstancePublic[]
+  openCount: number
+  extendedCount: number
+}
+
+// Group obligations into tax-year buckets so the client page reads as a
+// filing plan (matching reference CPA workbenches), not a flat queue. The
+// current tax year (latest year present, or calendar year if no data) sits
+// at the top with a "Current tax year" chip; prior years follow descending.
+function groupObligationsByTaxYear(
+  obligations: readonly ObligationInstancePublic[],
+): FilingPlanYearGroup[] {
+  const buckets = new Map<number | 'unknown', ObligationInstancePublic[]>()
+  for (const obligation of obligations) {
+    const key: number | 'unknown' = obligation.taxYear ?? 'unknown'
+    const list = buckets.get(key)
+    if (list) list.push(obligation)
+    else buckets.set(key, [obligation])
+  }
+  const knownYears = [...buckets.keys()]
+    .filter((k): k is number => typeof k === 'number')
+    .toSorted((a, b) => b - a)
+  const currentYear = knownYears[0] ?? null
+  const groups: FilingPlanYearGroup[] = knownYears.map((year) => {
+    const list = buckets.get(year) ?? []
+    return {
+      year,
+      isCurrent: year === currentYear,
+      obligations: list,
+      openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
+      extendedCount: list.filter((o) => o.status === 'extended').length,
+    }
+  })
+  if (buckets.has('unknown')) {
+    const list = buckets.get('unknown') ?? []
+    groups.push({
+      year: 'unknown',
+      isCurrent: false,
+      obligations: list,
+      openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
+      extendedCount: list.filter((o) => o.status === 'extended').length,
+    })
+  }
+  return groups
+}
+
+// "Open" for filing-plan summary purposes: any non-terminal status. We
+// don't try to be precise about prep stage here — that's drawer territory.
+const OPEN_FILING_PLAN_STATUSES = new Set([
+  'pending',
+  'in_progress',
+  'waiting_on_client',
+  'review',
+  'blocked',
+  'done',
+])
 
 function ClientWorkPlanPanel({
   obligations,
@@ -1172,16 +1297,18 @@ function ClientWorkPlanPanel({
   summary: ClientWorkPlanSummary
 }) {
   const navigate = useNavigate()
-  const visible = obligations.slice(0, 8)
+  const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">
-            <Trans>Filings &amp; deadlines</Trans>
+            <Trans>Filing plan</Trans>
           </span>
           <span className="truncate text-xs text-text-tertiary">
-            {`${summary.openCount} open · ${summary.overdueOpenCount} overdue · ${summary.needsReviewCount} need review`}
+            <Plural value={obligations.length} one="# filing" other="# filings" />{' '}
+            <Trans>across</Trans>{' '}
+            <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -1212,86 +1339,101 @@ function ClientWorkPlanPanel({
             }
           />
         ) : (
-          <div className="grid gap-3">
-            <div className="rounded-md border border-divider-subtle">
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <Trans>Filing</Trans>
-                    </TableHead>
-                    <TableHead className="w-[132px]">
-                      <Trans>Internal</Trans>
-                    </TableHead>
-                    <TableHead className="w-[132px]">
-                      <Trans>Status</Trans>
-                    </TableHead>
-                    <TableHead className="w-[140px] text-right">
-                      <Trans>Projected risk</Trans>
-                    </TableHead>
-                    <TableHead className="w-[140px] text-right">
-                      <Trans>Tax due</Trans>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-                  {visible.map((obligation) => {
-                    const href = obligationDrawerHref(obligation.id)
-                    const open = () => void navigate(href)
-                    return (
-                      <TableRow
-                        key={obligation.id}
-                        tabIndex={0}
-                        role="link"
-                        aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
-                        className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
-                        onClick={open}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            open()
-                          }
-                        }}
-                      >
-                        <TableCell>
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate font-medium text-text-primary">
-                              <TaxCodeLabel code={obligation.taxType} />
-                            </span>
-                            <span className="truncate font-mono text-xs text-text-tertiary">
-                              {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="tabular-nums">
-                          {formatDate(obligation.currentDueDate)}
-                        </TableCell>
-                        <TableCell>
-                          <ObligationStatusBadge obligation={obligation} />
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {obligation.estimatedExposureCents !== null
-                            ? formatCents(obligation.estimatedExposureCents)
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {obligation.estimatedTaxDueCents !== null
-                            ? formatCents(obligation.estimatedTaxDueCents)
-                            : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            {obligations.length > visible.length ? (
-              <p className="text-xs text-text-tertiary">
-                <Trans>Showing the next 8 obligations for this client.</Trans>
-              </p>
-            ) : null}
+          <div className="grid gap-4">
+            {yearGroups.map((group) => (
+              <FilingPlanYearSection
+                key={group.year}
+                group={group}
+                onOpen={(obligationId) => void navigate(obligationDrawerHref(obligationId))}
+              />
+            ))}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Per-tax-year section in the Filing plan panel. Rendered once per year
+// bucket; current tax year sits at the top with a CURRENT TAX YEAR chip.
+function FilingPlanYearSection({
+  group,
+  onOpen,
+}: {
+  group: FilingPlanYearGroup
+  onOpen: (obligationId: string) => void
+}) {
+  return (
+    <div className="grid gap-2">
+      <div className="flex flex-wrap items-baseline gap-2 px-1">
+        <span className="text-sm font-medium tabular-nums text-text-primary">
+          {group.year === 'unknown' ? <Trans>No tax year</Trans> : group.year}
+        </span>
+        {group.isCurrent ? (
+          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+            <Trans>Current tax year</Trans>
+          </Badge>
+        ) : null}
+        <span className="ml-auto text-xs text-text-tertiary">
+          {group.extendedCount > 0 ? (
+            <>
+              <Trans>{group.extendedCount} extended</Trans>
+              <span aria-hidden className="mx-1">
+                ·
+              </span>
+            </>
+          ) : null}
+          <Trans>{group.openCount} open</Trans>
+        </span>
+      </div>
+      <div className="rounded-md border border-divider-subtle">
+        <Table className="table-fixed">
+          <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+            {group.obligations.map((obligation) => (
+              <TableRow
+                key={obligation.id}
+                tabIndex={0}
+                role="link"
+                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
+                className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
+                onClick={() => onOpen(obligation.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onOpen(obligation.id)
+                  }
+                }}
+              >
+                <TableCell>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-medium text-text-primary">
+                      <TaxCodeLabel code={obligation.taxType} />
+                    </span>
+                    <span className="truncate text-xs text-text-tertiary">
+                      {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="w-[132px] tabular-nums">
+                  {formatDate(obligation.currentDueDate)}
+                </TableCell>
+                <TableCell className="w-[140px]">
+                  <ObligationStatusBadge obligation={obligation} />
+                </TableCell>
+                <TableCell className="w-[140px] text-right tabular-nums">
+                  {obligation.estimatedExposureCents !== null
+                    ? formatCents(obligation.estimatedExposureCents)
+                    : '—'}
+                </TableCell>
+                <TableCell className="w-[140px] text-right tabular-nums">
+                  {obligation.estimatedTaxDueCents !== null
+                    ? formatCents(obligation.estimatedTaxDueCents)
+                    : '—'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
@@ -2026,5 +2168,309 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
       <ActivityIcon data-icon="inline-start" aria-hidden />
       {label}
     </Badge>
+  )
+}
+
+// ─── Suggested-forms catalog (wired to rule catalog) ──────────────────
+// PDF §3.3 "Classification": what could this client owe that we haven't
+// scheduled yet? We query `rules.listRules` for all active firm rules,
+// filter to those whose entityApplicability matches the client's
+// entityType and whose jurisdiction matches federal-or-client-state, and
+// subtract anything the client already has a generated obligation for
+// (matched by ruleId). The "+ Add deadline" button calls
+// `obligations.createBatch` with the rule's identifiers; the server
+// resolves the dueDateLogic into a concrete baseDueDate.
+type SuggestedRule = {
+  rule: ObligationRule
+  // Computed default date for the Add-deadline form. Heuristic — see
+  // computeDefaultDueDateFromRule.
+  defaultBaseDueDate: string
+}
+
+function computeDefaultDueDateFromRule(rule: ObligationRule): string {
+  // Best-effort: handle the simple kinds. For period_table and
+  // source_defined_calendar, fall back to today + 30 days as a
+  // placeholder — the user can adjust before saving.
+  const logic = rule.dueDateLogic
+  if (logic.kind === 'fixed_date') return logic.date
+  if (logic.kind === 'nth_day_after_tax_year_end') {
+    // Assume calendar year — tax year ends Dec 31 of (applicableYear - 1)
+    const year = rule.applicableYear
+    const month = String(logic.monthOffset).padStart(2, '0')
+    const day = String(logic.day).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  if (logic.kind === 'nth_day_after_tax_year_begin') {
+    const year = rule.applicableYear
+    const month = String(logic.monthOffset).padStart(2, '0')
+    const day = String(logic.day).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  const fallback = new Date()
+  fallback.setDate(fallback.getDate() + 30)
+  return fallback.toISOString().slice(0, 10)
+}
+
+// Map our client.entityType to the rule's EntityApplicability vocabulary.
+// The rule schema uses 'any_business', 'any_entity', etc. as wildcards;
+// our client.entityType uses concrete values. A rule matches a client if
+// its applicability set contains the client's entityType OR a wildcard.
+function ruleAppliesToEntity(
+  rule: ObligationRule,
+  clientEntityType: ClientPublic['entityType'],
+): boolean {
+  return rule.entityApplicability.some((a) => a === clientEntityType || a === 'any_business')
+}
+
+function ruleAppliesToJurisdiction(rule: ObligationRule, clientStates: Set<string>): boolean {
+  // Rule jurisdiction is 'FED' for federal, or a state code for state rules.
+  if (rule.jurisdiction === 'FED') return true
+  return clientStates.has(rule.jurisdiction)
+}
+
+function suggestedRulesForClient(
+  allRules: readonly ObligationRule[],
+  client: ClientPublic,
+  existingObligations: readonly ObligationInstancePublic[],
+): SuggestedRule[] {
+  const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
+  const scheduledRuleIds = new Set(existingObligations.flatMap((o) => (o.ruleId ? [o.ruleId] : [])))
+  return allRules
+    .filter((rule) => rule.status === 'active')
+    .filter((rule) => !scheduledRuleIds.has(rule.id))
+    .filter((rule) => ruleAppliesToJurisdiction(rule, clientStates))
+    .filter((rule) => ruleAppliesToEntity(rule, client.entityType))
+    .map((rule) => ({ rule, defaultBaseDueDate: computeDefaultDueDateFromRule(rule) }))
+}
+
+function SuggestedFormsCatalogPanel({
+  client,
+  existingObligations,
+}: {
+  client: ClientPublic
+  existingObligations: readonly ObligationInstancePublic[]
+}) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const [hidden, setHidden] = useState(false)
+  const [pendingRuleId, setPendingRuleId] = useState<string | null>(null)
+
+  const rulesQuery = useQuery(orpc.rules.listRules.queryOptions({ input: { status: 'active' } }))
+  const createMutation = useMutation(
+    orpc.obligations.createBatch.mutationOptions({
+      onMutate: (variables) => {
+        const first = variables.obligations[0]
+        if (first?.ruleId) setPendingRuleId(first.ruleId)
+      },
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(t`Deadline added`, {
+          description: t`${result.obligations.length} obligation created from the rule catalog.`,
+        })
+        setPendingRuleId(null)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't add deadline`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+        setPendingRuleId(null)
+      },
+    }),
+  )
+
+  const allRules = rulesQuery.data ?? EMPTY_RULES
+  const applicable = useMemo(() => {
+    const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
+    return allRules.filter(
+      (rule) =>
+        rule.status === 'active' &&
+        ruleAppliesToJurisdiction(rule, clientStates) &&
+        ruleAppliesToEntity(rule, client.entityType),
+    )
+  }, [allRules, client.entityType, client.filingProfiles])
+  const suggested = useMemo(
+    () => suggestedRulesForClient(allRules, client, existingObligations),
+    [allRules, client, existingObligations],
+  )
+
+  if (rulesQuery.isLoading) {
+    return (
+      <div className="rounded-md border border-divider-subtle bg-background-default p-4">
+        <Skeleton className="mb-2 h-4 w-40" />
+        <Skeleton className="h-3 w-72" />
+      </div>
+    )
+  }
+  if (applicable.length === 0) return null
+
+  function addDeadline(suggestion: SuggestedRule) {
+    createMutation.mutate({
+      obligations: [
+        {
+          clientId: client.id,
+          taxType: suggestion.rule.taxType,
+          taxYear: suggestion.rule.applicableYear,
+          ruleId: suggestion.rule.id,
+          ruleVersion: suggestion.rule.version,
+          generationSource: 'manual',
+          jurisdiction: suggestion.rule.jurisdiction,
+          formName: suggestion.rule.formName,
+          obligationType: suggestion.rule.obligationType,
+          baseDueDate: suggestion.defaultBaseDueDate,
+        },
+      ],
+    })
+  }
+
+  return (
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">
+            <Trans>Forms catalog</Trans>
+          </span>
+          <span className="truncate text-xs text-text-tertiary">
+            <Plural value={applicable.length} one="# applicable" other="# applicable" /> ·{' '}
+            {client.name}
+            {suggested.length > 0 ? (
+              <>
+                {' '}
+                ·{' '}
+                <span className="text-text-warning">
+                  <Plural value={suggested.length} one="# gap" other="# gap" />
+                </span>
+              </>
+            ) : null}
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setHidden((v) => !v)}>
+          {hidden ? <Trans>Show</Trans> : <Trans>Hide</Trans>}
+        </Button>
+      </div>
+      {hidden ? null : suggested.length === 0 ? (
+        <div className="border-t border-divider-subtle px-4 py-3">
+          <PanelEmptyState
+            icon={CheckCircle2Icon}
+            title={<Trans>All applicable rules scheduled</Trans>}
+            detail={
+              <Trans>
+                Every active rule the catalog matches to this client already has a generated
+                obligation.
+              </Trans>
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-text-warning">
+              <Trans>Suggested — applicable but no deadline yet</Trans>
+              {' · '}
+              <Plural value={suggested.length} one="# rule" other="# rules" />
+            </p>
+          </div>
+          <div className="grid divide-y divide-divider-subtle">
+            {suggested.map((suggestion) => {
+              const isPending = pendingRuleId === suggestion.rule.id && createMutation.isPending
+              return (
+                <div
+                  key={suggestion.rule.id}
+                  className="grid gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <p className="text-sm font-medium text-text-primary">
+                        {suggestion.rule.formName}
+                      </p>
+                      <span className="text-[11px] uppercase tracking-wide text-text-tertiary">
+                        {suggestion.rule.jurisdiction}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-snug text-text-tertiary">
+                      {suggestion.rule.title} ·{' '}
+                      <Trans>default due {formatDate(suggestion.defaultBaseDueDate)}</Trans>
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addDeadline(suggestion)}
+                    disabled={createMutation.isPending}
+                  >
+                    {isPending ? (
+                      <RefreshCwIcon data-icon="inline-start" className="animate-spin" />
+                    ) : (
+                      <PlusIcon data-icon="inline-start" />
+                    )}
+                    <Trans>Add deadline</Trans>
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+const EMPTY_RULES: readonly ObligationRule[] = []
+
+// ─── Per-client mailbox stub ──────────────────────────────────────────
+// The reference shows a per-task forwarding email address that ingests
+// client docs into the workflow. We don't have inbound email wired yet,
+// so this is a UI stub that shows the address shape with a copy button
+// and a clear "coming soon" affordance. The address is deterministic
+// from clientId so it stays stable across reloads.
+
+function mailboxAddressForClient(client: ClientPublic): string {
+  const slug = client.name
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .slice(0, 20)
+  const suffix = client.id.replaceAll('-', '').slice(0, 6)
+  return `${slug || 'client'}-${suffix}@duedatehq.com`
+}
+
+function ClientMailboxPanel({ client }: { client: ClientPublic }) {
+  const address = mailboxAddressForClient(client)
+  const [copied, setCopied] = useState(false)
+  const onCopy = useCallback(() => {
+    void navigator.clipboard?.writeText(address).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    })
+  }, [address])
+  return (
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">
+            <Trans>Client mailbox</Trans>
+          </span>
+          <span className="text-xs text-text-tertiary">
+            <Trans>
+              Forward client emails to this address. The AI threads them onto matching tasks and
+              flags anything that needs review.
+            </Trans>
+          </span>
+        </div>
+        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+          <Trans>Phase 2</Trans>
+        </Badge>
+      </div>
+      <div className="flex items-center gap-2 border-t border-divider-subtle px-4 py-3">
+        <MailIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+        <code className="min-w-0 truncate rounded-sm bg-background-subtle px-2 py-1 text-xs text-text-secondary">
+          {address}
+        </code>
+        <Button variant="outline" size="sm" onClick={onCopy} className="ml-auto">
+          <CopyIcon data-icon="inline-start" />
+          {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
+        </Button>
+      </div>
+    </div>
   )
 }

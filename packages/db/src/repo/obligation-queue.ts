@@ -57,6 +57,7 @@ export interface ObligationQueueListInput {
   search?: string
   obligationIds?: string[]
   clientIds?: string[]
+  ruleIds?: string[]
   states?: string[]
   counties?: string[]
   taxTypes?: string[]
@@ -185,6 +186,7 @@ export interface ObligationQueueFacetsOutput {
   counties: ObligationQueueCountyFacetOption[]
   taxTypes: ObligationQueueFacetOption[]
   assigneeNames: ObligationQueueFacetOption[]
+  statuses: ObligationQueueFacetOption[]
 }
 
 export interface ObligationQueueSavedViewRow {
@@ -651,6 +653,11 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         filters.push(inArray(obligationInstance.clientId, clientIds))
       }
 
+      const ruleIds = uniqueNonEmpty(input.ruleIds)
+      if (ruleIds.length > 0) {
+        filters.push(inArray(obligationInstance.ruleId, ruleIds))
+      }
+
       const states = uniqueNonEmpty(input.states)
         .map((value) => normalizeStateCode(value))
         .filter((value): value is string => value !== null)
@@ -949,6 +956,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           >`coalesce(json_extract(${clientFilingProfile.countiesJson}, '$[0]'), ${client.county})`,
           taxType: obligationInstance.taxType,
           assigneeName: client.assigneeName,
+          status: obligationInstance.status,
         })
         .from(obligationInstance)
         .innerJoin(client, eq(obligationInstance.clientId, client.id))
@@ -971,6 +979,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
       const counties = new Map<string, ObligationQueueCountyFacetOption>()
       const taxTypes = new Map<string, ObligationQueueFacetOption>()
       const assigneeNames = new Map<string, ObligationQueueFacetOption>()
+      const statuses = new Map<string, ObligationQueueFacetOption>()
 
       for (const row of rawRows) {
         const clientState = normalizeStateCode(row.clientState)
@@ -1033,6 +1042,13 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             })
           }
         }
+
+        const statusFacet = statuses.get(row.status)
+        if (statusFacet) {
+          statusFacet.count += 1
+        } else {
+          statuses.set(row.status, { value: row.status, label: row.status, count: 1 })
+        }
       }
 
       return {
@@ -1043,6 +1059,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         assigneeNames: [...assigneeNames.values()]
           .toSorted(compareFacetLabels)
           .slice(0, MAX_FACET_OPTIONS),
+        statuses: [...statuses.values()],
       }
     },
 

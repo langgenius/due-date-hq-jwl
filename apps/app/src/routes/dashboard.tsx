@@ -572,6 +572,7 @@ export function DashboardRoute() {
             // v2 scope is implicit "this week" per design brief — no time-bucket tabs.
             rows={triageTabs.find((tab) => tab.key === 'this_week')?.rows ?? []}
             totalThisWeek={triageTabs.find((tab) => tab.key === 'this_week')?.count ?? 0}
+            totalOpen={data?.summary?.openObligationCount ?? 0}
             canRunMigration={canRunMigration}
             onOpenWizard={openWizard}
             onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}

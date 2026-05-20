@@ -4,6 +4,7 @@ import { PDFDocument, StandardFonts } from 'pdf-lib'
 import type {
   AuditEventPublic,
   EvidencePublic,
+  ObligationQueueFacetsOutput,
   ObligationQueueListInput,
   ObligationQueueMatchedRule,
   ObligationQueueRow,
@@ -536,6 +537,7 @@ function toRepoListInput(
   if (input.search !== undefined) repoInput.search = input.search
   if (input.obligationIds !== undefined) repoInput.obligationIds = input.obligationIds
   if (input.clientIds !== undefined) repoInput.clientIds = input.clientIds
+  if (input.ruleIds !== undefined) repoInput.ruleIds = input.ruleIds
   if (input.states !== undefined) repoInput.states = input.states
   if (input.counties !== undefined) repoInput.counties = input.counties
   if (input.taxTypes !== undefined) repoInput.taxTypes = input.taxTypes
@@ -669,7 +671,10 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
 
 const facets = os.obligations.facets.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
-  return scoped.obligationQueue.facets()
+  // Repo types describe the raw shape; the contract narrows state codes
+  // and county strings to their schema-validated enums. The runtime
+  // values are equivalent — the contract schema validates on the wire.
+  return (await scoped.obligationQueue.facets()) as ObligationQueueFacetsOutput
 })
 
 const listSavedViews = os.obligations.listSavedViews.handler(async ({ context }) => {

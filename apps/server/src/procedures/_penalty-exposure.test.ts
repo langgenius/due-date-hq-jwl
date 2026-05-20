@@ -289,6 +289,8 @@ function buildScopedRepo(input: {
       async updateStatus() {},
       async updateExtensionDecision() {},
       async updateStatusMany() {},
+      async setEfileRejected() {},
+      async setBlockedBy() {},
       async unblockChildrenOf() {
         return []
       },
@@ -305,7 +307,14 @@ function buildScopedRepo(input: {
         return []
       },
       async facets() {
-        return { clients: [], states: [], counties: [], taxTypes: [], assigneeNames: [] }
+        return {
+          clients: [],
+          states: [],
+          counties: [],
+          taxTypes: [],
+          assigneeNames: [],
+          statuses: [],
+        }
       },
       async listSavedViews() {
         return []

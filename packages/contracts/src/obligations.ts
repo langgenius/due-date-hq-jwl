@@ -177,6 +177,34 @@ export const ObligationStatusUpdateOutputSchema = z.object({
   auditId: EntityIdSchema,
 })
 
+// Filed → e-file rejected → In review unwind (PDF anti-pattern #3:
+// Filed ≠ Done). Caller must hold a row in `done` ("Filed"). Server
+// stamps `efileRejectedAt = now()`, transitions status to `review`,
+// and writes an `obligation.efile.rejected` audit row. The Rejected
+// chip auto-renders on the queue thereafter (rejection-chip.tsx).
+export const ObligationMarkFiledRejectedInputSchema = z.object({
+  id: EntityIdSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationMarkFiledRejectedInput = z.infer<
+  typeof ObligationMarkFiledRejectedInputSchema
+>
+
+// K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Set or clear
+// the upstream-blocker pointer on a row.
+//   - blockedByObligationInstanceId set    → status flips to `blocked`
+//   - blockedByObligationInstanceId null   → blocker cleared, status
+//     reverts to `pending` (when currently `blocked`)
+// Server validates: parent exists in same firm, not self, not already
+// completed. Parent-completion auto-unblock cascade is already wired
+// in updateStatus → unblockChildrenOf.
+export const ObligationUpdateBlockedByInputSchema = z.object({
+  id: EntityIdSchema,
+  blockedByObligationInstanceId: EntityIdSchema.nullable(),
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdateBlockedByInput = z.infer<typeof ObligationUpdateBlockedByInputSchema>
+
 export const ObligationExtensionDecisionInputSchema = z.object({
   id: EntityIdSchema,
   memo: z.string().trim().max(1000).optional(),
@@ -304,6 +332,12 @@ export const obligationsContract = oc.router({
    */
   updateStatus: oc
     .input(ObligationStatusUpdateInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  markFiledRejected: oc
+    .input(ObligationMarkFiledRejectedInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  updateBlockedBy: oc
+    .input(ObligationUpdateBlockedByInputSchema)
     .output(ObligationStatusUpdateOutputSchema),
   bulkUpdateStatus: oc
     .input(ObligationBulkStatusUpdateInputSchema)

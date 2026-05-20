@@ -875,6 +875,7 @@ describe('@duedatehq/contracts', () => {
       counties: [{ value: 'Orange', label: 'Orange, CA', count: 2, state: 'CA' }],
       taxTypes: [{ value: '1040', label: '1040', count: 2 }],
       assigneeNames: [{ value: 'Sarah', label: 'Sarah', count: 2 }],
+      statuses: [{ value: 'pending', label: 'pending', count: 2 }],
     })
     expect(facets.clients[0]?.state).toBe('CA')
 

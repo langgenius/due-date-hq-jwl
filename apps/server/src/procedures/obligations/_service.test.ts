@@ -107,6 +107,29 @@ function buildScoped(firmId: string, rows: Row[]) {
         }
       }
     },
+    async setEfileRejected(id: string, patch: { rejectedAt: Date; nextStatus: Row['status'] }) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, {
+        ...row,
+        status: patch.nextStatus,
+        efileRejectedAt: patch.rejectedAt,
+        efileAcceptedAt: null,
+        readiness: deriveObligationReadiness({ status: patch.nextStatus }),
+        updatedAt: new Date(),
+      })
+    },
+    async setBlockedBy(id: string, patch: { blockedBy: string | null; nextStatus: Row['status'] }) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, {
+        ...row,
+        blockedByObligationInstanceId: patch.blockedBy,
+        status: patch.nextStatus,
+        readiness: deriveObligationReadiness({ status: patch.nextStatus }),
+        updatedAt: new Date(),
+      })
+    },
     async unblockChildrenOf() {
       return []
     },
@@ -213,7 +236,14 @@ function buildScoped(firmId: string, rows: Row[]) {
       return []
     },
     async facets() {
-      return { clients: [], states: [], counties: [], taxTypes: [], assigneeNames: [] }
+      return {
+        clients: [],
+        states: [],
+        counties: [],
+        taxTypes: [],
+        assigneeNames: [],
+        statuses: [],
+      }
     },
     async listSavedViews() {
       return []

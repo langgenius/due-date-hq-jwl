@@ -5,8 +5,10 @@ import type {
   ObligationExtensionDecisionInput,
   ObligationExtensionDecisionOutput,
   ObligationInstancePublic,
+  ObligationMarkFiledRejectedInput,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
+  ObligationUpdateBlockedByInput,
 } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -367,6 +369,149 @@ export async function updateObligationStatus(
       )
     }
   }
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
+ *
+ * Caller holds a row in `done` ("Filed"). We stamp `efile_rejected_at`,
+ * clear any prior acceptance timestamp, transition status to `review`,
+ * and write an `obligation.efile.rejected` audit row. The Rejected
+ * chip auto-renders on the queue once efileRejectedAt + status='review'
+ * both hold (see apps/app/src/features/obligations/rejection-chip.tsx).
+ */
+export async function markObligationFiledRejected(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationMarkFiledRejectedInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Obligation ${input.id} not found in current firm.`,
+    })
+  }
+  if (before.status !== 'done') {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Only a Filed obligation can be marked rejected. Current status: ${before.status}.`,
+    })
+  }
+
+  const rejectedAt = new Date()
+  await scoped.obligations.setEfileRejected(input.id, { rejectedAt, nextStatus: 'review' })
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated obligation could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { status: string; efileAcceptedAt: string | null }
+    after: { status: string; efileRejectedAt: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.efile.rejected',
+    before: {
+      status: before.status,
+      efileAcceptedAt: before.efileAcceptedAt ? before.efileAcceptedAt.toISOString() : null,
+    },
+    after: { status: after.status, efileRejectedAt: rejectedAt.toISOString() },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * K-1 dependency wiring (PDF anti-pattern #4 + §6.4).
+ *
+ * Set or clear `blocked_by_obligation_instance_id`. When the pointer
+ * is set, status flips to `blocked`; when cleared (only legal from
+ * `blocked`), status reverts to `pending`. Auto-unblock on parent
+ * completion is handled separately by updateObligationStatus →
+ * unblockChildrenOf.
+ */
+export async function updateObligationBlockedBy(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdateBlockedByInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Obligation ${input.id} not found in current firm.`,
+    })
+  }
+  const nextParentId = input.blockedByObligationInstanceId
+  if (nextParentId === input.id) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'An obligation cannot block itself.',
+    })
+  }
+  if (nextParentId !== null) {
+    const parent = await scoped.obligations.findById(nextParentId)
+    if (!parent) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Parent obligation ${nextParentId} not found in current firm.`,
+      })
+    }
+    if (parent.status === 'completed') {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Cannot mark blocked by an already-completed obligation.',
+      })
+    }
+  } else if (before.status !== 'blocked') {
+    // Clearing a blocker on a row that isn't currently blocked is a
+    // no-op; we still allow it (idempotent) so the UI can call
+    // updateBlockedBy(null) defensively.
+  }
+
+  const nextStatus = nextParentId !== null ? 'blocked' : 'pending'
+  await scoped.obligations.setBlockedBy(input.id, { blockedBy: nextParentId, nextStatus })
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated obligation could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { status: string; blockedBy: string | null }
+    after: { status: string; blockedBy: string | null }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: nextParentId !== null ? 'obligation.blocked_by.set' : 'obligation.blocked_by.cleared',
+    before: { status: before.status, blockedBy: before.blockedByObligationInstanceId ?? null },
+    after: { status: after.status, blockedBy: nextParentId },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
 
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),

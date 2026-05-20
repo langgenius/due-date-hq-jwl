@@ -1,5 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
 import type { PulseAffectedClient } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -74,6 +75,9 @@ export function AffectedClientsTable({
           <TableHead>{t`Form`}</TableHead>
           <TableHead className="text-right">{t`Due date change`}</TableHead>
           <TableHead>{t`Match`}</TableHead>
+          <TableHead className="w-[1%]">
+            <span className="sr-only">{t`Open in queue`}</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -149,6 +153,21 @@ export function AffectedClientsTable({
                     </label>
                   ) : null}
                 </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {/* Deep-link out to the obligation queue so CPAs can
+                    investigate a row before applying the relief.
+                    Without this the drawer is a read-only triage and
+                    the only way to inspect the obligation in context
+                    is to memorise the client name and search. */}
+                <Link
+                  to={`/obligations?id=${row.obligationId}&drawer=obligation`}
+                  aria-label={t`Open ${row.clientName} ${row.taxType} in the obligation queue`}
+                  className="inline-flex items-center gap-0.5 text-xs text-text-tertiary outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                >
+                  <Trans>Open</Trans>
+                  <ArrowUpRightIcon className="size-3" aria-hidden />
+                </Link>
               </TableCell>
             </TableRow>
           )

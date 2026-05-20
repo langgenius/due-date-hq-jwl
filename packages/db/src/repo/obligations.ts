@@ -527,6 +527,41 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // Filed → e-file rejected unwind. Stamps `efile_rejected_at`,
+    // flips `status` back to `review` ("In review"), and clears any
+    // prior acceptance timestamp so the row reads cleanly as
+    // "filed but rejected, back in review."
+    async setEfileRejected(
+      id: string,
+      patch: { rejectedAt: Date; nextStatus: ObligationStatus },
+    ): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({
+          status: patch.nextStatus,
+          efileRejectedAt: patch.rejectedAt,
+          efileAcceptedAt: null,
+        })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    // K-1 dependency wiring. Set or clear the upstream-blocker
+    // pointer. When `blockedBy` is non-null, status flips to `blocked`;
+    // when null, status reverts to `pending`. Parent-completion auto-
+    // unblock continues to fire from updateStatus → unblockChildrenOf.
+    async setBlockedBy(
+      id: string,
+      patch: { blockedBy: string | null; nextStatus: ObligationStatus },
+    ): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({
+          blockedByObligationInstanceId: patch.blockedBy,
+          status: patch.nextStatus,
+        })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {
