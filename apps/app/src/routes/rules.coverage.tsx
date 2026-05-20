@@ -29,7 +29,7 @@ export function RulesCoverageRoute() {
         jur: jurisdiction,
         from: 'coverage',
       })
-      void navigate(`/rules/library?${params.toString()}`)
+      void navigate(`/rules/library?view=rules&${params.toString()}`)
     },
     [navigate],
   )
@@ -44,7 +44,7 @@ export function RulesCoverageRoute() {
         jur: jurisdiction,
         from: 'coverage',
       })
-      void navigate(`/rules/library?${params.toString()}`)
+      void navigate(`/rules/library?view=rules&${params.toString()}`)
     },
     [navigate],
   )
@@ -78,7 +78,7 @@ export function RulesCoverageRoute() {
         entity,
         from: 'coverage',
       })
-      void navigate(`/rules/library?${params.toString()}`)
+      void navigate(`/rules/library?view=rules&${params.toString()}`)
     },
     [navigate],
   )
