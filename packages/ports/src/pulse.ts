@@ -169,8 +169,13 @@ export interface PulseAlertActionInput {
   now?: Date
 }
 
+export interface PulseDismissReasonInput extends PulseAlertActionInput {
+  reason: string
+}
+
 export interface PulseSnoozeInput extends PulseAlertActionInput {
   until: Date
+  reason: string
 }
 
 export interface PulseApplyResult {
@@ -221,7 +226,7 @@ export interface PulseRepo {
   reviewPriorityMatches(input: PulseReviewPriorityMatchesInput): Promise<PulsePriorityReviewRow>
   applyReviewed(input: PulseAlertActionInput): Promise<PulseApplyResult>
   apply(input: PulseApplyInput): Promise<PulseApplyResult>
-  dismiss(input: PulseAlertActionInput): Promise<PulseDismissResult>
+  dismiss(input: PulseDismissReasonInput): Promise<PulseDismissResult>
   snooze(input: PulseSnoozeInput): Promise<PulseDismissResult>
   revert(input: PulseAlertActionInput): Promise<PulseRevertResult>
   reactivate(input: PulseAlertActionInput): Promise<PulseDismissResult>

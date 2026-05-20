@@ -241,7 +241,7 @@ export function SidebarMenuItem({ className, ...props }: React.ComponentProps<'l
 
 const sidebarMenuButtonVariants = cva(
   cn(
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-base font-medium text-text-secondary outline-none transition-colors',
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-base font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',
@@ -258,8 +258,8 @@ const sidebarMenuButtonVariants = cva(
     // `#eff4ff` light / 14 % Dify blue dark) — calm enough to honor "color only
     // serves risk" while still visibly identifying the active route. No 2 px
     // accent border, no `accent-text` label color.
-    "data-[active=true]:bg-accent-tint data-[active=true]:font-semibold data-[active=true]:text-text-primary [&[data-active=true]_svg:not([class*='text-'])]:text-text-primary",
-    "aria-[current=page]:bg-accent-tint aria-[current=page]:font-semibold aria-[current=page]:text-text-primary [&[aria-current=page]_svg:not([class*='text-'])]:text-text-primary",
+    "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
+    "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
   ),
   {

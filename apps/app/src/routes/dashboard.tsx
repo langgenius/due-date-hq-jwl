@@ -63,7 +63,10 @@ import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { ExposureStrip } from '@/features/dashboard/exposure-strip'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import {
+  NeedsAttentionSection,
+  SystemStatusRow,
+} from '@/features/dashboard/needs-attention-section'
 import { useDashboardV2 } from '@/features/dashboard/use-dashboard-v2'
 import { PulseAlertsBanner } from '@/features/pulse/PulseAlertsBanner'
 import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
@@ -474,7 +477,7 @@ export function DashboardRoute() {
   const filtersDisabled = dashboardQuery.isLoading && !data
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-5 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-8 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         {dashboardV2 ? (
           <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
@@ -531,7 +534,10 @@ export function DashboardRoute() {
       ) : null}
 
       {dashboardV2 ? (
-        <NeedsAttentionSection />
+        <>
+          <SystemStatusRow />
+          <NeedsAttentionSection />
+        </>
       ) : (
         <div id="pulse" className="flex flex-col gap-2">
           <PulseAlertsBanner />

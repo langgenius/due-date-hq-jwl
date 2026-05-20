@@ -14,6 +14,7 @@ import {
   LibraryIcon,
   MapIcon,
   PlusIcon,
+  ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
   UsersIcon,
@@ -528,7 +529,10 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             end: false,
           },
         ],
-        footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
+        footer: [
+          { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
+          { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
+        ],
       }
     }
     // Legacy (default) sidebar.

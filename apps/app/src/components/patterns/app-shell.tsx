@@ -91,7 +91,7 @@ export function AppShell(props: AppShellProps) {
             where account-level controls belong.
             bg-background-default makes the inset white (Notion/Linear
             pattern: gray rail, white work surface). */}
-          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
+          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
             {/* Bumped from 1080px → 2xl (1536px) so wide table surfaces
               like Coverage's 52×11 matrix fit without clipping.
               Prose-heavy pages still get the page's own internal

@@ -1955,6 +1955,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     async dismiss(input: {
       alertId: string
       userId: string
+      reason: string
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
@@ -1978,7 +1979,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           action: 'pulse.dismiss',
           beforeJson: { status: alert.alertStatus },
           afterJson: { status: 'dismissed', pulseId: alert.pulseId },
-          reason: null,
+          reason: input.reason,
           ipHash: null,
           userAgentHash: null,
         }),
@@ -1991,6 +1992,7 @@ export function makePulseRepo(db: Db, firmId: string) {
       alertId: string
       userId: string
       until: Date
+      reason: string
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
@@ -2018,7 +2020,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             pulseId: alert.pulseId,
             snoozedUntil: input.until.toISOString(),
           },
-          reason: null,
+          reason: input.reason,
           ipHash: null,
           userAgentHash: null,
         }),

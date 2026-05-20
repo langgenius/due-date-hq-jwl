@@ -316,7 +316,15 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     breathing={alert.id === breathingAlertId}
                     onReview={() => openDrawer(alert.id)}
                     {...(canDismiss
-                      ? { onDismiss: () => dismissAlertMutation.mutate({ alertId: alert.id }) }
+                      ? {
+                          onDismiss: () => {
+                            const reason = window
+                              .prompt(t`Reason for dismissing this alert?`)
+                              ?.trim()
+                            if (!reason) return
+                            dismissAlertMutation.mutate({ alertId: alert.id, reason })
+                          },
+                        }
                       : {})}
                   />
                 )

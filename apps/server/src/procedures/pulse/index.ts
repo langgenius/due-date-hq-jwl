@@ -513,7 +513,11 @@ const dismiss = os.pulse.dismiss.handler(async ({ input, context }) => {
   const { scoped, tenant } = requireTenant(context)
   requireProductionPulse(tenant.plan)
   try {
-    const result = await scoped.pulse.dismiss({ alertId: input.alertId, userId })
+    const result = await scoped.pulse.dismiss({
+      alertId: input.alertId,
+      userId,
+      reason: input.reason,
+    })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       reason: 'pulse_dismiss',
@@ -533,6 +537,7 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
       alertId: input.alertId,
       userId,
       until: new Date(input.until),
+      reason: input.reason,
     })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,

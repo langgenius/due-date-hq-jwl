@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ChevronDownIcon, FileSearchIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
@@ -10,35 +10,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { formatCents } from '@/lib/utils'
-
-// Dashboard v2 "Actions this week" — the verb-led action queue that
-// replaces the legacy triage table when `?dashboard=v2` is on.
-// Layout philosophy (post 2026-05-20 review #3):
-//   [due pill]   Task prompt                     Risk of losing $X   [chevron]
-//                Client name
-//   --- expanded on click ---
-//   Status / Form / Sources / Open-in-Obligations
-// Task carries primary weight — what to DO is what the CPA scans for.
-// Client name sits below as supporting context. The dollar amount
-// rides the right edge as a phrase, not a badge.
-
-function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
-  if (!asOfDate) return 0
-  const due = new Date(currentDueDate).getTime()
-  const as = new Date(asOfDate).getTime()
-  return Math.round((due - as) / (1000 * 60 * 60 * 24))
-}
-
-function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string {
-  const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  if (row.status === 'waiting_on_client') return 'Follow up for client materials'
-  if (row.evidenceCount === 0) return 'Attach a source before review'
-  if (row.exposureStatus === 'needs_input') return 'Add penalty inputs before ranking by risk'
-  if (row.status === 'review') return 'Complete CPA review and close the row'
-  if (days <= 0) return 'Confirm filing or payment status today'
-  if (days <= 2) return 'Verify owner, source, and filing cutoff'
-  return 'Open evidence and confirm the source still matches'
-}
 
 function statusLabel(status: DashboardTopRow['status']): string {
   switch (status) {
@@ -59,7 +30,41 @@ function statusLabel(status: DashboardTopRow['status']): string {
   }
 }
 
-// Tone for the penalty pill. Past-due with accrued penalty is the only
+function topPriorityFactors(row: DashboardTopRow): string[] {
+  const factors = [...(row.smartPriority.factors ?? [])]
+    .filter((f) => f.contribution > 0)
+    .toSorted((a, b) => b.contribution - a.contribution)
+    .slice(0, 2)
+  return factors.map((f) => f.label)
+}
+
+// Dashboard v2 "Actions this week" — the verb-led action queue that
+// replaces the legacy triage table when `?dashboard=v2` is on.
+// Layout philosophy (post 2026-05-20 review #4 — restoring the OLD
+// information density per designer note "previous is nicer"):
+//   [→] [Client pill] Task description ........ Xd late · $amount
+// Single-line rows, dense scanning. Click anywhere → expand inline
+// for Status / Form / Sources / Why-now (whole panel clickable).
+
+function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
+  if (!asOfDate) return 0
+  const due = new Date(currentDueDate).getTime()
+  const as = new Date(asOfDate).getTime()
+  return Math.round((due - as) / (1000 * 60 * 60 * 24))
+}
+
+function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string {
+  const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
+  if (row.status === 'waiting_on_client') return 'Follow up for client materials'
+  if (row.evidenceCount === 0) return 'Attach a source before review'
+  if (row.exposureStatus === 'needs_input') return 'Add penalty inputs before ranking by risk'
+  if (row.status === 'review') return 'Complete CPA review and close the row'
+  if (days <= 0) return 'Confirm filing or payment status today'
+  if (days <= 2) return 'Verify owner, source, and filing cutoff'
+  return 'Open evidence and confirm the source still matches'
+}
+
+// Tone for the penalty meta. Past-due with accrued penalty is the only
 // case that warrants red — projected risk stays neutral so the eye
 // isn't pulled to every row.
 function penaltyTone(row: DashboardTopRow, days: number): 'critical' | 'neutral' | 'muted' {
@@ -78,48 +83,42 @@ function penaltyValue(row: DashboardTopRow, days: number): string | null {
   return null
 }
 
-// Risk meta on the right edge of the row. Written as a phrase, not
-// a badge, per 2026-05-20 designer note: "no badge. say risk of
-// losing $X." Past-due rows with accrued penalty color the dollar
-// red; projected exposure stays neutral so the eye isn't pulled.
-function RiskMeta({ row, days }: { row: DashboardTopRow; days: number }) {
+// Right-aligned meta: `19d late · $4,300.00` style. Compact text,
+// past-due text in destructive tone. Per 2026-05-20 designer note
+// "the information density on the previous is nicer" — single-line
+// rows with text meta beat the two-line pill layout for at-a-glance
+// scanning.
+function RowMeta({ row, days }: { row: DashboardTopRow; days: number }) {
   const tone = penaltyTone(row, days)
   const value = penaltyValue(row, days)
-  if (!value) return <span aria-hidden />
-  return (
-    <span className="hidden whitespace-nowrap text-base text-text-secondary sm:inline-flex sm:items-baseline sm:gap-1">
-      <Trans>Risk of losing</Trans>
-      <span
-        className={cn(
-          'font-medium tabular-nums',
-          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
-        )}
-      >
-        {value}
-      </span>
-    </span>
-  )
-}
-
-function DueDatePill({ days }: { days: number }) {
   const past = days < 0
   return (
-    <span
-      className={cn(
-        'inline-flex h-8 min-w-[92px] items-center justify-center rounded-md px-2.5 text-md tabular-nums',
-        past
-          ? 'bg-state-destructive-hover font-medium text-text-destructive'
-          : days === 0
-            ? 'bg-background-subtle font-medium text-text-primary'
-            : 'border border-divider-subtle bg-background-default text-text-secondary',
-      )}
-    >
-      {past ? (
-        <Plural value={-days} one="# day late" other="# days late" />
-      ) : days === 0 ? (
-        <Trans>Today</Trans>
+    <span className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap text-base tabular-nums">
+      <span className={cn(past ? 'text-text-destructive' : 'text-text-secondary')}>
+        {past ? (
+          <Plural value={-days} one="#d late" other="#d late" />
+        ) : days === 0 ? (
+          <Trans>today</Trans>
+        ) : (
+          <Plural value={days} one="in #d" other="in #d" />
+        )}
+      </span>
+      <span aria-hidden className="text-text-tertiary">
+        ·
+      </span>
+      {value ? (
+        <span
+          className={cn(
+            'font-medium',
+            tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
+          )}
+        >
+          {value}
+        </span>
       ) : (
-        <Plural value={days} one="in # day" other="in # days" />
+        <span className="text-text-tertiary">
+          <Trans>needs input</Trans>
+        </span>
       )}
     </span>
   )
@@ -141,6 +140,8 @@ function ActionRow({
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
+  const factors = topPriorityFactors(row)
+  const detailId = `action-detail-${row.obligationId}`
 
   return (
     <div className="flex flex-col">
@@ -148,31 +149,33 @@ function ActionRow({
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        aria-controls={`action-detail-${row.obligationId}`}
+        aria-controls={detailId}
         aria-label={t`${prompt} for ${row.clientName}`}
-        className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-5 rounded-md px-4 py-4 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
-        <DueDatePill days={days} />
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="truncate text-md font-medium text-text-primary">{prompt}</span>
-          <span className="truncate text-base text-text-secondary">{row.clientName}</span>
-        </span>
-        <RiskMeta row={row} days={days} />
-        <ChevronDownIcon
+        <ArrowRightIcon
           className={cn(
-            'size-4 shrink-0 text-text-tertiary transition-transform',
-            expanded && 'rotate-180 text-text-primary',
+            'size-3.5 shrink-0 text-text-tertiary transition-transform',
+            expanded && 'rotate-90 text-text-primary',
           )}
           aria-hidden
         />
+        <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary">
+          {row.clientName}
+        </span>
+        <span className="truncate text-base text-text-primary">{prompt}</span>
+        <RowMeta row={row} days={days} />
       </button>
 
       {expanded ? (
-        <div
-          id={`action-detail-${row.obligationId}`}
-          className="mt-2 ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-base"
+        <button
+          type="button"
+          id={detailId}
+          onClick={onOpenObligation}
+          aria-label={t`Open ${row.clientName} in Obligations`}
+          className="mt-2 ml-3 mr-3 mb-2 grid w-auto cursor-pointer gap-3 rounded-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
             <dt className="text-text-tertiary">
               <Trans>Status</Trans>
             </dt>
@@ -205,18 +208,22 @@ function ActionRow({
             {row.penaltyFormulaLabel ? (
               <>
                 <dt className="text-text-tertiary">
-                  <Trans>Penalty rule</Trans>
+                  <Trans>Penalty</Trans>
                 </dt>
                 <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
               </>
             ) : null}
+
+            {factors.length > 0 ? (
+              <>
+                <dt className="text-text-tertiary">
+                  <Trans>Why now</Trans>
+                </dt>
+                <dd className="text-text-primary">{factors.join(' · ')}</dd>
+              </>
+            ) : null}
           </dl>
-          <div>
-            <Button variant="primary" size="sm" onClick={onOpenObligation}>
-              <Trans>Open in Obligations</Trans>
-            </Button>
-          </div>
-        </div>
+        </button>
       ) : null}
     </div>
   )

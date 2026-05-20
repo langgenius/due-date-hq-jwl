@@ -208,8 +208,15 @@ export type PulseApplyInput = z.infer<typeof PulseApplyInputSchema>
 export const PulseSnoozeInputSchema = z.object({
   alertId: EntityIdSchema,
   until: z.iso.datetime(),
+  reason: z.string().trim().min(1).max(500),
 })
 export type PulseSnoozeInput = z.infer<typeof PulseSnoozeInputSchema>
+
+export const PulseDismissInputSchema = z.object({
+  alertId: EntityIdSchema,
+  reason: z.string().trim().min(1).max(500),
+})
+export type PulseDismissInput = z.infer<typeof PulseDismissInputSchema>
 
 export const PulseRequestReviewInputSchema = z.object({
   alertId: EntityIdSchema,
@@ -289,7 +296,7 @@ export const pulseContract = oc.router({
     .output(PulsePriorityReviewSchema),
   applyReviewed: oc.input(PulseAlertIdInputSchema).output(PulseApplyOutputSchema),
   apply: oc.input(PulseApplyInputSchema).output(PulseApplyOutputSchema),
-  dismiss: oc.input(PulseAlertIdInputSchema).output(PulseDismissOutputSchema),
+  dismiss: oc.input(PulseDismissInputSchema).output(PulseDismissOutputSchema),
   snooze: oc.input(PulseSnoozeInputSchema).output(PulseSnoozeOutputSchema),
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),

@@ -29,7 +29,7 @@
   --text-badge: 11px;
   --text-badge--line-height: 1.333;
   --text-sm: 12px;
-  --text-base: 13px;
+  --text-base: 14px; /* 2026-05-20: was 13px. Workbench body scale. */
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 18px; /* 2026-05-20: was 20px. Calm section-label scale. */

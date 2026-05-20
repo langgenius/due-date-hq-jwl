@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlertTriangleIcon,
-  ArrowUpRightIcon,
-  ChevronRightIcon,
-  ExternalLinkIcon,
-} from 'lucide-react'
+import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -66,7 +61,7 @@ function NeedsAttentionCard({
       type="button"
       onClick={onReview}
       aria-label={t`Review Pulse alert: ${alert.title}`}
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-3 rounded-md border border-divider-subtle bg-background-default p-4 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2.5 rounded-md border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
@@ -88,15 +83,16 @@ function NeedsAttentionCard({
         </div>
       </header>
 
-      {/* Title carries the row — bigger and lighter weight reads
-          better than tight semibold at small size. */}
-      <p className="line-clamp-2 text-md font-medium leading-snug text-text-primary">
+      {/* Title block has a fixed 2-line min-height so card heights
+          stay uniform across the row even when one title is short.
+          line-clamp-2 caps the upper bound. */}
+      <p className="line-clamp-2 min-h-10 text-md font-medium leading-snug text-text-primary">
         {alert.title}
       </p>
 
       {impacted > 0 ? (
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-base text-text-secondary">
+          <p className="text-sm text-text-tertiary">
             <Plural
               value={impacted}
               one="# client may be affected"
@@ -109,7 +105,7 @@ function NeedsAttentionCard({
                 <li
                   key={name}
                   className={cn(
-                    'inline-flex max-w-[160px] truncate rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-base text-text-secondary',
+                    'inline-flex rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-base text-text-secondary',
                   )}
                   title={name}
                 >
@@ -117,9 +113,7 @@ function NeedsAttentionCard({
                 </li>
               ))}
               {hasMore > 0 ? (
-                <li className="inline-flex text-base text-text-tertiary">
-                  <Trans>+{hasMore} more</Trans>
-                </li>
+                <li className="inline-flex text-base text-text-tertiary">+{hasMore}</li>
               ) : null}
             </ul>
           ) : null}
@@ -129,22 +123,6 @@ function NeedsAttentionCard({
           <Trans>No matching clients in this practice.</Trans>
         </p>
       )}
-
-      <footer className="mt-auto flex items-center pt-1">
-        <a
-          href={alert.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-          onClick={(event) => event.stopPropagation()}
-          className="inline-flex min-w-0 items-center gap-1 text-base text-text-tertiary hover:text-text-secondary"
-        >
-          <ExternalLinkIcon className="size-3.5 shrink-0" aria-hidden />
-          <span className="truncate">
-            <Trans>Source: {alert.source}</Trans>
-          </span>
-          <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" aria-hidden />
-        </a>
-      </footer>
     </button>
   )
 }
@@ -156,7 +134,7 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       type="button"
       onClick={onOpen}
       aria-label={t`Open ${count} more Pulse alert${count === 1 ? '' : 's'}`}
-      className="flex h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-divider-subtle bg-background-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default hover:text-text-primary"
+      className="flex h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-divider-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
     >
       <span className="text-2xl font-semibold tabular-nums tracking-tight">+{count}</span>
       <span className="text-sm uppercase tracking-[0.08em] text-text-tertiary">

@@ -166,6 +166,10 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
   const [resetKey, setResetKey] = useState<string | null>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
+  // Reason capture for destructive Pulse actions (dismiss / snooze).
+  // The PDF guide flags reason-on-override as a core audit requirement.
+  const [reasonAction, setReasonAction] = useState<'dismiss' | 'snooze' | null>(null)
+  const [reasonText, setReasonText] = useState('')
 
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
@@ -310,6 +314,8 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert dismissed`)
+        setReasonAction(null)
+        setReasonText('')
         invalidate()
         onClose()
       },
@@ -325,6 +331,8 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
     orpc.pulse.snooze.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert snoozed`)
+        setReasonAction(null)
+        setReasonText('')
         invalidate()
         onClose()
       },
@@ -598,13 +606,14 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
               isMutating={isMutating}
               onApply={handleApply}
               onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-              onDismiss={() => dismissMutation.mutate({ alertId: detail.alert.id })}
-              onSnooze={() =>
-                snoozeMutation.mutate({
-                  alertId: detail.alert.id,
-                  until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                })
-              }
+              onDismiss={() => {
+                setReasonAction('dismiss')
+                setReasonText('')
+              }}
+              onSnooze={() => {
+                setReasonAction('snooze')
+                setReasonText('')
+              }}
               onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
               onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
               onRequestReview={() => setReviewDialogOpen(true)}
@@ -628,7 +637,119 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
           }
         />
       ) : null}
+      {detail ? (
+        <PulseReasonDialog
+          action={reasonAction}
+          reason={reasonText}
+          pending={dismissMutation.isPending || snoozeMutation.isPending}
+          onChangeReason={setReasonText}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setReasonAction(null)
+              setReasonText('')
+            }
+          }}
+          onSubmit={() => {
+            const trimmed = reasonText.trim()
+            if (!trimmed || !reasonAction) return
+            if (reasonAction === 'dismiss') {
+              dismissMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
+            } else {
+              snoozeMutation.mutate({
+                alertId: detail.alert.id,
+                until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                reason: trimmed,
+              })
+            }
+          }}
+        />
+      ) : null}
     </Sheet>
+  )
+}
+
+function PulseReasonDialog({
+  action,
+  reason,
+  pending,
+  onChangeReason,
+  onOpenChange,
+  onSubmit,
+}: {
+  action: 'dismiss' | 'snooze' | null
+  reason: string
+  pending: boolean
+  onChangeReason: (next: string) => void
+  onOpenChange: (open: boolean) => void
+  onSubmit: () => void
+}) {
+  const { t } = useLingui()
+  const open = action !== null
+  const isDismiss = action === 'dismiss'
+  const trimmed = reason.trim()
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[440px]">
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            onSubmit()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {isDismiss ? <Trans>Dismiss alert</Trans> : <Trans>Snooze alert 24h</Trans>}
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>
+                Audit trail requires a reason for this action. Owners can see why and by whom.
+              </Trans>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Label htmlFor="pulse-reason-text">
+              <Trans>Reason</Trans>
+            </Label>
+            <Textarea
+              id="pulse-reason-text"
+              value={reason}
+              maxLength={500}
+              disabled={pending}
+              placeholder={
+                isDismiss
+                  ? t`Why is this alert not relevant?`
+                  : t`Why snooze — what unblocks it tomorrow?`
+              }
+              onChange={(event) => onChangeReason(event.target.value)}
+              autoFocus
+            />
+            <p className="text-xs text-text-tertiary">
+              <Trans>{reason.length}/500 characters</Trans>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => onOpenChange(false)}
+            >
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button type="submit" disabled={pending || trimmed.length === 0}>
+              {pending ? (
+                <Trans>Saving…</Trans>
+              ) : isDismiss ? (
+                <Trans>Dismiss</Trans>
+              ) : (
+                <Trans>Snooze</Trans>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }
 

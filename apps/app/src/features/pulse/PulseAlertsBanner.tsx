@@ -302,7 +302,11 @@ function ActivePulseStrip({
             variant="ghost"
             size="sm"
             disabled={dismissMutation.isPending}
-            onClick={() => dismissMutation.mutate({ alertId: primary.id })}
+            onClick={() => {
+              const reason = window.prompt(t`Reason for dismissing this alert?`)?.trim()
+              if (!reason) return
+              dismissMutation.mutate({ alertId: primary.id, reason })
+            }}
           >
             <Trans>Dismiss</Trans>
           </Button>
