@@ -69,6 +69,7 @@ import {
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
   type AiInsightPublic,
+  type AuditEventPublic,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -3636,8 +3637,9 @@ function ObligationQueueDetailDrawer({
                 if (isObligationQueueDetailTab(value)) onTabChange(value)
               }}
             >
+              <ObligationForwardingPanel row={row} />
               <StatutoryDatesPanel row={row} />
-              <PathToFilingChevron row={row} />
+              <PathToFilingChevron row={row} auditEvents={detail.auditEvents} />
               <TabsList className="mb-4 flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
@@ -5048,6 +5050,61 @@ function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
   )
 }
 
+// Per-task forwarding email. The reference shows one of these in every
+// task drawer; the CPA forwards client docs to this address and the AI
+// threads them onto the task. Inbound infrastructure is Phase 2, so this
+// is a UI stub: the address is deterministic from clientName + taxType +
+// the first 6 of obligation id, so it stays stable across reloads and is
+// short enough to be readable in chrome.
+function obligationForwardingAddress(row: ObligationQueueRow): string {
+  const slug = `${row.clientName} ${row.taxType}`
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .slice(0, 28)
+  const suffix = row.id.replaceAll('-', '').slice(0, 6)
+  return `${slug || 'task'}-${suffix}@duedatehq.com`
+}
+
+function ObligationForwardingPanel({ row }: { row: ObligationQueueRow }) {
+  const { t } = useLingui()
+  const address = obligationForwardingAddress(row)
+  const [copied, setCopied] = useState(false)
+  const onCopy = useCallback(() => {
+    void navigator.clipboard?.writeText(address).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    })
+  }, [address])
+  return (
+    <div className="mb-4 grid gap-1 rounded-lg border border-divider-regular bg-background-section p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
+          <Trans>Forwarding</Trans>
+        </span>
+        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+          <Trans>Phase 2</Trans>
+        </Badge>
+      </div>
+      <div className="flex items-center gap-2">
+        <code className="min-w-0 flex-1 truncate rounded-sm bg-background-default px-2 py-1 text-xs text-text-secondary">
+          {address}
+        </code>
+        <Button variant="outline" size="sm" onClick={onCopy}>
+          <CopyIcon data-icon="inline-start" />
+          {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
+        </Button>
+      </div>
+      <p className="text-[11px] leading-tight text-text-tertiary">
+        <Trans>
+          Email this address to forward client docs. AI extracts data, threads inbound files
+          onto this task, and flags anything that needs review.
+        </Trans>
+      </p>
+    </div>
+  )
+}
+
 function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const taxAuthorityFilingDeadline = row.filingDueDate ?? row.baseDueDate
@@ -5081,8 +5138,10 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
 // Signature → Filed. Acceptance ("Completed") is treated as the
 // terminal beyond Filed, shown as a check-mark on Filed when reached.
 //
-// Each milestone is one of: "done" (passed), "active" (current), or
-// "upcoming". The visualization is purely derived — no new schema.
+// Each milestone carries a stamp:
+//   - "done"     → date the stage was reached (mined from audit events)
+//   - "active"   → "Active" + relative-time hint (e.g. "Apr 1 · Active")
+//   - "upcoming" → no stamp
 type PathMilestoneState = 'done' | 'active' | 'upcoming'
 
 function stageIndexForStatus(status: ObligationStatus): number {
@@ -5108,24 +5167,73 @@ function stageIndexForStatus(status: ObligationStatus): number {
   }
 }
 
-function PathToFilingChevron({ row }: { row: ObligationQueueRow }) {
+// Statuses we treat as having "reached" each funnel stage. When an audit
+// event records a transition INTO any of these statuses, we stamp the
+// corresponding milestone with the event's createdAt.
+const STAGE_ANCHOR_STATUSES: readonly (readonly ObligationStatus[])[] = [
+  ['pending', 'not_applicable'], // Scope (anchor: row creation)
+  ['waiting_on_client', 'blocked', 'extended'], // Collecting
+  ['in_progress', 'review'], // Preparing
+  [], // Signature — no anchor status today; Form 8879 lands here
+  ['done'], // Filed
+]
+
+function mineStageTimestamps(
+  auditEvents: readonly AuditEventPublic[],
+): (string | null)[] {
+  // For each milestone index 0..4, find the earliest audit event whose
+  // afterJson.status matches one of that stage's anchor statuses. Earliest
+  // (not latest) because that's the "when did we first reach this" date,
+  // which is what a CPA wants to see — "Collecting started Mar 1," not
+  // "we cycled back through Collecting yesterday."
+  const sorted = [...auditEvents].toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+  const stamps: (string | null)[] = [null, null, null, null, null]
+  for (const event of sorted) {
+    if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
+    const status = (event.afterJson as { status?: unknown }).status
+    if (typeof status !== 'string') continue
+    for (let i = 0; i < STAGE_ANCHOR_STATUSES.length; i++) {
+      if (stamps[i]) continue
+      if ((STAGE_ANCHOR_STATUSES[i] ?? []).includes(status as ObligationStatus)) {
+        stamps[i] = event.createdAt
+      }
+    }
+  }
+  return stamps
+}
+
+function PathToFilingChevron({
+  row,
+  auditEvents,
+}: {
+  row: ObligationQueueRow
+  auditEvents: readonly AuditEventPublic[]
+}) {
   const { t } = useLingui()
-  const milestones = useMemo<{ label: string; state: PathMilestoneState }[]>(() => {
+  const milestones = useMemo<
+    { label: string; state: PathMilestoneState; stamp: string | null }[]
+  >(() => {
     const stageIndex = stageIndexForStatus(row.status)
     const labels = [t`Scope`, t`Collecting`, t`Preparing`, t`Signature`, t`Filed`]
+    const stamps = mineStageTimestamps(auditEvents)
     return labels.map((label, i) => {
       const state: PathMilestoneState =
         stageIndex > i ? 'done' : stageIndex === i ? 'active' : 'upcoming'
-      return { label, state }
+      let stamp: string | null = stamps[i] ?? null
+      // Scope's anchor is the row's birth; if the audit doesn't have one,
+      // fall back to row.createdAt so the first milestone always shows
+      // a date.
+      if (i === 0 && !stamp) stamp = row.createdAt
+      return { label, state, stamp }
     })
-  }, [row.status, t])
+  }, [row.status, row.createdAt, auditEvents, t])
   return (
     <div
       aria-label={t`Path to filing`}
       className="mb-4 grid grid-cols-5 gap-2 rounded-lg border border-divider-regular p-3"
     >
       {milestones.map((m, i) => (
-        <div key={m.label} className="flex flex-col items-center gap-1">
+        <div key={m.label} className="flex flex-col items-center gap-0.5">
           <div className="flex w-full items-center gap-2">
             {i > 0 ? (
               <span
@@ -5176,6 +5284,32 @@ function PathToFilingChevron({ row }: { row: ObligationQueueRow }) {
             }`}
           >
             {m.label}
+          </span>
+          {m.stamp ? (
+            <span className="text-[10px] tabular-nums text-text-tertiary">
+              {formatDate(m.stamp.slice(0, 10))}
+            </span>
+          ) : (
+            <span aria-hidden className="text-[10px]">&nbsp;</span>
+          )}
+          <span
+            className={`text-[10px] uppercase tracking-wide ${
+              m.state === 'done'
+                ? 'text-text-success'
+                : m.state === 'active'
+                  ? 'text-text-accent'
+                  : 'text-text-tertiary'
+            }`}
+          >
+            {m.state === 'done' ? (
+              <Trans>Done</Trans>
+            ) : m.state === 'active' ? (
+              row.daysUntilDue < 0 && i === stageIndexForStatus(row.status) && row.status === 'done' ? (
+                <Trans>Overdue</Trans>
+              ) : (
+                <Trans>Active</Trans>
+              )
+            ) : null}
           </span>
         </div>
       ))}
