@@ -620,6 +620,184 @@ Demo Sprint 期间新增的 Migration Copilot 相关 token 已追加到 front-ma
 - `motion.genesis-odometer` / `motion.genesis-particle` · Live Genesis 顶栏数字滚动 + 粒子弧线；`prefers-reduced-motion` 降级为 200ms fade-in。
 - `email-shell` + `email-shell-footer` · Migration Report 邮件外壳（640px table 布局），`numericFontFamily: 'Geist Mono'` 在 `componentExtensions:`。
 
+## Element states (cross-cutting reference)
+
+Every interactive primitive defines these states. If a primitive isn't listed here, derive from the closest sibling. A primitive that ships without a `focus-visible` state, an explicit `disabled` state, or a `selected` archetype (where applicable) is incomplete.
+
+| Primitive                    | rest                                                                                                                  | hover                                   | focus-visible                                          | active (pressed)                     | disabled                        | selected / "on"                                                                               |
+| :--------------------------- | :-------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- | :----------------------------------------------------- | :----------------------------------- | :------------------------------ | :-------------------------------------------------------------------------------------------- |
+| Button (primary)             | `bg-components-button-primary-bg text-text-inverted`                                                                  | `bg-components-button-primary-bg-hover` | 2px accent ring + 2px offset                           | `bg-components-button-primary-bg/90` | `opacity-40 cursor-not-allowed` | —                                                                                             |
+| Button (secondary / outline) | `border-divider-regular bg-background-default text-text-secondary`                                                    | `bg-state-base-hover`                   | 2px accent ring + 2px offset                           | `bg-state-base-active`               | `opacity-40`                    | —                                                                                             |
+| Button (ghost)               | `text-text-secondary bg-transparent`                                                                                  | `bg-state-base-hover`                   | 2px accent ring + 2px offset                           | `bg-state-base-active`               | `opacity-40`                    | —                                                                                             |
+| Button (link)                | `text-text-secondary underline-offset-4`                                                                              | `text-text-primary underline`           | 2px accent ring + 2px offset                           | `text-text-primary`                  | `opacity-40`                    | —                                                                                             |
+| Button (destructive)         | `bg-state-destructive-solid text-text-inverted`                                                                       | `bg-state-destructive-active`           | 2px destructive ring                                   | `bg-state-destructive-active/90`     | `opacity-40`                    | —                                                                                             |
+| Input / Select / Textarea    | `bg-background-subtle border-divider-regular`                                                                         | `border-divider-deep`                   | `bg-background-default` + 2px accent ring + 2px offset | —                                    | `opacity-40 bg-divider-subtle`  | —                                                                                             |
+| Checkbox                     | unchecked: `bg-background-default border-divider-deep`; checked: `bg-components-button-primary-bg text-text-inverted` | `border-text-secondary`                 | 2px accent ring                                        | —                                    | `opacity-40`                    | —                                                                                             |
+| Sidebar item                 | `text-text-secondary`                                                                                                 | `bg-state-base-hover`                   | 2px accent ring                                        | `bg-state-base-active`               | `opacity-40` (rare)             | **you-are-here**: `bg-state-base-active text-text-primary font-medium` (NOT saturated indigo) |
+| Dropdown item                | `text-text-secondary`                                                                                                 | `bg-state-base-hover text-text-primary` | (parent menu owns focus)                               | —                                    | `opacity-40 cursor-not-allowed` | —                                                                                             |
+| FilterChip (toggle)          | `bg-background-subtle text-text-secondary`                                                                            | `bg-divider-subtle text-text-primary`   | 2px accent ring                                        | `bg-divider-subtle`                  | `opacity-40`                    | active filter: `bg-text-primary text-text-inverted`                                           |
+| Tab item                     | `text-text-tertiary border-b-2 border-transparent`                                                                    | `text-text-secondary`                   | 2px accent ring                                        | `text-text-primary`                  | `opacity-40`                    | active tab: `text-text-primary border-b-2 border-text-primary`                                |
+| Card (clickable)             | `border-divider-regular bg-background-default`                                                                        | `border-divider-deep`                   | 2px accent ring                                        | —                                    | —                               | —                                                                                             |
+| Modal                        | `bg-background-default border-divider-regular shadow-overlay`                                                         | (n/a)                                   | focus trapped to first focusable child                 | (n/a)                                | (n/a)                           | open / closed only                                                                            |
+| Tooltip                      | hidden                                                                                                                | (n/a, parent triggers)                  | (n/a)                                                  | (n/a)                                | (n/a)                           | open: `bg-text-primary text-text-inverted text-xs px-2 py-1 rounded-md`                       |
+
+**Two distinct "selected/on" archetypes — pick by what the affordance does:**
+
+- **You-are-here** (sidebar nav, active wizard step) — `bg-state-base-active text-text-primary font-medium`. Subtle. The user navigated here; the marker just confirms.
+- **Filter-is-on** (FilterChip, MetricTile-as-filter) — `bg-text-primary text-text-inverted`. Loud. The user toggled state and needs to see the world has changed.
+
+Don't blur them. A sidebar item painted in the loud archetype reads like a filter; a filter painted in the subtle archetype reads like a label.
+
+## Component contracts
+
+The contracts below cover every overlay / form / list primitive in active use. New components inherit from the closest sibling; new variants extend the existing contract rather than introducing a parallel system.
+
+### Buttons
+
+Use shadcn `<Button>` (`packages/ui/src/components/ui/button.tsx`). Five variants are in active use; pick by intent, not by chrome:
+
+| Variant               | When to use                                                                                     | Notes                                                                         |
+| :-------------------- | :---------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
+| `default` (primary)   | The single next action on the viewport (T2).                                                    | At most one per viewport. `Send reminder`, `Confirm receipt`, `Save changes`. |
+| `outline` (secondary) | Paired alternative to a primary (Cancel in modals, alternative-path actions next to a primary). | Never used alone.                                                             |
+| `ghost` (tertiary)    | Row-action buttons, table-cell actions revealed on hover/focus, top-bar triggers, drawer close. | No chrome until hover.                                                        |
+| `link`                | Navigational rather than committing — "Snooze until tomorrow", "Show all 7", "Open full queue". | Text only, no chrome.                                                         |
+| `destructive`         | Inside confirm modals only, plus rare in-row Delete affordances.                                | `bg-state-destructive-solid`.                                                 |
+
+**Sizes:** `default` (h-9 / 36px), `sm` (h-8 / 32px), `xs` (h-7 / 28px), `icon` (32×32 visual + padding-expanded hit area to 44×44).
+
+**Shape:** `rounded-md` (6px). Don't pill buttons; pills are reserved for indicators per T3.
+
+### Inputs (text, select, textarea)
+
+Composed from shadcn `<Input>` / `<Select>` / `<Textarea>`. Mercury references show inputs sitting slightly _below_ page surface (subtle tint) so they read as fillable, not as cards.
+
+| Property     | Value                                                                                                                      |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------- |
+| Height       | `h-9` (36px) — matches button default                                                                                      |
+| Background   | `bg-background-subtle` rest, `bg-background-default` on focus                                                              |
+| Border       | `border border-divider-regular` rest; `border-divider-deep` on hover                                                       |
+| Focus        | `focus-visible:outline-2 focus-visible:outline-state-accent-active focus-visible:outline-offset-2` (never `outline: none`) |
+| Radius       | `rounded-md` (6px)                                                                                                         |
+| Padding      | `px-3 py-2`                                                                                                                |
+| Label above  | `text-[13px] font-medium` `text-text-primary`, 4px above the input                                                         |
+| Helper below | `text-xs` `text-text-tertiary`, 4px below                                                                                  |
+| Placeholder  | `text-text-placeholder`                                                                                                    |
+| Disabled     | `opacity-40 cursor-not-allowed bg-divider-subtle`                                                                          |
+| Invalid      | `border-state-destructive-border` + `aria-invalid="true"` + `text-xs text-text-destructive` error in helper slot           |
+
+### Modals (Dialog)
+
+Composed from shadcn `<Dialog>`. The behavioral contract — when to interrupt — lives in §Confirm modal discipline below.
+
+| Property            | Value                                                                                                                        |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------- |
+| Width               | `max-w-md` (~448px) for confirms; `max-w-lg` (~512px) for forms                                                              |
+| Background          | `bg-background-default`                                                                                                      |
+| Border              | `border border-divider-regular` (1px hairline)                                                                               |
+| Radius              | `rounded-lg` (12px) — slightly rounder than cards (8px) so a modal reads as a discrete object floating above                 |
+| Shadow              | `shadow-overlay`                                                                                                             |
+| Backdrop            | `bg-text-primary/40 backdrop-blur-[2px]`, `z-40`                                                                             |
+| Modal layer         | `z-50`                                                                                                                       |
+| Padding             | `p-6` (24px) for the body; header same horizontal + `pt-6 pb-4`; footer `pt-4 pb-6`                                          |
+| Title               | `text-base font-semibold` (16/600); no separator border between header and body                                              |
+| Field group gap     | `gap-6` between groups; `gap-4` inside a group                                                                               |
+| Footer              | Right-aligned, `gap-3` between buttons. **Cancel sits left of the commit.** Destructive commits use `variant="destructive"`. |
+| Esc + outside-click | Close. Focus returns to the element that opened the modal (focus trap while open).                                           |
+
+### Confirm modal discipline
+
+Modals interrupt for input only (T7). The bar for triggering one is **damage that's hard to reverse**. Activity-logged reversible actions never get a modal — they get a toast.
+
+**Confirm modal REQUIRED on:**
+
+1. Batch-adjust deadlines from a Pulse alert — preview the date diff before applying.
+2. Archive client — show active-obligation count; warn if > 0.
+3. CSV / XLSX import commit (final wizard step) — preview row counts.
+4. Remove team member — show how many client assignments revert to Owner.
+5. Dismiss / hide a Pulse alert that affects > 0 clients — explicit opt-in text.
+6. Remove a filing-jurisdiction from a client — list the pending obligations that will be removed.
+7. Send batch reminder email — preview recipient list + editable body before send.
+8. Undo import (within the 7-day window) — show the N clients / M obligations that get wiped.
+
+**No modal on** (reversible + activity-logged): Mark complete · Mark in progress · Mark waiting · Add note · Edit note · Toggle filters · Toggle view modes · Snooze (own affordance).
+
+### Dropdowns
+
+Composed from shadcn `<DropdownMenu>`. Anchored to a trigger; floats above with subtle elevation.
+
+| Property        | Value                                                                       |
+| :-------------- | :-------------------------------------------------------------------------- |
+| Background      | `bg-components-panel-bg`                                                    |
+| Border          | `border border-components-panel-border`                                     |
+| Radius          | `rounded-md` (6px)                                                          |
+| Shadow          | `shadow-overlay`                                                            |
+| Min-width       | match trigger, or `w-48` / `w-56` when content is wider                     |
+| Item padding    | `px-3 py-2`                                                                 |
+| Item gap        | `gap-2` between leading icon and label                                      |
+| Item rest       | `text-text-secondary`                                                       |
+| Item hover      | `bg-state-base-hover text-text-primary`                                     |
+| Item disabled   | `opacity-40 cursor-not-allowed`                                             |
+| Separator       | `border-t border-divider-subtle my-1`                                       |
+| Section eyebrow | `text-[11px] uppercase tracking-[0.08em] text-text-tertiary px-3 pt-2 pb-1` |
+
+### Tooltip / Popover
+
+Tooltips are compact ephemeral labels — never place interactive content inside them. Popovers carry interactive content.
+
+| Property      | Tooltip                                     | Popover                       |
+| :------------ | :------------------------------------------ | :---------------------------- |
+| Background    | `bg-components-tooltip-bg`                  | `bg-components-panel-bg`      |
+| Text          | `text-components-tooltip-text text-xs`      | `text-text-secondary text-sm` |
+| Radius        | `rounded-md` (6px)                          | `rounded-md` (6px)            |
+| Padding       | `px-2 py-1`                                 | `p-3`                         |
+| Shadow        | `shadow-md`                                 | `shadow-overlay`              |
+| Backdrop blur | `backdrop-blur-[5px]` (subtle, system-feel) | optional                      |
+
+### Sidebar (flush rail + nav items)
+
+The sidebar is a **flush rail with a single hairline right border** (no float, no shadow). It sits as a flex sibling of the main column so wayfinding stays reliable — the menu is always exactly where the eye expects it.
+
+| Property              | Expanded                                                                    | Mobile drawer       |
+| :-------------------- | :-------------------------------------------------------------------------- | :------------------ |
+| Width                 | 220px (DueDateHQ-specific; reference uses w-56 / 224px)                     | full-width sheet    |
+| Background            | `bg-background-sidenav-bg`                                                  | same                |
+| Right edge            | `border-r border-divider-regular`                                           | (sheet owns chrome) |
+| Item height           | `h-9` (36px)                                                                |
+| Item padding          | `px-3`                                                                      |
+| Item radius           | `rounded-md` (6px)                                                          |
+| Active (you-are-here) | `bg-state-base-active text-text-primary font-medium`                        |
+| Group eyebrow         | `text-[11px] uppercase tracking-[0.08em] text-text-tertiary px-3 pt-4 pb-1` |
+
+**No collapsed/icon-only mode** in the current DueDateHQ shell (deviation from the reference's w-14 collapsed mode). The mobile breakpoint uses a sheet-style drawer instead.
+
+## Voice & Terminology
+
+The product voice is **calm, factual, respectful of time**. CPAs are senior professionals. Don't over-explain; don't celebrate; don't apologize for system errors that aren't user-caused. See the existing §Voice & Terminology section below for the full guidance — this block is a quick reference for the rules that change microcopy most often.
+
+### Three guiding moves
+
+1. **Verb + object on actions.** "Send reminder" not "Send". "Mark received" not "Confirm". The user reads the button without scanning the row's status pill.
+2. **State the state, then the suggestion.** "Form 941 was revised. 72 clients affected. Review impacts →" (state → impact → action).
+3. **Numbers carry the load.** Microcopy supports the number, doesn't replace it. "$2,200 due Apr 18" beats "An amount is due in a few days."
+
+### Casing rules
+
+- **Sentence case for everything** — buttons, labels, page titles, banner copy. UPPERCASE reserved for sidebar group eyebrows (`OPERATIONS`, `CLIENTS`) and similar 11px label tokens.
+- **Punctuation:** commas inside copy, periods at end of sentences in body copy; **no periods on button labels or single-line statuses**.
+
+### Forbidden words / phrases
+
+| Don't say                              | Why                                                                   |
+| :------------------------------------- | :-------------------------------------------------------------------- |
+| "Oops!", "Whoops!"                     | Never apologize for system errors that aren't the user's fault.       |
+| "Awesome!", "Great!", `🎉`             | Never celebrate routine actions (T8 — desk not stage).                |
+| "AI is learning", "Our AI is thinking" | Never expose AI internals as decoration.                              |
+| "Just a moment!", "Hang tight!"        | Boring "Loading…" is correct.                                         |
+| "Dashboard" as a sidebar destination   | Use the actual page name (e.g. "Today" or the contextual home label). |
+| `Mode A/B/C/D/E/F` in user-facing copy | Internal telemetry id only.                                           |
+| Emojis anywhere in product UI          | Breaks the calm register. Use Lucide icon or a status pill instead.   |
+
 ## Do's and Don'ts
 
 ### Do
