@@ -175,9 +175,26 @@ function DashboardActionsList({
 
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold text-text-primary">
-        <Trans>Actions this week</Trans>
-      </h2>
+      {/* Section header: title left, "Open full queue" right-aligned on
+        the same line. The link is the dashboard's only escape into the
+        full /obligations filter surface — every other row click opens
+        the obligation drawer in place (don't bounce). */}
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-base font-semibold text-text-primary">
+          <Trans>Actions this week</Trans>
+        </h2>
+        <Link
+          to="/obligations"
+          onClick={(event) => {
+            event.preventDefault()
+            onOpenAllObligations()
+          }}
+          className="inline-flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-text-primary"
+        >
+          <Trans>Open full queue</Trans>
+          <ArrowUpRightIcon className="size-3" aria-hidden />
+        </Link>
+      </div>
       <ul className="flex flex-col">
         {visible.map((row) => (
           <li key={row.obligationId} className="border-b border-divider-subtle last:border-b-0">
@@ -189,26 +206,11 @@ function DashboardActionsList({
           </li>
         ))}
       </ul>
-      <div className="flex items-center justify-between text-xs">
-        {overflow > 0 ? (
-          <span className="text-text-tertiary">
-            <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
-          </span>
-        ) : (
-          <span />
-        )}
-        <Link
-          to="/obligations"
-          onClick={(event) => {
-            event.preventDefault()
-            onOpenAllObligations()
-          }}
-          className="inline-flex items-center gap-1 font-medium text-text-secondary hover:text-text-primary"
-        >
-          <Trans>Open full queue</Trans>
-          <ArrowUpRightIcon className="size-3" aria-hidden />
-        </Link>
-      </div>
+      {overflow > 0 ? (
+        <p className="text-xs text-text-tertiary">
+          <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
+        </p>
+      ) : null}
     </section>
   )
 }
