@@ -15,6 +15,8 @@ import type { TrustPageCopy } from './trust-pages'
 export type JsonLdDocument = Record<string, unknown>
 
 export const SITE = MARKETING_SITE_URL
+const OFFER_AVAILABILITY = 'https://schema.org/OnlineOnly'
+const OFFER_PRICE_CURRENCY = 'USD'
 
 function absoluteUrl(pathname: string): string {
   return getMarketingUrl(pathname)
@@ -102,20 +104,38 @@ function faqDocument(faq: FaqItemCopy[]): JsonLdDocument | null {
   }
 }
 
+function planPrice(plan: PricingCopy['plans'][number]): number | null {
+  const match = plan.price.match(/\d+(?:\.\d+)?/)
+  if (!match) return null
+
+  return Number(match[0])
+}
+
 function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument {
+  const offers: JsonLdDocument[] = pricing.plans.flatMap((plan) => {
+    const price = planPrice(plan)
+    if (price === null) return []
+
+    return [
+      {
+        '@type': 'Offer',
+        name: plan.name,
+        url: absoluteUrl(pathname),
+        price,
+        priceCurrency: OFFER_PRICE_CURRENCY,
+        availability: OFFER_AVAILABILITY,
+        description: `${plan.description} ${plan.aiLabel}: ${plan.aiDescription}`,
+      },
+    ]
+  })
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: 'DueDateHQ',
     url: absoluteUrl(pathname),
     description: pricing.meta.description,
-    offers: pricing.plans.map((plan) => ({
-      '@type': 'Offer',
-      name: plan.name,
-      price: plan.priceKind === 'numeric' ? plan.price.replace(/[^0-9.]/g, '') : undefined,
-      priceCurrency: plan.priceKind === 'numeric' ? 'USD' : undefined,
-      description: `${plan.description} ${plan.aiLabel}: ${plan.aiDescription}`,
-    })),
+    offers,
   }
 }
 

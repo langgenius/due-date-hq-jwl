@@ -510,10 +510,14 @@ CSP 中 `connect-src` 仅在 marketing 真的需要向 app 子域发请求（例
 
 - HTML 中有完整 H1、title、description、canonical、OG title/description/image。
 - 公开页输出 JSON-LD：首页至少包含 `Organization` / `WebSite` /
-  `SoftwareApplication`；Pricing 包含 `Product` / `Offer` / `FAQPage`；
+  `SoftwareApplication`；Pricing 包含 `Product` / `Offer` / `FAQPage`，其中
+  `Offer` 只描述页面可见的 plan price，并必须带 `price`、`priceCurrency: USD`
+  和 `availability: https://schema.org/OnlineOnly`；
   rules、state coverage、state detail、guides 和 trust pages 至少包含 `WebPage`
   与 `BreadcrumbList`，资源页有可见 FAQ 时输出对应的 `FAQPage`，guide 页可输出
   `TechArticle`。JSON-LD 不得包含客户数据或页面不可见声明。
+- Pricing 不输出 `aggregateRating` 或 `review`，除非页面已经展示真实用户评分或评论来源；
+  不为消除 Search Console 的非严重建议而伪造评分、评论或未展示的第三方评价。
 - Lighthouse SEO / Accessibility / Best Practices 目标 95+（依赖 §7 `_headers` 安全头）。
 - 无 JS 时仍能阅读完整 landing 和点击 CTA。
 - 首屏图片使用 `astro:assets` 的 `<Image />` 组件（自动 AVIF/WebP、显式 `width`/`height` 防 CLS、`loading="eager"` 仅用于首屏 LCP 图，其余 `lazy`）。禁止直接 `<img src="/foo.png">` 处理产品截图。
