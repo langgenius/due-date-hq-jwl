@@ -32,6 +32,7 @@ import {
   FileSearchIcon,
   FilterIcon,
   LinkIcon,
+  MailIcon,
   RefreshCwIcon,
   SendIcon,
   ShieldAlertIcon,
@@ -3665,9 +3666,25 @@ function ObligationQueueDetailDrawer({
                 if (isObligationQueueDetailTab(value)) onTabChange(value)
               }}
             >
+              {/* Snapshot card — combines DATES + PATH TO FILING into
+                  one elevated "where is this row right now" block.
+                  Separated from the tab work area below by margin +
+                  visual tone (bg-section). */}
+              <div className="mb-4 grid gap-4 rounded-lg bg-background-section p-4">
+                <div>
+                  <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                    <Trans>Dates</Trans>
+                  </p>
+                  <StatutoryDatesPanel row={row} />
+                </div>
+                <div className="border-t border-divider-subtle pt-3">
+                  <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                    <Trans>Path to filing</Trans>
+                  </p>
+                  <PathToFilingChevron row={row} auditEvents={detail.auditEvents} />
+                </div>
+              </div>
               <ObligationForwardingPanel row={row} />
-              <StatutoryDatesPanel row={row} />
-              <PathToFilingChevron row={row} auditEvents={detail.auditEvents} />
               <TabsList className="mb-4 flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
@@ -5148,30 +5165,22 @@ function ObligationForwardingPanel({ row }: { row: ObligationQueueRow }) {
     })
   }, [address])
   return (
-    <div className="mb-4 grid gap-1 rounded-lg border border-divider-regular bg-background-section p-3">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-text-tertiary">
-          <Trans>Forwarding</Trans>
-        </span>
-        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-          <Trans>Phase 2</Trans>
-        </Badge>
-      </div>
-      <div className="flex items-center gap-2">
-        <code className="min-w-0 flex-1 truncate rounded-sm bg-background-default px-2 py-1 text-xs text-text-secondary">
-          {address}
-        </code>
-        <Button variant="outline" size="sm" onClick={onCopy}>
-          <CopyIcon data-icon="inline-start" />
-          {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
-        </Button>
-      </div>
-      <p className="text-[11px] leading-tight text-text-tertiary">
-        <Trans>
-          Email this address to forward client docs. AI extracts data, threads inbound files
-          onto this task, and flags anything that needs review.
-        </Trans>
-      </p>
+    <div
+      className="mb-4 flex items-center gap-2 rounded-lg border border-dashed border-divider-regular bg-background-default px-3 py-2"
+      title={t`Forward client docs to this task. AI threads inbound files onto the task and flags anything that needs review.`}
+    >
+      <MailIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+      <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+        <Trans>Forward to task</Trans>
+      </span>
+      <code className="min-w-0 flex-1 truncate text-xs text-text-secondary">{address}</code>
+      <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+        <Trans>Phase 2</Trans>
+      </Badge>
+      <Button variant="ghost" size="sm" onClick={onCopy}>
+        <CopyIcon data-icon="inline-start" />
+        {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
+      </Button>
     </div>
   )
 }
@@ -5367,7 +5376,7 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   return (
     <dl
       aria-label={t`Statutory dates`}
-      className="mb-3 grid gap-x-4 gap-y-2 border-b border-divider-subtle pb-3 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-4"
     >
       <DetailRow label={<Trans>Internal deadline</Trans>} value={formatDate(row.currentDueDate)} />
       <DetailRow
@@ -5481,7 +5490,7 @@ function PathToFilingChevron({
   return (
     <div
       aria-label={t`Path to filing`}
-      className="mb-4 grid grid-cols-5 gap-2"
+      className="grid grid-cols-5 gap-2"
     >
       {milestones.map((m, i) => (
         <div key={m.label} className="flex flex-col items-center gap-0.5">
