@@ -1,5 +1,6 @@
 ---
 import type { StateCoverageCopy } from '../i18n/types'
+import { CONTENT_REVIEWED_ON } from '../lib/content-metadata'
 
 interface Props {
   page: StateCoverageCopy
@@ -8,6 +9,7 @@ interface Props {
 
 const { page, locale } = Astro.props
 const viewCoverageLabel = locale === 'zh-CN' ? '查看覆盖' : 'View coverage'
+const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
 ---
 
 <main>
@@ -26,6 +28,9 @@ const viewCoverageLabel = locale === 'zh-CN' ? '查看覆盖' : 'View coverage'
       </p>
       <p class="mt-6 max-w-[780px] font-mono text-[12px] leading-5 text-text-muted">
         {page.hero.note}
+      </p>
+      <p class="mt-4 font-mono text-[12px] text-text-muted">
+        {lastReviewedLabel}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
       </p>
     </div>
   </section>

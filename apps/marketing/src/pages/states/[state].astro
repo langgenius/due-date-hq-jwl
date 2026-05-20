@@ -6,6 +6,7 @@ import Footer from '../../components/Footer.astro'
 import en from '../../i18n/en'
 import type { StatePageCopy } from '../../i18n/types'
 import { getCtaHref } from '../../lib/app-url'
+import { stateOfficialSources } from '../../lib/content-metadata'
 import { statePageStructuredData } from '../../lib/structured-data'
 
 export function getStaticPaths() {
@@ -34,6 +35,11 @@ const ctaHref = getCtaHref()
   structuredData={statePageStructuredData(t, page, 'en', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />
-  <StateDetailPage page={page} coverageHref="/state-coverage" locale="en" />
+  <StateDetailPage
+    page={page}
+    coverageHref="/state-coverage"
+    locale="en"
+    officialSources={stateOfficialSources[page.slug] ?? []}
+  />
   <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
 </BaseLayout>

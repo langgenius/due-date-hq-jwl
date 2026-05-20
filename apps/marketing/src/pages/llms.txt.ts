@@ -47,6 +47,14 @@ const statePages = [
   ['Washington', '/states/washington'],
 ] as const
 
+const trustPages = [
+  ['About', '/about'],
+  ['Security', '/security'],
+  ['Privacy', '/privacy'],
+  ['Terms', '/terms'],
+  ['Status', '/status'],
+] as const
+
 function pageLine(page: (typeof corePages)[number]): string {
   const description = page.description ? ` - ${page.description}` : ''
   return `- ${page.label}: ${getMarketingUrl(page.pathname)}${description}`
@@ -61,6 +69,10 @@ export function GET(): Response {
     '## Core public pages',
     '',
     ...corePages.map(pageLine),
+    '',
+    '## Trust and company pages',
+    '',
+    ...trustPages.map(([label, pathname]) => `- ${label}: ${getMarketingUrl(pathname)}`),
     '',
     '## State coverage pages',
     '',

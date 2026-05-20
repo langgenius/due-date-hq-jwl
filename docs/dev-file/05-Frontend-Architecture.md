@@ -98,7 +98,7 @@ Marketing 的 Tailwind 入口必须导入共享 preset，并扫描 shared UI：
 @source '../islands';
 ```
 
-公开页 SEO、metadata、canonical、hreflang、sitemap、robots 和 OG 图由 Astro 负责；`apps/app/index.html` 只负责 SaaS SPA shell。
+公开页 SEO、metadata、canonical、hreflang、sitemap、robots 和 OG 图由 Astro 负责；`apps/app/index.html` 只负责 SaaS SPA shell，并显式带 `noindex, nofollow`。app 子域的 `robots.txt` 是 `apps/app/public/robots.txt` 静态文件，禁止把登录后 SPA shell 当作公开 SEO surface。
 
 ---
 

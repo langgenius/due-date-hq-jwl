@@ -17,3 +17,11 @@ test('AC: E2E-SMOKE-HEALTH returns the Hono health response', async ({ request }
   })
   expect(body.requestId).toEqual(expect.any(String))
 })
+
+test('AC: E2E-SMOKE-ROBOTS keeps the app workspace out of public indexing', async ({ request }) => {
+  const response = await request.get('/robots.txt')
+
+  expect(response.ok()).toBe(true)
+  expect(response.headers()['content-type']).toMatch(/text\/plain/)
+  await expect(response.text()).resolves.toBe('User-agent: *\nDisallow: /\n')
+})

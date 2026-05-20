@@ -1,34 +1,42 @@
 ---
 import type { StatePageCopy } from '../i18n/types'
+import { CONTENT_REVIEWED_ON, type OfficialSourceLink } from '../lib/content-metadata'
 
 interface Props {
   page: StatePageCopy
   coverageHref: string
   locale: 'en' | 'zh-CN'
+  officialSources: OfficialSourceLink[]
 }
 
-const { page, coverageHref, locale } = Astro.props
+const { page, coverageHref, locale, officialSources } = Astro.props
 const labels =
   locale === 'zh-CN'
     ? {
         sourceEyebrow: 'SOURCE TYPES',
         sourceTitle: `${page.name} 的公开来源监控范围。`,
+        officialSourcesEyebrow: 'OFFICIAL SOURCES',
+        officialSourcesTitle: '公开来源参考。',
         signalsEyebrow: 'COVERED SIGNALS',
         signalsTitle: '哪些信号可以成为复核工作。',
         limitsEyebrow: 'LIMITS',
         limitsTitle: '覆盖边界。',
         faqEyebrow: 'FAQ',
         faqTitle: `${page.name} 覆盖常见问题。`,
+        lastReviewed: '最近复核',
       }
     : {
         sourceEyebrow: 'SOURCE TYPES',
         sourceTitle: `Public sources DueDateHQ monitors for ${page.name}.`,
+        officialSourcesEyebrow: 'OFFICIAL SOURCES',
+        officialSourcesTitle: 'Public source references.',
         signalsEyebrow: 'COVERED SIGNALS',
         signalsTitle: 'What can become review work.',
         limitsEyebrow: 'LIMITS',
         limitsTitle: 'Coverage boundaries.',
         faqEyebrow: 'FAQ',
         faqTitle: `${page.name} coverage questions.`,
+        lastReviewed: 'Last reviewed',
       }
 ---
 
@@ -51,6 +59,9 @@ const labels =
       </p>
       <p class="mt-6 max-w-[780px] font-mono text-[12px] leading-5 text-text-muted">
         {page.hero.note}
+      </p>
+      <p class="mt-4 font-mono text-[12px] text-text-muted">
+        {labels.lastReviewed}: <time datetime={CONTENT_REVIEWED_ON}>{CONTENT_REVIEWED_ON}</time>
       </p>
     </div>
   </section>
@@ -79,6 +90,33 @@ const labels =
           ))
         }
       </div>
+    </div>
+  </section>
+
+  <section class="border-b border-border-default bg-bg-canvas">
+    <div class="mx-auto max-w-[1440px] px-6 py-14 md:px-12 lg:px-20 lg:py-16">
+      <span class="font-mono text-[11px] font-medium tracking-[0.15em] text-text-accent">
+        {labels.officialSourcesEyebrow}
+      </span>
+      <h2 class="mt-4 text-[24px] font-semibold leading-[1.25] tracking-tight text-text-primary">
+        {labels.officialSourcesTitle}
+      </h2>
+      <ul class="mt-8 grid gap-4 lg:grid-cols-2">
+        {
+          officialSources.map((source) => (
+            <li class="rounded-xl border border-border-default bg-bg-panel p-6">
+              <a
+                href={source.href}
+                class="text-[14px] font-medium leading-[1.5] text-text-accent hover:text-accent-hover"
+                rel="noreferrer"
+                target="_blank"
+              >
+                {source.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
 
