@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 import { execFile } from 'node:child_process'
 import { listPenaltyFormulaCatalog } from '../packages/core/src/penalty/index.ts'
-import { RULE_SOURCES, type RuleSource } from '../packages/core/src/rules/index.ts'
+import {
+  listObligationRules,
+  listRequiredSourceCoverage,
+  RULE_SOURCE_DOMAINS,
+  RULE_SOURCES,
+  sourceCoversRuleDomain,
+  sourceDomainsForRule,
+  type RuleSource,
+} from '../packages/core/src/rules/index.ts'
 
 type CheckedMethod = 'HEAD' | 'GET'
 
@@ -38,6 +46,8 @@ const SOURCE_FETCH_HEADERS = {
 
 const OFFICIAL_NON_GOV_HOSTS = new Set([
   'floridarevenue.com',
+  'adol.alabama.gov',
+  'www.adol.alabama.gov',
   'www.floridajobs.org',
   'www.laworks.net',
   'www.marylandtaxes.gov',
@@ -104,6 +114,16 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
       reason: 'manual_review source is not expected to be machine-fetched.',
     }
   }
+  if (source.acquisitionMethod === 'api_watch') {
+    return {
+      sourceId: source.id,
+      status: 'skipped',
+      httpStatus: null,
+      checkedUrl: source.url,
+      checkedMethod: null,
+      reason: 'api_watch source is checked by its adapter, not the generic URL checker.',
+    }
+  }
 
   try {
     const headStatus = await curlStatus(source.url, 'HEAD')
@@ -163,6 +183,48 @@ async function checkWithRetry(source: RuleSource): Promise<RuleSourceHealthResul
 const results = await Promise.all(RULE_SOURCES.map(checkWithRetry))
 const penaltyCatalog = listPenaltyFormulaCatalog()
 const penaltySourceFailures: string[] = []
+const sourceCoverageFailures: string[] = []
+const knownDomains = new Set<string>(RULE_SOURCE_DOMAINS)
+const sourceById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+const COMPLETED_SOURCE_PACK_JURISDICTIONS = ['AL', 'CA', 'NY', 'TX', 'FL', 'WA'] as const
+
+for (const source of RULE_SOURCES) {
+  if (source.domains.length === 0) {
+    sourceCoverageFailures.push(`${source.id}: missing source domains`)
+  }
+  if (source.entityApplicability.length === 0) {
+    sourceCoverageFailures.push(`${source.id}: missing entity applicability`)
+  }
+  for (const domain of source.domains) {
+    if (!knownDomains.has(domain)) {
+      sourceCoverageFailures.push(`${source.id}: unknown source domain ${domain}`)
+    }
+  }
+}
+
+for (const jurisdiction of COMPLETED_SOURCE_PACK_JURISDICTIONS) {
+  for (const cell of listRequiredSourceCoverage(jurisdiction)) {
+    if (cell.status === 'missing_source') {
+      sourceCoverageFailures.push(
+        `${jurisdiction}: missing required source for ${cell.domain}/${cell.entity}`,
+      )
+    }
+  }
+}
+
+for (const rule of listObligationRules({ includeCandidates: true })) {
+  if (rule.status !== 'candidate') continue
+  if (sourceDomainsForRule(rule).length === 0) continue
+  for (const sourceId of rule.sourceIds) {
+    const source = sourceById.get(sourceId)
+    if (!source) continue
+    if (!sourceCoversRuleDomain(source, rule)) {
+      sourceCoverageFailures.push(
+        `${rule.id}: source ${sourceId} does not cover rule domain/entity`,
+      )
+    }
+  }
+}
 
 for (const result of results) {
   const status =
@@ -210,6 +272,10 @@ for (const failure of penaltySourceFailures) {
   console.error(failure)
 }
 
-if (failed.length > 0 || penaltySourceFailures.length > 0) {
+for (const failure of sourceCoverageFailures) {
+  console.error(failure)
+}
+
+if (failed.length > 0 || penaltySourceFailures.length > 0 || sourceCoverageFailures.length > 0) {
   process.exitCode = 1
 }

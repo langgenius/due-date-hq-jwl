@@ -54,11 +54,12 @@ export function RulesCoverageRoute() {
   // Sources can render a "Pre-filtered from Coverage: California"
   // chip + Clear button.
   const handleSourceDrillIn = useCallback(
-    (jurisdiction: RuleJurisdiction) => {
+    (jurisdiction: RuleJurisdiction, domain?: string) => {
       const params = new URLSearchParams({
         jur: jurisdiction,
         from: 'coverage',
       })
+      if (domain) params.set('domain', domain)
       void navigate(`/rules/sources?${params.toString()}`)
     },
     [navigate],

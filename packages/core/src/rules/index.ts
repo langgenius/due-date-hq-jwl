@@ -88,6 +88,26 @@ export type SourceCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'pre_
 export type SourcePriority = 'critical' | 'high' | 'medium' | 'low'
 export type SourceHealthStatus = 'healthy' | 'degraded' | 'failing' | 'paused'
 
+export type RuleSourceDomain =
+  | 'individual_income_return'
+  | 'individual_estimated_tax'
+  | 'fiduciary_income_return'
+  | 'business_income_return'
+  | 'business_estimated_tax'
+  | 'pass_through_entity_return'
+  | 'franchise_or_entity_tax'
+  | 'sales_use_tax'
+  | 'withholding'
+  | 'ui_wage_report'
+
+export type SourceCoverageStatus =
+  | 'missing_source'
+  | 'source_registered'
+  | 'source_verified'
+  | 'rule_pending_review'
+  | 'rule_active'
+  | 'not_applicable'
+
 export type RuleNotificationChannel =
   | 'source_change'
   | 'practice_rule_review'
@@ -105,6 +125,9 @@ export interface RuleSource {
   priority: SourcePriority
   healthStatus: SourceHealthStatus
   isEarlyWarning: boolean
+  domains: readonly RuleSourceDomain[]
+  entityApplicability: readonly EntityApplicability[]
+  authorityRole: RuleEvidenceAuthorityRole
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
 }
@@ -118,6 +141,31 @@ export type EntityApplicability =
   | 'trust'
   | 'individual'
   | 'any_business'
+
+export const RULE_SOURCE_DOMAINS = [
+  'individual_income_return',
+  'individual_estimated_tax',
+  'fiduciary_income_return',
+  'business_income_return',
+  'business_estimated_tax',
+  'pass_through_entity_return',
+  'franchise_or_entity_tax',
+  'sales_use_tax',
+  'withholding',
+  'ui_wage_report',
+] as const satisfies readonly RuleSourceDomain[]
+
+export const RULE_SOURCE_COVERAGE_ENTITIES = [
+  'llc',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'sole_prop',
+  'individual',
+  'trust',
+] as const satisfies readonly Exclude<EntityApplicability, 'any_business'>[]
+
+export type RuleSourceCoverageEntity = (typeof RULE_SOURCE_COVERAGE_ENTITIES)[number]
 
 export type ObligationEventType =
   | 'filing'
@@ -447,13 +495,14 @@ interface StateRuleSourceSeed {
 type StateCandidateRuleSlug =
   | 'individual_income_return'
   | 'individual_estimated_tax'
+  | 'fiduciary_income_return'
   | 'business_income_return'
   | 'business_estimated_tax'
+  | 'pass_through_entity_return'
   | 'franchise_or_entity_tax'
-type BusinessStateCandidateRuleSlug = Extract<
-  StateCandidateRuleSlug,
-  'business_income_return' | 'business_estimated_tax' | 'franchise_or_entity_tax'
->
+  | 'sales_use_tax'
+  | 'withholding'
+  | 'ui_wage_report'
 
 interface StateIncomeTaxSourceSeed {
   jurisdiction: RuleGenerationState
@@ -463,6 +512,24 @@ interface StateIncomeTaxSourceSeed {
   acquisitionMethod?: AcquisitionMethod
   candidateDomainSlugs?: readonly StateCandidateRuleSlug[]
 }
+
+interface StateAdditionalRuleSourceSeed {
+  jurisdiction: RuleGenerationState
+  id: string
+  title: string
+  url: string
+  sourceType: RuleSourceType
+  acquisitionMethod: AcquisitionMethod
+  domains: readonly RuleSourceDomain[]
+  entityApplicability: readonly EntityApplicability[]
+  priority?: SourcePriority
+  healthStatus?: SourceHealthStatus
+}
+
+const DEFAULT_INCOME_CANDIDATE_DOMAIN_SLUGS = [
+  'individual_income_return',
+  'individual_estimated_tax',
+] as const satisfies readonly StateCandidateRuleSlug[]
 
 export const STATE_RULE_SOURCE_SEEDS = [
   {
@@ -940,63 +1007,255 @@ const STATE_INCOME_TAX_SOURCE_BY_JURISDICTION = new Map<
   StateIncomeTaxSourceSeed
 >(STATE_INCOME_TAX_SOURCE_SEEDS.map((seed) => [seed.jurisdiction, seed]))
 
-interface StateBusinessTaxSourceSeed {
-  jurisdiction: RuleGenerationState
-  sourceId: string
-  candidateDomainSlugs: readonly BusinessStateCandidateRuleSlug[]
-}
-
-const STATE_BUSINESS_TAX_SOURCE_SEEDS = [
+const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   {
-    jurisdiction: 'CA',
-    sourceId: 'ca.ftb_business_due_dates',
-    candidateDomainSlugs: [
+    jurisdiction: 'AL',
+    id: 'al.individual_estimated_tax',
+    title: 'Alabama DOR Estimated Tax Payment Due Dates',
+    url: 'https://www.revenue.alabama.gov/faqs/when-are-estimated-tax-payments-due/',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: ['individual_estimated_tax'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.due_dates',
+    title: 'Alabama DOR Income Tax Due Dates',
+    url: 'https://www.revenue.alabama.gov/individual-corporate/due-dates/',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: [
       'business_income_return',
       'business_estimated_tax',
+      'pass_through_entity_return',
       'franchise_or_entity_tax',
+      'fiduciary_income_return',
+      'withholding',
     ],
+    entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp', 'sole_prop', 'trust'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.corporate_income_extensions',
+    title: 'Alabama DOR Corporate Income Due Date and Extensions',
+    url: 'https://www.revenue.alabama.gov/individual-corporate/corporate-income-due-date-extensions/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['business_income_return', 'business_estimated_tax'],
+    entityApplicability: ['c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.pass_through_entities',
+    title: 'Alabama DOR Pass-Through Entities',
+    url: 'https://www.revenue.alabama.gov/individual-corporate/pass-thru-entities-subchapter-k-entities-partnerships-and-s-corporations/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['pass_through_entity_return', 'business_estimated_tax'],
+    entityApplicability: ['llc', 'partnership', 's_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.business_privilege_tax',
+    title: 'Alabama DOR Business Privilege Tax',
+    url: 'https://www.revenue.alabama.gov/tax-types/business-privilege-tax/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['franchise_or_entity_tax'],
+    entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.fiduciary_income_tax',
+    title: 'Alabama DOR Fiduciary Income Tax',
+    url: 'https://www.revenue.alabama.gov/tax-types/fiduciary-income-tax/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['fiduciary_income_return'],
+    entityApplicability: ['trust'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.sales_use_due_dates',
+    title: 'Alabama DOR Sales and Use Due Date Calendar',
+    url: 'https://www.revenue.alabama.gov/sales-use/due-date-calendar-for-taxes-administered-by-sales-use/',
+    sourceType: 'calendar',
+    acquisitionMethod: 'html_watch',
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.withholding_tax',
+    title: 'Alabama DOR Income Tax Withholding',
+    url: 'https://www.revenue.alabama.gov/tax-types/income-tax-withholding/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['withholding'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AL',
+    id: 'al.ui_wage_report',
+    title: 'Alabama Department of Labor Quarterly Contribution and Wage Report',
+    url: 'https://adol.alabama.gov/faq/when-is-the-last-day-i-can-file-my-quarterly-contribution-and-wage-report-and-not-be-late/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'CA',
+    id: 'ca.ftb_estates_trusts',
+    title: 'California FTB Estates and Trusts',
+    url: 'https://www.ftb.ca.gov/file/personal/filing-situations/estates-and-trusts/index.html',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['fiduciary_income_return'],
+    entityApplicability: ['trust'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'CA',
+    id: 'ca.cdtfa_sales_use_filing_dates',
+    title: 'California CDTFA Filing Dates for Sales and Use Tax Returns',
+    url: 'https://www.cdtfa.ca.gov/taxes-and-fees/sales-use-tax-returns-filing-dates.htm',
+    sourceType: 'calendar',
+    acquisitionMethod: 'html_watch',
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'CA',
+    id: 'ca.edd_required_filings_due_dates',
+    title: 'California EDD Required Filings and Due Dates',
+    url: 'https://edd.ca.gov/en/payroll_taxes/required_filings_and_due_dates/',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: ['withholding', 'ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NY',
-    sourceId: 'ny.tax_calendar.2026',
-    candidateDomainSlugs: ['business_income_return', 'franchise_or_entity_tax'],
+    id: 'ny.personal_fiduciary_filing_due_dates',
+    title: 'New York Income Tax Filing Due Dates',
+    url: 'https://www.tax.ny.gov/pit/file/income_tax_filing_due_dates.htm',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: ['fiduciary_income_return'],
+    entityApplicability: ['trust'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'NY',
+    id: 'ny.sales_tax_vendor_due_dates',
+    title: 'New York Helpful Reminders for Sales Tax Vendors',
+    url: 'https://www.tax.ny.gov/bus/st/helpful_reminders.htm',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'NY',
+    id: 'ny.withholding_tax_due_dates',
+    title: 'New York Withholding Tax Due Dates',
+    url: 'https://www.tax.ny.gov/bus/wt/duedates.htm',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    domains: ['withholding', 'ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'TX',
-    sourceId: 'tx.franchise_home',
-    candidateDomainSlugs: ['franchise_or_entity_tax'],
+    id: 'tx.sales_use_tax',
+    title: 'Texas Comptroller Sales and Use Tax',
+    url: 'https://comptroller.texas.gov/taxes/sales/index.php',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'TX',
+    id: 'tx.ui_wage_report_due_dates',
+    title: 'Texas Workforce Commission Tax Report and Payment Due Dates',
+    url: 'https://www.twc.texas.gov/programs/unemployment-tax/tax-report-payment-due-dates',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'manual_review',
+    domains: ['ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'FL',
-    sourceId: 'fl.cit_due_dates_2026',
-    candidateDomainSlugs: ['business_income_return', 'business_estimated_tax'],
+    id: 'fl.sales_use_tax',
+    title: 'Florida DOR Sales and Use Tax',
+    url: 'https://floridarevenue.com/taxes/taxesfees/Pages/sales_tax.aspx',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'FL',
+    id: 'fl.reemployment_tax_return_pay',
+    title: 'Florida DOR Reemployment Tax Return and Payment Information',
+    url: 'https://floridarevenue.com/taxes/taxesfees/Pages/rt_return_pay.aspx',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WA',
-    sourceId: 'wa.excise_due_dates_2026',
-    candidateDomainSlugs: ['franchise_or_entity_tax'],
+    id: 'wa.esd_quarterly_tax_wage_reports',
+    title: 'Washington ESD Quarterly Tax and Wage Reports',
+    url: 'https://esd.wa.gov/employer-requirements/quarterly-reports/how-file-your-quarterly-tax-and-wage-reports',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'manual_review',
+    domains: ['ui_wage_report'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'critical',
+    healthStatus: 'healthy',
   },
-] as const satisfies readonly StateBusinessTaxSourceSeed[]
-
-const STATE_BUSINESS_TAX_SOURCES_BY_JURISDICTION = STATE_BUSINESS_TAX_SOURCE_SEEDS.reduce(
-  (map, seed) => {
-    const sources = map.get(seed.jurisdiction) ?? []
-    sources.push(seed)
-    map.set(seed.jurisdiction, sources)
-    return map
-  },
-  new Map<RuleGenerationState, StateBusinessTaxSourceSeed[]>(),
-)
-
-function isBusinessCandidateRuleSlug(
-  slug: StateCandidateRuleSlug,
-): slug is BusinessStateCandidateRuleSlug {
-  return (
-    slug === 'business_income_return' ||
-    slug === 'business_estimated_tax' ||
-    slug === 'franchise_or_entity_tax'
-  )
-}
+] as const satisfies readonly StateAdditionalRuleSourceSeed[]
 
 type StateRuleSourceIds = Readonly<{
   incomeTax: string
@@ -1023,6 +1282,8 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
   const sources: RuleSource[] = []
 
   if (incomeTaxSource) {
+    const supportedSlugs =
+      incomeTaxSource.candidateDomainSlugs ?? DEFAULT_INCOME_CANDIDATE_DOMAIN_SLUGS
     sources.push({
       id: ids.incomeTax,
       jurisdiction: seed.jurisdiction,
@@ -1034,6 +1295,32 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
       priority: 'high',
       healthStatus: 'degraded',
       isEarlyWarning: false,
+      domains: supportedSlugs,
+      entityApplicability: supportedSlugs.includes('individual_estimated_tax')
+        ? ['individual', 'sole_prop']
+        : ['individual'],
+      authorityRole: 'basis',
+      notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
+      lastReviewedOn: VERIFIED_AT,
+    })
+  }
+
+  for (const source of STATE_ADDITIONAL_RULE_SOURCE_SEEDS) {
+    if (source.jurisdiction !== seed.jurisdiction) continue
+    sources.push({
+      id: source.id,
+      jurisdiction: source.jurisdiction,
+      title: source.title,
+      url: source.url,
+      sourceType: source.sourceType,
+      acquisitionMethod: source.acquisitionMethod,
+      cadence: 'pre_season',
+      priority: source.priority ?? 'high',
+      healthStatus: source.healthStatus ?? 'healthy',
+      isEarlyWarning: false,
+      domains: source.domains,
+      entityApplicability: source.entityApplicability,
+      authorityRole: 'basis',
       notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
       lastReviewedOn: VERIFIED_AT,
     })
@@ -1042,7 +1329,84 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
   return sources
 })
 
-export const RULE_SOURCES = [
+type RuleSourceSeedRecord = Omit<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'> &
+  Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'>>
+
+const SOURCE_DOMAIN_OVERRIDES: Record<string, readonly RuleSourceDomain[]> = {
+  'ca.ftb_business_due_dates': [
+    'business_income_return',
+    'business_estimated_tax',
+    'pass_through_entity_return',
+    'franchise_or_entity_tax',
+  ],
+  'ny.tax_calendar.2026': [
+    'business_income_return',
+    'business_estimated_tax',
+    'pass_through_entity_return',
+    'franchise_or_entity_tax',
+  ],
+  'ny.ptet': ['business_estimated_tax'],
+  'ny.it204ll': ['franchise_or_entity_tax'],
+  'ny.article_9a': ['business_income_return', 'business_estimated_tax', 'franchise_or_entity_tax'],
+  'tx.franchise_home': ['franchise_or_entity_tax'],
+  'tx.franchise_overview': ['franchise_or_entity_tax'],
+  'tx.franchise_annual_report': ['franchise_or_entity_tax'],
+  'tx.franchise_extensions': ['franchise_or_entity_tax'],
+  'tx.franchise_forms_2026': ['franchise_or_entity_tax'],
+  'tx.pir_oir': ['franchise_or_entity_tax'],
+  'fl.cit': ['business_income_return', 'business_estimated_tax'],
+  'fl.cit_due_dates_2026': ['business_income_return', 'business_estimated_tax'],
+  'wa.excise_due_dates_2026': ['franchise_or_entity_tax', 'sales_use_tax'],
+  'wa.bo': ['franchise_or_entity_tax'],
+}
+
+const SOURCE_ENTITY_OVERRIDES: Record<string, readonly EntityApplicability[]> = {
+  'ca.ftb_business_due_dates': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'ca.ftb_llc': ['llc'],
+  'ca.ftb_568_booklet_2025': ['llc'],
+  'ny.tax_calendar.2026': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'ny.ptet': ['partnership', 's_corp'],
+  'ny.it204ll': ['llc', 'partnership'],
+  'ny.partnerships': ['partnership', 'llc'],
+  'ny.article_9a': ['c_corp'],
+  'tx.franchise_home': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'tx.franchise_overview': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'tx.franchise_annual_report': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'tx.franchise_extensions': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'tx.franchise_forms_2026': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'tx.pir_oir': ['llc', 'partnership', 's_corp', 'c_corp'],
+  'fl.cit': ['c_corp'],
+  'fl.cit_due_dates_2026': ['c_corp'],
+  'wa.excise_due_dates_2026': ['any_business'],
+  'wa.bo': ['any_business'],
+}
+
+function defaultSourceDomains(source: RuleSourceSeedRecord): readonly RuleSourceDomain[] {
+  return SOURCE_DOMAIN_OVERRIDES[source.id] ?? ['business_income_return']
+}
+
+function defaultSourceEntityApplicability(
+  source: RuleSourceSeedRecord,
+): readonly EntityApplicability[] {
+  return SOURCE_ENTITY_OVERRIDES[source.id] ?? ['any_business']
+}
+
+function defaultSourceAuthorityRole(source: RuleSourceSeedRecord): RuleEvidenceAuthorityRole {
+  if (source.isEarlyWarning) return 'early_warning'
+  if (source.sourceType === 'news' || source.sourceType === 'emergency_relief') return 'watch'
+  return 'basis'
+}
+
+function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly RuleSource[] {
+  return sources.map((source) => ({
+    ...source,
+    domains: source.domains ?? defaultSourceDomains(source),
+    entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
+    authorityRole: source.authorityRole ?? defaultSourceAuthorityRole(source),
+  }))
+}
+
+export const RULE_SOURCES = hydrateRuleSources([
   ...STATE_OFFICIAL_SOURCES,
   {
     id: 'fed.irs_pub_509_2026',
@@ -1590,7 +1954,7 @@ export const RULE_SOURCES = [
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
     lastReviewedOn: VERIFIED_AT,
   },
-] as const satisfies readonly RuleSource[]
+] as const satisfies readonly RuleSourceSeedRecord[])
 
 // `sourceExcerpt` is a representative content snippet from each official
 // page — paraphrased or near-verbatim, not always a literal quote. Authored
@@ -1628,6 +1992,26 @@ const SOURCE_EXCERPTS: Record<string, string> = {
     'IRS publishes notice-specific tax relief by date, listing affected localities and postponed acts.',
   'fed.fema_disaster_declarations':
     'OpenFEMA disaster declarations dataset; early-warning signal for IRS / state relief follow-up.',
+  'al.income_tax':
+    'Alabama individual income tax returns are generally due April 15, with weekend or holiday rollover to the next business day.',
+  'al.individual_estimated_tax':
+    'Alabama estimated tax payment guidance states installment due dates for taxpayers required to make estimated payments.',
+  'al.due_dates':
+    'Alabama DOR due-date table lists income tax, business privilege, fiduciary, withholding, and related filing due dates by tax type.',
+  'al.corporate_income_extensions':
+    'Corporate income tax returns are due with the corresponding federal return, with Alabama filing extensions that do not extend payment time.',
+  'al.pass_through_entities':
+    'Partnership, S corporation, composite, and electing pass-through entity returns are due on the corresponding federal due date.',
+  'al.business_privilege_tax':
+    'Alabama business privilege tax is levied on entities organized under Alabama law or doing business in Alabama.',
+  'al.fiduciary_income_tax':
+    'Alabama fiduciary income tax applies to resident estates or trusts and certain Alabama-source income of nonresident trusts and estates.',
+  'al.sales_use_due_dates':
+    'Sales and use tax returns and remittances are due by filing frequency, generally on the 20th day following the period.',
+  'al.withholding_tax':
+    'Alabama income tax withholding guidance is the official source for employer withholding filing and payment context.',
+  'al.ui_wage_report':
+    'Contribution and Wage Reports are due the last day of the month following the end of the quarter.',
   'ca.ftb_business_due_dates':
     'If the due date falls on a weekend or holiday, you have until the next business day to file and pay.',
   'ca.ftb_llc':
@@ -1751,11 +2135,6 @@ interface StateCandidateRuleDomain {
   reviewReason: string
 }
 
-const DEFAULT_INCOME_CANDIDATE_DOMAIN_SLUGS = [
-  'individual_income_return',
-  'individual_estimated_tax',
-] as const satisfies readonly StateCandidateRuleSlug[]
-
 const STATE_CANDIDATE_RULE_DOMAINS = [
   {
     slug: 'individual_income_return',
@@ -1782,6 +2161,18 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
       'Confirm state estimated tax thresholds, installment schedule, weekend/holiday rollover, and no-tax status where applicable.',
   },
   {
+    slug: 'fiduciary_income_return',
+    title: 'fiduciary income return applicability',
+    taxType: 'state_fiduciary_income_tax',
+    formName: 'State fiduciary income tax return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['trust'],
+    reviewReason:
+      'Confirm state fiduciary income tax filing requirement, due date, extension, and estate or trust applicability.',
+  },
+  {
     slug: 'business_income_return',
     title: 'business income return applicability',
     taxType: 'state_business_income_tax',
@@ -1806,6 +2197,18 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
       'Confirm business estimated tax installment schedule, threshold, and payment-only treatment against the business source.',
   },
   {
+    slug: 'pass_through_entity_return',
+    title: 'pass-through entity return applicability',
+    taxType: 'state_pte_composite_ptet',
+    formName: 'State pass-through entity return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['llc', 'partnership', 's_corp'],
+    reviewReason:
+      'Confirm state partnership, S corporation, composite, and electing pass-through entity return due dates against the pass-through entity source.',
+  },
+  {
     slug: 'franchise_or_entity_tax',
     title: 'franchise or entity tax applicability',
     taxType: 'state_franchise_or_entity_tax',
@@ -1817,33 +2220,260 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
     reviewReason:
       'Confirm franchise, entity, gross receipts, or margin tax due dates and entity-specific filing requirements against the business source.',
   },
+  {
+    slug: 'sales_use_tax',
+    title: 'sales and use tax return schedule',
+    taxType: 'state_sales_use_tax',
+    formName: 'State sales and use tax return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: true,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    reviewReason:
+      'Confirm state sales and use tax filing frequency, due dates, and payment treatment against the sales/use source.',
+  },
+  {
+    slug: 'withholding',
+    title: 'withholding tax return schedule',
+    taxType: 'state_withholding_tax',
+    formName: 'State withholding tax return',
+    eventType: 'deposit',
+    isFiling: true,
+    isPayment: true,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    reviewReason:
+      'Confirm state withholding filing frequency, deposits, reconciliation, and wage statement due dates against the withholding source.',
+  },
+  {
+    slug: 'ui_wage_report',
+    title: 'unemployment wage report schedule',
+    taxType: 'state_ui_wage_report',
+    formName: 'State unemployment contribution and wage report',
+    eventType: 'information_report',
+    isFiling: true,
+    isPayment: true,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    reviewReason:
+      'Confirm state unemployment contribution and wage report due dates, payment treatment, and employer applicability against the labor source.',
+  },
 ] as const satisfies readonly StateCandidateRuleDomain[]
+
+interface SourceCoverageNotApplicableCell {
+  jurisdiction: RuleGenerationState
+  domain: StateCandidateRuleSlug
+  entityApplicability: readonly RuleSourceCoverageEntity[]
+  reason: string
+}
+
+const BUSINESS_RETURN_ENTITIES = ['llc', 'partnership', 's_corp', 'c_corp'] as const
+const BUSINESS_EMPLOYER_ENTITIES = ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'] as const
+const PASS_THROUGH_ENTITIES = ['llc', 'partnership', 's_corp'] as const
+
+const STATE_SOURCE_COVERAGE_NOT_APPLICABLE = [
+  {
+    jurisdiction: 'TX',
+    domain: 'individual_income_return',
+    entityApplicability: ['individual'],
+    reason: 'Texas does not impose a state individual income tax.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'individual_estimated_tax',
+    entityApplicability: ['individual', 'sole_prop'],
+    reason: 'Texas does not impose state individual estimated income tax payments.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'fiduciary_income_return',
+    entityApplicability: ['trust'],
+    reason: 'Texas does not impose a state fiduciary income tax return.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'business_income_return',
+    entityApplicability: BUSINESS_RETURN_ENTITIES,
+    reason: 'Texas business entity tax coverage is tracked through franchise tax, not income tax.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'business_estimated_tax',
+    entityApplicability: ['s_corp', 'c_corp'],
+    reason: 'Texas has no state business income estimated tax payment schedule.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'pass_through_entity_return',
+    entityApplicability: PASS_THROUGH_ENTITIES,
+    reason: 'Texas pass-through entity coverage is tracked through franchise tax when applicable.',
+  },
+  {
+    jurisdiction: 'TX',
+    domain: 'withholding',
+    entityApplicability: BUSINESS_EMPLOYER_ENTITIES,
+    reason: 'Texas has no state income tax withholding regime.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'individual_income_return',
+    entityApplicability: ['individual'],
+    reason: 'Florida does not impose a state individual income tax.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'individual_estimated_tax',
+    entityApplicability: ['individual', 'sole_prop'],
+    reason: 'Florida does not impose state individual estimated income tax payments.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'fiduciary_income_return',
+    entityApplicability: ['trust'],
+    reason: 'Florida does not impose a state fiduciary income tax return.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'business_income_return',
+    entityApplicability: ['llc', 'partnership', 's_corp'],
+    reason: 'Florida state business income tax coverage is C corporation scoped in this matrix.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'business_estimated_tax',
+    entityApplicability: ['s_corp'],
+    reason: 'Florida state business estimated tax coverage is C corporation scoped in this matrix.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'pass_through_entity_return',
+    entityApplicability: PASS_THROUGH_ENTITIES,
+    reason: 'Florida has no general state pass-through entity income return in this matrix scope.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'franchise_or_entity_tax',
+    entityApplicability: BUSINESS_RETURN_ENTITIES,
+    reason: 'Florida has no separate state franchise or entity tax source in this matrix scope.',
+  },
+  {
+    jurisdiction: 'FL',
+    domain: 'withholding',
+    entityApplicability: BUSINESS_EMPLOYER_ENTITIES,
+    reason: 'Florida has no state income tax withholding regime.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'individual_income_return',
+    entityApplicability: ['individual'],
+    reason: 'Washington does not impose a state individual income tax.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'individual_estimated_tax',
+    entityApplicability: ['individual', 'sole_prop'],
+    reason: 'Washington does not impose state individual estimated income tax payments.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'fiduciary_income_return',
+    entityApplicability: ['trust'],
+    reason: 'Washington does not impose a state fiduciary income tax return.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'business_income_return',
+    entityApplicability: BUSINESS_RETURN_ENTITIES,
+    reason: 'Washington business tax coverage is tracked through excise/B&O tax, not income tax.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'business_estimated_tax',
+    entityApplicability: ['s_corp', 'c_corp'],
+    reason: 'Washington has no state business income estimated tax payment schedule.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'pass_through_entity_return',
+    entityApplicability: PASS_THROUGH_ENTITIES,
+    reason: 'Washington pass-through business tax coverage is tracked through excise/B&O tax.',
+  },
+  {
+    jurisdiction: 'WA',
+    domain: 'withholding',
+    entityApplicability: BUSINESS_EMPLOYER_ENTITIES,
+    reason: 'Washington has no state income tax withholding regime.',
+  },
+] as const satisfies readonly SourceCoverageNotApplicableCell[]
+
+function sourceCoverageNotApplicable(
+  jurisdiction: RuleJurisdiction,
+  domain: StateCandidateRuleSlug,
+  entity: RuleSourceCoverageEntity,
+): boolean {
+  return STATE_SOURCE_COVERAGE_NOT_APPLICABLE.some(
+    (cell) =>
+      cell.jurisdiction === jurisdiction &&
+      cell.domain === domain &&
+      (cell.entityApplicability as readonly RuleSourceCoverageEntity[]).includes(entity),
+  )
+}
+
+function requiredEntitiesForCandidateDomain(
+  jurisdiction: RuleJurisdiction,
+  domain: StateCandidateRuleDomain,
+): readonly RuleSourceCoverageEntity[] {
+  return domain.entityApplicability.filter(
+    (entity): entity is RuleSourceCoverageEntity =>
+      entity !== 'any_business' && !sourceCoverageNotApplicable(jurisdiction, domain.slug, entity),
+  )
+}
+
+function sourceCoversEntity(
+  source: Pick<RuleSource, 'entityApplicability'>,
+  entity: EntityApplicability,
+): boolean {
+  if (source.entityApplicability.includes(entity)) return true
+  if (!source.entityApplicability.includes('any_business')) return false
+  return entity !== 'individual' && entity !== 'trust'
+}
+
+function sourceCoversCandidateDomain(
+  source: RuleSource,
+  jurisdiction: RuleJurisdiction,
+  domain: StateCandidateRuleDomain,
+): boolean {
+  if (!source.domains.includes(domain.slug)) return false
+  const requiredEntities = requiredEntitiesForCandidateDomain(jurisdiction, domain)
+  if (requiredEntities.length === 0) return false
+  return requiredEntities.every((entity) => sourceCoversEntity(source, entity))
+}
+
+function sourceBasisRank(source: RuleSource): number {
+  if (source.sourceType === 'due_dates' || source.sourceType === 'calendar') return 3
+  if (source.authorityRole === 'basis') return 2
+  if (source.priority === 'critical' || source.priority === 'high') return 1
+  return 0
+}
 
 function sourceIdForStateCandidateRule(
   seed: (typeof STATE_RULE_SOURCE_SEEDS)[number],
   domain: StateCandidateRuleDomain,
 ): string | null {
-  const slug = domain.slug
-  if (isBusinessCandidateRuleSlug(slug)) {
-    const businessSources = STATE_BUSINESS_TAX_SOURCES_BY_JURISDICTION.get(seed.jurisdiction) ?? []
-    return (
-      businessSources.find((source) => source.candidateDomainSlugs.includes(slug))?.sourceId ?? null
-    )
-  }
-
-  const ids = stateRuleSourceIds(seed.jurisdiction)
-  const source = STATE_INCOME_TAX_SOURCE_BY_JURISDICTION.get(seed.jurisdiction)
-  if (!source) return null
-  const supportedSlugs = source.candidateDomainSlugs ?? DEFAULT_INCOME_CANDIDATE_DOMAIN_SLUGS
-  if (!supportedSlugs.includes(domain.slug)) return null
-
-  return ids.incomeTax
+  const matches = RULE_SOURCES.filter(
+    (source) =>
+      source.jurisdiction === seed.jurisdiction &&
+      sourceCoversCandidateDomain(source, seed.jurisdiction, domain),
+  )
+  return (
+    matches.toSorted((left, right) => sourceBasisRank(right) - sourceBasisRank(left))[0]?.id ?? null
+  )
 }
 
 function buildStateCandidateRule(
   seed: (typeof STATE_RULE_SOURCE_SEEDS)[number],
   domain: StateCandidateRuleDomain,
 ): ObligationRule | null {
+  const entityApplicability = requiredEntitiesForCandidateDomain(seed.jurisdiction, domain)
+  if (entityApplicability.length === 0) return null
   const sourceId = sourceIdForStateCandidateRule(seed, domain)
   if (!sourceId) return null
 
@@ -1851,7 +2481,7 @@ function buildStateCandidateRule(
     id: `${seed.jurisdiction.toLowerCase()}.${domain.slug}.candidate.2026`,
     title: `${seed.name} ${domain.title}`,
     jurisdiction: seed.jurisdiction,
-    entityApplicability: domain.entityApplicability,
+    entityApplicability,
     taxType: `${seed.jurisdiction.toLowerCase()}_${domain.taxType}`,
     formName: domain.formName,
     eventType: domain.eventType,
@@ -3621,6 +4251,102 @@ export const OBLIGATION_RULES = [
 export function listRuleSources(jurisdiction?: RuleJurisdiction): readonly RuleSource[] {
   if (!jurisdiction) return RULE_SOURCES
   return RULE_SOURCES.filter((source) => source.jurisdiction === jurisdiction)
+}
+
+export function sourceDomainsForRule(
+  rule: Pick<ObligationRule, 'taxType'>,
+): readonly RuleSourceDomain[] {
+  return STATE_CANDIDATE_RULE_DOMAINS.filter((domain) => rule.taxType.endsWith(domain.taxType)).map(
+    (domain) => domain.slug,
+  )
+}
+
+export function sourceCoversRuleDomain(
+  source: Pick<RuleSource, 'domains' | 'entityApplicability'>,
+  rule: Pick<ObligationRule, 'taxType' | 'entityApplicability'>,
+): boolean {
+  const domains = sourceDomainsForRule(rule)
+  if (domains.length === 0) return false
+  const coversDomain = domains.some((domain) => source.domains.includes(domain))
+  if (!coversDomain) return false
+  return rule.entityApplicability.every((entity) => sourceCoversEntity(source, entity))
+}
+
+export interface RequiredSourceCoverageCell {
+  jurisdiction: RuleJurisdiction
+  domain: RuleSourceDomain
+  entity: (typeof RULE_SOURCE_COVERAGE_ENTITIES)[number]
+  status: SourceCoverageStatus
+  sourceIds: readonly string[]
+}
+
+function sourceVerificationStatus(source: RuleSource): SourceCoverageStatus {
+  return source.healthStatus === 'healthy' && source.acquisitionMethod !== 'manual_review'
+    ? 'source_verified'
+    : 'source_registered'
+}
+
+function mergeSourceCoverageStatus(
+  current: SourceCoverageStatus,
+  next: SourceCoverageStatus,
+): SourceCoverageStatus {
+  const rank: Record<SourceCoverageStatus, number> = {
+    not_applicable: 0,
+    missing_source: 1,
+    source_registered: 2,
+    source_verified: 3,
+    rule_pending_review: 4,
+    rule_active: 5,
+  }
+  return rank[next] > rank[current] ? next : current
+}
+
+export function listRequiredSourceCoverage(
+  jurisdiction?: RuleJurisdiction,
+): readonly RequiredSourceCoverageCell[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  const cells: RequiredSourceCoverageCell[] = []
+
+  for (const currentJurisdiction of jurisdictions) {
+    if (currentJurisdiction === 'FED') continue
+    const sources = listRuleSources(currentJurisdiction)
+    for (const domain of STATE_CANDIDATE_RULE_DOMAINS) {
+      for (const entity of domain.entityApplicability) {
+        if (sourceCoverageNotApplicable(currentJurisdiction, domain.slug, entity)) {
+          cells.push({
+            jurisdiction: currentJurisdiction,
+            domain: domain.slug,
+            entity,
+            status: 'not_applicable',
+            sourceIds: [],
+          })
+          continue
+        }
+        const matchingSources = sources.filter(
+          (source) => source.domains.includes(domain.slug) && sourceCoversEntity(source, entity),
+        )
+        const status = matchingSources.reduce<SourceCoverageStatus>(
+          (current, source) => mergeSourceCoverageStatus(current, sourceVerificationStatus(source)),
+          'missing_source',
+        )
+        cells.push({
+          jurisdiction: currentJurisdiction,
+          domain: domain.slug,
+          entity,
+          status,
+          sourceIds: matchingSources.map((source) => source.id),
+        })
+      }
+    }
+  }
+
+  return cells
+}
+
+export function listSourceCoverageGaps(
+  jurisdiction?: RuleJurisdiction,
+): readonly RequiredSourceCoverageCell[] {
+  return listRequiredSourceCoverage(jurisdiction).filter((cell) => cell.status === 'missing_source')
 }
 
 export function listObligationRules(

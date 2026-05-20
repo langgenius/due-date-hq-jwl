@@ -192,18 +192,28 @@ Deferred.
 Reads from:
 
 - `orpc.rules.coverage` — returns `RuleCoverageRow[]` with per-
-  jurisdiction counts and `entityCoverage` for `llc | partnership |
-s_corp | c_corp | sole_prop | individual | trust`
+  jurisdiction rule counts, legacy `entityCoverage`, and source-aware
+  `entitySourceCoverage` for `llc | partnership | s_corp | c_corp |
+sole_prop | individual | trust`; source coverage states distinguish
+  `missing_source`, `source_registered`, `source_verified`,
+  `rule_pending_review`, `rule_active`, and `not_applicable`
 - `orpc.pulse.listSourceHealth` (via `usePulseSourceHealthQueryOptions`) —
   live source health, joined for the snapshot strip's degraded/failing
   counts
+
+`missingSourceCount` only counts source-required cells. Cells that are
+state-level no-tax cases, such as TX/WA income tax or FL withholding,
+are returned as `not_applicable` and excluded from the required count.
+As of 2026-05-20, completed source packs enforced by
+`pnpm rules:check-sources` are `AL`, `CA`, `NY`, `TX`, `FL`, and `WA`.
 
 No writes. This page is a pure read.
 
 Dependent data:
 
 - The PENDING / SOURCES drill destinations rely on Library's `?jur=`
-  and Sources's `?jur=` URL state (both nuqs-backed)
+  and Sources's `?jur=` URL state. Source-gap drill may also pass
+  `?domain=` so Sources filters to the cited source domain.
 - The entity-dot drill relies on Library's `?entity=` URL state
   (nuqs-backed) AND on `filterRules` honoring entity applicability. Coverage
   itself is computed server-side from active concrete rules and pending /
@@ -495,6 +505,7 @@ Existing deep links continue to work.
 | 2026-05-19 | Entity coverage → text summary + popover                                        | 7-dot strip required a legend to decode; popover is self-documenting; cell shows exceptions only            |
 | 2026-05-19 | Expander label: "standard review queue"                                         | Names the concept; "other jurisdictions" was vague                                                          |
 | 2026-05-20 | Entity coverage comes from backend `entityCoverage`                             | Green coverage must mean active practice rule with concrete due-date logic, not frontend static assumptions |
+| 2026-05-20 | Source coverage matrix added behind entity coverage                             | Coverage now separates official source gaps from practice rule review; source-only cells are not active     |
 
 ## 21. Open product questions
 

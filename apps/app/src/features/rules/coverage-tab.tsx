@@ -19,6 +19,7 @@ import type {
   RuleCoverageRow,
   RuleJurisdiction,
   RuleSource,
+  RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import {
@@ -79,7 +80,7 @@ export function CoverageTab({
 }: {
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
-  onSourceDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onSourceDrillIn?: (jurisdiction: RuleJurisdiction, domain?: string) => void
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
     entity: CoverageEntityColumn,
@@ -587,6 +588,7 @@ export function CoverageTab({
 type Stats = {
   active: number
   pending: number
+  missingSources: number
   sourcesWorking: number
   sourcesTotal: number
   jurisdictions: number
@@ -598,14 +600,23 @@ function aggregateStats(
 ): Stats {
   let active = 0
   let pending = 0
+  let missingSources = 0
   let sourcesTotal = 0
   for (const row of rows) {
     active += row.activeRuleCount ?? row.verifiedRuleCount
     pending += row.pendingReviewCount ?? row.candidateCount
+    missingSources += row.missingSourceCount
     sourcesTotal += row.sourceCount
   }
   const sourcesWorking = Math.max(0, sourcesTotal - health.degraded - health.failing)
-  return { active, pending, sourcesWorking, sourcesTotal, jurisdictions: rows.length }
+  return {
+    active,
+    pending,
+    missingSources,
+    sourcesWorking,
+    sourcesTotal,
+    jurisdictions: rows.length,
+  }
 }
 
 /**
@@ -642,6 +653,11 @@ function StatsStrip({ stats, attentionCount }: { stats: Stats; attentionCount: n
             ? `${stats.sourcesWorking} watched documents healthy; ${attentionCount} need a human check (the watcher flagged a change it couldn't auto-verify).`
             : `All ${stats.sourcesTotal} watched documents are healthy.`
         }
+      />
+      <Stat
+        value={String(stats.missingSources)}
+        label="source gaps"
+        tooltip="Required jurisdiction, domain, and entity source cells that do not have an official source registered yet."
       />
       <Stat value={String(stats.jurisdictions)} label={jurLabel} tooltip={jurTooltip} />
     </div>
@@ -763,10 +779,17 @@ function EntityCoverageLegend() {
         <Trans>Needs review</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
-        <span aria-hidden className="text-text-muted">
-          —
+        <span
+          aria-hidden
+          className="inline-flex size-3.5 items-center justify-center rounded-full border border-text-muted text-[9px] font-semibold text-text-muted"
+        >
+          S
         </span>
-        <Trans>No rule</Trans>
+        <Trans>Source only</Trans>
+      </span>
+      <span className="inline-flex items-center gap-1.5">
+        <XIcon aria-hidden className="size-3.5 text-text-muted" />
+        <Trans>No source</Trans>
       </span>
     </div>
   )
@@ -872,7 +895,7 @@ function CoverageRow({
   totalColumnCount: number
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
-  onSourceDrillIn?: (jurisdiction: RuleJurisdiction) => void
+  onSourceDrillIn?: (jurisdiction: RuleJurisdiction, domain?: string) => void
   onEntityDrillIn?: (
     jurisdiction: RuleJurisdiction,
     entity: CoverageEntityColumn,
@@ -883,13 +906,16 @@ function CoverageRow({
   const active = row.activeRuleCount ?? row.verifiedRuleCount
   const pending = row.pendingReviewCount ?? row.candidateCount
   const sourceCount = row.sourceCount
+  const missingSourceCount = row.missingSourceCount
   const sourceDescriptor = needsAttention
     ? t`Source needs attention`
-    : pending > 0
-      ? t`Official sources — pending rules`
-      : active > 0
-        ? t`Practice review required`
-        : t`Awaiting sources`
+    : missingSourceCount > 0
+      ? t`${missingSourceCount} source gaps`
+      : pending > 0
+        ? t`Official sources — pending rules`
+        : active > 0
+          ? t`Practice review required`
+          : t`Awaiting sources`
 
   // Row click toggles expansion. Cell-level buttons inside the row
   // still drill — they stopPropagation in their own onClick. The
@@ -1002,18 +1028,23 @@ function CoverageRow({
               type="button"
               onClick={(event) => {
                 event.stopPropagation()
-                onSourceDrillIn(row.jurisdiction)
+                onSourceDrillIn(row.jurisdiction, row.missingSourceDomains?.[0])
               }}
               aria-label={t`Open sources for ${jurisdictionLabel(row.jurisdiction)}`}
               className="group/source inline-flex items-center gap-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
-              <SourceCountBadge count={sourceCount} attention={needsAttention} />
+              <SourceCountBadge
+                count={sourceCount}
+                attention={needsAttention || missingSourceCount > 0}
+              />
               <span
                 className={cn(
                   'text-sm group-hover/source:underline',
                   needsAttention
                     ? 'font-medium text-severity-medium'
-                    : 'text-text-secondary group-hover/source:text-text-accent',
+                    : missingSourceCount > 0
+                      ? 'font-medium text-severity-medium'
+                      : 'text-text-secondary group-hover/source:text-text-accent',
                 )}
               >
                 {sourceDescriptor}
@@ -1025,7 +1056,10 @@ function CoverageRow({
             </button>
           ) : (
             <div className="inline-flex items-center gap-2">
-              <SourceCountBadge count={sourceCount} attention={needsAttention} />
+              <SourceCountBadge
+                count={sourceCount}
+                attention={needsAttention || missingSourceCount > 0}
+              />
               <span className="text-sm text-text-secondary">{sourceDescriptor}</span>
             </div>
           )}
@@ -1036,9 +1070,10 @@ function CoverageRow({
         review state into a REVIEW pill instead of a dot fixes the
         a11y gap and the asymmetry the critique flagged. */}
         {visibleEntityColumns.map(({ col, fullName }) => {
-          const state = row.entityCoverage[col]
-          const drillable = state !== 'none' && Boolean(onEntityDrillIn)
-          const cellInner = <EntityCellContent state={state} />
+          const sourceState = row.entitySourceCoverage[col]
+          const state = coverageCellStateFromSourceState(sourceState, row.entityCoverage[col])
+          const drillable = state !== null && Boolean(onEntityDrillIn)
+          const cellInner = <EntityCellContent state={sourceState} />
           return (
             <TableCell key={col} className="py-2 text-center">
               {drillable ? (
@@ -1048,7 +1083,7 @@ function CoverageRow({
                     event.stopPropagation()
                     onEntityDrillIn?.(row.jurisdiction, col, state)
                   }}
-                  aria-label={t`Open ${fullName} rules for ${jurisdictionLabel(row.jurisdiction)} — ${labelForState(state)}`}
+                  aria-label={t`Open ${fullName} rules for ${jurisdictionLabel(row.jurisdiction)} — ${labelForSourceState(sourceState)}`}
                   className="inline-flex items-center justify-center rounded outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   {cellInner}
@@ -1467,8 +1502,19 @@ function SourceCountBadge({ count, attention }: { count: number; attention?: boo
  *   - 'review' → orange alert triangle
  *   - 'none' (no rule) → muted em dash
  */
-function EntityCellContent({ state }: { state: CoverageCellState }) {
-  if (state === 'active') {
+function coverageCellStateFromSourceState(
+  sourceState: RuleSourceCoverageStatus,
+  fallback: CoverageCellState,
+): CoverageCellState | null {
+  if (sourceState === 'rule_active') return 'active'
+  if (sourceState === 'rule_pending_review') return 'review'
+  if (sourceState === 'source_registered' || sourceState === 'source_verified') return null
+  if (sourceState === 'missing_source') return null
+  return fallback === 'none' ? null : fallback
+}
+
+function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
+  if (state === 'rule_active') {
     return (
       <span
         title="Active rule for this entity"
@@ -1479,7 +1525,7 @@ function EntityCellContent({ state }: { state: CoverageCellState }) {
       </span>
     )
   }
-  if (state === 'review') {
+  if (state === 'rule_pending_review') {
     return (
       <span
         title="Pending review for this entity"
@@ -1490,18 +1536,47 @@ function EntityCellContent({ state }: { state: CoverageCellState }) {
       </span>
     )
   }
+  if (state === 'source_registered' || state === 'source_verified') {
+    return (
+      <span
+        title="Official source registered; rule still needs review"
+        className="inline-flex size-5 items-center justify-center"
+      >
+        <span
+          aria-hidden
+          className="inline-flex size-4 items-center justify-center rounded-full border border-text-muted text-[10px] font-semibold text-text-muted"
+        >
+          S
+        </span>
+        <span className="sr-only">Source only</span>
+      </span>
+    )
+  }
+  if (state === 'missing_source') {
+    return (
+      <span
+        title="No official source registered"
+        className="inline-flex size-5 items-center justify-center"
+      >
+        <XIcon aria-hidden className="size-4 text-text-muted" />
+        <span className="sr-only">No source</span>
+      </span>
+    )
+  }
   return (
     <span
-      title="No rule for this entity"
+      title="Not applicable"
       className="inline-flex size-5 items-center justify-center text-sm text-text-muted"
     >
-      —<span className="sr-only">No rule</span>
+      —<span className="sr-only">Not applicable</span>
     </span>
   )
 }
 
-function labelForState(state: CoverageCellState): string {
-  if (state === 'active') return 'active'
-  if (state === 'review') return 'review'
-  return 'no rule'
+function labelForSourceState(state: RuleSourceCoverageStatus): string {
+  if (state === 'rule_active') return 'active'
+  if (state === 'rule_pending_review') return 'review'
+  if (state === 'source_registered' || state === 'source_verified') return 'source only'
+  if (state === 'missing_source') return 'no source'
+  return 'not applicable'
 }

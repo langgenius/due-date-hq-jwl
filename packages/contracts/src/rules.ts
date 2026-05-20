@@ -95,12 +95,55 @@ export const SourceCadenceSchema = z.enum(['daily', 'weekly', 'monthly', 'quarte
 export const SourcePrioritySchema = z.enum(['critical', 'high', 'medium', 'low'])
 export const SourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 
+export const RuleSourceDomainSchema = z.enum([
+  'individual_income_return',
+  'individual_estimated_tax',
+  'fiduciary_income_return',
+  'business_income_return',
+  'business_estimated_tax',
+  'pass_through_entity_return',
+  'franchise_or_entity_tax',
+  'sales_use_tax',
+  'withholding',
+  'ui_wage_report',
+])
+export type RuleSourceDomain = z.infer<typeof RuleSourceDomainSchema>
+
+export const RuleSourceCoverageStatusSchema = z.enum([
+  'missing_source',
+  'source_registered',
+  'source_verified',
+  'rule_pending_review',
+  'rule_active',
+  'not_applicable',
+])
+export type RuleSourceCoverageStatus = z.infer<typeof RuleSourceCoverageStatusSchema>
+
 export const RuleNotificationChannelSchema = z.enum([
   'source_change',
   'practice_rule_review',
   'practice_rule_preview',
   'user_deadline_reminder',
 ])
+
+export const EntityApplicabilitySchema = z.enum([
+  'llc',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'sole_prop',
+  'trust',
+  'individual',
+  'any_business',
+])
+
+export const RuleEvidenceAuthorityRoleSchema = z.enum([
+  'basis',
+  'cross_check',
+  'watch',
+  'early_warning',
+])
+export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
 
 export const RuleSourceSchema = z.object({
   id: z.string().min(1),
@@ -113,21 +156,13 @@ export const RuleSourceSchema = z.object({
   priority: SourcePrioritySchema,
   healthStatus: SourceHealthStatusSchema,
   isEarlyWarning: z.boolean(),
+  domains: z.array(RuleSourceDomainSchema).min(1),
+  entityApplicability: z.array(EntityApplicabilitySchema).min(1),
+  authorityRole: RuleEvidenceAuthorityRoleSchema,
   notificationChannels: z.array(RuleNotificationChannelSchema),
   lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 export type RuleSource = z.infer<typeof RuleSourceSchema>
-
-export const EntityApplicabilitySchema = z.enum([
-  'llc',
-  'partnership',
-  's_corp',
-  'c_corp',
-  'sole_prop',
-  'trust',
-  'individual',
-  'any_business',
-])
 
 export const RuleGenerationEntitySchema = EntityTypeSchema
 
@@ -252,13 +287,6 @@ export const RuleQualityChecklistSchema = z.object({
   exceptionChannel: z.boolean(),
 })
 
-export const RuleEvidenceAuthorityRoleSchema = z.enum([
-  'basis',
-  'cross_check',
-  'watch',
-  'early_warning',
-])
-export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
 export const RuleEvidenceLocatorSchema = z.object({
   kind: z.enum(['html', 'pdf', 'table', 'api', 'email_subscription']),
   heading: z.string().min(1).optional(),
@@ -321,6 +349,10 @@ export const RuleCoverageRowSchema = z.object({
   verifiedRuleCount: z.number().int().nonnegative(),
   candidateCount: z.number().int().nonnegative(),
   highPrioritySourceCount: z.number().int().nonnegative(),
+  missingSourceCount: z.number().int().nonnegative(),
+  requiredSourceCount: z.number().int().nonnegative(),
+  missingSourceDomains: z.array(RuleSourceDomainSchema).optional(),
+  sourceCoverageStatus: RuleSourceCoverageStatusSchema,
   activeRuleCount: z.number().int().nonnegative().optional(),
   pendingReviewCount: z.number().int().nonnegative().optional(),
   rejectedRuleCount: z.number().int().nonnegative().optional(),
@@ -334,6 +366,15 @@ export const RuleCoverageRowSchema = z.object({
     sole_prop: z.enum(['active', 'review', 'none']),
     individual: z.enum(['active', 'review', 'none']),
     trust: z.enum(['active', 'review', 'none']),
+  }),
+  entitySourceCoverage: z.object({
+    llc: RuleSourceCoverageStatusSchema,
+    partnership: RuleSourceCoverageStatusSchema,
+    s_corp: RuleSourceCoverageStatusSchema,
+    c_corp: RuleSourceCoverageStatusSchema,
+    sole_prop: RuleSourceCoverageStatusSchema,
+    individual: RuleSourceCoverageStatusSchema,
+    trust: RuleSourceCoverageStatusSchema,
   }),
 })
 export type RuleCoverageRow = z.infer<typeof RuleCoverageRowSchema>

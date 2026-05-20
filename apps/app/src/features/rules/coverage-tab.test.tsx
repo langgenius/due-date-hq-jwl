@@ -92,6 +92,10 @@ const coverageRows: RuleCoverageRow[] = [
     verifiedRuleCount: 2,
     candidateCount: 1,
     highPrioritySourceCount: 1,
+    missingSourceCount: 2,
+    requiredSourceCount: 10,
+    sourceCoverageStatus: 'missing_source',
+    missingSourceDomains: ['withholding'],
     entityCoverage: {
       llc: 'review',
       partnership: 'review',
@@ -101,6 +105,15 @@ const coverageRows: RuleCoverageRow[] = [
       individual: 'review',
       trust: 'none',
     },
+    entitySourceCoverage: {
+      llc: 'rule_pending_review',
+      partnership: 'rule_pending_review',
+      s_corp: 'rule_active',
+      c_corp: 'rule_active',
+      sole_prop: 'source_registered',
+      individual: 'rule_pending_review',
+      trust: 'missing_source',
+    },
   },
   {
     jurisdiction: 'CA',
@@ -108,6 +121,10 @@ const coverageRows: RuleCoverageRow[] = [
     verifiedRuleCount: 2,
     candidateCount: 1,
     highPrioritySourceCount: 1,
+    missingSourceCount: 0,
+    requiredSourceCount: 10,
+    sourceCoverageStatus: 'rule_pending_review',
+    missingSourceDomains: [],
     entityCoverage: {
       llc: 'review',
       partnership: 'review',
@@ -116,6 +133,15 @@ const coverageRows: RuleCoverageRow[] = [
       sole_prop: 'review',
       individual: 'review',
       trust: 'none',
+    },
+    entitySourceCoverage: {
+      llc: 'rule_pending_review',
+      partnership: 'rule_pending_review',
+      s_corp: 'rule_active',
+      c_corp: 'rule_active',
+      sole_prop: 'source_registered',
+      individual: 'rule_pending_review',
+      trust: 'source_registered',
     },
   },
 ]

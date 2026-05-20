@@ -1417,6 +1417,9 @@ describe('@duedatehq/contracts', () => {
       priority: 'critical',
       healthStatus: 'healthy',
       isEarlyWarning: false,
+      domains: ['individual_income_return', 'individual_estimated_tax'],
+      entityApplicability: ['individual', 'sole_prop'],
+      authorityRole: 'basis',
       notificationChannels: ['source_change', 'practice_rule_preview'],
       lastReviewedOn: '2026-04-27',
     })
@@ -1454,6 +1457,9 @@ describe('@duedatehq/contracts', () => {
         url: 'https://www.tax.ny.gov/help/subscribe.htm',
         sourceType: 'subscription',
         acquisitionMethod: 'email_subscription',
+        domains: ['business_income_return'],
+        entityApplicability: ['any_business'],
+        authorityRole: 'watch',
       }).sourceType,
     ).toBe('subscription')
 
@@ -1683,6 +1689,10 @@ describe('@duedatehq/contracts', () => {
         verifiedRuleCount: 5,
         candidateCount: 0,
         highPrioritySourceCount: 5,
+        missingSourceCount: 1,
+        requiredSourceCount: 12,
+        missingSourceDomains: ['fiduciary_income_return'],
+        sourceCoverageStatus: 'missing_source',
         entityCoverage: {
           llc: 'review',
           partnership: 'none',
@@ -1691,6 +1701,15 @@ describe('@duedatehq/contracts', () => {
           sole_prop: 'review',
           individual: 'review',
           trust: 'none',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_pending_review',
+          partnership: 'source_verified',
+          s_corp: 'rule_active',
+          c_corp: 'rule_active',
+          sole_prop: 'source_registered',
+          individual: 'rule_pending_review',
+          trust: 'missing_source',
         },
       }).jurisdiction,
     ).toBe('CA')

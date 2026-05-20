@@ -17,10 +17,12 @@ import {
 import { createAI } from '@duedatehq/ai'
 import {
   findRuleById,
+  listRequiredSourceCoverage,
   listObligationRules,
   listRuleSources,
   previewObligationsFromRules,
   type ObligationRule as CoreObligationRule,
+  type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
   type RuleJurisdiction,
 } from '@duedatehq/core/rules'
@@ -65,6 +67,8 @@ type CandidateSourceSignal = PulseSourceSignalRow | null
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
   return {
     ...source,
+    domains: [...source.domains],
+    entityApplicability: [...source.entityApplicability],
     notificationChannels: [...source.notificationChannels],
   }
 }
@@ -145,6 +149,18 @@ function emptyEntityCoverage(): RuleCoverageRow['entityCoverage'] {
   }
 }
 
+function emptyEntitySourceCoverage(): RuleCoverageRow['entitySourceCoverage'] {
+  return {
+    llc: 'not_applicable',
+    partnership: 'not_applicable',
+    s_corp: 'not_applicable',
+    c_corp: 'not_applicable',
+    sole_prop: 'not_applicable',
+    individual: 'not_applicable',
+    trust: 'not_applicable',
+  }
+}
+
 function mergeCoverageState(
   current: RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']],
   next: RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']],
@@ -154,6 +170,24 @@ function mergeCoverageState(
   return 'none'
 }
 
+function mergeSourceCoverageState(
+  current: RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+  next: RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+): RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']] {
+  const rank: Record<
+    RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+    number
+  > = {
+    not_applicable: 0,
+    missing_source: 1,
+    source_registered: 2,
+    source_verified: 3,
+    rule_pending_review: 4,
+    rule_active: 5,
+  }
+  return rank[next] > rank[current] ? next : current
+}
+
 function coverageStateForRule(
   rule: ObligationRule,
 ): RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']] | null {
@@ -161,6 +195,18 @@ function coverageStateForRule(
     return rule.dueDateLogic.kind === 'source_defined_calendar' ? 'review' : 'active'
   }
   if (rule.status === 'candidate' || rule.status === 'pending_review') return 'review'
+  return null
+}
+
+function sourceCoverageStateForRule(
+  rule: ObligationRule,
+): RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']] | null {
+  if (rule.status === 'active') {
+    return rule.dueDateLogic.kind === 'source_defined_calendar'
+      ? 'rule_pending_review'
+      : 'rule_active'
+  }
+  if (rule.status === 'candidate' || rule.status === 'pending_review') return 'rule_pending_review'
   return null
 }
 
@@ -1429,12 +1475,19 @@ const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context
 
 const coverage = os.rules.coverage.handler(async ({ context }) => {
   const rows = await listPracticeRules({ context, includeCandidates: true })
+  const sourceCellsByJurisdiction = listRequiredSourceCoverage().reduce((map, cell) => {
+    const list = map.get(cell.jurisdiction) ?? []
+    list.push(cell)
+    map.set(cell.jurisdiction, list)
+    return map
+  }, new Map<RuleJurisdiction, RequiredSourceCoverageCell[]>())
   const sourceCoverage = listRuleSources().reduce<RuleCoverageRowAccumulator>((acc, source) => {
     const current = acc.get(source.jurisdiction) ?? {
       jurisdiction: source.jurisdiction,
       sourceCount: 0,
       highPrioritySourceCount: 0,
       entityCoverage: emptyEntityCoverage(),
+      entitySourceCoverage: emptyEntitySourceCoverage(),
     }
     current.sourceCount += 1
     if (source.priority === 'critical' || source.priority === 'high') {
@@ -1453,26 +1506,70 @@ const coverage = os.rules.coverage.handler(async ({ context }) => {
     const rejectedRuleCount = jurisdictionRules.filter((rule) => rule.status === 'rejected').length
     const archivedRuleCount = jurisdictionRules.filter((rule) => rule.status === 'archived').length
     const entityCoverage = emptyEntityCoverage()
+    const entitySourceCoverage = emptyEntitySourceCoverage()
+    const sourceCells = sourceCellsByJurisdiction.get(row.jurisdiction) ?? []
+    const requiredSourceCount = sourceCells.filter(
+      (cell) => cell.status !== 'not_applicable',
+    ).length
+    const missingSourceCells = sourceCells.filter((cell) => cell.status === 'missing_source')
+    const missingSourceCount = missingSourceCells.length
+    const missingSourceDomains = Array.from(new Set(missingSourceCells.map((cell) => cell.domain)))
+
+    for (const cell of sourceCells) {
+      entitySourceCoverage[cell.entity] = mergeSourceCoverageState(
+        entitySourceCoverage[cell.entity],
+        cell.status,
+      )
+    }
+
     for (const rule of jurisdictionRules) {
       const state = coverageStateForRule(rule)
-      if (!state) continue
+      const sourceState = sourceCoverageStateForRule(rule)
       for (const entity of COVERAGE_ENTITY_COLUMNS) {
         if (!ruleCoversCoverageEntity(rule, entity)) continue
-        entityCoverage[entity] = mergeCoverageState(entityCoverage[entity], state)
+        if (state) {
+          entityCoverage[entity] = mergeCoverageState(entityCoverage[entity], state)
+        }
+        if (sourceState) {
+          entitySourceCoverage[entity] = mergeSourceCoverageState(
+            entitySourceCoverage[entity],
+            sourceState,
+          )
+        }
       }
     }
+    const applicableSourceStates = new Set(
+      Object.values(entitySourceCoverage).filter((state) => state !== 'not_applicable'),
+    )
+    const sourceCoverageStatus =
+      requiredSourceCount === 0
+        ? 'not_applicable'
+        : missingSourceCount > 0
+          ? 'missing_source'
+          : applicableSourceStates.has('rule_pending_review')
+            ? 'rule_pending_review'
+            : applicableSourceStates.has('rule_active')
+              ? 'rule_active'
+              : applicableSourceStates.has('source_registered')
+                ? 'source_registered'
+                : 'source_verified'
     return {
       jurisdiction: row.jurisdiction,
       sourceCount: row.sourceCount,
       verifiedRuleCount: activeRuleCount,
       candidateCount: pendingReviewCount,
       highPrioritySourceCount: row.highPrioritySourceCount,
+      missingSourceCount,
+      requiredSourceCount,
+      missingSourceDomains,
+      sourceCoverageStatus,
       activeRuleCount,
       pendingReviewCount,
       rejectedRuleCount,
       archivedRuleCount,
       customRuleCount: 0,
       entityCoverage,
+      entitySourceCoverage,
     }
   })
 })
@@ -1484,6 +1581,7 @@ type RuleCoverageRowAccumulator = Map<
     sourceCount: number
     highPrioritySourceCount: number
     entityCoverage: RuleCoverageRow['entityCoverage']
+    entitySourceCoverage: RuleCoverageRow['entitySourceCoverage']
   }
 >
 

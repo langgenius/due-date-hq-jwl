@@ -5,20 +5,25 @@ import {
   findRuleById,
   isTaxYearDrivenRule,
   listObligationRules,
+  listRequiredSourceCoverage,
   listRuleSources,
+  listSourceCoverageGaps,
   listSourcesByNotificationChannel,
   MVP_RULE_JURISDICTIONS,
   normalizeRuleTaxTypeCandidates,
   OBLIGATION_RULES,
   previewObligationsFromRules,
   RULE_SOURCES,
+  sourceCoversRuleDomain,
   STATE_RULE_JURISDICTIONS,
 } from './index'
 
 const LEGACY_VERIFIED_RULE_JURISDICTIONS = new Set(['FED', 'CA', 'NY', 'TX', 'FL', 'WA'])
+const COMPLETED_SOURCE_PACK_JURISDICTIONS = new Set(['AL', 'CA', 'NY', 'TX', 'FL', 'WA'])
 const OFFICIAL_NON_GOV_HOSTS = new Set([
   'www.irs.gov',
   'www.fema.gov',
+  'adol.alabama.gov',
   'floridarevenue.com',
   'www.floridajobs.org',
   'www.laworks.net',
@@ -28,14 +33,15 @@ const OFFICIAL_NON_GOV_HOSTS = new Set([
   'workforcewv.org',
   'uimn.org',
 ])
-const STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES = [
-  '_state_individual_income_tax',
-  '_state_individual_estimated_tax',
-] as const
+const STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES = ['_state_individual_income_tax'] as const
 const STATE_BUSINESS_CANDIDATE_TAX_TYPE_SUFFIXES = [
   '_state_business_income_tax',
   '_state_business_estimated_tax',
+  '_state_pte_composite_ptet',
   '_state_franchise_or_entity_tax',
+  '_state_sales_use_tax',
+  '_state_withholding_tax',
+  '_state_ui_wage_report',
 ] as const
 const IMPRECISE_INCOME_SOURCE_PATHS = new Set(['/', '/individuals', '/income-tax'])
 
@@ -79,6 +85,14 @@ describe('@duedatehq/core/rules', () => {
       )
       expect(['healthy', 'degraded']).toContain(source.healthStatus)
       expect(source.notificationChannels.length).toBeGreaterThan(0)
+      expect(source.domains.length, `${source.id} has no source domains`).toBeGreaterThan(0)
+      expect(
+        source.entityApplicability.length,
+        `${source.id} has no entity applicability`,
+      ).toBeGreaterThan(0)
+      expect(source.authorityRole, `${source.id} has no authority role`).toMatch(
+        /^(basis|cross_check|watch|early_warning)$/,
+      )
     }
   })
 
@@ -187,6 +201,7 @@ describe('@duedatehq/core/rules', () => {
     for (const rule of OBLIGATION_RULES) {
       if (rule.status !== 'candidate') continue
 
+      if (COMPLETED_SOURCE_PACK_JURISDICTIONS.has(rule.jurisdiction)) continue
       expect(
         coarseCandidateTaxTypeFragments.some((fragment) => rule.taxType.endsWith(fragment)),
         `${rule.id} should wait for a precise domain source before generation`,
@@ -222,7 +237,8 @@ describe('@duedatehq/core/rules', () => {
             entity === 'llc' ||
             entity === 'partnership' ||
             entity === 's_corp' ||
-            entity === 'c_corp',
+            entity === 'c_corp' ||
+            entity === 'sole_prop',
         ),
       ),
     ).toBe(true)
@@ -233,8 +249,83 @@ describe('@duedatehq/core/rules', () => {
     expect(findRuleById('tx.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
       'tx.franchise_home',
     ])
+    expect(findRuleById('ca.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'ca.ftb_business_due_dates',
+    ])
+    expect(findRuleById('ny.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'ny.tax_calendar.2026',
+    ])
+    expect(findRuleById('tx.sales_use_tax.candidate.2026')?.sourceIds).toEqual(['tx.sales_use_tax'])
+    expect(findRuleById('fl.business_income_return.candidate.2026')?.entityApplicability).toEqual([
+      'c_corp',
+    ])
+    expect(findRuleById('wa.sales_use_tax.candidate.2026')?.sourceIds).toEqual([
+      'wa.excise_due_dates_2026',
+    ])
     expect(findRuleById('ma.business_income_return.candidate.2026')).toBeUndefined()
     expect(findRuleById('ma.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+  })
+
+  it('tracks Alabama source coverage separately from active rule coverage', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    const individualSource = sourcesById.get('al.income_tax')
+    const businessRule = findRuleById('al.business_income_return.candidate.2026')
+    const individualRule = findRuleById('al.individual_income_return.candidate.2026')
+
+    expect(individualSource?.domains).toEqual(['individual_income_return'])
+    expect(individualSource?.entityApplicability).toEqual(['individual'])
+    expect(individualRule?.sourceIds).toEqual(['al.income_tax'])
+    expect(businessRule?.sourceIds).toEqual(['al.due_dates'])
+    expect(
+      individualSource && businessRule
+        ? sourceCoversRuleDomain(individualSource, businessRule)
+        : false,
+    ).toBe(false)
+
+    const alGaps = listSourceCoverageGaps('AL')
+    expect(alGaps).toEqual([])
+
+    const alCoverage = listRequiredSourceCoverage('AL')
+    expect(
+      alCoverage.find(
+        (cell) => cell.domain === 'fiduciary_income_return' && cell.entity === 'trust',
+      )?.status,
+    ).toBe('source_verified')
+    expect(
+      alCoverage.find((cell) => cell.domain === 'withholding' && cell.entity === 'llc')?.status,
+    ).toBe('source_verified')
+    expect(findRuleById('al.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'al.ui_wage_report',
+    ])
+  })
+
+  it('treats no-tax source matrix cells as not applicable for completed source packs', () => {
+    for (const jurisdiction of ['CA', 'NY', 'TX', 'FL', 'WA'] as const) {
+      expect(listSourceCoverageGaps(jurisdiction), `${jurisdiction} should have no gaps`).toEqual(
+        [],
+      )
+    }
+
+    const txCoverage = listRequiredSourceCoverage('TX')
+    expect(
+      txCoverage.find(
+        (cell) => cell.domain === 'individual_income_return' && cell.entity === 'individual',
+      )?.status,
+    ).toBe('not_applicable')
+    expect(
+      txCoverage.find((cell) => cell.domain === 'withholding' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    expect(
+      txCoverage.find((cell) => cell.domain === 'sales_use_tax' && cell.entity === 'llc')?.status,
+    ).toBe('source_verified')
+    expect(
+      txCoverage.find((cell) => cell.domain === 'ui_wage_report' && cell.entity === 'llc')?.status,
+    ).toBe('source_registered')
+
+    expect(findRuleById('tx.individual_income_return.candidate.2026')).toBeUndefined()
+    expect(findRuleById('tx.withholding.candidate.2026')).toBeUndefined()
+    expect(findRuleById('fl.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('wa.business_income_return.candidate.2026')).toBeUndefined()
   })
 
   it('covers every US jurisdiction with official sources and safe rule states', () => {

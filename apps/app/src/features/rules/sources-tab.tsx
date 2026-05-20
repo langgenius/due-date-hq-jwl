@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
@@ -45,8 +46,13 @@ const EMPTY_SOURCE_ROWS: RuleSource[] = []
 
 export function SourcesTab() {
   const { t } = useLingui()
+  const [searchParams] = useSearchParams()
+  const domainFilter = searchParams.get('domain')
   const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
-  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>([])
+  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>(() => {
+    const jurisdiction = searchParams.get('jur')
+    return jurisdiction ? [jurisdiction] : []
+  })
   const [sourceTypeFilters, setSourceTypeFilters] = useState<string[]>([])
   const [cadenceFilters, setCadenceFilters] = useState<string[]>([])
   const [methodFilters, setMethodFilters] = useState<string[]>([])
@@ -77,9 +83,18 @@ export function SourcesTab() {
           matchesSelected(source.jurisdiction, jurisdictionFilters) &&
           matchesSelected(source.sourceType, sourceTypeFilters) &&
           matchesSelected(source.cadence, cadenceFilters) &&
-          matchesSelected(source.acquisitionMethod, methodFilters),
+          matchesSelected(source.acquisitionMethod, methodFilters) &&
+          (!domainFilter || source.domains.some((domain) => domain === domainFilter)),
       ),
-    [cadenceFilters, healthFilter, jurisdictionFilters, methodFilters, rows, sourceTypeFilters],
+    [
+      cadenceFilters,
+      domainFilter,
+      healthFilter,
+      jurisdictionFilters,
+      methodFilters,
+      rows,
+      sourceTypeFilters,
+    ],
   )
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / SOURCE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, pageCount - 1)
