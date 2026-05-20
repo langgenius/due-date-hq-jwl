@@ -3558,7 +3558,7 @@ function ObligationQueueDetailDrawer({
 
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(880px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] overflow-y-auto">
+      <SheetContent className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
         <SheetHeader className="border-b border-divider-subtle">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -3694,6 +3694,29 @@ function ObligationQueueDetailDrawer({
               <TabsContent value="readiness">
                 <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
                   <div className="grid gap-3">
+                    {/* Three-class deadline display (PRD §7.2 + §3.2):
+                        statutory, firm-internal, and client-action
+                        dates are three distinct concepts that must
+                        stay separate. The drawer header surfaces the
+                        first two (in the metadata strip). The chip
+                        below surfaces the third when a readiness
+                        request is outstanding. */}
+                    {latestRequest && latestRequest.status !== 'revoked' ? (
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <Badge
+                          variant="outline"
+                          className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                        >
+                          <Trans>
+                            Client response due{' '}
+                            {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                          </Trans>
+                        </Badge>
+                        <span className="text-text-tertiary">
+                          <Trans>· firm-set deadline for this readiness request</Trans>
+                        </span>
+                      </div>
+                    ) : null}
                     {taxYearProfileEditable ? (
                       <div className="grid gap-3 rounded-lg border border-divider-regular p-3">
                         <div className="flex items-center justify-between gap-3">
@@ -3969,8 +3992,7 @@ function ObligationQueueDetailDrawer({
                 </div>
               </TabsContent>
               <TabsContent value="extension">
-                <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-                  <div className="grid gap-3">
+                <div className="grid gap-3">
                     <AlertPanel>
                       <Trans>
                         This saves the firm's internal extension plan for this obligation. The
@@ -4027,47 +4049,39 @@ function ObligationQueueDetailDrawer({
                         setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
                       }
                     />
-                    <Tooltip open={extensionSaveSuccessOpen}>
-                      <TooltipTrigger
-                        render={
-                          <span className="inline-flex w-fit">
-                            <Button
-                              className="w-fit"
-                              onClick={saveExtensionDecision}
-                              disabled={saveExtensionPlanDisabled}
-                            >
-                              <Trans>Save Extension</Trans>
-                            </Button>
-                          </span>
-                        }
-                      />
-                      <TooltipContent>
-                        <Trans>Extension plan saved</Trans>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <div className="grid content-start gap-3 rounded-lg border border-divider-regular p-3">
-                    <DetailRow
-                      label={<Trans>Current status</Trans>}
-                      value={statusLabels[row.status]}
-                    />
-                    <DetailRow
-                      label={<Trans>Internal target date</Trans>}
-                      value={
-                        row.extensionInternalTargetDate
-                          ? formatDate(row.extensionInternalTargetDate)
-                          : t`Not set`
-                      }
-                    />
-                    <DetailRow
-                      label={<Trans>Decided at</Trans>}
-                      value={
-                        row.extensionDecidedAt
-                          ? formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)
-                          : t`Not decided`
-                      }
-                    />
-                  </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Tooltip open={extensionSaveSuccessOpen}>
+                        <TooltipTrigger
+                          render={
+                            <span className="inline-flex w-fit">
+                              <Button
+                                className="w-fit"
+                                onClick={saveExtensionDecision}
+                                disabled={saveExtensionPlanDisabled}
+                              >
+                                <Trans>Save Extension</Trans>
+                              </Button>
+                            </span>
+                          }
+                        />
+                        <TooltipContent>
+                          <Trans>Extension plan saved</Trans>
+                        </TooltipContent>
+                      </Tooltip>
+                      {/* Decided-at hint replaces the prior right-sidebar
+                          status block. Current status + internal target
+                          date were duplicates of the drawer header + the
+                          form fields above; only "Decided at" was unique
+                          info, so it lives here as a quiet footnote. */}
+                      {row.extensionDecidedAt ? (
+                        <span className="text-xs text-text-tertiary">
+                          <Trans>
+                            Last decided{' '}
+                            {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
+                          </Trans>
+                        </span>
+                      ) : null}
+                    </div>
                 </div>
               </TabsContent>
               <TabsContent value="risk">
@@ -4343,6 +4357,31 @@ function ObligationQueueDetailDrawer({
             </Tabs>
           )}
         </div>
+        {row ? (
+          <div className="sticky bottom-0 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-default px-6 py-3">
+            <span className="text-xs text-text-tertiary">
+              {/* Compact provenance line: when was the row last touched
+                  and by what action. Reuses formatDateTimeWithTimezone
+                  for consistency with the rest of the drawer. */}
+              <Trans>
+                Last updated {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+              </Trans>
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link to={`/clients/${row.clientId}`} />}
+              >
+                <ExternalLinkIcon data-icon="inline-start" />
+                <Trans>Open client detail</Trans>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <Trans>Close</Trans>
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </SheetContent>
     </Sheet>
   )
