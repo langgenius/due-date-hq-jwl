@@ -23,6 +23,7 @@ import {
   CalendarDaysIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
+  ClipboardListIcon,
   Columns3Icon,
   CopyIcon,
   DownloadIcon,
@@ -3728,12 +3729,14 @@ function ObligationQueueDetailDrawer({
                       </div>
                     ) : null}
                     {taxYearProfileEditable ? (
-                      <div className="grid gap-3 rounded-lg border border-divider-regular p-3">
+                      <div className="grid gap-2 border-t border-divider-subtle pt-3">
                         <div className="flex items-center justify-between gap-3">
-                          <h3 className="text-sm font-medium text-text-primary">
+                          <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
                             <Trans>Tax year profile</Trans>
                           </h3>
-                          <Badge variant="outline">{taxYearProfileSummary}</Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            {taxYearProfileSummary}
+                          </Badge>
                         </div>
                         <div className="grid gap-3 sm:grid-cols-[180px_1fr_auto]">
                           <Select
@@ -5173,12 +5176,14 @@ function ObligationForwardingPanel({ row }: { row: ObligationQueueRow }) {
   )
 }
 
-// Top-of-Readiness-tab overview. Answers "what does readiness mean
-// for this row?" in one read: status pill, request state, items
-// counter, and a one-line explainer pulled from PDF §3.2 ("the biggest
-// deadline risk isn't 'CPA doesn't know the date,' it's 'CPA doesn't
-// have enough info to finish the return'"). Replaces the prior right
-// sidebar which scattered the same info across separate rows.
+// Top-of-Readiness-tab overview. Answers in one read:
+//   1. IS THIS FILING READY? (binary headline — "Ready to prep" or
+//      "Not ready" — the most important signal on the tab)
+//   2. WHY (the gap: items received vs. expected, or "no checklist yet")
+//   3. WHAT does "ready" mean (one-line explainer pulled from PDF §3.2)
+//
+// Replaces the prior side-by-side label-and-counter. The headline is
+// the H2 of the tab; the rest is small support text below it.
 function ReadinessOverview({
   row,
   latestRequest,
@@ -5189,45 +5194,64 @@ function ReadinessOverview({
   checklistCount: number
 }) {
   const { t } = useLingui()
-  const readinessLabel: Record<typeof row.readiness, string> = {
-    ready: t`Ready to prep`,
-    waiting: t`Waiting on client`,
-    needs_review: t`Needs your review`,
-  }
-  const readinessVariant: Record<typeof row.readiness, 'success' | 'warning' | 'info'> = {
-    ready: 'success',
-    waiting: 'warning',
-    needs_review: 'info',
-  }
+  const isReady = row.readiness === 'ready'
   const responseCount = latestRequest?.responses.length ?? 0
+  const readyResponseCount =
+    latestRequest?.responses.filter((r) => r.status === 'ready').length ?? 0
+  // The status sentence answers "is this filing ready?" binary first,
+  // then "why" — what's missing or what's in flight.
+  const headline = isReady ? t`Ready to prep` : t`Not ready`
+  const subline: string = (() => {
+    if (isReady) {
+      if (latestRequest) return t`Client confirmed all ${checklistCount} items.`
+      return t`Materials on hand — no client request was needed.`
+    }
+    if (row.readiness === 'needs_review') {
+      return t`Client responded — preparer must review.`
+    }
+    if (latestRequest && latestRequest.status !== 'revoked') {
+      const outstanding = checklistCount - readyResponseCount
+      return t`${outstanding} of ${checklistCount} items still outstanding from client.`
+    }
+    if (checklistCount > 0) {
+      return t`${checklistCount} items drafted — checklist hasn't been sent yet.`
+    }
+    return t`No checklist drafted yet. Generate or add items below.`
+  })()
   return (
-    <div className="grid gap-2 rounded-lg border border-divider-regular bg-background-section p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={readinessVariant[row.readiness]} className="text-[10px] uppercase tracking-wide">
-          {readinessLabel[row.readiness]}
-        </Badge>
-        {latestRequest ? (
-          <span className="text-xs text-text-secondary">
-            <Trans>
-              {responseCount} of {checklistCount} responded
-            </Trans>
-          </span>
-        ) : checklistCount > 0 ? (
-          <span className="text-xs text-text-secondary">
-            <Trans>{checklistCount} items drafted · not yet sent</Trans>
-          </span>
-        ) : (
-          <span className="text-xs text-text-tertiary">
-            <Trans>No checklist drafted yet.</Trans>
-          </span>
+    <div className="flex items-start gap-3 py-2">
+      <span
+        aria-hidden
+        className={cn(
+          'mt-1 grid size-6 shrink-0 place-items-center rounded-full',
+          isReady ? 'bg-state-success-solid' : 'bg-background-subtle border border-divider-deep',
         )}
+      >
+        {isReady ? (
+          <CheckCircle2Icon className="size-3.5 text-text-inverted" aria-hidden />
+        ) : (
+          <ClipboardListIcon className="size-3.5 text-text-secondary" aria-hidden />
+        )}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            'text-base font-semibold tracking-tight',
+            isReady ? 'text-text-success' : 'text-text-primary',
+          )}
+        >
+          {headline}
+        </p>
+        <p className="text-xs leading-snug text-text-secondary">{subline}</p>
+        {responseCount > 0 ? (
+          <p className="mt-1 text-[11px] tabular-nums text-text-tertiary">
+            <Trans>
+              {readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total
+              responses
+            </Trans>
+          </p>
+        ) : null}
       </div>
-      <p className="text-[11px] leading-snug text-text-tertiary">
-        <Trans>
-          Readiness = can we start preparing this return? The biggest deadline risk isn't a missed
-          date; it's missing source docs. The checklist below is what you need from the client.
-        </Trans>
-      </p>
     </div>
   )
 }
@@ -5343,7 +5367,7 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   return (
     <dl
       aria-label={t`Statutory dates`}
-      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-2 lg:grid-cols-4"
+      className="mb-3 grid gap-x-4 gap-y-2 border-b border-divider-subtle pb-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <DetailRow label={<Trans>Internal deadline</Trans>} value={formatDate(row.currentDueDate)} />
       <DetailRow
@@ -5457,7 +5481,7 @@ function PathToFilingChevron({
   return (
     <div
       aria-label={t`Path to filing`}
-      className="mb-4 grid grid-cols-5 gap-2 rounded-lg border border-divider-regular p-3"
+      className="mb-4 grid grid-cols-5 gap-2"
     >
       {milestones.map((m, i) => (
         <div key={m.label} className="flex flex-col items-center gap-0.5">
@@ -5739,9 +5763,9 @@ function ObligationBlockerSection({
     [blockerCandidates, row.id],
   )
   return (
-    <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
+    <div className="grid gap-2 border-t border-divider-subtle pt-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-medium text-text-primary">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
           <Trans>Upstream dependency</Trans>
         </h3>
         {row.blockedByObligationInstanceId ? (
