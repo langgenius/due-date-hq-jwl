@@ -62,10 +62,10 @@ function ActionLine({
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
   const urgencyText = days < 0 ? t`${-days}d late` : days === 0 ? t`due today` : t`due in ${days}d`
-  // Red is reserved for genuinely critical (>7 days past due). Amber
-  // for the rest of "past due or due soon" window. Muted for future.
-  const urgencyTone =
-    days < -7 ? 'text-text-destructive' : days <= 2 ? 'text-text-warning' : 'text-text-tertiary'
+  // Per Q1 quiet register: red is reserved for genuinely critical
+  // (>7 days past due). Everything else flattens to secondary —
+  // amber was reading as caution-tape against the calm canvas.
+  const urgencyTone = days < -7 ? 'text-text-destructive' : 'text-text-secondary'
   return (
     <button
       type="button"
