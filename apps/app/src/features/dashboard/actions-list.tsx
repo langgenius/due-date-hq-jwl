@@ -13,14 +13,14 @@ import { formatCents } from '@/lib/utils'
 
 // Dashboard v2 "Actions this week" — the verb-led action queue that
 // replaces the legacy triage table when `?dashboard=v2` is on.
-// Layout philosophy (post 2026-05-20 redesign):
-//   [penalty pill] [due pill]  Client                    [chevron]
-//                              Task prompt
+// Layout philosophy (post 2026-05-20 review #2):
+//   [due pill]   Client                          Risk of losing $X   [chevron]
+//                Task prompt
 //   --- expanded on click ---
-//   Status sentence · evidence · open-in-obligations
-// The two pills sit at the front because dollars + due-date are the
-// signals a CPA uses to triage. Client carries primary weight (medium,
-// base size); the task prompt is the readable sub-line.
+//   Status / Form / Sources / Open-in-Obligations
+// Only the due-date wears a pill — the dollar amount sits at the
+// row's right edge as a phrase, not a badge. Per designer note
+// 2026-05-20: "say risk of losing xxxxx. no badge."
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -78,31 +78,25 @@ function penaltyValue(row: DashboardTopRow, days: number): string | null {
   return null
 }
 
-function PenaltyPill({ row, days }: { row: DashboardTopRow; days: number }) {
-  const { t } = useLingui()
+// Risk meta on the right edge of the row. Written as a phrase, not
+// a badge, per 2026-05-20 designer note: "no badge. say risk of
+// losing $X." Past-due rows with accrued penalty color the dollar
+// red; projected exposure stays neutral so the eye isn't pulled.
+function RiskMeta({ row, days }: { row: DashboardTopRow; days: number }) {
   const tone = penaltyTone(row, days)
   const value = penaltyValue(row, days)
-  if (!value) {
-    return (
-      <span
-        className="inline-flex h-8 min-w-[92px] items-center justify-center rounded-md border border-divider-subtle bg-background-subtle px-2.5 text-md text-text-tertiary"
-        title={row.exposureStatus === 'needs_input' ? t`Needs penalty inputs` : t`No exposure`}
-      >
-        <Trans>—</Trans>
-      </span>
-    )
-  }
+  if (!value) return <span aria-hidden />
   return (
-    <span
-      className={cn(
-        'inline-flex h-8 min-w-[92px] items-center justify-center rounded-md px-2.5 text-md font-medium tabular-nums',
-        tone === 'critical' && 'bg-state-destructive-hover text-text-destructive',
-        tone === 'neutral' &&
-          'border border-divider-subtle bg-background-default text-text-primary',
-      )}
-      title={tone === 'critical' ? t`Accrued penalty` : t`Projected risk`}
-    >
-      {value}
+    <span className="hidden whitespace-nowrap text-base text-text-secondary sm:inline-flex sm:items-baseline sm:gap-1">
+      <Trans>Risk of losing</Trans>
+      <span
+        className={cn(
+          'font-medium tabular-nums',
+          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
+        )}
+      >
+        {value}
+      </span>
     </span>
   )
 }
@@ -156,14 +150,14 @@ function ActionRow({
         aria-expanded={expanded}
         aria-controls={`action-detail-${row.obligationId}`}
         aria-label={t`${prompt} for ${row.clientName}`}
-        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-5 rounded-md px-4 py-4 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
-        <PenaltyPill row={row} days={days} />
         <DueDatePill days={days} />
-        <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-md font-medium text-text-primary">{row.clientName}</span>
           <span className="truncate text-base text-text-secondary">{prompt}</span>
         </span>
+        <RiskMeta row={row} days={days} />
         <ChevronDownIcon
           className={cn(
             'size-4 shrink-0 text-text-tertiary transition-transform',
