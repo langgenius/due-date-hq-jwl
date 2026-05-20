@@ -34,6 +34,14 @@ const COMPLETED_SOURCE_PACK_JURISDICTIONS = new Set([
   'NC',
   'VA',
   'AZ',
+  'CO',
+  'MI',
+  'OH',
+  'OR',
+  'SC',
+  'TN',
+  'UT',
+  'WI',
 ])
 const OFFICIAL_NON_GOV_HOSTS = new Set([
   'www.irs.gov',
@@ -301,6 +309,29 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(findRuleById('va.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
     expect(findRuleById('az.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('co.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('mi.franchise_or_entity_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('oh.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'oh.commercial_activity_tax',
+    ])
+    expect(findRuleById('or.sales_use_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('sc.franchise_or_entity_tax.candidate.2026')).toMatchObject({
+      sourceIds: ['sc.corporate_income_tax'],
+      entityApplicability: ['c_corp'],
+    })
+    expect(findRuleById('tn.individual_income_return.candidate.2026')).toBeUndefined()
+    expect(findRuleById('tn.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'tn.franchise_excise_tax',
+    ])
+    expect(findRuleById('ut.individual_estimated_tax.candidate.2026')).toBeUndefined()
+    expect(findRuleById('ut.franchise_or_entity_tax.candidate.2026')).toMatchObject({
+      sourceIds: ['ut.corporate_franchise_income_tax'],
+      entityApplicability: ['c_corp'],
+    })
+    expect(findRuleById('wi.franchise_or_entity_tax.candidate.2026')).toMatchObject({
+      sourceIds: ['wi.corporation_franchise_income_tax'],
+      entityApplicability: ['c_corp'],
+    })
   })
 
   it('tracks Alabama source coverage separately from active rule coverage', () => {
@@ -351,6 +382,14 @@ describe('@duedatehq/core/rules', () => {
       'NC',
       'VA',
       'AZ',
+      'CO',
+      'MI',
+      'OH',
+      'OR',
+      'SC',
+      'TN',
+      'UT',
+      'WI',
     ] as const) {
       expect(listSourceCoverageGaps(jurisdiction), `${jurisdiction} should have no gaps`).toEqual(
         [],
@@ -392,6 +431,43 @@ describe('@duedatehq/core/rules', () => {
     const azCoverage = listRequiredSourceCoverage('AZ')
     expect(
       azCoverage.find(
+        (cell) => cell.domain === 'business_estimated_tax' && cell.entity === 's_corp',
+      )?.status,
+    ).toBe('not_applicable')
+
+    const coCoverage = listRequiredSourceCoverage('CO')
+    expect(
+      coCoverage.find((cell) => cell.domain === 'franchise_or_entity_tax' && cell.entity === 'llc')
+        ?.status,
+    ).toBe('not_applicable')
+    const ohCoverage = listRequiredSourceCoverage('OH')
+    expect(
+      ohCoverage.find(
+        (cell) => cell.domain === 'business_income_return' && cell.entity === 'c_corp',
+      )?.status,
+    ).toBe('not_applicable')
+    const orCoverage = listRequiredSourceCoverage('OR')
+    expect(
+      orCoverage.find((cell) => cell.domain === 'sales_use_tax' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    const tnCoverage = listRequiredSourceCoverage('TN')
+    expect(
+      tnCoverage.find((cell) => cell.domain === 'withholding' && cell.entity === 'llc')?.status,
+    ).toBe('not_applicable')
+    const utCoverage = listRequiredSourceCoverage('UT')
+    expect(
+      utCoverage.find(
+        (cell) => cell.domain === 'individual_estimated_tax' && cell.entity === 'individual',
+      )?.status,
+    ).toBe('not_applicable')
+    expect(
+      utCoverage.find(
+        (cell) => cell.domain === 'franchise_or_entity_tax' && cell.entity === 's_corp',
+      )?.status,
+    ).toBe('not_applicable')
+    const wiCoverage = listRequiredSourceCoverage('WI')
+    expect(
+      wiCoverage.find(
         (cell) => cell.domain === 'business_estimated_tax' && cell.entity === 's_corp',
       )?.status,
     ).toBe('not_applicable')

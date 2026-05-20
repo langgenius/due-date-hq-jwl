@@ -43,6 +43,23 @@ source 覆盖。原 coverage table 只能表达 active / pending / none，无法
     `source_verified`。
   - Completed source pack completeness 现在覆盖 14 个 jurisdictions：
     `AL`、`CA`、`NY`、`TX`、`FL`、`WA`、`GA`、`IL`、`MA`、`NJ`、`PA`、`NC`、`VA`、`AZ`。
+- 第三批 completed source packs 扩展到 `CO`、`MI`、`OH`、`OR`、`SC`、`TN`、`UT`、`WI`：
+  - `CO` 用 DOR due-date guide + CDLE wage reporting 覆盖 income/business/fiduciary/
+    sales/use/withholding/UI，独立 franchise/entity tax cells 标为 `not_applicable`。
+  - `MI` 补齐 fiduciary、corporate income、flow-through entity tax、sales/use、
+    withholding 和 UI source；Michigan.gov 403 页面降级为 `manual_review` + `degraded`。
+  - `OH` 用官方 PDF 替换失效 tax.ohio.gov route，补齐 fiduciary、IT 4738、CAT、
+    sales/use、withholding；UI wage report 采用 Ohio Administrative Code manual-review source。
+  - `OR` 补齐 fiduciary、corporation excise/income、PTE elective tax、CAT、
+    withholding/UI，并把 state sales/use tax cells 标为 `not_applicable`。
+  - `SC`、`TN`、`UT`、`WI` 补齐各自可适用 source matrix；TN 的 current
+    individual/fiduciary income tax、withholding、separate PTE return，以及 Utah required
+    quarterly individual estimated tax schedule 使用 `not_applicable`。
+  - Completed source pack completeness 现在覆盖 22 个 jurisdictions：
+    `AL`、`CA`、`NY`、`TX`、`FL`、`WA`、`GA`、`IL`、`MA`、`NJ`、`PA`、`NC`、`VA`、
+    `AZ`、`CO`、`MI`、`OH`、`OR`、`SC`、`TN`、`UT`、`WI`。
+  - Registry 当前为 189 个官方 source、240 个 review-only/active-backed rule templates；
+    remaining states + `DC` seed 为 29 sources / 53 pending templates。
 
 ## 验证
 
@@ -57,6 +74,6 @@ source 覆盖。原 coverage table 只能表达 active / pending / none，无法
 
 ## 后续
 
-- 下一批建议补 remaining high-priority jurisdictions，例如 `CO`、`MI`、`OH`、`OR`、`SC`、
-  `TN`、`UT`、`WI`。
+- 下一批建议补剩余 jurisdictions：`CT`、`MD`、`MN`、`IN`、`MO`、`LA`、`KY`、`OK`、
+  `IA`、`KS`，再继续 no-income-tax / small-state batch。
 - 对 no-income-tax states 继续优先建 `not_applicable` cells，再补 sales/use 和 UI wage source。

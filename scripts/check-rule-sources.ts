@@ -201,6 +201,14 @@ const COMPLETED_SOURCE_PACK_JURISDICTIONS = [
   'NC',
   'VA',
   'AZ',
+  'CO',
+  'MI',
+  'OH',
+  'OR',
+  'SC',
+  'TN',
+  'UT',
+  'WI',
 ] as const
 
 for (const source of RULE_SOURCES) {
