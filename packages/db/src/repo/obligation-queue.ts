@@ -555,6 +555,8 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
     const asOfDateOnly = asOfDate.toISOString().slice(0, 10)
     const rowDrafts = rawRows.map((row) => {
       const currentDueDate = overlayDueDates.get(row.id) ?? row.currentDueDate
+      const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+      const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
       const accrued = estimateAccruedPenalty(
         {
           jurisdiction: row.clientState,
@@ -566,6 +568,8 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         { asOfDate: asOfDateOnly },
       )
       return Object.assign({}, row, {
+        filingDueDate: taxAuthorityFilingDueDate,
+        paymentDueDate: taxAuthorityPaymentDueDate,
         currentDueDate,
         readiness: readinessById.get(row.id) ?? 'ready',
         evidenceCount: evidenceCounts.get(row.id) ?? 0,

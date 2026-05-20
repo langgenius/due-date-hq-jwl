@@ -111,7 +111,7 @@ export type ObligationDependencyStatus = (typeof OBLIGATION_DEPENDENCY_STATUSES)
  *     (tax_type, tax_year); written at create-time and never mutated.
  *   - `current_due_date` — the internal practice deadline shown by Dashboard /
  *     Obligations. It is normally `base_due_date - firm.internalDeadlineOffsetDays`.
- *     Statutory filing/payment dates stay separate in `filing_due_date` and
+ *     Tax authority filing/payment deadlines stay separate in `filing_due_date` and
  *     `payment_due_date`.
  *
  * status workflow: full P0-16 surface with flexible corrective transitions.

@@ -14,8 +14,13 @@ deadline offset.
   paths so `currentDueDate = baseDueDate - internalDeadlineOffsetDays`.
 - Updated Obligations, Dashboard, client detail, evidence, and audit labels to present the primary
   visible date as `Internal deadline`.
-- Added an obligation detail statutory date panel showing internal deadline, statutory filing,
-  statutory payment, and base statutory date.
+- Added an obligation detail statutory date panel showing internal deadline, Filing Deadline, and
+  Payment Deadline.
+- Follow-up: relabeled the split statutory fields to Filing Deadline / Payment Deadline and
+  fall back to the tax authority source-backed rule date for legacy rows where split dates were not
+  stored.
+- Follow-up: removed the base statutory data-model field from the drawer because it is not a
+  user-facing deadline.
 - Kept Pulse/statutory overlay matching on statutory due dates, while main read models convert
   active overlay dates back into internal deadlines for UI display.
 - Kept penalty timing on statutory payment/filing/base dates so internal deadlines do not make

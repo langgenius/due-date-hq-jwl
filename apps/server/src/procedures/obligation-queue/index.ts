@@ -146,6 +146,8 @@ function toRow(
   row: RawRow,
   opts: { hideDollars?: boolean; hideSmartPriorityFactors?: boolean } = {},
 ): ObligationQueueRow {
+  const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+  const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
   return {
     id: row.id,
     firmId: row.firmId,
@@ -161,8 +163,8 @@ function toRow(
     obligationType: row.obligationType,
     formName: row.formName,
     authority: row.authority,
-    filingDueDate: row.filingDueDate ? toIsoDate(row.filingDueDate) : null,
-    paymentDueDate: row.paymentDueDate ? toIsoDate(row.paymentDueDate) : null,
+    filingDueDate: toIsoDate(taxAuthorityFilingDueDate),
+    paymentDueDate: toIsoDate(taxAuthorityPaymentDueDate),
     sourceEvidence: row.sourceEvidenceJson ?? null,
     recurrence: row.recurrence,
     riskLevel: row.riskLevel,

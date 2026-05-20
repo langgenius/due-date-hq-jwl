@@ -298,9 +298,9 @@ Datetime 展示统一使用 `YYYY-MM-DD HH:mm:ss <timezone>`，例如
 `YYYY-MM-DD`。Firm-scoped operational surfaces use the active firm timezone as the primary
 display timezone and may show UTC as secondary audit metadata.
 
-主工作台中的 `Due date` 口径是 practice internal deadline；如果 UI 展示 statutory filing
-或 payment date，必须显式写出 `Statutory filing` / `Statutory payment`，不能和 internal
-deadline 混用。
+主工作台中的 `Due date` 口径是 practice internal deadline；如果 UI 展示税务机关规则来源中的
+filing 或 payment deadline，必须显式写出 `Filing Deadline` / `Payment Deadline`，不能和
+internal deadline 混用。
 
 ---
 

@@ -65,6 +65,7 @@ describe('tenant-scoped repo cross-reference guards', () => {
   it('persists generated rule metadata for obligations', async () => {
     const fake = createFakeDb([[{ id: 'client_1' }]])
     const repo = makeObligationsRepo(fake.db, 'firm_current')
+    const baseDueDate = new Date('2027-04-15T00:00:00.000Z')
 
     await repo.createBatch([
       {
@@ -75,7 +76,7 @@ describe('tenant-scoped repo cross-reference guards', () => {
         ruleVersion: 3,
         rulePeriod: 'annual',
         generationSource: 'annual_rollover',
-        baseDueDate: new Date('2027-04-15T00:00:00.000Z'),
+        baseDueDate,
       },
     ])
 
@@ -85,6 +86,8 @@ describe('tenant-scoped repo cross-reference guards', () => {
         ruleVersion: 3,
         rulePeriod: 'annual',
         generationSource: 'annual_rollover',
+        filingDueDate: baseDueDate,
+        paymentDueDate: baseDueDate,
       }),
     ])
   })

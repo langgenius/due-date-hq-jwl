@@ -4481,21 +4481,22 @@ function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
 
 function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
+  const taxAuthorityFilingDeadline = row.filingDueDate ?? row.baseDueDate
+  const taxAuthorityPaymentDeadline = row.paymentDueDate ?? row.baseDueDate
   return (
     <dl
       aria-label={t`Statutory dates`}
-      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-2 xl:grid-cols-4"
+      className="mb-4 grid gap-3 rounded-lg border border-divider-regular p-3 sm:grid-cols-3"
     >
       <DetailRow label={<Trans>Internal deadline</Trans>} value={formatDate(row.currentDueDate)} />
       <DetailRow
-        label={<Trans>Statutory filing</Trans>}
-        value={row.filingDueDate ? formatDate(row.filingDueDate) : t`N/A`}
+        label={<Trans>Filing Deadline</Trans>}
+        value={formatDate(taxAuthorityFilingDeadline)}
       />
       <DetailRow
-        label={<Trans>Statutory payment</Trans>}
-        value={row.paymentDueDate ? formatDate(row.paymentDueDate) : t`N/A`}
+        label={<Trans>Payment Deadline</Trans>}
+        value={formatDate(taxAuthorityPaymentDeadline)}
       />
-      <DetailRow label={<Trans>Base statutory</Trans>} value={formatDate(row.baseDueDate)} />
     </dl>
   )
 }

@@ -1281,10 +1281,6 @@ msgstr "Back to Settings"
 msgid "Backup codes copied"
 msgstr "Backup codes copied"
 
-#: src/routes/obligations.tsx
-msgid "Base statutory"
-msgstr "Base statutory"
-
 #: src/features/rules/rule-library-tab.tsx
 msgid "Basic"
 msgstr "Basic"
@@ -3159,6 +3155,10 @@ msgstr "Files"
 msgid "Filing"
 msgstr "Filing"
 
+#: src/routes/obligations.tsx
+msgid "Filing Deadline"
+msgstr "Filing Deadline"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing frequency"
 msgstr "Filing frequency"
@@ -4257,10 +4257,6 @@ msgstr "My deadlines"
 #: src/routes/onboarding.tsx
 msgid "My Practice"
 msgstr "My Practice"
-
-#: src/routes/obligations.tsx
-msgid "N/A"
-msgstr "N/A"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
@@ -5465,6 +5461,10 @@ msgstr "Payment confirmation can take a few seconds."
 #: src/routes/billing.tsx
 msgid "Payment confirmation received"
 msgstr "Payment confirmation received"
+
+#: src/routes/obligations.tsx
+msgid "Payment Deadline"
+msgstr "Payment Deadline"
 
 #: src/routes/billing.checkout.tsx
 msgid "Payment details stay with the processor"
@@ -7663,14 +7663,6 @@ msgstr "Status updated"
 #: src/routes/obligations.tsx
 msgid "Statutory dates"
 msgstr "Statutory dates"
-
-#: src/routes/obligations.tsx
-msgid "Statutory filing"
-msgstr "Statutory filing"
-
-#: src/routes/obligations.tsx
-msgid "Statutory payment"
-msgstr "Statutory payment"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Step {step} / 4"

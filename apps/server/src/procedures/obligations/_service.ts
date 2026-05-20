@@ -94,6 +94,8 @@ export function toObligationPublic(
   row: ObligationRow,
   opts: { client?: ClientPenaltyFacts | null | undefined; asOfDate?: string | Date } = {},
 ): ObligationInstancePublic {
+  const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+  const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
   const penaltyAsOfDate =
     opts.asOfDate instanceof Date
       ? opts.asOfDate.toISOString().slice(0, 10)
@@ -121,8 +123,8 @@ export function toObligationPublic(
     obligationType: row.obligationType ?? 'filing',
     formName: row.formName ?? null,
     authority: row.authority ?? null,
-    filingDueDate: row.filingDueDate ? toIsoDate(row.filingDueDate) : null,
-    paymentDueDate: row.paymentDueDate ? toIsoDate(row.paymentDueDate) : null,
+    filingDueDate: toIsoDate(taxAuthorityFilingDueDate),
+    paymentDueDate: toIsoDate(taxAuthorityPaymentDueDate),
     sourceEvidence: row.sourceEvidenceJson ?? null,
     recurrence: row.recurrence ?? 'once',
     riskLevel: row.riskLevel ?? 'low',

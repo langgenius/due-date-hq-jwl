@@ -555,6 +555,21 @@ describe('toObligationPublic', () => {
     expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
   })
 
+  it('falls back missing statutory split dates to the tax authority source-backed date', () => {
+    const result = toObligationPublic(
+      makeRow({
+        filingDueDate: null,
+        paymentDueDate: null,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+      { asOfDate: '2026-04-26' },
+    )
+
+    expect(result.filingDueDate).toBe('2026-04-15')
+    expect(result.paymentDueDate).toBe('2026-04-15')
+    expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
+  })
+
   it('keeps list output contract-valid when accrued penalty is calculated', () => {
     const result = toObligationPublic(
       makeRow({

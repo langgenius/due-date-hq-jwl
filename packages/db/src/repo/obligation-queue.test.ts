@@ -9,6 +9,8 @@ interface FakeRow {
   clientId: string
   taxType: string
   taxYear: number | null
+  filingDueDate: Date | null
+  paymentDueDate: Date | null
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
@@ -118,6 +120,8 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     taxType: over.taxType ?? '1040',
     taxYear: over.taxYear ?? 2026,
     baseDueDate: over.baseDueDate ?? due,
+    filingDueDate: over.filingDueDate ?? null,
+    paymentDueDate: over.paymentDueDate ?? null,
     currentDueDate: due,
     status: over.status ?? 'pending',
     migrationBatchId: over.migrationBatchId ?? null,
@@ -166,6 +170,25 @@ describe('makeObligationQueueRepo.list', () => {
     const result = await repo.list({ obligationIds: ['target-obligation'] })
 
     expect(result.rows.map((row) => row.id)).toEqual(['target-obligation'])
+  })
+
+  it('falls back statutory split dates to the tax authority source-backed date', async () => {
+    const baseDueDate = new Date('2026-04-15T00:00:00.000Z')
+    const fake = createFakeDb([
+      makeRow({
+        id: 'legacy-without-split-dates',
+        baseDueDate,
+        filingDueDate: null,
+        paymentDueDate: null,
+      }),
+    ])
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ limit: 50 })
+
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0]?.filingDueDate).toBe(baseDueDate)
+    expect(result.rows[0]?.paymentDueDate).toBe(baseDueDate)
   })
 
   it('emits nextCursor when more rows exist (sentinel detection)', async () => {
