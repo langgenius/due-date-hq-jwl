@@ -15,7 +15,7 @@ import {
   type ColumnDef,
   type RowData,
 } from '@tanstack/react-table'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
@@ -23,10 +23,13 @@ import {
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
+  CopyIcon,
   ExternalLinkIcon,
   FileInputIcon,
   FileSearchIcon,
+  MailIcon,
   MapPinnedIcon,
+  PlusIcon,
   RefreshCwIcon,
   SparklesIcon,
   UsersRoundIcon,
@@ -1066,6 +1069,13 @@ export function ClientDetailWorkspace({
           summary={workPlan}
         />
 
+        <SuggestedFormsCatalogPanel
+          client={client}
+          existingObligations={obligations}
+        />
+
+        <ClientMailboxPanel client={client} />
+
         <DetailSection
           title={t`Client summary (AI)`}
           summary={
@@ -1162,6 +1172,66 @@ function obligationDrawerHref(obligationId: string): string {
   return `/obligations?${params.toString()}`
 }
 
+type FilingPlanYearGroup = {
+  year: number | 'unknown'
+  isCurrent: boolean
+  obligations: readonly ObligationInstancePublic[]
+  openCount: number
+  extendedCount: number
+}
+
+// Group obligations into tax-year buckets so the client page reads as a
+// filing plan (matching reference CPA workbenches), not a flat queue. The
+// current tax year (latest year present, or calendar year if no data) sits
+// at the top with a "Current tax year" chip; prior years follow descending.
+function groupObligationsByTaxYear(
+  obligations: readonly ObligationInstancePublic[],
+): FilingPlanYearGroup[] {
+  const buckets = new Map<number | 'unknown', ObligationInstancePublic[]>()
+  for (const obligation of obligations) {
+    const key: number | 'unknown' = obligation.taxYear ?? 'unknown'
+    const list = buckets.get(key)
+    if (list) list.push(obligation)
+    else buckets.set(key, [obligation])
+  }
+  const knownYears = [...buckets.keys()]
+    .filter((k): k is number => typeof k === 'number')
+    .toSorted((a, b) => b - a)
+  const currentYear = knownYears[0] ?? null
+  const groups: FilingPlanYearGroup[] = knownYears.map((year) => {
+    const list = buckets.get(year) ?? []
+    return {
+      year,
+      isCurrent: year === currentYear,
+      obligations: list,
+      openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
+      extendedCount: list.filter((o) => o.status === 'extended').length,
+    }
+  })
+  if (buckets.has('unknown')) {
+    const list = buckets.get('unknown') ?? []
+    groups.push({
+      year: 'unknown',
+      isCurrent: false,
+      obligations: list,
+      openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
+      extendedCount: list.filter((o) => o.status === 'extended').length,
+    })
+  }
+  return groups
+}
+
+// "Open" for filing-plan summary purposes: any non-terminal status. We
+// don't try to be precise about prep stage here — that's drawer territory.
+const OPEN_FILING_PLAN_STATUSES = new Set([
+  'pending',
+  'in_progress',
+  'waiting_on_client',
+  'review',
+  'blocked',
+  'done',
+])
+
 function ClientWorkPlanPanel({
   obligations,
   isLoading,
@@ -1172,16 +1242,20 @@ function ClientWorkPlanPanel({
   summary: ClientWorkPlanSummary
 }) {
   const navigate = useNavigate()
-  const visible = obligations.slice(0, 8)
+  const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">
-            <Trans>Filings &amp; deadlines</Trans>
+            <Trans>Filing plan</Trans>
           </span>
           <span className="truncate text-xs text-text-tertiary">
-            {`${summary.openCount} open · ${summary.overdueOpenCount} overdue · ${summary.needsReviewCount} need review`}
+            <Plural value={obligations.length} one="# filing" other="# filings" />
+            {' '}
+            <Trans>across</Trans>
+            {' '}
+            <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -1212,86 +1286,99 @@ function ClientWorkPlanPanel({
             }
           />
         ) : (
-          <div className="grid gap-3">
-            <div className="rounded-md border border-divider-subtle">
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>
-                      <Trans>Filing</Trans>
-                    </TableHead>
-                    <TableHead className="w-[132px]">
-                      <Trans>Internal</Trans>
-                    </TableHead>
-                    <TableHead className="w-[132px]">
-                      <Trans>Status</Trans>
-                    </TableHead>
-                    <TableHead className="w-[140px] text-right">
-                      <Trans>Projected risk</Trans>
-                    </TableHead>
-                    <TableHead className="w-[140px] text-right">
-                      <Trans>Tax due</Trans>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-                  {visible.map((obligation) => {
-                    const href = obligationDrawerHref(obligation.id)
-                    const open = () => void navigate(href)
-                    return (
-                      <TableRow
-                        key={obligation.id}
-                        tabIndex={0}
-                        role="link"
-                        aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
-                        className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
-                        onClick={open}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            open()
-                          }
-                        }}
-                      >
-                        <TableCell>
-                          <div className="flex min-w-0 flex-col">
-                            <span className="truncate font-medium text-text-primary">
-                              <TaxCodeLabel code={obligation.taxType} />
-                            </span>
-                            <span className="truncate font-mono text-xs text-text-tertiary">
-                              {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="tabular-nums">
-                          {formatDate(obligation.currentDueDate)}
-                        </TableCell>
-                        <TableCell>
-                          <ObligationStatusBadge obligation={obligation} />
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {obligation.estimatedExposureCents !== null
-                            ? formatCents(obligation.estimatedExposureCents)
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {obligation.estimatedTaxDueCents !== null
-                            ? formatCents(obligation.estimatedTaxDueCents)
-                            : 'N/A'}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            {obligations.length > visible.length ? (
-              <p className="text-xs text-text-tertiary">
-                <Trans>Showing the next 8 obligations for this client.</Trans>
-              </p>
-            ) : null}
+          <div className="grid gap-4">
+            {yearGroups.map((group) => (
+              <FilingPlanYearSection
+                key={group.year}
+                group={group}
+                onOpen={(obligationId) => void navigate(obligationDrawerHref(obligationId))}
+              />
+            ))}
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Per-tax-year section in the Filing plan panel. Rendered once per year
+// bucket; current tax year sits at the top with a CURRENT TAX YEAR chip.
+function FilingPlanYearSection({
+  group,
+  onOpen,
+}: {
+  group: FilingPlanYearGroup
+  onOpen: (obligationId: string) => void
+}) {
+  return (
+    <div className="grid gap-2">
+      <div className="flex flex-wrap items-baseline gap-2 px-1">
+        <span className="text-sm font-medium tabular-nums text-text-primary">
+          {group.year === 'unknown' ? <Trans>No tax year</Trans> : group.year}
+        </span>
+        {group.isCurrent ? (
+          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+            <Trans>Current tax year</Trans>
+          </Badge>
+        ) : null}
+        <span className="ml-auto text-xs text-text-tertiary">
+          {group.extendedCount > 0 ? (
+            <>
+              <Trans>{group.extendedCount} extended</Trans>
+              <span aria-hidden className="mx-1">·</span>
+            </>
+          ) : null}
+          <Trans>{group.openCount} open</Trans>
+        </span>
+      </div>
+      <div className="rounded-md border border-divider-subtle">
+        <Table className="table-fixed">
+          <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+            {group.obligations.map((obligation) => (
+              <TableRow
+                key={obligation.id}
+                tabIndex={0}
+                role="link"
+                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
+                className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
+                onClick={() => onOpen(obligation.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onOpen(obligation.id)
+                  }
+                }}
+              >
+                <TableCell>
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-medium text-text-primary">
+                      <TaxCodeLabel code={obligation.taxType} />
+                    </span>
+                    <span className="truncate text-xs text-text-tertiary">
+                      {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="w-[132px] tabular-nums">
+                  {formatDate(obligation.currentDueDate)}
+                </TableCell>
+                <TableCell className="w-[140px]">
+                  <ObligationStatusBadge obligation={obligation} />
+                </TableCell>
+                <TableCell className="w-[140px] text-right tabular-nums">
+                  {obligation.estimatedExposureCents !== null
+                    ? formatCents(obligation.estimatedExposureCents)
+                    : '—'}
+                </TableCell>
+                <TableCell className="w-[140px] text-right tabular-nums">
+                  {obligation.estimatedTaxDueCents !== null
+                    ? formatCents(obligation.estimatedTaxDueCents)
+                    : '—'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
@@ -2026,5 +2113,228 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
       <ActivityIcon data-icon="inline-start" aria-hidden />
       {label}
     </Badge>
+  )
+}
+
+// ─── Suggested-forms catalog ──────────────────────────────────────────
+// Per the reference CPA workbench (and PDF §3.3 "Classification") the
+// client page should answer "what could this client owe that we haven't
+// scheduled yet?". v1 ships a hardcoded entity-type → form-suggestions
+// mapping that filters out anything already in `existingObligations`.
+// The proper wiring is into the rule catalog filtered by client
+// classification + jurisdictions, which is a follow-up.
+
+type SuggestedForm = {
+  code: string
+  title: string
+  description: string
+}
+
+const FORMS_BY_ENTITY_TYPE: Record<string, readonly SuggestedForm[]> = {
+  individual: [
+    { code: 'federal_1040_nr', title: 'Form 1040-NR', description: 'U.S. Nonresident Alien Income Tax Return — Apr 15 if wages subject to U.S. withholding; Jun 15 otherwise.' },
+    { code: 'federal_1040_sr', title: 'Form 1040-SR', description: 'U.S. Tax Return for Seniors — same due dates as 1040.' },
+    { code: 'federal_1040_es', title: 'Form 1040-ES', description: 'Estimated Tax for Individuals — Q1 Apr 15, Q2 Jun 15, Q3 Sep 15, Q4 Jan 15.' },
+    { code: 'federal_4868', title: 'Form 4868', description: 'Automatic 6-month filing extension. Does NOT extend the tax payment deadline.' },
+    { code: 'federal_fbar_114', title: 'FBAR / FinCEN 114', description: 'Report of Foreign Bank Accounts — Apr 15, auto-extends to Oct 15.' },
+  ],
+  partnership: [
+    { code: 'federal_1065', title: 'Form 1065', description: 'Partnership Return — due 15th day of the 3rd month after tax-year end.' },
+    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for partnerships.' },
+    { code: 'federal_k1', title: 'Schedule K-1', description: 'Partner Share of Income/Deductions/Credits — issued with Form 1065.' },
+    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return — Apr 30 / Jul 31 / Oct 31 / Jan 31.' },
+    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
+    { code: 'federal_w2_w3', title: 'W-2 / W-3', description: 'Employee wage statements — due Jan 31.' },
+    { code: 'federal_1099_nec', title: '1099-NEC', description: 'Nonemployee Compensation — due Jan 31.' },
+  ],
+  s_corp: [
+    { code: 'federal_1120s', title: 'Form 1120-S', description: 'S Corporation Income Tax Return — due 15th day of the 3rd month after tax-year end.' },
+    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for S corporations.' },
+    { code: 'federal_k1', title: 'Schedule K-1', description: 'Shareholder Share of Income/Deductions/Credits — issued with Form 1120-S.' },
+    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return — Apr 30 / Jul 31 / Oct 31 / Jan 31.' },
+    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
+    { code: 'federal_w2_w3', title: 'W-2 / W-3', description: 'Employee wage statements — due Jan 31.' },
+  ],
+  c_corp: [
+    { code: 'federal_1120', title: 'Form 1120', description: 'C Corporation Income Tax Return — due 15th day of the 4th month after tax-year end.' },
+    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 6-month extension for C corporations.' },
+    { code: 'federal_1120_es', title: 'Form 1120 estimated', description: 'Quarterly corporate estimated tax — Q1-Q4 in months 4/6/9/12 of the tax year.' },
+    { code: 'federal_941', title: 'Form 941', description: 'Quarterly Federal Payroll Tax Return.' },
+    { code: 'federal_940', title: 'Form 940', description: 'Annual FUTA Return — due Jan 31.' },
+  ],
+  llc: [
+    { code: 'federal_1065', title: 'Form 1065', description: 'If LLC is taxed as a partnership.' },
+    { code: 'federal_1120s', title: 'Form 1120-S', description: 'If LLC has elected S-corp tax status.' },
+    { code: 'federal_1120', title: 'Form 1120', description: 'If LLC has elected C-corp tax status.' },
+    { code: 'state_llc_franchise', title: 'State LLC franchise', description: 'Many states impose an annual franchise/min tax on LLCs (e.g., CA $800).' },
+    { code: 'state_annual_report', title: 'State annual report', description: 'Most states require an annual report filing.' },
+  ],
+  trust: [
+    { code: 'federal_1041', title: 'Form 1041', description: 'Trust / Estate Income Tax Return — due 15th day of the 4th month after tax-year end.' },
+    { code: 'federal_7004', title: 'Form 7004', description: 'Automatic 5.5-month extension for trusts/estates.' },
+    { code: 'federal_k1', title: 'Schedule K-1', description: 'Beneficiary Share — issued with Form 1041.' },
+  ],
+  sole_prop: [
+    { code: 'federal_1040', title: 'Form 1040 + Schedule C', description: 'Personal return with Schedule C for self-employment income.' },
+    { code: 'federal_se', title: 'Schedule SE', description: 'Self-Employment Tax — filed with 1040.' },
+    { code: 'federal_1040_es', title: 'Form 1040-ES', description: 'Quarterly estimated tax payments.' },
+    { code: 'federal_1099_nec', title: '1099-NEC', description: 'If the business pays contractors $600+/year.' },
+  ],
+  other: [],
+}
+
+function suggestedFormsForClient(
+  client: ClientPublic,
+  existingObligations: readonly ObligationInstancePublic[],
+): SuggestedForm[] {
+  const candidates = FORMS_BY_ENTITY_TYPE[client.entityType] ?? []
+  const scheduled = new Set(existingObligations.map((o) => o.taxType))
+  return candidates.filter((form) => !scheduled.has(form.code))
+}
+
+function SuggestedFormsCatalogPanel({
+  client,
+  existingObligations,
+}: {
+  client: ClientPublic
+  existingObligations: readonly ObligationInstancePublic[]
+}) {
+  const { t } = useLingui()
+  const [hidden, setHidden] = useState(false)
+  const suggested = useMemo(
+    () => suggestedFormsForClient(client, existingObligations),
+    [client, existingObligations],
+  )
+  const totalApplicable = (FORMS_BY_ENTITY_TYPE[client.entityType] ?? []).length
+  if (totalApplicable === 0) return null
+  return (
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">
+            <Trans>Federal forms catalog</Trans>
+          </span>
+          <span className="truncate text-xs text-text-tertiary">
+            <Plural value={totalApplicable} one="# applicable" other="# applicable" /> ·{' '}
+            {client.name}
+            {suggested.length > 0 ? (
+              <>
+                {' '}·{' '}
+                <span className="text-text-warning">
+                  <Plural value={suggested.length} one="# gap" other="# gap" />
+                </span>
+              </>
+            ) : null}
+          </span>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setHidden((v) => !v)}>
+          {hidden ? <Trans>Show</Trans> : <Trans>Hide</Trans>}
+        </Button>
+      </div>
+      {hidden ? null : suggested.length === 0 ? (
+        <div className="border-t border-divider-subtle px-4 py-3">
+          <PanelEmptyState
+            icon={CheckCircle2Icon}
+            title={<Trans>All applicable forms scheduled</Trans>}
+            detail={
+              <Trans>
+                Every form the catalog suggests for a {client.entityType.replace('_', ' ')} client
+                is already a deadline on this client.
+              </Trans>
+            }
+          />
+        </div>
+      ) : (
+        <>
+          <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-text-warning">
+              <Trans>Suggested — applicable but no deadline yet</Trans>
+              {' · '}
+              <Plural value={suggested.length} one="# form" other="# forms" />
+            </p>
+          </div>
+          <div className="grid divide-y divide-divider-subtle">
+            {suggested.map((form) => (
+              <div key={form.code} className="grid gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-text-primary">
+                    {form.title}
+                  </p>
+                  <p className="text-xs leading-snug text-text-tertiary">{form.description}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  title={t`Wire to rule catalog — coming in a follow-up.`}
+                >
+                  <PlusIcon data-icon="inline-start" />
+                  <Trans>Add deadline</Trans>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Per-client mailbox stub ──────────────────────────────────────────
+// The reference shows a per-task forwarding email address that ingests
+// client docs into the workflow. We don't have inbound email wired yet,
+// so this is a UI stub that shows the address shape with a copy button
+// and a clear "coming soon" affordance. The address is deterministic
+// from clientId so it stays stable across reloads.
+
+function mailboxAddressForClient(client: ClientPublic): string {
+  const slug = client.name
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-+|-+$/g, '')
+    .slice(0, 20)
+  const suffix = client.id.replaceAll('-', '').slice(0, 6)
+  return `${slug || 'client'}-${suffix}@duedatehq.com`
+}
+
+function ClientMailboxPanel({ client }: { client: ClientPublic }) {
+  const { t } = useLingui()
+  const address = mailboxAddressForClient(client)
+  const [copied, setCopied] = useState(false)
+  const onCopy = useCallback(() => {
+    void navigator.clipboard?.writeText(address).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
+    })
+  }, [address])
+  return (
+    <div className="rounded-md border border-divider-subtle bg-background-default">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm font-medium text-text-primary">
+            <Trans>Client mailbox</Trans>
+          </span>
+          <span className="text-xs text-text-tertiary">
+            <Trans>
+              Forward client emails to this address. The AI threads them onto matching tasks and
+              flags anything that needs review.
+            </Trans>
+          </span>
+        </div>
+        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+          <Trans>Phase 2</Trans>
+        </Badge>
+      </div>
+      <div className="flex items-center gap-2 border-t border-divider-subtle px-4 py-3">
+        <MailIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+        <code className="min-w-0 truncate rounded-sm bg-background-subtle px-2 py-1 text-xs text-text-secondary">
+          {address}
+        </code>
+        <Button variant="outline" size="sm" onClick={onCopy} className="ml-auto">
+          <CopyIcon data-icon="inline-start" />
+          {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
+        </Button>
+      </div>
+    </div>
   )
 }

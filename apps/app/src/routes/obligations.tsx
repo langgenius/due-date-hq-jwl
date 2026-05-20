@@ -3637,6 +3637,7 @@ function ObligationQueueDetailDrawer({
               }}
             >
               <StatutoryDatesPanel row={row} />
+              <PathToFilingChevron row={row} />
               <TabsList className="mb-4 flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
@@ -5071,6 +5072,114 @@ function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
       />
       <DetailRow label={<Trans>Tax period</Trans>} value={taxPeriod} />
     </dl>
+  )
+}
+
+// Path-to-filing chevron — horizontal milestone visualization above the
+// drawer tabs. Maps the 6-state v2 lifecycle (PRD §5) to a 5-step funnel
+// the reference CPA workbench uses: Scope → Collecting → Preparing →
+// Signature → Filed. Acceptance ("Completed") is treated as the
+// terminal beyond Filed, shown as a check-mark on Filed when reached.
+//
+// Each milestone is one of: "done" (passed), "active" (current), or
+// "upcoming". The visualization is purely derived — no new schema.
+type PathMilestoneState = 'done' | 'active' | 'upcoming'
+
+function stageIndexForStatus(status: ObligationStatus): number {
+  // 0=scope, 1=collecting, 2=preparing, 3=signature, 4=filed, 5=completed
+  switch (status) {
+    case 'pending':
+    case 'not_applicable':
+      return 0
+    case 'waiting_on_client':
+    case 'blocked':
+    case 'extended':
+      return 1
+    case 'in_progress':
+    case 'review':
+      return 2
+    case 'done':
+      return 4
+    case 'completed':
+    case 'paid':
+      return 5
+    default:
+      return 0
+  }
+}
+
+function PathToFilingChevron({ row }: { row: ObligationQueueRow }) {
+  const { t } = useLingui()
+  const milestones = useMemo<{ label: string; state: PathMilestoneState }[]>(() => {
+    const stageIndex = stageIndexForStatus(row.status)
+    const labels = [t`Scope`, t`Collecting`, t`Preparing`, t`Signature`, t`Filed`]
+    return labels.map((label, i) => {
+      const state: PathMilestoneState =
+        stageIndex > i ? 'done' : stageIndex === i ? 'active' : 'upcoming'
+      return { label, state }
+    })
+  }, [row.status, t])
+  return (
+    <div
+      aria-label={t`Path to filing`}
+      className="mb-4 grid grid-cols-5 gap-2 rounded-lg border border-divider-regular p-3"
+    >
+      {milestones.map((m, i) => (
+        <div key={m.label} className="flex flex-col items-center gap-1">
+          <div className="flex w-full items-center gap-2">
+            {i > 0 ? (
+              <span
+                aria-hidden
+                className={`h-px flex-1 ${
+                  m.state === 'upcoming' ? 'bg-divider-subtle' : 'bg-divider-deep'
+                }`}
+              />
+            ) : (
+              <span aria-hidden className="h-px flex-1" />
+            )}
+            <span
+              aria-hidden
+              className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                m.state === 'done'
+                  ? 'border-state-success-solid bg-state-success-solid'
+                  : m.state === 'active'
+                    ? 'border-accent-default bg-accent-tint'
+                    : 'border-divider-regular bg-background-default'
+              }`}
+            >
+              {m.state === 'done' ? (
+                <CheckCircle2Icon className="size-3 text-text-inverted" aria-hidden />
+              ) : m.state === 'active' ? (
+                <span className="size-1.5 rounded-full bg-accent-default" aria-hidden />
+              ) : null}
+            </span>
+            {i < milestones.length - 1 ? (
+              <span
+                aria-hidden
+                className={`h-px flex-1 ${
+                  milestones[i + 1]!.state === 'upcoming'
+                    ? 'bg-divider-subtle'
+                    : 'bg-divider-deep'
+                }`}
+              />
+            ) : (
+              <span aria-hidden className="h-px flex-1" />
+            )}
+          </div>
+          <span
+            className={`text-[11px] tabular-nums ${
+              m.state === 'active'
+                ? 'font-medium text-text-primary'
+                : m.state === 'done'
+                  ? 'text-text-secondary'
+                  : 'text-text-tertiary'
+            }`}
+          >
+            {m.label}
+          </span>
+        </div>
+      ))}
+    </div>
   )
 }
 
