@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  ArrowUpRightIcon,
+  ChevronRightIcon,
+  ExternalLinkIcon,
+} from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -125,6 +130,22 @@ function NeedsAttentionCard({
           <Trans>No matching clients in this practice.</Trans>
         </p>
       )}
+
+      <footer className="mt-auto flex items-center pt-1">
+        <a
+          href={alert.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          className="inline-flex min-w-0 items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary"
+        >
+          <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+          <span className="truncate">
+            <Trans>Source: {alert.source}</Trans>
+          </span>
+          <ArrowUpRightIcon className="size-3 shrink-0 opacity-60" aria-hidden />
+        </a>
+      </footer>
     </button>
   )
 }
