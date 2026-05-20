@@ -72,7 +72,7 @@ function NeedsAttentionCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <PulsingDot tone={tone} active />
-          <span className="text-sm text-text-tertiary">{alert.source}</span>
+          <span className="text-base text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {lowConfidence ? (
@@ -90,13 +90,13 @@ function NeedsAttentionCard({
 
       {/* Title carries the row — bigger and lighter weight reads
           better than tight semibold at small size. */}
-      <p className="line-clamp-2 text-base font-medium leading-snug text-text-primary">
+      <p className="line-clamp-2 text-md font-medium leading-snug text-text-primary">
         {alert.title}
       </p>
 
       {impacted > 0 ? (
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-sm text-text-secondary">
+          <p className="text-base text-text-secondary">
             <Plural
               value={impacted}
               one="# client may be affected"
@@ -109,7 +109,7 @@ function NeedsAttentionCard({
                 <li
                   key={name}
                   className={cn(
-                    'inline-flex max-w-[160px] truncate rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary',
+                    'inline-flex max-w-[160px] truncate rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-base text-text-secondary',
                   )}
                   title={name}
                 >
@@ -117,7 +117,7 @@ function NeedsAttentionCard({
                 </li>
               ))}
               {hasMore > 0 ? (
-                <li className="inline-flex text-sm text-text-tertiary">
+                <li className="inline-flex text-base text-text-tertiary">
                   <Trans>+{hasMore} more</Trans>
                 </li>
               ) : null}
@@ -125,7 +125,7 @@ function NeedsAttentionCard({
           ) : null}
         </div>
       ) : (
-        <p className="text-sm text-text-tertiary">
+        <p className="text-base text-text-tertiary">
           <Trans>No matching clients in this practice.</Trans>
         </p>
       )}
@@ -136,7 +136,7 @@ function NeedsAttentionCard({
           target="_blank"
           rel="noreferrer"
           onClick={(event) => event.stopPropagation()}
-          className="inline-flex min-w-0 items-center gap-1 text-sm text-text-tertiary hover:text-text-secondary"
+          className="inline-flex min-w-0 items-center gap-1 text-base text-text-tertiary hover:text-text-secondary"
         >
           <ExternalLinkIcon className="size-3.5 shrink-0" aria-hidden />
           <span className="truncate">

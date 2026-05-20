@@ -43,7 +43,7 @@ function SourceNeedsAttentionRow({
   const overflow = Math.max(sources.length - visible.length, 0)
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-state-warning-hover px-4 py-2.5">
-      <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 text-base">
         <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <span className="text-text-primary">
           <Trans>
@@ -72,7 +72,6 @@ function SourceNeedsAttentionRow({
         </Button>
         <Button variant="primary" size="sm" onClick={onReview}>
           <Trans>Review</Trans>
-          <ArrowUpRightIcon data-icon="inline-end" className="size-3.5" />
         </Button>
       </div>
     </div>
@@ -115,7 +114,7 @@ function NeedsAttentionSection() {
         </h2>
         <Link
           to="/rules/pulse"
-          className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+          className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
         >
           <Trans>View all</Trans>
           <ArrowUpRightIcon className="size-3.5" aria-hidden />

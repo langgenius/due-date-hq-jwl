@@ -543,16 +543,18 @@ Inter is the UI font. **Numerals are sans-serif by default** — the mono face w
 
 ### Size ladder (the only sizes you should reach for)
 
-| Token                      | Tailwind                                                 | Use                                                                                                                                               |
-| -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | The page's anchor word — "Today", "Obligations", "Clients"                                                                                        |
-| **H2 section**             | `text-xl font-semibold tracking-tight`                   | "Pulse alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`. |
-| **KPI numeral**            | `text-2xl font-semibold tabular-nums tracking-tight`     | The number on an exposure tile. Label below at `text-sm text-text-secondary`.                                                                     |
-| **Row primary**            | `text-base font-medium text-text-primary`                | The thing the user is scanning for — client name in action rows, alert title on cards.                                                            |
-| **Row secondary**          | `text-sm text-text-secondary`                            | Task prompt under a row primary, supporting metadata.                                                                                             |
-| **Pill / chip**            | `text-sm` (no weight by default)                         | Date pill, penalty pill, client chip. Add `font-medium` only when the chip itself is the signal (e.g., the dollar amount).                        |
-| **Tertiary label**         | `text-sm text-text-tertiary`                             | Sidebar group labels, "View all" links, footer source link.                                                                                       |
-| **Microlabel (uppercase)** | `text-xs uppercase tracking-[0.08em] text-text-tertiary` | Sparingly — reserved for KPI tile suffix, badge-style labels.                                                                                     |
+Token pixel values are set in `packages/ui/src/styles/tokens/primitives.css`. The 2026-05-20 dashboard pass widened the gap between section labels and the page/KPI anchor: H1 / KPI numerals jumped to **28px** so the eye lands hard; H2 dropped to **18px** so section labels feel like labels, not competing headers. Body text stays at the established 13px workbench scale.
+
+| Token                      | Tailwind                                                 | Pixels | Use                                                                                                                                               |
+| -------------------------- | -------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | 28px   | The page's anchor word — "Today", "Obligations", "Clients"                                                                                        |
+| **H2 section**             | `text-xl font-semibold tracking-tight`                   | 18px   | "Pulse alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`. |
+| **KPI numeral**            | `text-2xl font-semibold tabular-nums tracking-tight`     | 28px   | The number on an exposure tile. Label below at `text-base text-text-secondary`.                                                                   |
+| **Row primary**            | `text-md font-medium text-text-primary`                  | 14px   | The thing the user is scanning for — client name in action rows, alert title on cards.                                                            |
+| **Row secondary**          | `text-base text-text-secondary`                          | 13px   | Task prompt under a row primary, supporting metadata.                                                                                             |
+| **Pill / chip**            | `text-base` (no weight by default)                       | 13px   | Date pill, penalty pill, client chip. Add `font-medium` only when the chip itself is the signal (e.g., the dollar amount).                        |
+| **Tertiary label**         | `text-base text-text-tertiary`                           | 13px   | Sidebar group labels, "View all" links, footer source link.                                                                                       |
+| **Microlabel (uppercase)** | `text-xs uppercase tracking-[0.08em] text-text-tertiary` | 11px   | Sparingly — reserved for KPI tile suffix, badge-style labels.                                                                                     |
 
 ### Weight discipline
 
@@ -963,7 +965,8 @@ Anything longer than 300 ms on a UI transition is a bug. Reserve longer duration
 - **Don't write a custom `<h1>` per page.** Use the shared `<PageHeader title=… description=… actions=…>` component. Section titles use a shared treatment (`text-base font-semibold text-text-primary`). One-off typography is drift.
 - **Don't render AI advice without evidence.** If an AI output lacks `source_url`, `verified_at`, or `verbatim_quote`, show a verification-needed state instead of a recommendation.
 - **Don't use raw Tailwind color utilities** (`text-blue-600`, `bg-red-50`) **in business components.** Always go through the semantic layer (`text-text-accent`, `bg-state-warning-hover`, etc.).
-- **Don't ship a display face larger than the page title** (`text-2xl` / 600 / `leading-7` / `tracking-[-0.01em]`). The legacy `display-hero` 54px, `display-large` 36px, `section-title` 32px, and `hero-metric` 56px Geist Mono tokens remain in the spec for marketing surfaces only; product surfaces use **at most** `text-2xl` (24px) for the page title (T8).
+- **Don't ship a display face larger than the page title** (`text-2xl` / 600 / `leading-7` / `tracking-[-0.01em]`). The legacy `display-hero` 54px, `display-large` 36px, `section-title` 32px, and `hero-metric` 56px Geist Mono tokens remain in the spec for marketing surfaces only; product surfaces use **at most** `text-2xl` (28px) for the page title (T8).
+- **Don't stack two `↗` arrows in the same visual area.** A "View all ↗" link and a "Review ↗" button next to each other read as duplicate chrome. Rule: filled / primary buttons take no arrow (the button itself signals action); text-link-style navigation chrome (`View all`, `Open full queue`) may carry the arrow as the single navigation cue. If you find yourself needing two arrows side-by-side, drop the one on the button.
 
 ## Quiet register — the four refinements
 

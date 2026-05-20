@@ -85,7 +85,7 @@ function PenaltyPill({ row, days }: { row: DashboardTopRow; days: number }) {
   if (!value) {
     return (
       <span
-        className="inline-flex h-7 min-w-[88px] items-center justify-center rounded-md border border-divider-subtle bg-background-subtle px-2.5 text-sm text-text-tertiary"
+        className="inline-flex h-8 min-w-[92px] items-center justify-center rounded-md border border-divider-subtle bg-background-subtle px-2.5 text-md text-text-tertiary"
         title={row.exposureStatus === 'needs_input' ? t`Needs penalty inputs` : t`No exposure`}
       >
         <Trans>—</Trans>
@@ -95,7 +95,7 @@ function PenaltyPill({ row, days }: { row: DashboardTopRow; days: number }) {
   return (
     <span
       className={cn(
-        'inline-flex h-7 min-w-[88px] items-center justify-center rounded-md px-2.5 text-sm font-medium tabular-nums',
+        'inline-flex h-8 min-w-[92px] items-center justify-center rounded-md px-2.5 text-md font-medium tabular-nums',
         tone === 'critical' && 'bg-state-destructive-hover text-text-destructive',
         tone === 'neutral' &&
           'border border-divider-subtle bg-background-default text-text-primary',
@@ -112,7 +112,7 @@ function DueDatePill({ days }: { days: number }) {
   return (
     <span
       className={cn(
-        'inline-flex h-7 min-w-[84px] items-center justify-center rounded-md px-2.5 text-sm tabular-nums',
+        'inline-flex h-8 min-w-[92px] items-center justify-center rounded-md px-2.5 text-md tabular-nums',
         past
           ? 'bg-state-destructive-hover font-medium text-text-destructive'
           : days === 0
@@ -156,13 +156,13 @@ function ActionRow({
         aria-expanded={expanded}
         aria-controls={`action-detail-${row.obligationId}`}
         aria-label={t`${prompt} for ${row.clientName}`}
-        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-3.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <PenaltyPill row={row} days={days} />
         <DueDatePill days={days} />
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate text-base font-medium text-text-primary">{row.clientName}</span>
-          <span className="truncate text-sm text-text-secondary">{prompt}</span>
+          <span className="truncate text-md font-medium text-text-primary">{row.clientName}</span>
+          <span className="truncate text-base text-text-secondary">{prompt}</span>
         </span>
         <ChevronDownIcon
           className={cn(
@@ -176,7 +176,7 @@ function ActionRow({
       {expanded ? (
         <div
           id={`action-detail-${row.obligationId}`}
-          className="ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-sm"
+          className="ml-3 mr-3 mb-2 grid gap-3 rounded-md border border-divider-subtle bg-background-subtle/40 px-4 py-3 text-base"
         >
           <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[auto_minmax(0,1fr)]">
             <dt className="text-text-tertiary">
@@ -220,7 +220,6 @@ function ActionRow({
           <div>
             <Button variant="primary" size="sm" onClick={onOpenObligation}>
               <Trans>Open in Obligations</Trans>
-              <ArrowUpRightIcon data-icon="inline-end" />
             </Button>
           </div>
         </div>
@@ -271,7 +270,7 @@ function DashboardActionsList({
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
-        <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-sm text-text-secondary">
+        <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
           {canRunMigration ? (
             <>
               <Trans>No obligations this week. Import clients to get started.</Trans>{' '}
@@ -312,7 +311,7 @@ function DashboardActionsList({
         ))}
       </ul>
       {overflow > 0 ? (
-        <p className="text-sm text-text-tertiary">
+        <p className="text-base text-text-tertiary">
           <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
         </p>
       ) : null}
@@ -335,7 +334,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           event.preventDefault()
           onOpenAll()
         }}
-        className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+        className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
       >
         <Trans>Open full queue</Trans>
         <ArrowUpRightIcon className="size-3.5" aria-hidden />

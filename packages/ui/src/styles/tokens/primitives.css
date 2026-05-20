@@ -32,8 +32,8 @@
   --text-base: 13px;
   --text-md: 14px;
   --text-lg: 16px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
+  --text-xl: 18px; /* 2026-05-20: was 20px. Calm section-label scale. */
+  --text-2xl: 28px; /* 2026-05-20: was 24px. Loud page/KPI anchor scale. */
   --text-section-title: 32px;
   --text-section-title--line-height: 1.1875;
   --text-display-large: 36px;
