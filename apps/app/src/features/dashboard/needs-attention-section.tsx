@@ -135,7 +135,9 @@ function NeedsAttentionSection() {
             'grid items-stretch gap-3',
             alerts.length === 1 && 'grid-cols-1',
             alerts.length === 2 && 'grid-cols-2',
-            overflowCount > 0 && 'grid-cols-3',
+            // Overflow tile takes a fixed 160px column; the two
+            // visible alert cards split the remaining width equally.
+            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
           )}
         >
           {visibleAlerts.map((alert) => (
