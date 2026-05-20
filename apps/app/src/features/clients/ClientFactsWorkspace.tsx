@@ -740,8 +740,8 @@ export function ClientFactsWorkspace({
             {isLoading ? (
               <ClientTableSkeleton />
             ) : clients.length > 0 ? (
-              <div className="overflow-x-auto rounded-md border border-divider-regular">
-                <Table className="min-w-[1280px] table-fixed">
+              <div className="rounded-md border border-divider-regular">
+                <Table className="table-fixed">
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
@@ -815,7 +815,7 @@ function ClientMetricCard({ metric }: { metric: ClientMetric }) {
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="text-sm font-medium text-text-secondary">{metric.label}</span>
-          <span className="text-3xl font-semibold tabular-nums text-text-primary">
+          <span className="text-2xl font-semibold tabular-nums text-text-primary">
             {metric.value}
           </span>
           <span className="truncate text-xs text-text-tertiary">{metric.detail}</span>
@@ -1171,8 +1171,8 @@ function ClientWorkPlanPanel({
           />
         ) : (
           <div className="grid gap-3">
-            <div className="overflow-x-auto rounded-md border border-divider-subtle">
-              <Table className="min-w-[760px] table-fixed">
+            <div className="rounded-md border border-divider-subtle">
+              <Table className="table-fixed">
                 <TableHeader>
                   <TableRow>
                     <TableHead>

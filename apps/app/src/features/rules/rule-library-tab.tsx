@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, EyeIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckIcon, EyeIcon } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -946,9 +946,7 @@ function TierBadge({ tier, needsReview }: { tier: TierKey; needsReview: boolean 
     >
       {tierLabels[tier]}
       {needsReview ? (
-        <span className="text-severity-medium" aria-hidden>
-          ⚠
-        </span>
+        <AlertTriangleIcon className="size-3 text-severity-medium" aria-hidden />
       ) : null}
     </span>
   )

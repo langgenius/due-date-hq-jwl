@@ -118,7 +118,7 @@ export function FilterChips<T extends string>({
             className={cn(
               'h-[26px] rounded px-2.5 text-xs shadow-none',
               active
-                ? 'border-text-primary bg-text-primary text-text-inverted hover:border-text-primary hover:bg-text-primary'
+                ? 'border-transparent bg-text-primary text-text-inverted hover:bg-text-primary'
                 : 'bg-background-default text-text-secondary',
             )}
             onClick={() => onValueChange(option.value)}

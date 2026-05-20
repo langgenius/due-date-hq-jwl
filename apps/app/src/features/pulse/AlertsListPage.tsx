@@ -424,7 +424,7 @@ function PulseSourceHealthTable({
   const { i18n, t } = useLingui()
 
   return (
-    <div className="overflow-x-auto rounded-md border border-divider-subtle bg-background-default">
+    <div className="rounded-md border border-divider-subtle bg-background-default">
       <Table>
         <TableHeader>
           <TableRow>

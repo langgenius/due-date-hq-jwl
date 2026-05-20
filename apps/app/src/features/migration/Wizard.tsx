@@ -724,7 +724,7 @@ function LiveGenesisOverlay({
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
-        <div className="font-mono text-hero font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
+        <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
           {formatCents(genesis.totalExposureCents)}
         </div>
         <div className="text-sm text-text-secondary">

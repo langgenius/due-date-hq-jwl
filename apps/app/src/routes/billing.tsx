@@ -353,7 +353,7 @@ export function BillingRoute() {
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="font-mono text-3xl font-semibold tabular-nums text-text-primary">
+                    <p className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
                       {currentPlanName}
                     </p>
                     <p className="mt-1 text-sm text-text-secondary">
@@ -691,7 +691,7 @@ function PlanOption({
           <div className="flex min-h-10 flex-wrap items-baseline gap-2">
             <span
               className={cn(
-                'text-3xl font-semibold text-text-primary',
+                'text-2xl font-semibold text-text-primary',
                 priceKind === 'numeric' ? 'font-mono tabular-nums' : 'font-sans tracking-normal',
               )}
             >

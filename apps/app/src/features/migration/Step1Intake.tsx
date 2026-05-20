@@ -629,7 +629,7 @@ export function Step1Intake({
                 compact ? 'h-[104px] text-sm' : 'h-[120px] text-md',
                 isFileDragActive || isReadingFile
                   ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-                  : 'border-divider-deep bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
+                  : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
               )}
             >
               {isReadingFile ? (

@@ -474,7 +474,7 @@ function ActiveMembersTable({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-      <Table className="min-w-[1040px]">
+      <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
             <TableHead className="w-[304px] px-4">Name</TableHead>
@@ -549,7 +549,7 @@ function PendingInvitationsTable({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-      <Table className="min-w-[1040px]">
+      <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
             <TableHead className="w-[444px] px-4">Email</TableHead>

@@ -262,7 +262,7 @@ function MetricCard({
         <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
         <CardDescription
           className={cn(
-            'text-3xl font-semibold tabular-nums text-text-primary',
+            'text-2xl font-semibold tabular-nums text-text-primary',
             intent === 'critical' && 'text-text-destructive',
             intent === 'warning' && 'text-text-warning',
           )}
