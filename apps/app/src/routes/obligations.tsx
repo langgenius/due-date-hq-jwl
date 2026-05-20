@@ -2499,9 +2499,33 @@ export function ObligationQueueRoute() {
 
               {tableRows.length > 0 ? (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-text-tertiary">
-                    <Plural value={totalShown} one="# obligation" other="# obligations" />
-                  </span>
+                  <div className="flex items-center gap-3 text-xs text-text-tertiary">
+                    <span>
+                      <Plural value={totalShown} one="# obligation" other="# obligations" />
+                    </span>
+                    {/* Surface the keyboard-first contract per DESIGN.md
+                        T5 (Linear inheritance). Hints are persistent and
+                        terse — the full registry lives behind ? (the
+                        global ShortcutHelpDialog). */}
+                    <span aria-hidden className="hidden h-3 border-l border-divider-subtle md:inline-block" />
+                    <span className="hidden items-center gap-1.5 md:inline-flex">
+                      <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                        J
+                      </kbd>
+                      <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                        K
+                      </kbd>
+                      <span><Trans>navigate</Trans></span>
+                      <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                        Enter
+                      </kbd>
+                      <span><Trans>open</Trans></span>
+                      <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                        ?
+                      </kbd>
+                      <span><Trans>all</Trans></span>
+                    </span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -5449,8 +5473,8 @@ function ObligationQueueScopeTab({
 
 // Quick-filter chip: ghost when off, soft-tinted when on. Used for the
 // 4 CPA action filters under the scope tabs (Past due, Due this week,
-// Needs evidence, Penalty growing). Pill-shaped per T3 — indicator,
-// not commit.
+// Needs evidence, Penalty input needed). Pill-shaped per T3 —
+// indicator, not commit.
 function ObligationQueueActionChip({
   active,
   onClick,
