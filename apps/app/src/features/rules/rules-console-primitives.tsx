@@ -31,16 +31,19 @@ export function RulesPageHeader({
   title,
   description,
   breadcrumbs,
+  actions,
 }: {
   title: string
   description?: string
   breadcrumbs?: BreadcrumbItem[]
+  actions?: ReactNode
 }) {
   return (
     <PageHeader
       title={title}
       {...(description ? { description } : {})}
       {...(breadcrumbs ? { breadcrumbs } : {})}
+      {...(actions ? { actions } : {})}
     />
   )
 }
@@ -61,18 +64,20 @@ export function RulesPageShell({
   title,
   description,
   breadcrumbs,
+  actions,
   compact = false,
   children,
 }: {
   title: string
   description?: string
   breadcrumbs?: BreadcrumbItem[]
+  actions?: ReactNode
   compact?: boolean
   children: ReactNode
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex w-full flex-col gap-6 px-6 py-6">
           {/* Header is unmounted in compact mode — not just visually
             collapsed. A collapsed-but-mounted div still consumes a
@@ -83,6 +88,7 @@ export function RulesPageShell({
               title={title}
               {...(description ? { description } : {})}
               {...(breadcrumbs ? { breadcrumbs } : {})}
+              {...(actions ? { actions } : {})}
             />
           ) : null}
           {children}
