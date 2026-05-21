@@ -66,6 +66,7 @@ const uploadRaw = os.migration.uploadRaw.handler(async ({ input, context }) => {
   if (input.inline.text !== undefined) out.text = input.inline.text
   if (input.inline.base64 !== undefined) out.base64 = input.inline.base64
   if (input.inline.rawBase64 !== undefined) out.rawBase64 = input.inline.rawBase64
+  if (input.inline.sourceManifest !== undefined) out.sourceManifest = input.inline.sourceManifest
   return service.uploadRaw(out)
 })
 

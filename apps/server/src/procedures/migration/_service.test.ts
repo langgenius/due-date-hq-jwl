@@ -114,6 +114,8 @@ function buildScopedRepo(firmId: string) {
   const importedClients: Array<{
     id: string
     name?: string
+    primaryContactName: string | null | undefined
+    primaryContactEmail: string | null | undefined
     taxYearType: 'calendar' | 'fiscal' | undefined
     fiscalYearEndMonth: number | null | undefined
     fiscalYearEndDay: number | null | undefined
@@ -434,6 +436,8 @@ function buildScopedRepo(firmId: string) {
         ...input.clients.map((item) => ({
           id: item.id,
           name: item.name,
+          primaryContactName: item.primaryContactName,
+          primaryContactEmail: item.primaryContactEmail,
           taxYearType: item.taxYearType,
           fiscalYearEndMonth: item.fiscalYearEndMonth,
           fiscalYearEndDay: item.fiscalYearEndDay,
@@ -1097,15 +1101,15 @@ const PRESET_GOLDENS: FixtureGoldenCase[] = [
       'Organization Name': 'client.name',
       'Tax ID': 'client.ein',
       Country: 'IGNORE',
-      'Primary Contact': 'IGNORE',
-      'Contact Email': 'IGNORE',
+      'Primary Contact': 'client.primary_contact_name',
+      'Contact Email': 'client.primary_contact_email',
     },
     importMappings: {
       'Organization Name': 'client.name',
       'Tax ID': 'client.ein',
       Country: 'IGNORE',
-      'Primary Contact': 'client.assignee_name',
-      'Contact Email': 'client.email',
+      'Primary Contact': 'client.primary_contact_name',
+      'Contact Email': 'client.primary_contact_email',
     },
   },
   {
@@ -1274,10 +1278,40 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
 
     const batch = await service.createBatch({ source: 'preset_taxdome', presetUsed: 'taxdome' })
-    await service.uploadRaw({ batchId: batch.id, kind: 'csv', text: SAMPLE_CSV })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'csv',
+      text: SAMPLE_CSV,
+      sourceManifest: {
+        product: 'taxdome',
+        confidence: 0.95,
+        reason: 'TaxDome account export headers detected.',
+        originalFileName: 'accounts.csv',
+        originalKind: 'csv',
+        selectedFileName: 'accounts.csv',
+        selectedRole: 'account_list',
+        files: [
+          {
+            fileName: 'accounts.csv',
+            originalKind: 'csv',
+            role: 'account_list',
+            product: 'taxdome',
+            rowCount: 3,
+            selected: true,
+          },
+        ],
+        warnings: [],
+      },
+    })
 
     const result = await service.runMapper(batch.id)
 
+    expect(state.batches.get(batch.id)?.mappingJson).toMatchObject({
+      sourceManifest: {
+        product: 'taxdome',
+        selectedFileName: 'accounts.csv',
+      },
+    })
     expect(result.meta?.fallback).toBe('preset')
     expect(result.mappings.length).toBeGreaterThan(0)
     // TaxDome's public export docs use Account Name, not this fixture's
@@ -1461,6 +1495,8 @@ describe('MigrationService integration staging', () => {
             'Entity Type': 'LLC',
             'Tax Return Type': 'Form 1120-S',
             'Contact Email': 'acme@example.com',
+            'Primary Contact': 'Jane Owner',
+            'Primary Contact Email': 'jane@example.com',
           },
         },
       ],
@@ -1482,9 +1518,13 @@ describe('MigrationService integration staging', () => {
                 ? ('client.state' as const)
                 : mapping.sourceHeader === 'Entity Type'
                   ? ('client.entity_type' as const)
-                  : mapping.sourceHeader === 'Contact Email'
-                    ? ('client.email' as const)
-                    : ('IGNORE' as const),
+                  : mapping.sourceHeader === 'Primary Contact'
+                    ? ('client.primary_contact_name' as const)
+                    : mapping.sourceHeader === 'Primary Contact Email'
+                      ? ('client.primary_contact_email' as const)
+                      : mapping.sourceHeader === 'Contact Email'
+                        ? ('client.email' as const)
+                        : ('IGNORE' as const),
         userOverridden: true,
       }),
     )
@@ -1496,6 +1536,10 @@ describe('MigrationService integration staging', () => {
     const applied = await service.apply(batch.id)
 
     expect(applied.clientCount).toBe(1)
+    expect(state.importedClients[0]).toMatchObject({
+      primaryContactName: 'Jane Owner',
+      primaryContactEmail: 'jane@example.com',
+    })
     expect(applied.obligationCount).toBeGreaterThan(0)
     expect(state.externalRefs.some((ref) => ref.internalEntityType === 'client')).toBe(true)
     expect(state.externalRefs.some((ref) => ref.internalEntityType === 'obligation')).toBe(true)

@@ -2780,6 +2780,10 @@ msgstr "详情"
 msgid "Details updated"
 msgstr "详情已更新"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Detected export source"
+msgstr "已识别导出来源"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Disable"
 msgstr "停用"
@@ -2880,8 +2884,8 @@ msgid "Draft import discarded"
 msgstr "导入草稿已丢弃"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop CSV / TSV / XLSX here or click to choose · max 1000 rows · 2 MB"
-msgstr "将 CSV / TSV / XLSX 拖到这里或点击选择 · 最多 1000 行 · 2 MB"
+msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
+msgstr "将 CSV / Excel / ZIP / TXT / IIF 拖到这里，或点击选择 · 最多 1000 行 · 5 MB"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -3338,8 +3342,8 @@ msgid "File"
 msgstr "文件"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "File is larger than 2 MB. Please trim or split the export."
-msgstr "文件大于 2 MB，请精简或拆分后再上传。"
+msgid "File is larger than 5 MB. Please trim or split the export."
+msgstr "文件超过 5 MB。请精简或拆分导出文件。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "File kind"
@@ -6207,6 +6211,14 @@ msgstr "上一页"
 msgid "Previous years"
 msgstr "上一组年份"
 
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary contact email"
+msgstr "主联系人邮箱"
+
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary contact name"
+msgstr "主联系人姓名"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Primary counties"
 msgstr "主州县"
@@ -8820,6 +8832,11 @@ msgstr "先通过来源支撑的路径处理截止日变更，再基于同一组
 msgid "User agent hash"
 msgstr "User agent 哈希"
 
+#. placeholder {0}: sourceManifest.selectedFileName
+#: src/features/migration/Step1Intake.tsx
+msgid "Using {sourceProductLabel} data from {0}."
+msgstr "正在使用来自 {0} 的 {sourceProductLabel} 数据。"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC 时间"
@@ -8972,10 +8989,6 @@ msgstr "无法连接 AI。已使用你选择的导入模板，请按需复核和
 #: src/features/migration/Step1Intake.tsx
 msgid "We couldn't read that file. Try exporting as CSV."
 msgstr "无法读取该文件。请先导出为 CSV 再试。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "We couldn't read that XLSX file. Try exporting the first sheet as CSV."
-msgstr "无法读取该 XLSX 文件。请尝试将第一个工作表导出为 CSV。"
 
 #: src/routes/billing.success.tsx
 msgid "We couldn't refresh billing status yet. This page will keep checking."

@@ -305,6 +305,9 @@ importers:
       canvas-confetti:
         specifier: 'catalog:'
         version: 1.9.4
+      fflate:
+        specifier: 'catalog:'
+        version: 0.8.2
       foxact:
         specifier: 'catalog:'
         version: 0.3.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)

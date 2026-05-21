@@ -32,6 +32,7 @@ import {
   type MigrationIntegrationProvider,
   type MigrationError,
   type MigrationSource,
+  type MigrationSourceManifest,
   type MigrationStageExternalRowsOutput,
   type MigrationStagingRow,
   type NormalizationRow,
@@ -135,6 +136,8 @@ const MapperOutputSchema = z.object({
         'client.tax_year_type',
         'client.fiscal_year_end',
         'client.assignee_name',
+        'client.primary_contact_name',
+        'client.primary_contact_email',
         'client.email',
         'client.notes',
         'client.estimated_tax_liability',
@@ -221,6 +224,7 @@ export interface UploadRawInput {
   text?: string
   base64?: string
   rawBase64?: string
+  sourceManifest?: MigrationSourceManifest
 }
 
 export class MigrationService {
@@ -333,6 +337,7 @@ export class MigrationService {
       rowCount: parsed.rowCount,
       truncated: parsed.truncated,
     }
+    if (input.sourceManifest) payload.sourceManifest = input.sourceManifest
 
     await this.deps.scoped.migration.updateBatch(input.batchId, {
       mappingJson: payload,

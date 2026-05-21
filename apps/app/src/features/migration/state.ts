@@ -6,6 +6,7 @@ import type {
   NormalizationRow,
   DryRunSummary,
   MigrationSource,
+  MigrationSourceManifest,
   MigrationExternalStagingRowInput,
   MigrationIntegrationProvider,
 } from '@duedatehq/contracts'
@@ -36,6 +37,7 @@ export interface IntakeState {
   rawFileBase64: string | null
   contentType: string | null
   sizeBytes: number
+  sourceManifest: MigrationSourceManifest | null
   preset: PresetId | null
   integrationProvider: IntegrationProvider
   integrationRawText: string
@@ -101,6 +103,7 @@ export const INITIAL_STATE: WizardState = {
     rawFileBase64: null,
     contentType: null,
     sizeBytes: 0,
+    sourceManifest: null,
     preset: null,
     integrationProvider: 'karbon',
     integrationRawText: '',
@@ -132,6 +135,7 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
     intake.rawFileBase64 !== null ||
     intake.contentType !== null ||
     intake.sizeBytes !== 0 ||
+    intake.sourceManifest !== null ||
     intake.preset !== null ||
     intake.integrationProvider !== INITIAL_STATE.intake.integrationProvider ||
     intake.integrationRawText !== '' ||
@@ -179,6 +183,7 @@ export type WizardAction =
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     }
   | { type: 'INTAKE_PRESET'; preset: PresetId | null }
   | { type: 'INTAKE_INTEGRATION_PROVIDER'; provider: IntegrationProvider }
@@ -234,6 +239,10 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           contentType:
             action.contentType === undefined ? state.intake.contentType : action.contentType,
           sizeBytes: action.sizeBytes ?? state.intake.sizeBytes,
+          sourceManifest:
+            action.sourceManifest === undefined
+              ? state.intake.sourceManifest
+              : action.sourceManifest,
           parseError: null,
           submitError: null,
         },
@@ -249,6 +258,12 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           integrationRows: [],
           integrationRawText: '',
           rawText: '',
+          fileName: null,
+          fileKind: 'paste',
+          rawFileBase64: null,
+          contentType: null,
+          sizeBytes: 0,
+          sourceManifest: null,
           rowCount: 0,
           parseError: null,
           submitError: null,
@@ -265,8 +280,10 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           rawText: action.tabularText,
           fileName: `${state.intake.integrationProvider}-integration.json`,
           fileKind: 'csv',
+          rawFileBase64: null,
           contentType: 'application/json',
           sizeBytes: action.rawText.length,
+          sourceManifest: null,
           rowCount: action.rows.length,
           truncated: false,
           ssnBlockedColumnIndexes: [],
@@ -281,6 +298,13 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           ...state.intake,
           mode: 'previous_sync',
           previousSyncBatchId: action.batchId,
+          rawText: '',
+          fileName: null,
+          fileKind: 'paste',
+          rawFileBase64: null,
+          contentType: null,
+          sizeBytes: 0,
+          sourceManifest: null,
           rowCount: action.batchId ? 1 : 0,
           parseError: null,
           submitError: null,

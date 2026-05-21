@@ -297,6 +297,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
                 kind: intake.fileKind,
                 text: intake.rawText,
                 ...(intake.rawFileBase64 ? { rawBase64: intake.rawFileBase64 } : {}),
+                ...(intake.sourceManifest ? { sourceManifest: intake.sourceManifest } : {}),
               },
             },
             {

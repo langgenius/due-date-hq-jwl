@@ -10,12 +10,12 @@ import {
 } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
-import readXlsxFile, { type SheetData } from 'read-excel-file/browser'
 import type {
   MigrationBatch,
   MigrationExternalEntityType,
   MigrationExternalStagingRowInput,
   MigrationIntegrationProvider,
+  MigrationSourceManifest,
 } from '@duedatehq/contracts'
 
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
@@ -40,8 +40,9 @@ import {
   PROVIDER_CAPABILITY_TIER_LABELS,
   type ProviderCapabilityTier,
 } from './provider-capabilities'
+import { prepareUploadFile, UnsupportedUploadError, unsupportedUploadMessage } from './intake-files'
 
-const MAX_FILE_BYTES = 2 * 1024 * 1024
+const MAX_FILE_BYTES = 5 * 1024 * 1024
 
 const PRESET_LABELS: Record<PresetId, string> = {
   taxdome: 'TaxDome',
@@ -49,6 +50,15 @@ const PRESET_LABELS: Record<PresetId, string> = {
   karbon: 'Karbon',
   quickbooks: 'QuickBooks',
   file_in_time: 'File In Time',
+}
+
+const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
+  generic: 'Generic',
+  file_in_time: 'File In Time',
+  quickbooks_online: 'QuickBooks Online',
+  quickbooks_desktop: 'QuickBooks Desktop',
+  taxdome: 'TaxDome',
+  karbon: 'Karbon',
 }
 
 const PROVIDER_DEFAULT_ENTITY: Record<MigrationIntegrationProvider, MigrationExternalEntityType> = {
@@ -63,17 +73,6 @@ function hasDraggedFiles(event: DragEvent<HTMLElement>) {
   return Array.from(event.dataTransfer.types).includes('Files')
 }
 
-function formatXlsxCell(cell: unknown): string {
-  if (cell === null || cell === undefined) return ''
-  if (cell instanceof Date) return cell.toISOString()
-  if (typeof cell === 'string') return cell
-  if (typeof cell === 'number' || typeof cell === 'boolean' || typeof cell === 'bigint') {
-    return String(cell)
-  }
-  if (typeof cell === 'symbol') return cell.description ?? ''
-  return JSON.stringify(cell) ?? ''
-}
-
 interface Step1Props {
   density?: 'comfortable' | 'compact' | undefined
   intake: IntakeState
@@ -85,6 +84,7 @@ interface Step1Props {
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     },
   ) => void
   onPreset: (preset: PresetId | null) => void
@@ -184,6 +184,7 @@ export function Step1Intake({
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     } = {},
   ) {
     onText(text, fileName, options)
@@ -232,6 +233,7 @@ export function Step1Intake({
       rawFileBase64: null,
       contentType: null,
       sizeBytes: 0,
+      sourceManifest: null,
     })
   }
 
@@ -262,6 +264,9 @@ export function Step1Intake({
       return []
     }
   }, [intake.ssnBlockedColumnIndexes, intake.rawText])
+  const sourceManifest = intake.sourceManifest
+  const sourceProductLabel = sourceManifest ? SOURCE_PRODUCT_LABELS[sourceManifest.product] : ''
+  const sourceWarnings = sourceManifest?.warnings ?? []
 
   const integrationProvidersByTier = useMemo(() => {
     const groups = new Map<ProviderCapabilityTier, MigrationIntegrationProvider[]>()
@@ -311,44 +316,36 @@ export function Step1Intake({
   }
 
   function loadFile(file: File) {
-    const lowerName = file.name.toLowerCase()
-    const fileKind: IntakeState['fileKind'] = lowerName.endsWith('.xlsx')
-      ? 'xlsx'
-      : lowerName.endsWith('.tsv')
-        ? 'tsv'
-        : 'csv'
-    const contentType =
-      file.type ||
-      (fileKind === 'xlsx'
-        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        : fileKind === 'tsv'
-          ? 'text/tab-separated-values'
-          : 'text/csv')
-    const readSerial = startFileRead(file, fileKind, contentType)
+    const contentType = file.type || 'application/octet-stream'
+    const readSerial = startFileRead(file, 'csv', contentType)
 
     if (file.size > MAX_FILE_BYTES) {
       setIsReadingFile(false)
-      onParseError(t`File is larger than 2 MB. Please trim or split the export.`)
+      onParseError(t`File is larger than 5 MB. Please trim or split the export.`)
       return
     }
-    if (fileKind === 'xlsx') {
-      void loadXlsxFile(file, readSerial, contentType)
-      return
-    }
-    void file
-      .text()
-      .then((text) => {
+    void prepareUploadFile(file)
+      .then((prepared) => {
         if (!isCurrentFileRead(readSerial)) return
-        commitText(text, file.name, {
-          fileKind,
-          contentType,
-          sizeBytes: file.size,
+        if (prepared.suggestedPreset && intake.preset === null) onPreset(prepared.suggestedPreset)
+        commitText(prepared.text, prepared.fileName, {
+          fileKind: prepared.fileKind,
+          rawFileBase64: prepared.rawFileBase64,
+          contentType: prepared.contentType,
+          sizeBytes: prepared.sizeBytes,
+          sourceManifest: prepared.sourceManifest,
         })
       })
-      .catch(() => {
+      .catch((err) => {
         if (!isCurrentFileRead(readSerial)) return
         resetParsedRows()
-        onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+        if (err instanceof UnsupportedUploadError) {
+          onParseError(unsupportedUploadMessage(err.upload))
+        } else if (err instanceof Error && err.message) {
+          onParseError(err.message)
+        } else {
+          onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+        }
       })
       .finally(() => {
         if (isCurrentFileRead(readSerial)) setIsReadingFile(false)
@@ -375,35 +372,6 @@ export function Step1Intake({
 
   function isCurrentFileRead(serial: number) {
     return fileReadSerialRef.current === serial
-  }
-
-  async function loadXlsxFile(file: File, readSerial: number, contentType: string) {
-    try {
-      const [sheets, rawFileBase64] = await Promise.all([readXlsxFile(file), fileToBase64(file)])
-      if (!isCurrentFileRead(readSerial)) return
-      const rows: SheetData = sheets.find((sheet) =>
-        sheet.data.some((row) => row.some((cell) => formatXlsxCell(cell).trim() !== '')),
-      )?.data ?? [[]]
-      const text = rows
-        .map((row) =>
-          row
-            .map((cell) => formatXlsxCell(cell).replaceAll('\t', ' ').replaceAll('\n', ' '))
-            .join('\t'),
-        )
-        .join('\n')
-      commitText(text, file.name, {
-        fileKind: 'xlsx',
-        rawFileBase64,
-        contentType,
-        sizeBytes: file.size,
-      })
-    } catch {
-      if (!isCurrentFileRead(readSerial)) return
-      resetParsedRows()
-      onParseError(t`We couldn't read that XLSX file. Try exporting the first sheet as CSV.`)
-    } finally {
-      if (isCurrentFileRead(readSerial)) setIsReadingFile(false)
-    }
   }
 
   return (
@@ -566,11 +534,7 @@ export function Step1Intake({
       ) : null}
 
       {intake.mode === 'paste' || intake.mode === 'upload' ? (
-        <div
-          className={cn(
-            compact ? 'grid min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]' : 'contents',
-          )}
-        >
+        <div className={cn(compact ? 'flex min-h-0 flex-col gap-3' : 'contents')}>
           <div className="flex flex-col gap-2">
             <label
               htmlFor={pasteId}
@@ -644,7 +608,9 @@ export function Step1Intake({
                 />
               )}
               <span id={uploadHintId}>
-                <Trans>Drop CSV / TSV / XLSX here or click to choose · max 1000 rows · 2 MB</Trans>
+                <Trans>
+                  Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB
+                </Trans>
               </span>
               {isReadingFile ? (
                 <span
@@ -662,7 +628,7 @@ export function Step1Intake({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
                 className="hidden"
                 onClick={(event) => event.stopPropagation()}
                 onChange={handleFilePicked}
@@ -670,7 +636,7 @@ export function Step1Intake({
             </div>
           </div>
 
-          <div className={cn('flex flex-col gap-2', compact ? 'xl:col-span-2' : '')}>
+          <div className="flex flex-col gap-2">
             <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
               <Trans>I&apos;m coming from… (optional)</Trans>
             </span>
@@ -717,6 +683,24 @@ export function Step1Intake({
               We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
               to the AI. Columns flagged: {ssnBlockedHeaders.join(', ')} → forced IGNORE.
             </Trans>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {sourceManifest ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle>
+            <Trans>Detected export source</Trans>
+          </AlertTitle>
+          <AlertDescription className="flex flex-col gap-1">
+            <span>
+              <Trans>
+                Using {sourceProductLabel} data from {sourceManifest.selectedFileName}.
+              </Trans>
+            </span>
+            {sourceWarnings.length > 0 ? (
+              <span>{sourceWarnings.map((warning) => warning.message).join(' ')}</span>
+            ) : null}
           </AlertDescription>
         </Alert>
       ) : null}
@@ -1204,16 +1188,4 @@ function friendlyParseError(error: TabularParseError): string {
     default:
       return "We couldn't read that file. Try exporting as CSV."
   }
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.addEventListener('error', () => reject(reader.error))
-    reader.addEventListener('load', () => {
-      const value = typeof reader.result === 'string' ? reader.result : ''
-      resolve(value.includes(',') ? value.split(',').slice(1).join(',') : value)
-    })
-    reader.readAsDataURL(file)
-  })
 }

@@ -165,6 +165,8 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       fiscalYearEndMonth: facts.fiscalYearEndMonth,
       fiscalYearEndDay: facts.fiscalYearEndDay,
       email: facts.email,
+      primaryContactName: facts.primaryContactName,
+      primaryContactEmail: facts.primaryContactEmail,
       notes: facts.notes,
       assigneeName: facts.assigneeName,
       estimatedTaxLiabilityCents: facts.estimatedTaxLiabilityCents,
@@ -465,6 +467,8 @@ interface ClientImportFacts {
   fiscalYearEndMonth: number | null
   fiscalYearEndDay: number | null
   email: string | null
+  primaryContactName: string | null
+  primaryContactEmail: string | null
   notes: string | null
   assigneeName: string | null
   estimatedTaxLiabilityCents: number | null
@@ -541,6 +545,8 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
     fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
     fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
     email: normalizeEmail(readMappedValue(input, 'client.email')),
+    primaryContactName: readMappedValue(input, 'client.primary_contact_name'),
+    primaryContactEmail: normalizeEmail(readMappedValue(input, 'client.primary_contact_email')),
     notes: readMappedValue(input, 'client.notes'),
     assigneeName: readMappedValue(input, 'client.assignee_name'),
     estimatedTaxLiabilityCents: parseMoneyCents(rawEstimatedTaxLiability),
@@ -764,6 +770,8 @@ function mergeClientFacts(a: ClientImportFacts, b: ClientImportFacts): ClientImp
     fiscalYearEndMonth: a.fiscalYearEndMonth ?? b.fiscalYearEndMonth,
     fiscalYearEndDay: a.fiscalYearEndDay ?? b.fiscalYearEndDay,
     email: a.email ?? b.email,
+    primaryContactName: a.primaryContactName ?? b.primaryContactName,
+    primaryContactEmail: a.primaryContactEmail ?? b.primaryContactEmail,
     notes: uniqueStrings([a.notes ?? '', b.notes ?? '']).join('\n') || null,
     assigneeName: a.assigneeName ?? b.assigneeName,
     estimatedTaxLiabilityCents: a.estimatedTaxLiabilityCents ?? b.estimatedTaxLiabilityCents,

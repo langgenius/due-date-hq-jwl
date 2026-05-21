@@ -2780,6 +2780,10 @@ msgstr "Detail"
 msgid "Details updated"
 msgstr "Details updated"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Detected export source"
+msgstr "Detected export source"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Disable"
 msgstr "Disable"
@@ -2880,8 +2884,8 @@ msgid "Draft import discarded"
 msgstr "Draft import discarded"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop CSV / TSV / XLSX here or click to choose · max 1000 rows · 2 MB"
-msgstr "Drop CSV / TSV / XLSX here or click to choose · max 1000 rows · 2 MB"
+msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
+msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -3338,8 +3342,8 @@ msgid "File"
 msgstr "File"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "File is larger than 2 MB. Please trim or split the export."
-msgstr "File is larger than 2 MB. Please trim or split the export."
+msgid "File is larger than 5 MB. Please trim or split the export."
+msgstr "File is larger than 5 MB. Please trim or split the export."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "File kind"
@@ -6207,6 +6211,14 @@ msgstr "Previous page"
 msgid "Previous years"
 msgstr "Previous years"
 
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary contact email"
+msgstr "Primary contact email"
+
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary contact name"
+msgstr "Primary contact name"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Primary counties"
 msgstr "Primary counties"
@@ -8820,6 +8832,11 @@ msgstr "Use the source-backed path for deadline changes, then prepare client com
 msgid "User agent hash"
 msgstr "User agent hash"
 
+#. placeholder {0}: sourceManifest.selectedFileName
+#: src/features/migration/Step1Intake.tsx
+msgid "Using {sourceProductLabel} data from {0}."
+msgstr "Using {sourceProductLabel} data from {0}."
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC time"
@@ -8972,10 +8989,6 @@ msgstr "We couldn't reach AI. Using your selected import template — review and
 #: src/features/migration/Step1Intake.tsx
 msgid "We couldn't read that file. Try exporting as CSV."
 msgstr "We couldn't read that file. Try exporting as CSV."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "We couldn't read that XLSX file. Try exporting the first sheet as CSV."
-msgstr "We couldn't read that XLSX file. Try exporting the first sheet as CSV."
 
 #: src/routes/billing.success.tsx
 msgid "We couldn't refresh billing status yet. This page will keep checking."

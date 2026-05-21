@@ -4,6 +4,7 @@ import type {
   MatrixSelection,
   MigrationExternalEntityType,
   MigrationIntegrationProvider,
+  MigrationSourceManifest,
   MigrationError,
   NormalizationRow,
 } from '@duedatehq/contracts'
@@ -31,6 +32,8 @@ export interface MappingJsonPayload {
     provider: MigrationIntegrationProvider
     source: string
   }
+  /** Source/product/file detection from Step 1 upload intake. */
+  sourceManifest?: MigrationSourceManifest
   /** Per-row external provenance kept alongside the tabular projection. */
   externalStagingRows?: ExternalStagingPayloadRow[]
   /** Pre-AI redaction record (column indexes flagged as SSN/ITIN-like). */

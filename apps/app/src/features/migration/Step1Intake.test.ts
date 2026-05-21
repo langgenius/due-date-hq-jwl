@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { strToU8, zipSync } from 'fflate'
 
 import {
   normalizeIntegrationJsonText,
   normalizePastedRowsText,
   parseIntegrationRows,
 } from './Step1Intake'
+import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
 import { PROVIDER_CAPABILITY_BY_PROVIDER } from './provider-capabilities'
 
 describe('provider integration intake parsing', () => {
@@ -77,5 +79,67 @@ describe('client rows paste normalization', () => {
     expect(normalizePastedRowsText('```csv\nname,state\nAcme,CA\n```')).toBe(
       'name\tstate\nAcme\tCA',
     )
+  })
+})
+
+describe('client export file intake adapters', () => {
+  it('explains unsupported proprietary backups before parsing', () => {
+    expect(unsupportedUploadForFileName('backup.qbb')).toEqual({
+      code: 'quickbooks_backup',
+      fileName: 'backup.qbb',
+    })
+    expect(unsupportedUploadForFileName('file-in-time.fbk')).toEqual({
+      code: 'file_in_time_backup',
+      fileName: 'file-in-time.fbk',
+    })
+  })
+
+  it('converts QuickBooks Desktop IIF customers into tabular upload text', async () => {
+    const file = new File(
+      [
+        [
+          '!CUST\tNAME\tREFNUM\tBADDR1\tBADDR2\tBADDR3\tPHONE1\tPHONE2\tEMAIL\tCUSTFLD1\tNOTE',
+          'CUST\tAcme LLC\tQB-1\tAcme LLC\t1 Main St\tCA 94105\t555-0101\t\towner@example.com\tBusiness\tVIP',
+        ].join('\n'),
+      ],
+      'customers.iif',
+      { type: 'text/plain' },
+    )
+
+    const prepared = await prepareUploadFile(file)
+
+    expect(prepared.fileKind).toBe('tsv')
+    expect(prepared.suggestedPreset).toBe('quickbooks')
+    expect(prepared.sourceManifest).toMatchObject({
+      product: 'quickbooks_desktop',
+      selectedRole: 'quickbooks_iif_customers',
+      originalKind: 'iif',
+    })
+    expect(prepared.text).toContain('Customer\tExternal ID\tCompany Name')
+    expect(prepared.text).toContain('Acme LLC\tQB-1\tAcme LLC')
+  })
+
+  it('merges TaxDome account and contact files inside ZIP exports', async () => {
+    const archive = zipSync({
+      'accounts.csv': strToU8(
+        'Account ID,Account Name,Linked Contact #1\nacct_1,Acme LLC,Jane Owner\n',
+      ),
+      'contacts.csv': strToU8(
+        'Contact Name,Email Address,Linked Account #1\nJane Owner,jane@example.com,Acme LLC\n',
+      ),
+    })
+    const archiveBuffer = new ArrayBuffer(archive.byteLength)
+    new Uint8Array(archiveBuffer).set(archive)
+    const file = new File([archiveBuffer], 'taxdome-export.zip', { type: 'application/zip' })
+
+    const prepared = await prepareUploadFile(file)
+
+    expect(prepared.suggestedPreset).toBe('taxdome')
+    expect(prepared.fileKind).toBe('tsv')
+    expect(prepared.sourceManifest.product).toBe('taxdome')
+    expect(prepared.sourceManifest.originalKind).toBe('zip')
+    expect(prepared.sourceManifest.selectedFileName).toContain('accounts.csv + contacts.csv')
+    expect(prepared.text).toContain('Primary Contact Name\tPrimary Contact Email')
+    expect(prepared.text).toContain('Jane Owner\tjane@example.com')
   })
 })

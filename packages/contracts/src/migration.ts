@@ -41,6 +41,72 @@ export const MigrationExternalEntityTypeSchema = z.enum([
   'unknown',
 ])
 
+export const MigrationDetectedSourceProductSchema = z.enum([
+  'generic',
+  'file_in_time',
+  'quickbooks_online',
+  'quickbooks_desktop',
+  'taxdome',
+  'karbon',
+])
+export type MigrationDetectedSourceProduct = z.infer<typeof MigrationDetectedSourceProductSchema>
+
+export const MigrationOriginalFileKindSchema = z.enum([
+  'csv',
+  'tsv',
+  'txt',
+  'xlsx',
+  'xls',
+  'zip',
+  'iif',
+  'json',
+  'unknown',
+])
+export type MigrationOriginalFileKind = z.infer<typeof MigrationOriginalFileKindSchema>
+
+export const MigrationSourceFileRoleSchema = z.enum([
+  'client_list',
+  'contact_list',
+  'account_list',
+  'task_view',
+  'customer_list',
+  'quickbooks_iif_customers',
+  'integration_records',
+  'ignored',
+  'unknown',
+])
+export type MigrationSourceFileRole = z.infer<typeof MigrationSourceFileRoleSchema>
+
+export const MigrationSourceManifestWarningSchema = z.object({
+  code: z.string().min(1),
+  message: z.string().min(1),
+  fileName: z.string().min(1).nullable().optional(),
+})
+export type MigrationSourceManifestWarning = z.infer<typeof MigrationSourceManifestWarningSchema>
+
+export const MigrationSourceManifestFileSchema = z.object({
+  fileName: z.string().min(1),
+  originalKind: MigrationOriginalFileKindSchema,
+  role: MigrationSourceFileRoleSchema,
+  product: MigrationDetectedSourceProductSchema,
+  rowCount: z.number().int().min(0),
+  selected: z.boolean(),
+})
+export type MigrationSourceManifestFile = z.infer<typeof MigrationSourceManifestFileSchema>
+
+export const MigrationSourceManifestSchema = z.object({
+  product: MigrationDetectedSourceProductSchema,
+  confidence: z.number().min(0).max(1),
+  reason: z.string().min(1),
+  originalFileName: z.string().min(1),
+  originalKind: MigrationOriginalFileKindSchema,
+  selectedFileName: z.string().min(1),
+  selectedRole: MigrationSourceFileRoleSchema,
+  files: z.array(MigrationSourceManifestFileSchema),
+  warnings: z.array(MigrationSourceManifestWarningSchema),
+})
+export type MigrationSourceManifest = z.infer<typeof MigrationSourceManifestSchema>
+
 export const MigrationBatchStatusSchema = z.enum([
   'draft',
   'mapping',
@@ -84,6 +150,8 @@ export const MappingTargetSchema = z.enum([
   'client.tax_year_type',
   'client.fiscal_year_end',
   'client.assignee_name',
+  'client.primary_contact_name',
+  'client.primary_contact_email',
   'client.email',
   'client.notes',
   'client.estimated_tax_liability',
@@ -349,6 +417,7 @@ export const migrationContract = oc.router({
             text: z.string().optional(),
             base64: z.string().optional(),
             rawBase64: z.string().optional(),
+            sourceManifest: MigrationSourceManifestSchema.optional(),
           })
           .optional(),
       }),

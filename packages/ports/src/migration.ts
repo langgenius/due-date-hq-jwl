@@ -210,6 +210,8 @@ export interface CommitClientInput {
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
   email?: string | null
+  primaryContactName?: string | null
+  primaryContactEmail?: string | null
   notes?: string | null
   assigneeName?: string | null
   estimatedTaxLiabilityCents?: number | null

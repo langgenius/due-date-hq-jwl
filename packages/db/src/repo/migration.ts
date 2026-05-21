@@ -46,8 +46,8 @@ const ERROR_BATCH_SIZE = Math.floor(100 / 7) // = 14
 const STAGING_ROW_BATCH_SIZE = Math.floor(100 / 10)
 // external_reference has 14 columns → 7/batch.
 const EXTERNAL_REF_BATCH_SIZE = Math.floor(100 / 14)
-// client has 17 columns -> 5/batch.
-const CLIENT_BATCH_SIZE = Math.floor(100 / 17)
+// migration commit client rows bind 19 values -> 5/batch.
+const CLIENT_BATCH_SIZE = Math.floor(100 / 19)
 // client_filing_profile has 12 columns -> 8/batch.
 const FILING_PROFILE_BATCH_SIZE = Math.floor(100 / 12)
 // obligation_instance commit rows bind 37 columns -> 2/batch.
