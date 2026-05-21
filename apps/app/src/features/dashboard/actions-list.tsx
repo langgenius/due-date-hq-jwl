@@ -129,7 +129,15 @@ function ActionRow({
         aria-label={t`${prompt} for ${row.clientName}`}
         aria-expanded={expanded}
         aria-controls={detailId}
-        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover"
+        className={cn(
+          'group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 px-3 py-2.5 text-left transition-colors',
+          // Background drives off the expanded state, not hover, so
+          // the row and the panel below read as a single block. When
+          // collapsed, the row stays transparent (chrome quiet at
+          // rest); when expanded, the row picks up the same bg as
+          // the panel for visual continuity.
+          expanded ? 'rounded-t-md bg-background-subtle' : 'rounded-md',
+        )}
       >
         {/* Leading chevron — rotates 90° when expanded so the row
           reads as "this opens." Pure visual cue; not a button (the
@@ -182,7 +190,11 @@ function ActionRow({
           id={detailId}
           onClick={onOpenObligation}
           aria-label={t`Review ${row.clientName} in obligation drawer`}
-          className="mt-1 ml-3 mr-3 mb-2 grid w-auto cursor-pointer gap-3 rounded-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          // Panel sits flush against the row above — top corners
+          // squared, bottom rounded. Same bg as the row when
+          // expanded so the two read as a single block. Hover state
+          // darkens slightly to signal "this is the click target."
+          className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
             <dt className="text-text-tertiary">
