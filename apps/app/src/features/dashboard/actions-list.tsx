@@ -172,11 +172,17 @@ function ActionRow({
 
       {/* Inline expansion — sits inside the same wrapper as the row,
         so onMouseLeave doesn't trigger when the cursor crosses from
-        the row into the expansion panel. */}
+        the row into the expansion panel. The whole panel is a click
+        target that opens the obligation drawer — same action as the
+        Review button on the right, but with a much bigger hit area
+        once the row is already open. */}
       {expanded ? (
-        <div
+        <button
+          type="button"
           id={detailId}
-          className="mt-1 ml-3 mr-3 mb-2 grid gap-3 rounded-md bg-background-subtle px-4 py-4 text-base"
+          onClick={onOpenObligation}
+          aria-label={t`Review ${row.clientName} in obligation drawer`}
+          className="mt-1 ml-3 mr-3 mb-2 grid w-auto cursor-pointer gap-3 rounded-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
             <dt className="text-text-tertiary">
@@ -226,7 +232,7 @@ function ActionRow({
               </>
             ) : null}
           </dl>
-        </div>
+        </button>
       ) : null}
     </div>
   )
