@@ -1,30 +1,30 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import TopNav from '../../components/TopNav.astro'
-import StateDetailPage from '../../components/StateDetailPage.astro'
+import GeoResourcePage from '../../components/GeoResourcePage.astro'
 import Footer from '../../components/Footer.astro'
 import en from '../../i18n/en'
-import type { StatePageCopy } from '../../i18n/types'
+import type { GuidePageCopy } from '../../i18n/types'
 import { getCtaHref } from '../../lib/app-url'
-import { stateOfficialSources } from '../../lib/content-metadata'
-import { getStatePages } from '../../lib/seo-content'
-import { statePageStructuredData } from '../../lib/structured-data'
+import { getResourceCtaHrefs, getRuleReferencePages } from '../../lib/seo-content'
+import { resourceStructuredData } from '../../lib/structured-data'
 
 export function getStaticPaths() {
-  return getStatePages(en, 'en').map((state) => ({
-    params: { state: state.slug },
-    props: { page: state },
+  return getRuleReferencePages('en').map((rule) => ({
+    params: { rule: rule.slug },
+    props: { page: rule },
   }))
 }
 
 interface Props {
-  page: StatePageCopy
+  page: GuidePageCopy
 }
 
 const t = en
 const { page } = Astro.props
-const pathname = `/states/${page.slug}`
+const pathname = `/rules/${page.slug}`
 const ctaHref = getCtaHref()
+const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'en')
 ---
 
 <BaseLayout
@@ -33,14 +33,14 @@ const ctaHref = getCtaHref()
   title={page.meta.title}
   description={page.meta.description}
   ogImage={page.meta.ogImage}
-  structuredData={statePageStructuredData(t, page, 'en', pathname)}
+  structuredData={resourceStructuredData(t, page, 'en', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />
-  <StateDetailPage
+  <GeoResourcePage
     page={page}
-    coverageHref="/state-coverage"
+    primaryHref={primaryHref}
+    secondaryHref={secondaryHref}
     locale="en"
-    officialSources={stateOfficialSources[page.slug] ?? []}
   />
   <Footer t={t.footer} enHref={pathname} zhHref={`/zh-CN${pathname}`} currentLocale="en" />
 </BaseLayout>

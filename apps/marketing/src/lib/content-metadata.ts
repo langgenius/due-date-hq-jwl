@@ -1,4 +1,5 @@
 export const CONTENT_REVIEWED_ON = '2026-05-20'
+export const CONTENT_PUBLISHED_ON = '2026-05-20'
 
 export interface OfficialSourceLink {
   label: string
@@ -34,6 +35,66 @@ export const stateOfficialSources: Record<string, OfficialSourceLink[]> = {
     {
       label: 'Washington Department of Revenue taxes and rates resources',
       href: 'https://dor.wa.gov/taxes-rates',
+    },
+  ],
+  illinois: [
+    {
+      label: 'Illinois Department of Revenue forms and guidance',
+      href: 'https://tax.illinois.gov/forms.html',
+    },
+  ],
+  'new-jersey': [
+    {
+      label: 'New Jersey Division of Taxation resources',
+      href: 'https://www.nj.gov/treasury/taxation/',
+    },
+  ],
+  pennsylvania: [
+    {
+      label: 'Pennsylvania Department of Revenue resources',
+      href: 'https://www.pa.gov/agencies/revenue.html',
+    },
+  ],
+  georgia: [
+    {
+      label: 'Georgia Department of Revenue resources',
+      href: 'https://dor.georgia.gov/',
+    },
+  ],
+  massachusetts: [
+    {
+      label: 'Massachusetts Department of Revenue resources',
+      href: 'https://www.mass.gov/orgs/massachusetts-department-of-revenue',
+    },
+  ],
+  'north-carolina': [
+    {
+      label: 'North Carolina Department of Revenue resources',
+      href: 'https://www.ncdor.gov/',
+    },
+  ],
+  arizona: [
+    {
+      label: 'Arizona Department of Revenue resources',
+      href: 'https://azdor.gov/',
+    },
+  ],
+  colorado: [
+    {
+      label: 'Colorado Department of Revenue taxation resources',
+      href: 'https://tax.colorado.gov/',
+    },
+  ],
+  ohio: [
+    {
+      label: 'Ohio Department of Taxation resources',
+      href: 'https://tax.ohio.gov/',
+    },
+  ],
+  michigan: [
+    {
+      label: 'Michigan Department of Treasury tax resources',
+      href: 'https://www.michigan.gov/taxes',
     },
   ],
 }
