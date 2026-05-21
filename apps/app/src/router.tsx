@@ -416,6 +416,17 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'notifications/preferences',
+              handle: routeHandle(routeSummaries.notificationPreferences),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { NotificationPreferencesRoute } =
+                  await import('@/routes/notifications.preferences')
+
+                return { Component: NotificationPreferencesRoute }
+              },
+            },
+            {
               path: 'reminders',
               handle: routeHandle(routeSummaries.reminders),
               HydrateFallback: RouteHydrateFallback,

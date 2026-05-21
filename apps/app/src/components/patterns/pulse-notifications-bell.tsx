@@ -7,6 +7,7 @@ import {
   CalendarClockIcon,
   CheckCheckIcon,
   CircleAlertIcon,
+  Maximize2Icon,
   MegaphoneIcon,
   SettingsIcon,
   type LucideIcon,
@@ -20,13 +21,15 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { orpc } from '@/lib/rpc'
 
 // PulseNotificationsBell — top-right utility bell that opens a popover
-// listing recent in-app notifications. The destination is the unified
-// Inbox at /notifications; this bell is the ambient ping.
+// listing recent in-app notifications. The popover IS the Inbox at a
+// glance; the expand icon in the header promotes the same content to
+// the full-page Inbox at /notifications. The sidebar no longer has an
+// Inbox entry as of 2026-05-21 — the bell is the canonical surface.
 //
-// Three surfaces, three roles (per 2026-05-20 designer call):
-//   - Bell = ambient ping, glance + click-to-open
+// Three surfaces, three roles:
+//   - Bell + popover = the Inbox (compact form)
+//   - /notifications (via the expand icon) = the Inbox (full-page form)
 //   - Dashboard "Pulse alerts" section = daily Pulse scan
-//   - Sidebar `Inbox` entry = canonical destination (all types)
 //   - ⌘K palette "What's new" = power-user shortcut to the same place
 //
 // Originally translated from the BellDropdown pattern in
@@ -137,16 +140,32 @@ function PulseNotificationsBell() {
               </span>
             ) : null}
           </div>
-          {unreadCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => markAllReadMutation.mutate(undefined)}
-              disabled={markAllReadMutation.isPending}
-              className="text-sm text-text-secondary hover:text-text-primary disabled:opacity-40"
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => markAllReadMutation.mutate(undefined)}
+                disabled={markAllReadMutation.isPending}
+                className="text-sm text-text-secondary hover:text-text-primary disabled:opacity-40"
+              >
+                <Trans>Mark all read</Trans>
+              </button>
+            ) : null}
+            {/* Expand icon — promotes the popover to the full-page Inbox
+              at /notifications. Now that the sidebar no longer has an
+              Inbox entry, this is the canonical way users reach the
+              full view. Sits in the header so it's always visible
+              regardless of how long the notification list scrolls. */}
+            <Link
+              to="/notifications"
+              onClick={() => setOpen(false)}
+              aria-label={t`Open full Inbox`}
+              title={t`Open full Inbox`}
+              className="inline-flex size-7 items-center justify-center rounded text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
-              <Trans>Mark all read</Trans>
-            </button>
-          ) : null}
+              <Maximize2Icon className="size-3.5" aria-hidden />
+            </Link>
+          </div>
         </header>
 
         <div className="flex gap-1 border-b border-divider-subtle px-3 py-2">

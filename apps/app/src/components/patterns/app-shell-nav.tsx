@@ -9,7 +9,6 @@ import {
   CalendarClockIcon,
   CheckIcon,
   ChevronsUpDownIcon,
-  InboxIcon,
   LayoutDashboardIcon,
   LibraryIcon,
   MapIcon,
@@ -493,18 +492,14 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       return {
         // 2026-05-20 layout: three standalone items above the RULE
         // group — no "Operations" label. Order reads as the CPA's
-        // morning routine: glance Today → scan Notifications →
-        // triage Obligations. The label-less group keeps the top of
-        // the sidebar visually quiet.
+        // morning routine: glance Today → triage Obligations. The
+        // Inbox lives behind the bell icon in the top-right utility
+        // strip (PulseNotificationsBell) — clicking it opens a
+        // popover; the expand icon there promotes to the full-page
+        // Inbox at /notifications. Surfacing Inbox in the sidebar
+        // too created two top-level destinations for the same thing.
         primary: [
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
-          {
-            href: '/notifications',
-            label: t`Inbox`,
-            icon: InboxIcon,
-            end: false,
-            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
-          },
           {
             href: '/obligations',
             label: t`Obligations`,

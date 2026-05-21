@@ -99,8 +99,8 @@ export function SettingsRoute() {
           icon: AlarmClockIcon,
         },
         {
-          href: '/notifications',
-          label: t`Notifications`,
+          href: '/notifications/preferences',
+          label: t`Notification preferences`,
           description: t`Personal morning digest preferences and types.`,
           icon: BellIcon,
         },
