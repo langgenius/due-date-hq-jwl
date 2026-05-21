@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, XIcon } from 'lucide-react'
+import { CheckIcon } from 'lucide-react'
 
 import { RuleGenerationStateValues, type RuleGenerationState } from '@duedatehq/contracts'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 
@@ -58,8 +64,8 @@ export function StateRuleActivationSelector({
     onChange([...selected, code])
   }
 
-  function selectAllStates() {
-    onChange(ALL_RULE_GENERATION_STATES)
+  function toggleAllStates() {
+    onChange(allStatesSelected ? [] : ALL_RULE_GENERATION_STATES)
   }
 
   return (
@@ -78,15 +84,13 @@ export function StateRuleActivationSelector({
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
-            onClick={selectAllStates}
-            disabled={allStatesSelected}
-            aria-label={t`Select all states`}
-            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-55 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            onClick={toggleAllStates}
+            aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
+            aria-pressed={allStatesSelected}
+            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <CheckIcon className="size-3.5" aria-hidden />
-            <span>
-              <Trans>Select all</Trans>
-            </span>
+            <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
           </button>
           <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-[11px] text-text-secondary tabular-nums">
             {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
@@ -94,66 +98,53 @@ export function StateRuleActivationSelector({
         </div>
       </div>
 
-      {selected.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5" aria-label={t`Selected states`}>
-          {selected.map((code) => (
-            <span
-              key={code}
-              className="inline-flex min-h-6 max-w-full items-center gap-1.5 rounded-sm border border-state-accent-active-alt bg-state-accent-hover px-2 text-[11px] font-medium text-text-accent"
-            >
-              <CheckIcon className="size-3 shrink-0" aria-hidden />
-              <span className="font-mono">{code}</span>
-              <span className="truncate">{jurisdictionLabel(code)}</span>
-              <button
-                type="button"
-                onClick={() => toggleState(code)}
-                aria-label={t`Remove ${jurisdictionLabel(code)}`}
-                className="ml-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <XIcon className="size-3" aria-hidden />
-              </button>
-            </span>
-          ))}
-        </div>
-      ) : null}
-
       <div className="rounded-md border border-divider-regular bg-background-default p-3">
-        <div className="grid grid-cols-11 grid-rows-9 justify-center gap-1">
-          {STATE_TILES.map(({ code, row, column }) => {
-            if (!RULE_GENERATION_STATE_SET.has(code)) return null
+        <TooltipProvider delay={100}>
+          <div className="grid grid-cols-11 grid-rows-9 justify-center gap-1">
+            {STATE_TILES.map(({ code, row, column }) => {
+              if (!RULE_GENERATION_STATE_SET.has(code)) return null
 
-            const selectedState = selectedSet.has(code)
-            const label = jurisdictionLabel(code)
+              const selectedState = selectedSet.has(code)
+              const label = jurisdictionLabel(code)
 
-            return (
-              <button
-                key={code}
-                type="button"
-                onClick={() => toggleState(code)}
-                onMouseEnter={() => setHoverCode(code)}
-                onMouseLeave={() => setHoverCode((current) => (current === code ? null : current))}
-                aria-label={selectedState ? t`${label}, selected` : label}
-                aria-pressed={selectedState}
-                style={{ gridRow: row, gridColumn: column }}
-                className={cn(
-                  'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-semibold transition-colors outline-none',
-                  'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
-                  selectedState
-                    ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'
-                    : 'border-divider-subtle bg-background-subtle text-text-muted hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary',
-                )}
-              >
-                {code}
-                {selectedState ? (
-                  <CheckIcon
-                    className="absolute -top-1 -right-1 size-3 rounded-full bg-background-default p-0.5 text-text-accent"
-                    aria-hidden
+              return (
+                <Tooltip key={code}>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        type="button"
+                        onClick={() => toggleState(code)}
+                        onMouseEnter={() => setHoverCode(code)}
+                        onMouseLeave={() =>
+                          setHoverCode((current) => (current === code ? null : current))
+                        }
+                        aria-label={selectedState ? t`${label}, selected` : label}
+                        aria-pressed={selectedState}
+                        style={{ gridRow: row, gridColumn: column }}
+                        className={cn(
+                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-semibold transition-colors outline-none',
+                          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+                          selectedState
+                            ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'
+                            : 'border-divider-subtle bg-background-subtle text-text-muted hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary',
+                        )}
+                      >
+                        {code}
+                        {selectedState ? (
+                          <CheckIcon
+                            className="absolute -top-1 -right-1 size-3 rounded-full bg-background-default p-0.5 text-text-accent"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </button>
+                    }
                   />
-                ) : null}
-              </button>
-            )
-          })}
-        </div>
+                  <TooltipContent side="top">{label}</TooltipContent>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </TooltipProvider>
       </div>
 
       <p className="min-h-[18px] text-[11px] leading-[18px] text-text-muted">

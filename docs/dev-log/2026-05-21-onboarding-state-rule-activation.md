@@ -10,6 +10,12 @@ creation to bootstrap Rules Library coverage.
   layout, fixed-size state buttons, `aria-pressed`, and selected-state chips.
 - Added a select-all control so practices can activate every state in one
   action.
+- Made the select-all control a toggle: when every state is selected, clicking
+  it clears the map back to zero selected states.
+- Removed the selected-state chip strip so large selections stay visually
+  quiet; each state tile now shows the full state name in a tooltip.
+- Reduced the state-map tooltip delay to 100ms so the full state name appears
+  quickly on hover.
 - Extended the onboarding firm flow so a newly created practice activates rules
   for `FED + selected states`. Empty state selection is allowed and skips rule
   activation.

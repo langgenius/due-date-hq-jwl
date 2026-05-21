@@ -1718,6 +1718,14 @@ msgstr "Cleaned up an imported value."
 msgid "Clear"
 msgstr "Clear"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Clear all"
+msgstr "Clear all"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Clear all states"
+msgstr "Clear all states"
+
 #: src/routes/obligations.tsx
 msgid "Clear blocker"
 msgstr "Clear blocker"
@@ -6694,11 +6702,6 @@ msgstr "Reminders"
 msgid "Remove"
 msgstr "Remove"
 
-#. placeholder {0}: jurisdictionLabel(code)
-#: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Remove {0}"
-msgstr "Remove {0}"
-
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "Remove from practice"
@@ -7513,10 +7516,6 @@ msgstr "Selected plan"
 #: src/features/rules/rule-library-tab.tsx
 msgid "SELECTED RULES"
 msgstr "SELECTED RULES"
-
-#: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Selected states"
-msgstr "Selected states"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "Selected states activate with federal rules after this practice is created."

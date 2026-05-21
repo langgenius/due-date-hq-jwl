@@ -1718,6 +1718,14 @@ msgstr "已清理导入值。"
 msgid "Clear"
 msgstr "清除"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Clear all"
+msgstr "清空"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Clear all states"
+msgstr "清空全部州"
+
 #: src/routes/obligations.tsx
 msgid "Clear blocker"
 msgstr "清除阻塞"
@@ -6694,11 +6702,6 @@ msgstr "提醒"
 msgid "Remove"
 msgstr "移除"
 
-#. placeholder {0}: jurisdictionLabel(code)
-#: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Remove {0}"
-msgstr "移除 {0}"
-
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "从事务所移除"
@@ -7513,10 +7516,6 @@ msgstr "已选计划"
 #: src/features/rules/rule-library-tab.tsx
 msgid "SELECTED RULES"
 msgstr "已选规则"
-
-#: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Selected states"
-msgstr "已选州"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "Selected states activate with federal rules after this practice is created."

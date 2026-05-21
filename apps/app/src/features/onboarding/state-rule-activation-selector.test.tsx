@@ -46,10 +46,10 @@ function stateButton(name: string): HTMLButtonElement {
   return button
 }
 
-function selectAllButton(): HTMLButtonElement {
-  const button = document.querySelector('button[aria-label="Select all states"]')
+function selectAllButton(name = 'Select all states'): HTMLButtonElement {
+  const button = document.querySelector(`button[aria-label="${name}"]`)
   expect(button).toBeInstanceOf(HTMLButtonElement)
-  if (!(button instanceof HTMLButtonElement)) throw new Error('Missing select-all button')
+  if (!(button instanceof HTMLButtonElement)) throw new Error(`Missing button: ${name}`)
   return button
 }
 
@@ -100,6 +100,13 @@ describe('StateRuleActivationSelector', () => {
     expect(onChange).toHaveBeenCalledWith(['TX'])
   })
 
+  it('does not render selected-state tags above the map', () => {
+    renderSelector({ selected: ['CA', 'TX'] })
+
+    expect(document.querySelector('[aria-label="Selected states"]')).toBeNull()
+    expect(document.querySelector('button[aria-label="Remove California"]')).toBeNull()
+  })
+
   it('emits all rule-generation states when select all is clicked', () => {
     const { onChange } = renderSelector({ selected: ['CA'] })
 
@@ -110,9 +117,18 @@ describe('StateRuleActivationSelector', () => {
     expect(onChange).toHaveBeenCalledWith([...RuleGenerationStateValues])
   })
 
-  it('disables select all once every state is selected', () => {
-    renderSelector({ selected: [...RuleGenerationStateValues] })
+  it('emits empty selection when the all-selected toggle is clicked again', () => {
+    const { onChange } = renderSelector({ selected: [...RuleGenerationStateValues] })
 
-    expect(selectAllButton().disabled).toBe(true)
+    const clearButton = selectAllButton('Clear all states')
+
+    expect(clearButton.disabled).toBe(false)
+    expect(clearButton.getAttribute('aria-pressed')).toBe('true')
+
+    act(() => {
+      clearButton.click()
+    })
+
+    expect(onChange).toHaveBeenCalledWith([])
   })
 })
