@@ -43,7 +43,6 @@ import {
   MailIcon,
   RefreshCwIcon,
   SendIcon,
-  ShieldAlertIcon,
   PinIcon,
   PlusIcon,
   SaveIcon,
@@ -171,7 +170,6 @@ import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { paidPlanActive } from '@/features/billing/model'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
-import { SmartPriorityBadge } from '@/features/priority/SmartPriorityBadge'
 import {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
@@ -3184,8 +3182,13 @@ export function ObligationQueueDetailDrawer({
   activeTab,
   onTabChange,
   onClose,
-  onNeedsInput,
-  practiceAiEnabled,
+  // onNeedsInput + practiceAiEnabled went unused with the Risk tab
+  // removal. Kept on the prop type for back-compat with the route
+  // and the ObligationDrawerProvider that still pass them; underscore
+  // prefix silences eslint without breaking callers. Drop the props
+  // entirely in a follow-up that also updates the two callsites.
+  onNeedsInput: _onNeedsInput,
+  practiceAiEnabled: _practiceAiEnabled,
   blockerCandidates,
 }: {
   obligationId: string | null
@@ -3316,6 +3319,12 @@ export function ObligationQueueDetailDrawer({
     requestDeadlineTipMutation.isPending ||
     (activeDeadlineTipRefresh && !deadlineTipLatestRefreshSettled && !deadlineTipRefreshTimedOut),
   )
+  // `deadlineTipPreparing` is currently unconsumed (Risk tab owned the
+  // visual surface). Kept declared because the mutation/query
+  // pipeline it summarizes is still wired; a follow-up should either
+  // restore a deadline-tip surface elsewhere or rip the whole
+  // pipeline. Tracked in TODO below.
+  void deadlineTipPreparing
   const latestRequest = detail?.readinessRequests[0] ?? null
   const storedChecklist = detail?.readinessChecklist ?? EMPTY_DOCUMENT_CHECKLIST
   const extensionFilingDeadline = row?.filingDueDate ?? row?.baseDueDate ?? ''
@@ -3805,11 +3814,11 @@ export function ObligationQueueDetailDrawer({
                   <Trans>Extension</Trans>
                 </TabsTrigger>
               ) : null}
-              {visibleTabs.has('risk') ? (
-                <TabsTrigger value="risk">
-                  <Trans>Risk</Trans>
-                </TabsTrigger>
-              ) : null}
+              {/* Risk tab removed 2026-05-21 — risk inputs live on the
+                client detail page (ClientRiskInputsPanel) rather than
+                per-obligation. Surface kept on the schema for
+                back-compat with deep-links; the trigger and content
+                are unmounted. */}
               {visibleTabs.has('evidence') ? (
                 <TabsTrigger value="evidence">
                   <Trans>Evidence</Trans>
@@ -4220,158 +4229,6 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="risk">
-              <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-                <div className="grid gap-3">
-                  {/* Top-of-tab callout when penalty math is incomplete.
-                        The previous layout buried this mid-scroll, so users
-                        read "$0 / not calculated" without realizing they
-                        owed an input. */}
-                  {row.missingPenaltyFacts.length > 0 ? (
-                    <div className="grid gap-2 rounded-lg border border-state-warning-border bg-state-warning-hover p-3">
-                      <p className="text-xs font-medium text-text-warning">
-                        <Trans>Missing penalty facts</Trans>
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {row.missingPenaltyFacts.map((fact) => (
-                          <Badge
-                            key={fact}
-                            variant="outline"
-                            className="bg-background-default text-[11px]"
-                          >
-                            {penaltyFactLabel(fact)}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-[11px] leading-tight text-text-secondary">
-                        <Trans>Penalty exposure is calculated once these inputs are entered.</Trans>
-                      </p>
-                    </div>
-                  ) : null}
-                  <p className="text-[11px] leading-tight text-text-tertiary">
-                    <Trans>
-                      Projected = what could accrue over the next 90 days if no action. Accrued =
-                      penalties already assessed as of today.
-                    </Trans>
-                  </p>
-                  <div className="rounded-lg border border-divider-regular p-3">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium text-text-primary">
-                        <ConceptLabel concept="smartPriority">
-                          <Trans>Smart Priority</Trans>
-                        </ConceptLabel>
-                      </span>
-                      <SmartPriorityBadge smartPriority={row.smartPriority} align="end" />
-                    </div>
-                    <div className="grid gap-2">
-                      {row.smartPriority.factors.length === 0 ? (
-                        <div className="rounded-md border border-divider-subtle bg-background-section px-3 py-2 text-xs text-text-secondary">
-                          <Trans>Hidden by role</Trans>
-                        </div>
-                      ) : null}
-                      {row.smartPriority.factors.map((factor) => (
-                        <div key={factor.key} className="flex justify-between gap-3 text-xs">
-                          <span className="min-w-0 truncate text-text-secondary">
-                            {factor.label} · {factor.sourceLabel}
-                          </span>
-                          <span className="tabular-nums text-text-primary">
-                            +{factor.contribution.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <DeadlineTipPanel
-                    insight={deadlineTipInsight}
-                    isLoading={deadlineTipQuery.isLoading}
-                    isPreparing={deadlineTipPreparing}
-                    isTimedOut={deadlineTipRefreshTimedOut}
-                    canRefresh={practiceAiEnabled}
-                    practiceTimezone={practiceTimezone}
-                    onRefresh={() => requestDeadlineTipMutation.mutate({ obligationId: row.id })}
-                  />
-                  <DetailRow
-                    label={
-                      <ConceptLabel concept="exposure">{t`90-day projected risk`}</ConceptLabel>
-                    }
-                    value={
-                      row.exposureStatus === 'ready' && row.estimatedExposureCents !== null
-                        ? formatCents(row.estimatedExposureCents)
-                        : row.exposureStatus
-                    }
-                  />
-                  <DetailRow
-                    label={<Trans>Accrued penalty</Trans>}
-                    value={
-                      row.accruedPenaltyStatus === 'ready' && row.accruedPenaltyCents !== null
-                        ? `${formatCents(row.accruedPenaltyCents)} · ${row.penaltyAsOfDate}`
-                        : row.accruedPenaltyStatus
-                    }
-                  />
-                  <DetailRow
-                    label={<Trans>Tax due</Trans>}
-                    value={
-                      row.estimatedTaxDueCents === null
-                        ? t`Not entered`
-                        : formatCents(row.estimatedTaxDueCents)
-                    }
-                  />
-                  <DetailRow label={<Trans>Formula</Trans>} value={penaltyFormulaDisplay(row)} />
-                  <DetailRow label={<Trans>Facts</Trans>} value={penaltyFactsDisplay(row)} />
-                  <DetailRow
-                    label={<Trans>Calculated</Trans>}
-                    value={
-                      row.exposureCalculatedAt
-                        ? formatDateTimeWithTimezone(row.exposureCalculatedAt, practiceTimezone)
-                        : t`Not calculated`
-                    }
-                  />
-                  <Separator />
-                  {row.penaltyBreakdown.length > 0 ? (
-                    <div className="grid gap-2">
-                      <p className="text-xs font-medium text-text-secondary">
-                        <Trans>Projected 90-day risk</Trans>
-                      </p>
-                      {row.penaltyBreakdown.map((item) => (
-                        <PenaltyBreakdownCard key={`projected-${item.key}`} item={item} />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyPanel>
-                      <Trans>No penalty breakdown is available yet.</Trans>
-                    </EmptyPanel>
-                  )}
-                  {row.accruedPenaltyBreakdown.length > 0 ? (
-                    <div className="grid gap-2">
-                      <p className="text-xs font-medium text-text-secondary">
-                        <Trans>Accrued penalty</Trans>
-                      </p>
-                      {row.accruedPenaltyBreakdown.map((item) => (
-                        <PenaltyBreakdownCard key={`accrued-${item.key}`} item={item} />
-                      ))}
-                    </div>
-                  ) : null}
-                  {row.penaltySourceRefs.length > 0 ? (
-                    <PenaltySourceList sourceRefs={row.penaltySourceRefs} />
-                  ) : null}
-                </div>
-                <div className="content-start rounded-lg border border-divider-regular p-3">
-                  {row.exposureStatus === 'needs_input' ? (
-                    <Button size="sm" onClick={() => onNeedsInput(row)}>
-                      <ShieldAlertIcon data-icon="inline-start" />
-                      <Trans>Enter penalty inputs</Trans>
-                    </Button>
-                  ) : (
-                    <p className="text-xs text-text-secondary">
-                      <Trans>
-                        Projected risk reflects the latest stored penalty calculation. Accrued
-                        penalty is calculated for the selected as-of date.
-                      </Trans>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
             <TabsContent value="evidence">
               <div className="grid gap-3">
                 {/* Source-backed deadline citation (PRD §7.1 Must,
@@ -4557,7 +4414,10 @@ function EmptyPanel({ children }: { children: ReactNode }) {
   )
 }
 
-function PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreakdown'][number] }) {
+// Orphaned after Risk tab removal (2026-05-21). Kept as a deletion
+// candidate; underscore prefix silences eslint no-unused-vars until
+// we confirm no consumer wants it back.
+function _PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreakdown'][number] }) {
   const inputs = item.inputs ? Object.entries(item.inputs) : []
   const sourceRefs = item.sourceRefs ?? []
   return (
@@ -4618,13 +4478,15 @@ function PenaltySourceList({
   )
 }
 
-function penaltyFormulaDisplay(row: ObligationQueueRow): ReactNode {
+// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
+function _penaltyFormulaDisplay(row: ObligationQueueRow): ReactNode {
   if (row.penaltyFormulaLabel) return row.penaltyFormulaLabel
   if (row.penaltyFormulaVersion) return <Trans>Penalty calculation available</Trans>
   return <Trans>Not calculated</Trans>
 }
 
-function penaltyFactsDisplay(row: ObligationQueueRow): ReactNode {
+// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
+function _penaltyFactsDisplay(row: ObligationQueueRow): ReactNode {
   if (row.missingPenaltyFacts.length > 0) {
     const labels = row.missingPenaltyFacts.map((fact) => penaltyFactLabel(fact)).join(', ')
     return <Trans>Needs {labels}</Trans>
@@ -4677,7 +4539,8 @@ function formatPenaltyInputValue(key: string, value: string | number | boolean |
   return value
 }
 
-function DeadlineTipPanel({
+// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
+function _DeadlineTipPanel({
   insight,
   isLoading,
   isPreparing,
