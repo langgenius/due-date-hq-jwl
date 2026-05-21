@@ -392,6 +392,10 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, one {# client} other {# clients}}"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "{label}, selected"
+msgstr "{label}, selected"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
 msgstr "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
@@ -5264,6 +5268,10 @@ msgid "Onboarding preview opened"
 msgstr "Onboarding preview opened"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Onboarding rules activated"
+msgstr "Onboarding rules activated"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "Onboarding state advanced"
 msgstr "Onboarding state advanced"
 
@@ -6686,6 +6694,11 @@ msgstr "Reminders"
 msgid "Remove"
 msgstr "Remove"
 
+#. placeholder {0}: jurisdictionLabel(code)
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Remove {0}"
+msgstr "Remove {0}"
+
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "Remove from practice"
@@ -7493,6 +7506,14 @@ msgstr "Selected plan"
 msgid "SELECTED RULES"
 msgstr "SELECTED RULES"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Selected states"
+msgstr "Selected states"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Selected states activate with federal rules after this practice is created."
+msgstr "Selected states activate with federal rules after this practice is created."
+
 #: src/features/members/members-page.tsx
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "Send a 7-day magic link to add a member to this practice."
@@ -7946,6 +7967,10 @@ msgstr "State"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "STATE"
 msgstr "STATE"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "State rule coverage"
+msgstr "State rule coverage"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "States"

@@ -7,13 +7,17 @@ import {
   type RuleBulkAcceptSkip,
   type RuleBulkImpactPreview,
   RuleConcreteDraftSchema,
+  type RuleGenerationState,
   type RuleCoverageRow,
+  type RuleJurisdiction,
+  type RuleOnboardingActivationOutput,
   type RuleReviewDecision,
   type RuleReviewTask,
   type RuleSource,
   type RuleStatus,
   type TemporaryRule,
 } from '@duedatehq/contracts'
+import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { createAI } from '@duedatehq/ai'
 import {
   findRuleById,
@@ -24,7 +28,6 @@ import {
   type ObligationRule as CoreObligationRule,
   type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
-  type RuleJurisdiction,
 } from '@duedatehq/core/rules'
 import { expandDueDateLogic } from '@duedatehq/core/date-logic'
 import type { PulseSourceSignalRow } from '@duedatehq/ports/pulse'
@@ -44,6 +47,7 @@ import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source
 const MAX_BULK_ACCEPT = 100
 const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
+const ONBOARDING_RULE_REVIEW_NOTE = 'Activated from onboarding jurisdiction selection.'
 const COVERAGE_ENTITY_COLUMNS = [
   'llc',
   'partnership',
@@ -693,6 +697,114 @@ function distribution(map: ReadonlyMap<string, number>) {
     .toSorted((left, right) => left.key.localeCompare(right.key))
 }
 
+function uniqueRuleGenerationStates(states: readonly RuleGenerationState[]): RuleGenerationState[] {
+  return Array.from(new Set(states))
+}
+
+export function isOnboardingActivatableRule(rule: Pick<CoreObligationRule, 'status'>): boolean {
+  return rule.status !== 'deprecated'
+}
+
+export function onboardingActivationJurisdictions(
+  states: readonly RuleGenerationState[],
+): RuleJurisdiction[] {
+  const selectedStates = uniqueRuleGenerationStates(states)
+  return selectedStates.length === 0 ? [] : ['FED', ...selectedStates]
+}
+
+export async function activateOnboardingJurisdictionRules(input: {
+  scoped: ScopedRepo
+  userId: string
+  internalDeadlineOffsetDays: number
+  states: readonly RuleGenerationState[]
+  now?: Date
+  ensureCatalog?: () => Promise<void>
+  generateObligations?: typeof generateObligationsForAcceptedRules
+}): Promise<RuleOnboardingActivationOutput> {
+  const selectedStates = uniqueRuleGenerationStates(input.states)
+  const jurisdictions = onboardingActivationJurisdictions(selectedStates)
+  if (jurisdictions.length === 0) {
+    return {
+      selectedStates,
+      jurisdictions,
+      activatedCount: 0,
+      skippedCount: 0,
+      generatedObligationCount: 0,
+    }
+  }
+
+  await input.ensureCatalog?.()
+  const reviewedAt = input.now ?? new Date()
+  const jurisdictionSet = new Set<RuleJurisdiction>(jurisdictions)
+  const matchingRules = templateRules().filter((rule) => jurisdictionSet.has(rule.jurisdiction))
+  const activatableRules = matchingRules.filter(isOnboardingActivatableRule)
+  const activeCoreRules: CoreObligationRule[] = []
+
+  await Promise.all(
+    activatableRules.map(async (rule) => {
+      const activeRule: ObligationRule = {
+        ...toPracticeContractRule(rule, 'active', {
+          verifiedBy: input.userId,
+          verifiedAt: toDateOnly(reviewedAt),
+        }),
+        status: 'active',
+      }
+      activeCoreRules.push(toCoreRule(activeRule))
+      await input.scoped.rules.upsertPracticeRule({
+        ruleId: rule.id,
+        templateId: rule.id,
+        templateVersion: activeRule.version,
+        status: 'active',
+        ruleJson: activeRule,
+        reviewNote: ONBOARDING_RULE_REVIEW_NOTE,
+        reviewedBy: input.userId,
+        reviewedAt,
+      })
+      await input.scoped.rules.decideReviewTask({
+        ruleId: rule.id,
+        templateVersion: activeRule.version,
+        status: 'accepted',
+        reviewNote: ONBOARDING_RULE_REVIEW_NOTE,
+        reviewedBy: input.userId,
+        reviewedAt,
+      })
+    }),
+  )
+
+  const generate = input.generateObligations ?? generateObligationsForAcceptedRules
+  const generation = await generate({
+    scoped: input.scoped,
+    userId: input.userId,
+    rules: activeCoreRules,
+    internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+    now: reviewedAt,
+    reason: ONBOARDING_RULE_REVIEW_NOTE,
+  })
+
+  await input.scoped.audit.write({
+    actorId: input.userId,
+    entityType: 'rule_batch',
+    entityId: activatableRules[0]?.id ?? 'empty',
+    action: 'rules.onboarding_activated',
+    after: {
+      selectedStates,
+      jurisdictions,
+      activatedCount: activatableRules.length,
+      skippedCount: matchingRules.length - activatableRules.length,
+      generatedObligationCount: generation.createdCount,
+    },
+    reason: ONBOARDING_RULE_REVIEW_NOTE,
+  })
+
+  return {
+    selectedStates,
+    jurisdictions,
+    activatedCount: activatableRules.length,
+    skippedCount: matchingRules.length - activatableRules.length,
+    generatedObligationCount: generation.createdCount,
+  }
+}
+
 async function previewBulkImpactForSelections(
   context: RpcContext,
   selections: readonly { ruleId: string; expectedVersion: number }[],
@@ -1086,6 +1198,20 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
 
   return { accepted, skipped }
 })
+
+const activateOnboardingJurisdictions = os.rules.activateOnboardingJurisdictions.handler(
+  async ({ input, context }) => {
+    const { scoped, tenant, userId } = requireTenant(context)
+    await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+    return activateOnboardingJurisdictionRules({
+      scoped,
+      userId,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      states: input.states,
+      ensureCatalog: () => ensureGlobalTemplateCatalog(context),
+    })
+  },
+)
 
 const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }) => {
   const { userId } = requireTenant(context)
@@ -1638,6 +1764,7 @@ export const rulesHandlers = {
   listReviewDecisions,
   acceptTemplate,
   bulkAcceptTemplates,
+  activateOnboardingJurisdictions,
   rejectTemplate,
   createCustomRule,
   updatePracticeRule,

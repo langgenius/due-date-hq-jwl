@@ -191,6 +191,7 @@ export const router = os.router({
     listReviewDecisions: rulesHandlers.listReviewDecisions,
     acceptTemplate: rulesHandlers.acceptTemplate,
     bulkAcceptTemplates: rulesHandlers.bulkAcceptTemplates,
+    activateOnboardingJurisdictions: rulesHandlers.activateOnboardingJurisdictions,
     rejectTemplate: rulesHandlers.rejectTemplate,
     createCustomRule: rulesHandlers.createCustomRule,
     updatePracticeRule: rulesHandlers.updatePracticeRule,

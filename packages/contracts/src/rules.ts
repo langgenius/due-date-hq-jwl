@@ -526,6 +526,20 @@ export const RuleBulkAcceptTemplatesOutputSchema = z.object({
 })
 export type RuleBulkAcceptTemplatesOutput = z.infer<typeof RuleBulkAcceptTemplatesOutputSchema>
 
+export const RuleOnboardingActivationInputSchema = z.object({
+  states: z.array(RuleGenerationStateSchema).max(RuleGenerationStateValues.length),
+})
+export type RuleOnboardingActivationInput = z.infer<typeof RuleOnboardingActivationInputSchema>
+
+export const RuleOnboardingActivationOutputSchema = z.object({
+  selectedStates: z.array(RuleGenerationStateSchema),
+  jurisdictions: z.array(RuleJurisdictionSchema),
+  activatedCount: z.number().int().nonnegative(),
+  skippedCount: z.number().int().nonnegative(),
+  generatedObligationCount: z.number().int().nonnegative(),
+})
+export type RuleOnboardingActivationOutput = z.infer<typeof RuleOnboardingActivationOutputSchema>
+
 export const RuleRejectTemplateInputSchema = RuleVersionSelectionSchema.extend({
   reason: z.string().trim().min(1).max(1000),
 })
@@ -678,6 +692,9 @@ export const rulesContract = oc.router({
   bulkAcceptTemplates: oc
     .input(RuleBulkAcceptTemplatesInputSchema)
     .output(RuleBulkAcceptTemplatesOutputSchema),
+  activateOnboardingJurisdictions: oc
+    .input(RuleOnboardingActivationInputSchema)
+    .output(RuleOnboardingActivationOutputSchema),
   rejectTemplate: oc.input(RuleRejectTemplateInputSchema).output(RuleReviewTaskSchema),
   createCustomRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),
   updatePracticeRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),

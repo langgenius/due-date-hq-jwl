@@ -247,6 +247,7 @@ export type PenaltyAuditAction = (typeof PENALTY_AUDIT_ACTIONS)[number]
 export const RULES_AUDIT_ACTIONS = [
   'rules.accepted',
   'rules.bulk_accepted',
+  'rules.onboarding_activated',
   'rules.rejected',
   'rules.created',
   'rules.updated',

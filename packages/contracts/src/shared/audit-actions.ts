@@ -32,6 +32,7 @@ export const PenaltyAuditActions = ['penalty.override'] as const
 export const RulesAuditActions = [
   'rules.accepted',
   'rules.bulk_accepted',
+  'rules.onboarding_activated',
   'rules.rejected',
   'rules.created',
   'rules.updated',

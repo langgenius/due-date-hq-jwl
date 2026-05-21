@@ -392,6 +392,10 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, other {# 个客户}}"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "{label}, selected"
+msgstr "{label}，已选择"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
 msgstr "{lowConfCount, plural, other {# 列需要你复核}}"
@@ -5264,6 +5268,10 @@ msgid "Onboarding preview opened"
 msgstr "引导预览已打开"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Onboarding rules activated"
+msgstr "引导规则已激活"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "Onboarding state advanced"
 msgstr "引导状态已推进"
 
@@ -6686,6 +6694,11 @@ msgstr "提醒"
 msgid "Remove"
 msgstr "移除"
 
+#. placeholder {0}: jurisdictionLabel(code)
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Remove {0}"
+msgstr "移除 {0}"
+
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "从事务所移除"
@@ -7493,6 +7506,14 @@ msgstr "已选计划"
 msgid "SELECTED RULES"
 msgstr "已选规则"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Selected states"
+msgstr "已选州"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Selected states activate with federal rules after this practice is created."
+msgstr "创建事务所后，所选州会与联邦规则一起激活。"
+
 #: src/features/members/members-page.tsx
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "发送 7 天有效的 magic link，将成员添加到该事务所。"
@@ -7946,6 +7967,10 @@ msgstr "州"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "STATE"
 msgstr "州"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "State rule coverage"
+msgstr "州规则覆盖"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "States"

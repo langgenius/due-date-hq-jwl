@@ -120,6 +120,8 @@ import {
   ObligationGenerationPreviewSchema,
   RuleConcreteDraftSchema,
   RuleBulkAcceptSkipSchema,
+  RuleOnboardingActivationInputSchema,
+  RuleOnboardingActivationOutputSchema,
   RuleGenerationPreviewInputSchema,
   RuleCoverageRowSchema,
   RuleSourceSchema,
@@ -1039,6 +1041,7 @@ describe('@duedatehq/contracts', () => {
     expect(AuditActionSchema.parse('client.deleted')).toBe('client.deleted')
     expect(AuditActionSchema.parse('rules.accepted')).toBe('rules.accepted')
     expect(AuditActionSchema.parse('rules.bulk_accepted')).toBe('rules.bulk_accepted')
+    expect(AuditActionSchema.parse('rules.onboarding_activated')).toBe('rules.onboarding_activated')
     expect(AuditActionSchema.parse('rules.rejected')).toBe('rules.rejected')
     expect(AuditActionSchema.parse('obligation.annual_rollover.created')).toBe(
       'obligation.annual_rollover.created',
@@ -1397,6 +1400,7 @@ describe('@duedatehq/contracts', () => {
       'listReviewDecisions',
       'acceptTemplate',
       'bulkAcceptTemplates',
+      'activateOnboardingJurisdictions',
       'rejectTemplate',
       'createCustomRule',
       'updatePracticeRule',
@@ -1428,6 +1432,21 @@ describe('@duedatehq/contracts', () => {
       lastReviewedOn: '2026-04-27',
     })
     expect(source.jurisdiction).toBe('FED')
+
+    const onboardingActivationInput = RuleOnboardingActivationInputSchema.parse({
+      states: ['CA', 'TX'],
+    })
+    expect(onboardingActivationInput.states).toEqual(['CA', 'TX'])
+    expect(() => RuleOnboardingActivationInputSchema.parse({ states: ['ca'] })).toThrow()
+
+    const onboardingActivationOutput = RuleOnboardingActivationOutputSchema.parse({
+      selectedStates: ['CA', 'TX'],
+      jurisdictions: ['FED', 'CA', 'TX'],
+      activatedCount: 42,
+      skippedCount: 1,
+      generatedObligationCount: 0,
+    })
+    expect(onboardingActivationOutput.jurisdictions).toEqual(['FED', 'CA', 'TX'])
 
     const temporaryRule = TemporaryRuleSchema.parse({
       id: 'exception-1',

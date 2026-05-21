@@ -203,6 +203,7 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'rules.candidate.created': genericPresenter,
   'rules.accepted': genericPresenter,
   'rules.bulk_accepted': genericPresenter,
+  'rules.onboarding_activated': genericPresenter,
   'rules.rejected': genericPresenter,
   'rules.created': genericPresenter,
   'rules.updated': genericPresenter,

@@ -143,6 +143,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'rules.candidate.created': 'rulesCandidateCreated',
   'rules.accepted': 'rulesAccepted',
   'rules.bulk_accepted': 'rulesBulkAccepted',
+  'rules.onboarding_activated': 'rulesOnboardingActivated',
   'rules.rejected': 'rulesRejected',
   'rules.created': 'rulesCreated',
   'rules.updated': 'rulesUpdated',

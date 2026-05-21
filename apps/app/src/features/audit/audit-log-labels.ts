@@ -85,6 +85,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       rulesCandidateCreated: t`Pending rule queued`,
       rulesAccepted: t`Rule accepted`,
       rulesBulkAccepted: t`Rules accepted in bulk`,
+      rulesOnboardingActivated: t`Onboarding rules activated`,
       rulesRejected: t`Rule rejected`,
       rulesCreated: t`Custom rule created`,
       rulesUpdated: t`Practice rule updated`,

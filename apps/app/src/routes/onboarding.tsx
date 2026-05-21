@@ -10,9 +10,11 @@ import {
   DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
   MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
+  type RuleGenerationState,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboarding-firm-flow'
@@ -41,6 +43,9 @@ export function OnboardingRoute() {
   const [error, setError] = useState<string | null>(null)
   const switchMutation = useMutation(orpc.firms.switchActive.mutationOptions())
   const createMutation = useMutation(orpc.firms.create.mutationOptions())
+  const activateRulesMutation = useMutation(
+    orpc.rules.activateOnboardingJurisdictions.mutationOptions(),
+  )
 
   const fallback = t`My Practice`
   const defaultName = useMemo(
@@ -51,6 +56,7 @@ export function OnboardingRoute() {
   const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
     DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   )
+  const [selectedRuleStates, setSelectedRuleStates] = useState<RuleGenerationState[]>([])
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
@@ -82,10 +88,13 @@ export function OnboardingRoute() {
           queryClient.fetchQuery(orpc.firms.listMine.queryOptions({ input: undefined })),
         switchActive: (input) => switchMutation.mutateAsync(input),
         create: (input) => createMutation.mutateAsync(input),
+        activateOnboardingJurisdictions: (input) => activateRulesMutation.mutateAsync(input),
       },
+      selectedRuleStates,
     })
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+        await queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
         await navigate(postOnboardingTarget(result, redirectTo), { replace: true })
       })
       .catch((err: unknown) => {
@@ -150,6 +159,11 @@ export function OnboardingRoute() {
           )}
         </div>
 
+        <StateRuleActivationSelector
+          selected={selectedRuleStates}
+          onChange={setSelectedRuleStates}
+        />
+
         <div className="mt-5 flex flex-col gap-1.5">
           <label
             htmlFor="internal-deadline-offset"
@@ -181,10 +195,10 @@ export function OnboardingRoute() {
         <Button
           type="submit"
           className="mt-5 w-full justify-center gap-2"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
+          disabled={isSubmitting || activateRulesMutation.isPending}
+          aria-busy={isSubmitting || activateRulesMutation.isPending}
         >
-          {isSubmitting ? (
+          {isSubmitting || activateRulesMutation.isPending ? (
             <>
               <Loader2Icon className="size-4 animate-spin" aria-hidden />
               <span>
