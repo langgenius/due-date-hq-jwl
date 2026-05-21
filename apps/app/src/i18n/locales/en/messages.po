@@ -472,6 +472,10 @@ msgstr "{role} · {plan} · {0} seats"
 msgid "{role} at {0}"
 msgstr "{role} at {0}"
 
+#: src/routes/migration.new.tsx
+msgid "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
+msgstr "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "{selectedCount} selected"
 msgstr "{selectedCount} selected"
@@ -6932,6 +6936,10 @@ msgstr "Review requested"
 msgid "Review risk and operating pressure."
 msgstr "Review risk and operating pressure."
 
+#: src/routes/migration.new.tsx
+msgid "Review rules"
+msgstr "Review rules"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "Review selected"
 msgstr "Review selected"
@@ -7131,6 +7139,10 @@ msgstr "Rule notes"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
 msgstr "Rule rejected"
+
+#: src/routes/migration.new.tsx
+msgid "Rule review needed before some due dates can be generated"
+msgstr "Rule review needed before some due dates can be generated"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule review required"

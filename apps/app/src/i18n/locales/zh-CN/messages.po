@@ -472,6 +472,10 @@ msgstr "{role} · {plan} · {0} 个席位"
 msgid "{role} at {0}"
 msgstr "{0} 的 {role}"
 
+#: src/routes/migration.new.tsx
+msgid "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
+msgstr "{jurisdictionSummary} 中有 {ruleReviewCount} 条已激活规则仍需截止日期审核，之后才能创建客户义务。"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "{selectedCount} selected"
 msgstr "已选择 {selectedCount} 条"
@@ -6932,6 +6936,10 @@ msgstr "已请求审核"
 msgid "Review risk and operating pressure."
 msgstr "查看风险与运营压力。"
 
+#: src/routes/migration.new.tsx
+msgid "Review rules"
+msgstr "审核规则"
+
 #: src/features/rules/rule-library-tab.tsx
 msgid "Review selected"
 msgstr "审核所选"
@@ -7131,6 +7139,10 @@ msgstr "规则备注"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
 msgstr "规则已拒绝"
+
+#: src/routes/migration.new.tsx
+msgid "Rule review needed before some due dates can be generated"
+msgstr "部分截止日期生成前需要先审核规则"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule review required"

@@ -42,6 +42,8 @@ function gateway(overrides: Partial<OnboardingFirmGateway> = {}): OnboardingFirm
       jurisdictions: states.length > 0 ? ['FED', ...states] : [],
       activatedCount: states.length > 0 ? 10 : 0,
       skippedCount: 0,
+      reviewRequiredCount: states.length > 0 ? 3 : 0,
+      reviewRequiredJurisdictions: states.length > 0 ? states : [],
       generatedObligationCount: 0,
     })),
     ...overrides,
@@ -102,6 +104,8 @@ describe('activateOrCreateOnboardingFirm', () => {
         jurisdictions: ['FED', 'CA', 'TX'],
         activatedCount: 10,
         skippedCount: 0,
+        reviewRequiredCount: 3,
+        reviewRequiredJurisdictions: ['CA', 'TX'],
         generatedObligationCount: 0,
       },
     })
@@ -143,6 +147,27 @@ describe('activateOrCreateOnboardingFirm', () => {
     expect(postOnboardingTarget({ kind: 'created', firm: firm(), ruleActivation: null }, '/')).toBe(
       ONBOARDING_MIGRATION_TARGET,
     )
+  })
+
+  it('carries source-defined rule review needs into the activation route', () => {
+    expect(
+      postOnboardingTarget(
+        {
+          kind: 'created',
+          firm: firm(),
+          ruleActivation: {
+            selectedStates: ['AK'],
+            jurisdictions: ['FED', 'AK'],
+            activatedCount: 13,
+            skippedCount: 0,
+            reviewRequiredCount: 5,
+            reviewRequiredJurisdictions: ['FED', 'AK'],
+            generatedObligationCount: 0,
+          },
+        },
+        '/',
+      ),
+    ).toBe('/migration/new?source=onboarding&ruleReview=5&ruleReviewJur=FED%2CAK')
   })
 
   it('preserves the original redirect when onboarding reused an existing practice', () => {

@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useLoaderData, useNavigate } from 'react-router'
+import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
 
@@ -20,14 +20,31 @@ type MigrationNewLoaderData = {
 export function MigrationNewRoute() {
   const { firm } = useLoaderData<MigrationNewLoaderData>()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const permission = useFirmPermission(firm)
   const canRunMigration = permission.can('migration.run')
   const skipToDashboard = () => void navigate('/')
+  const ruleReviewCount = parseRuleReviewCount(params.get('ruleReview'))
+  const ruleReviewJurisdictions = parseRuleReviewJurisdictions(params.get('ruleReviewJur'))
+  const reviewRules = () => {
+    const target = new URL('/rules/library', 'http://duedatehq.local')
+    target.searchParams.set('view', 'rules')
+    target.searchParams.set('library', 'pending_review')
+    if (ruleReviewJurisdictions.length === 1) {
+      target.searchParams.set('jur', ruleReviewJurisdictions[0]!)
+    }
+    void navigate(`${target.pathname}${target.search}`)
+  }
 
   if (permission.isLoading) {
     return (
       <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 p-4 md:p-6">
-        <MigrationActivationIntro onSkip={skipToDashboard} />
+        <MigrationActivationIntro
+          onSkip={skipToDashboard}
+          onReviewRules={reviewRules}
+          ruleReviewCount={ruleReviewCount}
+          ruleReviewJurisdictions={ruleReviewJurisdictions}
+        />
         <div className="rounded-xl border border-divider-regular bg-components-panel-bg p-4">
           <Skeleton className="h-8 w-56" />
           <Skeleton className="mt-4 h-52 w-full" />
@@ -39,7 +56,12 @@ export function MigrationNewRoute() {
   if (!canRunMigration) {
     return (
       <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 p-4 md:p-6">
-        <MigrationActivationIntro onSkip={skipToDashboard} />
+        <MigrationActivationIntro
+          onSkip={skipToDashboard}
+          onReviewRules={reviewRules}
+          ruleReviewCount={ruleReviewCount}
+          ruleReviewJurisdictions={ruleReviewJurisdictions}
+        />
         <Alert variant="destructive">
           <AlertTitle>
             <Trans>Owner or manager access required</Trans>
@@ -64,14 +86,45 @@ export function MigrationNewRoute() {
       <Wizard
         open
         variant="route"
-        intro={({ onSkip }) => <MigrationActivationIntro onSkip={onSkip} />}
+        intro={({ onSkip }) => (
+          <MigrationActivationIntro
+            onSkip={onSkip}
+            onReviewRules={reviewRules}
+            ruleReviewCount={ruleReviewCount}
+            ruleReviewJurisdictions={ruleReviewJurisdictions}
+          />
+        )}
         onClose={skipToDashboard}
       />
     </HotkeysProvider>
   )
 }
 
-function MigrationActivationIntro({ onSkip }: { onSkip: () => void }) {
+function parseRuleReviewCount(value: string | null): number {
+  const parsed = Number.parseInt(value ?? '0', 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+}
+
+function parseRuleReviewJurisdictions(value: string | null): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function MigrationActivationIntro({
+  onSkip,
+  onReviewRules,
+  ruleReviewCount,
+  ruleReviewJurisdictions,
+}: {
+  onSkip: () => void
+  onReviewRules: () => void
+  ruleReviewCount: number
+  ruleReviewJurisdictions: readonly string[]
+}) {
+  const jurisdictionSummary =
+    ruleReviewJurisdictions.length > 0 ? ruleReviewJurisdictions.join(', ') : 'selected states'
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
@@ -103,6 +156,32 @@ function MigrationActivationIntro({ onSkip }: { onSkip: () => void }) {
             Today, Clients, or Command Palette.
           </Trans>
         </p>
+        {ruleReviewCount > 0 ? (
+          <Alert className="mt-4 max-w-4xl">
+            <AlertTitle>
+              <Trans>Rule review needed before some due dates can be generated</Trans>
+            </AlertTitle>
+            <AlertDescription>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <span>
+                  <Trans>
+                    {ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date
+                    review before they can create client obligations.
+                  </Trans>
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-fit shrink-0"
+                  onClick={onReviewRules}
+                >
+                  <Trans>Review rules</Trans>
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : null}
       </div>
 
       <Button variant="outline" size="sm" className="w-fit shrink-0" onClick={onSkip}>

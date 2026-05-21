@@ -523,6 +523,13 @@ function toTemporaryRule(row: TemporaryRuleRow): TemporaryRule {
   }
 }
 
+export function isPracticeRuleBehindTemplate(input: {
+  practiceVersion: number
+  templateVersion: number
+}): boolean {
+  return input.practiceVersion < input.templateVersion
+}
+
 async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
   await ensureGlobalTemplateCatalog(context)
   const { scoped } = requireTenant(context)
@@ -541,7 +548,13 @@ async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
       })
       continue
     }
-    if (reviewed.status !== 'pending_review' && reviewed.templateVersion !== rule.version) {
+    if (
+      reviewed.status !== 'pending_review' &&
+      isPracticeRuleBehindTemplate({
+        practiceVersion: reviewed.templateVersion,
+        templateVersion: rule.version,
+      })
+    ) {
       reviewTasks.push({
         ruleId: rule.id,
         templateVersion: rule.version,
@@ -628,8 +641,25 @@ async function listPracticeRules(input: {
         verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
         version: practice.templateVersion,
       }
+      if (isSourceDefinedRule(activeRule)) {
+        rows.push(
+          hasOpenTemplateReviewTask
+            ? pendingContractRule(template)
+            : {
+                ...activeRule,
+                status: 'pending_review',
+              },
+        )
+        continue
+      }
       rows.push(activeRule)
-      if (practice.templateVersion !== template.version && hasOpenTemplateReviewTask) {
+      if (
+        isPracticeRuleBehindTemplate({
+          practiceVersion: practice.templateVersion,
+          templateVersion: template.version,
+        }) &&
+        hasOpenTemplateReviewTask
+      ) {
         rows.push(pendingContractRule(template))
       }
       continue
@@ -638,7 +668,10 @@ async function listPracticeRules(input: {
     rows.push(toPracticeContractRule(template, practice.status, practiceReviewMetadata(practice)))
     if (
       practice.status !== 'pending_review' &&
-      practice.templateVersion !== template.version &&
+      isPracticeRuleBehindTemplate({
+        practiceVersion: practice.templateVersion,
+        templateVersion: template.version,
+      }) &&
       hasOpenTemplateReviewTask
     ) {
       rows.push(pendingContractRule(template))
@@ -729,6 +762,8 @@ export async function activateOnboardingJurisdictionRules(input: {
       jurisdictions,
       activatedCount: 0,
       skippedCount: 0,
+      reviewRequiredCount: 0,
+      reviewRequiredJurisdictions: [],
       generatedObligationCount: 0,
     }
   }
@@ -738,6 +773,13 @@ export async function activateOnboardingJurisdictionRules(input: {
   const jurisdictionSet = new Set<RuleJurisdiction>(jurisdictions)
   const matchingRules = templateRules().filter((rule) => jurisdictionSet.has(rule.jurisdiction))
   const activatableRules = matchingRules.filter(isOnboardingActivatableRule)
+  const reviewRequiredRules = activatableRules.filter(isSourceDefinedRule)
+  const reviewRequiredJurisdictionSet = new Set(
+    reviewRequiredRules.map((rule) => rule.jurisdiction),
+  )
+  const reviewRequiredJurisdictions = jurisdictions.filter((jurisdiction) =>
+    reviewRequiredJurisdictionSet.has(jurisdiction),
+  )
   const activeCoreRules: CoreObligationRule[] = []
 
   await Promise.all(
@@ -791,6 +833,8 @@ export async function activateOnboardingJurisdictionRules(input: {
       jurisdictions,
       activatedCount: activatableRules.length,
       skippedCount: matchingRules.length - activatableRules.length,
+      reviewRequiredCount: reviewRequiredRules.length,
+      reviewRequiredJurisdictions,
       generatedObligationCount: generation.createdCount,
     },
     reason: ONBOARDING_RULE_REVIEW_NOTE,
@@ -801,6 +845,8 @@ export async function activateOnboardingJurisdictionRules(input: {
     jurisdictions,
     activatedCount: activatableRules.length,
     skippedCount: matchingRules.length - activatableRules.length,
+    reviewRequiredCount: reviewRequiredRules.length,
+    reviewRequiredJurisdictions,
     generatedObligationCount: generation.createdCount,
   }
 }

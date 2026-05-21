@@ -20,11 +20,18 @@ creation to bootstrap Rules Library coverage.
   for `FED + selected states`. Empty state selection is allowed and skips rule
   activation.
 - Added `rules.activateOnboardingJurisdictions`, a dedicated bootstrap RPC that
-  force-activates matching non-deprecated templates, including source-defined
-  candidate rules that normal Rules Library review keeps pending.
+  activates matching non-deprecated templates and reports how many activated
+  `source_defined_calendar` templates still need due-date review before they can
+  generate obligations.
+- Added a post-onboarding activation prompt on `/migration/new` when selected
+  jurisdictions include source-defined rules; the prompt links to Rule Library's
+  pending review queue.
+- Corrected accepted concrete-draft version handling so accepting one
+  source-defined rule does not re-add the older template version to the pending
+  review count.
 - Wrote `rules.onboarding_activated` audit metadata with selected states,
-  activated jurisdictions, activation count, skipped count, and generated
-  obligation count.
+  activated jurisdictions, activation count, skipped count, review-required
+  count, review-required jurisdictions, and generated obligation count.
 
 ## Validation
 
