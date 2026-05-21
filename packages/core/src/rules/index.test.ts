@@ -366,11 +366,14 @@ describe('@duedatehq/core/rules', () => {
   it('tracks Alabama source coverage separately from active rule coverage', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
     const individualSource = sourcesById.get('al.income_tax')
+    const dueDatesSource = sourcesById.get('al.due_dates')
     const businessRule = findRuleById('al.business_income_return.candidate.2026')
     const individualRule = findRuleById('al.individual_income_return.candidate.2026')
 
     expect(individualSource?.domains).toEqual(['individual_income_return'])
     expect(individualSource?.entityApplicability).toEqual(['individual'])
+    expect(dueDatesSource?.domains).toContain('business_income_return')
+    expect(dueDatesSource?.domains).not.toContain('individual_income_return')
     expect(individualRule?.sourceIds).toEqual(['al.income_tax'])
     expect(businessRule?.sourceIds).toEqual(['al.due_dates'])
     expect(
@@ -378,6 +381,14 @@ describe('@duedatehq/core/rules', () => {
         ? sourceCoversRuleDomain(individualSource, businessRule)
         : false,
     ).toBe(false)
+    expect(
+      dueDatesSource && individualRule
+        ? sourceCoversRuleDomain(dueDatesSource, individualRule)
+        : false,
+    ).toBe(false)
+    expect(
+      dueDatesSource && businessRule ? sourceCoversRuleDomain(dueDatesSource, businessRule) : false,
+    ).toBe(true)
 
     const alGaps = listSourceCoverageGaps('AL')
     expect(alGaps).toEqual([])

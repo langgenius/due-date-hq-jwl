@@ -29,7 +29,7 @@ export function MigrationNewRoute() {
   const reviewRules = () => {
     const target = new URL('/rules/library', 'http://duedatehq.local')
     target.searchParams.set('view', 'rules')
-    target.searchParams.set('library', 'applicability_review')
+    target.searchParams.set('library', 'pending_review')
     if (ruleReviewJurisdictions.length === 1) {
       target.searchParams.set('jur', ruleReviewJurisdictions[0]!)
     }
@@ -165,8 +165,8 @@ function MigrationActivationIntro({
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span>
                   <Trans>
-                    {ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date
-                    review before they can create client obligations.
+                    {ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review
+                    before they can become active and create client obligations.
                   </Trans>
                 </span>
                 <Button

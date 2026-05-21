@@ -1,10 +1,8 @@
 import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
-import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
-  CheckCircle2Icon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -43,6 +41,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -187,7 +186,8 @@ export function CoverageTab({
     parseAsString.withOptions({ history: 'replace' }),
   )
   const selectRule = (ruleId: string) => {
-    void setSelectedRuleId((prev) => (prev === ruleId ? null : ruleId))
+    if (selectedRuleId === ruleId) return
+    void setSelectedRuleId(ruleId)
   }
 
   const sourcesByJurisdiction = useMemo(() => {
@@ -539,8 +539,6 @@ export function CoverageTab({
     return <QueryPanelState state="error" message={t`Couldn't load rules coverage`} />
   }
 
-  const rows = rowsData
-  const stats = aggregateStats(rows)
   const panelOpen = selectedRuleId !== null
   const visibleEntityColumns = panelOpen ? [] : ENTITY_DISPLAY
   const totalColumnCount = 3 + 1 + visibleEntityColumns.length
@@ -601,10 +599,9 @@ export function CoverageTab({
 
       <section className="flex flex-col gap-3">
         {/* In normal mode, the section header carries the "Entity
-          coverage" label + search input + watched-source banner.
-          In review mode, all of that orientation chrome moves into
-          the workspace (search goes into the queue header) so the
-          banner-to-workspace gap collapses. */}
+          coverage" label + search input. In review mode, that
+          orientation chrome moves into the workspace (search goes into
+          the queue header). */}
         {!panelOpen ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -613,7 +610,6 @@ export function CoverageTab({
               </h2>
               <SearchInput value={effectiveSearch} onChange={setSearchValue} />
             </div>
-            <SourceStatusBanner total={stats.sourcesTotal} />
             <EntityCoverageLegend />
           </>
         ) : null}
@@ -766,36 +762,6 @@ export function CoverageTab({
   )
 }
 
-type Stats = {
-  active: number
-  pending: number
-  missingSources: number
-  sourcesWorking: number
-  sourcesTotal: number
-  jurisdictions: number
-}
-
-function aggregateStats(rows: readonly RuleCoverageRow[]): Stats {
-  let active = 0
-  let pending = 0
-  let missingSources = 0
-  let sourcesTotal = 0
-  for (const row of rows) {
-    active += row.activeRuleCount ?? row.verifiedRuleCount
-    pending += row.pendingReviewCount ?? row.candidateCount
-    missingSources += row.missingSourceCount
-    sourcesTotal += row.sourceCount
-  }
-  return {
-    active,
-    pending,
-    missingSources,
-    sourcesWorking: sourcesTotal,
-    sourcesTotal,
-    jurisdictions: rows.length,
-  }
-}
-
 // StatsStrip + Stat removed 2026-05-21 — counts now live in the page-
 // level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
 // See docs/Design/ux-audit-2026-05-21.md P0 #5.
@@ -857,7 +823,7 @@ function ActiveFilterChip({
 
 /**
  * Compact legend for the entity-coverage glyphs. Sits between the
- * source banner and the table so a first-time CPA can decode the
+ * section header and the table so a first-time CPA can decode the
  * orange triangle / green check / em-dash glyphs without hover-discovering them.
  */
 function EntityCoverageLegend() {
@@ -902,35 +868,6 @@ function EntityCoverageLegend() {
         <Trans>Not applicable</Trans>
       </span>
     </div>
-  )
-}
-
-/**
- * Source-status banner — always visible. Source fetch/parser failures are
- * internal ops diagnostics; CPA users only need to know which authorities are
- * being monitored.
- */
-function SourceStatusBanner({ total }: { total: number }) {
-  return (
-    <Link
-      to="/rules/sources"
-      aria-label={`Open Sources — all ${total} official sources are watched`}
-      className={cn(
-        'group/cta inline-flex h-9 w-fit items-center gap-2',
-        'rounded-md bg-status-done/10 px-3',
-        'text-sm text-text-secondary outline-none',
-        'hover:bg-status-done/15 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-      )}
-    >
-      <CheckCircle2Icon aria-hidden className="size-4 text-status-done" />
-      <span className="font-medium text-text-primary">
-        <Trans>All {total} sources watched</Trans>
-      </span>
-      <ChevronRightIcon
-        aria-hidden
-        className="size-4 text-text-tertiary transition-transform group-hover/cta:translate-x-0.5 group-hover/cta:text-text-accent"
-      />
-    </Link>
   )
 }
 
@@ -1341,24 +1278,13 @@ function CoverageRuleItem({
         target. Selected state shows as a bg-tint that spans the
         natural row width. */}
       <div
+        onClick={() => onSelect()}
         className={cn(
-          'flex items-center justify-between gap-3 rounded py-2 transition-colors',
+          'flex cursor-pointer items-center justify-between gap-3 rounded py-2 transition-colors',
           isSelected ? 'bg-state-accent-tint/50' : 'hover:bg-background-subtle/50',
         )}
       >
-        {selection ? (
-          <input
-            type="checkbox"
-            aria-label={selection.label}
-            title={selection.title}
-            checked={selection.checked}
-            disabled={selection.disabled}
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-            onChange={(event) => selection.onChange(event.target.checked)}
-            className="size-4 shrink-0 disabled:opacity-30"
-          />
-        ) : null}
+        {selection ? <RuleSelectionCheckbox selection={selection} /> : null}
         <button
           type="button"
           onClick={(event) => {
@@ -1368,7 +1294,7 @@ function CoverageRuleItem({
           aria-pressed={isSelected}
           title={rule.title}
           className={cn(
-            'flex-1 truncate rounded text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+            'flex-1 cursor-pointer truncate rounded text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             // Selection: heavier weight + bg-tint instead of accent
             // colour — keeps blue reserved for the primary CTA.
             isSelected
@@ -1402,6 +1328,57 @@ function CoverageRuleItem({
   )
 }
 
+function RuleSelectionCheckbox({
+  selection,
+}: {
+  selection: {
+    checked: boolean
+    disabled: boolean
+    label: string
+    title?: string
+    onChange: (checked: boolean) => void
+  }
+}) {
+  const checkbox = (
+    <input
+      type="checkbox"
+      aria-label={selection.label}
+      title={selection.title}
+      data-rule-selection-disabled-reason={selection.title}
+      checked={selection.checked}
+      disabled={selection.disabled}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+      onChange={(event) => selection.onChange(event.target.checked)}
+      className="size-4 shrink-0 disabled:opacity-30"
+    />
+  )
+
+  if (!selection.disabled || !selection.title) return checkbox
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span
+            tabIndex={0}
+            aria-label={selection.title}
+            data-rule-selection-disabled-reason={selection.title}
+            className="inline-flex size-4 shrink-0 cursor-not-allowed items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-solid"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            {checkbox}
+          </span>
+        }
+      />
+      <TooltipContent className="max-w-[260px] whitespace-normal text-left leading-5">
+        {selection.title}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
 function RuleStatusChip({
   rule,
   sourceDefined,
@@ -1409,17 +1386,18 @@ function RuleStatusChip({
   rule: Pick<ObligationRule, 'status'>
   sourceDefined: boolean
 }) {
+  if (sourceDefined) {
+    return (
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium">
+        <Trans>Due-date review</Trans>
+      </span>
+    )
+  }
+
   if (rule.status === 'active' || rule.status === 'verified') {
     return (
-      <span
-        className={cn(
-          'inline-flex h-[18px] shrink-0 items-center rounded-sm px-1.5 text-[10px] font-medium',
-          sourceDefined
-            ? 'bg-severity-medium-tint text-severity-medium'
-            : 'bg-status-done/10 text-status-done',
-        )}
-      >
-        {sourceDefined ? <Trans>Due-date review</Trans> : <Trans>Active</Trans>}
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-done/10 px-1.5 text-[10px] font-medium text-status-done">
+        <Trans>Active</Trans>
       </span>
     )
   }
@@ -1557,7 +1535,15 @@ function PendingRuleQueue({
                     {rules.map((rule) => {
                       const rowKey = ruleRowKey(rule)
                       const reviewTask = openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))
-                      const disabledReason = bulkReviewDisabledReason(rule, reviewTask ?? null, t)
+                      const disabledReason = bulkReviewDisabledReason(rule, reviewTask ?? null)
+                      const disabledReasonLabel =
+                        disabledReason === 'source_defined'
+                          ? t`AI draft review required before activation.`
+                          : disabledReason === 'source_changed'
+                            ? t`Source-changed rules require single-rule review.`
+                            : disabledReason === 'no_open_task'
+                              ? t`No open review task.`
+                              : null
                       const disabled = disabledReason !== null
                       return (
                         <CoverageRuleItem
@@ -1569,10 +1555,11 @@ function PendingRuleQueue({
                           selection={{
                             checked: selectedRuleKeys.includes(rowKey) && !disabled,
                             disabled,
-                            label: disabledReason
-                              ? t`Bulk review disabled for ${rule.title}: ${disabledReason}`
-                              : t`Select rule ${rule.title}`,
-                            ...(disabledReason ? { title: disabledReason } : {}),
+                            label:
+                              disabledReasonLabel !== null
+                                ? t`Bulk review disabled for ${rule.title}: ${disabledReasonLabel}`
+                                : t`Select rule ${rule.title}`,
+                            ...(disabledReasonLabel !== null ? { title: disabledReasonLabel } : {}),
                             onChange: (checked) => onRuleSelectionChange(rowKey, checked),
                           }}
                         />
@@ -1589,7 +1576,7 @@ function PendingRuleQueue({
   )
 }
 
-type LinguiT = ReturnType<typeof useLingui>['t']
+type BulkReviewDisabledReason = 'source_defined' | 'source_changed' | 'no_open_task'
 
 function legacyLibraryFilterToCoverageFilter(value: string | null): RowFilter | null {
   if (value === 'active' || value === 'verified') return 'active'
@@ -1615,13 +1602,10 @@ function canBulkReviewTask(task: RuleReviewTask | null): boolean {
 function bulkReviewDisabledReason(
   rule: ObligationRule,
   reviewTask: RuleReviewTask | null,
-  t: LinguiT,
-): string | null {
-  if (isSourceDefinedRule(rule)) return t`AI draft review required before activation.`
-  if (reviewTask?.reason === 'source_changed') {
-    return t`Source-changed rules require single-rule review.`
-  }
-  if (!canBulkReviewTask(reviewTask)) return t`No open review task.`
+): BulkReviewDisabledReason | null {
+  if (isSourceDefinedRule(rule)) return 'source_defined'
+  if (reviewTask?.reason === 'source_changed') return 'source_changed'
+  if (!canBulkReviewTask(reviewTask)) return 'no_open_task'
   return null
 }
 

@@ -472,8 +472,8 @@ msgid "{role} at {0}"
 msgstr "{0} 的 {role}"
 
 #: src/routes/migration.new.tsx
-msgid "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
-msgstr "{jurisdictionSummary} 中有 {ruleReviewCount} 条已激活规则仍需截止日期审核，之后才能创建客户义务。"
+msgid "{ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review before they can become active and create client obligations."
+msgstr "{jurisdictionSummary} 中有 {ruleReviewCount} 条规则正在等待截止日期审核，审核通过后才能生效并创建客户义务。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
@@ -909,6 +909,10 @@ msgstr "AI 置信度"
 msgid "AI draft review required"
 msgstr "需要审核 AI 草案"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "AI draft review required before activation."
+msgstr "激活前需要先审核 AI 草稿。"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "AI guard failed"
 msgstr "AI 防护检查失败"
@@ -971,10 +975,6 @@ msgstr "全部"
 #: src/routes/obligations.tsx
 msgid "All {checklistCount} document items are marked received."
 msgstr "全部 {checklistCount} 个文件项均已标记为已收到。"
-
-#: src/features/rules/coverage-tab.tsx
-msgid "All {total} sources watched"
-msgstr "全部 {total} 个来源已监控"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actions"
@@ -1475,8 +1475,8 @@ msgstr "Bulk actions"
 
 #. placeholder {0}: rule.title
 #: src/features/rules/coverage-tab.tsx
-msgid "Bulk review disabled for {0}: {disabledReason}"
-msgstr "无法批量审核 {0}：{disabledReason}"
+msgid "Bulk review disabled for {0}: {disabledReasonLabel}"
+msgstr "无法批量审核 {0}：{disabledReasonLabel}"
 
 #: src/routes/obligations.tsx
 msgid "Bulk status updated"
@@ -4842,6 +4842,10 @@ msgstr "没有可预览的未完成义务。"
 msgid "No open obligations match the workload window."
 msgstr "当前负载窗口内没有匹配的未完成义务。"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "No open review task."
+msgstr "没有打开的审核任务。"
+
 #: src/features/opportunities/opportunities-page.tsx
 msgid "No opportunity cues yet"
 msgstr "暂无业务提示"
@@ -7061,6 +7065,10 @@ msgstr "规则问题已报告"
 msgid "Rule library"
 msgstr "规则库"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Rule Library review required."
+msgstr "需要在规则库中审核。"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Rule not found"
 msgstr "未找到规则"
@@ -7765,6 +7773,10 @@ msgstr "Solo、Pro 和 Team 均包含 1 个 active practice 工作区。多个 p
 msgid "Some obligations have changed since you opened this alert. Refresh to load the latest list."
 msgstr "部分义务自打开提醒后已变更，请刷新加载最新列表。"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Some selected states publish deadlines through official calendars that need practice review. After entering the product, open Rule Library and review the pending rules before those due dates can be generated."
+msgstr "部分已选州会通过官方日历发布截止日期，需要事务所先审核。进入产品后，请打开规则库并审核待处理规则，这些截止日期才能生成。"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Something went wrong"
 msgstr "出现了一些问题"
@@ -7857,6 +7869,10 @@ msgstr "带来源的预览，以及适合单个负责人的轻量迁移辅助。
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules are skipped from bulk accept. Review them one by one."
 msgstr "来源变更的规则已从批量接受中跳过。请逐条审核。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Source-changed rules require single-rule review."
+msgstr "来源变更规则需要逐条审核。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules should be checked against evidence before accepting."

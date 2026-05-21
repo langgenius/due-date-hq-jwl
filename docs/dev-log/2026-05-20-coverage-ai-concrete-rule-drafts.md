@@ -4,7 +4,7 @@
 
 Implemented the source-defined review path for rules:
 
-- `rules.coverage` now returns `entityCoverage` computed from practice active rules, pending templates, and legacy source-defined active rows.
+- `rules.coverage` now returns `entityCoverage` computed from practice active rules and pending templates; source-defined placeholders remain review state until CPA accepts a concrete draft.
 - Source-defined templates remain review candidates; `acceptTemplate` and bulk accept skip/reject them until an AI concrete draft is reviewed.
 - Added `rules.draftConcreteRule`, `rule-concrete-draft@v1`, AI run persistence, deterministic due-date/source-excerpt guards, and `aiOutputId` provenance on accepted rule evidence.
 - Rules UI now renders coverage cells from API data and shows an AI draft review panel in the rule detail before `Accept rule`.

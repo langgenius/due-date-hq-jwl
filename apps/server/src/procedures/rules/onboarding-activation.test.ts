@@ -4,7 +4,11 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import { listObligationRules } from '@duedatehq/core/rules'
-import type { PracticeRuleInput, PracticeRuleReviewTaskDecisionInput } from '@duedatehq/ports/rules'
+import type {
+  PracticeRuleInput,
+  PracticeRuleReviewTaskDecisionInput,
+  PracticeRuleReviewTaskInput,
+} from '@duedatehq/ports/rules'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   activateOnboardingJurisdictionRules,
@@ -44,6 +48,21 @@ function makeScoped() {
     createdAt: REVIEWED_AT,
     updatedAt: REVIEWED_AT,
   }))
+  const ensureReviewTasks = vi.fn(async (inputs: PracticeRuleReviewTaskInput[]) =>
+    inputs.map((input) => ({
+      id: `task_${input.ruleId}`,
+      firmId: 'firm_123',
+      ruleId: input.ruleId,
+      templateVersion: input.templateVersion,
+      status: 'open' as const,
+      reason: input.reason,
+      reviewNote: null,
+      reviewedBy: null,
+      reviewedAt: null,
+      createdAt: REVIEWED_AT,
+      updatedAt: REVIEWED_AT,
+    })),
+  )
   const writeAudit = vi.fn(async () => ({ id: 'audit_123' }))
 
   const scoped = {
@@ -51,13 +70,14 @@ function makeScoped() {
     rules: {
       upsertPracticeRule,
       decideReviewTask,
+      ensureReviewTasks,
     },
     audit: {
       write: writeAudit,
     },
   } as unknown as ScopedRepo
 
-  return { scoped, upsertPracticeRule, decideReviewTask, writeAudit }
+  return { scoped, upsertPracticeRule, decideReviewTask, ensureReviewTasks, writeAudit }
 }
 
 describe('onboarding rule activation', () => {
@@ -106,11 +126,14 @@ describe('onboarding rule activation', () => {
     const expectedReviewRules = expectedRules.filter(
       (rule) => rule.dueDateLogic.kind === 'source_defined_calendar',
     )
+    const expectedActiveRules = expectedRules.filter(
+      (rule) => rule.dueDateLogic.kind !== 'source_defined_calendar',
+    )
 
     expect(result).toMatchObject({
       selectedStates: ['CA', 'TX'],
       jurisdictions: ['FED', 'CA', 'TX'],
-      activatedCount: expectedRules.length,
+      activatedCount: expectedActiveRules.length,
       skippedCount: matchingRules.length - expectedRules.length,
       reviewRequiredCount: expectedReviewRules.length,
       reviewRequiredJurisdictions: ['FED', 'CA', 'TX'],
@@ -118,19 +141,24 @@ describe('onboarding rule activation', () => {
     })
     expect(ensureCatalog).toHaveBeenCalledOnce()
     expect(upsertPracticeRule).toHaveBeenCalledTimes(expectedRules.length)
-    expect(decideReviewTask).toHaveBeenCalledTimes(expectedRules.length)
+    expect(decideReviewTask).toHaveBeenCalledTimes(expectedActiveRules.length)
     expect(generateObligations).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: USER_ID,
         internalDeadlineOffsetDays: 14,
         rules: expect.arrayContaining([
           expect.objectContaining({
-            id: 'tx.sales_use_tax.candidate.2026',
-            status: 'verified',
-          }),
-          expect.objectContaining({
             id: 'ca.llc.annual_tax.2026',
             status: 'verified',
+          }),
+        ]),
+      }),
+    )
+    expect(generateObligations).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rules: expect.not.arrayContaining([
+          expect.objectContaining({
+            id: 'tx.sales_use_tax.candidate.2026',
           }),
         ]),
       }),
@@ -139,9 +167,9 @@ describe('onboarding rule activation', () => {
     expect(upsertPracticeRule).toHaveBeenCalledWith(
       expect.objectContaining({
         ruleId: 'tx.sales_use_tax.candidate.2026',
-        status: 'active',
+        status: 'pending_review',
         ruleJson: expect.objectContaining({
-          status: 'active',
+          status: 'pending_review',
           dueDateLogic: expect.objectContaining({ kind: 'source_defined_calendar' }),
         }),
       }),
@@ -152,7 +180,7 @@ describe('onboarding rule activation', () => {
         after: expect.objectContaining({
           selectedStates: ['CA', 'TX'],
           jurisdictions: ['FED', 'CA', 'TX'],
-          activatedCount: expectedRules.length,
+          activatedCount: expectedActiveRules.length,
           skippedCount: matchingRules.length - expectedRules.length,
           reviewRequiredCount: expectedReviewRules.length,
           reviewRequiredJurisdictions: ['FED', 'CA', 'TX'],
@@ -162,8 +190,8 @@ describe('onboarding rule activation', () => {
     )
   })
 
-  it('activates Alaska source-defined rules and reports them for due-date review', async () => {
-    const { scoped, upsertPracticeRule, decideReviewTask } = makeScoped()
+  it('queues Alaska source-defined rules for due-date review without activating them', async () => {
+    const { scoped, upsertPracticeRule, decideReviewTask, ensureReviewTasks } = makeScoped()
     const generateObligations = vi.fn(async () => ({
       candidateCount: 0,
       createdCount: 0,
@@ -187,11 +215,14 @@ describe('onboarding rule activation', () => {
     const expectedReviewRules = expectedRules.filter(
       (rule) => rule.dueDateLogic.kind === 'source_defined_calendar',
     )
+    const expectedActiveRules = expectedRules.filter(
+      (rule) => rule.dueDateLogic.kind !== 'source_defined_calendar',
+    )
 
     expect(result).toMatchObject({
       selectedStates: ['AK'],
       jurisdictions: ['FED', 'AK'],
-      activatedCount: expectedRules.length,
+      activatedCount: expectedActiveRules.length,
       skippedCount: matchingRules.length - expectedRules.length,
       reviewRequiredCount: expectedReviewRules.length,
       reviewRequiredJurisdictions: ['FED', 'AK'],
@@ -199,11 +230,24 @@ describe('onboarding rule activation', () => {
     expect(upsertPracticeRule.mock.calls.some(([input]) => input.ruleId.startsWith('ak.'))).toBe(
       true,
     )
-    expect(decideReviewTask.mock.calls.some(([input]) => input.ruleId.startsWith('ak.'))).toBe(true)
+    expect(
+      upsertPracticeRule.mock.calls.some(
+        ([input]) => input.ruleId.startsWith('ak.') && input.status === 'pending_review',
+      ),
+    ).toBe(true)
+    expect(decideReviewTask.mock.calls.some(([input]) => input.ruleId.startsWith('ak.'))).toBe(
+      false,
+    )
+    expect(
+      ensureReviewTasks.mock.calls.some(([inputs]) =>
+        inputs.some((input) => input.ruleId.startsWith('ak.')),
+      ),
+    ).toBe(true)
   })
 
   it('returns an empty summary without writes when no states are selected', async () => {
-    const { scoped, upsertPracticeRule, decideReviewTask, writeAudit } = makeScoped()
+    const { scoped, upsertPracticeRule, decideReviewTask, ensureReviewTasks, writeAudit } =
+      makeScoped()
 
     const result = await activateOnboardingJurisdictionRules({
       scoped,
@@ -224,6 +268,7 @@ describe('onboarding rule activation', () => {
     })
     expect(upsertPracticeRule).not.toHaveBeenCalled()
     expect(decideReviewTask).not.toHaveBeenCalled()
+    expect(ensureReviewTasks).not.toHaveBeenCalled()
     expect(writeAudit).not.toHaveBeenCalled()
   })
 })

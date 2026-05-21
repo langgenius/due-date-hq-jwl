@@ -472,8 +472,8 @@ msgid "{role} at {0}"
 msgstr "{role} at {0}"
 
 #: src/routes/migration.new.tsx
-msgid "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
-msgstr "{ruleReviewCount} activated rules in {jurisdictionSummary} still need due-date review before they can create client obligations."
+msgid "{ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review before they can become active and create client obligations."
+msgstr "{ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review before they can become active and create client obligations."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
@@ -909,6 +909,10 @@ msgstr "AI confidence"
 msgid "AI draft review required"
 msgstr "AI draft review required"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "AI draft review required before activation."
+msgstr "AI draft review required before activation."
+
 #: src/features/audit/audit-log-labels.ts
 msgid "AI guard failed"
 msgstr "AI guard failed"
@@ -971,10 +975,6 @@ msgstr "All"
 #: src/routes/obligations.tsx
 msgid "All {checklistCount} document items are marked received."
 msgstr "All {checklistCount} document items are marked received."
-
-#: src/features/rules/coverage-tab.tsx
-msgid "All {total} sources watched"
-msgstr "All {total} sources watched"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actions"
@@ -1475,8 +1475,8 @@ msgstr "Bulk actions"
 
 #. placeholder {0}: rule.title
 #: src/features/rules/coverage-tab.tsx
-msgid "Bulk review disabled for {0}: {disabledReason}"
-msgstr "Bulk review disabled for {0}: {disabledReason}"
+msgid "Bulk review disabled for {0}: {disabledReasonLabel}"
+msgstr "Bulk review disabled for {0}: {disabledReasonLabel}"
 
 #: src/routes/obligations.tsx
 msgid "Bulk status updated"
@@ -4842,6 +4842,10 @@ msgstr "No open obligations available for preview."
 msgid "No open obligations match the workload window."
 msgstr "No open obligations match the workload window."
 
+#: src/features/rules/coverage-tab.tsx
+msgid "No open review task."
+msgstr "No open review task."
+
 #: src/features/opportunities/opportunities-page.tsx
 msgid "No opportunity cues yet"
 msgstr "No opportunity cues yet"
@@ -7061,6 +7065,10 @@ msgstr "Rule issue reported"
 msgid "Rule library"
 msgstr "Rule library"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Rule Library review required."
+msgstr "Rule Library review required."
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Rule not found"
 msgstr "Rule not found"
@@ -7765,6 +7773,10 @@ msgstr "Solo, Pro, and Team include one active practice workspace. Contact sales
 msgid "Some obligations have changed since you opened this alert. Refresh to load the latest list."
 msgstr "Some obligations have changed since you opened this alert. Refresh to load the latest list."
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Some selected states publish deadlines through official calendars that need practice review. After entering the product, open Rule Library and review the pending rules before those due dates can be generated."
+msgstr "Some selected states publish deadlines through official calendars that need practice review. After entering the product, open Rule Library and review the pending rules before those due dates can be generated."
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Something went wrong"
 msgstr "Something went wrong"
@@ -7857,6 +7869,10 @@ msgstr "Source-backed previews and lightweight migration help for one owner."
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules are skipped from bulk accept. Review them one by one."
 msgstr "Source-changed rules are skipped from bulk accept. Review them one by one."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Source-changed rules require single-rule review."
+msgstr "Source-changed rules require single-rule review."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source-changed rules should be checked against evidence before accepting."

@@ -444,7 +444,7 @@ describe('CoverageTab canonical layout', () => {
     expect(notApplicableLegendIcon?.textContent?.trim()).toBe('—')
   })
 
-  it('shows active and pending rules in expanded jurisdiction detail', async () => {
+  it('shows active and due-date-review rules in expanded jurisdiction detail', async () => {
     rpcMocks.listRulesQueryFn.mockResolvedValue([
       obligationRule({
         id: 'ca.active.business.2026',
@@ -452,9 +452,9 @@ describe('CoverageTab canonical layout', () => {
         status: 'active',
       }),
       obligationRule({
-        id: 'ca.active.source-calendar.2026',
-        title: 'California active source-defined calendar',
-        status: 'active',
+        id: 'ca.pending.source-calendar.2026',
+        title: 'California pending source-defined calendar',
+        status: 'pending_review',
         dueDateLogic: {
           kind: 'source_defined_calendar',
           description: 'Official source publishes the annual calendar.',
@@ -482,9 +482,9 @@ describe('CoverageTab canonical layout', () => {
 
     await waitForText('Active rules')
     await waitForText('active business return')
-    await waitForText('active source-defined calendar')
-    await waitForText('Due-date review')
     await waitForText('Pending rules')
+    await waitForText('pending source-defined calendar')
+    await waitForText('Due-date review')
     await waitForText('pending individual return')
   })
 
@@ -560,6 +560,31 @@ describe('CoverageTab canonical layout', () => {
     })
   })
 
+  it('keeps the rule detail open when the selected rule row is clicked again', async () => {
+    const selectableRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = selectableRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([selectableRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(selectableRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Pending review queue')
+
+    const selectedRuleButton = document.querySelector<HTMLButtonElement>(
+      `button[title="${selectableRule.title}"]`,
+    )
+    expect(selectedRuleButton).not.toBeNull()
+
+    await act(async () => {
+      selectedRuleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).not.toHaveBeenCalled()
+  })
+
   it('disables source-defined and source-changed rules in bulk selection', async () => {
     const selectableRule = obligationRule({
       id: 'ca.pending.individual.2026',
@@ -604,6 +629,12 @@ describe('CoverageTab canonical layout', () => {
     expect(disabledLabels).toContainEqual(expect.stringContaining('California source changed rule'))
     expect(disabledLabels).toContainEqual(
       expect.stringContaining('Federal source-defined calendar'),
+    )
+    expect(disabledLabels).toContainEqual(
+      expect.stringContaining('Source-changed rules require single-rule review.'),
+    )
+    expect(disabledLabels).toContainEqual(
+      expect.stringContaining('AI draft review required before activation.'),
     )
   })
 })

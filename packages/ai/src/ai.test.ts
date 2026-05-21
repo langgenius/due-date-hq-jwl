@@ -407,6 +407,67 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal).toBeNull()
   })
 
+  it('guides rule concrete drafts to year-fill month/day installment schedules', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        dueDateLogic: {
+          kind: 'period_table',
+          frequency: 'quarterly',
+          periods: [
+            { period: 'Payment 1', dueDate: '2026-04-15' },
+            { period: 'Payment 2', dueDate: '2026-06-15' },
+            { period: 'Payment 3', dueDate: '2026-09-15' },
+            { period: 'Payment 4', dueDate: '2026-12-15' },
+          ],
+          holidayRollover: 'source_adjusted',
+        },
+        sourceExcerpt:
+          'Estimate tax due dates for calendar year filers: Payment 1 April 15 Payment 2 June 15 Payment 3 September 15 Payment 4 December 15',
+        confidence: 0.86,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v1',
+      {
+        rule: {
+          id: 'al.individual_estimated_tax.candidate.2026',
+          applicableYear: 2026,
+        },
+        sourceText:
+          'Estimate tax due dates for calendar year filers: Payment 1 April 15 Payment 2 June 15 Payment 3 September 15 Payment 4 December 15\nEstimate tax due dates for fiscal year filers: Will be due on the 15th day of the fourth, sixth, ninth, and 12th months of the fiscal year.',
+      },
+      z.object({
+        dueDateLogic: z.object({
+          kind: z.literal('period_table'),
+          frequency: z.literal('quarterly'),
+          periods: z.array(
+            z.object({
+              period: z.string(),
+              dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            }),
+          ),
+          holidayRollover: z.literal('source_adjusted'),
+        }),
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result?.dueDateLogic.periods.map((period) => period.dueDate)).toEqual([
+      '2026-04-15',
+      '2026-06-15',
+      '2026-09-15',
+      '2026-12-15',
+    ])
+    expect(result.refusal).toBeNull()
+    expect(callGatewayMock.mock.calls[0]?.[0].prompt).toContain(
+      'fill the year from rule.applicableYear',
+    )
+  })
+
   it('rejects rule concrete drafts that cite source-watch metadata as evidence', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
