@@ -12,7 +12,7 @@ import type {
 } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { calculateAccruedPenalty } from '../_penalty-exposure'
+import { calculateAccruedPenalty } from '../_accrued-penalty'
 
 interface ObligationRow {
   id: string

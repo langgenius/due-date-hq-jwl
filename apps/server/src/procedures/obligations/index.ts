@@ -13,7 +13,6 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
-import { recalculateObligationExposure } from '../_penalty-exposure'
 import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
@@ -313,7 +312,6 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
     input.id,
     new Date(`${input.currentDueDate}T00:00:00.000Z`),
   )
-  await recalculateObligationExposure(scoped, input.id)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -425,7 +423,7 @@ function deadlineTipFallback(obligationId: string) {
     {
       key: 'why',
       label: 'Why',
-      text: 'Smart Priority explains urgency with deterministic deadline, exposure, client risk, and readiness inputs.',
+      text: 'Smart Priority explains urgency with deterministic deadline, client risk, and readiness inputs.',
       citationRefs: [],
     },
     {
@@ -516,7 +514,6 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
       filingDueDate: plan.filingDueDate,
       paymentDueDate: plan.paymentDueDate,
     })
-    await recalculateObligationExposure(scoped, input.id)
     const after = await scoped.obligations.findById(input.id)
     if (!after) {
       throw new ORPCError('INTERNAL_SERVER_ERROR', {

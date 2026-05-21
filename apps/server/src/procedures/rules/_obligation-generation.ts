@@ -6,11 +6,7 @@ import {
   type ObligationRule,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
-import {
-  buildPenaltyFactsFromLegacy,
-  estimateProjectedExposure,
-  PENALTY_FACTS_VERSION,
-} from '@duedatehq/core/penalty'
+import { buildPenaltyFactsFromLegacy, PENALTY_FACTS_VERSION } from '@duedatehq/core/penalty'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
@@ -126,14 +122,6 @@ function buildCreateInput(input: {
     estimatedTaxLiabilityCents: input.client.estimatedTaxLiabilityCents,
     equityOwnerCount: input.client.equityOwnerCount,
   })
-  const exposure = estimateProjectedExposure({
-    jurisdiction: input.preview.jurisdiction,
-    taxType: input.preview.taxType,
-    entityType: input.client.entityType,
-    dueDate,
-    asOfDate: input.now,
-    penaltyFactsJson: penaltyFacts,
-  })
 
   return {
     clientId: input.client.id,
@@ -173,17 +161,9 @@ function buildCreateInput(input: {
     paymentState: paymentDueDate ? 'estimate_needed' : 'not_applicable',
     efileState: input.preview.isFiling ? 'authorization_requested' : 'not_applicable',
     migrationBatchId: input.client.migrationBatchId,
-    estimatedTaxDueCents: exposure.estimatedTaxDueCents,
-    estimatedExposureCents: exposure.estimatedExposureCents,
-    exposureStatus: exposure.status,
+    estimatedTaxDueCents: input.client.estimatedTaxLiabilityCents,
     penaltyFactsJson: penaltyFacts,
     penaltyFactsVersion: PENALTY_FACTS_VERSION,
-    penaltyBreakdownJson: exposure.breakdown,
-    penaltyFormulaVersion: exposure.formulaVersion,
-    missingPenaltyFactsJson: exposure.missingPenaltyFacts,
-    penaltySourceRefsJson: exposure.penaltySourceRefs,
-    penaltyFormulaLabel: exposure.penaltyFormulaLabel,
-    exposureCalculatedAt: input.now,
     preview: input.preview,
   }
 }

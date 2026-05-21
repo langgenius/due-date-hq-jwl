@@ -21,22 +21,22 @@ DueDateHQ 的税务规则、截止日、罚金风险估算和 AI brief 用于事
 
 ## 术语
 
-| 术语                | 含义                                                                             |
-| ------------------- | -------------------------------------------------------------------------------- |
-| Firm / Practice     | 一个独立的事务所工作区，拥有独立客户、义务、审计日志、成员和计费状态             |
-| Client              | 事务所服务的客户实体，例如 LLC、S corp、Partnership 或 Individual                |
-| Filing jurisdiction | 客户需要报税的州档案；一个客户可有一个 primary state 和多个 active filing states |
-| Obligation          | 一个客户对应的税务义务或截止日任务                                               |
-| Evidence            | 支撑某个截止日、状态变更、Pulse 变更或导入结果的来源和审计证据                   |
-| Audit event         | 记录谁在何时对什么对象做了什么变更的审计事件                                     |
-| Pulse               | 政府来源、灾害公告和税务机关更新经过内部审核后形成的事务所提醒                   |
-| Obligations         | 义务队列，供团队按状态、负责人、风险、证据和截止日批量处理                       |
-| Migration Copilot   | 从 CSV/TSV/XLSX/粘贴表格导入客户并生成初始义务的四步向导                         |
-| Rule template       | 全局规则模板，可预览影响，但不会直接生成用户提醒                                 |
-| Practice rule       | 当前事务所自己的规则状态，由 owner/manager 审核为 active 后才可生成义务          |
-| Active rule         | 已由当前 practice 接受，可生成 reminder-ready obligation                         |
-| Penalty Radar       | Dashboard 中的罚金风险雷达，汇总当前队列的预计美元敞口                           |
-| Projected Risk      | 90 天预计罚金风险；用于排队和优先级判断，不是官方罚单或应付通知                  |
+| 术语                    | 含义                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| Firm / Practice         | 一个独立的事务所工作区，拥有独立客户、义务、审计日志、成员和计费状态             |
+| Client                  | 事务所服务的客户实体，例如 LLC、S corp、Partnership 或 Individual                |
+| Filing jurisdiction     | 客户需要报税的州档案；一个客户可有一个 primary state 和多个 active filing states |
+| Obligation              | 一个客户对应的税务义务或截止日任务                                               |
+| Evidence                | 支撑某个截止日、状态变更、Pulse 变更或导入结果的来源和审计证据                   |
+| Audit event             | 记录谁在何时对什么对象做了什么变更的审计事件                                     |
+| Pulse                   | 政府来源、灾害公告和税务机关更新经过内部审核后形成的事务所提醒                   |
+| Obligations             | 义务队列，供团队按状态、负责人、风险、证据和截止日批量处理                       |
+| Migration Copilot       | 从 CSV/TSV/XLSX/粘贴表格导入客户并生成初始义务的四步向导                         |
+| Rule template           | 全局规则模板，可预览影响，但不会直接生成用户提醒                                 |
+| Practice rule           | 当前事务所自己的规则状态，由 owner/manager 审核为 active 后才可生成义务          |
+| Active rule             | 已由当前 practice 接受，可生成 reminder-ready obligation                         |
+| Deadline Radar          | Dashboard 中的罚金风险雷达，汇总当前队列的预计截止日风险                         |
+| Legacy penalty estimate | 90 天预计罚金风险；用于排队和优先级判断，不是官方罚单或应付通知                  |
 
 ## 用户功能模块
 
@@ -96,12 +96,12 @@ Practice switcher 用于在多个 practice 之间切换当前工作区；新建 
 Dashboard 是事务所日常运营的首页，聚合当前 firm 的风险、截止日压力、证据缺口、Pulse banner
 和带解释的 Priority list。它帮助团队用最少时间判断“今天先处理什么”。
 
-`Projected Risk` 是 Dashboard 的 Penalty Radar 口径。它把 open obligation 的截止日、税种、
+`Legacy penalty estimate` 是 Dashboard 的 Deadline Radar 口径。它把 open obligation 的截止日、税种、
 jurisdiction、entity type 和已知 penalty facts 转换成 90 天预计罚金风险，让团队看到哪些任务
-可能产生真实美元敞口，而不只是看到哪些任务快到期。它用于运营排队和风险解释，不是税务机关
+可能产生真实截止日风险，而不只是看到哪些任务快到期。它用于运营排队和风险解释，不是税务机关
 已经出具的正式罚金通知。
 
-Projected Risk 的主金额只聚合状态为 `ready` 的计算结果；如果缺少 tax due、owner count、
+Legacy penalty estimate 的主金额只聚合状态为 `ready` 的计算结果；如果缺少 tax due、owner count、
 payment facts 等关键输入，系统会显示 `needs input`，而不会用 `$0` 假装没有风险。若当前税种
 还没有可用的 source-backed formula，系统会标记为 `unsupported`。因此 Dashboard 的价值是把
 deadline list 升级成可解释的 penalty-risk priority list：先处理真正有金额风险、时间压力和证据缺口的
@@ -117,7 +117,7 @@ deadline list 升级成可解释的 penalty-risk priority list：先处理真正
 
 1. 从 sidebar 点击 `Dashboard`，或访问 `/`。
 2. 查看顶部 metrics：open obligations、due this week、needs review、evidence gaps 和
-   `Penalty Radar`。
+   `Deadline Radar`。
 3. 在 `Priority list` 中按 `This Week`、`This Month`、`Long-term` 分组查看义务。
 4. 通过每行的 Focus rank、Smart Priority drivers 和 `Next check` 判断下一步动作。
 5. 使用表头筛选 client、tax type、deadline window、status、severity、exposure、evidence。
@@ -658,16 +658,16 @@ Marketing site 是公开营销站，介绍 DueDateHQ 的定位、价格、规则
 3. 在 Dashboard 或 Clients 点击 `Run migration` / `Import clients`。
 4. 完成 Migration Copilot 四步：Intake、Mapping、Normalize、Dry-run。
 5. 点击 `Import & Generate`。
-6. 返回 Dashboard 查看 Penalty Radar、Focus rank 和 Priority list。
+6. 返回 Dashboard 查看 Deadline Radar、Focus rank 和 Priority list。
 7. 进入 Obligations 处理生成的 obligations。
 
 ### 路径 2：每周风险巡检
 
 1. 周一打开 Dashboard。
-2. 查看 Penalty Radar 和带有 Next check 的 Priority list。
+2. 查看 Deadline Radar 和带有 Next check 的 Priority list。
 3. 点击 `Open full Obligations`。
 4. 在 Obligations 使用 `This week`、`Needs input`、`Needs evidence` 筛选。
-5. 按负责人、状态、风险金额和 days 排序。
+5. 按负责人、状态、截止日风险和 days 排序。
 6. 批量修改 status、readiness 或 assignee。
 7. 对关键义务打开 Evidence drawer，确认来源。
 

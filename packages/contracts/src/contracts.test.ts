@@ -203,7 +203,6 @@ describe('@duedatehq/contracts', () => {
       'switchActive',
       'updateCurrent',
       'previewSmartPriorityProfile',
-      'backfillPenaltyExposure',
       'listSubscriptions',
       'billingCheckoutConfig',
       'softDeleteCurrent',
@@ -234,8 +233,8 @@ describe('@duedatehq/contracts', () => {
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
         smartPriorityProfile: SMART_PRIORITY_DEFAULT_PROFILE,
-      }).smartPriorityProfile?.weights.exposure,
-    ).toBe(45)
+      }).smartPriorityProfile?.weights.urgency,
+    ).toBe(70)
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).timezone).toBe('America/New_York')
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).internalDeadlineOffsetDays).toBe(14)
     expect(
@@ -258,7 +257,7 @@ describe('@duedatehq/contracts', () => {
         updatedAt: '2026-04-28T00:00:00.000Z',
         deletedAt: null,
       }).smartPriorityProfile?.weights.urgency,
-    ).toBe(25)
+    ).toBe(70)
     expect(
       FirmPublicSchema.parse({
         id: 'firm_123',
@@ -817,8 +816,6 @@ describe('@duedatehq/contracts', () => {
       'smart_priority',
       'due_asc',
       'due_desc',
-      'exposure_desc',
-      'exposure_asc',
       'updated_desc',
     ])
     expect(ObligationQueueDensitySchema.options).toEqual(['comfortable', 'compact'])
@@ -837,10 +834,7 @@ describe('@duedatehq/contracts', () => {
       owner: 'unassigned',
       due: 'overdue',
       dueWithinDays: 7,
-      exposureStatus: 'ready',
       readiness: ['ready'],
-      minExposureCents: 100_00,
-      maxExposureCents: 500_00,
       minDaysUntilDue: -10,
       maxDaysUntilDue: 30,
       asOfDate: '2026-04-29',
@@ -1201,7 +1195,6 @@ describe('@duedatehq/contracts', () => {
       dueBuckets: ['overdue', 'next_7_days'],
       status: ['pending', 'review'],
       severity: ['critical'],
-      exposureStatus: ['ready'],
       evidence: ['linked'],
     })
     expect(input?.dueBuckets).toEqual(['overdue', 'next_7_days'])
@@ -1222,10 +1215,6 @@ describe('@duedatehq/contracts', () => {
         dueThisWeekCount: 1,
         needsReviewCount: 0,
         evidenceGapCount: 0,
-        totalExposureCents: 80000,
-        exposureReadyCount: 1,
-        exposureNeedsInputCount: 0,
-        exposureUnsupportedCount: 0,
         totalAccruedPenaltyCents: 0,
         accruedPenaltyReadyCount: 0,
         accruedPenaltyNeedsInputCount: 0,
@@ -1240,8 +1229,6 @@ describe('@duedatehq/contracts', () => {
           taxType: 'ca_llc_annual_tax',
           currentDueDate: '2026-04-30',
           status: 'pending',
-          estimatedExposureCents: 80000,
-          exposureStatus: 'ready',
           missingPenaltyFacts: [],
           penaltySourceRefs: [],
           penaltyFormulaLabel: 'California LLC annual tax penalty',
@@ -1280,7 +1267,6 @@ describe('@duedatehq/contracts', () => {
           key: 'this_week',
           label: 'This Week',
           count: 1,
-          totalExposureCents: 80000,
           rows: [
             {
               obligationId: '11111111-1111-4111-8111-111111111111',
@@ -1290,8 +1276,6 @@ describe('@duedatehq/contracts', () => {
               taxType: 'ca_llc_annual_tax',
               currentDueDate: '2026-04-30',
               status: 'pending',
-              estimatedExposureCents: 80000,
-              exposureStatus: 'ready',
               missingPenaltyFacts: [],
               penaltySourceRefs: [],
               penaltyFormulaLabel: 'California LLC annual tax penalty',
@@ -1317,14 +1301,12 @@ describe('@duedatehq/contracts', () => {
           key: 'this_month',
           label: 'This Month',
           count: 0,
-          totalExposureCents: 0,
           rows: [],
         },
         {
           key: 'long_term',
           label: 'Long-term',
           count: 0,
-          totalExposureCents: 0,
           rows: [],
         },
       ],
@@ -1355,11 +1337,6 @@ describe('@duedatehq/contracts', () => {
           { value: 'high', label: 'high', count: 0 },
           { value: 'medium', label: 'medium', count: 0 },
           { value: 'neutral', label: 'neutral', count: 0 },
-        ],
-        exposureStatuses: [
-          { value: 'ready', label: 'ready', count: 1 },
-          { value: 'needs_input', label: 'needs_input', count: 0 },
-          { value: 'unsupported', label: 'unsupported', count: 0 },
         ],
         evidence: [
           { value: 'needs', label: 'needs', count: 0 },

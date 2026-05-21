@@ -22,7 +22,7 @@ offenders.
   Email / Owner / Updated). The Owner is already in the obligations
   table and list view; EIN / Email / Updated belong in the Edit-client
   form, not the read view.
-- **The 4 KPI tiles** (Open work · Projected risk · Payment track ·
+- **The 4 KPI tiles** (Open work · Legacy penalty estimate · Payment track ·
   Pulse matches). Open work and Pulse matches duplicated the obligations
   table and Pulse panel directly below them. The two cents-formatted
   ones were sums-of-rows the table already exposes per row.

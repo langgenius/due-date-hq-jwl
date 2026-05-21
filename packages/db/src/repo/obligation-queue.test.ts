@@ -257,34 +257,6 @@ describe('makeObligationQueueRepo.list', () => {
     expect(result.nextCursor).toBeNull()
   })
 
-  it('sorts by exposure in both directions', async () => {
-    const fake = createFakeDb([
-      makeRow({
-        id: 'low',
-        exposureStatus: 'ready',
-        estimatedExposureCents: 25_000,
-      }),
-      makeRow({
-        id: 'needs-input',
-        exposureStatus: 'needs_input',
-        estimatedExposureCents: null,
-      }),
-      makeRow({
-        id: 'high',
-        exposureStatus: 'ready',
-        estimatedExposureCents: 150_000,
-      }),
-    ])
-    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
-
-    await expect(repo.list({ sort: 'exposure_desc' })).resolves.toMatchObject({
-      rows: [{ id: 'high' }, { id: 'low' }, { id: 'needs-input' }],
-    })
-    await expect(repo.list({ sort: 'exposure_asc' })).resolves.toMatchObject({
-      rows: [{ id: 'needs-input' }, { id: 'low' }, { id: 'high' }],
-    })
-  })
-
   it('clamps limit between 1 and 100', async () => {
     const fake = createFakeDb([])
     const repo = makeObligationQueueRepo(fake.db, 'firm_a')

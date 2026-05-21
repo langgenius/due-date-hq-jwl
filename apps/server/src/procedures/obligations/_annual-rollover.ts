@@ -8,11 +8,7 @@ import {
   type ObligationRule,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
-import {
-  buildPenaltyFactsFromLegacy,
-  estimateProjectedExposure,
-  PENALTY_FACTS_VERSION,
-} from '@duedatehq/core/penalty'
+import { buildPenaltyFactsFromLegacy, PENALTY_FACTS_VERSION } from '@duedatehq/core/penalty'
 import {
   DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   internalDeadlineFromBaseDueDate,
@@ -355,14 +351,6 @@ export async function runAnnualRollover(input: {
           estimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
           equityOwnerCount: client.equityOwnerCount,
         })
-        const exposure = estimateProjectedExposure({
-          jurisdiction: preview.jurisdiction,
-          taxType: preview.taxType,
-          entityType: client.entityType,
-          dueDate,
-          asOfDate: now,
-          penaltyFactsJson: penaltyFacts,
-        })
         createInputs.push({
           clientId: client.id,
           clientFilingProfileId:
@@ -386,17 +374,9 @@ export async function runAnnualRollover(input: {
           baseDueDate: dueDate,
           currentDueDate: internalDueDate,
           status: targetStatus,
-          estimatedTaxDueCents: exposure.estimatedTaxDueCents,
-          estimatedExposureCents: exposure.estimatedExposureCents,
-          exposureStatus: exposure.status,
+          estimatedTaxDueCents: client.estimatedTaxLiabilityCents,
           penaltyFactsJson: penaltyFacts,
           penaltyFactsVersion: PENALTY_FACTS_VERSION,
-          penaltyBreakdownJson: exposure.breakdown,
-          penaltyFormulaVersion: exposure.formulaVersion,
-          missingPenaltyFactsJson: exposure.missingPenaltyFacts,
-          penaltySourceRefsJson: exposure.penaltySourceRefs,
-          penaltyFormulaLabel: exposure.penaltyFormulaLabel,
-          exposureCalculatedAt: now,
           preview,
         })
       }

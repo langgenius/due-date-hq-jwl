@@ -14,10 +14,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 export type ConceptId =
   | 'smartPriority'
-  | 'projectedRiskCap'
   | 'urgencyWindow'
   | 'lateFilingCap'
-  | 'penaltyRadar'
   | 'exposure'
   | 'readiness'
   | 'obligation'
@@ -67,12 +65,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'smartPriority':
       return {
         title: t`Smart Priority`,
-        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines projected risk, urgency, client importance, late filing history, and readiness pressure.`,
-      }
-    case 'projectedRiskCap':
-      return {
-        title: t`Projected risk cap`,
-        description: t`The dollar amount where projected risk reaches the maximum Smart Priority contribution. Higher values still display, but do not add more score from this factor.`,
+        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure.`,
       }
     case 'urgencyWindow':
       return {
@@ -84,15 +77,10 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
         title: t`Late filing cap`,
         description: t`The late-filing count where history reaches its maximum Smart Priority contribution. Higher counts still display, but do not add more score from this factor.`,
       }
-    case 'penaltyRadar':
-      return {
-        title: t`Penalty Radar`,
-        description: t`The projected risk across the current deadline list. It helps prioritize work, but it is not an official penalty notice.`,
-      }
     case 'exposure':
       return {
-        title: t`Projected risk`,
-        description: t`The estimated dollars at risk if a deadline is missed. Rows without enough tax inputs show as needing input or unsupported.`,
+        title: t`Penalty inputs`,
+        description: t`The tax facts used when the app needs to calculate penalty context for overdue work.`,
       }
     case 'readiness':
       return {
@@ -192,12 +180,12 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'owner':
       return {
         title: t`Owner`,
-        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for exposure calculations.`,
+        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for penalty facts.`,
       }
     case 'risk':
       return {
         title: t`Risk`,
-        description: t`The stored deadline risk view, mainly based on due date pressure, penalty exposure, readiness, and evidence status.`,
+        description: t`The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status.`,
       }
     case 'aiConfidence':
       return {

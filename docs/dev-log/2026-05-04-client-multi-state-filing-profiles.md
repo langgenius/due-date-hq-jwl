@@ -18,7 +18,7 @@ Implemented the first end-to-end multi-state client filing model.
 - Updated migration commit planning to accept `client.filing_states`, split multi-state lists, merge
   duplicate customer rows, create profile rows, infer tax types per filing state, and include filing
   profiles in apply/revert/single undo.
-- Updated annual rollover, Pulse, Obligations, Dashboard, Calendar, Readiness, and penalty exposure to
+- Updated annual rollover, Pulse, Obligations, Dashboard, Calendar, Readiness, and deadline readiness to
   read obligation jurisdiction or filing profile counties instead of assuming one client state.
 - Updated Clients UI to filter by any active filing state and expose a `Filing jurisdictions` panel
   with active states, counties, tax type review status, and profile source.

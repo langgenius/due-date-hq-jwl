@@ -227,10 +227,8 @@ describe('client detail model', () => {
       openCount: 2,
       overdueOpenCount: 1,
       needsReviewCount: 1,
-      projectedExposureCents: 40000,
-      exposureNeedsInputCount: 0,
       estimatedTaxDueCents: 50000,
-      paymentTrackCount: 2,
+      paymentTrackCount: 1,
       nextDueDate: '2026-05-01',
     })
   })

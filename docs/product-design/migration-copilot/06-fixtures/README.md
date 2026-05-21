@@ -57,7 +57,7 @@ obligations、dashboard exposure 和 evidence review。
 
 - 列：`Client Name, Tax ID, Entity Type, State, Assignee, Email, Estimated Tax Due, Owner Count, Notes`
 - 3 行：LLC / S-Corp / C-Corp，覆盖 owner-count 与 tax-due 两类 penalty 输入
-- 验证：AI disabled 时 TaxDome preset fallback 识别 `Estimated Tax Due` / `Owner Count`，Step 4 exposure preview `readyCount > 0` 且 total exposure > 0
+- 验证：AI disabled 时 TaxDome preset fallback 识别 `Estimated Tax Due` / `Owner Count`，Step 4 import readiness preview `readyCount > 0` 且 total exposure > 0
 
 #### `drake-30clients.csv`
 
@@ -160,7 +160,7 @@ rg -nE "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" . | rg -v "@example\.com
 
 - `e2e/tests/migration.spec.ts`（后续登录态业务流）使用本目录 CSV 作为 Step 1 Intake 的 paste / upload 输入
 - 典型 assertion：
-  - `taxdome-30clients.csv` → Step 3 结束 Dry-Run 预览显示 `30 clients · X obligations · $Y at risk`，Import 成功后 Dashboard Penalty Radar 数字 > 0
+  - `taxdome-30clients.csv` → Step 3 结束 Dry-Run 预览显示 `30 clients · X obligations · $Y at risk`，Import 成功后 Dashboard Deadline Radar 数字 > 0
   - `karbon-20clients.csv` → Step 3 有 20 条 `needs_review` badge（无 tax_types）
 
 ### 3.3 Demo seed

@@ -20,7 +20,7 @@ a single row of 4 CPA-oriented action chips.
 ### Filters
 
 - Replaced the top-right Sort `<Select>` with the existing column-header sort arrows on `Due` and
-  `Projected risk`. `smart_priority` and `updated_desc` remain available via URL but are no longer
+  `Legacy penalty estimate`. `smart_priority` and `updated_desc` remain available via URL but are no longer
   in the toolbar — the column-header arrows do the lifting.
 - Replaced the `Window` / `Needs action` chip rows with **Stripe-style scope tabs at the top of the
   queue**, one tab per lifecycle v2 status (All / Not started / Waiting on client / Blocked / In
@@ -46,11 +46,11 @@ After the initial sweep, ran `/critique` and acted on the four-command plan that
 - Wired the actual `/` hotkey via `useAppHotkey('/', focusSearch)` so the hint isn't a lie. Lives alongside the existing `J / K / Esc` row-nav hotkeys.
 - **Divergent statutory dates render inline** instead of behind a hover-only `*`. When `baseDueDate !== currentDueDate`, both dates appear (internal in `text-text-tertiary`, statutory in `text-text-quaternary` with a `title="Statutory deadline"`). Recall-only marker eliminated.
 - Renamed the chip `Penalty growing` → `Penalty input needed`. The semantic it filters on is `exposureStatus === 'needs_input'` — "growing" was a lie.
-- Column-naming dedupe: header label is canonically `Projected risk` across sort options, header text, and the `columnLabels` map. Internal field names (`estimatedExposureCents`, `riskMin/Max`) are untouched.
+- Column-naming dedupe: header label is canonically `Legacy penalty estimate` across sort options, header text, and the `columnLabels` map. Internal field names (`estimatedExposureCents`, `riskMin/Max`) are untouched.
 
 **/quieter — em-dash $0 rows**
 
-- When `exposureCents === 0`, render `<span className="tabular-nums text-text-tertiary">—</span>` instead of an outline pill containing `$0.00`. The outline-pill version was decoration tax; the eye now lands on rows with real dollar exposure.
+- When `exposureCents === 0`, render `<span className="tabular-nums text-text-tertiary">—</span>` instead of an outline pill containing `$0.00`. The outline-pill version was decoration tax; the eye now lands on rows with real deadline readiness.
 
 **/polish — DESIGN.md typography sync + minor cleanup**
 
@@ -63,7 +63,7 @@ After the initial sweep, ran `/critique` and acted on the four-command plan that
 ### Color ladder (calmer reds, real signal)
 
 Before: every past-due row painted a solid white-on-red pill in the Due column, and every row with
-a `ready` exposure status painted an amber pill in the Projected risk column regardless of dollar
+a `ready` exposure status painted an amber pill in the Legacy penalty estimate column regardless of dollar
 amount — including `$0.00` rows. Result: nothing stood out because everything was loud.
 
 After:
@@ -73,10 +73,10 @@ After:
   `>7 days out` → outline + normal dot. Removed the solid `bg-state-destructive-solid
 text-text-inverted` override so DESIGN.md T4 ("colors are pills, never paint") holds for past-due
   rows.
-- **Projected risk column.** `exposure > 0` → amber pill (money is bleeding); `exposure === 0` →
+- **Legacy penalty estimate column.** `exposure > 0` → amber pill (money is bleeding); `exposure === 0` →
   outline pill. Zero-dollar rows stop pulling the eye.
 
-The eye now lands on rows that are both very late AND have real dollar exposure — the actual
+The eye now lands on rows that are both very late AND have real deadline readiness — the actual
 triage signal.
 
 ### Table

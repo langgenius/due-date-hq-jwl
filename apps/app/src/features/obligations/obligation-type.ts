@@ -22,7 +22,7 @@ const DEFAULT_TABS = [
 
 const TABS_BY_TYPE: Record<ObligationType, readonly ObligationQueueDetailTab[]> = {
   // Filing returns drive the full workflow: client readiness, extension
-  // decision, penalty exposure, evidence trail, full audit log.
+  // decision, deadline readiness, evidence trail, full audit log.
   filing: DEFAULT_TABS,
   // Payment obligations skip readiness (no client doc collection) and
   // extension (Form 4868/7004 extends filing only — anti-pattern #1).

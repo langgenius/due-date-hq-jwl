@@ -9,7 +9,6 @@ import type {
   DashboardDueBucket,
   DashboardEvidenceFilter,
   DashboardLoadInput,
-  DashboardTopRow,
 } from '@duedatehq/contracts'
 import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -25,7 +24,6 @@ import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
-type DashboardExposureStatus = DashboardTopRow['exposureStatus']
 const TRIAGE_TAB_KEYS = ['this_week', 'this_month', 'long_term'] as const
 const DASHBOARD_DUE_BUCKETS = [
   'overdue',
@@ -40,11 +38,6 @@ const DASHBOARD_STATUS_FILTERS = [
   'waiting_on_client',
   'review',
 ] as const satisfies readonly ObligationStatus[]
-const DASHBOARD_EXPOSURE_STATUSES = [
-  'ready',
-  'needs_input',
-  'unsupported',
-] as const satisfies readonly DashboardExposureStatus[]
 const DASHBOARD_EVIDENCE_FILTERS = [
   'needs',
   'linked',
@@ -70,9 +63,6 @@ const dashboardSearchParamsParsers = {
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
   severity: parseAsArrayOf(parseAsStringLiteral(['critical', 'high', 'medium', 'neutral']))
-    .withDefault([])
-    .withOptions(REPLACE_HISTORY_OPTIONS),
-  exposure: parseAsArrayOf(parseAsStringLiteral(DASHBOARD_EXPOSURE_STATUSES))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
   evidence: parseAsArrayOf(parseAsStringLiteral(DASHBOARD_EVIDENCE_FILTERS))
@@ -104,7 +94,7 @@ export function DashboardRoute() {
   // the queue — matches the rest of the app's "peek without leaving"
   // pattern. See ObligationDrawerProvider.
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
-  const [{ asOfDate, client, taxType, due, status: statusFilter, severity, exposure, evidence }] =
+  const [{ asOfDate, client, taxType, due, status: statusFilter, severity, evidence }] =
     useQueryStates(dashboardSearchParamsParsers)
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
@@ -118,10 +108,9 @@ export function DashboardRoute() {
       ...(due.length > 0 ? { dueBuckets: due } : {}),
       ...(statusFilter.length > 0 ? { status: statusFilter } : {}),
       ...(severity.length > 0 ? { severity } : {}),
-      ...(exposure.length > 0 ? { exposureStatus: exposure } : {}),
       ...(evidence.length > 0 ? { evidence } : {}),
     }),
-    [clientQuery, dashboardAsOfDate, due, evidence, exposure, severity, statusFilter, taxTypeQuery],
+    [clientQuery, dashboardAsOfDate, due, evidence, severity, statusFilter, taxTypeQuery],
   )
   const dashboardQuery = useQuery({
     ...orpc.dashboard.load.queryOptions({ input: dashboardTableInput }),

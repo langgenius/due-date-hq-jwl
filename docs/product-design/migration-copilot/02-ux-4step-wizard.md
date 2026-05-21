@@ -713,7 +713,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 2. 4 – 6 秒动画：
    - Wizard 淡出（300ms）→ Dashboard 布局淡入（300ms）
    - 粒子（每张 deadline 卡片发射 `+$X` 标签）弧线飞入顶栏（[`../../PRD/DueDateHQ-PRD-v2.0-Part2A.md`](../../PRD/DueDateHQ-PRD-v2.0-Part2A.md) §7.5.6）
-   - 顶栏 Penalty Radar odometer：`$0 → $19,200`（stagger 80ms；每位 `cubic-bezier(0.34, 1.56, 0.64, 1)`）
+   - 顶栏 Deadline Radar odometer：`$0 → $19,200`（stagger 80ms；每位 `cubic-bezier(0.34, 1.56, 0.64, 1)`）
 3. 动画结束 → Dashboard，`This Week` tab 默认选中第 1 条 obligation
 
 **`prefers-reduced-motion: reduce`**：
@@ -782,7 +782,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 
 - `Enter`（焦点在非按钮元素时）= `[Import & Generate deadlines ▶]`
 - `Esc`：preview 态打开关闭确认；**importing + 动画期间失效**（防止撤销到半态）
-- 动画完成时 `aria-live="polite"` 广播：`Imported 30 clients, 152 obligations, 19200 dollars at risk.`
+- 动画完成时 `aria-live="polite"` 广播：`Imported 30 clients, 152 obligations, 19200 deadline risk.`
 - 失败 banner `role="alert"` + `aria-live="assertive"`
 - 粒子动画 `aria-hidden="true"` + `pointer-events: none`（对齐 DueDateHQ-DESIGN §7.5.6.7 行 335）
 
@@ -915,7 +915,7 @@ Toast 持久态  ──24h──>  Expired（Undo all 灰化）
 | `stepper`          | 4 步水平步骤条（active / done / upcoming / error / disabled 五态）    | §2.2 · [`./09-design-system-deltas.md#stepper`](./09-design-system-deltas.md#stepper)                                                                           |
 | `confidence-badge` | AI Mapper High / Medium / Low 三档 + EIN `★`                          | §5.3 · [`./09-design-system-deltas.md#confidence-badge`](./09-design-system-deltas.md#confidence-badge)                                                         |
 | `toast`            | Step 4 持久 Toast（24h）                                              | §7.4 · [`./09-design-system-deltas.md#toast`](./09-design-system-deltas.md#toast)                                                                               |
-| `genesis-odometer` | 顶栏 Penalty Radar 数值滚动                                           | §7.3 · [`./09-design-system-deltas.md#genesis-odometer`](./09-design-system-deltas.md#genesis-odometer)                                                         |
+| `genesis-odometer` | 顶栏 Deadline Radar 数值滚动                                          | §7.3 · [`./09-design-system-deltas.md#genesis-odometer`](./09-design-system-deltas.md#genesis-odometer)                                                         |
 | `email-shell`      | Migration Report 战报邮件容器（本文不定义，但 Safety 文案与邮件同源） | — · [`./08-migration-report-email.md`](./08-migration-report-email.md) + [`./09-design-system-deltas.md#email-shell`](./09-design-system-deltas.md#email-shell) |
 | `risk-row-high`    | Step 4 Top-risk 列表 High 档行（现有 `risk-row-critical` 的同族）     | §7.8 · [`./09-design-system-deltas.md#risk-row-high`](./09-design-system-deltas.md#risk-row-high)                                                               |
 

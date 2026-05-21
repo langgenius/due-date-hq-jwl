@@ -35,8 +35,6 @@ interface BriefSource {
   dueDate: string
   status: string
   severity: string
-  estimatedExposureCents: number | null
-  exposureStatus: string
   evidence: {
     id: string | null
     sourceType: string
@@ -81,8 +79,6 @@ function stableSnapshot(
       currentDueDate: row.currentDueDate.toISOString().slice(0, 10),
       status: row.status,
       severity: row.severity,
-      estimatedExposureCents: row.estimatedExposureCents,
-      exposureStatus: row.exposureStatus,
       evidenceCount: row.evidenceCount,
       primaryEvidence: row.primaryEvidence
         ? {
@@ -106,8 +102,6 @@ function buildSources(snapshot: ReturnType<typeof stableSnapshot>): BriefSource[
     dueDate: row.currentDueDate,
     status: row.status,
     severity: row.severity,
-    estimatedExposureCents: row.estimatedExposureCents,
-    exposureStatus: row.exposureStatus,
     evidence: row.primaryEvidence,
   }))
 }
@@ -233,8 +227,6 @@ async function refreshDashboardBrief(
         dueDate: source.dueDate,
         status: source.status,
         severity: source.severity,
-        estimatedExposureCents: source.estimatedExposureCents,
-        exposureStatus: source.exposureStatus,
         evidence: source.evidence
           ? {
               sourceType: source.evidence.sourceType,

@@ -18,7 +18,7 @@ client page).
 ### Filing plan with tax-year grouping ([ClientFactsWorkspace.tsx](../../apps/app/src/features/clients/ClientFactsWorkspace.tsx))
 
 Before: a flat 8-row hardcoded table with columns Filing · Internal · Status ·
-Projected risk · Tax due. No year context, no extension/open counts per year.
+Legacy penalty estimate · Tax due. No year context, no extension/open counts per year.
 
 After: filings are grouped into per-tax-year sections. Each year section has:
 

@@ -142,13 +142,16 @@ msgstr "{0} available seats"
 msgid "{0} clients · {1} obligations removed"
 msgstr "{0} clients · {1} obligations removed"
 
+#. placeholder {0}: genesis.clientCount
+#: src/features/migration/Wizard.tsx
+msgid "{0} clients imported"
+msgstr "{0} clients imported"
+
 #. placeholder {0}: result.clientCount
 #. placeholder {1}: result.obligationCount
-#. placeholder {2}: formatCents(exposure.totalExposureCents)
-#. placeholder {3}: exposure.needsInputCount
 #: src/features/migration/Wizard.tsx
-msgid "{0} clients, {1} obligations, {2} exposure, {3} need input"
-msgstr "{0} clients, {1} obligations, {2} exposure, {3} need input"
+msgid "{0} clients, {1} obligations created"
+msgstr "{0} clients, {1} obligations created"
 
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -193,11 +196,6 @@ msgstr "{0} manual records"
 msgid "{0} need review"
 msgstr "{0} need review"
 
-#. placeholder {0}: exposure.needsInputCount
-#: src/features/migration/Step4Preview.tsx
-msgid "{0} needs input"
-msgstr "{0} needs input"
-
 #. placeholder {0}: result.obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} obligation created from the rule catalog."
@@ -212,11 +210,6 @@ msgstr "{0} obligation created."
 #: src/features/rules/generation-preview-tab.tsx
 msgid "{0} obligations created."
 msgstr "{0} obligations created."
-
-#. placeholder {0}: genesis.needsInputCount
-#: src/features/migration/Wizard.tsx
-msgid "{0} obligations still need penalty inputs."
-msgstr "{0} obligations still need penalty inputs."
 
 #. placeholder {0}: filteredClients.length
 #. placeholder {1}: clients.length
@@ -248,11 +241,6 @@ msgstr "{0} payment-linked"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} Pulse alerts affecting this client"
 msgstr "{0} Pulse alerts affecting this client"
-
-#. placeholder {0}: exposure.readyCount
-#: src/features/migration/Step4Preview.tsx
-msgid "{0} ready"
-msgstr "{0} ready"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -306,11 +294,6 @@ msgstr "{0} sources involved"
 #: src/routes/obligations.tsx
 msgid "{0} to {1}"
 msgstr "{0} to {1}"
-
-#. placeholder {0}: exposure.unsupportedCount
-#: src/features/migration/Step4Preview.tsx
-msgid "{0} unsupported"
-msgstr "{0} unsupported"
 
 #. placeholder {0}: run.urgentCount
 #. placeholder {1}: run.pulseCount
@@ -673,8 +656,8 @@ msgid "A dry run that shows which obligations rules would create for a client be
 msgstr "A dry run that shows which obligations rules would create for a client before anything is written to the deadline list."
 
 #: src/features/concepts/concept-help.tsx
-msgid "A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for exposure calculations."
-msgstr "A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for exposure calculations."
+msgid "A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for penalty facts."
+msgstr "A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for penalty facts."
 
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
@@ -754,20 +737,6 @@ msgstr "Account"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Account menu for {0}"
 msgstr "Account menu for {0}"
-
-#. placeholder {0}: formatCents(row.accruedPenaltyCents)
-#. placeholder {1}: row.penaltyAsOfDate
-#: src/routes/obligations.tsx
-msgid "Accrued {0} as of {1}"
-msgstr "Accrued {0} as of {1}"
-
-#: src/routes/obligations.tsx
-msgid "Accrued needs input"
-msgstr "Accrued needs input"
-
-#: src/routes/obligations.tsx
-msgid "Accrued unsupported"
-msgstr "Accrued unsupported"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "across"
@@ -1280,10 +1249,6 @@ msgstr "At least one document item needs preparer review."
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "At risk"
 msgstr "At risk"
-
-#: src/features/migration/Wizard.tsx
-msgid "at risk this week"
-msgstr "at risk this week"
 
 #: src/routes/obligations.tsx
 msgid "Audit"
@@ -2019,8 +1984,8 @@ msgid "Columns"
 msgstr "Columns"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can power the penalty exposure preview."
-msgstr "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can power the penalty exposure preview."
+msgid "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can help prepare payment and penalty context."
+msgstr "Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can help prepare payment and penalty context."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
@@ -3020,8 +2985,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current obligation deadlines."
 
 #: src/features/concepts/concept-help.tsx
-msgid "DueDateHQ's deterministic ordering score for deadline work. It combines projected risk, urgency, client importance, late filing history, and readiness pressure."
-msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines projected risk, urgency, client importance, late filing history, and readiness pressure."
+msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure."
+msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicate"
@@ -3326,14 +3291,6 @@ msgstr "Exports all obligations for one client."
 #: src/routes/obligations.tsx
 msgid "Exports obligations due within the selected date window."
 msgstr "Exports obligations due within the selected date window."
-
-#: src/features/migration/Step4Preview.tsx
-msgid "Exposure preview"
-msgstr "Exposure preview"
-
-#: src/features/migration/Step4Preview.tsx
-msgid "Exposure readiness appears after mapping and tax type suggestions are confirmed."
-msgstr "Exposure readiness appears after mapping and tax type suggestions are confirmed."
 
 #: src/features/obligations/status-control.tsx
 msgid "Extended"
@@ -4408,20 +4365,12 @@ msgid "Materials on hand — no client request was needed."
 msgstr "Materials on hand — no client request was needed."
 
 #: src/routes/obligations.tsx
-msgid "Max $"
-msgstr "Max $"
-
-#: src/routes/obligations.tsx
 msgid "Max days"
 msgstr "Max days"
 
 #: src/routes/obligations.tsx
 msgid "Maximum days until due"
 msgstr "Maximum days until due"
-
-#: src/routes/obligations.tsx
-msgid "Maximum dollars at risk"
-msgstr "Maximum dollars at risk"
 
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "may be affected."
@@ -4525,20 +4474,12 @@ msgid "Migration Copilot wizard — paste or upload your client roster, review t
 msgstr "Migration Copilot wizard — paste or upload your client roster, review the AI mapping, normalize values, and preview the import before committing."
 
 #: src/routes/obligations.tsx
-msgid "Min $"
-msgstr "Min $"
-
-#: src/routes/obligations.tsx
 msgid "Min days"
 msgstr "Min days"
 
 #: src/routes/obligations.tsx
 msgid "Minimum days until due"
 msgstr "Minimum days until due"
-
-#: src/routes/obligations.tsx
-msgid "Minimum dollars at risk"
-msgstr "Minimum dollars at risk"
 
 #: src/routes/obligations.tsx
 msgid "Missing"
@@ -4679,10 +4620,6 @@ msgstr "Needs follow-up"
 #: src/routes/obligations.tsx
 msgid "Needs help"
 msgstr "Needs help"
-
-#: src/routes/obligations.tsx
-msgid "needs input"
-msgstr "needs input"
 
 #: src/routes/rules.library.tsx
 msgid "needs review"
@@ -4997,10 +4934,6 @@ msgstr "No previous provider imports are available yet."
 msgid "No production records"
 msgstr "No production records"
 
-#: src/routes/obligations.tsx
-msgid "No projected risk"
-msgstr "No projected risk"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No Pulse alert"
 msgstr "No Pulse alert"
@@ -5275,6 +5208,10 @@ msgstr "Obligations actually created after Generate runs. Preview results show z
 #: src/routes/obligations.tsx
 msgid "Obligations bulk owner change"
 msgstr "Obligations bulk owner change"
+
+#: src/features/migration/Wizard.tsx
+msgid "obligations created"
+msgstr "obligations created"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Obligations export"
@@ -5864,10 +5801,7 @@ msgstr "Penalty calculation available"
 msgid "Penalty input"
 msgstr "Penalty input"
 
-#: src/routes/obligations.tsx
-msgid "Penalty input needed"
-msgstr "Penalty input needed"
-
+#: src/features/concepts/concept-help.tsx
 #: src/routes/obligations.tsx
 msgid "Penalty inputs"
 msgstr "Penalty inputs"
@@ -5887,10 +5821,6 @@ msgstr "Penalty inputs recorded"
 #: src/routes/obligations.tsx
 msgid "Penalty inputs saved"
 msgstr "Penalty inputs saved"
-
-#: src/features/concepts/concept-help.tsx
-msgid "Penalty Radar"
-msgstr "Penalty Radar"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Penalty readiness is computed from the confirmed tax type plus any estimated tax due and owner count columns mapped in Step 2."
@@ -6317,17 +6247,6 @@ msgstr "Pro"
 #: src/features/pulse/lib/error-mapping.ts
 msgid "Production Pulse actions require Pro or above."
 msgstr "Production Pulse actions require Pro or above."
-
-#: src/features/concepts/concept-help.tsx
-#: src/routes/obligations.tsx
-#: src/routes/practice.tsx
-msgid "Projected risk"
-msgstr "Projected risk"
-
-#: src/features/concepts/concept-help.tsx
-#: src/routes/practice.tsx
-msgid "Projected risk cap"
-msgstr "Projected risk cap"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Provider client records"
@@ -8421,14 +8340,6 @@ msgid "The concrete due date calculated from the active target-year practice rul
 msgstr "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 
 #: src/features/concepts/concept-help.tsx
-msgid "The dollar amount where projected risk reaches the maximum Smart Priority contribution. Higher values still display, but do not add more score from this factor."
-msgstr "The dollar amount where projected risk reaches the maximum Smart Priority contribution. Higher values still display, but do not add more score from this factor."
-
-#: src/features/concepts/concept-help.tsx
-msgid "The estimated dollars at risk if a deadline is missed. Rows without enough tax inputs show as needing input or unsupported."
-msgstr "The estimated dollars at risk if a deadline is missed. Rows without enough tax inputs show as needing input or unsupported."
-
-#: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open obligations for the chosen window — work these first."
 msgstr "The highest-risk open obligations for the chosen window — work these first."
 
@@ -8480,10 +8391,6 @@ msgstr "The practice will be removed from your account. Audit history stays reta
 msgid "The practice-scoped record of who changed what, when it changed, and what evidence or reason was attached."
 msgstr "The practice-scoped record of who changed what, when it changed, and what evidence or reason was attached."
 
-#: src/features/concepts/concept-help.tsx
-msgid "The projected risk across the current deadline list. It helps prioritize work, but it is not an official penalty notice."
-msgstr "The projected risk across the current deadline list. It helps prioritize work, but it is not an official penalty notice."
-
 #: src/lib/i18n-error.ts
 msgid "The request was invalid. Please review your input and try again."
 msgstr "The request was invalid. Please review your input and try again."
@@ -8513,12 +8420,16 @@ msgid "The status assigned if this row is generated: pending for reminder-ready 
 msgstr "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
 
 #: src/features/concepts/concept-help.tsx
-msgid "The stored deadline risk view, mainly based on due date pressure, penalty exposure, readiness, and evidence status."
-msgstr "The stored deadline risk view, mainly based on due date pressure, penalty exposure, readiness, and evidence status."
+msgid "The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status."
+msgstr "The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
 msgstr "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
+
+#: src/features/concepts/concept-help.tsx
+msgid "The tax facts used when the app needs to calculate penalty context for overdue work."
+msgstr "The tax facts used when the app needs to calculate penalty context for overdue work."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The tax form or obligation type carried forward from the source-year seed obligation."
@@ -8638,8 +8549,8 @@ msgid "This source-defined rule is missing an official source."
 msgstr "This source-defined rule is missing an official source."
 
 #: src/features/dashboard/exposure-strip.tsx
-msgid "This week's exposure"
-msgstr "This week's exposure"
+msgid "This week's work"
+msgstr "This week's work"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"
@@ -8847,10 +8758,6 @@ msgstr "Unknown browser"
 #: src/routes/obligations.tsx
 msgid "Unpin view"
 msgstr "Unpin view"
-
-#: src/routes/obligations.tsx
-msgid "unsupported"
-msgstr "unsupported"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"

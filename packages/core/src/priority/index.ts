@@ -1,9 +1,8 @@
 export const SMART_PRIORITY_VERSION = 'smart-priority-v1'
-export const SMART_PRIORITY_PROFILE_VERSION = 'smart-priority-profile-v1'
+export const SMART_PRIORITY_PROFILE_VERSION = 'smart-priority-profile-v2'
 
 export const SMART_PRIORITY_WEIGHTS = {
-  exposure: 0.45,
-  urgency: 0.25,
+  urgency: 0.7,
   importance: 0.15,
   history: 0.1,
   readiness: 0.05,
@@ -14,6 +13,13 @@ export type SmartPriorityFactorKey = keyof typeof SMART_PRIORITY_WEIGHTS
 export interface SmartPriorityProfile {
   version: typeof SMART_PRIORITY_PROFILE_VERSION
   weights: Record<SmartPriorityFactorKey, number>
+  urgencyWindowDays: number
+  historyCapCount: number
+}
+
+interface LegacySmartPriorityProfileV1 {
+  version: 'smart-priority-profile-v1'
+  weights: Record<SmartPriorityFactorKey | 'exposure', number>
   exposureCapCents: number
   urgencyWindowDays: number
   historyCapCount: number
@@ -22,13 +28,11 @@ export interface SmartPriorityProfile {
 export const SMART_PRIORITY_DEFAULT_PROFILE = {
   version: SMART_PRIORITY_PROFILE_VERSION,
   weights: {
-    exposure: 45,
-    urgency: 25,
+    urgency: 70,
     importance: 15,
     history: 10,
     readiness: 5,
   },
-  exposureCapCents: 1_000_000,
   urgencyWindowDays: 30,
   historyCapCount: 5,
 } as const satisfies SmartPriorityProfile
@@ -47,15 +51,11 @@ export type SmartPriorityStatus =
   | 'blocked'
   | 'completed'
 
-export type SmartPriorityExposureStatus = 'ready' | 'needs_input' | 'unsupported'
-
 export interface SmartPriorityInput {
   obligationId: string
   currentDueDate: string | Date
   asOfDate: string
   status: SmartPriorityStatus
-  estimatedExposureCents: number | null
-  exposureStatus: SmartPriorityExposureStatus
   importanceWeight: number
   lateFilingCountLast12mo: number
   evidenceCount: number
@@ -84,7 +84,8 @@ export interface SmartPriorityRanked<T> {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const FACTOR_KEYS = ['exposure', 'urgency', 'importance', 'history', 'readiness'] as const
+const FACTOR_KEYS = ['urgency', 'importance', 'history', 'readiness'] as const
+const LEGACY_FACTOR_KEYS = ['exposure', ...FACTOR_KEYS] as const
 
 function clamp(value: number, min = 0, max = 1): number {
   return Math.min(max, Math.max(min, value))
@@ -122,8 +123,6 @@ export function isSmartPriorityProfile(value: unknown): value is SmartPriorityPr
     return false
   }
   return (
-    isSafeInteger(candidate.exposureCapCents) &&
-    candidate.exposureCapCents > 0 &&
     isSafeInteger(candidate.urgencyWindowDays) &&
     candidate.urgencyWindowDays > 0 &&
     isSafeInteger(candidate.historyCapCount) &&
@@ -131,10 +130,47 @@ export function isSmartPriorityProfile(value: unknown): value is SmartPriorityPr
   )
 }
 
-export function resolveSmartPriorityProfile(
-  profile?: SmartPriorityProfile | null,
-): SmartPriorityProfile {
-  return isSmartPriorityProfile(profile) ? profile : SMART_PRIORITY_DEFAULT_PROFILE
+function isLegacySmartPriorityProfile(value: unknown): value is LegacySmartPriorityProfileV1 {
+  if (!value || typeof value !== 'object') return false
+  const candidate = value as Partial<LegacySmartPriorityProfileV1>
+  if (candidate.version !== 'smart-priority-profile-v1') return false
+  if (!candidate.weights || typeof candidate.weights !== 'object') return false
+  if (
+    !LEGACY_FACTOR_KEYS.every((key) => {
+      const weight = candidate.weights?.[key]
+      return isSafeInteger(weight) && weight >= 0 && weight <= 100
+    })
+  ) {
+    return false
+  }
+  const total = LEGACY_FACTOR_KEYS.reduce((sum, key) => sum + (candidate.weights?.[key] ?? 0), 0)
+  if (total !== 100) return false
+  return (
+    isSafeInteger(candidate.urgencyWindowDays) &&
+    candidate.urgencyWindowDays > 0 &&
+    isSafeInteger(candidate.historyCapCount) &&
+    candidate.historyCapCount > 0
+  )
+}
+
+export function migrateSmartPriorityProfile(value: unknown): SmartPriorityProfile | null {
+  if (isSmartPriorityProfile(value)) return value
+  if (!isLegacySmartPriorityProfile(value)) return null
+  return {
+    version: SMART_PRIORITY_PROFILE_VERSION,
+    weights: {
+      urgency: value.weights.urgency + value.weights.exposure,
+      importance: value.weights.importance,
+      history: value.weights.history,
+      readiness: value.weights.readiness,
+    },
+    urgencyWindowDays: value.urgencyWindowDays,
+    historyCapCount: value.historyCapCount,
+  }
+}
+
+export function resolveSmartPriorityProfile(profile?: unknown): SmartPriorityProfile {
+  return migrateSmartPriorityProfile(profile) ?? SMART_PRIORITY_DEFAULT_PROFILE
 }
 
 function factorWeight(profile: SmartPriorityProfile, key: SmartPriorityFactorKey): number {
@@ -156,28 +192,6 @@ export function smartPriorityDaysUntilDue(input: {
     (parseDateOnly(input.currentDueDate).getTime() - parseDateOnly(input.asOfDate).getTime()) /
       DAY_MS,
   )
-}
-
-function exposureFactor(
-  input: SmartPriorityInput,
-  profile: SmartPriorityProfile,
-): SmartPriorityFactor {
-  const cents =
-    input.exposureStatus === 'ready' && input.estimatedExposureCents !== null
-      ? Math.max(0, input.estimatedExposureCents)
-      : 0
-  const weight = factorWeight(profile, 'exposure')
-  const normalized = clamp(cents / profile.exposureCapCents)
-  return {
-    key: 'exposure',
-    label: 'Projected risk',
-    weight,
-    rawValue:
-      input.exposureStatus === 'ready' ? `$${Math.round(cents / 100)}` : input.exposureStatus,
-    normalized,
-    contribution: roundScore(normalized * weight * 100),
-    sourceLabel: 'Penalty Radar',
-  }
 }
 
 function urgencyFactor(
@@ -245,10 +259,7 @@ function readinessFactor(
   profile: SmartPriorityProfile,
 ): SmartPriorityFactor {
   const blocked =
-    input.status === 'waiting_on_client' ||
-    input.status === 'review' ||
-    input.exposureStatus === 'needs_input' ||
-    input.evidenceCount === 0
+    input.status === 'waiting_on_client' || input.status === 'review' || input.evidenceCount === 0
   const normalized = blocked ? 1 : 0
   const weight = factorWeight(profile, 'readiness')
   const rawValue =
@@ -256,11 +267,9 @@ function readinessFactor(
       ? 'waiting on client'
       : input.status === 'review'
         ? 'needs review'
-        : input.exposureStatus === 'needs_input'
-          ? 'needs exposure input'
-          : input.evidenceCount === 0
-            ? 'needs evidence'
-            : 'ready'
+        : input.evidenceCount === 0
+          ? 'needs evidence'
+          : 'ready'
   return {
     key: 'readiness',
     label: 'Readiness pressure',
@@ -274,11 +283,10 @@ function readinessFactor(
 
 export function scoreSmartPriority(
   input: SmartPriorityInput,
-  profileInput?: SmartPriorityProfile | null,
+  profileInput?: unknown,
 ): SmartPriorityBreakdown {
   const profile = resolveSmartPriorityProfile(profileInput)
   const factors = [
-    exposureFactor(input, profile),
     urgencyFactor(input, profile),
     importanceFactor(input, profile),
     historyFactor(input, profile),
@@ -310,7 +318,7 @@ export function compareSmartPriority(
 
 export function rankSmartPriorities<T extends SmartPriorityInput>(
   rows: readonly T[],
-  profileInput?: SmartPriorityProfile | null,
+  profileInput?: unknown,
 ): Array<SmartPriorityRanked<T>> {
   const profile = resolveSmartPriorityProfile(profileInput)
   return rows

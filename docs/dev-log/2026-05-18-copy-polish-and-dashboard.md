@@ -96,7 +96,7 @@ deadline.`, etc.) across `EvidenceDrawerProvider` and
   through).
 - `DashboardMetricStrip` (the 6-card row of `Open obligations` /
   `Due this week` / `Needs review` / `Evidence gaps` /
-  `90-day projected risk` / `Accrued penalty`) was deleted. Two of
+  `90-day legacy penalty estimate` / `Accrued penalty`) was deleted. Two of
   those numbers (Open obligations, Due this week) are redundant with
   the priority list's tab counts, the money cards belong next to the
   list rather than above it, and `Needs review` / `Evidence gaps`
@@ -115,8 +115,8 @@ deadline.`, etc.) across `EvidenceDrawerProvider` and
 by risk`** with a clearer description.
 - Tab triggers now show count in a `Badge` chip and no longer carry
   the per-tab dollar amount. Dollar amounts moved to the new
-  `ProjectedRiskInline` row (right-aligned next to the tabs), which
-  reads `90-DAY PROJECTED RISK $X · ACCRUED PENALTY $Y` and hides
+  `LegacyPenaltyInline` row (right-aligned next to the tabs), which
+  reads `90-DAY LEGACY PENALTY ESTIMATE $X · ACCRUED PENALTY $Y` and hides
   cleanly when the user can't see dollars or both values are zero.
 - Severity column removed from the priority-list table. Severity is
   still encoded on each row via a 2px left accent bar (see next

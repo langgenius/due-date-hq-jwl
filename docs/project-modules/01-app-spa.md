@@ -51,7 +51,7 @@
   drawer 时自动生成一次默认 checklist。
 - `/readiness/:token` 是公开客户 portal route，脱离受保护 app shell，只展示客户安全字段并提交
   readiness response。
-- coordinator 角色在 practice 设置禁止时隐藏 dollar exposure。
+- coordinator 角色在 practice 设置禁止时隐藏 deadline readiness。
 
 ### Migration Copilot
 

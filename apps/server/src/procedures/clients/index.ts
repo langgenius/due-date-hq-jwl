@@ -13,7 +13,6 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
-import { recalculateClientExposure } from '../_penalty-exposure'
 import {
   toClientPublic,
   type ClientCreateInputForRepo,
@@ -401,7 +400,7 @@ const updateJurisdiction = os.clients.updateJurisdiction.handler(async ({ input,
         ]
       : [],
   )
-  const recalculatedObligationCount = await recalculateClientExposure(scoped, input.id)
+  const recalculatedObligationCount = 0
   const [after, afterProfiles] = await Promise.all([
     scoped.clients.findById(input.id),
     scoped.filingProfiles.listByClient(input.id),
@@ -480,7 +479,7 @@ const replaceFilingProfiles = os.clients.replaceFilingProfiles.handler(
       input.id,
       buildReplacementProfiles(input.profiles),
     )
-    const recalculatedObligationCount = await recalculateClientExposure(scoped, input.id)
+    const recalculatedObligationCount = 0
     const after = await scoped.clients.findById(input.id)
     if (!after) {
       throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -556,7 +555,7 @@ const updateTaxYearProfile = os.clients.updateTaxYearProfile.handler(async ({ in
     fiscalYearEndMonth: nextFiscalYearEndMonth,
     fiscalYearEndDay: nextFiscalYearEndDay,
   })
-  const recalculatedObligationCount = await recalculateClientExposure(scoped, input.id)
+  const recalculatedObligationCount = 0
   const [after, afterProfiles] = await Promise.all([
     scoped.clients.findById(input.id),
     scoped.filingProfiles.listByClient(input.id),
@@ -627,7 +626,7 @@ const updatePenaltyInputs = os.clients.updatePenaltyInputs.handler(async ({ inpu
       : {}),
     ...(input.equityOwnerCount !== undefined ? { equityOwnerCount: input.equityOwnerCount } : {}),
   })
-  const recalculatedObligationCount = await recalculateClientExposure(scoped, input.id)
+  const recalculatedObligationCount = 0
   const [after, filingProfiles] = await Promise.all([
     scoped.clients.findById(input.id),
     scoped.filingProfiles.listByClient(input.id),
@@ -759,7 +758,7 @@ function clientRiskFallback(clientId: string) {
     {
       key: 'drivers',
       label: 'Drivers',
-      text: 'Smart Priority uses exposure, urgency, client importance, late filing history, and readiness signals.',
+      text: 'Smart Priority uses urgency, client importance, late filing history, and readiness signals.',
       citationRefs: [],
     },
     {

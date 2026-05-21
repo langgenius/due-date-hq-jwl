@@ -92,7 +92,7 @@ Done in a single sub-agent pass:
 - `apps/app/src/routes/dashboard.tsx`: **1291 lines → 218 lines.**
   Removed `useDashboardV2()` hook usage, all `{dashboardV2 ? V2 : V1}`
   conditionals, every V1-only function (NeedsReviewBanner,
-  ProjectedRiskInline, DashboardTriagePanel, DashboardTriageTable +
+  LegacyPenaltyInline, DashboardTriagePanel, DashboardTriageTable +
   sub-components, EmptyDashboard, label hooks, V1 routing helpers,
   dead types).
 - **Deleted files:**

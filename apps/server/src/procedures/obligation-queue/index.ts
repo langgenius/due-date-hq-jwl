@@ -88,8 +88,6 @@ interface RawRow {
   efileRejectedAt: Date | null
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
-  estimatedExposureCents: number | null
-  exposureStatus: ObligationQueueRow['exposureStatus']
   penaltyBreakdownJson: unknown
   missingPenaltyFactsJson: unknown
   penaltySourceRefsJson: unknown
@@ -100,7 +98,6 @@ interface RawRow {
   accruedPenaltyBreakdown: ObligationQueueRow['accruedPenaltyBreakdown']
   penaltyAsOfDate: string
   penaltyFormulaVersion: string | null
-  exposureCalculatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   clientName: string
@@ -224,8 +221,6 @@ function toRow(
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: opts.hideDollars ? null : row.estimatedTaxDueCents,
-    estimatedExposureCents: opts.hideDollars ? null : row.estimatedExposureCents,
-    exposureStatus: row.exposureStatus,
     penaltyBreakdown: opts.hideDollars ? [] : parsePenaltyBreakdown(row.penaltyBreakdownJson),
     missingPenaltyFacts: opts.hideDollars ? [] : parseStringArray(row.missingPenaltyFactsJson),
     penaltySourceRefs: opts.hideDollars ? [] : parsePenaltySourceRefs(row.penaltySourceRefsJson),
@@ -236,9 +231,6 @@ function toRow(
     accruedPenaltyBreakdown: opts.hideDollars ? [] : row.accruedPenaltyBreakdown,
     penaltyAsOfDate: row.penaltyAsOfDate,
     penaltyFormulaVersion: opts.hideDollars ? null : row.penaltyFormulaVersion,
-    exposureCalculatedAt: opts.hideDollars
-      ? null
-      : (row.exposureCalculatedAt?.toISOString() ?? null),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     clientName: row.clientName,
@@ -462,8 +454,6 @@ function rowsToCsv(rows: ObligationQueueRow[]): string {
     row.taxType,
     row.currentDueDate,
     row.daysUntilDue,
-    row.estimatedExposureCents === null ? '' : row.estimatedExposureCents,
-    row.exposureStatus,
     row.accruedPenaltyCents === null ? '' : row.accruedPenaltyCents,
     row.accruedPenaltyStatus,
     row.status,
@@ -479,8 +469,6 @@ function rowsToCsv(rows: ObligationQueueRow[]): string {
       'Tax type',
       'Current due',
       'Days until due',
-      'Projected risk cents',
-      'Projected risk status',
       'Accrued penalty cents',
       'Accrued penalty status',
       'Status',
@@ -509,15 +497,11 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
   page.drawText('DueDateHQ Obligations Export', { x: 72, y: 720, font: bold, size: 16 })
   page.drawText(clientName, { x: 72, y: 692, font: bold, size: 12 })
   const lines = rows.slice(0, 24).map((row) => {
-    const exposure =
-      row.estimatedExposureCents === null
-        ? row.exposureStatus
-        : `$${row.estimatedExposureCents / 100}`
     const accrued =
       row.accruedPenaltyCents === null
         ? row.accruedPenaltyStatus
         : `$${row.accruedPenaltyCents / 100}`
-    return `${row.taxType} | due ${row.currentDueDate} | ${row.status} | projected ${exposure} | accrued ${accrued}`
+    return `${row.taxType} | due ${row.currentDueDate} | ${row.status} | accrued ${accrued}`
   })
   lines.forEach((line, index) => {
     page.drawText(line.slice(0, 92), { x: 72, y: 660 - index * 20, font, size: 10 })
@@ -528,10 +512,8 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
 function toRepoListInput(
   input: ObligationQueueListInput,
   {
-    hideDollars,
     limit,
   }: {
-    hideDollars: boolean
     limit?: number
   },
 ): ObligationQueueRepoListInput {
@@ -549,14 +531,7 @@ function toRepoListInput(
   if (input.owner !== undefined) repoInput.owner = input.owner
   if (input.due !== undefined) repoInput.due = input.due
   if (input.dueWithinDays !== undefined) repoInput.dueWithinDays = input.dueWithinDays
-  if (input.exposureStatus !== undefined) repoInput.exposureStatus = input.exposureStatus
   if (input.readiness !== undefined) repoInput.readiness = input.readiness
-  if (!hideDollars && input.minExposureCents !== undefined) {
-    repoInput.minExposureCents = input.minExposureCents
-  }
-  if (!hideDollars && input.maxExposureCents !== undefined) {
-    repoInput.maxExposureCents = input.maxExposureCents
-  }
   if (input.minDaysUntilDue !== undefined) repoInput.minDaysUntilDue = input.minDaysUntilDue
   if (input.maxDaysUntilDue !== undefined) repoInput.maxDaysUntilDue = input.maxDaysUntilDue
   if (input.needsEvidence !== undefined) repoInput.needsEvidence = input.needsEvidence
@@ -614,7 +589,7 @@ const list = os.obligations.list.handler(async ({ input, context }) => {
   const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
   const hideSmartPriorityFactors = actor?.role !== 'owner'
 
-  const repoInput = toRepoListInput(input, { hideDollars })
+  const repoInput = toRepoListInput(input, {})
 
   const result = await scoped.obligationQueue.list(repoInput)
 
@@ -770,7 +745,7 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
       throw new ORPCError('BAD_REQUEST', { message: 'Export scope requires a query.' })
     }
     const result = await scoped.obligationQueue.list(
-      toRepoListInput(query, { hideDollars, limit: EXPORT_MAX_ROWS }),
+      toRepoListInput(query, { limit: EXPORT_MAX_ROWS }),
     )
     rawRows = result.rows
   }

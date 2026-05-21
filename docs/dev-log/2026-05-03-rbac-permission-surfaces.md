@@ -17,7 +17,7 @@ differences can be tested without hiding navigation or relying on raw 403 errors
 - Added the shared `@duedatehq/core/permissions` role matrix and wired server role gates to it.
 - Added app-level permission primitives for page, section, and action gates.
 - Applied gates across Members, Billing, Practice profile, Audit, Pulse, Migration, Calendar, the
-  command palette, and dashboard dollar exposure.
+  command palette, and dashboard deadline readiness.
 - Updated E2E auth seeding so non-owner role sessions keep a separate practice owner instead of
   being treated as owner through `firm_profile.ownerUserId`.
 - Added unit/app/E2E coverage for the key manager, preparer, and coordinator permission surfaces.

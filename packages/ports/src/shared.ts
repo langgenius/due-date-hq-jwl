@@ -171,13 +171,7 @@ export type AuditActionCategory =
   | 'ai'
   | 'system'
 
-export type ObligationQueueSort =
-  | 'smart_priority'
-  | 'due_asc'
-  | 'due_desc'
-  | 'exposure_desc'
-  | 'exposure_asc'
-  | 'updated_desc'
+export type ObligationQueueSort = 'smart_priority' | 'due_asc' | 'due_desc' | 'updated_desc'
 export type ObligationQueueOwnerFilter = 'unassigned'
 export type ObligationQueueDueFilter = 'overdue'
 export type ObligationQueueReadiness = ObligationReadiness

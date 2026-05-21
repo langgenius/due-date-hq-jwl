@@ -67,15 +67,12 @@ import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
-  'exposure',
   'urgency',
   'importance',
   'history',
   'readiness',
 ] as const satisfies readonly SmartPriorityFactorKey[]
 
-const MIN_EXPOSURE_CAP_CENTS = 1
-const MAX_EXPOSURE_CAP_CENTS = 1_000_000_000
 const MIN_URGENCY_WINDOW_DAYS = 1
 const MAX_URGENCY_WINDOW_DAYS = 365
 const MIN_HISTORY_CAP_COUNT = 1
@@ -85,7 +82,6 @@ function clonePriorityProfile(profile: SmartPriorityProfile): SmartPriorityProfi
   return {
     version: profile.version,
     weights: { ...profile.weights },
-    exposureCapCents: profile.exposureCapCents,
     urgencyWindowDays: profile.urgencyWindowDays,
     historyCapCount: profile.historyCapCount,
   }
@@ -93,7 +89,6 @@ function clonePriorityProfile(profile: SmartPriorityProfile): SmartPriorityProfi
 
 function samePriorityProfile(a: SmartPriorityProfile, b: SmartPriorityProfile): boolean {
   return (
-    a.exposureCapCents === b.exposureCapCents &&
     a.urgencyWindowDays === b.urgencyWindowDays &&
     a.historyCapCount === b.historyCapCount &&
     PRIORITY_FACTOR_KEYS.every((key) => a.weights[key] === b.weights[key])
@@ -302,15 +297,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     }))
   }
 
-  function updatePriorityNumber(
-    key: 'exposureCapCents' | 'urgencyWindowDays' | 'historyCapCount',
-    value: string,
-  ) {
+  function updatePriorityNumber(key: 'urgencyWindowDays' | 'historyCapCount', value: string) {
     const parsed = parseWholeNumber(value)
     setPriorityPreview(null)
     setPriorityProfile((current) => ({
       ...current,
-      [key]: key === 'exposureCapCents' ? parsed * 100 : parsed,
+      [key]: parsed,
     }))
   }
 
@@ -343,8 +335,6 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   const weightTotal = priorityWeightTotal(priorityProfile)
   const priorityValid =
     weightTotal === 100 &&
-    priorityProfile.exposureCapCents >= MIN_EXPOSURE_CAP_CENTS &&
-    priorityProfile.exposureCapCents <= MAX_EXPOSURE_CAP_CENTS &&
     priorityProfile.urgencyWindowDays >= MIN_URGENCY_WINDOW_DAYS &&
     priorityProfile.urgencyWindowDays <= MAX_URGENCY_WINDOW_DAYS &&
     priorityProfile.historyCapCount >= MIN_HISTORY_CAP_COUNT &&
@@ -373,7 +363,6 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   const firmSummary = t`Active practice · ${{ currentPlan }} plan · ${firm.seatLimit} seat limit`
   const firmSummaryLabel = t`Active practice summary`
   const priorityFactorLabels: Record<SmartPriorityFactorKey, string> = {
-    exposure: t`Projected risk`,
     urgency: t`Deadline urgency`,
     importance: t`Client importance`,
     history: t`Late filing history`,
@@ -534,7 +523,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     <Trans>Total</Trans> {weightTotal}%
                   </span>
                 </div>
-                <div className="grid gap-3 md:grid-cols-5">
+                <div className="grid gap-3 md:grid-cols-4">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
                     <div key={key} className="grid gap-1.5">
                       <Label htmlFor={`priority-weight-${key}`}>{priorityFactorLabels[key]}</Label>
@@ -553,27 +542,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="grid gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="priority-exposure-cap">
-                      <Trans>Projected risk cap</Trans>
-                    </Label>
-                    <ConceptHelp concept="projectedRiskCap" />
-                  </div>
-                  <Input
-                    id="priority-exposure-cap"
-                    type="number"
-                    min={1}
-                    max={MAX_EXPOSURE_CAP_CENTS / 100}
-                    value={Math.round(priorityProfile.exposureCapCents / 100)}
-                    onChange={(event) =>
-                      updatePriorityNumber('exposureCapCents', event.target.value)
-                    }
-                    disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
-                  />
-                </div>
+              <div className="grid gap-3 md:grid-cols-2">
                 <div className="grid gap-1.5">
                   <div className="flex items-center gap-1.5">
                     <Label htmlFor="priority-urgency-window">
@@ -810,7 +779,7 @@ function SmartPriorityRedactedContent() {
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-4 w-16" />
         </div>
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-4">
           {PRIORITY_FACTOR_KEYS.map((key) => (
             <div key={key} className="grid gap-1.5">
               <Skeleton className="h-4 w-20" />
@@ -820,8 +789,8 @@ function SmartPriorityRedactedContent() {
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {[0, 1, 2].map((item) => (
+      <div className="grid gap-3 md:grid-cols-2">
+        {[0, 1].map((item) => (
           <div key={item} className="grid gap-1.5">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-full" />

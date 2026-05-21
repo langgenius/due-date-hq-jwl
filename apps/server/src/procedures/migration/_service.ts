@@ -9,7 +9,6 @@ import {
 import type { BillingPlan } from '@duedatehq/core/plan-entitlements'
 import { parseTabular, type ParsedTabular, type TabularKind } from '@duedatehq/core/csv-parser'
 import { normalizeEntityType, normalizeState } from '@duedatehq/core/normalize-dict'
-import { summarizePenaltyExposure } from '@duedatehq/core/penalty'
 import { DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS } from '@duedatehq/core/deadlines'
 import {
   listObligationRules,
@@ -28,7 +27,6 @@ import {
   type MigrationBatch,
   type MigrationExternalEntityType,
   type MigrationExternalStagingRowInput,
-  type MigrationExposureSummary,
   type MigrationIntegrationProvider,
   type MigrationError,
   type MigrationSource,
@@ -822,7 +820,6 @@ export class MigrationService {
     obligationCount: number
     skippedCount: number
     revertibleUntil: string
-    exposureSummary: MigrationExposureSummary
   }> {
     const batch = await this.requireBatch(batchId)
     if (batch.status === 'applied') {
@@ -865,7 +862,6 @@ export class MigrationService {
       obligationCount: plan.obligations.length,
       skippedCount: plan.skippedCount,
       revertibleUntil: plan.revertExpiresAt.toISOString(),
-      exposureSummary: summarizeCommitPlanExposure(plan),
     }
   }
 
@@ -1097,14 +1093,6 @@ export class MigrationService {
       obligationsToCreate: stats.obligationsToCreate,
       skippedRows: stats.skippedRows,
       errors: stats.errors,
-      exposurePreview: previewExposureReadiness({
-        batchId,
-        firmId: this.deps.scoped.firmId,
-        userId: this.deps.userId,
-        payload,
-        internalDeadlineOffsetDays:
-          this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
-      }),
     }
     return DryRunSummarySchema.parse(summary)
   }
@@ -1643,49 +1631,6 @@ function estimateObligationCount(payload: MappingJsonPayload, clientCount: numbe
   return payload.matrixApplied.reduce(
     (sum, e) => (e.enabled ? sum + e.taxTypes.length * e.appliedClientCount : sum),
     0,
-  )
-}
-
-function previewExposureReadiness(input: {
-  batchId: string
-  firmId: string
-  userId: string
-  payload: MappingJsonPayload
-  internalDeadlineOffsetDays: number
-}): DryRunSummary['exposurePreview'] {
-  if (!input.payload.rawInput || !input.payload.confirmedMappings) return undefined
-  try {
-    const plan = buildCommitPlan(input)
-    const summary = summarizeCommitPlanExposure(plan)
-    return {
-      totalExposureCents: summary.totalExposureCents,
-      readyCount: summary.readyCount,
-      needsInputCount: summary.needsInputCount,
-      unsupportedCount: summary.unsupportedCount,
-      topRows: summary.topRows,
-    }
-  } catch {
-    return undefined
-  }
-}
-
-function summarizeCommitPlanExposure(
-  plan: ReturnType<typeof buildCommitPlan>,
-): MigrationExposureSummary {
-  const clientById = new Map(plan.clients.map((client) => [client.id, client]))
-  return summarizePenaltyExposure(
-    plan.obligations.map((obligation) => {
-      const client = clientById.get(obligation.clientId)
-      return {
-        id: obligation.id,
-        clientId: obligation.clientId,
-        clientName: client?.name ?? 'Unknown client',
-        taxType: obligation.taxType,
-        currentDueDate: obligation.currentDueDate,
-        exposureStatus: obligation.exposureStatus ?? 'needs_input',
-        estimatedExposureCents: obligation.estimatedExposureCents ?? null,
-      }
-    }),
   )
 }
 

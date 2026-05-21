@@ -28,7 +28,6 @@ import {
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { orpc } from '@/lib/rpc'
-import { formatCents } from '@/lib/utils'
 
 import { canContinueNormalization } from './continue-rules'
 import { Step1Intake } from './Step1Intake'
@@ -77,8 +76,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     obligationCount: number
   } | null>(null)
   const [genesis, setGenesis] = useState<{
-    totalExposureCents: number
-    needsInputCount: number
+    clientCount: number
+    obligationCount: number
   } | null>(null)
 
   const invalidateMigration = useCallback(() => {
@@ -457,9 +456,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           })
         },
         onSuccess: (result) => {
-          const exposure = result.exposureSummary
           toast.success(t`Import complete`, {
-            description: t`${result.clientCount} clients, ${result.obligationCount} obligations, ${formatCents(exposure.totalExposureCents)} exposure, ${exposure.needsInputCount} need input`,
+            description: t`${result.clientCount} clients, ${result.obligationCount} obligations created`,
             action: {
               label: t`Undo import`,
               onClick: () =>
@@ -474,37 +472,25 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             new CustomEvent('migration.genesis.started', {
               detail: {
                 batchId: result.batchId,
-                totalExposureCents: exposure.totalExposureCents,
-                needsInputCount: exposure.needsInputCount,
+                clientCount: result.clientCount,
+                obligationCount: result.obligationCount,
               },
             }),
           )
-          if (exposure.totalExposureCents === 0 && exposure.needsInputCount > 0) {
-            resetAndClose()
-            void navigate('/')
-            window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
-            return
-          }
-          if (exposure.totalExposureCents > 0) {
-            setGenesis({
-              totalExposureCents: exposure.totalExposureCents,
-              needsInputCount: exposure.needsInputCount,
-            })
-            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            window.setTimeout(
-              () => {
-                setGenesis(null)
-                resetAndClose()
-                void navigate('/')
-                window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
-              },
-              reduced ? 200 : 1200,
-            )
-            return
-          }
-          resetAndClose()
-          void navigate('/')
-          window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
+          setGenesis({
+            clientCount: result.clientCount,
+            obligationCount: result.obligationCount,
+          })
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          window.setTimeout(
+            () => {
+              setGenesis(null)
+              resetAndClose()
+              void navigate('/')
+              window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
+            },
+            reduced ? 200 : 1200,
+          )
         },
       },
     )
@@ -719,23 +705,21 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 function LiveGenesisOverlay({
   genesis,
 }: {
-  genesis: { totalExposureCents: number; needsInputCount: number } | null
+  genesis: { clientCount: number; obligationCount: number } | null
 }) {
   if (!genesis) return null
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
         <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
-          {formatCents(genesis.totalExposureCents)}
+          {genesis.obligationCount}
         </div>
         <div className="text-sm text-text-secondary">
-          <Trans>at risk this week</Trans>
+          <Trans>obligations created</Trans>
         </div>
-        {genesis.needsInputCount > 0 ? (
-          <div className="text-xs text-text-tertiary">
-            <Trans>{genesis.needsInputCount} obligations still need penalty inputs.</Trans>
-          </div>
-        ) : null}
+        <div className="text-xs text-text-tertiary">
+          <Trans>{genesis.clientCount} clients imported</Trans>
+        </div>
       </div>
     </div>
   )

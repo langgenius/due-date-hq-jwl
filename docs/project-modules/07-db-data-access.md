@@ -48,7 +48,7 @@ primary profile 的兼容镜像。
 
 义务记录包含 base/current due date、status、tax type、tax year、jurisdiction、
 `client_filing_profile_id`、罚金暴露字段、迁移 batch 和删除时间。Obligations、Dashboard、
-Calendar、Readiness、Pulse 和 penalty exposure 读 obligation jurisdiction，而不是直接读
+Calendar、Readiness、Pulse 和 deadline readiness 读 obligation jurisdiction，而不是直接读
 legacy client state。
 
 ### Migration

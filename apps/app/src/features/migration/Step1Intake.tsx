@@ -389,7 +389,7 @@ export function Step1Intake({
         <p className={cn('text-sm text-text-tertiary', compact ? 'hidden lg:block' : '')}>
           <Trans>
             Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can
-            power the penalty exposure preview.
+            help prepare payment and penalty context.
           </Trans>
         </p>
       </div>

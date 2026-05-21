@@ -211,13 +211,10 @@ const ALL_SORTS = [
   'smart_priority',
   'due_asc',
   'due_desc',
-  'exposure_desc',
-  'exposure_asc',
   'updated_desc',
 ] as const satisfies readonly ObligationQueueSort[]
 const OWNER_FILTERS = ['unassigned'] as const
 const DUE_FILTERS = ['overdue'] as const
-const EXPOSURE_FILTERS = ['ready', 'needs_input', 'unsupported'] as const
 const EVIDENCE_FILTERS = ['needs'] as const
 const DETAIL_DRAWERS = ['obligation'] as const
 const DETAIL_TABS = ['readiness', 'extension', 'risk', 'evidence', 'audit'] as const
@@ -349,15 +346,12 @@ export const obligationQueueSearchParamsParsers = {
   owner: parseAsStringLiteral(OWNER_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   due: parseAsStringLiteral(DUE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   dueWithin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  exposure: parseAsStringLiteral(EXPOSURE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   evidence: parseAsStringLiteral(EVIDENCE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
   id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   tab: parseAsStringLiteral(DETAIL_TABS)
     .withDefault('readiness')
     .withOptions({ ...REPLACE_HISTORY_OPTIONS, clearOnDefault: false }),
-  riskMin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  riskMax: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   daysMin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   daysMax: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   asOf: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
@@ -404,8 +398,6 @@ function isObligationStatus(value: string): value is ObligationStatus {
 function getSortingState(sort: ObligationQueueSort): SortingState {
   if (sort === 'smart_priority') return [{ id: 'smartPriority', desc: true }]
   if (sort === 'due_desc') return [{ id: 'currentDueDate', desc: true }]
-  if (sort === 'exposure_desc') return [{ id: 'estimatedExposureCents', desc: true }]
-  if (sort === 'exposure_asc') return [{ id: 'estimatedExposureCents', desc: false }]
   if (sort === 'updated_desc') return [{ id: 'updatedAt', desc: true }]
   return [{ id: 'currentDueDate', desc: false }]
 }
@@ -434,11 +426,6 @@ function obligationQueueColumnAriaSort(columnId: string, sort: ObligationQueueSo
   if (columnId === 'currentDueDate') {
     if (sort === 'due_asc') return 'ascending'
     if (sort === 'due_desc') return 'descending'
-    return 'none'
-  }
-  if (columnId === 'estimatedExposureCents') {
-    if (sort === 'exposure_asc') return 'ascending'
-    if (sort === 'exposure_desc') return 'descending'
     return 'none'
   }
   return undefined
@@ -489,12 +476,6 @@ function integerFromInput(value: string, min?: number): number | null {
   const parsed = Number(trimmed)
   if (!Number.isSafeInteger(parsed)) return null
   return min === undefined ? parsed : Math.max(min, parsed)
-}
-
-function dollarsToCents(value: number | null): number | undefined {
-  if (value === null || value < 0 || !Number.isSafeInteger(value)) return undefined
-  const cents = value * 100
-  return Number.isSafeInteger(cents) ? cents : undefined
 }
 
 function daysFilterValue(value: number | null): number | undefined {
@@ -573,15 +554,7 @@ function savedViewQueryPatch(query: unknown): Partial<ObligationQueueSearchParam
     owner: query.owner === 'unassigned' ? 'unassigned' : null,
     due: query.due === 'overdue' ? 'overdue' : null,
     dueWithin: typeof query.dueWithin === 'number' ? query.dueWithin : null,
-    exposure:
-      query.exposure === 'ready' ||
-      query.exposure === 'needs_input' ||
-      query.exposure === 'unsupported'
-        ? query.exposure
-        : null,
     evidence: query.evidence === 'needs' ? 'needs' : null,
-    riskMin: typeof query.riskMin === 'number' ? query.riskMin : null,
-    riskMax: typeof query.riskMax === 'number' ? query.riskMax : null,
     daysMin: typeof query.daysMin === 'number' ? query.daysMin : null,
     daysMax: typeof query.daysMax === 'number' ? query.daysMax : null,
     asOf: typeof query.asOf === 'string' ? query.asOf : null,
@@ -720,13 +693,10 @@ export function ObligationQueueRoute() {
       owner,
       due,
       dueWithin,
-      exposure,
       evidence,
       drawer,
       id: detailId,
       tab: detailTab,
-      riskMin,
-      riskMax,
       daysMin,
       daysMax,
       asOf,
@@ -785,7 +755,6 @@ export function ObligationQueueRoute() {
       taxType: t`Tax type`,
       currentDueDate: t`Internal deadline`,
       daysUntilDue: t`Days`,
-      estimatedExposureCents: t`Projected risk`,
       evidenceCount: t`Evidence`,
       status: t`Status`,
     }),
@@ -806,8 +775,6 @@ export function ObligationQueueRoute() {
     [assignee],
   )
   const assigneeQuery = useMemo(() => cleanStringFilters(assigneeFilter), [assigneeFilter])
-  const minExposureCents = useMemo(() => dollarsToCents(riskMin), [riskMin])
-  const maxExposureCents = useMemo(() => dollarsToCents(riskMax), [riskMax])
   const minDaysUntilDue = useMemo(() => daysFilterValue(daysMin), [daysMin])
   const maxDaysUntilDue = useMemo(() => daysFilterValue(daysMax), [daysMax])
 
@@ -869,9 +836,6 @@ export function ObligationQueueRoute() {
       ...(owner ? { owner } : {}),
       ...(due ? { due } : {}),
       ...(dueWithin && dueWithin > 0 && dueWithin <= 30 ? { dueWithinDays: dueWithin } : {}),
-      ...(exposure ? { exposureStatus: exposure } : {}),
-      ...(minExposureCents !== undefined ? { minExposureCents } : {}),
-      ...(maxExposureCents !== undefined ? { maxExposureCents } : {}),
       ...(minDaysUntilDue !== undefined ? { minDaysUntilDue } : {}),
       ...(maxDaysUntilDue !== undefined ? { maxDaysUntilDue } : {}),
       ...(evidence === 'needs' ? { needsEvidence: true } : {}),
@@ -893,9 +857,6 @@ export function ObligationQueueRoute() {
       owner,
       due,
       dueWithin,
-      exposure,
-      minExposureCents,
-      maxExposureCents,
       minDaysUntilDue,
       maxDaysUntilDue,
       evidence,
@@ -917,10 +878,7 @@ export function ObligationQueueRoute() {
       owner,
       due,
       dueWithin,
-      exposure,
       evidence,
-      riskMin,
-      riskMax,
       daysMin,
       daysMax,
       asOf,
@@ -937,9 +895,6 @@ export function ObligationQueueRoute() {
       due,
       dueWithin,
       evidence,
-      exposure,
-      riskMax,
-      riskMin,
       searchInput,
       sort,
       stateFilter,
@@ -1454,45 +1409,6 @@ export function ObligationQueueRoute() {
         meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
       {
-        accessorKey: 'estimatedExposureCents',
-        header: () => {
-          const label = t`Projected risk`
-          return (
-            <ObligationQueueSortableHeader
-              sort={sort}
-              ascSort="exposure_asc"
-              descSort="exposure_desc"
-              firstSort="exposure_desc"
-              sortLabel={`${t`Sort`} ${label}`}
-              onSortChange={changeSort}
-            >
-              <RangeHeaderFilterDropdown
-                label={label}
-                minLabel={t`Minimum dollars at risk`}
-                maxLabel={t`Maximum dollars at risk`}
-                minPlaceholder={t`Min $`}
-                maxPlaceholder={t`Max $`}
-                minValue={riskMin}
-                maxValue={riskMax}
-                inputMode="numeric"
-                min={0}
-                onCommit={(nextMin, nextMax) =>
-                  void setObligationQueueQuery({
-                    riskMin: integerFromInput(nextMin, 0),
-                    riskMax: integerFromInput(nextMax, 0),
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              />
-            </ObligationQueueSortableHeader>
-          )
-        },
-        cell: ({ row: tableRow }) => (
-          <ExposurePill row={tableRow.original} onNeedsInput={setPenaltyRow} />
-        ),
-      },
-      {
         accessorKey: 'evidenceCount',
         header: () => <ConceptLabel concept="evidence">{t`Evidence`}</ConceptLabel>,
         cell: ({ row: tableRow }) => (
@@ -1591,8 +1507,6 @@ export function ObligationQueueRoute() {
       filtersDisabled,
       openHeaderFilter,
       openEvidence,
-      riskMax,
-      riskMin,
       rowsById,
       setHeaderFilterOpen,
       setObligationQueueQuery,
@@ -1691,10 +1605,9 @@ export function ObligationQueueRoute() {
     if (isThisWeekFilterActive(daysMin, daysMax))
       chips.push({ key: 'due-week', label: t`Due this week` })
     if (evidence === 'needs') chips.push({ key: 'evidence', label: t`Needs evidence` })
-    if (exposure === 'needs_input') chips.push({ key: 'penalty', label: t`Penalty input needed` })
     if (searchInput) chips.push({ key: 'search', label: `"${searchInput}"` })
     return chips
-  }, [activeScope, statusLabels, due, daysMin, daysMax, evidence, exposure, searchInput, t])
+  }, [activeScope, statusLabels, due, daysMin, daysMax, evidence, searchInput, t])
   const hiddenColumnsCount = useMemo(
     () =>
       table.getAllLeafColumns().filter((column) => column.getCanHide() && !column.getIsVisible())
@@ -2237,18 +2150,6 @@ export function ObligationQueueRoute() {
             >
               <Trans>Needs evidence</Trans>
             </ObligationQueueActionChip>
-            <ObligationQueueActionChip
-              active={exposure === 'needs_input'}
-              onClick={() =>
-                void setObligationQueueQuery({
-                  exposure: exposure === 'needs_input' ? null : 'needs_input',
-                  obligation: null,
-                  row: null,
-                })
-              }
-            >
-              <Trans>Penalty input needed</Trans>
-            </ObligationQueueActionChip>
           </div>
         </nav>
 
@@ -2503,10 +2404,7 @@ export function ObligationQueueRoute() {
                           owner ||
                           due ||
                           dueWithin ||
-                          exposure?.length ||
                           evidence?.length ||
-                          riskMin !== null ||
-                          riskMax !== null ||
                           daysMin !== null ||
                           daysMax !== null,
                         )}
@@ -2960,74 +2858,6 @@ function ExportAxisOption({
   )
 }
 
-function ExposurePill({
-  row,
-  onNeedsInput,
-}: {
-  row: ObligationQueueRow
-  onNeedsInput: (row: ObligationQueueRow) => void
-}) {
-  const { t } = useLingui()
-  if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
-    const showAccrued = row.daysUntilDue < 0
-    const exposureCents = row.estimatedExposureCents
-    // Zero dollars at risk is not data — it's the absence of risk. A
-    // pill containing `$0.00` is decoration tax that pulls the eye to
-    // rows that don't deserve it. Render a quiet em-dash instead and
-    // reserve pill chrome for non-zero exposure.
-    if (exposureCents === 0) {
-      return (
-        <span className="tabular-nums text-text-tertiary" aria-label={t`No projected risk`}>
-          —
-        </span>
-      )
-    }
-    return (
-      <div className="grid min-w-0 gap-1">
-        <Badge
-          variant="warning"
-          className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} tabular-nums`}
-        >
-          {formatCents(exposureCents)}
-        </Badge>
-        {showAccrued ? (
-          <span className="text-[11px] leading-none text-text-tertiary">
-            {row.accruedPenaltyStatus === 'ready' && row.accruedPenaltyCents !== null ? (
-              <Trans>
-                Accrued {formatCents(row.accruedPenaltyCents)} as of {row.penaltyAsOfDate}
-              </Trans>
-            ) : row.accruedPenaltyStatus === 'needs_input' ? (
-              <Trans>Accrued needs input</Trans>
-            ) : (
-              <Trans>Accrued unsupported</Trans>
-            )}
-          </span>
-        ) : null}
-      </div>
-    )
-  }
-  if (row.exposureStatus === 'needs_input') {
-    return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="text-xs"
-        onClick={(event) => {
-          event.stopPropagation()
-          onNeedsInput(row)
-        }}
-      >
-        <Trans>needs input</Trans>
-      </Button>
-    )
-  }
-  return (
-    <Badge variant="outline" className={OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME}>
-      <Trans>unsupported</Trans>
-    </Badge>
-  )
-}
-
 function ObligationQueueSortableHeader({
   children,
   sort,
@@ -3286,7 +3116,7 @@ export function ObligationQueueDetailDrawer({
   const obligationTypeLabels = useObligationTypeLabels()
   // Type-aware drawer surface: per PRD §3.1 different obligation types
   // expose different tabs. A `payment` row has no readiness checklist;
-  // a `client_action` row has no penalty exposure surface.
+  // a `client_action` row has no deadline readiness surface.
   const visibleTabsList = useMemo(
     () => tabsForObligationType(row?.obligationType ?? null),
     [row?.obligationType],

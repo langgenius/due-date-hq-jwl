@@ -4,9 +4,9 @@ import { Link } from 'react-router'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-// Dashboard v2 "This week's exposure" — KPI mini-tiles that answer
-// "where's the firm's exposure today?" without scanning rows. Each
-// tile is a deep-link into Obligations with the matching filter.
+// Dashboard v2 "This week's work" — KPI mini-tiles for the highest-signal
+// workflow states. Each tile is a deep-link into Obligations with the
+// matching filter.
 // Zero-count segments drop.
 //
 // Per docs/Design/dashboard-actions-design-brief.md §4 / §6 and the
@@ -56,9 +56,9 @@ function ExposureStrip({
 
   if (isLoading) {
     return (
-      <section aria-label={t`This week's exposure`} className="flex flex-col gap-4">
+      <section aria-label={t`This week's work`} className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold tracking-tight text-text-primary">
-          <Trans>This week's exposure</Trans>
+          <Trans>This week's work</Trans>
         </h2>
         <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
@@ -82,10 +82,6 @@ function ExposureStrip({
       tone: 'neutral',
     })
   }
-  // "At risk" dollar tile removed 2026-05-21 per designer call — the
-  // headline number is the row count + status, not the total dollar
-  // exposure. Dollars live on the queue row's projected-risk column
-  // and inside the obligation drawer.
   if (blockedCount > 0) {
     segments.push({
       value: String(blockedCount),
@@ -106,9 +102,9 @@ function ExposureStrip({
   if (segments.length === 0) return null
 
   return (
-    <section aria-label={t`This week's exposure`} className="flex flex-col gap-4">
+    <section aria-label={t`This week's work`} className="flex flex-col gap-4">
       <h2 className="text-xl font-semibold tracking-tight text-text-primary">
-        <Trans>This week's exposure</Trans>
+        <Trans>This week's work</Trans>
       </h2>
       <div className="flex flex-wrap gap-3">
         {segments.map((segment) => (

@@ -152,7 +152,7 @@ sequenceDiagram
   User->>App: Confirm apply
   App->>RPC: migration.apply
   RPC->>DB: create clients and obligations
-  RPC->>Core: estimate penalty exposure
+  RPC->>Core: estimate deadline readiness
   RPC->>Audit: write migration/evidence events
   RPC-->>App: applied summary
 ```

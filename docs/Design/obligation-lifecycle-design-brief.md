@@ -33,7 +33,7 @@ Operational, calm, audit-trustworthy. Status is a tool, not a personality. Pills
 
 | State                 | What the user needs to see + feel                                                                                                                      |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `not_started`         | Neutral. "Nothing has happened yet." Slate/gray chip. No urgency cue from status alone — urgency comes from `Days` and `Projected Risk`.               |
+| `not_started`         | Neutral. "Nothing has happened yet." Slate/gray chip. No urgency cue from status alone — urgency comes from `Days` and `Legacy penalty estimate`.      |
 | `waiting_on_client`   | Amber-tinted, suggesting external dependency. Drawer should surface "asked on X, last nudged Y."                                                       |
 | `blocked`             | Red-tinted but not alarming. Cell shows `Blocked · #parent-1065` with the parent obligation as an inline link. Hover surfaces the parent's own status. |
 | `in_review`           | Indigo/blue-tinted, suggesting internal work. Drawer surfaces the reviewer assignment.                                                                 |

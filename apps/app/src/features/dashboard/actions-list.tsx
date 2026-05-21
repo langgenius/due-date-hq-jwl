@@ -44,10 +44,10 @@ function topPriorityFactors(row: DashboardTopRow): string[] {
 //   - Hovering the row expands it INLINE (the row's container grows
 //     downward to reveal a details panel). Hover-out collapses it.
 //   - Keyboard focus on the row also expands it (focus parity).
-//   - The Review button on the right opens the obligation drawer
+//   - The Review button opens the obligation drawer
 //     in place via the parent's onOpenObligation handler.
-//   - Row meta is just the time signal ("3d late" / "today" /
-//     "in 2d"). No dollar amounts.
+//   - Row meta is the right-aligned time signal ("3d late" /
+//     "today" / "in 2d"). No dollar amounts.
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -60,7 +60,6 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   if (row.status === 'waiting_on_client') return 'Follow up for client materials'
   if (row.evidenceCount === 0) return 'Attach a source before review'
-  if (row.exposureStatus === 'needs_input') return 'Add penalty inputs before ranking by risk'
   if (row.status === 'review') return 'Complete CPA review and close the row'
   if (days <= 0) return 'Confirm filing or payment status today'
   if (days <= 2) return 'Verify owner, source, and filing cutoff'
@@ -153,10 +152,9 @@ function ActionRow({
           {row.clientName}
         </span>
         <span className="truncate text-base text-text-primary">{prompt}</span>
-        <RowMeta days={days} />
         {/* Review button — only shown when the row is hovered/focused
           (i.e. `expanded`). Keeps the row chrome quiet at rest and
-          surfaces the action right when the user is intent on this
+          surfaces the action right before the time signal when the user is intent on this
           row. The reserved grid slot stays via `invisible`-vs-flow
           so the row layout doesn't shift on hover. */}
         <Button
@@ -176,6 +174,7 @@ function ActionRow({
           <Trans>Review</Trans>
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
+        <RowMeta days={days} />
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,
