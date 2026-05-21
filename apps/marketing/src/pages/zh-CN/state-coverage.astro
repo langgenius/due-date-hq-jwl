@@ -5,10 +5,11 @@ import StateCoveragePage from '../../components/StateCoveragePage.astro'
 import Footer from '../../components/Footer.astro'
 import zhCN from '../../i18n/zh-CN'
 import { getCtaHref } from '../../lib/app-url'
+import { getStateCoveragePage } from '../../lib/seo-content'
 import { stateCoverageStructuredData } from '../../lib/structured-data'
 
 const t = zhCN
-const page = t.geo.stateCoverage
+const page = getStateCoveragePage(t, 'zh-CN')
 const pathname = '/zh-CN/state-coverage'
 const ctaHref = getCtaHref('zh-CN')
 ---

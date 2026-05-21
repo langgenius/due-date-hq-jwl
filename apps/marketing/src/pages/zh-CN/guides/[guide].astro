@@ -6,10 +6,11 @@ import Footer from '../../../components/Footer.astro'
 import zhCN from '../../../i18n/zh-CN'
 import type { GuidePageCopy } from '../../../i18n/types'
 import { getCtaHref } from '../../../lib/app-url'
+import { getGuidePages, getResourceCtaHrefs } from '../../../lib/seo-content'
 import { resourceStructuredData } from '../../../lib/structured-data'
 
 export function getStaticPaths() {
-  return zhCN.geo.guides.map((guide) => ({
+  return getGuidePages(zhCN, 'zh-CN').map((guide) => ({
     params: { guide: guide.slug },
     props: { page: guide },
   }))
@@ -24,11 +25,7 @@ const { page } = Astro.props
 const enPathname = `/guides/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
 const ctaHref = getCtaHref('zh-CN')
-const primaryHref =
-  page.slug === 'cpa-deadline-risk'
-    ? '/zh-CN/guides/evidence-backed-tax-deadline-software'
-    : '/zh-CN/rules'
-const secondaryHref = page.slug === 'cpa-deadline-risk' ? '/zh-CN/rules' : '/zh-CN/state-coverage'
+const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'zh-CN')
 ---
 
 <BaseLayout

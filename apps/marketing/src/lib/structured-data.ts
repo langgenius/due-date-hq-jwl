@@ -8,7 +8,7 @@ import type {
   StateCoverageCopy,
   StatePageCopy,
 } from '../i18n/types'
-import { CONTENT_REVIEWED_ON } from './content-metadata'
+import { CONTENT_PUBLISHED_ON, CONTENT_REVIEWED_ON } from './content-metadata'
 import { MARKETING_SITE_URL, getMarketingUrl } from './site'
 import type { TrustPageCopy } from './trust-pages'
 
@@ -113,6 +113,8 @@ function planPrice(plan: PricingCopy['plans'][number]): number | null {
 
 function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument {
   const offers: JsonLdDocument[] = pricing.plans.flatMap((plan) => {
+    if (plan.priceKind === 'text') return []
+
     const price = planPrice(plan)
     if (price === null) return []
 
@@ -135,6 +137,10 @@ function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument
     name: 'DueDateHQ',
     url: absoluteUrl(pathname),
     description: pricing.meta.description,
+    brand: {
+      '@type': 'Brand',
+      name: 'DueDateHQ',
+    },
     offers,
   }
 }
@@ -147,12 +153,19 @@ function articleDocument(
 ): JsonLdDocument {
   return {
     '@context': 'https://schema.org',
-    '@type': 'TechArticle',
+    '@type': 'Article',
     headline: title,
     description,
     url: absoluteUrl(pathname),
     inLanguage: lang,
+    image: `${SITE}/og/home.${lang}.png`,
+    datePublished: CONTENT_PUBLISHED_ON,
     dateModified: CONTENT_REVIEWED_ON,
+    author: {
+      '@type': 'Organization',
+      name: 'DueDateHQ',
+      url: SITE,
+    },
     publisher: {
       '@type': 'Organization',
       name: 'DueDateHQ',

@@ -512,10 +512,12 @@ CSP 中 `connect-src` 仅在 marketing 真的需要向 app 子域发请求（例
 - 公开页输出 JSON-LD：首页至少包含 `Organization` / `WebSite` /
   `SoftwareApplication`；Pricing 包含 `Product` / `Offer` / `FAQPage`，其中
   `Offer` 只描述页面可见的 plan price，并必须带 `price`、`priceCurrency: USD`
-  和 `availability: https://schema.org/OnlineOnly`；
+  和 `availability: https://schema.org/OnlineOnly`；`From $...` 或 custom contract
+  plan 不输出精确 `Offer.price`，避免把起始价写成确定成交价；
   rules、state coverage、state detail、guides 和 trust pages 至少包含 `WebPage`
   与 `BreadcrumbList`，资源页有可见 FAQ 时输出对应的 `FAQPage`，guide 页可输出
-  `TechArticle`。JSON-LD 不得包含客户数据或页面不可见声明。
+  Google 明确支持的 `Article`，并带 `author`、`publisher`、`datePublished`、
+  `dateModified` 和 `image`。JSON-LD 不得包含客户数据或页面不可见声明。
 - Pricing 不输出 `aggregateRating` 或 `review`，除非页面已经展示真实用户评分或评论来源；
   不为消除 Search Console 的非严重建议而伪造评分、评论或未展示的第三方评价。
 - Lighthouse SEO / Accessibility / Best Practices 目标 95+（依赖 §7 `_headers` 安全头）。
@@ -524,10 +526,13 @@ CSP 中 `connect-src` 仅在 marketing 真的需要向 app 子域发请求（例
 - OG 图存在于 `public/og/home.png`（每个 locale 一张：`og/home.en.png`、`og/home.zh-CN.png`），文档化在 §6.3 hreflang 旁。
 - `sitemap.xml` 由 `@astrojs/sitemap` 自动生成（依赖 §4 `astro.config.mjs` 的 `site` + `i18n` 字段，自动输出 absolute URL）；app 子域不进入 marketing sitemap。
 - `robots.txt` 由 `src/pages/robots.txt.ts` prerender，指向 `https://due.langgenius.app/sitemap-index.xml`，并显式允许 Googlebot、OAI-SearchBot、GPTBot、ClaudeBot、Claude-SearchBot 和 PerplexityBot 访问公开站。
-- `llms.txt` 由 `src/pages/llms.txt.ts` prerender，作为 AI-readable content map，列出核心公开页、州覆盖页、引用边界、官方来源策略和非税务建议声明。它只是辅助入口，不替代 sitemap / robots / canonical。
+- SEO 内容扩展优先围绕产品本身：deadline risk operations、Excel migration、
+  extension vs payment deadline review、rule reference、software comparison、state source coverage。
+  不做泛化 blog，也不批量生成缺少官方来源的薄州页。
+- `llms.txt` 由 `src/pages/llms.txt.ts` prerender，作为 AI-readable content map，列出核心公开页、guide、comparison、州覆盖页、引用边界、官方来源策略和非税务建议声明。它只是辅助入口，不替代 sitemap / robots / canonical。
 - 内容新鲜度使用固定 review 日期，不使用 build time。`src/lib/content-metadata.ts`
-  维护 `CONTENT_REVIEWED_ON` 和单州官方来源链接；页面可见 `<time>`、JSON-LD
-  `dateModified` 和文档口径必须保持一致。
+  维护 `CONTENT_PUBLISHED_ON`、`CONTENT_REVIEWED_ON` 和单州官方来源链接；页面可见
+  `<time>`、JSON-LD `datePublished` / `dateModified` 和文档口径必须保持一致。
 
 ### 8.1 Google 发现链路
 

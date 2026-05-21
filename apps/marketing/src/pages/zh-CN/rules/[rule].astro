@@ -1,31 +1,31 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import TopNav from '../../../components/TopNav.astro'
-import StateDetailPage from '../../../components/StateDetailPage.astro'
+import GeoResourcePage from '../../../components/GeoResourcePage.astro'
 import Footer from '../../../components/Footer.astro'
 import zhCN from '../../../i18n/zh-CN'
-import type { StatePageCopy } from '../../../i18n/types'
+import type { GuidePageCopy } from '../../../i18n/types'
 import { getCtaHref } from '../../../lib/app-url'
-import { stateOfficialSources } from '../../../lib/content-metadata'
-import { getStatePages } from '../../../lib/seo-content'
-import { statePageStructuredData } from '../../../lib/structured-data'
+import { getResourceCtaHrefs, getRuleReferencePages } from '../../../lib/seo-content'
+import { resourceStructuredData } from '../../../lib/structured-data'
 
 export function getStaticPaths() {
-  return getStatePages(zhCN, 'zh-CN').map((state) => ({
-    params: { state: state.slug },
-    props: { page: state },
+  return getRuleReferencePages('zh-CN').map((rule) => ({
+    params: { rule: rule.slug },
+    props: { page: rule },
   }))
 }
 
 interface Props {
-  page: StatePageCopy
+  page: GuidePageCopy
 }
 
 const t = zhCN
 const { page } = Astro.props
-const enPathname = `/states/${page.slug}`
+const enPathname = `/rules/${page.slug}`
 const pathname = `/zh-CN${enPathname}`
 const ctaHref = getCtaHref('zh-CN')
+const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'zh-CN')
 ---
 
 <BaseLayout
@@ -34,14 +34,14 @@ const ctaHref = getCtaHref('zh-CN')
   title={page.meta.title}
   description={page.meta.description}
   ogImage={page.meta.ogImage}
-  structuredData={statePageStructuredData(t, page, 'zh-CN', pathname)}
+  structuredData={resourceStructuredData(t, page, 'zh-CN', pathname)}
 >
   <TopNav t={t.nav} ctaHref={ctaHref} />
-  <StateDetailPage
+  <GeoResourcePage
     page={page}
-    coverageHref="/zh-CN/state-coverage"
+    primaryHref={primaryHref}
+    secondaryHref={secondaryHref}
     locale="zh-CN"
-    officialSources={stateOfficialSources[page.slug] ?? []}
   />
   <Footer t={t.footer} enHref={enPathname} zhHref={pathname} currentLocale="zh-CN" />
 </BaseLayout>

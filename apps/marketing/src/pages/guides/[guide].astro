@@ -6,10 +6,11 @@ import Footer from '../../components/Footer.astro'
 import en from '../../i18n/en'
 import type { GuidePageCopy } from '../../i18n/types'
 import { getCtaHref } from '../../lib/app-url'
+import { getGuidePages, getResourceCtaHrefs } from '../../lib/seo-content'
 import { resourceStructuredData } from '../../lib/structured-data'
 
 export function getStaticPaths() {
-  return en.geo.guides.map((guide) => ({
+  return getGuidePages(en, 'en').map((guide) => ({
     params: { guide: guide.slug },
     props: { page: guide },
   }))
@@ -23,11 +24,7 @@ const t = en
 const { page } = Astro.props
 const pathname = `/guides/${page.slug}`
 const ctaHref = getCtaHref()
-const primaryHref =
-  page.slug === 'cpa-deadline-risk'
-    ? '/guides/evidence-backed-tax-deadline-software'
-    : '/rules'
-const secondaryHref = page.slug === 'cpa-deadline-risk' ? '/rules' : '/state-coverage'
+const { primaryHref, secondaryHref } = getResourceCtaHrefs(page.slug, 'en')
 ---
 
 <BaseLayout
