@@ -86,6 +86,7 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 
@@ -1222,11 +1223,6 @@ export function ClientDetailWorkspace({
   )
 }
 
-function obligationDrawerHref(obligationId: string): string {
-  const params = new URLSearchParams({ id: obligationId, drawer: 'obligation' })
-  return `/obligations?${params.toString()}`
-}
-
 type FilingPlanYearGroup = {
   year: number | 'unknown'
   isCurrent: boolean
@@ -1296,7 +1292,7 @@ function ClientWorkPlanPanel({
   isLoading: boolean
   summary: ClientWorkPlanSummary
 }) {
-  const navigate = useNavigate()
+  const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
@@ -1344,7 +1340,7 @@ function ClientWorkPlanPanel({
               <FilingPlanYearSection
                 key={group.year}
                 group={group}
-                onOpen={(obligationId) => void navigate(obligationDrawerHref(obligationId))}
+                onOpen={(obligationId) => openObligationDrawer(obligationId)}
               />
             ))}
           </div>

@@ -1308,26 +1308,32 @@ export function ObligationQueueRoute() {
         id: 'assigneeName',
         header: () => <span>{t`Owner`}</span>,
         cell: ({ row: tableRow }) => {
-          const owner = tableRow.original.assigneeName
-          if (!owner) {
+          // Rename: the outer URL-state destructure already binds
+          // `owner` (the `?owner=unassigned` filter param). Naming this
+          // local var `assigneeName` keeps eslint no-shadow happy and
+          // is more accurate — the column shows the assignee, not the
+          // filter value.
+          const assigneeName = tableRow.original.assigneeName
+          if (!assigneeName) {
             return <span className="text-xs italic text-text-tertiary">{t`Unassigned`}</span>
           }
           const isMine =
-            currentUserName !== null && owner.trim().toLowerCase() === currentUserName.toLowerCase()
+            currentUserName !== null &&
+            assigneeName.trim().toLowerCase() === currentUserName.toLowerCase()
           return (
             <span
               className={cn(
                 'inline-flex items-center gap-1 text-xs',
                 isMine ? 'text-text-primary' : 'text-text-secondary',
               )}
-              title={isMine ? t`Assigned to you` : owner}
+              title={isMine ? t`Assigned to you` : assigneeName}
             >
               {isMine ? (
                 <span className="rounded-sm bg-state-accent-hover px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-accent">
                   {t`You`}
                 </span>
               ) : null}
-              <span className="line-clamp-1">{owner}</span>
+              <span className="line-clamp-1">{assigneeName}</span>
             </span>
           )
         },
@@ -3168,7 +3174,7 @@ function RangeHeaderFilterDropdown({
   )
 }
 
-function ObligationQueueDetailDrawer({
+export function ObligationQueueDetailDrawer({
   obligationId,
   activeTab,
   onTabChange,
