@@ -36,9 +36,8 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.libraryTab.click()
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.getByRole('button', { name: /^\d+\s+needs review$/ }).click()
-  await expect(
-    authenticatedPage.getByText('al.individual_income_return.candidate.2026'),
-  ).toBeVisible()
+  await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
+  await expect(authenticatedPage.getByText('Entity coverage')).toBeVisible()
 })
 
 test('AC: E2E-RULES-DETAIL opens a shipped rule detail drawer', async ({
@@ -52,11 +51,7 @@ test('AC: E2E-RULES-DETAIL opens a shipped rule detail drawer', async ({
   })
   await expect(needsReviewButton).toBeVisible({ timeout: 15_000 })
   await needsReviewButton.click()
-  await authenticatedPage
-    .getByRole('button', {
-      name: /Open rule detail: Alabama individual income tax return applicability/,
-    })
-    .click()
+  await authenticatedPage.getByRole('button', { name: /^Review \d+ pending rules$/ }).click()
 
   await expect(
     authenticatedPage.getByRole('heading', {

@@ -8,7 +8,6 @@ import {
   type DueDateLogic,
   type ObligationGenerationPreview,
   type ObligationInstancePublic,
-  type ObligationRule,
   type RuleEvidenceAuthorityRole,
   type RuleGenerationPreviewInput,
   type RuleGenerationState,
@@ -18,16 +17,6 @@ import {
 
 export type SourceDisplayHealth = 'healthy' | 'paused'
 export type SourceHealthFilter = 'all' | SourceDisplayHealth
-export type RuleLibraryFilter =
-  | 'all'
-  | 'active'
-  | 'pending_review'
-  | 'rejected'
-  | 'archived'
-  | 'verified'
-  | 'candidate'
-  | 'applicability_review'
-  | 'exception'
 export type CoverageCellState = 'active' | 'review' | 'none'
 
 export const RULE_JURISDICTIONS: RuleJurisdiction[] = [...RuleJurisdictionValues]
@@ -223,7 +212,6 @@ export function compactSourceType(sourceType: RuleSource['sourceType']): string 
 }
 
 type SourceHealthOnly = Pick<RuleSource, 'healthStatus'>
-type RuleFilterOnly = Pick<ObligationRule, 'ruleTier' | 'status'>
 type PreviewReadyOnly = {
   reminderReady: ObligationGenerationPreview['reminderReady']
   missingClientFacts: readonly ObligationGenerationPreview['missingClientFacts'][number][]
@@ -250,44 +238,6 @@ export function normalizeSourceHealth(
   healthStatus: RuleSource['healthStatus'],
 ): SourceDisplayHealth {
   return healthStatus === 'paused' ? 'paused' : 'healthy'
-}
-
-export function countRulesByFilter(rules: readonly RuleFilterOnly[]) {
-  return {
-    all: rules.length,
-    active: rules.filter((rule) => rule.status === 'active' || rule.status === 'verified').length,
-    pending_review: rules.filter(
-      (rule) => rule.status === 'pending_review' || rule.status === 'candidate',
-    ).length,
-    rejected: rules.filter((rule) => rule.status === 'rejected').length,
-    archived: rules.filter((rule) => rule.status === 'archived').length,
-    verified: rules.filter((rule) => rule.status === 'active' || rule.status === 'verified').length,
-    candidate: rules.filter(
-      (rule) => rule.status === 'pending_review' || rule.status === 'candidate',
-    ).length,
-    applicability_review: rules.filter((rule) => rule.ruleTier === 'applicability_review').length,
-    exception: rules.filter((rule) => rule.ruleTier === 'exception').length,
-  }
-}
-
-export function filterRules<T extends RuleFilterOnly>(
-  rules: readonly T[],
-  filter: RuleLibraryFilter,
-): T[] {
-  if (filter === 'all') return [...rules]
-  if (
-    filter === 'active' ||
-    filter === 'pending_review' ||
-    filter === 'rejected' ||
-    filter === 'archived'
-  ) {
-    return rules.filter((rule) => rule.status === filter)
-  }
-  if (filter === 'verified' || filter === 'candidate') {
-    const mapped = filter === 'verified' ? 'active' : 'pending_review'
-    return rules.filter((rule) => rule.status === mapped || rule.status === filter)
-  }
-  return rules.filter((rule) => rule.ruleTier === filter)
 }
 
 export function groupPreviewRows<T extends PreviewReadyOnly>(rows: readonly T[]) {

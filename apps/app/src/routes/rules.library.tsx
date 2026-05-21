@@ -1,23 +1,20 @@
 import { useCallback, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { useLingui, Trans } from '@lingui/react/macro'
-import { ChevronRightIcon, LibraryIcon, MapIcon } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { useLingui } from '@lingui/react/macro'
+import { ChevronRightIcon } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 
 import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CoverageTab } from '@/features/rules/coverage-tab'
-import { RuleLibraryTab } from '@/features/rules/rule-library-tab'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import {
   countSourcesByHealth,
   type CoverageCellState,
   type CoverageEntityColumn,
-  type RuleLibraryFilter,
 } from '@/features/rules/rules-console-model'
 import { orpc } from '@/lib/rpc'
 
@@ -26,40 +23,38 @@ import { orpc } from '@/lib/rpc'
  *
  * Layout (top → bottom):
  *  1. Coverage summary strip — `N active · N needs review · N jurisdictions
- *     with gaps`. Clickable numbers drill into the rule list with the
- *     matching filter pre-applied.
+ *     with gaps`. Clickable numbers filter the Coverage map.
  *  2. Sources summary strip — `N watched · N paused`,
  *     with a link to /rules/sources for the full table.
- *  3. View body — either the **Coverage map** (jurisdiction × entity
- *     matrix, default) or the **Rule list** (per-rule table). Switched
- *     by a button at the strip's right edge ("View all rules →" /
- *     "Back to coverage map").
+ *  3. Coverage map — jurisdiction × entity matrix with inline rule
+ *     detail and review queue. The former per-rule Rule List view was
+ *     removed because it duplicated this map and made the page harder
+ *     to scan.
  *
- * The view is URL-state via `?view=matrix|rules`. Matrix drill-ins
- * (jurisdiction pending count, entity dots) flip to the rules view
- * with `?library=...&jur=...&entity=...` so deep links land cleanly.
+ * Legacy `?view=rules` / `library=` / `jur=` links still land here;
+ * the route normalizes them to Coverage `filter=` / `q=` state.
  *
  * `/rules/coverage` still resolves to the legacy CoverageRoute for
  * back-compat; its drill-ins also point here.
  */
-const VIEW_VALUES = ['matrix', 'rules'] as const
-type LibraryView = (typeof VIEW_VALUES)[number]
-const viewParser = parseAsStringLiteral(VIEW_VALUES).withDefault('matrix')
+type CoverageSummaryFilter = 'active' | 'pending'
 
 export function RulesLibraryRoute() {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const [view, setView] = useQueryState('view', viewParser)
+  const location = useLocation()
+  const normalizedSearch = useMemo(
+    () => normalizeRulesLibrarySearch(location.search),
+    [location.search],
+  )
   const [selectedRuleId] = useQueryState('rule', parseAsString)
   const inReview = selectedRuleId !== null && selectedRuleId.length > 0
 
-  const switchToList = useCallback(
-    (filter: RuleLibraryFilter, jurisdiction?: string, entity?: string) => {
+  const filterCoverage = useCallback(
+    (filter: CoverageSummaryFilter, jurisdiction?: string) => {
       const params = new URLSearchParams()
-      params.set('view', 'rules')
-      params.set('library', filter)
-      if (jurisdiction) params.set('jur', jurisdiction)
-      if (entity) params.set('entity', entity)
+      params.set('filter', filter)
+      if (jurisdiction) params.set('q', jurisdiction)
       params.set('from', 'coverage')
       void navigate(`/rules/library?${params.toString()}`)
     },
@@ -67,13 +62,13 @@ export function RulesLibraryRoute() {
   )
 
   const handleJurisdictionDrillIn = useCallback(
-    (jurisdiction: RuleJurisdiction) => switchToList('pending_review', jurisdiction),
-    [switchToList],
+    (jurisdiction: RuleJurisdiction) => filterCoverage('pending', jurisdiction),
+    [filterCoverage],
   )
 
   const handleActiveDrillIn = useCallback(
-    (jurisdiction: RuleJurisdiction) => switchToList('active', jurisdiction),
-    [switchToList],
+    (jurisdiction: RuleJurisdiction) => filterCoverage('active', jurisdiction),
+    [filterCoverage],
   )
 
   const handleSourceDrillIn = useCallback(
@@ -86,72 +81,90 @@ export function RulesLibraryRoute() {
   )
 
   const handleEntityDrillIn = useCallback(
-    (jurisdiction: RuleJurisdiction, entity: CoverageEntityColumn, state: CoverageCellState) => {
-      const filter = state === 'active' ? 'active' : 'pending_review'
-      switchToList(filter, jurisdiction, entity)
+    (jurisdiction: RuleJurisdiction, _entity: CoverageEntityColumn, state: CoverageCellState) => {
+      filterCoverage(state === 'active' ? 'active' : 'pending', jurisdiction)
     },
-    [switchToList],
+    [filterCoverage],
   )
 
-  const switchView = useCallback(
-    (next: LibraryView) => {
-      void setView(next)
-    },
-    [setView],
-  )
+  if (normalizedSearch !== null) {
+    return (
+      <Navigate
+        replace
+        to={{ pathname: location.pathname, search: normalizedSearch, hash: location.hash }}
+      />
+    )
+  }
 
   return (
     <RulesPageShell title={t`Rule library`} compact={inReview}>
       <div className="flex flex-col gap-3">
-        <CoverageSummaryStrip onDrillIn={(filter, jur) => switchToList(filter, jur)} />
+        <CoverageSummaryStrip onDrillIn={(filter) => filterCoverage(filter)} />
         <SourcesSummaryStrip />
-        {/* Segmented control replaces the old "View all rules →" button.
-          Per docs/Design/ux-audit-2026-05-21.md P1: the button read as
-          "navigate elsewhere," not "switch view." A real segmented
-          control with two same-weight options signals "two ways to look
-          at the same data." */}
-        <div className="flex items-center justify-end">
-          <Tabs
-            value={view}
-            onValueChange={(next) => switchView(next as LibraryView)}
-            className="gap-0"
-          >
-            <TabsList>
-              <TabsTrigger value="matrix">
-                <MapIcon data-icon="inline-start" />
-                <Trans>Coverage map</Trans>
-              </TabsTrigger>
-              <TabsTrigger value="rules">
-                <LibraryIcon data-icon="inline-start" />
-                <Trans>Rule list</Trans>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
       </div>
-      {view === 'matrix' ? (
-        <CoverageTab
-          onJurisdictionDrillIn={handleJurisdictionDrillIn}
-          onActiveDrillIn={handleActiveDrillIn}
-          onSourceDrillIn={handleSourceDrillIn}
-          onEntityDrillIn={handleEntityDrillIn}
-        />
-      ) : (
-        <RuleLibraryTab />
-      )}
+      <CoverageTab
+        onJurisdictionDrillIn={handleJurisdictionDrillIn}
+        onActiveDrillIn={handleActiveDrillIn}
+        onSourceDrillIn={handleSourceDrillIn}
+        onEntityDrillIn={handleEntityDrillIn}
+      />
     </RulesPageShell>
   )
+}
+
+function normalizeRulesLibrarySearch(search: string): string | null {
+  const params = new URLSearchParams(search)
+  let changed = false
+
+  if (params.has('view')) {
+    params.delete('view')
+    changed = true
+  }
+
+  const legacyLibrary = params.get('library')
+  const mappedFilter =
+    legacyLibrary === 'active' || legacyLibrary === 'verified'
+      ? 'active'
+      : legacyLibrary === 'pending_review' || legacyLibrary === 'candidate'
+        ? 'pending'
+        : null
+  if (mappedFilter && !params.has('filter')) {
+    params.set('filter', mappedFilter)
+    changed = true
+  }
+  if (params.has('library')) {
+    params.delete('library')
+    changed = true
+  }
+
+  if (params.has('jur')) {
+    const jurisdictions = params
+      .getAll('jur')
+      .flatMap((value) => value.split(','))
+      .map((value) => value.trim())
+      .filter(Boolean)
+    const jurisdiction = jurisdictions[0]
+    if (jurisdictions.length === 1 && jurisdiction && !params.has('q')) {
+      params.set('q', jurisdiction)
+    }
+    params.delete('jur')
+    changed = true
+  }
+
+  if (!changed) return null
+  const next = params.toString()
+  return next.length > 0 ? `?${next}` : ''
 }
 
 /**
  * One-line read of the rule catalog's coverage:
  * `Coverage  3 active · 12 needs review · 6 jurisdictions with gaps`
- * Numbers drill into the rule list with the matching filter applied.
+ * Numbers filter the Coverage map.
  */
 function CoverageSummaryStrip({
   onDrillIn,
 }: {
-  onDrillIn: (filter: RuleLibraryFilter, jurisdiction?: string) => void
+  onDrillIn: (filter: CoverageSummaryFilter) => void
 }) {
   const { t } = useLingui()
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
@@ -160,19 +173,14 @@ function CoverageSummaryStrip({
     [coverageQuery.data],
   )
   return (
-    <SummaryStrip
-      label={t`Coverage`}
-      loading={coverageQuery.isLoading}
-      detailHref="/rules/library?view=rules"
-      detailLabel={t`Browse rules`}
-    >
+    <SummaryStrip label={t`Coverage`} loading={coverageQuery.isLoading}>
       <SummaryNumber value={stats.active} label={t`active`} onClick={() => onDrillIn('active')} />
       <SummarySeparator />
       <SummaryNumber
         value={stats.pending}
         label={t`needs review`}
         tone={stats.pending > 0 ? 'review' : 'muted'}
-        onClick={() => onDrillIn('pending_review')}
+        onClick={() => onDrillIn('pending')}
       />
       <SummarySeparator />
       <SummaryNumber
@@ -220,8 +228,8 @@ function SummaryStrip({
 }: {
   label: string
   loading: boolean
-  detailHref: string
-  detailLabel: string
+  detailHref?: string
+  detailLabel?: string
   children: React.ReactNode
 }) {
   return (
@@ -243,13 +251,15 @@ function SummaryStrip({
           children
         )}
       </div>
-      <Link
-        to={detailHref}
-        className="inline-flex shrink-0 items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        {detailLabel}
-        <ChevronRightIcon className="size-3.5" aria-hidden />
-      </Link>
+      {detailHref && detailLabel ? (
+        <Link
+          to={detailHref}
+          className="inline-flex shrink-0 items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          {detailLabel}
+          <ChevronRightIcon className="size-3.5" aria-hidden />
+        </Link>
+      ) : null}
     </div>
   )
 }

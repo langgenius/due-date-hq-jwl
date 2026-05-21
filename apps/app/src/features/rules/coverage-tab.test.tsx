@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ObligationRule, RuleCoverageRow } from '@duedatehq/contracts'
+import type { ObligationRule, RuleCoverageRow, RuleReviewTask } from '@duedatehq/contracts'
 
 import {
   KeyboardShellContext,
@@ -22,18 +22,38 @@ const rpcMocks = vi.hoisted(() => ({
   sourceHealthQueryFn: vi.fn(),
   listSourcesQueryFn: vi.fn(),
   listRulesQueryFn: vi.fn(),
+  listReviewTasksQueryFn: vi.fn(),
+  draftConcreteRuleQueryFn: vi.fn(),
+  acceptTemplateMutationFn: vi.fn(),
+  verifyCandidateMutationFn: vi.fn(),
+  rejectTemplateMutationFn: vi.fn(),
+  previewBulkRuleImpactMutationFn: vi.fn(),
+  bulkAcceptTemplatesMutationFn: vi.fn(),
 }))
 const nuqsMocks = vi.hoisted(() => ({
   filter: 'all',
   search: '',
+  library: null as string | null,
+  jurisdictions: [] as string[],
+  rule: null as string | null,
   setFilter: vi.fn(),
   setSearch: vi.fn(),
+  setLibrary: vi.fn(),
+  setJurisdictions: vi.fn(),
   setRule: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
   orpc: {
+    audit: { key: () => ['audit'] },
+    dashboard: { load: { key: () => ['dashboard', 'load'] } },
+    obligations: {
+      key: () => ['obligations'],
+      facets: { key: () => ['obligations', 'facets'] },
+      list: { key: () => ['obligations', 'list'] },
+    },
     rules: {
+      key: () => ['rules'],
       coverage: {
         queryOptions: () => ({
           queryKey: ['rules', 'coverage'],
@@ -50,6 +70,48 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: () => ({
           queryKey: ['rules', 'listRules'],
           queryFn: rpcMocks.listRulesQueryFn,
+        }),
+      },
+      listReviewTasks: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'listReviewTasks', input],
+          queryFn: rpcMocks.listReviewTasksQueryFn,
+        }),
+      },
+      draftConcreteRule: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'draftConcreteRule', input],
+          queryFn: rpcMocks.draftConcreteRuleQueryFn,
+        }),
+      },
+      acceptTemplate: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.acceptTemplateMutationFn,
+          ...options,
+        }),
+      },
+      verifyCandidate: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.verifyCandidateMutationFn,
+          ...options,
+        }),
+      },
+      rejectTemplate: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.rejectTemplateMutationFn,
+          ...options,
+        }),
+      },
+      previewBulkRuleImpact: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.previewBulkRuleImpactMutationFn,
+          ...options,
+        }),
+      },
+      bulkAcceptTemplates: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.bulkAcceptTemplatesMutationFn,
+          ...options,
         }),
       },
     },
@@ -71,6 +133,9 @@ vi.mock('nuqs', async (importOriginal) => {
     useQueryState: (key: string) => {
       if (key === 'filter') return [nuqsMocks.filter, nuqsMocks.setFilter]
       if (key === 'q') return [nuqsMocks.search, nuqsMocks.setSearch]
+      if (key === 'library') return [nuqsMocks.library, nuqsMocks.setLibrary]
+      if (key === 'jur') return [nuqsMocks.jurisdictions, nuqsMocks.setJurisdictions]
+      if (key === 'rule') return [nuqsMocks.rule, nuqsMocks.setRule]
       return [null, nuqsMocks.setRule]
     },
   }
@@ -193,6 +258,23 @@ function obligationRule(overrides: Partial<ObligationRule>): ObligationRule {
   }
 }
 
+function reviewTask(rule: ObligationRule, overrides: Partial<RuleReviewTask> = {}): RuleReviewTask {
+  return {
+    id: `task_${rule.id}`,
+    ruleId: rule.id,
+    templateVersion: rule.version,
+    status: 'open',
+    reason: 'new_template',
+    rule,
+    reviewNote: null,
+    reviewedBy: null,
+    reviewedAt: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  }
+}
+
 const keyboardShellTestValue: KeyboardShellContextValue = {
   commandPaletteOpen: false,
   shortcutHelpOpen: false,
@@ -254,10 +336,39 @@ beforeEach(() => {
   rpcMocks.listSourcesQueryFn.mockResolvedValue([])
   rpcMocks.listRulesQueryFn.mockReset()
   rpcMocks.listRulesQueryFn.mockResolvedValue([])
+  rpcMocks.listReviewTasksQueryFn.mockReset()
+  rpcMocks.listReviewTasksQueryFn.mockResolvedValue([])
+  rpcMocks.draftConcreteRuleQueryFn.mockReset()
+  rpcMocks.draftConcreteRuleQueryFn.mockResolvedValue(null)
+  rpcMocks.acceptTemplateMutationFn.mockReset()
+  rpcMocks.acceptTemplateMutationFn.mockResolvedValue({})
+  rpcMocks.verifyCandidateMutationFn.mockReset()
+  rpcMocks.verifyCandidateMutationFn.mockResolvedValue({})
+  rpcMocks.rejectTemplateMutationFn.mockReset()
+  rpcMocks.rejectTemplateMutationFn.mockResolvedValue({})
+  rpcMocks.previewBulkRuleImpactMutationFn.mockReset()
+  rpcMocks.previewBulkRuleImpactMutationFn.mockResolvedValue({
+    selectedCount: 1,
+    acceptReadyCount: 1,
+    skipped: [],
+    jurisdictionCounts: [{ key: 'CA', count: 1 }],
+    entityCounts: [{ key: 'individual', count: 1 }],
+    formCounts: [{ key: 'Form 540', count: 1 }],
+    reviewReasonCounts: [],
+    sourceCount: 1,
+    estimatedObligationCount: 1,
+  })
+  rpcMocks.bulkAcceptTemplatesMutationFn.mockReset()
+  rpcMocks.bulkAcceptTemplatesMutationFn.mockResolvedValue({ accepted: [], skipped: [] })
   nuqsMocks.filter = 'all'
   nuqsMocks.search = ''
+  nuqsMocks.library = null
+  nuqsMocks.jurisdictions = []
+  nuqsMocks.rule = null
   nuqsMocks.setFilter.mockReset()
   nuqsMocks.setSearch.mockReset()
+  nuqsMocks.setLibrary.mockReset()
+  nuqsMocks.setJurisdictions.mockReset()
   nuqsMocks.setRule.mockReset()
 })
 
@@ -375,5 +486,124 @@ describe('CoverageTab canonical layout', () => {
     await waitForText('Due-date review')
     await waitForText('Pending rules')
     await waitForText('pending individual return')
+  })
+
+  it('selects visible bulk-reviewable pending rules from the review queue', async () => {
+    const selectableRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    const sourceChangedRule = obligationRule({
+      id: 'ca.pending.source-changed.2026',
+      title: 'California source changed rule',
+      status: 'pending_review',
+    })
+    const sourceDefinedRule = obligationRule({
+      id: 'fed.pending.source-defined.2026',
+      title: 'Federal source-defined calendar',
+      jurisdiction: 'FED',
+      status: 'pending_review',
+      dueDateLogic: {
+        kind: 'source_defined_calendar',
+        description: 'Official source publishes the annual calendar.',
+        holidayRollover: 'source_adjusted',
+      },
+    })
+    nuqsMocks.rule = selectableRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      selectableRule,
+      sourceChangedRule,
+      sourceDefinedRule,
+    ])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([
+      reviewTask(selectableRule),
+      reviewTask(sourceChangedRule, { reason: 'source_changed' }),
+      reviewTask(sourceDefinedRule),
+    ])
+
+    await render(<CoverageTab />)
+    await waitForText('Pending review queue')
+
+    const selectVisible = document.querySelector<HTMLInputElement>(
+      'input[aria-label="Select visible pending rules"]',
+    )
+    expect(selectVisible).not.toBeNull()
+
+    await act(async () => {
+      selectVisible?.click()
+    })
+
+    await waitForText('1 selected')
+    const reviewSelected = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Review selected'),
+    )
+    expect(reviewSelected).toBeDefined()
+
+    await act(async () => {
+      reviewSelected?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Review selected rules')
+    const previewButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Preview'),
+    )
+    expect(previewButton).toBeDefined()
+
+    await act(async () => {
+      previewButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('1 ready')
+    expect(rpcMocks.previewBulkRuleImpactMutationFn.mock.calls[0]?.[0]).toEqual({
+      rules: [{ ruleId: selectableRule.id, expectedVersion: selectableRule.version }],
+    })
+  })
+
+  it('disables source-defined and source-changed rules in bulk selection', async () => {
+    const selectableRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    const sourceChangedRule = obligationRule({
+      id: 'ca.pending.source-changed.2026',
+      title: 'California source changed rule',
+      status: 'pending_review',
+    })
+    const sourceDefinedRule = obligationRule({
+      id: 'fed.pending.source-defined.2026',
+      title: 'Federal source-defined calendar',
+      jurisdiction: 'FED',
+      status: 'pending_review',
+      dueDateLogic: {
+        kind: 'source_defined_calendar',
+        description: 'Official source publishes the annual calendar.',
+        holidayRollover: 'source_adjusted',
+      },
+    })
+    nuqsMocks.rule = selectableRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      selectableRule,
+      sourceChangedRule,
+      sourceDefinedRule,
+    ])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([
+      reviewTask(selectableRule),
+      reviewTask(sourceChangedRule, { reason: 'source_changed' }),
+      reviewTask(sourceDefinedRule),
+    ])
+
+    await render(<CoverageTab />)
+    await waitForText('Pending review queue')
+
+    const disabledLabels = Array.from(
+      document.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:disabled'),
+    ).map((input) => input.getAttribute('aria-label') ?? '')
+
+    expect(disabledLabels).toContainEqual(expect.stringContaining('California source changed rule'))
+    expect(disabledLabels).toContainEqual(
+      expect.stringContaining('Federal source-defined calendar'),
+    )
   })
 })

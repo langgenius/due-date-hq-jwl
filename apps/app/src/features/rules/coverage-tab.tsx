@@ -1,6 +1,6 @@
-import { Fragment, useMemo, useState, type MouseEvent } from 'react'
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
@@ -8,20 +8,32 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  EyeIcon,
   ExternalLinkIcon,
   SearchIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { toast } from 'sonner'
 
 import type {
   ObligationRule,
+  RuleBulkImpactPreview,
   RuleCoverageRow,
   RuleJurisdiction,
+  RuleReviewTask,
   RuleSource,
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@duedatehq/ui/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -30,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -39,6 +52,7 @@ import {
 } from '@/components/patterns/keyboard-shell'
 import { KbdHint } from '@/components/patterns/kbd'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import {
   jurisdictionLabel,
@@ -71,6 +85,26 @@ const filterParser = parseAsStringLiteral(ROW_FILTERS)
   .withDefault('all')
   .withOptions({ history: 'replace' })
 const searchParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
+const legacyLibraryParser = parseAsString.withOptions({ history: 'replace' })
+const legacyJurisdictionParser = parseAsArrayOf(parseAsString)
+  .withDefault([])
+  .withOptions({ history: 'replace' })
+
+function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
+  return `${rule.id}:${rule.version}:${rule.status}`
+}
+
+function reviewTaskKey(input: Pick<RuleReviewTask, 'ruleId' | 'templateVersion'>): string {
+  return `${input.ruleId}:${input.templateVersion}`
+}
+
+function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): string {
+  return `${rule.id}:${rule.version}`
+}
+
+function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
 
 export function CoverageTab({
   onJurisdictionDrillIn,
@@ -88,6 +122,7 @@ export function CoverageTab({
   ) => void
 } = {}) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   // Filter + search live in URL state (nuqs) — survives refresh,
   // back/forward navigation, and shareable links to "Coverage filtered
@@ -95,11 +130,25 @@ export function CoverageTab({
   // on refresh and broken browser-back through filter changes.
   const [filterRaw, setFilterQuery] = useQueryState('filter', filterParser)
   const [search, setSearch] = useQueryState('q', searchParser)
-  const filter = filterRaw
+  const [legacyLibraryFilter, setLegacyLibraryFilter] = useQueryState(
+    'library',
+    legacyLibraryParser,
+  )
+  const [legacyJurisdictionFilters, setLegacyJurisdictionFilters] = useQueryState(
+    'jur',
+    legacyJurisdictionParser,
+  )
+  const legacyFilter = legacyLibraryFilterToCoverageFilter(legacyLibraryFilter)
+  const legacyJurisdictions = legacyJurisdictionFilters ?? []
+  const filter = filterRaw === 'all' && legacyFilter ? legacyFilter : filterRaw
+  const effectiveSearch =
+    search.length > 0 || legacyJurisdictions.length !== 1 ? search : (legacyJurisdictions[0] ?? '')
   const setFilter = (next: RowFilter) => {
+    void setLegacyLibraryFilter(null)
     void setFilterQuery(next)
   }
   const setSearchValue = (next: string) => {
+    void setLegacyJurisdictionFilters(null)
     void setSearch(next)
   }
 
@@ -108,6 +157,13 @@ export function CoverageTab({
   const rulesQuery = useQuery(
     orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
   )
+  const tasksQuery = useQuery(
+    orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
+  )
+  const [selectedRuleKeys, setSelectedRuleKeys] = useState<string[]>([])
+  const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false)
+  const [reviewNote, setReviewNote] = useState('')
+  const [preview, setPreview] = useState<RuleBulkImpactPreview | null>(null)
   // Per-jurisdiction expansion state. Row-click toggles a jurisdiction
   // into this set; multiple rows can be expanded simultaneously so the
   // user can compare two jurisdictions inline without context-switching.
@@ -193,7 +249,7 @@ export function CoverageTab({
   // `expanded` still takes precedence; effective expansion is the
   // union of the two sets.
   const searchExpanded = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = effectiveSearch.trim().toLowerCase()
     if (q.length === 0) return new Set<string>()
     const matches = new Set<string>()
     for (const [jurisdiction, rules] of rulesByJurisdiction.entries()) {
@@ -205,7 +261,7 @@ export function CoverageTab({
       }
     }
     return matches
-  }, [search, rulesByJurisdiction])
+  }, [effectiveSearch, rulesByJurisdiction])
 
   // Lookup so expanded rows can render the actual cited source per
   // rule (rule.sourceIds → RuleSource).
@@ -227,8 +283,8 @@ export function CoverageTab({
       const pending = row.pendingReviewCount ?? row.candidateCount
       if (filter === 'pending' && pending === 0) return false
       if (filter === 'active' && active === 0) return false
-      if (search.trim().length > 0) {
-        const q = search.trim().toLowerCase()
+      if (effectiveSearch.trim().length > 0) {
+        const q = effectiveSearch.trim().toLowerCase()
         const code = row.jurisdiction.toLowerCase()
         const name = jurisdictionLabel(row.jurisdiction).toLowerCase()
         if (code.includes(q) || name.includes(q)) return true
@@ -241,7 +297,7 @@ export function CoverageTab({
       }
       return true
     })
-  }, [rowsData, filter, search, rulesByJurisdiction])
+  }, [rowsData, filter, effectiveSearch, rulesByJurisdiction])
 
   // Pending-review queue flattened to a single ordered list — AL → AK
   // → AZ … with each jurisdiction's pending rules in submission order.
@@ -255,7 +311,88 @@ export function CoverageTab({
     }
     return out
   }, [rowsData, pendingRulesByJurisdiction])
-  const firstPendingRule = pendingQueue[0] ?? null
+  const visiblePendingQueue = useMemo<ObligationRule[]>(() => {
+    const out: ObligationRule[] = []
+    for (const row of filteredRows) {
+      const rules = pendingRulesByJurisdiction.get(row.jurisdiction) ?? []
+      out.push(...rules)
+    }
+    return out
+  }, [filteredRows, pendingRulesByJurisdiction])
+  const reviewTasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
+  const openTaskByRuleVersion = useMemo(
+    () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
+    [reviewTasks],
+  )
+  const selectedRows = useMemo(
+    () =>
+      visiblePendingQueue.filter(
+        (rule) =>
+          selectedRuleKeys.includes(ruleRowKey(rule)) &&
+          canBulkReviewRule(rule, openTaskByRuleVersion),
+      ),
+    [openTaskByRuleVersion, selectedRuleKeys, visiblePendingQueue],
+  )
+  const selections = selectedRows.map((rule) => ({
+    ruleId: rule.id,
+    expectedVersion:
+      openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))?.templateVersion ?? rule.version,
+  }))
+  const visibleSelectableRows = visiblePendingQueue.filter((rule) =>
+    canBulkReviewRule(rule, openTaskByRuleVersion),
+  )
+  const visibleSelectedRows = visibleSelectableRows.filter((rule) =>
+    selectedRuleKeys.includes(ruleRowKey(rule)),
+  )
+  const allVisibleSelected =
+    visibleSelectableRows.length > 0 && visibleSelectedRows.length === visibleSelectableRows.length
+
+  const clearBulkSelection = () => {
+    setSelectedRuleKeys([])
+    setBulkDrawerOpen(false)
+    setPreview(null)
+  }
+
+  const invalidateRules = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+  }
+
+  const invalidateAcceptedRuleOutputs = () => {
+    invalidateRules()
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+  }
+
+  const previewMutation = useMutation(
+    orpc.rules.previewBulkRuleImpact.mutationOptions({
+      onSuccess: (result) => setPreview(result),
+      onError: (error) => {
+        toast.error(t`Couldn't preview selected rules`, {
+          description: rpcErrorMessage(error) ?? t`Check the selected rows and try again.`,
+        })
+      },
+    }),
+  )
+  const bulkAcceptMutation = useMutation(
+    orpc.rules.bulkAcceptTemplates.mutationOptions({
+      onSuccess: (result) => {
+        invalidateAcceptedRuleOutputs()
+        clearBulkSelection()
+        setReviewNote('')
+        toast.success(t`Rules accepted`, {
+          description: t`${result.accepted.length} accepted · ${result.skipped.length} skipped.`,
+        })
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't accept selected rules`, {
+          description: rpcErrorMessage(error) ?? t`Add a review note and try again.`,
+        })
+      },
+    }),
+  )
 
   // Queue navigation helpers + keyboard shortcuts. All hoisted ABOVE
   // the loading/error early-returns so the hook order stays stable
@@ -408,8 +545,51 @@ export function CoverageTab({
   const visibleEntityColumns = panelOpen ? [] : ENTITY_DISPLAY
   const totalColumnCount = 3 + 1 + visibleEntityColumns.length
 
-  const startReview = () => {
-    if (firstPendingRule) void setSelectedRuleId(firstPendingRule.id)
+  const toggleRuleSelection = (rowKey: string, checked: boolean) => {
+    setSelectedRuleKeys((current) =>
+      checked
+        ? current.includes(rowKey)
+          ? current
+          : [...current, rowKey]
+        : current.filter((key) => key !== rowKey),
+    )
+    setPreview(null)
+  }
+  const toggleVisibleSelection = (checked: boolean) => {
+    const visibleKeys = visibleSelectableRows.map(ruleRowKey)
+    setSelectedRuleKeys((current) =>
+      checked
+        ? Array.from(new Set([...current, ...visibleKeys]))
+        : current.filter((key) => !visibleKeys.includes(key)),
+    )
+    setPreview(null)
+  }
+  const openBulkReview = () => {
+    if (selections.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    setBulkDrawerOpen(true)
+  }
+  const runBulkPreview = () => {
+    if (selections.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    setBulkDrawerOpen(true)
+    previewMutation.mutate({ rules: selections })
+  }
+  const bulkAccept = () => {
+    const note = reviewNote.trim()
+    if (selections.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    if (!note) {
+      toast.error(t`Batch review note is required.`)
+      return
+    }
+    bulkAcceptMutation.mutate({ rules: selections, reviewNote: note })
   }
 
   return (
@@ -417,11 +597,7 @@ export function CoverageTab({
       {/* StatsStrip removed 2026-05-21 per docs/Design/ux-audit-2026-05-21.md
         P0 #5 — the active/pending/jurisdiction counts already render in
         `CoverageSummaryStrip` at the page top (drillable). Repeating
-        them here read as "this designer hasn't decided." The
-        StartReviewCTA stays because it's an action, not a stat. */}
-      {!panelOpen && firstPendingRule ? (
-        <StartReviewCTA pendingCount={stats.pending} onStartReview={startReview} />
-      ) : null}
+        them here read as "this designer hasn't decided." */}
 
       <section className="flex flex-col gap-3">
         {/* In normal mode, the section header carries the "Entity
@@ -435,7 +611,7 @@ export function CoverageTab({
               <h2 className="text-xs font-semibold tracking-[0.12em] text-text-primary uppercase">
                 <Trans>Entity coverage</Trans>
               </h2>
-              <SearchInput value={search} onChange={setSearchValue} />
+              <SearchInput value={effectiveSearch} onChange={setSearchValue} />
             </div>
             <SourceStatusBanner total={stats.sourcesTotal} />
             <EntityCoverageLegend />
@@ -465,8 +641,17 @@ export function CoverageTab({
                   sourceById={sourceById}
                   selectedRuleId={selectedRuleId}
                   onSelectRule={selectRule}
-                  search={search}
+                  search={effectiveSearch}
                   onSearchChange={setSearchValue}
+                  selectedRuleKeys={selectedRuleKeys}
+                  selectedCount={selectedRows.length}
+                  allVisibleSelected={allVisibleSelected}
+                  visibleSelectableCount={visibleSelectableRows.length}
+                  openTaskByRuleVersion={openTaskByRuleVersion}
+                  onRuleSelectionChange={toggleRuleSelection}
+                  onToggleVisibleSelection={toggleVisibleSelection}
+                  onReviewSelected={openBulkReview}
+                  onClearSelection={clearBulkSelection}
                 />
               </div>
               {selectedRule ? (
@@ -565,6 +750,18 @@ export function CoverageTab({
           )}
         </div>
       </section>
+      <BulkReviewDrawer
+        open={bulkDrawerOpen}
+        onOpenChange={setBulkDrawerOpen}
+        selectedRules={selectedRows}
+        preview={preview}
+        reviewNote={reviewNote}
+        previewPending={previewMutation.isPending}
+        acceptPending={bulkAcceptMutation.isPending}
+        onReviewNoteChange={setReviewNote}
+        onPreview={runBulkPreview}
+        onAccept={bulkAccept}
+      />
     </div>
   )
 }
@@ -602,36 +799,6 @@ function aggregateStats(rows: readonly RuleCoverageRow[]): Stats {
 // StatsStrip + Stat removed 2026-05-21 — counts now live in the page-
 // level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
 // See docs/Design/ux-audit-2026-05-21.md P0 #5.
-
-/**
- * Primary entry point for reviewing pending rules. Sits right under
- * the stats strip in matrix mode so a user landing on the page can
- * jump straight into triage without first hunting for a jurisdiction
- * with pending rules. Hidden when there's nothing pending.
- */
-function StartReviewCTA({
-  pendingCount,
-  onStartReview,
-}: {
-  pendingCount: number
-  onStartReview: () => void
-}) {
-  const { t } = useLingui()
-  return (
-    <button
-      type="button"
-      onClick={onStartReview}
-      aria-label={t`Start reviewing ${pendingCount} pending rules`}
-      className="group/cta inline-flex h-9 w-fit items-center gap-2 rounded-md bg-text-primary px-3 text-sm font-medium text-text-inverted outline-none hover:bg-text-primary/90 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-    >
-      <Trans>Review {pendingCount} pending rules</Trans>
-      <ChevronRightIcon
-        aria-hidden
-        className="size-4 transition-transform group-hover/cta:translate-x-0.5"
-      />
-    </button>
-  )
-}
 
 function SearchInput({
   value,
@@ -1135,11 +1302,19 @@ function CoverageRuleItem({
   ruleSource,
   isSelected,
   onSelect,
+  selection,
 }: {
   rule: ObligationRule
   ruleSource: RuleSource | null
   isSelected: boolean
   onSelect: () => void
+  selection?: {
+    checked: boolean
+    disabled: boolean
+    label: string
+    title?: string
+    onChange: (checked: boolean) => void
+  }
 }) {
   const { t } = useLingui()
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
@@ -1171,6 +1346,19 @@ function CoverageRuleItem({
           isSelected ? 'bg-state-accent-tint/50' : 'hover:bg-background-subtle/50',
         )}
       >
+        {selection ? (
+          <input
+            type="checkbox"
+            aria-label={selection.label}
+            title={selection.title}
+            checked={selection.checked}
+            disabled={selection.disabled}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+            onChange={(event) => selection.onChange(event.target.checked)}
+            className="size-4 shrink-0 disabled:opacity-30"
+          />
+        ) : null}
         <button
           type="button"
           onClick={(event) => {
@@ -1267,6 +1455,15 @@ function PendingRuleQueue({
   onSelectRule,
   search,
   onSearchChange,
+  selectedRuleKeys,
+  selectedCount,
+  allVisibleSelected,
+  visibleSelectableCount,
+  openTaskByRuleVersion,
+  onRuleSelectionChange,
+  onToggleVisibleSelection,
+  onReviewSelected,
+  onClearSelection,
 }: {
   filteredRows: readonly RuleCoverageRow[]
   pendingRulesByJurisdiction: ReadonlyMap<RuleJurisdiction, ObligationRule[]>
@@ -1275,7 +1472,17 @@ function PendingRuleQueue({
   onSelectRule: (ruleId: string) => void
   search: string
   onSearchChange: (value: string) => void
+  selectedRuleKeys: readonly string[]
+  selectedCount: number
+  allVisibleSelected: boolean
+  visibleSelectableCount: number
+  openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>
+  onRuleSelectionChange: (rowKey: string, checked: boolean) => void
+  onToggleVisibleSelection: (checked: boolean) => void
+  onReviewSelected: () => void
+  onClearSelection: () => void
 }) {
+  const { t } = useLingui()
   const jurisdictionsWithPending = filteredRows.filter(
     (row) => (row.pendingReviewCount ?? row.candidateCount) > 0,
   )
@@ -1295,6 +1502,36 @@ function PendingRuleQueue({
           </span>
         </div>
         <SearchInput value={search} onChange={onSearchChange} fullWidth />
+        <div className="flex items-center justify-between gap-2">
+          <label className="inline-flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+            <input
+              type="checkbox"
+              aria-label={t`Select visible pending rules`}
+              checked={allVisibleSelected}
+              disabled={visibleSelectableCount === 0}
+              onChange={(event) => onToggleVisibleSelection(event.target.checked)}
+              className="size-4 disabled:opacity-40"
+            />
+            <span className="truncate">
+              <Trans>Select visible</Trans>
+            </span>
+          </label>
+          {selectedCount > 0 ? (
+            <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
+              <Trans>{selectedCount} selected</Trans>
+            </span>
+          ) : null}
+        </div>
+        {selectedCount > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" onClick={onReviewSelected}>
+              <Trans>Review selected</Trans>
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onClearSelection}>
+              <Trans>Clear</Trans>
+            </Button>
+          </div>
+        ) : null}
       </header>
       <div className="flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {jurisdictionsWithPending.length === 0 ? (
@@ -1317,15 +1554,30 @@ function PendingRuleQueue({
                     </span>
                   </header>
                   <ul className="flex flex-col">
-                    {rules.map((rule) => (
-                      <CoverageRuleItem
-                        key={rule.id}
-                        rule={rule}
-                        ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
-                        isSelected={selectedRuleId === rule.id}
-                        onSelect={() => onSelectRule(rule.id)}
-                      />
-                    ))}
+                    {rules.map((rule) => {
+                      const rowKey = ruleRowKey(rule)
+                      const reviewTask = openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))
+                      const disabledReason = bulkReviewDisabledReason(rule, reviewTask ?? null, t)
+                      const disabled = disabledReason !== null
+                      return (
+                        <CoverageRuleItem
+                          key={rule.id}
+                          rule={rule}
+                          ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
+                          isSelected={selectedRuleId === rule.id}
+                          onSelect={() => onSelectRule(rule.id)}
+                          selection={{
+                            checked: selectedRuleKeys.includes(rowKey) && !disabled,
+                            disabled,
+                            label: disabledReason
+                              ? t`Bulk review disabled for ${rule.title}: ${disabledReason}`
+                              : t`Select rule ${rule.title}`,
+                            ...(disabledReason ? { title: disabledReason } : {}),
+                            onChange: (checked) => onRuleSelectionChange(rowKey, checked),
+                          }}
+                        />
+                      )
+                    })}
                   </ul>
                 </section>
               )
@@ -1334,6 +1586,277 @@ function PendingRuleQueue({
         )}
       </div>
     </>
+  )
+}
+
+type LinguiT = ReturnType<typeof useLingui>['t']
+
+function legacyLibraryFilterToCoverageFilter(value: string | null): RowFilter | null {
+  if (value === 'active' || value === 'verified') return 'active'
+  if (value === 'pending_review' || value === 'candidate') return 'pending'
+  return null
+}
+
+function canBulkReviewRule(
+  rule: ObligationRule,
+  openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>,
+): boolean {
+  return (
+    rule.status === 'pending_review' &&
+    !isSourceDefinedRule(rule) &&
+    canBulkReviewTask(openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null)
+  )
+}
+
+function canBulkReviewTask(task: RuleReviewTask | null): boolean {
+  return task !== null && task.reason !== 'source_changed'
+}
+
+function bulkReviewDisabledReason(
+  rule: ObligationRule,
+  reviewTask: RuleReviewTask | null,
+  t: LinguiT,
+): string | null {
+  if (isSourceDefinedRule(rule)) return t`AI draft review required before activation.`
+  if (reviewTask?.reason === 'source_changed') {
+    return t`Source-changed rules require single-rule review.`
+  }
+  if (!canBulkReviewTask(reviewTask)) return t`No open review task.`
+  return null
+}
+
+function BulkReviewDrawer({
+  open,
+  onOpenChange,
+  selectedRules,
+  preview,
+  reviewNote,
+  previewPending,
+  acceptPending,
+  onReviewNoteChange,
+  onPreview,
+  onAccept,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  selectedRules: ObligationRule[]
+  preview: RuleBulkImpactPreview | null
+  reviewNote: string
+  previewPending: boolean
+  acceptPending: boolean
+  onReviewNoteChange: (value: string) => void
+  onPreview: () => void
+  onAccept: () => void
+}) {
+  const { t } = useLingui()
+  const hiddenRuleCount = Math.max(0, selectedRules.length - 8)
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(720px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
+        <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
+          <SheetTitle className="text-md text-text-primary">
+            <Trans>Review selected rules</Trans>
+          </SheetTitle>
+          <SheetDescription>
+            <Trans>
+              Preview selected pending rules, add one batch note, then accept them into active
+              practice rules.
+            </Trans>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex flex-col gap-5">
+            <section className="flex flex-col gap-2">
+              <BulkSectionLabel>
+                <Trans>SELECTED RULES</Trans>
+              </BulkSectionLabel>
+              <div className="overflow-hidden rounded-md border border-divider-regular bg-background-subtle">
+                {selectedRules.length > 0 ? (
+                  selectedRules.slice(0, 8).map((rule) => (
+                    <div
+                      key={ruleRowKey(rule)}
+                      className="flex items-center gap-3 border-b border-divider-subtle px-3 py-2 last:border-b-0"
+                    >
+                      <JurisdictionCode code={rule.jurisdiction} />
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-text-primary">
+                          {rule.title}
+                        </span>
+                        <span className="block truncate font-mono text-[11px] text-text-tertiary">
+                          {rule.id}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs text-text-tertiary">v{rule.version}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-3 py-3 text-xs text-text-tertiary">
+                    <Trans>Select pending rules from the queue.</Trans>
+                  </div>
+                )}
+                {hiddenRuleCount > 0 ? (
+                  <div className="border-t border-divider-subtle px-3 py-2 text-xs text-text-tertiary">
+                    <Trans>{hiddenRuleCount} more selected rules</Trans>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+            <section className="flex flex-col gap-2">
+              <BulkSectionLabel>
+                <Trans>PREVIEW</Trans>
+              </BulkSectionLabel>
+              <BulkPreviewSummary preview={preview} />
+            </section>
+            <label className="flex flex-col gap-2">
+              <BulkSectionLabel>
+                <Trans>BATCH REVIEW NOTE</Trans>
+              </BulkSectionLabel>
+              <Textarea
+                value={reviewNote}
+                onChange={(event) => onReviewNoteChange(event.target.value)}
+                placeholder={t`Reviewed source authority and practice applicability.`}
+                className="min-h-24 text-xs"
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-divider-regular px-5 py-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onPreview}
+            disabled={previewPending || selectedRules.length === 0}
+          >
+            <EyeIcon className="size-3.5" />
+            <Trans>Preview</Trans>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={onAccept}
+            disabled={acceptPending || selectedRules.length === 0}
+          >
+            <CheckIcon className="size-3.5" />
+            <Trans>Accept selected</Trans>
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null }) {
+  const { t } = useLingui()
+
+  if (!preview) {
+    return (
+      <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs text-text-tertiary">
+        <Trans>Preview selected rules before accepting them into production.</Trans>
+      </div>
+    )
+  }
+
+  const skipReasonLabels: Record<RuleBulkImpactPreview['skipped'][number]['reason'], string> = {
+    template_not_found: t`Rule not found`,
+    version_conflict: t`Version conflict`,
+    already_active: t`Already active`,
+    rejected: t`Rejected`,
+    archived: t`Archived`,
+    invalid_template: t`Invalid rule`,
+    source_changed_requires_review: t`Source changed requires single-rule review`,
+    source_defined_requires_ai_review: t`AI draft review required`,
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+      <div className="grid gap-2 text-text-secondary">
+        <span>
+          <Trans>
+            {preview.acceptReadyCount} ready · {preview.estimatedObligationCount} estimated
+            obligation matches
+          </Trans>
+        </span>
+        <span>
+          <Trans>{preview.sourceCount} sources involved</Trans>
+        </span>
+      </div>
+      {preview.jurisdictionCounts.length > 0 ? (
+        <PreviewList label={<Trans>Jurisdictions</Trans>} rows={preview.jurisdictionCounts} />
+      ) : null}
+      {preview.formCounts.length > 0 ? (
+        <PreviewList label={<Trans>Forms</Trans>} rows={preview.formCounts} />
+      ) : null}
+      {preview.entityCounts.length > 0 ? (
+        <PreviewList label={<Trans>Entities</Trans>} rows={preview.entityCounts} />
+      ) : null}
+      {preview.reviewReasonCounts.length > 0 ? (
+        <PreviewList label={<Trans>Review reasons</Trans>} rows={preview.reviewReasonCounts} />
+      ) : null}
+      {preview.reviewReasonCounts.some((row) => row.key === 'source_changed') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>Source-changed rules should be checked against evidence before accepting.</Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.some((row) => row.reason === 'source_changed_requires_review') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>
+              Source-changed rules are skipped from bulk accept. Review them one by one.
+            </Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.some((row) => row.reason === 'source_defined_requires_ai_review') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>
+              Source-defined rules are skipped from bulk accept. Generate and review their AI draft
+              one by one.
+            </Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.length > 0 ? (
+        <div className="flex flex-col gap-1 text-severity-medium">
+          <span className="font-medium">
+            <Trans>Skipped</Trans>
+          </span>
+          <span>{preview.skipped.map((row) => skipReasonLabels[row.reason]).join(', ')}</span>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function PreviewList({
+  label,
+  rows,
+}: {
+  label: ReactNode
+  rows: RuleBulkImpactPreview['jurisdictionCounts']
+}) {
+  return (
+    <div className="flex flex-col gap-1 text-text-secondary">
+      <span className="font-medium">{label}</span>
+      <span>
+        {rows
+          .slice(0, 6)
+          .map((row) => `${row.key} ${row.count}`)
+          .join(' · ')}
+      </span>
+    </div>
+  )
+}
+
+function BulkSectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      {children}
+    </p>
   )
 }
 

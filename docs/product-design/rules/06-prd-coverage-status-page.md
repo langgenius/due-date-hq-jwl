@@ -208,18 +208,21 @@ As of 2026-05-20, completed source packs enforced by
 `NH`, `NJ`, `NM`, `NY`, `NC`, `ND`, `OH`, `OK`, `OR`, `PA`, `RI`, `SC`, `SD`,
 `TN`, `TX`, `UT`, `VT`, `VA`, `WA`, `WV`, `WI`, and `WY`.
 
-No writes. This page is a pure read.
+The Coverage map itself is read-oriented. In `/rules/library`, opening
+`Review pending rules` turns the same surface into the pending review
+workspace; single-rule accept/reject and selected bulk accept write through
+the existing rules review procedures.
 
 Dependent data:
 
-- The PENDING / SOURCES drill destinations rely on Library's `?jur=`
-  and Sources's `?jur=` URL state. Source-gap drill may also pass
-  `?domain=` so Sources filters to the cited source domain.
-- The entity-dot drill relies on Library's `?entity=` URL state
-  (nuqs-backed) AND on `filterRules` honoring entity applicability. Coverage
-  itself is computed server-side from active concrete rules and pending /
-  source-defined review rows; `any_business` maps to business entities only,
-  not individual or trust.
+- The PENDING drill destination relies on Rule Library's `?filter=pending&q=`
+  Coverage state. The SOURCES drill still uses Sources's `?jur=` URL state,
+  and source-gap drill may also pass `?domain=` so Sources filters to the cited
+  source domain.
+- Entity-cell drill filters the Rule Library Coverage map instead of opening a
+  standalone Rule List. Coverage itself is computed server-side from active
+  concrete rules and pending / source-defined review rows; `any_business` maps
+  to business entities only, not individual or trust.
 
 ## 7. User journeys
 
