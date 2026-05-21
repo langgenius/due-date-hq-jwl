@@ -16,7 +16,7 @@ AI 包不导入数据库，也不负责最终业务写入。server 调用 AI 后
 | `packages/ai/src/guard.ts`     | mapper 和 pulse output guard                            |
 | `packages/ai/src/pii.ts`       | migration input redaction                               |
 | `packages/ai/src/trace.ts`     | trace shape                                             |
-| `packages/ai/src/budget.ts`    | 按 firm/plan/task 的隐藏 fair-use 计数                  |
+| `packages/ai/src/budget.ts`    | 生产环境按 firm/plan/task 的隐藏 fair-use 计数          |
 | `packages/ai/src/retriever.ts` | retrieval 占位                                          |
 | `packages/ai/src/router.ts`    | plan tier 与 prompt task 的模型路由                     |
 
@@ -176,7 +176,7 @@ flowchart TB
 
 | Plan       | 行为                                                                         |
 | ---------- | ---------------------------------------------------------------------------- |
-| Solo       | 轻量功能面和较低隐藏 fair-use；首次成功导入前 fast-json 走 onboarding 模型。 |
+| Solo       | 轻量功能面和较低生产 fair-use；首次成功导入前 fast-json 走 onboarding 模型。 |
 | Pro        | 完整 practice AI 功能；fast-json 走 paid preview 模型。                      |
 | Team       | 与 Pro 相同 AI 功能；fast-json 同 Pro，差异来自席位和运营能力。              |
 | Enterprise | 定制 coverage、BYOK/provider 选项和审计级控制；默认 fast-json 同 Pro。       |
@@ -187,11 +187,12 @@ Prompt 的 `model_tier` 选择 `AI_GATEWAY_MODEL_FAST_JSON`、
 `AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING`，首次成功导入 clients 后使用
 `AI_GATEWAY_MODEL_FAST_JSON_SOLO`；Pro / Team / Enterprise 使用
 `AI_GATEWAY_MODEL_FAST_JSON_PAID`。未配置 override 时回退到
-`AI_GATEWAY_MODEL_FAST_JSON`。Plan 同时继续控制功能可用性和 fair-use 额度。
+`AI_GATEWAY_MODEL_FAST_JSON`。Plan 同时继续控制功能可用性和生产 fair-use 额度；本地
+`ENV=development` 与测试 `ENV=staging` 跳过 fair-use KV 计数，便于验证真实 AI workflow。
 
 ## 后续演进关注点
 
-- 实现 budget policy，按 firm/feature/date 控制 AI 成本。
+- 继续扩展 production budget policy，按 firm/feature/date 控制 AI 成本。
 - 实现 model routing，把 prompt 任务和 provider/model 选择解耦。
 - 实现 retriever 后，需要明确 citation、source cache 和 evidence link 的关系。
 - 为每个 prompt 增加 fixture tests，覆盖 schema invalid、guard reject、provider failure。

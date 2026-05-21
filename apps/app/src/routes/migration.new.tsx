@@ -29,7 +29,7 @@ export function MigrationNewRoute() {
   const reviewRules = () => {
     const target = new URL('/rules/library', 'http://duedatehq.local')
     target.searchParams.set('view', 'rules')
-    target.searchParams.set('library', 'pending_review')
+    target.searchParams.set('library', 'applicability_review')
     if (ruleReviewJurisdictions.length === 1) {
       target.searchParams.set('jur', ruleReviewJurisdictions[0]!)
     }

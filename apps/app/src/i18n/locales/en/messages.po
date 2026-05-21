@@ -792,6 +792,10 @@ msgstr "Active practice summary"
 msgid "Active rule"
 msgstr "Active rule"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rules"
+msgstr "Active rules"
+
 #: src/routes/account.security.tsx
 msgid "Active sessions"
 msgstr "Active sessions"
@@ -898,10 +902,6 @@ msgstr "AI concrete draft could not be generated."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
 msgstr "AI concrete draft is not ready."
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "AI concrete draft is still generating."
-msgstr "AI concrete draft is still generating."
 
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
@@ -2945,6 +2945,10 @@ msgstr "Due this week"
 msgid "Due-date extension"
 msgstr "Due-date extension"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Due-date review"
+msgstr "Due-date review"
+
 #: src/routes/billing.checkout.tsx
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ does not store card numbers or invoice payment data."
@@ -3600,10 +3604,6 @@ msgstr "Generate document list"
 #: src/routes/migration.new.tsx
 msgid "Generate your first deadline list."
 msgstr "Generate your first deadline list."
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Generating concrete due-date logic for review…"
-msgstr "Generating concrete due-date logic for review…"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generating your deadline list"
@@ -4740,6 +4740,10 @@ msgstr "No"
 #: src/routes/practice.tsx
 msgid "No active practice is selected."
 msgstr "No active practice is selected."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No active rules for this jurisdiction."
+msgstr "No active rules for this jurisdiction."
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
@@ -8552,6 +8556,11 @@ msgstr "This rule allows an extension."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule does not allow an extension."
 msgstr "This rule does not allow an extension."
+
+#. placeholder {0}: rule.jurisdiction
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
+msgstr "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."

@@ -25,10 +25,15 @@ creation to bootstrap Rules Library coverage.
   generate obligations.
 - Added a post-onboarding activation prompt on `/migration/new` when selected
   jurisdictions include source-defined rules; the prompt links to Rule Library's
-  pending review queue.
+  applicability-review rule list.
 - Corrected accepted concrete-draft version handling so accepting one
   source-defined rule does not re-add the older template version to the pending
   review count.
+- Kept active source-defined rules out of the pending count; they stay active
+  while their detail panel exposes the due-date review action.
+- Added active rules to the Coverage expanded jurisdiction detail, alongside
+  pending rules and watched sources, with a due-date review chip for active
+  source-defined rules.
 - Wrote `rules.onboarding_activated` audit metadata with selected states,
   activated jurisdictions, activation count, skipped count, review-required
   count, review-required jurisdictions, and generated obligation count.
@@ -38,8 +43,13 @@ creation to bootstrap Rules Library coverage.
 - `pnpm --filter @duedatehq/contracts test -- --run src/contracts.test.ts`
 - `pnpm --filter @duedatehq/server test -- --run src/procedures/rules/onboarding-activation.test.ts`
 - `pnpm --filter @duedatehq/app test -- --run src/routes/onboarding-firm-flow.test.ts src/features/onboarding/state-rule-activation-selector.test.tsx`
+- `pnpm --filter @duedatehq/app test -- --run src/features/rules/coverage-tab.test.tsx`
+- `pnpm --filter @duedatehq/app exec tsc --noEmit`
 - `pnpm --filter @duedatehq/app i18n:extract`
 - `pnpm --filter @duedatehq/app i18n:compile`
+- Playwright render check against local `/rules/library` with mocked rules RPC
+  data: expanded California row showed active rules, pending rules, watched
+  sources, and the source-defined due-date review chip.
 - `pnpm test`
 - `pnpm check`
 - Playwright render check against local `@duedatehq/app` dev server with mocked

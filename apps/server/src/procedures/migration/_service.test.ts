@@ -687,6 +687,9 @@ function buildScopedRepo(firmId: string) {
     filingProfiles: unusedFilingProfilesRepo(firmId),
     ai: {
       firmId,
+      async findSuccessfulRun() {
+        return null
+      },
       async recordRun(input) {
         const aiOutputId = `ai-output-${aiRuns.length + 1}`
         aiRuns.push({ kind: input.kind, aiOutputId })
