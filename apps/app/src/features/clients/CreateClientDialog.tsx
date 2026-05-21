@@ -169,13 +169,30 @@ export function CreateClientDialog({
   entityLabels,
   isPending,
   onCreate,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
 }: {
   entityLabels: Record<ClientEntityType, string>
   isPending: boolean
   onCreate: (input: ClientCreateInput, callbacks: { onSuccess: () => void }) => void
+  // Allow callers (e.g. CreateObligationDialog) to drive the open/close
+  // state externally. When `open` is provided, internal state is
+  // ignored; when omitted, the dialog manages itself.
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  // Hide the built-in "+ New client" trigger button when an external
+  // caller wants to open the dialog programmatically without showing
+  // the chrome.
+  hideTrigger?: boolean
 }) {
   const { t } = useLingui()
-  const [open, setOpen] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = (next: boolean) => {
+    if (controlledOpen === undefined) setUncontrolledOpen(next)
+    onOpenChange?.(next)
+  }
   const clientFormSchema = useMemo(() => createClientFormSchema(t), [t])
   const form = useForm({
     defaultValues: defaultClientFormValues,
@@ -222,10 +239,12 @@ export function CreateClientDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button type="button" />}>
-        <PlusIcon data-icon="inline-start" />
-        <Trans>New client</Trans>
-      </DialogTrigger>
+      {hideTrigger ? null : (
+        <DialogTrigger render={<Button type="button" />}>
+          <PlusIcon data-icon="inline-start" />
+          <Trans>New client</Trans>
+        </DialogTrigger>
+      )}
       <DialogContent className="w-160 max-w-[calc(100vw-2rem)]">
         <DialogHeader>
           <DialogTitle>
