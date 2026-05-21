@@ -27,16 +27,12 @@ test('AC: E2E-AUTH-SHELL renders the protected dashboard shell', async ({
 
   await expect(authenticatedPage).toHaveURL(/\/$/)
   await expect(appShellPage.primaryNavigation).toBeVisible()
-  await expect(appShellPage.dashboardLink).toHaveAttribute('aria-current', 'page')
+  await expect(appShellPage.todayLink).toHaveAttribute('aria-current', 'page')
   await expect(
     appShellPage.primaryNavigation.getByRole('link', { name: /^Calendar$/ }),
   ).toHaveCount(0)
-  // Pass-1 spec-alignment dropped the "Deadline risk workbench" hero and the
-  // "Due this week" / "Priority list" headings; the dashboard now leads with
-  // "Today {date}" followed by the priority tabs. Anchor on the surviving
-  // header and tabs to confirm the workbench rendered.
-  await expect(authenticatedPage.getByText('Today', { exact: true }).first()).toBeVisible()
-  await expect(authenticatedPage.getByRole('tab', { name: /This Week/ })).toBeVisible()
+  await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
+  await expect(authenticatedPage.getByRole('region', { name: 'Actions this week' })).toBeVisible()
   await expect(appShellPage.importClientsButton).toBeVisible()
 })
 
@@ -54,17 +50,24 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   // verify the per-area entries plus the navigation-mode items still seeded.
   await Promise.all(
     [
-      'Dashboard',
+      'Today',
       'Obligations',
+      'Reminders',
       'Calendar sync',
       'Notifications',
       'Team workload',
       'Clients',
+      'Opportunities',
       'Practice profile',
+      'Coverage',
+      'Sources',
       'Rule library',
+      'Pulse',
+      'Temporary rules',
       'Members',
       'Billing',
       'Audit log',
+      'Settings',
     ].map((label) => expect(appShellPage.commandItem(label)).toBeVisible()),
   )
   await expect(appShellPage.commandDialog.getByText('Calendar', { exact: true })).toHaveCount(0)

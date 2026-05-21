@@ -6614,10 +6614,6 @@ msgstr "Refreshing the AI mapping"
 msgid "Regenerate"
 msgstr "Regenerate"
 
-#: src/routes/obligations.tsx
-msgid "Regenerate list"
-msgstr "Regenerate list"
-
 #: src/features/calendar/calendar-page.tsx
 msgid "Regenerate URL"
 msgstr "Regenerate URL"

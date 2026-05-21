@@ -57,8 +57,8 @@ test.describe('seeded team workload', () => {
     await expectWorkloadCells(workloadPage.rowFor('Unassigned'), [
       /Unassigned/,
       '1',
-      '1',
       '0',
+      '1',
       '0',
       '0',
       'Risk',

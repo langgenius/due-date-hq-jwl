@@ -84,7 +84,7 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
   }
 
   const existing = await scoped.readiness.listDocumentChecklistByObligation(obligation.id)
-  if (existing.length > 0 && !input.regenerate) {
+  if (existing.length > 0) {
     return {
       checklist: toPublicDocumentChecklist(existing),
       degraded: false,
@@ -100,28 +100,17 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
     entityType: client.entityType,
     jurisdiction: obligation.jurisdiction ?? client.state,
   })
-  const rows = input.regenerate
-    ? await scoped.readiness.replaceTemplateDocumentChecklist({
-        obligationInstanceId: obligation.id,
-        createdByUserId: userId,
-        items: template.map((item, index) => ({
-          id: crypto.randomUUID(),
-          label: item.label,
-          description: item.description,
-          sortOrder: index,
-        })),
-      })
-    : await scoped.readiness.createDocumentChecklistItems({
-        obligationInstanceId: obligation.id,
-        createdByUserId: userId,
-        items: template.map((item, index) => ({
-          id: crypto.randomUUID(),
-          label: item.label,
-          description: item.description,
-          source: 'template' as const,
-          sortOrder: index,
-        })),
-      })
+  const rows = await scoped.readiness.createDocumentChecklistItems({
+    obligationInstanceId: obligation.id,
+    createdByUserId: userId,
+    items: template.map((item, index) => ({
+      id: crypto.randomUUID(),
+      label: item.label,
+      description: item.description,
+      source: 'template' as const,
+      sortOrder: index,
+    })),
+  })
   return {
     checklist: toPublicDocumentChecklist(rows),
     degraded: false,

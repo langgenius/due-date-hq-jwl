@@ -395,9 +395,6 @@ function buildScopedRepo(input: {
       async createDocumentChecklistItems() {
         return unused('readiness.createDocumentChecklistItems')
       },
-      async replaceTemplateDocumentChecklist() {
-        return unused('readiness.replaceTemplateDocumentChecklist')
-      },
       async updateDocumentChecklistItem() {
         return unused('readiness.updateDocumentChecklistItem')
       },

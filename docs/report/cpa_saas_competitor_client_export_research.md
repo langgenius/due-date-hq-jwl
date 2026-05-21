@@ -481,18 +481,18 @@ Work Item,Client,Work Type,Primary Status,Assignee,Start Date,Due Date,Deadline 
 
 ```json
 {
-  "ContactKey": "3Nb8jKpL5tQR",
+  "ContactKey": "contact-key-example",
   "FirstName": "John",
   "LastName": "Smith",
   "FullName": "John Smith",
   "ContactType": "Individual",
   "BusinessCards": [
     {
-      "BusinessCardKey": "4mWxYqN7rZPK",
+      "BusinessCardKey": "business-card-key-example",
       "EntityType": "Contact",
-      "EntityKey": "3Nb8jKpL5tQR",
+      "EntityKey": "contact-key-example",
       "IsPrimaryCard": true,
-      "OrganizationKey": "7wPqXnT4mBjK",
+      "OrganizationKey": "organization-key-example",
       "RoleOrTitle": "Owner",
       "EmailAddresses": ["john@abcllc.com"],
       "PhoneNumbers": [
@@ -545,7 +545,7 @@ Karbon API 可以列出和下载与 Work、Contacts、Organizations 相关的文
 
 ```json
 {
-  "EntityKey": "3bXVhdMHgc9P",
+  "EntityKey": "work-item-key-example",
   "EntityType": "WorkItem",
   "Attachments": [
     {

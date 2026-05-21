@@ -5,12 +5,22 @@ const marketingBaseURL = process.env.E2E_MARKETING_BASE_URL ?? 'http://127.0.0.1
 const marketingPort = new URL(marketingBaseURL).port || '4321'
 const usesExternalTarget = Boolean(process.env.E2E_BASE_URL)
 const reuseExistingServer = Boolean(process.env.E2E_REUSE_EXISTING_SERVER)
+const shellQuote = (value: string) => `'${value.replaceAll("'", "'\\''")}'`
+const wranglerPersistTo =
+  process.env.E2E_WRANGLER_PERSIST_TO ??
+  `${process.env.RUNNER_TEMP ?? '/tmp'}/duedatehq-e2e-wrangler-${process.pid}`
+const wranglerPersistArg = `--persist-to ${shellQuote(wranglerPersistTo)}`
 
 const localWorkerCommand = [
   'pnpm --filter @duedatehq/app build',
-  'pnpm --dir apps/server exec wrangler d1 migrations apply DB --local --config wrangler.toml',
+  [
+    'pnpm --dir apps/server exec wrangler d1 migrations apply DB --local',
+    wranglerPersistArg,
+    '--config wrangler.toml',
+  ].join(' '),
   [
     'pnpm --dir apps/server exec wrangler dev --local --ip 127.0.0.1 --port 8787',
+    wranglerPersistArg,
     '--var AI_GATEWAY_PROVIDER_API_KEY:',
     '--var AI_GATEWAY_API_KEY:',
     '--var STRIPE_SECRET_KEY:stripe_e2e_secret',

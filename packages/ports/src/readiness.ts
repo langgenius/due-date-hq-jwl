@@ -95,16 +95,6 @@ export interface ReadinessRepo {
       note?: string | null
     }>
   }): Promise<ReadinessDocumentChecklistItemRow[]>
-  replaceTemplateDocumentChecklist(input: {
-    obligationInstanceId: string
-    createdByUserId: string
-    items: Array<{
-      id: string
-      label: string
-      description: string | null
-      sortOrder: number
-    }>
-  }): Promise<ReadinessDocumentChecklistItemRow[]>
   updateDocumentChecklistItem(input: {
     id: string
     label?: string

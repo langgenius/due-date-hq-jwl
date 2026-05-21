@@ -7,8 +7,8 @@ of an AI-generated client-answer checklist.
   1120-S, 1120, 1041, payroll/941, 1099, FBAR/foreign, 990, sales/use tax, and generic fallback.
 - Added `obligation_readiness_checklist_item` with template/custom source, missing/received/
   needs-review status, notes, ordering, and received metadata.
-- Updated readiness procedures so generate is idempotent, regenerate replaces only template items,
-  custom items are preserved, and add/update/delete are first-class API actions.
+- Updated readiness procedures so generate is idempotent, existing CPA-edited lists are returned as
+  is, and add/update/delete are first-class API actions.
 - Made open obligation readiness derive from the internal checklist before falling back to legacy
   portal responses.
 - Updated Obligation detail Readiness UI for document received checkboxes, custom item editing, and

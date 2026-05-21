@@ -11,13 +11,14 @@ export class RulesConsolePage {
   readonly libraryTab: Locator
 
   constructor(readonly page: Page) {
-    this.libraryTab = page.getByRole('link', { name: /^Rule library$/ })
+    this.libraryTab = page
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
   }
 
   async goto() {
-    // Landing on /rules/coverage auto-expands the Rules nav group, so the
-    // child links are immediately reachable without an extra click.
-    await this.page.goto('/rules/coverage')
+    // Coverage now lives as the default view inside the merged Rule library.
+    await this.page.goto('/rules/library?view=matrix')
   }
 
   async gotoPreview() {

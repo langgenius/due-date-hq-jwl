@@ -192,44 +192,6 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       return this.listDocumentChecklistByObligation(input.obligationInstanceId)
     },
 
-    async replaceTemplateDocumentChecklist(input: {
-      obligationInstanceId: string
-      createdByUserId: string
-      items: Array<{
-        id: string
-        label: string
-        description: string | null
-        sortOrder: number
-      }>
-    }) {
-      await assertObligationsInFirm([input.obligationInstanceId])
-      await db
-        .delete(obligationReadinessChecklistItem)
-        .where(
-          and(
-            eq(obligationReadinessChecklistItem.firmId, firmId),
-            eq(obligationReadinessChecklistItem.obligationInstanceId, input.obligationInstanceId),
-            eq(obligationReadinessChecklistItem.source, 'template'),
-          ),
-        )
-      if (input.items.length > 0) {
-        await db.insert(obligationReadinessChecklistItem).values(
-          input.items.map((item) => ({
-            id: item.id,
-            firmId,
-            obligationInstanceId: input.obligationInstanceId,
-            label: item.label,
-            description: item.description,
-            source: 'template' as const,
-            status: 'missing' as const,
-            sortOrder: item.sortOrder,
-            createdByUserId: input.createdByUserId,
-          })),
-        )
-      }
-      return this.listDocumentChecklistByObligation(input.obligationInstanceId)
-    },
-
     async updateDocumentChecklistItem(input: {
       id: string
       label?: string

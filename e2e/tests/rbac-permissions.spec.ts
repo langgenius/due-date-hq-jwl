@@ -50,7 +50,11 @@ test.describe('role permission surfaces', () => {
       await expect(authenticatedPage.getByRole('button', { name: 'Export' })).toBeDisabled()
 
       await appShellPage.goto()
-      await authenticatedPage.getByRole('button', { name: 'Review', exact: true }).click()
+      await authenticatedPage
+        .getByRole('button', {
+          name: /Review Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+        })
+        .click()
       const drawer = authenticatedPage.getByRole('dialog')
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
@@ -68,7 +72,7 @@ test.describe('role permission surfaces', () => {
     }) => {
       await appShellPage.goto()
 
-      await expect(authenticatedPage.getByText('Hidden by role').first()).toBeVisible()
+      await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
       await expect(appShellPage.importClientsButton).toBeDisabled()
 
       await auditPage.goto()

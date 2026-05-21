@@ -14,13 +14,13 @@ export class ClientsPage {
   readonly filteredEmptyState: Locator
 
   constructor(readonly page: Page) {
-    this.directoryTitle = page.getByRole('heading', { name: 'Client facts' })
+    this.directoryTitle = page.getByRole('heading', { name: 'Clients' })
     this.toolbar = page.locator('[data-slot="card-header"]').filter({
-      has: page.getByText('Search, segment, and inspect the filing facts'),
+      has: page.getByRole('button', { name: /^Client(?:\s+\d+)?$/ }),
     })
-    this.clientFilter = this.toolbar.getByRole('button', { name: 'Client', exact: true })
-    this.entityFilter = this.toolbar.getByRole('button', { name: 'Entity', exact: true })
-    this.stateFilter = this.toolbar.getByRole('button', { name: 'State', exact: true })
+    this.clientFilter = this.toolbar.getByRole('button', { name: /^Client(?:\s+\d+)?$/ })
+    this.entityFilter = this.toolbar.getByRole('button', { name: /^Entity(?:\s+\d+)?$/ })
+    this.stateFilter = this.toolbar.getByRole('button', { name: /^State(?:\s+\d+)?$/ })
     this.newClientButton = page.getByRole('button', { name: 'New client' })
     this.createDialog = page.getByRole('dialog', { name: 'Create client' })
     this.createClientButton = this.createDialog.getByRole('button', { name: 'Create client' })

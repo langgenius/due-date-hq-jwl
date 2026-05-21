@@ -92,7 +92,6 @@ export type ClientReadinessRequestPublic = z.infer<typeof ClientReadinessRequest
 
 export const ReadinessGenerateChecklistInputSchema = z.object({
   obligationId: EntityIdSchema,
-  regenerate: z.boolean().optional(),
 })
 export type ReadinessGenerateChecklistInput = z.infer<typeof ReadinessGenerateChecklistInputSchema>
 

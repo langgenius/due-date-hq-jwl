@@ -6614,10 +6614,6 @@ msgstr "正在刷新 AI 映射"
 msgid "Regenerate"
 msgstr "重新生成"
 
-#: src/routes/obligations.tsx
-msgid "Regenerate list"
-msgstr "重新生成清单"
-
 #: src/features/calendar/calendar-page.tsx
 msgid "Regenerate URL"
 msgstr "重新生成 URL"

@@ -305,8 +305,8 @@ Structured reviewer notes and blocking issues for prep/review workflow.
 
 Internal CPA-facing document checklist for one obligation. Generated deterministically from
 `tax_type` / `form_name` / `obligation_type` / entity and jurisdiction context, then editable by the
-CPA. This table is the primary readiness source for open obligations; custom rows are preserved when
-template rows are regenerated.
+CPA. This table is the primary readiness source for open obligations; once generated, CPA edits and
+custom rows become the source of truth rather than being overwritten by template generation.
 
 | 字段                                                                                       | 备注                                                             |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |

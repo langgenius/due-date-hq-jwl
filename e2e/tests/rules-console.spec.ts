@@ -22,22 +22,20 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   // dedicated route renders the expected content.
   await rulesConsolePage.goto()
 
-  await expect(authenticatedPage).toHaveURL(/\/rules\/coverage$/)
-  // The Coverage KPI strip uses canonical terminology: "Active rules" and
-  // "Needs review" (renamed from "Pending review" in the rules library merge).
-  await expect(authenticatedPage.getByText('Active rules', { exact: true })).toBeVisible()
-  await expect(authenticatedPage.getByText('Needs review', { exact: true })).toBeVisible()
+  await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
+  await expect(authenticatedPage.getByText('active', { exact: true })).toBeVisible()
+  await expect(authenticatedPage.getByText('needs review', { exact: true })).toBeVisible()
 
   await authenticatedPage.goto('/rules/sources')
   await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
   await authenticatedPage.getByRole('button', { name: /^Watched\s+\d+$/ }).click()
   await expect(
-    authenticatedPage.getByText('IRS Publication 509 (2026), Tax Calendars'),
+    authenticatedPage.getByText('Alabama DOR Individual Income Tax Return Filing FAQ'),
   ).toBeVisible()
 
   await rulesConsolePage.libraryTab.click()
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
-  await authenticatedPage.getByRole('button', { name: /^Needs review\s+\d+$/ }).click()
+  await authenticatedPage.getByRole('button', { name: /^\d+\s+needs review$/ }).click()
   await expect(
     authenticatedPage.getByText('al.individual_income_return.candidate.2026'),
   ).toBeVisible()
@@ -49,7 +47,11 @@ test('AC: E2E-RULES-DETAIL opens a shipped rule detail drawer', async ({
 }) => {
   await rulesConsolePage.goto()
   await rulesConsolePage.libraryTab.click()
-  await authenticatedPage.getByRole('button', { name: /^Needs review\s+\d+$/ }).click()
+  const needsReviewButton = authenticatedPage.getByRole('button', {
+    name: /^\d+\s+needs review$/,
+  })
+  await expect(needsReviewButton).toBeVisible({ timeout: 15_000 })
+  await needsReviewButton.click()
   await authenticatedPage
     .getByRole('button', {
       name: /Open rule detail: Alabama individual income tax return applicability/,
@@ -61,7 +63,7 @@ test('AC: E2E-RULES-DETAIL opens a shipped rule detail drawer', async ({
       name: 'Alabama individual income tax return applicability',
     }),
   ).toBeVisible()
-  await expect(authenticatedPage.getByText('Due date logic')).toBeVisible()
+  await expect(authenticatedPage.getByText('Due date', { exact: true })).toBeVisible()
   await expect(authenticatedPage.getByText('Evidence', { exact: true })).toBeVisible()
 })
 
