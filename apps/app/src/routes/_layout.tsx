@@ -8,6 +8,7 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 
 import { AppShell } from '@/components/patterns/app-shell'
 import { KeyboardProvider } from '@/components/patterns/keyboard-shell'
+import { ClientDrawerProvider } from '@/features/clients/ClientDrawerProvider'
 import { EvidenceDrawerProvider } from '@/features/evidence/EvidenceDrawerProvider'
 import { ObligationDrawerProvider } from '@/features/obligations/ObligationDrawerProvider'
 import { PracticeTimezoneProvider } from '@/features/firm/practice-timezone'
@@ -106,14 +107,16 @@ function RootLayoutShell({
           <EvidenceDrawerProvider>
             <PulseDrawerProvider>
               <ObligationDrawerProvider>
-                <AppShell
-                  user={user}
-                  firm={firm}
-                  firms={firmsQuery.data ?? [firm]}
-                  route={route}
-                  themePreference={themePreference}
-                  switchThemePreference={switchThemePreference}
-                />
+                <ClientDrawerProvider>
+                  <AppShell
+                    user={user}
+                    firm={firm}
+                    firms={firmsQuery.data ?? [firm]}
+                    route={route}
+                    themePreference={themePreference}
+                    switchThemePreference={switchThemePreference}
+                  />
+                </ClientDrawerProvider>
               </ObligationDrawerProvider>
             </PulseDrawerProvider>
           </EvidenceDrawerProvider>

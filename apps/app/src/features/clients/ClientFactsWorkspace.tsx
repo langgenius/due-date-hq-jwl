@@ -87,6 +87,7 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
@@ -1037,6 +1038,7 @@ export function ClientDetailWorkspace({
           })}
           actions={
             <>
+              <CreateObligationDialog defaultClientId={client.id} />
               <Button
                 variant="outline"
                 size="sm"
@@ -1428,7 +1430,7 @@ function FilingPlanYearSection({
   )
 }
 
-function ClientAlertsBand({
+export function ClientAlertsBand({
   pulseMatches,
   readiness,
   extensionPaymentMismatches,

@@ -159,6 +159,7 @@ import { buildAuditChangeView, type AuditChangeView } from '@/features/audit/aud
 import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { useClientDrawer } from '@/features/clients/ClientDrawerProvider'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import {
   extensionDecisionEvidenceDescription,
@@ -3198,6 +3199,10 @@ export function ObligationQueueDetailDrawer({
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  // ClientDrawer hook lets the "Open client detail" link peek a
+  // client in place instead of navigating away. See
+  // ClientDrawerProvider.tsx.
+  const { openDrawer: openClientDrawer } = useClientDrawer()
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -3702,22 +3707,25 @@ export function ObligationQueueDetailDrawer({
                 ) : null}
               </p>
             ) : null}
-            {/* Cross-link the drawer to the client detail page —
-                without this the drawer is a dead-end on the most-
-                traversed entity. Gate on clientName as a presence
-                signal: if the queue payload didn't resolve the
-                client (orphaned obligation, missing seed, deleted
-                record) the link would 404 silently. Inline note
-                replaces the link so users still know the gap is
-                in the data, not the link. */}
+            {/* Cross-link the drawer to the client — opens the
+                ClientDetailDrawer (slim glance form) over the
+                obligation drawer, preserving queue context. Before
+                this hook existed, clicking "Open client detail"
+                navigated to /clients/[id] and dropped the queue +
+                obligation context. Now the click is a peek; the
+                drawer's own "Open full page" CTA promotes to the
+                canonical workspace if the user actually wants to
+                dive. Gate on clientName as a presence signal:
+                orphaned obligations show an inline note instead. */}
             {row?.clientId && row.clientName ? (
-              <Link
-                to={`/clients/${row.clientId}`}
+              <button
+                type="button"
+                onClick={() => openClientDrawer(row.clientId)}
                 className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Open client detail</Trans>
                 <ArrowUpRightIcon aria-hidden className="size-3" />
-              </Link>
+              </button>
             ) : row?.clientId ? (
               <p className="mt-2 text-xs italic text-text-tertiary">
                 <Trans>Client record missing — obligation may be orphaned.</Trans>
