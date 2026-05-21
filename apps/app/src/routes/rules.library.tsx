@@ -6,8 +6,8 @@ import { ChevronRightIcon, LibraryIcon, MapIcon } from 'lucide-react'
 import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type { RuleCoverageRow, RuleJurisdiction } from '@duedatehq/contracts'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
@@ -106,19 +106,28 @@ export function RulesLibraryRoute() {
       <div className="flex flex-col gap-3">
         <CoverageSummaryStrip onDrillIn={(filter, jur) => switchToList(filter, jur)} />
         <SourcesSummaryStrip />
+        {/* Segmented control replaces the old "View all rules →" button.
+          Per docs/Design/ux-audit-2026-05-21.md P1: the button read as
+          "navigate elsewhere," not "switch view." A real segmented
+          control with two same-weight options signals "two ways to look
+          at the same data." */}
         <div className="flex items-center justify-end">
-          {view === 'matrix' ? (
-            <Button variant="outline" size="sm" onClick={() => switchView('rules')}>
-              <LibraryIcon data-icon="inline-start" />
-              <Trans>View all rules</Trans>
-              <ChevronRightIcon data-icon="inline-end" />
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => switchView('matrix')}>
-              <MapIcon data-icon="inline-start" />
-              <Trans>Back to coverage map</Trans>
-            </Button>
-          )}
+          <Tabs
+            value={view}
+            onValueChange={(next) => switchView(next as LibraryView)}
+            className="gap-0"
+          >
+            <TabsList>
+              <TabsTrigger value="matrix">
+                <MapIcon data-icon="inline-start" />
+                <Trans>Coverage map</Trans>
+              </TabsTrigger>
+              <TabsTrigger value="rules">
+                <LibraryIcon data-icon="inline-start" />
+                <Trans>Rule list</Trans>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
       {view === 'matrix' ? (

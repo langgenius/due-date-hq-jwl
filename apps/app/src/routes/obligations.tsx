@@ -146,6 +146,8 @@ import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
+import { KbdHint } from '@/components/patterns/kbd'
+import { useCurrentUserName } from '@/lib/use-current-user-name'
 import {
   TableHeaderMultiFilter,
   tableHeaderFilterTrigger,
@@ -707,6 +709,11 @@ export function ObligationQueueRoute() {
   const practiceAiEnabled = paidPlanActive(permission.firm)
   const { openEvidence } = useEvidenceDrawer()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  // Current user's display name — used by the Owner column to label
+  // "yours" via a tiny chip on the row. Per
+  // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
+  // impossible without "is this mine."
+  const currentUserName = useCurrentUserName()
   // Hybrid detail-panel mode. At xl+ a selected row opens the panel
   // inline beside the queue (non-modal, no scrim) so users can J/K
   // through rows and the panel content swaps in place. Below xl the
@@ -982,16 +989,14 @@ export function ObligationQueueRoute() {
 
   const updateStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: () => {
+        // Cache invalidation only — the per-call onSuccess (wired in
+        // `updateStatus` below) owns the toast so it can attach the
+        // contextual Undo action with the previous status closed over.
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
-        // Show a short audit reference so the user has an immediately
-        // checkable "did this write to audit?" answer (Day 3 acceptance).
-        toast.success(t`Status updated`, {
-          description: t`Audit ${result.auditId.slice(0, 8)}`,
-        })
       },
       onError: (err) => {
         toast.error(t`Couldn't update status`, {
@@ -1140,10 +1145,33 @@ export function ObligationQueueRoute() {
   }, [])
 
   const updateStatus = useCallback(
-    (input: { id: string; status: ObligationStatus }) => {
-      updateStatusMutation.mutate(input)
+    (input: { id: string; status: ObligationStatus }, previousStatus: ObligationStatus) => {
+      // Per-call onSuccess closes over `previousStatus` so the toast
+      // can offer Undo. Wiring this here (instead of in
+      // `mutationOptions.onSuccess`) is what lets the Undo action exist
+      // — the base callback doesn't have access to the prior state.
+      // See docs/Design/ux-audit-2026-05-21.md P1: destructive moves
+      // need a safety net.
+      updateStatusMutation.mutate(input, {
+        onSuccess: (result) => {
+          const canUndo = previousStatus !== input.status
+          toast.success(t`Status updated`, {
+            description: t`Audit ${result.auditId.slice(0, 8)}`,
+            ...(canUndo
+              ? {
+                  action: {
+                    label: t`Undo`,
+                    onClick: () => {
+                      updateStatusMutation.mutate({ id: input.id, status: previousStatus })
+                    },
+                  },
+                }
+              : {}),
+          })
+        },
+      })
     },
-    [updateStatusMutation],
+    [updateStatusMutation, t],
   )
   const statusUpdatePending = updateStatusMutation.isPending || bulkStatusMutation.isPending
   const changeSort = useCallback(
@@ -1256,16 +1284,81 @@ export function ObligationQueueRoute() {
               </span>
             )
           }
+          // Smart-priority dot — tiny 6px tone-coded marker to the left
+          // of the client name. Per docs/Design/ux-audit-2026-05-21.md
+          // P1: smart_priority is the default sort but invisible. The
+          // dot signals "this row ranks high" without adding a column.
+          // Only renders when score >= 25 (info or higher) so low-
+          // priority rows stay quiet.
+          const score = tableRow.original.smartPriority.score
+          const rank = tableRow.original.smartPriority.rank
+          const priorityTone =
+            score >= 70
+              ? 'bg-text-destructive'
+              : score >= 45
+                ? 'bg-text-warning'
+                : score >= 25
+                  ? 'bg-state-accent-solid'
+                  : null
           return (
-            <span
-              className="line-clamp-2 text-[13px] font-semibold text-text-primary"
-              title={tableRow.original.clientName}
-            >
-              {tableRow.original.clientName}
+            <span className="flex items-start gap-1.5">
+              {priorityTone ? (
+                <span
+                  aria-hidden
+                  title={
+                    rank
+                      ? t`Smart Priority ${score.toFixed(1)} · rank #${rank}`
+                      : t`Smart Priority ${score.toFixed(1)}`
+                  }
+                  className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', priorityTone)}
+                />
+              ) : null}
+              <span
+                className="line-clamp-2 text-[13px] font-semibold text-text-primary"
+                title={tableRow.original.clientName}
+              >
+                {tableRow.original.clientName}
+              </span>
             </span>
           )
         },
         meta: { cellClassName: 'min-w-[200px] max-w-[280px] align-top' },
+      },
+      {
+        // Owner column — surfaces who's on the hook for this row. Per
+        // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47
+        // assigned rows is impossible without "is this mine?" The
+        // existing assignee facet filter helps once you know to
+        // filter; this column answers the question at-a-glance with
+        // no filter step.
+        accessorKey: 'assigneeName',
+        id: 'assigneeName',
+        header: () => <span>{t`Owner`}</span>,
+        cell: ({ row: tableRow }) => {
+          const owner = tableRow.original.assigneeName
+          if (!owner) {
+            return <span className="text-xs italic text-text-tertiary">{t`Unassigned`}</span>
+          }
+          const isMine =
+            currentUserName !== null && owner.trim().toLowerCase() === currentUserName.toLowerCase()
+          return (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-xs',
+                isMine ? 'text-text-primary' : 'text-text-secondary',
+              )}
+              title={isMine ? t`Assigned to you` : owner}
+            >
+              {isMine ? (
+                <span className="rounded-sm bg-state-accent-hover px-1 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-accent">
+                  {t`You`}
+                </span>
+              ) : null}
+              <span className="line-clamp-1">{owner}</span>
+            </span>
+          )
+        },
+        meta: { cellClassName: 'min-w-[140px] max-w-[200px] align-top' },
       },
       {
         accessorKey: 'clientState',
@@ -1485,7 +1578,7 @@ export function ObligationQueueRoute() {
                 labels={statusLabels}
                 statuses={statusDropdownOptions}
                 disabled={statusUpdatePending}
-                onChange={(id, status) => updateStatus({ id, status })}
+                onChange={(id, status) => updateStatus({ id, status }, obligationQueueRow.status)}
               />
               {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                 <BlockedByChip
@@ -1514,6 +1607,7 @@ export function ObligationQueueRoute() {
       clientOptions,
       clientQuery,
       continuationRowIds,
+      currentUserName,
       daysMax,
       daysMin,
       filtersDisabled,
@@ -1662,7 +1756,7 @@ export function ObligationQueueRoute() {
       ) {
         return
       }
-      updateStatus({ id: activeRow.id, status })
+      updateStatus({ id: activeRow.id, status }, activeRow.status)
     },
     [activeRow, statusUpdatePending, updateStatus],
   )
@@ -2215,7 +2309,13 @@ export function ObligationQueueRoute() {
               </kbd>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              {appliedFilterChips.length >= 2 ? (
+              {/* Threshold dropped from >=2 to >=1 per
+                docs/Design/ux-audit-2026-05-21.md P1 — a single
+                non-obvious filter (e.g. state=CA set via the header
+                dropdown) is no more discoverable than two, and hiding
+                the chip makes the filter feel "stuck on" without
+                explanation. */}
+              {appliedFilterChips.length >= 1 ? (
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-tertiary">
                   <span className="uppercase tracking-wider">
                     <Trans>Applied</Trans>
@@ -3132,6 +3232,30 @@ function ObligationQueueDetailDrawer({
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  // Inline mode (xl+ viewport) renders as an `<aside>` next to the queue
+  // — no Sheet wrapper means no built-in Esc handler. Wire it explicitly
+  // here so the back-out contract matches modal mode. Per
+  // docs/Design/ux-audit-2026-05-21.md P0 #4: three viewports must share
+  // the same close semantics.
+  useAppHotkey(
+    'Escape',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      event.preventDefault()
+      onClose()
+    },
+    {
+      enabled: mode === 'inline' && obligationId !== null,
+      requireReset: true,
+      meta: {
+        id: 'obligations.drawer-close',
+        name: 'Close obligation detail',
+        description: 'Close the inline obligation detail panel.',
+        category: 'obligations',
+        scope: 'route',
+      },
+    },
+  )
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -3588,9 +3712,26 @@ function ObligationQueueDetailDrawer({
       <header className="flex flex-col gap-1.5 border-b border-divider-subtle px-6 py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold text-text-primary">
-              {titleText ?? <Trans>Obligation detail</Trans>}
-            </h2>
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-base font-semibold text-text-primary">
+                {titleText ?? <Trans>Obligation detail</Trans>}
+              </h2>
+              {/* Inline mode needs its own X — Sheet provides one in
+                modal mode but the aside has no built-in close. Per
+                docs/Design/ux-audit-2026-05-21.md P0 #4 the back-out
+                contract must match across viewports. */}
+              {mode === 'inline' ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={t`Close obligation detail`}
+                  title={t`Close · Esc`}
+                  className="inline-flex size-7 shrink-0 items-center justify-center rounded text-text-tertiary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <XIcon aria-hidden className="size-4" />
+                </button>
+              ) : null}
+            </div>
             {row ? (
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-tertiary">
                 <span className="font-medium text-text-primary">
@@ -3676,6 +3817,17 @@ function ObligationQueueDetailDrawer({
             </div>
           ) : null}
         </div>
+        {/* Visible keyboard hints — the queue + drawer are hotkey-rich
+          but the shortcuts were invisible until now. Per
+          docs/Design/ux-audit-2026-05-21.md P0 #7. */}
+        <KbdHint
+          className="mt-1"
+          items={[
+            { keys: ['j'], label: t`next row` },
+            { keys: ['k'], label: t`prev row` },
+            { keys: ['esc'], label: t`close` },
+          ]}
+        />
       </header>
       <div className="px-6 pb-6">
         {detailQuery.isLoading ? (

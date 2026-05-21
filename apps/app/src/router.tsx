@@ -113,6 +113,15 @@ function calendarAliasLoader() {
   throw redirect('/obligations/calendar')
 }
 
+// /rules/coverage → /rules/library, preserving ?rule=… and any other
+// query params for deep-link compatibility. The Coverage matrix is the
+// Library's default view, so this is a lossless URL collapse.
+function rulesCoverageAliasLoader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  const target = url.search ? `/rules/library${url.search}` : '/rules/library'
+  throw redirect(target)
+}
+
 // Only reachable when unauthenticated. If the session resolves, bounce to the
 // post-login target (honouring ?redirectTo=... but only for in-app paths).
 async function guestLoader(args: LoaderFunctionArgs) {
@@ -471,14 +480,13 @@ export function createAppRouter() {
               },
             },
             {
+              // /rules/coverage is now a permanent redirect to /rules/library.
+              // The Coverage view collapsed into the Library page as the
+              // default ?view=matrix; keeping the old URL alive preserves
+              // bookmarks and back-compat. Query params (e.g. `?rule=foo`)
+              // pass through untouched.
               path: 'rules/coverage',
-              handle: routeHandle(routeSummaries.rulesCoverage),
-              HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { RulesCoverageRoute } = await import('@/routes/rules.coverage')
-
-                return { Component: RulesCoverageRoute }
-              },
+              loader: rulesCoverageAliasLoader,
             },
             {
               path: 'rules/sources',

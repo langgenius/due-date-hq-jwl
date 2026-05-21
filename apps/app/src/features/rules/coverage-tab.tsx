@@ -37,6 +37,7 @@ import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
+import { KbdHint } from '@/components/patterns/kbd'
 import { orpc } from '@/lib/rpc'
 import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
@@ -422,18 +423,13 @@ export function CoverageTab({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Stats strip + entry CTA — unmounted entirely in review mode.
-        Stats are uniformly passive summary text (no click on any of
-        them — making one clickable while the others aren't would
-        violate visual-affordance consistency). The action lives in
-        the dedicated `StartReviewCTA` button below. */}
-      {!panelOpen ? (
-        <div className="flex flex-col gap-3">
-          <StatsStrip stats={stats} attentionCount={sourcesNeedingAttention} />
-          {firstPendingRule ? (
-            <StartReviewCTA pendingCount={stats.pending} onStartReview={startReview} />
-          ) : null}
-        </div>
+      {/* StatsStrip removed 2026-05-21 per docs/Design/ux-audit-2026-05-21.md
+        P0 #5 — the active/pending/jurisdiction counts already render in
+        `CoverageSummaryStrip` at the page top (drillable). Repeating
+        them here read as "this designer hasn't decided." The
+        StartReviewCTA stays because it's an action, not a stat. */}
+      {!panelOpen && firstPendingRule ? (
+        <StartReviewCTA pendingCount={stats.pending} onStartReview={startReview} />
       ) : null}
 
       <section className="flex flex-col gap-3">
@@ -619,59 +615,9 @@ function aggregateStats(
   }
 }
 
-/**
- * Stats strip — passive summary, no chrome. Plain inline text:
- * bold number + muted label, separated by generous whitespace.
- * The pill-shaped gray boxes the previous iteration used felt heavy
- * for what is just four read-only counts; stripping them down to
- * text-only keeps the data prominent without competing with the
- * table below for visual weight.
- */
-function StatsStrip({ stats, attentionCount }: { stats: Stats; attentionCount: number }) {
-  const jurTooltip =
-    stats.jurisdictions === 52
-      ? 'All 50 US states + District of Columbia + Federal (IRS). Every jurisdiction the practice can file in.'
-      : `${stats.jurisdictions} tracked jurisdictions in this practice.`
-  const jurLabel = stats.jurisdictions === 52 ? 'All US jurisdictions' : 'Jurisdictions'
-  return (
-    <div className="flex flex-wrap items-baseline gap-x-7 gap-y-2">
-      <Stat
-        value={String(stats.active)}
-        label="Active rules"
-        tooltip="Rules approved by your practice and generating client obligations."
-      />
-      <Stat
-        value={String(stats.pending)}
-        label="rules pending approval"
-        tooltip="Rule templates awaiting practice review — only the owner or a manager can accept or reject."
-      />
-      <Stat
-        value={`${stats.sourcesWorking}/${stats.sourcesTotal}`}
-        label="sources working"
-        tooltip={
-          attentionCount > 0
-            ? `${stats.sourcesWorking} watched documents healthy; ${attentionCount} need a human check (the watcher flagged a change it couldn't auto-verify).`
-            : `All ${stats.sourcesTotal} watched documents are healthy.`
-        }
-      />
-      <Stat
-        value={String(stats.missingSources)}
-        label="source gaps"
-        tooltip="Required jurisdiction, domain, and entity source cells that do not have an official source registered yet."
-      />
-      <Stat value={String(stats.jurisdictions)} label={jurLabel} tooltip={jurTooltip} />
-    </div>
-  )
-}
-
-function Stat({ value, label, tooltip }: { value: string; label: string; tooltip: string }) {
-  return (
-    <span title={tooltip} className="inline-flex cursor-help items-baseline gap-1.5 text-sm">
-      <span className="font-semibold tabular-nums text-text-primary">{value}</span>
-      <span className="text-text-tertiary">{label}</span>
-    </span>
-  )
-}
+// StatsStrip + Stat removed 2026-05-21 — counts now live in the page-
+// level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
+// See docs/Design/ux-audit-2026-05-21.md P0 #5.
 
 /**
  * Primary entry point for reviewing pending rules. Sits right under
@@ -1463,6 +1409,21 @@ function RulePanel({
           </div>
         </div>
         <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{rule.title}</h3>
+        {/* Visible hotkey hints — replaces the title-attribute-only
+          hints that nobody discovered. Per docs/Design/ux-audit-2026-05-21.md
+          P0 #7: the product has good hotkeys nobody knew about. */}
+        <KbdHint
+          className="mt-1"
+          items={[
+            ...(onSkip
+              ? [
+                  { keys: ['j'], label: t`next` },
+                  { keys: ['k'], label: t`prev` },
+                ]
+              : []),
+            { keys: ['esc'], label: t`exit` },
+          ]}
+        />
       </header>
       {/* keyed by rule.id so React mounts a fresh subtree per rule;
         the `animate-in fade-in` (Tailwind animate) plays a quick

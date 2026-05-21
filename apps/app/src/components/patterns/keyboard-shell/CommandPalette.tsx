@@ -137,7 +137,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         description: t`Review per-jurisdiction rule coverage by entity.`,
         group: 'navigate',
         icon: MapIcon,
-        onSelect: () => navigate('/rules/coverage'),
+        // Canonical URL is /rules/library; ?view=matrix selects the
+        // coverage view by default. The /rules/coverage alias still
+        // resolves but adds a redirect hop.
+        onSelect: () => navigate('/rules/library?view=matrix'),
       },
       {
         id: 'rules-sources',

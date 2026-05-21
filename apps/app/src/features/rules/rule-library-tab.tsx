@@ -214,9 +214,10 @@ export function RuleLibraryTab() {
 
   const handleRuleSelect = useCallback(
     (rule: ObligationRule) => {
-      // Canonical rule detail lives inline in Coverage; deep-link there
-      // instead of opening a one-off drawer.
-      void navigate(`/rules/coverage?rule=${encodeURIComponent(rule.id)}`)
+      // Canonical rule detail lives inline in the Rule library's
+      // Coverage view. /rules/coverage is now a redirect alias so we
+      // navigate to the canonical /rules/library URL directly.
+      void navigate(`/rules/library?view=matrix&rule=${encodeURIComponent(rule.id)}`)
     },
     [navigate],
   )
