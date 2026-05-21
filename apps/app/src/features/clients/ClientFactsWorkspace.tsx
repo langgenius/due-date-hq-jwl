@@ -92,6 +92,7 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
 
+import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
 
 import {
@@ -1098,6 +1099,15 @@ export function ClientDetailWorkspace({
               isLoading={obligationsQuery.isLoading}
               summary={workPlan}
             />
+
+            {/* Compliance posture — surfaces the EIN value, tax-year
+              type + fiscal year end, owner counts, engagement date,
+              and the five filing-activity booleans. The booleans
+              drive obligation generation server-side but were
+              previously invisible to the CPA. Read-only for now;
+              edit flow deferred until a generic clients.update
+              mutation lands. See docs/Design/client-page-information-architecture.md. */}
+            <ClientCompliancePosturePanel client={client} />
 
             <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
 
