@@ -7433,9 +7433,17 @@ msgstr "无法加载安全设置"
 msgid "Select {0}"
 msgstr "选择 {0}"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Select all"
+msgstr "全选"
+
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Select all eligible obligations"
 msgstr "选择全部可应用义务"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Select all states"
+msgstr "选择全部州"
 
 #: src/routes/obligations.tsx
 msgid "Select all visible rows"

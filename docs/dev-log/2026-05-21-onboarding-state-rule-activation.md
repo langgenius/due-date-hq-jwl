@@ -8,6 +8,8 @@ creation to bootstrap Rules Library coverage.
 
 - Added an onboarding-specific state selector with the migrated tile-grid US
   layout, fixed-size state buttons, `aria-pressed`, and selected-state chips.
+- Added a select-all control so practices can activate every state in one
+  action.
 - Extended the onboarding firm flow so a newly created practice activates rules
   for `FED + selected states`. Empty state selection is allowed and skips rule
   activation.

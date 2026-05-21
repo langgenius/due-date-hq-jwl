@@ -2,7 +2,7 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { RuleGenerationState } from '@duedatehq/contracts'
+import { RuleGenerationStateValues, type RuleGenerationState } from '@duedatehq/contracts'
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
@@ -43,6 +43,13 @@ function stateButton(name: string): HTMLButtonElement {
   const button = document.querySelector(`button[aria-label="${name}"]`)
   expect(button).toBeInstanceOf(HTMLButtonElement)
   if (!(button instanceof HTMLButtonElement)) throw new Error(`Missing state button: ${name}`)
+  return button
+}
+
+function selectAllButton(): HTMLButtonElement {
+  const button = document.querySelector('button[aria-label="Select all states"]')
+  expect(button).toBeInstanceOf(HTMLButtonElement)
+  if (!(button instanceof HTMLButtonElement)) throw new Error('Missing select-all button')
   return button
 }
 
@@ -91,5 +98,21 @@ describe('StateRuleActivationSelector', () => {
     })
 
     expect(onChange).toHaveBeenCalledWith(['TX'])
+  })
+
+  it('emits all rule-generation states when select all is clicked', () => {
+    const { onChange } = renderSelector({ selected: ['CA'] })
+
+    act(() => {
+      selectAllButton().click()
+    })
+
+    expect(onChange).toHaveBeenCalledWith([...RuleGenerationStateValues])
+  })
+
+  it('disables select all once every state is selected', () => {
+    renderSelector({ selected: [...RuleGenerationStateValues] })
+
+    expect(selectAllButton().disabled).toBe(true)
   })
 })

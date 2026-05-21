@@ -7433,9 +7433,17 @@ msgstr "Security settings couldn't load"
 msgid "Select {0}"
 msgstr "Select {0}"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Select all"
+msgstr "Select all"
+
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Select all eligible obligations"
 msgstr "Select all eligible obligations"
+
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "Select all states"
+msgstr "Select all states"
 
 #: src/routes/obligations.tsx
 msgid "Select all visible rows"

@@ -33,6 +33,7 @@ const STATE_TILES = STATE_GRID.flatMap((row, rowIndex) =>
 )
 
 const RULE_GENERATION_STATE_SET = new Set<string>(RuleGenerationStateValues)
+const ALL_RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
 
 export interface StateRuleActivationSelectorProps {
   selected: readonly RuleGenerationState[]
@@ -47,6 +48,7 @@ export function StateRuleActivationSelector({
   const [hoverCode, setHoverCode] = useState<RuleGenerationState | null>(null)
   const selectedSet = useMemo(() => new Set(selected), [selected])
   const hoveredLabel = hoverCode ? jurisdictionLabel(hoverCode) : null
+  const allStatesSelected = ALL_RULE_GENERATION_STATES.every((state) => selectedSet.has(state))
 
   function toggleState(code: RuleGenerationState) {
     if (selectedSet.has(code)) {
@@ -54,6 +56,10 @@ export function StateRuleActivationSelector({
       return
     }
     onChange([...selected, code])
+  }
+
+  function selectAllStates() {
+    onChange(ALL_RULE_GENERATION_STATES)
   }
 
   return (
@@ -69,9 +75,23 @@ export function StateRuleActivationSelector({
             </Trans>
           </p>
         </div>
-        <span className="shrink-0 rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-[11px] text-text-secondary tabular-nums">
-          {selected.length}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={selectAllStates}
+            disabled={allStatesSelected}
+            aria-label={t`Select all states`}
+            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-55 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <CheckIcon className="size-3.5" aria-hidden />
+            <span>
+              <Trans>Select all</Trans>
+            </span>
+          </button>
+          <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-[11px] text-text-secondary tabular-nums">
+            {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
+          </span>
+        </div>
       </div>
 
       {selected.length > 0 ? (
