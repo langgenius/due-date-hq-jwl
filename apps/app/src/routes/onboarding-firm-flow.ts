@@ -59,6 +59,14 @@ export function postOnboardingTarget(
   result: OnboardingFirmActivationResult,
   redirectTo: string,
 ): string {
-  if (result.kind === 'created') return ONBOARDING_MIGRATION_TARGET
+  if (result.kind === 'created') {
+    const target = new URL(ONBOARDING_MIGRATION_TARGET, 'http://duedatehq.local')
+    const activation = result.ruleActivation
+    if (activation && activation.reviewRequiredCount > 0) {
+      target.searchParams.set('ruleReview', String(activation.reviewRequiredCount))
+      target.searchParams.set('ruleReviewJur', activation.reviewRequiredJurisdictions.join(','))
+    }
+    return `${target.pathname}${target.search}`
+  }
   return redirectTo
 }

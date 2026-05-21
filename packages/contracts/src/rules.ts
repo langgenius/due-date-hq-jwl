@@ -536,6 +536,8 @@ export const RuleOnboardingActivationOutputSchema = z.object({
   jurisdictions: z.array(RuleJurisdictionSchema),
   activatedCount: z.number().int().nonnegative(),
   skippedCount: z.number().int().nonnegative(),
+  reviewRequiredCount: z.number().int().nonnegative(),
+  reviewRequiredJurisdictions: z.array(RuleJurisdictionSchema),
   generatedObligationCount: z.number().int().nonnegative(),
 })
 export type RuleOnboardingActivationOutput = z.infer<typeof RuleOnboardingActivationOutputSchema>

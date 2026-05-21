@@ -1444,6 +1444,8 @@ describe('@duedatehq/contracts', () => {
       jurisdictions: ['FED', 'CA', 'TX'],
       activatedCount: 42,
       skippedCount: 1,
+      reviewRequiredCount: 3,
+      reviewRequiredJurisdictions: ['AK'],
       generatedObligationCount: 0,
     })
     expect(onboardingActivationOutput.jurisdictions).toEqual(['FED', 'CA', 'TX'])

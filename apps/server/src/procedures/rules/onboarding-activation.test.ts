@@ -9,6 +9,7 @@ import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   activateOnboardingJurisdictionRules,
   isOnboardingActivatableRule,
+  isPracticeRuleBehindTemplate,
   onboardingActivationJurisdictions,
 } from './index'
 
@@ -65,13 +66,19 @@ describe('onboarding rule activation', () => {
     expect(onboardingActivationJurisdictions(['CA', 'TX', 'CA'])).toEqual(['FED', 'CA', 'TX'])
   })
 
-  it('keeps deprecated templates out of onboarding auto-activation', () => {
+  it('keeps only deprecated templates out of onboarding auto-activation', () => {
     expect(isOnboardingActivatableRule({ status: 'verified' })).toBe(true)
     expect(isOnboardingActivatableRule({ status: 'candidate' })).toBe(true)
     expect(isOnboardingActivatableRule({ status: 'deprecated' })).toBe(false)
   })
 
-  it('forces FED and selected-state rules active, including source-defined candidates', async () => {
+  it('does not treat accepted concrete drafts as stale template reviews', () => {
+    expect(isPracticeRuleBehindTemplate({ practiceVersion: 1, templateVersion: 2 })).toBe(true)
+    expect(isPracticeRuleBehindTemplate({ practiceVersion: 1, templateVersion: 1 })).toBe(false)
+    expect(isPracticeRuleBehindTemplate({ practiceVersion: 2, templateVersion: 1 })).toBe(false)
+  })
+
+  it('activates FED and selected-state rules while reporting source-defined review needs', async () => {
     const { scoped, upsertPracticeRule, decideReviewTask, writeAudit } = makeScoped()
     const generateObligations = vi.fn(async () => ({
       candidateCount: 0,
@@ -91,16 +98,22 @@ describe('onboarding rule activation', () => {
       generateObligations,
     })
 
-    const expectedRules = listObligationRules({ includeCandidates: true }).filter(
+    const matchingRules = listObligationRules({ includeCandidates: true }).filter(
       (rule) =>
-        (rule.jurisdiction === 'FED' || rule.jurisdiction === 'CA' || rule.jurisdiction === 'TX') &&
-        rule.status !== 'deprecated',
+        rule.jurisdiction === 'FED' || rule.jurisdiction === 'CA' || rule.jurisdiction === 'TX',
+    )
+    const expectedRules = matchingRules.filter(isOnboardingActivatableRule)
+    const expectedReviewRules = expectedRules.filter(
+      (rule) => rule.dueDateLogic.kind === 'source_defined_calendar',
     )
 
     expect(result).toMatchObject({
       selectedStates: ['CA', 'TX'],
       jurisdictions: ['FED', 'CA', 'TX'],
       activatedCount: expectedRules.length,
+      skippedCount: matchingRules.length - expectedRules.length,
+      reviewRequiredCount: expectedReviewRules.length,
+      reviewRequiredJurisdictions: ['FED', 'CA', 'TX'],
       generatedObligationCount: 0,
     })
     expect(ensureCatalog).toHaveBeenCalledOnce()
@@ -116,7 +129,7 @@ describe('onboarding rule activation', () => {
             status: 'verified',
           }),
           expect.objectContaining({
-            id: 'ca.llc.568.return.2025',
+            id: 'ca.llc.annual_tax.2026',
             status: 'verified',
           }),
         ]),
@@ -140,10 +153,53 @@ describe('onboarding rule activation', () => {
           selectedStates: ['CA', 'TX'],
           jurisdictions: ['FED', 'CA', 'TX'],
           activatedCount: expectedRules.length,
+          skippedCount: matchingRules.length - expectedRules.length,
+          reviewRequiredCount: expectedReviewRules.length,
+          reviewRequiredJurisdictions: ['FED', 'CA', 'TX'],
           generatedObligationCount: 0,
         }),
       }),
     )
+  })
+
+  it('activates Alaska source-defined rules and reports them for due-date review', async () => {
+    const { scoped, upsertPracticeRule, decideReviewTask } = makeScoped()
+    const generateObligations = vi.fn(async () => ({
+      candidateCount: 0,
+      createdCount: 0,
+      duplicateCount: 0,
+      clientCount: 0,
+    }))
+
+    const result = await activateOnboardingJurisdictionRules({
+      scoped,
+      userId: USER_ID,
+      internalDeadlineOffsetDays: 14,
+      states: ['AK'],
+      now: REVIEWED_AT,
+      generateObligations,
+    })
+
+    const matchingRules = listObligationRules({ includeCandidates: true }).filter(
+      (rule) => rule.jurisdiction === 'FED' || rule.jurisdiction === 'AK',
+    )
+    const expectedRules = matchingRules.filter(isOnboardingActivatableRule)
+    const expectedReviewRules = expectedRules.filter(
+      (rule) => rule.dueDateLogic.kind === 'source_defined_calendar',
+    )
+
+    expect(result).toMatchObject({
+      selectedStates: ['AK'],
+      jurisdictions: ['FED', 'AK'],
+      activatedCount: expectedRules.length,
+      skippedCount: matchingRules.length - expectedRules.length,
+      reviewRequiredCount: expectedReviewRules.length,
+      reviewRequiredJurisdictions: ['FED', 'AK'],
+    })
+    expect(upsertPracticeRule.mock.calls.some(([input]) => input.ruleId.startsWith('ak.'))).toBe(
+      true,
+    )
+    expect(decideReviewTask.mock.calls.some(([input]) => input.ruleId.startsWith('ak.'))).toBe(true)
   })
 
   it('returns an empty summary without writes when no states are selected', async () => {
@@ -162,6 +218,8 @@ describe('onboarding rule activation', () => {
       jurisdictions: [],
       activatedCount: 0,
       skippedCount: 0,
+      reviewRequiredCount: 0,
+      reviewRequiredJurisdictions: [],
       generatedObligationCount: 0,
     })
     expect(upsertPracticeRule).not.toHaveBeenCalled()
