@@ -138,4 +138,37 @@ describe('makeAiRepo', () => {
     expect(fake.select).toHaveBeenCalledTimes(1)
     expect(fake.orderBy).toHaveBeenCalledTimes(1)
   })
+
+  it('batches context ref lookups to stay under D1 SQL variable limits', async () => {
+    const generatedAt = new Date('2026-05-21T09:00:00.000Z')
+    const fake = createListDb([
+      {
+        id: 'ai-output-1',
+        firmId: 'firm-1',
+        userId: 'user-1',
+        kind: 'rule_concrete_draft',
+        promptVersion: 'rule-concrete-draft@v1',
+        model: 'test-model',
+        inputContextRef: 'rule:rule-1:source-1',
+        inputHash: 'hash-1',
+        outputText: '{"confidence":0.95}',
+        citations: { sourceId: 'source-1' },
+        guardResult: 'ok',
+        refusalCode: null,
+        generatedAt,
+      },
+    ])
+    const repo = makeAiRepo(fake.db, 'firm-1')
+    const refs = Array.from({ length: 205 }, (_, index) => `rule:rule-${index}:source-1`)
+
+    const rows = await repo.findSuccessfulRunsByContextRefs({
+      kind: 'rule_concrete_draft',
+      inputContextRefs: refs,
+      promptVersion: 'rule-concrete-draft@v1',
+    })
+
+    expect(rows).toHaveLength(1)
+    expect(fake.select).toHaveBeenCalledTimes(3)
+    expect(fake.orderBy).toHaveBeenCalledTimes(3)
+  })
 })

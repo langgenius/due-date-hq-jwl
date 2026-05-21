@@ -7,6 +7,8 @@ import type {
 import type { Db } from '../client'
 import { aiOutput, llmLog } from '../schema/ai'
 
+const SUCCESSFUL_RUN_CONTEXT_REF_BATCH_SIZE = 90
+
 export type AiOutputKind =
   | 'brief'
   | 'tip'
@@ -81,35 +83,54 @@ export function makeAiRepo(db: Db, firmId: string) {
     async findSuccessfulRunsByContextRefs(
       input: FindSuccessfulAiRunsByContextRefsInput,
     ): Promise<AiOutputRow[]> {
-      if (input.inputContextRefs.length === 0) return []
-      const rows = await db
-        .select({
-          id: aiOutput.id,
-          firmId: aiOutput.firmId,
-          userId: aiOutput.userId,
-          kind: aiOutput.kind,
-          promptVersion: aiOutput.promptVersion,
-          model: aiOutput.model,
-          inputContextRef: aiOutput.inputContextRef,
-          inputHash: aiOutput.inputHash,
-          outputText: aiOutput.outputText,
-          citations: aiOutput.citationsJson,
-          guardResult: aiOutput.guardResult,
-          refusalCode: aiOutput.refusalCode,
-          generatedAt: aiOutput.generatedAt,
-        })
-        .from(aiOutput)
-        .where(
-          and(
-            eq(aiOutput.firmId, firmId),
-            eq(aiOutput.kind, input.kind),
-            inArray(aiOutput.inputContextRef, [...input.inputContextRefs]),
-            eq(aiOutput.promptVersion, input.promptVersion),
-            eq(aiOutput.guardResult, 'ok'),
-            isNotNull(aiOutput.outputText),
+      const inputContextRefs = Array.from(new Set(input.inputContextRefs))
+      if (inputContextRefs.length === 0) return []
+
+      const batches: string[][] = []
+      for (
+        let start = 0;
+        start < inputContextRefs.length;
+        start += SUCCESSFUL_RUN_CONTEXT_REF_BATCH_SIZE
+      ) {
+        batches.push(inputContextRefs.slice(start, start + SUCCESSFUL_RUN_CONTEXT_REF_BATCH_SIZE))
+      }
+
+      const rows = (
+        await Promise.all(
+          batches.map((batch) =>
+            db
+              .select({
+                id: aiOutput.id,
+                firmId: aiOutput.firmId,
+                userId: aiOutput.userId,
+                kind: aiOutput.kind,
+                promptVersion: aiOutput.promptVersion,
+                model: aiOutput.model,
+                inputContextRef: aiOutput.inputContextRef,
+                inputHash: aiOutput.inputHash,
+                outputText: aiOutput.outputText,
+                citations: aiOutput.citationsJson,
+                guardResult: aiOutput.guardResult,
+                refusalCode: aiOutput.refusalCode,
+                generatedAt: aiOutput.generatedAt,
+              })
+              .from(aiOutput)
+              .where(
+                and(
+                  eq(aiOutput.firmId, firmId),
+                  eq(aiOutput.kind, input.kind),
+                  inArray(aiOutput.inputContextRef, batch),
+                  eq(aiOutput.promptVersion, input.promptVersion),
+                  eq(aiOutput.guardResult, 'ok'),
+                  isNotNull(aiOutput.outputText),
+                ),
+              )
+              .orderBy(desc(aiOutput.generatedAt)),
           ),
         )
-        .orderBy(desc(aiOutput.generatedAt))
+      ).flat()
+
+      rows.sort((a, b) => b.generatedAt.getTime() - a.generatedAt.getTime())
 
       const latestByContext = new Map<string, AiOutputRow>()
       for (const row of rows) {
