@@ -68,12 +68,30 @@ export function ClientDrawerProvider({ children }: { children: ReactNode }) {
     [openDrawer, closeDrawer, localClientId],
   )
 
-  return (
-    <ClientDrawerContext.Provider value={value}>
-      {children}
-      <ClientDetailDrawer clientId={localClientId} onClose={closeDrawer} />
-    </ClientDrawerContext.Provider>
-  )
+  // IMPORTANT: do NOT mount `<ClientDetailDrawer>` here as a sibling
+  // of `{children}`. The drawer's body uses `useObligationDrawer()`
+  // (through `ClientSummaryStrip`), and the obligations provider is
+  // nested INSIDE this provider per `apps/app/src/routes/_layout.tsx`.
+  // Mounting the drawer at this level puts it OUTSIDE the obligations
+  // provider — the hook throws "must be used within
+  // ObligationDrawerProvider" the moment the drawer first opens.
+  //
+  // Instead, render `<ClientDrawerMount />` somewhere inside both
+  // providers (the layout already does this). It consumes this
+  // context via `useClientDrawer()` and renders the actual sheet.
+  return <ClientDrawerContext.Provider value={value}>{children}</ClientDrawerContext.Provider>
+}
+
+/**
+ * Mount point for the client detail sheet. Render this somewhere
+ * inside both `<ClientDrawerProvider>` AND `<ObligationDrawerProvider>`
+ * (typically the app shell tree). The drawer reads its open state
+ * from `useClientDrawer()` so callers anywhere in the app can drive
+ * it without prop-drilling.
+ */
+export function ClientDrawerMount() {
+  const { clientId, closeDrawer } = useClientDrawer()
+  return <ClientDetailDrawer clientId={clientId} onClose={closeDrawer} />
 }
 
 export function useClientDrawer(): ClientDrawerContextValue {

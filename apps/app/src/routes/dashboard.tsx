@@ -100,9 +100,12 @@ export function DashboardRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
-  // Open obligations in the shared drawer instead of navigating to
-  // the queue — matches the rest of the app's "peek without leaving"
-  // pattern. See ObligationDrawerProvider.
+  // Dashboard is a picker, not a workspace. Clicking an action
+  // calls openDrawer(id) which — because dashboard is NOT in the
+  // provider's routeOwnsPanel set — navigates to
+  // `/obligations?id=…&drawer=obligation`. The queue is the
+  // canonical workspace; dashboard's job is to send you there with
+  // the right obligation already selected.
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const [{ asOfDate, client, taxType, due, status: statusFilter, severity, exposure, evidence }] =
     useQueryStates(dashboardSearchParamsParsers)
@@ -190,9 +193,11 @@ export function DashboardRoute() {
           totalOpen={data?.summary?.openObligationCount ?? 0}
           canRunMigration={canRunMigration}
           onOpenWizard={openWizard}
-          // Review button → open the obligation drawer in place,
-          // matching the obligation-drawer pattern we ship from
-          // every other surface. Avoids a route change for a peek.
+          // Clicking an action navigates to the obligations queue with
+          // the right panel pre-opened for that obligation. The
+          // provider's openDrawer routes off-route callers to
+          // `/obligations?id=…&drawer=obligation` — dashboard is a
+          // picker, the queue is the workspace.
           onOpenObligation={(row) => openObligationDrawer(row.obligationId)}
           onOpenAllObligations={() => void navigate('/obligations')}
         />

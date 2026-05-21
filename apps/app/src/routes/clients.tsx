@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, FileClockIcon, FileSearchIcon } from 'lucide-react'
@@ -12,6 +12,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
+import { writeClientCycleList } from '@/features/clients/client-cycle'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import {
   buildClientObligationListSummaries,
@@ -172,6 +173,14 @@ export function ClientsRoute() {
     () => filterClients(clients, filters, { affectedClientIds }),
     [affectedClientIds, clients, filters],
   )
+
+  // Persist the visible client order to sessionStorage so the detail
+  // page can offer prev/next cycling across the current filter set.
+  // See features/clients/client-cycle.ts and the PageHeader arrows on
+  // ClientFactsWorkspace's detail render.
+  useEffect(() => {
+    writeClientCycleList(filteredClients.map((client) => client.id))
+  }, [filteredClients])
   const createMutation = useMutation(
     orpc.clients.create.mutationOptions({
       onSuccess: (client) => {

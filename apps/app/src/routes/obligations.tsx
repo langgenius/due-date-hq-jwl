@@ -38,6 +38,7 @@ import {
   CopyIcon,
   DownloadIcon,
   ExternalLinkIcon,
+  EyeIcon,
   FileArchiveIcon,
   FileSearchIcon,
   LinkIcon,
@@ -672,6 +673,12 @@ export function ObligationQueueRoute() {
   // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
   // impossible without "is this mine."
   const currentUserName = useCurrentUserName()
+  // Hover-revealed peek affordance on the Client cell opens the
+  // read-only client drawer in place — same pattern as `/clients`
+  // row peek (see ClientFactsWorkspace.tsx). One click into the
+  // client without leaving the queue or swapping the obligation
+  // drawer's content.
+  const { openDrawer: openClientPeekDrawer } = useClientDrawer()
   // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
   // page: dropdown shows 6 target states instead of legacy 10, and
   // `review` re-labels to "In review". See
@@ -1195,18 +1202,37 @@ export function ObligationQueueRoute() {
           // `isObligationQueueRowControlClick` treat it as a control
           // and the row would only focus, not open.
           return (
-            <span
-              onClick={handleClientNameClick}
-              onMouseDown={(event) => {
-                // Prevent text-selection drag from interfering with
-                // the shift-click range gesture.
-                if (event.shiftKey) event.preventDefault()
-              }}
-              className="line-clamp-2 text-xs font-medium text-text-primary"
-              title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
-            >
-              {tableRow.original.clientName}
-            </span>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span
+                onClick={handleClientNameClick}
+                onMouseDown={(event) => {
+                  // Prevent text-selection drag from interfering with
+                  // the shift-click range gesture.
+                  if (event.shiftKey) event.preventDefault()
+                }}
+                className="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-text-primary"
+                title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
+              >
+                {tableRow.original.clientName}
+              </span>
+              {/* Peek the client drawer in place — same pattern as the
+                  /clients list row peek. The button stops propagation
+                  so the row's obligation-drawer click still works for
+                  the rest of the cell. Visible on row hover, also on
+                  keyboard focus for accessibility. */}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  openClientPeekDrawer(tableRow.original.clientId)
+                }}
+                aria-label={t`Peek ${tableRow.original.clientName} details`}
+                title={t`Peek client details`}
+                className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <EyeIcon className="size-3.5" aria-hidden />
+              </button>
+            </div>
           )
         },
         meta: { cellClassName: 'min-w-[200px] max-w-[280px]' },
@@ -1560,6 +1586,7 @@ export function ObligationQueueRoute() {
       daysMax,
       daysMin,
       filtersDisabled,
+      openClientPeekDrawer,
       openHeaderFilter,
       openEvidence,
       panelOpenIntent,
@@ -2469,7 +2496,9 @@ export function ObligationQueueRoute() {
                           // clients and grouped-cluster rows stay
                           // horizontally aligned. Cluster rows
                           // override the color below.
-                          'cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+                          // `group` lets per-cell affordances (e.g. the
+                          // client peek icon) fade in on row hover.
+                          'group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                           tableRow.original.id === explicitActiveRowId && 'bg-state-base-hover',
                           // Within-group rows lose their bottom border so
                           // same-client filings weld into a single block.

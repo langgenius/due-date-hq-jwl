@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ChevronRightIcon } from 'lucide-react'
 
@@ -8,10 +8,17 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * A breadcrumb segment. Items with `to` render as links; items without
  * `to` (typically the last one) render as plain text. We leave the choice
  * to the caller so a sub-page can render the current page label inline.
+ *
+ * Callers that need to replace a segment with a custom interactive control
+ * (e.g. the client switcher dropdown on `/clients/[id]`) pass a `render`
+ * node. The breadcrumb component uses it in place of the default Link /
+ * span. `label` stays required because it's the aria fallback used by
+ * screen readers and the chevron-separator key.
  */
 export type BreadcrumbItem = {
   label: string
   to?: string
+  render?: ReactNode
 }
 
 /**
@@ -46,8 +53,11 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
     >
       {items.map((item, index) => {
         const isLast = index === items.length - 1
-        const node =
-          item.to && !isLast ? (
+        let node: ReactNode
+        if (item.render !== undefined) {
+          node = item.render
+        } else if (item.to && !isLast) {
+          node = (
             <Link
               to={item.to}
               title={index === parentIndex ? `Go back · ${shortcutHint}` : undefined}
@@ -55,11 +65,14 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
             >
               {item.label}
             </Link>
-          ) : (
+          )
+        } else {
+          node = (
             <span aria-current={isLast ? 'page' : undefined} className="text-text-tertiary">
               {item.label}
             </span>
           )
+        }
         return (
           <Fragment key={`${item.label}-${index}`}>
             {node}

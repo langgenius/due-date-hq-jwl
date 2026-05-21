@@ -168,6 +168,16 @@ export function buildPulseMatchesByClient(
 
 export type ClientObligationListSummary = {
   openCount: number
+  // `overdueCount` is rows where `daysUntilDue < 0` — past the
+  // statutory due date but not yet completed. Surfaces as the "At
+  // risk" action signal on the list page. (Blocked rows aren't
+  // fetched by the list route's `OPEN_OBLIGATION_STATUSES`, so we
+  // don't count them here; see docs/Design/clients-list-summary-strip-redesign.md.)
+  overdueCount: number
+  // Rows in `waiting_on_client` status — the CPA is blocked on
+  // information from the client. Surfaces as the "Waiting on client"
+  // action signal.
+  waitingOnClientCount: number
   nextDueDate: string | null
   nextTaxType: string | null
 }
@@ -178,16 +188,22 @@ export function buildClientObligationListSummaries(
   const byClient = new Map<string, ClientObligationListSummary>()
   for (const row of rows) {
     if (!OPEN_OBLIGATION_STATUSES.has(row.status)) continue
+    const isOverdue = row.daysUntilDue < 0
+    const isWaiting = row.status === 'waiting_on_client'
     const existing = byClient.get(row.clientId)
     if (!existing) {
       byClient.set(row.clientId, {
         openCount: 1,
+        overdueCount: isOverdue ? 1 : 0,
+        waitingOnClientCount: isWaiting ? 1 : 0,
         nextDueDate: row.currentDueDate,
         nextTaxType: row.taxType,
       })
       continue
     }
     existing.openCount += 1
+    if (isOverdue) existing.overdueCount += 1
+    if (isWaiting) existing.waitingOnClientCount += 1
     if (!existing.nextDueDate || row.currentDueDate < existing.nextDueDate) {
       existing.nextDueDate = row.currentDueDate
       existing.nextTaxType = row.taxType

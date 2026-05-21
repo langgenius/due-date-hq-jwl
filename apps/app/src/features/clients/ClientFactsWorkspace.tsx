@@ -1,11 +1,4 @@
-import {
-  type ComponentType,
-  type KeyboardEvent,
-  type ReactNode,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react'
+import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router'
 import {
@@ -24,10 +17,9 @@ import {
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
+  EyeIcon,
   ExternalLinkIcon,
-  FileInputIcon,
   FileSearchIcon,
-  MapPinnedIcon,
   PlusIcon,
   RefreshCwIcon,
   SparklesIcon,
@@ -43,6 +35,7 @@ import type {
   ObligationInstancePublic,
   ObligationRule,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -51,7 +44,6 @@ import {
   CollapsiblePanel,
   CollapsibleTrigger,
 } from '@duedatehq/ui/components/ui/collapsible'
-import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import {
@@ -82,25 +74,25 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { initialsFromName } from '@/lib/auth'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
-import { useCurrentFirm } from '@/features/billing/use-billing-data'
-import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
+import { ObligationQueueDetailDrawer } from '@/routes/obligations'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
 
+import { ClientBreadcrumbSwitcher } from './ClientBreadcrumbSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
+import { ClientCycleArrows } from './ClientCycleArrows'
+import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
 
 import {
-  CLIENT_ENTITY_TYPES,
-  CLIENT_PULSE_FILTERS,
-  CLIENT_READINESS_FILTERS,
-  CLIENT_SOURCE_FILTERS,
   CLIENT_UNASSIGNED_OWNER_FILTER,
   getClientFilingStates,
   getClientSourceType,
@@ -126,14 +118,6 @@ declare module '@tanstack/react-table' {
     headerClassName?: string
     cellClassName?: string
   }
-}
-
-type ClientMetric = {
-  label: string
-  value: string
-  detail: string
-  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-  tone: 'ready' | 'attention' | 'neutral'
 }
 
 type FilterOption = TableFilterOption
@@ -165,11 +149,6 @@ type ClientFactsWorkspaceProps = {
   canImport: boolean
 }
 
-const metricToneClassName = {
-  ready: 'bg-components-badge-bg-green-soft text-text-success',
-  attention: 'bg-components-badge-bg-warning-soft text-text-warning',
-  neutral: 'bg-background-section text-text-secondary',
-} satisfies Record<ClientMetric['tone'], string>
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
 
@@ -228,13 +207,45 @@ function DetailSection({
   )
 }
 
-function formatFilingJurisdictions(client: ClientPublic): string {
-  const states = getClientFilingStates(client)
-  if (states.length === 0) return 'N/A'
+/**
+ * Primary filing state — the marked-primary profile if present, else
+ * `client.state`, else the first filing-profile state. Returns null
+ * when the client has no jurisdiction facts at all (in which case
+ * readiness will surface "Needs filing state").
+ */
+function getPrimaryFilingState(client: ClientPublic): string | null {
   const primary = client.filingProfiles.find((profile) => profile.isPrimary)
-  const primaryCounty = primary?.counties[0] ?? client.county
-  const suffix = states.length > 1 ? ` +${states.length - 1}` : ''
-  return [states[0], primaryCounty].filter(Boolean).join(' / ') + suffix
+  if (primary?.state) return primary.state
+  if (client.state) return client.state
+  return client.filingProfiles[0]?.state ?? null
+}
+
+/**
+ * Filing states the client owes filings in *beyond* the primary
+ * jurisdiction. Used by the standalone "Other states" column so the
+ * primary state column stays a clean single-token.
+ */
+function getOtherFilingStates(client: ClientPublic): string[] {
+  const primary = getPrimaryFilingState(client)
+  return getClientFilingStates(client).filter((state) => state !== primary)
+}
+
+/**
+ * Count of unique tax-type services the practice manages for this
+ * client. Sums distinct tax codes across all filing profiles — a
+ * single 1065 in CA + a single 1065 in NY counts as one service
+ * (same form), so the number reads as scope-of-work, not row count.
+ * Differs from `openCount` (in-flight obligations) on purpose: a
+ * client can have 8 services and only 2 open this week.
+ */
+function getClientServicesCount(client: ClientPublic): number {
+  const taxTypes = new Set<string>()
+  for (const profile of client.filingProfiles) {
+    for (const taxType of profile.taxTypes) {
+      if (taxType) taxTypes.add(taxType)
+    }
+  }
+  return taxTypes.size
 }
 
 function ClientFilingStateChips({ client }: { client: ClientPublic }) {
@@ -328,20 +339,14 @@ export function ClientFactsWorkspace({
   entityLabels,
   isLoading,
   clientFilter,
-  entityFilter,
   stateFilter,
-  readinessFilter,
-  sourceFilter,
   ownerFilter,
-  pulseFilter,
   pulseMatchesByClient,
   obligationSummariesByClient,
   opportunityCountByClient,
   onClientFilterChange,
-  onEntityFilterChange,
   onStateFilterChange,
   onReadinessFilterChange,
-  onSourceFilterChange,
   onOwnerFilterChange,
   onPulseFilterChange,
   onImport,
@@ -349,63 +354,9 @@ export function ClientFactsWorkspace({
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const { currentFirm } = useCurrentFirm()
-  const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
+  const currentUserName = useCurrentUserName()
+  const { openDrawer: openClientDrawer } = useClientDrawer()
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
-  const metrics = useMemo<ClientMetric[]>(
-    () => [
-      {
-        label: t`Ready for rules`,
-        value: String(factsModel.summary.readyForRules),
-        detail: t`have jurisdiction facts`,
-        icon: ClipboardCheckIcon,
-        tone: 'ready',
-      },
-      {
-        label: t`Needs facts`,
-        value: String(factsModel.summary.needsFacts),
-        detail: t`missing rule inputs`,
-        icon: AlertTriangleIcon,
-        tone: factsModel.summary.needsFacts > 0 ? 'attention' : 'neutral',
-      },
-      {
-        label: t`Imported`,
-        value: String(factsModel.summary.imported),
-        detail: t`${factsModel.summary.manual} manual records`,
-        icon: FileInputIcon,
-        tone: 'neutral',
-      },
-      {
-        label: t`States covered`,
-        value: String(factsModel.summary.statesCovered),
-        detail: t`for Pulse matching`,
-        icon: MapPinnedIcon,
-        tone: 'neutral',
-      },
-    ],
-    [factsModel.summary, t],
-  )
-  const readinessLabels = useMemo<Record<ClientReadinessStatus, string>>(
-    () => ({
-      ready: t`Ready for rules`,
-      needs_facts: t`Needs facts`,
-    }),
-    [t],
-  )
-  const sourceLabels = useMemo<Record<ClientSourceType, string>>(
-    () => ({
-      imported: t`Imported`,
-      manual: t`Manual`,
-    }),
-    [t],
-  )
-  const pulseLabels = useMemo<Record<ClientPulseFilter, string>>(
-    () => ({
-      affected: t`Has Pulse alert`,
-      clear: t`No Pulse alert`,
-    }),
-    [t],
-  )
   const clientOptions = useMemo<FilterOption[]>(
     () =>
       clients
@@ -413,27 +364,6 @@ export function ClientFactsWorkspace({
         .toSorted((a, b) => a.label.localeCompare(b.label)),
     [clients],
   )
-  const readinessOptions = useMemo<FilterOption[]>(
-    () =>
-      CLIENT_READINESS_FILTERS.map((status) => ({
-        value: status,
-        label: readinessLabels[status],
-        count:
-          status === 'ready' ? factsModel.summary.readyForRules : factsModel.summary.needsFacts,
-      })).filter((option) => option.count > 0),
-    [factsModel.summary.needsFacts, factsModel.summary.readyForRules, readinessLabels],
-  )
-  const entityOptions = useMemo<FilterOption[]>(() => {
-    const counts = new Map<ClientEntityType, number>()
-    for (const client of clients) {
-      counts.set(client.entityType, (counts.get(client.entityType) ?? 0) + 1)
-    }
-    return CLIENT_ENTITY_TYPES.map((entityType) => ({
-      value: entityType,
-      label: entityLabels[entityType],
-      count: counts.get(entityType) ?? 0,
-    })).filter((option) => option.count > 0)
-  }, [clients, entityLabels])
   const stateOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>()
     for (const client of clients) {
@@ -447,24 +377,6 @@ export function ClientFactsWorkspace({
       count: counts.get(state) ?? 0,
     }))
   }, [clients, factsModel.stateOptions])
-  const sourceOptions = useMemo<FilterOption[]>(
-    () =>
-      CLIENT_SOURCE_FILTERS.map((source) => ({
-        value: source,
-        label: sourceLabels[source],
-        count: source === 'imported' ? factsModel.summary.imported : factsModel.summary.manual,
-      })).filter((option) => option.count > 0),
-    [factsModel.summary.imported, factsModel.summary.manual, sourceLabels],
-  )
-  const pulseOptions = useMemo<FilterOption[]>(() => {
-    const affectedCount = pulseMatchesByClient.size
-    const clearCount = Math.max(clients.length - affectedCount, 0)
-    return CLIENT_PULSE_FILTERS.map((value) => ({
-      value,
-      label: pulseLabels[value],
-      count: value === 'affected' ? affectedCount : clearCount,
-    })).filter((option) => option.count > 0)
-  }, [clients.length, pulseLabels, pulseMatchesByClient])
   const ownerOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>()
     const labels = new Map<string, string>()
@@ -489,66 +401,93 @@ export function ClientFactsWorkspace({
     setOpenHeaderFilter((current) => (nextOpen ? filterId : current === filterId ? null : current))
   }, [])
 
+  // Column order per the 2026-05-21 product review:
+  //
+  //   Client · Jurisdiction · Next due (date + form + readiness) ·
+  //   Other states · # Services · # Open · Owner (avatar) · Opportunities
+  //
+  // Source column was dropped — provenance trivia, not a reason to
+  // pick a row. The filter param + filter pipeline are still wired
+  // for deep links but no longer surface as a column header.
+  // Readiness chip moves from a standalone column into the Next due
+  // composite cell — see ClientsActionStrip's Needs facts banner for
+  // the actionable filter entry.
   const columns = useMemo<ColumnDef<ClientPublic>[]>(
     () => [
       {
         accessorKey: 'name',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Client`}
-            open={openHeaderFilter === 'client'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
-            options={clientOptions}
-            selected={clientFilter}
-            emptyLabel={t`No clients`}
-            searchable
-            searchPlaceholder={t`Search clients`}
-            onSelectedChange={onClientFilterChange}
-          />
-        ),
-        cell: ({ row }) => {
-          const matches = pulseMatchesByClient.get(row.original.id)
+        header: () => {
+          // Show the total client count next to the CLIENT label. When
+          // a filter is active and the visible subset differs from
+          // the total, surface both as "N / TOTAL"; otherwise the
+          // single number reads cleanly as scale-of-book.
+          const showSubset = filteredClients.length !== clients.length
           return (
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate font-medium text-text-primary">{row.original.name}</span>
-                {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
-              </div>
-              <span className="truncate text-xs text-text-tertiary">
-                {entityLabels[row.original.entityType]}
+            <div className="flex items-center gap-2">
+              <TableHeaderMultiFilter
+                trigger="header"
+                label={t`Client`}
+                open={openHeaderFilter === 'client'}
+                onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
+                options={clientOptions}
+                selected={clientFilter}
+                emptyLabel={t`No clients`}
+                searchable
+                searchPlaceholder={t`Search clients`}
+                onSelectedChange={onClientFilterChange}
+              />
+              <span
+                className="font-mono text-[11px] tabular-nums text-text-tertiary"
+                aria-label={
+                  showSubset
+                    ? t`${filteredClients.length} clients shown of ${clients.length} total`
+                    : t`${clients.length} clients`
+                }
+              >
+                {showSubset
+                  ? `${filteredClients.length} / ${clients.length}`
+                  : String(clients.length)}
               </span>
             </div>
           )
         },
-        meta: {
-          headerClassName: 'w-[260px]',
-          cellClassName: 'w-[260px]',
+        cell: ({ row }) => {
+          const matches = pulseMatchesByClient.get(row.original.id)
+          return (
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-medium text-text-primary">
+                    {row.original.name}
+                  </span>
+                  {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
+                </div>
+                <span className="truncate text-xs text-text-tertiary">
+                  {entityLabels[row.original.entityType]}
+                </span>
+              </div>
+              {/* Hover-revealed peek affordance: row click still goes to
+                  the full page; this opens the read-only drawer for a
+                  fast "is this the right client?" glance. ⌘-click on
+                  the row is also wired below for a power-user shortcut. */}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  openClientDrawer(row.original.id)
+                }}
+                aria-label={t`Peek ${row.original.name} details`}
+                title={t`Peek details (without leaving the list)`}
+                className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <EyeIcon className="size-4" aria-hidden />
+              </button>
+            </div>
+          )
         },
-      },
-      {
-        id: 'readiness',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Readiness`}
-            open={openHeaderFilter === 'readiness'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('readiness', nextOpen)}
-            options={readinessOptions}
-            selected={readinessFilter}
-            emptyLabel={t`No readiness states`}
-            onSelectedChange={onReadinessFilterChange}
-          />
-        ),
-        cell: ({ row }) => (
-          <ClientReadinessBadge
-            readiness={factsModel.readinessById.get(row.original.id)}
-            compact={false}
-          />
-        ),
         meta: {
-          headerClassName: 'w-[160px]',
-          cellClassName: 'w-[160px]',
+          headerClassName: 'w-[240px]',
+          cellClassName: 'w-[240px]',
         },
       },
       {
@@ -565,14 +504,20 @@ export function ClientFactsWorkspace({
             onSelectedChange={onStateFilterChange}
           />
         ),
-        cell: ({ row }) => (
-          <span className="whitespace-nowrap tabular-nums">
-            {formatFilingJurisdictions(row.original)}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const primary = getPrimaryFilingState(row.original)
+          if (!primary) {
+            return <span className="text-text-tertiary">—</span>
+          }
+          return (
+            <Badge variant="secondary" className="rounded-sm font-mono uppercase tabular-nums">
+              {primary}
+            </Badge>
+          )
+        },
         meta: {
-          headerClassName: 'w-[190px]',
-          cellClassName: 'w-[190px]',
+          headerClassName: 'w-[110px]',
+          cellClassName: 'w-[110px]',
         },
       },
       {
@@ -580,35 +525,106 @@ export function ClientFactsWorkspace({
         header: t`Next due`,
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
-          if (!summary || !summary.nextDueDate) {
+          const readiness = factsModel.readinessById.get(row.original.id)
+          const hasNextDue = Boolean(summary?.nextDueDate)
+          if (!hasNextDue && !readiness) {
             return <span className="text-text-tertiary">—</span>
           }
           return (
-            <div className="flex min-w-0 flex-col">
-              <span className="whitespace-nowrap tabular-nums text-text-primary">
-                {formatDate(summary.nextDueDate)}
-              </span>
-              {summary.nextTaxType ? (
+            <div className="flex min-w-0 flex-col gap-1">
+              {summary?.nextDueDate ? (
+                <span className="whitespace-nowrap tabular-nums text-text-primary">
+                  {formatDate(summary.nextDueDate)}
+                </span>
+              ) : (
+                <span className="text-text-tertiary">—</span>
+              )}
+              {summary?.nextTaxType ? (
                 <span className="truncate text-xs text-text-tertiary">
                   <TaxCodeLabel code={summary.nextTaxType} />
+                </span>
+              ) : null}
+              {readiness ? <ClientReadinessBadge readiness={readiness} compact /> : null}
+            </div>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[200px]',
+          cellClassName: 'w-[200px]',
+        },
+      },
+      {
+        id: 'otherStates',
+        header: t`Other states`,
+        cell: ({ row }) => {
+          const others = getOtherFilingStates(row.original)
+          if (others.length === 0) {
+            return <span className="text-text-tertiary">—</span>
+          }
+          const visible = others.slice(0, 3)
+          const overflow = others.length - visible.length
+          return (
+            <div className="flex flex-wrap items-center gap-1">
+              {visible.map((state) => (
+                <Badge
+                  key={state}
+                  variant="outline"
+                  className="rounded-sm font-mono uppercase tabular-nums"
+                >
+                  {state}
+                </Badge>
+              ))}
+              {overflow > 0 ? (
+                <span
+                  className="font-mono text-[11px] tabular-nums text-text-tertiary"
+                  title={others.slice(3).join(', ')}
+                >
+                  +{overflow}
                 </span>
               ) : null}
             </div>
           )
         },
         meta: {
-          headerClassName: 'w-[170px]',
-          cellClassName: 'w-[170px]',
+          headerClassName: 'w-[140px]',
+          cellClassName: 'w-[140px]',
+        },
+      },
+      {
+        id: 'servicesCount',
+        header: () => <span className="block text-right">{t`Services`}</span>,
+        cell: ({ row }) => {
+          const count = getClientServicesCount(row.original)
+          if (count === 0) {
+            return <span className="block text-right text-text-tertiary tabular-nums">—</span>
+          }
+          // Plain count — sum of unique tax types across filing
+          // profiles. No deep-link here because the destination is
+          // ambiguous (rules library? filing plan tab?); the row's
+          // own click handler opens the client detail, which is the
+          // right place to see services in context.
+          return (
+            <span
+              className="block text-right font-mono tabular-nums text-text-primary"
+              title={t`${count} tax-type services managed for this client`}
+            >
+              {count}
+            </span>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[90px] text-right',
+          cellClassName: 'w-[90px] text-right',
         },
       },
       {
         id: 'openObligations',
-        header: t`Open`,
+        header: () => <span className="block text-right">{t`Open`}</span>,
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           const count = summary?.openCount ?? 0
           if (count === 0) {
-            return <span className="text-text-tertiary tabular-nums">0</span>
+            return <span className="block text-right text-text-tertiary tabular-nums">0</span>
           }
           // Count becomes a deep link into the queue pre-filtered to
           // this client — the inverse of the drawer's "Open client
@@ -619,7 +635,7 @@ export function ClientFactsWorkspace({
             <Link
               to={`/obligations?client=${row.original.id}`}
               onClick={(event) => event.stopPropagation()}
-              className="tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+              className="block text-right tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
               aria-label={t`View ${count} open obligations for this client`}
             >
               {count}
@@ -629,21 +645,6 @@ export function ClientFactsWorkspace({
         meta: {
           headerClassName: 'w-[80px] text-right',
           cellClassName: 'w-[80px] text-right',
-        },
-      },
-      {
-        id: 'opportunities',
-        header: t`Opportunities`,
-        cell: ({ row }) => {
-          const count = opportunityCountByClient.get(row.original.id) ?? 0
-          if (count === 0) {
-            return <span className="text-text-tertiary tabular-nums">—</span>
-          }
-          return <ClientOpportunityCountBadge count={count} />
-        },
-        meta: {
-          headerClassName: 'w-[130px]',
-          cellClassName: 'w-[130px]',
         },
       },
       {
@@ -662,55 +663,52 @@ export function ClientFactsWorkspace({
             onSelectedChange={onOwnerFilterChange}
           />
         ),
-        cell: (info) => info.getValue<string | null>() ?? t`Unassigned`,
+        cell: ({ row }) => (
+          <ClientAssigneeAvatar
+            name={row.original.assigneeName}
+            currentUserName={currentUserName}
+          />
+        ),
         meta: {
-          headerClassName: 'w-[160px]',
-          cellClassName: 'w-[160px]',
+          headerClassName: 'w-[80px]',
+          cellClassName: 'w-[80px]',
         },
       },
       {
-        accessorKey: 'migrationBatchId',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Source`}
-            open={openHeaderFilter === 'source'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('source', nextOpen)}
-            options={sourceOptions}
-            selected={sourceFilter}
-            emptyLabel={t`No source types`}
-            onSelectedChange={onSourceFilterChange}
-          />
-        ),
-        cell: ({ row }) => <ClientSourceCell client={row.original} firmTimezone={firmTimezone} />,
+        id: 'opportunities',
+        header: t`Opportunities`,
+        cell: ({ row }) => {
+          const count = opportunityCountByClient.get(row.original.id) ?? 0
+          if (count === 0) {
+            return <span className="text-text-tertiary tabular-nums">—</span>
+          }
+          return <ClientOpportunityCountBadge count={count} />
+        },
         meta: {
-          headerClassName: 'w-[200px]',
-          cellClassName: 'w-[200px]',
+          headerClassName: 'w-[120px]',
+          cellClassName: 'w-[120px]',
         },
       },
     ],
     [
       clientFilter,
       clientOptions,
+      clients.length,
+      currentUserName,
       entityLabels,
       factsModel.readinessById,
-      firmTimezone,
+      filteredClients.length,
       obligationSummariesByClient,
       onClientFilterChange,
       onOwnerFilterChange,
-      onReadinessFilterChange,
-      onSourceFilterChange,
       onStateFilterChange,
+      openClientDrawer,
       openHeaderFilter,
       opportunityCountByClient,
       ownerFilter,
       ownerOptions,
       pulseMatchesByClient,
-      readinessFilter,
-      readinessOptions,
       setHeaderFilterOpen,
-      sourceFilter,
-      sourceOptions,
       stateFilter,
       stateOptions,
       t,
@@ -732,127 +730,101 @@ export function ClientFactsWorkspace({
 
   return (
     <>
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {isLoading
-          ? [0, 1, 2, 3].map((item) => <Skeleton key={item} className="h-24 w-full" />)
-          : metrics.map((metric) => <ClientMetricCard key={metric.label} metric={metric} />)}
-      </section>
+      <ClientsActionStrip
+        isLoading={isLoading}
+        needsFactsCount={factsModel.summary.needsFacts}
+        obligationSummariesByClient={obligationSummariesByClient}
+        pulseHitCount={pulseMatchesByClient.size}
+        onFixNeedsFacts={() => onReadinessFilterChange(['needs_facts'])}
+        onOpenAtRisk={() => navigate('/obligations?status=blocked')}
+        onOpenWaitingOnClient={() => navigate('/obligations?status=waiting_on_client')}
+        onOpenPulseHits={() => onPulseFilterChange(['affected'])}
+      />
 
-      <section>
-        <Card>
-          <CardHeader className="gap-3">
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <Badge variant="outline" className="tabular-nums">
-                <Trans>
-                  {filteredClients.length} of {clients.length}
-                </Trans>
-              </Badge>
-              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 xl:w-auto xl:max-w-[880px] xl:shrink-0 xl:justify-end">
-                <TableHeaderMultiFilter
-                  label={t`Client`}
-                  options={clientOptions}
-                  selected={clientFilter}
-                  disabled={isLoading}
-                  emptyLabel={t`No clients`}
-                  searchable
-                  searchPlaceholder={t`Search clients`}
-                  onSelectedChange={onClientFilterChange}
-                />
-                <TableHeaderMultiFilter
-                  label={t`Entity`}
-                  options={entityOptions}
-                  selected={entityFilter}
-                  disabled={isLoading}
-                  emptyLabel={t`No entities`}
-                  onSelectedChange={onEntityFilterChange}
-                />
-                <TableHeaderMultiFilter
-                  label={t`State`}
-                  options={stateOptions}
-                  selected={stateFilter}
-                  disabled={isLoading}
-                  emptyLabel={t`No states`}
-                  onSelectedChange={onStateFilterChange}
-                />
-                <TableHeaderMultiFilter
-                  label={t`Pulse`}
-                  options={pulseOptions}
-                  selected={pulseFilter}
-                  disabled={isLoading || pulseOptions.length === 0}
-                  emptyLabel={t`No Pulse alerts`}
-                  onSelectedChange={onPulseFilterChange}
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <ClientTableSkeleton />
-            ) : clients.length > 0 ? (
-              <div className="rounded-md border border-divider-regular">
-                <Table className="table-fixed">
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <TableHead
-                            key={header.id}
-                            className={header.column.columnDef.meta?.headerClassName}
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(header.column.columnDef.header, header.getContext())}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-                    {table.getRowModel().rows.length > 0 ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={t`Open client detail for ${row.original.name}`}
-                          className="cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
-                          onClick={() => handleOpenClientDetail(row.original.id)}
-                          onKeyDown={(event) =>
-                            handleClientRowKeyDown(event, row.original.id, handleOpenClientDetail)
-                          }
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell
-                              key={cell.id}
-                              className={cell.column.columnDef.meta?.cellClassName}
-                            >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <ClientTableEmptyRow colSpan={table.getAllLeafColumns().length} />
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+      {/* Column-header filters are the only filter pattern on this
+          surface — Client, Jurisdiction, and Owner each carry their
+          own filter trigger in the column header. The standalone
+          chip row that used to sit here is gone (Entity and Pulse
+          filters lose their UI; the URL params still drive the
+          filter pipeline for deep links). Pulse filtering also
+          lives on the action strip's "Pulse hits" tile, so removing
+          the chip doesn't lose user-facing functionality. */}
+
+      {/* Frameless table — Card / CardHeader / CardContent + inner
+          rounded border removed per the 2026-05-21 design pass. The
+          data sits directly on the page background, matching the
+          Obligations queue and Rule library treatments. */}
+      {isLoading ? (
+        <ClientTableSkeleton />
+      ) : clients.length > 0 ? (
+        <Table className="table-fixed">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className={header.column.columnDef.meta?.headerClassName}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={t`Open client detail for ${row.original.name}`}
+                  className="group cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                  onClick={(event) => {
+                    // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
+                    // the read-only drawer for a quick glance without
+                    // leaving the list — power-user shortcut that
+                    // mirrors browsers' "open in new tab" muscle
+                    // memory. Plain click commits to the full page.
+                    if (event.metaKey || event.ctrlKey) {
+                      event.preventDefault()
+                      openClientDrawer(row.original.id)
+                      return
+                    }
+                    handleOpenClientDetail(row.original.id)
+                  }}
+                  onKeyDown={(event) =>
+                    handleClientRowKeyDown(event, row.original.id, handleOpenClientDetail)
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.cellClassName}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : (
-              <EmptyState
-                icon={UsersRoundIcon}
-                title={<Trans>No clients yet</Trans>}
-                description={<Trans>Import a CSV or create the first manual client record.</Trans>}
-                cta={
-                  <Button variant="outline" onClick={onImport} disabled={!canImport}>
-                    <FileSearchIcon data-icon="inline-start" />
-                    <Trans>Run migration</Trans>
-                  </Button>
-                }
-              />
+              <ClientTableEmptyRow colSpan={table.getAllLeafColumns().length} />
             )}
-          </CardContent>
-        </Card>
-      </section>
+          </TableBody>
+        </Table>
+      ) : (
+        <EmptyState
+          icon={UsersRoundIcon}
+          title={<Trans>No clients yet</Trans>}
+          description={<Trans>Import a CSV or create the first manual client record.</Trans>}
+          cta={
+            <Button variant="outline" onClick={onImport} disabled={!canImport}>
+              <FileSearchIcon data-icon="inline-start" />
+              <Trans>Run migration</Trans>
+            </Button>
+          }
+        />
+      )}
     </>
   )
 }
@@ -867,25 +839,155 @@ function handleClientRowKeyDown(
   onOpenDetail(clientId)
 }
 
-function ClientMetricCard({ metric }: { metric: ClientMetric }) {
-  const Icon = metric.icon
+/**
+ * Top-of-page action strip for `/clients`. Replaces the older
+ * four-tile configuration read-out ("Ready for rules · Needs facts ·
+ * Imported · States covered") with signals that drive a same-day
+ * action.
+ *
+ * See docs/Design/clients-list-summary-strip-redesign.md for the
+ * design rationale. The strip renders nothing when every signal is
+ * zero — quiet is the reward.
+ *
+ * Tiles render only when their count is > 0:
+ *   - **At risk** — clients with ≥1 overdue obligation (destructive
+ *     tone). Click → `/obligations?status=blocked` so the CPA lands
+ *     on the actionable queue, not a filtered client list.
+ *   - **Waiting on client** — clients with ≥1 `waiting_on_client`
+ *     obligation (warning tone). Click → `/obligations?status=waiting_on_client`.
+ *   - **Pulse hits** — clients matched by a recent Pulse alert
+ *     (review tone). Click → applies the `pulse=affected` filter on
+ *     the current list so the CPA can triage which of *their*
+ *     clients are touched by the new source change.
+ *
+ * The **Needs facts** banner sits above the tiles and renders only
+ * when `needsFactsCount > 0` — it's a pre-deadline-pressure setup
+ * gap, not an in-flight workload signal, so it earns a distinct
+ * treatment.
+ */
+function ClientsActionStrip({
+  isLoading,
+  needsFactsCount,
+  obligationSummariesByClient,
+  pulseHitCount,
+  onFixNeedsFacts,
+  onOpenAtRisk,
+  onOpenWaitingOnClient,
+  onOpenPulseHits,
+}: {
+  isLoading: boolean
+  needsFactsCount: number
+  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
+  pulseHitCount: number
+  onFixNeedsFacts: () => void
+  onOpenAtRisk: () => void
+  onOpenWaitingOnClient: () => void
+  onOpenPulseHits: () => void
+}) {
+  const { t } = useLingui()
+  const { atRiskCount, waitingOnClientCount } = useMemo(() => {
+    let atRisk = 0
+    let waiting = 0
+    for (const summary of obligationSummariesByClient.values()) {
+      if (summary.overdueCount > 0) atRisk += 1
+      if (summary.waitingOnClientCount > 0) waiting += 1
+    }
+    return { atRiskCount: atRisk, waitingOnClientCount: waiting }
+  }, [obligationSummariesByClient])
+
+  if (isLoading) {
+    return <Skeleton className="h-10 w-full" />
+  }
+
+  const hasAnyTile = atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0
+  const hasBanner = needsFactsCount > 0
+  if (!hasAnyTile && !hasBanner) return null
+
   return (
-    <Card role="group" aria-label={metric.label}>
-      <CardContent className="flex items-center justify-between gap-4 p-4">
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-sm font-medium text-text-secondary">{metric.label}</span>
-          <span className="text-2xl font-semibold tabular-nums text-text-primary">
-            {metric.value}
-          </span>
-          <span className="truncate text-xs text-text-tertiary">{metric.detail}</span>
-        </div>
-        <div
-          className={`grid size-9 shrink-0 place-items-center rounded-md ${metricToneClassName[metric.tone]}`}
+    <div className="flex flex-col gap-3">
+      {hasBanner ? (
+        <Alert
+          variant="warning"
+          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         >
-          <Icon className="size-4" aria-hidden />
+          <div className="flex items-start gap-2">
+            <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
+            <AlertDescription>
+              <Trans>
+                {needsFactsCount} clients are missing state or entity type — the rule library is
+                skipping them.
+              </Trans>
+            </AlertDescription>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={onFixNeedsFacts}>
+            <Trans>Fix now</Trans>
+          </Button>
+        </Alert>
+      ) : null}
+      {hasAnyTile ? (
+        <div className="flex flex-wrap gap-2">
+          {atRiskCount > 0 ? (
+            <ActionTile
+              label={t`At risk`}
+              count={atRiskCount}
+              tone="destructive"
+              onClick={onOpenAtRisk}
+              ariaLabel={t`Open obligations queue filtered to blocked rows · ${atRiskCount} clients at risk`}
+            />
+          ) : null}
+          {waitingOnClientCount > 0 ? (
+            <ActionTile
+              label={t`Waiting on client`}
+              count={waitingOnClientCount}
+              tone="warning"
+              onClick={onOpenWaitingOnClient}
+              ariaLabel={t`Open obligations queue filtered to waiting-on-client · ${waitingOnClientCount} clients`}
+            />
+          ) : null}
+          {pulseHitCount > 0 ? (
+            <ActionTile
+              label={t`Pulse hits`}
+              count={pulseHitCount}
+              tone="review"
+              onClick={onOpenPulseHits}
+              ariaLabel={t`Filter the client list to Pulse-affected · ${pulseHitCount} clients`}
+            />
+          ) : null}
         </div>
-      </CardContent>
-    </Card>
+      ) : null}
+    </div>
+  )
+}
+
+function ActionTile({
+  label,
+  count,
+  tone,
+  onClick,
+  ariaLabel,
+}: {
+  label: string
+  count: number
+  tone: 'destructive' | 'warning' | 'review'
+  onClick: () => void
+  ariaLabel: string
+}) {
+  const toneClass =
+    tone === 'destructive'
+      ? 'text-text-destructive'
+      : tone === 'warning'
+        ? 'text-severity-medium'
+        : 'text-status-review'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="inline-flex items-center gap-2 rounded-md border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      <span className="text-xs text-text-secondary">{label}</span>
+      <span className={cn('font-mono text-sm font-semibold tabular-nums', toneClass)}>{count}</span>
+    </button>
   )
 }
 
@@ -934,6 +1036,19 @@ export function ClientDetailWorkspace({
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
+  // Obligation drawer is rendered as an in-route page panel (NOT a
+  // modal Sheet) when launched from the filing plan below. State
+  // lives on the shared provider so any surface — this page, the
+  // queue, the dashboard, the global Cmd+K — drives the same panel
+  // when they share a layout owner. `ObligationDrawerProvider`
+  // defers to this route via the `routeOwnsPanel` check; see
+  // features/obligations/ObligationDrawerProvider.tsx.
+  const {
+    obligationId: activeObligationId,
+    activeTab: obligationTab,
+    setActiveTab: setObligationTab,
+    closeDrawer: closeObligationPanel,
+  } = useObligationDrawer()
   const riskSummaryQuery = useQuery(
     orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
   )
@@ -1027,9 +1142,16 @@ export function ClientDetailWorkspace({
 
   return (
     <>
-      <section className="flex min-h-0 flex-col gap-6">
+      <div className="flex min-h-0 flex-col gap-6">
         <PageHeader
-          breadcrumbs={[{ label: t`Clients`, to: '/clients' }, { label: client.name }]}
+          breadcrumbs={[
+            {
+              label: t`Clients`,
+              to: '/clients',
+              render: <ClientBreadcrumbSwitcher currentClientId={client.id} />,
+            },
+            { label: client.name },
+          ]}
           title={client.name}
           description={formatClientIdentitySubLine({
             workPlan,
@@ -1038,6 +1160,7 @@ export function ClientDetailWorkspace({
           })}
           actions={
             <>
+              <ClientCycleArrows currentClientId={client.id} />
               <CreateObligationDialog defaultClientId={client.id} />
               <Button
                 variant="outline"
@@ -1060,160 +1183,229 @@ export function ClientDetailWorkspace({
           }
         />
 
-        {/* Identity strip — small horizontal badge row that sits between
-            the PageHeader and the ClientAlertsBand. Carries entity type,
-            filing-state chips, source / readiness / Pulse-radar badges
-            so the user can read the client's shape in one scan. */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="info" className="text-xs">
-            {entityLabels[client.entityType]}
-          </Badge>
-          <ClientFilingStateChips client={client} />
-          <ClientSourceBadge client={client} />
-          <ClientReadinessBadge readiness={readiness} compact={false} />
-          {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
-        </div>
+        {/* Body — split into the client-context column (left) and an
+            optional obligation page panel (right) when a row in the
+            filing plan is selected. The panel replaces the modal
+            Sheet that used to overlay on top of the client page; the
+            ObligationDrawerProvider defers to this route via the
+            `routeOwnsPanel` check. PageHeader stays full-width above
+            so prev/next arrows, breadcrumb switcher, and action
+            cluster remain anchored regardless of panel state. */}
+        <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
+          <section className="flex min-w-0 flex-1 flex-col gap-6">
+            {/* Identity strip — small horizontal badge row carrying
+                entity type, filing-state chips, source / readiness /
+                Pulse-radar badges so the user can read the client's
+                shape in one scan. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="info" className="text-xs">
+                {entityLabels[client.entityType]}
+              </Badge>
+              <ClientFilingStateChips client={client} />
+              <ClientSourceBadge client={client} />
+              <ClientReadinessBadge readiness={readiness} compact={false} />
+              {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
+            </div>
 
-        <ClientAlertsBand
-          pulseMatches={pulseMatches}
-          readiness={readiness}
-          extensionPaymentMismatches={extensionPaymentMismatches}
-          onAddFacts={openMissingFacts}
-        />
-
-        <ClientSummaryStrip clientId={client.id} obligations={obligations} />
-
-        <Tabs defaultValue="work" className="w-full">
-          <TabsList className="mb-3 flex w-full flex-wrap justify-start">
-            <TabsTrigger value="work">
-              <Trans>Work</Trans>
-            </TabsTrigger>
-            <TabsTrigger value="notes">
-              <Trans>Notes</Trans>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Work tab — the day-to-day workspace: filing plan, gap
-              analysis, jurisdictions, risk inputs, fact readiness. */}
-          <TabsContent value="work" className="grid gap-4">
-            <ClientWorkPlanPanel
-              obligations={obligations}
-              isLoading={obligationsQuery.isLoading}
-              summary={workPlan}
+            <ClientAlertsBand
+              pulseMatches={pulseMatches}
+              readiness={readiness}
+              extensionPaymentMismatches={extensionPaymentMismatches}
+              onAddFacts={openMissingFacts}
             />
 
-            {/* Compliance posture — surfaces the EIN value, tax-year
+            <ClientSummaryStrip clientId={client.id} obligations={obligations} />
+
+            <Tabs defaultValue="work" className="w-full">
+              <TabsList className="mb-3 flex w-full flex-wrap justify-start">
+                <TabsTrigger value="work">
+                  <Trans>Work</Trans>
+                </TabsTrigger>
+                <TabsTrigger value="notes">
+                  <Trans>Activity</Trans>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Work tab — ordered by the four canonical questions from
+              docs/Design/client-page-information-architecture.md:
+                1. "Where are we?" (alerts + summary above tabs)
+                2. "What do they owe?" → ClientWorkPlanPanel
+                3. "What's their compliance posture?" → ClientCompliancePosturePanel
+              followed by two demoted groups:
+                CONFIGURE — editable surfaces the CPA visits during
+                  onboarding and quarterly; daily readers skim past.
+                DISCOVER — reference / future-business surfaces the
+                  CPA dips into intentionally, not every visit. */}
+              <TabsContent value="work" className="grid gap-4">
+                <ClientWorkPlanPanel
+                  obligations={obligations}
+                  isLoading={obligationsQuery.isLoading}
+                  summary={workPlan}
+                />
+
+                {/* Compliance posture — surfaces the EIN value, tax-year
               type + fiscal year end, owner counts, engagement date,
               and the five filing-activity booleans. The booleans
               drive obligation generation server-side but were
               previously invisible to the CPA. Read-only for now;
               edit flow deferred until a generic clients.update
               mutation lands. See docs/Design/client-page-information-architecture.md. */}
-            <ClientCompliancePosturePanel client={client} />
+                <ClientCompliancePosturePanel client={client} />
 
-            <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+                <div className="flex flex-col gap-3 pt-2">
+                  <SectionLabel>
+                    <Trans>CONFIGURE</Trans>
+                  </SectionLabel>
 
-            <DetailSection
-              id="client-filing-jurisdictions"
-              title={t`Filing jurisdictions`}
-              summary={formatJurisdictionSummary(client)}
-              open={filingJurisdictionsOpen}
-              onOpenChange={setFilingJurisdictionsOpen}
-              attention={missingFilingState}
-            >
-              <ClientJurisdictionPanel
-                key={`${client.id}:jurisdiction`}
-                client={client}
-                isSaving={replaceFilingProfilesMutation.isPending}
-                onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-              />
-            </DetailSection>
+                  <DetailSection
+                    id="client-filing-jurisdictions"
+                    title={t`Filing jurisdictions`}
+                    summary={formatJurisdictionSummary(client)}
+                    open={filingJurisdictionsOpen}
+                    onOpenChange={setFilingJurisdictionsOpen}
+                    attention={missingFilingState}
+                  >
+                    <ClientJurisdictionPanel
+                      key={`${client.id}:jurisdiction`}
+                      client={client}
+                      isSaving={replaceFilingProfilesMutation.isPending}
+                      onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+                    />
+                  </DetailSection>
 
-            <DetailSection
-              title={t`Risk inputs`}
-              summary={t`Penalty inputs and tax-attribute flags`}
-            >
-              <ClientRiskInputsPanel
-                key={`${client.id}:risk`}
-                client={client}
-                isSaving={updateRiskProfileMutation.isPending}
-                onSave={(input) => updateRiskProfileMutation.mutate(input)}
-              />
-            </DetailSection>
+                  <DetailSection
+                    title={t`Risk inputs`}
+                    summary={t`Penalty inputs and tax-attribute flags`}
+                  >
+                    <ClientRiskInputsPanel
+                      key={`${client.id}:risk`}
+                      client={client}
+                      isSaving={updateRiskProfileMutation.isPending}
+                      onSave={(input) => updateRiskProfileMutation.mutate(input)}
+                    />
+                  </DetailSection>
 
-            <DetailSection
-              title={t`Fact readiness`}
-              summary={
-                readiness && readiness.missingRequiredFacts.length > 0
-                  ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-                  : t`All required facts present`
-              }
-            >
-              <ClientFactChecklist client={client} readiness={readiness} />
-            </DetailSection>
+                  <DetailSection
+                    title={t`Fact readiness`}
+                    summary={
+                      readiness && readiness.missingRequiredFacts.length > 0
+                        ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                        : t`All required facts present`
+                    }
+                  >
+                    <ClientFactChecklist client={client} readiness={readiness} />
+                  </DetailSection>
+                </div>
 
-            <DetailSection
-              title={t`Future business cues`}
-              summary={t`Advisory, scope, and retention opportunities`}
-            >
-              <ClientOpportunitiesCard clientId={client.id} />
-            </DetailSection>
-          </TabsContent>
+                <div className="flex flex-col gap-3 pt-2">
+                  <SectionLabel>
+                    <Trans>DISCOVER</Trans>
+                  </SectionLabel>
 
-          {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
+                  <DetailSection
+                    title={t`Suggested forms`}
+                    summary={t`Forms the rule library can add without a new obligation`}
+                  >
+                    <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+                  </DetailSection>
+
+                  <DetailSection
+                    title={t`Future business cues`}
+                    summary={t`Advisory, scope, and retention opportunities`}
+                  >
+                    <ClientOpportunitiesCard clientId={client.id} />
+                  </DetailSection>
+                </div>
+              </TabsContent>
+
+              {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
               as a peer top-level tab implied parity it doesn't have. The
               forwarding-address widget and AI inbound-thread story will
               return once the infrastructure ships. ClientMailboxPanel
               remains in this file for that resurrection. */}
 
-          {/* Notes tab — AI narrative, free-text notes, activity audit. */}
-          <TabsContent value="notes" className="grid gap-4">
-            <DetailSection
-              title={t`Client summary (AI)`}
-              summary={
-                riskSummaryQuery.data?.generatedAt
-                  ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-                  : t`No summary yet`
-              }
-              defaultOpen
-            >
-              <ClientRiskSummaryPanel
-                insight={riskSummaryQuery.data ?? null}
-                isLoading={riskSummaryQuery.isLoading}
-                isRefreshing={requestRiskSummaryMutation.isPending}
-                canRefresh={practiceAiEnabled}
-                firmTimezone={firmTimezone}
-                onRefresh={() =>
-                  requestRiskSummaryMutation.mutate({
-                    clientId: client.id,
-                  })
-                }
-              />
-            </DetailSection>
+              {/* Activity tab — AI narrative, free-text client notes,
+              audit log. Renamed from "Notes" per the 2026-05-21 IA
+              pass: the audit log content dominates this tab and
+              "Notes" undersold it. The static notes block (below)
+              keeps the SectionLabel "NOTES" since that section IS
+              the freeform notes record. */}
+              <TabsContent value="notes" className="grid gap-4">
+                <DetailSection
+                  title={t`Client summary (AI)`}
+                  summary={
+                    riskSummaryQuery.data?.generatedAt
+                      ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
+                      : t`No summary yet`
+                  }
+                  defaultOpen
+                >
+                  <ClientRiskSummaryPanel
+                    insight={riskSummaryQuery.data ?? null}
+                    isLoading={riskSummaryQuery.isLoading}
+                    isRefreshing={requestRiskSummaryMutation.isPending}
+                    canRefresh={practiceAiEnabled}
+                    firmTimezone={firmTimezone}
+                    onRefresh={() =>
+                      requestRiskSummaryMutation.mutate({
+                        clientId: client.id,
+                      })
+                    }
+                  />
+                </DetailSection>
 
-            <SectionFrame className="bg-background-section p-3">
-              <SectionLabel>
-                <Trans>Notes</Trans>
-              </SectionLabel>
-              <p className="mt-2 text-sm text-text-secondary">
-                {client.notes || <Trans>No notes.</Trans>}
-              </p>
-            </SectionFrame>
+                <SectionFrame className="bg-background-section p-3">
+                  <SectionLabel>
+                    <Trans>Notes</Trans>
+                  </SectionLabel>
+                  <p className="mt-2 text-sm text-text-secondary">
+                    {client.notes || <Trans>No notes.</Trans>}
+                  </p>
+                </SectionFrame>
 
-            <DetailSection
-              title={t`Activity log`}
-              summary={t`Recent audited changes for this client record`}
-            >
-              <ClientActivityPanel
-                events={auditQuery.data?.events ?? []}
-                canReadAudit={canReadAudit}
-                isLoading={auditQuery.isLoading}
-                firmTimezone={firmTimezone}
+                <DetailSection
+                  title={t`Activity log`}
+                  summary={t`Recent audited changes for this client record`}
+                >
+                  <ClientActivityPanel
+                    events={auditQuery.data?.events ?? []}
+                    canReadAudit={canReadAudit}
+                    isLoading={auditQuery.isLoading}
+                    firmTimezone={firmTimezone}
+                  />
+                </DetailSection>
+              </TabsContent>
+            </Tabs>
+          </section>
+
+          {/* Obligation page panel — replaces the modal Sheet on this
+              route. Width is fixed 480px on xl+, full-width stacked
+              below the client content at narrower viewports. The
+              ObligationDrawerProvider defers to this mount when
+              `pathname.startsWith('/clients/')`. The panel reads
+              obligationId + activeTab from the same provider state
+              that the filing plan rows write, so cross-tab navigation
+              stays coherent. */}
+          {activeObligationId ? (
+            <aside className="w-full min-w-0 xl:w-[480px] xl:shrink-0">
+              <ObligationQueueDetailDrawer
+                mode="panel"
+                obligationId={activeObligationId}
+                activeTab={obligationTab}
+                onTabChange={setObligationTab}
+                onClose={closeObligationPanel}
+                onNeedsInput={() => {
+                  // Penalty-input dialog is route-local to /obligations;
+                  // not wired here. CPAs can deep-link to the queue
+                  // for that flow.
+                }}
+                practiceAiEnabled={practiceAiEnabled}
+                blockerCandidates={[]}
               />
-            </DetailSection>
-          </TabsContent>
-        </Tabs>
-      </section>
+            </aside>
+          ) : null}
+        </div>
+      </div>
     </>
   )
 }
@@ -2037,6 +2229,51 @@ function FactCheckRow({
   )
 }
 
+/**
+ * Owner avatar for the client table — mirrors the obligations queue
+ * pattern (`routes/obligations.tsx`'s `AssigneeAvatar`) so a CPA's
+ * "is this mine?" scan reads the same shape across both surfaces.
+ * 24px circle with uppercase initials; accent background when the
+ * row belongs to the current user; dashed outline when unassigned.
+ */
+function ClientAssigneeAvatar({
+  name,
+  currentUserName,
+}: {
+  name: string | null
+  currentUserName: string | null
+}) {
+  const { t } = useLingui()
+  if (!name) {
+    return (
+      <span
+        aria-label={t`Unassigned`}
+        title={t`Unassigned`}
+        className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-divider-regular text-[10px] text-text-tertiary"
+      >
+        ?
+      </span>
+    )
+  }
+  const isMine =
+    currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
+  const title = isMine ? t`Assigned to you (${name})` : name
+  return (
+    <span
+      aria-label={title}
+      title={title}
+      className={cn(
+        'inline-flex size-6 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+        isMine
+          ? 'bg-state-accent-hover-alt text-text-accent'
+          : 'bg-background-subtle text-text-secondary',
+      )}
+    >
+      {initialsFromName(name)}
+    </span>
+  )
+}
+
 function ClientReadinessBadge({
   readiness,
   compact,
@@ -2078,25 +2315,6 @@ function ClientSourceBadge({ client }: { client: ClientPublic }) {
     <Badge variant="outline" className="text-xs">
       <Trans>Manual</Trans>
     </Badge>
-  )
-}
-
-function ClientSourceCell({
-  client,
-  firmTimezone,
-}: {
-  client: ClientPublic
-  firmTimezone: string
-}) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <ClientSourceBadge client={client} />
-      {getClientSourceType(client) === 'imported' ? (
-        <span className="truncate text-xs text-text-tertiary tabular-nums">
-          <Trans>Synced {formatDateTimeWithTimezone(client.updatedAt, firmTimezone)}</Trans>
-        </span>
-      ) : null}
-    </div>
   )
 }
 

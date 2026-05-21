@@ -8,7 +8,7 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 
 import { AppShell } from '@/components/patterns/app-shell'
 import { KeyboardProvider } from '@/components/patterns/keyboard-shell'
-import { ClientDrawerProvider } from '@/features/clients/ClientDrawerProvider'
+import { ClientDrawerMount, ClientDrawerProvider } from '@/features/clients/ClientDrawerProvider'
 import { EvidenceDrawerProvider } from '@/features/evidence/EvidenceDrawerProvider'
 import { ObligationDrawerProvider } from '@/features/obligations/ObligationDrawerProvider'
 import { PracticeTimezoneProvider } from '@/features/firm/practice-timezone'
@@ -112,7 +112,14 @@ function RootLayoutShell({
                 link. If ClientDrawerProvider sits INSIDE Obligation,
                 the obligation drawer body mounts in a tree where
                 ClientDrawerContext is unset → throws "must be used
-                within ClientDrawerProvider" on first render. */}
+                within ClientDrawerProvider" on first render.
+                `<ClientDrawerMount />` renders the client sheet at
+                THIS level — inside both providers — because the
+                client drawer's body in turn reads
+                `useObligationDrawer()` (via ClientSummaryStrip) for
+                its own "open obligation" link. Mounting the sheet
+                outside ObligationDrawerProvider would throw the
+                symmetric error the moment the drawer first opens. */}
               <ClientDrawerProvider>
                 <ObligationDrawerProvider>
                   <AppShell
@@ -123,6 +130,7 @@ function RootLayoutShell({
                     themePreference={themePreference}
                     switchThemePreference={switchThemePreference}
                   />
+                  <ClientDrawerMount />
                 </ObligationDrawerProvider>
               </ClientDrawerProvider>
             </PulseDrawerProvider>
