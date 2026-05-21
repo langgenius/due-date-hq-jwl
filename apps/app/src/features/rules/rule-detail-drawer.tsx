@@ -13,6 +13,7 @@ import type {
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -214,7 +215,10 @@ function CandidateReviewSection({
   rule: ObligationRule
   onActionComplete?: () => void
 }) {
-  if (rule.status !== 'candidate' && rule.status !== 'pending_review') return null
+  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
+  if (rule.status !== 'candidate' && rule.status !== 'pending_review' && !sourceDefined) {
+    return null
+  }
   return <CandidateReviewForm rule={rule} {...(onActionComplete ? { onActionComplete } : {})} />
 }
 
@@ -367,20 +371,26 @@ function CandidateReviewForm({
       ? t`This rule only has source-watch metadata. Open the official source and add a concrete rule after review.`
       : null
   const draftPanelMessage = draftUnavailableMessage ?? draftErrorMessage
+  const concreteDraftGenerating =
+    sourceDefined && !draftQuery.data && (draftQuery.isPending || draftQuery.isFetching)
   const acceptDisabledReason = sourceDefined
     ? reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
       : draftUnavailableMessage
         ? draftUnavailableMessage
-        : draftQuery.isPending && !draftQuery.data
-          ? t`AI concrete draft is still generating.`
+        : concreteDraftGenerating
+          ? null
           : draftPanelMessage && !draftQuery.data
             ? draftPanelMessage
             : !draftQuery.data
               ? t`AI concrete draft is not ready.`
               : null
     : null
-  const acceptDisabled = reviewDisabled || acceptDisabledReason !== null
+  const acceptDisabled =
+    reviewDisabled ||
+    acceptDisabledReason !== null ||
+    concreteDraftGenerating ||
+    (sourceDefined && !draftQuery.data)
 
   const entitySummary = rule.entityApplicability.join(', ')
   return (
@@ -394,11 +404,18 @@ function CandidateReviewForm({
         </span>
       </div>
       <p className="text-sm text-text-secondary">
-        <Trans>
-          Accepting activates this rule for every client filing in {rule.jurisdiction} as{' '}
-          {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension
-          handling should not become active.
-        </Trans>
+        {sourceDefined && rule.status === 'active' ? (
+          <Trans>
+            This rule is active for every client filing in {rule.jurisdiction} as {entitySummary},
+            but it still needs concrete due-date logic before it can create obligations.
+          </Trans>
+        ) : (
+          <Trans>
+            Accepting activates this rule for every client filing in {rule.jurisdiction} as{' '}
+            {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension
+            handling should not become active.
+          </Trans>
+        )}
       </p>
       {sourceDefined ? (
         <AiDraftReviewPanel
@@ -475,16 +492,15 @@ function AiDraftReviewPanel({
   generating: boolean
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5">
+    <div
+      className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5"
+      aria-busy={generating && !draft ? true : undefined}
+    >
       <p className="text-xs font-medium text-text-secondary">
         <Trans>AI concrete draft</Trans>
       </p>
-      {generating && !draft ? (
-        <p className="text-xs text-text-tertiary">
-          <Trans>Generating concrete due-date logic for review…</Trans>
-        </p>
-      ) : null}
-      {errorMessage && !draft ? (
+      {generating && !draft ? <AiDraftReviewSkeleton /> : null}
+      {!generating && errorMessage && !draft ? (
         <p className="text-xs text-severity-medium">{errorMessage}</p>
       ) : null}
       {draft ? (
@@ -515,6 +531,22 @@ function AiDraftReviewPanel({
           <p className="text-xs text-text-tertiary">{draft.reasoning}</p>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function AiDraftReviewSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-4 w-4/5" />
+      <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-3 w-3/4" />
     </div>
   )
 }

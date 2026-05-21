@@ -403,6 +403,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     filingProfiles: unusedFilingProfilesRepo(firmId),
     ai: {
       firmId,
+      async findSuccessfulRun() {
+        return null
+      },
       async recordRun() {
         return unused('ai.recordRun')
       },

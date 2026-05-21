@@ -167,6 +167,9 @@ function buildScopedRepo(input: {
     filingProfiles: unusedFilingProfilesRepo(FIRM_ID),
     ai: {
       firmId: FIRM_ID,
+      async findSuccessfulRun() {
+        return null
+      },
       async recordRun() {
         return unused('ai.recordRun')
       },

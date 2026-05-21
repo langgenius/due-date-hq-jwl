@@ -457,6 +457,9 @@ pulse application。Phase 0 Demo 可直接 UPDATE `current_due_date`；完整 MV
 | Migration Mapper / Normalizer | Solo onboarding 30 req / firm / day；Solo standard 15；Pro 50；Team 150；Enterprise 500   |
 
 KV 按 firm + day + task kind 保存预算计数。超限返回 `rate_limited` + 明确 message。
+该 fair-use budget 仅在 `ENV=production` 执行；`ENV=development` 和 `ENV=staging` 用于本地 /
+测试验证，跳过 KV budget 读写，不返回 `AI_BUDGET_EXCEEDED`。非生产环境仍按同一路由调用
+Gateway，并继续写入 trace / usage 记录。
 
 ### 10.2 Trace payload
 

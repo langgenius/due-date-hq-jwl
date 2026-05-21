@@ -26,6 +26,7 @@ describe('@duedatehq/db', () => {
   it('wires concrete migration copilot and pulse repos', () => {
     const repo = scoped(testDb, 'firm_123')
 
+    expect(typeof repo.ai.findSuccessfulRun).toBe('function')
     expect(typeof repo.calendar.listForUser).toBe('function')
     expect(typeof repo.clients.create).toBe('function')
     expect(typeof repo.clients.findManyByIds).toBe('function')

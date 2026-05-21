@@ -157,6 +157,20 @@ export function CoverageTab({
     return map
   }, [rulesQuery.data])
 
+  // Active rules grouped by jurisdiction — shown alongside pending
+  // rules in the expanded row so the row detail matches the Active
+  // count instead of looking empty after onboarding activation.
+  const activeRulesByJurisdiction = useMemo(() => {
+    const map = new Map<RuleJurisdiction, ObligationRule[]>()
+    for (const rule of rulesQuery.data ?? []) {
+      if (rule.status !== 'active' && rule.status !== 'verified') continue
+      const list = map.get(rule.jurisdiction) ?? []
+      list.push(rule)
+      map.set(rule.jurisdiction, list)
+    }
+    return map
+  }, [rulesQuery.data])
+
   // All rules grouped by jurisdiction — used for search. Searching by
   // rule title (e.g. "Form 1040") should match any rule the practice
   // tracks for that jurisdiction, not just pending ones, so a CPA
@@ -526,6 +540,7 @@ export function CoverageTab({
                           key={row.jurisdiction}
                           row={row}
                           sources={sourcesByJurisdiction.get(row.jurisdiction) ?? []}
+                          activeRules={activeRulesByJurisdiction.get(row.jurisdiction) ?? []}
                           pendingRules={pendingRulesByJurisdiction.get(row.jurisdiction) ?? []}
                           sourceById={sourceById}
                           isExpanded={
@@ -755,6 +770,7 @@ function SourceStatusBanner({ total }: { total: number }) {
 function CoverageRow({
   row,
   sources,
+  activeRules,
   pendingRules,
   sourceById,
   isExpanded,
@@ -770,6 +786,7 @@ function CoverageRow({
 }: {
   row: RuleCoverageRow
   sources: readonly RuleSource[]
+  activeRules: readonly ObligationRule[]
   pendingRules: readonly ObligationRule[]
   sourceById: ReadonlyMap<string, RuleSource>
   isExpanded: boolean
@@ -971,7 +988,8 @@ function CoverageRow({
       </TableRow>
       {isExpanded ? (
         <ExpandedRowDetail
-          rules={pendingRules}
+          activeRules={activeRules}
+          pendingRules={pendingRules}
           sources={sources}
           sourceById={sourceById}
           selectedRuleId={selectedRuleId}
@@ -986,25 +1004,26 @@ function CoverageRow({
 /**
  * Expanded detail — a clean white panel that drops in under the
  * main row when the user clicks to expand. Two-column inline read:
- * the actual pending rules on the left (each with a Source ↗ link to
- * the citing document), the watched sources on the right. No "Open
- * in Catalog" CTA — the main-row Pending count already drills there
- * for users who need the full catalog view, and once the inline
- * Accept/Reject is wired the expanded panel becomes the action
- * surface itself.
+ * the actual active + pending rules first (each with a Source ↗ link
+ * to the citing document), then watched sources. No "Open in Catalog"
+ * CTA — the main-row Pending count already drills there for users who
+ * need the full catalog view, and once the inline Accept/Reject is
+ * wired the expanded panel becomes the action surface itself.
  *
  * Sits inside the same `<TableBody>` as a sibling `<TableRow>` with
  * `colSpan = 11` (Jurisdiction + Active + Pending + Source + 7 entity).
  */
 function ExpandedRowDetail({
-  rules,
+  activeRules,
+  pendingRules,
   sources,
   sourceById,
   selectedRuleId,
   onSelectRule,
   totalColumnCount,
 }: {
-  rules: readonly ObligationRule[]
+  activeRules: readonly ObligationRule[]
+  pendingRules: readonly ObligationRule[]
   sources: readonly RuleSource[]
   sourceById: ReadonlyMap<string, RuleSource>
   selectedRuleId: string | null
@@ -1017,16 +1036,39 @@ function ExpandedRowDetail({
         <div className="flex flex-col gap-5 px-6 py-4">
           <section className="flex flex-col gap-2">
             <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+              <Trans>Active rules</Trans>
+            </p>
+            {activeRules.length === 0 ? (
+              <p className="text-sm text-text-tertiary">
+                <Trans>No active rules for this jurisdiction.</Trans>
+              </p>
+            ) : (
+              <ul className="flex flex-col">
+                {activeRules.map((rule) => (
+                  <CoverageRuleItem
+                    key={rule.id}
+                    rule={rule}
+                    ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
+                    isSelected={selectedRuleId === rule.id}
+                    onSelect={() => onSelectRule(rule.id)}
+                  />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
               <Trans>Pending rules</Trans>
             </p>
-            {rules.length === 0 ? (
+            {pendingRules.length === 0 ? (
               <p className="text-sm text-text-tertiary">
                 <Trans>No pending rules for this jurisdiction.</Trans>
               </p>
             ) : (
               <ul className="flex flex-col">
-                {rules.map((rule) => (
-                  <PendingRuleItem
+                {pendingRules.map((rule) => (
+                  <CoverageRuleItem
                     key={rule.id}
                     rule={rule}
                     ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
@@ -1081,14 +1123,14 @@ function ExpandedRowDetail({
 }
 
 /**
- * One pending rule inside the expanded row. Acts as a selectable row
+ * One rule inside the expanded row or pending queue. Acts as a selectable row
  * in a master-detail layout — clicking the title sets it as the
  * selected rule in the parent CoverageTab state, which docks the
  * `RulePanel` on the right with that rule's detail. The selected
- * rule gets a left-bar + subtle bg tint so the user can see which
- * row the right panel is showing.
+ * rule gets a subtle bg tint so the user can see which row the right
+ * panel is showing.
  */
-function PendingRuleItem({
+function CoverageRuleItem({
   rule,
   ruleSource,
   isSelected,
@@ -1100,6 +1142,7 @@ function PendingRuleItem({
   onSelect: () => void
 }) {
   const { t } = useLingui()
+  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   // Strip the jurisdiction prefix from the displayed title — the
   // jurisdiction is already shown in the queue section header (or
   // the expanded coverage row) above this item, so repeating it
@@ -1118,7 +1161,7 @@ function PendingRuleItem({
   return (
     <li className="flex flex-col">
       {/* No left border, no horizontal padding — the title text
-        starts at the same x as the "PENDING RULES" eyebrow above.
+        starts at the same x as the section eyebrow above.
         Taller row (py-2 = 8px each side) gives a comfortable click
         target. Selected state shows as a bg-tint that spans the
         natural row width. */}
@@ -1148,21 +1191,55 @@ function PendingRuleItem({
           <span className="truncate">{displayTitle}</span>
         </button>
         {ruleSource ? (
-          <a
-            href={ruleSource.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(event) => event.stopPropagation()}
-            title={ruleSource.title}
-            aria-label={t`Open cited source: ${ruleSource.title}`}
-            className="inline-flex shrink-0 items-center gap-1 rounded-sm px-1 py-0.5 text-xs text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>Source</Trans>
-            <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
-          </a>
-        ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+            <a
+              href={ruleSource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              title={ruleSource.title}
+              aria-label={t`Open cited source: ${ruleSource.title}`}
+              className="inline-flex shrink-0 items-center gap-1 rounded-sm px-1 py-0.5 text-xs text-text-tertiary outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Source</Trans>
+              <ExternalLinkIcon aria-hidden className="size-3 shrink-0" />
+            </a>
+          </div>
+        ) : (
+          <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+        )}
       </div>
     </li>
+  )
+}
+
+function RuleStatusChip({
+  rule,
+  sourceDefined,
+}: {
+  rule: Pick<ObligationRule, 'status'>
+  sourceDefined: boolean
+}) {
+  if (rule.status === 'active' || rule.status === 'verified') {
+    return (
+      <span
+        className={cn(
+          'inline-flex h-[18px] shrink-0 items-center rounded-sm px-1.5 text-[10px] font-medium',
+          sourceDefined
+            ? 'bg-severity-medium-tint text-severity-medium'
+            : 'bg-status-done/10 text-status-done',
+        )}
+      >
+        {sourceDefined ? <Trans>Due-date review</Trans> : <Trans>Active</Trans>}
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-[10px] font-medium text-status-review">
+      <Trans>Needs review</Trans>
+    </span>
   )
 }
 
@@ -1176,7 +1253,7 @@ function PendingRuleItem({
  * that has pending rules, with each rule one click away.
  *
  * Each jurisdiction section header carries the JUR badge + name +
- * count. The PendingRuleItem rows below it stay the same, so
+ * count. The CoverageRuleItem rows below it stay the same, so
  * selection state + hover treatment carry over from the table view.
  *
  * Scrolls within itself (max-h-[calc(100vh-...)]) so the user can
@@ -1241,7 +1318,7 @@ function PendingRuleQueue({
                   </header>
                   <ul className="flex flex-col">
                     {rules.map((rule) => (
-                      <PendingRuleItem
+                      <CoverageRuleItem
                         key={rule.id}
                         rule={rule}
                         ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}

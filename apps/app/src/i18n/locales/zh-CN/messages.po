@@ -792,6 +792,10 @@ msgstr "当前事务所摘要"
 msgid "Active rule"
 msgstr "Active rule"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rules"
+msgstr "已激活规则"
+
 #: src/routes/account.security.tsx
 msgid "Active sessions"
 msgstr "活跃会话"
@@ -898,10 +902,6 @@ msgstr "无法生成 AI 具体草案。"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
 msgstr "AI 具体草案尚未就绪。"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "AI concrete draft is still generating."
-msgstr "AI 具体草案仍在生成。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
@@ -2945,6 +2945,10 @@ msgstr "本周到期"
 msgid "Due-date extension"
 msgstr "截止日延期"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Due-date review"
+msgstr "需复核截止日"
+
 #: src/routes/billing.checkout.tsx
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ 不保存卡号或发票支付数据。"
@@ -3600,10 +3604,6 @@ msgstr "生成文件清单"
 #: src/routes/migration.new.tsx
 msgid "Generate your first deadline list."
 msgstr "生成你的第一份截止日清单。"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Generating concrete due-date logic for review…"
-msgstr "正在生成待审核的具体截止日逻辑…"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Generating your deadline list"
@@ -4740,6 +4740,10 @@ msgstr "否"
 #: src/routes/practice.tsx
 msgid "No active practice is selected."
 msgstr "未选择当前事务所。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No active rules for this jurisdiction."
+msgstr "该辖区暂无已激活规则。"
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
@@ -8552,6 +8556,11 @@ msgstr "这条规则允许申请延期。"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule does not allow an extension."
 msgstr "这条规则不允许申请延期。"
+
+#. placeholder {0}: rule.jurisdiction
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
+msgstr "这条规则已对在 {0} 以 {entitySummary} 申报的所有客户激活，但仍需要具体截止日期逻辑，之后才能创建义务。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."

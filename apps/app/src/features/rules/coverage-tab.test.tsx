@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { RuleCoverageRow } from '@duedatehq/contracts'
+import type { ObligationRule, RuleCoverageRow } from '@duedatehq/contracts'
 
 import {
   KeyboardShellContext,
@@ -146,6 +146,53 @@ const coverageRows: RuleCoverageRow[] = [
   },
 ]
 
+function obligationRule(overrides: Partial<ObligationRule>): ObligationRule {
+  return {
+    id: 'ca.rule.2026',
+    title: 'California base rule',
+    jurisdiction: 'CA',
+    entityApplicability: ['individual'],
+    taxType: 'income_tax',
+    formName: 'Form 540',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    taxYear: 2026,
+    applicableYear: 2026,
+    ruleTier: 'basic',
+    status: 'active',
+    coverageStatus: 'full',
+    riskLevel: 'med',
+    requiresApplicabilityReview: false,
+    dueDateLogic: {
+      kind: 'fixed_date',
+      date: '2026-04-15',
+      holidayRollover: 'source_adjusted',
+    },
+    extensionPolicy: {
+      available: false,
+      paymentExtended: false,
+      notes: 'No extension policy in this fixture.',
+    },
+    sourceIds: [],
+    evidence: [],
+    defaultTip: 'File by the statutory due date.',
+    quality: {
+      filingPaymentDistinguished: true,
+      extensionHandled: true,
+      calendarFiscalSpecified: true,
+      holidayRolloverHandled: true,
+      crossVerified: true,
+      exceptionChannel: true,
+    },
+    verifiedBy: 'test',
+    verifiedAt: '2026-01-01',
+    nextReviewOn: '2027-01-01',
+    version: 1,
+    ...overrides,
+  }
+}
+
 const keyboardShellTestValue: KeyboardShellContextValue = {
   commandPaletteOpen: false,
   shortcutHelpOpen: false,
@@ -284,5 +331,49 @@ describe('CoverageTab canonical layout', () => {
 
     expect(missingSourceLegendIcon?.classList.contains('lucide-x')).toBe(true)
     expect(notApplicableLegendIcon?.textContent?.trim()).toBe('—')
+  })
+
+  it('shows active and pending rules in expanded jurisdiction detail', async () => {
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      obligationRule({
+        id: 'ca.active.business.2026',
+        title: 'California active business return',
+        status: 'active',
+      }),
+      obligationRule({
+        id: 'ca.active.source-calendar.2026',
+        title: 'California active source-defined calendar',
+        status: 'active',
+        dueDateLogic: {
+          kind: 'source_defined_calendar',
+          description: 'Official source publishes the annual calendar.',
+          holidayRollover: 'source_adjusted',
+        },
+      }),
+      obligationRule({
+        id: 'ca.pending.individual.2026',
+        title: 'California pending individual return',
+        status: 'pending_review',
+      }),
+    ])
+
+    await render(<CoverageTab />)
+    await waitForText('California')
+
+    const californiaRow = Array.from(document.querySelectorAll('tbody tr')).find((row) =>
+      row.textContent?.includes('California'),
+    )
+    expect(californiaRow).toBeDefined()
+
+    await act(async () => {
+      californiaRow?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Active rules')
+    await waitForText('active business return')
+    await waitForText('active source-defined calendar')
+    await waitForText('Due-date review')
+    await waitForText('Pending rules')
+    await waitForText('pending individual return')
   })
 })

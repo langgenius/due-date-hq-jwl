@@ -233,6 +233,42 @@ describe('@duedatehq/ai', () => {
     expect(callGatewayMock).not.toHaveBeenCalled()
   })
 
+  it.each(['development', 'staging'] as const)(
+    'skips fair-use budget enforcement in %s',
+    async (envName) => {
+      callGatewayMock.mockResolvedValueOnce({
+        output: { ok: true },
+        model: 'test-model',
+      })
+      const get = vi.fn(async () => '999')
+      const put = vi.fn(async () => {
+        throw new Error('put should not run')
+      })
+      const ai = createAI({
+        ...CONFIGURED_ENV,
+        ENV: envName,
+        CACHE: { get, put },
+      })
+
+      const result = await ai.runPrompt(
+        'normalizer-entity@v1',
+        { values: ['LLC'] },
+        z.object({ ok: z.boolean() }),
+        { plan: 'solo', firmId: 'firm-1', taskKind: 'migration' },
+      )
+
+      expect(result.result).toEqual({ ok: true })
+      expect(result.refusal).toBeNull()
+      expect(get).not.toHaveBeenCalled()
+      expect(put).not.toHaveBeenCalled()
+      expect(callGatewayMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'fast-json-solo-test-model',
+        }),
+      )
+    },
+  )
+
   it('returns GUARD_REJECTED when mapper EIN hit rate fails', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {

@@ -48,6 +48,7 @@ const MAX_BULK_ACCEPT = 100
 const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
 const ONBOARDING_RULE_REVIEW_NOTE = 'Activated from onboarding jurisdiction selection.'
+const RULE_CONCRETE_DRAFT_PROMPT = 'rule-concrete-draft@v1'
 const COVERAGE_ENTITY_COLUMNS = [
   'llc',
   'partnership',
@@ -99,6 +100,24 @@ function toDateOnlyOrNull(date: Date | null): string | null {
 
 function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
+}
+
+async function hashAiInput(value: unknown): Promise<string> {
+  const data = new TextEncoder().encode(JSON.stringify(value))
+  const digest = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+function ruleConcreteDraftContextRef(input: {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string | null
+}): string {
+  return ['rule', input.ruleId, input.sourceId, input.sourceSignalId ?? null]
+    .filter((value): value is string => Boolean(value))
+    .join(':')
 }
 
 function practiceReviewMetadata(row: PracticeRuleRow): {
@@ -640,17 +659,6 @@ async function listPracticeRules(input: {
         verifiedBy: practice.reviewedBy ?? parsed.data.verifiedBy,
         verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
         version: practice.templateVersion,
-      }
-      if (isSourceDefinedRule(activeRule)) {
-        rows.push(
-          hasOpenTemplateReviewTask
-            ? pendingContractRule(template)
-            : {
-                ...activeRule,
-                status: 'pending_review',
-              },
-        )
-        continue
       }
       rows.push(activeRule)
       if (
@@ -1412,6 +1420,16 @@ const previewBulkRuleImpact = os.rules.previewBulkRuleImpact.handler(async ({ in
   return previewBulkImpactForSelections(context, input.rules)
 })
 
+function parseCachedConcreteDraft(outputText: string | null): RuleConcreteDraftPayload | null {
+  if (!outputText) return null
+  try {
+    const parsed = RULE_CONCRETE_DRAFT_AI_SCHEMA.safeParse(JSON.parse(outputText))
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
+  }
+}
+
 const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, context }) => {
   const { scoped, tenant, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
@@ -1469,9 +1487,39 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
     sourceText,
   }
 
+  const inputContextRef = ruleConcreteDraftContextRef({
+    ruleId: base.id,
+    sourceId: source.id,
+    sourceSignalId: sourceSignal?.id ?? null,
+  })
+  const inputHash = await hashAiInput(aiInput)
+  const cached = await scoped.ai.findSuccessfulRun({
+    kind: 'rule_concrete_draft',
+    inputContextRef,
+    inputHash,
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+  })
+  const cachedDraft = parseCachedConcreteDraft(cached?.outputText ?? null)
+  if (cached && cachedDraft) {
+    const cachedGuardError = validateConcreteRuleDraft({
+      rule: base,
+      dueDateLogic: cachedDraft.dueDateLogic,
+      sourceText,
+      sourceExcerpt: cachedDraft.sourceExcerpt,
+      coverageStatus: cachedDraft.coverageStatus,
+      requiresApplicabilityReview: cachedDraft.requiresApplicabilityReview,
+    })
+    if (!cachedGuardError) {
+      return RuleConcreteDraftSchema.parse({
+        aiOutputId: cached.id,
+        ...cachedDraft,
+      })
+    }
+  }
+
   const ai = createAI(context.env)
   const aiResult = await ai.runPrompt(
-    'rule-concrete-draft@v1',
+    RULE_CONCRETE_DRAFT_PROMPT,
     aiInput,
     RULE_CONCRETE_DRAFT_AI_SCHEMA,
     {
@@ -1495,9 +1543,7 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
   const recorded = await scoped.ai.recordRun({
     userId,
     kind: 'rule_concrete_draft',
-    inputContextRef: ['rule', base.id, source.id, sourceSignal ? sourceSignal.id : null]
-      .filter((value): value is string => Boolean(value))
-      .join(':'),
+    inputContextRef,
     trace: {
       ...aiResult.trace,
       model: aiResult.model ?? aiResult.trace.model,
