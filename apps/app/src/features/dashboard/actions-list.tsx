@@ -113,18 +113,32 @@ function ActionRow({
       className="flex flex-col"
     >
       <div
-        role="group"
-        aria-label={t`${prompt} for ${row.clientName}`}
+        // The whole row is clickable: opens the obligation panel via
+        // the parent's openObligationDrawer handler, same shape as
+        // queue and client-filing-plan rows. Hover still expands
+        // inline detail; the click is a separate, primary affordance.
+        // The Review button below stops propagation so it doesn't
+        // double-fire.
+        role="button"
+        tabIndex={0}
+        aria-label={t`Open ${prompt} for ${row.clientName}`}
         aria-expanded={expanded}
         aria-controls={detailId}
+        onClick={onOpenObligation}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            onOpenObligation()
+          }
+        }}
         className={cn(
-          'group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors',
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
           // rest); when expanded, the row picks up the same bg as
           // the panel for visual continuity.
-          expanded ? 'rounded-t-md bg-background-subtle' : 'rounded-md',
+          expanded ? 'rounded-t-md bg-background-subtle' : 'rounded-md hover:bg-state-base-hover',
         )}
       >
         {/* Leading chevron — rotates 90° when expanded so the row

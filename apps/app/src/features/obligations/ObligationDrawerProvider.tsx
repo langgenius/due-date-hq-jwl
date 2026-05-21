@@ -3,60 +3,71 @@ import { useLocation, useNavigate } from 'react-router'
 
 import type { ObligationQueueDetailTab } from '@duedatehq/contracts'
 
-import { paidPlanActive } from '@/features/billing/model'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { ObligationQueueDetailDrawer } from '@/routes/obligations'
-
 interface ObligationDrawerContextValue {
   openDrawer: (obligationId: string) => void
   closeDrawer: () => void
   obligationId: string | null
+  // Active tab is lifted to the context so routes that mount the
+  // panel themselves (the queue, client detail) read and drive the
+  // same tab state regardless of where the drawer was opened.
+  activeTab: ObligationQueueDetailTab
+  setActiveTab: (tab: ObligationQueueDetailTab) => void
 }
 
 const ObligationDrawerContext = createContext<ObligationDrawerContextValue | null>(null)
 
 /**
- * `ObligationDrawerProvider` — portal-mounts the obligation detail
- * drawer once at the app shell so any descendant can call
- * `useObligationDrawer().openDrawer(id)` to reveal a side-panel without
- * leaving the current page.
+ * `ObligationDrawerProvider` — shared state holder for the obligation
+ * detail panel. Provides `useObligationDrawer()` to any descendant so
+ * they can `openDrawer(id)` from anywhere in the app.
  *
- * Mirrors the `PulseDrawerProvider` / `EvidenceDrawerProvider` pattern
- * (see `apps/app/src/features/pulse/DrawerProvider.tsx`). Before this
- * existed, `/clients/[id]` had to call `navigate('/obligations?id=...&drawer=obligation')`
- * to open an obligation — a full route change that stranded the user
- * on `/obligations` after closing. Now closing returns to whatever
- * page they were on.
+ * **The panel is always rendered in-route, never as a floating Sheet.**
+ * Two route categories exist:
  *
- * **Queue-route deference.** When the user is already on `/obligations`,
- * `openDrawer(id)` writes URL state (`?id=X&drawer=obligation`) so the
- * route's own queue + drawer pair stays in sync (active row highlight,
- * J/K row cycling, etc.) and the provider's overlay does NOT mount.
- * Elsewhere, the provider mounts its own modal-style drawer in a
- * Sheet, so callers get a uniform `openDrawer(id)` API regardless of
- * where they're invoking from.
+ * 1. **Workspaces** (`/obligations`, `/clients/...`) — these own a
+ *    panel mount inline in their layout. `openDrawer(id)` sets local
+ *    state; the route reads `obligationId` + `activeTab` from this
+ *    context and renders `<ObligationQueueDetailDrawer mode="panel" />`
+ *    in its own column.
+ * 2. **Pickers** (dashboard, anywhere else) — these surface
+ *    obligations to triage but aren't the place to act on them.
+ *    `openDrawer(id)` navigates to `/obligations?id=…&drawer=obligation`
+ *    so the obligation opens in the canonical queue workspace with
+ *    the right panel showing.
  *
- * **Limited context outside the queue.** When mounted via the provider
- * (i.e. NOT on /obligations), the drawer doesn't have access to the
- * route's `blockerCandidates` list — the K-1 blocked-by picker shows
- * no in-queue candidates. The user can still navigate to /obligations
- * to use the full picker. The `onNeedsInput` penalty-input handler
- * is similarly a no-op outside the queue context; the user can open
- * the obligation directly on /obligations to access the penalty
- * dialog.
+ * That unification (2026-05-22) collapsed three render shapes into
+ * one: previously dashboard / Pulse / Cmd+K opened the drawer as a
+ * Sheet over their pages. Now the queue is the canonical workspace,
+ * and pickers route there.
+ *
+ * **Limited context outside the queue.** When the panel renders on
+ * `/clients/[id]`, the K-1 blocked-by picker has no
+ * `blockerCandidates` and the `onNeedsInput` penalty dialog is a
+ * no-op (the dialog lives on the queue route). Users hitting those
+ * features can navigate to `/obligations` via the panel's own UI.
  */
 export function ObligationDrawerProvider({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const permission = useFirmPermission()
-  const practiceAiEnabled = paidPlanActive(permission.firm)
   const [localObligationId, setLocalObligationId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ObligationQueueDetailTab>('readiness')
 
-  // The queue route owns its own URL-driven drawer mount; defer to it
-  // there. Anywhere else, the provider's modal drawer is the canonical
-  // mount.
+  // Routes that own their own in-layout obligation panel defer to
+  // it instead of letting the provider mount a Sheet. Each such
+  // route reads `obligationId` + `activeTab` from this context and
+  // renders `<ObligationQueueDetailDrawer mode="panel" ... />` in
+  // its own layout column.
+  //
+  // 2026-05-22 design call: routes that are *workspaces for
+  // obligations* (the queue, a client's filing plan) own the panel
+  // inline. Routes that are *pickers* (the dashboard — surface what
+  // to act on, then send the user to the workspace) navigate to
+  // `/obligations?id=…` instead. The destination for obligation
+  // viewing is always `/obligations` with the right panel showing;
+  // the queue is the canonical workspace.
   const isQueueRoute = location.pathname === '/obligations'
+  const isClientDetailRoute = location.pathname.startsWith('/clients/')
+  const routeOwnsPanel = isQueueRoute || isClientDetailRoute
 
   const openDrawer = useCallback(
     (obligationId: string) => {
@@ -70,10 +81,25 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
         void navigate(`/obligations?${params.toString()}`)
         return
       }
-      setActiveTab('readiness')
-      setLocalObligationId(obligationId)
+      if (routeOwnsPanel) {
+        // Client detail / dashboard mount their own
+        // `<ObligationQueueDetailDrawer mode="panel" />`. Just set
+        // local state — the panel reads `obligationId` from context.
+        setActiveTab('readiness')
+        setLocalObligationId(obligationId)
+        return
+      }
+      // Route doesn't own a panel mount. Navigate to the canonical
+      // surface so the obligation always renders in a route layout,
+      // never as a floating Sheet. This is the new unified rule
+      // (2026-05-22 IA pass).
+      const params = new URLSearchParams({
+        id: obligationId,
+        drawer: 'obligation',
+      })
+      void navigate(`/obligations?${params.toString()}`)
     },
-    [isQueueRoute, navigate],
+    [isQueueRoute, navigate, routeOwnsPanel],
   )
 
   const closeDrawer = useCallback(() => {
@@ -85,28 +111,19 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       openDrawer,
       closeDrawer,
       obligationId: localObligationId,
+      activeTab,
+      setActiveTab,
     }),
-    [openDrawer, closeDrawer, localObligationId],
+    [openDrawer, closeDrawer, localObligationId, activeTab],
   )
 
+  // No Sheet fallback. Every consumer either renders its own panel
+  // inline (queue, client detail, dashboard) or — for off-route
+  // openers — gets navigated to `/obligations`. The provider is now
+  // a pure state holder + navigator. Removing the Sheet kills the
+  // last "obligation appears as a modal overlay" code path.
   return (
-    <ObligationDrawerContext.Provider value={value}>
-      {children}
-      {!isQueueRoute ? (
-        <ObligationQueueDetailDrawer
-          obligationId={localObligationId}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onClose={closeDrawer}
-          onNeedsInput={() => {
-            // Penalty-input dialog is route-local; not wired outside
-            // the queue. Users can deep-link to the queue for that.
-          }}
-          practiceAiEnabled={practiceAiEnabled}
-          blockerCandidates={[]}
-        />
-      ) : null}
-    </ObligationDrawerContext.Provider>
+    <ObligationDrawerContext.Provider value={value}>{children}</ObligationDrawerContext.Provider>
   )
 }
 
