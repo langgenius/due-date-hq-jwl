@@ -106,8 +106,15 @@ function RootLayoutShell({
         >
           <EvidenceDrawerProvider>
             <PulseDrawerProvider>
-              <ObligationDrawerProvider>
-                <ClientDrawerProvider>
+              {/* ClientDrawerProvider wraps ObligationDrawerProvider
+                because the obligation drawer's body uses
+                `useClientDrawer()` for its "Open client detail"
+                link. If ClientDrawerProvider sits INSIDE Obligation,
+                the obligation drawer body mounts in a tree where
+                ClientDrawerContext is unset → throws "must be used
+                within ClientDrawerProvider" on first render. */}
+              <ClientDrawerProvider>
+                <ObligationDrawerProvider>
                   <AppShell
                     user={user}
                     firm={firm}
@@ -116,8 +123,8 @@ function RootLayoutShell({
                     themePreference={themePreference}
                     switchThemePreference={switchThemePreference}
                   />
-                </ClientDrawerProvider>
-              </ObligationDrawerProvider>
+                </ObligationDrawerProvider>
+              </ClientDrawerProvider>
             </PulseDrawerProvider>
           </EvidenceDrawerProvider>
         </KeyboardProvider>
