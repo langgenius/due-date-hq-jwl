@@ -6,7 +6,10 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 export function RulesPulseRoute() {
   const { t } = useLingui()
   return (
-    <RulesPageShell title={t`Pulse Notification`}>
+    <RulesPageShell
+      title={t`Pulse Notification`}
+      breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }, { label: t`Pulse alerts` }]}
+    >
       <PulseChangesTab embedded />
     </RulesPageShell>
   )

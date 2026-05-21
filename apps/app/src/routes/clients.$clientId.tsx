@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowLeftIcon } from 'lucide-react'
-import { Link, useParams } from 'react-router'
+import { AlertCircleIcon } from 'lucide-react'
+import { useParams } from 'react-router'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { Breadcrumb } from '@/components/patterns/breadcrumb'
 import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { paidPlanActive } from '@/features/billing/model'
@@ -34,17 +34,9 @@ export function ClientDetailRoute() {
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6">
-      <Button
-        nativeButton={false}
-        variant="ghost"
-        size="sm"
-        className="w-fit"
-        aria-label={t`Back to clients`}
-        render={<Link to="/clients" />}
-      >
-        <ArrowLeftIcon data-icon="inline-start" />
-        <Trans>Back to clients</Trans>
-      </Button>
+      <Breadcrumb
+        items={[{ label: t`Clients`, to: '/clients' }, { label: client?.name ?? t`Client` }]}
+      />
 
       {clientQuery.isLoading ? (
         <div className="flex flex-col gap-3">

@@ -8,6 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
@@ -26,8 +27,22 @@ type FilterOption<T extends string> = {
  * plain strings through their loaders, so this adapter keeps that
  * ergonomics-of-strings while routing through the single source of truth.
  */
-export function RulesPageHeader({ title, description }: { title: string; description?: string }) {
-  return <PageHeader title={title} {...(description ? { description } : {})} />
+export function RulesPageHeader({
+  title,
+  description,
+  breadcrumbs,
+}: {
+  title: string
+  description?: string
+  breadcrumbs?: BreadcrumbItem[]
+}) {
+  return (
+    <PageHeader
+      title={title}
+      {...(description ? { description } : {})}
+      {...(breadcrumbs ? { breadcrumbs } : {})}
+    />
+  )
 }
 
 /**
@@ -45,11 +60,13 @@ export function RulesPageHeader({ title, description }: { title: string; descrip
 export function RulesPageShell({
   title,
   description,
+  breadcrumbs,
   compact = false,
   children,
 }: {
   title: string
   description?: string
+  breadcrumbs?: BreadcrumbItem[]
   compact?: boolean
   children: ReactNode
 }) {
@@ -62,7 +79,11 @@ export function RulesPageShell({
             flex `gap-6` slot above the next child, which created a
             ~48-72px dead space at the top of the review surface. */}
           {!compact ? (
-            <RulesPageHeader title={title} {...(description ? { description } : {})} />
+            <RulesPageHeader
+              title={title}
+              {...(description ? { description } : {})}
+              {...(breadcrumbs ? { breadcrumbs } : {})}
+            />
           ) : null}
           {children}
         </div>

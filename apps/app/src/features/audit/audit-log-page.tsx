@@ -43,7 +43,6 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
 import { PageHeader } from '@/components/patterns/page-header'
-import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 
 import { AuditEventDrawer } from './audit-event-drawer'
 import { useAuditActionLabels, useAuditEntityTypeLabels } from './audit-log-labels'
@@ -575,8 +574,8 @@ export function AuditLogPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <SettingsBackLink />
       <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Audit log` }]}
         title={
           <ConceptLabel concept="auditTrail">
             <Trans>Audit log</Trans>

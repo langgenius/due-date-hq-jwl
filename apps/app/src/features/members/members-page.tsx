@@ -234,6 +234,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   return (
     <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
       <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Members` }]}
         title={<Trans>Members</Trans>}
         actions={
           <>

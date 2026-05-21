@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { Breadcrumb } from '@/components/patterns/breadcrumb'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -173,12 +174,10 @@ export function AccountSecurityRoute() {
 
   return (
     <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
+      <Breadcrumb items={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]} />
       <section className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Account</Trans>
-          </span>
-          <h1 className="mt-1 text-2xl font-semibold text-text-primary">
+          <h1 className="text-2xl font-semibold text-text-primary">
             <Trans>Security</Trans>
           </h1>
         </div>

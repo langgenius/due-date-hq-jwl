@@ -45,7 +45,6 @@ import {
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
 import { PageHeader } from '@/components/patterns/page-header'
-import { SettingsBackLink } from '@/components/patterns/settings-back-link'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -142,8 +141,8 @@ export function RemindersPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <SettingsBackLink />
       <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminders` }]}
         title={<Trans>Reminders</Trans>}
         actions={
           <Button render={<Link to="/notifications" />} variant="outline" size="sm">

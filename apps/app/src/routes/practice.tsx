@@ -53,6 +53,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { Breadcrumb } from '@/components/patterns/breadcrumb'
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
@@ -381,6 +382,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
 
   return (
     <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+      <Breadcrumb
+        items={[{ label: t`Settings`, to: '/settings' }, { label: t`Practice profile` }]}
+      />
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">

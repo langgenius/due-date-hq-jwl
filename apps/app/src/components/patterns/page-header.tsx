@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { Breadcrumb, type BreadcrumbItem } from './breadcrumb'
+
 /**
  * PageHeader — canonical route header for every protected surface.
  *
@@ -18,22 +20,32 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *  - subtitle: 13px / 400 / leading-5, text-secondary, max-w-[1080px]
  *  - actions cluster: right-aligned on lg+, wraps below title on small viewports
  *
+ * Sub-pages with a parent in the IA pass `breadcrumbs` to surface a path
+ * back. The breadcrumb renders in the eyebrow slot (same typography),
+ * so `eyebrow` is the fallback for pages without a structural parent
+ * (e.g. a top-level destination that wants an "AT A GLANCE" label).
+ * Passing both is supported but breadcrumbs win — they always carry more
+ * information.
+ *
  * The dashboard hero ("Today") is intentionally larger and lives outside
  * this component — see DashboardRoute. Everything else funnels through here.
  */
 export function PageHeader({
   eyebrow,
+  breadcrumbs,
   title,
   description,
   actions,
   className,
 }: {
   eyebrow?: ReactNode
+  breadcrumbs?: BreadcrumbItem[]
   title: ReactNode
   description?: ReactNode
   actions?: ReactNode
   className?: string
 }) {
+  const hasBreadcrumbs = breadcrumbs && breadcrumbs.length > 0
   return (
     <header
       className={cn(
@@ -42,7 +54,8 @@ export function PageHeader({
       )}
     >
       <div className="flex min-w-0 flex-col gap-2">
-        {eyebrow ? (
+        {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
+        {eyebrow && !hasBreadcrumbs ? (
           <p className="text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
             {eyebrow}
           </p>

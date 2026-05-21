@@ -6,7 +6,10 @@ import { SourcesTab } from '@/features/rules/sources-tab'
 export function RulesSourcesRoute() {
   const { t } = useLingui()
   return (
-    <RulesPageShell title={t`Sources`}>
+    <RulesPageShell
+      title={t`Sources`}
+      breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }, { label: t`Sources` }]}
+    >
       <SourcesTab />
     </RulesPageShell>
   )
