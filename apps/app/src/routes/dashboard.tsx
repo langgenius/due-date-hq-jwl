@@ -18,7 +18,7 @@ import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { ExposureStrip } from '@/features/dashboard/exposure-strip'
-import { DashboardHeroSubtitle } from '@/features/dashboard/hero-subtitle'
+import { DashboardHeroDetail } from '@/features/dashboard/hero-subtitle'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
@@ -131,7 +131,7 @@ export function DashboardRoute() {
   return (
     <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-8 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
             <Trans>Today</Trans>{' '}
             <span className="font-medium text-text-tertiary">
@@ -140,10 +140,11 @@ export function DashboardRoute() {
                 : formatTodayHeader(data.asOfDate)}
             </span>
           </h1>
-          {/* Sarah-at-8am delta line. Sees a one-glance "what changed
-            since I last looked" without scanning every section below.
-            See docs/Design/ux-audit-2026-05-21.md P1. */}
-          <DashboardHeroSubtitle />
+          {/* Sarah-at-8am: the H1 stays clean. Hover the ⓘ chip for the
+            delta breakdown; click Review to jump to the Inbox where
+            the new items live. Per docs/Design/ux-audit-2026-05-21.md
+            P1. */}
+          <DashboardHeroDetail />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>

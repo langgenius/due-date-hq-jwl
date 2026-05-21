@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { ArrowUpRightIcon, InfoIcon } from 'lucide-react'
+import { Link } from 'react-router'
+
+import { Button } from '@duedatehq/ui/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 
 import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 
@@ -18,24 +23,23 @@ const LAST_VISIT_KEY = 'duedatehq:dashboard:lastVisit'
 const RECENT_THRESHOLD_MS = 8 * 60 * 60 * 1000
 
 /**
- * `DashboardHeroSubtitle` — small "as of X · N new since Y" line that
- * sits under the "Today" hero.
+ * `DashboardHeroDetail` — the hover-reveal companion to the "Today"
+ * H1 plus a Review button. Replaces the always-visible delta subtitle.
  *
- * Sarah-at-8am persona (per docs/Design/ux-audit-2026-05-21.md P1)
- * needs to know what changed overnight without scanning every section.
- * This subtitle delivers a one-glance delta:
+ * Sarah-at-8am persona (per docs/Design/ux-audit-2026-05-21.md P1):
+ * the dashboard hero says "Today, May 21" big and clean. Hovering it
+ * (or focusing the trigger icon) opens a popover with the "what
+ * changed since I last looked" breakdown. The Review button gives
+ * a one-click jump into the Inbox where the new items live.
  *
- *   - First visit ever / no Pulse alerts → quiet "As of 9:42am"
- *   - Returning the same hour → "As of 9:42am · 2 Pulse alerts open"
- *   - Returning after >8h with new alerts → "As of 9:42am · 2 new
- *     Pulse alerts since yesterday"
+ * Layout:
  *
- * On mount we read the previous visit timestamp, then synchronously
- * write the new one so the next reload reflects this session. The
- * snapshot taken at mount is what feeds the delta — never recomputed,
- * so navigating away and back doesn't reset the count mid-session.
+ *   [Today, May 21]  [ⓘ]  [Review →]
+ *                    ↑    ↑
+ *                    │    primary action — opens /notifications
+ *                    hover trigger — popover with delta details
  */
-export function DashboardHeroSubtitle() {
+export function DashboardHeroDetail() {
   const { t } = useLingui()
   const alertsQuery = useQuery(usePulseListAlertsQueryOptions(50))
   // Snapshot the "previous visit" timestamp on mount and write the new
@@ -87,38 +91,87 @@ export function DashboardHeroSubtitle() {
     [snapshot.now],
   )
 
-  const sinceLabel = useMemo(() => {
-    if (snapshot.previous === null) return null
+  const lastVisitLabel = useMemo(() => {
+    if (snapshot.previous === null) return t`First time today`
     const elapsedMs = snapshot.now - snapshot.previous
-    return elapsedMs > RECENT_THRESHOLD_MS ? t`since yesterday` : t`since you last looked`
+    if (elapsedMs > RECENT_THRESHOLD_MS) {
+      const date = new Date(snapshot.previous)
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+      return t`Last opened ${formatter.format(date)}`
+    }
+    const minutes = Math.max(1, Math.round(elapsedMs / 60_000))
+    return t`Last opened ${minutes} min ago`
   }, [snapshot.now, snapshot.previous, t])
 
+  const reviewCount = newSinceLastVisit > 0 ? newSinceLastVisit : openAlerts.length
+
   return (
-    <p className="text-[13px] leading-5 text-text-tertiary">
-      <Trans>As of {asOfTime}</Trans>
-      {newSinceLastVisit > 0 && sinceLabel ? (
-        <>
-          {' · '}
-          <span className="text-text-secondary">
-            <Plural
-              value={newSinceLastVisit}
-              one={`# new Pulse alert ${sinceLabel}`}
-              other={`# new Pulse alerts ${sinceLabel}`}
+    <div className="flex flex-wrap items-center gap-2">
+      <Popover>
+        <PopoverTrigger
+          openOnHover
+          delay={120}
+          closeDelay={120}
+          render={
+            <button
+              type="button"
+              aria-label={t`Show today's details`}
+              className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             />
+          }
+        >
+          <InfoIcon className="size-3.5" aria-hidden />
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-72 gap-2 p-3 text-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
+              <Trans>As of {asOfTime}</Trans>
+            </span>
+            <span className="text-xs text-text-tertiary">{lastVisitLabel}</span>
+          </div>
+          <dl className="grid gap-1.5 text-sm">
+            {newSinceLastVisit > 0 ? (
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-text-secondary">
+                  <Trans>New Pulse alerts</Trans>
+                </dt>
+                <dd className="font-mono tabular-nums text-text-primary">+{newSinceLastVisit}</dd>
+              </div>
+            ) : null}
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-text-secondary">
+                <Trans>Pulse alerts open</Trans>
+              </dt>
+              <dd className="font-mono tabular-nums text-text-primary">{openAlerts.length}</dd>
+            </div>
+          </dl>
+          {openAlerts.length === 0 && newSinceLastVisit === 0 ? (
+            <p className="text-xs text-text-tertiary">
+              <Trans>Nothing urgent. Quiet morning.</Trans>
+            </p>
+          ) : null}
+        </PopoverContent>
+      </Popover>
+      <Button variant="outline" size="sm" render={<Link to="/notifications" />}>
+        <Trans>Review</Trans>
+        {reviewCount > 0 ? (
+          <span className="font-mono tabular-nums text-text-tertiary">
+            <Plural value={reviewCount} one="# alert" other="# alerts" />
           </span>
-        </>
-      ) : openAlerts.length > 0 ? (
-        <>
-          {' · '}
-          <span className="text-text-secondary">
-            <Plural
-              value={openAlerts.length}
-              one="# Pulse alert open"
-              other="# Pulse alerts open"
-            />
-          </span>
-        </>
-      ) : null}
-    </p>
+        ) : null}
+        <ArrowUpRightIcon data-icon="inline-end" />
+      </Button>
+    </div>
   )
 }
+
+/**
+ * Kept as `DashboardHeroSubtitle` alias for backward-compatible imports
+ * while the dashboard route migrates to the renamed `DashboardHeroDetail`.
+ * Safe to delete after the route is updated.
+ */
+export const DashboardHeroSubtitle = DashboardHeroDetail
