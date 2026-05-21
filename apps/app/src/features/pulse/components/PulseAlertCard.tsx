@@ -16,6 +16,7 @@ interface PulseAlertCardProps {
   alert: PulseAlertPublic
   onReview: () => void
   onDismiss?: (() => void) | undefined
+  onSnooze?: (() => void) | undefined
   /** Background breathing is reserved for the top actionable row in dense lists. */
   breathing?: boolean
   /** Inline actions are hidden when the card is rendered as a folded "more" entry. */
@@ -30,6 +31,7 @@ export function PulseAlertCard({
   alert,
   onReview,
   onDismiss,
+  onSnooze,
   breathing = false,
   compact = false,
 }: PulseAlertCardProps) {
@@ -103,6 +105,15 @@ export function PulseAlertCard({
         <footer className="flex items-center justify-between gap-2 pl-4">
           <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
           <span className="flex items-center gap-1">
+            {/* Canonical action order per docs/Design/pulse-vocabulary.md:
+              Snooze (softer secondary) → Dismiss (destructive-ish secondary)
+              → Review (primary, rightmost). Both Snooze and Dismiss are
+              audit-logged and require a reason — the parent owns the prompt. */}
+            {onSnooze ? (
+              <Button variant="ghost" size="sm" onClick={onSnooze}>
+                <Trans>Snooze</Trans>
+              </Button>
+            ) : null}
             {onDismiss ? (
               <Button variant="ghost" size="sm" onClick={onDismiss}>
                 <Trans>Dismiss</Trans>

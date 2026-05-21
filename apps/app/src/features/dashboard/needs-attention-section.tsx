@@ -61,7 +61,7 @@ function SystemStatusRow() {
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => setHidden(true)}>
-            <Trans>Hide</Trans>
+            <Trans>Collapse</Trans>
           </Button>
           <Button
             variant="primary"

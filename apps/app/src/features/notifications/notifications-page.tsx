@@ -271,7 +271,7 @@ export function NotificationsPage() {
                       ['emailEnabled', t`Email`],
                       ['inAppEnabled', t`In-app`],
                       ['remindersEnabled', t`Deadline reminders`],
-                      ['pulseEnabled', t`Pulse updates`],
+                      ['pulseEnabled', t`Pulse alerts`],
                       ['unassignedRemindersEnabled', t`Unassigned work`],
                     ] as const
                   ).map(([key, label]) => (
@@ -335,7 +335,7 @@ function MorningDigestCard({
             </span>
             <span className="text-xs text-text-tertiary">
               <Trans>
-                Only sends when deadlines, Pulse changes, or delivery failures need attention.
+                Only sends when deadlines, Pulse alerts, or delivery failures need attention.
               </Trans>
             </span>
           </span>

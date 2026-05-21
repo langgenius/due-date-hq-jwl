@@ -116,6 +116,24 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       },
     }),
   )
+  // Snooze mirrors Dismiss — same canonical reason prompt, same audit
+  // semantics, same toast pattern — but the alert reappears when the
+  // 24h window elapses. Wired here per docs/Design/pulse-vocabulary.md
+  // so CPAs don't have to open the drawer to defer a low-priority
+  // alert.
+  const snoozeAlertMutation = useMutation(
+    orpc.pulse.snooze.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert snoozed for 24h`)
+        invalidatePulse()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't snooze alert`, {
+          description: rpcErrorMessage(err) ?? undefined,
+        })
+      },
+    }),
+  )
   const alertsQuery = useQuery(usePulseListHistoryQueryOptions(50))
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
@@ -156,7 +174,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
                 <PulsingDot tone={isEmpty ? 'success' : 'warning'} active />
-                <Trans>Pulse Changes</Trans>
+                <Trans>Pulse alerts</Trans>
               </h1>
               <p className="max-w-[640px] text-md text-text-secondary">
                 <ConceptLabel concept="pulse">
@@ -309,18 +327,36 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 // partially_applied / reverted / snoozed) — growing a Dismiss
                 // button there would imply a no-op or a misleading retreat.
                 const canDismiss = alert.status === 'matched'
+                // Snooze applies to the same lifecycle stage as Dismiss
+                // (still-open alerts) — the difference is the alert
+                // reappears after 24h. Per canonical action order, both
+                // are exposed on the card; Snooze is the softer choice.
+                const canSnooze = canDismiss
                 return (
                   <PulseAlertCard
                     key={alert.id}
                     alert={alert}
                     breathing={alert.id === breathingAlertId}
                     onReview={() => openDrawer(alert.id)}
+                    {...(canSnooze
+                      ? {
+                          onSnooze: () => {
+                            const reason = window
+                              .prompt(t`Why is this alert not urgent right now?`)
+                              ?.trim()
+                            if (!reason) return
+                            snoozeAlertMutation.mutate({
+                              alertId: alert.id,
+                              until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                              reason,
+                            })
+                          },
+                        }
+                      : {})}
                     {...(canDismiss
                       ? {
                           onDismiss: () => {
-                            const reason = window
-                              .prompt(t`Reason for dismissing this alert?`)
-                              ?.trim()
+                            const reason = window.prompt(t`Why is this alert not relevant?`)?.trim()
                             if (!reason) return
                             dismissAlertMutation.mutate({ alertId: alert.id, reason })
                           },
@@ -604,7 +640,7 @@ function NoClientMatchesState() {
     <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default px-4 py-5 text-md text-text-secondary">
       <PulsingDot tone="disabled" />
       <span className="flex-1">
-        <Trans>No client-matching Pulse changes right now.</Trans>
+        <Trans>No client-matching Pulse alerts right now.</Trans>
       </span>
     </div>
   )
