@@ -5,7 +5,7 @@ import { orpc } from '@/lib/rpc'
 
 const PULSE_ACTIVE_ALERTS_REFETCH_INTERVAL_MS = 60_000
 const PULSE_SOURCE_HEALTH_REFETCH_INTERVAL_MS = 60_000
-const PULSE_LIST_ALERTS_MAX_LIMIT = 20
+const PULSE_LIST_ALERTS_MAX_LIMIT = 50
 
 function normalizePulseListAlertsLimit(limit: number | undefined): number | undefined {
   if (limit === undefined || !Number.isFinite(limit)) return undefined

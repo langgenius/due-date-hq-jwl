@@ -109,6 +109,7 @@ import {
   PulseApplyInputSchema,
   PulseApplyOutputSchema,
   PulseFirmAlertStatusSchema,
+  PulseListAlertsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
   PulseSourceSignalSchema,
@@ -1071,6 +1072,8 @@ describe('@duedatehq/contracts', () => {
       'reverted',
     ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
+    expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
+    expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',

@@ -1376,7 +1376,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listAlerts(opts: { limit?: number } = {}): Promise<PulseAlertRow[]> {
-      const limit = Math.min(Math.max(opts.limit ?? 5, 1), 20)
+      const limit = Math.min(Math.max(opts.limit ?? 5, 1), 50)
       const now = new Date()
       const rows = await db
         .select({

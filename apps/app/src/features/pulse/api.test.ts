@@ -25,11 +25,17 @@ describe('usePulseListAlertsQueryOptions', () => {
     expect(rpcMocks.listAlertsQueryOptions).toHaveBeenLastCalledWith({ input: undefined })
   })
 
-  it('clamps oversized limits to the listAlerts contract maximum', () => {
+  it('allows the dashboard hero limit now supported by the contract', () => {
     const options = usePulseListAlertsQueryOptions(50)
 
-    expect(rpcMocks.listAlertsQueryOptions).toHaveBeenLastCalledWith({ input: { limit: 20 } })
-    expect(options.queryKey).toEqual(['pulse', 'listAlerts', { limit: 20 }])
+    expect(rpcMocks.listAlertsQueryOptions).toHaveBeenLastCalledWith({ input: { limit: 50 } })
+    expect(options.queryKey).toEqual(['pulse', 'listAlerts', { limit: 50 }])
+  })
+
+  it('clamps oversized limits to the listAlerts contract maximum', () => {
+    usePulseListAlertsQueryOptions(51)
+
+    expect(rpcMocks.listAlertsQueryOptions).toHaveBeenLastCalledWith({ input: { limit: 50 } })
   })
 
   it('normalizes non-positive and fractional limits before building the query', () => {

@@ -134,7 +134,7 @@ export type PulsePriorityQueueItem = z.infer<typeof PulsePriorityQueueItemSchema
 
 export const PulseListAlertsInputSchema = z
   .object({
-    limit: z.number().int().min(1).max(20).default(5).optional(),
+    limit: z.number().int().min(1).max(50).default(5).optional(),
   })
   .optional()
 export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
