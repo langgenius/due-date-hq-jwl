@@ -1,5 +1,9 @@
-import { and, desc, eq, isNotNull } from 'drizzle-orm'
-import type { AiOutputRow, FindSuccessfulAiRunInput } from '@duedatehq/ports/ai'
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import type {
+  AiOutputRow,
+  FindSuccessfulAiRunInput,
+  FindSuccessfulAiRunsByContextRefsInput,
+} from '@duedatehq/ports/ai'
 import type { Db } from '../client'
 import { aiOutput, llmLog } from '../schema/ai'
 
@@ -72,6 +76,47 @@ export function makeAiRepo(db: Db, firmId: string) {
         .limit(1)
 
       return row ?? null
+    },
+
+    async findSuccessfulRunsByContextRefs(
+      input: FindSuccessfulAiRunsByContextRefsInput,
+    ): Promise<AiOutputRow[]> {
+      if (input.inputContextRefs.length === 0) return []
+      const rows = await db
+        .select({
+          id: aiOutput.id,
+          firmId: aiOutput.firmId,
+          userId: aiOutput.userId,
+          kind: aiOutput.kind,
+          promptVersion: aiOutput.promptVersion,
+          model: aiOutput.model,
+          inputContextRef: aiOutput.inputContextRef,
+          inputHash: aiOutput.inputHash,
+          outputText: aiOutput.outputText,
+          citations: aiOutput.citationsJson,
+          guardResult: aiOutput.guardResult,
+          refusalCode: aiOutput.refusalCode,
+          generatedAt: aiOutput.generatedAt,
+        })
+        .from(aiOutput)
+        .where(
+          and(
+            eq(aiOutput.firmId, firmId),
+            eq(aiOutput.kind, input.kind),
+            inArray(aiOutput.inputContextRef, [...input.inputContextRefs]),
+            eq(aiOutput.promptVersion, input.promptVersion),
+            eq(aiOutput.guardResult, 'ok'),
+            isNotNull(aiOutput.outputText),
+          ),
+        )
+        .orderBy(desc(aiOutput.generatedAt))
+
+      const latestByContext = new Map<string, AiOutputRow>()
+      for (const row of rows) {
+        if (!row.inputContextRef || latestByContext.has(row.inputContextRef)) continue
+        latestByContext.set(row.inputContextRef, row)
+      }
+      return Array.from(latestByContext.values())
     },
 
     async recordRun(input: RecordAiRunInput): Promise<{ aiOutputId: string; llmLogId: string }> {

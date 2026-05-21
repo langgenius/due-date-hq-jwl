@@ -180,13 +180,18 @@ Needs review · Active · All · Rejected · Archived · Applicability review ·
 ```
 
 - 默认进入 `Needs review`，即 pending/open-task rules。
-- Pending/open-task 行显示 checkbox；选择后只在表格上方出现轻量 selection bar。
+- Batch-ready pending/open-task 行显示 checkbox；选择后只在表格上方出现轻量 selection bar。
+- Source-defined 行在没有 AI concrete draft 时不显示 checkbox，只显示
+  `AI draft needed` 并要求进入单条 Rule Detail 生成/审核 draft；已有 cached AI
+  concrete draft，或当前 Rule Detail 已生成 AI concrete draft 的 source-defined 行显示
+  checkbox，可进入 Bulk Review drawer；该 checkbox 在当前页面会话内常驻，不因切换到其他
+  rule 而消失。
 - `Review selected` 打开 Bulk Review drawer；drawer 内集中展示 selected rules、
   preview summary、batch review note 和 `Accept selected`，并在 drawer 内执行 preview。
 - 如果 practice 已有 active v1，而全局 template 已升级到 v2，Rules 表必须同时显示
   active v1 台账行和 pending v2 `Update available` 行；v2 行来自 `source_changed`
   review task，不进入 Pulse Changes。
-- `Update available` / `source_changed` 行不能 bulk accept；checkbox 禁用，必须进入单条
+- `Update available` / `source_changed` 行不能 bulk accept，且不显示 row checkbox，必须进入单条
   Rule Detail drawer 审阅证据和当前规则字段，然后原样 Accept update 或 Reject。
 - Active / rejected / archived 行不参与批量接受，只保留详情查看、编辑/归档和审计入口。
 - 点击任意行都打开 Rule Detail drawer；pending 行可以单条 accept/reject，active 行展示证据、版本、review metadata。
@@ -411,6 +416,7 @@ AI Tip 只能使用 active practice rule 和 source summary：
 
 | 版本 | 日期       | 作者  | 摘要                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1.9 | 2026-05-21 | Codex | Pending review queue 不再为无法批量处理的行渲染 disabled checkbox；source-defined 行若已有 cached AI concrete draft，或当前 Rule Detail 已生成 AI concrete draft，可显示常驻 checkbox 并进入 Bulk Review drawer，drawer 展示 draft 字段，后端在 bulk verify 前重新校验 draft。                                                                                                                                                                                                                                                                                |
 | v1.8 | 2026-05-20 | Codex | Source-defined candidate 的 `Accept rule` 改为接受 AI 生成、用户审阅过的 concrete draft；`acceptTemplate` / bulk accept 拒绝 `source_defined_calendar` placeholder，bulk UI 标出需要单条 AI review。Coverage matrix 不再使用前端静态映射，直接渲染后端按 active concrete rule / pending candidate 计算的 `entityCoverage`，source-defined rule 在 concrete draft 被 CPA accept 前保持 pending review。                                                                                                                                                        |
 | v1.7 | 2026-05-05 | Codex | 单条 Rule Detail review 与 bulk review 收敛为同一语义：默认只读审阅当前规则与证据，`Accept rule` 调用 `acceptTemplate` 原样激活，不再在 practice review 默认路径中编辑 due-date logic、extension、tier 或 applicability。                                                                                                                                                                                                                                                                                                                                     |
 | v1.6 | 2026-05-05 | Codex | `Update available` / `source_changed` 行禁止 bulk accept：前端禁用 checkbox，后端 bulk preview / accept 返回 skipped，强制进入单条 Rule Detail drawer 审核证据和规则字段。                                                                                                                                                                                                                                                                                                                                                                                    |

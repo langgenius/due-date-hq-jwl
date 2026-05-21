@@ -690,6 +690,9 @@ function buildScopedRepo(firmId: string) {
       async findSuccessfulRun() {
         return null
       },
+      async findSuccessfulRunsByContextRefs() {
+        return []
+      },
       async recordRun(input) {
         const aiOutputId = `ai-output-${aiRuns.length + 1}`
         aiRuns.push({ kind: input.kind, aiOutputId })

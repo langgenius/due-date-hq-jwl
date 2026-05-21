@@ -17,6 +17,8 @@ import { toast } from 'sonner'
 import type {
   ObligationRule,
   RuleBulkImpactPreview,
+  RuleConcreteDraft,
+  RuleConcreteDraftCacheEntry,
   RuleCoverageRow,
   RuleJurisdiction,
   RuleReviewTask,
@@ -41,7 +43,6 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -54,12 +55,14 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import {
+  formatEnumLabel,
+  humanizeDueDateLogic,
   jurisdictionLabel,
   type CoverageCellState,
   type CoverageEntityColumn,
 } from './rules-console-model'
 import { JurisdictionCode, QueryPanelState, SectionFrame } from './rules-console-primitives'
-import { RuleDetailCompact } from './rule-detail-drawer'
+import { RuleDetailCompact, hasConcreteDraftSourceEvidence } from './rule-detail-drawer'
 
 // Column order matches the canonical Coverage design — full names in
 // the sub-column header, no codes. "Partner." abbreviates Partnership
@@ -103,6 +106,46 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
 
 function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
   return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+type RuleConcreteDraftTarget = {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string
+}
+
+type SelectedConcreteDraftRule = {
+  rule: ObligationRule
+  sourceId: string
+  sourceSignalId: string | null
+  draft: RuleConcreteDraft
+}
+
+function ruleReviewSourceId(rule: Pick<ObligationRule, 'sourceIds' | 'evidence'>): string {
+  return rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+}
+
+function concreteDraftTargetForRule(rule: ObligationRule): RuleConcreteDraftTarget | null {
+  if (!isSourceDefinedRule(rule)) return null
+  const sourceId = ruleReviewSourceId(rule)
+  if (sourceId.length === 0) return null
+  return { ruleId: rule.id, sourceId }
+}
+
+function concreteDraftTargetKey(input: {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string | null
+}): string {
+  return [input.ruleId, input.sourceId, input.sourceSignalId ?? ''].join(':')
+}
+
+function concreteDraftInputForTarget(target: RuleConcreteDraftTarget): RuleConcreteDraftTarget {
+  return {
+    ruleId: target.ruleId,
+    sourceId: target.sourceId,
+    ...(target.sourceSignalId ? { sourceSignalId: target.sourceSignalId } : {}),
+  }
 }
 
 export function CoverageTab({
@@ -275,6 +318,27 @@ export function CoverageTab({
     if (!selectedRuleId) return null
     return (rulesQuery.data ?? []).find((rule) => rule.id === selectedRuleId) ?? null
   }, [selectedRuleId, rulesQuery.data])
+  const selectedConcreteDraftTarget = selectedRule ? concreteDraftTargetForRule(selectedRule) : null
+  const selectedConcreteDraftSource = selectedConcreteDraftTarget
+    ? sourceById.get(selectedConcreteDraftTarget.sourceId)
+    : undefined
+  const selectedConcreteDraftEnabled = Boolean(
+    selectedRule &&
+    selectedConcreteDraftTarget &&
+    hasConcreteDraftSourceEvidence(
+      selectedRule,
+      selectedConcreteDraftTarget.sourceId,
+      selectedConcreteDraftSource,
+    ),
+  )
+  const selectedConcreteDraftQuery = useQuery({
+    ...orpc.rules.draftConcreteRule.queryOptions({
+      input: selectedConcreteDraftTarget
+        ? concreteDraftInputForTarget(selectedConcreteDraftTarget)
+        : { ruleId: '', sourceId: '' },
+    }),
+    enabled: selectedConcreteDraftEnabled,
+  })
 
   const rowsData = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
   const filteredRows = useMemo(() => {
@@ -324,28 +388,100 @@ export function CoverageTab({
     () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
     [reviewTasks],
   )
+  const concreteDraftInputs = useMemo(() => {
+    const seen = new Set<string>()
+    const inputs: RuleConcreteDraftTarget[] = []
+    for (const rule of pendingQueue) {
+      const target = concreteDraftTargetForRule(rule)
+      if (!target) continue
+      const key = concreteDraftTargetKey(target)
+      if (seen.has(key)) continue
+      seen.add(key)
+      inputs.push(target)
+    }
+    return inputs
+  }, [pendingQueue])
+  const concreteDraftsQuery = useQuery({
+    ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
+    enabled: concreteDraftInputs.length > 0,
+  })
+  const selectedConcreteDraftDataUpdatedAt = selectedConcreteDraftQuery.dataUpdatedAt
+  const concreteDraftByTarget = useMemo(() => {
+    const map = new Map<string, RuleConcreteDraftCacheEntry>()
+    for (const entry of concreteDraftsQuery.data ?? []) {
+      map.set(concreteDraftTargetKey(entry), entry)
+    }
+    const shouldReadDraftQueryCache = selectedConcreteDraftDataUpdatedAt >= 0
+    if (shouldReadDraftQueryCache) {
+      for (const target of concreteDraftInputs) {
+        const draft = queryClient.getQueryData<RuleConcreteDraft>(
+          orpc.rules.draftConcreteRule.queryOptions({
+            input: concreteDraftInputForTarget(target),
+          }).queryKey,
+        )
+        if (!draft) continue
+        map.set(concreteDraftTargetKey(target), {
+          ruleId: target.ruleId,
+          sourceId: target.sourceId,
+          sourceSignalId: target.sourceSignalId ?? null,
+          draft,
+        })
+      }
+    }
+    return map
+  }, [
+    concreteDraftInputs,
+    concreteDraftsQuery.data,
+    queryClient,
+    selectedConcreteDraftDataUpdatedAt,
+  ])
   const selectedRows = useMemo(
     () =>
       visiblePendingQueue.filter(
         (rule) =>
           selectedRuleKeys.includes(ruleRowKey(rule)) &&
-          canBulkReviewRule(rule, openTaskByRuleVersion),
+          canBulkReviewRule(rule, openTaskByRuleVersion, concreteDraftByTarget),
       ),
-    [openTaskByRuleVersion, selectedRuleKeys, visiblePendingQueue],
+    [concreteDraftByTarget, openTaskByRuleVersion, selectedRuleKeys, visiblePendingQueue],
   )
-  const selections = selectedRows.map((rule) => ({
+  const templateRows = selectedRows.filter((rule) => !isSourceDefinedRule(rule))
+  const concreteDraftRows = selectedRows.flatMap((rule): SelectedConcreteDraftRule[] => {
+    const target = concreteDraftTargetForRule(rule)
+    if (!target) return []
+    const entry = concreteDraftByTarget.get(concreteDraftTargetKey(target))
+    if (!entry) return []
+    return [
+      {
+        rule,
+        sourceId: entry.sourceId,
+        sourceSignalId: entry.sourceSignalId,
+        draft: entry.draft,
+      },
+    ]
+  })
+  const selections = templateRows.map((rule) => ({
     ruleId: rule.id,
     expectedVersion:
       openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))?.templateVersion ?? rule.version,
   }))
+  const concreteDraftSelections = concreteDraftRows.map((entry) => ({
+    ruleId: entry.rule.id,
+    sourceId: entry.sourceId,
+    ...(entry.sourceSignalId ? { sourceSignalId: entry.sourceSignalId } : {}),
+    aiOutputId: entry.draft.aiOutputId,
+  }))
   const visibleSelectableRows = visiblePendingQueue.filter((rule) =>
-    canBulkReviewRule(rule, openTaskByRuleVersion),
+    canBulkReviewRule(rule, openTaskByRuleVersion, concreteDraftByTarget),
   )
   const visibleSelectedRows = visibleSelectableRows.filter((rule) =>
     selectedRuleKeys.includes(ruleRowKey(rule)),
   )
   const allVisibleSelected =
     visibleSelectableRows.length > 0 && visibleSelectedRows.length === visibleSelectableRows.length
+  const visibleSingleReviewCount = Math.max(
+    0,
+    visiblePendingQueue.length - visibleSelectableRows.length,
+  )
 
   const clearBulkSelection = () => {
     setSelectedRuleKeys([])
@@ -376,23 +512,8 @@ export function CoverageTab({
       },
     }),
   )
-  const bulkAcceptMutation = useMutation(
-    orpc.rules.bulkAcceptTemplates.mutationOptions({
-      onSuccess: (result) => {
-        invalidateAcceptedRuleOutputs()
-        clearBulkSelection()
-        setReviewNote('')
-        toast.success(t`Rules accepted`, {
-          description: t`${result.accepted.length} accepted · ${result.skipped.length} skipped.`,
-        })
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't accept selected rules`, {
-          description: rpcErrorMessage(error) ?? t`Add a review note and try again.`,
-        })
-      },
-    }),
-  )
+  const bulkAcceptMutation = useMutation(orpc.rules.bulkAcceptTemplates.mutationOptions({}))
+  const bulkVerifyMutation = useMutation(orpc.rules.bulkVerifyCandidates.mutationOptions({}))
 
   // Queue navigation helpers + keyboard shortcuts. All hoisted ABOVE
   // the loading/error early-returns so the hook order stays stable
@@ -563,7 +684,7 @@ export function CoverageTab({
     setPreview(null)
   }
   const openBulkReview = () => {
-    if (selections.length === 0) {
+    if (selectedRows.length === 0) {
       toast.error(t`Select at least one pending rule.`)
       return
     }
@@ -571,15 +692,15 @@ export function CoverageTab({
   }
   const runBulkPreview = () => {
     if (selections.length === 0) {
-      toast.error(t`Select at least one pending rule.`)
+      toast.error(t`Select at least one template rule to preview.`)
       return
     }
     setBulkDrawerOpen(true)
     previewMutation.mutate({ rules: selections })
   }
-  const bulkAccept = () => {
+  const bulkAccept = async () => {
     const note = reviewNote.trim()
-    if (selections.length === 0) {
+    if (selectedRows.length === 0) {
       toast.error(t`Select at least one pending rule.`)
       return
     }
@@ -587,7 +708,26 @@ export function CoverageTab({
       toast.error(t`Batch review note is required.`)
       return
     }
-    bulkAcceptMutation.mutate({ rules: selections, reviewNote: note })
+    try {
+      const [templateResult, concreteDraftResult] = await Promise.all([
+        selections.length > 0
+          ? bulkAcceptMutation.mutateAsync({ rules: selections, reviewNote: note })
+          : Promise.resolve({ accepted: [], skipped: [] }),
+        concreteDraftSelections.length > 0
+          ? bulkVerifyMutation.mutateAsync({ rules: concreteDraftSelections, reviewNote: note })
+          : Promise.resolve({ verified: [], skipped: [] }),
+      ])
+      invalidateAcceptedRuleOutputs()
+      clearBulkSelection()
+      setReviewNote('')
+      toast.success(t`Rules accepted`, {
+        description: t`${templateResult.accepted.length + concreteDraftResult.verified.length} accepted · ${templateResult.skipped.length + concreteDraftResult.skipped.length} skipped.`,
+      })
+    } catch (error) {
+      toast.error(t`Couldn't accept selected rules`, {
+        description: rpcErrorMessage(error) ?? t`Add a review note and try again.`,
+      })
+    }
   }
 
   return (
@@ -643,7 +783,9 @@ export function CoverageTab({
                   selectedCount={selectedRows.length}
                   allVisibleSelected={allVisibleSelected}
                   visibleSelectableCount={visibleSelectableRows.length}
+                  visibleSingleReviewCount={visibleSingleReviewCount}
                   openTaskByRuleVersion={openTaskByRuleVersion}
+                  concreteDraftByTarget={concreteDraftByTarget}
                   onRuleSelectionChange={toggleRuleSelection}
                   onToggleVisibleSelection={toggleVisibleSelection}
                   onReviewSelected={openBulkReview}
@@ -750,13 +892,15 @@ export function CoverageTab({
         open={bulkDrawerOpen}
         onOpenChange={setBulkDrawerOpen}
         selectedRules={selectedRows}
+        selectedConcreteDrafts={concreteDraftRows}
+        templateRuleCount={templateRows.length}
         preview={preview}
         reviewNote={reviewNote}
         previewPending={previewMutation.isPending}
-        acceptPending={bulkAcceptMutation.isPending}
+        acceptPending={bulkAcceptMutation.isPending || bulkVerifyMutation.isPending}
         onReviewNoteChange={setReviewNote}
         onPreview={runBulkPreview}
-        onAccept={bulkAccept}
+        onAccept={() => void bulkAccept()}
       />
     </div>
   )
@@ -1240,6 +1384,8 @@ function CoverageRuleItem({
   isSelected,
   onSelect,
   selection,
+  selectionUnavailableLabel,
+  sourceDefinedDraftReady = false,
 }: {
   rule: ObligationRule
   ruleSource: RuleSource | null
@@ -1247,11 +1393,11 @@ function CoverageRuleItem({
   onSelect: () => void
   selection?: {
     checked: boolean
-    disabled: boolean
     label: string
-    title?: string
     onChange: (checked: boolean) => void
   }
+  selectionUnavailableLabel?: ReactNode
+  sourceDefinedDraftReady?: boolean
 }) {
   const { t } = useLingui()
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
@@ -1306,7 +1452,16 @@ function CoverageRuleItem({
         </button>
         {ruleSource ? (
           <div className="flex shrink-0 items-center gap-2">
-            <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+            {selectionUnavailableLabel ? (
+              <RuleSelectionUnavailableChip>
+                {selectionUnavailableLabel}
+              </RuleSelectionUnavailableChip>
+            ) : null}
+            <RuleStatusChip
+              rule={rule}
+              sourceDefined={sourceDefined}
+              sourceDefinedDraftReady={sourceDefinedDraftReady}
+            />
             <a
               href={ruleSource.url}
               target="_blank"
@@ -1321,7 +1476,18 @@ function CoverageRuleItem({
             </a>
           </div>
         ) : (
-          <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+          <div className="flex shrink-0 items-center gap-2">
+            {selectionUnavailableLabel ? (
+              <RuleSelectionUnavailableChip>
+                {selectionUnavailableLabel}
+              </RuleSelectionUnavailableChip>
+            ) : null}
+            <RuleStatusChip
+              rule={rule}
+              sourceDefined={sourceDefined}
+              sourceDefinedDraftReady={sourceDefinedDraftReady}
+            />
+          </div>
         )}
       </div>
     </li>
@@ -1333,63 +1499,51 @@ function RuleSelectionCheckbox({
 }: {
   selection: {
     checked: boolean
-    disabled: boolean
     label: string
-    title?: string
     onChange: (checked: boolean) => void
   }
 }) {
-  const checkbox = (
+  return (
     <input
       type="checkbox"
       aria-label={selection.label}
-      title={selection.title}
-      data-rule-selection-disabled-reason={selection.title}
       checked={selection.checked}
-      disabled={selection.disabled}
       onClick={(event) => event.stopPropagation()}
       onKeyDown={(event) => event.stopPropagation()}
       onChange={(event) => selection.onChange(event.target.checked)}
-      className="size-4 shrink-0 disabled:opacity-30"
+      className="size-4 shrink-0"
     />
   )
+}
 
-  if (!selection.disabled || !selection.title) return checkbox
-
+function RuleSelectionUnavailableChip({ children }: { children: ReactNode }) {
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <span
-            tabIndex={0}
-            aria-label={selection.title}
-            data-rule-selection-disabled-reason={selection.title}
-            className="inline-flex size-4 shrink-0 cursor-not-allowed items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-solid"
-            onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          >
-            {checkbox}
-          </span>
-        }
-      />
-      <TooltipContent className="max-w-[260px] whitespace-normal text-left leading-5">
-        {selection.title}
-      </TooltipContent>
-    </Tooltip>
+    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-background-subtle px-1.5 text-[10px] font-medium text-text-tertiary">
+      {children}
+    </span>
   )
 }
 
 function RuleStatusChip({
   rule,
   sourceDefined,
+  sourceDefinedDraftReady = false,
 }: {
   rule: Pick<ObligationRule, 'status'>
   sourceDefined: boolean
+  sourceDefinedDraftReady?: boolean
 }) {
   if (sourceDefined) {
+    if (sourceDefinedDraftReady) {
+      return (
+        <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-[10px] font-medium text-status-review">
+          <Trans>AI draft ready</Trans>
+        </span>
+      )
+    }
     return (
       <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium">
-        <Trans>Due-date review</Trans>
+        <Trans>AI draft needed</Trans>
       </span>
     )
   }
@@ -1437,7 +1591,9 @@ function PendingRuleQueue({
   selectedCount,
   allVisibleSelected,
   visibleSelectableCount,
+  visibleSingleReviewCount,
   openTaskByRuleVersion,
+  concreteDraftByTarget,
   onRuleSelectionChange,
   onToggleVisibleSelection,
   onReviewSelected,
@@ -1454,7 +1610,9 @@ function PendingRuleQueue({
   selectedCount: number
   allVisibleSelected: boolean
   visibleSelectableCount: number
+  visibleSingleReviewCount: number
   openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
   onRuleSelectionChange: (rowKey: string, checked: boolean) => void
   onToggleVisibleSelection: (checked: boolean) => void
   onReviewSelected: () => void
@@ -1481,25 +1639,35 @@ function PendingRuleQueue({
         </div>
         <SearchInput value={search} onChange={onSearchChange} fullWidth />
         <div className="flex items-center justify-between gap-2">
-          <label className="inline-flex min-w-0 items-center gap-2 text-xs text-text-secondary">
-            <input
-              type="checkbox"
-              aria-label={t`Select visible pending rules`}
-              checked={allVisibleSelected}
-              disabled={visibleSelectableCount === 0}
-              onChange={(event) => onToggleVisibleSelection(event.target.checked)}
-              className="size-4 disabled:opacity-40"
-            />
-            <span className="truncate">
-              <Trans>Select visible</Trans>
+          {visibleSelectableCount > 0 ? (
+            <label className="inline-flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+              <input
+                type="checkbox"
+                aria-label={t`Select visible batch-ready rules`}
+                checked={allVisibleSelected}
+                onChange={(event) => onToggleVisibleSelection(event.target.checked)}
+                className="size-4"
+              />
+              <span className="truncate">
+                <Trans>Select batch-ready</Trans>
+              </span>
+            </label>
+          ) : (
+            <span className="text-xs text-text-tertiary">
+              <Trans>No batch-ready rules</Trans>
             </span>
-          </label>
+          )}
           {selectedCount > 0 ? (
             <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
               <Trans>{selectedCount} selected</Trans>
             </span>
           ) : null}
         </div>
+        <p className="text-xs text-text-tertiary">
+          <Trans>
+            {visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review
+          </Trans>
+        </p>
         {selectedCount > 0 ? (
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" size="sm" onClick={onReviewSelected}>
@@ -1535,16 +1703,23 @@ function PendingRuleQueue({
                     {rules.map((rule) => {
                       const rowKey = ruleRowKey(rule)
                       const reviewTask = openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))
-                      const disabledReason = bulkReviewDisabledReason(rule, reviewTask ?? null)
+                      const disabledReason = bulkReviewDisabledReason(
+                        rule,
+                        reviewTask ?? null,
+                        concreteDraftByTarget,
+                      )
                       const disabledReasonLabel =
                         disabledReason === 'source_defined'
-                          ? t`AI draft review required before activation.`
+                          ? t`AI draft needed`
                           : disabledReason === 'source_changed'
-                            ? t`Source-changed rules require single-rule review.`
+                            ? t`Single review`
                             : disabledReason === 'no_open_task'
                               ? t`No open review task.`
                               : null
-                      const disabled = disabledReason !== null
+                      const draftTarget = concreteDraftTargetForRule(rule)
+                      const concreteDraftReady = draftTarget
+                        ? concreteDraftByTarget.has(concreteDraftTargetKey(draftTarget))
+                        : false
                       return (
                         <CoverageRuleItem
                           key={rule.id}
@@ -1552,16 +1727,20 @@ function PendingRuleQueue({
                           ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
                           isSelected={selectedRuleId === rule.id}
                           onSelect={() => onSelectRule(rule.id)}
-                          selection={{
-                            checked: selectedRuleKeys.includes(rowKey) && !disabled,
-                            disabled,
-                            label:
-                              disabledReasonLabel !== null
-                                ? t`Bulk review disabled for ${rule.title}: ${disabledReasonLabel}`
-                                : t`Select rule ${rule.title}`,
-                            ...(disabledReasonLabel !== null ? { title: disabledReasonLabel } : {}),
-                            onChange: (checked) => onRuleSelectionChange(rowKey, checked),
-                          }}
+                          sourceDefinedDraftReady={concreteDraftReady}
+                          {...(disabledReason === null
+                            ? {
+                                selection: {
+                                  checked: selectedRuleKeys.includes(rowKey),
+                                  label: concreteDraftReady
+                                    ? t`Select AI draft rule ${rule.title}`
+                                    : t`Select rule ${rule.title}`,
+                                  onChange: (checked) => onRuleSelectionChange(rowKey, checked),
+                                },
+                              }
+                            : disabledReasonLabel !== null && disabledReason !== 'source_defined'
+                              ? { selectionUnavailableLabel: disabledReasonLabel }
+                              : {})}
                         />
                       )
                     })}
@@ -1587,12 +1766,15 @@ function legacyLibraryFilterToCoverageFilter(value: string | null): RowFilter | 
 function canBulkReviewRule(
   rule: ObligationRule,
   openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>,
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>,
 ): boolean {
-  return (
-    rule.status === 'pending_review' &&
-    !isSourceDefinedRule(rule) &&
-    canBulkReviewTask(openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null)
-  )
+  if (rule.status !== 'pending_review') return false
+  if (!canBulkReviewTask(openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null)) {
+    return false
+  }
+  if (!isSourceDefinedRule(rule)) return true
+  const target = concreteDraftTargetForRule(rule)
+  return target ? concreteDraftByTarget.has(concreteDraftTargetKey(target)) : false
 }
 
 function canBulkReviewTask(task: RuleReviewTask | null): boolean {
@@ -1602,10 +1784,16 @@ function canBulkReviewTask(task: RuleReviewTask | null): boolean {
 function bulkReviewDisabledReason(
   rule: ObligationRule,
   reviewTask: RuleReviewTask | null,
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>,
 ): BulkReviewDisabledReason | null {
-  if (isSourceDefinedRule(rule)) return 'source_defined'
   if (reviewTask?.reason === 'source_changed') return 'source_changed'
   if (!canBulkReviewTask(reviewTask)) return 'no_open_task'
+  if (isSourceDefinedRule(rule)) {
+    const target = concreteDraftTargetForRule(rule)
+    if (!target || !concreteDraftByTarget.has(concreteDraftTargetKey(target))) {
+      return 'source_defined'
+    }
+  }
   return null
 }
 
@@ -1613,6 +1801,8 @@ function BulkReviewDrawer({
   open,
   onOpenChange,
   selectedRules,
+  selectedConcreteDrafts,
+  templateRuleCount,
   preview,
   reviewNote,
   previewPending,
@@ -1624,6 +1814,8 @@ function BulkReviewDrawer({
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedRules: ObligationRule[]
+  selectedConcreteDrafts: SelectedConcreteDraftRule[]
+  templateRuleCount: number
   preview: RuleBulkImpactPreview | null
   reviewNote: string
   previewPending: boolean
@@ -1644,8 +1836,8 @@ function BulkReviewDrawer({
           </SheetTitle>
           <SheetDescription>
             <Trans>
-              Preview selected pending rules, add one batch note, then accept them into active
-              practice rules.
+              Review batch-ready templates and AI concrete drafts, add one batch note, then accept
+              them into active practice rules.
             </Trans>
           </SheetDescription>
         </SheetHeader>
@@ -1686,12 +1878,22 @@ function BulkReviewDrawer({
                 ) : null}
               </div>
             </section>
-            <section className="flex flex-col gap-2">
-              <BulkSectionLabel>
-                <Trans>PREVIEW</Trans>
-              </BulkSectionLabel>
-              <BulkPreviewSummary preview={preview} />
-            </section>
+            {selectedConcreteDrafts.length > 0 ? (
+              <section className="flex flex-col gap-2">
+                <BulkSectionLabel>
+                  <Trans>AI CONCRETE DRAFTS</Trans>
+                </BulkSectionLabel>
+                <BulkConcreteDraftSummary selectedDrafts={selectedConcreteDrafts} />
+              </section>
+            ) : null}
+            {templateRuleCount > 0 ? (
+              <section className="flex flex-col gap-2">
+                <BulkSectionLabel>
+                  <Trans>PREVIEW</Trans>
+                </BulkSectionLabel>
+                <BulkPreviewSummary preview={preview} />
+              </section>
+            ) : null}
             <label className="flex flex-col gap-2">
               <BulkSectionLabel>
                 <Trans>BATCH REVIEW NOTE</Trans>
@@ -1711,7 +1913,7 @@ function BulkReviewDrawer({
             variant="outline"
             size="sm"
             onClick={onPreview}
-            disabled={previewPending || selectedRules.length === 0}
+            disabled={previewPending || templateRuleCount === 0}
           >
             <EyeIcon className="size-3.5" />
             <Trans>Preview</Trans>
@@ -1728,6 +1930,46 @@ function BulkReviewDrawer({
         </div>
       </SheetContent>
     </Sheet>
+  )
+}
+
+function BulkConcreteDraftSummary({
+  selectedDrafts,
+}: {
+  selectedDrafts: SelectedConcreteDraftRule[]
+}) {
+  const hiddenDraftCount = Math.max(0, selectedDrafts.length - 5)
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+      {selectedDrafts.slice(0, 5).map(({ rule, draft }) => (
+        <div
+          key={ruleRowKey(rule)}
+          className="flex flex-col gap-1 border-b border-divider-subtle pb-2 last:border-b-0 last:pb-0"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate font-medium text-text-primary">{rule.title}</span>
+            <span className="shrink-0 text-text-tertiary">
+              <Trans>{Math.round(draft.confidence * 100)}% confidence</Trans>
+            </span>
+          </div>
+          <span className="text-text-secondary">{humanizeDueDateLogic(draft.dueDateLogic)}</span>
+          <div className="flex flex-wrap gap-1.5 text-text-tertiary">
+            <span>{formatEnumLabel(draft.coverageStatus)}</span>
+            {draft.requiresApplicabilityReview ? (
+              <span>
+                <Trans>Applicability review</Trans>
+              </span>
+            ) : null}
+          </div>
+          <p className="line-clamp-2 text-text-tertiary">"{draft.sourceExcerpt}"</p>
+        </div>
+      ))}
+      {hiddenDraftCount > 0 ? (
+        <span className="text-text-tertiary">
+          <Trans>{hiddenDraftCount} more AI drafts</Trans>
+        </span>
+      ) : null}
+    </div>
   )
 }
 

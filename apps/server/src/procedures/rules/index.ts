@@ -1,5 +1,6 @@
 import { ORPCError } from '@orpc/server'
 import {
+  ConcreteDueDateLogicSchema,
   ObligationRuleSchema,
   type ObligationGenerationPreview,
   type ObligationRule,
@@ -8,6 +9,7 @@ import {
   RuleConcreteDraftSchema,
   type RuleGenerationState,
   type RuleCoverageRow,
+  type RuleBulkVerifyCandidateSkip,
   type RuleJurisdiction,
   type RuleOnboardingActivationOutput,
   type RuleReviewDecision,
@@ -1481,6 +1483,134 @@ function parseCachedConcreteDraft(outputText: string | null): RuleConcreteDraftP
   }
 }
 
+const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+
+  const lookup = new Map<
+    string,
+    { ruleId: string; sourceId: string; sourceSignalId: string | null }
+  >()
+  for (const ruleInput of input.rules) {
+    const base = templateRuleById(ruleInput.ruleId)
+    if (!base || !isSourceDefinedRule(base)) continue
+    if (!canReadConcreteDraftForSource({ rule: base, sourceId: ruleInput.sourceId })) continue
+    const contextRef = cachedConcreteDraftKey(ruleInput)
+    lookup.set(contextRef, {
+      ruleId: ruleInput.ruleId,
+      sourceId: ruleInput.sourceId,
+      sourceSignalId: ruleInput.sourceSignalId ?? null,
+    })
+  }
+  if (lookup.size === 0) return []
+
+  const cachedRuns = await scoped.ai.findSuccessfulRunsByContextRefs({
+    kind: 'rule_concrete_draft',
+    inputContextRefs: Array.from(lookup.keys()),
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+  })
+
+  return cachedRuns.flatMap((run) => {
+    const contextRef = run.inputContextRef ?? ''
+    const target = lookup.get(contextRef)
+    const draft = parseCachedConcreteDraft(run.outputText)
+    if (!target || !draft) return []
+    return [
+      {
+        ...target,
+        draft: RuleConcreteDraftSchema.parse({
+          aiOutputId: run.id,
+          ...draft,
+        }),
+      },
+    ]
+  })
+})
+
+function canReadConcreteDraftForSource(input: {
+  rule: CoreObligationRule
+  sourceId: string
+}): boolean {
+  const source = listRuleSources().find((item) => item.id === input.sourceId)
+  if (!source) return false
+  if (source.jurisdiction !== input.rule.jurisdiction && source.jurisdiction !== 'FED') {
+    return false
+  }
+  return input.rule.sourceIds.includes(source.id) || sourceCoversRuleDomain(source, input.rule)
+}
+
+function cachedConcreteDraftKey(input: {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string | null | undefined
+}): string {
+  return ruleConcreteDraftContextRef({
+    ruleId: input.ruleId,
+    sourceId: input.sourceId,
+    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
+  })
+}
+
+function skipConcreteDraftSelection(
+  selection: { ruleId: string; sourceId: string },
+  reason: RuleBulkVerifyCandidateSkip['reason'],
+) {
+  return {
+    skipped: {
+      ruleId: selection.ruleId,
+      sourceId: selection.sourceId,
+      reason,
+    },
+  }
+}
+
+function toConcreteDraftRule(input: {
+  base: CoreObligationRule
+  source: ReturnType<typeof listRuleSources>[number]
+  reviewedBy: string
+  reviewedAt: Date
+  draft: RuleConcreteDraftPayload
+  aiOutputId?: string
+  sourceUpdatedOn?: string
+  ruleTier?: ObligationRule['ruleTier']
+  nextReviewOn?: string
+}): ObligationRule {
+  const activeRule = toPracticeContractRule(input.base, 'active', {
+    verifiedBy: input.reviewedBy,
+    verifiedAt: toDateOnly(input.reviewedAt),
+    version: input.base.version + 1,
+  })
+  return {
+    ...activeRule,
+    ruleTier: input.ruleTier ?? input.base.ruleTier,
+    coverageStatus: input.draft.coverageStatus,
+    requiresApplicabilityReview: input.draft.requiresApplicabilityReview,
+    dueDateLogic: input.draft.dueDateLogic,
+    extensionPolicy: input.draft.extensionPolicy,
+    sourceIds: Array.from(new Set([input.source.id, ...input.base.sourceIds])),
+    evidence: [
+      {
+        sourceId: input.source.id,
+        ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
+        authorityRole: 'basis',
+        locator: {
+          kind:
+            input.source.sourceType === 'form' || input.source.acquisitionMethod === 'pdf_watch'
+              ? 'pdf'
+              : 'html',
+          heading: input.draft.sourceHeading,
+        },
+        summary: `Practice accepted ${input.base.title} against ${input.source.title}.`,
+        sourceExcerpt: input.draft.sourceExcerpt,
+        retrievedAt: toDateOnly(input.reviewedAt),
+        ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
+      },
+    ],
+    quality: input.draft.quality,
+    nextReviewOn: input.nextReviewOn ?? input.base.nextReviewOn,
+  }
+}
+
 function requireConcreteDraftSourceText(sourceContext: {
   hasSourceBackedText: boolean
   sourceText: string
@@ -1677,41 +1807,29 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     })
   }
 
+  const dueDateLogic = ConcreteDueDateLogicSchema.parse(input.dueDateLogic)
   const reviewedAt = new Date()
-  const activeRule = toPracticeContractRule(base, 'active', {
-    verifiedBy: userId,
-    verifiedAt: toDateOnly(reviewedAt),
-    version: base.version + 1,
-  })
-  const editedRule: ObligationRule = {
-    ...activeRule,
+  const editedRule = toConcreteDraftRule({
+    base,
+    source,
+    reviewedBy: userId,
+    reviewedAt,
+    draft: {
+      dueDateLogic,
+      extensionPolicy: input.extensionPolicy,
+      coverageStatus: input.coverageStatus,
+      requiresApplicabilityReview: input.requiresApplicabilityReview,
+      quality: input.quality,
+      sourceHeading: input.sourceHeading,
+      sourceExcerpt: input.sourceExcerpt,
+      confidence: 1,
+      reasoning: input.reviewNote ?? 'Accepted from rule review.',
+    },
+    ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
+    ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
     ruleTier: input.ruleTier,
-    coverageStatus: input.coverageStatus,
-    requiresApplicabilityReview: input.requiresApplicabilityReview,
-    dueDateLogic: input.dueDateLogic,
-    extensionPolicy: input.extensionPolicy,
-    sourceIds: Array.from(new Set([input.sourceId, ...base.sourceIds])),
-    evidence: [
-      {
-        sourceId: input.sourceId,
-        ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
-        authorityRole: 'basis',
-        locator: {
-          kind:
-            source.sourceType === 'form' || source.acquisitionMethod === 'pdf_watch'
-              ? 'pdf'
-              : 'html',
-          heading: input.sourceHeading,
-        },
-        summary: `Practice accepted ${base.title} against ${source.title}.`,
-        sourceExcerpt: input.sourceExcerpt,
-        retrievedAt: toDateOnly(reviewedAt),
-        ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
-      },
-    ],
-    quality: input.quality,
     nextReviewOn: input.nextReviewOn,
-  }
+  })
 
   const task = await acceptTemplateRule({
     context,
@@ -1739,6 +1857,178 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
   }
   void task
   return toReviewDecision(row)
+})
+
+const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ input, context }) => {
+  const { scoped, tenant, userId } = requireTenant(context)
+  await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+
+  const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
+  const practiceById = new Map(
+    (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
+  )
+  const taskBySelection = new Map(
+    (await scoped.rules.listReviewTasks({ status: 'open' })).map((task) => [
+      `${task.ruleId}:${task.templateVersion}`,
+      task,
+    ]),
+  )
+  const requestedContextRefs = input.rules.map((selection) => cachedConcreteDraftKey(selection))
+  const cachedRunByContext = new Map(
+    (
+      await scoped.ai.findSuccessfulRunsByContextRefs({
+        kind: 'rule_concrete_draft',
+        inputContextRefs: requestedContextRefs,
+        promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+      })
+    ).map((run) => [run.inputContextRef ?? '', run]),
+  )
+  const reviewedAt = new Date()
+  const verified: RuleReviewDecision[] = []
+  const skipped: RuleBulkVerifyCandidateSkip[] = []
+  const acceptedRules: CoreObligationRule[] = []
+
+  if (input.rules.length > 0) await ensureGlobalTemplateCatalog(context)
+
+  const results = await Promise.all(
+    input.rules.slice(0, MAX_BULK_ACCEPT).map(async (selection) => {
+      const base = templateById.get(selection.ruleId)
+      if (!base) return skipConcreteDraftSelection(selection, 'rule_not_found')
+      if (!isSourceDefinedRule(base)) {
+        return skipConcreteDraftSelection(selection, 'not_source_defined')
+      }
+
+      const existing = practiceById.get(selection.ruleId)
+      if (existing?.status === 'active') {
+        return skipConcreteDraftSelection(selection, 'already_active')
+      }
+      if (existing?.status === 'rejected' || existing?.status === 'archived') {
+        return skipConcreteDraftSelection(selection, existing.status)
+      }
+
+      const task = taskBySelection.get(`${selection.ruleId}:${base.version}`)
+      if (!task) return skipConcreteDraftSelection(selection, 'no_open_task')
+      if (task.reason === 'source_changed') {
+        return skipConcreteDraftSelection(selection, 'source_changed_requires_review')
+      }
+
+      const cachedRun = cachedRunByContext.get(cachedConcreteDraftKey(selection))
+      const draft = parseCachedConcreteDraft(cachedRun?.outputText ?? null)
+      if (!cachedRun || !draft) {
+        return skipConcreteDraftSelection(selection, 'draft_not_found')
+      }
+      if (cachedRun.id !== selection.aiOutputId) {
+        return skipConcreteDraftSelection(selection, 'draft_mismatch')
+      }
+
+      let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>
+      let sourceText: string
+      try {
+        sourceContext = await loadCandidateSourceContext({
+          context,
+          base,
+          sourceId: selection.sourceId,
+          ...(selection.sourceSignalId ? { sourceSignalId: selection.sourceSignalId } : {}),
+        })
+        sourceText = requireConcreteDraftSourceText(
+          await buildConcreteDraftSourceText({
+            context,
+            base,
+            source: sourceContext.source,
+            sourceSignal: sourceContext.sourceSignal,
+          }),
+        )
+      } catch {
+        return skipConcreteDraftSelection(selection, 'validation_failed')
+      }
+
+      const validationError = validateConcreteRuleDraft({
+        rule: base,
+        dueDateLogic: draft.dueDateLogic,
+        sourceText,
+        sourceExcerpt: draft.sourceExcerpt,
+        coverageStatus: draft.coverageStatus,
+        requiresApplicabilityReview: draft.requiresApplicabilityReview,
+      })
+      if (validationError) return skipConcreteDraftSelection(selection, 'validation_failed')
+
+      const editedRule = toConcreteDraftRule({
+        base,
+        source: sourceContext.source,
+        reviewedBy: userId,
+        reviewedAt,
+        draft,
+        aiOutputId: cachedRun.id,
+      })
+      await acceptTemplateRule({
+        context,
+        rule: base,
+        reviewNote: input.reviewNote,
+        reviewedBy: userId,
+        reviewedAt,
+        editedRule,
+        catalogSeeded: true,
+        generateObligations: false,
+      })
+      const row = await scoped.rules.upsertDecision({
+        ruleId: base.id,
+        baseVersion: base.version,
+        status: 'verified',
+        ruleJson: editedRule,
+        reviewNote: input.reviewNote,
+        reviewedBy: userId,
+        reviewedAt,
+      })
+      if (sourceContext.sourceSignal) {
+        await scoped.pulse.reviewSourceSignalForRule({
+          signalId: sourceContext.sourceSignal.id,
+          ruleId: base.id,
+          reviewDecisionId: row.id,
+        })
+      }
+      return {
+        verified: toReviewDecision(row),
+        acceptedRule: toCoreRule(editedRule),
+      }
+    }),
+  )
+
+  for (const result of results) {
+    if ('skipped' in result) {
+      skipped.push(result.skipped)
+      continue
+    }
+    verified.push(result.verified)
+    acceptedRules.push(result.acceptedRule)
+  }
+
+  const generation =
+    acceptedRules.length > 0
+      ? await generateObligationsForAcceptedRules({
+          scoped,
+          userId,
+          rules: acceptedRules,
+          internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+          now: reviewedAt,
+          reason: input.reviewNote,
+        })
+      : { createdCount: 0 }
+
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'rule_batch',
+    entityId: verified[0]?.id ?? 'empty',
+    action: 'rules.bulk_accepted',
+    after: {
+      verifiedCount: verified.length,
+      skippedCount: skipped.length,
+      ruleIds: verified.map((decision) => decision.ruleId),
+      generatedObligationCount: generation.createdCount,
+    },
+    reason: input.reviewNote,
+  })
+
+  return { verified, skipped }
 })
 
 const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context }) => {
@@ -1939,7 +2229,9 @@ export const rulesHandlers = {
   previewRuleImpact,
   previewBulkRuleImpact,
   draftConcreteRule,
+  listConcreteDrafts,
   verifyCandidate,
+  bulkVerifyCandidates,
   rejectCandidate,
   coverage,
   previewObligations,

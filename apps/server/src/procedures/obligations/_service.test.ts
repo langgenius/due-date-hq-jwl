@@ -406,6 +406,9 @@ function buildScoped(firmId: string, rows: Row[]) {
       async findSuccessfulRun() {
         return null
       },
+      async findSuccessfulRunsByContextRefs() {
+        return []
+      },
       async recordRun() {
         return unused('ai.recordRun')
       },

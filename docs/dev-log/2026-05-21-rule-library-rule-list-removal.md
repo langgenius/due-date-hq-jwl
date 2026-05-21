@@ -20,8 +20,11 @@ links are normalized back to Coverage query state.
 - Bulk review moved into the Coverage pending review queue:
   visible select-all, row checkboxes, selected count, Review selected drawer,
   preview, batch note, and Accept selected.
-- Source-defined pending rules and `source_changed` review tasks remain
-  single-rule review only and have disabled bulk checkboxes.
+- Source-defined pending rules without cached AI concrete drafts and
+  `source_changed` review tasks remain single-rule review rows and no longer
+  show disabled bulk checkboxes. Source-defined rows with cached AI concrete
+  drafts can enter Bulk Review, where the drawer shows the draft fields before
+  accepting.
 - Removed the standalone black "Review N pending rules" CTA above Coverage;
   pending rule review now starts from the queue/drill-in workflow only.
 

@@ -47,8 +47,17 @@ export interface FindSuccessfulAiRunInput {
   promptVersion: string
 }
 
+export interface FindSuccessfulAiRunsByContextRefsInput {
+  kind: AiOutputKind
+  inputContextRefs: readonly string[]
+  promptVersion: string
+}
+
 export interface AiRepo {
   readonly firmId: string
   findSuccessfulRun(input: FindSuccessfulAiRunInput): Promise<AiOutputRow | null>
+  findSuccessfulRunsByContextRefs(
+    input: FindSuccessfulAiRunsByContextRefsInput,
+  ): Promise<AiOutputRow[]>
   recordRun(input: RecordAiRunInput): Promise<{ aiOutputId: string; llmLogId: string }>
 }

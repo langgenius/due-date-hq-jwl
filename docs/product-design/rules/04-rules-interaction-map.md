@@ -56,24 +56,27 @@ rule detail workflow.
 
 ### Clickables
 
-| Element                                            | Type                   | Action                               | Destination / result         | Back-path                     |
-| -------------------------------------------------- | ---------------------- | ------------------------------------ | ---------------------------- | ----------------------------- | ------------ |
-| **Coverage summary active / needs review numbers** | Button                 | Set `?filter=active                  | pending`                     | Same page, Coverage filtered  | Clear filter |
-| **Coverage search**                                | Search input           | Set `?q=`                            | Same page, Coverage filtered | Clear search                  |
-| **Jurisdiction row**                               | Row button             | Expand active / pending rule summary | Inline expanded row          | Click again                   |
-| **Pending count / entity coverage cell**           | Button                 | Filter Coverage to focused queue     | `?filter=pending&q=<jur>`    | Clear filter / browser back   |
-| **Review pending rules CTA**                       | Button                 | Open review workspace                | Pending queue + rule detail  | Esc / close detail            |
-| **Pending queue rule row**                         | Button                 | Open right-side RuleDetail workflow  | `?rule=<ruleId>`             | Close detail / next-previous  |
-| **Pending queue checkbox**                         | Checkbox               | Select rule for bulk review          | Updates selected count       | Uncheck / Clear               |
-| **Select visible checkbox**                        | Checkbox               | Toggle visible bulk-reviewable rules | Same queue                   | Toggle again                  |
-| **Review selected button**                         | Button                 | Open BulkReview drawer               | Drawer overlay               | Close drawer                  |
-| **BulkReview › Preview button**                    | Button                 | Fetch + render impact preview        | Inline in drawer             | Accept / close drawer         |
-| **BulkReview › Accept selected button**            | Button                 | Mutate `bulkAcceptTemplates`         | Drawer closes on success     | Failure → toast, drawer stays |
-| **BulkReview › Batch note textarea**               | Textarea               | Capture review note                  | Required for accept          | Edit / clear                  |
-| **Source citation link**                           | External `<a>` new tab | Open official document               | `https://...` external       | Browser back in new tab       |
+| Element                                            | Type                   | Action                                  | Destination / result         | Back-path                     |
+| -------------------------------------------------- | ---------------------- | --------------------------------------- | ---------------------------- | ----------------------------- | ------------ |
+| **Coverage summary active / needs review numbers** | Button                 | Set `?filter=active                     | pending`                     | Same page, Coverage filtered  | Clear filter |
+| **Coverage search**                                | Search input           | Set `?q=`                               | Same page, Coverage filtered | Clear search                  |
+| **Jurisdiction row**                               | Row button             | Expand active / pending rule summary    | Inline expanded row          | Click again                   |
+| **Pending count / entity coverage cell**           | Button                 | Filter Coverage to focused queue        | `?filter=pending&q=<jur>`    | Clear filter / browser back   |
+| **Review pending rules CTA**                       | Button                 | Open review workspace                   | Pending queue + rule detail  | Esc / close detail            |
+| **Pending queue rule row**                         | Button                 | Open right-side RuleDetail workflow     | `?rule=<ruleId>`             | Close detail / next-previous  |
+| **Pending queue checkbox**                         | Checkbox               | Select batch-ready rule for bulk review | Updates selected count       | Uncheck / Clear               |
+| **Select batch-ready checkbox**                    | Checkbox               | Toggle visible batch-ready rules        | Same queue                   | Toggle again                  |
+| **Review selected button**                         | Button                 | Open BulkReview drawer                  | Drawer overlay               | Close drawer                  |
+| **BulkReview › Preview button**                    | Button                 | Fetch + render impact preview           | Inline in drawer             | Accept / close drawer         |
+| **BulkReview › Accept selected button**            | Button                 | Mutate `bulkAcceptTemplates`            | Drawer closes on success     | Failure → toast, drawer stays |
+| **BulkReview › Batch note textarea**               | Textarea               | Capture review note                     | Required for accept          | Edit / clear                  |
+| **Source citation link**                           | External `<a>` new tab | Open official document                  | `https://...` external       | Browser back in new tab       |
 
-Source-defined pending rules and `source_changed` tasks keep their checkbox
-disabled and require the single-rule detail workflow.
+Source-defined pending rules without a cached AI concrete draft and
+`source_changed` tasks do not render row checkboxes; they remain single-rule
+detail workflow rows. Source-defined rules with a cached AI concrete draft can
+enter bulk review, where the drawer shows the draft fields and the server
+re-validates the draft before activation.
 
 ### Rule detail clickables
 
