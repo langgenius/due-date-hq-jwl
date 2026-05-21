@@ -59,7 +59,7 @@ describe('tenant-scoped repo cross-reference guards', () => {
     ).resolves.toEqual({ ids: [expect.any(String), expect.any(String)] })
 
     expect(fake.select).toHaveBeenCalledTimes(1)
-    expect(fake.insertValues).toHaveBeenCalledTimes(1)
+    expect(fake.insertValues).toHaveBeenCalledTimes(2)
   })
 
   it('persists generated rule metadata for obligations', async () => {

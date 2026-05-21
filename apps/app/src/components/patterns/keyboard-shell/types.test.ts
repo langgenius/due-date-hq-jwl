@@ -55,6 +55,7 @@ describe('keyboard shell utilities', () => {
     ).toEqual([
       ['nav.dashboard', '/', 'G then D'],
       ['nav.obligations', '/obligations', 'G then W'],
+      ['nav.inbox', '/notifications', 'G then I'],
       ['nav.clients', '/clients', 'G then C'],
       ['nav.workload', '/workload', 'G then T'],
     ])

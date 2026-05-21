@@ -16,7 +16,8 @@ import {
   type RuleSource,
 } from '@duedatehq/contracts'
 
-export type SourceHealthFilter = 'all' | RuleSource['healthStatus']
+export type SourceDisplayHealth = 'healthy' | 'paused'
+export type SourceHealthFilter = 'all' | SourceDisplayHealth
 export type RuleLibraryFilter =
   | 'all'
   | 'active'
@@ -229,12 +230,11 @@ type PreviewReadyOnly = {
 }
 
 export function countSourcesByHealth(sources: readonly SourceHealthOnly[]) {
+  const normalized = sources.map((source) => normalizeSourceHealth(source.healthStatus))
   return {
     all: sources.length,
-    healthy: sources.filter((source) => source.healthStatus === 'healthy').length,
-    degraded: sources.filter((source) => source.healthStatus === 'degraded').length,
-    failing: sources.filter((source) => source.healthStatus === 'failing').length,
-    paused: sources.filter((source) => source.healthStatus === 'paused').length,
+    healthy: normalized.filter((status) => status === 'healthy').length,
+    paused: normalized.filter((status) => status === 'paused').length,
   }
 }
 
@@ -243,7 +243,13 @@ export function filterSources<T extends SourceHealthOnly>(
   healthFilter: SourceHealthFilter,
 ): T[] {
   if (healthFilter === 'all') return [...sources]
-  return sources.filter((source) => source.healthStatus === healthFilter)
+  return sources.filter((source) => normalizeSourceHealth(source.healthStatus) === healthFilter)
+}
+
+export function normalizeSourceHealth(
+  healthStatus: RuleSource['healthStatus'],
+): SourceDisplayHealth {
+  return healthStatus === 'paused' ? 'paused' : 'healthy'
 }
 
 export function countRulesByFilter(rules: readonly RuleFilterOnly[]) {

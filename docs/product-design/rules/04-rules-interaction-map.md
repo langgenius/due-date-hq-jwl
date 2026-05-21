@@ -47,8 +47,8 @@ chip filter.
 
 ### Notes
 
-- Snapshot strip is _always_ visible: incident-state shows `⚠ N degraded → Sources`; healthy state shows `N sources watched →`.
-- Loading state: registry numbers render immediately; source-health pill paints in when Pulse responds.
+- Snapshot strip is _always_ visible and stable: `N sources watched → Sources`.
+- Loading state: registry numbers render immediately; source watcher counts do not create incident UI.
 
 ---
 
@@ -86,13 +86,13 @@ chip filter.
 
 ### Clickables
 
-| Element                                                        | Type                     | Action                           | Destination         | Back-path                                |
-| -------------------------------------------------------------- | ------------------------ | -------------------------------- | ------------------- | ---------------------------------------- |
-| **Filter chips** (All · Healthy · Degraded · Failing · Paused) | Button                   | Set health filter (local)        | Same page, filtered | Click another chip                       |
-| **JURISDICTION header filter**                                 | Multi-select dropdown    | Set `?jur=` (URL state via nuqs) | Same page, filtered | Open dropdown, clear ／ remove URL param |
-| **TYPE / CADENCE / METHOD header filters**                     | Multi-select dropdown    | Local filter state               | Same page, filtered | Open dropdown, clear                     |
-| **Source title link**                                          | External `<a>` (new tab) | Open official document           | External URL        | Browser back in new tab                  |
-| **Pagination › Previous / Next**                               | Button                   | Change page                      | Same page           | Opposite button                          |
+| Element                                    | Type                     | Action                           | Destination         | Back-path                                |
+| ------------------------------------------ | ------------------------ | -------------------------------- | ------------------- | ---------------------------------------- |
+| **Filter chips** (All · Watched · Paused)  | Button                   | Set watch filter (local)         | Same page, filtered | Click another chip                       |
+| **JURISDICTION header filter**             | Multi-select dropdown    | Set `?jur=` (URL state via nuqs) | Same page, filtered | Open dropdown, clear ／ remove URL param |
+| **TYPE / CADENCE / METHOD header filters** | Multi-select dropdown    | Local filter state               | Same page, filtered | Open dropdown, clear                     |
+| **Source title link**                      | External `<a>` (new tab) | Open official document           | External URL        | Browser back in new tab                  |
+| **Pagination › Previous / Next**           | Button                   | Change page                      | Same page           | Opposite button                          |
 
 ### Notes
 
@@ -112,8 +112,7 @@ chip filter.
 | **Reset button**                                                                                 | Button          | Clear all 3 filters                                                                           | Same page (all alerts visible) | Re-apply filters manually  |
 | **Alert card › Review button**                                                                   | Button          | Open PulseAlertDrawer                                                                         | Drawer overlay                 | Close drawer (Esc / X)     |
 | **Alert card › Dismiss button**                                                                  | —               | Not wired in Rules › Radar (omitted intentionally; dismiss lives in dashboard banner context) | —                              | —                          |
-| **"Review sources" / "Hide sources" toggle**                                                     | Button          | Show/hide PulseSourceHealthTable (URL state `?sourceReview=1`)                                | Same page, section toggled     | Click again to hide        |
-| **Source health table › Retry button per source**                                                | Button          | Mutate (retryMutation), refetch source                                                        | Inline status updates          | —                          |
+| **Source filter select** (per-alert dynamic list)                                                | Select dropdown | Filter by alert source                                                                        | Same page                      | Reset button               |
 
 ### PulseAlertDrawer clickables (opens on Review)
 
@@ -163,7 +162,6 @@ URL parameters shared across pages:
 
 - `?jur=AL,CA,NY` — jurisdiction filter (Library, Sources, Coverage drill-in)
 - `?library=pending_review|active|all|rejected|archived` — Library chip filter (Coverage drill-in)
-- `?sourceReview=1` — Radar source health table toggle
 
 ---
 
@@ -183,12 +181,12 @@ URL parameters shared across pages:
 
 **Back-paths**: drawer Esc returns to filtered Library. Library row remains scroll-stable across drawer open/close.
 
-### Journey 2: Manager investigates a degraded source
+### Journey 2: Manager audits watched sources
 
-1. **Land** → Coverage status. Snapshot strip shows `⚠ 11 degraded → Sources` in the top-right pill.
-2. **Click** pill → `/rules/sources` (all degraded sources visible after filter chip click).
-3. **Filter chip** → click "Degraded" → narrows to 11 rows.
-4. **Identify offender** → click source title link → opens official URL in new tab. Compare what the page says vs. what the watcher last captured.
+1. **Land** → Coverage status. Snapshot strip shows `All N sources watched → Sources`.
+2. **Click** pill → `/rules/sources`.
+3. **Filter chip** → choose `Watched` or `Paused`; use jurisdiction/type/cadence filters for focus.
+4. **Verify source** → click source title link → opens official URL in new tab.
 5. **Switch tab back** → Sources page persists.
 6. **Drill to Coverage for the affected jurisdiction**: browser back to Coverage status ／ click sidebar Coverage status entry.
 
@@ -224,7 +222,9 @@ URL parameters shared across pages:
 
 ## Maintenance notes for future passes
 
-- **Filter URL conventions are load-bearing.** `?jur=`, `?library=`, `?sourceReview=` are all used across pages. Adding a new shared filter (e.g., `?entity=`, `?source=`) should follow the same pattern: nuqs `parseAsArrayOf(parseAsString).withDefault([]).withOptions({ history: 'replace' })`.
+- **Filter URL conventions are load-bearing.** `?jur=` and `?library=` are used across pages.
+  Adding a new shared filter (e.g., `?entity=`, `?source=`) should follow the same pattern:
+  nuqs `parseAsArrayOf(parseAsString).withDefault([]).withOptions({ history: 'replace' })`.
 - **External links use new tab.** All source citations, evidence URLs, and watcher URLs open in `target="_blank" rel="noopener noreferrer"`. Internal nav stays in-tab.
 - **Drawer return paths** are universal: Esc / outside click / X. No drawer has a custom close UX. Maintain.
 - **Concept tooltips** (verifiedRule, candidateRule, evidence, coverage, requiresReview) use the shared `<ConceptLabel>` component. Adding new concepts should extend `concept-help.ts`, not invent ad-hoc tooltip patterns.

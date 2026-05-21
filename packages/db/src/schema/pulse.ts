@@ -145,7 +145,7 @@ export const pulseSourceState = sqliteTable(
       enum: PULSE_SOURCE_HEALTH_STATUSES,
     })
       .notNull()
-      .default('degraded'),
+      .default('healthy'),
     lastCheckedAt: integer('last_checked_at', { mode: 'timestamp_ms' }),
     lastSuccessAt: integer('last_success_at', { mode: 'timestamp_ms' }),
     lastChangeDetectedAt: integer('last_change_detected_at', { mode: 'timestamp_ms' }),

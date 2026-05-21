@@ -30,7 +30,7 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
 
   await authenticatedPage.goto('/rules/sources')
   await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
-  await authenticatedPage.getByRole('button', { name: /^Healthy\s+\d+$/ }).click()
+  await authenticatedPage.getByRole('button', { name: /^Watched\s+\d+$/ }).click()
   await expect(
     authenticatedPage.getByText('IRS Publication 509 (2026), Tax Calendars'),
   ).toBeVisible()

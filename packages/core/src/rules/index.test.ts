@@ -135,7 +135,7 @@ describe('@duedatehq/core/rules', () => {
       expect(source.id, `${source.id} is an imprecise agency-level source`).not.toMatch(
         /\.(tax_agency|employer_ui_agency)$/,
       )
-      expect(['healthy', 'degraded']).toContain(source.healthStatus)
+      expect(source.healthStatus).toBe('healthy')
       expect(source.notificationChannels.length).toBeGreaterThan(0)
       expect(source.domains.length, `${source.id} has no source domains`).toBeGreaterThan(0)
       expect(

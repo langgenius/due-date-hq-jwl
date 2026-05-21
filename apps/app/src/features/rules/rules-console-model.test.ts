@@ -97,15 +97,15 @@ describe('rules console model', () => {
     const sources = [
       { id: 's1', healthStatus: 'healthy' },
       { id: 's2', healthStatus: 'degraded' },
-      { id: 's3', healthStatus: 'healthy' },
+      { id: 's3', healthStatus: 'paused' },
     ] as const
 
     expect(countSourcesByHealth(sources)).toMatchObject({
       all: 3,
       healthy: 2,
-      degraded: 1,
+      paused: 1,
     })
-    expect(filterSources(sources, 'degraded')).toHaveLength(1)
+    expect(filterSources(sources, 'healthy')).toHaveLength(2)
 
     const rules = [
       { status: 'verified', ruleTier: 'basic' },

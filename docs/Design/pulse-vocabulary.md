@@ -46,9 +46,9 @@ to label a Pulse alert. Those are for non-Pulse alerts (system errors,
 form validation, etc.). The `PulsingDot` is what makes a Pulse alert
 visually identifiable across surfaces.
 
-Exception: `AlertTriangleIcon` may appear _inside_ a Pulse alert card to
-label the **severity sub-label** "Source needs attention" — that is, the
-icon decorates a sub-claim, not the alert's identity.
+Source watcher diagnostics are not Pulse alert severity. Do not label fetch or
+parser failures as "Source needs attention" in CPA-facing Pulse surfaces; only
+successful regulatory changes belong in Pulse review.
 
 ## The severity scale
 

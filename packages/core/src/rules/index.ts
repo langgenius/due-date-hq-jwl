@@ -1409,7 +1409,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MA',
@@ -1421,7 +1421,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['s_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MA',
@@ -1433,7 +1433,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NJ',
@@ -1681,7 +1681,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1693,7 +1693,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['individual_estimated_tax'],
     entityApplicability: ['individual', 'sole_prop'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1705,7 +1705,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['fiduciary_income_return'],
     entityApplicability: ['trust'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1717,7 +1717,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1729,7 +1729,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['pass_through_entity_return'],
     entityApplicability: ['llc', 'partnership', 's_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1741,7 +1741,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1753,7 +1753,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AZ',
@@ -1765,7 +1765,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'CO',
@@ -1817,7 +1817,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['fiduciary_income_return'],
     entityApplicability: ['trust'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MI',
@@ -1829,7 +1829,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MI',
@@ -1841,7 +1841,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['pass_through_entity_return'],
     entityApplicability: ['llc', 'partnership', 's_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MI',
@@ -1853,7 +1853,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MI',
@@ -1865,7 +1865,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MI',
@@ -1877,7 +1877,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'OH',
@@ -1949,7 +1949,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'OR',
@@ -2081,7 +2081,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'TN',
@@ -2117,7 +2117,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'UT',
@@ -2189,7 +2189,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WI',
@@ -2273,7 +2273,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AK',
@@ -2285,7 +2285,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2297,7 +2297,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['individual_estimated_tax', 'fiduciary_income_return'],
     entityApplicability: ['individual', 'sole_prop', 'trust'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2309,7 +2309,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2321,7 +2321,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['pass_through_entity_return'],
     entityApplicability: ['llc', 'partnership', 's_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2333,7 +2333,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['llc', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2345,7 +2345,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2357,7 +2357,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'AR',
@@ -2369,7 +2369,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'CT',
@@ -2397,7 +2397,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'c_corp',
     ],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'CT',
@@ -2409,7 +2409,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DE',
@@ -2427,7 +2427,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DE',
@@ -2439,7 +2439,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DE',
@@ -2451,7 +2451,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DC',
@@ -2470,7 +2470,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DC',
@@ -2482,7 +2482,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'DC',
@@ -2494,7 +2494,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'HI',
@@ -2512,7 +2512,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'HI',
@@ -2524,7 +2524,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'HI',
@@ -2536,7 +2536,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ID',
@@ -2553,7 +2553,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ID',
@@ -2565,7 +2565,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax', 'withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ID',
@@ -2577,7 +2577,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'IN',
@@ -2596,7 +2596,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'IN',
@@ -2608,7 +2608,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'IA',
@@ -2636,7 +2636,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'c_corp',
     ],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'IA',
@@ -2648,7 +2648,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'KS',
@@ -2667,7 +2667,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'KS',
@@ -2679,7 +2679,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'KY',
@@ -2708,7 +2708,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'c_corp',
     ],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'KY',
@@ -2720,7 +2720,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'LA',
@@ -2740,7 +2740,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'LA',
@@ -2752,7 +2752,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ME',
@@ -2771,7 +2771,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ME',
@@ -2783,7 +2783,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MD',
@@ -2811,7 +2811,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'c_corp',
     ],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MD',
@@ -2823,7 +2823,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MN',
@@ -2842,7 +2842,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MN',
@@ -2854,7 +2854,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MS',
@@ -2866,7 +2866,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax', 'franchise_or_entity_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MS',
@@ -2878,7 +2878,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['fiduciary_income_return', 'pass_through_entity_return'],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MS',
@@ -2890,7 +2890,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax', 'withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MS',
@@ -2902,7 +2902,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MO',
@@ -2921,7 +2921,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MO',
@@ -2933,7 +2933,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MT',
@@ -2951,7 +2951,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'MT',
@@ -2963,7 +2963,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NE',
@@ -2982,7 +2982,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NE',
@@ -2994,7 +2994,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NV',
@@ -3006,7 +3006,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NV',
@@ -3018,7 +3018,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NV',
@@ -3030,7 +3030,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NH',
@@ -3047,7 +3047,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NH',
@@ -3059,7 +3059,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3071,7 +3071,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax', 'franchise_or_entity_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3083,7 +3083,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['individual_estimated_tax'],
     entityApplicability: ['individual', 'sole_prop'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3095,7 +3095,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['fiduciary_income_return'],
     entityApplicability: ['trust'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3107,7 +3107,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['pass_through_entity_return'],
     entityApplicability: ['llc', 'partnership', 's_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3119,7 +3119,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3131,7 +3131,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'NM',
@@ -3143,7 +3143,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ND',
@@ -3155,7 +3155,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['fiduciary_income_return', 'pass_through_entity_return'],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ND',
@@ -3167,7 +3167,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ND',
@@ -3179,7 +3179,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ND',
@@ -3191,7 +3191,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'ND',
@@ -3203,7 +3203,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'OK',
@@ -3220,7 +3220,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'OK',
@@ -3232,7 +3232,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax', 'withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'OK',
@@ -3244,7 +3244,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'RI',
@@ -3262,7 +3262,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'RI',
@@ -3274,7 +3274,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'RI',
@@ -3286,7 +3286,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'RI',
@@ -3298,7 +3298,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'SD',
@@ -3310,7 +3310,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'SD',
@@ -3322,7 +3322,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'VT',
@@ -3350,7 +3350,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'c_corp',
     ],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'VT',
@@ -3362,7 +3362,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WV',
@@ -3381,7 +3381,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     ],
     entityApplicability: ['trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WV',
@@ -3393,7 +3393,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WY',
@@ -3405,7 +3405,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WY',
@@ -3417,7 +3417,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['franchise_or_entity_tax'],
     entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
   {
     jurisdiction: 'WY',
@@ -3429,7 +3429,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
   },
 ] as const satisfies readonly StateAdditionalRuleSourceSeed[]
 
@@ -3469,7 +3469,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
       acquisitionMethod: incomeTaxSource.acquisitionMethod ?? 'manual_review',
       cadence: 'pre_season',
       priority: 'high',
-      healthStatus: 'degraded',
+      healthStatus: 'healthy',
       isEarlyWarning: false,
       domains: supportedSlugs,
       entityApplicability: supportedSlugs.includes('individual_estimated_tax')
@@ -4083,7 +4083,7 @@ export const RULE_SOURCES = hydrateRuleSources([
     acquisitionMethod: 'manual_review',
     cadence: 'weekly',
     priority: 'critical',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_preview'],
     lastReviewedOn: VERIFIED_AT,
@@ -4097,7 +4097,7 @@ export const RULE_SOURCES = hydrateRuleSources([
     acquisitionMethod: 'manual_review',
     cadence: 'quarterly',
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_preview'],
     lastReviewedOn: VERIFIED_AT,
@@ -4111,7 +4111,7 @@ export const RULE_SOURCES = hydrateRuleSources([
     acquisitionMethod: 'manual_review',
     cadence: 'weekly',
     priority: 'high',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
@@ -4125,7 +4125,7 @@ export const RULE_SOURCES = hydrateRuleSources([
     acquisitionMethod: 'manual_review',
     cadence: 'weekly',
     priority: 'medium',
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
     lastReviewedOn: VERIFIED_AT,

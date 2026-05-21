@@ -28,7 +28,7 @@ Rules in this product model:
 
 | Persona                   | Daily job on Rules Console                                                      |
 | ------------------------- | ------------------------------------------------------------------------------- |
-| **Practice owner**        | Approve / reject pending rule templates. Investigate degraded sources.          |
+| **Practice owner**        | Approve / reject pending rule templates. Audit watched or paused sources.       |
 | **Manager**               | Same as owner; can apply Pulse exceptions.                                      |
 | **Preparer**              | Review which clients are affected by a Pulse change. Mostly read-only on rules. |
 | **Coordinator / Partner** | Spot-check; primarily observers here.                                           |
@@ -72,14 +72,14 @@ Tab state via URL: `?tab=coverage|sources|library|pulse|temporary|preview`.
 
 ### Tab 2: Sources
 
-**Purpose**: "What documents are we watching, and are they healthy?"
+**Purpose**: "What documents are we watching, and which ones are paused?"
 
 **Surface**: single table — N rows × {SOURCE (title + id), JUR, TYPE,
-CADENCE, METHOD, HEALTH, LAST CHECKED, external link icon}.
+CADENCE, METHOD, WATCH, LAST CHECKED, external link icon}.
 
 **Filters**:
 
-- Filter chips: All · Healthy · Degraded · Failing · Paused (local state)
+- Filter chips: All · Watched · Paused (local state)
 - Header dropdowns: JUR / TYPE / CADENCE / METHOD (local state, multi-select)
 
 **Clickables**:
@@ -89,7 +89,7 @@ CADENCE, METHOD, HEALTH, LAST CHECKED, external link icon}.
 - External-link icon → opens official document
 - Pagination Previous / Next
 
-**Read-only**: HEALTH badge, LAST CHECKED timestamp.
+**Read-only**: WATCH badge, LAST CHECKED timestamp.
 
 ### Tab 3: Library
 
@@ -138,9 +138,9 @@ FORM, ENTITY, TIER, STATUS, VERSION, ›}.
 - Source filter select (dynamic per-alert list)
 - Reset button
 
-**Source health table** (optional sub-section, toggled via `?sourceReview=1`):
-
-- Per-source rows with Retry button (re-runs the watcher)
+Source watcher diagnostics no longer appear in Pulse Changes. CPA users use the
+Sources tab for watched/paused source inventory; fetch/parser failures stay in
+internal ingest metrics and runbooks.
 
 ### Tab 5: Temporary
 
@@ -170,15 +170,15 @@ the rule engine would produce."
 8. Drawer closes; table refetches.
 9. Repeat. Or select multiple rows → Review selected → BulkReviewDrawer.
 
-### Journey 2: Source incident triage (owner/manager)
+### Journey 2: Source inventory audit (owner/manager)
 
 1. Land on `/rules`.
 2. Tab `coverage` → see "Sources watched 88" KPI.
 3. Click "Sources" tab.
-4. Filter chip "Degraded" → narrows to problem rows.
+4. Filter chip "Watched" or "Paused" narrows by CPA-facing watch state.
 5. Click source title → opens official URL in new tab.
-6. Compare what the page says vs. what the watcher captured.
-7. (Manually triage; no in-app remediation beyond a Retry on Pulse health rows.)
+6. Compare what the page says vs. source metadata and the signal trail.
+7. Fetch/parser diagnostics stay in ops runbooks, not this CPA surface.
 
 ### Journey 3: Pulse change triage (owner/manager)
 
@@ -198,7 +198,7 @@ everything else is direct tab switching.
 - Pulse alert → PulseAlertDrawer (same tab)
 
 No cross-page breadcrumb. No origin tagging. URL filter state is
-sparse (only `?tab=`, `?library=`, `?alert=`, `?sourceReview=`).
+sparse (only `?tab=`, `?library=`, `?alert=`).
 
 ## 6. Data model (relevant entities)
 

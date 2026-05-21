@@ -338,13 +338,15 @@ async function listSourceHealthForScopedRepo(
   )
   const sources: PulseSourceHealth[] = liveRegulatorySourceAdapters.map((adapter) => {
     const state = persisted.get(adapter.id)
+    const healthStatus =
+      state?.enabled === false || state?.healthStatus === 'paused' ? 'paused' : 'healthy'
     return {
       sourceId: adapter.id,
       label: SOURCE_LABELS[adapter.id] ?? adapter.id,
       tier: adapter.tier,
       jurisdiction: adapter.jurisdiction,
       enabled: state?.enabled ?? true,
-      healthStatus: state?.healthStatus ?? 'degraded',
+      healthStatus,
       lastCheckedAt: toIsoOrNull(state?.lastCheckedAt ?? null),
       lastSuccessAt: toIsoOrNull(state?.lastSuccessAt ?? null),
       nextCheckAt: toIsoOrNull(state?.nextCheckAt ?? null),

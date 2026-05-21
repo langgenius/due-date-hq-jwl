@@ -155,7 +155,8 @@ changed.
 ### Pulse source health
 
 - Source registered / paused / removed.
-- Health transition (`healthy → degraded → failing → paused`).
+- Watch transition (`healthy/watched ↔ paused`).
+- Internal diagnostic failure counters or parser errors when surfaced to ops tooling.
 - Manual retry / refresh.
 - Authority role updated (T1/T2/T3).
 - Source URL changed (old → new).

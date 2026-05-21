@@ -55,7 +55,7 @@ describe('pulse source health labels', () => {
     expect(enabledPulseSourceCount(sources)).toBe(1)
   })
 
-  it('returns only checked degraded or failing sources for attention', () => {
+  it('does not expose degraded or failing source health as CPA attention', () => {
     expect(
       sourcesNeedingAttention([
         source('ca.ftb.newsroom', { healthStatus: 'degraded' }),
@@ -63,22 +63,17 @@ describe('pulse source health labels', () => {
         source('fema.declarations', { healthStatus: 'degraded', lastCheckedAt: null }),
         source('irs.disaster', { healthStatus: 'healthy' }),
       ]).map((item) => item.sourceId),
-    ).toEqual(['ca.ftb.newsroom', 'tx.cpa.rss'])
+    ).toEqual([])
   })
 
-  it('splits T1 source attention from passive lower-tier checks', () => {
+  it('keeps legacy degraded and failing statuses out of reviewable source attention', () => {
     const sources = [
       source('irs.disaster', { healthStatus: 'degraded', tier: 'T1' }),
       source('fema.declarations', { healthStatus: 'degraded', tier: 'T2' }),
       source('aicpa.newsletter', { healthStatus: 'failing', tier: 'T3' }),
     ]
 
-    expect(reviewableSourcesNeedingAttention(sources).map((item) => item.sourceId)).toEqual([
-      'irs.disaster',
-    ])
-    expect(passiveSourcesNeedingAttention(sources).map((item) => item.sourceId)).toEqual([
-      'fema.declarations',
-      'aicpa.newsletter',
-    ])
+    expect(reviewableSourcesNeedingAttention(sources).map((item) => item.sourceId)).toEqual([])
+    expect(passiveSourcesNeedingAttention(sources).map((item) => item.sourceId)).toEqual([])
   })
 })

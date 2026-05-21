@@ -323,16 +323,13 @@ const SOURCE_HEALTH: PulseSourceHealth[] = [
     consecutiveFailures: 0,
     lastError: null,
   },
-  // Seed one degraded source so the "Source needs attention" banner
-  // on the dashboard is exercised under ?mockPulse=1 (otherwise the
-  // banner correctly hides — but reviewers can't see it).
   {
     sourceId: 'wa.dor',
     label: 'WA DOR Bulletin',
     tier: 'T2',
     jurisdiction: 'state',
     enabled: true,
-    healthStatus: 'degraded',
+    healthStatus: 'healthy',
     lastCheckedAt: '2026-05-18T20:00:00.000Z',
     lastSuccessAt: '2026-05-17T08:00:00.000Z',
     nextCheckAt: '2026-05-19T08:00:00.000Z',

@@ -127,9 +127,7 @@ export function SourcesTab() {
   const filterOptions = useMemo(
     () => [
       { value: 'all' as const, label: t`All`, count: counts.all },
-      { value: 'healthy' as const, label: t`Healthy`, count: counts.healthy },
-      { value: 'degraded' as const, label: t`Degraded`, count: counts.degraded },
-      { value: 'failing' as const, label: t`Failing`, count: counts.failing },
+      { value: 'healthy' as const, label: t`Watched`, count: counts.healthy },
       { value: 'paused' as const, label: t`Paused`, count: counts.paused },
     ],
     [counts, t],
@@ -228,7 +226,7 @@ export function SourcesTab() {
                   onSelectedChange={(next) => updateHeaderFilter(setMethodFilters, next)}
                 />
               </TableHead>
-              <TableHead className="w-[112px] px-2">HEALTH</TableHead>
+              <TableHead className="w-[112px] px-2">WATCH</TableHead>
               <TableHead className="w-[92px] px-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text-tertiary">
                 LAST CHECKED
               </TableHead>
@@ -252,7 +250,7 @@ export function SourcesTab() {
                   {rows.length === 0 ? (
                     <Trans>
                       No sources registered yet. Source watchers feed the rule catalog — once
-                      configured, they appear here with health and cadence.
+                      configured, they appear here with watch status and cadence.
                     </Trans>
                   ) : (
                     <Trans>
@@ -507,16 +505,10 @@ function SourceRow({
       </TableCell>
       <TableCell
         className="px-2 py-1.5"
-        // The HealthBadge by itself is a verdict with no evidence — the
-        // CPA opening Sources to triage "why is X degraded?" gets a yellow
-        // pill and nothing else. Surface the most recent error from Pulse
-        // on hover so the diagnostic answer is one tooltip away.
         title={
-          health?.lastError
-            ? t`Last error: ${health.lastError}`
-            : source.healthStatus === 'degraded' || source.healthStatus === 'failing'
-              ? t`Status set by Pulse · open Radar for full watcher diagnostics`
-              : undefined
+          health?.lastCheckedAt
+            ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
+            : undefined
         }
       >
         <HealthBadge health={source.healthStatus} />

@@ -39,7 +39,6 @@ import {
 } from '@/components/patterns/keyboard-shell'
 import { KbdHint } from '@/components/patterns/kbd'
 import { orpc } from '@/lib/rpc'
-import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 
 import {
   jurisdictionLabel,
@@ -62,8 +61,8 @@ const ENTITY_DISPLAY: { col: CoverageEntityColumn; label: string; fullName: stri
   { col: 'trust', label: 'Trust', fullName: 'Trust' },
 ]
 
-type RowFilter = 'all' | 'attention' | 'pending' | 'active'
-const ROW_FILTERS: readonly RowFilter[] = ['all', 'attention', 'pending', 'active']
+type RowFilter = 'all' | 'pending' | 'active'
+const ROW_FILTERS: readonly RowFilter[] = ['all', 'pending', 'active']
 // URL-state parsers — filter + search go into the URL so browser
 // back/forward, deep-linking, and shareable views all work. Both
 // use `history: 'replace'` so each character / toggle doesn't bloat
@@ -92,7 +91,7 @@ export function CoverageTab({
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   // Filter + search live in URL state (nuqs) — survives refresh,
   // back/forward navigation, and shareable links to "Coverage filtered
-  // to attention". Component state would have lost the user's view
+  // to a focused coverage view. Component state would have lost the user's view
   // on refresh and broken browser-back through filter changes.
   const [filterRaw, setFilterQuery] = useQueryState('filter', filterParser)
   const [search, setSearch] = useQueryState('q', searchParser)
@@ -105,7 +104,6 @@ export function CoverageTab({
   }
 
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
   const rulesQuery = useQuery(
     orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
@@ -203,29 +201,6 @@ export function CoverageTab({
     return map
   }, [sourcesQuery.data])
 
-  const sourceHealthCounts = useMemo(() => {
-    const entries = sourceHealthQuery.data?.sources ?? []
-    let degraded = 0
-    let failing = 0
-    for (const entry of entries) {
-      if (entry.healthStatus === 'degraded') degraded += 1
-      else if (entry.healthStatus === 'failing') failing += 1
-    }
-    return { degraded, failing, total: entries.length }
-  }, [sourceHealthQuery.data])
-
-  // Hoist memos BEFORE early returns so React's hook order stays
-  // stable across loading/error/success renders.
-  const attentionJurisdictions = useMemo(() => {
-    const set = new Set<string>()
-    for (const entry of sourceHealthQuery.data?.sources ?? []) {
-      if (entry.healthStatus === 'degraded' || entry.healthStatus === 'failing') {
-        set.add(entry.jurisdiction)
-      }
-    }
-    return set
-  }, [sourceHealthQuery.data])
-
   const selectedRule = useMemo(() => {
     if (!selectedRuleId) return null
     return (rulesQuery.data ?? []).find((rule) => rule.id === selectedRuleId) ?? null
@@ -238,7 +213,6 @@ export function CoverageTab({
       const pending = row.pendingReviewCount ?? row.candidateCount
       if (filter === 'pending' && pending === 0) return false
       if (filter === 'active' && active === 0) return false
-      if (filter === 'attention' && !attentionJurisdictions.has(row.jurisdiction)) return false
       if (search.trim().length > 0) {
         const q = search.trim().toLowerCase()
         const code = row.jurisdiction.toLowerCase()
@@ -253,7 +227,7 @@ export function CoverageTab({
       }
       return true
     })
-  }, [rowsData, filter, search, attentionJurisdictions, rulesByJurisdiction])
+  }, [rowsData, filter, search, rulesByJurisdiction])
 
   // Pending-review queue flattened to a single ordered list — AL → AK
   // → AZ … with each jurisdiction's pending rules in submission order.
@@ -411,8 +385,7 @@ export function CoverageTab({
   }
 
   const rows = rowsData
-  const stats = aggregateStats(rows, sourceHealthCounts)
-  const sourcesNeedingAttention = sourceHealthCounts.degraded + sourceHealthCounts.failing
+  const stats = aggregateStats(rows)
   const panelOpen = selectedRuleId !== null
   const visibleEntityColumns = panelOpen ? [] : ENTITY_DISPLAY
   const totalColumnCount = 3 + 1 + visibleEntityColumns.length
@@ -434,7 +407,7 @@ export function CoverageTab({
 
       <section className="flex flex-col gap-3">
         {/* In normal mode, the section header carries the "Entity
-          coverage" label + search input + source-attention banner.
+          coverage" label + search input + watched-source banner.
           In review mode, all of that orientation chrome moves into
           the workspace (search goes into the queue header) so the
           banner-to-workspace gap collapses. */}
@@ -446,10 +419,7 @@ export function CoverageTab({
               </h2>
               <SearchInput value={search} onChange={setSearchValue} />
             </div>
-            <SourceStatusBanner
-              attentionCount={sourcesNeedingAttention}
-              total={stats.sourcesTotal}
-            />
+            <SourceStatusBanner total={stats.sourcesTotal} />
             <EntityCoverageLegend />
           </>
         ) : null}
@@ -554,7 +524,6 @@ export function CoverageTab({
                           sources={sourcesByJurisdiction.get(row.jurisdiction) ?? []}
                           pendingRules={pendingRulesByJurisdiction.get(row.jurisdiction) ?? []}
                           sourceById={sourceById}
-                          needsAttention={attentionJurisdictions.has(row.jurisdiction)}
                           isExpanded={
                             expanded.has(row.jurisdiction) || searchExpanded.has(row.jurisdiction)
                           }
@@ -590,10 +559,7 @@ type Stats = {
   jurisdictions: number
 }
 
-function aggregateStats(
-  rows: readonly RuleCoverageRow[],
-  health: { degraded: number; failing: number; total: number },
-): Stats {
+function aggregateStats(rows: readonly RuleCoverageRow[]): Stats {
   let active = 0
   let pending = 0
   let missingSources = 0
@@ -604,12 +570,11 @@ function aggregateStats(
     missingSources += row.missingSourceCount
     sourcesTotal += row.sourceCount
   }
-  const sourcesWorking = Math.max(0, sourcesTotal - health.degraded - health.failing)
   return {
     active,
     pending,
     missingSources,
-    sourcesWorking,
+    sourcesWorking: sourcesTotal,
     sourcesTotal,
     jurisdictions: rows.length,
   }
@@ -685,7 +650,6 @@ function ActiveFilterChip({
   onClear: () => void
 }) {
   const labels: Record<Exclude<RowFilter, 'all'>, string> = {
-    attention: 'Showing jurisdictions where sources need attention',
     pending: 'Showing jurisdictions with pending rules',
     active: 'Showing jurisdictions with active rules',
   }
@@ -756,56 +720,15 @@ function EntityCoverageLegend() {
 }
 
 /**
- * Source-status banner — always visible. Two states:
- *
- *   - Healthy (attentionCount === 0): thin success banner reading
- *     "All N sources working". Links to /rules/sources (no filter).
- *   - Broken: warning banner reading "N sources need attention" with
- *     warning tone + a CPA-hours estimate so the urgency isn't
- *     abstract. Links to /rules/sources?health=degraded so the user
- *     lands on the affected rows.
- *
- * Always visible so the user always knows the system status —
- * silence-equals-OK is bad UX (a missing banner could mean "loading",
- * "broken", or "actually fine"). Explicit positive state removes the
- * ambiguity.
+ * Source-status banner — always visible. Source fetch/parser failures are
+ * internal ops diagnostics; CPA users only need to know which authorities are
+ * being monitored.
  */
-function SourceStatusBanner({ attentionCount, total }: { attentionCount: number; total: number }) {
-  if (attentionCount > 0) {
-    // ~3 min per source is the rough CPA-hours heuristic (open the
-    // URL, scan for the changed section, decide to acknowledge/edit).
-    // Rounded to nearest 5 min, minimum 5.
-    const estimatedMinutes = Math.max(5, Math.round((attentionCount * 3) / 5) * 5)
-    return (
-      <Link
-        to="/rules/sources?health=degraded"
-        aria-label={`Open Sources filtered to degraded — review ${attentionCount} sources flagged for attention, approximately ${estimatedMinutes} minutes of source review`}
-        className={cn(
-          'group/cta inline-flex h-9 w-fit items-center gap-2',
-          'rounded-md bg-severity-medium/10 px-3',
-          'text-sm text-text-primary outline-none',
-          'hover:bg-severity-medium/15 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        )}
-      >
-        <AlertTriangleIcon aria-hidden className="size-4 text-severity-medium" />
-        <span className="font-semibold text-text-primary">
-          <Trans>{attentionCount} sources need attention</Trans>
-        </span>
-        <span className="text-text-tertiary">·</span>
-        <span className="text-text-secondary">
-          <Trans>~{estimatedMinutes} min</Trans>
-        </span>
-        <ChevronRightIcon
-          aria-hidden
-          className="size-4 text-text-tertiary transition-transform group-hover/cta:translate-x-0.5 group-hover/cta:text-text-accent"
-        />
-      </Link>
-    )
-  }
+function SourceStatusBanner({ total }: { total: number }) {
   return (
     <Link
       to="/rules/sources"
-      aria-label={`Open Sources — all ${total} watched documents are working`}
+      aria-label={`Open Sources — all ${total} official sources are watched`}
       className={cn(
         'group/cta inline-flex h-9 w-fit items-center gap-2',
         'rounded-md bg-status-done/10 px-3',
@@ -815,7 +738,7 @@ function SourceStatusBanner({ attentionCount, total }: { attentionCount: number;
     >
       <CheckCircle2Icon aria-hidden className="size-4 text-status-done" />
       <span className="font-medium text-text-primary">
-        <Trans>All {total} sources working</Trans>
+        <Trans>All {total} sources watched</Trans>
       </span>
       <ChevronRightIcon
         aria-hidden
@@ -830,7 +753,6 @@ function CoverageRow({
   sources,
   pendingRules,
   sourceById,
-  needsAttention,
   isExpanded,
   onToggleExpanded,
   selectedRuleId,
@@ -846,7 +768,6 @@ function CoverageRow({
   sources: readonly RuleSource[]
   pendingRules: readonly ObligationRule[]
   sourceById: ReadonlyMap<string, RuleSource>
-  needsAttention: boolean
   isExpanded: boolean
   onToggleExpanded: () => void
   selectedRuleId: string | null
@@ -867,9 +788,8 @@ function CoverageRow({
   const pending = row.pendingReviewCount ?? row.candidateCount
   const sourceCount = row.sourceCount
   const missingSourceCount = row.missingSourceCount
-  const sourceDescriptor = needsAttention
-    ? t`Source needs attention`
-    : missingSourceCount > 0
+  const sourceDescriptor =
+    missingSourceCount > 0
       ? t`${missingSourceCount} source gaps`
       : pending > 0
         ? t`Official sources — pending rules`
@@ -979,9 +899,7 @@ function CoverageRow({
         </TableCell>
 
         {/* Source — count badge + descriptor text, both inside a single
-        click target. Descriptor switches to "Source needs attention"
-        when this row's source(s) are degraded — reinforces the
-        callout above so the user can scan to the affected row. */}
+        click target. */}
         <TableCell className="py-2">
           {onSourceDrillIn ? (
             <button
@@ -993,18 +911,13 @@ function CoverageRow({
               aria-label={t`Open sources for ${jurisdictionLabel(row.jurisdiction)}`}
               className="group/source inline-flex items-center gap-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
-              <SourceCountBadge
-                count={sourceCount}
-                attention={needsAttention || missingSourceCount > 0}
-              />
+              <SourceCountBadge count={sourceCount} attention={missingSourceCount > 0} />
               <span
                 className={cn(
                   'text-sm group-hover/source:underline',
-                  needsAttention
+                  missingSourceCount > 0
                     ? 'font-medium text-severity-medium'
-                    : missingSourceCount > 0
-                      ? 'font-medium text-severity-medium'
-                      : 'text-text-secondary group-hover/source:text-text-accent',
+                    : 'text-text-secondary group-hover/source:text-text-accent',
                 )}
               >
                 {sourceDescriptor}
@@ -1016,10 +929,7 @@ function CoverageRow({
             </button>
           ) : (
             <div className="inline-flex items-center gap-2">
-              <SourceCountBadge
-                count={sourceCount}
-                attention={needsAttention || missingSourceCount > 0}
-              />
+              <SourceCountBadge count={sourceCount} attention={missingSourceCount > 0} />
               <span className="text-sm text-text-secondary">{sourceDescriptor}</span>
             </div>
           )}
@@ -1441,7 +1351,7 @@ function RulePanel({
 /**
  * Source count badge — a soft green circle with the count, matching
  * the reference design. Goes to a warning tone when this jurisdiction
- * has at least one source degraded/failing.
+ * still has source gaps.
  */
 function SourceCountBadge({ count, attention }: { count: number; attention?: boolean }) {
   if (count === 0) {

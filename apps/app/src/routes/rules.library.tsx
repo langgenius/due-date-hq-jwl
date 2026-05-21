@@ -10,7 +10,6 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 import { CoverageTab } from '@/features/rules/coverage-tab'
 import { RuleLibraryTab } from '@/features/rules/rule-library-tab'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
@@ -29,7 +28,7 @@ import { orpc } from '@/lib/rpc'
  *  1. Coverage summary strip — `N active · N needs review · N jurisdictions
  *     with gaps`. Clickable numbers drill into the rule list with the
  *     matching filter pre-applied.
- *  2. Sources summary strip — `N watched · N degraded · N failing`,
+ *  2. Sources summary strip — `N watched · N paused`,
  *     with a link to /rules/sources for the full table.
  *  3. View body — either the **Coverage map** (jurisdiction × entity
  *     matrix, default) or the **Rule list** (per-rule table). Switched
@@ -186,44 +185,27 @@ function CoverageSummaryStrip({
 }
 
 /**
- * One-line health read of the source-watcher fleet:
- * `Sources  88 watched · 3 degraded · 1 failing`
+ * One-line read of the source-watcher fleet:
+ * `Sources  88 watched · 0 paused`
  */
 function SourcesSummaryStrip() {
   const { t } = useLingui()
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const counts = useMemo(() => countSourcesByHealth(sourcesQuery.data ?? []), [sourcesQuery.data])
-  const pulseCounts = useMemo(() => {
-    const entries = sourceHealthQuery.data?.sources ?? []
-    return {
-      degraded: entries.filter((entry) => entry.healthStatus === 'degraded').length,
-      failing: entries.filter((entry) => entry.healthStatus === 'failing').length,
-    }
-  }, [sourceHealthQuery.data])
-  const degraded = pulseCounts.degraded || counts.degraded
-  const failing = pulseCounts.failing || counts.failing
   return (
     <SummaryStrip
       label={t`Sources`}
-      loading={sourcesQuery.isLoading || sourceHealthQuery.isLoading}
+      loading={sourcesQuery.isLoading}
       detailHref="/rules/sources"
       detailLabel={t`View sources`}
     >
-      <SummaryNumber value={counts.all} label={t`watched`} />
+      <SummaryNumber value={counts.healthy} label={t`watched`} />
       <SummarySeparator />
       <SummaryNumber
-        value={degraded}
-        label={t`degraded`}
-        tone={degraded > 0 ? 'warning' : 'muted'}
-        {...(degraded > 0 ? { href: '/rules/sources' } : {})}
-      />
-      <SummarySeparator />
-      <SummaryNumber
-        value={failing}
-        label={t`failing`}
-        tone={failing > 0 ? 'destructive' : 'muted'}
-        {...(failing > 0 ? { href: '/rules/sources' } : {})}
+        value={counts.paused}
+        label={t`paused`}
+        tone={counts.paused > 0 ? 'warning' : 'muted'}
+        {...(counts.paused > 0 ? { href: '/rules/sources' } : {})}
       />
     </SummaryStrip>
   )

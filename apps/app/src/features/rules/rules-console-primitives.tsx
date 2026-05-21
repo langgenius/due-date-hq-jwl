@@ -12,7 +12,7 @@ import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
-import type { CoverageCellState } from './rules-console-model'
+import { normalizeSourceHealth, type CoverageCellState } from './rules-console-model'
 
 type FilterOption<T extends string> = {
   value: T
@@ -271,23 +271,20 @@ export function CoverageLegend() {
 
 export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) {
   const { t } = useLingui()
-  const tones: Record<typeof health, 'success' | 'warning' | 'error' | 'disabled'> = {
+  const normalized = normalizeSourceHealth(health)
+  const tones: Record<typeof normalized, 'success' | 'disabled'> = {
     healthy: 'success',
-    degraded: 'warning',
-    failing: 'error',
     paused: 'disabled',
   }
-  const labels: Record<typeof health, string> = {
-    healthy: t`Healthy`,
-    degraded: t`Degraded`,
-    failing: t`Failing`,
+  const labels: Record<typeof normalized, string> = {
+    healthy: t`Watched`,
     paused: t`Paused`,
   }
-  const tone = tones[health]
+  const tone = tones[normalized]
   return (
     <Badge variant="outline" className="h-[22px] rounded-full px-2 text-xs">
       <BadgeStatusDot tone={tone} className="size-1.5" />
-      {labels[health]}
+      {labels[normalized]}
     </Badge>
   )
 }

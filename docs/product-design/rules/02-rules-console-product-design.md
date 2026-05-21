@@ -138,17 +138,17 @@ Review pending templates or create a custom practice rule before generating dead
 
 ### 5.1 表格字段
 
-| 字段         | 说明                                                    |
-| ------------ | ------------------------------------------------------- |
-| Source       | 官方来源标题                                            |
-| Jurisdiction | federal / 50 states / DC                                |
-| Type         | calendar / instructions / form / news / emergency / api |
-| Cadence      | daily / weekly / quarterly                              |
-| Health       | healthy / degraded / failing / paused                   |
-| Last checked | 最近检查时间                                            |
-| Last changed | 最近内容变化                                            |
-| Next check   | 下次检查                                                |
-| Owner        | 负责此 source review 的 practice owner/manager          |
+| 字段         | 说明                                                       |
+| ------------ | ---------------------------------------------------------- |
+| Source       | 官方来源标题                                               |
+| Jurisdiction | federal / 50 states / DC                                   |
+| Type         | calendar / instructions / form / news / emergency / api    |
+| Cadence      | daily / weekly / quarterly                                 |
+| Watch        | watched / paused；历史 degraded/failing 兼容显示为 watched |
+| Last checked | 最近检查时间                                               |
+| Last changed | 最近内容变化                                               |
+| Next check   | 下次检查                                                   |
+| Owner        | 负责此 source review 的 practice owner/manager             |
 
 ### 5.2 Row actions
 
@@ -157,16 +157,17 @@ Review pending templates or create a custom practice rule before generating dead
 - `Check now`：立即检查并生成 diff。
 - `Create review task`：从当前 snapshot 手动创建 practice review task。
 
-### 5.3 Health 状态
+### 5.3 Watch 状态
 
-| 状态     | 产品含义                                | UI   |
-| -------- | --------------------------------------- | ---- |
-| healthy  | 按频率成功检查，hash 无异常             | 绿色 |
-| degraded | 最近一次失败或 parser warning           | 黄色 |
-| failing  | 连续失败 3 次或 source 结构变化无法解析 | 红色 |
-| paused   | 人工暂停，不参与 coverage freshness     | 灰色 |
+| 状态              | 产品含义                                              | UI   |
+| ----------------- | ----------------------------------------------------- | ---- |
+| watched / healthy | 官方来源已纳入 watch，最近成功 fetch/parse 后保持监控 | 绿色 |
+| paused            | 人工暂停，不参与当前 watch cadence                    | 灰色 |
 
-Source failing 只创建 practice review task，不通知客户，除非它导致 active rule 被 owner/manager 归档或替换。
+`degraded` / `failing` 只作为历史 API/DB 兼容值保留。前端遇到旧值按 watched 显示。
+Source fetch/parser failure 属于内部运维诊断：记录失败次数、`lastError` 和 ingest metric，
+不自动创建 CPA review task。只有成功解析到官方来源内容变化后，才通过 Pulse change 进入
+owner/manager review。
 
 ## 6. Rules Tab
 
@@ -389,14 +390,14 @@ AI Tip 只能使用 active practice rule 和 source summary：
 
 ## 10. 错误与边界
 
-| 场景                            | 处理                                                                    |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| Source parse failed             | Source health = degraded；生成 practice review task，不影响 active rule |
-| Official source changed         | Review task created；active rule 保持不变直到 owner/manager 接受更新    |
-| 两个官方来源冲突                | Review task 标为 needs_more_source；不能 bulk accept                    |
-| Exception 只有 FEMA declaration | early warning only；不能生成 tax deadline overlay                       |
-| Rule quality < 6/6              | 只能 `applicability_review` 或保持 pending review                       |
-| Active rule 被废弃              | 新 rule version accepted 后 archive old version；保留审计               |
+| 场景                            | 处理                                                                                     |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| Source parse failed             | 记录内部 failure metric/lastError；CPA-facing watch 状态保持 watched，不影响 active rule |
+| Official source changed         | Review task created；active rule 保持不变直到 owner/manager 接受更新                     |
+| 两个官方来源冲突                | Review task 标为 needs_more_source；不能 bulk accept                                     |
+| Exception 只有 FEMA declaration | early warning only；不能生成 tax deadline overlay                                        |
+| Rule quality < 6/6              | 只能 `applicability_review` 或保持 pending review                                        |
+| Active rule 被废弃              | 新 rule version accepted 后 archive old version；保留审计                                |
 
 ## 11. MVP 验收
 

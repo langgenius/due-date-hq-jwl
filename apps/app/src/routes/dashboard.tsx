@@ -19,10 +19,7 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { ExposureStrip } from '@/features/dashboard/exposure-strip'
 import { DashboardHeroSubtitle } from '@/features/dashboard/hero-subtitle'
-import {
-  NeedsAttentionSection,
-  SystemStatusRow,
-} from '@/features/dashboard/needs-attention-section'
+import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -175,7 +172,6 @@ export function DashboardRoute() {
         </Alert>
       ) : null}
 
-      <SystemStatusRow />
       <NeedsAttentionSection />
 
       <ExposureStrip

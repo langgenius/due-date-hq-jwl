@@ -109,7 +109,7 @@ state sales/use tax、`TN` 对无 current individual/fiduciary income tax 与 wi
 `not_applicable`。现在没有 state/DC source gap；只有 source 覆盖或 `not_applicable`
 的 domain/entity 会生成 review-only candidate。
 
-本轮核验后的降级规则：
+本轮核验后的人工复核规则：
 
 - Federal Form 1065：LLC 只有在 taxed as partnership 时才适用，因此 `requiresApplicabilityReview=true`，避免普通 LLC 被无条件生成 1065 obligation。
 - Federal Form 1120：June 30 year-end / short-year exception 需要人工判断，因此 `coverageStatus=manual`，后续由客户 fiscal-year facts 决定。
@@ -118,7 +118,8 @@ state sales/use tax、`TN` 对无 current individual/fiduciary income tax 与 wi
 - TX PIR/OIR：官方页面说明 PIR/OIR due on annual franchise report due date，但 entity 类型决定 PIR vs OIR，因此保留 `requiresApplicabilityReview`。
 - WA DOR、AZDOR/DES、Mass.gov、Michigan.gov、Ohio Codes、SC DEW、TN LWD、Utah DWS
   和 Virginia VEC 部分页面：官方页面可人工核验，但当前直接 fetch 返回 403 或超时；代码中标为
-  `manual_review` + `degraded`，不伪装成自动 watcher healthy。
+  `manual_review` + `healthy`。`manual_review` 只是 acquisition method，不再代表 CPA-facing
+  source health 降级。
 - FEMA：只作为 IRS disaster relief early warning，不作为 tax deadline source。
 
 Rule-to-obligation preview 已落地：
@@ -325,6 +326,10 @@ type RuleSource = {
   lastReviewedOn: string
 }
 ```
+
+`degraded` / `failing` enum 值为历史兼容保留。当前 CPA-facing 语义只使用
+`healthy`（显示为 watched）和 `paused`；fetch/parser 失败只更新内部诊断字段
+（如 `lastError`、`consecutiveFailures`、ingest metrics）。
 
 ### 4.2 RuleTemplate
 

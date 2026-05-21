@@ -397,7 +397,6 @@ describe('makePulseRepo', () => {
       [],
       [],
       [],
-      [],
       [
         {
           id: 'priority-1',
@@ -635,6 +634,92 @@ describe('makePulseRepo', () => {
 })
 
 describe('makePulseOpsRepo', () => {
+  it('creates enabled source state as healthy by default', async () => {
+    const sourceState = {
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      enabled: true,
+      cadenceMs: 60_000,
+      healthStatus: 'healthy' as const,
+      lastCheckedAt: null,
+      lastSuccessAt: null,
+      lastChangeDetectedAt: null,
+      nextCheckAt: new Date('2026-05-06T10:00:00.000Z'),
+      consecutiveFailures: 0,
+      lastError: null,
+      etag: null,
+      lastModified: null,
+    }
+    const { db, directStatements } = fakeDb([[sourceState]])
+
+    await makePulseOpsRepo(db).ensureSourceState({
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      cadenceMs: 60_000,
+      now: new Date('2026-05-06T10:00:00.000Z'),
+    })
+
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { sourceId: 'irs.disaster', healthStatus: 'healthy' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('records source failures without changing CPA-facing health', async () => {
+    const sourceState = {
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      enabled: true,
+      cadenceMs: 60_000,
+      healthStatus: 'healthy' as const,
+      lastCheckedAt: null,
+      lastSuccessAt: null,
+      lastChangeDetectedAt: null,
+      nextCheckAt: null,
+      consecutiveFailures: 2,
+      lastError: null,
+      etag: null,
+      lastModified: null,
+    }
+    const { db, directStatements } = fakeDb([[sourceState]])
+
+    await makePulseOpsRepo(db).recordSourceFailure({
+      sourceId: 'irs.disaster',
+      checkedAt: new Date('2026-05-06T10:00:00.000Z'),
+      nextCheckAt: new Date('2026-05-06T10:15:00.000Z'),
+      error: 'selector_drift',
+    })
+
+    const update = directStatements.find((statement) => isKind(statement, 'update')) as
+      | { value?: Record<string, unknown> }
+      | undefined
+    expect(update?.value).toMatchObject({
+      consecutiveFailures: 3,
+      lastError: 'selector_drift',
+    })
+    expect(update?.value).not.toHaveProperty('healthStatus')
+  })
+
+  it('restores watched health when source monitoring is re-enabled', async () => {
+    const { db, directStatements } = fakeDb([])
+
+    await makePulseOpsRepo(db).setSourceEnabled({
+      sourceId: 'irs.disaster',
+      enabled: true,
+      now: new Date('2026-05-06T10:00:00.000Z'),
+    })
+
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { enabled: true, healthStatus: 'healthy' }),
+      ),
+    ).toBe(true)
+  })
+
   it('publishes extracted pulses directly to firm review', async () => {
     const extractedPulse = {
       id: 'pulse-created',

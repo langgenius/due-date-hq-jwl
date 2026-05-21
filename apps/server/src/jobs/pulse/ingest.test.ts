@@ -125,6 +125,9 @@ describe('runPulseIngest', () => {
         signalType: 'anticipated_pulse',
       }),
     )
+    expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'fema.declarations' }),
+    )
     expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
     expect(queueSend).not.toHaveBeenCalled()
   })

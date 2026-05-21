@@ -33,7 +33,7 @@ official federal / state / DC document.
 │  Coverage status                                                 │
 │  Do we have rules where clients file? …                          │
 │                                                                  │
-│  ⚠ 11 sources degraded · Review sources →    ← SourceHealthCallout
+│  All 88 sources watched →                    ← SourceStatusBanner
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │ JUR  NAME    ENTITY COVERAGE   ACT PEND SRC  STATUS       │   │
@@ -49,17 +49,16 @@ official federal / state / DC document.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 SourceHealthCallout (top)
+### 3.1 SourceStatusBanner (top)
 
-Focused single-line read of source-of-truth health — the only
-catalog-level signal the table doesn't carry. Two states:
+Focused single-line read of the watched source inventory. One state:
 
-- **Incident** (`degraded > 0 || failing > 0`): bordered pill with
-  warning-tone counts and label "Review sources", linking to
-  `/rules/sources?health=degraded` so the CPA lands on the affected
-  rows directly.
-- **Healthy** (everything clean): muted line "All N watched sources
-  are healthy →" linking to `/rules/sources` (no filter).
+- **Watched**: muted/success line "All N sources watched →" linking to
+  `/rules/sources` (no filter).
+
+Fetch/parser failures are internal ops diagnostics and no longer create
+CPA-facing source incident UI. If the official source content changes and is
+parsed successfully, Pulse carries the CPA review flow.
 
 Catalog aggregate stats (active / needs review / jurisdictions) are
 NOT shown at the top — they're literally column sums of the table
@@ -142,7 +141,6 @@ context preserved:
 └──┬────┬───────┘
    │    │
    │    └─ Snapshot Sources pill ──→ /rules/sources
-   │                                  (gap: should be ?health=degraded)
    │
    ├─ PENDING cell ─── /rules/library?library=pending_review
    │                   &jur={code}&from=coverage
@@ -162,8 +160,8 @@ context preserved:
 
 - **Sidebar** — direct entry, RULES group
 - **⌘K Command Palette** — "Coverage status" entry in Navigate group
-- **Dashboard digest banner** — links to `/rules/coverage` when
-  source health is degraded (anchored at the snapshot Sources pill)
+- **Dashboard digest banner** — links to `/rules/coverage` for coverage/rule review context;
+  source watcher diagnostics do not create dashboard incident routing
 
 ### Outbound links from Coverage status
 
@@ -197,9 +195,8 @@ Reads from:
 sole_prop | individual | trust`; source coverage states distinguish
   `missing_source`, `source_registered`, `source_verified`,
   `rule_pending_review`, `rule_active`, and `not_applicable`
-- `orpc.pulse.listSourceHealth` (via `usePulseSourceHealthQueryOptions`) —
-  live source health, joined for the snapshot strip's degraded/failing
-  counts
+- `orpc.rules.listSources` — source registry rows used for source drill-ins;
+  source watcher failures are not joined into Coverage incident UI
 
 `missingSourceCount` only counts source-required cells. Cells that are
 state-level no-tax cases, such as TX/WA income tax or FL withholding,
@@ -231,7 +228,7 @@ Dependent data:
 1. Open sidebar → click "Coverage status".
 2. Read snapshot: 3 active · 123 needs review · 52 jurisdictions.
    "Most of the catalog is still pending review."
-3. Notice "⚠ 11 degraded → Sources" pill. "Watchers have issues."
+3. Notice "All 88 sources watched → Sources". "Official sources are being monitored."
 4. Scan needs-attention zone: CA, NY, FL, FED, TX, WA. STATUS pills
    say "Needs owner approval" on most.
 5. Decide: tackle CA today (highest pending: 7). Click PENDING count
@@ -240,16 +237,15 @@ Dependent data:
 6. Review and accept rules in Library.
 7. (Optional) browser-back to Coverage status, repeat for NY.
 
-### Journey 2: Source incident triage (manager, 5 minutes)
+### Journey 2: Source inventory audit (manager, 5 minutes)
 
 1. Land on Coverage status.
-2. Snapshot's "⚠ 11 degraded" pill draws attention.
-3. Click pill → land on /rules/sources. (Today shows all; ideally
-   shows degraded-filtered.)
-4. Filter chip "Degraded" → narrows to 11 rows.
+2. Snapshot's "All 88 sources watched" pill confirms source coverage.
+3. Click pill → land on /rules/sources.
+4. Filter chip "Watched" or "Paused" narrows rows by CPA-facing watch state.
 5. Click a source's title → opens official URL in new tab.
-6. Compare the page vs. what watcher captured.
-7. (No in-app remediation; manual triage.)
+6. Compare the page vs. the source metadata and signal trail.
+7. Operational retry/debug remains in ingest runbooks, not CPA UI.
 
 ### Journey 3: Verify entity coverage for a new client (preparer)
 
@@ -290,19 +286,17 @@ Newspaper-kicker rhythm.
 Tone signals **severity only** — never affordance. A click target's
 tone is the same as a non-click target's tone of the same kind. Hover
 
-- focus signals interactivity; color signals "needs attention."
+- focus signals interactivity; color signals rule-review attention, not watcher diagnostics.
 
 ## 10. Known issues and follow-ups
 
 1. ~~**Snapshot stats not clickable**~~ — _resolved 2026-05-19 UX
    audit_: catalog stats dropped from the page (they were column sums
-   of the table below). Source-health is now the only top-of-page
-   signal and IS clickable.
-2. ~~**Degraded pill destination is unfiltered**~~ — _resolved
-   2026-05-19 UX audit_: pill now points to
-   `/rules/sources?health=degraded`. Sources page still needs
-   nuqs migration on `healthFilter` for the filter to actually
-   activate — tracked as a separate follow-up.
+   of the table below). The watched source banner is now the only
+   top-of-page source signal and IS clickable.
+2. ~~**Source watcher incidents in Coverage**~~ — _resolved
+   2026-05-21_: fetch/parser failures stay in internal diagnostics;
+   Coverage always links to `/rules/sources` without degraded filters.
 3. **`any_business` wildcard ignored in Library filter** — entity-dot
    drill to `?entity=llc` misses rules with
    `entityApplicability: ['any_business']`. Fix: update
@@ -329,25 +323,22 @@ tone is the same as a non-click target's tone of the same kind. Hover
 
 ## 12. Success metrics
 
-| Metric                                    | Target                                                                                           | Measurement                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| Owner / manager weekly visit rate         | ≥ 80% of seats in those roles touch /rules/coverage at least 1×/wk during tax season (Jan–Apr)   | Analytics page_view event                                          |
-| Drill-through rate (Coverage → Library)   | ≥ 30% of Coverage sessions include at least one PENDING / entity drill                           | Click instrumentation on the drill targets                         |
-| Source-incident response time (SLA proxy) | Median time from "11 degraded" first paint to /rules/sources visit < 5 minutes during work hours | Time delta between SourceHealthCallout impression and route change |
-| Action completion from Coverage           | ≥ 50% of users who drill from Coverage to Library then Accept ≥ 1 rule in the same session       | Funnel: Coverage drill → Library row click → drawer Accept         |
+| Metric                                  | Target                                                                                         | Measurement                                                |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Owner / manager weekly visit rate       | ≥ 80% of seats in those roles touch /rules/coverage at least 1×/wk during tax season (Jan–Apr) | Analytics page_view event                                  |
+| Drill-through rate (Coverage → Library) | ≥ 30% of Coverage sessions include at least one PENDING / entity drill                         | Click instrumentation on the drill targets                 |
+| Source inventory drill-through          | ≥ 20% of Coverage sessions include a `/rules/sources` visit when source coverage is audited    | Click instrumentation on the watched-source banner         |
+| Action completion from Coverage         | ≥ 50% of users who drill from Coverage to Library then Accept ≥ 1 rule in the same session     | Funnel: Coverage drill → Library row click → drawer Accept |
 
 These are guides, not gates. The page is read-only; success looks
 like CPAs trusting it as the daily situational read.
 
 ## 13. Acceptance criteria
 
-### 13.1 Snapshot / SourceHealthCallout
+### 13.1 Snapshot / SourceStatusBanner
 
-- [ ] When `sourceHealthCounts.degraded > 0 || failing > 0`: renders a
-      bordered pill with the incident counts, label "Review sources", and
-      links to `/rules/sources?health=degraded`.
-- [ ] When all healthy: renders a quiet "All N watched sources are
-      healthy →" link to `/rules/sources` (no filter).
+- [ ] Renders a quiet "All N sources watched →" link to `/rules/sources` (no filter),
+      regardless of internal fetch/parser diagnostic failures.
 - [ ] Pill is keyboard focusable; focus ring matches the rest of the app.
 
 ### 13.2 Coverage table
@@ -390,15 +381,10 @@ like CPAs trusting it as the daily situational read.
 
 ### 14.1 Loading state
 
-- Use `QueryPanelState state="loading"` while either `coverageQuery`
-  or `sourceHealthQuery` is `isLoading`.
-- The query that lands first does NOT block render — the page can
-  paint with partial data:
-  - Registry counts (active/pending/sources) render as soon as
-    `orpc.rules.coverage` resolves.
-  - SourceHealthCallout paints as soon as `pulse.listSourceHealth`
-    resolves. Until then, the callout slot is empty (no skeleton —
-    avoids implying a problem).
+- Use `QueryPanelState state="loading"` while `coverageQuery` is `isLoading`.
+- Registry counts (active/pending/sources) render as soon as `orpc.rules.coverage` resolves.
+- SourceStatusBanner is derived from Coverage source counts and does not wait on Pulse source
+  diagnostics.
 
 ### 14.2 Empty state
 
@@ -409,7 +395,7 @@ like CPAs trusting it as the daily situational read.
   - Table body shows a single centered row:
     "No jurisdictions tracked yet. Source watchers populate this view
     as adapters land."
-  - No SourceHealthCallout (nothing to point at).
+  - No SourceStatusBanner (nothing to point at).
 - `needsAttention.length === 0 && allClear.length === 52` (the rare
   case where every jurisdiction is in standard queue):
   - Skip the needs-attention zone entirely.
@@ -421,9 +407,8 @@ like CPAs trusting it as the daily situational read.
 - `coverageQuery.isError`: full-page error via
   `QueryPanelState state="error"` with message "Couldn't load rules
   coverage." Refetch button (future).
-- `sourceHealthQuery.isError`: degrade silently — render the table
-  but omit the SourceHealthCallout. The signal is gated on Pulse, not
-  a blocker for the Coverage view.
+- Source watcher diagnostic errors are not queried by Coverage; ingest/runbook failures are handled
+  outside the CPA-facing coverage view.
 
 ## 15. Mobile / responsive spec
 
@@ -432,7 +417,7 @@ The page is desktop-first (CPA workflow). At narrow widths:
 - Sidebar collapses to a sheet via the shadcn sidebar pattern.
 - Coverage table horizontal-scrolls (`overflow-x-auto` already set by
   `SectionFrame`). All 7 columns remain; the user scrolls right.
-- SourceHealthCallout wraps to two lines if necessary.
+- SourceStatusBanner wraps to two lines if necessary.
 - Entity popover renders at 90vw on screens narrower than 360px,
   same content.
 - No "mobile-only" alternative layout. If real mobile usage emerges,
@@ -467,14 +452,14 @@ setup; no streaming requirement.
 
 ## 18. Analytics events
 
-| Event                                 | Trigger                                               | Properties                                       |
-| ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
-| `coverage_status.view`                | Route mount                                           | `firmId`, `role`, `degradedCount`                |
-| `coverage_status.expander_toggle`     | "Show / Hide N jurisdictions in standard queue" click | `expanded: boolean`, `hiddenCount`               |
-| `coverage_status.entity_popover_open` | Trigger click                                         | `jurisdiction`, `active`, `review`, `noRule`     |
-| `coverage_status.entity_drill`        | Entity row inside popover click                       | `jurisdiction`, `entity`, `state`                |
-| `coverage_status.pending_drill`       | PENDING button click                                  | `jurisdiction`, `pendingCount`                   |
-| `coverage_status.sources_drill`       | SOURCES cell or callout click                         | `jurisdiction?`, `degradedCount`, `failingCount` |
+| Event                                 | Trigger                                               | Properties                                   |
+| ------------------------------------- | ----------------------------------------------------- | -------------------------------------------- |
+| `coverage_status.view`                | Route mount                                           | `firmId`, `role`, `sourceCount`              |
+| `coverage_status.expander_toggle`     | "Show / Hide N jurisdictions in standard queue" click | `expanded: boolean`, `hiddenCount`           |
+| `coverage_status.entity_popover_open` | Trigger click                                         | `jurisdiction`, `active`, `review`, `noRule` |
+| `coverage_status.entity_drill`        | Entity row inside popover click                       | `jurisdiction`, `entity`, `state`            |
+| `coverage_status.pending_drill`       | PENDING button click                                  | `jurisdiction`, `pendingCount`               |
+| `coverage_status.sources_drill`       | SOURCES cell or watched-source banner click           | `jurisdiction?`, `sourceCount`               |
 
 All events fire client-side; no PII beyond `firmId` (already in the
 session). Wire via the app's existing analytics hook (TBD which one).

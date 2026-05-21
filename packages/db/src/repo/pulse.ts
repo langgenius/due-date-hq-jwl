@@ -553,9 +553,13 @@ function priorityReasonLabel(key: PulsePriorityReasonKey): string {
     case 'high_impact':
       return 'This Pulse affects multiple clients.'
     case 'source_attention':
-      return 'The source health monitor needs attention.'
+      return 'The source watcher has an internal diagnostics signal.'
   }
   return key
+}
+
+function sourceWatcherPrioritySignal(_sourceId: string): boolean {
+  return false
 }
 
 export function scorePulsePriority(input: {
@@ -1195,16 +1199,6 @@ export function makePulseRepo(db: Db, firmId: string) {
     return rows[0] ? toPriorityReview(rows[0] as PriorityReviewJoinedRow) : null
   }
 
-  async function getSourceNeedsAttention(sourceId: string): Promise<boolean> {
-    const rows = await db
-      .select({ healthStatus: pulseSourceState.healthStatus })
-      .from(pulseSourceState)
-      .where(eq(pulseSourceState.sourceId, sourceId))
-      .limit(1)
-    const status = rows[0]?.healthStatus
-    return status === 'degraded' || status === 'failing'
-  }
-
   function assertPriorityReviewableAlert(alert: AlertJoinedRow): void {
     if (
       alert.pulseStatus === 'source_revoked' ||
@@ -1611,8 +1605,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             needsReviewCount: row.needsReviewCount,
             confidence: row.confidence,
             preparerRequested: review?.requestedBy !== null && review?.requestedBy !== undefined,
-            sourceNeedsAttention:
-              row.sourceHealthStatus === 'degraded' || row.sourceHealthStatus === 'failing',
+            sourceNeedsAttention: false,
           })
           if (score.score <= 0 && !review) return null
           return {
@@ -1639,7 +1632,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     }): Promise<PulsePriorityReviewRow> {
       const alert = await getAlert(input.alertId)
       assertPriorityReviewableAlert(alert)
-      const sourceNeedsAttention = await getSourceNeedsAttention(alert.source)
+      const sourceNeedsAttention = sourceWatcherPrioritySignal(alert.source)
       const current = await getPriorityReview(input.alertId)
       return upsertPriorityReview(alert, {
         status: 'open',
@@ -1673,7 +1666,7 @@ export function makePulseRepo(db: Db, firmId: string) {
       assertPriorityReviewableAlert(alert)
       const detail = await buildDetail(alert)
       const selection = validatePrioritySelection(detail, input)
-      const sourceNeedsAttention = await getSourceNeedsAttention(alert.source)
+      const sourceNeedsAttention = sourceWatcherPrioritySignal(alert.source)
       const current = await getPriorityReview(input.alertId)
       return upsertPriorityReview(alert, {
         status: 'reviewed',
@@ -2703,7 +2696,7 @@ export function makePulseOpsRepo(db: Db) {
         jurisdiction: input.jurisdiction,
         enabled: input.enabled ?? true,
         cadenceMs: input.cadenceMs,
-        healthStatus: 'degraded',
+        healthStatus: 'healthy',
         nextCheckAt: now,
       }
       await db
@@ -2769,7 +2762,6 @@ export function makePulseOpsRepo(db: Db) {
       await db
         .update(pulseSourceState)
         .set({
-          healthStatus: consecutiveFailures >= 3 ? 'failing' : 'degraded',
           lastCheckedAt: checkedAt,
           nextCheckAt: input.nextCheckAt,
           consecutiveFailures,
@@ -2998,7 +2990,7 @@ export function makePulseOpsRepo(db: Db) {
         .update(pulseSourceState)
         .set({
           enabled: input.enabled,
-          healthStatus: input.enabled ? 'degraded' : 'paused',
+          healthStatus: input.enabled ? 'healthy' : 'paused',
           nextCheckAt: input.enabled ? now : null,
           ...(input.enabled ? { lastError: null } : {}),
         })

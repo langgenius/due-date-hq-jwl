@@ -28,7 +28,7 @@ export function rulesIndexLoader({ request }: LoaderFunctionArgs) {
   const mapped = tab ? LEGACY_TAB_TO_PATH[tab] : undefined
   const target = mapped ?? '/rules/library'
 
-  // Preserve any other query params (e.g. `sourceReview=1`, `alert=…`).
+  // Preserve any other query params (e.g. `alert=…`).
   // Hash: a mapped legacy tab carries its own anchor; otherwise pass any
   // explicit hash the caller provided.
   url.searchParams.delete('tab')
