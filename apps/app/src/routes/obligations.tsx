@@ -535,10 +535,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function isObligationQueueRowControlClick(target: EventTarget | null): boolean {
-  if (isInteractiveEventTarget(target)) return true
-  if (!(target instanceof HTMLElement)) return false
-  return Boolean(target.closest(OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR))
+export function isObligationQueueRowControlClick(
+  target: EventTarget | null,
+  rowElement: HTMLElement | null,
+): boolean {
+  if (!(target instanceof Element)) return false
+  const closestControl = target.closest<HTMLElement>(OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR)
+  return closestControl !== null && closestControl !== rowElement
 }
 
 function scrollObligationRowIntoView(rowId: string | null): void {
@@ -2563,7 +2566,7 @@ export function ObligationQueueRoute() {
                             : 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt'
                         }
                         onClick={(event) => {
-                          if (isObligationQueueRowControlClick(event.target)) {
+                          if (isObligationQueueRowControlClick(event.target, event.currentTarget)) {
                             void setObligationQueueQuery({ row: tableRow.original.id })
                             return
                           }
@@ -2580,7 +2583,8 @@ export function ObligationQueueRoute() {
                           // inside a control cell so spacebar-toggling
                           // a checkbox doesn't also open the drawer.
                           if (event.key !== 'Enter' && event.key !== ' ') return
-                          if (isObligationQueueRowControlClick(event.target)) return
+                          if (isObligationQueueRowControlClick(event.target, event.currentTarget))
+                            return
                           event.preventDefault()
                           void setObligationQueueQuery({
                             row: tableRow.original.id,

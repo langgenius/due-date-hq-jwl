@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   canSaveInternalExtensionPlan,
+  isObligationQueueRowControlClick,
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
   nextThisWeekFilterPatch,
@@ -36,6 +37,36 @@ describe('obligations quick filters', () => {
     expect(isThisWeekFilterActive(null, 7)).toBe(true)
     expect(isThisWeekFilterActive(0, 7)).toBe(false)
     expect(isThisWeekFilterActive(null, 14)).toBe(false)
+  })
+})
+
+describe('obligation queue row clicks', () => {
+  it('does not treat the clickable row itself as a nested control', () => {
+    const row = document.createElement('tr')
+    row.setAttribute('role', 'button')
+    const cell = document.createElement('td')
+    const label = document.createElement('span')
+
+    row.append(cell)
+    cell.append(label)
+
+    expect(isObligationQueueRowControlClick(label, row)).toBe(false)
+    expect(isObligationQueueRowControlClick(row, row)).toBe(false)
+  })
+
+  it('still treats controls inside a row as control clicks', () => {
+    const row = document.createElement('tr')
+    row.setAttribute('role', 'button')
+    const cell = document.createElement('td')
+    const button = document.createElement('button')
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+    row.append(cell)
+    cell.append(button)
+    button.append(icon)
+
+    expect(isObligationQueueRowControlClick(button, row)).toBe(true)
+    expect(isObligationQueueRowControlClick(icon, row)).toBe(true)
   })
 })
 
