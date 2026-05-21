@@ -2,8 +2,8 @@
 
 ## Background
 
-The inline obligations panel still existed, but clicking table data no
-longer opened it after the row accessibility pass. The row had been
+The obligation detail surface still existed, but clicking table data
+no longer opened it after the row accessibility pass. The row had been
 given `role="button"` and `tabIndex={0}` so keyboard users could focus
 it, but the row click guard reused the app-level
 `isInteractiveEventTarget()` helper.
@@ -26,9 +26,8 @@ focused `row=...` and returned before writing `drawer=obligation`.
   - Added regression coverage for normal row data clicks versus nested
     button clicks.
 
-The side-panel hybrid behavior is unchanged: xl+ still renders the
-detail as the inline `<aside>`, smaller viewports still use the modal
-Sheet.
+The click fix is independent of the detail surface. A follow-up in the
+same session unified all viewport sizes back to the Sheet drawer.
 
 ## Verification
 
@@ -38,11 +37,10 @@ Sheet.
   `http://localhost:5173/obligations` -> click `Arbor & Vale LLC` ->
   URL became
   `/obligations?row=...&drawer=obligation&id=...&tab=readiness`, and
-  the xl viewport rendered the inline `<aside>` detail panel.
+  the xl viewport rendered the Sheet drawer dialog.
 
 ## Docs Alignment
 
 No stable architecture doc change needed.
 `docs/dev-file/05-Frontend-Architecture.md` already describes
-URL-backed obligation drawer state, and the inline detail behavior
-remains consistent with the side-panel hybrid log.
+URL-backed obligation drawer state.

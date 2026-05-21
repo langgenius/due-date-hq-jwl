@@ -340,10 +340,6 @@ msgstr "{activeFirmCount} / {activeFirmLimitLabel} 个 active 事务所"
 msgid "{availableCount} available"
 msgstr "{availableCount} 个可用"
 
-#: src/routes/obligations.tsx
-msgid "{checklistCount} items drafted — checklist hasn't been sent yet."
-msgstr "已起草 {checklistCount} 项；清单尚未发送。"
-
 #: src/features/migration/Step4Preview.tsx
 msgid "{clientCount, plural, one {# client} other {# clients}}"
 msgstr "{clientCount, plural, other {# 个客户}}"
@@ -421,8 +417,8 @@ msgid "{offsetDays} days before"
 msgstr "提前 {offsetDays} 天"
 
 #: src/routes/obligations.tsx
-msgid "{outstanding} of {checklistCount} items still outstanding from client."
-msgstr "客户仍有 {outstanding}/{checklistCount} 项未完成。"
+msgid "{outstanding} of {checklistCount} document items are still missing."
+msgstr "{checklistCount} 个文件项中仍有 {outstanding} 个缺失。"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
@@ -448,6 +444,10 @@ msgstr "{prompt} for {0}"
 #: src/routes/obligations.tsx
 msgid "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
 msgstr "客户已确认 {readyResponseCount}/{checklistCount} 项 · 共 {responseCount} 条回复"
+
+#: src/routes/obligations.tsx
+msgid "{receivedCount} of {checklistCount} document items are marked received."
+msgstr "{checklistCount} 个文件项中已有 {receivedCount} 个标记为已收到。"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
@@ -907,10 +907,6 @@ msgstr "需要审核 AI 草案"
 msgid "AI draft review required before activation."
 msgstr "启用前需要审核 AI 草案。"
 
-#: src/routes/obligations.tsx
-msgid "AI generate"
-msgstr "AI 生成"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "AI guard failed"
 msgstr "AI 防护检查失败"
@@ -970,6 +966,10 @@ msgstr "全部"
 #: src/routes/obligations.tsx
 msgid "All"
 msgstr "全部"
+
+#: src/routes/obligations.tsx
+msgid "All {checklistCount} document items are marked received."
+msgstr "全部 {checklistCount} 个文件项均已标记为已收到。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "All {total} sources watched"
@@ -1119,6 +1119,7 @@ msgid "Applicability review · needs CPA confirmation at generation time."
 msgstr "适用性复核 · 在生成义务时需要 CPA 确认。"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/components/PulseStatusBadge.tsx
@@ -1200,6 +1201,10 @@ msgstr "分配给你"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Assignee"
 msgstr "经办人"
+
+#: src/routes/obligations.tsx
+msgid "At least one document item needs preparer review."
+msgstr "至少有一个文件项需要制表人复核。"
 
 #: src/features/dashboard/exposure-strip.tsx
 msgid "At risk"
@@ -1634,26 +1639,9 @@ msgstr "正在检查 {label}…"
 msgid "Checking the active practice plan before loading workload metrics."
 msgstr "加载工作负载指标前正在检查当前事务所计划。"
 
-#: src/routes/obligations.tsx
 #: src/routes/readiness.tsx
 msgid "Checklist"
 msgstr "清单"
-
-#: src/routes/obligations.tsx
-msgid "Checklist generated"
-msgstr "清单已生成"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item"
-msgstr "清单项目"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item description"
-msgstr "清单项目说明"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item label"
-msgstr "清单项目名称"
 
 #: src/routes/route-summary.ts
 msgid "Checkout"
@@ -1885,10 +1873,6 @@ msgstr "缺少客户记录 — 该义务可能已孤立。"
 msgid "Client reminder"
 msgstr "客户提醒"
 
-#: src/routes/obligations.tsx
-msgid "Client responded — preparer must review."
-msgstr "客户已回复 — 经办人需要复核。"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Client response"
 msgstr "客户回复"
@@ -1928,23 +1912,11 @@ msgstr "客户"
 msgid "Clients affected"
 msgstr "受影响客户"
 
-#: src/routes/obligations.tsx
-msgid "close"
-msgstr "关闭"
-
 #: src/features/audit/audit-log-page.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/routes/obligations.tsx
 msgid "Close"
 msgstr "关闭"
-
-#: src/routes/obligations.tsx
-msgid "Close · Esc"
-msgstr "关闭 · Esc"
-
-#: src/routes/obligations.tsx
-msgid "Close obligation detail"
-msgstr "关闭义务详情"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Close rule detail"
@@ -2135,6 +2107,10 @@ msgstr "无法接受所选规则"
 msgid "Couldn't add deadline"
 msgstr "无法添加截止日"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't add document item"
+msgstr "无法添加文件项"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't apply Pulse"
 msgstr "无法应用监管提醒"
@@ -2222,8 +2198,8 @@ msgid "Couldn't generate annual rollover"
 msgstr "无法生成年度滚转"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't generate checklist"
-msgstr "无法生成清单"
+msgid "Couldn't generate document list"
+msgstr "无法生成文件清单"
 
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't import clients"
@@ -2350,6 +2326,10 @@ msgstr "无法重新生成日历 URL"
 msgid "Couldn't reject rule"
 msgstr "无法拒绝规则"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't remove document item"
+msgstr "无法移除文件项"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Couldn't request export"
 msgstr "无法请求导出"
@@ -2471,6 +2451,10 @@ msgstr "无法更新阻塞"
 #: src/features/calendar/calendar-page.tsx
 msgid "Couldn't update calendar subscription"
 msgstr "无法更新日历订阅"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't update document item"
+msgstr "无法更新文件项"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't update owners"
@@ -2643,6 +2627,10 @@ msgstr "合同约定的定制 AI 与覆盖范围"
 #: src/routes/billing.tsx
 msgid "Custom AI routing"
 msgstr "定制 AI 路由"
+
+#: src/routes/obligations.tsx
+msgid "Custom document"
+msgstr "自定义文件"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Custom rule created"
@@ -2842,6 +2830,34 @@ msgstr "已忽略"
 #: src/routes/settings.tsx
 msgid "Distribution of prep work across the team."
 msgstr "团队中准备工作的分配情况。"
+
+#: src/routes/obligations.tsx
+msgid "Document item"
+msgstr "文件项"
+
+#: src/routes/obligations.tsx
+msgid "Document item added"
+msgstr "文件项已添加"
+
+#: src/routes/obligations.tsx
+msgid "Document item description"
+msgstr "文件项说明"
+
+#: src/routes/obligations.tsx
+msgid "Document item label"
+msgstr "文件项名称"
+
+#: src/routes/obligations.tsx
+msgid "Document item removed"
+msgstr "文件项已移除"
+
+#: src/routes/obligations.tsx
+msgid "Document list generated"
+msgstr "文件清单已生成"
+
+#: src/routes/obligations.tsx
+msgid "Documents received"
+msgstr "已收到文件"
 
 #: src/routes/obligations.tsx
 msgid "Done"
@@ -3259,19 +3275,24 @@ msgstr "已延期"
 msgid "Extension"
 msgstr "延期"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Extension also covers payment."
 msgstr "延期也覆盖付款。"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension decision"
 msgstr "延期决定"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension memo"
 msgstr "延期备注"
 
+#: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension plan saved"
 msgstr "延期计划已保存"
@@ -3301,8 +3322,8 @@ msgid "Failed"
 msgstr "失败"
 
 #: src/routes/obligations.tsx
-msgid "Fallback checklist ready"
-msgstr "备用清单已准备好"
+msgid "Fallback document list ready"
+msgstr "兜底文件清单已就绪"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Field"
@@ -3541,8 +3562,8 @@ msgid "Generate"
 msgstr "生成"
 
 #: src/routes/obligations.tsx
-msgid "Generate a checklist or add items before sending a portal link."
-msgstr "发送门户链接前，请先生成清单或添加项目。"
+msgid "Generate a document list or add items before sending a portal link."
+msgstr "发送门户链接前，请先生成文件清单或添加文件项。"
 
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
@@ -3551,6 +3572,10 @@ msgstr "生成一个私有订阅链接，让分配给你的截止日出现在你
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
 msgstr "生成截止日"
+
+#: src/routes/obligations.tsx
+msgid "Generate document list"
+msgstr "生成文件清单"
 
 #: src/routes/migration.new.tsx
 msgid "Generate your first deadline list."
@@ -3860,6 +3885,11 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "内部截止日提前天数必须在 0 到 365 天之间。"
 
 #: src/routes/obligations.tsx
+msgid "Internal document note"
+msgstr "内部文件备注"
+
+#: src/features/evidence/extension-decision-evidence.tsx
+#: src/routes/obligations.tsx
 msgid "Internal extension target date"
 msgstr "内部延期目标日期"
 
@@ -3870,6 +3900,10 @@ msgstr "必须填写内部延期目标日期。"
 #: src/routes/obligations.tsx
 msgid "Internal extension target date must be on or before the filing deadline."
 msgstr "内部延期目标日期必须早于或等于申报截止日。"
+
+#: src/routes/obligations.tsx
+msgid "Internal note"
+msgstr "内部备注"
 
 #: src/features/obligations/obligation-type.ts
 msgid "Internal review"
@@ -4248,6 +4282,14 @@ msgid "Mark all read"
 msgstr "全部标记已读"
 
 #: src/routes/obligations.tsx
+msgid "Mark document missing"
+msgstr "标记文件缺失"
+
+#: src/routes/obligations.tsx
+msgid "Mark document received"
+msgstr "标记文件已收到"
+
+#: src/routes/obligations.tsx
 msgid "Mark e-file rejected"
 msgstr "标记电子申报被拒"
 
@@ -4427,6 +4469,10 @@ msgstr "距离截止日的最小天数"
 #: src/routes/obligations.tsx
 msgid "Minimum dollars at risk"
 msgstr "最低风险金额"
+
+#: src/routes/obligations.tsx
+msgid "Missing"
+msgstr "缺失"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing due date"
@@ -4661,10 +4707,6 @@ msgstr "下个季度"
 msgid "Next review"
 msgstr "下次复核"
 
-#: src/routes/obligations.tsx
-msgid "next row"
-msgstr "下一行"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Next years"
 msgstr "下一组年份"
@@ -4719,10 +4761,6 @@ msgstr "暂无审计事件。"
 msgid "No audited client changes yet"
 msgstr "暂无已审计的客户变更"
 
-#: src/routes/obligations.tsx
-msgid "No checklist drafted yet. Generate or add items below."
-msgstr "尚未起草清单。请在下方生成或添加项目。"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "No client emails are suppressed."
 msgstr "没有被抑制的客户邮箱。"
@@ -4747,6 +4785,10 @@ msgstr "没有已关闭的来源年度义务匹配本次滚转预览。"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "No commands found."
 msgstr "未找到命令。"
+
+#: src/routes/obligations.tsx
+msgid "No document list generated yet. Generate or add items below."
+msgstr "尚未生成文件清单。请在下方生成或添加项目。"
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "No eligible obligations are selected."
@@ -5052,6 +5094,7 @@ msgstr "未就绪"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/members/members-page.tsx
 #: src/routes/obligations.tsx
 msgid "Not recorded"
@@ -5510,10 +5553,6 @@ msgstr "Outbox 已确认发送"
 msgid "Outlook"
 msgstr "Outlook"
 
-#: src/routes/obligations.tsx
-msgid "Outstanding"
-msgstr "未完成"
-
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -5691,6 +5730,7 @@ msgstr "已暂停"
 msgid "Paused"
 msgstr "已暂停"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/obligation-type.ts
 msgid "Payment"
 msgstr "付款"
@@ -5718,6 +5758,10 @@ msgstr "支付详情由支付处理方保存"
 #: src/routes/billing.tsx
 msgid "Payment model"
 msgstr "支付模型"
+
+#: src/features/evidence/extension-decision-evidence.tsx
+msgid "Payment still due by original deadline"
+msgstr "付款仍需在原始截止日前完成"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Payment year start"
@@ -6102,10 +6146,6 @@ msgstr "预设"
 msgid "prev"
 msgstr "上一项"
 
-#: src/routes/obligations.tsx
-msgid "prev row"
-msgstr "上一行"
-
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-library-tab.tsx
 msgid "Preview"
@@ -6485,6 +6525,10 @@ msgstr "原因"
 msgid "Receipts band"
 msgstr "收入区间"
 
+#: src/routes/obligations.tsx
+msgid "Received"
+msgstr "已收到"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Recent audited changes for this client record"
 msgstr "Recent audited changes for this client record"
@@ -6570,6 +6614,10 @@ msgstr "正在刷新 AI 映射"
 msgid "Regenerate"
 msgstr "重新生成"
 
+#: src/routes/obligations.tsx
+msgid "Regenerate list"
+msgstr "重新生成清单"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Regenerate URL"
 msgstr "重新生成 URL"
@@ -6583,6 +6631,7 @@ msgid "Reject"
 msgstr "拒绝"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/rule-library-tab.tsx
@@ -7755,6 +7804,7 @@ msgstr "来源"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Source"

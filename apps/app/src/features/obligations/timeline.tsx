@@ -4,6 +4,8 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
+import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 
 import { LIFECYCLE_V2_STATUSES, isObligationStatus, type ObligationStatus } from './status-control'
@@ -186,6 +188,7 @@ function OtherActivity({
   practiceTimezone: string
 }) {
   const { t } = useLingui()
+  const actionLabels = useAuditActionLabels()
   return (
     <div className="mt-4 border-t border-divider-regular pt-3">
       <div className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
@@ -198,7 +201,9 @@ function OtherActivity({
             className="rounded-md border border-divider-regular bg-surface-base px-3 py-2"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-xs font-medium text-text-secondary">{event.action}</span>
+              <span className="text-xs font-medium text-text-secondary">
+                {formatAuditActionLabel(event.action, actionLabels)}
+              </span>
               <span className="text-[10px] text-text-tertiary">
                 {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
               </span>

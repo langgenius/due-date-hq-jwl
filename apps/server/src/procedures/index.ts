@@ -170,6 +170,9 @@ export const router = os.router({
     generateChecklist: readinessHandlers.generateChecklist,
     sendRequest: readinessHandlers.sendRequest,
     revokeRequest: readinessHandlers.revokeRequest,
+    addChecklistItem: readinessHandlers.addChecklistItem,
+    updateChecklistItem: readinessHandlers.updateChecklistItem,
+    deleteChecklistItem: readinessHandlers.deleteChecklistItem,
     listByObligation: readinessHandlers.listByObligation,
   },
   reminders: {

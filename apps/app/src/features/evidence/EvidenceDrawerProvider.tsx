@@ -30,6 +30,11 @@ import { buildAuditChangeView } from '@/features/audit/audit-change-view'
 import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
+  extensionDecisionEvidenceDescription,
+  extensionDecisionEvidenceDetails,
+  readExtensionDecisionEvidence,
+} from '@/features/evidence/extension-decision-evidence'
+import {
   EvidenceDrawerContext,
   type EvidenceDrawerContextValue,
   type OpenEvidenceInput,
@@ -299,11 +304,19 @@ function evidenceDescription(item: EvidencePublic): ReactNode {
       <Trans>The accepted source-backed rule matched the client facts for this obligation.</Trans>
     )
   }
+  if (item.sourceType === 'extension_decision') {
+    const extensionDecision = readExtensionDecisionEvidence(item)
+    if (extensionDecision) return extensionDecisionEvidenceDescription(extensionDecision)
+  }
   return firstReadableValue(item.normalizedValue ?? item.rawValue)?.node ?? null
 }
 
 function evidenceDetails(item: EvidencePublic): EvidenceDetail[] {
   if (item.sourceType === 'penalty_override') return penaltyInputDetails(item)
+  if (item.sourceType === 'extension_decision') {
+    const extensionDecision = readExtensionDecisionEvidence(item)
+    return extensionDecision ? extensionDecisionEvidenceDetails(extensionDecision) : []
+  }
   if (item.sourceType === 'readiness_client_response') return readinessResponseDetails(item)
   if (item.sourceType === 'readiness_checklist_ai') return readinessChecklistDetails(item)
 

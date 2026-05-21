@@ -136,14 +136,14 @@ The canonical product spec proposes an explicit object model. The table below ma
 
 Six tabs (was 5; Timeline added per the v2 brief):
 
-| Tab                | Purpose                                                                                          | Source                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
-| **Readiness**      | What we need from the client; AI checklist + request actions                                     | `readinessRequests[]`, rule.evidence requirements |
-| **Timeline** (new) | Milestone notes per state, in reverse-chrono. System + human notes interleaved (different fonts) | `MilestoneNote[]`, system events                  |
-| **Extension**      | Decision + memo + source + expected new date                                                     | `extension*` fields                               |
-| **Risk**           | Penalty breakdown, source refs                                                                   | `penaltyBreakdown[]`, `penaltySourceRefs[]`       |
-| **Evidence**       | Linked files (W-2, 1099, K-1)                                                                    | `evidence[]`                                      |
-| **Audit**          | Full transition history                                                                          | `AuditEvent[]`                                    |
+| Tab                | Purpose                                                                                          | Source                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| **Readiness**      | CPA internal document checklist; optional client request actions                                 | `readinessChecklist[]`, `readinessRequests[]` |
+| **Timeline** (new) | Milestone notes per state, in reverse-chrono. System + human notes interleaved (different fonts) | `MilestoneNote[]`, system events              |
+| **Extension**      | Decision + memo + source + expected new date                                                     | `extension*` fields                           |
+| **Risk**           | Penalty breakdown, source refs                                                                   | `penaltyBreakdown[]`, `penaltySourceRefs[]`   |
+| **Evidence**       | Linked files (W-2, 1099, K-1)                                                                    | `evidence[]`                                  |
+| **Audit**          | Full transition history                                                                          | `AuditEvent[]`                                |
 
 The drawer width per DESIGN §Layout: **720–880px** (workflow-drawer band, scales for the tables/evidence content).
 

@@ -340,10 +340,6 @@ msgstr "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgid "{availableCount} available"
 msgstr "{availableCount} available"
 
-#: src/routes/obligations.tsx
-msgid "{checklistCount} items drafted — checklist hasn't been sent yet."
-msgstr "{checklistCount} items drafted — checklist hasn't been sent yet."
-
 #: src/features/migration/Step4Preview.tsx
 msgid "{clientCount, plural, one {# client} other {# clients}}"
 msgstr "{clientCount, plural, one {# client} other {# clients}}"
@@ -421,8 +417,8 @@ msgid "{offsetDays} days before"
 msgstr "{offsetDays} days before"
 
 #: src/routes/obligations.tsx
-msgid "{outstanding} of {checklistCount} items still outstanding from client."
-msgstr "{outstanding} of {checklistCount} items still outstanding from client."
+msgid "{outstanding} of {checklistCount} document items are still missing."
+msgstr "{outstanding} of {checklistCount} document items are still missing."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
@@ -448,6 +444,10 @@ msgstr "{prompt} for {0}"
 #: src/routes/obligations.tsx
 msgid "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
 msgstr "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
+
+#: src/routes/obligations.tsx
+msgid "{receivedCount} of {checklistCount} document items are marked received."
+msgstr "{receivedCount} of {checklistCount} document items are marked received."
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
@@ -907,10 +907,6 @@ msgstr "AI draft review required"
 msgid "AI draft review required before activation."
 msgstr "AI draft review required before activation."
 
-#: src/routes/obligations.tsx
-msgid "AI generate"
-msgstr "AI generate"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "AI guard failed"
 msgstr "AI guard failed"
@@ -970,6 +966,10 @@ msgstr "all"
 #: src/routes/obligations.tsx
 msgid "All"
 msgstr "All"
+
+#: src/routes/obligations.tsx
+msgid "All {checklistCount} document items are marked received."
+msgstr "All {checklistCount} document items are marked received."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "All {total} sources watched"
@@ -1119,6 +1119,7 @@ msgid "Applicability review · needs CPA confirmation at generation time."
 msgstr "Applicability review · needs CPA confirmation at generation time."
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/components/PulseStatusBadge.tsx
@@ -1200,6 +1201,10 @@ msgstr "Assigned to you"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Assignee"
 msgstr "Assignee"
+
+#: src/routes/obligations.tsx
+msgid "At least one document item needs preparer review."
+msgstr "At least one document item needs preparer review."
 
 #: src/features/dashboard/exposure-strip.tsx
 msgid "At risk"
@@ -1634,26 +1639,9 @@ msgstr "Checking {label}…"
 msgid "Checking the active practice plan before loading workload metrics."
 msgstr "Checking the active practice plan before loading workload metrics."
 
-#: src/routes/obligations.tsx
 #: src/routes/readiness.tsx
 msgid "Checklist"
 msgstr "Checklist"
-
-#: src/routes/obligations.tsx
-msgid "Checklist generated"
-msgstr "Checklist generated"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item"
-msgstr "Checklist item"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item description"
-msgstr "Checklist item description"
-
-#: src/routes/obligations.tsx
-msgid "Checklist item label"
-msgstr "Checklist item label"
 
 #: src/routes/route-summary.ts
 msgid "Checkout"
@@ -1885,10 +1873,6 @@ msgstr "Client record missing — obligation may be orphaned."
 msgid "Client reminder"
 msgstr "Client reminder"
 
-#: src/routes/obligations.tsx
-msgid "Client responded — preparer must review."
-msgstr "Client responded — preparer must review."
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Client response"
 msgstr "Client response"
@@ -1928,23 +1912,11 @@ msgstr "Clients"
 msgid "Clients affected"
 msgstr "Clients affected"
 
-#: src/routes/obligations.tsx
-msgid "close"
-msgstr "close"
-
 #: src/features/audit/audit-log-page.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/routes/obligations.tsx
 msgid "Close"
 msgstr "Close"
-
-#: src/routes/obligations.tsx
-msgid "Close · Esc"
-msgstr "Close · Esc"
-
-#: src/routes/obligations.tsx
-msgid "Close obligation detail"
-msgstr "Close obligation detail"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Close rule detail"
@@ -2135,6 +2107,10 @@ msgstr "Couldn't accept selected rules"
 msgid "Couldn't add deadline"
 msgstr "Couldn't add deadline"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't add document item"
+msgstr "Couldn't add document item"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't apply Pulse"
 msgstr "Couldn't apply Pulse"
@@ -2222,8 +2198,8 @@ msgid "Couldn't generate annual rollover"
 msgstr "Couldn't generate annual rollover"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't generate checklist"
-msgstr "Couldn't generate checklist"
+msgid "Couldn't generate document list"
+msgstr "Couldn't generate document list"
 
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't import clients"
@@ -2350,6 +2326,10 @@ msgstr "Couldn't regenerate calendar URL"
 msgid "Couldn't reject rule"
 msgstr "Couldn't reject rule"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't remove document item"
+msgstr "Couldn't remove document item"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Couldn't request export"
 msgstr "Couldn't request export"
@@ -2471,6 +2451,10 @@ msgstr "Couldn't update blocker"
 #: src/features/calendar/calendar-page.tsx
 msgid "Couldn't update calendar subscription"
 msgstr "Couldn't update calendar subscription"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't update document item"
+msgstr "Couldn't update document item"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't update owners"
@@ -2643,6 +2627,10 @@ msgstr "Custom AI and coverage by contract"
 #: src/routes/billing.tsx
 msgid "Custom AI routing"
 msgstr "Custom AI routing"
+
+#: src/routes/obligations.tsx
+msgid "Custom document"
+msgstr "Custom document"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Custom rule created"
@@ -2842,6 +2830,34 @@ msgstr "Dismissed"
 #: src/routes/settings.tsx
 msgid "Distribution of prep work across the team."
 msgstr "Distribution of prep work across the team."
+
+#: src/routes/obligations.tsx
+msgid "Document item"
+msgstr "Document item"
+
+#: src/routes/obligations.tsx
+msgid "Document item added"
+msgstr "Document item added"
+
+#: src/routes/obligations.tsx
+msgid "Document item description"
+msgstr "Document item description"
+
+#: src/routes/obligations.tsx
+msgid "Document item label"
+msgstr "Document item label"
+
+#: src/routes/obligations.tsx
+msgid "Document item removed"
+msgstr "Document item removed"
+
+#: src/routes/obligations.tsx
+msgid "Document list generated"
+msgstr "Document list generated"
+
+#: src/routes/obligations.tsx
+msgid "Documents received"
+msgstr "Documents received"
 
 #: src/routes/obligations.tsx
 msgid "Done"
@@ -3259,19 +3275,24 @@ msgstr "Extended"
 msgid "Extension"
 msgstr "Extension"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Extension also covers payment."
 msgstr "Extension also covers payment."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension decision"
 msgstr "Extension decision"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension memo"
 msgstr "Extension memo"
 
+#: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
 msgid "Extension plan saved"
 msgstr "Extension plan saved"
@@ -3301,8 +3322,8 @@ msgid "Failed"
 msgstr "Failed"
 
 #: src/routes/obligations.tsx
-msgid "Fallback checklist ready"
-msgstr "Fallback checklist ready"
+msgid "Fallback document list ready"
+msgstr "Fallback document list ready"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Field"
@@ -3541,8 +3562,8 @@ msgid "Generate"
 msgstr "Generate"
 
 #: src/routes/obligations.tsx
-msgid "Generate a checklist or add items before sending a portal link."
-msgstr "Generate a checklist or add items before sending a portal link."
+msgid "Generate a document list or add items before sending a portal link."
+msgstr "Generate a document list or add items before sending a portal link."
 
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
@@ -3551,6 +3572,10 @@ msgstr "Generate a private subscription URL so deadlines assigned to you appear 
 #: src/features/migration/WizardShell.tsx
 msgid "Generate deadlines"
 msgstr "Generate deadlines"
+
+#: src/routes/obligations.tsx
+msgid "Generate document list"
+msgstr "Generate document list"
 
 #: src/routes/migration.new.tsx
 msgid "Generate your first deadline list."
@@ -3860,6 +3885,11 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "Internal deadline offset must be between 0 and 365 days."
 
 #: src/routes/obligations.tsx
+msgid "Internal document note"
+msgstr "Internal document note"
+
+#: src/features/evidence/extension-decision-evidence.tsx
+#: src/routes/obligations.tsx
 msgid "Internal extension target date"
 msgstr "Internal extension target date"
 
@@ -3870,6 +3900,10 @@ msgstr "Internal extension target date is required."
 #: src/routes/obligations.tsx
 msgid "Internal extension target date must be on or before the filing deadline."
 msgstr "Internal extension target date must be on or before the filing deadline."
+
+#: src/routes/obligations.tsx
+msgid "Internal note"
+msgstr "Internal note"
 
 #: src/features/obligations/obligation-type.ts
 msgid "Internal review"
@@ -4248,6 +4282,14 @@ msgid "Mark all read"
 msgstr "Mark all read"
 
 #: src/routes/obligations.tsx
+msgid "Mark document missing"
+msgstr "Mark document missing"
+
+#: src/routes/obligations.tsx
+msgid "Mark document received"
+msgstr "Mark document received"
+
+#: src/routes/obligations.tsx
 msgid "Mark e-file rejected"
 msgstr "Mark e-file rejected"
 
@@ -4427,6 +4469,10 @@ msgstr "Minimum days until due"
 #: src/routes/obligations.tsx
 msgid "Minimum dollars at risk"
 msgstr "Minimum dollars at risk"
+
+#: src/routes/obligations.tsx
+msgid "Missing"
+msgstr "Missing"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing due date"
@@ -4661,10 +4707,6 @@ msgstr "Next quarter"
 msgid "Next review"
 msgstr "Next review"
 
-#: src/routes/obligations.tsx
-msgid "next row"
-msgstr "next row"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Next years"
 msgstr "Next years"
@@ -4719,10 +4761,6 @@ msgstr "No audit events yet."
 msgid "No audited client changes yet"
 msgstr "No audited client changes yet"
 
-#: src/routes/obligations.tsx
-msgid "No checklist drafted yet. Generate or add items below."
-msgstr "No checklist drafted yet. Generate or add items below."
-
 #: src/features/reminders/reminders-page.tsx
 msgid "No client emails are suppressed."
 msgstr "No client emails are suppressed."
@@ -4747,6 +4785,10 @@ msgstr "No closed source-year obligations matched this rollover preview."
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "No commands found."
 msgstr "No commands found."
+
+#: src/routes/obligations.tsx
+msgid "No document list generated yet. Generate or add items below."
+msgstr "No document list generated yet. Generate or add items below."
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "No eligible obligations are selected."
@@ -5052,6 +5094,7 @@ msgstr "Not ready"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/members/members-page.tsx
 #: src/routes/obligations.tsx
 msgid "Not recorded"
@@ -5510,10 +5553,6 @@ msgstr "Outbox-confirmed sends"
 msgid "Outlook"
 msgstr "Outlook"
 
-#: src/routes/obligations.tsx
-msgid "Outstanding"
-msgstr "Outstanding"
-
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -5691,6 +5730,7 @@ msgstr "paused"
 msgid "Paused"
 msgstr "Paused"
 
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/obligation-type.ts
 msgid "Payment"
 msgstr "Payment"
@@ -5718,6 +5758,10 @@ msgstr "Payment details stay with the processor"
 #: src/routes/billing.tsx
 msgid "Payment model"
 msgstr "Payment model"
+
+#: src/features/evidence/extension-decision-evidence.tsx
+msgid "Payment still due by original deadline"
+msgstr "Payment still due by original deadline"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Payment year start"
@@ -6102,10 +6146,6 @@ msgstr "Preset"
 msgid "prev"
 msgstr "prev"
 
-#: src/routes/obligations.tsx
-msgid "prev row"
-msgstr "prev row"
-
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-library-tab.tsx
 msgid "Preview"
@@ -6485,6 +6525,10 @@ msgstr "Reason"
 msgid "Receipts band"
 msgstr "Receipts band"
 
+#: src/routes/obligations.tsx
+msgid "Received"
+msgstr "Received"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Recent audited changes for this client record"
 msgstr "Recent audited changes for this client record"
@@ -6570,6 +6614,10 @@ msgstr "Refreshing the AI mapping"
 msgid "Regenerate"
 msgstr "Regenerate"
 
+#: src/routes/obligations.tsx
+msgid "Regenerate list"
+msgstr "Regenerate list"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Regenerate URL"
 msgstr "Regenerate URL"
@@ -6583,6 +6631,7 @@ msgid "Reject"
 msgstr "Reject"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/rule-library-tab.tsx
@@ -7755,6 +7804,7 @@ msgstr "source"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Source"

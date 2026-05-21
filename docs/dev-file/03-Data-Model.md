@@ -254,7 +254,7 @@ Drizzle schema: `packages/db/src/schema/obligations.ts`。Demo Sprint 暂不建 
 | `form_name` / `authority` / `source_evidence_json` / `recurrence` / `risk_level`                                     | source-backed rule metadata copied onto the generated instance                                                                                                                                                    |
 | `filing_due_date` / `payment_due_date`                                                                               | 税务机关规则来源中的 Filing Deadline / Payment Deadline 分层；extension 不改变 payment due date，Obligation detail 必须显式展示                                                                                   |
 | `status ∈ (pending, in_progress, done, extended, paid, waiting_on_client, review, not_applicable)`                   | `done` 保留既有 filed/done wire value；UI 显示为 Filed；`done/extended/paid/not_applicable` 是 closed                                                                                                             |
-| `readiness ∈ (ready, waiting, needs_review)`                                                                         | 非持久派生状态；closed status → ready，最新 Readiness Portal response 优先，其次由 `waiting_on_client` / `review` status 派生                                                                                     |
+| `readiness ∈ (ready, waiting, needs_review)`                                                                         | 非持久派生状态；closed status → ready；优先由内部 document checklist 派生（`needs_review` > `missing` > all `received`），无内部清单时才 fallback 到最新 Readiness Portal response / obligation status            |
 | `extension_decision ∈ (not_considered, applied, rejected)`                                                           | Obligations detail 的内部延期计划状态；当前 UI 保存即写 `applied`，`rejected` 仅保留历史兼容；`applied` 可把 obligation status 标记为 `extended`                                                                  |
 | `extension_memo` / `extension_source` / `extension_expected_due_date`                                                | 内部说明、来源和内部 extension target date；内部日期不得晚于 official filing deadline；不会修改 `current_due_date`，也不表示已向税务机关 filing                                                                   |
 | `extension_decided_at` / `extension_decided_by_user_id`                                                              | 决策时间和操作者                                                                                                                                                                                                  |
@@ -301,6 +301,22 @@ Structured reviewer notes and blocking issues for prep/review workflow.
 | `note_type ∈ (review_note, blocking_issue, override)`          | review lane / blocker / override      |
 | `body` / `resolved_at` / `created_at` / `updated_at`           | open notes have `resolved_at IS NULL` |
 
+**obligation_readiness_checklist_item**
+
+Internal CPA-facing document checklist for one obligation. Generated deterministically from
+`tax_type` / `form_name` / `obligation_type` / entity and jurisdiction context, then editable by the
+CPA. This table is the primary readiness source for open obligations; custom rows are preserved when
+template rows are regenerated.
+
+| 字段                                                                                       | 备注                                                             |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `id` / `firm_id` / `obligation_instance_id`                                                | tenant-scoped；repo 通过 obligation 同 firm 校验                 |
+| `label` / `description`                                                                    | CPA-visible document requirement                                 |
+| `source ∈ (template, custom)`                                                              | deterministic template item vs manually added item               |
+| `status ∈ (missing, received, needs_review)`                                               | readiness derivation input；`received` 勾选时写 `received_at/by` |
+| `sort_order` / `note`                                                                      | stable display order and internal CPA note                       |
+| `received_at` / `received_by_user_id` / `created_by_user_id` / `created_at` / `updated_at` | audit-friendly metadata                                          |
+
 **exception_rule**（Overlay Engine）
 
 Drizzle schema: `packages/db/src/schema/overlay.ts`。Migration
@@ -334,14 +350,14 @@ application rows and retracts the source-backed exception rule.
 
 Drizzle schema: `packages/db/src/schema/readiness.ts`。
 
-| 字段                                                                                        | 备注                                                           |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `id` / `firm_id` / `client_id` / `obligation_instance_id`                                   | tenant-scoped；repo 通过 obligation/client 同 firm 校验        |
-| `checklist_json`                                                                            | 客户可见 checklist item JSON；生成输入不得包含 EIN/邮箱/金额等 |
-| `token_hash` / `expires_at`                                                                 | 公开 portal 只存 hash，HMAC token 默认 14 天过期               |
-| `status ∈ (sent, opened, responded, revoked, expired)`                                      | portal 生命周期                                                |
-| `portal_opened_at` / `sent_at` / `revoked_at` / `created_by_user_id` / `revoked_by_user_id` | 审计和运营追踪                                                 |
-| `created_at` / `updated_at`                                                                 |                                                                |
+| 字段                                                                                        | 备注                                                                                   |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `id` / `firm_id` / `client_id` / `obligation_instance_id`                                   | tenant-scoped；repo 通过 obligation/client 同 firm 校验                                |
+| `checklist_json`                                                                            | 从当前内部 document checklist 映射出的客户可见 JSON；不得包含 EIN/邮箱/金额/内部备注等 |
+| `token_hash` / `expires_at`                                                                 | 公开 portal 只存 hash，HMAC token 默认 14 天过期                                       |
+| `status ∈ (sent, opened, responded, revoked, expired)`                                      | portal 生命周期                                                                        |
+| `portal_opened_at` / `sent_at` / `revoked_at` / `created_by_user_id` / `revoked_by_user_id` | 审计和运营追踪                                                                         |
+| `created_at` / `updated_at`                                                                 |                                                                                        |
 
 **client_readiness_response**
 
@@ -354,8 +370,10 @@ Drizzle schema: `packages/db/src/schema/readiness.ts`。
 
 公开 `/api/readiness/:token` GET/POST 只返回客户安全字段，不暴露 EIN、金额、内部 notes、
 member id 或 raw audit JSON。POST 响应会写 `readiness.client_response` audit、
-`readiness_client_response` evidence。Obligation queue / detail 读取时从 latest request response
-和 obligation status 派生 `ready | waiting | needs_review`，不再写入 obligation 行。
+`readiness_client_response` evidence，并把客户逐项状态同步回同一份内部 document checklist
+（`ready → received`、`not_yet → missing`、`need_help → needs_review`）。Obligation queue /
+detail 读取时优先从内部 checklist 派生 `ready | waiting | needs_review`，无内部清单才用 legacy
+portal response 和 obligation status fallback；不再写入 obligation 行。
 
 ### 2.3 Pulse 链路
 
@@ -610,6 +628,10 @@ CREATE INDEX idx_evidence_oi     ON evidence_link(obligation_instance_id);
 CREATE INDEX idx_evidence_source ON evidence_link(source_type, source_id);
 
 -- Client readiness portal
+CREATE INDEX idx_readiness_doc_item_obligation
+  ON obligation_readiness_checklist_item(firm_id, obligation_instance_id);
+CREATE INDEX idx_readiness_doc_item_status
+  ON obligation_readiness_checklist_item(firm_id, status);
 CREATE INDEX idx_readiness_request_oi
   ON client_readiness_request(firm_id, obligation_instance_id, created_at DESC);
 CREATE UNIQUE INDEX uq_readiness_request_token

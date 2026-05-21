@@ -471,6 +471,21 @@ function buildScoped(firmId: string, rows: Row[]) {
     pulse,
     readiness: {
       firmId,
+      async listDocumentChecklistByObligation() {
+        return unused('readiness.listDocumentChecklistByObligation')
+      },
+      async createDocumentChecklistItems() {
+        return unused('readiness.createDocumentChecklistItems')
+      },
+      async replaceTemplateDocumentChecklist() {
+        return unused('readiness.replaceTemplateDocumentChecklist')
+      },
+      async updateDocumentChecklistItem() {
+        return unused('readiness.updateDocumentChecklistItem')
+      },
+      async deleteDocumentChecklistItem() {
+        return unused('readiness.deleteDocumentChecklistItem')
+      },
       async listByObligation() {
         return unused('readiness.listByObligation')
       },
@@ -485,6 +500,7 @@ function buildScoped(firmId: string, rows: Row[]) {
       async submitResponses() {
         return unused('readiness.submitResponses')
       },
+      async syncDocumentChecklistFromResponses() {},
     },
     rules: {
       firmId,

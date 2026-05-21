@@ -753,6 +753,21 @@ function buildScopedRepo(firmId: string) {
     pulse,
     readiness: {
       firmId,
+      async listDocumentChecklistByObligation() {
+        return unexpectedRepoCall('readiness.listDocumentChecklistByObligation')
+      },
+      async createDocumentChecklistItems() {
+        return unexpectedRepoCall('readiness.createDocumentChecklistItems')
+      },
+      async replaceTemplateDocumentChecklist() {
+        return unexpectedRepoCall('readiness.replaceTemplateDocumentChecklist')
+      },
+      async updateDocumentChecklistItem() {
+        return unexpectedRepoCall('readiness.updateDocumentChecklistItem')
+      },
+      async deleteDocumentChecklistItem() {
+        return unexpectedRepoCall('readiness.deleteDocumentChecklistItem')
+      },
       async listByObligation() {
         return unexpectedRepoCall('readiness.listByObligation')
       },
@@ -767,6 +782,7 @@ function buildScopedRepo(firmId: string) {
       async submitResponses() {
         return unexpectedRepoCall('readiness.submitResponses')
       },
+      async syncDocumentChecklistFromResponses() {},
     },
     rules: {
       firmId,

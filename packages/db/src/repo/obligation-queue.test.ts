@@ -55,6 +55,11 @@ interface FakeReadinessResponse {
   status: ReadinessResponseStatus
 }
 
+interface FakeReadinessChecklistItem {
+  obligationInstanceId: string
+  status: 'missing' | 'received' | 'needs_review'
+}
+
 /**
  * Fake Drizzle chain — only what makeObligationQueueRepo.list calls actually walks.
  * Order: select().from().innerJoin().leftJoin().where().orderBy().limit() => Promise<rows>.
@@ -64,6 +69,7 @@ function createFakeDb(
   options: {
     readinessRequests?: FakeReadinessRequest[]
     readinessResponses?: FakeReadinessResponse[]
+    readinessChecklistItems?: FakeReadinessChecklistItem[]
   } = {},
 ) {
   const limit = vi.fn(async (_n: number) => rows)
@@ -86,6 +92,8 @@ function createFakeDb(
   const readinessRequestFrom = vi.fn(() => ({ where: readinessRequestWhere }))
   const readinessResponseWhere = vi.fn(async () => options.readinessResponses ?? [])
   const readinessResponseFrom = vi.fn(() => ({ where: readinessResponseWhere }))
+  const readinessChecklistWhere = vi.fn(async () => options.readinessChecklistItems ?? [])
+  const readinessChecklistFrom = vi.fn(() => ({ where: readinessChecklistWhere }))
   const select = vi.fn((shape?: Record<string, unknown>) => {
     const keys = Object.keys(shape ?? {})
     if (
@@ -100,6 +108,9 @@ function createFakeDb(
     }
     if (keys.length === 2 && keys.includes('requestId') && keys.includes('status')) {
       return { from: readinessResponseFrom }
+    }
+    if (keys.length === 2 && keys.includes('obligationInstanceId') && keys.includes('status')) {
+      return { from: readinessChecklistFrom }
     }
     if (shape && 'overrideDueDate' in shape) return { from: overlayFrom }
     if (keys.length === 1 && keys.includes('obligationInstanceId')) {
@@ -346,6 +357,47 @@ describe('makeObligationQueueRepo.list', () => {
     expect(result.rows.map((row) => row.id)).toEqual(['needs-input', 'ready'])
     expect(result.rows.map((row) => row.daysUntilDue)).toEqual([3, 5])
     expect(result.rows.map((row) => row.readiness)).toEqual(['needs_review', 'ready'])
+  })
+
+  it('uses internal document checklist readiness before legacy portal responses', async () => {
+    const fake = createFakeDb(
+      [
+        makeRow({
+          id: 'document-missing',
+          currentDueDate: new Date('2026-04-20T00:00:00.000Z'),
+          exposureStatus: 'ready',
+        }),
+        makeRow({
+          id: 'document-received',
+          currentDueDate: new Date('2026-04-21T00:00:00.000Z'),
+          exposureStatus: 'ready',
+        }),
+      ],
+      {
+        readinessRequests: [
+          {
+            id: 'request-legacy-ready',
+            obligationInstanceId: 'document-missing',
+            status: 'responded',
+            updatedAt: new Date('2026-04-16T00:00:00.000Z'),
+            createdAt: new Date('2026-04-16T00:00:00.000Z'),
+          },
+        ],
+        readinessResponses: [{ requestId: 'request-legacy-ready', status: 'ready' }],
+        readinessChecklistItems: [
+          { obligationInstanceId: 'document-missing', status: 'missing' },
+          { obligationInstanceId: 'document-received', status: 'received' },
+        ],
+      },
+    )
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ asOfDate: '2026-04-15', limit: 10 })
+
+    expect(result.rows.map((row) => [row.id, row.readiness])).toEqual([
+      ['document-missing', 'waiting'],
+      ['document-received', 'ready'],
+    ])
   })
 
   it('aggregates obligation facet options for client, geography, form, and assignee filters', async () => {

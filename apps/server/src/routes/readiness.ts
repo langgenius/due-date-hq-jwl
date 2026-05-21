@@ -137,6 +137,15 @@ export const readinessRoute = new Hono<{
         etaDate: response.etaDate ? new Date(`${response.etaDate}T00:00:00.000Z`) : null,
       })),
     })
+    await repo.readiness.syncDocumentChecklistFromResponses({
+      obligationInstanceId: portal.request.obligationInstanceId,
+      now: submittedAt,
+      responses: parsed.data.responses.map((response) => ({
+        itemId: response.itemId,
+        status: response.status,
+        note: response.note?.trim() || null,
+      })),
+    })
     await repo.evidence.write({
       obligationInstanceId: portal.request.obligationInstanceId,
       sourceType: 'readiness_client_response',

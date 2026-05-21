@@ -83,8 +83,8 @@ import {
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
   type ClientReadinessResponsePublic,
+  type ReadinessDocumentChecklistItemPublic,
 } from '@duedatehq/contracts'
-import { useIsLargeViewport } from '@duedatehq/ui/hooks/use-mobile'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -146,7 +146,6 @@ import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
-import { KbdHint } from '@/components/patterns/kbd'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import {
   TableHeaderMultiFilter,
@@ -161,6 +160,11 @@ import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/aud
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
+import {
+  extensionDecisionEvidenceDescription,
+  extensionDecisionEvidenceDetails,
+  readExtensionDecisionEvidence,
+} from '@/features/evidence/extension-decision-evidence'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
@@ -230,7 +234,7 @@ const EXTENSION_SAVE_SUCCESS_TOOLTIP_MS = 1_800
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
 const EMPTY_SAVED_VIEWS: ObligationQueueSavedView[] = []
 const EMPTY_ASSIGNEES: MemberAssigneeOption[] = []
-const EMPTY_CHECKLIST: ReadinessChecklistItem[] = []
+const EMPTY_DOCUMENT_CHECKLIST: ReadinessDocumentChecklistItemPublic[] = []
 const EMPTY_FACET_OPTIONS: FilterOption[] = []
 const EMPTY_CLIENT_OPTIONS: ClientFilterOption[] = []
 const INITIAL_CURSOR: ObligationQueueCursor = null
@@ -298,11 +302,6 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(8)
 
-interface GeneratedReadinessChecklistDraft {
-  items: ReadinessChecklistItem[]
-  createdAtMs: number
-}
-
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
 }
@@ -315,25 +314,6 @@ function parseGeneratedReadinessChecklist(value: string | null): ReadinessCheckl
   } catch {
     return null
   }
-}
-
-function latestGeneratedReadinessChecklistDraft(
-  evidence: ObligationQueueDetail['evidence'],
-): GeneratedReadinessChecklistDraft | null {
-  let latest: GeneratedReadinessChecklistDraft | null = null
-
-  for (const item of evidence) {
-    if (item.sourceType !== 'readiness_checklist_ai') continue
-    const checklist = parseGeneratedReadinessChecklist(item.normalizedValue)
-    if (!checklist) continue
-    const createdAtMs = Date.parse(item.appliedAt)
-    const normalizedCreatedAtMs = Number.isFinite(createdAtMs) ? createdAtMs : 0
-    if (!latest || normalizedCreatedAtMs > latest.createdAtMs) {
-      latest = { items: checklist, createdAtMs: normalizedCreatedAtMs }
-    }
-  }
-
-  return latest
 }
 
 type DueDaysTone = {
@@ -717,11 +697,6 @@ export function ObligationQueueRoute() {
   // docs/Design/ux-audit-2026-05-21.md P0 #3: triage of 47 rows is
   // impossible without "is this mine."
   const currentUserName = useCurrentUserName()
-  // Hybrid detail-panel mode. At xl+ a selected row opens the panel
-  // inline beside the queue (non-modal, no scrim) so users can J/K
-  // through rows and the panel content swaps in place. Below xl the
-  // panel reverts to the historical Sheet overlay.
-  const isLargeViewport = useIsLargeViewport()
   // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
   // page: dropdown shows 6 target states instead of legacy 10, and
   // `review` re-labels to "In review". See
@@ -1131,11 +1106,6 @@ export function ObligationQueueRoute() {
   const activeRow = (row ? rowsById.get(row) : null) ?? rows[0] ?? null
   const activeDetailId =
     drawer === 'obligation' && detailId && rowsById.has(detailId) ? detailId : null
-  // 'inline' only when xl+ AND a row is actually open. The mode prop
-  // gets read inside the drawer to pick wrapper (aside vs Sheet).
-  const panelMode: 'inline' | 'modal' =
-    isLargeViewport && activeDetailId !== null ? 'inline' : 'modal'
-
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = functionalUpdate(updater, rowSelection)
@@ -1325,7 +1295,7 @@ export function ObligationQueueRoute() {
             </span>
           )
         },
-        meta: { cellClassName: 'min-w-[200px] max-w-[280px] align-top' },
+        meta: { cellClassName: 'min-w-[200px] max-w-[280px]' },
       },
       {
         // Owner column — surfaces who's on the hook for this row. Per
@@ -1361,7 +1331,7 @@ export function ObligationQueueRoute() {
             </span>
           )
         },
-        meta: { cellClassName: 'min-w-[140px] max-w-[200px] align-top' },
+        meta: { cellClassName: 'min-w-[140px] max-w-[200px]' },
       },
       {
         accessorKey: 'clientState',
@@ -1476,7 +1446,7 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { cellClassName: `align-top tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
+        meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
       {
         accessorKey: 'estimatedExposureCents',
@@ -2184,499 +2154,487 @@ export function ObligationQueueRoute() {
         }
       />
 
-      {/* Hybrid panel layout: at xl+ when a row is open, the queue
-          shrinks to leave a sticky right-column for the inline detail
-          panel. Below xl OR when no row is open, full-width queue. */}
-      <div
-        className={cn(
-          panelMode === 'inline' ? 'grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)]' : '',
-        )}
-      >
-        <div className="flex min-w-0 flex-col gap-3 overflow-x-auto">
-          {/* Single filter bar: lifecycle scope tabs left, dotted divider,
+      <div className="flex min-w-0 flex-col gap-3 overflow-x-auto">
+        {/* Single filter bar: lifecycle scope tabs left, dotted divider,
               cross-cutting action chips right. Zero-count scopes are
               auto-hidden so the bar respects the cognitive-load cap and
               doesn't render `Blocked 0` decoration when there's nothing
               there to triage. */}
-          <nav
-            aria-label={t`Status scopes and quick filters`}
-            className="-mb-px flex flex-wrap items-center gap-1 border-b border-divider-regular"
-          >
+        <nav
+          aria-label={t`Status scopes and quick filters`}
+          className="-mb-px flex flex-wrap items-center gap-1 border-b border-divider-regular"
+        >
+          <ObligationQueueScopeTab
+            label={t`All`}
+            count={scopeTotal}
+            active={activeScope === 'all'}
+            onClick={() =>
+              void setObligationQueueQuery({
+                status: null,
+                obligation: null,
+                row: null,
+              })
+            }
+          />
+          {visibleScopeStatuses.map((status) => (
             <ObligationQueueScopeTab
-              label={t`All`}
-              count={scopeTotal}
-              active={activeScope === 'all'}
+              key={status}
+              label={statusLabels[status]}
+              count={statusFacetCounts.get(status) ?? 0}
+              active={activeScope === status}
               onClick={() =>
                 void setObligationQueueQuery({
-                  status: null,
+                  status: [status],
                   obligation: null,
                   row: null,
                 })
               }
             />
-            {visibleScopeStatuses.map((status) => (
-              <ObligationQueueScopeTab
-                key={status}
-                label={statusLabels[status]}
-                count={statusFacetCounts.get(status) ?? 0}
-                active={activeScope === status}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    status: [status],
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              />
-            ))}
-            <span
-              aria-hidden
-              className="mx-2 hidden h-5 border-r border-dotted border-divider-deep md:block"
-            />
-            <div className="flex flex-wrap items-center gap-1.5 py-1.5">
-              <ObligationQueueActionChip
-                active={due === 'overdue'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    due: due === 'overdue' ? null : 'overdue',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Trans>Past due</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={thisWeekFilterActive}
-                onClick={() =>
-                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
-                }
-              >
-                <Trans>Due this week</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={evidence === 'needs'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    evidence: evidence === 'needs' ? null : 'needs',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Trans>Needs evidence</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={exposure === 'needs_input'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    exposure: exposure === 'needs_input' ? null : 'needs_input',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Trans>Penalty input needed</Trans>
-              </ObligationQueueActionChip>
-            </div>
-          </nav>
+          ))}
+          <span
+            aria-hidden
+            className="mx-2 hidden h-5 border-r border-dotted border-divider-deep md:block"
+          />
+          <div className="flex flex-wrap items-center gap-1.5 py-1.5">
+            <ObligationQueueActionChip
+              active={due === 'overdue'}
+              onClick={() =>
+                void setObligationQueueQuery({
+                  due: due === 'overdue' ? null : 'overdue',
+                  obligation: null,
+                  row: null,
+                })
+              }
+            >
+              <Trans>Past due</Trans>
+            </ObligationQueueActionChip>
+            <ObligationQueueActionChip
+              active={thisWeekFilterActive}
+              onClick={() =>
+                void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
+              }
+            >
+              <Trans>Due this week</Trans>
+            </ObligationQueueActionChip>
+            <ObligationQueueActionChip
+              active={evidence === 'needs'}
+              onClick={() =>
+                void setObligationQueueQuery({
+                  evidence: evidence === 'needs' ? null : 'needs',
+                  obligation: null,
+                  row: null,
+                })
+              }
+            >
+              <Trans>Needs evidence</Trans>
+            </ObligationQueueActionChip>
+            <ObligationQueueActionChip
+              active={exposure === 'needs_input'}
+              onClick={() =>
+                void setObligationQueueQuery({
+                  exposure: exposure === 'needs_input' ? null : 'needs_input',
+                  obligation: null,
+                  row: null,
+                })
+              }
+            >
+              <Trans>Penalty input needed</Trans>
+            </ObligationQueueActionChip>
+          </div>
+        </nav>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full md:max-w-90">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
-              <Input
-                ref={searchInputRef}
-                aria-label={t`Search obligations`}
-                className="pl-8 pr-12"
-                placeholder={t`Search clients`}
-                value={searchInput}
-                onChange={(event) => {
-                  const nextSearch = event.target.value
-                  void setObligationQueueQuery(
-                    {
-                      q: nextSearch || null,
-                      obligation: null,
-                      row: null,
-                    },
-                    nextSearch === ''
-                      ? undefined
-                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
-                  )
-                }}
-              />
-              <kbd
-                aria-hidden
-                className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-[10px] tabular-nums text-text-tertiary"
-              >
-                /
-              </kbd>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Threshold dropped from >=2 to >=1 per
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="relative w-full md:max-w-90">
+            <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
+            <Input
+              ref={searchInputRef}
+              aria-label={t`Search obligations`}
+              className="pl-8 pr-12"
+              placeholder={t`Search clients`}
+              value={searchInput}
+              onChange={(event) => {
+                const nextSearch = event.target.value
+                void setObligationQueueQuery(
+                  {
+                    q: nextSearch || null,
+                    obligation: null,
+                    row: null,
+                  },
+                  nextSearch === '' ? undefined : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+                )
+              }}
+            />
+            <kbd
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-[10px] tabular-nums text-text-tertiary"
+            >
+              /
+            </kbd>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Threshold dropped from >=2 to >=1 per
                 docs/Design/ux-audit-2026-05-21.md P1 — a single
                 non-obvious filter (e.g. state=CA set via the header
                 dropdown) is no more discoverable than two, and hiding
                 the chip makes the filter feel "stuck on" without
                 explanation. */}
-              {appliedFilterChips.length >= 1 ? (
-                <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-tertiary">
-                  <span className="uppercase tracking-wider">
-                    <Trans>Applied</Trans>
-                  </span>
-                  {appliedFilterChips.map((chip) => (
-                    <span
-                      key={chip.key}
-                      className="rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-text-secondary"
-                    >
-                      {chip.label}
-                    </span>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={resetObligationQueue}
-                    className="text-text-accent underline-offset-2 hover:underline"
+            {appliedFilterChips.length >= 1 ? (
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-text-tertiary">
+                <span className="uppercase tracking-wider">
+                  <Trans>Applied</Trans>
+                </span>
+                {appliedFilterChips.map((chip) => (
+                  <span
+                    key={chip.key}
+                    className="rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-text-secondary"
                   >
-                    <Trans>Clear filters</Trans>
-                  </button>
-                </div>
-              ) : null}
-              <span className="tabular-nums text-xs text-text-tertiary">
-                <Plural value={totalShown} one="# row" other="# rows" />
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm">
-                      <Columns3Icon data-icon="inline-start" />
-                      <Trans>Columns</Trans>
-                      {hiddenColumnsCount > 0 ? (
-                        <span className="ml-1 tabular-nums text-text-tertiary">
-                          ({hiddenColumnsCount} <Trans>hidden</Trans>)
-                        </span>
-                      ) : null}
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>
-                      <Trans>Visible columns</Trans>
-                    </DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  {table
-                    .getAllLeafColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      const label = columnLabel(column.id, columnLabels)
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          aria-label={label}
-                          checked={column.getIsVisible()}
-                          closeOnClick={false}
-                          onCheckedChange={(checked) => column.toggleVisibility(checked)}
-                        >
-                          <span>{label}</span>
-                        </DropdownMenuCheckboxItem>
-                      )
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    {chip.label}
+                  </span>
+                ))}
+                <button
+                  type="button"
+                  onClick={resetObligationQueue}
+                  className="text-text-accent underline-offset-2 hover:underline"
+                >
+                  <Trans>Clear filters</Trans>
+                </button>
+              </div>
+            ) : null}
+            <span className="tabular-nums text-xs text-text-tertiary">
+              <Plural value={totalShown} one="# row" other="# rows" />
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="outline" size="sm">
+                    <Columns3Icon data-icon="inline-start" />
+                    <Trans>Columns</Trans>
+                    {hiddenColumnsCount > 0 ? (
+                      <span className="ml-1 tabular-nums text-text-tertiary">
+                        ({hiddenColumnsCount} <Trans>hidden</Trans>)
+                      </span>
+                    ) : null}
+                  </Button>
+                }
+              />
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>
+                    <Trans>Visible columns</Trans>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                {table
+                  .getAllLeafColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    const label = columnLabel(column.id, columnLabels)
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        aria-label={label}
+                        checked={column.getIsVisible()}
+                        closeOnClick={false}
+                        onCheckedChange={(checked) => column.toggleVisibility(checked)}
+                      >
+                        <span>{label}</span>
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+        </div>
 
-          {selectedIds.length > 0 ? (
-            <div
-              role="region"
-              aria-label={t`Bulk actions`}
-              className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-subtle px-3 py-2 shadow-sm"
-            >
-              <span className="text-xs font-medium tabular-nums text-text-primary">
-                <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
-              </span>
-              <Separator orientation="vertical" className="mx-0.5 h-4" />
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm">
-                      <Trans>Assign owner</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
-                    <Trans>Unassigned</Trans>
+        {selectedIds.length > 0 ? (
+          <div
+            role="region"
+            aria-label={t`Bulk actions`}
+            className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-divider-regular bg-background-subtle px-3 py-2 shadow-sm"
+          >
+            <span className="text-xs font-medium tabular-nums text-text-primary">
+              <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
+            </span>
+            <Separator orientation="vertical" className="mx-0.5 h-4" />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="sm">
+                    <Trans>Assign owner</Trans>
+                    <ChevronDownIcon data-icon="inline-end" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuItem onClick={() => changeSelectedAssignee(null)}>
+                  <Trans>Unassigned</Trans>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {assignableMembers.length === 0 ? (
+                  <DropdownMenuItem disabled>
+                    <Trans>No assignable members</Trans>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {assignableMembers.length === 0 ? (
-                    <DropdownMenuItem disabled>
-                      <Trans>No assignable members</Trans>
+                ) : (
+                  assignableMembers.map((member) => (
+                    <DropdownMenuItem
+                      key={member.assigneeId}
+                      onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
+                    >
+                      <span className="truncate">{member.name}</span>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="sm">
+                    <Trans>Set status</Trans>
+                    <ChevronDownIcon data-icon="inline-end" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="start">
+                {ALL_STATUSES.map((status) =>
+                  status === 'extended' ? (
+                    <DropdownMenuItem
+                      key={status}
+                      onClick={() => {
+                        setExtendedMemo('')
+                        setExtendedMemoOpen(true)
+                      }}
+                    >
+                      {statusLabels[status]}
                     </DropdownMenuItem>
                   ) : (
-                    assignableMembers.map((member) => (
-                      <DropdownMenuItem
-                        key={member.assigneeId}
-                        onClick={() => changeSelectedAssignee(member.assigneeId, member.name)}
-                      >
-                        <span className="truncate">{member.name}</span>
-                      </DropdownMenuItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="sm">
-                      <Trans>Set status</Trans>
-                      <ChevronDownIcon data-icon="inline-end" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  {ALL_STATUSES.map((status) =>
-                    status === 'extended' ? (
-                      <DropdownMenuItem
-                        key={status}
-                        onClick={() => {
-                          setExtendedMemo('')
-                          setExtendedMemoOpen(true)
-                        }}
-                      >
-                        {statusLabels[status]}
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem key={status} onClick={() => changeSelectedStatus(status)}>
-                        {statusLabels[status]}
-                      </DropdownMenuItem>
-                    ),
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
-                <DownloadIcon data-icon="inline-start" />
-                <Trans>Export</Trans>
+                    <DropdownMenuItem key={status} onClick={() => changeSelectedStatus(status)}>
+                      {statusLabels[status]}
+                    </DropdownMenuItem>
+                  ),
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
+              <DownloadIcon data-icon="inline-start" />
+              <Trans>Export</Trans>
+            </Button>
+            <div className="ml-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setRowSelection({})
+                  lastSelectedIdRef.current = null
+                }}
+                aria-label={t`Clear selection`}
+              >
+                <XIcon data-icon="inline-start" />
+                <Trans>Clear</Trans>
               </Button>
-              <div className="ml-auto">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setRowSelection({})
-                    lastSelectedIdRef.current = null
-                  }}
-                  aria-label={t`Clear selection`}
-                >
-                  <XIcon data-icon="inline-start" />
-                  <Trans>Clear</Trans>
-                </Button>
-              </div>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {isInitialLoading ? (
-            <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
-              <Trans>Loading obligations…</Trans>
-            </div>
-          ) : isError ? (
-            <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-              <Trans>Couldn't load obligations.</Trans>{' '}
-              <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
-                <Trans>Retry</Trans>
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Override the Table primitive's default `whitespace-nowrap`
+        {isInitialLoading ? (
+          <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
+            <Trans>Loading obligations…</Trans>
+          </div>
+        ) : isError ? (
+          <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
+            <Trans>Couldn't load obligations.</Trans>{' '}
+            <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
+              <Trans>Retry</Trans>
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Override the Table primitive's default `whitespace-nowrap`
                 on BOTH heads and cells, letting long values (client names,
                 tax type codes) wrap so the 12-column queue fits within
                 the page content width instead of forcing horizontal scroll. */}
-              <Table className="[&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:break-words">
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        const meta = header.column.columnDef.meta
+            <Table className="[&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta
+                      return (
+                        <TableHead
+                          key={header.id}
+                          className={meta?.headerClassName}
+                          colSpan={header.colSpan}
+                          aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+                {tableRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={visibleColumnCount} className="py-8">
+                      <EmptyState
+                        onOpenWizard={openWizard}
+                        canRunMigration={canRunMigration}
+                        hasActiveFilters={Boolean(
+                          searchInput ||
+                          statusFilter?.length ||
+                          clientFilter?.length ||
+                          stateFilter?.length ||
+                          countyFilter?.length ||
+                          taxTypeFilter?.length ||
+                          assignee ||
+                          assigneeFilter?.length ||
+                          owner ||
+                          due ||
+                          dueWithin ||
+                          exposure?.length ||
+                          evidence?.length ||
+                          riskMin !== null ||
+                          riskMax !== null ||
+                          daysMin !== null ||
+                          daysMax !== null,
+                        )}
+                        onClearFilters={resetObligationQueue}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  tableRows.map((tableRow) => (
+                    <TableRow
+                      key={tableRow.id}
+                      // Treat rows as buttons for a11y: keyboard
+                      // users can Tab to a row and press Enter to
+                      // open the drawer, matching the J/K shortcut
+                      // for power users. Without tabindex, the only
+                      // way to drive the queue without a mouse was
+                      // the global J/K hotkeys.
+                      role="button"
+                      tabIndex={0}
+                      aria-selected={tableRow.original.id === activeRow?.id}
+                      data-row-id={tableRow.original.id}
+                      data-state={tableRow.getIsSelected() ? 'selected' : undefined}
+                      className={
+                        tableRow.original.id === activeRow?.id
+                          ? 'cursor-pointer bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt'
+                          : 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt'
+                      }
+                      onClick={(event) => {
+                        if (isObligationQueueRowControlClick(event.target, event.currentTarget)) {
+                          void setObligationQueueQuery({ row: tableRow.original.id })
+                          return
+                        }
+                        void setObligationQueueQuery({
+                          row: tableRow.original.id,
+                          drawer: 'obligation',
+                          id: tableRow.original.id,
+                          tab: detailTab,
+                        })
+                      }}
+                      onKeyDown={(event) => {
+                        // Match native button semantics: Enter and
+                        // Space both activate; ignore when focus is
+                        // inside a control cell so spacebar-toggling
+                        // a checkbox doesn't also open the drawer.
+                        if (event.key !== 'Enter' && event.key !== ' ') return
+                        if (isObligationQueueRowControlClick(event.target, event.currentTarget))
+                          return
+                        event.preventDefault()
+                        void setObligationQueueQuery({
+                          row: tableRow.original.id,
+                          drawer: 'obligation',
+                          id: tableRow.original.id,
+                          tab: detailTab,
+                        })
+                      }}
+                    >
+                      {tableRow.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta
                         return (
-                          <TableHead
-                            key={header.id}
-                            className={meta?.headerClassName}
-                            colSpan={header.colSpan}
-                            aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
+                          <TableCell
+                            key={cell.id}
+                            className={`${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
                           >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(header.column.columnDef.header, header.getContext())}
-                          </TableHead>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
                         )
                       })}
                     </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-                  {tableRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={visibleColumnCount} className="py-8">
-                        <EmptyState
-                          onOpenWizard={openWizard}
-                          canRunMigration={canRunMigration}
-                          hasActiveFilters={Boolean(
-                            searchInput ||
-                            statusFilter?.length ||
-                            clientFilter?.length ||
-                            stateFilter?.length ||
-                            countyFilter?.length ||
-                            taxTypeFilter?.length ||
-                            assignee ||
-                            assigneeFilter?.length ||
-                            owner ||
-                            due ||
-                            dueWithin ||
-                            exposure?.length ||
-                            evidence?.length ||
-                            riskMin !== null ||
-                            riskMax !== null ||
-                            daysMin !== null ||
-                            daysMax !== null,
-                          )}
-                          onClearFilters={resetObligationQueue}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    tableRows.map((tableRow) => (
-                      <TableRow
-                        key={tableRow.id}
-                        // Treat rows as buttons for a11y: keyboard
-                        // users can Tab to a row and press Enter to
-                        // open the drawer, matching the J/K shortcut
-                        // for power users. Without tabindex, the only
-                        // way to drive the queue without a mouse was
-                        // the global J/K hotkeys.
-                        role="button"
-                        tabIndex={0}
-                        aria-selected={tableRow.original.id === activeRow?.id}
-                        data-row-id={tableRow.original.id}
-                        data-state={tableRow.getIsSelected() ? 'selected' : undefined}
-                        className={
-                          tableRow.original.id === activeRow?.id
-                            ? 'cursor-pointer bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt'
-                            : 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt'
-                        }
-                        onClick={(event) => {
-                          if (isObligationQueueRowControlClick(event.target, event.currentTarget)) {
-                            void setObligationQueueQuery({ row: tableRow.original.id })
-                            return
-                          }
-                          void setObligationQueueQuery({
-                            row: tableRow.original.id,
-                            drawer: 'obligation',
-                            id: tableRow.original.id,
-                            tab: detailTab,
-                          })
-                        }}
-                        onKeyDown={(event) => {
-                          // Match native button semantics: Enter and
-                          // Space both activate; ignore when focus is
-                          // inside a control cell so spacebar-toggling
-                          // a checkbox doesn't also open the drawer.
-                          if (event.key !== 'Enter' && event.key !== ' ') return
-                          if (isObligationQueueRowControlClick(event.target, event.currentTarget))
-                            return
-                          event.preventDefault()
-                          void setObligationQueueQuery({
-                            row: tableRow.original.id,
-                            drawer: 'obligation',
-                            id: tableRow.original.id,
-                            tab: detailTab,
-                          })
-                        }}
-                      >
-                        {tableRow.getVisibleCells().map((cell) => {
-                          const meta = cell.column.columnDef.meta
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={`${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
-                            >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                  ))
+                )}
+              </TableBody>
+            </Table>
 
-              {tableRows.length > 0 ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-text-tertiary">
-                    <span>
-                      <Plural value={totalShown} one="# obligation" other="# obligations" />
-                    </span>
-                    {/* Surface the keyboard-first contract per DESIGN.md
+            {tableRows.length > 0 ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 text-xs text-text-tertiary">
+                  <span>
+                    <Plural value={totalShown} one="# obligation" other="# obligations" />
+                  </span>
+                  {/* Surface the keyboard-first contract per DESIGN.md
                         T5 (Linear inheritance). Hints are persistent and
                         terse — the full registry lives behind ? (the
                         global ShortcutHelpDialog). */}
-                    <span
-                      aria-hidden
-                      className="hidden h-3 border-l border-divider-subtle md:inline-block"
-                    />
-                    <span className="hidden items-center gap-1.5 md:inline-flex">
-                      <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
-                        J
-                      </kbd>
-                      <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
-                        K
-                      </kbd>
-                      <span>
-                        <Trans>navigate</Trans>
-                      </span>
-                      <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
-                        Enter
-                      </kbd>
-                      <span>
-                        <Trans>open</Trans>
-                      </span>
-                      <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
-                        ?
-                      </kbd>
-                      <span>
-                        <Trans>all</Trans>
-                      </span>
+                  <span
+                    aria-hidden
+                    className="hidden h-3 border-l border-divider-subtle md:inline-block"
+                  />
+                  <span className="hidden items-center gap-1.5 md:inline-flex">
+                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                      J
+                    </kbd>
+                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                      K
+                    </kbd>
+                    <span>
+                      <Trans>navigate</Trans>
                     </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!listQuery.hasNextPage || listQuery.isFetchingNextPage}
-                    onClick={loadMore}
-                  >
-                    {listQuery.isFetchingNextPage ? (
-                      <Trans>Loading…</Trans>
-                    ) : (
-                      <Trans>Load more</Trans>
-                    )}
-                  </Button>
+                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                      Enter
+                    </kbd>
+                    <span>
+                      <Trans>open</Trans>
+                    </span>
+                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                      ?
+                    </kbd>
+                    <span>
+                      <Trans>all</Trans>
+                    </span>
+                  </span>
                 </div>
-              ) : null}
-            </>
-          )}
-        </div>
-        <ObligationQueueDetailDrawer
-          obligationId={activeDetailId}
-          activeTab={detailTab}
-          onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
-          onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
-          onNeedsInput={setPenaltyRow}
-          practiceAiEnabled={practiceAiEnabled}
-          blockerCandidates={rows}
-          mode={panelMode}
-        />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!listQuery.hasNextPage || listQuery.isFetchingNextPage}
+                  onClick={loadMore}
+                >
+                  {listQuery.isFetchingNextPage ? (
+                    <Trans>Loading…</Trans>
+                  ) : (
+                    <Trans>Load more</Trans>
+                  )}
+                </Button>
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
+      <ObligationQueueDetailDrawer
+        obligationId={activeDetailId}
+        activeTab={detailTab}
+        onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
+        onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
+        onNeedsInput={setPenaltyRow}
+        practiceAiEnabled={practiceAiEnabled}
+        blockerCandidates={rows}
+      />
       <PenaltyInputDialog
         row={penaltyRow}
         onClose={() => setPenaltyRow(null)}
@@ -3218,7 +3176,6 @@ function ObligationQueueDetailDrawer({
   onNeedsInput,
   practiceAiEnabled,
   blockerCandidates,
-  mode,
 }: {
   obligationId: string | null
   activeTab: ObligationQueueDetailTab
@@ -3226,40 +3183,11 @@ function ObligationQueueDetailDrawer({
   onClose: () => void
   onNeedsInput: (row: ObligationQueueRow) => void
   practiceAiEnabled: boolean
-  // 'inline' renders as a non-modal aside next to the queue (xl+
-  // viewports — coexists with the queue so users can J/K through rows
-  // and the panel content swaps in place). 'modal' renders inside a
-  // Sheet overlay (the historical default — used at md and below).
-  mode: 'inline' | 'modal'
   blockerCandidates: ObligationQueueRow[]
 }) {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
-  // Inline mode (xl+ viewport) renders as an `<aside>` next to the queue
-  // — no Sheet wrapper means no built-in Esc handler. Wire it explicitly
-  // here so the back-out contract matches modal mode. Per
-  // docs/Design/ux-audit-2026-05-21.md P0 #4: three viewports must share
-  // the same close semantics.
-  useAppHotkey(
-    'Escape',
-    (event) => {
-      if (isInteractiveEventTarget(event.target)) return
-      event.preventDefault()
-      onClose()
-    },
-    {
-      enabled: mode === 'inline' && obligationId !== null,
-      requireReset: true,
-      meta: {
-        id: 'obligations.drawer-close',
-        name: 'Close obligation detail',
-        description: 'Close the inline obligation detail panel.',
-        category: 'obligations',
-        scope: 'route',
-      },
-    },
-  )
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -3267,10 +3195,6 @@ function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  const [checklistDraft, setChecklistDraft] = useState<{
-    obligationId: string
-    items: ReadinessChecklistItem[]
-  } | null>(null)
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
     memo: '',
@@ -3378,17 +3302,7 @@ function ObligationQueueDetailDrawer({
     (activeDeadlineTipRefresh && !deadlineTipLatestRefreshSettled && !deadlineTipRefreshTimedOut),
   )
   const latestRequest = detail?.readinessRequests[0] ?? null
-  const generatedChecklistDraft = useMemo(
-    () => (detail ? latestGeneratedReadinessChecklistDraft(detail.evidence) : null),
-    [detail],
-  )
-  const localChecklistDraft =
-    row && checklistDraft?.obligationId === row.id ? checklistDraft.items : null
-  const latestRequestCreatedAtMs = latestRequest ? Date.parse(latestRequest.createdAt) : 0
-  const storedChecklist =
-    generatedChecklistDraft && generatedChecklistDraft.createdAtMs > latestRequestCreatedAtMs
-      ? generatedChecklistDraft.items
-      : (latestRequest?.checklist ?? generatedChecklistDraft?.items ?? null)
+  const storedChecklist = detail?.readinessChecklist ?? EMPTY_DOCUMENT_CHECKLIST
   const extensionFilingDeadline = row?.filingDueDate ?? row?.baseDueDate ?? ''
   const internalTargetDateInvalid = row
     ? !isInternalExtensionTargetDateValid(
@@ -3444,25 +3358,21 @@ function ObligationQueueDetailDrawer({
 
   const generateChecklistMutation = useMutation(
     orpc.readiness.generateChecklist.mutationOptions({
-      onSuccess: (result, variables) => {
-        setChecklistDraft({ obligationId: variables.obligationId, items: result.checklist })
+      onSuccess: (result) => {
         invalidateDetail()
-        toast.success(result.degraded ? t`Fallback checklist ready` : t`Checklist generated`)
+        toast.success(
+          result.degraded ? t`Fallback document list ready` : t`Document list generated`,
+        )
       },
       onError: (err) => {
-        toast.error(t`Couldn't generate checklist`, {
+        toast.error(t`Couldn't generate document list`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
     }),
   )
   const shouldAutoGenerateChecklist = Boolean(
-    row &&
-    practiceAiEnabled &&
-    !latestRequest &&
-    !generatedChecklistDraft &&
-    !localChecklistDraft &&
-    !generateChecklistMutation.isPending,
+    row && storedChecklist.length === 0 && !generateChecklistMutation.isPending,
   )
   const autoGenerateChecklistMutationOptions = orpc.readiness.generateChecklist.mutationOptions()
   const autoGenerateChecklistQuery = useQuery({
@@ -3493,19 +3403,55 @@ function ObligationQueueDetailDrawer({
     row && autoGenerateChecklistQuery.data?.obligationId === row.id
       ? autoGenerateChecklistQuery.data.result.checklist
       : null
-  const checklist =
-    localChecklistDraft ?? autoGeneratedChecklist ?? storedChecklist ?? EMPTY_CHECKLIST
+  const checklist = autoGeneratedChecklist ?? storedChecklist
   const checklistGenerating =
     generateChecklistMutation.isPending || autoGenerateChecklistQuery.isFetching
   const sendRequestMutation = useMutation(
     orpc.readiness.sendRequest.mutationOptions({
-      onSuccess: (result, variables) => {
-        setChecklistDraft({ obligationId: variables.obligationId, items: result.request.checklist })
+      onSuccess: (result) => {
         invalidateDetail()
         toast.success(result.emailQueued ? t`Readiness request sent` : t`Readiness link created`)
       },
       onError: (err) => {
         toast.error(t`Couldn't send readiness request`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const addChecklistItemMutation = useMutation(
+    orpc.readiness.addChecklistItem.mutationOptions({
+      onSuccess: () => {
+        invalidateDetail()
+        toast.success(t`Document item added`)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't add document item`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const updateChecklistItemMutation = useMutation(
+    orpc.readiness.updateChecklistItem.mutationOptions({
+      onSuccess: () => {
+        invalidateDetail()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update document item`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const deleteChecklistItemMutation = useMutation(
+    orpc.readiness.deleteChecklistItem.mutationOptions({
+      onSuccess: () => {
+        invalidateDetail()
+        toast.success(t`Document item removed`)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't remove document item`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -3627,40 +3573,29 @@ function ObligationQueueDetailDrawer({
       },
     }),
   )
-  function updateChecklistItem(index: number, patch: Partial<ReadinessChecklistItem>) {
-    if (!row) return
-    const base = checklist.length > 0 ? checklist : EMPTY_CHECKLIST
-    setChecklistDraft({
-      obligationId: row.id,
-      items: base.map((item, itemIndex) =>
-        itemIndex === index ? Object.assign({}, item, patch) : item,
-      ),
-    })
+  function updateDocumentChecklistItem(
+    itemId: string,
+    patch: {
+      label?: string
+      description?: string | null
+      status?: ReadinessDocumentChecklistItemPublic['status']
+      note?: string | null
+    },
+  ) {
+    updateChecklistItemMutation.mutate({ itemId, ...patch })
   }
 
   function addChecklistItem() {
     if (!row) return
-    setChecklistDraft({
+    addChecklistItemMutation.mutate({
       obligationId: row.id,
-      items: [
-        ...checklist,
-        {
-          id: `custom-${crypto.randomUUID()}`,
-          label: '',
-          description: null,
-          reason: null,
-          sourceHint: null,
-        },
-      ],
+      label: t`Custom document`,
+      description: null,
     })
   }
 
-  function removeChecklistItem(index: number) {
-    if (!row) return
-    setChecklistDraft({
-      obligationId: row.id,
-      items: checklist.filter((_, itemIndex) => itemIndex !== index),
-    })
+  function removeChecklistItem(itemId: string) {
+    deleteChecklistItemMutation.mutate({ itemId })
   }
 
   function copyLatestLink() {
@@ -3704,38 +3639,18 @@ function ObligationQueueDetailDrawer({
     })
   }
 
-  const validChecklist = checklist.filter((item) => item.label.trim())
-
-  // The drawer body is identical between modes. Only the wrapper
-  // differs: <Sheet> (modal) vs <aside> (inline). Headings use plain
-  // h2/p so they render with no Dialog parent; modal mode adds a
-  // visually-hidden SheetTitle for screen-reader accessibility.
+  // The visible heading is shared with the drawer body. SheetTitle
+  // stays sr-only below so Radix Dialog gets its accessible name
+  // without duplicating header chrome.
   const titleText = row?.clientName ?? null
   const body = (
     <>
       <header className="flex flex-col gap-1.5 border-b border-divider-subtle px-6 py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <h2 className="text-base font-semibold text-text-primary">
-                {titleText ?? <Trans>Obligation detail</Trans>}
-              </h2>
-              {/* Inline mode needs its own X — Sheet provides one in
-                modal mode but the aside has no built-in close. Per
-                docs/Design/ux-audit-2026-05-21.md P0 #4 the back-out
-                contract must match across viewports. */}
-              {mode === 'inline' ? (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label={t`Close obligation detail`}
-                  title={t`Close · Esc`}
-                  className="inline-flex size-7 shrink-0 items-center justify-center rounded text-text-tertiary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                >
-                  <XIcon aria-hidden className="size-4" />
-                </button>
-              ) : null}
-            </div>
+            <h2 className="text-base font-semibold text-text-primary">
+              {titleText ?? <Trans>Obligation detail</Trans>}
+            </h2>
             {row ? (
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-tertiary">
                 <span className="font-medium text-text-primary">
@@ -3821,17 +3736,6 @@ function ObligationQueueDetailDrawer({
             </div>
           ) : null}
         </div>
-        {/* Visible keyboard hints — the queue + drawer are hotkey-rich
-          but the shortcuts were invisible until now. Per
-          docs/Design/ux-audit-2026-05-21.md P0 #7. */}
-        <KbdHint
-          className="mt-1"
-          items={[
-            { keys: ['j'], label: t`next row` },
-            { keys: ['k'], label: t`prev row` },
-            { keys: ['esc'], label: t`close` },
-          ]}
-        />
       </header>
       <div className="px-6 pb-6">
         {detailQuery.isLoading ? (
@@ -3910,6 +3814,7 @@ function ObligationQueueDetailDrawer({
                   row={row}
                   latestRequest={latestRequest ?? null}
                   checklistCount={checklist.length}
+                  receivedCount={checklist.filter((item) => item.status === 'received').length}
                 />
                 {/* Three-class deadline display (PRD §7.2 + §3.2):
                         client-action chip when a readiness request is
@@ -4033,7 +3938,7 @@ function ObligationQueueDetailDrawer({
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-text-primary">
-                      <Trans>Checklist</Trans>
+                      <Trans>Documents received</Trans>
                     </span>
                     {checklist.length > 0 ? (
                       <span className="tabular-nums text-xs text-text-tertiary">
@@ -4042,31 +3947,38 @@ function ObligationQueueDetailDrawer({
                     ) : null}
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {practiceAiEnabled ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => generateChecklistMutation.mutate({ obligationId: row.id })}
-                        disabled={checklistGenerating}
-                      >
-                        <RefreshCwIcon
-                          data-icon="inline-start"
-                          className={cn(checklistGenerating ? 'animate-spin' : undefined)}
-                        />
-                        {checklistGenerating ? (
-                          <Trans>Preparing</Trans>
-                        ) : (
-                          <Trans>AI generate</Trans>
-                        )}
-                      </Button>
-                    ) : (
-                      <UpgradeCtaButton />
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        generateChecklistMutation.mutate({
+                          obligationId: row.id,
+                          regenerate: checklist.length > 0,
+                        })
+                      }
+                      disabled={checklistGenerating}
+                    >
+                      <RefreshCwIcon
+                        data-icon="inline-start"
+                        className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                      />
+                      {checklistGenerating ? (
+                        <Trans>Preparing</Trans>
+                      ) : checklist.length > 0 ? (
+                        <Trans>Regenerate list</Trans>
+                      ) : (
+                        <Trans>Generate document list</Trans>
+                      )}
+                    </Button>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={addChecklistItem}
-                      disabled={checklistGenerating || checklist.length >= 8}
+                      disabled={
+                        checklistGenerating ||
+                        addChecklistItemMutation.isPending ||
+                        checklist.length >= 30
+                      }
                     >
                       <PlusIcon data-icon="inline-start" />
                       <Trans>Add item</Trans>
@@ -4076,10 +3988,9 @@ function ObligationQueueDetailDrawer({
                       onClick={() =>
                         sendRequestMutation.mutate({
                           obligationId: row.id,
-                          checklist: validChecklist,
                         })
                       }
-                      disabled={sendRequestMutation.isPending || validChecklist.length === 0}
+                      disabled={sendRequestMutation.isPending || checklist.length === 0}
                     >
                       <SendIcon data-icon="inline-start" />
                       <Trans>Send to client</Trans>
@@ -4100,7 +4011,7 @@ function ObligationQueueDetailDrawer({
                     <EmptyPanel>
                       <div className="flex flex-wrap items-center justify-center gap-2">
                         <span>
-                          <Trans>Couldn't generate checklist</Trans>
+                          <Trans>Couldn't generate document list</Trans>
                         </span>
                         <Button
                           size="xs"
@@ -4113,12 +4024,14 @@ function ObligationQueueDetailDrawer({
                     </EmptyPanel>
                   ) : (
                     <EmptyPanel>
-                      <Trans>Generate a checklist or add items before sending a portal link.</Trans>
+                      <Trans>
+                        Generate a document list or add items before sending a portal link.
+                      </Trans>
                     </EmptyPanel>
                   )
                 ) : (
                   <div className="grid gap-2">
-                    {checklist.map((item, index) => {
+                    {checklist.map((item) => {
                       const response =
                         latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
                       return (
@@ -4126,11 +4039,20 @@ function ObligationQueueDetailDrawer({
                           key={item.id}
                           item={item}
                           response={response}
-                          onLabelChange={(label) => updateChecklistItem(index, { label })}
-                          onDescriptionChange={(description) =>
-                            updateChecklistItem(index, { description: description || null })
+                          pending={updateChecklistItemMutation.isPending}
+                          onStatusChange={(status) =>
+                            updateDocumentChecklistItem(item.id, { status })
                           }
-                          onRemove={() => removeChecklistItem(index)}
+                          onLabelCommit={(label) => updateDocumentChecklistItem(item.id, { label })}
+                          onDescriptionCommit={(description) =>
+                            updateDocumentChecklistItem(item.id, {
+                              description: description || null,
+                            })
+                          }
+                          onNoteCommit={(note) =>
+                            updateDocumentChecklistItem(item.id, { note: note || null })
+                          }
+                          onRemove={() => removeChecklistItem(item.id)}
                         />
                       )
                     })}
@@ -4592,25 +4514,10 @@ function ObligationQueueDetailDrawer({
     </>
   )
 
-  // Inline panel: at xl+ when a row is selected, render as a non-modal
-  // <aside> beside the queue. No backdrop, no focus trap, no portal —
-  // queue keyboard nav (J/K) keeps working and rows can be swapped
-  // without a close/open cycle.
-  if (mode === 'inline') {
-    if (obligationId === null) return null
-    return (
-      <aside
-        aria-label={titleText ?? t`Obligation detail`}
-        className="flex h-[calc(100vh-4rem)] flex-col overflow-y-auto rounded-lg border border-divider-regular bg-background-default"
-      >
-        {body}
-      </aside>
-    )
-  }
-
-  // Modal: md and below. Sheet provides backdrop, focus trap, scroll
-  // lock. A visually-hidden SheetTitle satisfies Radix Dialog's a11y
-  // requirement; the visible heading is the <h2> inside `body`.
+  // Sheet provides backdrop, focus trap, scroll lock, Esc, and close
+  // chrome consistently across viewport sizes. A visually-hidden
+  // SheetTitle satisfies Radix Dialog's a11y requirement; the visible
+  // heading is the <h2> inside `body`.
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
@@ -5051,6 +4958,8 @@ function EvidenceInlineItem({
       ? parseReadinessResponseEvidence(item.rawValue)
       : null
   const penaltyRows = item.sourceType === 'penalty_override' ? penaltyInputEvidenceRows(item) : null
+  const extensionDecision =
+    item.sourceType === 'extension_decision' ? readExtensionDecisionEvidence(item) : null
 
   return (
     <div className="rounded-lg border border-divider-regular p-3">
@@ -5066,6 +4975,13 @@ function EvidenceInlineItem({
             <Trans>Updated penalty inputs.</Trans>
           </p>
           <AuditSummaryRows rows={penaltyRows} />
+        </div>
+      ) : extensionDecision ? (
+        <div className="mt-2 grid gap-2">
+          <p className="text-sm text-text-secondary">
+            {extensionDecisionEvidenceDescription(extensionDecision)}
+          </p>
+          <AuditSummaryRows rows={extensionDecisionEvidenceDetails(extensionDecision)} />
         </div>
       ) : checklist ? (
         <ReadinessChecklistEvidence checklist={checklist} context={readJsonRecord(item.rawValue)} />
@@ -5409,10 +5325,12 @@ function ReadinessOverview({
   row,
   latestRequest,
   checklistCount,
+  receivedCount,
 }: {
   row: ObligationQueueRow
   latestRequest: ClientReadinessRequestPublic | null
   checklistCount: number
+  receivedCount: number
 }) {
   const { t } = useLingui()
   const isReady = row.readiness === 'ready'
@@ -5424,20 +5342,21 @@ function ReadinessOverview({
   const headline = isReady ? t`Ready to prep` : t`Not ready`
   const subline: string = (() => {
     if (isReady) {
+      if (checklistCount > 0) return t`All ${checklistCount} document items are marked received.`
       if (latestRequest) return t`Client confirmed all ${checklistCount} items.`
       return t`Materials on hand — no client request was needed.`
     }
     if (row.readiness === 'needs_review') {
-      return t`Client responded — preparer must review.`
+      return t`At least one document item needs preparer review.`
     }
     if (latestRequest && latestRequest.status !== 'revoked') {
-      const outstanding = checklistCount - readyResponseCount
-      return t`${outstanding} of ${checklistCount} items still outstanding from client.`
+      const outstanding = checklistCount - receivedCount
+      return t`${outstanding} of ${checklistCount} document items are still missing.`
     }
     if (checklistCount > 0) {
-      return t`${checklistCount} items drafted — checklist hasn't been sent yet.`
+      return t`${receivedCount} of ${checklistCount} document items are marked received.`
     }
-    return t`No checklist drafted yet. Generate or add items below.`
+    return t`No document list generated yet. Generate or add items below.`
   })()
   return (
     <div className="flex items-start gap-3 py-2">
@@ -5477,26 +5396,41 @@ function ReadinessOverview({
   )
 }
 
-// One row in the readiness checklist. Compact by default; expanding
-// reveals the description editor + delete button. When a client
-// response exists for this item, the status pill switches to reflect
-// what the client said (Ready / Not yet / Need help) so the row reads
-// as the source of truth.
+// One persisted document row in the readiness checklist. The checkbox is
+// the CPA-owned source of truth; client portal responses only annotate
+// and can move the same item into review/missing/received states.
 function ChecklistItemRow({
   item,
   response,
-  onLabelChange,
-  onDescriptionChange,
+  pending,
+  onStatusChange,
+  onLabelCommit,
+  onDescriptionCommit,
+  onNoteCommit,
   onRemove,
 }: {
-  item: ReadinessChecklistItem
+  item: ReadinessDocumentChecklistItemPublic
   response: ClientReadinessResponsePublic | null
-  onLabelChange: (label: string) => void
-  onDescriptionChange: (description: string) => void
+  pending: boolean
+  onStatusChange: (status: ReadinessDocumentChecklistItemPublic['status']) => void
+  onLabelCommit: (label: string) => void
+  onDescriptionCommit: (description: string) => void
+  onNoteCommit: (note: string) => void
   onRemove: () => void
 }) {
   const { t } = useLingui()
   const [expanded, setExpanded] = useState(false)
+  const [label, setLabel] = useState(item.label)
+  const [description, setDescription] = useState(item.description ?? '')
+  const [note, setNote] = useState(item.note ?? '')
+  const received = item.status === 'received'
+  const needsReview = item.status === 'needs_review'
+  const statusBadge =
+    item.status === 'received'
+      ? { variant: 'success' as const, label: t`Received` }
+      : item.status === 'needs_review'
+        ? { variant: 'destructive' as const, label: t`Needs review` }
+        : { variant: 'outline' as const, label: t`Missing` }
   const responseBadge = response
     ? (() => {
         switch (response.status) {
@@ -5507,27 +5441,39 @@ function ChecklistItemRow({
           case 'need_help':
             return { variant: 'destructive' as const, label: t`Needs help` }
         }
+        return { variant: 'outline' as const, label: response.status }
       })()
     : null
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
       <div className="flex items-center gap-2 px-3 py-2">
+        <Checkbox
+          aria-label={received ? t`Mark document missing` : t`Mark document received`}
+          checked={received}
+          indeterminate={needsReview}
+          disabled={pending}
+          onCheckedChange={(checked) => onStatusChange(checked ? 'received' : 'missing')}
+        />
         <Input
-          aria-label={t`Checklist item label`}
-          value={item.label}
-          placeholder={t`Checklist item`}
-          onChange={(event) => onLabelChange(event.target.value)}
+          aria-label={t`Document item label`}
+          value={label}
+          placeholder={t`Document item`}
+          onBlur={() => {
+            const nextLabel = label.trim()
+            if (nextLabel && nextLabel !== item.label) onLabelCommit(nextLabel)
+            if (!nextLabel) setLabel(item.label)
+          }}
+          onChange={(event) => setLabel(event.target.value)}
           className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         />
+        <Badge variant={statusBadge.variant} className="text-[10px] uppercase tracking-wide">
+          {statusBadge.label}
+        </Badge>
         {responseBadge ? (
           <Badge variant={responseBadge.variant} className="text-[10px] uppercase tracking-wide">
             {responseBadge.label}
           </Badge>
-        ) : (
-          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-            <Trans>Outstanding</Trans>
-          </Badge>
-        )}
+        ) : null}
         <Button
           type="button"
           size="icon-sm"
@@ -5540,22 +5486,31 @@ function ChecklistItemRow({
           />
         </Button>
       </div>
-      {item.reason && !expanded ? (
+      {item.description && !expanded ? (
         <p className="border-t border-divider-subtle px-3 py-1.5 text-[11px] leading-snug text-text-tertiary">
-          {item.reason}
+          {item.description}
         </p>
       ) : null}
       {expanded ? (
         <div className="grid gap-2 border-t border-divider-subtle p-3">
           <Textarea
-            aria-label={t`Checklist item description`}
-            value={item.description ?? ''}
+            aria-label={t`Document item description`}
+            value={description}
             placeholder={t`Client-facing detail`}
-            onChange={(event) => onDescriptionChange(event.target.value)}
+            onBlur={() => {
+              if (description !== (item.description ?? '')) onDescriptionCommit(description)
+            }}
+            onChange={(event) => setDescription(event.target.value)}
           />
-          {item.reason ? (
-            <p className="text-[11px] leading-snug text-text-tertiary">{item.reason}</p>
-          ) : null}
+          <Textarea
+            aria-label={t`Internal document note`}
+            value={note}
+            placeholder={t`Internal note`}
+            onBlur={() => {
+              if (note !== (item.note ?? '')) onNoteCommit(note)
+            }}
+            onChange={(event) => setNote(event.target.value)}
+          />
           {response?.note ? (
             <p className="rounded-sm bg-background-section px-2 py-1.5 text-xs text-text-secondary">
               <Trans>Client note</Trans>: {response.note}
@@ -5567,7 +5522,17 @@ function ChecklistItemRow({
               ) : null}
             </p>
           ) : null}
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onStatusChange('needs_review')}
+              disabled={pending || needsReview}
+            >
+              <AlertTriangleIcon data-icon="inline-start" />
+              <Trans>Needs review</Trans>
+            </Button>
             <Button type="button" size="sm" variant="destructive-ghost" onClick={onRemove}>
               <Trash2Icon data-icon="inline-start" />
               <Trans>Remove</Trans>
@@ -5995,11 +5960,9 @@ function ObligationBlockerSection({
       </div>
       {row.blockedByObligationInstanceId ? (
         <div className="flex items-center justify-between gap-2">
-          {/* The "Waiting on X" line is now a deep link that swaps the
-              drawer to the upstream obligation. Inline mode reloads in
-              place; modal mode opens the new id in the same Sheet.
-              Lets users walk a dependency chain without leaving the
-              drawer or memorising IDs. */}
+          {/* The "Waiting on X" line is a deep link that swaps the drawer
+              to the upstream obligation, letting users walk a dependency
+              chain without leaving the drawer or memorising IDs. */}
           <Link
             to={`/obligations?id=${row.blockedByObligationInstanceId}&drawer=obligation&tab=readiness`}
             className="inline-flex items-center gap-1 text-xs text-text-secondary outline-none hover:text-text-primary hover:underline focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"

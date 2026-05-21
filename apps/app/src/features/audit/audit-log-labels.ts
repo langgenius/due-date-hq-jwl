@@ -50,6 +50,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       obligationAnnualRolloverCreated: t`Annual rollover created`,
       obligationBatchCreated: t`Deadlines created`,
       obligationDueDateUpdated: t`Internal deadline changed`,
+      obligationExtensionDecided: t`Extension plan saved`,
       obligationReadinessUpdated: t`Deadline readiness changed`,
       obligationStatusUpdated: t`Deadline status changed`,
       obligationTaxYearProfileUpdated: t`Deadline tax year changed`,

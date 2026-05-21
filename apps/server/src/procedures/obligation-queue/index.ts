@@ -20,7 +20,10 @@ import { requireTenant } from '../_context'
 import { OBLIGATION_STATUS_WRITE_ROLES, requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { signReadinessPortalToken } from '../../lib/readiness-token'
-import { toReadinessRequestPublic } from '../readiness/_public'
+import {
+  toReadinessDocumentChecklistItemPublic,
+  toReadinessRequestPublic,
+} from '../readiness/_public'
 
 /**
  * obligations.* — internal API namespace for the firm-wide Obligations queue.
@@ -636,7 +639,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
     })
   }
   const row = toRow(rawRow, { hideDollars, hideSmartPriorityFactors })
-  const [evidenceRows, auditResult, readinessRows] = await Promise.all([
+  const [evidenceRows, auditResult, readinessRows, readinessChecklistRows] = await Promise.all([
     scoped.evidence.listByObligation(input.obligationId),
     scoped.audit.list({
       entityType: 'obligation_instance',
@@ -645,6 +648,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
       limit: 50,
     }),
     scoped.readiness.listByObligation(input.obligationId),
+    scoped.readiness.listDocumentChecklistByObligation(input.obligationId),
   ])
 
   return {
@@ -652,6 +656,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
     matchedRule: matchedRuleForRow(row),
     evidence: evidenceRows.map(toEvidencePublic),
     auditEvents: auditResult.rows.map((auditRow): AuditEventPublic => toAuditEventPublic(auditRow)),
+    readinessChecklist: readinessChecklistRows.map(toReadinessDocumentChecklistItemPublic),
     readinessRequests: await Promise.all(
       readinessRows.map(async (readinessRow) =>
         toReadinessRequestPublic(

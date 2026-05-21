@@ -389,6 +389,21 @@ function buildScopedRepo(input: {
     },
     readiness: {
       firmId: FIRM_ID,
+      async listDocumentChecklistByObligation() {
+        return unused('readiness.listDocumentChecklistByObligation')
+      },
+      async createDocumentChecklistItems() {
+        return unused('readiness.createDocumentChecklistItems')
+      },
+      async replaceTemplateDocumentChecklist() {
+        return unused('readiness.replaceTemplateDocumentChecklist')
+      },
+      async updateDocumentChecklistItem() {
+        return unused('readiness.updateDocumentChecklistItem')
+      },
+      async deleteDocumentChecklistItem() {
+        return unused('readiness.deleteDocumentChecklistItem')
+      },
       async listByObligation() {
         return unused('readiness.listByObligation')
       },
@@ -403,6 +418,7 @@ function buildScopedRepo(input: {
       async submitResponses() {
         return unused('readiness.submitResponses')
       },
+      async syncDocumentChecklistFromResponses() {},
     },
     rules: {
       firmId: FIRM_ID,

@@ -12,6 +12,40 @@ export const ReadinessChecklistItemSchema = z.object({
 })
 export type ReadinessChecklistItem = z.infer<typeof ReadinessChecklistItemSchema>
 
+export const ReadinessDocumentChecklistItemSourceSchema = z.enum(['template', 'custom'])
+export type ReadinessDocumentChecklistItemSource = z.infer<
+  typeof ReadinessDocumentChecklistItemSourceSchema
+>
+
+export const ReadinessDocumentChecklistItemStatusSchema = z.enum([
+  'missing',
+  'received',
+  'needs_review',
+])
+export type ReadinessDocumentChecklistItemStatus = z.infer<
+  typeof ReadinessDocumentChecklistItemStatusSchema
+>
+
+export const ReadinessDocumentChecklistItemPublicSchema = z.object({
+  id: EntityIdSchema,
+  firmId: TenantIdSchema,
+  obligationInstanceId: EntityIdSchema,
+  label: z.string().trim().min(1).max(160),
+  description: z.string().trim().max(500).nullable(),
+  source: ReadinessDocumentChecklistItemSourceSchema,
+  status: ReadinessDocumentChecklistItemStatusSchema,
+  sortOrder: z.number().int().min(0).max(1000),
+  note: z.string().trim().max(1000).nullable(),
+  receivedAt: z.iso.datetime().nullable(),
+  receivedByUserId: z.string().min(1).nullable(),
+  createdByUserId: z.string().min(1),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+})
+export type ReadinessDocumentChecklistItemPublic = z.infer<
+  typeof ReadinessDocumentChecklistItemPublicSchema
+>
+
 export const ReadinessRequestStatusSchema = z.enum([
   'sent',
   'opened',
@@ -58,11 +92,12 @@ export type ClientReadinessRequestPublic = z.infer<typeof ClientReadinessRequest
 
 export const ReadinessGenerateChecklistInputSchema = z.object({
   obligationId: EntityIdSchema,
+  regenerate: z.boolean().optional(),
 })
 export type ReadinessGenerateChecklistInput = z.infer<typeof ReadinessGenerateChecklistInputSchema>
 
 export const ReadinessGenerateChecklistOutputSchema = z.object({
-  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(8),
+  checklist: z.array(ReadinessDocumentChecklistItemPublicSchema).min(1).max(30),
   degraded: z.boolean(),
   aiOutputId: EntityIdSchema.nullable(),
   evidenceId: EntityIdSchema.nullable(),
@@ -73,7 +108,7 @@ export type ReadinessGenerateChecklistOutput = z.infer<
 
 export const ReadinessSendRequestInputSchema = z.object({
   obligationId: EntityIdSchema,
-  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(8),
+  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(8).optional(),
 })
 export type ReadinessSendRequestInput = z.infer<typeof ReadinessSendRequestInputSchema>
 
@@ -88,6 +123,50 @@ export const ReadinessRevokeRequestInputSchema = z.object({
   requestId: EntityIdSchema,
 })
 export type ReadinessRevokeRequestInput = z.infer<typeof ReadinessRevokeRequestInputSchema>
+
+export const ReadinessAddChecklistItemInputSchema = z.object({
+  obligationId: EntityIdSchema,
+  label: z.string().trim().min(1).max(160),
+  description: z.string().trim().max(500).nullable().optional(),
+  note: z.string().trim().max(1000).nullable().optional(),
+})
+export type ReadinessAddChecklistItemInput = z.infer<typeof ReadinessAddChecklistItemInputSchema>
+
+export const ReadinessUpdateChecklistItemInputSchema = z
+  .object({
+    itemId: EntityIdSchema,
+    label: z.string().trim().min(1).max(160).optional(),
+    description: z.string().trim().max(500).nullable().optional(),
+    status: ReadinessDocumentChecklistItemStatusSchema.optional(),
+    note: z.string().trim().max(1000).nullable().optional(),
+  })
+  .refine(
+    (value) =>
+      value.label !== undefined ||
+      value.description !== undefined ||
+      value.status !== undefined ||
+      value.note !== undefined,
+    { message: 'At least one checklist field is required.' },
+  )
+export type ReadinessUpdateChecklistItemInput = z.infer<
+  typeof ReadinessUpdateChecklistItemInputSchema
+>
+
+export const ReadinessDeleteChecklistItemInputSchema = z.object({
+  itemId: EntityIdSchema,
+})
+export type ReadinessDeleteChecklistItemInput = z.infer<
+  typeof ReadinessDeleteChecklistItemInputSchema
+>
+
+export const ReadinessChecklistItemMutationOutputSchema = z.object({
+  checklist: z.array(ReadinessDocumentChecklistItemPublicSchema).max(30),
+  item: ReadinessDocumentChecklistItemPublicSchema.nullable(),
+  auditId: EntityIdSchema,
+})
+export type ReadinessChecklistItemMutationOutput = z.infer<
+  typeof ReadinessChecklistItemMutationOutputSchema
+>
 
 export const ReadinessListByObligationInputSchema = z.object({
   obligationId: EntityIdSchema,
@@ -150,6 +229,15 @@ export const readinessContract = oc.router({
   revokeRequest: oc
     .input(ReadinessRevokeRequestInputSchema)
     .output(ReadinessRevokeRequestOutputSchema),
+  addChecklistItem: oc
+    .input(ReadinessAddChecklistItemInputSchema)
+    .output(ReadinessChecklistItemMutationOutputSchema),
+  updateChecklistItem: oc
+    .input(ReadinessUpdateChecklistItemInputSchema)
+    .output(ReadinessChecklistItemMutationOutputSchema),
+  deleteChecklistItem: oc
+    .input(ReadinessDeleteChecklistItemInputSchema)
+    .output(ReadinessChecklistItemMutationOutputSchema),
   listByObligation: oc
     .input(ReadinessListByObligationInputSchema)
     .output(ReadinessListByObligationOutputSchema),

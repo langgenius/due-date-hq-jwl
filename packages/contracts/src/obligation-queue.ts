@@ -4,7 +4,10 @@ import { AuditEventPublicSchema } from './audit'
 import { EvidencePublicSchema } from './evidence'
 import { ObligationInstancePublicSchema } from './obligation-instance'
 import { SmartPriorityBreakdownSchema } from './priority'
-import { ClientReadinessRequestPublicSchema } from './readiness'
+import {
+  ClientReadinessRequestPublicSchema,
+  ReadinessDocumentChecklistItemPublicSchema,
+} from './readiness'
 import { ExtensionPolicySchema, RuleEvidenceSchema } from './rules'
 import {
   ExposureStatusSchema,
@@ -268,6 +271,7 @@ export const ObligationQueueDetailSchema = z.object({
   matchedRule: ObligationQueueMatchedRuleSchema.nullable(),
   evidence: z.array(EvidencePublicSchema),
   auditEvents: z.array(AuditEventPublicSchema),
+  readinessChecklist: z.array(ReadinessDocumentChecklistItemPublicSchema),
   readinessRequests: z.array(ClientReadinessRequestPublicSchema),
 })
 export type ObligationQueueDetail = z.infer<typeof ObligationQueueDetailSchema>

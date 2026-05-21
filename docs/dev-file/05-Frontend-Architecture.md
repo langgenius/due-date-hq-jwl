@@ -511,9 +511,15 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   active row，避免用 effect 追踪派生状态。
 - **Filter facets**：`obligations.facets` 返回 client / state / county / tax type /
   assignee 的服务器端选项和计数；county option 带 `state`，前端按已选 state 做联动展示。
-  Obligations readiness 由 read model 派生：closed status → `ready`；最新 Readiness Portal
-  response 可产出 `ready` / `waiting` / `needs_review`；无 response 时由
-  `waiting_on_client → waiting`、`review → needs_review`、其余 open status → `ready` 派生。
+  Obligations readiness 由 read model 派生：closed status → `ready`；open obligations 优先读取
+  内部 document checklist，任一 `needs_review` → `needs_review`，任一 `missing` →
+  `waiting`，全部 `received` → `ready`。没有内部 checklist 时才 fallback 到最新 Readiness
+  Portal response 和 `waiting_on_client` / `review` obligation status。
+- **Readiness document checklist**：Obligation detail 的 Readiness tab 以 CPA 内部收件清单为主。
+  打开未生成清单的 obligation 时可按 tax type / form / obligation type 生成 deterministic
+  document list；CPA 可勾选 received、标记 needs review、编辑 label/description/internal note、
+  添加 custom item。`Send to client` 使用当前内部清单映射成 client-safe portal checklist，客户提交后
+  同步回内部清单。
 - **Readiness tax year profile**：Tax year profile editor belongs in the obligation detail
   Readiness tab, not Client facts. CPA can switch one obligation between calendar/fiscal year and
   maintain fiscal year end without changing the client's other obligations; the editor appears only
