@@ -146,9 +146,20 @@ function ActionRow({
         </span>
         <span className="truncate text-base text-text-primary">{prompt}</span>
         <RowMeta days={days} />
+        {/* Review button — only shown when the row is hovered/focused
+          (i.e. `expanded`). Keeps the row chrome quiet at rest and
+          surfaces the action right when the user is intent on this
+          row. The reserved grid slot stays via `invisible`-vs-flow
+          so the row layout doesn't shift on hover. */}
         <Button
           variant="outline"
           size="sm"
+          className={cn(
+            'transition-opacity',
+            expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+          tabIndex={expanded ? 0 : -1}
+          aria-hidden={!expanded}
           onClick={(event) => {
             event.stopPropagation()
             onOpenObligation()
@@ -363,7 +374,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
         }}
         className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
       >
-        <Trans>Open full queue</Trans>
+        <Trans>All obligations</Trans>
         <ArrowUpRightIcon className="size-3.5" aria-hidden />
       </Link>
     </div>

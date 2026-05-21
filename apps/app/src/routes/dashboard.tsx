@@ -100,7 +100,6 @@ export function DashboardRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
-  const canSeeDollars = permission.can('dollars.read')
   // Open obligations in the shared drawer instead of navigating to
   // the queue — matches the rest of the app's "peek without leaving"
   // pattern. See ObligationDrawerProvider.
@@ -175,12 +174,10 @@ export function DashboardRoute() {
       <ExposureStrip
         isLoading={dashboardQuery.isLoading}
         needDecisionCount={data?.summary?.needsReviewCount ?? 0}
-        totalExposureCents={data?.summary?.totalExposureCents ?? 0}
         blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
         waitingOnClientCount={
           facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
         }
-        canSeeDollars={canSeeDollars}
       />
 
       <section>

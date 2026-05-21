@@ -4,8 +4,6 @@ import { Link } from 'react-router'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { formatCents } from '@/lib/utils'
-
 // Dashboard v2 "This week's exposure" — KPI mini-tiles that answer
 // "where's the firm's exposure today?" without scanning rows. Each
 // tile is a deep-link into Obligations with the matching filter.
@@ -45,17 +43,13 @@ function ExposureTile({ segment }: { segment: Segment }) {
 
 function ExposureStrip({
   needDecisionCount,
-  totalExposureCents,
   blockedCount,
   waitingOnClientCount,
-  canSeeDollars,
   isLoading,
 }: {
   needDecisionCount: number
-  totalExposureCents: number
   blockedCount: number
   waitingOnClientCount: number
-  canSeeDollars: boolean
   isLoading: boolean
 }) {
   const { t } = useLingui()
@@ -88,14 +82,10 @@ function ExposureStrip({
       tone: 'neutral',
     })
   }
-  if (canSeeDollars && totalExposureCents > 0) {
-    segments.push({
-      value: formatCents(totalExposureCents),
-      label: t`At risk`,
-      href: '/obligations?sort=exposure-desc',
-      tone: 'neutral',
-    })
-  }
+  // "At risk" dollar tile removed 2026-05-21 per designer call — the
+  // headline number is the row count + status, not the total dollar
+  // exposure. Dollars live on the queue row's projected-risk column
+  // and inside the obligation drawer.
   if (blockedCount > 0) {
     segments.push({
       value: String(blockedCount),
