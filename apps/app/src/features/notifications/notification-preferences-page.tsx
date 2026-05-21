@@ -246,8 +246,14 @@ function MorningDigestCard({
                   return (
                     <Button
                       key={day.key}
-                      type="button"
-                      variant={active ? 'primary' : 'outline'}
+                      // Pass an explicit `<button>` via `render` to silence
+                      // Base UI's "nativeButton expected a native <button>"
+                      // warning. The Button primitive defaults to a native
+                      // button via Base UI, but the warning fires when
+                      // aria-pressed + variant fallback combine. Spelling
+                      // out the render slot is the documented fix.
+                      render={<button type="button" />}
+                      variant={active ? 'primary' : 'secondary'}
                       size="icon-sm"
                       aria-pressed={active}
                       aria-label={day.key}
