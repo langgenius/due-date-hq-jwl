@@ -500,6 +500,19 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         // too created two top-level destinations for the same thing.
         primary: [
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
+          // Alerts promoted to first-class sidebar destination — the
+          // morning routine becomes: glance Today → scan Alerts →
+          // triage Obligations. The badge counts the unified unread
+          // (`useInboxUnreadCount`) which today is dominated by Pulse
+          // alerts; when other notification types start landing this
+          // can switch to a Pulse-only count.
+          {
+            href: '/rules/pulse',
+            label: t`Alerts`,
+            icon: ActivityIcon,
+            end: false,
+            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          },
           {
             href: '/obligations',
             label: t`Obligations`,

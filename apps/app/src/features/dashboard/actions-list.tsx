@@ -1,15 +1,14 @@
-import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { formatCents } from '@/lib/utils'
 
 function statusLabel(status: DashboardTopRow['status']): string {
   switch (status) {
@@ -38,13 +37,18 @@ function topPriorityFactors(row: DashboardTopRow): string[] {
   return factors.map((f) => f.label)
 }
 
-// Dashboard v2 "Actions this week" — the verb-led action queue that
-// replaces the legacy triage table when `?dashboard=v2` is on.
-// Layout philosophy (post 2026-05-20 review #4 — restoring the OLD
-// information density per designer note "previous is nicer"):
-//   [→] [Client pill] Task description ........ Xd late · $amount
-// Single-line rows, dense scanning. Click anywhere → expand inline
-// for Status / Form / Sources / Why-now (whole panel clickable).
+// Dashboard v2 "Actions this week" — verb-led action queue with
+// hover-reveal details and an explicit Review button per row.
+//
+// 2026-05-21 rewrite:
+//   - Removed the inline-expand panel; hovering the row opens a
+//     popover with Status / Form / Sources / Penalty / Why-now.
+//   - Removed dollar amounts from the row meta. The right-hand meta
+//     now just carries the time-to-due signal ("3d late" / "in 2d" /
+//     "today"). Money lived too loud for a "what to do" feed; the
+//     popover or the Obligations queue is where dollars belong.
+//   - Each row has a dedicated Review button that opens the
+//     obligation drawer (via useObligationDrawer at the parent).
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -64,36 +68,12 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   return 'Open evidence and confirm the source still matches'
 }
 
-// Tone for the penalty meta. Past-due with accrued penalty is the only
-// case that warrants red — projected risk stays neutral so the eye
-// isn't pulled to every row.
-function penaltyTone(row: DashboardTopRow, days: number): 'critical' | 'neutral' | 'muted' {
-  if (days < 0 && (row.accruedPenaltyCents ?? 0) > 0) return 'critical'
-  if (row.exposureStatus === 'ready' && (row.estimatedExposureCents ?? 0) > 0) return 'neutral'
-  return 'muted'
-}
-
-function penaltyValue(row: DashboardTopRow, days: number): string | null {
-  if (days < 0 && (row.accruedPenaltyCents ?? 0) > 0) {
-    return formatCents(row.accruedPenaltyCents!)
-  }
-  if (row.exposureStatus === 'ready' && (row.estimatedExposureCents ?? 0) > 0) {
-    return formatCents(row.estimatedExposureCents!)
-  }
-  return null
-}
-
-// Right-aligned meta: `19d late · $4,300.00` style. Compact text,
-// past-due text in destructive tone. Per 2026-05-20 designer note
-// "the information density on the previous is nicer" — single-line
-// rows with text meta beat the two-line pill layout for at-a-glance
-// scanning.
-function RowMeta({ row, days }: { row: DashboardTopRow; days: number }) {
-  const tone = penaltyTone(row, days)
-  const value = penaltyValue(row, days)
+// Right-aligned meta: just the time signal now. "3d late" in
+// destructive tone, "today" neutral, "in 2d" muted. No money.
+function RowMeta({ days }: { days: number }) {
   const past = days < 0
   return (
-    <span className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap text-base tabular-nums">
+    <span className="flex shrink-0 items-baseline whitespace-nowrap text-base tabular-nums">
       <span className={cn(past ? 'text-text-destructive' : 'text-text-secondary')}>
         {past ? (
           <Plural value={-days} one="#d late" other="#d late" />
@@ -103,23 +83,6 @@ function RowMeta({ row, days }: { row: DashboardTopRow; days: number }) {
           <Plural value={days} one="in #d" other="in #d" />
         )}
       </span>
-      <span aria-hidden className="text-text-tertiary">
-        ·
-      </span>
-      {value ? (
-        <span
-          className={cn(
-            'font-medium',
-            tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
-          )}
-        >
-          {value}
-        </span>
-      ) : (
-        <span className="text-text-tertiary">
-          <Trans>needs input</Trans>
-        </span>
-      )}
     </span>
   )
 }
@@ -127,105 +90,108 @@ function RowMeta({ row, days }: { row: DashboardTopRow; days: number }) {
 function ActionRow({
   row,
   asOfDate,
-  expanded,
-  onToggle,
   onOpenObligation,
 }: {
   row: DashboardTopRow
   asOfDate: string | null
-  expanded: boolean
-  onToggle: () => void
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
   const factors = topPriorityFactors(row)
-  const detailId = `action-detail-${row.obligationId}`
 
   return (
-    <div className="flex flex-col">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        aria-controls={detailId}
-        aria-label={t`${prompt} for ${row.clientName}`}
-        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    <Popover>
+      <PopoverTrigger
+        openOnHover
+        delay={120}
+        closeDelay={120}
+        render={
+          <div
+            // Whole row is a hover trigger; click is reserved for the
+            // explicit Review button on the right. Keyboard users can
+            // Tab to the Review button directly.
+            role="group"
+            aria-label={t`${prompt} for ${row.clientName}`}
+            className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover"
+          />
+        }
       >
-        <ArrowRightIcon
-          className={cn(
-            'size-3.5 shrink-0 text-text-tertiary transition-transform',
-            expanded && 'rotate-90 text-text-primary',
-          )}
-          aria-hidden
-        />
         <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary">
           {row.clientName}
         </span>
         <span className="truncate text-base text-text-primary">{prompt}</span>
-        <RowMeta row={row} days={days} />
-      </button>
-
-      {expanded ? (
-        <button
-          type="button"
-          id={detailId}
-          onClick={onOpenObligation}
-          aria-label={t`Open ${row.clientName} in Obligations`}
-          className="mt-2 ml-3 mr-3 mb-2 grid w-auto cursor-pointer gap-3 rounded-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        <RowMeta days={days} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(event) => {
+            event.stopPropagation()
+            onOpenObligation()
+          }}
         >
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
-            <dt className="text-text-tertiary">
-              <Trans>Status</Trans>
-            </dt>
-            <dd className="text-text-primary">{statusLabel(row.status)}</dd>
+          <Trans>Review</Trans>
+          <ArrowRightIcon data-icon="inline-end" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" sideOffset={4} className="w-[360px] gap-3 p-4 text-sm">
+        <header className="flex flex-col gap-0.5">
+          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            {row.clientName}
+          </span>
+          <span className="text-sm font-medium text-text-primary">{prompt}</span>
+        </header>
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-1.5 text-sm">
+          <dt className="text-text-tertiary">
+            <Trans>Status</Trans>
+          </dt>
+          <dd className="text-text-primary">{statusLabel(row.status)}</dd>
 
-            <dt className="text-text-tertiary">
-              <Trans>Form</Trans>
-            </dt>
-            <dd className="text-text-primary">
-              <TaxCodeLabel code={row.taxType} />
-            </dd>
+          <dt className="text-text-tertiary">
+            <Trans>Form</Trans>
+          </dt>
+          <dd className="text-text-primary">
+            <TaxCodeLabel code={row.taxType} />
+          </dd>
 
-            <dt className="text-text-tertiary">
-              <Trans>Sources</Trans>
-            </dt>
-            <dd className="text-text-primary tabular-nums">
-              {row.evidenceCount > 0 ? (
-                <Plural
-                  value={row.evidenceCount}
-                  one="# source attached"
-                  other="# sources attached"
-                />
-              ) : (
-                <span className="text-text-warning">
-                  <Trans>None attached</Trans>
-                </span>
-              )}
-            </dd>
+          <dt className="text-text-tertiary">
+            <Trans>Sources</Trans>
+          </dt>
+          <dd className="text-text-primary tabular-nums">
+            {row.evidenceCount > 0 ? (
+              <Plural
+                value={row.evidenceCount}
+                one="# source attached"
+                other="# sources attached"
+              />
+            ) : (
+              <span className="text-text-warning">
+                <Trans>None attached</Trans>
+              </span>
+            )}
+          </dd>
 
-            {row.penaltyFormulaLabel ? (
-              <>
-                <dt className="text-text-tertiary">
-                  <Trans>Penalty</Trans>
-                </dt>
-                <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
-              </>
-            ) : null}
+          {row.penaltyFormulaLabel ? (
+            <>
+              <dt className="text-text-tertiary">
+                <Trans>Penalty</Trans>
+              </dt>
+              <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
+            </>
+          ) : null}
 
-            {factors.length > 0 ? (
-              <>
-                <dt className="text-text-tertiary">
-                  <Trans>Why now</Trans>
-                </dt>
-                <dd className="text-text-primary">{factors.join(' · ')}</dd>
-              </>
-            ) : null}
-          </dl>
-        </button>
-      ) : null}
-    </div>
+          {factors.length > 0 ? (
+            <>
+              <dt className="text-text-tertiary">
+                <Trans>Why now</Trans>
+              </dt>
+              <dd className="text-text-primary">{factors.join(' · ')}</dd>
+            </>
+          ) : null}
+        </dl>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -258,7 +224,6 @@ function DashboardActionsList({
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
   const overflow = Math.max(totalThisWeek - visible.length, 0)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   if (isLoading) {
     return (
@@ -333,10 +298,6 @@ function DashboardActionsList({
             <ActionRow
               row={row}
               asOfDate={asOfDate}
-              expanded={expandedId === row.obligationId}
-              onToggle={() =>
-                setExpandedId((id) => (id === row.obligationId ? null : row.obligationId))
-              }
               onOpenObligation={() => onOpenObligation(row)}
             />
           </li>

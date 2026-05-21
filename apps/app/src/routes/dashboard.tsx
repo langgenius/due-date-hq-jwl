@@ -19,6 +19,7 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { ExposureStrip } from '@/features/dashboard/exposure-strip'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
+import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
@@ -100,6 +101,10 @@ export function DashboardRoute() {
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
   const canSeeDollars = permission.can('dollars.read')
+  // Open obligations in the shared drawer instead of navigating to
+  // the queue — matches the rest of the app's "peek without leaving"
+  // pattern. See ObligationDrawerProvider.
+  const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const [{ asOfDate, client, taxType, due, status: statusFilter, severity, exposure, evidence }] =
     useQueryStates(dashboardSearchParamsParsers)
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
@@ -188,7 +193,10 @@ export function DashboardRoute() {
           totalOpen={data?.summary?.openObligationCount ?? 0}
           canRunMigration={canRunMigration}
           onOpenWizard={openWizard}
-          onOpenObligation={(row) => void navigate(obligationQueueHrefForObligationFilter(row))}
+          // Review button → open the obligation drawer in place,
+          // matching the obligation-drawer pattern we ship from
+          // every other surface. Avoids a route change for a peek.
+          onOpenObligation={(row) => openObligationDrawer(row.obligationId)}
           onOpenAllObligations={() => void navigate('/obligations')}
         />
       </section>
@@ -203,11 +211,4 @@ function formatTodayHeader(asOfDate: string): string {
     month: 'long',
     day: 'numeric',
   }).format(date)
-}
-
-function obligationQueueHrefForObligationFilter(row: DashboardTopRow): string {
-  const params = new URLSearchParams({
-    obligation: row.obligationId,
-  })
-  return `/obligations?${params.toString()}`
 }
