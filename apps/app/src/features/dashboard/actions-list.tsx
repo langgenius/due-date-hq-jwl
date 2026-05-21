@@ -4,30 +4,17 @@ import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
+import { BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-
-function statusLabel(status: DashboardTopRow['status']): string {
-  switch (status) {
-    case 'pending':
-      return 'Not started'
-    case 'in_progress':
-      return 'In progress'
-    case 'waiting_on_client':
-      return 'Waiting on client'
-    case 'blocked':
-      return 'Blocked'
-    case 'review':
-      return 'In review'
-    case 'completed':
-      return 'Completed'
-    default:
-      return status
-  }
-}
+import {
+  STATUS_DOT,
+  STATUS_VARIANT,
+  useLifecycleV2StatusLabels,
+} from '@/features/obligations/status-control'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -98,6 +85,7 @@ function ActionRow({
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
+  const statusLabels = useLifecycleV2StatusLabels()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
   const factors = topPriorityFactors(row)
@@ -130,7 +118,7 @@ function ActionRow({
         aria-expanded={expanded}
         aria-controls={detailId}
         className={cn(
-          'group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 px-3 py-2.5 text-left transition-colors',
+          'group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
@@ -152,30 +140,26 @@ function ActionRow({
         <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary">
           {row.clientName}
         </span>
-        <span className="truncate text-base text-text-primary">{prompt}</span>
+        <span className="min-w-0 flex-1 truncate text-base text-text-primary">{prompt}</span>
         <RowMeta days={days} />
-        {/* Review button — only shown when the row is hovered/focused
-          (i.e. `expanded`). Keeps the row chrome quiet at rest and
-          surfaces the action right when the user is intent on this
-          row. The reserved grid slot stays via `invisible`-vs-flow
-          so the row layout doesn't shift on hover. */}
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            'transition-opacity',
-            expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
-          )}
-          tabIndex={expanded ? 0 : -1}
-          aria-hidden={!expanded}
-          onClick={(event) => {
-            event.stopPropagation()
-            onOpenObligation()
-          }}
-        >
-          <Trans>Review</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+        {/* Review button — only mounted when the row is
+          hovered/focused (i.e. `expanded`). No reserved slot in the
+          collapsed state, so the row meta ("16d late") sits flush
+          against the right edge until the user is actually on the
+          row. */}
+        {expanded ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpenObligation()
+            }}
+          >
+            <Trans>Review</Trans>
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,
@@ -200,7 +184,22 @@ function ActionRow({
             <dt className="text-text-tertiary">
               <Trans>Status</Trans>
             </dt>
-            <dd className="text-text-primary">{statusLabel(row.status)}</dd>
+            <dd>
+              {/* Mirror the obligation queue's status pill — same
+                  badge variant + dot tone via the canonical maps. The
+                  expanded panel is itself a click target, so this
+                  renders as a non-interactive span (a nested button
+                  would break the parent click semantics). */}
+              <span
+                className={cn(
+                  badgeVariants({ variant: STATUS_VARIANT[row.status] }),
+                  'h-6 text-xs',
+                )}
+              >
+                <BadgeStatusDot tone={STATUS_DOT[row.status]} />
+                {statusLabels[row.status]}
+              </span>
+            </dd>
 
             <dt className="text-text-tertiary">
               <Trans>Form</Trans>

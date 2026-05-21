@@ -64,14 +64,23 @@ const STATUS_VARIANT: Record<
   completed: 'success',
 }
 
+// 2026-05-21: split waiting_on_client off into its own violet ('info')
+// tone so it stops colliding with review (amber) and blocked (red).
+// Lifecycle vocab:
+//   - pending          → gray   (not started)
+//   - in_progress      → blue   (we're working on it)
+//   - waiting_on_client → violet (externally blocked, paused on us)
+//   - review           → amber  (needs attention — ours or partner's)
+//   - blocked          → red    (hard stop, can't proceed)
+//   - done / completed → green  (closed)
 const STATUS_DOT: Record<
   ObligationStatus,
-  'error' | 'normal' | 'disabled' | 'warning' | 'success'
+  'error' | 'normal' | 'disabled' | 'warning' | 'success' | 'info'
 > = {
   pending: 'disabled',
   in_progress: 'normal',
   review: 'warning',
-  waiting_on_client: 'warning',
+  waiting_on_client: 'info',
   done: 'success',
   extended: 'normal',
   paid: 'success',
@@ -103,21 +112,35 @@ function useStatusLabels(): StatusLabels {
   )
 }
 
-// Lifecycle v2 label overrides — used when the ?lifecycle=v2 flag is
-// active. Same map shape as useStatusLabels so the consumer is unaware.
+// Lifecycle v2 label overrides — under v2 the queue shows only 6
+// canonical pill labels even though the DB still carries the
+// legacy 10-state palette. Same map shape as useStatusLabels so
+// the consumer is unaware. The collapse mapping (2026-05-21):
+//   pending / not_applicable           → "Not started"
+//   waiting_on_client                  → "Waiting on client"
+//   blocked                            → "Blocked"
+//   in_progress / review / extended    → "In review"
+//   done / paid                        → "Filed"
+//   completed                          → "Completed"
+// Mutations can still TARGET specific legacy values (e.g., `paid`
+// for a payment obligation) — only the DISPLAY collapses, so the
+// CPA sees a consistent vocabulary while the schema preserves the
+// granularity. `not_applicable` reads as "Not started" today;
+// future work will mute the whole timeline at 60% opacity to
+// signal "doesn't apply" per PRD §7.
 function useLifecycleV2StatusLabels(): StatusLabels {
   const { t } = useLingui()
   return useMemo(
     () => ({
       pending: t`Not started`,
-      in_progress: t`In progress`, // legacy rows; queue shouldn't show this in v2
+      not_applicable: t`Not started`,
       waiting_on_client: t`Waiting on client`,
-      review: t`In review`, // renamed from "Needs review"
-      done: t`Filed`, // current label already matches v2 vocabulary
-      paid: t`Paid`, // legacy; folds into completed at migration time
-      extended: t`Extended`, // legacy; retires at migration time
-      not_applicable: t`Not applicable`,
       blocked: t`Blocked`,
+      in_progress: t`In review`,
+      review: t`In review`,
+      extended: t`In review`,
+      done: t`Filed`,
+      paid: t`Filed`,
       completed: t`Completed`,
     }),
     [t],
@@ -214,6 +237,8 @@ export {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
+  STATUS_DOT,
+  STATUS_VARIANT,
   isObligationStatus,
   useLifecycleV2StatusLabels,
   useReadinessLabels,

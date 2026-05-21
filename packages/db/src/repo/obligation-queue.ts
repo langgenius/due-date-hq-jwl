@@ -449,26 +449,41 @@ function compareRows(
   b: ObligationQueueListRow,
   sort: ObligationQueueSort,
 ): number {
+  // clientId is the universal secondary tiebreak. When the primary
+  // sort metric ties (same priority score, same due date, same
+  // exposure), same-client rows cluster — so the queue's
+  // adjacency-based grouping (continuationRowIds in the route file)
+  // actually triggers. Without this, two rows from the same client
+  // that both hit, say, Apr 15 would still scatter randomly because
+  // the only tiebreaker was obligationId (a UUID).
   if (sort === 'smart_priority') {
-    return compareSmartPriority(
+    const cmp = compareSmartPriority(
       { obligationId: a.id, currentDueDate: a.currentDueDate, smartPriority: a.smartPriority },
       { obligationId: b.id, currentDueDate: b.currentDueDate, smartPriority: b.smartPriority },
     )
+    if (cmp !== 0) return cmp
+    return a.clientId.localeCompare(b.clientId)
   }
   if (sort === 'updated_desc') {
     const updatedDelta = b.updatedAt.getTime() - a.updatedAt.getTime()
     if (updatedDelta !== 0) return updatedDelta
+    const clientDelta = a.clientId.localeCompare(b.clientId)
+    if (clientDelta !== 0) return clientDelta
     return b.id.localeCompare(a.id)
   }
   if (sort === 'exposure_desc' || sort === 'exposure_asc') {
     const direction = sort === 'exposure_desc' ? -1 : 1
     const exposureDelta = exposureSortValue(a) - exposureSortValue(b)
     if (exposureDelta !== 0) return exposureDelta * direction
+    const clientDelta = a.clientId.localeCompare(b.clientId)
+    if (clientDelta !== 0) return clientDelta
     return a.id.localeCompare(b.id) * direction
   }
   const direction = sort === 'due_desc' ? -1 : 1
   const dateDelta = a.currentDueDate.getTime() - b.currentDueDate.getTime()
   if (dateDelta !== 0) return dateDelta * direction
+  const clientDelta = a.clientId.localeCompare(b.clientId)
+  if (clientDelta !== 0) return clientDelta
   return a.id.localeCompare(b.id) * direction
 }
 

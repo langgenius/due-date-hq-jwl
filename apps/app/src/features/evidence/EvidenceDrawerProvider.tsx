@@ -40,7 +40,12 @@ import {
   type OpenEvidenceInput,
 } from '@/features/evidence/EvidenceDrawerContext'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
-import { useReadinessLabels, useStatusLabels } from '@/features/obligations/status-control'
+import {
+  useLifecycleV2StatusLabels,
+  useReadinessLabels,
+  useStatusLabels,
+} from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 
 export function EvidenceDrawerProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<OpenEvidenceInput | null>(null)
@@ -595,7 +600,13 @@ function formatNullableNumber(value: number | null): ReadableValue {
 function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loading: boolean }) {
   const practiceTimezone = usePracticeTimezone()
   const actionLabels = useAuditActionLabels()
-  const statusLabels = useStatusLabels()
+  // v2-aware status labels — audit timeline reads the same vocabulary
+  // as the queue ("Filed" not "Paid"). Raw status values are still in
+  // beforeJson/afterJson for forensic reconstruction.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const readinessLabels = useReadinessLabels()
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
 

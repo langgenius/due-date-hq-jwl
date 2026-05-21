@@ -21,13 +21,37 @@ function BlockedByChip({
   parentObligationId,
   parentLabel,
   onOpen,
+  compact = false,
 }: {
   parentObligationId: string
   parentLabel?: string | null
   onOpen: (parentObligationId: string) => void
+  // Compact mode (2026-05-21): drops the "by X · Form Y" label, keeps
+  // the link icon + tooltip. Used in the queue Status cell when the
+  // detail panel is open — saves ~150px without losing the signal.
+  compact?: boolean
 }) {
   const { t } = useLingui()
   const label = parentLabel?.trim() ? parentLabel : t`#${parentObligationId.slice(0, 8)}`
+  const title = parentLabel
+    ? t`Blocked by ${label} — click to open.`
+    : t`Open the upstream obligation that's blocking this row.`
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation()
+          onOpen(parentObligationId)
+        }}
+        title={title}
+        aria-label={title}
+        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-state-warning-active bg-state-warning-hover text-text-warning hover:bg-state-warning-hover-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-warning-active"
+      >
+        <LinkIcon className="size-3" aria-hidden />
+      </button>
+    )
+  }
   return (
     <button
       type="button"
@@ -35,7 +59,7 @@ function BlockedByChip({
         event.stopPropagation()
         onOpen(parentObligationId)
       }}
-      title={t`Open the upstream obligation that's blocking this row.`}
+      title={title}
       // Amber, NOT red. Per docs/Design/ux-audit-2026-05-21.md P0 #6: a
       // blocked row is waiting on a dependency — actionable but
       // informational. The destructive red palette is reserved for

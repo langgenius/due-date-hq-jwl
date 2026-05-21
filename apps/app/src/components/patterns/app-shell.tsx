@@ -92,11 +92,14 @@ export function AppShell(props: AppShellProps) {
             bg-background-default makes the inset white (Notion/Linear
             pattern: gray rail, white work surface). */}
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
-            {/* Bumped from 1080px → 2xl (1536px) so wide table surfaces
-              like Coverage's 52×11 matrix fit without clipping.
-              Prose-heavy pages still get the page's own internal
-              padding; only the outer cap moved. */}
-            <div className="mx-auto w-full max-w-screen-2xl">
+            {/* Outer cap = 1280px per 2026-05-21 design call.
+              Dashboard ("Today") narrows itself to 1100px via its
+              own inner container — that's the reading-column page.
+              Every other route (Obligations queue, Clients, Rules,
+              Settings) lands at 1280px, which fits the queue's
+              column set without horizontal scroll while still
+              keeping content off the far edges of 27"+ monitors. */}
+            <div className="mx-auto w-full max-w-[1440px]">
               <Outlet />
             </div>
           </main>

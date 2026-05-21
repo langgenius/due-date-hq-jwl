@@ -20,11 +20,28 @@ function isRejectionVisible(input: { status: string; efileRejectedAt: string | n
   return input.status === 'review' && input.efileRejectedAt !== null
 }
 
-function RejectionChip() {
+// Compact mode (2026-05-21): drops the "Rejected" text, keeps the
+// warning icon + tooltip. Used in the obligations queue when the
+// detail panel is open and the status column needs to fit a narrower
+// viewport — the icon's red tint + hover tooltip still carries the
+// "this came back from filing" signal.
+function RejectionChip({ compact = false }: { compact?: boolean }) {
   const { t } = useLingui()
+  const title = t`Returned from filed status — IRS/state rejected the submission.`
+  if (compact) {
+    return (
+      <span
+        title={title}
+        aria-label={t`Rejected`}
+        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-state-destructive-border bg-state-destructive-hover text-text-destructive"
+      >
+        <AlertTriangleIcon className="size-3" aria-hidden />
+      </span>
+    )
+  }
   return (
     <span
-      title={t`Returned from filed status — IRS/state rejected the submission.`}
+      title={title}
       className="inline-flex items-center gap-1 rounded-sm border border-state-destructive-border bg-state-destructive-hover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-destructive"
     >
       <AlertTriangleIcon className="size-3" aria-hidden />

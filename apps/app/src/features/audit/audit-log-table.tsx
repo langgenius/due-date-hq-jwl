@@ -12,7 +12,12 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { useReadinessLabels, useStatusLabels } from '@/features/obligations/status-control'
+import {
+  useLifecycleV2StatusLabels,
+  useReadinessLabels,
+  useStatusLabels,
+} from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 
 import { buildAuditChangeView } from './audit-change-view'
 import {
@@ -39,7 +44,15 @@ export function AuditLogTable({
   const { t } = useLingui()
   const actionLabels = useAuditActionLabels()
   const entityTypeLabels = useAuditEntityTypeLabels()
-  const statusLabels = useStatusLabels()
+  // Under v2, audit log shows the same collapsed pill labels the
+  // queue uses ("Filed" not "Paid", "In review" not "In progress")
+  // so the CPA reads one vocabulary across the app. The underlying
+  // raw status values are still preserved in the audit beforeJson /
+  // afterJson payloads for forensic reconstruction.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const readinessLabels = useReadinessLabels()
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
 
