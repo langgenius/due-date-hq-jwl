@@ -19,15 +19,14 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
+  ArrowUpRightIcon,
   ChevronDownIcon,
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
-  CopyIcon,
   ExternalLinkIcon,
   FileInputIcon,
   FileSearchIcon,
-  MailIcon,
   MapPinnedIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -78,6 +77,8 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
+import { EmptyState } from '@/components/patterns/empty-state'
+import { PageHeader } from '@/components/patterns/page-header'
 import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -89,6 +90,9 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
+import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
+
+import { ClientSummaryStrip } from './ClientSummaryStrip'
 
 import {
   CLIENT_ENTITY_TYPES,
@@ -189,35 +193,36 @@ function DetailSection({
   const collapsibleStateProps = open === undefined ? { defaultOpen } : { open, onOpenChange }
 
   return (
-    <Collapsible
-      id={id}
-      {...collapsibleStateProps}
+    <SectionFrame
       className={cn(
-        'scroll-mt-20 rounded-md border bg-background-default',
-        attention
-          ? 'border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/40'
-          : 'border-divider-subtle',
+        'scroll-mt-20',
+        attention &&
+          'border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/40',
       )}
     >
-      <CollapsibleTrigger
-        className={cn(
-          'group flex w-full items-center justify-between gap-3 rounded-md px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt',
-          attention && 'hover:bg-components-badge-bg-warning-soft/70',
-        )}
-      >
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary">{title}</span>
-          {summary ? <span className="truncate text-xs text-text-tertiary">{summary}</span> : null}
-        </div>
-        <ChevronDownIcon
-          className="size-4 shrink-0 text-text-tertiary transition-transform group-data-[panel-open]:rotate-180"
-          aria-hidden
-        />
-      </CollapsibleTrigger>
-      <CollapsiblePanel className="border-t border-divider-subtle px-4 py-3">
-        {children}
-      </CollapsiblePanel>
-    </Collapsible>
+      <Collapsible id={id} {...collapsibleStateProps}>
+        <CollapsibleTrigger
+          className={cn(
+            'group flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt',
+            attention && 'hover:bg-components-badge-bg-warning-soft/70',
+          )}
+        >
+          <div className="flex min-w-0 flex-col gap-1">
+            <SectionLabel>{title}</SectionLabel>
+            {summary ? (
+              <span className="truncate text-[13px] text-text-secondary">{summary}</span>
+            ) : null}
+          </div>
+          <ChevronDownIcon
+            className="size-4 shrink-0 text-text-tertiary transition-transform group-data-[panel-open]:rotate-180"
+            aria-hidden
+          />
+        </CollapsibleTrigger>
+        <CollapsiblePanel className="border-t border-divider-subtle px-4 py-3">
+          {children}
+        </CollapsiblePanel>
+      </Collapsible>
+    </SectionFrame>
   )
 }
 
@@ -241,13 +246,13 @@ function ClientFilingStateChips({ client }: { client: ClientPublic }) {
         <Badge
           key={state}
           variant="secondary"
-          className="rounded-sm font-mono text-[11px] uppercase tabular-nums"
+          className="rounded-sm font-mono uppercase tabular-nums"
         >
           {state}
         </Badge>
       ))}
       {overflow > 0 ? (
-        <Badge variant="outline" className="rounded-sm font-mono text-[11px] tabular-nums">
+        <Badge variant="outline" className="rounded-sm font-mono tabular-nums">
           +{overflow}
         </Badge>
       ) : null}
@@ -831,7 +836,17 @@ export function ClientFactsWorkspace({
                 </Table>
               </div>
             ) : (
-              <ClientEmptyState hasClients={false} onImport={onImport} canImport={canImport} />
+              <EmptyState
+                icon={UsersRoundIcon}
+                title={<Trans>No clients yet</Trans>}
+                description={<Trans>Import a CSV or create the first manual client record.</Trans>}
+                cta={
+                  <Button variant="outline" onClick={onImport} disabled={!canImport}>
+                    <FileSearchIcon data-icon="inline-start" />
+                    <Trans>Run migration</Trans>
+                  </Button>
+                }
+              />
             )}
           </CardContent>
         </Card>
@@ -896,46 +911,6 @@ function ClientTableEmptyRow({ colSpan }: { colSpan: number }) {
         </div>
       </TableCell>
     </TableRow>
-  )
-}
-
-function ClientEmptyState({
-  hasClients,
-  onImport,
-  canImport,
-}: {
-  hasClients: boolean
-  onImport: () => void
-  canImport: boolean
-}) {
-  return (
-    <div className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-md border border-dashed border-divider-regular p-6 text-center">
-      <div className="grid size-10 place-items-center rounded-md bg-background-section text-text-secondary">
-        <UsersRoundIcon className="size-5" aria-hidden />
-      </div>
-      <div className="flex max-w-sm flex-col gap-1">
-        <p className="text-sm font-medium text-text-primary">
-          {hasClients ? (
-            <Trans>No clients match these filters</Trans>
-          ) : (
-            <Trans>No clients yet</Trans>
-          )}
-        </p>
-        <p className="text-sm text-text-tertiary">
-          {hasClients ? (
-            <Trans>Clear search or filters to return to the full practice directory.</Trans>
-          ) : (
-            <Trans>Import a CSV or create the first manual client record.</Trans>
-          )}
-        </p>
-      </div>
-      {!hasClients ? (
-        <Button variant="outline" onClick={onImport} disabled={!canImport}>
-          <FileSearchIcon data-icon="inline-start" />
-          <Trans>Run migration</Trans>
-        </Button>
-      ) : null}
-    </div>
   )
 }
 
@@ -1050,28 +1025,51 @@ export function ClientDetailWorkspace({
 
   return (
     <>
-      <section className="flex min-h-0 flex-col gap-5">
-        <header className="flex flex-col gap-3 rounded-md border border-divider-subtle bg-background-default p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <ClientSourceBadge client={client} />
-            <ClientReadinessBadge readiness={readiness} compact={false} />
-            {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
-          </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <h2 className="truncate text-2xl font-semibold text-text-primary">{client.name}</h2>
-            <Badge variant="info" className="text-xs uppercase tracking-wider">
-              {entityLabels[client.entityType]}
-            </Badge>
-            <ClientFilingStateChips client={client} />
-          </div>
-          <p className="text-sm text-text-secondary">
-            {formatClientIdentitySubLine({
-              workPlan,
-              entityType: client.entityType,
-              taxClassification: client.taxClassification,
-            })}
-          </p>
-        </header>
+      <section className="flex min-h-0 flex-col gap-6">
+        <PageHeader
+          breadcrumbs={[{ label: t`Clients`, to: '/clients' }, { label: client.name }]}
+          title={client.name}
+          description={formatClientIdentitySubLine({
+            workPlan,
+            entityType: client.entityType,
+            taxClassification: client.taxClassification,
+          })}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link to={`/obligations?client=${client.id}`} />}
+              >
+                <Trans>View all obligations</Trans>
+                <ArrowUpRightIcon data-icon="inline-end" />
+              </Button>
+              {canReadAudit ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  render={<Link to={`/audit?entityId=${client.id}&entityType=client`} />}
+                >
+                  <Trans>View audit log</Trans>
+                </Button>
+              ) : null}
+            </>
+          }
+        />
+
+        {/* Identity strip — small horizontal badge row that sits between
+            the PageHeader and the ClientAlertsBand. Carries entity type,
+            filing-state chips, source / readiness / Pulse-radar badges
+            so the user can read the client's shape in one scan. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="info" className="text-xs">
+            {entityLabels[client.entityType]}
+          </Badge>
+          <ClientFilingStateChips client={client} />
+          <ClientSourceBadge client={client} />
+          <ClientReadinessBadge readiness={readiness} compact={false} />
+          {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
+        </div>
 
         <ClientAlertsBand
           pulseMatches={pulseMatches}
@@ -1080,13 +1078,12 @@ export function ClientDetailWorkspace({
           onAddFacts={openMissingFacts}
         />
 
+        <ClientSummaryStrip clientId={client.id} obligations={obligations} />
+
         <Tabs defaultValue="work" className="w-full">
           <TabsList className="mb-3 flex w-full flex-wrap justify-start">
             <TabsTrigger value="work">
               <Trans>Work</Trans>
-            </TabsTrigger>
-            <TabsTrigger value="mailbox">
-              <Trans>Mailbox</Trans>
             </TabsTrigger>
             <TabsTrigger value="notes">
               <Trans>Notes</Trans>
@@ -1151,25 +1148,11 @@ export function ClientDetailWorkspace({
             </DetailSection>
           </TabsContent>
 
-          {/* Mailbox tab — per-client forwarding address. Phase 2:
-              actual inbound email infrastructure will surface threaded
-              messages here. */}
-          <TabsContent value="mailbox" className="grid gap-4">
-            <ClientMailboxPanel client={client} />
-            <div className="rounded-md border border-dashed border-divider-regular p-6 text-center">
-              <MailIcon className="mx-auto mb-2 size-6 text-text-tertiary" aria-hidden />
-              <p className="text-sm font-medium text-text-primary">
-                <Trans>Inbound messages — Phase 2</Trans>
-              </p>
-              <p className="mt-1 text-xs text-text-tertiary">
-                <Trans>
-                  Once the forwarding address is live, threaded emails and uploaded attachments from
-                  the client will surface here, AI-classified into the matching task on the filing
-                  plan.
-                </Trans>
-              </p>
-            </div>
-          </TabsContent>
+          {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
+              as a peer top-level tab implied parity it doesn't have. The
+              forwarding-address widget and AI inbound-thread story will
+              return once the infrastructure ships. ClientMailboxPanel
+              remains in this file for that resurrection. */}
 
           {/* Notes tab — AI narrative, free-text notes, activity audit. */}
           <TabsContent value="notes" className="grid gap-4">
@@ -1196,14 +1179,14 @@ export function ClientDetailWorkspace({
               />
             </DetailSection>
 
-            <div className="rounded-md border border-divider-regular bg-background-section p-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+            <SectionFrame className="bg-background-section p-3">
+              <SectionLabel>
                 <Trans>Notes</Trans>
-              </span>
+              </SectionLabel>
               <p className="mt-2 text-sm text-text-secondary">
                 {client.notes || <Trans>No notes.</Trans>}
               </p>
-            </div>
+            </SectionFrame>
 
             <DetailSection
               title={t`Activity log`}
@@ -1327,10 +1310,10 @@ function ClientWorkPlanPanel({
             <Skeleton className="h-12 w-full" />
           </div>
         ) : obligations.length === 0 ? (
-          <PanelEmptyState
+          <EmptyState
             icon={ClipboardListIcon}
             title={<Trans>No obligations yet</Trans>}
-            detail={
+            description={
               <Trans>Run migration or generate rules before this client has due-date work.</Trans>
             }
           />
@@ -1483,13 +1466,10 @@ function ClientAlertsBandRadarRow({ matches }: { matches: readonly ClientPulseMa
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
       </div>
-      <a
-        href="/rules/pulse"
-        className="inline-flex items-center gap-1 text-xs font-medium text-text-accent hover:underline"
-      >
+      <Button variant="ghost" size="sm" render={<Link to="/rules/pulse" />}>
         <Trans>View on Radar</Trans>
-        <ExternalLinkIcon className="size-3" aria-hidden />
-      </a>
+        <ExternalLinkIcon data-icon="inline-end" aria-hidden />
+      </Button>
     </div>
   )
 }
@@ -1540,13 +1520,9 @@ function ClientAlertsBandMissingFactsRow({
         </p>
         <p className="mt-0.5 text-xs text-text-secondary">{labels.join(' · ')}</p>
       </div>
-      <button
-        type="button"
-        onClick={onAddFacts}
-        className="inline-flex items-center gap-1 text-xs font-medium text-text-accent hover:underline"
-      >
+      <Button variant="ghost" size="sm" onClick={onAddFacts}>
         <Trans>Add facts</Trans>
-      </button>
+      </Button>
     </div>
   )
 }
@@ -1564,10 +1540,10 @@ function ClientActivityPanel({
 }) {
   if (!canReadAudit) {
     return (
-      <PanelEmptyState
+      <EmptyState
         icon={ClipboardCheckIcon}
         title={<Trans>Audit access is role-gated</Trans>}
-        detail={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
+        description={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
       />
     )
   }
@@ -1581,10 +1557,12 @@ function ClientActivityPanel({
   }
   if (events.length === 0) {
     return (
-      <PanelEmptyState
+      <EmptyState
         icon={ClipboardCheckIcon}
         title={<Trans>No audited client changes yet</Trans>}
-        detail={<Trans>Future edits to facts, risk inputs, or deletion will appear here.</Trans>}
+        description={
+          <Trans>Future edits to facts, risk inputs, or deletion will appear here.</Trans>
+        }
       />
     )
   }
@@ -1606,26 +1584,6 @@ function ClientActivityPanel({
           </p>
         </div>
       ))}
-    </div>
-  )
-}
-
-function PanelEmptyState({
-  icon: Icon,
-  title,
-  detail,
-}: {
-  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
-  title: ReactNode
-  detail: ReactNode
-}) {
-  return (
-    <div className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-md border border-dashed border-divider-regular p-5 text-center">
-      <div className="grid size-9 place-items-center rounded-md bg-background-section text-text-secondary">
-        <Icon className="size-4" aria-hidden />
-      </div>
-      <p className="text-sm font-medium text-text-primary">{title}</p>
-      <p className="max-w-md text-sm text-text-tertiary">{detail}</p>
     </div>
   )
 }
@@ -2346,10 +2304,10 @@ function SuggestedFormsCatalogPanel({
       </div>
       {hidden ? null : suggested.length === 0 ? (
         <div className="border-t border-divider-subtle px-4 py-3">
-          <PanelEmptyState
+          <EmptyState
             icon={CheckCircle2Icon}
             title={<Trans>All applicable rules scheduled</Trans>}
-            detail={
+            description={
               <Trans>
                 Every active rule the catalog matches to this client already has a generated
                 obligation.
@@ -2360,7 +2318,7 @@ function SuggestedFormsCatalogPanel({
       ) : (
         <>
           <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-text-warning">
+            <p className="text-xs font-medium tracking-[0.08em] text-text-warning uppercase">
               <Trans>Suggested — applicable but no deadline yet</Trans>
               {' · '}
               <Plural value={suggested.length} one="# rule" other="# rules" />
@@ -2379,7 +2337,7 @@ function SuggestedFormsCatalogPanel({
                       <p className="text-sm font-medium text-text-primary">
                         {suggestion.rule.formName}
                       </p>
-                      <span className="text-[11px] uppercase tracking-wide text-text-tertiary">
+                      <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
                         {suggestion.rule.jurisdiction}
                       </span>
                     </div>
@@ -2413,60 +2371,8 @@ function SuggestedFormsCatalogPanel({
 
 const EMPTY_RULES: readonly ObligationRule[] = []
 
-// ─── Per-client mailbox stub ──────────────────────────────────────────
-// The reference shows a per-task forwarding email address that ingests
-// client docs into the workflow. We don't have inbound email wired yet,
-// so this is a UI stub that shows the address shape with a copy button
-// and a clear "coming soon" affordance. The address is deterministic
-// from clientId so it stays stable across reloads.
-
-function mailboxAddressForClient(client: ClientPublic): string {
-  const slug = client.name
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-+|-+$/g, '')
-    .slice(0, 20)
-  const suffix = client.id.replaceAll('-', '').slice(0, 6)
-  return `${slug || 'client'}-${suffix}@duedatehq.com`
-}
-
-function ClientMailboxPanel({ client }: { client: ClientPublic }) {
-  const address = mailboxAddressForClient(client)
-  const [copied, setCopied] = useState(false)
-  const onCopy = useCallback(() => {
-    void navigator.clipboard?.writeText(address).then(() => {
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
-    })
-  }, [address])
-  return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary">
-            <Trans>Client mailbox</Trans>
-          </span>
-          <span className="text-xs text-text-tertiary">
-            <Trans>
-              Forward client emails to this address. The AI threads them onto matching tasks and
-              flags anything that needs review.
-            </Trans>
-          </span>
-        </div>
-        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-          <Trans>Phase 2</Trans>
-        </Badge>
-      </div>
-      <div className="flex items-center gap-2 border-t border-divider-subtle px-4 py-3">
-        <MailIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-        <code className="min-w-0 truncate rounded-sm bg-background-subtle px-2 py-1 text-xs text-text-secondary">
-          {address}
-        </code>
-        <Button variant="outline" size="sm" onClick={onCopy} className="ml-auto">
-          <CopyIcon data-icon="inline-start" />
-          {copied ? <Trans>Copied</Trans> : <Trans>Copy</Trans>}
-        </Button>
-      </div>
-    </div>
-  )
-}
+// Mailbox tab — and its supporting ClientMailboxPanel /
+// mailboxAddressForClient — were removed when the tab itself was
+// dropped. The Phase 2 forwarding-address widget will return once the
+// inbound-email infrastructure ships; see git history for the prior
+// implementation.

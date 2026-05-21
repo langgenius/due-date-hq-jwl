@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon } from 'lucide-react'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
-import { Breadcrumb } from '@/components/patterns/breadcrumb'
 import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { paidPlanActive } from '@/features/billing/model'
@@ -33,11 +33,7 @@ export function ClientDetailRoute() {
   const client = clientQuery.data ?? null
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6">
-      <Breadcrumb
-        items={[{ label: t`Clients`, to: '/clients' }, { label: client?.name ?? t`Client` }]}
-      />
-
+    <div className="flex flex-col gap-6 p-4 md:p-6">
       {clientQuery.isLoading ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-8 w-64" />
@@ -60,8 +56,13 @@ export function ClientDetailRoute() {
           <AlertTitle>
             <Trans>Client not found</Trans>
           </AlertTitle>
-          <AlertDescription>
-            <Trans>This client may have been deleted or you may not have access.</Trans>
+          <AlertDescription className="flex flex-col items-start gap-2">
+            <span>
+              <Trans>This client may have been deleted or you may not have access.</Trans>
+            </span>
+            <Button variant="outline" size="sm" render={<Link to="/clients" />}>
+              <Trans>Back to clients</Trans>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : (
