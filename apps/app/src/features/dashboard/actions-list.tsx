@@ -1,10 +1,10 @@
+import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -37,18 +37,17 @@ function topPriorityFactors(row: DashboardTopRow): string[] {
   return factors.map((f) => f.label)
 }
 
-// Dashboard v2 "Actions this week" — verb-led action queue with
-// hover-reveal details and an explicit Review button per row.
+// Dashboard v2 "Actions this week" — verb-led action queue.
 //
-// 2026-05-21 rewrite:
-//   - Removed the inline-expand panel; hovering the row opens a
-//     popover with Status / Form / Sources / Penalty / Why-now.
-//   - Removed dollar amounts from the row meta. The right-hand meta
-//     now just carries the time-to-due signal ("3d late" / "in 2d" /
-//     "today"). Money lived too loud for a "what to do" feed; the
-//     popover or the Obligations queue is where dollars belong.
-//   - Each row has a dedicated Review button that opens the
-//     obligation drawer (via useObligationDrawer at the parent).
+// Behavior:
+//   - Each row has a chevron at the start (`>` collapsed → `v` expanded)
+//   - Hovering the row expands it INLINE (the row's container grows
+//     downward to reveal a details panel). Hover-out collapses it.
+//   - Keyboard focus on the row also expands it (focus parity).
+//   - The Review button on the right opens the obligation drawer
+//     in place via the parent's onOpenObligation handler.
+//   - Row meta is just the time signal ("3d late" / "today" /
+//     "in 2d"). No dollar amounts.
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -68,8 +67,6 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   return 'Open evidence and confirm the source still matches'
 }
 
-// Right-aligned meta: just the time signal now. "3d late" in
-// destructive tone, "today" neutral, "in 2d" muted. No money.
 function RowMeta({ days }: { days: number }) {
   const past = days < 0
   return (
@@ -90,34 +87,60 @@ function RowMeta({ days }: { days: number }) {
 function ActionRow({
   row,
   asOfDate,
+  expanded,
+  onHoverChange,
   onOpenObligation,
 }: {
   row: DashboardTopRow
   asOfDate: string | null
+  expanded: boolean
+  onHoverChange: (hovered: boolean) => void
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = actionPromptFor(row, asOfDate)
   const factors = topPriorityFactors(row)
+  const detailId = `action-detail-${row.obligationId}`
 
   return (
-    <Popover>
-      <PopoverTrigger
-        openOnHover
-        delay={120}
-        closeDelay={120}
-        render={
-          <div
-            // Whole row is a hover trigger; click is reserved for the
-            // explicit Review button on the right. Keyboard users can
-            // Tab to the Review button directly.
-            role="group"
-            aria-label={t`${prompt} for ${row.clientName}`}
-            className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover"
-          />
+    <div
+      // Hover the whole container expands it inline. onMouseLeave on
+      // the outer wrapper fires when the cursor exits this row's
+      // bounding box (including the expanded panel below, which
+      // lives inside the same wrapper). onFocus / onBlur give
+      // keyboard users the same expansion path.
+      onMouseEnter={() => onHoverChange(true)}
+      onMouseLeave={() => onHoverChange(false)}
+      onFocus={() => onHoverChange(true)}
+      onBlur={(event) => {
+        // Only collapse if focus is leaving the entire row, not just
+        // moving between children (the Review button gets focus
+        // before the chevron, etc.). `relatedTarget` is the element
+        // receiving focus next.
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+          onHoverChange(false)
         }
+      }}
+      className="flex flex-col"
+    >
+      <div
+        role="group"
+        aria-label={t`${prompt} for ${row.clientName}`}
+        aria-expanded={expanded}
+        aria-controls={detailId}
+        className="group grid w-full grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-background-default-hover"
       >
+        {/* Leading chevron — rotates 90° when expanded so the row
+          reads as "this opens." Pure visual cue; not a button (the
+          whole row container handles expansion via hover/focus). */}
+        <ArrowRightIcon
+          className={cn(
+            'size-3.5 shrink-0 text-text-tertiary transition-transform',
+            expanded && 'rotate-90 text-text-primary',
+          )}
+          aria-hidden
+        />
         <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary">
           {row.clientName}
         </span>
@@ -134,64 +157,67 @@ function ActionRow({
           <Trans>Review</Trans>
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" sideOffset={4} className="w-[360px] gap-3 p-4 text-sm">
-        <header className="flex flex-col gap-0.5">
-          <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
-            {row.clientName}
-          </span>
-          <span className="text-sm font-medium text-text-primary">{prompt}</span>
-        </header>
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-1.5 text-sm">
-          <dt className="text-text-tertiary">
-            <Trans>Status</Trans>
-          </dt>
-          <dd className="text-text-primary">{statusLabel(row.status)}</dd>
+      </div>
 
-          <dt className="text-text-tertiary">
-            <Trans>Form</Trans>
-          </dt>
-          <dd className="text-text-primary">
-            <TaxCodeLabel code={row.taxType} />
-          </dd>
+      {/* Inline expansion — sits inside the same wrapper as the row,
+        so onMouseLeave doesn't trigger when the cursor crosses from
+        the row into the expansion panel. */}
+      {expanded ? (
+        <div
+          id={detailId}
+          className="mt-1 ml-3 mr-3 mb-2 grid gap-3 rounded-md bg-background-subtle px-4 py-4 text-base"
+        >
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
+            <dt className="text-text-tertiary">
+              <Trans>Status</Trans>
+            </dt>
+            <dd className="text-text-primary">{statusLabel(row.status)}</dd>
 
-          <dt className="text-text-tertiary">
-            <Trans>Sources</Trans>
-          </dt>
-          <dd className="text-text-primary tabular-nums">
-            {row.evidenceCount > 0 ? (
-              <Plural
-                value={row.evidenceCount}
-                one="# source attached"
-                other="# sources attached"
-              />
-            ) : (
-              <span className="text-text-warning">
-                <Trans>None attached</Trans>
-              </span>
-            )}
-          </dd>
+            <dt className="text-text-tertiary">
+              <Trans>Form</Trans>
+            </dt>
+            <dd className="text-text-primary">
+              <TaxCodeLabel code={row.taxType} />
+            </dd>
 
-          {row.penaltyFormulaLabel ? (
-            <>
-              <dt className="text-text-tertiary">
-                <Trans>Penalty</Trans>
-              </dt>
-              <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
-            </>
-          ) : null}
+            <dt className="text-text-tertiary">
+              <Trans>Sources</Trans>
+            </dt>
+            <dd className="text-text-primary tabular-nums">
+              {row.evidenceCount > 0 ? (
+                <Plural
+                  value={row.evidenceCount}
+                  one="# source attached"
+                  other="# sources attached"
+                />
+              ) : (
+                <span className="text-text-warning">
+                  <Trans>None attached</Trans>
+                </span>
+              )}
+            </dd>
 
-          {factors.length > 0 ? (
-            <>
-              <dt className="text-text-tertiary">
-                <Trans>Why now</Trans>
-              </dt>
-              <dd className="text-text-primary">{factors.join(' · ')}</dd>
-            </>
-          ) : null}
-        </dl>
-      </PopoverContent>
-    </Popover>
+            {row.penaltyFormulaLabel ? (
+              <>
+                <dt className="text-text-tertiary">
+                  <Trans>Penalty</Trans>
+                </dt>
+                <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
+              </>
+            ) : null}
+
+            {factors.length > 0 ? (
+              <>
+                <dt className="text-text-tertiary">
+                  <Trans>Why now</Trans>
+                </dt>
+                <dd className="text-text-primary">{factors.join(' · ')}</dd>
+              </>
+            ) : null}
+          </dl>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -224,6 +250,9 @@ function DashboardActionsList({
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
   const overflow = Math.max(totalThisWeek - visible.length, 0)
+  // Single-row hover state. Only one row expanded at a time — mouse
+  // can only physically be over one row.
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   if (isLoading) {
     return (
@@ -298,6 +327,11 @@ function DashboardActionsList({
             <ActionRow
               row={row}
               asOfDate={asOfDate}
+              expanded={hoveredId === row.obligationId}
+              onHoverChange={(hovered) => {
+                if (hovered) setHoveredId(row.obligationId)
+                else setHoveredId((current) => (current === row.obligationId ? null : current))
+              }}
               onOpenObligation={() => onOpenObligation(row)}
             />
           </li>
