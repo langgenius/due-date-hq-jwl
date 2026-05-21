@@ -86,6 +86,11 @@ function WizardFrame({
   useAppHotkey('Escape', requestClose, {
     enabled: hotkeysEnabled && !busy,
     requireReset: true,
+    // Multiple Escape handlers ship across the app (wizard, queue
+    // drawer, rule review). They're context-scoped via `enabled` and
+    // mutually exclusive in practice, so the global default 'warn'
+    // logs noise without catching real bugs. Opt this one out.
+    conflictBehavior: 'allow',
     meta: {
       id: 'wizard.escape',
       name: 'Close wizard',

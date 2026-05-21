@@ -367,6 +367,10 @@ export function CoverageTab({
     {
       enabled: reviewHotkeysEnabled,
       requireReset: true,
+      // Multiple Escape handlers ship across the app (wizard, queue
+      // drawer, rule review). Context-scoped, mutually exclusive in
+      // practice — silence the global 'warn' default.
+      conflictBehavior: 'allow',
       meta: {
         id: 'rules.review-exit',
         name: 'Exit review',

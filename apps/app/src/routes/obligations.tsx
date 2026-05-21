@@ -1896,6 +1896,10 @@ export function ObligationQueueRoute() {
     {
       enabled: keyboardEnabled,
       requireReset: true,
+      // Multiple Escape handlers ship across the app (wizard, queue
+      // drawer, rule review). Context-scoped, mutually exclusive in
+      // practice — silence the global 'warn' default.
+      conflictBehavior: 'allow',
       meta: {
         id: 'obligations.dismiss',
         name: 'Close drawer or clear focus',
