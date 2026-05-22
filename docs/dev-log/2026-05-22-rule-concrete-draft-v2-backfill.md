@@ -7,6 +7,10 @@ area: rules
 
 # Rule concrete draft v2 backfill
 
+> Superseded on 2026-05-23: the manual `rules:concrete-drafts:*`
+> report/inspect/backfill/snapshot commands were retired when source-change
+> handling moved to Pulse source watch.
+
 ## Context
 
 Initial global prewarm moved AI concrete draft generation out of the customer

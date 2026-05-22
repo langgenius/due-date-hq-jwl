@@ -1,5 +1,9 @@
 # DDHQ Concrete Draft Failures
 
+> Archived on 2026-05-23: the manual `rules:concrete-drafts:*` report and
+> backfill commands referenced here have been retired. Source-change operations
+> now route through Pulse source watch.
+
 Last updated: 2026-05-22 23:11 CST
 
 Commands used:

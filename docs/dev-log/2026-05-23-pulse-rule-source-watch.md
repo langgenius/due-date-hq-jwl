@@ -8,6 +8,8 @@
   Pulse alerts.
 - Removed the reconcile report script and dropped the reconcile run/proposal tables in migration
   `0051_typed_pulse_source_changes.sql`.
+- Retired the manual `rules:concrete-drafts:*` report/inspect/backfill/snapshot root commands and
+  their server scripts; source changes now enter Pulse instead of concrete-draft ops scripts.
 
 ## Behavior
 
@@ -25,3 +27,4 @@
 - Added `docs/ops/pulse-rule-source-watch-runbook.md`.
 - Updated Rule Library docs to describe Rule Library as baseline and Pulse as the temporary-change
   layer.
+- Removed concrete-draft CLI operating instructions from current Rule Library product docs.

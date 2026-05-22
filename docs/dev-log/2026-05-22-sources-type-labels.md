@@ -34,5 +34,5 @@ fixed implementation builds a translated `sourceTypeLabels` string map inside
 - `pnpm exec vp check apps/app/src/features/rules/sources-tab.tsx docs/dev-log/2026-05-22-sources-type-labels.md apps/app/src/i18n/locales/en/messages.po apps/app/src/i18n/locales/zh-CN/messages.po apps/app/src/i18n/locales/en/messages.ts apps/app/src/i18n/locales/zh-CN/messages.ts`
 - `pnpm --filter @duedatehq/app build`
 
-`pnpm check` still fails on an existing unrelated format issue in
-`apps/server/scripts/rules-concrete-drafts-source-snapshot.ts`.
+Historical note: the concrete-draft source snapshot script mentioned in the original validation
+follow-up was retired on 2026-05-23 with the `rules:concrete-drafts:*` CLI cleanup.

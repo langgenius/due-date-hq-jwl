@@ -22,7 +22,9 @@ clear CPA-facing decision point.
 
 `pnpm check` still fails on existing unrelated lint/type issues outside this change, including
 `apps/app/src/components/patterns/breadcrumb.tsx`,
-`apps/server/scripts/rules-concrete-drafts-source-snapshot.ts`,
 `apps/app/src/components/patterns/kbd.tsx`,
 `apps/server/src/procedures/obligation-queue/index.ts`, `apps/app/src/features/dashboard/actions-list.tsx`,
 and `apps/app/src/routes/obligations.tsx`.
+
+Historical note: the concrete-draft source snapshot script referenced in the original warning list
+was retired on 2026-05-23 with the `rules:concrete-drafts:*` CLI cleanup.

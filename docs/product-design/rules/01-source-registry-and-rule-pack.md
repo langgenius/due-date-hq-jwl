@@ -170,19 +170,9 @@ review task 并 enqueue 当前版本 AI concrete draft。
 
 Source-defined rule 的 AI concrete draft 缓存以当前语义版本为目标：
 `ruleId + sourceId + rule.version + promptVersion`。因此 freshness-only source check 不会隐藏旧 draft；
-rule version 变化或新 rule 发布后，catalog sync 会 enqueue 当前版本全局 draft generation；如果当前版本
-source-defined rule 还没有成功的全局 draft，也会 backfill 一次当前版本 draft，避免从旧无版本 cache
-迁移后用户看到整队 `not ready`。失败仅记录为 AI output / metric，不阻塞 review task。
-
-内部 concrete draft cache report/backfill：
-
-```sh
-pnpm rules:concrete-drafts:report -- --failures
-pnpm rules:concrete-drafts:report -- --group-by=refusal,acquisition
-pnpm rules:concrete-drafts:inspect -- --category=SOURCE_TEXT_UNAVAILABLE --limit=10
-pnpm rules:concrete-drafts:backfill -- --retry-failed
-pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=4
-```
+rule version 变化或新 rule 发布后，catalog sync 会 enqueue 当前版本全局 draft generation。人工
+report/inspect/backfill/snapshot CLI 已退役；concrete draft 不再作为 Rule Library source watch 的
+运维入口，也不作为 source 变化的审核通道。失败仅记录为 AI output / metric，不阻塞 review task。
 
 Concrete draft live source fetch 会先使用已归档的 source signal / source snapshot / rule
 evidence；只有没有 source-backed text 时才 fallback 到官方 URL。配置
