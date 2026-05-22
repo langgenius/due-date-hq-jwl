@@ -136,6 +136,7 @@ function productDocument(pricing: PricingCopy, pathname: string): JsonLdDocument
     '@type': 'Product',
     name: 'DueDateHQ',
     url: absoluteUrl(pathname),
+    image: `${SITE}/og/home.en.png`,
     description: pricing.meta.description,
     brand: {
       '@type': 'Brand',
