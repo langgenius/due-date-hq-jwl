@@ -1321,16 +1321,19 @@ export function ClientDetailWorkspace({
                 </Badge>
                 <ClientFilingStateChips client={client} />
                 {readiness?.status === 'needs_facts' ? (
-                  <button
-                    type="button"
-                    onClick={openMissingFacts}
-                    className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  // Badge's `render` prop swaps in a <button> as the
+                  // root element so the chip itself is the click
+                  // target — no wrapping <button> nested in the <h1>
+                  // (which caused nested-interactive DOM + an
+                  // inconsistent click area in the earlier revision).
+                  <Badge
+                    variant="destructive"
+                    className="cursor-pointer text-xs"
+                    render={<button type="button" onClick={openMissingFacts} />}
                   >
-                    <Badge variant="destructive" className="cursor-pointer text-xs">
-                      <BadgeStatusDot tone="error" />
-                      <MissingFactsLabel readiness={readiness} />
-                    </Badge>
-                  </button>
+                    <BadgeStatusDot tone="error" />
+                    <MissingFactsLabel readiness={readiness} />
+                  </Badge>
                 ) : null}
               </span>
             </span>
@@ -1363,13 +1366,12 @@ export function ClientDetailWorkspace({
             cluster remain anchored regardless of panel state. */}
         <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
           <section className="flex min-w-0 flex-1 flex-col gap-6">
-            {/* Source provenance (Imported / Manual) sits below the
-                title as a small muted line. Was previously part of the
-                full identity strip; the strip was retired in D-2
-                because most of its chips moved into the title row.
-                Source stays here because it's metadata — not a status
-                the CPA needs to act on. */}
-            <ClientSourceMetaRow client={client} />
+            {/* Provenance (Imported / Manual) lived here briefly during
+                the D-2 transition. Dropped 2026-05-22 per design call —
+                low-signal: most clients are Manual by default, and the
+                Imported chip never changed a CPA's behavior. The
+                migration history is still discoverable from the
+                /clients header Import-history drawer. */}
 
             <ClientActiveAlertsSection
               pulseMatches={pulseMatches}
@@ -1931,19 +1933,6 @@ function ClientActiveAlertsExtensionCard({
         </p>
         <p className="mt-0.5 text-xs text-text-tertiary">{taxTypes.join(' · ')}</p>
       </div>
-    </div>
-  )
-}
-
-/**
- * Quiet metadata row below the title — just the provenance chip
- * (Imported / Manual). The full identity strip retired in D-2; this
- * keeps source visible without giving it visual weight.
- */
-function ClientSourceMetaRow({ client }: { client: ClientPublic }) {
-  return (
-    <div className="flex items-center gap-2 text-xs text-text-tertiary">
-      <ClientSourceBadge client={client} />
     </div>
   )
 }
@@ -2649,23 +2638,6 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
     return <Trans>Needs filing state</Trans>
   }
   return <Trans>Needs facts</Trans>
-}
-
-function ClientSourceBadge({ client }: { client: ClientPublic }) {
-  // Both variants render as quiet outline chips — provenance ("how
-  // did this client get into the system") is metadata, not a status
-  // the CPA needs to act on. The previous `variant="info"` blue made
-  // Imported compete with entity-type and readiness for visual
-  // priority in the identity row.
-  return getClientSourceType(client) === 'imported' ? (
-    <Badge variant="outline" className="text-xs text-text-tertiary">
-      <Trans>Imported</Trans>
-    </Badge>
-  ) : (
-    <Badge variant="outline" className="text-xs text-text-tertiary">
-      <Trans>Manual</Trans>
-    </Badge>
-  )
 }
 
 function ClientOpportunityCountBadge({ count }: { count: number }) {

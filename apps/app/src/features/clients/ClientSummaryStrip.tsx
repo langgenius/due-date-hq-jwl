@@ -125,17 +125,6 @@ export function ClientSummaryStrip({
     [obligations, todayTs],
   )
 
-  // We don't get assignee names on `listByClient` (they live on the
-  // queue row, not the instance schema). Best signal we can derive from
-  // this data shape is "is anyone assigned at all" via reviewerUserId.
-  const teamCount = useMemo(() => {
-    const ids = new Set<string>()
-    for (const o of obligations) {
-      if (o.reviewerUserId) ids.add(o.reviewerUserId)
-    }
-    return ids.size
-  }, [obligations])
-
   let nextDueValue: React.ReactNode = t`Nothing open`
   let nextDueLabel: React.ReactNode = <Trans>Next due</Trans>
   let nextDueTone: TileTone = 'muted'
@@ -163,8 +152,14 @@ export function ClientSummaryStrip({
     nextDueAria = t`Open next-due obligation`
   }
 
+  // Two tiles (Next due / At risk). The earlier 3-tile shape had a
+  // "Team" tile that just counted unique `reviewerUserId`s — weak
+  // signal that didn't tell the CPA who's actually on this client. A
+  // proper owner-avatar treatment is queued separately (see
+  // docs/Design/clients-user-journey-2026-05-22.md "Team / Owner
+  // surfacing" follow-up).
   return (
-    <section aria-label={t`Client summary`} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <section aria-label={t`Client summary`} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <TileShell
         tone={nextDueTone}
         value={nextDueValue}
@@ -182,17 +177,6 @@ export function ClientSummaryStrip({
             : undefined
         }
         ariaLabel={t`View at-risk obligations`}
-      />
-      <TileShell
-        // Unassigned is actionable, not neutral — surface it as a
-        // warning (amber) so the CPA reads "someone should own this"
-        // instead of "this is just an empty field." Was 'muted' (gray
-        // tertiary text) before, which read as inert data.
-        tone={teamCount > 0 ? 'neutral' : 'warning'}
-        value={teamCount > 0 ? teamCount : t`Unassigned`}
-        label={<Trans>Team</Trans>}
-        onClick={() => void navigate(`/obligations?client=${clientId}`)}
-        ariaLabel={t`View all obligations for this client`}
       />
     </section>
   )
