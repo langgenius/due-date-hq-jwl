@@ -6,6 +6,10 @@ import { runPulseIngest } from './pulse/ingest'
 import { linkPulseSourceSignals } from './pulse/signals'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
+import {
+  enqueueRuleRegistryCatalogSync,
+  enqueueWeeklyRuleRegistryReconcile,
+} from './rules/reconcile'
 
 function localTimeParts(
   timezone: string,
@@ -104,15 +108,20 @@ async function enqueueScheduledDashboardBriefs(env: Env, now: Date): Promise<voi
 // Cron Trigger entry — fan out by cron expression in Phase 0.
 // Current schedule: */30 * * * * (see wrangler.toml). Drives Pulse ingest + reminders.
 export async function scheduled(
-  _controller: ScheduledController,
+  controller: ScheduledController,
   env: Env,
   _ctx: ExecutionContext,
 ): Promise<void> {
-  const now = new Date()
+  const now = new Date(controller.scheduledTime)
+  const pulseJobs = async () => {
+    await runPulseIngest(env)
+    await linkPulseSourceSignals(env)
+  }
   await Promise.all([
+    enqueueRuleRegistryCatalogSync(env),
+    enqueueWeeklyRuleRegistryReconcile(env, now),
     enqueueScheduledDashboardBriefs(env, now),
-    runPulseIngest(env),
-    linkPulseSourceSignals(env),
+    pulseJobs(),
     dispatchDeadlineReminders(env, now),
     dispatchMorningDigests(env, now),
     env.EMAIL_QUEUE.send({ type: 'email.flush' }),

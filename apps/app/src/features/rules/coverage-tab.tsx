@@ -62,7 +62,7 @@ import {
   type CoverageEntityColumn,
 } from './rules-console-model'
 import { JurisdictionCode, QueryPanelState, SectionFrame } from './rules-console-primitives'
-import { RuleDetailCompact, hasConcreteDraftSourceEvidence } from './rule-detail-drawer'
+import { RuleDetailCompact } from './rule-detail-drawer'
 
 // Column order matches the canonical Coverage design — full names in
 // the sub-column header, no codes. "Partner." abbreviates Partnership
@@ -78,6 +78,7 @@ const ENTITY_DISPLAY: { col: CoverageEntityColumn; label: string; fullName: stri
 ]
 
 type RowFilter = 'all' | 'pending' | 'active'
+type RuleQueueMode = 'pending' | 'active'
 const ROW_FILTERS: readonly RowFilter[] = ['all', 'pending', 'active']
 // URL-state parsers — filter + search go into the URL so browser
 // back/forward, deep-linking, and shareable views all work. Both
@@ -106,6 +107,10 @@ function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): str
 
 function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
   return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+function queueModeForRule(rule: Pick<ObligationRule, 'status'>): RuleQueueMode {
+  return rule.status === 'active' || rule.status === 'verified' ? 'active' : 'pending'
 }
 
 type RuleConcreteDraftTarget = {
@@ -137,15 +142,7 @@ function concreteDraftTargetKey(input: {
   sourceId: string
   sourceSignalId?: string | null
 }): string {
-  return [input.ruleId, input.sourceId, input.sourceSignalId ?? ''].join(':')
-}
-
-function concreteDraftInputForTarget(target: RuleConcreteDraftTarget): RuleConcreteDraftTarget {
-  return {
-    ruleId: target.ruleId,
-    sourceId: target.sourceId,
-    ...(target.sourceSignalId ? { sourceSignalId: target.sourceSignalId } : {}),
-  }
+  return [input.ruleId, input.sourceId].join(':')
 }
 
 export function CoverageTab({
@@ -318,27 +315,6 @@ export function CoverageTab({
     if (!selectedRuleId) return null
     return (rulesQuery.data ?? []).find((rule) => rule.id === selectedRuleId) ?? null
   }, [selectedRuleId, rulesQuery.data])
-  const selectedConcreteDraftTarget = selectedRule ? concreteDraftTargetForRule(selectedRule) : null
-  const selectedConcreteDraftSource = selectedConcreteDraftTarget
-    ? sourceById.get(selectedConcreteDraftTarget.sourceId)
-    : undefined
-  const selectedConcreteDraftEnabled = Boolean(
-    selectedRule &&
-    selectedConcreteDraftTarget &&
-    hasConcreteDraftSourceEvidence(
-      selectedRule,
-      selectedConcreteDraftTarget.sourceId,
-      selectedConcreteDraftSource,
-    ),
-  )
-  const selectedConcreteDraftQuery = useQuery({
-    ...orpc.rules.draftConcreteRule.queryOptions({
-      input: selectedConcreteDraftTarget
-        ? concreteDraftInputForTarget(selectedConcreteDraftTarget)
-        : { ruleId: '', sourceId: '' },
-    }),
-    enabled: selectedConcreteDraftEnabled,
-  })
 
   const rowsData = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
   const filteredRows = useMemo(() => {
@@ -383,6 +359,42 @@ export function CoverageTab({
     }
     return out
   }, [filteredRows, pendingRulesByJurisdiction])
+  const activeQueue = useMemo<ObligationRule[]>(() => {
+    const out: ObligationRule[] = []
+    for (const row of rowsData) {
+      const rules = activeRulesByJurisdiction.get(row.jurisdiction) ?? []
+      out.push(...rules)
+    }
+    return out
+  }, [rowsData, activeRulesByJurisdiction])
+  const visibleActiveQueue = useMemo<ObligationRule[]>(() => {
+    const out: ObligationRule[] = []
+    for (const row of filteredRows) {
+      const rules = activeRulesByJurisdiction.get(row.jurisdiction) ?? []
+      out.push(...rules)
+    }
+    return out
+  }, [filteredRows, activeRulesByJurisdiction])
+  const queueMode = selectedRule ? queueModeForRule(selectedRule) : 'pending'
+  const visibleQueue = queueMode === 'active' ? visibleActiveQueue : visiblePendingQueue
+  const fullQueue = queueMode === 'active' ? activeQueue : pendingQueue
+  const selectedRuleVisibleInQueue =
+    selectedRuleId !== null && visibleQueue.some((rule) => rule.id === selectedRuleId)
+  const workspaceQueue =
+    selectedRuleId !== null && !selectedRuleVisibleInQueue ? fullQueue : visibleQueue
+  const pendingQueueRows =
+    queueMode === 'pending' && selectedRuleId !== null && !selectedRuleVisibleInQueue
+      ? rowsData
+      : filteredRows
+  const activeQueueRows =
+    queueMode === 'active' && selectedRuleId !== null && !selectedRuleVisibleInQueue
+      ? rowsData
+      : filteredRows
+  const switchQueueMode = (mode: RuleQueueMode) => {
+    if (mode === queueMode) return
+    const next = mode === 'active' ? activeQueue[0] : pendingQueue[0]
+    if (next) void setSelectedRuleId(next.id)
+  }
   const reviewTasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
   const openTaskByRuleVersion = useMemo(
     () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
@@ -405,36 +417,18 @@ export function CoverageTab({
     ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
     enabled: concreteDraftInputs.length > 0,
   })
-  const selectedConcreteDraftDataUpdatedAt = selectedConcreteDraftQuery.dataUpdatedAt
   const concreteDraftByTarget = useMemo(() => {
     const map = new Map<string, RuleConcreteDraftCacheEntry>()
     for (const entry of concreteDraftsQuery.data ?? []) {
       map.set(concreteDraftTargetKey(entry), entry)
     }
-    const shouldReadDraftQueryCache = selectedConcreteDraftDataUpdatedAt >= 0
-    if (shouldReadDraftQueryCache) {
-      for (const target of concreteDraftInputs) {
-        const draft = queryClient.getQueryData<RuleConcreteDraft>(
-          orpc.rules.draftConcreteRule.queryOptions({
-            input: concreteDraftInputForTarget(target),
-          }).queryKey,
-        )
-        if (!draft) continue
-        map.set(concreteDraftTargetKey(target), {
-          ruleId: target.ruleId,
-          sourceId: target.sourceId,
-          sourceSignalId: target.sourceSignalId ?? null,
-          draft,
-        })
-      }
-    }
     return map
-  }, [
-    concreteDraftInputs,
-    concreteDraftsQuery.data,
-    queryClient,
-    selectedConcreteDraftDataUpdatedAt,
-  ])
+  }, [concreteDraftsQuery.data])
+  const selectedConcreteDraft = useMemo(() => {
+    if (!selectedRule) return null
+    const target = concreteDraftTargetForRule(selectedRule)
+    return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
+  }, [concreteDraftByTarget, selectedRule])
   const selectedRows = useMemo(
     () =>
       visiblePendingQueue.filter(
@@ -519,29 +513,29 @@ export function CoverageTab({
   // the loading/error early-returns so the hook order stays stable
   // across renders (React Rules of Hooks).
   const goNext = () => {
-    if (pendingQueue.length === 0 || !selectedRuleId) return
-    const idx = pendingQueue.findIndex((r) => r.id === selectedRuleId)
+    if (workspaceQueue.length === 0 || !selectedRuleId) return
+    const idx = workspaceQueue.findIndex((r) => r.id === selectedRuleId)
     if (idx < 0) return
-    const next = pendingQueue[idx + 1] ?? pendingQueue[0]
+    const next = workspaceQueue[idx + 1] ?? workspaceQueue[0]
     if (next && next.id !== selectedRuleId) void setSelectedRuleId(next.id)
   }
   const goPrev = () => {
-    if (pendingQueue.length === 0 || !selectedRuleId) return
-    const idx = pendingQueue.findIndex((r) => r.id === selectedRuleId)
+    if (workspaceQueue.length === 0 || !selectedRuleId) return
+    const idx = workspaceQueue.findIndex((r) => r.id === selectedRuleId)
     if (idx < 0) return
-    const prev = pendingQueue[idx - 1] ?? pendingQueue[pendingQueue.length - 1]
+    const prev = workspaceQueue[idx - 1] ?? workspaceQueue[workspaceQueue.length - 1]
     if (prev && prev.id !== selectedRuleId) void setSelectedRuleId(prev.id)
   }
   const advanceAfterDecision = () => {
     if (!selectedRuleId) return
-    const remaining = pendingQueue.filter((r) => r.id !== selectedRuleId)
+    const remaining = workspaceQueue.filter((r) => r.id !== selectedRuleId)
     if (remaining.length === 0) {
       void setSelectedRuleId(null)
       return
     }
-    const idx = pendingQueue.findIndex((r) => r.id === selectedRuleId)
+    const idx = workspaceQueue.findIndex((r) => r.id === selectedRuleId)
     const next =
-      (idx >= 0 ? pendingQueue.slice(idx + 1).find((r) => r.id !== selectedRuleId) : null) ??
+      (idx >= 0 ? workspaceQueue.slice(idx + 1).find((r) => r.id !== selectedRuleId) : null) ??
       remaining[0]
     if (next) void setSelectedRuleId(next.id)
   }
@@ -771,42 +765,64 @@ export function CoverageTab({
               aria-label="Review workspace"
             >
               <div className="flex w-[320px] shrink-0 flex-col border-r border-divider-regular">
-                <PendingRuleQueue
-                  filteredRows={filteredRows}
-                  pendingRulesByJurisdiction={pendingRulesByJurisdiction}
-                  sourceById={sourceById}
-                  selectedRuleId={selectedRuleId}
-                  onSelectRule={selectRule}
-                  search={effectiveSearch}
-                  onSearchChange={setSearchValue}
-                  selectedRuleKeys={selectedRuleKeys}
-                  selectedCount={selectedRows.length}
-                  allVisibleSelected={allVisibleSelected}
-                  visibleSelectableCount={visibleSelectableRows.length}
-                  visibleSingleReviewCount={visibleSingleReviewCount}
-                  openTaskByRuleVersion={openTaskByRuleVersion}
-                  concreteDraftByTarget={concreteDraftByTarget}
-                  onRuleSelectionChange={toggleRuleSelection}
-                  onToggleVisibleSelection={toggleVisibleSelection}
-                  onReviewSelected={openBulkReview}
-                  onClearSelection={clearBulkSelection}
-                />
+                {queueMode === 'active' ? (
+                  <ActiveRuleQueue
+                    filteredRows={activeQueueRows}
+                    activeRulesByJurisdiction={activeRulesByJurisdiction}
+                    sourceById={sourceById}
+                    selectedRuleId={selectedRuleId}
+                    onSelectRule={selectRule}
+                    search={effectiveSearch}
+                    onSearchChange={setSearchValue}
+                    mode={queueMode}
+                    pendingCount={pendingQueue.length}
+                    activeCount={activeQueue.length}
+                    onModeChange={switchQueueMode}
+                  />
+                ) : (
+                  <PendingRuleQueue
+                    filteredRows={pendingQueueRows}
+                    pendingRulesByJurisdiction={pendingRulesByJurisdiction}
+                    sourceById={sourceById}
+                    selectedRuleId={selectedRuleId}
+                    onSelectRule={selectRule}
+                    search={effectiveSearch}
+                    onSearchChange={setSearchValue}
+                    mode={queueMode}
+                    pendingCount={pendingQueue.length}
+                    activeCount={activeQueue.length}
+                    onModeChange={switchQueueMode}
+                    selectedRuleKeys={selectedRuleKeys}
+                    selectedCount={selectedRows.length}
+                    allVisibleSelected={allVisibleSelected}
+                    visibleSelectableCount={visibleSelectableRows.length}
+                    visibleSingleReviewCount={visibleSingleReviewCount}
+                    openTaskByRuleVersion={openTaskByRuleVersion}
+                    concreteDraftByTarget={concreteDraftByTarget}
+                    onRuleSelectionChange={toggleRuleSelection}
+                    onToggleVisibleSelection={toggleVisibleSelection}
+                    onReviewSelected={openBulkReview}
+                    onClearSelection={clearBulkSelection}
+                  />
+                )}
               </div>
               {selectedRule ? (
                 <div className="flex flex-1 min-w-0 flex-col">
                   <RulePanel
                     rule={selectedRule}
+                    concreteDraft={selectedConcreteDraft}
                     onClose={() => void setSelectedRuleId(null)}
                     onActionComplete={advanceAfterDecision}
+                    mode={queueMode}
                     queuePosition={
-                      pendingQueue.length > 0
+                      workspaceQueue.length > 0
                         ? {
-                            index: pendingQueue.findIndex((r) => r.id === selectedRule.id),
-                            total: pendingQueue.length,
+                            index: workspaceQueue.findIndex((r) => r.id === selectedRule.id),
+                            total: workspaceQueue.length,
                           }
                         : null
                     }
-                    {...(pendingQueue.length > 1 ? { onSkip: goNext } : {})}
+                    {...(workspaceQueue.length > 1 ? { onSkip: goNext } : {})}
                   />
                 </div>
               ) : null}
@@ -1587,6 +1603,10 @@ function PendingRuleQueue({
   onSelectRule,
   search,
   onSearchChange,
+  mode,
+  pendingCount,
+  activeCount,
+  onModeChange,
   selectedRuleKeys,
   selectedCount,
   allVisibleSelected,
@@ -1606,6 +1626,10 @@ function PendingRuleQueue({
   onSelectRule: (ruleId: string) => void
   search: string
   onSearchChange: (value: string) => void
+  mode: RuleQueueMode
+  pendingCount: number
+  activeCount: number
+  onModeChange: (mode: RuleQueueMode) => void
   selectedRuleKeys: readonly string[]
   selectedCount: number
   allVisibleSelected: boolean
@@ -1637,6 +1661,12 @@ function PendingRuleQueue({
             <Trans>{totalPending} rules</Trans>
           </span>
         </div>
+        <RuleQueueModeToggle
+          mode={mode}
+          pendingCount={pendingCount}
+          activeCount={activeCount}
+          onModeChange={onModeChange}
+        />
         <SearchInput value={search} onChange={onSearchChange} fullWidth />
         <div className="flex items-center justify-between gap-2">
           {visibleSelectableCount > 0 ? (
@@ -1752,6 +1782,155 @@ function PendingRuleQueue({
         )}
       </div>
     </>
+  )
+}
+
+function ActiveRuleQueue({
+  filteredRows,
+  activeRulesByJurisdiction,
+  sourceById,
+  selectedRuleId,
+  onSelectRule,
+  search,
+  onSearchChange,
+  mode,
+  pendingCount,
+  activeCount,
+  onModeChange,
+}: {
+  filteredRows: readonly RuleCoverageRow[]
+  activeRulesByJurisdiction: ReadonlyMap<RuleJurisdiction, ObligationRule[]>
+  sourceById: ReadonlyMap<string, RuleSource>
+  selectedRuleId: string | null
+  onSelectRule: (ruleId: string) => void
+  search: string
+  onSearchChange: (value: string) => void
+  mode: RuleQueueMode
+  pendingCount: number
+  activeCount: number
+  onModeChange: (mode: RuleQueueMode) => void
+}) {
+  const jurisdictionsWithActive = filteredRows.filter(
+    (row) => (activeRulesByJurisdiction.get(row.jurisdiction) ?? []).length > 0,
+  )
+  const totalActive = jurisdictionsWithActive.reduce(
+    (sum, row) => sum + (activeRulesByJurisdiction.get(row.jurisdiction) ?? []).length,
+    0,
+  )
+  return (
+    <>
+      <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-[10px] font-medium tracking-[0.12em] text-text-tertiary uppercase">
+            <Trans>Active rule queue</Trans>
+          </p>
+          <span className="text-xs tabular-nums text-text-tertiary">
+            <Trans>{totalActive} rules</Trans>
+          </span>
+        </div>
+        <RuleQueueModeToggle
+          mode={mode}
+          pendingCount={pendingCount}
+          activeCount={activeCount}
+          onModeChange={onModeChange}
+        />
+        <SearchInput value={search} onChange={onSearchChange} fullWidth />
+        <p className="text-xs text-text-tertiary">
+          <Trans>Accepted practice rules for source and deadline review.</Trans>
+        </p>
+      </header>
+      <div className="flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {jurisdictionsWithActive.length === 0 ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>No active rules match this view.</Trans>
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {jurisdictionsWithActive.map((row) => {
+              const rules = activeRulesByJurisdiction.get(row.jurisdiction) ?? []
+              return (
+                <section key={row.jurisdiction} className="flex flex-col gap-1">
+                  <header className="flex items-center gap-2 pb-1">
+                    <JurisdictionCode code={row.jurisdiction} />
+                    <span className="truncate text-xs font-medium text-text-secondary">
+                      {jurisdictionLabel(row.jurisdiction)}
+                    </span>
+                    <span className="ml-auto text-xs tabular-nums text-text-tertiary">
+                      {rules.length}
+                    </span>
+                  </header>
+                  <ul className="flex flex-col">
+                    {rules.map((rule) => (
+                      <CoverageRuleItem
+                        key={rule.id}
+                        rule={rule}
+                        ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
+                        isSelected={selectedRuleId === rule.id}
+                        onSelect={() => onSelectRule(rule.id)}
+                      />
+                    ))}
+                  </ul>
+                </section>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+function RuleQueueModeToggle({
+  mode,
+  pendingCount,
+  activeCount,
+  onModeChange,
+}: {
+  mode: RuleQueueMode
+  pendingCount: number
+  activeCount: number
+  onModeChange: (mode: RuleQueueMode) => void
+}) {
+  const { t } = useLingui()
+  return (
+    <div
+      role="tablist"
+      aria-label={t`Rule queue`}
+      className="grid h-8 grid-cols-2 rounded-md bg-background-subtle p-0.5"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={mode === 'pending'}
+        disabled={pendingCount === 0}
+        onClick={() => onModeChange('pending')}
+        className={cn(
+          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+          mode === 'pending'
+            ? 'bg-background-default text-text-primary shadow-xs'
+            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
+        )}
+      >
+        <Trans>Pending</Trans>
+        <span className="font-mono text-[11px] text-text-tertiary">{pendingCount}</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={mode === 'active'}
+        disabled={activeCount === 0}
+        onClick={() => onModeChange('active')}
+        className={cn(
+          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+          mode === 'active'
+            ? 'bg-background-default text-text-primary shadow-xs'
+            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
+        )}
+      >
+        <Trans>Active</Trans>
+        <span className="font-mono text-[11px] text-text-tertiary">{activeCount}</span>
+      </button>
+    </div>
   )
 }
 
@@ -2095,12 +2274,16 @@ function BulkSectionLabel({ children }: { children: ReactNode }) {
  */
 function RulePanel({
   rule,
+  concreteDraft,
+  mode,
   onClose,
   onSkip,
   onActionComplete,
   queuePosition,
 }: {
   rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
+  mode: RuleQueueMode
   onClose: () => void
   onSkip?: () => void
   onActionComplete: () => void
@@ -2117,9 +2300,17 @@ function RulePanel({
             in one phrase. */}
           <p className="text-[10px] font-medium tracking-[0.12em] text-text-tertiary uppercase">
             {queuePosition && queuePosition.index >= 0 ? (
-              <Trans>
-                Reviewing {queuePosition.index + 1} of {queuePosition.total}
-              </Trans>
+              mode === 'active' ? (
+                <Trans>
+                  Viewing {queuePosition.index + 1} of {queuePosition.total}
+                </Trans>
+              ) : (
+                <Trans>
+                  Reviewing {queuePosition.index + 1} of {queuePosition.total}
+                </Trans>
+              )
+            ) : mode === 'active' ? (
+              <Trans>Viewing rule</Trans>
             ) : (
               <Trans>Reviewing rule</Trans>
             )}
@@ -2129,11 +2320,15 @@ function RulePanel({
               <button
                 type="button"
                 onClick={onSkip}
-                aria-label={t`Skip — review next pending rule (j)`}
-                title={t`Skip · j`}
+                aria-label={
+                  mode === 'active'
+                    ? t`Next active rule (j)`
+                    : t`Skip — review next pending rule (j)`
+                }
+                title={mode === 'active' ? t`Next · j` : t`Skip · j`}
                 className="inline-flex h-7 shrink-0 items-center gap-1 rounded px-2 text-xs font-medium text-text-secondary outline-none hover:bg-background-subtle hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
-                <Trans>Skip</Trans>
+                {mode === 'active' ? <Trans>Next</Trans> : <Trans>Skip</Trans>}
                 <ChevronRightIcon aria-hidden className="size-3.5" />
               </button>
             ) : null}
@@ -2172,7 +2367,11 @@ function RulePanel({
         key={rule.id}
         className="flex-1 overflow-y-auto px-4 py-3 animate-in fade-in duration-150 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <RuleDetailCompact rule={rule} onActionComplete={onActionComplete} />
+        <RuleDetailCompact
+          rule={rule}
+          concreteDraft={concreteDraft}
+          onActionComplete={onActionComplete}
+        />
       </div>
     </>
   )

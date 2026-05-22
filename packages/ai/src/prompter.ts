@@ -46,6 +46,16 @@ Retention: Do not retain any data seen for training.
 PII handling: field names and 5-row sample only — no placeholders used.
 `
 
+const MAPPER_V2 = MAPPER_V1.replace('prompt_version: mapper@v1', 'prompt_version: mapper@v2')
+  .replace(
+    'Never invent target fields not listed above.',
+    'Never invent target fields not listed in the output schema.',
+  )
+  .replace(
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.',
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.\n- Do not map SSN, ITIN, or masked taxpayer ID values.',
+  )
+
 const NORMALIZER_ENTITY_V1 = `prompt_version: normalizer-entity@v1
 model_tier: fast-json
 temperature: 0
@@ -369,6 +379,27 @@ Retention: Do not retain any data seen for training.
 PII handling: public official source text only.
 `
 
+const RULE_CONCRETE_DRAFT_V2 = `${RULE_CONCRETE_DRAFT_V1.replace(
+  'prompt_version: rule-concrete-draft@v1',
+  'prompt_version: rule-concrete-draft@v2',
+)}
+Additional v2 rules:
+- Return only the contract shape above. Do not rename dueDateLogic, dueDate,
+  sourceExcerpt, sourceHeading, extensionPolicy, or quality fields.
+- Never return null inside dueDateLogic.periods. If a row lacks a supported
+  due date, omit that row and mention the caveat in reasoning.
+- If the source uses month/day dates without a year, fill the year from
+  rule.applicableYear. If the source gives a tax-year-relative due date, use
+  nth_day_after_tax_year_begin or nth_day_after_tax_year_end exactly.
+- Use period_table for multiple due dates. Use fixed_date for a single
+  calendar date. Do not invent custom kinds such as installment_schedule,
+  annual_due_date, return_due_date, or payment_due_date.
+- extensionPolicy.durationMonths must be omitted unless the source explicitly
+  states a positive extension duration. Do not output durationMonths: 0.
+- sourceExcerpt must include the concrete date or relative timing phrase that
+  supports the dueDateLogic. Prefer table rows or adjacent source lines.
+`
+
 const READINESS_CHECKLIST_V1 = `prompt_version: readiness-checklist@v1
 model_tier: fast-json
 temperature: 0
@@ -401,6 +432,44 @@ Retention: Do not retain any data seen for training.
 PII handling: minimal non-PII obligation metadata only.
 `
 
+const RULE_REGISTRY_RECONCILE_V1 = `prompt_version: rule-registry-reconcile@v1
+model_tier: quality-json
+temperature: 0
+response_format: json_object
+route: via Vercel AI SDK Core + Cloudflare AI Gateway
+
+You review public US tax deadline source changes for DueDateHQ's product-owned rule registry.
+Given a registered source, relevant existing rules, and the latest source text,
+classify whether the source change requires a product developer to update the
+rule pack. Output strict JSON only.
+
+Return:
+{
+  "classification": "no_rule_change" | "existing_rule_update" | "new_rule",
+  "affectedRuleIds": ["<existing rule id>"],
+  "proposedRuleIds": ["<new rule id suggestion>"],
+  "diffSummary": "<developer-facing summary, <= 120 words>",
+  "normalizedRuleJson": { "<optional draft rule fields or patch notes>": "..." },
+  "confidence": 0.0-1.0,
+  "reasoning": "<one paragraph, <= 80 words>"
+}
+
+Rules:
+- Use no_rule_change when the source only changes navigation, formatting,
+  generic instructions, contact details, or freshness dates.
+- Use existing_rule_update only when due date logic, applicability, filing/payment
+  distinction, extension policy, source mapping, or review caveats likely changed.
+- Use new_rule only when the source introduces a materially new obligation,
+  form, schedule, payment, election, or deadline not represented by existing rules.
+- Do not claim customer-facing behavior changes; product developers must review
+  and update the rule pack manually.
+- Do not invent official dates that are not present in sourceText.
+- Keep normalizedRuleJson compact; include only fields useful for a developer.
+
+Retention: Do not retain any data seen for training.
+PII handling: public official source text and product rule metadata only.
+`
+
 export interface PromptDefinition {
   name: string
   text: string
@@ -412,6 +481,7 @@ export interface PromptDefinition {
 
 const prompts = {
   'mapper@v1': MAPPER_V1,
+  'mapper@v2': MAPPER_V2,
   'normalizer-entity@v1': NORMALIZER_ENTITY_V1,
   'normalizer-tax-types@v1': NORMALIZER_TAX_TYPES_V1,
   'brief@v1': BRIEF_V1,
@@ -419,6 +489,8 @@ const prompts = {
   'deadline-tip@v1': DEADLINE_TIP_V1,
   'pulse-extract@v1': PULSE_EXTRACT_V1,
   'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
+  'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
+  'rule-registry-reconcile@v1': RULE_REGISTRY_RECONCILE_V1,
   'readiness-checklist@v1': READINESS_CHECKLIST_V1,
 } as const
 

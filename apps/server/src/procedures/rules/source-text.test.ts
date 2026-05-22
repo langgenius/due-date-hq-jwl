@@ -94,4 +94,39 @@ describe('rule source text extraction', () => {
     )
     expect(text).toContain('S-Corporation Due annually on March 15 for calendar year taxpayers.')
   })
+
+  it('normalizes Alabama business privilege tax ordinal rows', () => {
+    const html = `
+      <html>
+        <body>
+          <main>
+            <h1>Income Tax Due Dates</h1>
+            <table>
+              <tbody>
+                <tr>
+                  <td>Business Privilege Tax</td>
+                  <td>C-Corporation</td>
+                  <td>Due no later than 15^{th} day of the 4^{th} month after the beginning of a taxpayer's taxable year.</td>
+                </tr>
+                <tr>
+                  <td>Business Privilege Tax</td>
+                  <td>S-Corporation</td>
+                  <td>Due no later than 15 <sup>th</sup> day of the 3 <sup>rd</sup> month after the beginning of a taxpayer's taxable year.</td>
+                </tr>
+              </tbody>
+            </table>
+          </main>
+        </body>
+      </html>
+    `
+
+    const text = extractOfficialSourceText(html)
+
+    expect(text).toContain(
+      "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+    )
+    expect(text).toContain(
+      "Business Privilege Tax S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+    )
+  })
 })

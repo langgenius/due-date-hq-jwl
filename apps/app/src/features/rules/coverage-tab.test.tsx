@@ -10,7 +10,6 @@ import type {
   RuleConcreteDraft,
   RuleCoverageRow,
   RuleReviewTask,
-  RuleSource,
 } from '@duedatehq/contracts'
 
 import {
@@ -326,27 +325,6 @@ function concreteDraft(overrides: Partial<RuleConcreteDraft> = {}): RuleConcrete
   }
 }
 
-function ruleSource(overrides: Partial<RuleSource> = {}): RuleSource {
-  return {
-    id: 'fed.source.2026',
-    jurisdiction: 'FED',
-    title: 'Federal due dates',
-    url: 'https://www.irs.gov/due-dates',
-    sourceType: 'calendar',
-    acquisitionMethod: 'html_watch',
-    cadence: 'daily',
-    priority: 'high',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    domains: ['individual_income_return'],
-    entityApplicability: ['individual'],
-    authorityRole: 'basis',
-    notificationChannels: ['practice_rule_review'],
-    lastReviewedOn: '2026-01-01',
-    ...overrides,
-  }
-}
-
 const keyboardShellTestValue: KeyboardShellContextValue = {
   commandPaletteOpen: false,
   shortcutHelpOpen: false,
@@ -357,11 +335,22 @@ const keyboardShellTestValue: KeyboardShellContextValue = {
   closeShortcutHelp: () => undefined,
 }
 
-async function render(children: ReactNode) {
+async function render(
+  children: ReactNode,
+  options: { queryRetry?: false | number; retryDelay?: number } = {},
+) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryDefaults =
+    options.retryDelay === undefined
+      ? { retry: options.queryRetry ?? false }
+      : { retry: options.queryRetry ?? false, retryDelay: options.retryDelay }
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: queryDefaults,
+    },
+  })
 
   await act(async () => {
     root?.render(
@@ -575,6 +564,135 @@ describe('CoverageTab canonical layout', () => {
     await waitForText('pending individual return')
   })
 
+  it('shows the active rule queue when an active rule detail is open', async () => {
+    const federalActiveRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const californiaActiveRule = obligationRule({
+      id: 'ca.active.business.2026',
+      title: 'California active business return',
+      status: 'active',
+    })
+    const californiaPendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = federalActiveRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      federalActiveRule,
+      californiaActiveRule,
+      californiaPendingRule,
+    ])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(californiaPendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+    await waitForText('Viewing 1 of 2')
+
+    expect(document.body.textContent).not.toContain('Pending review queue')
+    expect(document.body.textContent).not.toContain('Select batch-ready')
+    expect(document.body.textContent).not.toContain('Review selected')
+    await waitForText('active individual return')
+    await waitForText('active business return')
+    expect(document.body.textContent).not.toContain('pending individual return')
+  })
+
+  it('moves to the next active rule from the active queue', async () => {
+    const federalActiveRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const californiaActiveRule = obligationRule({
+      id: 'ca.active.business.2026',
+      title: 'California active business return',
+      status: 'active',
+    })
+    nuqsMocks.rule = federalActiveRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([federalActiveRule, californiaActiveRule])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+
+    const nextButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Next'),
+    )
+    expect(nextButton).toBeDefined()
+
+    await act(async () => {
+      nextButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(californiaActiveRule.id)
+  })
+
+  it('switches from active to pending queue with the queue toggle', async () => {
+    const activeRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const pendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = activeRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule, pendingRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(pendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+
+    const pendingTab = Array.from(document.querySelectorAll('button[role="tab"]')).find((button) =>
+      button.textContent?.includes('Pending'),
+    )
+    expect(pendingTab).toBeDefined()
+
+    await act(async () => {
+      pendingTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(pendingRule.id)
+  })
+
+  it('switches from pending to active queue with the queue toggle', async () => {
+    const activeRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const pendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = pendingRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule, pendingRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(pendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Pending review queue')
+
+    const activeTab = Array.from(document.querySelectorAll('button[role="tab"]')).find((button) =>
+      button.textContent?.includes('Active'),
+    )
+    expect(activeTab).toBeDefined()
+
+    await act(async () => {
+      activeTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(activeRule.id)
+  })
+
   it('selects visible bulk-reviewable pending rules from the review queue', async () => {
     const selectableRule = obligationRule({
       id: 'ca.pending.individual.2026',
@@ -742,7 +860,7 @@ describe('CoverageTab canonical layout', () => {
       {
         ruleId: sourceDefinedRule.id,
         sourceId: 'fed.source.2026',
-        sourceSignalId: null,
+        sourceSignalId: 'source_signal_1',
         draft,
       },
     ])
@@ -791,14 +909,16 @@ describe('CoverageTab canonical layout', () => {
         {
           ruleId: sourceDefinedRule.id,
           sourceId: 'fed.source.2026',
+          sourceSignalId: 'source_signal_1',
           aiOutputId: draft.aiOutputId,
         },
       ],
       reviewNote: 'Reviewed cached AI draft.',
     })
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
   })
 
-  it('allows the currently generated AI draft to enter bulk review before the cache list refetches', async () => {
+  it('does not auto-generate a draft when a source-defined rule is opened', async () => {
     const sourceDefinedRule = obligationRule({
       id: 'fed.pending.source-defined.2026',
       title: 'Federal source-defined calendar',
@@ -811,83 +931,47 @@ describe('CoverageTab canonical layout', () => {
         holidayRollover: 'source_adjusted',
       },
     })
-    const otherRule = obligationRule({
-      id: 'ca.pending.individual.2026',
-      title: 'California pending individual return',
-      status: 'pending_review',
-    })
-    const draft = concreteDraft()
     nuqsMocks.rule = sourceDefinedRule.id
-    rpcMocks.listSourcesQueryFn.mockResolvedValue([ruleSource()])
-    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule, otherRule])
-    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([
-      reviewTask(sourceDefinedRule),
-      reviewTask(otherRule),
-    ])
+    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(sourceDefinedRule)])
     rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
-    rpcMocks.draftConcreteRuleQueryFn.mockResolvedValue(draft)
 
     await render(<CoverageTab />)
     await waitForText('AI concrete draft')
-    await waitForText('AI draft ready')
+    await waitForText('AI concrete draft is not ready.')
+    await waitForText('AI draft needed')
 
     const draftCheckbox = document.querySelector<HTMLInputElement>(
       'input[aria-label="Select AI draft rule Federal source-defined calendar"]',
     )
-    expect(draftCheckbox).not.toBeNull()
+    expect(draftCheckbox).toBeNull()
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
+  })
 
-    const otherRuleButton = document.querySelector<HTMLButtonElement>(
-      `button[title="${otherRule.title}"]`,
-    )
-    expect(otherRuleButton).not.toBeNull()
+  it('does not surface draft generation failures in the customer-facing path', async () => {
+    const sourceDefinedRule = obligationRule({
+      id: 'fed.pending.source-defined.2026',
+      title: 'Federal source-defined calendar',
+      jurisdiction: 'FED',
+      status: 'pending_review',
+      sourceIds: ['fed.source.2026'],
+      dueDateLogic: {
+        kind: 'source_defined_calendar',
+        description: 'Official source publishes the annual calendar.',
+        holidayRollover: 'source_adjusted',
+      },
+    })
+    nuqsMocks.rule = sourceDefinedRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(sourceDefinedRule)])
+    rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
 
+    await render(<CoverageTab />, { queryRetry: 2, retryDelay: 1 })
+    await waitForText('AI concrete draft is not ready.')
     await act(async () => {
-      otherRuleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    const persistentDraftCheckbox = document.querySelector<HTMLInputElement>(
-      'input[aria-label="Select AI draft rule Federal source-defined calendar"]',
-    )
-    expect(persistentDraftCheckbox).not.toBeNull()
-
-    await act(async () => {
-      persistentDraftCheckbox?.click()
-    })
-    await waitForText('1 selected')
-
-    const reviewSelected = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Review selected'),
-    )
-    await act(async () => {
-      reviewSelected?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    await waitForText('AI CONCRETE DRAFTS')
-
-    const textarea = document.querySelector<HTMLTextAreaElement>('textarea')
-    await act(async () => {
-      if (!textarea) return
-      setTextareaValue(textarea, 'Reviewed current AI draft.')
-      textarea.dispatchEvent(new Event('input', { bubbles: true }))
-      textarea.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-    const acceptSelected = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Accept selected'),
-    )
-    await act(async () => {
-      acceptSelected?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      await new Promise((resolve) => setTimeout(resolve, 20))
     })
 
-    expect(rpcMocks.bulkVerifyCandidatesMutationFn.mock.calls[0]?.[0]).toEqual({
-      rules: [
-        {
-          ruleId: sourceDefinedRule.id,
-          sourceId: 'fed.source.2026',
-          aiOutputId: draft.aiOutputId,
-        },
-      ],
-      reviewNote: 'Reviewed current AI draft.',
-    })
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
   })
 })

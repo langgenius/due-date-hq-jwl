@@ -181,11 +181,10 @@ Needs review · Active · All · Rejected · Archived · Applicability review ·
 
 - 默认进入 `Needs review`，即 pending/open-task rules。
 - Batch-ready pending/open-task 行显示 checkbox；选择后只在表格上方出现轻量 selection bar。
-- Source-defined 行在没有 AI concrete draft 时不显示 checkbox，只显示
-  `AI draft needed` 并要求进入单条 Rule Detail 生成/审核 draft；已有 cached AI
-  concrete draft，或当前 Rule Detail 已生成 AI concrete draft 的 source-defined 行显示
-  checkbox，可进入 Bulk Review drawer；该 checkbox 在当前页面会话内常驻，不因切换到其他
-  rule 而消失。
+- Source-defined 行在没有全局 cached AI concrete draft 时不显示 checkbox，只显示
+  `AI draft needed` 并保留单条 Rule Detail 审核路径；已有 cached AI concrete draft 的
+  source-defined 行立即显示 checkbox，可进入 Bulk Review drawer。打开 Rule Detail 不触发
+  `draftConcreteRule` 自动生成。
 - `Review selected` 打开 Bulk Review drawer；drawer 内集中展示 selected rules、
   preview summary、batch review note 和 `Accept selected`，并在 drawer 内执行 preview。
 - 如果 practice 已有 active v1，而全局 template 已升级到 v2，Rules 表必须同时显示
@@ -238,7 +237,7 @@ selected pending templates
   -> active practice rules
 ```
 
-批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept/Reject。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review，应 reject 或进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。后端只信任 selected IDs + expected template versions，单次最多 100 条，冲突项跳过并返回 skipped list。
+批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept/Reject。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review，应 reject 或进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。source-defined 批量确认只接受 `rules.listConcreteDrafts` 返回的全局 AI draft `aiOutputId`，并保留 current-firm legacy draft fallback。后端只信任 selected IDs + expected template versions / AI output IDs，单次最多 100 条，冲突项跳过并返回 skipped list。
 
 ## 7. Rule table ledger
 
@@ -416,6 +415,7 @@ AI Tip 只能使用 active practice rule 和 source summary：
 
 | 版本 | 日期       | 作者  | 摘要                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v2.0 | 2026-05-22 | Codex | Source-defined AI concrete draft 改为全局 prewarm/cache：正常 Rule Detail 打开不再调用 `draftConcreteRule`，pending queue 只用 `rules.listConcreteDrafts` 判定 checkbox，bulk verify 接受全局 `ai_output` 并保留 legacy firm fallback；`source_changed` 继续强制单条 review。                                                                                                                                                                                                                                                                                 |
 | v1.9 | 2026-05-21 | Codex | Pending review queue 不再为无法批量处理的行渲染 disabled checkbox；source-defined 行若已有 cached AI concrete draft，或当前 Rule Detail 已生成 AI concrete draft，可显示常驻 checkbox 并进入 Bulk Review drawer，drawer 展示 draft 字段，后端在 bulk verify 前重新校验 draft。                                                                                                                                                                                                                                                                                |
 | v1.8 | 2026-05-20 | Codex | Source-defined candidate 的 `Accept rule` 改为接受 AI 生成、用户审阅过的 concrete draft；`acceptTemplate` / bulk accept 拒绝 `source_defined_calendar` placeholder，bulk UI 标出需要单条 AI review。Coverage matrix 不再使用前端静态映射，直接渲染后端按 active concrete rule / pending candidate 计算的 `entityCoverage`，source-defined rule 在 concrete draft 被 CPA accept 前保持 pending review。                                                                                                                                                        |
 | v1.7 | 2026-05-05 | Codex | 单条 Rule Detail review 与 bulk review 收敛为同一语义：默认只读审阅当前规则与证据，`Accept rule` 调用 `acceptTemplate` 原样激活，不再在 practice review 默认路径中编辑 due-date logic、extension、tier 或 applicability。                                                                                                                                                                                                                                                                                                                                     |

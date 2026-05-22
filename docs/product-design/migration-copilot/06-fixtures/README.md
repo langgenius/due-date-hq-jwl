@@ -18,11 +18,17 @@
 | [`./karbon-full-flow-demo.csv`](./karbon-full-flow-demo.csv)                           | 26                 | 12   | Karbon 现场演示 · Karbon 字段 + practice custom fields · 覆盖 mapping / normalize / rules | ≥ 85% fallback/manual   | 24/25 valid EIN rows     | 3          |
 | [`./quickbooks-20clients.csv`](./quickbooks-20clients.csv)                             | 20                 | 4    | QuickBooks 仅元数据 · state 全称需归一                                                    | ≥ 80%                   | 95%                      | 2          |
 | [`./file-in-time-30clients.csv`](./file-in-time-30clients.csv)                         | 30                 | 9    | File In Time 独有列（service / due date / status / staff / county）· 期望 preset 自动识别 | ≥ 90%                   | N/A（无 EIN 列）         | 0          |
+| [`./cch-axcess-2clients.csv`](./cch-axcess-2clients.csv)                               | 2                  | 17   | CCH Axcess Client Manager / Return Manager grid CSV · 客户编号、地址、负责人              | ≥ 85% fallback          | 100%                     | 0          |
+| [`./cch-prosystem-fx-2clients.csv`](./cch-prosystem-fx-2clients.csv)                   | 2                  | 16   | CCH ProSystem fx Portal client list CSV · partner / manager / preparer 字段               | ≥ 85% fallback          | 100%                     | 0          |
+| [`./lacerte-2clients.csv`](./lacerte-2clients.csv)                                     | 2                  | 13   | Lacerte comma-delimited client export · SSN/EIN 列经 PII guard 强制 IGNORE                | ≥ 85% fallback          | PII guard                | 0          |
+| [`./proseries-2clients.csv`](./proseries-2clients.csv)                                 | 2                  | 14   | ProSeries HomeBase Contacts.csv · source status / phone / address 字段                    | ≥ 85% fallback          | PII guard                | 0          |
+| [`./ultratax-cs-2clients.csv`](./ultratax-cs-2clients.csv)                             | 2                  | 12   | UltraTax CS Client Listing Report CSV · source status / preparer 字段                     | ≥ 85% fallback          | PII guard                | 0          |
+| [`./proconnect-tax-2clients.csv`](./proconnect-tax-2clients.csv)                       | 2                  | 12   | ProConnect Tax report export · return type / taxes owed / preparer 字段                   | ≥ 85% fallback          | N/A（无 EIN 列）         | 0          |
 | [`./messy-excel-agent-demo.csv`](./messy-excel-agent-demo.csv)                         | 52                 | 11   | Agent Demo 现场演出 · entity 多种写法 / state 混用 / EIN 含空格 / 缺列 / 多余列           | 70 – 85%（故意低）      | 85 – 95%（故意部分失败） | ≥ 8        |
 | [`./taxdome-exposure-3clients.csv`](./taxdome-exposure-3clients.csv)                   | 3                  | 9    | TaxDome exposure 专用 · 含 Estimated Tax Due / Owner Count，验证 penalty preview 可计算   | ≥ 85% fallback          | 100%                     | 0          |
 | [`./integration-provider-json-samples.json`](./integration-provider-json-samples.json) | 8 provider records | JSON | JSON handoff 手工测试 · API/Zapier/转换后 report records                                  | N/A                     | 100%                     | 0          |
 
-**总 Preset fixture 行数 = 133** · **Agent demo 行数 = 52** · **Preset 列数合计 = 44**
+**总 Preset fixture 行数 = 145** · **Agent demo 行数 = 52** · **Preset 列数合计 = 128**
 
 `karbon-full-flow-demo.csv` 是额外 live-demo fixture，不计入原始 Preset fixture 总数；它用于从空
 practice 现场演示 Karbon 导入后的规则激活、Default Matrix、normalization、skipped row、客户事实、
@@ -116,7 +122,7 @@ obligations、dashboard exposure 和 evidence review。
   - **Entity 多种写法**：`LLC` / `L.L.C.` / `Ltd Liability Co` / `Limited Liability Company` / `Corp (S)` / `S-Corp` / `S Corporation` / `S-Corporation` / `C-Corp` / `Corp` / `Inc` / `Inc.` / `PC` / `LP` / `Partnership` / `General Partnership` / `Sole Prop` / `Sched C` / `Schedule C Filer` / `Individual` / `Personal` / `Trust` / `Irrevocable Trust` / `Non-profit`
   - **State 混用**：`CA` / `California` / `Calif` / `C.A.` / `NY` / `New York` / `N.Y.` / `TX` / `Texas` / `FL` / `Florida` / `WA` / `Washington`
   - **EIN 含空格 / 点 / 无分隔符**：`99 0000 503` / `99.0000504` / `990000506`（共 6 条非标 + 1 条缺失 + 45 条标准）
-  - **Industry 多余列**：不在 DueDateHQ 9 字段 schema → 期望 Mapper 标 `IGNORE`
+  - **Industry 多余列**：不在 DueDateHQ client / penalty target schema → 期望 Mapper 标 `IGNORE`
   - **Year Revenue 多余列**：同上 → 期望 `IGNORE`（将来映射到 `estimated_annual_revenue_band`，Phase 0 起；本 Sprint 不用）
   - **非 CA/NY 示例辖区 8 行**：触发 Default Matrix fallback（state review-only + needs_review）
   - **Non-profit 1 行**：`Org Type=Non-profit` → Normalizer 归一到 `other` + needs_review

@@ -209,6 +209,12 @@ export interface CommitClientInput {
   taxYearType?: 'calendar' | 'fiscal'
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
+  externalClientId?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  postalCode?: string | null
+  primaryPhone?: string | null
+  sourceStatus?: string | null
   email?: string | null
   primaryContactName?: string | null
   primaryContactEmail?: string | null

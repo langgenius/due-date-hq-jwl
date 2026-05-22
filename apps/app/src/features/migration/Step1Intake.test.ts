@@ -92,6 +92,66 @@ describe('client export file intake adapters', () => {
       code: 'file_in_time_backup',
       fileName: 'file-in-time.fbk',
     })
+    expect(unsupportedUploadForFileName('2025.Return.rtnbak')).toEqual({
+      code: 'cch_axcess_backup',
+      fileName: '2025.Return.rtnbak',
+    })
+    expect(unsupportedUploadForFileName('client.dbf')).toEqual({
+      code: 'lacerte_data_file',
+      fileName: 'client.dbf',
+    })
+    expect(unsupportedUploadForFileName('sample.24i')).toEqual({
+      code: 'proseries_return_file',
+      fileName: 'sample.24i',
+    })
+    expect(unsupportedUploadForFileName('client.csd')).toEqual({
+      code: 'ultratax_client_data',
+      fileName: 'client.csd',
+    })
+  })
+
+  it.each([
+    [
+      'cch-axcess.csv',
+      'Client ID,Client Sub-ID,Name Line 1,Federal ID,State\n100,00,Acme LLC,12-3456789,CA\n',
+      'cch_axcess',
+      'cch_axcess',
+    ],
+    [
+      'PortalSaaSClient.csv',
+      'Client ID,Partner,Manager,Preparer,Name Line 1\n100,Pat,Mia,Chris,Acme LLC\n',
+      'cch_prosystem_fx',
+      'cch_prosystem_fx',
+    ],
+    [
+      'lacerte-export.csv',
+      'Client Number,Client Name,Taxpayer E-mail Address,State\n100,Acme LLC,a@example.com,CA\n',
+      'lacerte',
+      'lacerte',
+    ],
+    [
+      'Contacts.csv',
+      'Client Name,Client Status,Client Street and Apt Address,Client State\nAcme,Active,1 Main,CA\n',
+      'proseries',
+      'proseries',
+    ],
+    [
+      'ultratax.csv',
+      'Client ID,Client Name,Entity,SSN/EIN,Preparer,Status\n100,Acme,1065,12-3456789,Pat,Ready\n',
+      'ultratax_cs',
+      'ultratax_cs',
+    ],
+    [
+      'proconnect.csv',
+      'Taxpayer name,Taxpayer email address,Taxpayer phone number,Return type\nAcme,a@example.com,555-0100,1120S\n',
+      'proconnect_tax',
+      'proconnect_tax',
+    ],
+  ])('detects %s as %s', async (fileName, text, product, preset) => {
+    const prepared = await prepareUploadFile(new File([text], fileName, { type: 'text/csv' }))
+
+    expect(prepared.suggestedPreset).toBe(preset)
+    expect(prepared.sourceManifest.product).toBe(product)
   })
 
   it('converts QuickBooks Desktop IIF customers into tabular upload text', async () => {

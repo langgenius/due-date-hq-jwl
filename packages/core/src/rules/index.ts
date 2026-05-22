@@ -4434,6 +4434,16 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
   },
 ] as const satisfies readonly StateCandidateRuleDomain[]
 
+const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
+  Record<`${RuleJurisdiction}:${StateCandidateRuleSlug}`, string>
+> = {
+  'AL:franchise_or_entity_tax': [
+    "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+    "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+    "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+  ].join('\n'),
+}
+
 interface SourceCoverageNotApplicableCell {
   jurisdiction: RuleGenerationState
   domain: StateCandidateRuleSlug
@@ -5275,6 +5285,9 @@ function buildStateCandidateRule(
   if (entityApplicability.length === 0) return null
   const sourceId = sourceIdForStateCandidateRule(seed, domain)
   if (!sourceId) return null
+  const sourceExcerpt =
+    STATE_CANDIDATE_SOURCE_EXCERPTS[`${seed.jurisdiction}:${domain.slug}`] ??
+    `${seed.name} official source registered for ${domain.title}; templates require practice owner or manager acceptance before customer reminders.`
 
   return {
     id: `${seed.jurisdiction.toLowerCase()}.${domain.slug}.candidate.2026`,
@@ -5307,7 +5320,7 @@ function buildStateCandidateRule(
     evidence: [
       sourceEvidence(sourceId, domain.formName, domain.reviewReason, {
         authorityRole: 'watch',
-        sourceExcerpt: `${seed.name} official source registered for ${domain.title}; templates require practice owner or manager acceptance before customer reminders.`,
+        sourceExcerpt,
       }),
     ],
     defaultTip: domain.reviewReason,

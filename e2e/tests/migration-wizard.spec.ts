@@ -118,8 +118,10 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
-  await expect(authenticatedPage.getByText('Exposure preview')).toBeVisible()
   await expect(authenticatedPage.getByText(/\d+ obligations \(full tax year\)/)).toBeVisible()
+  await expect(authenticatedPage.getByRole('status')).toContainText(
+    'Ready to generate your deadline list',
+  )
 
   await migrationWizardPage.importAndGenerate()
 

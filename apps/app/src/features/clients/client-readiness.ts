@@ -150,6 +150,12 @@ export function getClientSearchHaystack(client: ClientPublic): string {
     client.ein,
     client.state,
     client.county,
+    client.externalClientId,
+    client.addressLine1,
+    client.city,
+    client.postalCode,
+    client.primaryPhone,
+    client.sourceStatus,
     ...client.filingProfiles.flatMap((profile) => [
       profile.state,
       ...profile.counties,

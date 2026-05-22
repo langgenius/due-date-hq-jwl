@@ -523,6 +523,10 @@ msgstr "{selectionCount, plural, one {Apply to # obligation} other {Apply to # o
 msgid "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "{totalActive} rules"
+msgstr "{totalActive} rules"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open obligation} other {View # open obligations}}"
 msgstr "{totalOpen, plural, one {View # open obligation} other {View # open obligations}}"
@@ -712,6 +716,10 @@ msgstr "Accepted AI concrete draft from rule detail review."
 msgid "Accepted as shown from rule detail review."
 msgstr "Accepted as shown from rule detail review."
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Accepted practice rules for source and deadline review."
+msgstr "Accepted practice rules for source and deadline review."
+
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
@@ -813,6 +821,10 @@ msgid "Active rule"
 msgstr "Active rule"
 
 #: src/features/rules/coverage-tab.tsx
+msgid "Active rule queue"
+msgstr "Active rule queue"
+
+#: src/features/rules/coverage-tab.tsx
 msgid "Active rules"
 msgstr "Active rules"
 
@@ -887,6 +899,11 @@ msgstr "Add practice"
 msgid "Added evidence to this deadline."
 msgstr "Added evidence to this deadline."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Address line 1"
+msgstr "Address line 1"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -923,10 +940,6 @@ msgstr "AI {percent}%"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft"
 msgstr "AI concrete draft"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "AI concrete draft could not be generated."
-msgstr "AI concrete draft could not be generated."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
@@ -1723,6 +1736,11 @@ msgstr "Choose one option in each row. Export writes an audit event."
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "Choose Solo, Pro, or Team to start the hosted checkout flow."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "City"
+msgstr "City"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
@@ -3328,6 +3346,11 @@ msgid "Extension source"
 msgstr "Extension source"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "External client ID"
+msgstr "External client ID"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Fact readiness"
 msgstr "Fact readiness"
 
@@ -3779,6 +3802,10 @@ msgstr "Import normalization confirmed"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Import reverted"
 msgstr "Import reverted"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Import source"
+msgstr "Import source"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Import source type"
@@ -4676,13 +4703,22 @@ msgid "next"
 msgstr "next"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Next"
 msgstr "Next"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Next · j"
+msgstr "Next · j"
+
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Next 30 days"
 msgstr "Next 30 days"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Next active rule (j)"
+msgstr "Next active rule (j)"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
@@ -4723,6 +4759,10 @@ msgstr "No active practice is selected."
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "No active rules for this jurisdiction."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No active rules match this view."
+msgstr "No active rules match this view."
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
@@ -6219,6 +6259,11 @@ msgstr "Primary counties"
 msgid "Primary navigation"
 msgstr "Primary navigation"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary phone"
+msgstr "Primary phone"
+
 #: src/routes/billing.tsx
 msgid "Priority onboarding and audit exports"
 msgstr "Priority onboarding and audit exports"
@@ -7098,6 +7143,10 @@ msgstr "Rule not found"
 msgid "Rule notes"
 msgstr "Rule notes"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Rule queue"
+msgstr "Rule queue"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
@@ -7893,6 +7942,11 @@ msgstr "Source revoked"
 msgid "Source signal trail"
 msgstr "Source signal trail"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Source status"
+msgstr "Source status"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Source-backed evidence"
@@ -8167,6 +8221,10 @@ msgstr "Target filing year must be the next year after source filing year."
 #: src/routes/obligations.tsx
 msgid "Tax period"
 msgstr "Tax period"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Tax software exports"
+msgstr "Tax software exports"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -8531,10 +8589,6 @@ msgstr "This rule does not allow an extension."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
 msgstr "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
-msgstr "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
 
 #: src/routes/obligations.tsx
 msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
@@ -8942,6 +8996,16 @@ msgstr "View on Radar"
 msgid "View sources"
 msgstr "View sources"
 
+#. placeholder {0}: queuePosition.index + 1
+#. placeholder {1}: queuePosition.total
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing {0} of {1}"
+msgstr "Viewing {0} of {1}"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing rule"
+msgstr "Viewing rule"
+
 #: src/routes/obligations.tsx
 msgid "Visible columns"
 msgstr "Visible columns"
@@ -9202,3 +9266,8 @@ msgstr "Your practice workspace is ready. Import a spreadsheet now to turn clien
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."
 msgstr "Your subscription is confirmed and the plan is active."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "ZIP / postal code"
+msgstr "ZIP / postal code"

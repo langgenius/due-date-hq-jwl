@@ -163,6 +163,12 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       taxYearType: facts.taxYearType,
       fiscalYearEndMonth: facts.fiscalYearEndMonth,
       fiscalYearEndDay: facts.fiscalYearEndDay,
+      externalClientId: facts.externalClientId,
+      addressLine1: facts.addressLine1,
+      city: facts.city,
+      postalCode: facts.postalCode,
+      primaryPhone: facts.primaryPhone,
+      sourceStatus: facts.sourceStatus,
       email: facts.email,
       primaryContactName: facts.primaryContactName,
       primaryContactEmail: facts.primaryContactEmail,
@@ -449,6 +455,12 @@ interface ClientImportFacts {
   taxYearType: 'calendar' | 'fiscal'
   fiscalYearEndMonth: number | null
   fiscalYearEndDay: number | null
+  externalClientId: string | null
+  addressLine1: string | null
+  city: string | null
+  postalCode: string | null
+  primaryPhone: string | null
+  sourceStatus: string | null
   email: string | null
   primaryContactName: string | null
   primaryContactEmail: string | null
@@ -527,6 +539,12 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
     taxYearType: taxYearProfile.taxYearType,
     fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
     fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
+    externalClientId: readMappedValue(input, 'client.external_client_id'),
+    addressLine1: readMappedValue(input, 'client.address_line_1'),
+    city: readMappedValue(input, 'client.city'),
+    postalCode: readMappedValue(input, 'client.postal_code'),
+    primaryPhone: readMappedValue(input, 'client.primary_phone'),
+    sourceStatus: readMappedValue(input, 'client.source_status'),
     email: normalizeEmail(readMappedValue(input, 'client.email')),
     primaryContactName: readMappedValue(input, 'client.primary_contact_name'),
     primaryContactEmail: normalizeEmail(readMappedValue(input, 'client.primary_contact_email')),
@@ -752,6 +770,12 @@ function mergeClientFacts(a: ClientImportFacts, b: ClientImportFacts): ClientImp
     taxYearType: a.taxYearType === 'fiscal' || b.taxYearType === 'fiscal' ? 'fiscal' : 'calendar',
     fiscalYearEndMonth: a.fiscalYearEndMonth ?? b.fiscalYearEndMonth,
     fiscalYearEndDay: a.fiscalYearEndDay ?? b.fiscalYearEndDay,
+    externalClientId: a.externalClientId ?? b.externalClientId,
+    addressLine1: a.addressLine1 ?? b.addressLine1,
+    city: a.city ?? b.city,
+    postalCode: a.postalCode ?? b.postalCode,
+    primaryPhone: a.primaryPhone ?? b.primaryPhone,
+    sourceStatus: a.sourceStatus ?? b.sourceStatus,
     email: a.email ?? b.email,
     primaryContactName: a.primaryContactName ?? b.primaryContactName,
     primaryContactEmail: a.primaryContactEmail ?? b.primaryContactEmail,

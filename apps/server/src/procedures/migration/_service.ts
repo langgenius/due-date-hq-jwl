@@ -126,9 +126,13 @@ const MapperOutputSchema = z.object({
       target: z.enum([
         'client.name',
         'client.ein',
+        'client.external_client_id',
         'client.state',
         'client.filing_states',
         'client.county',
+        'client.address_line_1',
+        'client.city',
+        'client.postal_code',
         'client.entity_type',
         'client.tax_types',
         'client.tax_year_type',
@@ -137,6 +141,8 @@ const MapperOutputSchema = z.object({
         'client.primary_contact_name',
         'client.primary_contact_email',
         'client.email',
+        'client.primary_phone',
+        'client.source_status',
         'client.notes',
         'client.estimated_tax_liability',
         'client.equity_owner_count',
@@ -499,7 +505,7 @@ export class MigrationService {
     let aiOutputId: string | null = null
 
     const aiResult = await this.deps.ai.runPrompt(
-      'mapper@v1',
+      'mapper@v2',
       {
         header: headers,
         sample_rows: sampleRows,
@@ -525,7 +531,7 @@ export class MigrationService {
             reasoning: m.reasoning ?? null,
             userOverridden: false,
             model: aiResult.model,
-            promptVersion: 'mapper@v1',
+            promptVersion: 'mapper@v2',
             createdAt: new Date().toISOString(),
           }) satisfies MappingRow,
       )
@@ -1489,7 +1495,10 @@ function normalizeTaxTypesDictionary(raw: string): string[] {
 
   if (/\b1120[\s-]?s\b/.test(value) || value.includes('ct-3-s')) out.push('federal_1120s')
   else if (/\b1120\b/.test(value)) out.push('federal_1120')
+  if (/\b1040\b/.test(value)) out.push('federal_1040')
+  if (/\b1041\b/.test(value)) out.push('federal_1041')
   if (/\b1065\b/.test(value)) out.push('federal_1065')
+  if (/\b990\b/.test(value)) out.push('federal_990')
 
   if (value.includes('ca llc') || value.includes('llc fee')) {
     out.push('ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts')

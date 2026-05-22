@@ -26,12 +26,12 @@ PII 防护改由以下四道闸守住（对齐 PRD Part1B §6A.9 / Part2B §9.3 
 
 ### 2.1 输入契约
 
-| 字段           | 类型                                                                 | 必填 | 说明                                                                                     |
-| -------------- | -------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------- |
-| `header`       | `string[]`                                                           | 是   | 原始表头（CSV 第 1 行）；允许空字符串元素（空白列）；前端先去首尾空白                    |
-| `sample_rows`  | `string[][]`                                                         | 是   | 前 5 行数据样本；每行数组长度必须 = `header.length`；单元格全为 `string`                 |
-| `preset`       | `'taxdome' \| 'drake' \| 'karbon' \| 'quickbooks' \| 'file_in_time'` | 否   | 可选先验；只使用公开导出 / 批量更新资料可确认的平台字段。详见下方 preset fallback 约束。 |
-| `firm_id_hash` | `string`                                                             | 是   | 供 AI SDK telemetry / internal trace / rate limit 计数；不落 prompt 原文                 |
+| 字段           | 类型                                                                                                                                                                        | 必填 | 说明                                                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------- |
+| `header`       | `string[]`                                                                                                                                                                  | 是   | 原始表头（CSV 第 1 行）；允许空字符串元素（空白列）；前端先去首尾空白                    |
+| `sample_rows`  | `string[][]`                                                                                                                                                                | 是   | 前 5 行数据样本；每行数组长度必须 = `header.length`；单元格全为 `string`                 |
+| `preset`       | `'taxdome' \| 'drake' \| 'karbon' \| 'quickbooks' \| 'file_in_time' \| 'cch_axcess' \| 'cch_prosystem_fx' \| 'lacerte' \| 'proseries' \| 'ultratax_cs' \| 'proconnect_tax'` | 否   | 可选先验；只使用公开导出 / 批量更新资料可确认的平台字段。详见下方 preset fallback 约束。 |
+| `firm_id_hash` | `string`                                                                                                                                                                    | 是   | 供 AI SDK telemetry / internal trace / rate limit 计数；不落 prompt 原文                 |
 
 Preset fallback 不得自动命中税额、罚金、owner count 等客户自定义或 demo fixture 字段；这些字段需由
 AI 样本判断或用户手动确认。
@@ -40,28 +40,34 @@ AI 样本判断或用户手动确认。
 
 对齐 PRD Part1B §6A.2 + Part1A §4.1 P0-3。
 
-| target                   | 类型            | 必填     | 备注                                                                           |
-| ------------------------ | --------------- | -------- | ------------------------------------------------------------------------------ |
-| `client.name`            | string          | required | Client legal or DBA name                                                       |
-| `client.ein`             | string          | optional | 正则 `^\d{2}-\d{7}$`（9 位数字中间一连字符）                                   |
-| `client.state`           | string(2)       | required | 2-letter US state code；小写 / 全称经 Normalizer @ v1 归一                     |
-| `client.county`          | string          | optional | 州内 county；不归一（太细），异常字符告警                                      |
-| `client.entity_type`     | enum            | required | `llc / s_corp / partnership / c_corp / sole_prop / trust / individual / other` |
-| `client.tax_types`       | string[] (JSON) | optional | 缺失走 Default Matrix（见 [`./05-default-matrix.md`](./05-default-matrix.md)） |
-| `client.tax_year_type`   | enum            | optional | `calendar / fiscal`；缺失、空值或无法可靠识别 fiscal 时按 calendar year 兜底   |
-| `client.fiscal_year_end` | string          | optional | 明确 fiscal-year client 的 year end；可含年份，写库只保留 month/day            |
-| `client.assignee_name`   | string          | optional | 人名或邮箱；Demo Sprint 下不强制落 `assignee_id`                               |
-| `client.email`           | string          | optional | 客户联系邮箱                                                                   |
-| `client.notes`           | string          | optional | 自由文本                                                                       |
-| `IGNORE`                 | —               | —        | 显式声明不使用该列（含 SSN 拦截列、未知列、重复列等）                          |
+| target                      | 类型            | 必填     | 备注                                                                           |
+| --------------------------- | --------------- | -------- | ------------------------------------------------------------------------------ |
+| `client.name`               | string          | required | Client legal or DBA name                                                       |
+| `client.ein`                | string          | optional | 正则 `^\d{2}-\d{7}$`（9 位数字中间一连字符）                                   |
+| `client.state`              | string(2)       | required | 2-letter US state code；小写 / 全称经 Normalizer @ v1 归一                     |
+| `client.county`             | string          | optional | 州内 county；不归一（太细），异常字符告警                                      |
+| `client.entity_type`        | enum            | required | `llc / s_corp / partnership / c_corp / sole_prop / trust / individual / other` |
+| `client.tax_types`          | string[] (JSON) | optional | 缺失走 Default Matrix（见 [`./05-default-matrix.md`](./05-default-matrix.md)） |
+| `client.tax_year_type`      | enum            | optional | `calendar / fiscal`；缺失、空值或无法可靠识别 fiscal 时按 calendar year 兜底   |
+| `client.fiscal_year_end`    | string          | optional | 明确 fiscal-year client 的 year end；可含年份，写库只保留 month/day            |
+| `client.external_client_id` | string          | optional | 来源系统客户编号；用于审计、搜索和后续 de-dupe，不覆盖 DueDateHQ `client.id`   |
+| `client.address_line_1`     | string          | optional | 来源导出的第一行街道地址                                                       |
+| `client.city`               | string          | optional | 来源导出的城市                                                                 |
+| `client.postal_code`        | string          | optional | ZIP / postal code                                                              |
+| `client.primary_phone`      | string          | optional | 来源导出的主电话                                                               |
+| `client.source_status`      | string          | optional | 来源系统状态（例如 ProSeries HomeBase status / UltraTax report status）        |
+| `client.assignee_name`      | string          | optional | 人名或邮箱；Demo Sprint 下不强制落 `assignee_id`                               |
+| `client.email`              | string          | optional | 客户联系邮箱                                                                   |
+| `client.notes`              | string          | optional | 自由文本                                                                       |
+| `IGNORE`                    | —               | —        | 显式声明不使用该列（含 SSN 拦截列、未知列、重复列等）                          |
 
 > Entity type enum 本 Sprint 采 8 项（含 `individual`，对齐 PRD §6A.2 Schema）。数据层 `clients.entity_type` 若仍是 7 项 enum（`dev-file/03` §2.2），Mapper 输出经 post-processing 把 `individual` 保留；生效写库由 Client 模块兜底（追加 enum 成员或在迁移时做 v1→v1.1 的 enum 扩展，走契约 PR）。
 
-### 2.3 Prompt 原文（`mapper@v1`）
+### 2.3 Prompt 原文（`mapper@v2`）
 
 **Prompt 头部契约**：
 
-- `prompt_version: mapper@v1`
+- `prompt_version: mapper@v2`
 - `model_tier: fast-json`（具体模型 id 在实现时从 AI SDK / Cloudflare AI Gateway 当前模型清单确认）
 - `temperature: 0`
 - `output: object`
@@ -69,7 +75,7 @@ AI 样本判断或用户手动确认。
 - `gateway: cloudflare-ai-gateway`
 
 ```text
-prompt_version: mapper@v1
+prompt_version: mapper@v2
 model_tier: fast-json
 runtime: ai-sdk-core
 gateway: cloudflare-ai-gateway
@@ -93,7 +99,8 @@ For each source column, output:
 
 Rules:
   - If unclear, set target=IGNORE and confidence below 0.5.
-  - Never invent target fields not listed above.
+  - Never invent target fields not listed in the output schema.
+  - Do not map SSN, ITIN, or masked taxpayer ID values.
   - Explain every decision in ≤ 20 words.
   - PII note: you only see this 5-row sample, not the full dataset.
 
@@ -231,7 +238,7 @@ export type MapperOutput = z.infer<typeof MapperOutput>
    - `evidence_link`（`source_type='ai_mapper'`）：`ai_output_id / model / confidence / verified_by=null / applied_by=user_id / applied_at`
 5. **PostHog 埋点**：emit `migration.mapper.run.completed`，字段：
    - `batch_id`
-   - `preset_used` (`taxdome | drake | karbon | quickbooks | file_in_time | null`)
+   - `preset_used` (`taxdome | drake | karbon | quickbooks | file_in_time | cch_axcess | cch_prosystem_fx | lacerte | proseries | ultratax_cs | proconnect_tax | null`)
    - `avg_confidence` (number, 分母 = 非 `IGNORE` 列数)
    - `ein_detection_rate` (number)
    - `columns_total` / `columns_mapped` / `columns_ignored`
@@ -477,7 +484,7 @@ We couldn't normalize these values automatically. You can fix them inline or ski
 
 ### 4.1 每 batch 调用上限
 
-- **1 次** Mapper 调用（1 batch = 1 次粘贴 / 上传 + 5 preset 可选）
+- **1 次** Mapper 调用（1 batch = 1 次粘贴 / 上传 + 11 preset 可选）
 - **最多 1 次** `normalizer-entity@v1`（字典命中即跳过）
 - **最多 1 次** `normalizer-tax-types@v1`（字典命中即跳过）
 - **硬上限**：每 batch **≤ 2 次付费 AI SDK 调用**（Mapper 强制 + Normalizer 二选一走 AI；典型 batch 为 1–2 次）
@@ -502,7 +509,7 @@ We couldn't normalize these values automatically. You can fix them inline or ski
 
 | 字段             | 值                                                                                    | 说明                               |
 | ---------------- | ------------------------------------------------------------------------------------- | ---------------------------------- |
-| `prompt_version` | `mapper@v1` / `normalizer-entity@v1` / `normalizer-tax-types@v1`                      | 一 Prompt 一版本                   |
+| `prompt_version` | `mapper@v2` / `normalizer-entity@v1` / `normalizer-tax-types@v1`                      | 一 Prompt 一版本                   |
 | `model_tier`     | `fast-json`                                                                           | 具体模型由 `packages/ai/router.ts` |
 | `model`          | provider 返回的实际 model id                                                          | 经 Cloudflare AI Gateway           |
 | `firm_id`        | `sha256(firm_id)` 前 8 位 hex                                                         | 不落明文（隐私）                   |
@@ -519,6 +526,7 @@ We couldn't normalize these values automatically. You can fix them inline or ski
 
 - Prompt 原文落仓：
   - `packages/ai/src/prompts/mapper@v1.md`
+  - `packages/ai/src/prompts/mapper@v2.md`
   - `packages/ai/src/prompts/normalizer-entity@v1.md`
   - `packages/ai/src/prompts/normalizer-tax-types@v1.md`
 - 改动必须 `prompt_version++`（`mapper@v1` → `mapper@v2`），并在对应 [`../../adr/`](../../adr/) 下登记决策 ADR

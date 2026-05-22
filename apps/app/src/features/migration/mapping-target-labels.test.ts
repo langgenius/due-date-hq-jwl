@@ -6,9 +6,13 @@ import { getAlphabetizedMappingTargets } from './mapping-target-labels'
 const labels: MappingTargetLabels = {
   'client.name': 'Client name',
   'client.ein': 'EIN',
+  'client.external_client_id': 'External client ID',
   'client.state': 'State',
   'client.filing_states': 'Filing states',
   'client.county': 'County',
+  'client.address_line_1': 'Address line 1',
+  'client.city': 'City',
+  'client.postal_code': 'ZIP / postal code',
   'client.entity_type': 'Entity type',
   'client.tax_types': 'Tax types',
   'client.tax_year_type': 'Tax year type',
@@ -17,6 +21,8 @@ const labels: MappingTargetLabels = {
   'client.primary_contact_name': 'Primary contact name',
   'client.primary_contact_email': 'Primary contact email',
   'client.assignee_name': 'Assignee',
+  'client.primary_phone': 'Primary phone',
+  'client.source_status': 'Source status',
   'client.estimated_tax_liability': 'Estimated tax liability',
   'client.equity_owner_count': 'Owner count',
   'penalty.tax_due': 'Penalty tax due',
@@ -52,7 +58,7 @@ describe('getAlphabetizedMappingTargets', () => {
         a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }),
       ),
     )
-    expect(sortedLabels[0]).toBe('Annual report no-tax-due flag')
+    expect(sortedLabels[0]).toBe('Address line 1')
     expect(sortedLabels).not.toContain('Ignore this column')
   })
 })

@@ -81,6 +81,22 @@ export interface PulseSourceSignalRow {
   reviewDecisionId: string | null
 }
 
+export interface PulseSourceSnapshotRow {
+  id: string
+  sourceId: string
+  externalId: string
+  title: string
+  officialSourceUrl: string
+  publishedAt: Date
+  fetchedAt: Date
+  contentHash: string
+  rawR2Key: string
+  parseStatus: 'pending_extract' | 'extracting' | 'extracted' | 'duplicate' | 'failed'
+  pulseId: string | null
+  aiOutputId: string | null
+  failureReason: string | null
+}
+
 export type PulsePriorityReviewStatus = 'open' | 'reviewed' | 'applied' | 'dismissed'
 export type PulsePriorityLevel = 'normal' | 'high' | 'urgent'
 export type PulsePriorityReasonKey =
@@ -211,6 +227,7 @@ export interface PulseRepo {
     status?: PulseSourceSignalRow['status']
   }): Promise<PulseSourceSignalRow[]>
   getSourceSignal(signalId: string): Promise<PulseSourceSignalRow | null>
+  getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
   reviewSourceSignalForRule(input: {
     signalId: string
     ruleId: string

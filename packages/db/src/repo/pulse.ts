@@ -1483,6 +1483,13 @@ export function makePulseRepo(db: Db, firmId: string) {
       return ops.getSourceSignal(signalId)
     },
 
+    async getLatestSourceSnapshotBySourceId(
+      sourceId: string,
+    ): Promise<PulseSourceSnapshotRow | null> {
+      const ops = makePulseOpsRepo(db)
+      return ops.getLatestSourceSnapshotBySourceId(sourceId)
+    },
+
     async reviewSourceSignalForRule(input: {
       signalId: string
       ruleId: string
@@ -2885,6 +2892,18 @@ export function makePulseOpsRepo(db: Db) {
         .where(eq(pulseSourceSignal.id, signalId))
         .limit(1)
       return rows[0] ? toSourceSignal(rows[0]) : null
+    },
+
+    async getLatestSourceSnapshotBySourceId(
+      sourceId: string,
+    ): Promise<PulseSourceSnapshotRow | null> {
+      const rows = await db
+        .select()
+        .from(pulseSourceSnapshot)
+        .where(eq(pulseSourceSnapshot.sourceId, sourceId))
+        .orderBy(desc(pulseSourceSnapshot.fetchedAt), desc(pulseSourceSnapshot.createdAt))
+        .limit(1)
+      return rows[0] ? toSnapshot(rows[0]) : null
     },
 
     async linkSourceSignal(input: {

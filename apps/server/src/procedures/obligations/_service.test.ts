@@ -363,6 +363,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async getSourceSignal() {
       return unused('pulse.getSourceSignal')
     },
+    async getLatestSourceSnapshotBySourceId() {
+      return unused('pulse.getLatestSourceSnapshotBySourceId')
+    },
     async reviewSourceSignalForRule() {
       return unused('pulse.reviewSourceSignalForRule')
     },
@@ -406,11 +409,20 @@ function buildScoped(firmId: string, rows: Row[]) {
       async findSuccessfulRun() {
         return null
       },
+      async findSuccessfulGlobalRun() {
+        return null
+      },
       async findSuccessfulRunsByContextRefs() {
+        return []
+      },
+      async findSuccessfulGlobalRunsByContextRefs() {
         return []
       },
       async recordRun() {
         return unused('ai.recordRun')
+      },
+      async recordGlobalRun() {
+        return unused('ai.recordGlobalRun')
       },
     },
     aiInsights: {

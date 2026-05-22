@@ -19,7 +19,6 @@ import {
   type TemporaryRule,
 } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { createAI } from '@duedatehq/ai'
 import {
   findRuleById,
   listRequiredSourceCoverage,
@@ -31,8 +30,8 @@ import {
   type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
 } from '@duedatehq/core/rules'
-import { expandDueDateLogic } from '@duedatehq/core/date-logic'
 import type { PulseSourceSignalRow } from '@duedatehq/ports/pulse'
+import type { AiOutputRow } from '@duedatehq/ports/ai'
 import type {
   PracticeRuleRow,
   PracticeRuleReviewTaskRow,
@@ -44,19 +43,20 @@ import { requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
-  normalizeRuleConcreteDraftAiOutput,
-  RuleConcreteDraftAiOutputSchema,
-  RuleConcreteDraftPayloadSchema,
+  buildConcreteDraftSourceText,
+  cachedConcreteDraftKey,
+  generateConcreteDraft,
+  parseCachedConcreteDraft,
+  requireConcreteDraftSourceText as requireConcreteDraftSourceTextValue,
+  RULE_CONCRETE_DRAFT_PROMPT,
+  validateConcreteRuleDraft,
   type RuleConcreteDraftPayload,
 } from './concrete-draft'
 import { toContractRule, toCoreRule, toPracticeContractRule } from './runtime'
-import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source-text'
 
 const MAX_BULK_ACCEPT = 100
-const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
 const ONBOARDING_RULE_REVIEW_NOTE = 'Activated from onboarding jurisdiction selection.'
-const RULE_CONCRETE_DRAFT_PROMPT = 'rule-concrete-draft@v1'
 const COVERAGE_ENTITY_COLUMNS = [
   'llc',
   'partnership',
@@ -106,24 +106,6 @@ function toDateOnlyOrNull(date: Date | null): string | null {
 
 function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
-}
-
-async function hashAiInput(value: unknown): Promise<string> {
-  const data = new TextEncoder().encode(JSON.stringify(value))
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-function ruleConcreteDraftContextRef(input: {
-  ruleId: string
-  sourceId: string
-  sourceSignalId?: string | null
-}): string {
-  return ['rule', input.ruleId, input.sourceId, input.sourceSignalId ?? null]
-    .filter((value): value is string => Boolean(value))
-    .join(':')
 }
 
 function practiceReviewMetadata(row: PracticeRuleRow): {
@@ -236,75 +218,6 @@ function sourceCoverageStateForRule(
       : 'rule_active'
   }
   if (rule.status === 'candidate' || rule.status === 'pending_review') return 'rule_pending_review'
-  return null
-}
-
-function normalizeExcerptText(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, ' ').trim()
-}
-
-function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
-  const normalizedSource = normalizeExcerptText(sourceText)
-  const normalizedExcerpt = normalizeExcerptText(excerpt)
-  if (normalizedSource.includes(normalizedExcerpt)) return true
-
-  const sourceTokens = new Set(normalizedSource.match(/[a-z0-9]+/g) ?? [])
-  const excerptTokens = Array.from(new Set(normalizedExcerpt.match(/[a-z0-9]+/g) ?? [])).filter(
-    (token) => token.length > 2,
-  )
-  if (excerptTokens.length < 4) return false
-
-  const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
-  return hitCount / excerptTokens.length >= 0.85
-}
-
-function validateConcreteDueDateLogic(input: {
-  rule: Pick<CoreObligationRule, 'taxYear'>
-  dueDateLogic: ObligationRule['dueDateLogic']
-}): string | null {
-  if (input.dueDateLogic.kind === 'source_defined_calendar') {
-    return 'Concrete rule drafts must not use source_defined_calendar due-date logic.'
-  }
-
-  try {
-    const expanded = expandDueDateLogic(input.dueDateLogic, {
-      taxYearStart: `${input.rule.taxYear}-01-01`,
-      taxYearEnd: `${input.rule.taxYear}-12-31`,
-    })
-    if (expanded.some((item) => item.dueDate !== null)) return null
-    return 'Concrete due-date logic did not expand to any concrete due date.'
-  } catch (error) {
-    return error instanceof Error ? error.message : 'Concrete due-date logic could not be expanded.'
-  }
-}
-
-function validateConcreteRuleDraft(input: {
-  rule: Pick<CoreObligationRule, 'taxYear'>
-  dueDateLogic: ObligationRule['dueDateLogic']
-  sourceText: string
-  sourceExcerpt: string
-  coverageStatus: ObligationRule['coverageStatus']
-  requiresApplicabilityReview: boolean
-}): string | null {
-  const dueDateError = validateConcreteDueDateLogic(input)
-  if (dueDateError) return dueDateError
-
-  if (SOURCE_WATCH_PLACEHOLDER_RE.test(input.sourceExcerpt)) {
-    return 'AI source excerpt used source-watch metadata instead of official source text.'
-  }
-
-  if (!sourceTextContainsExcerpt(input.sourceText, input.sourceExcerpt)) {
-    return 'AI source excerpt was not found in the selected official source text.'
-  }
-
-  if (
-    input.coverageStatus === 'full' &&
-    !input.requiresApplicabilityReview &&
-    input.dueDateLogic.kind === 'source_defined_calendar'
-  ) {
-    return 'Full coverage without applicability review requires concrete due-date logic.'
-  }
-
   return null
 }
 
@@ -430,97 +343,6 @@ async function loadCandidateSourceContext(input: {
   }
 
   return { source, sourceSignal }
-}
-
-async function buildConcreteDraftSourceText(input: {
-  context: RpcContext
-  base: CoreObligationRule
-  source: ReturnType<typeof listRuleSources>[number]
-  sourceSignal: CandidateSourceSignal
-}): Promise<{ sourceText: string; hasSourceBackedText: boolean }> {
-  const chunks: string[] = []
-  let hasSourceBackedText = false
-
-  if (input.sourceSignal) {
-    const raw = await input.context.env.R2_PULSE.get(input.sourceSignal.rawR2Key).catch(() => null)
-    const rawText = raw ? await raw.text() : null
-    if (rawText?.trim()) hasSourceBackedText = true
-    chunks.push(
-      [
-        input.sourceSignal.title,
-        input.sourceSignal.officialSourceUrl,
-        input.sourceSignal.publishedAt.toISOString().slice(0, 10),
-        rawText,
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join('\n'),
-    )
-  }
-
-  const evidenceChunks = input.base.evidence
-    .filter(
-      (evidence) =>
-        evidence.sourceId === input.source.id &&
-        !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt),
-    )
-    .map((evidence) =>
-      [
-        evidence.locator.heading ?? input.source.title,
-        evidence.sourceUpdatedOn ? `Updated ${evidence.sourceUpdatedOn}` : null,
-        evidence.sourceExcerpt,
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join('\n'),
-    )
-  if (evidenceChunks.length > 0) hasSourceBackedText = true
-  const officialSourceText = await fetchOfficialSourceText(input.source.url)
-  if (officialSourceText) hasSourceBackedText = true
-
-  chunks.push(
-    [
-      input.source.title,
-      input.source.url,
-      input.source.lastReviewedOn ? `Reviewed ${input.source.lastReviewedOn}` : null,
-      ...evidenceChunks,
-      officialSourceText ? `Official source text\n${officialSourceText}` : null,
-    ]
-      .filter((value): value is string => Boolean(value))
-      .join('\n'),
-  )
-
-  return {
-    sourceText: chunks.filter(Boolean).join('\n\n'),
-    hasSourceBackedText,
-  }
-}
-
-async function fetchOfficialSourceText(url: string): Promise<string | null> {
-  let response: Response
-  try {
-    response = await fetch(url, {
-      headers: {
-        accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.1',
-        'user-agent': 'DueDateHQ rule review source fetcher',
-      },
-    })
-  } catch {
-    return null
-  }
-
-  if (!response.ok) return null
-  const contentType = response.headers.get('content-type') ?? ''
-  if (
-    !contentType.includes('text/html') &&
-    !contentType.includes('application/xhtml+xml') &&
-    !contentType.includes('text/plain')
-  ) {
-    return null
-  }
-
-  const raw = await response.text().catch(() => null)
-  if (!raw) return null
-  const text = extractOfficialSourceText(raw)
-  return text ? text.slice(0, MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS) : null
 }
 
 function toReviewDecision(row: RuleReviewDecisionRow): RuleReviewDecision {
@@ -1473,13 +1295,33 @@ const previewBulkRuleImpact = os.rules.previewBulkRuleImpact.handler(async ({ in
   return previewBulkImpactForSelections(context, input.rules)
 })
 
-function parseCachedConcreteDraft(outputText: string | null): RuleConcreteDraftPayload | null {
-  if (!outputText) return null
-  try {
-    const parsed = RuleConcreteDraftPayloadSchema.safeParse(JSON.parse(outputText))
-    return parsed.success ? parsed.data : null
-  } catch {
-    return null
+async function findConcreteDraftRuns(input: {
+  scoped: ScopedRepo
+  inputContextRefs: readonly string[]
+}): Promise<{ preferredRuns: AiOutputRow[]; allRuns: AiOutputRow[] }> {
+  const request = {
+    kind: 'rule_concrete_draft' as const,
+    inputContextRefs: input.inputContextRefs,
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+  }
+  const [globalRuns, firmRuns] = await Promise.all([
+    input.scoped.ai.findSuccessfulGlobalRunsByContextRefs(request),
+    input.scoped.ai.findSuccessfulRunsByContextRefs(request),
+  ])
+  const preferredByContext = new Map<string, AiOutputRow>()
+  for (const run of globalRuns) {
+    if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
+      preferredByContext.set(run.inputContextRef, run)
+    }
+  }
+  for (const run of firmRuns) {
+    if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
+      preferredByContext.set(run.inputContextRef, run)
+    }
+  }
+  return {
+    preferredRuns: Array.from(preferredByContext.values()),
+    allRuns: [...globalRuns, ...firmRuns],
   }
 }
 
@@ -1495,7 +1337,12 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
     const base = templateRuleById(ruleInput.ruleId)
     if (!base || !isSourceDefinedRule(base)) continue
     if (!canReadConcreteDraftForSource({ rule: base, sourceId: ruleInput.sourceId })) continue
-    const contextRef = cachedConcreteDraftKey(ruleInput)
+    const contextRef = cachedConcreteDraftKey({
+      ruleId: ruleInput.ruleId,
+      ruleVersion: base.version,
+      sourceId: ruleInput.sourceId,
+      sourceSignalId: ruleInput.sourceSignalId,
+    })
     lookup.set(contextRef, {
       ruleId: ruleInput.ruleId,
       sourceId: ruleInput.sourceId,
@@ -1504,13 +1351,12 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
   }
   if (lookup.size === 0) return []
 
-  const cachedRuns = await scoped.ai.findSuccessfulRunsByContextRefs({
-    kind: 'rule_concrete_draft',
+  const { preferredRuns } = await findConcreteDraftRuns({
+    scoped,
     inputContextRefs: Array.from(lookup.keys()),
-    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
   })
 
-  return cachedRuns.flatMap((run) => {
+  return preferredRuns.flatMap((run) => {
     const contextRef = run.inputContextRef ?? ''
     const target = lookup.get(contextRef)
     const draft = parseCachedConcreteDraft(run.outputText)
@@ -1518,6 +1364,7 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
     return [
       {
         ...target,
+        sourceSignalId: concreteDraftSourceSignalId(run) ?? target.sourceSignalId,
         draft: RuleConcreteDraftSchema.parse({
           aiOutputId: run.id,
           ...draft,
@@ -1539,18 +1386,6 @@ function canReadConcreteDraftForSource(input: {
   return input.rule.sourceIds.includes(source.id) || sourceCoversRuleDomain(source, input.rule)
 }
 
-function cachedConcreteDraftKey(input: {
-  ruleId: string
-  sourceId: string
-  sourceSignalId?: string | null | undefined
-}): string {
-  return ruleConcreteDraftContextRef({
-    ruleId: input.ruleId,
-    sourceId: input.sourceId,
-    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
-  })
-}
-
 function skipConcreteDraftSelection(
   selection: { ruleId: string; sourceId: string },
   reason: RuleBulkVerifyCandidateSkip['reason'],
@@ -1562,6 +1397,12 @@ function skipConcreteDraftSelection(
       reason,
     },
   }
+}
+
+function concreteDraftSourceSignalId(run: AiOutputRow): string | null {
+  if (typeof run.citations !== 'object' || run.citations === null) return null
+  const sourceSignalId = (run.citations as { sourceSignalId?: unknown }).sourceSignalId
+  return typeof sourceSignalId === 'string' && sourceSignalId.length > 0 ? sourceSignalId : null
 }
 
 function toConcreteDraftRule(input: {
@@ -1611,18 +1452,47 @@ function toConcreteDraftRule(input: {
   }
 }
 
-function requireConcreteDraftSourceText(sourceContext: {
-  hasSourceBackedText: boolean
-  sourceText: string
-}): string {
-  if (sourceContext.hasSourceBackedText) return sourceContext.sourceText
-  throw new ORPCError('BAD_REQUEST', {
-    message: 'Official source text could not be fetched for the selected source.',
+async function loadConcreteDraftSourceText(input: {
+  context: RpcContext
+  base: CoreObligationRule
+  source: ReturnType<typeof listRuleSources>[number]
+  sourceSignal: CandidateSourceSignal
+}): Promise<string> {
+  const { scoped } = requireTenant(input.context)
+  const latestSourceSnapshot = await scoped.pulse.getLatestSourceSnapshotBySourceId(input.source.id)
+  try {
+    return requireConcreteDraftSourceTextValue(
+      await buildConcreteDraftSourceText({
+        env: input.context.env,
+        base: input.base,
+        source: input.source,
+        sourceSignal: input.sourceSignal,
+        latestSourceSnapshot,
+      }),
+    )
+  } catch (error) {
+    throw new ORPCError('BAD_REQUEST', {
+      message:
+        error instanceof Error
+          ? error.message
+          : 'Official source text could not be fetched for the selected source.',
+    })
+  }
+}
+
+async function loadLatestSourceSnapshot(input: { context: RpcContext; sourceId: string }) {
+  const { scoped } = requireTenant(input.context)
+  return scoped.pulse.getLatestSourceSnapshotBySourceId(input.sourceId)
+}
+
+function toBadRequest(error: unknown) {
+  return new ORPCError('BAD_REQUEST', {
+    message: error instanceof Error ? error.message : 'AI concrete draft was unavailable.',
   })
 }
 
 const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, context }) => {
-  const { scoped, tenant, userId } = requireTenant(context)
+  const { scoped } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
 
   const base = templateRuleById(input.ruleId)
@@ -1633,148 +1503,21 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
     sourceId: input.sourceId,
     ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
-  const sourceText = requireConcreteDraftSourceText(
-    await buildConcreteDraftSourceText({ context, base, source, sourceSignal }),
-  )
-  const aiInput = {
-    rule: {
-      id: base.id,
-      title: base.title,
-      jurisdiction: base.jurisdiction,
-      entityApplicability: base.entityApplicability,
-      taxType: base.taxType,
-      formName: base.formName,
-      eventType: base.eventType,
-      isFiling: base.isFiling,
-      isPayment: base.isPayment,
-      taxYear: base.taxYear,
-      applicableYear: base.applicableYear,
-      dueDateLogic: base.dueDateLogic,
-      extensionPolicy: base.extensionPolicy,
-      coverageStatus: base.coverageStatus,
-      requiresApplicabilityReview: base.requiresApplicabilityReview,
-      quality: base.quality,
-      defaultTip: base.defaultTip,
-    },
-    source: {
-      id: source.id,
-      title: source.title,
-      url: source.url,
-      jurisdiction: source.jurisdiction,
-      sourceType: source.sourceType,
-      acquisitionMethod: source.acquisitionMethod,
-      lastReviewedOn: source.lastReviewedOn,
-    },
-    ...(sourceSignal
-      ? {
-          sourceSignal: {
-            id: sourceSignal.id,
-            title: sourceSignal.title,
-            officialSourceUrl: sourceSignal.officialSourceUrl,
-            publishedAt: sourceSignal.publishedAt.toISOString(),
-            fetchedAt: sourceSignal.fetchedAt.toISOString(),
-            signalType: sourceSignal.signalType,
-          },
-        }
-      : {}),
-    sourceText,
-  }
-
-  const inputContextRef = ruleConcreteDraftContextRef({
-    ruleId: base.id,
-    sourceId: source.id,
-    sourceSignalId: sourceSignal?.id ?? null,
-  })
-  const inputHash = await hashAiInput(aiInput)
-  const cached = await scoped.ai.findSuccessfulRun({
-    kind: 'rule_concrete_draft',
-    inputContextRef,
-    inputHash,
-    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
-  })
-  const cachedDraft = parseCachedConcreteDraft(cached?.outputText ?? null)
-  if (cached && cachedDraft) {
-    const cachedGuardError = validateConcreteRuleDraft({
-      rule: base,
-      dueDateLogic: cachedDraft.dueDateLogic,
-      sourceText,
-      sourceExcerpt: cachedDraft.sourceExcerpt,
-      coverageStatus: cachedDraft.coverageStatus,
-      requiresApplicabilityReview: cachedDraft.requiresApplicabilityReview,
+  const latestSourceSnapshot = await loadLatestSourceSnapshot({ context, sourceId: source.id })
+  try {
+    return await generateConcreteDraft({
+      env: context.env,
+      aiRepo: scoped.ai,
+      scope: 'global',
+      userId: null,
+      base,
+      source,
+      sourceSignal,
+      latestSourceSnapshot,
     })
-    if (!cachedGuardError) {
-      return RuleConcreteDraftSchema.parse({
-        aiOutputId: cached.id,
-        ...cachedDraft,
-      })
-    }
+  } catch (error) {
+    throw toBadRequest(error)
   }
-
-  const ai = createAI(context.env)
-  const aiResult = await ai.runPrompt(
-    RULE_CONCRETE_DRAFT_PROMPT,
-    aiInput,
-    RuleConcreteDraftAiOutputSchema,
-    {
-      plan: tenant.plan,
-      firmId: tenant.firmId,
-      taskKind: 'insight',
-    },
-  )
-
-  const normalized = aiResult.result
-    ? normalizeRuleConcreteDraftAiOutput({
-        output: aiResult.result,
-        applicableYear: base.applicableYear,
-        sourceTitle: source.title,
-        sourceText,
-      })
-    : { draft: null, error: null }
-  const draft = normalized.draft
-  const guardError = draft
-    ? validateConcreteRuleDraft({
-        rule: base,
-        dueDateLogic: draft.dueDateLogic,
-        sourceText,
-        sourceExcerpt: draft.sourceExcerpt,
-        coverageStatus: draft.coverageStatus,
-        requiresApplicabilityReview: draft.requiresApplicabilityReview,
-      })
-    : null
-  const recorded = await scoped.ai.recordRun({
-    userId,
-    kind: 'rule_concrete_draft',
-    inputContextRef,
-    trace: {
-      ...aiResult.trace,
-      model: aiResult.model ?? aiResult.trace.model,
-      ...(normalized.error ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' } : {}),
-      ...(guardError ? { guardResult: 'guard_rejected', refusalCode: 'GUARD_REJECTED' } : {}),
-    },
-    outputText: draft ? JSON.stringify(draft) : null,
-    citations: {
-      sourceId: source.id,
-      sourceUrl: source.url,
-      sourceSignalId: sourceSignal?.id ?? null,
-      sourceExcerpt: draft?.sourceExcerpt ?? null,
-    },
-    errorMsg: aiResult.refusal?.message ?? normalized.error ?? guardError,
-  })
-
-  if (aiResult.refusal || !draft) {
-    throw new ORPCError('BAD_REQUEST', {
-      message:
-        aiResult.refusal?.message ?? normalized.error ?? 'AI concrete draft was unavailable.',
-    })
-  }
-  if (guardError) {
-    throw new ORPCError('BAD_REQUEST', { message: guardError })
-  }
-
-  return RuleConcreteDraftSchema.parse({
-    aiOutputId: recorded.aiOutputId,
-    ...draft,
-  })
 })
 
 const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context }) => {
@@ -1790,9 +1533,7 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     sourceId: input.sourceId,
     ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
-  const sourceText = requireConcreteDraftSourceText(
-    await buildConcreteDraftSourceText({ context, base, source, sourceSignal }),
-  )
+  const sourceText = await loadConcreteDraftSourceText({ context, base, source, sourceSignal })
   const validationError = validateConcreteRuleDraft({
     rule: base,
     dueDateLogic: input.dueDateLogic,
@@ -1873,15 +1614,22 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       task,
     ]),
   )
-  const requestedContextRefs = input.rules.map((selection) => cachedConcreteDraftKey(selection))
-  const cachedRunByContext = new Map(
-    (
-      await scoped.ai.findSuccessfulRunsByContextRefs({
-        kind: 'rule_concrete_draft',
-        inputContextRefs: requestedContextRefs,
-        promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
-      })
-    ).map((run) => [run.inputContextRef ?? '', run]),
+  const requestedContextRefs = input.rules.flatMap((selection) => {
+    const base = templateById.get(selection.ruleId)
+    if (!base || !isSourceDefinedRule(base)) return []
+    return cachedConcreteDraftKey({
+      ruleId: selection.ruleId,
+      ruleVersion: base.version,
+      sourceId: selection.sourceId,
+      sourceSignalId: selection.sourceSignalId,
+    })
+  })
+  const { allRuns } = await findConcreteDraftRuns({
+    scoped,
+    inputContextRefs: requestedContextRefs,
+  })
+  const cachedRunByContextAndId = new Map(
+    allRuns.map((run) => [`${run.inputContextRef ?? ''}:${run.id}`, run]),
   )
   const reviewedAt = new Date()
   const verified: RuleReviewDecision[] = []
@@ -1912,7 +1660,13 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         return skipConcreteDraftSelection(selection, 'source_changed_requires_review')
       }
 
-      const cachedRun = cachedRunByContext.get(cachedConcreteDraftKey(selection))
+      const contextRef = cachedConcreteDraftKey({
+        ruleId: selection.ruleId,
+        ruleVersion: base.version,
+        sourceId: selection.sourceId,
+        sourceSignalId: selection.sourceSignalId,
+      })
+      const cachedRun = cachedRunByContextAndId.get(`${contextRef}:${selection.aiOutputId}`)
       const draft = parseCachedConcreteDraft(cachedRun?.outputText ?? null)
       if (!cachedRun || !draft) {
         return skipConcreteDraftSelection(selection, 'draft_not_found')
@@ -1930,14 +1684,12 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
           sourceId: selection.sourceId,
           ...(selection.sourceSignalId ? { sourceSignalId: selection.sourceSignalId } : {}),
         })
-        sourceText = requireConcreteDraftSourceText(
-          await buildConcreteDraftSourceText({
-            context,
-            base,
-            source: sourceContext.source,
-            sourceSignal: sourceContext.sourceSignal,
-          }),
-        )
+        sourceText = await loadConcreteDraftSourceText({
+          context,
+          base,
+          source: sourceContext.source,
+          sourceSignal: sourceContext.sourceSignal,
+        })
       } catch {
         return skipConcreteDraftSelection(selection, 'validation_failed')
       }

@@ -181,6 +181,9 @@ export function createAI(env: AiEnv = {}) {
         input: redacted.input,
         schema,
         provider,
+        ...(name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2'
+          ? { timeoutMs: 25_000 }
+          : {}),
         ...(env.AI_GATEWAY_API_KEY ? { gatewayApiKey: env.AI_GATEWAY_API_KEY } : {}),
         ...(provider === 'openrouter' && env.AI_GATEWAY_PROVIDER_API_KEY
           ? { providerApiKey: env.AI_GATEWAY_PROVIDER_API_KEY }
@@ -207,9 +210,11 @@ export function createAI(env: AiEnv = {}) {
         )
       }
 
-      if (name === 'mapper@v1') verifyMapperEinHitRate(input, parsed.data)
+      if (name === 'mapper@v1' || name === 'mapper@v2') verifyMapperEinHitRate(input, parsed.data)
       if (name === 'pulse-extract@v1') verifyPulseSourceExcerpt(input, parsed.data)
-      if (name === 'rule-concrete-draft@v1') verifyRuleConcreteDraft(input, parsed.data)
+      if (name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2') {
+        verifyRuleConcreteDraft(input, parsed.data)
+      }
       if (name === 'client-risk-summary@v1' || name === 'deadline-tip@v1') {
         verifyInsightOutput(input, parsed.data)
       }

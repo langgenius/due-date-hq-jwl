@@ -366,7 +366,7 @@ describe('@duedatehq/ai', () => {
     const ai = createAI(CONFIGURED_ENV)
 
     const result = await ai.runPrompt(
-      'rule-concrete-draft@v1',
+      'rule-concrete-draft@v2',
       { sourceText: 'Official source says returns are due April 15, 2026.' },
       z.object({
         sourceExcerpt: z.string(),
@@ -389,7 +389,7 @@ describe('@duedatehq/ai', () => {
     const ai = createAI(CONFIGURED_ENV)
 
     const result = await ai.runPrompt(
-      'rule-concrete-draft@v1',
+      'rule-concrete-draft@v2',
       {
         sourceText:
           'Alabama individual income tax returns should be filed by April 15 for calendar year 2026.',
@@ -430,7 +430,7 @@ describe('@duedatehq/ai', () => {
     const ai = createAI(CONFIGURED_ENV)
 
     const result = await ai.runPrompt(
-      'rule-concrete-draft@v1',
+      'rule-concrete-draft@v2',
       {
         rule: {
           id: 'al.individual_estimated_tax.candidate.2026',
@@ -480,7 +480,7 @@ describe('@duedatehq/ai', () => {
     const ai = createAI(CONFIGURED_ENV)
 
     const result = await ai.runPrompt(
-      'rule-concrete-draft@v1',
+      'rule-concrete-draft@v2',
       {
         sourceText:
           'Alabama official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.',

@@ -62,6 +62,12 @@ export const ClientIdentitySchema = z.object({
   taxYearType: ClientTaxYearTypeSchema,
   fiscalYearEndMonth: z.number().int().min(1).max(12).nullable(),
   fiscalYearEndDay: z.number().int().min(1).max(31).nullable(),
+  externalClientId: z.string().nullable(),
+  addressLine1: z.string().nullable(),
+  city: z.string().nullable(),
+  postalCode: z.string().nullable(),
+  primaryPhone: z.string().nullable(),
+  sourceStatus: z.string().nullable(),
 })
 
 export const ClientCreateInputSchema = z.object({
@@ -79,6 +85,12 @@ export const ClientCreateInputSchema = z.object({
   taxYearType: ClientTaxYearTypeSchema.default('calendar').optional(),
   fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
   fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
+  externalClientId: z.string().trim().min(1).max(256).nullable().optional(),
+  addressLine1: z.string().trim().min(1).max(500).nullable().optional(),
+  city: z.string().trim().min(1).max(200).nullable().optional(),
+  postalCode: z.string().trim().min(1).max(30).nullable().optional(),
+  primaryPhone: z.string().trim().min(1).max(80).nullable().optional(),
+  sourceStatus: z.string().trim().min(1).max(120).nullable().optional(),
   ownerCount: z.number().int().min(0).max(10000).nullable().optional(),
   hasForeignAccounts: z.boolean().default(false).optional(),
   hasPayroll: z.boolean().default(false).optional(),

@@ -1,0 +1,3 @@
+Client ID,Client Sub-ID,Client GUID,Name Line 1,Name Line 2,Sort Name,Federal ID,Client Type,FYE,Address 1,City,State,ZIP,Phone,Email,Office,Responsible Staff
+AX100,,guid-ax-100,Acme Axcess LLC,,ACME AXCESS LLC,99-0000100,1065,12/31,100 Main St,Los Angeles,CA,90012,213-555-0100,owner+axcess@example.com,Main,JDOE
+AX101,,guid-ax-101,Bright Axcess Inc,,BRIGHT AXCESS INC,99-0000101,1120S,12/31,101 Pine St,New York,NY,10001,212-555-0101,owner+axcess2@example.com,East,ASMITH

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   normalizeRuleConcreteDraftAiOutput,
+  ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
 } from './concrete-draft'
 
@@ -14,7 +15,24 @@ const ALABAMA_ESTIMATED_SOURCE_TEXT = [
   'Will be due on the 15th day of the fourth, sixth, ninth, and 12th months of the fiscal year.',
 ].join('\n')
 
+const ALABAMA_BPT_SOURCE_TEXT = [
+  'Business Privilege Tax',
+  "C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+  "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+  "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+].join('\n')
+
 describe('rule concrete draft normalization', () => {
+  it('keys cached drafts by current rule semantic version', () => {
+    expect(
+      ruleConcreteDraftContextRef({
+        ruleId: 'ca.business_income_return.candidate.2026',
+        ruleVersion: 2,
+        sourceId: 'ca.ftb_business_due_dates',
+      }),
+    ).toBe('rule:ca.business_income_return.candidate.2026:v2:ca.ftb_business_due_dates')
+  })
+
   it('normalizes Alabama-style month/day installment drafts into the strict contract shape', () => {
     const parsed = RuleConcreteDraftAiOutputSchema.parse({
       dueDateLogic: {
@@ -132,6 +150,57 @@ describe('rule concrete draft normalization', () => {
     })
   })
 
+  it('normalizes common model aliases without weakening the final draft contract', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'installment_schedule',
+        frequency: 'estimated payments',
+        dueDates: ['Payment 1 - April 15', 'Payment 2 - June 15', 'Payment 3 - September 15'],
+      },
+      extensionPolicy: {
+        available: true,
+        formName: 'Extension request',
+        durationMonths: '0',
+        paymentExtended: false,
+        notes: 'The source does not extend estimated tax payments.',
+      },
+      coverageStatus: 'full',
+      requiresApplicabilityReview: false,
+      quality: {
+        filingPaymentDistinguished: true,
+      },
+      sourceHeading: 'Estimated payments',
+      sourceExcerpt:
+        'Estimate tax due dates for calendar year filers: Payment 1 - April 15 Payment 2 - June 15 Payment 3 - September 15 Payment 4 - December 15',
+      confidence: 0.81,
+      reasoning: 'The source lists calendar-year estimated payment due dates.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Estimated Tax Payment Due Dates',
+      sourceText: ALABAMA_ESTIMATED_SOURCE_TEXT,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft?.dueDateLogic).toMatchObject({
+      kind: 'period_table',
+      frequency: 'quarterly',
+      periods: [
+        { period: 'Payment 1 - April 15', dueDate: '2026-04-15' },
+        { period: 'Payment 2 - June 15', dueDate: '2026-06-15' },
+        { period: 'Payment 3 - September 15', dueDate: '2026-09-15' },
+      ],
+    })
+    expect(result.draft?.extensionPolicy).toEqual({
+      available: true,
+      formName: 'Extension request',
+      paymentExtended: false,
+      notes: 'The source does not extend estimated tax payments.',
+    })
+  })
+
   it('fills a missing source excerpt from official source text', () => {
     const parsed = RuleConcreteDraftAiOutputSchema.parse({
       dueDateLogic: {
@@ -182,5 +251,97 @@ describe('rule concrete draft normalization', () => {
         'Payment 4 - December 15',
       ].join('\n'),
     )
+  })
+
+  it('normalizes Alabama business privilege tax due dates from tax-year-begin logic', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_begin',
+        monthOffset: '3',
+        day: '15',
+        holidayRollover: 'next_business_day',
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'The source excerpt gives the original business privilege tax due date.',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      quality: {
+        filingPaymentDistinguished: true,
+        extensionHandled: false,
+        calendarFiscalSpecified: false,
+        holidayRolloverHandled: false,
+        crossVerified: false,
+        exceptionChannel: true,
+      },
+      sourceHeading: 'Business Privilege Tax',
+      sourceExcerpt:
+        "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+      confidence: 0.82,
+      reasoning:
+        'The S corporation row supports a March 15-style rule, while entity-specific applicability still needs review.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Income Tax Due Dates',
+      sourceText: ALABAMA_BPT_SOURCE_TEXT,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft).toMatchObject({
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_begin',
+        monthOffset: 3,
+        day: 15,
+        holidayRollover: 'next_business_day',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      sourceHeading: 'Business Privilege Tax',
+    })
+  })
+
+  it('converts tax-year-relative source excerpts when the model picked a fixed-date alias', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'annual_due_date',
+        dueDate: null,
+        holidayRollover: 'next_business_day',
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'The source excerpt gives a tax-year-relative due date.',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      quality: {
+        filingPaymentDistinguished: true,
+      },
+      sourceHeading: 'Business Privilege Tax',
+      sourceExcerpt:
+        "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+      confidence: 0.78,
+      reasoning: 'The LLC row gives a due date relative to the taxable year beginning.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Income Tax Due Dates',
+      sourceText: ALABAMA_BPT_SOURCE_TEXT,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft?.dueDateLogic).toEqual({
+      kind: 'nth_day_after_tax_year_begin',
+      monthOffset: 3,
+      day: 15,
+      holidayRollover: 'next_business_day',
+    })
   })
 })

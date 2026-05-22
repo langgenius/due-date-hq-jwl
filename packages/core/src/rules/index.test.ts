@@ -368,6 +368,7 @@ describe('@duedatehq/core/rules', () => {
     const individualSource = sourcesById.get('al.income_tax')
     const dueDatesSource = sourcesById.get('al.due_dates')
     const businessRule = findRuleById('al.business_income_return.candidate.2026')
+    const franchiseRule = findRuleById('al.franchise_or_entity_tax.candidate.2026')
     const individualRule = findRuleById('al.individual_income_return.candidate.2026')
 
     expect(individualSource?.domains).toEqual(['individual_income_return'])
@@ -376,6 +377,12 @@ describe('@duedatehq/core/rules', () => {
     expect(dueDatesSource?.domains).not.toContain('individual_income_return')
     expect(individualRule?.sourceIds).toEqual(['al.income_tax'])
     expect(businessRule?.sourceIds).toEqual(['al.due_dates'])
+    expect(franchiseRule?.sourceIds).toEqual(['al.due_dates'])
+    expect(franchiseRule?.evidence[0]?.sourceExcerpt).toContain('Business Privilege Tax')
+    expect(franchiseRule?.evidence[0]?.sourceExcerpt).toContain('S-Corporation Due no later')
+    expect(franchiseRule?.evidence[0]?.sourceExcerpt).not.toMatch(
+      /official source registered|templates require practice owner or manager acceptance/i,
+    )
     expect(
       individualSource && businessRule
         ? sourceCoversRuleDomain(individualSource, businessRule)

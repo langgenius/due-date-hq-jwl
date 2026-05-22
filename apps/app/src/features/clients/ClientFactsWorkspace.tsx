@@ -332,6 +332,12 @@ function formatJurisdictionSummary(client: ClientPublic): string {
   return `${statesLabel} · ${taxTypesLabel}`
 }
 
+function formatImportSourceSummary(client: ClientPublic): string {
+  const parts = [client.externalClientId, client.sourceStatus].filter(Boolean)
+  if (parts.length > 0) return parts.join(' · ')
+  return getClientSourceType(client) === 'imported' ? 'Imported client details' : 'Manual client'
+}
+
 export function ClientFactsWorkspace({
   clients,
   filteredClients,
@@ -1256,6 +1262,15 @@ export function ClientDetailWorkspace({
                   <SectionLabel>
                     <Trans>CONFIGURE</Trans>
                   </SectionLabel>
+
+                  <DetailSection
+                    title={t`Import source`}
+                    summary={formatImportSourceSummary(client)}
+                  >
+                    <ClientImportSourcePanel client={client} />
+                  </DetailSection>
+
+                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
 
                   <DetailSection
                     id="client-filing-jurisdictions"
@@ -2196,6 +2211,33 @@ function ClientFactChecklist({
         label={<Trans>Owner</Trans>}
         detail={<Trans>Keeps obligation follow-up accountable.</Trans>}
       />
+    </div>
+  )
+}
+
+function ClientImportSourcePanel({ client }: { client: ClientPublic }) {
+  return (
+    <dl className="grid gap-3 sm:grid-cols-2">
+      <ClientImportSourceField
+        label={<Trans>External client ID</Trans>}
+        value={client.externalClientId}
+      />
+      <ClientImportSourceField label={<Trans>Source status</Trans>} value={client.sourceStatus} />
+      <ClientImportSourceField label={<Trans>Address line 1</Trans>} value={client.addressLine1} />
+      <ClientImportSourceField label={<Trans>City</Trans>} value={client.city} />
+      <ClientImportSourceField label={<Trans>ZIP / postal code</Trans>} value={client.postalCode} />
+      <ClientImportSourceField label={<Trans>Primary phone</Trans>} value={client.primaryPhone} />
+    </dl>
+  )
+}
+
+function ClientImportSourceField({ label, value }: { label: ReactNode; value: string | null }) {
+  return (
+    <div className="min-w-0 rounded-md border border-divider-subtle bg-background-base px-3 py-2">
+      <dt className="text-xs font-medium text-text-tertiary">{label}</dt>
+      <dd className="mt-1 truncate text-sm text-text-primary">
+        {value ? value : <span className="text-text-tertiary">N/A</span>}
+      </dd>
     </div>
   )
 }
