@@ -129,4 +129,37 @@ describe('rule source text extraction', () => {
       "Business Privilege Tax S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
     )
   })
+
+  it('falls back to full page text when shallow content selectors miss nested accordions', () => {
+    const html = `
+      <html>
+        <body>
+          <div id="main-content">
+            <main id="main">
+              <div id="overview">
+                <p>Our due dates apply to both calendar and fiscal tax years.</p>
+              </div>
+              <ol id="llc-partnership">
+                <li>
+                  <h3>Limited liability company classified as a partnership</h3>
+                  <div>
+                    <h4>Return due date</h4>
+                    <p>15th day of the 3rd month after the close of your tax year.</p>
+                    <h4>Payment due date</h4>
+                    <p>15th day of the 3rd month after the close of your tax year.</p>
+                  </div>
+                </li>
+              </ol>
+            </main>
+          </div>
+        </body>
+      </html>
+    `
+
+    const text = extractOfficialSourceText(html)
+
+    expect(text).toContain('Limited liability company classified as a partnership')
+    expect(text).toContain('Return due date')
+    expect(text).toContain('15th day of the 3rd month after the close of your tax year.')
+  })
 })

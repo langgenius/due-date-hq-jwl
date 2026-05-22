@@ -23,8 +23,6 @@ import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 import { orpc } from '@/lib/rpc'
 
 import {
-  compactAcquisitionMethod,
-  compactSourceType,
   countSourcesByHealth,
   filterSources,
   jurisdictionLabel,
@@ -39,7 +37,8 @@ import {
   TablePaginationFooter,
 } from './rules-console-primitives'
 
-type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence' | 'method'
+type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence'
+type SourceTypeLabelMap = Record<RuleSource['sourceType'], string>
 
 const SOURCE_PAGE_SIZE = 25
 const EMPTY_SOURCE_ROWS: RuleSource[] = []
@@ -55,7 +54,6 @@ export function SourcesTab() {
   })
   const [sourceTypeFilters, setSourceTypeFilters] = useState<string[]>([])
   const [cadenceFilters, setCadenceFilters] = useState<string[]>([])
-  const [methodFilters, setMethodFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<SourceHeaderFilterId | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
 
@@ -76,6 +74,20 @@ export function SourcesTab() {
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
+  const sourceTypeLabels = useMemo<SourceTypeLabelMap>(
+    () => ({
+      calendar: t`Calendar`,
+      due_dates: t`Due dates`,
+      early_warning: t`Early alert`,
+      emergency_relief: t`Relief notice`,
+      form: t`Form`,
+      instructions: t`Instructions`,
+      news: t`News`,
+      publication: t`Publication`,
+      subscription: t`Email updates`,
+    }),
+    [t],
+  )
   const filteredRows = useMemo(
     () =>
       filterSources(rows, healthFilter).filter(
@@ -83,18 +95,9 @@ export function SourcesTab() {
           matchesSelected(source.jurisdiction, jurisdictionFilters) &&
           matchesSelected(source.sourceType, sourceTypeFilters) &&
           matchesSelected(source.cadence, cadenceFilters) &&
-          matchesSelected(source.acquisitionMethod, methodFilters) &&
           (!domainFilter || source.domains.some((domain) => domain === domainFilter)),
       ),
-    [
-      cadenceFilters,
-      domainFilter,
-      healthFilter,
-      jurisdictionFilters,
-      methodFilters,
-      rows,
-      sourceTypeFilters,
-    ],
+    [cadenceFilters, domainFilter, healthFilter, jurisdictionFilters, rows, sourceTypeFilters],
   )
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / SOURCE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, pageCount - 1)
@@ -107,8 +110,13 @@ export function SourcesTab() {
     [rows],
   )
   const sourceTypeOptions = useMemo(
-    () => sourceFilterOptions(rows, (source) => source.sourceType, compactSourceType),
-    [rows],
+    () =>
+      sourceFilterOptions(
+        rows,
+        (source) => source.sourceType,
+        (type) => sourceTypeLabel(type, sourceTypeLabels),
+      ),
+    [rows, sourceTypeLabels],
   )
   const cadenceOptions = useMemo(
     () =>
@@ -117,10 +125,6 @@ export function SourcesTab() {
         (source) => source.cadence,
         (cadence) => cadence.replace('_', '-'),
       ),
-    [rows],
-  )
-  const methodOptions = useMemo(
-    () => sourceFilterOptions(rows, (source) => source.acquisitionMethod, compactAcquisitionMethod),
     [rows],
   )
 
@@ -167,7 +171,7 @@ export function SourcesTab() {
       <SectionFrame>
         {/*
           `table-fixed` keeps source rows stable when long values such as
-          "email_subscription" or NY Article 9-A titles appear. After adding
+          NY Article 9-A titles appear. After adding
           header filters, the right-hand columns need enough width for label +
           active-count badge + chevron; SOURCE auto-fills the remaining space
           and shrinks first on narrower viewports.
@@ -214,18 +218,6 @@ export function SourcesTab() {
                   onSelectedChange={(next) => updateHeaderFilter(setCadenceFilters, next)}
                 />
               </TableHead>
-              <TableHead className="w-[112px] px-2">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`METHOD`}
-                  open={openHeaderFilter === 'method'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('method', nextOpen)}
-                  options={methodOptions}
-                  selected={methodFilters}
-                  emptyLabel={emptyFilterLabel}
-                  onSelectedChange={(next) => updateHeaderFilter(setMethodFilters, next)}
-                />
-              </TableHead>
               <TableHead className="w-[112px] px-2">WATCH</TableHead>
               <TableHead className="w-[92px] px-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text-tertiary">
                 LAST CHECKED
@@ -239,12 +231,13 @@ export function SourcesTab() {
                 key={source.id}
                 source={source}
                 health={sourceHealthBySourceId.get(source.id)}
+                sourceTypeLabels={sourceTypeLabels}
               />
             ))}
             {visibleRows.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="px-4 py-10 text-center text-xs text-text-tertiary"
                 >
                   {rows.length === 0 ? (
@@ -412,6 +405,10 @@ function relativeTimeShort(iso: string): string {
   return `${months}mo`
 }
 
+function sourceTypeLabel(sourceType: RuleSource['sourceType'], labels: SourceTypeLabelMap): string {
+  return labels[sourceType]
+}
+
 function sourceFilterOptions<T extends string>(
   sources: readonly RuleSource[],
   getValue: (source: RuleSource) => T,
@@ -431,9 +428,11 @@ function sourceFilterOptions<T extends string>(
 function SourceRow({
   source,
   health,
+  sourceTypeLabels,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
+  sourceTypeLabels: SourceTypeLabelMap
 }) {
   const { t } = useLingui()
 
@@ -457,8 +456,6 @@ function SourceRow({
     },
     [openSource],
   )
-
-  const isManualReview = source.acquisitionMethod === 'manual_review'
 
   return (
     <TableRow
@@ -487,21 +484,10 @@ function SourceRow({
         <JurisdictionCode code={source.jurisdiction} />
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
-        {compactSourceType(source.sourceType)}
+        {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
         {source.cadence.replace('_', '-')}
-      </TableCell>
-      <TableCell
-        className={cn(
-          'px-2 py-1.5 text-xs',
-          isManualReview ? 'text-severity-medium' : 'text-text-secondary',
-        )}
-        title={
-          isManualReview ? t`Manual review source · click to open the official page` : undefined
-        }
-      >
-        {compactAcquisitionMethod(source.acquisitionMethod)}
       </TableCell>
       <TableCell
         className="px-2 py-1.5"

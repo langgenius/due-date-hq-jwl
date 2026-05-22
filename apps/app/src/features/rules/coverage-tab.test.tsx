@@ -504,6 +504,23 @@ describe('CoverageTab canonical layout', () => {
     expect(tableFrame?.className).not.toContain('overflow-hidden')
   })
 
+  it('can constrain the table scroll region to remaining viewport height', async () => {
+    await render(<CoverageTab fitViewport />)
+    await waitForText('Entity coverage')
+
+    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-md')
+
+    expect(tableFrame?.className).toContain('overflow-auto')
+    expect(tableFrame?.className).toContain('overscroll-contain')
+    expect(tableFrame?.className).toContain('flex-1')
+    expect(tableFrame?.className).toContain('min-h-0')
+    expect(tableFrame?.className).not.toContain('max-h-[clamp')
+
+    const tableFlexRow = tableFrame?.parentElement?.parentElement
+    expect(tableFlexRow?.className).toContain('items-stretch')
+    expect(tableFlexRow?.className).not.toContain('items-start')
+  })
+
   it('separates missing-source and not-applicable states in the legend', async () => {
     await render(<CoverageTab />)
     await waitForText('Missing source')

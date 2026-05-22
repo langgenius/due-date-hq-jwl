@@ -344,4 +344,112 @@ describe('rule concrete draft normalization', () => {
       holidayRollover: 'next_business_day',
     })
   })
+
+  it('accepts common wrapped AI payloads before strict draft normalization', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      result: {
+        dueDate: 'April 15, 2026',
+        extensionPolicy: {
+          available: false,
+          paymentExtended: false,
+          notes: 'No extension policy is stated.',
+        },
+        coverageStatus: 'manual',
+        requiresApplicabilityReview: true,
+        quality: {
+          filingPaymentDistinguished: true,
+        },
+        sourceExcerpt: 'Generally, your Alabama Individual Income Tax Return is due on April 15th.',
+        confidence: 0.76,
+        reasoning: 'The wrapped result states the due date.',
+      },
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Individual Income Tax Due Dates',
+      sourceText: 'Generally, your Alabama Individual Income Tax Return is due on April 15th.',
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft?.dueDateLogic).toEqual({
+      kind: 'fixed_date',
+      date: '2026-04-15',
+      holidayRollover: 'next_business_day',
+    })
+  })
+
+  it('falls back from missing fixed-date fields to source-backed date candidates', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: null,
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'No extension policy is stated.',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      quality: {},
+      sourceExcerpt: 'Generally, your Alabama Individual Income Tax Return is due on April 15th.',
+      confidence: 0.71,
+      reasoning: 'The source excerpt states the due date.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Individual Income Tax Due Dates',
+      sourceText: 'Generally, your Alabama Individual Income Tax Return is due on April 15th.',
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft?.dueDateLogic).toMatchObject({
+      kind: 'fixed_date',
+      date: '2026-04-15',
+    })
+  })
+
+  it('keeps tax-year-relative logic valid when day/month fields are worded in source text', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_end',
+        monthOffset: null,
+        day: null,
+        description:
+          'The return is due on or before the fifteenth day of the fourth month after the close of the taxable year.',
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'No extension policy is stated.',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      quality: {},
+      sourceExcerpt:
+        'The return is due on or before the fifteenth day of the fourth month after the close of the taxable year.',
+      confidence: 0.73,
+      reasoning: 'The source excerpt states the relative due date.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Business Return Instructions',
+      sourceText:
+        'The return is due on or before the fifteenth day of the fourth month after the close of the taxable year.',
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft?.dueDateLogic).toEqual({
+      kind: 'nth_day_after_tax_year_end',
+      monthOffset: 4,
+      day: 15,
+      holidayRollover: 'next_business_day',
+    })
+  })
 })

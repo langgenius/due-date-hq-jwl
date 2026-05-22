@@ -786,7 +786,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'DC',
     title: 'DC OTR Individual Income Tax',
-    url: 'https://otr.cfo.dc.gov/page/individual-income-tax',
+    url: 'https://otr.cfo.dc.gov/es/node/1796481',
   },
   {
     jurisdiction: 'FL',
@@ -840,7 +840,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'LA',
     title: 'Louisiana Department of Revenue Individual Income Tax',
-    url: 'https://revenue.louisiana.gov/IndividualIncomeTax',
+    url: 'https://revenue.louisiana.gov/individuals/general-resources/individual-income-tax/',
   },
   {
     jurisdiction: 'ME',
@@ -2726,7 +2726,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     jurisdiction: 'LA',
     id: 'la.tax_calendar',
     title: 'Louisiana Department of Revenue Tax Calendar',
-    url: 'https://revenue.louisiana.gov/TaxCalendar',
+    url: 'https://revenue.louisiana.gov/calendar/2026/',
     sourceType: 'calendar',
     acquisitionMethod: 'manual_review',
     domains: [

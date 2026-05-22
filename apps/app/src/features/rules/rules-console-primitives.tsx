@@ -66,6 +66,8 @@ export function RulesPageShell({
   breadcrumbs,
   actions,
   compact = false,
+  lockViewport = false,
+  contentClassName,
   children,
 }: {
   title: string
@@ -73,12 +75,25 @@ export function RulesPageShell({
   breadcrumbs?: BreadcrumbItem[]
   actions?: ReactNode
   compact?: boolean
+  lockViewport?: boolean
+  contentClassName?: string
   children: ReactNode
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex w-full flex-col gap-6 px-6 py-6">
+    <div className={cn('flex min-h-0 flex-col overflow-hidden', lockViewport ? 'h-svh' : 'h-full')}>
+      <div
+        className={cn(
+          'min-h-0 flex-1 overscroll-contain',
+          lockViewport ? 'overflow-hidden' : 'overflow-y-auto',
+        )}
+      >
+        <div
+          className={cn(
+            'flex w-full flex-col gap-6 px-6 py-6',
+            lockViewport && 'h-full min-h-0',
+            contentClassName,
+          )}
+        >
           {/* Header is unmounted in compact mode — not just visually
             collapsed. A collapsed-but-mounted div still consumes a
             flex `gap-6` slot above the next child, which created a
