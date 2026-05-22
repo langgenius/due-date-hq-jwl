@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { activateLocale } from '@/i18n/i18n'
-import { cn, formatCents, formatDate, formatDateTimeWithTimezone } from './utils'
+import { cn, formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from './utils'
 
 describe('utils', () => {
   afterEach(() => {
@@ -43,5 +43,34 @@ describe('utils', () => {
     expect(formatDateTimeWithTimezone('2026-04-29T09:14:32.883Z', 'America/Los_Angeles')).toMatch(
       /^2026-04-29 02:14:32 (PDT|GMT-7)$/,
     )
+  })
+
+  describe('formatDatePretty', () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('formats a same-year ISO date without the year', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-15T00:00:00.000Z'))
+      expect(formatDatePretty('2026-05-06')).toBe('May 6')
+    })
+
+    it('includes the year for prior-year and future-year dates', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-15T00:00:00.000Z'))
+      expect(formatDatePretty('2025-12-31')).toBe('Dec 31, 2025')
+      expect(formatDatePretty('2027-03-01')).toBe('Mar 1, 2027')
+    })
+
+    it('respects alwaysShowYear', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-15T00:00:00.000Z'))
+      expect(formatDatePretty('2026-05-06', { alwaysShowYear: true })).toBe('May 6, 2026')
+    })
+
+    it('returns the input unchanged when unparseable', () => {
+      expect(formatDatePretty('not-a-date')).toBe('not-a-date')
+    })
   })
 })

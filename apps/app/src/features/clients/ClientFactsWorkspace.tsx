@@ -74,7 +74,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
-import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { initialsFromName } from '@/lib/auth'
@@ -313,7 +313,7 @@ function formatClientIdentitySubLine({
   if (taxLabel) parts.push(taxLabel)
   parts.push(workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`)
   if (workPlan.nextDueDate) {
-    parts.push(`next due ${formatDate(workPlan.nextDueDate)}`)
+    parts.push(`next due ${formatDatePretty(workPlan.nextDueDate)}`)
   }
   if (workPlan.overdueOpenCount > 0) {
     parts.push(workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`)
@@ -527,8 +527,8 @@ export function ClientFactsWorkspace({
           return (
             <div className="flex min-w-0 flex-col gap-1">
               {summary?.nextDueDate ? (
-                <span className="whitespace-nowrap tabular-nums text-text-primary">
-                  {formatDate(summary.nextDueDate)}
+                <span className="whitespace-nowrap text-text-primary">
+                  {formatDatePretty(summary.nextDueDate)}
                 </span>
               ) : (
                 <span className="text-text-tertiary">—</span>
@@ -1672,7 +1672,7 @@ function FilingPlanYearSection({
                 key={obligation.id}
                 tabIndex={0}
                 role="link"
-                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
+                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}`}
                 className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
                 onClick={() => onOpen(obligation.id)}
                 onKeyDown={(event) => {
@@ -1692,8 +1692,8 @@ function FilingPlanYearSection({
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="w-[132px] tabular-nums">
-                  {formatDate(obligation.currentDueDate)}
+                <TableCell className="w-[132px]">
+                  {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
                 </TableCell>
                 <TableCell className="w-[140px]">
                   <ObligationStatusBadge obligation={obligation} />
@@ -2732,7 +2732,7 @@ function SuggestedFormsCatalogPanel({
                     </div>
                     <p className="text-xs leading-snug text-text-tertiary">
                       {suggestion.rule.title} ·{' '}
-                      <Trans>default due {formatDate(suggestion.defaultBaseDueDate)}</Trans>
+                      <Trans>default due {formatDatePretty(suggestion.defaultBaseDueDate)}</Trans>
                     </p>
                   </div>
                   <Button
