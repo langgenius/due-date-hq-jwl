@@ -17,6 +17,7 @@ export const aiOutput = sqliteTable(
         'ask_answer',
         'pulse_extract',
         'rule_concrete_draft',
+        'rule_registry_reconcile',
         'migration_map',
         'migration_normalize',
         'readiness_checklist',

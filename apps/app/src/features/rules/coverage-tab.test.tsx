@@ -10,7 +10,6 @@ import type {
   RuleConcreteDraft,
   RuleCoverageRow,
   RuleReviewTask,
-  RuleSource,
 } from '@duedatehq/contracts'
 
 import {
@@ -322,27 +321,6 @@ function concreteDraft(overrides: Partial<RuleConcreteDraft> = {}): RuleConcrete
     sourceExcerpt: 'Returns are due on April 15, 2026.',
     confidence: 0.9,
     reasoning: 'The source states a fixed calendar due date.',
-    ...overrides,
-  }
-}
-
-function ruleSource(overrides: Partial<RuleSource> = {}): RuleSource {
-  return {
-    id: 'fed.source.2026',
-    jurisdiction: 'FED',
-    title: 'Federal due dates',
-    url: 'https://www.irs.gov/due-dates',
-    sourceType: 'calendar',
-    acquisitionMethod: 'html_watch',
-    cadence: 'daily',
-    priority: 'high',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    domains: ['individual_income_return'],
-    entityApplicability: ['individual'],
-    authorityRole: 'basis',
-    notificationChannels: ['practice_rule_review'],
-    lastReviewedOn: '2026-01-01',
     ...overrides,
   }
 }
@@ -882,7 +860,7 @@ describe('CoverageTab canonical layout', () => {
       {
         ruleId: sourceDefinedRule.id,
         sourceId: 'fed.source.2026',
-        sourceSignalId: null,
+        sourceSignalId: 'source_signal_1',
         draft,
       },
     ])
@@ -931,14 +909,16 @@ describe('CoverageTab canonical layout', () => {
         {
           ruleId: sourceDefinedRule.id,
           sourceId: 'fed.source.2026',
+          sourceSignalId: 'source_signal_1',
           aiOutputId: draft.aiOutputId,
         },
       ],
       reviewNote: 'Reviewed cached AI draft.',
     })
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
   })
 
-  it('allows the currently generated AI draft to enter bulk review before the cache list refetches', async () => {
+  it('does not auto-generate a draft when a source-defined rule is opened', async () => {
     const sourceDefinedRule = obligationRule({
       id: 'fed.pending.source-defined.2026',
       title: 'Federal source-defined calendar',
@@ -951,87 +931,24 @@ describe('CoverageTab canonical layout', () => {
         holidayRollover: 'source_adjusted',
       },
     })
-    const otherRule = obligationRule({
-      id: 'ca.pending.individual.2026',
-      title: 'California pending individual return',
-      status: 'pending_review',
-    })
-    const draft = concreteDraft()
     nuqsMocks.rule = sourceDefinedRule.id
-    rpcMocks.listSourcesQueryFn.mockResolvedValue([ruleSource()])
-    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule, otherRule])
-    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([
-      reviewTask(sourceDefinedRule),
-      reviewTask(otherRule),
-    ])
+    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(sourceDefinedRule)])
     rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
-    rpcMocks.draftConcreteRuleQueryFn.mockResolvedValue(draft)
 
     await render(<CoverageTab />)
     await waitForText('AI concrete draft')
-    await waitForText('AI draft ready')
+    await waitForText('AI concrete draft is not ready.')
+    await waitForText('AI draft needed')
 
     const draftCheckbox = document.querySelector<HTMLInputElement>(
       'input[aria-label="Select AI draft rule Federal source-defined calendar"]',
     )
-    expect(draftCheckbox).not.toBeNull()
-
-    const otherRuleButton = document.querySelector<HTMLButtonElement>(
-      `button[title="${otherRule.title}"]`,
-    )
-    expect(otherRuleButton).not.toBeNull()
-
-    await act(async () => {
-      otherRuleButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    const persistentDraftCheckbox = document.querySelector<HTMLInputElement>(
-      'input[aria-label="Select AI draft rule Federal source-defined calendar"]',
-    )
-    expect(persistentDraftCheckbox).not.toBeNull()
-
-    await act(async () => {
-      persistentDraftCheckbox?.click()
-    })
-    await waitForText('1 selected')
-
-    const reviewSelected = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Review selected'),
-    )
-    await act(async () => {
-      reviewSelected?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    await waitForText('AI CONCRETE DRAFTS')
-
-    const textarea = document.querySelector<HTMLTextAreaElement>('textarea')
-    await act(async () => {
-      if (!textarea) return
-      setTextareaValue(textarea, 'Reviewed current AI draft.')
-      textarea.dispatchEvent(new Event('input', { bubbles: true }))
-      textarea.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-    const acceptSelected = Array.from(document.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Accept selected'),
-    )
-    await act(async () => {
-      acceptSelected?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0))
-    })
-
-    expect(rpcMocks.bulkVerifyCandidatesMutationFn.mock.calls[0]?.[0]).toEqual({
-      rules: [
-        {
-          ruleId: sourceDefinedRule.id,
-          sourceId: 'fed.source.2026',
-          aiOutputId: draft.aiOutputId,
-        },
-      ],
-      reviewNote: 'Reviewed current AI draft.',
-    })
+    expect(draftCheckbox).toBeNull()
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
   })
 
-  it('shows draftConcreteRule errors after the first failed request', async () => {
+  it('does not surface draft generation failures in the customer-facing path', async () => {
     const sourceDefinedRule = obligationRule({
       id: 'fed.pending.source-defined.2026',
       title: 'Federal source-defined calendar',
@@ -1045,19 +962,16 @@ describe('CoverageTab canonical layout', () => {
       },
     })
     nuqsMocks.rule = sourceDefinedRule.id
-    rpcMocks.listSourcesQueryFn.mockResolvedValue([ruleSource()])
     rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule])
     rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(sourceDefinedRule)])
-    rpcMocks.draftConcreteRuleQueryFn.mockRejectedValue(
-      new Error('Official source text could not be fetched for the selected source.'),
-    )
+    rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
 
     await render(<CoverageTab />, { queryRetry: 2, retryDelay: 1 })
-    await waitForText('Official source text could not be fetched for the selected source.')
+    await waitForText('AI concrete draft is not ready.')
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 20))
     })
 
-    expect(rpcMocks.draftConcreteRuleQueryFn).toHaveBeenCalledTimes(1)
+    expect(rpcMocks.draftConcreteRuleQueryFn).not.toHaveBeenCalled()
   })
 })

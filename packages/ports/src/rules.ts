@@ -7,6 +7,14 @@ export type PracticeRuleReviewTaskReason =
   | 'pulse_signal'
   | 'custom_edit'
   | 'annual_review'
+export type RuleRegistryReconcileRunStatus = 'running' | 'completed' | 'failed'
+export type RuleRegistryChangeProposalType =
+  | 'no_rule_change'
+  | 'existing_rule_update'
+  | 'new_rule'
+  | 'manual_check_due'
+  | 'analyzer_failed'
+export type RuleRegistryChangeProposalStatus = 'open' | 'accepted' | 'dismissed' | 'superseded'
 
 export interface RuleReviewDecisionRow {
   id: string
@@ -113,6 +121,59 @@ export interface PracticeRuleReviewTaskDecisionInput {
   reviewedAt?: Date
 }
 
+export interface RuleRegistryReconcileRunRow {
+  id: string
+  weekKey: string
+  status: RuleRegistryReconcileRunStatus
+  triggeredBy: string
+  startedAt: Date
+  completedAt: Date | null
+  sourceCount: number
+  checkedCount: number
+  unchangedCount: number
+  changedCount: number
+  proposalCount: number
+  failureCount: number
+  errorText: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface RuleRegistryChangeProposalRow {
+  id: string
+  runId: string
+  sourceId: string
+  sourceSnapshotId: string | null
+  contentHash: string | null
+  rawR2Key: string | null
+  proposalType: RuleRegistryChangeProposalType
+  status: RuleRegistryChangeProposalStatus
+  affectedRuleIds: string[]
+  proposedRuleIds: string[]
+  normalizedRuleJson: unknown
+  diffSummary: string | null
+  aiOutputId: string | null
+  failureReason: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface RuleRegistryChangeProposalInput {
+  runId: string
+  sourceId: string
+  sourceSnapshotId?: string | null
+  contentHash?: string | null
+  rawR2Key?: string | null
+  proposalType: RuleRegistryChangeProposalType
+  status?: RuleRegistryChangeProposalStatus
+  affectedRuleIds?: string[]
+  proposedRuleIds?: string[]
+  normalizedRuleJson?: unknown
+  diffSummary?: string | null
+  aiOutputId?: string | null
+  failureReason?: string | null
+}
+
 export type TemporaryRuleRowStatus = 'active' | 'reverted' | 'retracted'
 
 export interface TemporaryRuleRow {
@@ -159,4 +220,24 @@ export interface RulesRepo {
   listTemporaryRules(): Promise<TemporaryRuleRow[]>
   getDecision(ruleId: string): Promise<RuleReviewDecisionRow | null>
   upsertDecision(input: RuleReviewDecisionInput): Promise<RuleReviewDecisionRow>
+}
+
+export interface RulesOpsRepo {
+  startWeeklyReconcileRun(input: {
+    weekKey: string
+    sourceCount: number
+    startedAt?: Date
+    triggeredBy?: string
+  }): Promise<{ run: RuleRegistryReconcileRunRow; inserted: boolean }>
+  recordReconcileSourceOutcome(input: {
+    runId: string
+    changed?: boolean
+    proposalCreated?: boolean
+    failed?: boolean
+    errorText?: string | null
+  }): Promise<RuleRegistryReconcileRunRow>
+  recordChangeProposal(
+    input: RuleRegistryChangeProposalInput,
+  ): Promise<RuleRegistryChangeProposalRow>
+  listOpenChangeProposals(limit?: number): Promise<RuleRegistryChangeProposalRow[]>
 }

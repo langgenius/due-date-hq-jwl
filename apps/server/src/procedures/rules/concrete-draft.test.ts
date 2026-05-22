@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   normalizeRuleConcreteDraftAiOutput,
+  ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
 } from './concrete-draft'
 
@@ -22,6 +23,16 @@ const ALABAMA_BPT_SOURCE_TEXT = [
 ].join('\n')
 
 describe('rule concrete draft normalization', () => {
+  it('keys cached drafts by current rule semantic version', () => {
+    expect(
+      ruleConcreteDraftContextRef({
+        ruleId: 'ca.business_income_return.candidate.2026',
+        ruleVersion: 2,
+        sourceId: 'ca.ftb_business_due_dates',
+      }),
+    ).toBe('rule:ca.business_income_return.candidate.2026:v2:ca.ftb_business_due_dates')
+  })
+
   it('normalizes Alabama-style month/day installment drafts into the strict contract shape', () => {
     const parsed = RuleConcreteDraftAiOutputSchema.parse({
       dueDateLogic: {

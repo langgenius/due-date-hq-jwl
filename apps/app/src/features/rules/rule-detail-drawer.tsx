@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { TriangleAlertIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import type {
   ObligationRule,
   RuleConcreteDraft,
+  RuleConcreteDraftCacheEntry,
   RuleEvidence,
   RuleEvidenceAuthorityRole,
   RuleSource,
@@ -31,10 +32,6 @@ import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
 const ACCEPT_RULE_TOOLTIP_MS = 1_200
-const SOURCE_WATCH_PLACEHOLDER_RE =
-  /\bofficial source registered\b|\btemplates require practice owner or manager acceptance\b/i
-const CONCRETE_DRAFT_SOURCE_SIGNAL_RE =
-  /\b(due|deadline|filed by|pay by|deposit|return is timely|[0-9]{1,2}(st|nd|rd|th)? day|january|february|march|april|may|june|july|august|september|october|november|december)\b/i
 
 /**
  * Inline-renderable version of the rule detail — full section list, no
@@ -97,9 +94,11 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
  */
 export function RuleDetailCompact({
   rule,
+  concreteDraft,
   onActionComplete,
 }: {
   rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
   onActionComplete?: () => void
 }) {
   const sourceLookup = useSourceLookup()
@@ -169,6 +168,7 @@ export function RuleDetailCompact({
       <CandidateReviewSection
         key={rule.id}
         rule={rule}
+        concreteDraft={concreteDraft ?? null}
         {...(onActionComplete ? { onActionComplete } : {})}
       />
     </div>
@@ -210,23 +210,33 @@ function ExtensionCompact({ policy }: { policy: ObligationRule['extensionPolicy'
 
 function CandidateReviewSection({
   rule,
+  concreteDraft,
   onActionComplete,
 }: {
   rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
   onActionComplete?: () => void
 }) {
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   if (rule.status !== 'candidate' && rule.status !== 'pending_review' && !sourceDefined) {
     return null
   }
-  return <CandidateReviewForm rule={rule} {...(onActionComplete ? { onActionComplete } : {})} />
+  return (
+    <CandidateReviewForm
+      rule={rule}
+      concreteDraft={concreteDraft ?? null}
+      {...(onActionComplete ? { onActionComplete } : {})}
+    />
+  )
 }
 
 function CandidateReviewForm({
   rule,
+  concreteDraft,
   onActionComplete,
 }: {
   rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
   onActionComplete?: () => void
 }) {
   const { t } = useLingui()
@@ -237,18 +247,7 @@ function CandidateReviewForm({
   const acceptTooltipTimeoutRef = useRef<number | null>(null)
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
-  const sourceLookup = useSourceLookup()
-  const reviewSource = sourceLookup.get(reviewSourceId)
-  const draftableSource = sourceDefined
-    ? hasConcreteDraftSourceEvidence(rule, reviewSourceId, reviewSource)
-    : false
-  const draftQuery = useQuery({
-    ...orpc.rules.draftConcreteRule.queryOptions({
-      input: { ruleId: rule.id, sourceId: reviewSourceId },
-    }),
-    enabled: sourceDefined && reviewSourceId.length > 0 && draftableSource,
-    retry: false,
-  })
+  const draft = concreteDraft?.draft ?? null
 
   const invalidateRules = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
@@ -325,7 +324,6 @@ function CandidateReviewForm({
     clearAcceptTooltipTimeout()
     setAcceptTooltipState('accepting')
     if (sourceDefined) {
-      const draft = draftQuery.data
       if (!draft || reviewSourceId.length === 0) {
         setAcceptTooltipState(null)
         return
@@ -333,6 +331,7 @@ function CandidateReviewForm({
       verifyMutation.mutate({
         ruleId: rule.id,
         sourceId: reviewSourceId,
+        ...(concreteDraft?.sourceSignalId ? { sourceSignalId: concreteDraft.sourceSignalId } : {}),
         aiOutputId: draft.aiOutputId,
         sourceHeading: draft.sourceHeading,
         sourceExcerpt: draft.sourceExcerpt,
@@ -364,34 +363,25 @@ function CandidateReviewForm({
 
   const isPending = acceptMutation.isPending || verifyMutation.isPending || rejectMutation.isPending
   const reviewDisabled = isPending || acceptTooltipState === 'accepted'
-  const draftErrorMessage = draftQuery.isError
-    ? (rpcErrorMessage(draftQuery.error) ?? t`AI concrete draft could not be generated.`)
-    : null
   const draftUnavailableMessage =
-    sourceDefined && reviewSourceId.length > 0 && !draftableSource
-      ? t`This rule only has source-watch metadata. Open the official source and add a concrete rule after review.`
+    sourceDefined && reviewSourceId.length === 0
+      ? t`This source-defined rule is missing an official source.`
       : null
-  const draftPanelMessage = draftUnavailableMessage ?? draftErrorMessage
-  const concreteDraftGenerating =
-    sourceDefined && !draftQuery.data && (draftQuery.isPending || draftQuery.isFetching)
+  const draftPanelMessage =
+    draftUnavailableMessage ?? (sourceDefined && !draft ? t`AI concrete draft is not ready.` : null)
   const acceptDisabledReason = sourceDefined
     ? reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
       : draftUnavailableMessage
         ? draftUnavailableMessage
-        : concreteDraftGenerating
-          ? null
-          : draftPanelMessage && !draftQuery.data
-            ? draftPanelMessage
-            : !draftQuery.data
-              ? t`AI concrete draft is not ready.`
-              : null
+        : draftPanelMessage && !draft
+          ? draftPanelMessage
+          : !draft
+            ? t`AI concrete draft is not ready.`
+            : null
     : null
   const acceptDisabled =
-    reviewDisabled ||
-    acceptDisabledReason !== null ||
-    concreteDraftGenerating ||
-    (sourceDefined && !draftQuery.data)
+    reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
 
   const entitySummary = rule.entityApplicability.join(', ')
   return (
@@ -419,11 +409,7 @@ function CandidateReviewForm({
         )}
       </p>
       {sourceDefined ? (
-        <AiDraftReviewPanel
-          draft={draftQuery.data ?? null}
-          errorMessage={draftPanelMessage}
-          generating={draftQuery.isPending || draftQuery.isFetching}
-        />
+        <AiDraftReviewPanel draft={draft} errorMessage={draftPanelMessage} generating={false} />
       ) : null}
       {acceptDisabledReason ? (
         <p className="text-xs text-severity-medium">{acceptDisabledReason}</p>
@@ -459,28 +445,6 @@ function CandidateReviewForm({
       </div>
     </section>
   )
-}
-
-export function hasConcreteDraftSourceEvidence(
-  rule: ObligationRule,
-  sourceId: string,
-  source: RuleSource | undefined,
-): boolean {
-  if (sourceId.length === 0) return false
-  if (isFetchableConcreteDraftSource(source)) return true
-  return rule.evidence.some(
-    (evidence) => evidence.sourceId === sourceId && isConcreteDraftSourceEvidence(evidence),
-  )
-}
-
-function isFetchableConcreteDraftSource(source: RuleSource | undefined): boolean {
-  return source?.acquisitionMethod === 'html_watch' || source?.acquisitionMethod === 'manual_review'
-}
-
-function isConcreteDraftSourceEvidence(evidence: RuleEvidence): boolean {
-  if (evidence.authorityRole !== 'basis' && evidence.authorityRole !== 'cross_check') return false
-  if (SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt)) return false
-  return CONCRETE_DRAFT_SOURCE_SIGNAL_RE.test(evidence.sourceExcerpt)
 }
 
 function AiDraftReviewPanel({

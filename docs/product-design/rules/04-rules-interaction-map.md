@@ -75,11 +75,13 @@ rule detail workflow.
 | **BulkReview › Batch note textarea**               | Textarea               | Capture review note                     | Required for accept          | Edit / clear                  |
 | **Source citation link**                           | External `<a>` new tab | Open official document                  | `https://...` external       | Browser back in new tab       |
 
-Source-defined pending rules without a cached AI concrete draft and
+Source-defined pending rules without a global cached AI concrete draft and
 `source_changed` tasks do not render row checkboxes; they remain single-rule
 detail workflow rows. Source-defined rules with a cached AI concrete draft can
 enter bulk review, where the drawer shows the draft fields and the server
-re-validates the draft before activation.
+re-validates the draft before activation. Opening a Rule Detail reads the same
+cache data; it does not trigger `draftConcreteRule` generation in the customer
+render path.
 
 When the selected `?rule=` is already `active` / `verified`, the same workspace
 switches its left rail to the Active rule queue. That queue keeps the Coverage

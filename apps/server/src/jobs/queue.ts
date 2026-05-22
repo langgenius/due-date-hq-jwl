@@ -7,6 +7,16 @@ import { isDashboardBriefRefreshMessage } from './dashboard-brief/message'
 import { flushEmailOutbox } from './email/outbox'
 import { extractPulseSnapshot } from './pulse/extract'
 import { recordPulseMetric } from './pulse/metrics'
+import {
+  consumeRuleConcreteDraftGenerate,
+  isRuleConcreteDraftGenerateMessage,
+} from './rules/concrete-draft'
+import {
+  consumeRuleRegistryCatalogSync,
+  consumeRuleRegistrySourceReconcile,
+  isRuleRegistryCatalogSyncMessage,
+  isRuleRegistrySourceReconcileMessage,
+} from './rules/reconcile'
 
 interface QueueBatchLike {
   queue: string
@@ -30,6 +40,9 @@ function isDispatchableMessage(body: unknown): boolean {
     isAiInsightRefreshMessage(body) ||
     isDashboardBriefRefreshMessage(body) ||
     isPulseExtractMessage(body) ||
+    isRuleConcreteDraftGenerateMessage(body) ||
+    isRuleRegistrySourceReconcileMessage(body) ||
+    isRuleRegistryCatalogSyncMessage(body) ||
     isEmailFlushMessage(body) ||
     isAuditPackageGenerateMessage(body)
   )
@@ -71,6 +84,15 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     }
     if (isPulseExtractMessage(body)) {
       await extractPulseSnapshot(env, body.snapshotId)
+    }
+    if (isRuleConcreteDraftGenerateMessage(body)) {
+      await consumeRuleConcreteDraftGenerate(body, env)
+    }
+    if (isRuleRegistrySourceReconcileMessage(body)) {
+      await consumeRuleRegistrySourceReconcile(body, env)
+    }
+    if (isRuleRegistryCatalogSyncMessage(body)) {
+      await consumeRuleRegistryCatalogSync(body, env)
     }
     if (isEmailFlushMessage(body)) {
       await flushEmailOutbox(env)

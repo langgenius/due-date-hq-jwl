@@ -942,10 +942,6 @@ msgid "AI concrete draft"
 msgstr "AI concrete draft"
 
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "AI concrete draft could not be generated."
-msgstr "AI concrete draft could not be generated."
-
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
 msgstr "AI concrete draft is not ready."
 
@@ -8593,10 +8589,6 @@ msgstr "This rule does not allow an extension."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
 msgstr "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
-msgstr "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
 
 #: src/routes/obligations.tsx
 msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."

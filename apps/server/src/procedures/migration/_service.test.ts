@@ -665,6 +665,9 @@ function buildScopedRepo(firmId: string) {
     async getSourceSignal() {
       return unexpectedRepoCall('pulse.getSourceSignal')
     },
+    async getLatestSourceSnapshotBySourceId() {
+      return unexpectedRepoCall('pulse.getLatestSourceSnapshotBySourceId')
+    },
     async reviewSourceSignalForRule() {
       return unexpectedRepoCall('pulse.reviewSourceSignalForRule')
     },
@@ -708,10 +711,21 @@ function buildScopedRepo(firmId: string) {
       async findSuccessfulRun() {
         return null
       },
+      async findSuccessfulGlobalRun() {
+        return null
+      },
       async findSuccessfulRunsByContextRefs() {
         return []
       },
+      async findSuccessfulGlobalRunsByContextRefs() {
+        return []
+      },
       async recordRun(input) {
+        const aiOutputId = `ai-output-${aiRuns.length + 1}`
+        aiRuns.push({ kind: input.kind, aiOutputId })
+        return { aiOutputId, llmLogId: `llm-log-${aiRuns.length}` }
+      },
+      async recordGlobalRun(input) {
         const aiOutputId = `ai-output-${aiRuns.length + 1}`
         aiRuns.push({ kind: input.kind, aiOutputId })
         return { aiOutputId, llmLogId: `llm-log-${aiRuns.length}` }

@@ -32,6 +32,7 @@ export function taskKindForPrompt(prompt: PromptName): AiTaskKind {
   if (prompt === 'brief@v1') return 'brief'
   if (prompt === 'pulse-extract@v1') return 'pulse'
   if (prompt === 'rule-concrete-draft@v1') return 'insight'
+  if (prompt === 'rule-registry-reconcile@v1') return 'pulse'
   if (prompt === 'readiness-checklist@v1') return 'readiness'
   return 'insight'
 }

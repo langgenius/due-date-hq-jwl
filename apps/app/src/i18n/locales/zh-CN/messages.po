@@ -942,10 +942,6 @@ msgid "AI concrete draft"
 msgstr "AI 具体草案"
 
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "AI concrete draft could not be generated."
-msgstr "无法生成 AI 具体草案。"
-
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
 msgstr "AI 具体草案尚未就绪。"
 
@@ -8593,10 +8589,6 @@ msgstr "这条规则不允许申请延期。"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
 msgstr "这条规则已对在 {0} 以 {entitySummary} 申报的所有客户激活，但仍需要具体截止日期逻辑，之后才能创建义务。"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "This rule only has source-watch metadata. Open the official source and add a concrete rule after review."
-msgstr "此规则只有来源监控元数据。请打开官方来源，并在审核后添加具体规则。"
 
 #: src/routes/obligations.tsx
 msgid "This saves the firm's internal extension plan for this obligation. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."

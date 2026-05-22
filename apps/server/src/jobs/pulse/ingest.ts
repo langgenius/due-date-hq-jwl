@@ -230,7 +230,13 @@ async function ingestAdapter(
           type: 'pulse.extract',
           snapshotId: result.snapshot.id,
         } satisfies PulseExtractQueueMessage)
-        return { snapshots: 1, signals: 0, queued: 1, duplicates: 0, failures: 0 }
+        return {
+          snapshots: 1,
+          signals: 0,
+          queued: 1,
+          duplicates: 0,
+          failures: 0,
+        }
       }),
     )
 

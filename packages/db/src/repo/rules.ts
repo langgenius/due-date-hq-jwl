@@ -1,13 +1,17 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm'
 import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
   PracticeRuleReviewTaskInput,
+  RuleRegistryChangeProposalInput,
+  RuleRegistryChangeProposalRow,
+  RuleRegistryReconcileRunRow,
   RuleSourceTemplateInput,
   RuleTemplateInput,
   TemporaryRuleRow,
 } from '@duedatehq/ports/rules'
 import type { Db } from '../client'
+import { firmProfile } from '../schema/firm'
 import { client } from '../schema/clients'
 import { obligationInstance } from '../schema/obligations'
 import { exceptionRule, obligationExceptionApplication } from '../schema/overlay'
@@ -15,11 +19,15 @@ import { pulse, pulseFirmAlert } from '../schema/pulse'
 import {
   practiceRule,
   practiceRuleReviewTask,
+  ruleRegistryChangeProposal,
+  ruleRegistryReconcileRun,
   ruleReviewDecision,
   ruleSourceTemplate,
   ruleTemplate,
   type PracticeRule,
   type PracticeRuleReviewTask,
+  type RuleRegistryChangeProposal,
+  type RuleRegistryReconcileRun,
   type RuleReviewDecision,
   type RuleReviewDecisionStatus,
 } from '../schema/rules'
@@ -43,6 +51,18 @@ function latestDate(...values: Array<Date | null | undefined>): Date | null {
   const dates = values.filter((value): value is Date => value instanceof Date)
   if (dates.length === 0) return null
   return dates.reduce((latest, value) => (value.getTime() > latest.getTime() ? value : latest))
+}
+
+function toRegistryRun(row: RuleRegistryReconcileRun): RuleRegistryReconcileRunRow {
+  return row
+}
+
+function toRegistryProposal(row: RuleRegistryChangeProposal): RuleRegistryChangeProposalRow {
+  return {
+    ...row,
+    affectedRuleIds: row.affectedRuleIdsJson,
+    proposedRuleIds: row.proposedRuleIdsJson,
+  }
 }
 
 export function makeRulesRepo(db: Db, firmId: string) {
@@ -472,3 +492,272 @@ export function makeRulesRepo(db: Db, firmId: string) {
 }
 
 export type RulesRepo = ReturnType<typeof makeRulesRepo>
+
+export function makeRulesOpsRepo(db: Db) {
+  async function getReconcileRunByWeek(weekKey: string): Promise<RuleRegistryReconcileRun | null> {
+    const rows = await db
+      .select()
+      .from(ruleRegistryReconcileRun)
+      .where(eq(ruleRegistryReconcileRun.weekKey, weekKey))
+      .limit(1)
+    return rows[0] ?? null
+  }
+
+  async function getReconcileRun(runId: string): Promise<RuleRegistryReconcileRun> {
+    const rows = await db
+      .select()
+      .from(ruleRegistryReconcileRun)
+      .where(eq(ruleRegistryReconcileRun.id, runId))
+      .limit(1)
+    const row = rows[0]
+    if (!row) throw new Error(`Rule registry reconcile run not found: ${runId}`)
+    return row
+  }
+
+  async function activeFirmIds(): Promise<string[]> {
+    const rows = await db
+      .select({ id: firmProfile.id })
+      .from(firmProfile)
+      .where(eq(firmProfile.status, 'active'))
+    return rows.map((row) => row.id)
+  }
+
+  async function firmIdsWithReviewedRule(ruleId: string): Promise<string[]> {
+    const [practiceRows, decisionRows] = await Promise.all([
+      db
+        .select({ firmId: practiceRule.firmId })
+        .from(practiceRule)
+        .where(eq(practiceRule.ruleId, ruleId)),
+      db
+        .select({ firmId: ruleReviewDecision.firmId })
+        .from(ruleReviewDecision)
+        .where(eq(ruleReviewDecision.ruleId, ruleId)),
+    ])
+    return Array.from(new Set([...practiceRows, ...decisionRows].map((row) => row.firmId)))
+  }
+
+  async function ensureReviewTasksForFirms(input: {
+    firmIds: string[]
+    ruleId: string
+    templateVersion: number
+    reason: PracticeRuleReviewTaskInput['reason']
+  }): Promise<number> {
+    const firmIds = Array.from(new Set(input.firmIds))
+    if (firmIds.length === 0) return 0
+    await Promise.all(
+      firmIds.map((firmId) =>
+        db
+          .insert(practiceRuleReviewTask)
+          .values({
+            id: crypto.randomUUID(),
+            firmId,
+            ruleId: input.ruleId,
+            templateVersion: input.templateVersion,
+            reason: input.reason,
+          })
+          .onConflictDoNothing({
+            target: [
+              practiceRuleReviewTask.firmId,
+              practiceRuleReviewTask.ruleId,
+              practiceRuleReviewTask.templateVersion,
+            ],
+          }),
+      ),
+    )
+    return firmIds.length
+  }
+
+  return {
+    async listGlobalRuleTemplates(): Promise<
+      Array<{ id: string; version: number; status: string; ruleJson: unknown; sourceIds: string[] }>
+    > {
+      const rows = await db
+        .select({
+          id: ruleTemplate.id,
+          version: ruleTemplate.version,
+          status: ruleTemplate.status,
+          ruleJson: ruleTemplate.ruleJson,
+          sourceIds: ruleTemplate.sourceIdsJson,
+        })
+        .from(ruleTemplate)
+      return rows.map((row) => ({
+        id: row.id,
+        version: row.version,
+        status: row.status,
+        ruleJson: row.ruleJson,
+        sourceIds: row.sourceIds ?? [],
+      }))
+    },
+
+    async startWeeklyReconcileRun(input: {
+      weekKey: string
+      sourceCount: number
+      startedAt?: Date
+      triggeredBy?: string
+    }): Promise<{ run: RuleRegistryReconcileRunRow; inserted: boolean }> {
+      const id = crypto.randomUUID()
+      const startedAt = input.startedAt ?? new Date()
+      await db
+        .insert(ruleRegistryReconcileRun)
+        .values({
+          id,
+          weekKey: input.weekKey,
+          status: 'running',
+          triggeredBy: input.triggeredBy ?? 'weekly_cron',
+          startedAt,
+          sourceCount: input.sourceCount,
+          updatedAt: startedAt,
+        })
+        .onConflictDoNothing({ target: ruleRegistryReconcileRun.weekKey })
+
+      const row = await getReconcileRunByWeek(input.weekKey)
+      if (!row) throw new Error(`Rule registry reconcile run was not persisted: ${input.weekKey}`)
+      return { run: toRegistryRun(row), inserted: row.id === id }
+    },
+
+    async recordReconcileSourceOutcome(input: {
+      runId: string
+      changed?: boolean
+      proposalCreated?: boolean
+      failed?: boolean
+      errorText?: string | null
+    }): Promise<RuleRegistryReconcileRunRow> {
+      const now = new Date()
+      await db
+        .update(ruleRegistryReconcileRun)
+        .set({
+          checkedCount: sql`${ruleRegistryReconcileRun.checkedCount} + 1`,
+          ...(!input.failed && input.changed
+            ? { changedCount: sql`${ruleRegistryReconcileRun.changedCount} + 1` }
+            : !input.failed
+              ? { unchangedCount: sql`${ruleRegistryReconcileRun.unchangedCount} + 1` }
+              : {}),
+          ...(input.proposalCreated
+            ? { proposalCount: sql`${ruleRegistryReconcileRun.proposalCount} + 1` }
+            : {}),
+          ...(input.failed
+            ? {
+                failureCount: sql`${ruleRegistryReconcileRun.failureCount} + 1`,
+                errorText: input.errorText?.slice(0, 1000) ?? null,
+              }
+            : {}),
+          updatedAt: now,
+        })
+        .where(eq(ruleRegistryReconcileRun.id, input.runId))
+
+      const row = await getReconcileRun(input.runId)
+      if (row.status === 'running' && row.checkedCount >= row.sourceCount) {
+        await db
+          .update(ruleRegistryReconcileRun)
+          .set({
+            status: row.failureCount > 0 ? 'failed' : 'completed',
+            completedAt: now,
+            updatedAt: now,
+          })
+          .where(eq(ruleRegistryReconcileRun.id, input.runId))
+        return toRegistryRun(await getReconcileRun(input.runId))
+      }
+      return toRegistryRun(row)
+    },
+
+    async recordChangeProposal(
+      input: RuleRegistryChangeProposalInput,
+    ): Promise<RuleRegistryChangeProposalRow> {
+      const id = crypto.randomUUID()
+      await db.insert(ruleRegistryChangeProposal).values({
+        id,
+        runId: input.runId,
+        sourceId: input.sourceId,
+        sourceSnapshotId: input.sourceSnapshotId ?? null,
+        contentHash: input.contentHash ?? null,
+        rawR2Key: input.rawR2Key ?? null,
+        proposalType: input.proposalType,
+        status: input.status ?? 'open',
+        affectedRuleIdsJson: input.affectedRuleIds ?? [],
+        proposedRuleIdsJson: input.proposedRuleIds ?? [],
+        normalizedRuleJson: input.normalizedRuleJson ?? null,
+        diffSummary: normalizeNote(input.diffSummary),
+        aiOutputId: input.aiOutputId ?? null,
+        failureReason: normalizeNote(input.failureReason),
+      })
+      const rows = await db
+        .select()
+        .from(ruleRegistryChangeProposal)
+        .where(eq(ruleRegistryChangeProposal.id, id))
+        .limit(1)
+      const row = rows[0]
+      if (!row) throw new Error(`Rule registry proposal was not persisted: ${id}`)
+      return toRegistryProposal(row)
+    },
+
+    async listOpenChangeProposals(limit = 50): Promise<RuleRegistryChangeProposalRow[]> {
+      const rows = await db
+        .select()
+        .from(ruleRegistryChangeProposal)
+        .where(eq(ruleRegistryChangeProposal.status, 'open'))
+        .orderBy(desc(ruleRegistryChangeProposal.createdAt))
+        .limit(Math.min(Math.max(limit, 1), 200))
+      return rows.map(toRegistryProposal)
+    },
+
+    async fanoutReviewTasks(input: {
+      newRules: Array<{ ruleId: string; templateVersion: number }>
+      changedRules: Array<{ ruleId: string; templateVersion: number }>
+    }): Promise<{ newTaskTargets: number; changedTaskTargets: number; supersededTasks: number }> {
+      let newTaskTargets = 0
+      let changedTaskTargets = 0
+      let supersededTasks = 0
+      const allActiveFirmIds = await activeFirmIds()
+
+      const newCounts = await Promise.all(
+        input.newRules.map(async (rule) => {
+          await db
+            .update(practiceRuleReviewTask)
+            .set({ status: 'superseded', updatedAt: new Date() })
+            .where(
+              and(
+                eq(practiceRuleReviewTask.ruleId, rule.ruleId),
+                eq(practiceRuleReviewTask.status, 'open'),
+                lt(practiceRuleReviewTask.templateVersion, rule.templateVersion),
+              ),
+            )
+          return ensureReviewTasksForFirms({
+            firmIds: allActiveFirmIds,
+            ruleId: rule.ruleId,
+            templateVersion: rule.templateVersion,
+            reason: 'new_template',
+          })
+        }),
+      )
+      newTaskTargets = newCounts.reduce((sum, count) => sum + count, 0)
+
+      const changedCounts = await Promise.all(
+        input.changedRules.map(async (rule) => {
+          await db
+            .update(practiceRuleReviewTask)
+            .set({ status: 'superseded', updatedAt: new Date() })
+            .where(
+              and(
+                eq(practiceRuleReviewTask.ruleId, rule.ruleId),
+                eq(practiceRuleReviewTask.status, 'open'),
+                lt(practiceRuleReviewTask.templateVersion, rule.templateVersion),
+              ),
+            )
+          const firmIds = await firmIdsWithReviewedRule(rule.ruleId)
+          return ensureReviewTasksForFirms({
+            firmIds,
+            ruleId: rule.ruleId,
+            templateVersion: rule.templateVersion,
+            reason: 'source_changed',
+          })
+        }),
+      )
+      changedTaskTargets = changedCounts.reduce((sum, count) => sum + count, 0)
+      supersededTasks = input.changedRules.length
+
+      return { newTaskTargets, changedTaskTargets, supersededTasks }
+    },
+  }
+}
+
+export type RulesOpsRepo = ReturnType<typeof makeRulesOpsRepo>

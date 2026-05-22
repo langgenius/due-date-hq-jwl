@@ -51,6 +51,46 @@ describe('queue consumer', () => {
     ).not.toThrow()
   })
 
+  it('allows rule concrete draft generation messages', () => {
+    expect(() =>
+      assertQueueDispatchable(
+        batch([
+          {
+            body: {
+              type: 'rule.concreteDraft.generate',
+              ruleId: 'ca.business_income_return.candidate.2026',
+              sourceId: 'ca.ftb_business_due_dates',
+              reason: 'prewarm',
+            },
+          },
+        ]),
+      ),
+    ).not.toThrow()
+  })
+
+  it('allows rule registry reconcile and catalog sync messages', () => {
+    expect(() =>
+      assertQueueDispatchable(
+        batch([
+          {
+            body: {
+              type: 'rule.registry.source.reconcile',
+              runId: 'run-1',
+              sourceId: 'ca.ftb_business_due_dates',
+              reason: 'weekly',
+            },
+          },
+          {
+            body: {
+              type: 'rule.registry.catalog.sync',
+              reason: 'scheduled',
+            },
+          },
+        ]),
+      ),
+    ).not.toThrow()
+  })
+
   it('debounces dashboard brief refreshes at firm and scope granularity', () => {
     const first = dashboardBriefDebounceKey({
       firmId: 'firm_1',

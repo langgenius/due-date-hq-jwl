@@ -25,6 +25,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     },
     dbMocks: {
       createDb: vi.fn(() => ({})),
+      makeAiRepo: vi.fn(),
       makePulseOpsRepo: vi.fn(() => repo),
     },
   }
@@ -32,6 +33,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
 
 vi.mock('@duedatehq/db', () => ({
   createDb: dbMocks.createDb,
+  makeAiRepo: dbMocks.makeAiRepo,
   makePulseOpsRepo: dbMocks.makePulseOpsRepo,
 }))
 

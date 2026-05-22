@@ -62,7 +62,7 @@ import {
   type CoverageEntityColumn,
 } from './rules-console-model'
 import { JurisdictionCode, QueryPanelState, SectionFrame } from './rules-console-primitives'
-import { RuleDetailCompact, hasConcreteDraftSourceEvidence } from './rule-detail-drawer'
+import { RuleDetailCompact } from './rule-detail-drawer'
 
 // Column order matches the canonical Coverage design — full names in
 // the sub-column header, no codes. "Partner." abbreviates Partnership
@@ -142,15 +142,7 @@ function concreteDraftTargetKey(input: {
   sourceId: string
   sourceSignalId?: string | null
 }): string {
-  return [input.ruleId, input.sourceId, input.sourceSignalId ?? ''].join(':')
-}
-
-function concreteDraftInputForTarget(target: RuleConcreteDraftTarget): RuleConcreteDraftTarget {
-  return {
-    ruleId: target.ruleId,
-    sourceId: target.sourceId,
-    ...(target.sourceSignalId ? { sourceSignalId: target.sourceSignalId } : {}),
-  }
+  return [input.ruleId, input.sourceId].join(':')
 }
 
 export function CoverageTab({
@@ -323,28 +315,6 @@ export function CoverageTab({
     if (!selectedRuleId) return null
     return (rulesQuery.data ?? []).find((rule) => rule.id === selectedRuleId) ?? null
   }, [selectedRuleId, rulesQuery.data])
-  const selectedConcreteDraftTarget = selectedRule ? concreteDraftTargetForRule(selectedRule) : null
-  const selectedConcreteDraftSource = selectedConcreteDraftTarget
-    ? sourceById.get(selectedConcreteDraftTarget.sourceId)
-    : undefined
-  const selectedConcreteDraftEnabled = Boolean(
-    selectedRule &&
-    selectedConcreteDraftTarget &&
-    hasConcreteDraftSourceEvidence(
-      selectedRule,
-      selectedConcreteDraftTarget.sourceId,
-      selectedConcreteDraftSource,
-    ),
-  )
-  const selectedConcreteDraftQuery = useQuery({
-    ...orpc.rules.draftConcreteRule.queryOptions({
-      input: selectedConcreteDraftTarget
-        ? concreteDraftInputForTarget(selectedConcreteDraftTarget)
-        : { ruleId: '', sourceId: '' },
-    }),
-    enabled: selectedConcreteDraftEnabled,
-    retry: false,
-  })
 
   const rowsData = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
   const filteredRows = useMemo(() => {
@@ -447,36 +417,18 @@ export function CoverageTab({
     ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
     enabled: concreteDraftInputs.length > 0,
   })
-  const selectedConcreteDraftDataUpdatedAt = selectedConcreteDraftQuery.dataUpdatedAt
   const concreteDraftByTarget = useMemo(() => {
     const map = new Map<string, RuleConcreteDraftCacheEntry>()
     for (const entry of concreteDraftsQuery.data ?? []) {
       map.set(concreteDraftTargetKey(entry), entry)
     }
-    const shouldReadDraftQueryCache = selectedConcreteDraftDataUpdatedAt >= 0
-    if (shouldReadDraftQueryCache) {
-      for (const target of concreteDraftInputs) {
-        const draft = queryClient.getQueryData<RuleConcreteDraft>(
-          orpc.rules.draftConcreteRule.queryOptions({
-            input: concreteDraftInputForTarget(target),
-          }).queryKey,
-        )
-        if (!draft) continue
-        map.set(concreteDraftTargetKey(target), {
-          ruleId: target.ruleId,
-          sourceId: target.sourceId,
-          sourceSignalId: target.sourceSignalId ?? null,
-          draft,
-        })
-      }
-    }
     return map
-  }, [
-    concreteDraftInputs,
-    concreteDraftsQuery.data,
-    queryClient,
-    selectedConcreteDraftDataUpdatedAt,
-  ])
+  }, [concreteDraftsQuery.data])
+  const selectedConcreteDraft = useMemo(() => {
+    if (!selectedRule) return null
+    const target = concreteDraftTargetForRule(selectedRule)
+    return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
+  }, [concreteDraftByTarget, selectedRule])
   const selectedRows = useMemo(
     () =>
       visiblePendingQueue.filter(
@@ -858,6 +810,7 @@ export function CoverageTab({
                 <div className="flex flex-1 min-w-0 flex-col">
                   <RulePanel
                     rule={selectedRule}
+                    concreteDraft={selectedConcreteDraft}
                     onClose={() => void setSelectedRuleId(null)}
                     onActionComplete={advanceAfterDecision}
                     mode={queueMode}
@@ -2321,6 +2274,7 @@ function BulkSectionLabel({ children }: { children: ReactNode }) {
  */
 function RulePanel({
   rule,
+  concreteDraft,
   mode,
   onClose,
   onSkip,
@@ -2328,6 +2282,7 @@ function RulePanel({
   queuePosition,
 }: {
   rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
   mode: RuleQueueMode
   onClose: () => void
   onSkip?: () => void
@@ -2412,7 +2367,11 @@ function RulePanel({
         key={rule.id}
         className="flex-1 overflow-y-auto px-4 py-3 animate-in fade-in duration-150 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        <RuleDetailCompact rule={rule} onActionComplete={onActionComplete} />
+        <RuleDetailCompact
+          rule={rule}
+          concreteDraft={concreteDraft}
+          onActionComplete={onActionComplete}
+        />
       </div>
     </>
   )
