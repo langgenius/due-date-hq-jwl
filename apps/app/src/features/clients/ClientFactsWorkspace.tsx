@@ -923,10 +923,11 @@ function ClientsActionStrip({
           <div className="flex items-start gap-2">
             <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
             <AlertDescription>
-              <Trans>
-                {needsFactsCount} clients are missing state or entity type — the rule library is
-                skipping them.
-              </Trans>
+              <Plural
+                value={needsFactsCount}
+                one="# client is missing state or entity type — the rule library is skipping it."
+                other="# clients are missing state or entity type — the rule library is skipping them."
+              />
             </AlertDescription>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={onFixNeedsFacts}>
@@ -1082,10 +1083,10 @@ export function ClientDetailWorkspace({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.clients.getRiskSummary.key() })
-        toast.success(t`Risk inputs saved`, { description: result.client.name })
+        toast.success(t`Risk profile saved`, { description: result.client.name })
       },
       onError: (err) => {
-        toast.error(t`Couldn't save risk inputs`, {
+        toast.error(t`Couldn't save risk profile`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -1277,8 +1278,8 @@ export function ClientDetailWorkspace({
                   </DetailSection>
 
                   <DetailSection
-                    title={t`Risk inputs`}
-                    summary={t`Penalty inputs and tax-attribute flags`}
+                    title={t`Risk profile`}
+                    summary={t`Penalty exposure and tax-attribute flags`}
                   >
                     <ClientRiskInputsPanel
                       key={`${client.id}:risk`}
@@ -1289,7 +1290,7 @@ export function ClientDetailWorkspace({
                   </DetailSection>
 
                   <DetailSection
-                    title={t`Fact readiness`}
+                    title={t`Onboarding state`}
                     summary={
                       readiness && readiness.missingRequiredFacts.length > 0
                         ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
@@ -1770,7 +1771,7 @@ function ClientActivityPanel({
         icon={ClipboardCheckIcon}
         title={<Trans>No audited client changes yet</Trans>}
         description={
-          <Trans>Future edits to facts, risk inputs, or deletion will appear here.</Trans>
+          <Trans>Future edits to facts, risk profile, or deletion will appear here.</Trans>
         }
       />
     )
@@ -2042,7 +2043,7 @@ function ClientRiskInputsPanel({
           })
         }
       >
-        {isSaving ? t`Saving...` : t`Save risk inputs`}
+        {isSaving ? t`Saving...` : t`Save risk profile`}
       </Button>
     </div>
   )
@@ -2581,9 +2582,12 @@ function SuggestedFormsCatalogPanel({
         <>
           <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
             <p className="text-xs font-medium tracking-[0.08em] text-text-warning uppercase">
-              <Trans>Suggested — applicable but no deadline yet</Trans>
+              <Trans>Suggested</Trans>
               {' · '}
               <Plural value={suggested.length} one="# rule" other="# rules" />
+            </p>
+            <p className="mt-0.5 text-[11px] font-normal tracking-normal text-text-secondary normal-case">
+              <Trans>Applicable rules with no deadline scheduled yet.</Trans>
             </p>
           </div>
           <div className="grid divide-y divide-divider-subtle">

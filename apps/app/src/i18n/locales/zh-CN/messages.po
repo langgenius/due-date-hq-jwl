@@ -414,6 +414,7 @@ msgid "{days}d"
 msgstr "{days}天"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
 msgstr "逾期 {daysAbs} 天"
 
@@ -422,8 +423,8 @@ msgid "{durationMonths} months"
 msgstr "{durationMonths} 个月"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{equity} equity"
-msgstr "{equity} 股权"
+msgid "{equity} equity owners"
+msgstr "{equity} 位权益所有人"
 
 #: src/features/members/members-page.tsx
 msgid "{expiredCount} expired needs resend"
@@ -458,8 +459,8 @@ msgid "{label}, selected"
 msgstr "{label}，已选择"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{lateFlag} late filings in 12mo"
-msgstr "12 个月内 {lateFlag} 次逾期申报"
+msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
+msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
@@ -470,8 +471,8 @@ msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} 个来源缺口"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{needsFactsCount} clients are missing state or entity type — the rule library is skipping them."
-msgstr "{needsFactsCount} 个客户缺少州或实体类型 — 规则库已跳过这些客户。"
+msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
+msgstr "{needsFactsCount, plural, other {# 个客户缺少州或实体类型 — 规则库已跳过这些客户。}}"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "{needsReviewCount, plural, one {# value needs human review} other {# values need human review}}"
@@ -486,6 +487,7 @@ msgid "{offsetDays} days before"
 msgstr "提前 {offsetDays} 天"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open obligations"
 msgstr "{openCount} 条未完成义务"
 
@@ -506,12 +508,16 @@ msgid "{ownerCount} owner · {managedCount} managed"
 msgstr "{ownerCount} 个 Owner · {managedCount} 个受管成员"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
+msgid "{owners} equity owners"
+msgstr "{owners} 位权益所有人"
+
+#: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{owners} owners"
 msgstr "{owners} 位所有者"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{owners} owners · {equity} equity"
-msgstr "{owners} 位所有者 · {equity} 股权"
+msgid "{owners} owners ({equity} equity)"
+msgstr "{owners} 位所有人(其中 {equity} 位为权益所有人)"
 
 #: src/features/members/members-page.tsx
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
@@ -649,6 +655,7 @@ msgid "1 item linked. The original panel has the full editor."
 msgstr "已关联 1 项。完整编辑器在原面板中。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open obligation"
 msgstr "1 条未完成义务"
 
@@ -1195,6 +1202,7 @@ msgstr "全部忽略"
 msgid "All impact"
 msgstr "全部影响"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "All obligations"
 msgstr "所有义务"
@@ -1298,6 +1306,10 @@ msgstr "适用性审核"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Applicability review · needs CPA confirmation at generation time."
 msgstr "适用性复核 · 在生成义务时需要 CPA 确认。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Applicable rules with no deadline scheduled yet."
+msgstr "适用规则尚未排定截止日。"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
@@ -2578,6 +2590,10 @@ msgstr "无法加载该提醒"
 msgid "Couldn't load this client"
 msgstr "Couldn't load this client"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Couldn't load this client."
+msgstr "无法加载该客户。"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
@@ -2680,8 +2696,8 @@ msgid "Couldn't save penalty inputs"
 msgstr "无法保存 penalty 输入"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Couldn't save risk inputs"
-msgstr "无法保存风险输入"
+msgid "Couldn't save risk profile"
+msgstr "无法保存风险档案"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't save tax year profile"
@@ -3232,6 +3248,7 @@ msgid "Due dates"
 msgstr "截止日"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "due in {days}d"
 msgstr "{days} 天后到期"
 
@@ -3244,6 +3261,7 @@ msgid "Due this week"
 msgstr "本周到期"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "今天到期"
@@ -3672,10 +3690,6 @@ msgstr "外部阻塞已解除 — 请转入「复核中」。"
 msgid "External client ID"
 msgstr "外部客户 ID"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Fact readiness"
-msgstr "事实就绪度"
-
 #: src/routes/practice.tsx
 msgid "Factor weights"
 msgstr "因子权重"
@@ -3960,8 +3974,8 @@ msgid "Future business cues"
 msgstr "未来业务提示"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Future edits to facts, risk inputs, or deletion will appear here."
-msgstr "后续事实、风险输入或删除相关修改会显示在这里。"
+msgid "Future edits to facts, risk profile, or deletion will appear here."
+msgstr "后续对事实、风险档案的编辑或删除操作将在此显示。"
 
 #: src/routes/practice.tsx
 msgid "General"
@@ -5041,6 +5055,7 @@ msgstr "需补证据"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Needs facts"
 msgstr "需要补充事实"
 
@@ -5163,6 +5178,7 @@ msgstr "下一个客户 (j)"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Next due"
 msgstr "Next due"
@@ -5367,6 +5383,7 @@ msgid "No obligations yet. Import clients to get started."
 msgstr "尚无义务。请导入客户开始使用。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations"
 msgstr "没有打开的义务"
 
@@ -5379,6 +5396,7 @@ msgid "No open obligations match the workload window."
 msgstr "当前负载窗口内没有匹配的未完成义务。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations right now."
 msgstr "当前没有未完成义务。"
 
@@ -5785,6 +5803,10 @@ msgstr "引导预览已打开"
 msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Onboarding state"
+msgstr "入驻状态"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding state advanced"
 msgstr "引导状态已推进"
@@ -5929,6 +5951,7 @@ msgid "Open full Inbox"
 msgstr "打开完整收件箱"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Open full page"
 msgstr "打开完整页面"
 
@@ -6371,6 +6394,10 @@ msgstr "罚金"
 msgid "Penalty calculation available"
 msgstr "已有罚金计算"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Penalty exposure and tax-attribute flags"
+msgstr "罚金敞口与税务属性标记"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/obligations.tsx
 msgid "Penalty input"
@@ -6380,10 +6407,6 @@ msgstr "罚金输入"
 #: src/routes/obligations.tsx
 msgid "Penalty inputs"
 msgstr "Penalty 输入"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Penalty inputs and tax-attribute flags"
-msgstr "Penalty inputs and tax-attribute flags"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Penalty inputs changed"
@@ -7107,6 +7130,7 @@ msgstr "可复核"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Ready for rules"
 msgstr "规则就绪"
 
@@ -7656,12 +7680,12 @@ msgid "Risk"
 msgstr "风险"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Risk inputs"
-msgstr "风险输入"
+msgid "Risk profile"
+msgstr "风险档案"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Risk inputs saved"
-msgstr "风险输入已保存"
+msgid "Risk profile saved"
+msgstr "风险档案已保存"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
@@ -7935,8 +7959,8 @@ msgid "Save organized values"
 msgstr "保存整理后的值"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Save risk inputs"
-msgstr "保存风险输入"
+msgid "Save risk profile"
+msgstr "保存风险档案"
 
 #: src/routes/practice.tsx
 msgid "Save Smart Priority"
@@ -8313,6 +8337,7 @@ msgid "Settings"
 msgstr "设置"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "设置"
@@ -8820,8 +8845,8 @@ msgid "Suggest clean values"
 msgstr "建议清洗后的值"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Suggested — applicable but no deadline yet"
-msgstr "建议 — 适用但尚无截止日"
+msgid "Suggested"
+msgstr "建议"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Suggested {count} checklist items."

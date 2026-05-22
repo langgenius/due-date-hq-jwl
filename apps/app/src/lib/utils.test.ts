@@ -14,14 +14,19 @@ describe('utils', () => {
 
   it('formats cents as US dollars under the en locale', () => {
     activateLocale('en')
-    expect(formatCents(14230000)).toBe('$142,300.00')
+    // Whole-dollar amounts strip the trailing .00 via
+    // `trailingZeroDisplay: 'stripIfInteger'`.
+    expect(formatCents(14230000)).toBe('$142,300')
+    // Fractional cents are preserved.
+    expect(formatCents(14230056)).toBe('$142,300.56')
   })
 
   it('uses zh-CN number grouping when the zh-CN locale is active', () => {
     activateLocale('zh-CN')
     // zh-CN currency formatting uses non-breaking space (U+00A0) between the
-    // symbol and the amount, matching ICU output.
-    expect(formatCents(14230000)).toMatch(/142,300\.00/)
+    // symbol and the amount, matching ICU output. Whole-dollar tail
+    // stripped same as en.
+    expect(formatCents(14230000)).toMatch(/142,300(?!\.00)/)
   })
 
   it('formats date-only values as YYYY-MM-DD', () => {

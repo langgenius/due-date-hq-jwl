@@ -414,6 +414,7 @@ msgid "{days}d"
 msgstr "{days}d"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
 msgstr "{daysAbs}d late"
 
@@ -422,8 +423,8 @@ msgid "{durationMonths} months"
 msgstr "{durationMonths} months"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{equity} equity"
-msgstr "{equity} equity"
+msgid "{equity} equity owners"
+msgstr "{equity} equity owners"
 
 #: src/features/members/members-page.tsx
 msgid "{expiredCount} expired needs resend"
@@ -458,8 +459,8 @@ msgid "{label}, selected"
 msgstr "{label}, selected"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{lateFlag} late filings in 12mo"
-msgstr "{lateFlag} late filings in 12mo"
+msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
+msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
@@ -470,8 +471,8 @@ msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} source gaps"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{needsFactsCount} clients are missing state or entity type — the rule library is skipping them."
-msgstr "{needsFactsCount} clients are missing state or entity type — the rule library is skipping them."
+msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
+msgstr "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "{needsReviewCount, plural, one {# value needs human review} other {# values need human review}}"
@@ -486,6 +487,7 @@ msgid "{offsetDays} days before"
 msgstr "{offsetDays} days before"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open obligations"
 msgstr "{openCount} open obligations"
 
@@ -506,12 +508,16 @@ msgid "{ownerCount} owner · {managedCount} managed"
 msgstr "{ownerCount} owner · {managedCount} managed"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
+msgid "{owners} equity owners"
+msgstr "{owners} equity owners"
+
+#: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{owners} owners"
 msgstr "{owners} owners"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{owners} owners · {equity} equity"
-msgstr "{owners} owners · {equity} equity"
+msgid "{owners} owners ({equity} equity)"
+msgstr "{owners} owners ({equity} equity)"
 
 #: src/features/members/members-page.tsx
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
@@ -649,6 +655,7 @@ msgid "1 item linked. The original panel has the full editor."
 msgstr "1 item linked. The original panel has the full editor."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open obligation"
 msgstr "1 open obligation"
 
@@ -1195,6 +1202,7 @@ msgstr "All ignored"
 msgid "All impact"
 msgstr "All impact"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "All obligations"
 msgstr "All obligations"
@@ -1298,6 +1306,10 @@ msgstr "Applicability review"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Applicability review · needs CPA confirmation at generation time."
 msgstr "Applicability review · needs CPA confirmation at generation time."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Applicable rules with no deadline scheduled yet."
+msgstr "Applicable rules with no deadline scheduled yet."
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
@@ -2578,6 +2590,10 @@ msgstr "Couldn't load this alert"
 msgid "Couldn't load this client"
 msgstr "Couldn't load this client"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Couldn't load this client."
+msgstr "Couldn't load this client."
+
 #: src/routes/obligations.tsx
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
@@ -2680,8 +2696,8 @@ msgid "Couldn't save penalty inputs"
 msgstr "Couldn't save penalty inputs"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Couldn't save risk inputs"
-msgstr "Couldn't save risk inputs"
+msgid "Couldn't save risk profile"
+msgstr "Couldn't save risk profile"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't save tax year profile"
@@ -3232,6 +3248,7 @@ msgid "Due dates"
 msgstr "Due dates"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "due in {days}d"
 msgstr "due in {days}d"
 
@@ -3244,6 +3261,7 @@ msgid "Due this week"
 msgstr "Due this week"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "due today"
@@ -3672,10 +3690,6 @@ msgstr "External blocker resolved — move to In review."
 msgid "External client ID"
 msgstr "External client ID"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Fact readiness"
-msgstr "Fact readiness"
-
 #: src/routes/practice.tsx
 msgid "Factor weights"
 msgstr "Factor weights"
@@ -3960,8 +3974,8 @@ msgid "Future business cues"
 msgstr "Future business cues"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Future edits to facts, risk inputs, or deletion will appear here."
-msgstr "Future edits to facts, risk inputs, or deletion will appear here."
+msgid "Future edits to facts, risk profile, or deletion will appear here."
+msgstr "Future edits to facts, risk profile, or deletion will appear here."
 
 #: src/routes/practice.tsx
 msgid "General"
@@ -5041,6 +5055,7 @@ msgstr "Needs evidence"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Needs facts"
 msgstr "Needs facts"
 
@@ -5163,6 +5178,7 @@ msgstr "Next client (j)"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Next due"
 msgstr "Next due"
@@ -5367,6 +5383,7 @@ msgid "No obligations yet. Import clients to get started."
 msgstr "No obligations yet. Import clients to get started."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations"
 msgstr "No open obligations"
 
@@ -5379,6 +5396,7 @@ msgid "No open obligations match the workload window."
 msgstr "No open obligations match the workload window."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations right now."
 msgstr "No open obligations right now."
 
@@ -5785,6 +5803,10 @@ msgstr "Onboarding preview opened"
 msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Onboarding state"
+msgstr "Onboarding state"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding state advanced"
 msgstr "Onboarding state advanced"
@@ -5929,6 +5951,7 @@ msgid "Open full Inbox"
 msgstr "Open full Inbox"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Open full page"
 msgstr "Open full page"
 
@@ -6371,6 +6394,10 @@ msgstr "Penalty"
 msgid "Penalty calculation available"
 msgstr "Penalty calculation available"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Penalty exposure and tax-attribute flags"
+msgstr "Penalty exposure and tax-attribute flags"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/obligations.tsx
 msgid "Penalty input"
@@ -6380,10 +6407,6 @@ msgstr "Penalty input"
 #: src/routes/obligations.tsx
 msgid "Penalty inputs"
 msgstr "Penalty inputs"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Penalty inputs and tax-attribute flags"
-msgstr "Penalty inputs and tax-attribute flags"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Penalty inputs changed"
@@ -7107,6 +7130,7 @@ msgstr "Ready for review"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Ready for rules"
 msgstr "Ready for rules"
 
@@ -7656,12 +7680,12 @@ msgid "Risk"
 msgstr "Risk"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Risk inputs"
-msgstr "Risk inputs"
+msgid "Risk profile"
+msgstr "Risk profile"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Risk inputs saved"
-msgstr "Risk inputs saved"
+msgid "Risk profile saved"
+msgstr "Risk profile saved"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
@@ -7935,8 +7959,8 @@ msgid "Save organized values"
 msgstr "Save organized values"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Save risk inputs"
-msgstr "Save risk inputs"
+msgid "Save risk profile"
+msgstr "Save risk profile"
 
 #: src/routes/practice.tsx
 msgid "Save Smart Priority"
@@ -8313,6 +8337,7 @@ msgid "Settings"
 msgstr "Settings"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "Setup"
@@ -8820,8 +8845,8 @@ msgid "Suggest clean values"
 msgstr "Suggest clean values"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Suggested — applicable but no deadline yet"
-msgstr "Suggested — applicable but no deadline yet"
+msgid "Suggested"
+msgstr "Suggested"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Suggested {count} checklist items."

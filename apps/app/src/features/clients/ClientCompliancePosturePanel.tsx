@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   BanknoteIcon,
   CalendarRangeIcon,
@@ -91,10 +91,12 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
     const owners = client.ownerCount
     const equity = client.equityOwnerCount
     if (owners === null && equity === null) return t`Not on file`
-    if (owners === null) return t`${equity} equity`
+    // Previous "4 equity" was ungrammatical — equity is an adjective
+    // here, owners is the noun. Use complete noun phrases.
+    if (owners === null) return t`${equity} equity owners`
     if (equity === null) return t`${owners} owners`
-    if (owners === equity) return t`${owners} owners`
-    return t`${owners} owners · ${equity} equity`
+    if (owners === equity) return t`${owners} equity owners`
+    return t`${owners} owners (${equity} equity)`
   }, [client.ownerCount, client.equityOwnerCount, t])
 
   const clientSinceLabel = useMemo(() => formatClientSince(client.createdAt), [client.createdAt])
@@ -206,7 +208,11 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
                     lateFlag >= 3 ? 'text-text-destructive' : 'text-text-warning',
                   )}
                 >
-                  <Trans>{lateFlag} late filings in 12mo</Trans>
+                  <Plural
+                    value={lateFlag}
+                    one="# late filing in 12mo"
+                    other="# late filings in 12mo"
+                  />
                 </span>
               ) : null
             }

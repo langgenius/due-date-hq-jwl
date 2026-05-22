@@ -7,12 +7,19 @@ function intlLocale(): string {
   return INTL_LOCALE[currentLocale()]
 }
 
-// Monetary cents → "$1,234.56". Always pair with `font-mono tabular-nums` (docs/dev-file/05 §5.2).
+// Monetary cents → "$1,234.56" when fractional, "$1,234" when whole.
+// Always pair with `font-mono tabular-nums` (docs/dev-file/05 §5.2).
+//
+// `trailingZeroDisplay: 'stripIfInteger'` removes the `.00` tail for
+// whole-dollar amounts. The previous always-2-decimals version put
+// `.00` noise on every filing-plan row (the demo's $88,000.00 reads
+// as $88,000 now).
 export function formatCents(cents: number): string {
   return new Intl.NumberFormat(intlLocale(), {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
+    trailingZeroDisplay: 'stripIfInteger',
   }).format(cents / 100)
 }
 
