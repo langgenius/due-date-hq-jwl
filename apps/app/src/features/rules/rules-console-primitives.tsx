@@ -81,12 +81,13 @@ export function RulesPageShell({
 }) {
   return (
     <div className={cn('flex min-h-0 flex-col overflow-hidden', lockViewport ? 'h-svh' : 'h-full')}>
-      <div
-        className={cn(
-          'min-h-0 flex-1 overscroll-contain',
-          lockViewport ? 'overflow-hidden' : 'overflow-y-auto',
-        )}
-      >
+      {/* `overscroll-contain` deliberately omitted on the rules shell —
+        the gesture should chain to the route layout when the user
+        scrolls past the end of a rules table (rule library, sources,
+        preview, pulse). Was trapping the scroll at the seam before,
+        which felt "stuck" at the boundary. Drawer + settings shells
+        still trap (different intent). */}
+      <div className={cn('min-h-0 flex-1', lockViewport ? 'overflow-hidden' : 'overflow-y-auto')}>
         <div
           className={cn(
             'flex w-full flex-col gap-6 px-6 py-6',

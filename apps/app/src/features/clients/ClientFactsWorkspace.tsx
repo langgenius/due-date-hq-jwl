@@ -424,41 +424,25 @@ export function ClientFactsWorkspace({
     () => [
       {
         accessorKey: 'name',
-        header: () => {
-          // Show the total client count next to the CLIENT label. When
-          // a filter is active and the visible subset differs from
-          // the total, surface both as "N / TOTAL"; otherwise the
-          // single number reads cleanly as scale-of-book.
-          const showSubset = filteredClients.length !== clients.length
-          return (
-            <div className="flex items-center gap-2">
-              <TableHeaderMultiFilter
-                trigger="header"
-                label={t`Client`}
-                open={openHeaderFilter === 'client'}
-                onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
-                options={clientOptions}
-                selected={clientFilter}
-                emptyLabel={t`No clients`}
-                searchable
-                searchPlaceholder={t`Search clients`}
-                onSelectedChange={onClientFilterChange}
-              />
-              <span
-                className="font-mono text-[11px] tabular-nums text-text-tertiary"
-                aria-label={
-                  showSubset
-                    ? t`${filteredClients.length} clients shown of ${clients.length} total`
-                    : t`${clients.length} clients`
-                }
-              >
-                {showSubset
-                  ? `${filteredClients.length} / ${clients.length}`
-                  : String(clients.length)}
-              </span>
-            </div>
-          )
-        },
+        // Header is just the filter trigger — the bare "9" count badge
+        // that used to sit here was mysterious (sort order? sort dir?
+        // filtered subset?) and competed visually with the column
+        // label. The count belongs in the action strip / pagination
+        // footer, not the column header.
+        header: () => (
+          <TableHeaderMultiFilter
+            trigger="header"
+            label={t`Client`}
+            open={openHeaderFilter === 'client'}
+            onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
+            options={clientOptions}
+            selected={clientFilter}
+            emptyLabel={t`No clients`}
+            searchable
+            searchPlaceholder={t`Search clients`}
+            onSelectedChange={onClientFilterChange}
+          />
+        ),
         cell: ({ row }) => {
           const matches = pulseMatchesByClient.get(row.original.id)
           return (
@@ -692,19 +676,19 @@ export function ClientFactsWorkspace({
           return <ClientOpportunityCountBadge count={count} />
         },
         meta: {
-          headerClassName: 'w-[120px]',
-          cellClassName: 'w-[120px]',
+          // Was 120px → "OPPORTUNI…" truncated the header. Bump to
+          // 140px so the full "Opportunities" label fits.
+          headerClassName: 'w-[140px]',
+          cellClassName: 'w-[140px]',
         },
       },
     ],
     [
       clientFilter,
       clientOptions,
-      clients.length,
       currentUserName,
       entityLabels,
       factsModel.readinessById,
-      filteredClients.length,
       obligationSummariesByClient,
       onClientFilterChange,
       onOwnerFilterChange,

@@ -132,7 +132,17 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const filtersActive = impactFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all'
 
   return (
-    <div className={embedded ? 'flex flex-col gap-5' : 'flex flex-col gap-5 p-4 md:p-6'}>
+    // Match the 1100px cap applied across narrow content pages
+    // (Today/Clients/Opportunities/Audit/Settings). Skipped in the
+    // `embedded` case because the embedding surface (the Rule
+    // library's Pulse tab) already constrains width.
+    <div
+      className={
+        embedded
+          ? 'flex flex-col gap-5'
+          : 'mx-auto flex w-full max-w-[1100px] flex-col gap-5 p-4 md:p-6'
+      }
+    >
       {!embedded ? (
         <header className="flex flex-col gap-2">
           <div className="flex items-end justify-between gap-3">
