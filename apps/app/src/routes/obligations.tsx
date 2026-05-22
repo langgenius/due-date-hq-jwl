@@ -148,6 +148,7 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -2248,26 +2249,21 @@ export function ObligationQueueRoute() {
 
           {selectedIds.length > 0 ? (
             /*
-             * Floating bulk-action toolbar (2026-05-21).
+             * Floating bulk-action toolbar.
              *
-             * Previously rendered as a sticky bar at `top-2` inside
-             * the queue column — but its appearance reflowed the
-             * table downward 50px the moment a row was checked,
-             * which broke the reading flow ("where did my row go?").
-             * Detached to `fixed bottom-10` (40px from viewport
-             * bottom, per design call). Stays viewport-anchored
-             * while the user scrolls, doesn't shift the table, and
-             * reads as a discrete floating control surface.
+             * Uses the shared `<FloatingActionBar>` primitive so the
+             * shape, shadow, blur, and z-stacking match the Rule
+             * library's bulk-review bar (both surfaces converged on
+             * the same recipe 2026-05-22).
              *
-             * z-40 keeps it above the table + sticky pagination
-             * footer but below toasts (z-50) and the sheet/dialog
-             * portal (z-50+).
+             * Originally lived as a sticky bar at `top-2` inside the
+             * queue column — but its appearance reflowed the table
+             * downward 50px the moment a row was checked, which broke
+             * the reading flow ("where did my row go?"). Detached to
+             * `fixed bottom-10` (40px from viewport bottom), which
+             * the primitive now bakes in.
              */
-            <div
-              role="region"
-              aria-label={t`Bulk actions`}
-              className="fixed bottom-10 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 py-2.5 shadow-[0_12px_32px_-8px_rgb(0_0_0_/_0.18)] backdrop-blur-sm"
-            >
+            <FloatingActionBar ariaLabel={t`Bulk actions`}>
               <span className="text-xs font-medium tabular-nums text-text-primary">
                 <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
               </span>
@@ -2355,7 +2351,7 @@ export function ObligationQueueRoute() {
                 <XIcon data-icon="inline-start" />
                 <Trans>Clear</Trans>
               </Button>
-            </div>
+            </FloatingActionBar>
           ) : null}
 
           {isInitialLoading ? (

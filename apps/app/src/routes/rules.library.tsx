@@ -48,6 +48,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -1638,17 +1639,29 @@ function RuleTableRow({
       >
         <div className="flex min-w-0 items-start gap-2">
           {selectable ? (
-            // Checkbox is its own click target — stopping
-            // propagation so the row's `onClick` (which opens the
-            // detail panel) doesn't fire when the user is just
-            // selecting for batch review.
-            <Checkbox
-              className="mt-0.5"
-              checked={selected}
-              onCheckedChange={onSelectChange}
+            // Checkbox is its own click target — stopping propagation
+            // so the row's `onClick` (which opens the rule detail
+            // panel) doesn't fire when the user is just selecting for
+            // batch review. Wrapping in a div + stopping on BOTH
+            // `onPointerDown` (catches the early pipeline) AND
+            // `onClick` (catches the late pipeline) — Base UI's
+            // Checkbox primitive uses pointer events internally, so a
+            // single `onClick` handler on Checkbox itself doesn't
+            // reliably block the row's click from firing. The +12px
+            // extended hit area via `after:-inset-x-3` made the leak
+            // even more visible.
+            <span
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
-              aria-label={`Select ${displayTitle} for batch review`}
-            />
+              className="inline-flex items-center"
+            >
+              <Checkbox
+                className="mt-0.5"
+                checked={selected}
+                onCheckedChange={onSelectChange}
+                aria-label={`Select ${displayTitle} for batch review`}
+              />
+            </span>
           ) : null}
           <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular">
             {displayTitle}
@@ -1964,9 +1977,10 @@ function RuleDetailPanel({ rule, onClose }: { rule: ObligationRule; onClose: () 
 
 // ---------------------------------------------------------------------------
 // Bulk-review bar — floats at the bottom of the viewport when ≥1
-// needs-review rule is checked off. Mirrors the obligations queue's
-// floating bulk-action bar so the affordance reads the same across
-// the app: "you've selected things, here's the next action."
+// needs-review rule is checked off. Uses the shared
+// `<FloatingActionBar>` primitive so the affordance reads the same as
+// the Obligations queue's bulk-actions bar (both surfaces converged
+// on the same recipe 2026-05-22).
 // ---------------------------------------------------------------------------
 
 function BulkReviewBar({
@@ -1982,49 +1996,41 @@ function BulkReviewBar({
   onSelectAll: () => void
   onClear: () => void
 }) {
+  const { t } = useLingui()
   // Only show the "select all N" link when there are MORE pending
   // rules than the user has currently selected — otherwise it's a
   // no-op that just clutters the bar.
   const showSelectAll = totalPending > count
   return (
-    <div
-      role="region"
-      aria-label="Batch review actions"
-      className="pointer-events-none fixed inset-x-0 bottom-10 z-30 flex justify-center"
-    >
-      <div className="pointer-events-auto flex items-center gap-3 rounded-full border border-divider-regular bg-background-default px-4 py-2 shadow-lg">
-        <span className="text-sm tabular-nums text-text-primary">
-          <span className="font-semibold">{count}</span>{' '}
-          <span className="text-text-secondary">
-            <Plural value={count} one="rule selected" other="rules selected" />
-          </span>
-        </span>
-        {showSelectAll ? (
-          // Small link to expand the selection to every pending rule
-          // in the catalog. The total appears in the label so the
-          // user knows the size of the commitment before clicking.
-          <button
-            type="button"
-            onClick={onSelectAll}
-            className="text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <Trans>Select all {totalPending}</Trans>
-          </button>
-        ) : null}
-        <span aria-hidden className="h-4 w-px bg-divider-regular" />
-        <Button type="button" size="sm" onClick={onReview}>
-          <Trans>Review</Trans>
-          <ChevronRightIcon data-icon="inline-end" />
-        </Button>
+    <FloatingActionBar ariaLabel={t`Bulk review actions`}>
+      <span className="text-xs font-medium tabular-nums text-text-primary">
+        <Plural value={count} one="# rule selected" other="# rules selected" />
+      </span>
+      <span aria-hidden className="mx-0.5 h-4 w-px bg-divider-regular" />
+      {showSelectAll ? (
+        // Small link to expand the selection to every pending rule in
+        // the catalog. The total appears in the label so the user
+        // knows the size of the commitment before clicking.
         <button
           type="button"
-          onClick={onClear}
-          className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          onClick={onSelectAll}
+          className="text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <Trans>Clear</Trans>
+          <Trans>Select all {totalPending}</Trans>
         </button>
-      </div>
-    </div>
+      ) : null}
+      <Button type="button" size="sm" onClick={onReview}>
+        <Trans>Review</Trans>
+        <ChevronRightIcon data-icon="inline-end" />
+      </Button>
+      <button
+        type="button"
+        onClick={onClear}
+        className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Clear</Trans>
+      </button>
+    </FloatingActionBar>
   )
 }
 
