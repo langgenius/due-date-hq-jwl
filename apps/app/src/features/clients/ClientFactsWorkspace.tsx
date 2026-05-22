@@ -91,6 +91,7 @@ import { ClientBreadcrumbSwitcher } from './ClientBreadcrumbSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { ClientCycleArrows } from './ClientCycleArrows'
 import { useClientDrawer } from './ClientDrawerProvider'
+import { ClientPeekHoverCard } from './ClientPeekHoverCard'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
 
 import {
@@ -477,18 +478,17 @@ export function ClientFactsWorkspace({
                   the full page; this opens the read-only drawer for a
                   fast "is this the right client?" glance. ⌘-click on
                   the row is also wired below for a power-user shortcut. */}
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openClientDrawer(row.original.id)
-                }}
-                aria-label={t`Peek ${row.original.name} details`}
-                title={t`Peek details (without leaving the list)`}
-                className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <EyeIcon className="size-4" aria-hidden />
-              </button>
+              <ClientPeekHoverCard clientId={row.original.id}>
+                <button
+                  type="button"
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={t`Peek ${row.original.name} details`}
+                  title={t`Peek details (without leaving the list)`}
+                  className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <EyeIcon className="size-4" aria-hidden />
+                </button>
+              </ClientPeekHoverCard>
             </div>
           )
         },
@@ -709,7 +709,6 @@ export function ClientFactsWorkspace({
       onClientFilterChange,
       onOwnerFilterChange,
       onStateFilterChange,
-      openClientDrawer,
       openHeaderFilter,
       opportunityCountByClient,
       ownerFilter,
