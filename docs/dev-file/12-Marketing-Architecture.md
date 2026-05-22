@@ -511,9 +511,9 @@ CSP 中 `connect-src` 仅在 marketing 真的需要向 app 子域发请求（例
 - HTML 中有完整 H1、title、description、canonical、OG title/description/image。
 - 公开页输出 JSON-LD：首页至少包含 `Organization` / `WebSite` /
   `SoftwareApplication`；Pricing 包含 `Product` / `Offer` / `FAQPage`，其中
-  `Offer` 只描述页面可见的 plan price，并必须带 `price`、`priceCurrency: USD`
-  和 `availability: https://schema.org/OnlineOnly`；`From $...` 或 custom contract
-  plan 不输出精确 `Offer.price`，避免把起始价写成确定成交价；
+  `Product` 必须带可抓取的公开 `image`，`Offer` 只描述页面可见的 plan price，并必须带
+  `price`、`priceCurrency: USD` 和 `availability: https://schema.org/OnlineOnly`；
+  `From $...` 或 custom contract plan 不输出精确 `Offer.price`，避免把起始价写成确定成交价；
   rules、state coverage、state detail、guides 和 trust pages 至少包含 `WebPage`
   与 `BreadcrumbList`，资源页有可见 FAQ 时输出对应的 `FAQPage`，guide 页可输出
   Google 明确支持的 `Article`，并带 `author`、`publisher`、`datePublished`、
