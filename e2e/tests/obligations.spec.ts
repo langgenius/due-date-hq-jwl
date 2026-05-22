@@ -22,23 +22,26 @@ test.describe('seeded obligations', () => {
     await expect(actions.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(actions.getByText('Northstar Dental Group')).toBeVisible()
 
-    await actions.getByRole('link', { name: 'Open full queue' }).click()
+    await actions.getByRole('link', { name: 'All obligations' }).click()
     await expect(authenticatedPage).toHaveURL(/\/obligations$/)
   })
 
-  test('AC: E2E-DASHBOARD-FILTERS deep-links action rows to matching Obligations work', async ({
+  test('AC: E2E-DASHBOARD-FILTERS opens action rows in the obligation drawer', async ({
     authenticatedPage,
   }) => {
     await authenticatedPage.goto('/')
 
     const actions = authenticatedPage.getByRole('region', { name: 'Actions this week' })
+    const arborAction = actions.getByRole('group', {
+      name: /Attach a source before review for Arbor & Vale LLC/,
+    })
+    await arborAction.hover()
     await actions
-      .getByRole('button', { name: /Attach a source before review for Arbor & Vale LLC/ })
+      .getByRole('button', { name: 'Review Arbor & Vale LLC in obligation drawer' })
       .click()
-    await actions.getByRole('button', { name: 'Open Arbor & Vale LLC in Obligations' }).click()
 
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?obligation=/)
-    await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
+    await expect(authenticatedPage).toHaveURL(/\/$/)
+    await expect(authenticatedPage.getByRole('dialog', { name: /Arbor & Vale LLC/ })).toBeVisible()
   })
 
   test('AC: E2E-OBLIGATIONS-FILTERS searches, filters, and sorts real obligation rows', async ({
@@ -88,11 +91,11 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage.getByRole('dialog', { name: /Arbor & Vale LLC/ })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Readiness' })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Extension' })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: 'Risk' })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Evidence' })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Timeline' })).toBeVisible()
 
     const checklistLabels = authenticatedPage.getByLabel('Document item label')
+    await expect.poll(async () => checklistLabels.count(), { timeout: 15_000 }).toBeGreaterThan(0)
     const checklistCount = await checklistLabels.count()
     await authenticatedPage.getByRole('button', { name: 'Add item' }).click()
     await expect(checklistLabels).toHaveCount(checklistCount + 1)

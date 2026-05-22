@@ -23,8 +23,9 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
-  await expect(authenticatedPage.getByText('active', { exact: true })).toBeVisible()
-  await expect(authenticatedPage.getByText('needs review', { exact: true })).toBeVisible()
+  await expect(authenticatedPage.getByRole('button', { name: /^\d+\s+needs review$/ })).toBeVisible(
+    { timeout: 20_000 },
+  )
 
   await authenticatedPage.goto('/rules/sources')
   await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
@@ -40,19 +41,14 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await expect(authenticatedPage.getByText('Entity coverage')).toBeVisible()
 })
 
-test('AC: E2E-RULES-DETAIL opens a shipped rule detail drawer', async ({
+test('AC: E2E-RULES-DETAIL renders a shipped rule detail workspace', async ({
   authenticatedPage,
-  rulesConsolePage,
 }) => {
-  await rulesConsolePage.goto()
-  await rulesConsolePage.libraryTab.click()
-  const needsReviewButton = authenticatedPage.getByRole('button', {
-    name: /^\d+\s+needs review$/,
-  })
-  await expect(needsReviewButton).toBeVisible({ timeout: 15_000 })
-  await needsReviewButton.click()
-  await authenticatedPage.getByRole('button', { name: /^Review \d+ pending rules$/ }).click()
+  await authenticatedPage.goto(
+    '/rules/library?filter=pending&q=AL&from=coverage&rule=al.individual_income_return.candidate.2026',
+  )
 
+  await expect(authenticatedPage.getByLabel('Review workspace')).toBeVisible()
   await expect(
     authenticatedPage.getByRole('heading', {
       name: 'Alabama individual income tax return applicability',

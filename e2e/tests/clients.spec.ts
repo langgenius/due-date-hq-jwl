@@ -112,7 +112,7 @@ test.describe('seeded client facts', () => {
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
     await authenticatedPage.getByRole('button', { name: /Fact readiness/ }).click()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
-    await expect(authenticatedPage.getByText('EIN')).toBeVisible()
+    await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
 })
