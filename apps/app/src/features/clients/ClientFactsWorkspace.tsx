@@ -88,6 +88,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -1154,16 +1155,17 @@ export function ClientDetailWorkspace({
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
-  // Activity section stays a URL-bound collapsible — it's lazy-loaded
-  // and the heavier AI summary + audit log queries should only fire
-  // when the user actually opens it. Work used to live behind the same
-  // pattern but D-5 (2026-05-22) flattened it: daily-driver content
-  // is the page, not a collapsible inside the page.
-  const [activityOpenParam, setActivityOpenParam] = useQueryState(
-    'activity',
-    parseAsStringLiteral(['open', 'closed'] as const).withDefault('closed'),
+  // Body is now a 4-tab structure (Work / Client info / Discover /
+  // Activity) — see docs/Design/client-page-information-architecture.md
+  // updated 2026-05-22. URL-bound so deep links land on the right tab.
+  // Work is the daily driver (filing plan), Client info carries the
+  // configuration surfaces (compliance posture + jurisdictions + risk +
+  // onboarding + import source), Discover is reference-only (suggested
+  // forms + future business cues), Activity is lazy-loaded history.
+  const [activeTab, setActiveTab] = useQueryState(
+    'tab',
+    parseAsStringLiteral(['work', 'info', 'discover', 'activity'] as const).withDefault('work'),
   )
-  const isActivityOpen = activityOpenParam === 'open'
   // Obligation drawer is rendered as an in-route page panel (NOT a
   // modal Sheet) when launched from the filing plan below. State
   // lives on the shared provider so any surface — this page, the
@@ -1374,6 +1376,10 @@ export function ClientDetailWorkspace({
                 migration history is still discoverable from the
                 /clients header Import-history drawer. */}
 
+            {/* Active alerts + summary strip stay ABOVE the tabs —
+                they're global signals about the client ("anything wrong
+                with this client right now?") that apply regardless of
+                which tab is open. */}
             <ClientActiveAlertsSection
               pulseMatches={pulseMatches}
               extensionPaymentMismatches={extensionPaymentMismatches}
@@ -1381,139 +1387,118 @@ export function ClientDetailWorkspace({
 
             <ClientSummaryStrip clientId={client.id} obligations={obligations} />
 
-            {/* V14 sections-not-tabs (2026-05-22): Work + Activity are
-                now stacked collapsible sections instead of Tabs. URL
-                params `?work=open` / `?activity=open` persist the
-                expansion state so deep links land on the right shape.
-
-                Work content order follows the four canonical questions
-                from docs/Design/client-page-information-architecture.md:
-                  1. "Where are we?" (alerts + summary above)
-                  2. "What do they owe?" → ClientWorkPlanPanel
-                  3. "What's their compliance posture?" → ClientCompliancePosturePanel
-                followed by two demoted groups:
-                  CONFIGURE — editable surfaces visited during onboarding + quarterly
-                  DISCOVER — reference / future-business surfaces. */}
-            {/* D-5: Work body renders flat — no outer DetailSection /
-                card frame. The primary read (work plan + compliance
-                posture) should be the page; wrapping it in a
-                collapsible header that nobody collapses just added
-                chrome. Daily-driver surfaces deserve weight, not
-                progressive disclosure. The earlier `?work=open` URL
-                param is retired with this commit (state no longer
-                exists). The CONFIGURE + DISCOVER groups keep their
-                inner DetailSection collapsibles — those are the
-                editing surfaces a CPA visits quarterly, not daily. */}
-            <ClientWorkPlanPanel
-              obligations={obligations}
-              isLoading={obligationsQuery.isLoading}
-              summary={workPlan}
-            />
-
-            {/* Compliance posture — surfaces the EIN value, tax-year
-                type + fiscal year end, owner counts, engagement date,
-                and the five filing-activity booleans. The booleans
-                drive obligation generation server-side but were
-                previously invisible to the CPA. Read-only for now;
-                edit flow deferred until a generic clients.update
-                mutation lands. See docs/Design/client-page-information-architecture.md. */}
-            <ClientCompliancePosturePanel client={client} />
-
-            <div className="flex flex-col gap-3 pt-2">
-              <SectionLabel>
-                <Trans>CONFIGURE</Trans>
-              </SectionLabel>
-
-              <DetailSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
-                <ClientImportSourcePanel client={client} />
-              </DetailSection>
-
-              <DetailSection
-                id="client-filing-jurisdictions"
-                title={t`Filing jurisdictions`}
-                summary={formatJurisdictionSummary(client)}
-                open={filingJurisdictionsOpen}
-                onOpenChange={setFilingJurisdictionsOpen}
-                attention={missingFilingState}
-              >
-                <ClientJurisdictionPanel
-                  key={`${client.id}:jurisdiction`}
-                  client={client}
-                  isSaving={replaceFilingProfilesMutation.isPending}
-                  onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-                />
-              </DetailSection>
-
-              <DetailSection
-                title={t`Risk profile`}
-                summary={t`Penalty exposure and tax-attribute flags`}
-              >
-                <ClientRiskInputsPanel
-                  key={`${client.id}:risk`}
-                  client={client}
-                  isSaving={updateRiskProfileMutation.isPending}
-                  onSave={(input) => updateRiskProfileMutation.mutate(input)}
-                />
-              </DetailSection>
-
-              <DetailSection
-                title={t`Onboarding state`}
-                summary={
-                  readiness && readiness.missingRequiredFacts.length > 0
-                    ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-                    : t`All required facts present`
-                }
-              >
-                <ClientFactChecklist client={client} readiness={readiness} />
-              </DetailSection>
-            </div>
-
-            <div className="flex flex-col gap-3 pt-2">
-              <SectionLabel>
-                <Trans>DISCOVER</Trans>
-              </SectionLabel>
-
-              {/* Suggested forms — previously rendered twice (once
-                  bare in the CONFIGURE group, once inside a DISCOVER
-                  DetailSection). Bug fixed in this commit: it now
-                  lives only here, in DISCOVER, since its semantics
-                  are "what *could* this client also file?" — a
-                  reference surface, not a daily edit. */}
-              <DetailSection
-                title={t`Suggested forms`}
-                summary={t`Forms the rule library can add without a new obligation`}
-              >
-                <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-              </DetailSection>
-
-              <DetailSection
-                title={t`Future business cues`}
-                summary={t`Advisory, scope, and retention opportunities`}
-              >
-                <ClientOpportunitiesCard clientId={client.id} />
-              </DetailSection>
-            </div>
-
-            {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
-              as a peer top-level tab implied parity it doesn't have. The
-              forwarding-address widget and AI inbound-thread story will
-              return once the infrastructure ships. ClientMailboxPanel
-              remains in this file for that resurrection. */}
-
-            {/* Activity section — AI narrative, free-text client notes,
-              audit log. Lazy-loaded behind the collapsible header so
-              the heavier AI + audit queries only fire when opened.
-              Renamed from "Notes" per the 2026-05-21 IA pass: audit
-              log content dominates and "Notes" undersold it. The
-              static notes block keeps the SectionLabel "NOTES" since
-              that section IS the freeform notes record. */}
-            <DetailSection
-              title={t`Activity`}
-              summary={t`AI summary, notes, and audit log`}
-              open={isActivityOpen}
-              onOpenChange={(open) => void setActivityOpenParam(open ? 'open' : 'closed')}
+            {/* 4-tab body (2026-05-22). Replaces the V14 stacked-
+                sections shape. Reasoning in
+                docs/Design/client-page-information-architecture.md
+                v2 + the dev-log for this commit. Short version:
+                content grew past the point where a flat list of
+                collapsibles reads cleanly, and "compliance posture"
+                turned out to be client info (identity facts), not
+                daily work. Tabs separate the four jobs cleanly:
+                  • Work       — what do they owe right now?
+                  • Client info — who is this client?
+                  • Discover   — what else could they file?
+                  • Activity   — what happened recently? (lazy) */}
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => void setActiveTab(value as typeof activeTab)}
             >
-              <div className="grid gap-4">
+              <TabsList variant="line" className="border-b border-divider-subtle">
+                <TabsTrigger value="work">
+                  <Trans>Work</Trans>
+                </TabsTrigger>
+                <TabsTrigger value="info">
+                  <Trans>Client info</Trans>
+                  {missingFilingState ? <BadgeStatusDot tone="error" className="ml-1.5" /> : null}
+                </TabsTrigger>
+                <TabsTrigger value="discover">
+                  <Trans>Discover</Trans>
+                </TabsTrigger>
+                <TabsTrigger value="activity">
+                  <Trans>Activity</Trans>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="work" className="flex flex-col gap-4 pt-4">
+                <ClientWorkPlanPanel
+                  obligations={obligations}
+                  isLoading={obligationsQuery.isLoading}
+                  summary={workPlan}
+                />
+              </TabsContent>
+
+              <TabsContent value="info" className="flex flex-col gap-4 pt-4">
+                {/* Compliance posture — moved here from the daily-driver
+                    area. EIN + tax year + owners + activity-scope flags
+                    are client identity facts, not "work" in progress.
+                    The CPA edits / verifies these quarterly, not daily. */}
+                <ClientCompliancePosturePanel client={client} />
+
+                <DetailSection
+                  id="client-filing-jurisdictions"
+                  title={t`Filing jurisdictions`}
+                  summary={formatJurisdictionSummary(client)}
+                  open={filingJurisdictionsOpen}
+                  onOpenChange={setFilingJurisdictionsOpen}
+                  attention={missingFilingState}
+                >
+                  <ClientJurisdictionPanel
+                    key={`${client.id}:jurisdiction`}
+                    client={client}
+                    isSaving={replaceFilingProfilesMutation.isPending}
+                    onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+                  />
+                </DetailSection>
+
+                <DetailSection
+                  title={t`Risk profile`}
+                  summary={t`Penalty exposure and tax-attribute flags`}
+                >
+                  <ClientRiskInputsPanel
+                    key={`${client.id}:risk`}
+                    client={client}
+                    isSaving={updateRiskProfileMutation.isPending}
+                    onSave={(input) => updateRiskProfileMutation.mutate(input)}
+                  />
+                </DetailSection>
+
+                <DetailSection
+                  title={t`Onboarding state`}
+                  summary={
+                    readiness && readiness.missingRequiredFacts.length > 0
+                      ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                      : t`All required facts present`
+                  }
+                >
+                  <ClientFactChecklist client={client} readiness={readiness} />
+                </DetailSection>
+
+                <DetailSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
+                  <ClientImportSourcePanel client={client} />
+                </DetailSection>
+              </TabsContent>
+
+              <TabsContent value="discover" className="flex flex-col gap-4 pt-4">
+                <DetailSection
+                  title={t`Suggested forms`}
+                  summary={t`Forms the rule library can add without a new obligation`}
+                  defaultOpen
+                >
+                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+                </DetailSection>
+
+                <DetailSection
+                  title={t`Future business cues`}
+                  summary={t`Advisory, scope, and retention opportunities`}
+                >
+                  <ClientOpportunitiesCard clientId={client.id} />
+                </DetailSection>
+              </TabsContent>
+
+              <TabsContent value="activity" className="flex flex-col gap-4 pt-4">
+                {/* Activity content only renders when the tab is the
+                    active one — the surrounding TabsContent gates the
+                    AI summary + audit log queries that fire inside. */}
                 <DetailSection
                   title={t`Client summary (AI)`}
                   summary={
@@ -1557,8 +1542,8 @@ export function ClientDetailWorkspace({
                     firmTimezone={firmTimezone}
                   />
                 </DetailSection>
-              </div>
-            </DetailSection>
+              </TabsContent>
+            </Tabs>
           </section>
 
           {/* Obligation page panel — replaces the modal Sheet on this

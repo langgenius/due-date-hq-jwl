@@ -227,8 +227,6 @@ msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
 
 #. placeholder {0}: alert.needsReviewCount
-#. placeholder {0}: summary.needsReviewCount
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{0} need review"
 msgstr "{0} 个需要确认"
@@ -252,16 +250,6 @@ msgstr "已创建 {0} 个义务。"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} open"
 msgstr "{0} 个打开"
-
-#. placeholder {0}: summary.overdueOpenCount
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} overdue"
-msgstr "{0} 个逾期"
-
-#. placeholder {0}: summary.paymentTrackCount
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} payment-linked"
-msgstr "{0} 个关联付款"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -1091,10 +1079,6 @@ msgstr "AI 准备状态清单"
 #: src/features/audit/audit-log-labels.ts
 msgid "AI refused request"
 msgstr "AI 已拒绝请求"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "AI summary, notes, and audit log"
-msgstr "AI 摘要、备注与审计日志"
 
 #: src/features/concepts/concept-help.tsx
 msgid "AI weekly brief"
@@ -2080,6 +2064,10 @@ msgstr "客户导入已撤销"
 msgid "Client importance"
 msgstr "客户重要性"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client info"
+msgstr "客户信息"
+
 #: src/routes/migration.new.tsx
 msgid "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
 msgstr "客户迁移会修改事务所数据、证据和审计记录。请让事务所 owner 或 manager 执行导入。"
@@ -2223,10 +2211,6 @@ msgstr "即将推出"
 msgid "Command palette"
 msgstr "命令面板"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Complete"
-msgstr "已完成"
-
 #: src/routes/obligations.tsx
 msgid "Complete bookkeeping pass"
 msgstr "完成账目整理"
@@ -2252,10 +2236,6 @@ msgstr "计算应纳税额"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "置信度"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "CONFIGURE"
-msgstr "配置"
 
 #. placeholder {0}: row.clientName
 #: src/features/pulse/components/AffectedClientsTable.tsx
@@ -3132,7 +3112,7 @@ msgid "Discarding this draft will commit these changes"
 msgstr "Discarding this draft will commit these changes"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "DISCOVER"
+msgid "Discover"
 msgstr "发现"
 
 #: src/features/pulse/components/PulseAlertCard.tsx
@@ -4214,10 +4194,6 @@ msgstr "导入行没有税种时，系统会根据实体类型和辖区给出税
 msgid "Importance"
 msgstr "重要性"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Imported"
-msgstr "已导入"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "已撤销导入的客户"
@@ -4702,7 +4678,6 @@ msgid "Manager-ready practice operations"
 msgstr "面向管理员的事务所运营"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Manual"
 msgstr "手动"
 
@@ -5104,7 +5079,6 @@ msgid "needs review"
 msgstr "待审核"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/status-control.tsx
@@ -9039,7 +9013,6 @@ msgstr "税务年度类型"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -9539,7 +9512,6 @@ msgid "Unable to start Microsoft sign-in"
 msgstr "无法启动 Microsoft 登录"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -9766,10 +9738,6 @@ msgstr "在收件箱中查看全部"
 msgid "View all obligations"
 msgstr "查看全部义务"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "View all obligations for this client"
-msgstr "查看该客户的全部义务"
-
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "View all opportunities"
 msgstr "查看全部业务机会"
@@ -9813,7 +9781,6 @@ msgstr "可见列"
 msgid "WA subtotal minus credits"
 msgstr "WA 扣除抵免后的小计"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/status-control.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -9958,6 +9925,10 @@ msgstr "窗口"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Withholding report count"
 msgstr "预扣税报告数量"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Work"
+msgstr "工作"
 
 #: src/features/members/members-page.tsx
 msgid "Work email"

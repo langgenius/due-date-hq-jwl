@@ -227,8 +227,6 @@ msgid "{0} items recorded"
 msgstr "{0} items recorded"
 
 #. placeholder {0}: alert.needsReviewCount
-#. placeholder {0}: summary.needsReviewCount
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{0} need review"
 msgstr "{0} need review"
@@ -252,16 +250,6 @@ msgstr "{0} obligations created."
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} open"
 msgstr "{0} open"
-
-#. placeholder {0}: summary.overdueOpenCount
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} overdue"
-msgstr "{0} overdue"
-
-#. placeholder {0}: summary.paymentTrackCount
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} payment-linked"
-msgstr "{0} payment-linked"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -1091,10 +1079,6 @@ msgstr "AI readiness checklist"
 #: src/features/audit/audit-log-labels.ts
 msgid "AI refused request"
 msgstr "AI refused request"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "AI summary, notes, and audit log"
-msgstr "AI summary, notes, and audit log"
 
 #: src/features/concepts/concept-help.tsx
 msgid "AI weekly brief"
@@ -2080,6 +2064,10 @@ msgstr "Client import undone"
 msgid "Client importance"
 msgstr "Client importance"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client info"
+msgstr "Client info"
+
 #: src/routes/migration.new.tsx
 msgid "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
 msgstr "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
@@ -2223,10 +2211,6 @@ msgstr "Coming soon"
 msgid "Command palette"
 msgstr "Command palette"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Complete"
-msgstr "Complete"
-
 #: src/routes/obligations.tsx
 msgid "Complete bookkeeping pass"
 msgstr "Complete bookkeeping pass"
@@ -2252,10 +2236,6 @@ msgstr "Compute payment estimate"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "Confidence"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "CONFIGURE"
-msgstr "CONFIGURE"
 
 #. placeholder {0}: row.clientName
 #: src/features/pulse/components/AffectedClientsTable.tsx
@@ -3132,8 +3112,8 @@ msgid "Discarding this draft will commit these changes"
 msgstr "Discarding this draft will commit these changes"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "DISCOVER"
-msgstr "DISCOVER"
+msgid "Discover"
+msgstr "Discover"
 
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -4214,10 +4194,6 @@ msgstr "Import-time suggestions for tax types based on entity type and jurisdict
 msgid "Importance"
 msgstr "Importance"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Imported"
-msgstr "Imported"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "Imported client undone"
@@ -4702,7 +4678,6 @@ msgid "Manager-ready practice operations"
 msgstr "Manager-ready practice operations"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Manual"
 msgstr "Manual"
 
@@ -5104,7 +5079,6 @@ msgid "needs review"
 msgstr "needs review"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/status-control.tsx
@@ -9039,7 +9013,6 @@ msgstr "Tax year type"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -9539,7 +9512,6 @@ msgid "Unable to start Microsoft sign-in"
 msgstr "Unable to start Microsoft sign-in"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -9766,10 +9738,6 @@ msgstr "View all in Inbox"
 msgid "View all obligations"
 msgstr "View all obligations"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "View all obligations for this client"
-msgstr "View all obligations for this client"
-
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "View all opportunities"
 msgstr "View all opportunities"
@@ -9813,7 +9781,6 @@ msgstr "Visible columns"
 msgid "WA subtotal minus credits"
 msgstr "WA subtotal minus credits"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/status-control.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
@@ -9958,6 +9925,10 @@ msgstr "Window"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Withholding report count"
 msgstr "Withholding report count"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Work"
+msgstr "Work"
 
 #: src/features/members/members-page.tsx
 msgid "Work email"
