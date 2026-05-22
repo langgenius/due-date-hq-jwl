@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useQueries, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowUpRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
@@ -15,40 +15,46 @@ import {
 } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import type { ObligationInstancePublic } from '@duedatehq/contracts'
+
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDate } from '@/lib/utils'
 
-import { ClientAlertsBand } from './ClientFactsWorkspace'
-import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
-import { ClientSummaryStrip } from './ClientSummaryStrip'
-import {
-  buildClientPulseMatches,
-  buildClientWorkPlanSummary,
-  findExtensionWithoutPaymentObligations,
-} from './client-detail-model'
 import { useEntityLabels } from '@/routes/clients'
 
+// Statuses that mean "the obligation is done" — exclude these when
+// hunting for the next-due. Mirrors the set used by ClientSummaryStrip
+// (the full-page tile) so the peek's next-due matches what the full
+// client page would show.
+const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
+  'done',
+  'paid',
+  'completed',
+  'filed',
+  'not_applicable',
+])
+
 /**
- * `ClientDetailDrawer` — the glance form of the client detail page,
- * rendered as a Sheet over whatever surface the user came from.
+ * `ClientDetailDrawer` — the *peek* form of a client.
  *
- * The full page at `/clients/[id]` is the deep-work form (tabs, edit
- * panels, audit log, AI summary). The drawer is the read-only "what's
- * the state of this client right now?" answer:
+ * Redesigned 2026-05-22 from "drawer-shaped detail page" to "brief
+ * tooltip-style peek." The previous shape (full SummaryStrip + alerts
+ * band + compliance posture inside a 640px sheet) was over-rendering
+ * for the actual job: when a CPA hits the eye icon on an obligations
+ * row, they want to know *which client* this is — entity, state,
+ * readiness, what's next due — not edit the compliance posture.
  *
- *  - Sheet header with name, entity badge, action cluster
- *    (Open full page, View all obligations)
- *  - Identity strip (filing state, source/readiness badges)
- *  - ClientSummaryStrip (Next due / At risk / Team)
- *  - ClientAlertsBand (Pulse + extension mismatch + missing facts)
- *  - ClientCompliancePosturePanel (EIN, tax year, owners,
- *    activity-scope chips)
+ * Anyone who needs more clicks "Open full page" → the canonical
+ * `/clients/[id]` workspace, where the rich body has room to render
+ * properly.
  *
- * No tabs, no edit panels. If the CPA needs to do anything beyond
- * "look + click into an obligation," the "Open full page" link takes
- * them to the canonical workspace.
+ * Contents (top → bottom):
+ *  1. Name + caption ("S corp · 1 open obligation")
+ *  2. Identity chips (entity, state, readiness)
+ *  3. One-line next due (form name + days late/until + assignee)
+ *  4. Action cluster (Open full page, View all obligations)
  *
  * Mounted by `<ClientDrawerProvider>` once at the app shell.
  */
@@ -58,98 +64,78 @@ interface ClientDetailDrawerProps {
   onClose: () => void
 }
 
+const EMPTY_OBLIGATIONS = [] as const
+
 export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProps) {
   const open = clientId !== null
-  const isQueryEnabled = clientId !== null
+  const isQueryEnabled = clientId !== null && clientId.length > 0
 
   const clientQuery = useQuery({
     ...orpc.clients.get.queryOptions({ input: { id: clientId ?? '' } }),
-    enabled: isQueryEnabled && clientId.length > 0,
+    enabled: isQueryEnabled,
   })
   const obligationsQuery = useQuery({
     ...orpc.obligations.listByClient.queryOptions({ input: { clientId: clientId ?? '' } }),
-    enabled: isQueryEnabled && clientId.length > 0,
-  })
-  // Pulse history feeds the alerts band. Match the page-level
-  // workspace's 30-alert window so the matches feel consistent.
-  const pulseHistoryQuery = useQuery({
-    ...orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }),
     enabled: isQueryEnabled,
-  })
-  const pulseDetailsQueries = useQueries({
-    queries: (pulseHistoryQuery.data?.alerts ?? []).map((alert) =>
-      orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
-    ),
   })
 
   const client = clientQuery.data ?? null
-  // Memoize the obligations array so downstream useMemos don't see a
-  // fresh `[]` literal each render and re-fire their dep checks.
-  const obligations = useMemo(() => obligationsQuery.data ?? [], [obligationsQuery.data])
+  const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
+
   const readiness = useMemo(() => (client ? getClientReadiness(client) : undefined), [client])
-  const workPlan = useMemo(
-    () => buildClientWorkPlanSummary(obligations, formatDate(new Date().toISOString())),
-    [obligations],
-  )
-  const extensionPaymentMismatches = useMemo(
-    () => findExtensionWithoutPaymentObligations(obligations),
-    [obligations],
-  )
-  const pulseDetails = pulseDetailsQueries.flatMap((query) => (query.data ? [query.data] : []))
-  const pulseMatches = useMemo(
-    () => (clientId ? buildClientPulseMatches(pulseDetails, clientId) : []),
-    [pulseDetails, clientId],
-  )
+
+  // Compute the next-due obligation inline. Same logic as
+  // ClientSummaryStrip's tile so the peek matches the full-page tile.
+  const { openCount, nextDue } = useMemo(() => {
+    const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
+    let best: ObligationInstancePublic | null = null
+    let bestTs = Infinity
+    for (const o of open) {
+      const ts = Date.parse(o.currentDueDate)
+      if (!Number.isNaN(ts) && ts < bestTs) {
+        bestTs = ts
+        best = o
+      }
+    }
+    return { openCount: open.length, nextDue: best }
+  }, [obligations])
 
   const entityLabels = useEntityLabels()
   const { t } = useLingui()
 
   return (
     <Sheet open={open} onOpenChange={(next) => (!next ? onClose() : undefined)}>
-      <SheetContent className="flex flex-col gap-4 overflow-y-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(560px,calc(100vw-1rem))] md:data-[side=right]:w-[min(640px,calc(100vw-1.5rem))]">
+      {/* Slim peek width (~400px). Was ~640px when the drawer carried
+          the full SummaryStrip + alerts band + compliance posture —
+          that content moved to the full page; this peek is just for
+          identification. */}
+      <SheetContent className="flex flex-col gap-4 overflow-y-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(400px,calc(100vw-1rem))]">
         {client ? (
           <>
             <header className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <SheetTitle className="truncate text-xl font-semibold text-text-primary">
-                    {client.name}
-                  </SheetTitle>
-                  <SheetDescription className="text-sm text-text-secondary">
-                    <Trans>
-                      {entityLabels[client.entityType]} ·{' '}
-                      {workPlan.openCount === 0
-                        ? t`No open obligations`
-                        : t`${workPlan.openCount} open obligations`}
-                    </Trans>
-                  </SheetDescription>
-                </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <SheetTitle className="truncate text-lg font-semibold text-text-primary">
+                  {client.name}
+                </SheetTitle>
+                <SheetDescription className="text-xs text-text-secondary">
+                  {entityLabels[client.entityType]} ·{' '}
+                  {openCount === 0
+                    ? t`No open obligations`
+                    : openCount === 1
+                      ? t`1 open obligation`
+                      : t`${openCount} open obligations`}
+                </SheetDescription>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  render={<Link to={`/clients/${client.id}`} />}
-                  onClick={onClose}
-                >
-                  <Trans>Open full page</Trans>
-                  <ArrowUpRightIcon data-icon="inline-end" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  render={<Link to={`/obligations?client=${client.id}`} />}
-                  onClick={onClose}
-                >
-                  <Trans>View all obligations</Trans>
-                </Button>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="text-xs">
+
+              {/* Identity chips — entity is already in the caption above,
+                  but the badge form gives a faster visual read on
+                  state + readiness color. */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge variant="outline" className="text-[11px]">
                   {entityLabels[client.entityType]}
                 </Badge>
                 {client.state ? (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-[11px]">
                     {client.state}
                   </Badge>
                 ) : null}
@@ -162,7 +148,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                           ? 'warning'
                           : 'outline'
                     }
-                    className="text-xs"
+                    className="text-[11px]"
                   >
                     {readiness.status === 'ready' ? (
                       <Trans>Ready for rules</Trans>
@@ -176,21 +162,34 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
               </div>
             </header>
 
-            <ClientSummaryStrip clientId={client.id} obligations={obligations} />
+            {/* One-line next-due summary — the most-asked question
+                during a peek. Avoids the 3-tile grid that wrapped
+                badly in the narrow drawer (Form 1120-S text breaking
+                mid-name was the trigger for this redesign). */}
+            <NextDueLine nextDue={nextDue} />
 
-            <ClientAlertsBand
-              pulseMatches={pulseMatches}
-              readiness={readiness}
-              extensionPaymentMismatches={extensionPaymentMismatches}
-              onAddFacts={() => {
-                // From the drawer, "add facts" can't open an inline
-                // edit (no jurisdiction panel here) — promote to the
-                // full page where the facts editor lives.
-                window.location.assign(`/clients/${client.id}`)
-              }}
-            />
-
-            <ClientCompliancePosturePanel client={client} />
+            {/* Escape hatches. Anything beyond identification lives on
+                the full page; obligations queue is the other natural
+                drill-in. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                render={<Link to={`/clients/${client.id}`} />}
+                onClick={onClose}
+              >
+                <Trans>Open full page</Trans>
+                <ArrowUpRightIcon data-icon="inline-end" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link to={`/obligations?client=${client.id}`} />}
+                onClick={onClose}
+              >
+                <Trans>View all obligations</Trans>
+              </Button>
+            </div>
           </>
         ) : clientQuery.isError ? (
           <Alert variant="destructive">
@@ -202,21 +201,58 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
             </AlertDescription>
           </Alert>
         ) : (
-          // Loading skeleton — three blocks roughly matching the
-          // hero / summary strip / posture panel that will mount.
-          <div className="flex flex-col gap-4">
+          // Loading skeleton sized for the slim peek.
+          <div className="flex flex-col gap-3">
             <SheetTitle className="sr-only">
               <Trans>Loading client</Trans>
             </SheetTitle>
             <SheetDescription className="sr-only">
               <Trans>Fetching client detail.</Trans>
             </SheetDescription>
-            <Skeleton className="h-10 w-1/2 rounded-md" />
-            <Skeleton className="h-20 w-full rounded-md" />
-            <Skeleton className="h-40 w-full rounded-md" />
+            <Skeleton className="h-6 w-2/3 rounded-md" />
+            <Skeleton className="h-4 w-1/2 rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
           </div>
         )}
       </SheetContent>
     </Sheet>
+  )
+}
+
+/**
+ * Single-line next-due summary for the peek drawer. Renders
+ * "Form 941 · 22d late" or "Form 1120-S · due in 5d" or "No open
+ * obligations" — whichever fits the obligations state.
+ */
+function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
+  const { t } = useLingui()
+  if (!nextDue) {
+    return (
+      <p className="text-sm text-text-tertiary">
+        <Trans>No open obligations right now.</Trans>
+      </p>
+    )
+  }
+  const days = Math.ceil((Date.parse(nextDue.currentDueDate) - Date.now()) / 86_400_000)
+  const isLate = days < 0
+  const daysAbs = Math.abs(days)
+  const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
+  return (
+    <div className="flex flex-col gap-1 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2">
+      <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+        <Trans>Next due</Trans>
+      </span>
+      <span className="flex flex-wrap items-baseline gap-x-2 text-sm">
+        {/* TaxCodeLabel renders the friendly form name (e.g. "Form
+            1040" instead of the raw `federal_1040` code) and attaches
+            the standard hover tooltip used everywhere else in the app. */}
+        <span className="min-w-0 truncate font-medium text-text-primary">
+          <TaxCodeLabel code={nextDue.taxType} />
+        </span>
+        <span className={isLate ? 'text-text-destructive' : 'text-text-secondary'}>
+          {daysLabel}
+        </span>
+      </span>
+    </div>
   )
 }
