@@ -328,11 +328,15 @@ describe('client detail model', () => {
 
     expect(summaries.get('client_a')).toEqual({
       openCount: 2,
+      overdueCount: 0,
+      waitingOnClientCount: 1,
       nextDueDate: '2026-05-30',
       nextTaxType: 'CA Payroll',
     })
     expect(summaries.get('client_b')).toEqual({
       openCount: 1,
+      overdueCount: 0,
+      waitingOnClientCount: 0,
       nextDueDate: '2026-07-01',
       nextTaxType: 'NY Form CT-3',
     })
