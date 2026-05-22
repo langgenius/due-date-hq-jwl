@@ -494,11 +494,11 @@ export function makeRulesRepo(db: Db, firmId: string) {
 export type RulesRepo = ReturnType<typeof makeRulesRepo>
 
 export function makeRulesOpsRepo(db: Db) {
-  async function getReconcileRunByWeek(weekKey: string): Promise<RuleRegistryReconcileRun | null> {
+  async function getReconcileRunByKey(runKey: string): Promise<RuleRegistryReconcileRun | null> {
     const rows = await db
       .select()
       .from(ruleRegistryReconcileRun)
-      .where(eq(ruleRegistryReconcileRun.weekKey, weekKey))
+      .where(eq(ruleRegistryReconcileRun.runKey, runKey))
       .limit(1)
     return rows[0] ?? null
   }
@@ -589,8 +589,8 @@ export function makeRulesOpsRepo(db: Db) {
       }))
     },
 
-    async startWeeklyReconcileRun(input: {
-      weekKey: string
+    async startReconcileRun(input: {
+      runKey: string
       sourceCount: number
       startedAt?: Date
       triggeredBy?: string
@@ -601,17 +601,17 @@ export function makeRulesOpsRepo(db: Db) {
         .insert(ruleRegistryReconcileRun)
         .values({
           id,
-          weekKey: input.weekKey,
+          runKey: input.runKey,
           status: 'running',
-          triggeredBy: input.triggeredBy ?? 'weekly_cron',
+          triggeredBy: input.triggeredBy ?? 'scheduled_cron',
           startedAt,
           sourceCount: input.sourceCount,
           updatedAt: startedAt,
         })
-        .onConflictDoNothing({ target: ruleRegistryReconcileRun.weekKey })
+        .onConflictDoNothing({ target: ruleRegistryReconcileRun.runKey })
 
-      const row = await getReconcileRunByWeek(input.weekKey)
-      if (!row) throw new Error(`Rule registry reconcile run was not persisted: ${input.weekKey}`)
+      const row = await getReconcileRunByKey(input.runKey)
+      if (!row) throw new Error(`Rule registry reconcile run was not persisted: ${input.runKey}`)
       return { run: toRegistryRun(row), inserted: row.id === id }
     },
 

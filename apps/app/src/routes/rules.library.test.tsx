@@ -240,6 +240,44 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
 
 const coverageRows: RuleCoverageRow[] = []
 
+function coverageRow(overrides: Partial<RuleCoverageRow>): RuleCoverageRow {
+  return {
+    jurisdiction: 'AZ',
+    sourceCount: 1,
+    verifiedRuleCount: 0,
+    candidateCount: 0,
+    highPrioritySourceCount: 1,
+    missingSourceCount: 0,
+    requiredSourceCount: 1,
+    missingSourceDomains: [],
+    sourceCoverageStatus: 'source_verified',
+    activeRuleCount: 0,
+    pendingReviewCount: 0,
+    rejectedRuleCount: 0,
+    archivedRuleCount: 0,
+    customRuleCount: 0,
+    entityCoverage: {
+      llc: 'active',
+      partnership: 'active',
+      s_corp: 'active',
+      c_corp: 'active',
+      sole_prop: 'active',
+      individual: 'none',
+      trust: 'none',
+    },
+    entitySourceCoverage: {
+      llc: 'rule_active',
+      partnership: 'rule_active',
+      s_corp: 'rule_active',
+      c_corp: 'rule_active',
+      sole_prop: 'rule_active',
+      individual: 'missing_source',
+      trust: 'missing_source',
+    },
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   bootstrapI18n()
   rpcMocks.coverageQueryFn.mockReset()
@@ -278,6 +316,72 @@ afterEach(() => {
 })
 
 describe('RulesLibraryRoute', () => {
+  it('does not render add-rule gaps for not-applicable entity coverage', async () => {
+    rpcMocks.coverageQueryFn.mockResolvedValue([
+      coverageRow({
+        jurisdiction: 'AK',
+        sourceCoverageStatus: 'rule_pending_review',
+        entityCoverage: {
+          llc: 'review',
+          partnership: 'review',
+          s_corp: 'review',
+          c_corp: 'review',
+          sole_prop: 'review',
+          individual: 'none',
+          trust: 'none',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_pending_review',
+          partnership: 'rule_pending_review',
+          s_corp: 'rule_pending_review',
+          c_corp: 'rule_pending_review',
+          sole_prop: 'rule_pending_review',
+          individual: 'not_applicable',
+          trust: 'not_applicable',
+        },
+      }),
+    ])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Alaska')
+
+    expect(document.body.textContent).not.toContain('Missing rules')
+    expect(document.body.textContent).not.toContain('No rule defined for this entity in Alaska')
+    expect(document.body.textContent).not.toContain('Add rule')
+  })
+
+  it('still renders add-rule gaps for applicable entity coverage without a rule', async () => {
+    rpcMocks.coverageQueryFn.mockResolvedValue([
+      coverageRow({
+        jurisdiction: 'AZ',
+        entityCoverage: {
+          llc: 'active',
+          partnership: 'active',
+          s_corp: 'active',
+          c_corp: 'active',
+          sole_prop: 'active',
+          individual: 'none',
+          trust: 'active',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_active',
+          partnership: 'rule_active',
+          s_corp: 'rule_active',
+          c_corp: 'rule_active',
+          sole_prop: 'rule_active',
+          individual: 'missing_source',
+          trust: 'rule_active',
+        },
+      }),
+    ])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Missing rules')
+
+    expect(document.body.textContent).toContain('No rule defined for this entity in Arizona')
+    expect(document.body.textContent).toContain('Add rule')
+  })
+
   it('shows cached AI concrete drafts in the selected rule detail', async () => {
     const rule = obligationRule({})
     nuqsMocks.rule = rule.id

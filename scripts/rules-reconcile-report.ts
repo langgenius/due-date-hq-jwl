@@ -25,7 +25,7 @@ if (statusArg && !STATUSES.has(statusArg)) {
 const sql = `
 select
   p.id,
-  r.week_key,
+  r.run_key,
   p.source_id,
   p.proposal_type,
   p.status,

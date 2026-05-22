@@ -32,6 +32,7 @@ export const RULE_REGISTRY_RECONCILE_PROMPT = 'rule-registry-reconcile@v1'
 
 const WEEKLY_RECONCILE_DAY_UTC = 1
 const WEEKLY_RECONCILE_HOUR_UTC = 9
+const RECONCILE_RUN_KEY_PREFIX = 'cadence'
 const AUTOMATED_RECONCILE_METHODS = new Set<RuleSource['acquisitionMethod']>([
   'html_watch',
   'pdf_watch',
@@ -53,7 +54,7 @@ export interface RuleRegistrySourceReconcileMessage {
   type: typeof RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE
   runId: string
   sourceId: string
-  reason: 'weekly'
+  reason: 'cadence_due' | 'weekly_governance'
 }
 
 export interface RuleRegistryCatalogSyncMessage {
@@ -73,7 +74,7 @@ export function isRuleRegistrySourceReconcileMessage(
     value.type === RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE &&
     typeof value.runId === 'string' &&
     typeof value.sourceId === 'string' &&
-    value.reason === 'weekly'
+    (value.reason === 'cadence_due' || value.reason === 'weekly_governance')
   )
 }
 
@@ -106,20 +107,29 @@ function nextCheckAt(from: Date, source: RuleSource): Date {
   return new Date(from.getTime() + sourceCadenceMs(source))
 }
 
-function isoWeekKey(now: Date): string {
-  const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-  const day = date.getUTCDay() || 7
-  date.setUTCDate(date.getUTCDate() + 4 - day)
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  const week = Math.ceil(((date.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7)
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
-}
-
-export function shouldRunWeeklyRuleRegistryReconcile(now: Date): boolean {
+export function shouldRunWeeklyRuleRegistryGovernance(now: Date): boolean {
   return (
     now.getUTCDay() === WEEKLY_RECONCILE_DAY_UTC &&
     now.getUTCHours() === WEEKLY_RECONCILE_HOUR_UTC &&
     now.getUTCMinutes() < 30
+  )
+}
+
+export const shouldRunWeeklyRuleRegistryReconcile = shouldRunWeeklyRuleRegistryGovernance
+
+function reconcileRunKey(now: Date): string {
+  return `${RECONCILE_RUN_KEY_PREFIX}:${now.toISOString().slice(0, 16)}Z`
+}
+
+function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, now: Date): boolean {
+  return (
+    state.enabled !== false && (!state.nextCheckAt || state.nextCheckAt.getTime() <= now.getTime())
+  )
+}
+
+function sourceCanAutoReconcile(source: RuleSource): boolean {
+  return (
+    source.healthStatus !== 'paused' && AUTOMATED_RECONCILE_METHODS.has(source.acquisitionMethod)
   )
 }
 
@@ -256,33 +266,58 @@ export async function enqueueRuleRegistryCatalogSync(
   } satisfies RuleRegistryCatalogSyncMessage)
 }
 
-export async function enqueueWeeklyRuleRegistryReconcile(
+export async function enqueueDueRuleRegistryReconcile(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
   now: Date,
 ): Promise<{ queued: number; runId: string | null }> {
-  if (!shouldRunWeeklyRuleRegistryReconcile(now)) return { queued: 0, runId: null }
-
   const sources = listRuleSources()
+  const weeklyGovernance = shouldRunWeeklyRuleRegistryGovernance(now)
+  const pulseOps = makePulseOpsRepo(createDb(env.DB))
+  const queueItems = (
+    await Promise.all(
+      sources.map(async (source) => {
+        const state = await pulseOps.ensureSourceState({
+          sourceId: source.id,
+          tier: sourceTier(source),
+          jurisdiction: source.jurisdiction,
+          cadenceMs: sourceCadenceMs(source),
+          now,
+          enabled: source.healthStatus !== 'paused',
+        })
+        if (!state.enabled) return null
+        if (sourceCanAutoReconcile(source)) {
+          return sourceIsDue(state, now) ? { source, reason: 'cadence_due' as const } : null
+        }
+        return weeklyGovernance ? { source, reason: 'weekly_governance' as const } : null
+      }),
+    )
+  ).filter((item): item is NonNullable<typeof item> => item !== null)
+
+  if (queueItems.length === 0) return { queued: 0, runId: null }
+
   const ops = makeRulesOpsRepo(createDb(env.DB))
-  const { run, inserted } = await ops.startWeeklyReconcileRun({
-    weekKey: isoWeekKey(now),
-    sourceCount: sources.length,
+  const { run, inserted } = await ops.startReconcileRun({
+    runKey: reconcileRunKey(now),
+    sourceCount: queueItems.length,
     startedAt: now,
+    triggeredBy: 'scheduled_cron',
   })
   if (!inserted || run.status !== 'running') return { queued: 0, runId: run.id }
 
   await Promise.all(
-    sources.map((source) =>
+    queueItems.map(({ source, reason }) =>
       env.PULSE_QUEUE.send({
         type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
         runId: run.id,
         sourceId: source.id,
-        reason: 'weekly',
+        reason,
       } satisfies RuleRegistrySourceReconcileMessage),
     ),
   )
-  return { queued: sources.length, runId: run.id }
+  return { queued: queueItems.length, runId: run.id }
 }
+
+export const enqueueWeeklyRuleRegistryReconcile = enqueueDueRuleRegistryReconcile
 
 export async function consumeRuleRegistrySourceReconcile(
   message: RuleRegistrySourceReconcileMessage,

@@ -123,7 +123,7 @@ export interface PracticeRuleReviewTaskDecisionInput {
 
 export interface RuleRegistryReconcileRunRow {
   id: string
-  weekKey: string
+  runKey: string
   status: RuleRegistryReconcileRunStatus
   triggeredBy: string
   startedAt: Date
@@ -223,8 +223,8 @@ export interface RulesRepo {
 }
 
 export interface RulesOpsRepo {
-  startWeeklyReconcileRun(input: {
-    weekKey: string
+  startReconcileRun(input: {
+    runKey: string
     sourceCount: number
     startedAt?: Date
     triggeredBy?: string

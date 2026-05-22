@@ -64,12 +64,12 @@ describe('makeRulesOpsRepo', () => {
     vi.restoreAllMocks()
   })
 
-  it('keeps weekly reconcile run creation idempotent by week key', async () => {
+  it('keeps reconcile run creation idempotent by run key', async () => {
     const existingRun = {
       id: 'existing-run',
-      weekKey: '2026-W22',
+      runKey: 'cadence:2026-05-25T09:00Z',
       status: 'running',
-      triggeredBy: 'weekly_cron',
+      triggeredBy: 'scheduled_cron',
       startedAt: NOW,
       completedAt: null,
       sourceCount: 2,
@@ -85,8 +85,8 @@ describe('makeRulesOpsRepo', () => {
     const fake = fakeDb([[existingRun]])
     const repo = makeRulesOpsRepo(fake.db)
 
-    const result = await repo.startWeeklyReconcileRun({
-      weekKey: '2026-W22',
+    const result = await repo.startReconcileRun({
+      runKey: 'cadence:2026-05-25T09:00Z',
       sourceCount: 2,
       startedAt: NOW,
     })
@@ -95,7 +95,7 @@ describe('makeRulesOpsRepo', () => {
     expect(fake.insertValues[0]).toMatchObject({
       value: {
         id: '00000000-0000-4000-8000-000000000000',
-        weekKey: '2026-W22',
+        runKey: 'cadence:2026-05-25T09:00Z',
         sourceCount: 2,
       },
     })

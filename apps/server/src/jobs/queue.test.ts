@@ -77,7 +77,7 @@ describe('queue consumer', () => {
               type: 'rule.registry.source.reconcile',
               runId: 'run-1',
               sourceId: 'ca.ftb_business_due_dates',
-              reason: 'weekly',
+              reason: 'cadence_due',
             },
           },
           {

@@ -112,7 +112,7 @@ const ENTITY_LABELS: Record<EntityKey, string> = {
   trust: 'Trust',
 }
 
-type CoverageState = 'active' | 'review' | 'none'
+type CoverageState = 'active' | 'review' | 'none' | 'not_applicable'
 
 // Short column-header labels for the per-entity columns in the rules
 // table. Fit in ~36px column widths; the full name is the title attr.
@@ -256,6 +256,7 @@ function normalizeRulesLibrarySearch(search: string): string | null {
 //   - active  → "8 ✓"  green count + green check
 //   - review  → "5 ⚠"  accent count + accent triangle
 //   - none    → "0 ○"  destructive count + outlined circle
+//   - N/A     → "0 -"  muted count + dash
 //
 // Reading down a column: aggregate at top, individual applicability
 // dots below.
@@ -268,6 +269,7 @@ function EntityStateCell({ count, state }: { count: number; state: CoverageState
           state === 'active' && 'text-state-success-solid',
           state === 'review' && 'text-text-accent',
           state === 'none' && 'text-text-destructive',
+          state === 'not_applicable' && 'text-text-tertiary',
         )}
       >
         {count}
@@ -279,6 +281,10 @@ function EntityStateCell({ count, state }: { count: number; state: CoverageState
         />
       ) : state === 'review' ? (
         <AlertTriangleIcon className="size-3 shrink-0 text-text-accent" aria-label="needs review" />
+      ) : state === 'not_applicable' ? (
+        <span aria-label="not applicable" className="text-xs text-text-tertiary">
+          -
+        </span>
       ) : (
         <span
           aria-label="no rule"
@@ -413,6 +419,7 @@ type JurisdictionGroup = {
   label: string
   rules: ObligationRule[]
   coverage: RuleCoverageRow['entityCoverage'] | null
+  sourceCoverage: RuleCoverageRow['entitySourceCoverage'] | null
   ruleCount: number
   gapEntities: EntityKey[]
   hasGap: boolean
@@ -439,10 +446,16 @@ function buildGroups(
   const groups: JurisdictionGroup[] = []
   for (const jur of jurSet) {
     const groupRules = rules.filter((r) => r.jurisdiction === jur)
-    const coverage = coverageByJur.get(jur)?.entityCoverage ?? null
+    const coverageRow = coverageByJur.get(jur)
+    const coverage = coverageRow?.entityCoverage ?? null
+    const sourceCoverage = coverageRow?.entitySourceCoverage ?? null
     const gapEntities: EntityKey[] = []
     if (coverage) {
-      for (const e of ENTITY_KEYS) if (coverage[e] === 'none') gapEntities.push(e)
+      for (const e of ENTITY_KEYS) {
+        if (coverage[e] === 'none' && sourceCoverage?.[e] !== 'not_applicable') {
+          gapEntities.push(e)
+        }
+      }
     }
     const pendingReviewCount = groupRules.filter(
       (r) => r.status === 'pending_review' || r.status === 'candidate',
@@ -470,6 +483,7 @@ function buildGroups(
       label: jurisdictionLabel(jur),
       rules: groupRules,
       coverage,
+      sourceCoverage,
       ruleCount: groupRules.length,
       gapEntities,
       hasGap: gapEntities.length > 0 || pendingReviewCount > 0,
@@ -1609,7 +1623,10 @@ function GroupHeaderRow({
           distinct from rule-row applicability dots so the column
           reads "summary on top, individual rules below." */}
       {ENTITY_KEYS.map((entity) => {
-        const state = (group.coverage?.[entity] ?? 'none') as CoverageState
+        const state: CoverageState =
+          group.sourceCoverage?.[entity] === 'not_applicable'
+            ? 'not_applicable'
+            : (group.coverage?.[entity] ?? 'none')
         return (
           <TableCell key={entity} className="py-2 text-center">
             <EntityStateCell count={group.entityCounts[entity]} state={state} />

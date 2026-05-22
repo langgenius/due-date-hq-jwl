@@ -177,7 +177,7 @@ export const ruleRegistryReconcileRun = sqliteTable(
   'rule_registry_reconcile_run',
   {
     id: text('id').primaryKey(),
-    weekKey: text('week_key').notNull(),
+    runKey: text('run_key').notNull(),
     status: text('status', { enum: RULE_REGISTRY_RECONCILE_RUN_STATUSES })
       .notNull()
       .default('running'),
@@ -200,7 +200,7 @@ export const ruleRegistryReconcileRun = sqliteTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex('uq_rule_registry_reconcile_run_week').on(table.weekKey),
+    uniqueIndex('uq_rule_registry_reconcile_run_key').on(table.runKey),
     index('idx_rule_registry_reconcile_run_status').on(table.status, table.startedAt),
   ],
 )

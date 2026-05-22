@@ -6,9 +6,10 @@ import type { Env } from '../../env'
 import {
   consumeRuleRegistryCatalogSync,
   consumeRuleRegistrySourceReconcile,
-  enqueueWeeklyRuleRegistryReconcile,
+  enqueueDueRuleRegistryReconcile,
   RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE,
   RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
+  shouldRunWeeklyRuleRegistryGovernance,
   shouldRunWeeklyRuleRegistryReconcile,
 } from './reconcile'
 
@@ -18,7 +19,7 @@ const { aiMocks, coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks 
     const rules: unknown[] = []
     const ai = { runPrompt: vi.fn() }
     const opsRepo = {
-      startWeeklyReconcileRun: vi.fn(),
+      startReconcileRun: vi.fn(),
       recordReconcileSourceOutcome: vi.fn(),
       recordChangeProposal: vi.fn(),
       listGlobalRuleTemplates: vi.fn(),
@@ -228,7 +229,10 @@ describe('rule registry reconcile jobs', () => {
       supersededTasks: 0,
     })
     dbMocks.rulesRepo.upsertGlobalTemplates.mockResolvedValue(undefined)
-    dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValue({})
+    dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: new Date('2026-05-25T09:00:00.000Z'),
+    })
     dbMocks.pulseOpsRepo.getSourceState.mockResolvedValue(null)
     dbMocks.pulseOpsRepo.createSourceSnapshot.mockResolvedValue({
       inserted: true,
@@ -241,37 +245,124 @@ describe('rule registry reconcile jobs', () => {
   })
 
   it('runs the weekly scheduler gate only during the Monday 09:00 UTC window', () => {
+    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:00:00.000Z'))).toBe(true)
+    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:29:59.000Z'))).toBe(true)
+    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:30:00.000Z'))).toBe(false)
+    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-26T09:00:00.000Z'))).toBe(false)
     expect(shouldRunWeeklyRuleRegistryReconcile(new Date('2026-05-25T09:00:00.000Z'))).toBe(true)
-    expect(shouldRunWeeklyRuleRegistryReconcile(new Date('2026-05-25T09:29:59.000Z'))).toBe(true)
-    expect(shouldRunWeeklyRuleRegistryReconcile(new Date('2026-05-25T09:30:00.000Z'))).toBe(false)
-    expect(shouldRunWeeklyRuleRegistryReconcile(new Date('2026-05-26T09:00:00.000Z'))).toBe(false)
   })
 
-  it('starts one ISO-week run and enqueues each registered source exactly once', async () => {
+  it('starts one cadence run and enqueues only due automated sources', async () => {
     const queueSend = vi.fn()
-    coreMocks.sources.push(source({ id: 'irs.forms' }))
-    dbMocks.opsRepo.startWeeklyReconcileRun.mockResolvedValue({
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({
+        id: 'daily-source',
+        cadence: 'daily',
+        acquisitionMethod: 'html_watch',
+      }),
+      source({
+        id: 'weekly-source',
+        cadence: 'weekly',
+        acquisitionMethod: 'html_watch',
+      }),
+    )
+    dbMocks.pulseOpsRepo.ensureSourceState
+      .mockResolvedValueOnce({
+        enabled: true,
+        nextCheckAt: new Date('2026-05-25T09:00:00.000Z'),
+      })
+      .mockResolvedValueOnce({
+        enabled: true,
+        nextCheckAt: new Date('2026-05-26T09:00:00.000Z'),
+      })
+    dbMocks.opsRepo.startReconcileRun.mockResolvedValue({
       inserted: true,
       run: { id: 'run-1', status: 'running' },
     })
 
-    const result = await enqueueWeeklyRuleRegistryReconcile(
+    const result = await enqueueDueRuleRegistryReconcile(
       env(queueSend),
       new Date('2026-05-25T09:00:00.000Z'),
     )
 
-    expect(dbMocks.opsRepo.startWeeklyReconcileRun).toHaveBeenCalledWith(
-      expect.objectContaining({ weekKey: '2026-W22', sourceCount: 2 }),
+    expect(dbMocks.opsRepo.startReconcileRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runKey: 'cadence:2026-05-25T09:00Z',
+        sourceCount: 1,
+        triggeredBy: 'scheduled_cron',
+      }),
     )
-    expect(result).toEqual({ queued: 2, runId: 'run-1' })
-    expect(queueSend).toHaveBeenCalledTimes(2)
+    expect(result).toEqual({ queued: 1, runId: 'run-1' })
+    expect(queueSend).toHaveBeenCalledTimes(1)
     expect(queueSend).toHaveBeenCalledWith(
       expect.objectContaining({
         type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
         runId: 'run-1',
-        reason: 'weekly',
+        sourceId: 'daily-source',
+        reason: 'cadence_due',
       }),
     )
+  })
+
+  it('queues non-automated sources only during the weekly governance window', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({
+        id: 'fema-api',
+        cadence: 'daily',
+        acquisitionMethod: 'api_watch',
+      }),
+    )
+    dbMocks.opsRepo.startReconcileRun.mockResolvedValue({
+      inserted: true,
+      run: { id: 'run-1', status: 'running' },
+    })
+
+    const outsideWindow = await enqueueDueRuleRegistryReconcile(
+      env(queueSend),
+      new Date('2026-05-26T09:00:00.000Z'),
+    )
+    expect(outsideWindow).toEqual({ queued: 0, runId: null })
+    expect(queueSend).not.toHaveBeenCalled()
+
+    const insideWindow = await enqueueDueRuleRegistryReconcile(
+      env(queueSend),
+      new Date('2026-05-25T09:00:00.000Z'),
+    )
+
+    expect(insideWindow).toEqual({ queued: 1, runId: 'run-1' })
+    expect(queueSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'fema-api',
+        reason: 'weekly_governance',
+      }),
+    )
+  })
+
+  it('does not enqueue paused or disabled sources', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({ id: 'paused-source', healthStatus: 'paused' }),
+      source({ id: 'disabled-source' }),
+    )
+    dbMocks.pulseOpsRepo.ensureSourceState
+      .mockResolvedValueOnce({ enabled: false, nextCheckAt: new Date('2026-05-25T09:00:00.000Z') })
+      .mockResolvedValueOnce({ enabled: false, nextCheckAt: new Date('2026-05-25T09:00:00.000Z') })
+
+    const result = await enqueueDueRuleRegistryReconcile(
+      env(queueSend),
+      new Date('2026-05-25T09:00:00.000Z'),
+    )
+
+    expect(result).toEqual({ queued: 0, runId: null })
+    expect(dbMocks.opsRepo.startReconcileRun).not.toHaveBeenCalled()
+    expect(queueSend).not.toHaveBeenCalled()
   })
 
   it('treats unchanged sources as freshness updates without analyzer proposals', async () => {
@@ -287,7 +378,7 @@ describe('rule registry reconcile jobs', () => {
         type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
         runId: 'run-1',
         sourceId: 'ca.ftb_business_due_dates',
-        reason: 'weekly',
+        reason: 'cadence_due',
       },
       env() as Env,
     )
@@ -320,7 +411,7 @@ describe('rule registry reconcile jobs', () => {
         type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
         runId: 'run-1',
         sourceId: 'ca.ftb_business_due_dates',
-        reason: 'weekly',
+        reason: 'cadence_due',
       },
       env() as Env,
     )
@@ -371,7 +462,7 @@ describe('rule registry reconcile jobs', () => {
         type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
         runId: 'run-1',
         sourceId: 'ca.ftb_business_due_dates',
-        reason: 'weekly',
+        reason: 'cadence_due',
       },
       env() as Env,
     )

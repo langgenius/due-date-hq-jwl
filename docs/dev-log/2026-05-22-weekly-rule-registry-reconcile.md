@@ -32,7 +32,27 @@ review.
 - Product developers must manually update `packages/core/src/rules/index.ts`; evidence timestamp
   edits do not bump `rule.version`, but semantic changes must bump/add a rule version.
 
+## 2026-05-22 Cadence Follow-up
+
+- Replaced weekly-only source fan-out with cadence-aware due-source reconcile. The existing 30-minute
+  Worker cron now checks each rule source's `pulse_source_state.next_check_at` and only queues
+  automated sources whose cadence is due.
+- Daily sources now run daily without running the full analyzer unless the official source content
+  changes. Freshness-only checks still update source health and the next due time.
+- Non-automated sources (`manual_review`, `email_subscription`, `api_watch`) remain weekly
+  governance items so daily sources do not create daily manual-review noise.
+- `rule_registry_reconcile_run.week_key` was migrated to `run_key` so multiple cadence runs can be
+  recorded in the same ISO week.
+
 ## Validation
 
 - `pnpm --filter @duedatehq/server test -- src/jobs/rules/reconcile.test.ts src/jobs/queue.test.ts src/jobs/rules/concrete-draft.test.ts src/procedures/rules/concrete-draft.test.ts`
 - `pnpm --filter @duedatehq/db test -- src/repo/rules.test.ts src/repo/ai.test.ts`
+- Cadence follow-up validation:
+  - `pnpm --filter @duedatehq/server test -- src/jobs/rules/reconcile.test.ts src/jobs/queue.test.ts`
+  - `pnpm --filter @duedatehq/db test -- src/repo/rules.test.ts`
+  - `pnpm check`
+  - `pnpm build`
+  - `pnpm ready` currently stops in unrelated
+    `apps/app/src/features/audit/audit-log-model.test.ts` on `$1,250.00` vs `$1,250`
+    currency formatting.

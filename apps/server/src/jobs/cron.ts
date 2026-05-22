@@ -6,10 +6,7 @@ import { runPulseIngest } from './pulse/ingest'
 import { linkPulseSourceSignals } from './pulse/signals'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
-import {
-  enqueueRuleRegistryCatalogSync,
-  enqueueWeeklyRuleRegistryReconcile,
-} from './rules/reconcile'
+import { enqueueDueRuleRegistryReconcile, enqueueRuleRegistryCatalogSync } from './rules/reconcile'
 
 function localTimeParts(
   timezone: string,
@@ -119,7 +116,7 @@ export async function scheduled(
   }
   await Promise.all([
     enqueueRuleRegistryCatalogSync(env),
-    enqueueWeeklyRuleRegistryReconcile(env, now),
+    enqueueDueRuleRegistryReconcile(env, now),
     enqueueScheduledDashboardBriefs(env, now),
     pulseJobs(),
     dispatchDeadlineReminders(env, now),
