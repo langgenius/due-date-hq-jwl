@@ -18,6 +18,10 @@ import {
 } from '../schema/readiness'
 
 const RESPONSE_LOOKUP_BATCH_SIZE = 90
+// D1 local uses a 100-param ceiling. Checklist inserts bind 11 values per row:
+// id, firm, obligation, label, description, template metadata, source, status,
+// sort order, and created_by.
+export const READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE = Math.floor(100 / 11)
 const LEGACY_TEMPLATE_LABEL_TO_KEYS = new Map<string, string[]>([
   ['w 2 1099 and income forms', ['1040.individual_return.w2_forms']],
   ['brokerage and crypto statements', ['1040.individual_return.brokerage_crypto']],
@@ -119,6 +123,14 @@ function readinessDocumentStatusFromResponse(
   if (status === 'ready') return 'received'
   if (status === 'need_help') return 'needs_review'
   return 'missing'
+}
+
+export function chunkReadinessChecklistItemInsertRows<T>(rows: readonly T[]): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < rows.length; i += READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE) {
+    chunks.push(rows.slice(i, i + READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE))
+  }
+  return chunks
 }
 
 function normalizeTemplateMatch(value: string | null | undefined): string {
@@ -343,21 +355,24 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       if (input.items.length === 0) {
         return this.listDocumentChecklistByObligation(input.obligationInstanceId)
       }
-      await db.insert(obligationReadinessChecklistItem).values(
-        input.items.map((item) => ({
-          id: item.id,
-          firmId,
-          obligationInstanceId: input.obligationInstanceId,
-          label: item.label,
-          description: item.description,
-          templateKey: item.templateKey ?? null,
-          templateVersion: item.templateVersion ?? null,
-          source: item.source,
-          status: item.status ?? 'missing',
-          sortOrder: item.sortOrder,
-          note: item.note ?? null,
-          createdByUserId: input.createdByUserId,
-        })),
+      const rows = input.items.map((item) => ({
+        id: item.id,
+        firmId,
+        obligationInstanceId: input.obligationInstanceId,
+        label: item.label,
+        description: item.description,
+        templateKey: item.templateKey ?? null,
+        templateVersion: item.templateVersion ?? null,
+        source: item.source,
+        status: item.status ?? 'missing',
+        sortOrder: item.sortOrder,
+        note: item.note ?? null,
+        createdByUserId: input.createdByUserId,
+      }))
+      await Promise.all(
+        chunkReadinessChecklistItemInsertRows(rows).map((chunk) =>
+          db.insert(obligationReadinessChecklistItem).values(chunk),
+        ),
       )
       return this.listDocumentChecklistByObligation(input.obligationInstanceId)
     },
@@ -392,7 +407,20 @@ export function makeReadinessRepo(db: Db, firmId: string) {
         template: input.template,
       })
 
-      await Promise.all([
+      const insertRows = plan.inserts.map((item) => ({
+        id: crypto.randomUUID(),
+        firmId,
+        obligationInstanceId: input.obligationInstanceId,
+        label: item.label,
+        description: item.description,
+        templateKey: item.templateKey,
+        templateVersion: item.templateVersion,
+        source: item.source,
+        status: 'missing' as const,
+        sortOrder: item.sortOrder,
+        createdByUserId: input.createdByUserId,
+      }))
+      const writes = [
         ...plan.updates.map((update) =>
           db
             .update(obligationReadinessChecklistItem)
@@ -409,26 +437,11 @@ export function makeReadinessRepo(db: Db, firmId: string) {
               ),
             ),
         ),
-        ...(plan.inserts.length > 0
-          ? [
-              db.insert(obligationReadinessChecklistItem).values(
-                plan.inserts.map((item) => ({
-                  id: crypto.randomUUID(),
-                  firmId,
-                  obligationInstanceId: input.obligationInstanceId,
-                  label: item.label,
-                  description: item.description,
-                  templateKey: item.templateKey,
-                  templateVersion: item.templateVersion,
-                  source: item.source,
-                  status: 'missing' as const,
-                  sortOrder: item.sortOrder,
-                  createdByUserId: input.createdByUserId,
-                })),
-              ),
-            ]
-          : []),
-      ])
+        ...chunkReadinessChecklistItemInsertRows(insertRows).map((chunk) =>
+          db.insert(obligationReadinessChecklistItem).values(chunk),
+        ),
+      ]
+      await Promise.all(writes)
 
       return this.listDocumentChecklistByObligation(input.obligationInstanceId)
     },

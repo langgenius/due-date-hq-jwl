@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { planReadinessDocumentChecklistReconciliation } from './readiness'
+import {
+  READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE,
+  chunkReadinessChecklistItemInsertRows,
+  planReadinessDocumentChecklistReconciliation,
+} from './readiness'
 
 function template() {
   return [
@@ -49,6 +53,15 @@ function row(overrides: {
 }
 
 describe('readiness checklist reconciliation planning', () => {
+  it('chunks checklist inserts to stay under D1 SQL variable limits', () => {
+    const rows = Array.from({ length: 13 }, (_, index) => ({ id: `item-${index}` }))
+
+    const chunks = chunkReadinessChecklistItemInsertRows(rows)
+
+    expect(READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE).toBe(9)
+    expect(chunks.map((chunk) => chunk.length)).toEqual([9, 4])
+  })
+
   it('backfills missing catalog items into an old template checklist', () => {
     const plan = planReadinessDocumentChecklistReconciliation({
       existing: [

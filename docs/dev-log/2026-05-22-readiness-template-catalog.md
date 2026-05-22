@@ -25,11 +25,13 @@ generated checklists were returned as-is instead of being reconciled with newer 
   truncation.
 - Obligation detail now calls the idempotent reconciliation path when opened, so old short
   checklists are topped up without introducing a separate Tax Organizer module.
+- Batched readiness checklist item inserts to stay under D1's local 100-bound-parameter ceiling
+  when larger templates, such as 13-item partnership organizers, are generated.
 
 ## Validation
 
 - Core tests freeze exact template keys and matching priority.
 - DB reconciliation planner tests cover legacy checklist backfill, CPA-edited/custom item
-  preservation, and suppression.
+  preservation, suppression, and D1-safe insert chunking.
 - Server helper tests cover full portal list mapping and versioned reconciliation input.
 - Contract tests cover the 30-item readiness request/public payload limit.
