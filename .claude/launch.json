@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5183", "--strictPort"],
       "port": 5183
+    },
+    {
+      "name": "app-5188",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5188", "--strictPort"],
+      "port": 5188
     }
   ]
 }

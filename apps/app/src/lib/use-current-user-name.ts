@@ -1,11 +1,7 @@
 import { useRouteLoaderData } from 'react-router'
 
-import type { AuthUser } from './auth'
-
 /** Route id used by the protected layout loader (mirrors router.tsx). */
 const PROTECTED_ROUTE_ID = 'protected'
-
-type ProtectedLoaderData = { user: AuthUser }
 
 /**
  * Read the current user's display name from the protected layout
@@ -20,7 +16,7 @@ type ProtectedLoaderData = { user: AuthUser }
  * assignee user id, switch this lookup over.
  */
 export function useCurrentUserName(): string | null {
-  const data = useRouteLoaderData(PROTECTED_ROUTE_ID) as ProtectedLoaderData | undefined
+  const data = useRouteLoaderData(PROTECTED_ROUTE_ID)
   const name = data?.user?.name
   if (!name) return null
   const trimmed = name.trim()

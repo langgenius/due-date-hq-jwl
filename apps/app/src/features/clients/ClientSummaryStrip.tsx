@@ -148,7 +148,12 @@ export function ClientSummaryStrip({
     const daysText = days <= 0 ? t`${days}d` : t`${days}d`
     nextDueValue = (
       <span className="flex items-baseline gap-2">
-        <TaxCodeLabel code={nextDue.taxType} />
+        {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
+            <span>, not a <button>. The Next-due tile itself is a
+            <button> (TileShell renders one when `onClick` is set), so
+            without `asChild` we get button-in-button DOM nesting and
+            a hydration warning. */}
+        <TaxCodeLabel code={nextDue.taxType} asChild />
         <span className="text-sm font-medium text-text-secondary">{daysText}</span>
       </span>
     )
