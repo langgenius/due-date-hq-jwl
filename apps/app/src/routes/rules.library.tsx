@@ -16,6 +16,7 @@ import { parseAsString, useQueryState } from 'nuqs'
 
 import type {
   ObligationRule,
+  RuleConcreteDraftCacheEntry,
   RuleCoverageRow,
   RuleCustomRuleInput,
   RuleJurisdiction,
@@ -150,6 +151,35 @@ function statusGroupOf(status: RuleStatus): StatusGroupKey {
   if (status === 'rejected') return 'rejected'
   if (status === 'archived') return 'archived'
   return 'other'
+}
+
+type RuleConcreteDraftTarget = {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string
+}
+
+function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+function ruleReviewSourceId(rule: Pick<ObligationRule, 'sourceIds' | 'evidence'>): string {
+  return rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+}
+
+function concreteDraftTargetForRule(rule: ObligationRule): RuleConcreteDraftTarget | null {
+  if (!isSourceDefinedRule(rule)) return null
+  const sourceId = ruleReviewSourceId(rule)
+  if (sourceId.length === 0) return null
+  return { ruleId: rule.id, sourceId }
+}
+
+function concreteDraftTargetKey(input: {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string | null
+}): string {
+  return [input.ruleId, input.sourceId].join(':')
 }
 
 function useStatusGroupLabels(): Record<StatusGroupKey, string> {
@@ -662,6 +692,35 @@ export function RulesLibraryRoute() {
     () => (ruleId ? (rules.find((r) => r.id === ruleId) ?? null) : null),
     [ruleId, rules],
   )
+  const concreteDraftInputs = useMemo(() => {
+    const seen = new Set<string>()
+    const inputs: RuleConcreteDraftTarget[] = []
+    for (const rule of rules) {
+      const target = concreteDraftTargetForRule(rule)
+      if (!target) continue
+      const key = concreteDraftTargetKey(target)
+      if (seen.has(key)) continue
+      seen.add(key)
+      inputs.push(target)
+    }
+    return inputs
+  }, [rules])
+  const concreteDraftsQuery = useQuery({
+    ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
+    enabled: concreteDraftInputs.length > 0,
+  })
+  const concreteDraftByTarget = useMemo(() => {
+    const map = new Map<string, RuleConcreteDraftCacheEntry>()
+    for (const entry of concreteDraftsQuery.data ?? []) {
+      map.set(concreteDraftTargetKey(entry), entry)
+    }
+    return map
+  }, [concreteDraftsQuery.data])
+  const selectedConcreteDraft = useMemo(() => {
+    if (!selectedRule) return null
+    const target = concreteDraftTargetForRule(selectedRule)
+    return target ? (concreteDraftByTarget.get(concreteDraftTargetKey(target)) ?? null) : null
+  }, [concreteDraftByTarget, selectedRule])
 
   const handleRuleClick = useCallback(
     (rule: ObligationRule) => {
@@ -919,7 +978,11 @@ export function RulesLibraryRoute() {
             surface), not a sheet, so it composes with the grouped
             list above. Closing clears the URL param. */}
         {selectedRule ? (
-          <RuleDetailPanel rule={selectedRule} onClose={() => void setRuleId(null)} />
+          <RuleDetailPanel
+            rule={selectedRule}
+            concreteDraft={selectedConcreteDraft}
+            onClose={() => void setRuleId(null)}
+          />
         ) : null}
       </div>
       {/* Floating bulk-review bar — appears at the bottom of the
@@ -942,6 +1005,7 @@ export function RulesLibraryRoute() {
         <BatchReviewModal
           rules={selectedReviewRules}
           currentIndex={batchReviewIndex}
+          concreteDraftByTarget={concreteDraftByTarget}
           onPrev={goBackBatchReview}
           onSkip={advanceBatchReview}
           onActionComplete={advanceBatchReview}
@@ -1953,7 +2017,15 @@ function SearchResultsTable({
 // they close, they're back where they were.
 // ---------------------------------------------------------------------------
 
-function RuleDetailPanel({ rule, onClose }: { rule: ObligationRule; onClose: () => void }) {
+function RuleDetailPanel({
+  rule,
+  concreteDraft,
+  onClose,
+}: {
+  rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
+  onClose: () => void
+}) {
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       {/* Same shape as `BatchReviewModal`: max-width capped at 640px,
@@ -1968,7 +2040,7 @@ function RuleDetailPanel({ rule, onClose }: { rule: ObligationRule; onClose: () 
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <h3 className="mb-3 text-base font-semibold text-text-primary">{rule.title}</h3>
-          <RuleDetailInline rule={rule} />
+          <RuleDetailInline rule={rule} concreteDraft={concreteDraft} />
         </div>
       </DialogContent>
     </Dialog>
@@ -2045,6 +2117,7 @@ function BulkReviewBar({
 function BatchReviewModal({
   rules,
   currentIndex,
+  concreteDraftByTarget,
   onPrev,
   onSkip,
   onActionComplete,
@@ -2052,6 +2125,7 @@ function BatchReviewModal({
 }: {
   rules: ObligationRule[]
   currentIndex: number
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
   onPrev: () => void
   onSkip: () => void
   onActionComplete: () => void
@@ -2063,6 +2137,10 @@ function BatchReviewModal({
   const total = rules.length
   const isFirst = currentIndex === 0
   const isLast = currentIndex === total - 1
+  const concreteDraftTarget = current ? concreteDraftTargetForRule(current) : null
+  const concreteDraft = concreteDraftTarget
+    ? (concreteDraftByTarget.get(concreteDraftTargetKey(concreteDraftTarget)) ?? null)
+    : null
   // Keyboard shortcuts. With 459 cards in a queue, a mouse-only flow
   // is brutal — Tinder/Linear/Superhuman idiom is left/right for nav,
   // letter keys for primary actions. Esc is handled by the Dialog
@@ -2152,7 +2230,11 @@ function BatchReviewModal({
               buttons via its CandidateReviewSection. Wire
               `onActionComplete` so accepting or rejecting advances
               the queue to the next card. */}
-          <RuleDetailCompact rule={current} onActionComplete={onActionComplete} />
+          <RuleDetailCompact
+            rule={current}
+            concreteDraft={concreteDraft}
+            onActionComplete={onActionComplete}
+          />
         </div>
         {/* Footer: nav buttons + keyboard hints. The redundant
             "1 of N" was removed (already in the header) and replaced

@@ -1288,7 +1288,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     jurisdiction: 'GA',
     id: 'ga.fiduciary_income_tax_booklet',
     title: 'Georgia DOR Fiduciary Income Tax Instructions',
-    url: 'https://dor.georgia.gov/document/document/2024-501-and-501x-fiduciary-income-tax-instruction-booklet/download',
+    url: 'https://dor.georgia.gov/document/document/2025-501-and-501x-fiduciary-income-tax-instruction-booklet/download',
     sourceType: 'instructions',
     acquisitionMethod: 'pdf_watch',
     domains: ['fiduciary_income_return'],
@@ -2488,7 +2488,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     jurisdiction: 'DC',
     id: 'dc.ui_wage_report',
     title: 'DC DOES Unemployment Insurance Tax',
-    url: 'https://does.dc.gov/page/unemployment-insurance-tax',
+    url: 'https://does.dc.gov/service/reporting-questions',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],
@@ -4437,6 +4437,91 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
 const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   Record<`${RuleJurisdiction}:${StateCandidateRuleSlug}`, string>
 > = {
+  'AZ:individual_income_return': [
+    'The 2025 Arizona individual income tax return for calendar-year filers is due April 15, 2026.',
+    'A valid extension moves the 2025 Arizona individual income tax return filing due date to October 15, 2026.',
+  ].join('\n'),
+  'AZ:individual_estimated_tax': [
+    'Arizona Form 140ES estimated tax payments for the 2025 calendar year are due April 15, June 17, and September 16, 2025, and January 15, 2026.',
+    'Arizona estimated income tax payments are required when the taxpayer meets the listed Arizona gross income thresholds and must total either 90% of current-year tax or 100% of prior-year tax when applicable.',
+  ].join('\n'),
+  'AZ:fiduciary_income_return': [
+    'The 2025 Arizona fiduciary income tax return, Form 141AZ, is due April 15, 2026 for calendar-year filers.',
+    'A valid Arizona fiduciary extension allows an additional 5 1/2 months to September 30, 2026; a qualified funeral trust using federal Form 7004 follows the 6-month October 15, 2026 calendar-year extension date.',
+  ].join('\n'),
+  'AZ:business_income_return': [
+    'Arizona corporate income tax returns are due on the 15th day of the fourth month following the close of the taxable year.',
+    'If the Arizona corporate return due date falls on a Saturday, Sunday, or legal holiday, the return is timely filed if postmarked by the next business day.',
+    'The 2025 Arizona corporate return filing extension provides a 7-month extension for Forms 120 and 120A; calendar-year corporate Arizona returns extended for 2025 are due November 15, 2026.',
+  ].join('\n'),
+  'AZ:business_estimated_tax': [
+    'Arizona estimated tax payments for C corporations, exempt organizations with UBTI, and S corporations subject to federal tax are due on the 15th day of the 4th, 6th, 9th, and 12th months of the taxable year.',
+    'Corporations and exempt organizations with UBTI must make Arizona estimated payments when anticipated Arizona tax liability is at least $1,000 for the taxable year.',
+  ].join('\n'),
+  'AZ:pass_through_entity_return': [
+    'Arizona Form 165 partnership returns and Arizona Form 120S S corporation returns are due on the 15th day of the 3rd month following the close of the taxable year.',
+    'A valid federal or Arizona extension moves the Arizona partnership or S corporation return due date 6 months from the original due date.',
+    'Arizona pass-through entity estimated tax payments for electing partnerships and S corporations are due on the 15th day of the 4th, 6th, and 9th months of the taxable year and the 15th day of the 1st month after year end.',
+  ].join('\n'),
+  'AZ:sales_use_tax': [
+    'Arizona transaction privilege tax returns must be filed even when no sales or tax are due for the filing period.',
+    'For monthly Arizona TPT electronic returns and payments in AZTaxes, December 2025 activity is due January 30, 2026; January 2026 activity is due February 27, 2026; February 2026 activity is due March 31, 2026; March 2026 activity is due April 30, 2026.',
+    'For monthly Arizona TPT electronic returns and payments in AZTaxes, April 2026 activity is due May 29, 2026; May 2026 activity is due June 30, 2026; June 2026 activity is due July 31, 2026; July 2026 activity is due August 31, 2026.',
+    'For monthly Arizona TPT electronic returns and payments in AZTaxes, August 2026 activity is due September 30, 2026; September 2026 activity is due October 30, 2026; October 2026 activity is due November 30, 2026; November 2026 activity is due December 31, 2026.',
+  ].join('\n'),
+  'AZ:withholding': [
+    'Arizona Form A1-QRT is due April 30 for the 1st quarter, July 31 for the 2nd quarter, October 31 for the 3rd quarter, and January 31 for the 4th quarter.',
+    'Employers that made every Arizona withholding payment on time for the prior quarter receive 10 additional days to file Form A1-QRT: May 10, August 10, November 10, and February 10.',
+    'Arizona Form A1-R and Arizona Form A1-APR are due January 31 of the year following the calendar year for which Arizona income tax was withheld.',
+  ].join('\n'),
+  'AZ:ui_wage_report': [
+    'Arizona unemployment tax and wage reports are due quarterly; if a due date falls on a weekend or state holiday, the due date moves to the next business day.',
+    'Reports for wages paid January through March are due April 30, April through June are due July 31, July through September are due October 31, and October through December are due January 31.',
+    'Arizona employers must file a quarterly unemployment tax and wage report for each quarter whether or not wages were paid.',
+  ].join('\n'),
+  'DC:individual_income_return': [
+    'For DC 2026 Tax Year 2025 individual income tax forms, D-40 Individual Income Tax Return is due on or before April 15, 2026.',
+    'The D-40 Booklet states that if the due date for filing a return falls on a Saturday, Sunday, or legal holiday, the return is due the next business day.',
+    'The DC FR-127 Extension of Time to File Voucher is filed by April 15, 2026; if Military Combat Zone applies, file by October 15, 2026.',
+  ].join('\n'),
+  'DC:individual_estimated_tax': [
+    'For DC 2026 Tax Year 2025 individual income tax forms, D-40ES Estimated Payment for Individual Income Tax has Voucher #1 due April 15, 2026.',
+    'D-40ES Voucher #2 is due June 15, 2026; Voucher #3 is due September 15, 2026; Voucher #4 is due January 15, 2027.',
+  ].join('\n'),
+  'DC:fiduciary_income_return': [
+    'For DC 2026 Tax Year 2025 fiduciary tax forms, D-41 Fiduciary Income Tax Return is due on or before April 15, 2026.',
+    'D-41P Payment Voucher and FR-127F Extension of Time to File Fiduciary Return are due on or before April 15, 2026.',
+    'D-41ES Estimated Payment for Fiduciary Tax is due on or before April 15, 2026.',
+  ].join('\n'),
+  'DC:business_income_return': [
+    'For DC 2026 Tax Year 2025 corporate business franchise tax forms, D-20 Corporation Franchise Tax Return is due on or before April 15, 2026 for calendar-year filers and on or before the 15th day of the fourth month following the close of taxable year for fiscal-year filers.',
+    'For DC 2026 Tax Year 2025 unincorporated business franchise tax forms, D-30 Unincorporated Business Franchise Tax Return is due on or before April 15, 2026 for calendar-year filers and on or before the 15th day of the fourth month following the close of taxable year for fiscal-year filers.',
+  ].join('\n'),
+  'DC:business_estimated_tax': [
+    'For DC 2026 Tax Year 2025 corporate franchise estimated tax, D-20ES calendar-year vouchers are due April 15, June 15, September 15, and December 15.',
+    'For DC 2026 Tax Year 2025 unincorporated business estimated tax, D-30ES calendar-year vouchers are due April 15, June 15, September 15, and December 15.',
+    'For fiscal-year filers, the DC D-20ES and D-30ES vouchers are due on the 15th day of the 4th, 6th, 9th, and 12th months.',
+  ].join('\n'),
+  'DC:pass_through_entity_return': [
+    'For DC 2026 Tax Year 2025 partnership tax forms, D-65 Partnership Return of Income is due on or before April 15, 2026 for calendar-year filers.',
+    'For fiscal-year filers, D-65 is due on or before the 15th day of the fourth month following the close of the taxable year.',
+    'FR-165 Extension of Time to File Partnership Return is due on or before April 15, 2026 for calendar-year filers and on or before the 15th day of the fourth month following the close of the taxable year for fiscal-year filers.',
+  ].join('\n'),
+  'DC:sales_use_tax': [
+    'DC Form FR-800M, the monthly sales and use tax return, is due on or before the 20th day of the month following the month being reported.',
+    'DC Form FR-800Q, the quarterly sales and use tax return, is due on or before the 20th day of the month following the quarter being reported.',
+    'DC Form FR-800A, the annual sales and use tax return, is due on or before October 20.',
+  ].join('\n'),
+  'DC:withholding': [
+    'DC Form FR-900M, the monthly employer withholding return, is due on or before the 20th day of the month following the month being reported.',
+    'DC Form FR-900Q, the quarterly employer withholding return, is due on or before the 20th day of the month following the quarter being reported.',
+    'DC Form FR-900A, the annual employer withholding return, is due on or before January 20 of the subsequent year.',
+  ].join('\n'),
+  'DC:ui_wage_report': [
+    "DC employers are required to file an Employer's Quarterly Contribution and Wage Report, Form UC-30, each quarter.",
+    'DC unemployment quarterly reports are due on April 30, July 31, October 31, and January 31.',
+    'As long as the employer is still in business, a Contribution and Wage Report must be filed when due; if no wages are paid during a quarter, the employer must file a timely zero wage report.',
+  ].join('\n'),
   'AL:franchise_or_entity_tax': [
     "Business Privilege Tax C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
     "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
