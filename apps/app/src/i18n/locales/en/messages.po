@@ -9959,10 +9959,6 @@ msgstr "Window"
 msgid "Withholding report count"
 msgstr "Withholding report count"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Work"
-msgstr "Work"
-
 #: src/features/members/members-page.tsx
 msgid "Work email"
 msgstr "Work email"

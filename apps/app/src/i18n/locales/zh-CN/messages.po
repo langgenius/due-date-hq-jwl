@@ -9959,10 +9959,6 @@ msgstr "窗口"
 msgid "Withholding report count"
 msgstr "预扣税报告数量"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Work"
-msgstr "工作"
-
 #: src/features/members/members-page.tsx
 msgid "Work email"
 msgstr "工作邮箱"

@@ -352,11 +352,15 @@ function renderClientHeaderSubLine({
       </span>,
     )
   } else if (workPlan.openCount > 0) {
+    // Positive-state chip. Stops the app from relying on "absence of
+    // red" as the implicit positive — every other surface that ends
+    // a daily-driver line cleanly should use this same Badge variant.
+    // See critique D-3 cont. "positive status visual vocabulary".
     parts.push(
-      <span key="ontrack" className="inline-flex items-center gap-1 text-text-success">
-        <CheckCircle2Icon className="size-3.5" aria-hidden />
-        All on track
-      </span>,
+      <Badge key="ontrack" variant="success" className="text-xs">
+        <CheckCircle2Icon className="size-3" aria-hidden />
+        <span>All on track</span>
+      </Badge>,
     )
   }
   return (
@@ -1149,20 +1153,15 @@ export function ClientDetailWorkspace({
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
-  // V14 sections-not-tabs (2026-05-22). Work/Activity were Tabs; now
-  // they're stacked collapsible sections with URL-bound open/closed
-  // state. Work opens by default (daily-driver content); Activity is
-  // collapsed so the heavier AI summary + audit log queries don't
-  // fire on every navigation — opens on demand.
-  const [workOpenParam, setWorkOpenParam] = useQueryState(
-    'work',
-    parseAsStringLiteral(['open', 'closed'] as const).withDefault('open'),
-  )
+  // Activity section stays a URL-bound collapsible — it's lazy-loaded
+  // and the heavier AI summary + audit log queries should only fire
+  // when the user actually opens it. Work used to live behind the same
+  // pattern but D-5 (2026-05-22) flattened it: daily-driver content
+  // is the page, not a collapsible inside the page.
   const [activityOpenParam, setActivityOpenParam] = useQueryState(
     'activity',
     parseAsStringLiteral(['open', 'closed'] as const).withDefault('closed'),
   )
-  const isWorkOpen = workOpenParam === 'open'
   const isActivityOpen = activityOpenParam === 'open'
   // Obligation drawer is rendered as an in-route page panel (NOT a
   // modal Sheet) when launched from the filing plan below. State
@@ -1392,102 +1391,105 @@ export function ClientDetailWorkspace({
                 followed by two demoted groups:
                   CONFIGURE — editable surfaces visited during onboarding + quarterly
                   DISCOVER — reference / future-business surfaces. */}
-            <DetailSection
-              title={t`Work`}
-              open={isWorkOpen}
-              onOpenChange={(open) => void setWorkOpenParam(open ? 'open' : 'closed')}
-            >
-              <div className="grid gap-4">
-                <ClientWorkPlanPanel
-                  obligations={obligations}
-                  isLoading={obligationsQuery.isLoading}
-                  summary={workPlan}
+            {/* D-5: Work body renders flat — no outer DetailSection /
+                card frame. The primary read (work plan + compliance
+                posture) should be the page; wrapping it in a
+                collapsible header that nobody collapses just added
+                chrome. Daily-driver surfaces deserve weight, not
+                progressive disclosure. The earlier `?work=open` URL
+                param is retired with this commit (state no longer
+                exists). The CONFIGURE + DISCOVER groups keep their
+                inner DetailSection collapsibles — those are the
+                editing surfaces a CPA visits quarterly, not daily. */}
+            <ClientWorkPlanPanel
+              obligations={obligations}
+              isLoading={obligationsQuery.isLoading}
+              summary={workPlan}
+            />
+
+            {/* Compliance posture — surfaces the EIN value, tax-year
+                type + fiscal year end, owner counts, engagement date,
+                and the five filing-activity booleans. The booleans
+                drive obligation generation server-side but were
+                previously invisible to the CPA. Read-only for now;
+                edit flow deferred until a generic clients.update
+                mutation lands. See docs/Design/client-page-information-architecture.md. */}
+            <ClientCompliancePosturePanel client={client} />
+
+            <div className="flex flex-col gap-3 pt-2">
+              <SectionLabel>
+                <Trans>CONFIGURE</Trans>
+              </SectionLabel>
+
+              <DetailSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
+                <ClientImportSourcePanel client={client} />
+              </DetailSection>
+
+              <DetailSection
+                id="client-filing-jurisdictions"
+                title={t`Filing jurisdictions`}
+                summary={formatJurisdictionSummary(client)}
+                open={filingJurisdictionsOpen}
+                onOpenChange={setFilingJurisdictionsOpen}
+                attention={missingFilingState}
+              >
+                <ClientJurisdictionPanel
+                  key={`${client.id}:jurisdiction`}
+                  client={client}
+                  isSaving={replaceFilingProfilesMutation.isPending}
+                  onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
                 />
+              </DetailSection>
 
-                {/* Compliance posture — surfaces the EIN value, tax-year
-              type + fiscal year end, owner counts, engagement date,
-              and the five filing-activity booleans. The booleans
-              drive obligation generation server-side but were
-              previously invisible to the CPA. Read-only for now;
-              edit flow deferred until a generic clients.update
-              mutation lands. See docs/Design/client-page-information-architecture.md. */}
-                <ClientCompliancePosturePanel client={client} />
+              <DetailSection
+                title={t`Risk profile`}
+                summary={t`Penalty exposure and tax-attribute flags`}
+              >
+                <ClientRiskInputsPanel
+                  key={`${client.id}:risk`}
+                  client={client}
+                  isSaving={updateRiskProfileMutation.isPending}
+                  onSave={(input) => updateRiskProfileMutation.mutate(input)}
+                />
+              </DetailSection>
 
-                <div className="flex flex-col gap-3 pt-2">
-                  <SectionLabel>
-                    <Trans>CONFIGURE</Trans>
-                  </SectionLabel>
+              <DetailSection
+                title={t`Onboarding state`}
+                summary={
+                  readiness && readiness.missingRequiredFacts.length > 0
+                    ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                    : t`All required facts present`
+                }
+              >
+                <ClientFactChecklist client={client} readiness={readiness} />
+              </DetailSection>
+            </div>
 
-                  <DetailSection
-                    title={t`Import source`}
-                    summary={formatImportSourceSummary(client)}
-                  >
-                    <ClientImportSourcePanel client={client} />
-                  </DetailSection>
+            <div className="flex flex-col gap-3 pt-2">
+              <SectionLabel>
+                <Trans>DISCOVER</Trans>
+              </SectionLabel>
 
-                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+              {/* Suggested forms — previously rendered twice (once
+                  bare in the CONFIGURE group, once inside a DISCOVER
+                  DetailSection). Bug fixed in this commit: it now
+                  lives only here, in DISCOVER, since its semantics
+                  are "what *could* this client also file?" — a
+                  reference surface, not a daily edit. */}
+              <DetailSection
+                title={t`Suggested forms`}
+                summary={t`Forms the rule library can add without a new obligation`}
+              >
+                <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+              </DetailSection>
 
-                  <DetailSection
-                    id="client-filing-jurisdictions"
-                    title={t`Filing jurisdictions`}
-                    summary={formatJurisdictionSummary(client)}
-                    open={filingJurisdictionsOpen}
-                    onOpenChange={setFilingJurisdictionsOpen}
-                    attention={missingFilingState}
-                  >
-                    <ClientJurisdictionPanel
-                      key={`${client.id}:jurisdiction`}
-                      client={client}
-                      isSaving={replaceFilingProfilesMutation.isPending}
-                      onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-                    />
-                  </DetailSection>
-
-                  <DetailSection
-                    title={t`Risk profile`}
-                    summary={t`Penalty exposure and tax-attribute flags`}
-                  >
-                    <ClientRiskInputsPanel
-                      key={`${client.id}:risk`}
-                      client={client}
-                      isSaving={updateRiskProfileMutation.isPending}
-                      onSave={(input) => updateRiskProfileMutation.mutate(input)}
-                    />
-                  </DetailSection>
-
-                  <DetailSection
-                    title={t`Onboarding state`}
-                    summary={
-                      readiness && readiness.missingRequiredFacts.length > 0
-                        ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-                        : t`All required facts present`
-                    }
-                  >
-                    <ClientFactChecklist client={client} readiness={readiness} />
-                  </DetailSection>
-                </div>
-
-                <div className="flex flex-col gap-3 pt-2">
-                  <SectionLabel>
-                    <Trans>DISCOVER</Trans>
-                  </SectionLabel>
-
-                  <DetailSection
-                    title={t`Suggested forms`}
-                    summary={t`Forms the rule library can add without a new obligation`}
-                  >
-                    <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-                  </DetailSection>
-
-                  <DetailSection
-                    title={t`Future business cues`}
-                    summary={t`Advisory, scope, and retention opportunities`}
-                  >
-                    <ClientOpportunitiesCard clientId={client.id} />
-                  </DetailSection>
-                </div>
-              </div>
-            </DetailSection>
+              <DetailSection
+                title={t`Future business cues`}
+                summary={t`Advisory, scope, and retention opportunities`}
+              >
+                <ClientOpportunitiesCard clientId={client.id} />
+              </DetailSection>
+            </div>
 
             {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
               as a peer top-level tab implied parity it doesn't have. The
