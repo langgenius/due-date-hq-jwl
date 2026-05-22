@@ -117,7 +117,7 @@ export function SettingsRoute() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-8 px-6 py-6">
+        <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-8 px-6 py-6">
           <header className="flex flex-col gap-2">
             <h1 className="text-2xl leading-7 font-semibold text-text-primary">
               <Trans>Settings</Trans>
