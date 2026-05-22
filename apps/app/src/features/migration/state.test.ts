@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { INITIAL_STATE, hasDiscardableWizardWork, wizardReducer } from './state'
+import {
+  INITIAL_STATE,
+  PRESET_TO_SOURCE,
+  TAX_SOFTWARE_PRESET_IDS,
+  hasDiscardableWizardWork,
+  wizardReducer,
+} from './state'
 
 describe('migration wizard state', () => {
   it('does not require discard confirmation before the user starts work', () => {
@@ -92,5 +98,18 @@ describe('migration wizard state', () => {
     expect(pasted.intake.rawFileBase64).toBeNull()
     expect(pasted.intake.contentType).toBeNull()
     expect(pasted.intake.sizeBytes).toBe(0)
+  })
+
+  it('maps tax software presets to migration sources', () => {
+    expect(TAX_SOFTWARE_PRESET_IDS).toEqual([
+      'cch_axcess',
+      'cch_prosystem_fx',
+      'lacerte',
+      'proseries',
+      'ultratax_cs',
+      'proconnect_tax',
+    ])
+    expect(PRESET_TO_SOURCE.cch_axcess).toBe('preset_cch_axcess')
+    expect(PRESET_TO_SOURCE.proconnect_tax).toBe('preset_proconnect_tax')
   })
 })

@@ -23,6 +23,7 @@ export interface AiRoutingInput {
 export function taskKindForPrompt(prompt: PromptName): AiTaskKind {
   if (
     prompt === 'mapper@v1' ||
+    prompt === 'mapper@v2' ||
     prompt === 'normalizer-entity@v1' ||
     prompt === 'normalizer-tax-types@v1'
   ) {

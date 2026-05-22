@@ -46,6 +46,16 @@ Retention: Do not retain any data seen for training.
 PII handling: field names and 5-row sample only — no placeholders used.
 `
 
+const MAPPER_V2 = MAPPER_V1.replace('prompt_version: mapper@v1', 'prompt_version: mapper@v2')
+  .replace(
+    'Never invent target fields not listed above.',
+    'Never invent target fields not listed in the output schema.',
+  )
+  .replace(
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.',
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.\n- Do not map SSN, ITIN, or masked taxpayer ID values.',
+  )
+
 const NORMALIZER_ENTITY_V1 = `prompt_version: normalizer-entity@v1
 model_tier: fast-json
 temperature: 0
@@ -412,6 +422,7 @@ export interface PromptDefinition {
 
 const prompts = {
   'mapper@v1': MAPPER_V1,
+  'mapper@v2': MAPPER_V2,
   'normalizer-entity@v1': NORMALIZER_ENTITY_V1,
   'normalizer-tax-types@v1': NORMALIZER_TAX_TYPES_V1,
   'brief@v1': BRIEF_V1,

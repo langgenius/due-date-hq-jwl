@@ -25,7 +25,18 @@ export type StepIndex = 1 | 2 | 3 | 4
 
 export type IntakeMode = 'paste' | 'upload' | 'integration' | 'previous_sync'
 
-export type PresetId = 'taxdome' | 'drake' | 'karbon' | 'quickbooks' | 'file_in_time'
+export type PresetId =
+  | 'taxdome'
+  | 'drake'
+  | 'karbon'
+  | 'quickbooks'
+  | 'file_in_time'
+  | 'cch_axcess'
+  | 'cch_prosystem_fx'
+  | 'lacerte'
+  | 'proseries'
+  | 'ultratax_cs'
+  | 'proconnect_tax'
 export type IntegrationProvider = MigrationIntegrationProvider
 
 export interface IntakeState {
@@ -400,12 +411,27 @@ export const PRESET_IDS: ReadonlyArray<PresetId> = [
   'file_in_time',
 ]
 
+export const TAX_SOFTWARE_PRESET_IDS: ReadonlyArray<PresetId> = [
+  'cch_axcess',
+  'cch_prosystem_fx',
+  'lacerte',
+  'proseries',
+  'ultratax_cs',
+  'proconnect_tax',
+]
+
 export const PRESET_TO_SOURCE: Record<PresetId, MigrationSource> = {
   taxdome: 'preset_taxdome',
   drake: 'preset_drake',
   karbon: 'preset_karbon',
   quickbooks: 'preset_quickbooks',
   file_in_time: 'preset_file_in_time',
+  cch_axcess: 'preset_cch_axcess',
+  cch_prosystem_fx: 'preset_cch_prosystem_fx',
+  lacerte: 'preset_lacerte',
+  proseries: 'preset_proseries',
+  ultratax_cs: 'preset_ultratax_cs',
+  proconnect_tax: 'preset_proconnect_tax',
 }
 
 export const INTEGRATION_PROVIDERS: ReadonlyArray<IntegrationProvider> = [

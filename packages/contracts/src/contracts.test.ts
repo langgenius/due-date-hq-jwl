@@ -71,8 +71,11 @@ import {
 } from './workload'
 import {
   MatrixSelectionSchema,
+  MappingTargetSchema,
+  MigrationDetectedSourceProductSchema,
   MigrationErrorStageSchema,
   MigrationIntegrationProviderSchema,
+  MigrationSourceFileRoleSchema,
   MigrationSourceSchema,
   MigrationStageExternalRowsInputSchema,
   migrationContract,
@@ -735,6 +738,12 @@ describe('@duedatehq/contracts', () => {
         taxYearType: 'calendar',
         fiscalYearEndMonth: null,
         fiscalYearEndDay: null,
+        externalClientId: null,
+        addressLine1: null,
+        city: null,
+        postalCode: null,
+        primaryPhone: null,
+        sourceStatus: null,
         email: null,
         notes: null,
         assigneeId: null,
@@ -971,7 +980,39 @@ describe('@duedatehq/contracts', () => {
       ]),
     )
     expect(MigrationSourceSchema.options).toEqual(
-      expect.arrayContaining(['integration_taxdome_zapier', 'integration_karbon_api']),
+      expect.arrayContaining([
+        'integration_taxdome_zapier',
+        'integration_karbon_api',
+        'preset_cch_axcess',
+        'preset_cch_prosystem_fx',
+        'preset_lacerte',
+        'preset_proseries',
+        'preset_ultratax_cs',
+        'preset_proconnect_tax',
+      ]),
+    )
+    expect(MigrationDetectedSourceProductSchema.options).toEqual(
+      expect.arrayContaining([
+        'cch_axcess',
+        'cch_prosystem_fx',
+        'lacerte',
+        'proseries',
+        'ultratax_cs',
+        'proconnect_tax',
+      ]),
+    )
+    expect(MigrationSourceFileRoleSchema.options).toEqual(
+      expect.arrayContaining(['return_data', 'client_listing_report', 'questionnaire_responses']),
+    )
+    expect(MappingTargetSchema.options).toEqual(
+      expect.arrayContaining([
+        'client.external_client_id',
+        'client.address_line_1',
+        'client.city',
+        'client.postal_code',
+        'client.primary_phone',
+        'client.source_status',
+      ]),
     )
     expect(MigrationIntegrationProviderSchema.options).toEqual([
       'taxdome',

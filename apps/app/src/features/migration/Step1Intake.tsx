@@ -31,6 +31,7 @@ import { formatDateTimeWithTimezone } from '@/lib/utils'
 import {
   INTEGRATION_PROVIDERS,
   PRESET_IDS,
+  TAX_SOFTWARE_PRESET_IDS,
   type IntakeMode,
   type IntakeState,
   type PresetId,
@@ -50,6 +51,12 @@ const PRESET_LABELS: Record<PresetId, string> = {
   karbon: 'Karbon',
   quickbooks: 'QuickBooks',
   file_in_time: 'File In Time',
+  cch_axcess: 'CCH Axcess',
+  cch_prosystem_fx: 'CCH ProSystem fx',
+  lacerte: 'Lacerte',
+  proseries: 'ProSeries',
+  ultratax_cs: 'UltraTax CS',
+  proconnect_tax: 'ProConnect Tax',
 }
 
 const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
@@ -59,6 +66,12 @@ const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> 
   quickbooks_desktop: 'QuickBooks Desktop',
   taxdome: 'TaxDome',
   karbon: 'Karbon',
+  cch_axcess: 'CCH Axcess',
+  cch_prosystem_fx: 'CCH ProSystem fx',
+  lacerte: 'Lacerte',
+  proseries: 'ProSeries',
+  ultratax_cs: 'UltraTax CS',
+  proconnect_tax: 'ProConnect Tax',
 }
 
 const PROVIDER_DEFAULT_ENTITY: Record<MigrationIntegrationProvider, MigrationExternalEntityType> = {
@@ -628,7 +641,7 @@ export function Step1Intake({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
+                accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
                 className="hidden"
                 onClick={(event) => event.stopPropagation()}
                 onChange={handleFilePicked}
@@ -642,6 +655,21 @@ export function Step1Intake({
             </span>
             <div className="flex flex-wrap gap-2">
               {PRESET_IDS.map((id) => (
+                <PresetChip
+                  key={id}
+                  id={id}
+                  label={PRESET_LABELS[id]}
+                  selected={intake.preset === id}
+                  compact={compact}
+                  onToggle={() => onPreset(intake.preset === id ? null : id)}
+                />
+              ))}
+            </div>
+            <span className="pt-1 font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+              <Trans>Tax software exports</Trans>
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {TAX_SOFTWARE_PRESET_IDS.map((id) => (
                 <PresetChip
                   key={id}
                   id={id}

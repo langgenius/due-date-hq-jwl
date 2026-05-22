@@ -887,6 +887,11 @@ msgstr "Add practice"
 msgid "Added evidence to this deadline."
 msgstr "Added evidence to this deadline."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Address line 1"
+msgstr "Address line 1"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -1723,6 +1728,11 @@ msgstr "Choose one option in each row. Export writes an audit event."
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "Choose Solo, Pro, or Team to start the hosted checkout flow."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "City"
+msgstr "City"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
@@ -3328,6 +3338,11 @@ msgid "Extension source"
 msgstr "Extension source"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "External client ID"
+msgstr "External client ID"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Fact readiness"
 msgstr "Fact readiness"
 
@@ -3779,6 +3794,10 @@ msgstr "Import normalization confirmed"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Import reverted"
 msgstr "Import reverted"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Import source"
+msgstr "Import source"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Import source type"
@@ -6219,6 +6238,11 @@ msgstr "Primary counties"
 msgid "Primary navigation"
 msgstr "Primary navigation"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary phone"
+msgstr "Primary phone"
+
 #: src/routes/billing.tsx
 msgid "Priority onboarding and audit exports"
 msgstr "Priority onboarding and audit exports"
@@ -7893,6 +7917,11 @@ msgstr "Source revoked"
 msgid "Source signal trail"
 msgstr "Source signal trail"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Source status"
+msgstr "Source status"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Source-backed evidence"
@@ -8167,6 +8196,10 @@ msgstr "Target filing year must be the next year after source filing year."
 #: src/routes/obligations.tsx
 msgid "Tax period"
 msgstr "Tax period"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Tax software exports"
+msgstr "Tax software exports"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -9202,3 +9235,8 @@ msgstr "Your practice workspace is ready. Import a spreadsheet now to turn clien
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."
 msgstr "Your subscription is confirmed and the plan is active."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "ZIP / postal code"
+msgstr "ZIP / postal code"

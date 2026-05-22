@@ -55,6 +55,12 @@ interface MigrationBatchRow {
     | 'preset_karbon'
     | 'preset_quickbooks'
     | 'preset_file_in_time'
+    | 'preset_cch_axcess'
+    | 'preset_cch_prosystem_fx'
+    | 'preset_lacerte'
+    | 'preset_proseries'
+    | 'preset_ultratax_cs'
+    | 'preset_proconnect_tax'
     | 'integration_taxdome_zapier'
     | 'integration_karbon_api'
     | 'integration_soraban_api'
@@ -116,6 +122,12 @@ function buildScopedRepo(firmId: string) {
     name?: string
     primaryContactName: string | null | undefined
     primaryContactEmail: string | null | undefined
+    externalClientId: string | null | undefined
+    addressLine1: string | null | undefined
+    city: string | null | undefined
+    postalCode: string | null | undefined
+    primaryPhone: string | null | undefined
+    sourceStatus: string | null | undefined
     taxYearType: 'calendar' | 'fiscal' | undefined
     fiscalYearEndMonth: number | null | undefined
     fiscalYearEndDay: number | null | undefined
@@ -438,6 +450,12 @@ function buildScopedRepo(firmId: string) {
           name: item.name,
           primaryContactName: item.primaryContactName,
           primaryContactEmail: item.primaryContactEmail,
+          externalClientId: item.externalClientId,
+          addressLine1: item.addressLine1,
+          city: item.city,
+          postalCode: item.postalCode,
+          primaryPhone: item.primaryPhone,
+          sourceStatus: item.sourceStatus,
           taxYearType: item.taxYearType,
           fiscalYearEndMonth: item.fiscalYearEndMonth,
           fiscalYearEndDay: item.fiscalYearEndDay,
@@ -931,7 +949,7 @@ function buildCountingMigrationAi(): {
     calls.push(name)
     routings.push(routing)
     const result =
-      name === 'mapper@v1'
+      name === 'mapper@v2'
         ? {
             mappings: [
               {
@@ -1041,9 +1059,26 @@ type SourcePreset =
   | 'preset_karbon'
   | 'preset_quickbooks'
   | 'preset_file_in_time'
+  | 'preset_cch_axcess'
+  | 'preset_cch_prosystem_fx'
+  | 'preset_lacerte'
+  | 'preset_proseries'
+  | 'preset_ultratax_cs'
+  | 'preset_proconnect_tax'
 
 interface FixtureGoldenCase {
-  preset: 'taxdome' | 'drake' | 'karbon' | 'quickbooks' | 'file_in_time'
+  preset:
+    | 'taxdome'
+    | 'drake'
+    | 'karbon'
+    | 'quickbooks'
+    | 'file_in_time'
+    | 'cch_axcess'
+    | 'cch_prosystem_fx'
+    | 'lacerte'
+    | 'proseries'
+    | 'ultratax_cs'
+    | 'proconnect_tax'
   source: SourcePreset
   file: string
   clients: number
@@ -1164,6 +1199,145 @@ const PRESET_GOLDENS: FixtureGoldenCase[] = [
       State: 'client.state',
       County: 'client.county',
       Notes: 'client.notes',
+    },
+  },
+  {
+    preset: 'cch_axcess',
+    source: 'preset_cch_axcess',
+    file: 'cch-axcess-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Sub-ID': 'client.external_client_id',
+      'Client GUID': 'IGNORE',
+      'Name Line 1': 'client.name',
+      'Name Line 2': 'IGNORE',
+      'Sort Name': 'client.name',
+      'Federal ID': 'client.ein',
+      'Client Type': 'client.tax_types',
+      FYE: 'client.fiscal_year_end',
+      'Address 1': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Office: 'client.notes',
+      'Responsible Staff': 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'cch_prosystem_fx',
+    source: 'preset_cch_prosystem_fx',
+    file: 'cch-prosystem-fx-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Sub-ID': 'client.external_client_id',
+      'Name Line 1': 'client.name',
+      'Name Line 2': 'IGNORE',
+      'Sort Name': 'client.name',
+      'Federal ID': 'client.ein',
+      'Client Type': 'client.tax_types',
+      FYE: 'client.fiscal_year_end',
+      'Address 1': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Partner: 'client.assignee_name',
+      Manager: 'client.assignee_name',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'lacerte',
+    source: 'preset_lacerte',
+    file: 'lacerte-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client Number': 'client.external_client_id',
+      'Taxpayer First Name': 'client.primary_contact_name',
+      'Taxpayer Last Name': 'client.primary_contact_name',
+      'Client Name': 'client.name',
+      'Return Type': 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      'Street Address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      'Taxpayer Phone': 'client.primary_phone',
+      'Taxpayer E-mail Address': 'client.email',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'proseries',
+    source: 'preset_proseries',
+    file: 'proseries-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'First Name': 'client.primary_contact_name',
+      'Last Name': 'client.primary_contact_name',
+      'Client Name': 'client.name',
+      'Client Status': 'client.source_status',
+      'Return Type': 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      'Client Street and Apt Address': 'client.address_line_1',
+      'Client City': 'client.city',
+      'Client State': 'client.state',
+      'Client Zip': 'client.postal_code',
+      'Home Phone': 'client.primary_phone',
+      'Mobile Phone': 'client.primary_phone',
+      Email: 'client.email',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'ultratax_cs',
+    source: 'preset_ultratax_cs',
+    file: 'ultratax-cs-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Name': 'client.name',
+      Entity: 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      Preparer: 'client.assignee_name',
+      'Street Address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Status: 'client.source_status',
+    },
+  },
+  {
+    preset: 'proconnect_tax',
+    source: 'preset_proconnect_tax',
+    file: 'proconnect-tax-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Taxpayer name': 'client.name',
+      'Taxpayer email address': 'client.email',
+      'Taxpayer phone number': 'client.primary_phone',
+      'Street address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      'Zip code': 'client.postal_code',
+      'Return type': 'client.tax_types',
+      'Tax year': 'IGNORE',
+      Refund: 'IGNORE',
+      'Taxes owed': 'client.estimated_tax_liability',
+      Preparer: 'client.assignee_name',
     },
   },
 ]
@@ -1363,7 +1537,7 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
 
     const result = await service.runMapper(batch.id)
 
-    expect(calls).toContain('mapper@v1')
+    expect(calls).toContain('mapper@v2')
     expect(result.meta?.fallback).toBeNull()
     expect(result.mappings.some((mapping) => mapping.targetField === 'client.name')).toBe(true)
     expect(state.aiRuns.some((run) => run.kind === 'migration_map')).toBe(true)
@@ -1615,6 +1789,42 @@ describe('MigrationService fixture golden tests', () => {
       )
     },
   )
+
+  it('commits tax software source fields onto imported clients', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+    const golden = PRESET_GOLDENS.find((item) => item.preset === 'cch_axcess')
+    if (!golden) throw new Error('Missing CCH Axcess fixture golden case')
+
+    const batch = await service.createBatch({
+      source: golden.source,
+      presetUsed: golden.preset,
+    })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'csv',
+      text: readFixture(golden.file),
+    })
+
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, golden.importMappings ?? golden.expectedMappings),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+    await service.applyDefaultMatrix(batch.id)
+    await service.apply(batch.id)
+
+    expect(state.importedClients[0]).toMatchObject({
+      externalClientId: 'AX100',
+      addressLine1: '100 Main St',
+      city: 'Los Angeles',
+      postalCode: '90012',
+      primaryPhone: '213-555-0100',
+    })
+  })
 
   it('keeps the messy fixture bad-row count stable when mapped without AI', async () => {
     const { repo, state } = buildScopedRepo(FIRM)

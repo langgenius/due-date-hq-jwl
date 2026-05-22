@@ -13,6 +13,12 @@ export interface ClientRow {
   taxYearType: 'calendar' | 'fiscal'
   fiscalYearEndMonth: number | null
   fiscalYearEndDay: number | null
+  externalClientId: string | null
+  addressLine1: string | null
+  city: string | null
+  postalCode: string | null
+  primaryPhone: string | null
+  sourceStatus: string | null
   email: string | null
   notes: string | null
   assigneeId: string | null
@@ -48,6 +54,12 @@ export interface ClientCreateInput {
   taxYearType?: 'calendar' | 'fiscal'
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
+  externalClientId?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  postalCode?: string | null
+  primaryPhone?: string | null
+  sourceStatus?: string | null
   ownerCount?: number | null
   hasForeignAccounts?: boolean
   hasPayroll?: boolean

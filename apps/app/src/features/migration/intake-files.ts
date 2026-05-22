@@ -31,6 +31,12 @@ export type UnsupportedUploadCode =
   | 'quickbooks_backup'
   | 'quickbooks_company'
   | 'qbo_archive'
+  | 'cch_axcess_backup'
+  | 'cch_prosystem_fx_backup'
+  | 'lacerte_data_file'
+  | 'proseries_return_file'
+  | 'ultratax_client_data'
+  | 'ultratax_dif'
   | 'pdf_report'
   | 'legacy_excel'
   | 'unsupported_binary'
@@ -67,6 +73,12 @@ export function unsupportedUploadForFileName(fileName: string): UnsupportedUploa
   if (ext === 'qbb') return { code: 'quickbooks_backup', fileName }
   if (ext === 'qbw' || ext === 'qbm') return { code: 'quickbooks_company', fileName }
   if (ext === 'cab') return { code: 'qbo_archive', fileName }
+  if (ext === 'rtnbak' || ext === 'rctrl') return { code: 'cch_axcess_backup', fileName }
+  if (ext === 'dbf' || ext === 'mdx') return { code: 'lacerte_data_file', fileName }
+  if (/clntbkup/i.test(fileName)) return { code: 'cch_prosystem_fx_backup', fileName }
+  if (/^\d{2}[ipcps]$/i.test(ext)) return { code: 'proseries_return_file', fileName }
+  if (ext === 'csd') return { code: 'ultratax_client_data', fileName }
+  if (ext === 'dif') return { code: 'ultratax_dif', fileName }
   if (ext === 'pdf') return { code: 'pdf_report', fileName }
   if (ext === 'xls') return { code: 'legacy_excel', fileName }
   if (
@@ -131,6 +143,18 @@ export function unsupportedUploadMessage(input: UnsupportedUpload): string {
       return 'This looks like a QuickBooks Desktop company file. Export Customer Contact List to Excel/CSV or Customers to an IIF file.'
     case 'qbo_archive':
       return 'This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead.'
+    case 'cch_axcess_backup':
+      return 'This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead.'
+    case 'cch_prosystem_fx_backup':
+      return 'This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead.'
+    case 'lacerte_data_file':
+      return 'This looks like a Lacerte data file. Use Client > Export > Export to File and choose comma delimited CSV instead.'
+    case 'proseries_return_file':
+      return 'This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead.'
+    case 'ultratax_client_data':
+      return 'This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX.'
+    case 'ultratax_dif':
+      return 'UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX.'
     case 'pdf_report':
       return 'PDF reports are not supported for client import. Export a spreadsheet, CSV, ZIP, TXT/TSV, or IIF file instead.'
     case 'legacy_excel':
@@ -403,6 +427,97 @@ function detectSource(
       confidence: 0.84,
       reason: 'File In Time-style client/task headers detected.',
       suggestedPreset: 'file_in_time',
+    }
+  }
+
+  if (
+    headers.has('client guid') ||
+    (headers.has('client sub-id') && headers.has('name line 1')) ||
+    (headers.has('client id') && headers.has('name line 1') && headers.has('federal id')) ||
+    (headers.has('responsible staff') && headers.has('federal id'))
+  ) {
+    return {
+      product: 'cch_axcess',
+      role: 'client_list',
+      confidence: 0.93,
+      reason: 'CCH Axcess client export headers detected.',
+      suggestedPreset: 'cch_axcess',
+    }
+  }
+
+  if (
+    lowerName.includes('portalsaasclient') ||
+    (headers.has('partner') &&
+      headers.has('manager') &&
+      headers.has('preparer') &&
+      headers.has('client id'))
+  ) {
+    return {
+      product: 'cch_prosystem_fx',
+      role: 'client_list',
+      confidence: 0.92,
+      reason: 'CCH ProSystem fx Portal client list headers detected.',
+      suggestedPreset: 'cch_prosystem_fx',
+    }
+  }
+
+  if (
+    (lowerName.includes('lacerte') && lowerName.endsWith('.csv')) ||
+    (headers.has('client number') &&
+      (headers.has('taxpayer e-mail address') || headers.has('taxpayer email address')))
+  ) {
+    return {
+      product: 'lacerte',
+      role: 'client_list',
+      confidence: 0.91,
+      reason: 'Lacerte comma-delimited client export headers detected.',
+      suggestedPreset: 'lacerte',
+    }
+  }
+
+  if (
+    lowerName.endsWith('contacts.csv') ||
+    (headers.has('client status') && headers.has('client street and apt address'))
+  ) {
+    return {
+      product: 'proseries',
+      role: 'contact_list',
+      confidence: 0.91,
+      reason: 'ProSeries HomeBase contacts export headers detected.',
+      suggestedPreset: 'proseries',
+    }
+  }
+
+  if (
+    headers.has('entity') &&
+    headers.has('ssn/ein') &&
+    headers.has('preparer') &&
+    headers.has('status')
+  ) {
+    return {
+      product: 'ultratax_cs',
+      role: 'client_listing_report',
+      confidence: 0.88,
+      reason: 'UltraTax CS client listing report headers detected.',
+      suggestedPreset: 'ultratax_cs',
+    }
+  }
+
+  if (
+    headers.has('taxpayer name') ||
+    headers.has('taxpayer email address') ||
+    (headers.has('business name') && headers.has('signing officer'))
+  ) {
+    const role =
+      headers.has('taxpayer name') || headers.has('business name')
+        ? 'return_data'
+        : 'questionnaire_responses'
+    return {
+      product: 'proconnect_tax',
+      role,
+      confidence: 0.87,
+      reason: 'ProConnect Tax reporting export headers detected.',
+      suggestedPreset: 'proconnect_tax',
     }
   }
 

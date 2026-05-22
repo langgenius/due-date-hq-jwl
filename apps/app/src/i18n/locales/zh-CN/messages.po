@@ -887,6 +887,11 @@ msgstr "添加事务所"
 msgid "Added evidence to this deadline."
 msgstr "已为该截止日添加证据。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Address line 1"
+msgstr "地址第 1 行"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -1723,6 +1728,11 @@ msgstr "Choose one option in each row. Export writes an audit event."
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "选择 Solo、Pro 或 Team 以开始托管 checkout 流程。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "City"
+msgstr "城市"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
@@ -3328,6 +3338,11 @@ msgid "Extension source"
 msgstr "延期来源"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "External client ID"
+msgstr "外部客户 ID"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Fact readiness"
 msgstr "事实就绪度"
 
@@ -3779,6 +3794,10 @@ msgstr "导入规范化已确认"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Import reverted"
 msgstr "导入已回滚"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Import source"
+msgstr "导入来源"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Import source type"
@@ -6219,6 +6238,11 @@ msgstr "主州县"
 msgid "Primary navigation"
 msgstr "主导航"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Primary phone"
+msgstr "主要电话"
+
 #: src/routes/billing.tsx
 msgid "Priority onboarding and audit exports"
 msgstr "优先 onboarding 与审计导出"
@@ -7893,6 +7917,11 @@ msgstr "来源已撤销"
 msgid "Source signal trail"
 msgstr "来源信号记录"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "Source status"
+msgstr "来源状态"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Source-backed evidence"
@@ -8167,6 +8196,10 @@ msgstr "目标申报年度必须是来源申报年度的下一年。"
 #: src/routes/obligations.tsx
 msgid "Tax period"
 msgstr "税务期间"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Tax software exports"
+msgstr "报税软件导出"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -9202,3 +9235,8 @@ msgstr "Your practice workspace is ready. Import a spreadsheet now to turn clien
 #: src/routes/billing.success.tsx
 msgid "Your subscription is confirmed and the plan is active."
 msgstr "订阅已确认，当前计划已生效。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/mapping-target-labels.ts
+msgid "ZIP / postal code"
+msgstr "邮编"
