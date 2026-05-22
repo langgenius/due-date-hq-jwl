@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronDownIcon } from 'lucide-react'
@@ -21,25 +21,19 @@ const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
 
 /**
- * Breadcrumb-position client switcher for `/clients/[id]`. Replaces the
- * static "Clients" parent crumb with two adjacent hit targets so the
- * common case (back to list) is one click, not two:
+ * Title-position client switcher for `/clients/[id]`. Renders the
+ * client's name at H1 scale with a chevron-down button immediately
+ * after it — tapping the chevron opens a searchable popover for
+ * jumping to another client's detail page.
  *
- *   • The word "Clients" is a Link to `/clients` — the primary
- *     navigation action a user expects from a breadcrumb parent.
- *   • The adjacent chevron-down button opens a searchable popover for
- *     switching to a different client's detail page without bouncing
- *     through the list.
- *
- * Earlier revision routed the whole crumb to the popover, which forced
- * users into a 2-click path just to go back to the list. The switcher
- * is a power-user feature; navigation is the default.
- *
- * The popover still includes a "Back to client list" item so users who
- * opened the switcher by mistake can fall through without closing it
- * manually.
+ * The "back to /clients" action lives in a separate eyebrow link above
+ * the title (see `ClientFactsWorkspace` where this is wired). Putting
+ * the switcher next to the title is the cleaner mental model: title
+ * answers "which client am I on?", chevron answers "switch to which
+ * other client?". Earlier revision crammed both into a breadcrumb and
+ * users mistook the whole eyebrow for a back link.
  */
-export function ClientBreadcrumbSwitcher({ currentClientId }: { currentClientId: string }) {
+export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id' | 'name'> }) {
   const { t } = useLingui()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -56,7 +50,7 @@ export function ClientBreadcrumbSwitcher({ currentClientId }: { currentClientId:
   )
 
   function goToClient(clientId: string) {
-    if (clientId === currentClientId) {
+    if (clientId === client.id) {
       setOpen(false)
       return
     }
@@ -64,28 +58,18 @@ export function ClientBreadcrumbSwitcher({ currentClientId }: { currentClientId:
     void navigate(`/clients/${clientId}`)
   }
 
-  function goToList() {
-    setOpen(false)
-    void navigate('/clients')
-  }
-
   return (
-    <span className="inline-flex items-center gap-0.5 text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
-      <Link
-        to="/clients"
-        className="rounded-sm outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <Trans>Clients</Trans>
-      </Link>
+    <span className="inline-flex items-center gap-1">
+      <span>{client.name}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
             <button
               type="button"
               aria-label={t`Switch to another client`}
-              className="inline-flex items-center justify-center rounded-sm p-0.5 outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:bg-state-base-hover focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
-              <ChevronDownIcon className="size-3" aria-hidden />
+              <ChevronDownIcon className="size-5" aria-hidden />
             </button>
           }
         />
@@ -103,33 +87,26 @@ export function ClientBreadcrumbSwitcher({ currentClientId }: { currentClientId:
                   <Trans>No clients match your search.</Trans>
                 )}
               </CommandEmpty>
-              <CommandGroup>
-                <CommandItem value="__all-clients__" onSelect={goToList}>
-                  <span className="text-sm font-medium text-text-primary">
-                    <Trans>Back to client list</Trans>
-                  </span>
-                </CommandItem>
-              </CommandGroup>
               {sortedClients.length > 0 ? (
                 <CommandGroup heading={t`Switch to client`}>
-                  {sortedClients.map((client) => (
+                  {sortedClients.map((entry) => (
                     <CommandItem
-                      key={client.id}
-                      value={[client.name, client.state ?? '', client.ein ?? ''].join(' ')}
-                      onSelect={() => goToClient(client.id)}
-                      aria-current={client.id === currentClientId ? 'page' : undefined}
+                      key={entry.id}
+                      value={[entry.name, entry.state ?? '', entry.ein ?? ''].join(' ')}
+                      onSelect={() => goToClient(entry.id)}
+                      aria-current={entry.id === client.id ? 'page' : undefined}
                     >
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-text-primary">
-                          {client.name}
+                          {entry.name}
                         </span>
                         <span className="block truncate text-xs text-text-tertiary">
-                          {[client.state, client.entityType]
+                          {[entry.state, entry.entityType]
                             .filter((value): value is string => Boolean(value))
                             .join(' · ')}
                         </span>
                       </span>
-                      {client.id === currentClientId ? (
+                      {entry.id === client.id ? (
                         <span className="text-[10px] font-medium uppercase text-text-tertiary">
                           <Trans>Current</Trans>
                         </span>

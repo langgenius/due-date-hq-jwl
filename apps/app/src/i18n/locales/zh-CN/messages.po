@@ -36,6 +36,11 @@ msgstr "{0, plural, other {# 条活跃}}"
 msgid "{0, plural, one {# applicable} other {# applicable}}"
 msgstr "{0, plural, one {# 个适用} other {# 个适用}}"
 
+#. placeholder {0}: table.getFilteredRowModel().rows.length
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{0, plural, one {# client} other {# clients}}"
+msgstr "{0, plural, one {# 个客户} other {# 个客户}}"
+
 #. placeholder {0}: Math.abs(days)
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# day late} other {# days late}}"
@@ -173,11 +178,6 @@ msgstr "{0} and its imported deadlines"
 msgid "{0} available seats"
 msgstr "{0} 个可用席位"
 
-#. placeholder {0}: clients.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} clients"
-msgstr "{0} 个客户"
-
 #. placeholder {0}: pendingRevert.clientCount
 #. placeholder {1}: pendingRevert.obligationCount
 #: src/features/migration/Wizard.tsx
@@ -188,12 +188,6 @@ msgstr "已移除 {0} 个客户 · {1} 条义务"
 #: src/features/migration/Wizard.tsx
 msgid "{0} clients imported"
 msgstr "已导入 {0} 个客户"
-
-#. placeholder {0}: filteredClients.length
-#. placeholder {1}: clients.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} clients shown of {1} total"
-msgstr "在 {1} 个客户中显示 {0} 个"
 
 #. placeholder {0}: result.clientCount
 #. placeholder {1}: result.obligationCount
@@ -1566,10 +1560,6 @@ msgstr "返回账单"
 msgid "Back to Billing"
 msgstr "返回账单"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
-msgid "Back to client list"
-msgstr "返回客户列表"
-
 #: src/routes/clients.$clientId.tsx
 msgid "Back to clients"
 msgstr "返回客户"
@@ -2151,7 +2141,6 @@ msgstr "客户"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
@@ -2888,7 +2877,7 @@ msgstr "CSV"
 msgid "current"
 msgstr "当前"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 #: src/features/obligations/timeline.tsx
 #: src/routes/account.security.tsx
 msgid "Current"
@@ -3052,7 +3041,7 @@ msgstr "决策备注（必填）"
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
-#. placeholder {0}: formatDate(suggestion.defaultBaseDueDate)
+#. placeholder {0}: formatDatePretty(suggestion.defaultBaseDueDate)
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "default due {0}"
 msgstr "默认截止 {0}"
@@ -4540,8 +4529,8 @@ msgstr "正在加载客户税种…"
 msgid "Loading clients for preview…"
 msgstr "正在加载用于预览的客户…"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Loading clients…"
 msgstr "正在加载客户…"
 
@@ -5188,6 +5177,7 @@ msgid "Next month"
 msgstr "下个月"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
 msgid "Next page"
@@ -5268,8 +5258,8 @@ msgstr "没有客户"
 msgid "No clients match these filters"
 msgstr "没有客户匹配这些筛选条件"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "No clients match your search."
 msgstr "没有符合搜索条件的客户。"
 
@@ -6210,6 +6200,12 @@ msgstr "Owner、Manager 和 Preparer 可以查看客户活动。"
 msgid "Page {0}"
 msgstr "第 {0} 页"
 
+#. placeholder {0}: table.getState().pagination.pageIndex + 1
+#. placeholder {1}: table.getPageCount()
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Page {0} of {1}"
+msgstr "第 {0} 页，共 {1} 页"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "Page {0} of {totalLoadedPages}"
@@ -6822,6 +6818,7 @@ msgid "Previous month"
 msgstr "上个月"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
 msgid "Previous page"
@@ -8050,8 +8047,8 @@ msgstr "搜索客户"
 msgid "Search clients  ·  press / to focus"
 msgstr "搜索客户  ·  按 / 聚焦"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Search clients…"
 msgstr "搜索客户…"
 
@@ -8877,10 +8874,6 @@ msgstr "暂停访问"
 msgid "Suspended"
 msgstr "已暂停"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
-msgid "Switch client or go back to the client list"
-msgstr "切换客户或返回客户列表"
-
 #. placeholder {0}: account.name
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Switch demo account to {0}"
@@ -8891,7 +8884,11 @@ msgstr "切换演示账号到 {0}"
 msgid "Switch practice, current {0}"
 msgstr "切换事务所，当前为 {0}"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
+msgid "Switch to another client"
+msgstr "切换到其他客户"
+
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Switch to client"
 msgstr "切换到客户"
 

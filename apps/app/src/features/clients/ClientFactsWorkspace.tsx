@@ -90,7 +90,7 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
 
-import { ClientBreadcrumbSwitcher } from './ClientBreadcrumbSwitcher'
+import { ClientTitleSwitcher } from './ClientTitleSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { ClientCycleArrows } from './ClientCycleArrows'
 import { useClientDrawer } from './ClientDrawerProvider'
@@ -1225,15 +1225,16 @@ export function ClientDetailWorkspace({
     <>
       <div className="flex min-h-0 flex-col gap-6">
         <PageHeader
-          breadcrumbs={[
-            {
-              label: t`Clients`,
-              to: '/clients',
-              render: <ClientBreadcrumbSwitcher currentClientId={client.id} />,
-            },
-            { label: client.name },
-          ]}
-          title={client.name}
+          eyebrow={
+            <Link
+              to="/clients"
+              className="inline-flex items-center gap-1 rounded-sm normal-case tracking-normal outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <ChevronLeftIcon className="size-3.5" aria-hidden />
+              <Trans>Clients</Trans>
+            </Link>
+          }
+          title={<ClientTitleSwitcher client={client} />}
           description={formatClientIdentitySubLine({
             workPlan,
             entityType: client.entityType,

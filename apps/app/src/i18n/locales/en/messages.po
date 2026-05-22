@@ -36,6 +36,11 @@ msgstr "{0, plural, one {# active} other {# active}}"
 msgid "{0, plural, one {# applicable} other {# applicable}}"
 msgstr "{0, plural, one {# applicable} other {# applicable}}"
 
+#. placeholder {0}: table.getFilteredRowModel().rows.length
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{0, plural, one {# client} other {# clients}}"
+msgstr "{0, plural, one {# client} other {# clients}}"
+
 #. placeholder {0}: Math.abs(days)
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# day late} other {# days late}}"
@@ -173,11 +178,6 @@ msgstr "{0} and its imported deadlines"
 msgid "{0} available seats"
 msgstr "{0} available seats"
 
-#. placeholder {0}: clients.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} clients"
-msgstr "{0} clients"
-
 #. placeholder {0}: pendingRevert.clientCount
 #. placeholder {1}: pendingRevert.obligationCount
 #: src/features/migration/Wizard.tsx
@@ -188,12 +188,6 @@ msgstr "{0} clients · {1} obligations removed"
 #: src/features/migration/Wizard.tsx
 msgid "{0} clients imported"
 msgstr "{0} clients imported"
-
-#. placeholder {0}: filteredClients.length
-#. placeholder {1}: clients.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} clients shown of {1} total"
-msgstr "{0} clients shown of {1} total"
 
 #. placeholder {0}: result.clientCount
 #. placeholder {1}: result.obligationCount
@@ -1566,10 +1560,6 @@ msgstr "Back to billing"
 msgid "Back to Billing"
 msgstr "Back to Billing"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
-msgid "Back to client list"
-msgstr "Back to client list"
-
 #: src/routes/clients.$clientId.tsx
 msgid "Back to clients"
 msgstr "Back to clients"
@@ -2151,7 +2141,6 @@ msgstr "clients"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
@@ -2888,7 +2877,7 @@ msgstr "CSV"
 msgid "current"
 msgstr "current"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 #: src/features/obligations/timeline.tsx
 #: src/routes/account.security.tsx
 msgid "Current"
@@ -3052,7 +3041,7 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
-#. placeholder {0}: formatDate(suggestion.defaultBaseDueDate)
+#. placeholder {0}: formatDatePretty(suggestion.defaultBaseDueDate)
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "default due {0}"
 msgstr "default due {0}"
@@ -4540,8 +4529,8 @@ msgstr "Loading client tax types…"
 msgid "Loading clients for preview…"
 msgstr "Loading clients for preview…"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Loading clients…"
 msgstr "Loading clients…"
 
@@ -5188,6 +5177,7 @@ msgid "Next month"
 msgstr "Next month"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
 msgid "Next page"
@@ -5268,8 +5258,8 @@ msgstr "No clients"
 msgid "No clients match these filters"
 msgstr "No clients match these filters"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "No clients match your search."
 msgstr "No clients match your search."
 
@@ -6210,6 +6200,12 @@ msgstr "Owners, managers, and preparers can inspect client activity."
 msgid "Page {0}"
 msgstr "Page {0}"
 
+#. placeholder {0}: table.getState().pagination.pageIndex + 1
+#. placeholder {1}: table.getPageCount()
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Page {0} of {1}"
+msgstr "Page {0} of {1}"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "Page {0} of {totalLoadedPages}"
@@ -6822,6 +6818,7 @@ msgid "Previous month"
 msgstr "Previous month"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
 msgid "Previous page"
@@ -8050,8 +8047,8 @@ msgstr "Search clients"
 msgid "Search clients  ·  press / to focus"
 msgstr "Search clients  ·  press / to focus"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
 #: src/features/clients/ClientCombobox.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Search clients…"
 msgstr "Search clients…"
 
@@ -8877,10 +8874,6 @@ msgstr "Suspend access"
 msgid "Suspended"
 msgstr "Suspended"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
-msgid "Switch client or go back to the client list"
-msgstr "Switch client or go back to the client list"
-
 #. placeholder {0}: account.name
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Switch demo account to {0}"
@@ -8891,7 +8884,11 @@ msgstr "Switch demo account to {0}"
 msgid "Switch practice, current {0}"
 msgstr "Switch practice, current {0}"
 
-#: src/features/clients/ClientBreadcrumbSwitcher.tsx
+#: src/features/clients/ClientTitleSwitcher.tsx
+msgid "Switch to another client"
+msgstr "Switch to another client"
+
+#: src/features/clients/ClientTitleSwitcher.tsx
 msgid "Switch to client"
 msgstr "Switch to client"
 
