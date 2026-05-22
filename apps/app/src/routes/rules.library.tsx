@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router'
+import { Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
@@ -52,6 +52,7 @@ import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detai
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { orpc } from '@/lib/rpc'
 
 /**
@@ -984,6 +985,7 @@ function StatsBar({
   onSelectEntity: (entity: EntityKey) => void
   onClearEntity: () => void
 }) {
+  const { t } = useLingui()
   // Stats scoreboard (redesign 2026-05-21 per /critique).
   //
   // The prior interpunct-separated counts read as AI-dashboard prose
@@ -1055,42 +1057,34 @@ function StatsBar({
             </span>
           </div>
         </div>
-        {/* Quiet caption: total · missing · sources */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-          <span>
-            <Trans>Total {totalRules}</Trans>
-          </span>
-          <span aria-hidden>·</span>
-          <span className="inline-flex items-baseline gap-1">
-            <span
-              aria-hidden
-              className={cn(
-                'inline-block size-1.5 self-center rounded-full border',
-                totalGaps > 0 ? 'border-state-destructive-solid' : 'border-divider-regular',
-              )}
-            />
-            <span className="tabular-nums">{totalGaps}</span>
-            <span>
-              <Trans>missing</Trans>
-            </span>
-          </span>
-          <span aria-hidden>·</span>
-          <Link
-            to="/rules/sources"
-            className="inline-flex items-baseline gap-1 rounded-sm outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <span className="tabular-nums">{sourcesHealthy}</span>
-            <span>
-              <Trans>sources</Trans>
-            </span>
-            {sourcesPaused > 0 ? (
-              <span className="text-text-warning">
-                · <span className="tabular-nums">{sourcesPaused}</span> <Trans>paused</Trans>
-              </span>
-            ) : null}
-            <ChevronRightIcon className="size-3" aria-hidden />
-          </Link>
-        </div>
+        {/* Catalog-level counts caption — now sourced from the shared
+            `SurfaceSummaryStrip` primitive (2026-05-22) so the chrome
+            stays aligned with /clients and /obligations as those
+            migrate. The progress bar above is kept rule-library-
+            specific because the "active vs review backlog" framing is
+            unique to the rule catalog. */}
+        <SurfaceSummaryStrip
+          label={t`Coverage`}
+          items={[
+            { key: 'total', value: totalRules, label: t`total` },
+            {
+              key: 'missing',
+              value: totalGaps,
+              label: t`missing`,
+              tone: totalGaps > 0 ? 'destructive' : 'muted',
+            },
+            { key: 'watched', value: sourcesHealthy, label: t`watched`, href: '/rules/sources' },
+            {
+              key: 'paused',
+              value: sourcesPaused,
+              label: t`paused`,
+              tone: sourcesPaused > 0 ? 'warning' : 'muted',
+              ...(sourcesPaused > 0 ? { href: '/rules/sources' } : {}),
+            },
+          ]}
+          detailHref="/rules/sources"
+          detailLabel={t`View sources`}
+        />
       </div>
       {/* By Entity — clickable chip row that doubles as the entity
           filter for the rules table. Click a chip to filter; click

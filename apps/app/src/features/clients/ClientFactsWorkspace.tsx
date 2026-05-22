@@ -1,6 +1,7 @@
 import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router'
+import { parseAsStringLiteral, useQueryState } from 'nuqs'
 import {
   flexRender,
   getCoreRowModel,
@@ -37,7 +38,6 @@ import type {
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Collapsible,
@@ -81,7 +81,8 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
-import { ObligationQueueDetailDrawer } from '@/routes/obligations'
+import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
@@ -901,13 +902,16 @@ function ClientsActionStrip({
     return { atRiskCount: atRisk, waitingOnClientCount: waiting }
   }, [obligationSummariesByClient])
 
-  if (isLoading) {
-    return <Skeleton className="h-10 w-full" />
-  }
-
-  const hasAnyTile = atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0
+  // 2026-05-22: 3-tile grid retired in favor of the shared
+  // SurfaceSummaryStrip. Banner stays — it's the only place that
+  // carries the "Fix now" CTA, and Yuqi explicitly asked for it to
+  // remain when needsFactsCount > 0 (see unified-table-surface-
+  // vocabulary.md Part 6 risk #2 — keeping banner + strip is the
+  // discoverability path for missing facts).
   const hasBanner = needsFactsCount > 0
-  if (!hasAnyTile && !hasBanner) return null
+  const hasAnyMetric =
+    atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0 || needsFactsCount > 0
+  if (!hasBanner && !hasAnyMetric && !isLoading) return null
 
   return (
     <div className="flex flex-col gap-3">
@@ -930,70 +934,41 @@ function ClientsActionStrip({
           </Button>
         </Alert>
       ) : null}
-      {hasAnyTile ? (
-        <div className="flex flex-wrap gap-2">
-          {atRiskCount > 0 ? (
-            <ActionTile
-              label={t`At risk`}
-              count={atRiskCount}
-              tone="destructive"
-              onClick={onOpenAtRisk}
-              ariaLabel={t`Open obligations queue filtered to blocked rows · ${atRiskCount} clients at risk`}
-            />
-          ) : null}
-          {waitingOnClientCount > 0 ? (
-            <ActionTile
-              label={t`Waiting on client`}
-              count={waitingOnClientCount}
-              tone="warning"
-              onClick={onOpenWaitingOnClient}
-              ariaLabel={t`Open obligations queue filtered to waiting-on-client · ${waitingOnClientCount} clients`}
-            />
-          ) : null}
-          {pulseHitCount > 0 ? (
-            <ActionTile
-              label={t`Pulse hits`}
-              count={pulseHitCount}
-              tone="review"
-              onClick={onOpenPulseHits}
-              ariaLabel={t`Filter the client list to Pulse-affected · ${pulseHitCount} clients`}
-            />
-          ) : null}
-        </div>
-      ) : null}
+      <SurfaceSummaryStrip
+        label={t`Clients`}
+        loading={isLoading}
+        items={[
+          {
+            key: 'at-risk',
+            value: atRiskCount,
+            label: t`at risk`,
+            tone: atRiskCount > 0 ? 'destructive' : 'muted',
+            ...(atRiskCount > 0 ? { onClick: onOpenAtRisk } : {}),
+          },
+          {
+            key: 'waiting',
+            value: waitingOnClientCount,
+            label: t`waiting on client`,
+            tone: waitingOnClientCount > 0 ? 'warning' : 'muted',
+            ...(waitingOnClientCount > 0 ? { onClick: onOpenWaitingOnClient } : {}),
+          },
+          {
+            key: 'pulse',
+            value: pulseHitCount,
+            label: t`Pulse hits`,
+            tone: pulseHitCount > 0 ? 'review' : 'muted',
+            ...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {}),
+          },
+          {
+            key: 'missing-facts',
+            value: needsFactsCount,
+            label: t`missing facts`,
+            tone: needsFactsCount > 0 ? 'warning' : 'muted',
+            ...(needsFactsCount > 0 ? { onClick: onFixNeedsFacts } : {}),
+          },
+        ]}
+      />
     </div>
-  )
-}
-
-function ActionTile({
-  label,
-  count,
-  tone,
-  onClick,
-  ariaLabel,
-}: {
-  label: string
-  count: number
-  tone: 'destructive' | 'warning' | 'review'
-  onClick: () => void
-  ariaLabel: string
-}) {
-  const toneClass =
-    tone === 'destructive'
-      ? 'text-text-destructive'
-      : tone === 'warning'
-        ? 'text-severity-medium'
-        : 'text-status-review'
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      className="inline-flex items-center gap-2 rounded-md border border-divider-regular bg-background-default px-3 py-2 text-left outline-none transition-colors hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-    >
-      <span className="text-xs text-text-secondary">{label}</span>
-      <span className={cn('font-mono text-sm font-semibold tabular-nums', toneClass)}>{count}</span>
-    </button>
   )
 }
 
@@ -1042,6 +1017,21 @@ export function ClientDetailWorkspace({
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
+  // V14 sections-not-tabs (2026-05-22). Work/Activity were Tabs; now
+  // they're stacked collapsible sections with URL-bound open/closed
+  // state. Work opens by default (daily-driver content); Activity is
+  // collapsed so the heavier AI summary + audit log queries don't
+  // fire on every navigation — opens on demand.
+  const [workOpenParam, setWorkOpenParam] = useQueryState(
+    'work',
+    parseAsStringLiteral(['open', 'closed'] as const).withDefault('open'),
+  )
+  const [activityOpenParam, setActivityOpenParam] = useQueryState(
+    'activity',
+    parseAsStringLiteral(['open', 'closed'] as const).withDefault('closed'),
+  )
+  const isWorkOpen = workOpenParam === 'open'
+  const isActivityOpen = activityOpenParam === 'open'
   // Obligation drawer is rendered as an in-route page panel (NOT a
   // modal Sheet) when launched from the filing plan below. State
   // lives on the shared provider so any surface — this page, the
@@ -1222,27 +1212,25 @@ export function ClientDetailWorkspace({
 
             <ClientSummaryStrip clientId={client.id} obligations={obligations} />
 
-            <Tabs defaultValue="work" className="w-full">
-              <TabsList className="mb-3 flex w-full flex-wrap justify-start">
-                <TabsTrigger value="work">
-                  <Trans>Work</Trans>
-                </TabsTrigger>
-                <TabsTrigger value="notes">
-                  <Trans>Activity</Trans>
-                </TabsTrigger>
-              </TabsList>
+            {/* V14 sections-not-tabs (2026-05-22): Work + Activity are
+                now stacked collapsible sections instead of Tabs. URL
+                params `?work=open` / `?activity=open` persist the
+                expansion state so deep links land on the right shape.
 
-              {/* Work tab — ordered by the four canonical questions from
-              docs/Design/client-page-information-architecture.md:
-                1. "Where are we?" (alerts + summary above tabs)
-                2. "What do they owe?" → ClientWorkPlanPanel
-                3. "What's their compliance posture?" → ClientCompliancePosturePanel
-              followed by two demoted groups:
-                CONFIGURE — editable surfaces the CPA visits during
-                  onboarding and quarterly; daily readers skim past.
-                DISCOVER — reference / future-business surfaces the
-                  CPA dips into intentionally, not every visit. */}
-              <TabsContent value="work" className="grid gap-4">
+                Work content order follows the four canonical questions
+                from docs/Design/client-page-information-architecture.md:
+                  1. "Where are we?" (alerts + summary above)
+                  2. "What do they owe?" → ClientWorkPlanPanel
+                  3. "What's their compliance posture?" → ClientCompliancePosturePanel
+                followed by two demoted groups:
+                  CONFIGURE — editable surfaces visited during onboarding + quarterly
+                  DISCOVER — reference / future-business surfaces. */}
+            <DetailSection
+              title={t`Work`}
+              open={isWorkOpen}
+              onOpenChange={(open) => void setWorkOpenParam(open ? 'open' : 'closed')}
+            >
+              <div className="grid gap-4">
                 <ClientWorkPlanPanel
                   obligations={obligations}
                   isLoading={obligationsQuery.isLoading}
@@ -1331,21 +1319,29 @@ export function ClientDetailWorkspace({
                     <ClientOpportunitiesCard clientId={client.id} />
                   </DetailSection>
                 </div>
-              </TabsContent>
+              </div>
+            </DetailSection>
 
-              {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
+            {/* Mailbox tab removed — was tagged "Phase 2" and surfacing it
               as a peer top-level tab implied parity it doesn't have. The
               forwarding-address widget and AI inbound-thread story will
               return once the infrastructure ships. ClientMailboxPanel
               remains in this file for that resurrection. */}
 
-              {/* Activity tab — AI narrative, free-text client notes,
-              audit log. Renamed from "Notes" per the 2026-05-21 IA
-              pass: the audit log content dominates this tab and
-              "Notes" undersold it. The static notes block (below)
-              keeps the SectionLabel "NOTES" since that section IS
-              the freeform notes record. */}
-              <TabsContent value="notes" className="grid gap-4">
+            {/* Activity section — AI narrative, free-text client notes,
+              audit log. Lazy-loaded behind the collapsible header so
+              the heavier AI + audit queries only fire when opened.
+              Renamed from "Notes" per the 2026-05-21 IA pass: audit
+              log content dominates and "Notes" undersold it. The
+              static notes block keeps the SectionLabel "NOTES" since
+              that section IS the freeform notes record. */}
+            <DetailSection
+              title={t`Activity`}
+              summary={t`AI summary, notes, and audit log`}
+              open={isActivityOpen}
+              onOpenChange={(open) => void setActivityOpenParam(open ? 'open' : 'closed')}
+            >
+              <div className="grid gap-4">
                 <DetailSection
                   title={t`Client summary (AI)`}
                   summary={
@@ -1389,8 +1385,8 @@ export function ClientDetailWorkspace({
                     firmTimezone={firmTimezone}
                   />
                 </DetailSection>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </DetailSection>
           </section>
 
           {/* Obligation page panel — replaces the modal Sheet on this
@@ -1403,8 +1399,7 @@ export function ClientDetailWorkspace({
               stays coherent. */}
           {activeObligationId ? (
             <aside className="w-full min-w-0 xl:w-[480px] xl:shrink-0">
-              <ObligationQueueDetailDrawer
-                mode="panel"
+              <ObligationPanelDispatcher
                 obligationId={activeObligationId}
                 activeTab={obligationTab}
                 onTabChange={setObligationTab}

@@ -1,7 +1,30 @@
 # Pulse alert vocabulary — single source of truth
 
-**Date:** 2026-05-21
+**Date:** 2026-05-21 (revised 2026-05-22)
 **Status:** Canonical. Every Pulse mount must conform to this doc.
+
+## 2026-05-22 revision — engine name vs surface label
+
+The "Always 'Pulse alert' (singular noun)" rule below was written before
+the sidebar IA settled on **"Alerts"** as the primary nav label. Both
+are correct in their own scope:
+
+- **"Pulse"** = the **internal engine name**. Used in code paths
+  (`apps/server/src/jobs/pulse-ingest/`), ports (`packages/ports/pulse.ts`),
+  contract schemas, server logs, dev fixtures, and developer-facing
+  docs. Devs see this. Users do not.
+- **"Alerts"** = the **only user-facing surface label**. Used in the
+  sidebar nav, page title (`/rules/pulse` → `<title>Alerts</title>`),
+  breadcrumb, the bell popover header, command-palette entries, and
+  any user-visible button copy.
+
+The "Pulse alert" noun form ("3 unread Pulse alerts") is now reserved
+for cases where ambiguity is real — e.g. a long-form email that has to
+distinguish Pulse-engine alerts from other notification types. In
+ordinary chrome, just say "Alerts."
+
+This doc's tables below are kept for the engine/dev side. When in
+doubt: sidebar = "Alerts", code = "pulse".
 
 ## The problem this solves
 

@@ -29,10 +29,10 @@ function NeedsAttentionSection() {
   if (alerts.length === 0) return null
 
   return (
-    <section aria-label={t`Pulse alerts`} className="flex flex-col gap-3">
+    <section aria-label={t`Alerts`} className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight text-text-primary">
-          <Trans>Pulse alerts</Trans>
+          <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             <span className="text-base font-normal tabular-nums text-text-tertiary">
               {totalAlertCount}

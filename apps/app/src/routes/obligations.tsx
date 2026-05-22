@@ -176,6 +176,7 @@ import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocke
 import { isTabVisibleForType, tabsForObligationType } from '@/features/obligations/obligation-type'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
+import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { initialsFromName } from '@/lib/auth'
@@ -2615,8 +2616,7 @@ export function ObligationQueueRoute() {
           the full page width. */}
         {activeDetailId ? (
           <div className="min-w-0 w-full xl:w-[600px] xl:shrink-0 xl:min-h-0">
-            <ObligationQueueDetailDrawer
-              mode="panel"
+            <ObligationPanelDispatcher
               obligationId={activeDetailId}
               activeTab={detailTab}
               onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
@@ -6237,7 +6237,7 @@ function computePastStageEntries(auditEvents: readonly AuditEventPublic[]): Past
     if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
     const status = (event.afterJson as { status?: unknown }).status
     if (typeof status !== 'string') continue
-    const stageIdx = timelineIndexForStatus(status as ObligationStatus)
+    const stageIdx = timelineIndexForStatus(status)
     const stageKey = TIMELINE_STAGE_KEYS[stageIdx]
     if (!stageKey) continue
     tagged.push({ event, stageKey })
@@ -6471,7 +6471,11 @@ function ActiveStageDetailCard({
     const filtered = auditEvents.filter((event) => {
       if (typeof event.afterJson !== 'object' || event.afterJson === null) return false
       const status = (event.afterJson as { status?: unknown }).status
-      return typeof status === 'string' && stageStatusSet.has(status as ObligationStatus)
+      // Widen Set<ObligationStatus> → ReadonlySet<string> for the lookup
+      // (covariant widening: ReadonlySet only reads, so a Set of a narrower
+      // type satisfies a ReadonlySet of a wider type). Lets us check
+      // membership against an arbitrary string without an unsafe narrow.
+      return typeof status === 'string' && (stageStatusSet as ReadonlySet<string>).has(status)
     })
     return [...filtered].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)
   }, [auditEvents, stageStatusSet])
@@ -6856,20 +6860,41 @@ function ActiveStageDetailCard({
           </p>
           <ul className="flex flex-col gap-1">
             {(showEfilePipeline ? EFILE_PIPELINE_KEYS : PAYMENT_PIPELINE_KEYS).map((key) => {
+              // The 4 casts in this block (key + row state, repeated for
+              // efile/payment branches) are runtime-correlated with
+              // `showEfilePipeline` by construction: when true the keys
+              // came from EFILE_PIPELINE_KEYS and `row.efileState` is the
+              // relevant column; when false the payment-side equivalents
+              // apply. TypeScript can't track the correlation through the
+              // ternary, but the existing call shape is safe — the lint
+              // suppressions match the runtime-safe pattern used elsewhere
+              // in this file.
               const state = showEfilePipeline
                 ? pipelineStateOf(
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
                     key as (typeof EFILE_PIPELINE_KEYS)[number],
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.efileState is the matching column
                     row.efileState as (typeof EFILE_PIPELINE_KEYS)[number] | null | undefined,
                     EFILE_PIPELINE_KEYS,
                   )
                 : pipelineStateOf(
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
                     key as (typeof PAYMENT_PIPELINE_KEYS)[number],
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.paymentState is the matching column
                     row.paymentState as (typeof PAYMENT_PIPELINE_KEYS)[number] | null | undefined,
                     PAYMENT_PIPELINE_KEYS,
                   )
+              // `key` is iterated from EFILE_PIPELINE_KEYS or PAYMENT_PIPELINE_KEYS
+              // depending on `showEfilePipeline` — same correlation already
+              // applied at the `pipelineStateOf` calls above. The cast is
+              // runtime-safe by construction; lint can't prove the ternary
+              // correlation so we suppress the same way as the adjacent
+              // pipelineStateOf args.
               const label = showEfilePipeline
-                ? efilePipelineLabels[key as (typeof EFILE_PIPELINE_KEYS)[number]]
-                : paymentPipelineLabels[key as (typeof PAYMENT_PIPELINE_KEYS)[number]]
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                  efilePipelineLabels[key as (typeof EFILE_PIPELINE_KEYS)[number]]
+                : // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                  paymentPipelineLabels[key as (typeof PAYMENT_PIPELINE_KEYS)[number]]
               return (
                 <li key={key} className="flex flex-col">
                   <div className="flex items-start gap-2 text-xs">
@@ -7087,7 +7112,7 @@ function subStatusForActiveStage(
   }
 }
 
-function timelineIndexForStatus(status: ObligationStatus): number {
+function timelineIndexForStatus(status: string): number {
   switch (status) {
     case 'pending':
     case 'not_applicable':
@@ -7124,7 +7149,7 @@ function mineTimelineTimestamps(
     if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
     const afterStatus = (event.afterJson as { status?: unknown }).status
     if (typeof afterStatus !== 'string') continue
-    const idx = timelineIndexForStatus(afterStatus as ObligationStatus)
+    const idx = timelineIndexForStatus(afterStatus)
     if (stamps[idx] === null) stamps[idx] = event.createdAt
   }
   return stamps

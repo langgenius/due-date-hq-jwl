@@ -502,10 +502,16 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
           // Alerts promoted to first-class sidebar destination — the
           // morning routine becomes: glance Today → scan Alerts →
-          // triage Obligations. The badge counts the unified unread
-          // (`useInboxUnreadCount`) which today is dominated by Pulse
-          // alerts; when other notification types start landing this
-          // can switch to a Pulse-only count.
+          // triage Obligations.
+          //
+          // TODO(alerts-vocab 2026-05-22): the badge currently counts
+          // the unified inbox via `useInboxUnreadCount` and will
+          // overcount once @-mentions / status notifications start
+          // landing. Switch to a Pulse-scoped query
+          // (`orpc.pulse.unreadCount` or a `category: 'pulse'` filter
+          // on `notifications.unreadCount`). Tracked in
+          // `docs/Design/obligation-panel-v2-and-alerts-vocabulary.md`
+          // Thread 1, item 2.
           {
             href: '/rules/pulse',
             label: t`Alerts`,

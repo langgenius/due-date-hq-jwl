@@ -7,8 +7,8 @@ export function RulesPulseRoute() {
   const { t } = useLingui()
   return (
     <RulesPageShell
-      title={t`Pulse Notification`}
-      breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }, { label: t`Pulse alerts` }]}
+      title={t`Alerts`}
+      breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }, { label: t`Alerts` }]}
     >
       <PulseChangesTab embedded />
     </RulesPageShell>
