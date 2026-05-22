@@ -373,18 +373,24 @@ function CandidateReviewForm({
   const draftPanelMessage = draftUnavailableMessage ?? draftErrorMessage
   const concreteDraftGenerating =
     sourceDefined && !draftQuery.data && (draftQuery.isPending || draftQuery.isFetching)
+  // Distinct message from `draftPanelMessage`. The AiDraftReviewPanel
+  // already renders the long-form error inside its own box; surfacing
+  // the same string here would show it twice (was the source of the
+  // "Cloudflare AI Gateway not configured" appearing both in the box
+  // and below it in the screenshot). When the panel is already
+  // explaining what's broken, this paragraph uses a short ACTION hint
+  // pointing at the panel instead — so the user reads "what's wrong"
+  // once and "what to do" once.
   const acceptDisabledReason = sourceDefined
     ? reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
-      : draftUnavailableMessage
-        ? draftUnavailableMessage
-        : concreteDraftGenerating
-          ? null
-          : draftPanelMessage && !draftQuery.data
-            ? draftPanelMessage
-            : !draftQuery.data
-              ? t`AI concrete draft is not ready.`
-              : null
+      : concreteDraftGenerating
+        ? null
+        : !draftQuery.data && draftPanelMessage !== null
+          ? t`Resolve the AI draft issue above before accepting.`
+          : !draftQuery.data
+            ? t`AI concrete draft is not ready.`
+            : null
     : null
   const acceptDisabled =
     reviewDisabled ||
@@ -395,14 +401,13 @@ function CandidateReviewForm({
   const entitySummary = rule.entityApplicability.join(', ')
   return (
     <section className="flex flex-col gap-3 rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <SectionLabel>
-          <Trans>Practice review</Trans>
-        </SectionLabel>
-        <span className="text-xs text-status-review">
-          <Trans>Needs review</Trans>
-        </span>
-      </div>
+      {/* Section header used to include a right-aligned "Needs review"
+          chip that duplicated the rule-status pill in the audit meta
+          line above. Dropped per /critique — one canonical "needs
+          review" signal is enough. */}
+      <SectionLabel>
+        <Trans>Practice review</Trans>
+      </SectionLabel>
       <p className="text-sm text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
@@ -428,12 +433,16 @@ function CandidateReviewForm({
         <p className="text-xs text-severity-medium">{acceptDisabledReason}</p>
       ) : null}
       <div className="flex justify-end gap-2">
+        {/* `data-rule-action` lets parent surfaces (e.g. the batch-
+            review modal) bind keyboard shortcuts to these buttons
+            without lifting the mutation state out of this form. */}
         <Button
           type="button"
           variant="secondary"
           size="sm"
           onClick={submitReject}
           disabled={reviewDisabled}
+          data-rule-action="reject"
         >
           <Trans>Reject</Trans>
         </Button>
@@ -441,7 +450,13 @@ function CandidateReviewForm({
           <TooltipTrigger
             render={
               <span className="inline-flex">
-                <Button type="button" size="sm" onClick={submitAccept} disabled={acceptDisabled}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={submitAccept}
+                  disabled={acceptDisabled}
+                  data-rule-action="accept"
+                >
                   <Trans>Accept rule</Trans>
                 </Button>
               </span>

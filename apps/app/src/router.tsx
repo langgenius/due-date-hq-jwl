@@ -520,6 +520,20 @@ export function createAppRouter() {
               },
             },
             {
+              // Preview-only: the unified one-surface Rule library shape
+              // (no matrix toggle). Wired 2026-05-21 so the design call
+              // can compare side-by-side with the original. Retire and
+              // fold into /rules/library when (or if) v2 is approved.
+              path: 'rules/library-v2',
+              handle: routeHandle(routeSummaries.rulesLibrary),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesLibraryV2Route } = await import('@/routes/rules.library-v2')
+
+                return { Component: RulesLibraryV2Route }
+              },
+            },
+            {
               path: 'rules/pulse',
               handle: routeHandle(routeSummaries.rulesPulse),
               HydrateFallback: RouteHydrateFallback,
