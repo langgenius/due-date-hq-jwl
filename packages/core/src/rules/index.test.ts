@@ -536,6 +536,123 @@ describe('@duedatehq/core/rules', () => {
     )
   })
 
+  it('uses focused Kentucky tax calendar excerpts for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ky.tax_calendar_2026')).toMatchObject({
+      title: 'Kentucky DOR 2026 Tax Calendar',
+      url: 'https://revenue.ky.gov/News/Pages/Calendars.aspx',
+      sourceType: 'calendar',
+      domains: expect.arrayContaining(['franchise_or_entity_tax', 'sales_use_tax', 'withholding']),
+    })
+    expect(findRuleById('ky.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'ky.tax_calendar_2026',
+    ])
+    expect(findRuleById('ky.sales_use_tax.candidate.2026')?.sourceIds).toEqual([
+      'ky.tax_calendar_2026',
+    ])
+    expect(findRuleById('ky.withholding.candidate.2026')?.sourceIds).toEqual([
+      'ky.tax_calendar_2026',
+    ])
+    expect(
+      findRuleById('ky.franchise_or_entity_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Corporation Income Tax/LLET')
+    expect(findRuleById('ky.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Sales Tax (Monthly, Quarterly)',
+    )
+    expect(findRuleById('ky.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Quarterly Income Tax Withholding Return',
+    )
+  })
+
+  it('uses focused Louisiana filing-date excerpts for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('la.tax_calendar')).toMatchObject({
+      title: 'Louisiana Department of Revenue Tax Calendar',
+      url: 'https://revenue.louisiana.gov/calendar/2026/',
+      sourceType: 'calendar',
+      domains: expect.arrayContaining([
+        'fiduciary_income_return',
+        'business_income_return',
+        'business_estimated_tax',
+        'pass_through_entity_return',
+        'franchise_or_entity_tax',
+        'sales_use_tax',
+        'withholding',
+      ]),
+    })
+    expect(findRuleById('la.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'la.tax_calendar',
+    ])
+    expect(findRuleById('la.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'la.tax_calendar',
+    ])
+    expect(findRuleById('la.sales_use_tax.candidate.2026')?.sourceIds).toEqual(['la.tax_calendar'])
+    expect(findRuleById('la.withholding.candidate.2026')?.sourceIds).toEqual(['la.tax_calendar'])
+    expect(
+      findRuleById('la.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Annual Corporation and Franchise Return')
+    expect(
+      findRuleById('la.business_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 15, 2026')
+    expect(
+      findRuleById('la.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('May 15th of the following year')
+    expect(findRuleById('la.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'monthly sales and use tax returns',
+    )
+    expect(findRuleById('la.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'L-1 Return',
+    )
+  })
+
+  it('uses focused Maryland deadline and PTE sources for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('md.tax_deadlines')).toMatchObject({
+      url: 'https://www.marylandtaxes.gov/pros/deadlines-and-duedates.php',
+      sourceType: 'due_dates',
+      domains: expect.arrayContaining(['sales_use_tax', 'withholding']),
+    })
+    expect(sourcesById.get('md.tax_deadlines')?.domains).not.toContain('pass_through_entity_return')
+    expect(sourcesById.get('md.pass_through_entity_tax')).toMatchObject({
+      url: 'https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/pte-booklet-510.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: ['pass_through_entity_return'],
+    })
+    expect(findRuleById('md.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'md.pass_through_entity_tax',
+    ])
+    expect(findRuleById('md.sales_use_tax.candidate.2026')?.sourceIds).toEqual(['md.tax_deadlines'])
+    expect(findRuleById('md.withholding.candidate.2026')?.sourceIds).toEqual(['md.tax_deadlines'])
+    expect(
+      findRuleById('md.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('15th day of the 4th month')
+    expect(findRuleById('md.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      '1st Quarter due April 20',
+    )
+    expect(findRuleById('md.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'quarterly income tax withholding returns',
+    )
+  })
+
+  it('uses the North Carolina sales tax due-date page excerpt', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('nc.sales_use_due_dates')).toMatchObject({
+      url: 'https://www.ncdor.gov/taxes-forms/sales-and-use-tax/sales-and-use-tax-filing-requirements-payment-options/filing-frequency-and-due-dates',
+      sourceType: 'due_dates',
+      domains: ['sales_use_tax'],
+    })
+    expect(findRuleById('nc.sales_use_tax.candidate.2026')?.sourceIds).toEqual([
+      'nc.sales_use_due_dates',
+    ])
+    expect(findRuleById('nc.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      '20th day of each month',
+    )
+  })
+
   it('uses current official Mississippi sources for fiduciary and pass-through candidates', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
 
@@ -549,18 +666,28 @@ describe('@duedatehq/core/rules', () => {
       sourceType: 'due_dates',
       domains: ['pass_through_entity_return'],
     })
+    expect(sourcesById.get('ms.sales_withholding_tax')?.domains).toEqual(['sales_use_tax'])
+    expect(sourcesById.get('ms.withholding_tax')).toMatchObject({
+      url: 'https://www.dor.ms.gov/business/withholding-tax',
+      sourceType: 'due_dates',
+      domains: ['withholding'],
+    })
     expect(findRuleById('ms.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
       'ms.fiduciary_income_tax',
     ])
     expect(findRuleById('ms.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
       'ms.pass_through_entity_tax',
     ])
+    expect(findRuleById('ms.withholding.candidate.2026')?.sourceIds).toEqual(['ms.withholding_tax'])
     expect(
       findRuleById('ms.fiduciary_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
     ).toContain('April 15')
     expect(
       findRuleById('ms.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
     ).toContain('15th day of the 3rd month')
+    expect(findRuleById('ms.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      '15th day of the month following the period',
+    )
   })
 
   it('uses current official Montana URLs after the tax due dates page moved', () => {
@@ -704,6 +831,44 @@ describe('@duedatehq/core/rules', () => {
     })
   })
 
+  it('uses the California EDD payroll tax calendar for withholding and UI wage candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ca.edd_required_filings_due_dates')).toMatchObject({
+      title: 'California EDD Payroll Tax Calendar',
+      url: 'https://edd.ca.gov/en/payroll_taxes/Due_Dates_Calendar/',
+      sourceType: 'calendar',
+      domains: ['withholding', 'ui_wage_report'],
+    })
+    expect(findRuleById('ca.withholding.candidate.2026')?.sourceIds).toEqual([
+      'ca.edd_required_filings_due_dates',
+    ])
+    expect(findRuleById('ca.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'ca.edd_required_filings_due_dates',
+    ])
+    expect(findRuleById('ca.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'DE 88 (Quarterly)',
+    )
+    expect(findRuleById('ca.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'DE 9 and DE 9C due April 30, 2026',
+    )
+  })
+
+  it('uses focused Utah quarterly calendar excerpts for sales and withholding candidates', () => {
+    expect(findRuleById('ut.sales_use_tax.candidate.2026')?.sourceIds).toEqual([
+      'ut.sales_withholding_due_dates',
+    ])
+    expect(findRuleById('ut.withholding.candidate.2026')?.sourceIds).toEqual([
+      'ut.sales_withholding_due_dates',
+    ])
+    expect(findRuleById('ut.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Sales and Use (STC)',
+    )
+    expect(findRuleById('ut.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Employer Withholding (WTH)',
+    )
+  })
+
   it('uses focused Michigan due-date pages and excerpts for concrete draft candidates', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
 
@@ -827,6 +992,52 @@ describe('@duedatehq/core/rules', () => {
     ).toContain('fifteenth day of the fourth month')
     expect(findRuleById('vt.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
       'April 30',
+    )
+  })
+
+  it('uses the Tennessee UI delinquent-cycle page only for its embedded due-date rule', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('tn.ui_wage_report')).toMatchObject({
+      title: 'Tennessee Unemployment Quarterly Report Due Date and Delinquent Cycle',
+      url: 'https://lwdsupport.tn.gov/hc/en-us/articles/360001003928-What-is-delinquent-cycle',
+      sourceType: 'due_dates',
+      domains: ['ui_wage_report'],
+    })
+    expect(findRuleById('tn.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'tn.ui_wage_report',
+    ])
+    expect(findRuleById('tn.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'quarterly unemployment report becomes due at the end of the next month',
+    )
+  })
+
+  it('uses repaired Nebraska and Nevada unemployment due-date sources', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ne.ui_wage_report')).toMatchObject({
+      title: 'Nebraska Employer Tax Services User Guide Tax and Wage Reports',
+      url: 'https://dol.nebraska.gov/webdocs/Resources/Items/1_Employers_Services_User_Guide%20Edited%20Version.pdf',
+      sourceType: 'due_dates',
+      domains: ['ui_wage_report'],
+    })
+    expect(sourcesById.get('nv.ui_wage_report')).toMatchObject({
+      title: 'Nevada DETR Quarterly Reporting Information',
+      url: 'https://detr.nv.gov/Page/NUI_View_Quarterly_Reporting_Info',
+      sourceType: 'due_dates',
+      domains: ['ui_wage_report'],
+    })
+    expect(findRuleById('ne.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'ne.ui_wage_report',
+    ])
+    expect(findRuleById('nv.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'nv.ui_wage_report',
+    ])
+    expect(findRuleById('ne.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'due by the end of the month following each quarter end date',
+    )
+    expect(findRuleById('nv.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'April 30, 2026',
     )
   })
 
@@ -1386,6 +1597,12 @@ describe('@duedatehq/core/rules', () => {
       dueDate: null,
       reminderReady: false,
     })
+    const payrollDepositRule = findRuleById('fed.payroll_deposit.monthly.2026')
+    expect(payrollDepositRule?.sourceIds).toEqual(['fed.irs_pub_15_2026', 'fed.irs_pub_509_2026'])
+    expect(payrollDepositRule?.evidence[0]).toMatchObject({
+      sourceId: 'fed.irs_pub_15_2026',
+      sourceExcerpt: expect.stringContaining('January wages are due February 17'),
+    })
     expect(nec).toMatchObject({
       eventType: 'information_report',
       dueDate: '2026-02-02',
@@ -1455,6 +1672,22 @@ describe('@duedatehq/core/rules', () => {
       period: 'source_defined',
       requiresReview: true,
       reminderReady: false,
+    })
+  })
+
+  it('uses Florida corporate due-date PDF as the primary concrete-draft source', () => {
+    const returnRule = findRuleById('fl.f1120.return.2025')
+    const estimatedRule = findRuleById('fl.cit.estimated_tax.2026')
+
+    expect(returnRule?.sourceIds).toEqual(['fl.cit_due_dates_2026', 'fl.cit'])
+    expect(returnRule?.evidence[0]).toMatchObject({
+      sourceId: 'fl.cit_due_dates_2026',
+      sourceExcerpt: expect.stringContaining('12/31/25 05/01/26'),
+    })
+    expect(estimatedRule?.sourceIds).toEqual(['fl.cit_due_dates_2026', 'fl.cit'])
+    expect(estimatedRule?.evidence[0]).toMatchObject({
+      sourceId: 'fl.cit_due_dates_2026',
+      sourceExcerpt: expect.stringContaining('12/31/26 06/01/26 06/30/26 09/30/26 12/31/26'),
     })
   })
 })

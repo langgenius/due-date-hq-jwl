@@ -402,6 +402,243 @@ missing successful drafts, zero targets with no attempt, and no VT, RI, PA, or
 OH rows in the latest missing/failure groups. `SOURCE_TEXT_UNAVAILABLE` dropped
 from 35 to 12 in this pass.
 
+## Missouri UI Wage Retry
+
+Missouri's current DES quarterly reports page is reachable and contains the
+Due Dates section with the last-day-of-month quarterly rule. The remaining
+`SOURCE_TEXT_UNAVAILABLE` row was an old failed concrete-draft attempt for
+`mo.ui_wage_report.candidate.2026`, not a stale source URL. Targeted local
+backfill with `--source=mo.ui_wage_report --retry-failed` generated a successful
+global cached draft.
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 381 successful global cached drafts, 50 missing successful drafts, zero
+targets with no attempt, and no MO rows in the latest missing/failure groups.
+`SOURCE_TEXT_UNAVAILABLE` dropped from 12 to 11 after this retry.
+
+## Tennessee UI Wage Source Clarification
+
+Tennessee's UI wage source pointed to a support article titled "What is
+delinquent cycle?", which looked unrelated in the failure report. The article is
+still the best official due-date-specific source found in the Tennessee Labor
+support pages because it states that the employer's quarterly unemployment
+report becomes due at the end of the next month, with the first quarter ending
+March 31 and due April 30. I kept the URL, renamed the source to "Tennessee
+Unemployment Quarterly Report Due Date and Delinquent Cycle", and added a
+source-backed excerpt so concrete-draft generation is driven by the due-date
+sentence rather than the article title.
+
+Targeted local backfill with `--source=tn.ui_wage_report --retry-failed`
+generated a successful global cached draft. Follow-up report on the broader
+current working tree: 431 source-defined targets, 382 successful global cached
+drafts, 49 missing successful drafts, zero targets with no attempt, and no TN
+`SOURCE_TEXT_UNAVAILABLE` rows in the latest missing/failure groups. TN still
+has one separate franchise/excise `AI_GATEWAY_ERROR` row to retry or tighten
+separately. `SOURCE_TEXT_UNAVAILABLE` dropped from 11 to 10 after this repair.
+
+## Minnesota UI Wage Retry
+
+Minnesota's current employer handbook due-date page is reachable and already
+has focused source-backed excerpts for UI wage detail report due dates. The
+remaining `SOURCE_TEXT_UNAVAILABLE` row was an old failed attempt for
+`mn.ui_wage_report.candidate.2026`, not a stale source URL. Targeted local
+backfill with `--source=mn.ui_wage_report --retry-failed` generated a successful
+global cached draft.
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 383 successful global cached drafts, 48 missing successful drafts, zero
+targets with no attempt, and no MN rows in the latest missing/failure groups.
+`SOURCE_TEXT_UNAVAILABLE` dropped from 10 to 9 after this retry.
+
+## Nebraska and Nevada UI Wage Source Repair
+
+Nebraska's registered UI wage source pointed at an unemployment insurance tax
+overview URL that was not reliable as a concrete-draft source. I replaced it
+with the Nebraska Department of Labor Employer Tax Services User Guide PDF,
+which states that quarterly Combined Tax Reports and wage reports are due by
+the end of the month following each quarter end date. A source-backed excerpt
+was added for `NE:ui_wage_report`.
+
+Nevada's registered UI wage source pointed at the old ESS help page. I replaced
+it with the current Nevada DETR Quarterly Reporting Information page, which
+lists the quarterly contribution and wage report rule and the 2026 due-date
+table. A source-backed excerpt was added for `NV:ui_wage_report`.
+
+Targeted local backfill succeeded for `nv.ui_wage_report` with the fast model.
+Nebraska first cleared the source-text error but hit a fast-model parse error;
+retrying `ne.ui_wage_report` with the default model generated a successful
+global cached draft. Follow-up report on the broader current working tree: 431
+source-defined targets, 385 successful global cached drafts, 46 missing
+successful drafts, zero targets with no attempt, and no NE or NV rows in the
+latest missing/failure groups. `SOURCE_TEXT_UNAVAILABLE` dropped from 9 to 7
+after this repair.
+
+## Remaining Reachable Source Retry Sweep
+
+The remaining `SOURCE_TEXT_UNAVAILABLE` rows for NM, ND, SC, TX, UT, and VA
+were all on browser-reachable source pages. Targeted retries cleared the source
+text failures without replacing those source URLs:
+
+- `nd.sales_use_tax` and `nd.withholding_tax` succeeded with the fast model.
+- `sc.ui_wage_report`, `tx.ui_wage_report_due_dates`, `ut.ui_wage_report`, and
+  `va.ui_wage_report` succeeded with the fast model.
+- `nm.ui_wage_report` first cleared the source-text error but hit a fast-model
+  parse error; retrying with the default model generated a successful global
+  cached draft.
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 392 successful global cached drafts, 39 missing successful drafts, zero
+targets with no attempt, and no `SOURCE_TEXT_UNAVAILABLE` rows remaining. The
+remaining failures are now non-source categories: `GUARD_REJECTED`,
+`AI_GATEWAY_ERROR`, and `SCHEMA_INVALID`.
+
+## California EDD Guard Repair
+
+California's remaining `GUARD_REJECTED` rows were not fetch failures. Both
+`ca.withholding.candidate.2026` and `ca.ui_wage_report.candidate.2026` used the
+broad EDD Required Filings page, and the AI selected introductory/navigation
+text that contained no concrete due date. I repointed the existing
+`ca.edd_required_filings_due_dates` source to the EDD Payroll Tax Calendar and
+changed its source type to `calendar`.
+
+Focused source-backed excerpts were added for:
+
+- `CA:withholding`: DE 88 monthly and quarterly payroll tax deposit due dates.
+- `CA:ui_wage_report`: DE 9 and DE 9C quarterly contribution return and wage
+  report due dates.
+
+Targeted local backfill with `--source=ca.edd_required_filings_due_dates
+--retry-failed` generated successful global cached drafts for both CA rows.
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 394 successful global cached drafts, 37 missing successful drafts, zero
+targets with no attempt, no CA rows in the latest missing/failure groups, and
+`GUARD_REJECTED` reduced from 17 to 15.
+
+## Kentucky Tax Calendar Guard Repair
+
+Kentucky's remaining tax-calendar failures were caused by the registered
+`ky.tax_calendar_2026` source pointing at the DOR Tax Calendar landing page.
+That page is a month index, while the concrete due dates are on monthly pages
+such as January, April, and May 2026.
+
+Kept the existing Kentucky calendar source and added focused source-backed
+excerpts for:
+
+- `KY:franchise_or_entity_tax`: April 15 and May 15 Corporation Income
+  Tax/LLET and pass-through entity rows.
+- `KY:sales_use_tax`: January 20, April 20, May 20, and accelerated filer
+  sales tax rows.
+- `KY:withholding`: twice-monthly, monthly, and quarterly income tax
+  withholding rows from April and May.
+
+Targeted local backfill with `--source=ky.tax_calendar_2026 --retry-failed`
+generated successful global cached drafts for all three tax-calendar rows:
+franchise/entity, sales/use, and withholding. Follow-up report on the broader
+current working tree: 431 source-defined targets, 397 successful global cached
+drafts, 34 missing successful drafts, zero targets with no attempt, KY only has
+the separate UI wage AI gateway row remaining, and `GUARD_REJECTED` reduced
+from 15 to 13.
+
+## Louisiana Filing Dates Guard Repair
+
+Louisiana's remaining tax-calendar failures had the same shape as Kentucky. The
+registered `la.tax_calendar` source points at the 2026 filing-date year page,
+which shows month cards and only a short subset of events. The concrete
+source-backed dates are on monthly pages such as `/calendar/2026/04` and
+`/calendar/2026/05`, plus event detail pages for specific filing types.
+
+Kept the existing Louisiana calendar source and added focused source-backed
+excerpts for:
+
+- `LA:fiduciary_income_return`: May 15 fiduciary income tax return event.
+- `LA:business_income_return` and `LA:franchise_or_entity_tax`: May 15 annual
+  corporation and franchise return event.
+- `LA:business_estimated_tax`: corporation estimated payment rows for April,
+  June, September, and December.
+- `LA:pass_through_entity_return`: Louisiana partnership tax due-date guidance.
+- `LA:sales_use_tax`: monthly sales and use tax rows from January, April, June,
+  and November.
+- `LA:withholding`: L-1 return rows for semi-monthly, monthly, and quarterly
+  payment frequencies.
+
+Targeted local backfill with `--source=la.tax_calendar --retry-failed`
+generated successful global cached drafts for all seven LA calendar rows.
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 404 successful global cached drafts, 27 missing successful drafts, zero
+targets with no attempt, LA only has the separate UI wage AI gateway row
+remaining, and `GUARD_REJECTED` reduced from 13 to 9.
+
+## Maryland, North Carolina, And Mississippi Guard Repair
+
+The next `GUARD_REJECTED` set had three different source-shape problems:
+
+- Maryland sales/use and withholding were valid rows on the Comptroller
+  deadlines page, but needed focused source excerpts.
+- Maryland pass-through entity return was incorrectly sourced to that general
+  deadlines page; it now uses the 2025 Maryland Form 510 PTE instruction PDF.
+- North Carolina sales/use had the right filing-frequency page, but the model
+  needed concrete 2026 expansion examples for monthly and quarterly schedules.
+- Mississippi withholding was sourced to the broad Business Tax landing page; it
+  now uses the official Mississippi Withholding Tax page.
+
+Targeted local backfill generated successful global cached drafts for:
+
+- `md.pass_through_entity_return`, `md.sales_use_tax`, and `md.withholding`.
+- `nc.sales_use_tax` after one fast-model parse failure and a focused excerpt
+  expansion.
+- `ms.withholding`.
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 409 successful global cached drafts, 22 missing successful drafts, zero
+targets with no attempt, no MD guard rows, no MS withholding guard row, no NC
+sales/use guard row, and `GUARD_REJECTED` reduced from 9 to 4.
+
+## Utah and Florida Guard Repair
+
+Utah's remaining sales/use and withholding guard failures were both on the same
+quarterly calendar source. The source page was valid, but the AI cited only the
+repeated `April 30` date without the surrounding tax-type context. I added
+focused excerpts for `UT:sales_use_tax` and `UT:withholding` that include the
+April 30 quarterly due date plus the relevant Utah tax type labels: `Sales and
+Use (STC)`, `Withholding Taxes`, and `Employer Withholding (WTH)`.
+
+Florida's corporate return and estimated-tax failures were caused by the
+source-defined rules preferring the broad Corporate Income Tax overview page.
+The concrete dates are in the official Corporate Income Tax Due Dates PDF, so I
+reordered both Florida corporate rules to use `fl.cit_due_dates_2026` as the
+primary concrete-draft source and added focused PDF table excerpts. The F-1120
+return row generated successfully. The estimated-tax row no longer appears as
+`GUARD_REJECTED`; it now reaches the focused PDF source but still has a
+remaining `AI_GATEWAY_ERROR` from model timeout/parse retries.
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 412 successful global cached drafts, 19 missing successful drafts, zero
+targets with no attempt, no UT rows, no FL `GUARD_REJECTED` rows, and
+`GUARD_REJECTED` reduced from 4 to 1. The only remaining guard row is the
+federal monthly payroll deposit rule.
+
+## Federal Payroll Deposit Guard Repair
+
+The last `GUARD_REJECTED` row was `fed.payroll_deposit.monthly.2026`. It was
+not a fetch failure: the selected source text was only the Pub. 509 rollover
+sentence, and Pub. 509 explicitly says the calendars do not cover employment tax
+deposit rules and that Pub. 15 gives the deposit rules. The AI could not expand
+any concrete monthly deposit dates from that source text, so the guard rejected
+the generated draft.
+
+I added the current IRS Publication 15 (2026) source, made it the primary source
+for the monthly payroll deposit rule, and kept Pub. 509 as an auxiliary employer
+calendar source. The new Pub. 15 evidence excerpt includes the monthly deposit
+rule, the business-day rollover rule, and concrete 2026 month-by-month expansion
+examples for monthly payroll deposits.
+
+Targeted local backfill with `--source=fed.irs_pub_15_2026 --retry-failed`
+generated a successful global cached draft for
+`fed.payroll_deposit.monthly.2026`. Follow-up report on the broader current
+working tree: 431 source-defined targets, 413 successful global cached drafts,
+18 missing successful drafts, zero targets with no attempt, and zero
+`GUARD_REJECTED` rows remaining.
+
 ## Verification
 
 - `pnpm --filter @duedatehq/ai test -- src/ai.test.ts`
@@ -486,4 +723,56 @@ from 35 to 12 in this pass.
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=vt.sales_use_tax`
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.withholding_tax`
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mo.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=tn.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mn.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ne.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nv.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=ne.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.sales_use_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.withholding_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nm.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=nm.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=sc.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=tx.ui_wage_report_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ut.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=va.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ca.edd_required_filings_due_dates`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ky.tax_calendar_2026`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=la.tax_calendar`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=md.tax_deadlines`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=md.pass_through_entity_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nc.sales_use_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=nc.sales_use_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ms.withholding_tax`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nc.sales_use_due_dates`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ut.sales_withholding_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=fl.cit_due_dates_2026`
+- `pnpm rules:concrete-drafts:inspect -- --rule=fl.cit.estimated_tax.2026 --show-source-excerpt`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=fl.cit_due_dates_2026`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=fl.cit_due_dates_2026`
+- `pnpm rules:concrete-drafts:inspect -- --rule=fl.cit.estimated_tax.2026 --show-source-excerpt`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=fl.cit_due_dates_2026`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=fed.irs_pub_15_2026`
 - `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`

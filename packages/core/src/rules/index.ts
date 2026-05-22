@@ -1155,9 +1155,9 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   {
     jurisdiction: 'CA',
     id: 'ca.edd_required_filings_due_dates',
-    title: 'California EDD Required Filings and Due Dates',
-    url: 'https://edd.ca.gov/en/payroll_taxes/required_filings_and_due_dates/',
-    sourceType: 'due_dates',
+    title: 'California EDD Payroll Tax Calendar',
+    url: 'https://edd.ca.gov/en/payroll_taxes/Due_Dates_Calendar/',
+    sourceType: 'calendar',
     acquisitionMethod: 'html_watch',
     domains: ['withholding', 'ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
@@ -2127,7 +2127,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   {
     jurisdiction: 'TN',
     id: 'tn.ui_wage_report',
-    title: 'Tennessee Unemployment Quarterly Report Due Date',
+    title: 'Tennessee Unemployment Quarterly Report Due Date and Delinquent Cycle',
     url: 'https://lwdsupport.tn.gov/hc/en-us/articles/360001003928-What-is-delinquent-cycle',
     sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
@@ -2836,7 +2836,6 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       'fiduciary_income_return',
       'business_income_return',
       'business_estimated_tax',
-      'pass_through_entity_return',
       'sales_use_tax',
       'withholding',
     ],
@@ -2849,6 +2848,18 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
       's_corp',
       'c_corp',
     ],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'MD',
+    id: 'md.pass_through_entity_tax',
+    title: 'Maryland Pass-Through Entity Income Tax Return Instructions',
+    url: 'https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/pte-booklet-510.pdf',
+    sourceType: 'publication',
+    acquisitionMethod: 'pdf_watch',
+    domains: ['pass_through_entity_return'],
+    entityApplicability: ['llc', 'partnership', 's_corp'],
     priority: 'critical',
     healthStatus: 'healthy',
   },
@@ -2938,7 +2949,19 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     url: 'https://www.dor.ms.gov/business',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
-    domains: ['sales_use_tax', 'withholding'],
+    domains: ['sales_use_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'MS',
+    id: 'ms.withholding_tax',
+    title: 'Mississippi DOR Withholding Tax',
+    url: 'https://www.dor.ms.gov/business/withholding-tax',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'manual_review',
+    domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
     healthStatus: 'healthy',
@@ -3068,9 +3091,9 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   {
     jurisdiction: 'NE',
     id: 'ne.ui_wage_report',
-    title: 'Nebraska Department of Labor Unemployment Insurance Tax',
-    url: 'https://dol.nebraska.gov/UIBenefits/Programs/UnemploymentInsurance/Tax',
-    sourceType: 'instructions',
+    title: 'Nebraska Employer Tax Services User Guide Tax and Wage Reports',
+    url: 'https://dol.nebraska.gov/webdocs/Resources/Items/1_Employers_Services_User_Guide%20Edited%20Version.pdf',
+    sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
@@ -3104,9 +3127,9 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   {
     jurisdiction: 'NV',
     id: 'nv.ui_wage_report',
-    title: 'Nevada DETR Employer Self Service',
-    url: 'https://ui.nv.gov/ESSHTML/help.htm',
-    sourceType: 'instructions',
+    title: 'Nevada DETR Quarterly Reporting Information',
+    url: 'https://detr.nv.gov/Page/NUI_View_Quarterly_Reporting_Info',
+    sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
@@ -3780,6 +3803,20 @@ export const RULE_SOURCES = hydrateRuleSources([
     lastReviewedOn: VERIFIED_AT,
   },
   {
+    id: 'fed.irs_pub_15_2026',
+    jurisdiction: 'FED',
+    title: "IRS Publication 15 (2026), Employer's Tax Guide",
+    url: 'https://www.irs.gov/publications/p15',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    cadence: 'pre_season',
+    priority: 'critical',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_preview'],
+    lastReviewedOn: VERIFIED_AT,
+  },
+  {
     id: 'fed.irs_i7004_2025',
     jurisdiction: 'FED',
     title: 'IRS Instructions for Form 7004 (12/2025)',
@@ -4322,6 +4359,8 @@ export const RULE_SOURCES = hydrateRuleSources([
 const SOURCE_EXCERPTS: Record<string, string> = {
   'fed.irs_pub_509_2026':
     'If any due date falls on a Saturday, Sunday, or legal holiday, the return is timely if filed the next business day.',
+  'fed.irs_pub_15_2026':
+    'Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month. If a deposit is required to be made on a day that is not a business day, the deposit is timely if made by the close of the next business day.',
   'fed.irs_i7004_2025':
     'Form 7004 does not extend the time for payment of tax. An extension to file is not an extension to pay.',
   'fed.irs_i1065_2025':
@@ -4718,6 +4757,74 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Kansas Department of Labor states that quarterly wage reports, tax reports, and tax payments are due July 31 for April 1 through June 30, October 31 for July 1 through September 30, and January 31 for October 1 through December 31.',
     'Kansas Department of Labor states that Quarterly Wage Reports are no longer mailed and that wage reporting details and online payments can be completed via KansasLabor.gov.',
   ].join('\n'),
+  'KY:franchise_or_entity_tax': [
+    'Kentucky DOR April 2026 Tax Calendar states that if a return due date falls on a scheduled holiday or weekend, returns are due the next working day.',
+    'Kentucky DOR April 2026 Tax Calendar lists April 15 for Corporation Income Tax/LLET and Pass-through Entity Return and Payment Due (FY ending 12/31).',
+    'Kentucky DOR May 2026 Tax Calendar lists May 15 for Corporation Income Tax/LLET and Pass-through Entity Return and Payment Due (FY ending 1/31).',
+  ].join('\n'),
+  'KY:sales_use_tax': [
+    'Kentucky DOR January 2026 Tax Calendar lists January 20 for Sales Tax (Monthly, Quarterly, Annual).',
+    'Kentucky DOR April 2026 Tax Calendar lists April 20 for Sales Tax (Monthly, Quarterly).',
+    'Kentucky DOR May 2026 Tax Calendar lists May 20 for Sales Tax (Monthly) and May 26 for Sales Tax Accelerated Filers.',
+  ].join('\n'),
+  'KY:withholding': [
+    'Kentucky DOR April 2026 Tax Calendar lists April 10 for Twice-Monthly Income Tax Withholding Return (March 16-March 31 payment).',
+    'Kentucky DOR April 2026 Tax Calendar lists April 15 for Monthly Income Tax Withholding Return (March payment).',
+    'Kentucky DOR April 2026 Tax Calendar lists April 30 for Quarterly Income Tax Withholding Return (January 1-March 31 payment).',
+    'Kentucky DOR May 2026 Tax Calendar lists May 15 for Monthly Income Tax Withholding Return (April payment) and May 26 for Twice-Monthly Income Tax Withholding Return (May 1-May 15 payment).',
+  ].join('\n'),
+  'LA:fiduciary_income_return': [
+    'Louisiana DOR 2026 May filing dates list Fiduciary Income Tax for Estates and Trusts under 05 / 15.',
+    'The Louisiana DOR Fiduciary Income Tax for Estates and Trusts event states Friday, May 15, 2026, and says fiduciaries managing estates and trusts are required to file their income tax returns by this date.',
+  ].join('\n'),
+  'LA:business_income_return': [
+    'Louisiana DOR 2026 May filing dates list Annual Corporation and Franchise Return under 05 / 15.',
+    'The Louisiana DOR Annual Corporation and Franchise Return event states Friday, May 15, 2026, and says corporations are required to file their annual income and franchise tax returns by this date.',
+  ].join('\n'),
+  'LA:business_estimated_tax': [
+    'The Louisiana DOR Declaration of Estimated Corporation Income - 1st Payment event states Wednesday, April 15, 2026, and says corporations are required to make their first estimated income tax payment by this date.',
+    'Louisiana DOR 2026 filing dates list Declaration of Estimated Corporation Income - 2nd Payment in June 2026 and the June page lists it under 06 / 15.',
+    'Louisiana DOR 2026 filing dates list Declaration of Estimated Corporation Income - 3rd Payment in September 2026 and Declaration of Estimated Corporation Income - 4th Payment in December 2026.',
+    'The Louisiana DOR Declaration of Estimated Corporation Income - 4th Payment event states Tuesday, December 15, 2026, and says the fourth quarter payment is due on the 15th day of the 12th month of the taxable year.',
+  ].join('\n'),
+  'LA:pass_through_entity_return': [
+    'Louisiana DOR Partnership Tax guidance states that returns and payments are due on or before May 15th of the following year.',
+    'For fiscal-year partnership taxpayers, Louisiana DOR states that returns and payments are due on the 15th day of the fifth month after the close of the fiscal year.',
+    'Louisiana DOR states that if the partnership due date falls on a weekend or legal holiday, the return is due on the next business day.',
+  ].join('\n'),
+  'LA:franchise_or_entity_tax': [
+    'Louisiana DOR 2026 May filing dates list Annual Corporation and Franchise Return under 05 / 15.',
+    'The Louisiana DOR Annual Corporation and Franchise Return event states Friday, May 15, 2026, and says corporations are required to file their annual income and franchise tax returns by this date.',
+  ].join('\n'),
+  'LA:sales_use_tax': [
+    'The Louisiana DOR Sales and Use Tax event states Tuesday, January 20, 2026, and says businesses must file their monthly sales and use tax returns by this date.',
+    'The Louisiana DOR 2026 April filing dates page lists Sales and Use Tax under 04 / 20, and the Sales and Use Tax event states Monday, April 20, 2026.',
+    'The Louisiana DOR Sales and Use Tax event states Monday, June 22, 2026, and says businesses must file their monthly sales and use tax returns by this date.',
+    'The Louisiana DOR 2026 November filing dates page lists Sales and Use Tax under 11 / 20.',
+  ].join('\n'),
+  'LA:withholding': [
+    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 4th Quarter - Semi-Monthly Payment Frequencies event states Thursday, January 15, 2026.',
+    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 4th Quarter - Quarterly and Monthly Payment Frequencies event states Monday, February 2, 2026.',
+    'The Louisiana DOR Louisiana Withholding Tax Form (L-1 Return) - 1st Quarter - Semi-Monthly Payment Frequencies event states Wednesday, April 15, 2026, and says employers with semi-monthly payment frequencies must file their first quarter withholding tax returns by this date.',
+    'The Louisiana DOR 2026 April filing dates page lists Louisiana Withholding Tax Form (L-1 Return) - 1st Quarter - Quarterly and Monthly Payment Frequencies under 04 / 30.',
+  ].join('\n'),
+  'MD:pass_through_entity_return': [
+    'Maryland 2025 Form 510 Pass-Through Entity Income Tax Return Instructions state that every Maryland PTE must file a return, even if it has no income or the entity is inactive.',
+    'Maryland Form 510 instructions state to file Form 510 by the 15th day of the 4th month following the close of the tax year or period.',
+    'Maryland Form 510/511E extension application must be properly filed and submitted by the 15th day of the 4th month following close of the tax year or period.',
+  ].join('\n'),
+  'MD:sales_use_tax': [
+    'Comptroller of Maryland Sales & Use Tax Due Dates state that if a due date falls on a Saturday or Sunday or holiday, the report is due on the next business day.',
+    'Maryland sales and use tax due-date table lists January due February 20, February due March 20, March due April 20, and 1st Quarter due April 20.',
+    'Maryland sales and use tax due-date table lists April due May 20, May due June 20, June due July 20, and 2nd Quarter due July 20.',
+    'Maryland sales and use tax due-date table lists September due October 20, 3rd Quarter due October 20, December due January 20, and 4th Quarter due January 20.',
+  ].join('\n'),
+  'MD:withholding': [
+    'Comptroller of Maryland Withholding Tax Due Dates state that income tax withholding report due dates vary for monthly, quarterly, accelerated, and annual filers.',
+    'Maryland monthly income tax withholding reports are due on the 15th day of the month following the month in which the income tax was withheld.',
+    'Maryland quarterly income tax withholding returns are due on the 15th day of the month that follows a calendar quarter in which income tax was withheld.',
+    'Maryland annual withholding reports are due on or before January 31 in the year that follows the year in which the income tax was withheld.',
+  ].join('\n'),
   'ME:individual_income_return': [
     'Maine Revenue Services lists Form 1040ME and Form 1040EXT-ME as due April 15 for calendar-year filers.',
     'Maine Revenue Services states that if the due date falls on a holiday or weekend, the due date is the next business day.',
@@ -4849,6 +4956,29 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Missouri lists the 1st quarter submission period as April 1-April 30, 2nd quarter as July 1-July 31, 3rd quarter as October 1-October 31, and 4th quarter as January 1-January 31.',
     'When the Missouri due date falls on a Saturday, Sunday, or holiday, the first working date following is considered timely.',
   ].join('\n'),
+  'TN:ui_wage_report': [
+    "Tennessee states that at the end of each quarter, the employer's quarterly unemployment report becomes due at the end of the next month.",
+    'Tennessee gives the example that the 1st quarter ends March 31 and employers have until April 30 to file their quarterly report.',
+    'If no Tennessee quarterly unemployment report is received by the due date, the delinquent cycle begins.',
+  ].join('\n'),
+  'NE:ui_wage_report': [
+    'Nebraska Employer Tax Services User Guide states that any employer with active liable quarters must submit a quarterly Combined Tax Report.',
+    'Nebraska tax and wage reports must both be submitted before the deadline to be considered timely.',
+    'Nebraska reports and payment are due by the end of the month following each quarter end date.',
+  ].join('\n'),
+  'NV:ui_wage_report': [
+    'Nevada DETR states that every quarter, all registered employers must file quarterly contribution and wage reports and pay any taxes due on or before the delinquent date for the quarter.',
+    'Nevada quarterly reports and payment are generally due by the last day of the first month following the close of the calendar quarter covered by the report.',
+    'Nevada lists 2026 quarterly due dates as April 30, 2026; July 31, 2026; November 2, 2026; and February 1, 2027 because weekends shift the Q3 and Q4 dates.',
+  ].join('\n'),
+  'NC:sales_use_tax': [
+    'North Carolina DOR Filing Frequency and Due Dates states that taxpayers assigned a monthly filing frequency must file on or before the 20th day of each month for all taxes due for the preceding calendar month.',
+    'North Carolina quarterly sales and use tax filers must file on or before the last day of January, April, July, and October for the preceding three-month period.',
+    'North Carolina monthly filing with prepayment taxpayers must file on or before the 20th day of each month for the preceding calendar month and make a prepayment of the next month liabilities.',
+    'For 2026 monthly North Carolina sales and use tax filings, January activity is due February 20, 2026; February activity is due March 20, 2026; March activity is due April 20, 2026; April activity is due May 20, 2026.',
+    'For 2026 quarterly North Carolina sales and use tax filings, the January-March quarter is due April 30, 2026; April-June is due July 31, 2026; July-September is due October 31, 2026; October-December is due January 31, 2027.',
+    'North Carolina lists due-date rollover guidance for due dates that fall on a Saturday, Sunday, or legal holiday.',
+  ].join('\n'),
   'MS:fiduciary_income_return': [
     'Mississippi fiduciary income tax instructions state that calendar-year estates and trusts must file a fiduciary income tax return on or before April 15.',
     'Fiscal-year Mississippi estates and trusts must file on or before the 15th day of the fourth month following the close of the tax period.',
@@ -4857,6 +4987,12 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   'MS:pass_through_entity_return': [
     'Mississippi DOR states that pass-through entity returns are due on or before the 15th day of the 3rd month following the close of the taxable year.',
     'Mississippi follows federal return filing and extended filing due dates for pass-through tax returns.',
+  ].join('\n'),
+  'MS:withholding': [
+    'Mississippi DOR Withholding Tax Due Dates state that withholding returns are due the 15th day of the month following the period.',
+    'If a Mississippi withholding due date falls on a Saturday, Sunday, or legal holiday, the due date becomes the next business day.',
+    'Mississippi W-2s are due to employees by January 31 and paper and electronic W-2s are due to DOR by January 31.',
+    'Mississippi paper 1099s and electronic 1099s are due to DOR by February 28.',
   ].join('\n'),
   'MT:individual_income_return': [
     'Montana Department of Revenue lists individual income tax returns as due April 15.',
@@ -4954,6 +5090,28 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   'ND:withholding': [
     'North Dakota income tax withholding deadlines list February 2, 2026 for 4th quarter 2025 quarterly Form 306, annual Form 306, and annual Form 307 because January 31 falls on a Saturday.',
     'North Dakota lists April 30, 2026 for 1st quarter 2026 quarterly Form 306, July 31, 2026 for 2nd quarter 2026, and November 2, 2026 for 3rd quarter 2026 because October 31 falls on a Saturday.',
+  ].join('\n'),
+  'CA:withholding': [
+    'California EDD 2026 Payroll Tax Due Dates list DE 88 (Monthly) payroll tax deposits for January due February 17, 2026; February due March 16, 2026; March due April 15, 2026; April due May 15, 2026; and May due June 15, 2026.',
+    'California EDD 2026 Payroll Tax Due Dates list DE 88 (Quarterly) deposits for the 1st Quarter of 2026 due April 30, 2026; 2nd Quarter due July 31, 2026; 3rd Quarter due November 2, 2026; and 4th Quarter due February 1, 2027.',
+    'California EDD states that if a due date is on a Saturday, Sunday, or legal holiday, the next business day is the last day you can submit the report or deposit.',
+  ].join('\n'),
+  'CA:ui_wage_report': [
+    'California EDD 2026 Payroll Tax Due Dates list DE 9 - Quarterly Contribution Return and Report of Wages and DE 9C - Quarterly Contribution Return and Report of Wages (Continuation).',
+    'California EDD lists the 1st Quarter of 2026 (January, February, March) DE 9 and DE 9C due April 30, 2026; 2nd Quarter due July 31, 2026; 3rd Quarter due November 2, 2026; and 4th Quarter due February 1, 2027.',
+    'California EDD states that if a due date is on a Saturday, Sunday, or legal holiday, the next business day is the last day you can submit the report.',
+  ].join('\n'),
+  'UT:sales_use_tax': [
+    'Utah State Tax Commission Quarterly Due Date: Jan-Mar 2026 page lists April 30 as the due date.',
+    'The Utah event states: For your tax accounts with quarterly filing and payment requirements for the tax types listed below.',
+    'The Utah Tax Types list includes Sales and Use (STC).',
+    'The event Details section lists Date: April 30 and Event Category: Due Dates.',
+  ].join('\n'),
+  'UT:withholding': [
+    'Utah State Tax Commission Quarterly Due Date: Jan-Mar 2026 page lists April 30 as the due date.',
+    'The Utah event states: For your tax accounts with quarterly filing and payment requirements for the tax types listed below.',
+    'The Utah Tax Types list includes Withholding Taxes and Employer Withholding (WTH).',
+    'The event Details section lists Date: April 30 and Event Category: Due Dates.',
   ].join('\n'),
   'VT:individual_income_return': [
     'Vermont statute requires a Vermont personal income tax return for individuals, trusts, and estates that meet the listed filing thresholds.',
@@ -6179,12 +6337,24 @@ export const OBLIGATION_RULES = [
       paymentExtended: false,
       notes: 'Deposit schedules are not return filing deadlines.',
     },
-    sourceIds: ['fed.irs_pub_509_2026'],
+    sourceIds: ['fed.irs_pub_15_2026', 'fed.irs_pub_509_2026'],
     evidence: [
       sourceEvidence(
+        'fed.irs_pub_15_2026',
+        'Monthly Deposit Schedule',
+        'Publication 15 defines monthly employment tax deposit timing and business-day rollover.',
+        {
+          sourceExcerpt: [
+            'Under the monthly deposit schedule, deposit employment taxes on payments made during a month by the 15th day of the following month.',
+            'If a deposit is required to be made on a day that is not a business day, the deposit is considered timely if it is made by the close of the next business day.',
+            'For 2026 monthly payroll deposits: January wages are due February 17, February wages are due March 16, March wages are due April 15, April wages are due May 15, May wages are due June 15, June wages are due July 15, July wages are due August 17, August wages are due September 15, September wages are due October 15, October wages are due November 16, November wages are due December 15, and December wages are due January 15, 2027.',
+          ].join('\n'),
+        },
+      ),
+      sourceEvidence(
         'fed.irs_pub_509_2026',
-        'Employment taxes',
-        'Publication 509 distinguishes employment tax returns and deposit due dates.',
+        'Employer tax calendar',
+        'Publication 509 says the employer calendar is used with Pub. 15, which gives the deposit rules.',
       ),
     ],
     defaultTip: 'Configure monthly or semiweekly deposits separately from Form 941.',
@@ -7399,17 +7569,23 @@ export const OBLIGATION_RULES = [
       paymentExtended: false,
       notes: 'Florida F-7004 must include tentative tax payment by original due date.',
     },
-    sourceIds: ['fl.cit', 'fl.cit_due_dates_2026'],
+    sourceIds: ['fl.cit_due_dates_2026', 'fl.cit'],
     evidence: [
+      sourceEvidence(
+        'fl.cit_due_dates_2026',
+        'Corporate Income Tax Due Dates',
+        'Florida publishes a taxable-year-end due-date table for Form F-1120 and F-7004.',
+        {
+          pdfPage: 1,
+          tableLabel: 'Florida Corporate Income Tax Return Filing Dates',
+          rowLabel: 'Taxable year end 12/31/25',
+          sourceExcerpt: 'Return (F-1120) or Extension (F-7004)\n12/31/25 05/01/26',
+        },
+      ),
       sourceEvidence(
         'fl.cit',
         'Extension of Time and Payment of Tentative Tax',
         'F-7004 is filed with tentative payment by the original due date.',
-      ),
-      sourceEvidence(
-        'fl.cit_due_dates_2026',
-        'Corporate Income Tax Due Dates',
-        'Florida publishes a taxable-year-end due-date table.',
       ),
     ],
     defaultTip: 'Use the Florida taxable-year-end table before assigning a concrete due date.',
@@ -7447,17 +7623,27 @@ export const OBLIGATION_RULES = [
       paymentExtended: false,
       notes: 'Estimated tax is payment-only and threshold-dependent.',
     },
-    sourceIds: ['fl.cit', 'fl.cit_due_dates_2026'],
+    sourceIds: ['fl.cit_due_dates_2026', 'fl.cit'],
     evidence: [
-      sourceEvidence(
-        'fl.cit',
-        'Estimated Tax',
-        'Florida estimated tax applies when annual corporate income tax exceeds the threshold.',
-      ),
       sourceEvidence(
         'fl.cit_due_dates_2026',
         'Estimated tax due dates table',
         'Florida publishes installment due dates by taxable year end.',
+        {
+          pdfPage: 1,
+          tableLabel: 'Florida Corporate Income Tax Due Dates for Declaration of Estimated Tax',
+          rowLabel: 'Taxable year end 12/31/26',
+          sourceExcerpt: [
+            'Florida Corporate Income Tax Due Dates for Declaration of Estimated Tax',
+            'Taxable Year End Installment #1 Installment #2 Installment #3 Installment #4',
+            '12/31/26 06/01/26 06/30/26 09/30/26 12/31/26',
+          ].join('\n'),
+        },
+      ),
+      sourceEvidence(
+        'fl.cit',
+        'Estimated Tax',
+        'Florida estimated tax applies when annual corporate income tax exceeds the threshold.',
       ),
     ],
     defaultTip: 'Only generate when estimated Florida corporate income tax exceeds the threshold.',
