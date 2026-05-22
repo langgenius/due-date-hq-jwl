@@ -3,8 +3,24 @@ import type { ClientEntityType, ObligationStatus } from './shared'
 export interface PulseAlertRow {
   id: string
   pulseId: string
-  status: 'matched' | 'partially_applied' | 'applied' | 'dismissed' | 'snoozed' | 'reverted'
+  status:
+    | 'matched'
+    | 'partially_applied'
+    | 'applied'
+    | 'dismissed'
+    | 'snoozed'
+    | 'reverted'
+    | 'reviewed'
   sourceStatus: 'pending_review' | 'approved' | 'rejected' | 'quarantined' | 'source_revoked'
+  changeKind:
+    | 'deadline_shift'
+    | 'filing_requirement'
+    | 'applicability_scope'
+    | 'form_instruction'
+    | 'source_status'
+    | 'new_obligation'
+    | 'other'
+  actionMode: 'due_date_overlay' | 'review_only'
   title: string
   source: string
   sourceUrl: string
@@ -25,7 +41,7 @@ export interface PulseAffectedClientRow {
   entityType: ClientEntityType
   taxType: string
   currentDueDate: Date
-  newDueDate: Date
+  newDueDate: Date | null
   status: ObligationStatus
   matchStatus: 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
   reason: string | null
@@ -37,9 +53,12 @@ export interface PulseDetailRow {
   counties: string[]
   forms: string[]
   entityTypes: ClientEntityType[]
-  originalDueDate: Date
-  newDueDate: Date
+  originalDueDate: Date | null
+  newDueDate: Date | null
   effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
   affectedClients: PulseAffectedClientRow[]
@@ -91,7 +110,7 @@ export interface PulseSourceSnapshotRow {
   fetchedAt: Date
   contentHash: string
   rawR2Key: string
-  parseStatus: 'pending_extract' | 'extracting' | 'extracted' | 'duplicate' | 'failed'
+  parseStatus: 'pending_extract' | 'extracting' | 'extracted' | 'duplicate' | 'failed' | 'ignored'
   pulseId: string | null
   aiOutputId: string | null
   failureReason: string | null
@@ -149,9 +168,21 @@ export interface PulseSeedInput {
   parsedCounties: string[]
   parsedForms: string[]
   parsedEntityTypes: ClientEntityType[]
-  parsedOriginalDueDate: Date
-  parsedNewDueDate: Date
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
   parsedEffectiveFrom?: Date | null
+  parsedEffectiveUntil?: Date | null
+  changeKind?:
+    | 'deadline_shift'
+    | 'filing_requirement'
+    | 'applicability_scope'
+    | 'form_instruction'
+    | 'source_status'
+    | 'new_obligation'
+    | 'other'
+  actionMode?: 'due_date_overlay' | 'review_only'
+  affectedRuleIds?: string[]
+  structuredChange?: unknown
   confidence: number
   reviewedBy?: string | null
   reviewedAt?: Date
@@ -247,4 +278,5 @@ export interface PulseRepo {
   snooze(input: PulseSnoozeInput): Promise<PulseDismissResult>
   revert(input: PulseAlertActionInput): Promise<PulseRevertResult>
   reactivate(input: PulseAlertActionInput): Promise<PulseDismissResult>
+  markReviewed(input: PulseDismissReasonInput): Promise<PulseDismissResult>
 }

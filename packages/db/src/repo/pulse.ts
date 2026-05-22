@@ -4,6 +4,7 @@ import type { Db } from '../client'
 import { auditEvent, evidenceLink, type NewAuditEvent, type NewEvidenceLink } from '../schema/audit'
 import { member, user } from '../schema/auth'
 import { client, clientFilingProfile, type ClientEntityType } from '../schema/clients'
+import { firmProfile } from '../schema/firm'
 import {
   emailOutbox,
   inAppNotification,
@@ -34,6 +35,8 @@ import {
   type NewPulseSourceState,
   type NewPulseSourceSnapshot,
   type Pulse,
+  type PulseActionMode,
+  type PulseChangeKind,
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
   type PulseSourceSignal,
@@ -60,12 +63,15 @@ const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
 const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
 
 export type PulseAffectedClientStatus = 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
+export type PulseReviewOnlyChangeKind = Exclude<PulseChangeKind, 'deadline_shift'>
 
 export interface PulseAlertRow {
   id: string
   pulseId: string
   status: PulseFirmAlertStatus
   sourceStatus: PulseStatus
+  changeKind: PulseChangeKind
+  actionMode: PulseActionMode
   title: string
   source: string
   sourceUrl: string
@@ -86,7 +92,7 @@ export interface PulseAffectedClientRow {
   entityType: ClientEntityType
   taxType: string
   currentDueDate: Date
-  newDueDate: Date
+  newDueDate: Date | null
   status: ObligationStatus
   matchStatus: PulseAffectedClientStatus
   reason: string | null
@@ -98,9 +104,12 @@ export interface PulseDetailRow {
   counties: string[]
   forms: string[]
   entityTypes: ClientEntityType[]
-  originalDueDate: Date
-  newDueDate: Date
+  originalDueDate: Date | null
+  newDueDate: Date | null
   effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
   affectedClients: PulseAffectedClientRow[]
@@ -141,9 +150,14 @@ export interface PulseSeedInput {
   parsedCounties: string[]
   parsedForms: string[]
   parsedEntityTypes: ClientEntityType[]
-  parsedOriginalDueDate: Date
-  parsedNewDueDate: Date
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
   parsedEffectiveFrom?: Date | null
+  parsedEffectiveUntil?: Date | null
+  changeKind?: PulseChangeKind
+  actionMode?: PulseActionMode
+  affectedRuleIds?: string[]
+  structuredChange?: unknown
   confidence: number
   reviewedBy?: string | null
   reviewedAt?: Date | null
@@ -291,9 +305,12 @@ export interface PulseReviewRow {
   counties: string[]
   forms: string[]
   entityTypes: string[]
-  originalDueDate: Date
-  newDueDate: Date
+  originalDueDate: Date | null
+  newDueDate: Date | null
   effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
   confidence: number
   status: PulseStatus
   requiresHumanReview: boolean
@@ -313,9 +330,14 @@ export interface PulseExtractInput {
   parsedCounties: string[]
   parsedForms: string[]
   parsedEntityTypes: ClientEntityType[]
-  parsedOriginalDueDate: Date
-  parsedNewDueDate: Date
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
   parsedEffectiveFrom?: Date | null
+  parsedEffectiveUntil?: Date | null
+  changeKind?: PulseChangeKind
+  actionMode?: PulseActionMode
+  affectedRuleIds?: string[]
+  structuredChange?: unknown
   confidence: number
   requiresHumanReview?: boolean
   isSample?: boolean
@@ -330,15 +352,20 @@ interface AlertJoinedRow {
   source: string
   sourceUrl: string
   publishedAt: Date
+  changeKind: PulseChangeKind
+  actionMode: PulseActionMode
   aiSummary: string
   verbatimQuote: string
   parsedJurisdiction: string
   parsedCounties: string[]
   parsedForms: string[]
   parsedEntityTypes: string[]
-  parsedOriginalDueDate: Date
-  parsedNewDueDate: Date
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
   parsedEffectiveFrom: Date | null
+  parsedEffectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
   confidence: number
   pulseStatus: PulseStatus
   reviewedBy: string | null
@@ -440,7 +467,9 @@ export interface PulseSignalLinkResult {
 }
 
 export class PulseRepoError extends Error {
-  constructor(readonly code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible') {
+  constructor(
+    readonly code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible' | 'review_only',
+  ) {
     super(`Pulse repo error: ${code}`)
     this.name = 'PulseRepoError'
   }
@@ -450,8 +479,17 @@ function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
-function sameTimestamp(left: Date, right: Date): boolean {
+function toDateOnlyOrNull(date: Date | null): string | null {
+  return date ? toDateOnly(date) : null
+}
+
+function sameTimestamp(left: Date | null, right: Date | null): boolean {
+  if (!left || !right) return false
   return left.getTime() === right.getTime()
+}
+
+function isDueDateOverlayAlert(alert: Pick<AlertJoinedRow, 'actionMode'>): boolean {
+  return alert.actionMode === 'due_date_overlay'
 }
 
 function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
@@ -466,6 +504,8 @@ function toAlert(row: AlertJoinedRow): PulseAlertRow {
     pulseId: row.pulseId,
     status: row.alertStatus,
     sourceStatus: row.pulseStatus,
+    changeKind: row.changeKind,
+    actionMode: row.actionMode,
     title: row.aiSummary,
     source: row.source,
     sourceUrl: row.sourceUrl,
@@ -771,6 +811,8 @@ export function makePulseRepo(db: Db, firmId: string) {
         source: pulse.source,
         sourceUrl: pulse.sourceUrl,
         publishedAt: pulse.publishedAt,
+        changeKind: pulse.changeKind,
+        actionMode: pulse.actionMode,
         aiSummary: pulse.aiSummary,
         verbatimQuote: pulse.verbatimQuote,
         parsedJurisdiction: pulse.parsedJurisdiction,
@@ -780,6 +822,9 @@ export function makePulseRepo(db: Db, firmId: string) {
         parsedOriginalDueDate: pulse.parsedOriginalDueDate,
         parsedNewDueDate: pulse.parsedNewDueDate,
         parsedEffectiveFrom: pulse.parsedEffectiveFrom,
+        parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+        affectedRuleIds: pulse.affectedRuleIdsJson,
+        structuredChange: pulse.structuredChangeJson,
         confidence: pulse.confidence,
         pulseStatus: pulse.status,
         reviewedBy: pulse.reviewedBy,
@@ -831,9 +876,17 @@ export function makePulseRepo(db: Db, firmId: string) {
   }
 
   async function listCandidateRows(alert: AlertJoinedRow): Promise<PulseAffectedClientRow[]> {
+    if (!isDueDateOverlayAlert(alert)) return []
     const forms = alert.parsedForms
     const entityTypes = toClientEntityTypes(alert.parsedEntityTypes)
-    if (forms.length === 0 || entityTypes.length === 0) return []
+    if (
+      forms.length === 0 ||
+      entityTypes.length === 0 ||
+      !alert.parsedOriginalDueDate ||
+      !alert.parsedNewDueDate
+    ) {
+      return []
+    }
 
     const rows = await db
       .select({
@@ -1130,6 +1183,9 @@ export function makePulseRepo(db: Db, firmId: string) {
       originalDueDate: alert.parsedOriginalDueDate,
       newDueDate: alert.parsedNewDueDate,
       effectiveFrom: alert.parsedEffectiveFrom,
+      effectiveUntil: alert.parsedEffectiveUntil,
+      affectedRuleIds: alert.affectedRuleIds,
+      structuredChange: alert.structuredChange,
       sourceExcerpt: alert.verbatimQuote,
       reviewedAt: alert.reviewedAt,
       affectedClients: Array.from(affected.values()).toSorted(compareAffected),
@@ -1341,6 +1397,8 @@ export function makePulseRepo(db: Db, firmId: string) {
         sourceUrl: input.sourceUrl,
         rawR2Key: input.rawR2Key ?? null,
         publishedAt: input.publishedAt,
+        changeKind: input.changeKind ?? 'deadline_shift',
+        actionMode: input.actionMode ?? 'due_date_overlay',
         aiSummary: input.aiSummary,
         verbatimQuote: input.verbatimQuote,
         parsedJurisdiction: input.parsedJurisdiction,
@@ -1350,6 +1408,9 @@ export function makePulseRepo(db: Db, firmId: string) {
         parsedOriginalDueDate: input.parsedOriginalDueDate,
         parsedNewDueDate: input.parsedNewDueDate,
         parsedEffectiveFrom: input.parsedEffectiveFrom ?? null,
+        parsedEffectiveUntil: input.parsedEffectiveUntil ?? null,
+        affectedRuleIdsJson: input.affectedRuleIds ?? [],
+        structuredChangeJson: input.structuredChange ?? null,
         confidence: input.confidence,
         status: 'approved',
         reviewedBy: input.reviewedBy ?? null,
@@ -1388,6 +1449,8 @@ export function makePulseRepo(db: Db, firmId: string) {
           source: pulse.source,
           sourceUrl: pulse.sourceUrl,
           publishedAt: pulse.publishedAt,
+          changeKind: pulse.changeKind,
+          actionMode: pulse.actionMode,
           aiSummary: pulse.aiSummary,
           verbatimQuote: pulse.verbatimQuote,
           parsedJurisdiction: pulse.parsedJurisdiction,
@@ -1397,6 +1460,9 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedOriginalDueDate: pulse.parsedOriginalDueDate,
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
+          parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          affectedRuleIds: pulse.affectedRuleIdsJson,
+          structuredChange: pulse.structuredChangeJson,
           confidence: pulse.confidence,
           pulseStatus: pulse.status,
           reviewedBy: pulse.reviewedBy,
@@ -1436,6 +1502,8 @@ export function makePulseRepo(db: Db, firmId: string) {
           source: pulse.source,
           sourceUrl: pulse.sourceUrl,
           publishedAt: pulse.publishedAt,
+          changeKind: pulse.changeKind,
+          actionMode: pulse.actionMode,
           aiSummary: pulse.aiSummary,
           verbatimQuote: pulse.verbatimQuote,
           parsedJurisdiction: pulse.parsedJurisdiction,
@@ -1445,6 +1513,9 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedOriginalDueDate: pulse.parsedOriginalDueDate,
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
+          parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          affectedRuleIds: pulse.affectedRuleIdsJson,
+          structuredChange: pulse.structuredChangeJson,
           confidence: pulse.confidence,
           pulseStatus: pulse.status,
           reviewedBy: pulse.reviewedBy,
@@ -1516,6 +1587,8 @@ export function makePulseRepo(db: Db, firmId: string) {
           source: pulse.source,
           sourceUrl: pulse.sourceUrl,
           publishedAt: pulse.publishedAt,
+          changeKind: pulse.changeKind,
+          actionMode: pulse.actionMode,
           aiSummary: pulse.aiSummary,
           verbatimQuote: pulse.verbatimQuote,
           parsedJurisdiction: pulse.parsedJurisdiction,
@@ -1525,6 +1598,9 @@ export function makePulseRepo(db: Db, firmId: string) {
           parsedOriginalDueDate: pulse.parsedOriginalDueDate,
           parsedNewDueDate: pulse.parsedNewDueDate,
           parsedEffectiveFrom: pulse.parsedEffectiveFrom,
+          parsedEffectiveUntil: pulse.parsedEffectiveUntil,
+          affectedRuleIds: pulse.affectedRuleIdsJson,
+          structuredChange: pulse.structuredChangeJson,
           confidence: pulse.confidence,
           pulseStatus: pulse.status,
           reviewedBy: pulse.reviewedBy,
@@ -1574,6 +1650,8 @@ export function makePulseRepo(db: Db, firmId: string) {
             source: row.source,
             sourceUrl: row.sourceUrl,
             publishedAt: row.publishedAt,
+            changeKind: row.changeKind,
+            actionMode: row.actionMode,
             aiSummary: row.aiSummary,
             verbatimQuote: row.verbatimQuote,
             parsedJurisdiction: row.parsedJurisdiction,
@@ -1583,6 +1661,9 @@ export function makePulseRepo(db: Db, firmId: string) {
             parsedOriginalDueDate: row.parsedOriginalDueDate,
             parsedNewDueDate: row.parsedNewDueDate,
             parsedEffectiveFrom: row.parsedEffectiveFrom,
+            parsedEffectiveUntil: row.parsedEffectiveUntil,
+            affectedRuleIds: row.affectedRuleIds,
+            structuredChange: row.structuredChange,
             confidence: row.confidence,
             pulseStatus: row.pulseStatus,
             reviewedBy: row.reviewedBy,
@@ -1721,6 +1802,12 @@ export function makePulseRepo(db: Db, firmId: string) {
       now?: Date
     }): Promise<PulseApplyResult> {
       const alert = await getAlert(input.alertId)
+      if (!isDueDateOverlayAlert(alert)) throw new PulseRepoError('review_only')
+      if (!alert.parsedOriginalDueDate || !alert.parsedNewDueDate) {
+        throw new PulseRepoError('conflict')
+      }
+      const originalDueDate = alert.parsedOriginalDueDate
+      const newDueDate = alert.parsedNewDueDate
       const now = input.now ?? new Date()
       const detail = await buildDetail(alert)
       const requestedIds = Array.from(new Set(input.obligationIds))
@@ -1765,10 +1852,10 @@ export function makePulseRepo(db: Db, firmId: string) {
         affectedEntityTypes: alert.parsedEntityTypes,
         overrideType: 'extend_due_date',
         overrideValueJson: {
-          originalDueDate: toDateOnly(alert.parsedOriginalDueDate),
-          newDueDate: toDateOnly(alert.parsedNewDueDate),
+          originalDueDate: toDateOnly(originalDueDate),
+          newDueDate: toDateOnly(newDueDate),
         },
-        overrideDueDate: alert.parsedNewDueDate,
+        overrideDueDate: newDueDate,
         effectiveFrom: alert.parsedEffectiveFrom,
         effectiveUntil: null,
         status: 'applied',
@@ -1784,7 +1871,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         appliedBy: input.userId,
         appliedAt: now,
         beforeDueDate: row.currentDueDate,
-        afterDueDate: alert.parsedNewDueDate,
+        afterDueDate: newDueDate,
       }))
       const newApplications = applications.filter(
         (row) => !reactivatedApplicationIds.has(row.obligationInstanceId),
@@ -1809,7 +1896,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         sourceUrl: alert.sourceUrl,
         verbatimQuote: alert.verbatimQuote,
         rawValue: toDateOnly(row.currentDueDate),
-        normalizedValue: toDateOnly(alert.parsedNewDueDate),
+        normalizedValue: toDateOnly(newDueDate),
         confidence: alert.confidence,
         model: null,
         matrixVersion: null,
@@ -1832,7 +1919,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         afterJson: {
           pulseId: alert.pulseId,
           obligationId: row.obligationId,
-          currentDueDate: toDateOnly(alert.parsedNewDueDate),
+          currentDueDate: toDateOnly(newDueDate),
         },
         reason: null,
         ipHash: null,
@@ -1862,7 +1949,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             clientId: row.clientId,
             clientName: row.clientName,
             beforeDueDate: toDateOnly(row.currentDueDate),
-            afterDueDate: toDateOnly(alert.parsedNewDueDate),
+            afterDueDate: toDateOnly(newDueDate),
             taxType: row.taxType,
           })),
         },
@@ -1906,8 +1993,8 @@ export function makePulseRepo(db: Db, firmId: string) {
               appliedAt: now,
               revertedBy: null,
               revertedAt: null,
-              beforeDueDate: alert.parsedOriginalDueDate,
-              afterDueDate: alert.parsedNewDueDate,
+              beforeDueDate: originalDueDate,
+              afterDueDate: newDueDate,
             })
             .where(
               and(
@@ -2020,6 +2107,43 @@ export function makePulseRepo(db: Db, firmId: string) {
             pulseId: alert.pulseId,
             snoozedUntil: input.until.toISOString(),
           },
+          reason: input.reason,
+          ipHash: null,
+          userAgentHash: null,
+        }),
+      ])
+      const updated = await getAlert(input.alertId)
+      return { alert: toAlert(updated), auditId }
+    },
+
+    async markReviewed(input: {
+      alertId: string
+      userId: string
+      reason: string
+      now?: Date
+    }): Promise<PulseDismissResult> {
+      const alert = await getAlert(input.alertId)
+      if (isDueDateOverlayAlert(alert)) throw new PulseRepoError('conflict')
+      const now = input.now ?? new Date()
+      const auditId = crypto.randomUUID()
+      await db.batch([
+        db
+          .update(pulseFirmAlert)
+          .set({
+            status: 'reviewed',
+            dismissedBy: input.userId,
+            dismissedAt: now,
+          })
+          .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, input.alertId))),
+        db.insert(auditEvent).values({
+          id: auditId,
+          firmId,
+          actorId: input.userId,
+          entityType: 'pulse_firm_alert',
+          entityId: input.alertId,
+          action: 'pulse.reviewed',
+          beforeJson: { status: alert.alertStatus },
+          afterJson: { status: 'reviewed', pulseId: alert.pulseId },
           reason: input.reason,
           ipHash: null,
           userAgentHash: null,
@@ -2278,9 +2402,39 @@ export function makePulseOpsRepo(db: Db) {
     const row = await getPulse(pulseId)
     if (!row || row.status !== 'approved') throw new PulseRepoError('not_found')
 
+    if (row.actionMode === 'review_only') {
+      const firms = await db
+        .select({ id: firmProfile.id })
+        .from(firmProfile)
+        .where(eq(firmProfile.status, 'active'))
+      await Promise.all(
+        firms.map((firm) =>
+          db
+            .insert(pulseFirmAlert)
+            .values({
+              id: crypto.randomUUID(),
+              pulseId,
+              firmId: firm.id,
+              status: 'matched',
+              matchedCount: 0,
+              needsReviewCount: 0,
+            })
+            .onConflictDoUpdate({
+              target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
+              set: {
+                status: 'matched',
+                matchedCount: 0,
+                needsReviewCount: 0,
+              },
+            }),
+        ),
+      )
+      return firms.length
+    }
+
     const forms = row.parsedForms
     const entityTypes = toClientEntityTypes(row.parsedEntityTypes)
-    if (forms.length === 0 || entityTypes.length === 0) return 0
+    if (forms.length === 0 || entityTypes.length === 0 || !row.parsedOriginalDueDate) return 0
 
     const candidates = await db
       .select({
@@ -2541,7 +2695,7 @@ export function makePulseOpsRepo(db: Db) {
                 state: obligation.state,
                 county: obligation.county,
                 currentDueDate: toDateOnly(obligation.currentDueDate),
-                newDueDate: toDateOnly(approvedPulse.parsedNewDueDate),
+                newDueDate: toDateOnlyOrNull(approvedPulse.parsedNewDueDate),
                 taxType: obligation.taxType,
                 matchStatus: obligation.matchStatus,
                 reason: obligation.reason,
@@ -3114,6 +3268,8 @@ export function makePulseOpsRepo(db: Db) {
         sourceUrl: input.sourceUrl,
         rawR2Key: input.rawR2Key ?? null,
         publishedAt: input.publishedAt,
+        changeKind: input.changeKind ?? 'deadline_shift',
+        actionMode: input.actionMode ?? 'due_date_overlay',
         aiSummary: input.aiSummary,
         verbatimQuote: input.verbatimQuote,
         parsedJurisdiction: input.parsedJurisdiction,
@@ -3123,6 +3279,9 @@ export function makePulseOpsRepo(db: Db) {
         parsedOriginalDueDate: input.parsedOriginalDueDate,
         parsedNewDueDate: input.parsedNewDueDate,
         parsedEffectiveFrom: input.parsedEffectiveFrom ?? null,
+        parsedEffectiveUntil: input.parsedEffectiveUntil ?? null,
+        affectedRuleIdsJson: input.affectedRuleIds ?? [],
+        structuredChangeJson: input.structuredChange ?? null,
         confidence: input.confidence,
         status: 'approved',
         reviewedBy: null,
@@ -3181,6 +3340,9 @@ export function makePulseOpsRepo(db: Db) {
         originalDueDate: row.parsedOriginalDueDate,
         newDueDate: row.parsedNewDueDate,
         effectiveFrom: row.parsedEffectiveFrom,
+        effectiveUntil: row.parsedEffectiveUntil,
+        affectedRuleIds: row.affectedRuleIdsJson,
+        structuredChange: row.structuredChangeJson,
         confidence: row.confidence,
         status: row.status,
         requiresHumanReview: row.requiresHumanReview,
@@ -3207,6 +3369,9 @@ export function makePulseOpsRepo(db: Db) {
         originalDueDate: row.parsedOriginalDueDate,
         newDueDate: row.parsedNewDueDate,
         effectiveFrom: row.parsedEffectiveFrom,
+        effectiveUntil: row.parsedEffectiveUntil,
+        affectedRuleIds: row.affectedRuleIdsJson,
+        structuredChange: row.structuredChangeJson,
         confidence: row.confidence,
         status: row.status,
         requiresHumanReview: row.requiresHumanReview,
@@ -3291,7 +3456,7 @@ export function makePulseOpsRepo(db: Db) {
                     state: obligation.state,
                     county: obligation.county,
                     currentDueDate: toDateOnly(obligation.currentDueDate),
-                    newDueDate: toDateOnly(approvedPulse.parsedNewDueDate),
+                    newDueDate: toDateOnlyOrNull(approvedPulse.parsedNewDueDate),
                     taxType: obligation.taxType,
                     matchStatus: obligation.matchStatus,
                     reason: obligation.reason,

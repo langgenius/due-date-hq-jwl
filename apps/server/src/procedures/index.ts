@@ -119,6 +119,7 @@ export const router = os.router({
     apply: pulseHandlers.apply,
     dismiss: pulseHandlers.dismiss,
     snooze: pulseHandlers.snooze,
+    markReviewed: pulseHandlers.markReviewed,
     revert: pulseHandlers.revert,
     reactivate: pulseHandlers.reactivate,
     requestReview: pulseHandlers.requestReview,

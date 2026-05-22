@@ -13,6 +13,8 @@ const ALERT = {
   source: 'IRS Disaster Relief',
   sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
   publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+  changeKind: 'deadline_shift' as const,
+  actionMode: 'due_date_overlay' as const,
   aiSummary: 'IRS CA storm relief',
   verbatimQuote: 'Individuals and businesses in Los Angeles County have until October 15, 2026.',
   parsedJurisdiction: 'CA',
@@ -22,6 +24,9 @@ const ALERT = {
   parsedOriginalDueDate: new Date('2026-03-15T00:00:00.000Z'),
   parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
   parsedEffectiveFrom: new Date('2026-04-15T00:00:00.000Z'),
+  parsedEffectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: null,
   confidence: 0.94,
   pulseStatus: 'approved' as const,
   reviewedBy: 'user-1',
@@ -465,6 +470,50 @@ describe('makePulseRepo', () => {
     expect(batchStatements).toHaveLength(0)
   })
 
+  it('marks review-only Pulse changes reviewed without applying overlays', async () => {
+    const reviewOnlyAlert = {
+      ...ALERT,
+      changeKind: 'form_instruction' as const,
+      actionMode: 'review_only' as const,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+    }
+    const { db, batchStatements } = fakeDb([
+      [reviewOnlyAlert],
+      [reviewOnlyAlert],
+      [{ ...reviewOnlyAlert, alertStatus: 'reviewed' as const }],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(
+      repo.apply({
+        alertId: 'alert-1',
+        obligationIds: ['oi-eligible'],
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({ code: 'review_only' } satisfies Partial<PulseRepoError>)
+
+    const result = await repo.markReviewed({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      reason: 'Reviewed source instruction change.',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(result.alert.status).toBe('reviewed')
+    expect(batchStatements).toHaveLength(2)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { status: 'reviewed', dismissedBy: 'user-1' }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { action: 'pulse.reviewed' }),
+      ),
+    ).toBe(true)
+  })
+
   it('reopens the alert as matched after a successful undo', async () => {
     const appliedAlert = {
       ...ALERT,
@@ -724,6 +773,7 @@ describe('makePulseOpsRepo', () => {
     const extractedPulse = {
       id: 'pulse-created',
       status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
       parsedForms: [],
       parsedEntityTypes: [],
     }
@@ -810,6 +860,7 @@ describe('makePulseOpsRepo', () => {
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
       status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
       aiSummary: 'IRS CA storm relief',
       parsedJurisdiction: 'CA',
       parsedCounties: ['Los Angeles County'],

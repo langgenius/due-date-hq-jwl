@@ -20,6 +20,7 @@ export function PulseStatusBadge({ status }: PulseStatusBadgeProps) {
     applied: { label: t`Applied`, tone: 'success' },
     reverted: { label: t`Reverted`, tone: 'disabled' },
     dismissed: { label: t`Dismissed`, tone: 'disabled' },
+    reviewed: { label: t`Reviewed`, tone: 'disabled' },
   }
   const entry = config[status]
   return (

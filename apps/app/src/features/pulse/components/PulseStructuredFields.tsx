@@ -44,13 +44,30 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
             </span>
           </FieldRow>
         ) : null}
-        <FieldRow label={<Trans>Deadline shift</Trans>}>
-          <span className="font-mono tabular-nums text-text-primary">
-            {formatDate(detail.originalDueDate)}
-            {' -> '}
-            <span className="font-semibold">{formatDate(detail.newDueDate)}</span>
-          </span>
-        </FieldRow>
+        {detail.effectiveUntil ? (
+          <FieldRow label={<Trans>Expires</Trans>}>
+            <span className="font-mono tabular-nums text-text-secondary">
+              {formatDate(detail.effectiveUntil)}
+            </span>
+          </FieldRow>
+        ) : null}
+        {detail.alert.actionMode === 'due_date_overlay' ? (
+          <FieldRow label={<Trans>Deadline shift</Trans>}>
+            <span className="font-mono tabular-nums text-text-primary">
+              {detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`}
+              {' -> '}
+              <span className="font-semibold">
+                {detail.newDueDate ? formatDate(detail.newDueDate) : t`Unknown`}
+              </span>
+            </span>
+          </FieldRow>
+        ) : (
+          <FieldRow label={<Trans>Action mode</Trans>}>
+            <span className="font-medium text-text-primary">
+              <Trans>Review only</Trans>
+            </span>
+          </FieldRow>
+        )}
         <div className="pt-1">
           <Button
             type="button"
@@ -114,6 +131,27 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
             )}
           </div>
         </FieldRow>
+        {detail.affectedRuleIds.length > 0 ? (
+          <FieldRow label={<Trans>Base rules</Trans>}>
+            <div className="flex flex-wrap justify-end gap-1">
+              {detail.affectedRuleIds.map((ruleId) => (
+                <Badge key={ruleId} variant="outline" className="font-mono tabular-nums">
+                  {ruleId}
+                </Badge>
+              ))}
+            </div>
+          </FieldRow>
+        ) : null}
+        {detail.alert.actionMode === 'review_only' ? (
+          <div className="rounded-md bg-background-default p-3 text-sm text-text-secondary">
+            <span className="font-medium text-text-primary">
+              <Trans>Structured change</Trans>
+            </span>
+            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs">
+              {formatStructuredChange(detail.structuredChange, t`No structured fields.`)}
+            </pre>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-1 rounded-md bg-background-default p-3">
@@ -146,6 +184,12 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       </div>
     </section>
   )
+}
+
+function formatStructuredChange(value: unknown, fallback: string): string {
+  if (value === null || value === undefined) return fallback
+  if (typeof value === 'string') return value
+  return JSON.stringify(value, null, 2)
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {

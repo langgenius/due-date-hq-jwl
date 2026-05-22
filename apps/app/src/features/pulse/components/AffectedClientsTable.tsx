@@ -117,7 +117,9 @@ export function AffectedClientsTable({
                     {formatDate(row.currentDueDate)}
                   </span>
                   <ArrowRightIcon className="size-3 text-text-tertiary" aria-hidden />
-                  <span>{formatDate(row.newDueDate)}</span>
+                  <span>
+                    {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
+                  </span>
                 </div>
               </TableCell>
               <TableCell>

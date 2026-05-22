@@ -26,6 +26,7 @@ export const PulseAuditActions = [
   'pulse.revert',
   'pulse.reactivate',
   'pulse.review_requested',
+  'pulse.reviewed',
 ] as const
 
 export const PenaltyAuditActions = ['penalty.override'] as const

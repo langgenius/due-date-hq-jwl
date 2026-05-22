@@ -300,6 +300,9 @@ describe('@duedatehq/ai', () => {
   it('extracts Pulse output and requires a source-backed excerpt', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
         summary: 'IRS extends selected filing deadlines for Los Angeles County.',
         sourceExcerpt: 'Los Angeles County have until October 15, 2026',
         jurisdiction: 'CA',
@@ -309,6 +312,9 @@ describe('@duedatehq/ai', () => {
         originalDueDate: '2026-03-15',
         newDueDate: '2026-10-15',
         effectiveFrom: '2026-04-15',
+        effectiveUntil: null,
+        affectedRuleIds: ['ca.business_income_return.candidate.2026'],
+        structuredChange: null,
         confidence: 0.94,
       },
       model: 'test-model',
@@ -329,6 +335,9 @@ describe('@duedatehq/ai', () => {
   it('rejects Pulse extract output when the excerpt is not in the source', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
         summary: 'IRS extends selected filing deadlines.',
         sourceExcerpt: 'made up quote',
         jurisdiction: 'CA',
@@ -338,6 +347,9 @@ describe('@duedatehq/ai', () => {
         originalDueDate: '2026-03-15',
         newDueDate: '2026-10-15',
         effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
         confidence: 0.94,
       },
       model: 'test-model',

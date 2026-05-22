@@ -1,4 +1,3 @@
-import { createAI, type AiRunResult } from '@duedatehq/ai'
 import {
   createDb,
   makeAiRepo,
@@ -12,8 +11,7 @@ import {
   type ObligationRule,
   type RuleSource,
 } from '@duedatehq/core/rules'
-import { fetchTextSnapshot } from '@duedatehq/ingest/http'
-import { z } from 'zod'
+import { fetchTextSnapshot, hashText } from '@duedatehq/ingest/http'
 import type { Env } from '../../env'
 import {
   cachedConcreteDraftKey,
@@ -26,33 +24,15 @@ import {
   type RuleConcreteDraftGenerateMessage,
 } from './concrete-draft'
 
-export const RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE = 'rule.registry.source.reconcile'
+export const PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE = 'pulse.rule_source.scan'
 export const RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE = 'rule.registry.catalog.sync'
-export const RULE_REGISTRY_RECONCILE_PROMPT = 'rule-registry-reconcile@v1'
 
-const WEEKLY_RECONCILE_DAY_UTC = 1
-const WEEKLY_RECONCILE_HOUR_UTC = 9
-const RECONCILE_RUN_KEY_PREFIX = 'cadence'
-const AUTOMATED_RECONCILE_METHODS = new Set<RuleSource['acquisitionMethod']>([
-  'html_watch',
-  'pdf_watch',
-])
+const WEEKLY_GOVERNANCE_DAY_UTC = 1
+const WEEKLY_GOVERNANCE_HOUR_UTC = 9
+const AUTOMATED_SCAN_METHODS = new Set<RuleSource['acquisitionMethod']>(['html_watch', 'pdf_watch'])
 
-const RuleRegistryReconcileOutputSchema = z.object({
-  classification: z.enum(['no_rule_change', 'existing_rule_update', 'new_rule']),
-  affectedRuleIds: z.array(z.string()).default([]),
-  proposedRuleIds: z.array(z.string()).default([]),
-  diffSummary: z.string().min(1),
-  normalizedRuleJson: z.unknown().optional(),
-  confidence: z.number().min(0).max(1),
-  reasoning: z.string().min(1),
-})
-
-type RuleRegistryReconcileOutput = z.infer<typeof RuleRegistryReconcileOutputSchema>
-
-export interface RuleRegistrySourceReconcileMessage {
-  type: typeof RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE
-  runId: string
+export interface PulseRuleSourceScanMessage {
+  type: typeof PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE
   sourceId: string
   reason: 'cadence_due' | 'weekly_governance'
 }
@@ -66,13 +46,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-export function isRuleRegistrySourceReconcileMessage(
-  value: unknown,
-): value is RuleRegistrySourceReconcileMessage {
+export function isPulseRuleSourceScanMessage(value: unknown): value is PulseRuleSourceScanMessage {
   return (
     isRecord(value) &&
-    value.type === RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE &&
-    typeof value.runId === 'string' &&
+    value.type === PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE &&
     typeof value.sourceId === 'string' &&
     (value.reason === 'cadence_due' || value.reason === 'weekly_governance')
   )
@@ -107,18 +84,12 @@ function nextCheckAt(from: Date, source: RuleSource): Date {
   return new Date(from.getTime() + sourceCadenceMs(source))
 }
 
-export function shouldRunWeeklyRuleRegistryGovernance(now: Date): boolean {
+export function shouldRunWeeklyRuleSourceGovernance(now: Date): boolean {
   return (
-    now.getUTCDay() === WEEKLY_RECONCILE_DAY_UTC &&
-    now.getUTCHours() === WEEKLY_RECONCILE_HOUR_UTC &&
+    now.getUTCDay() === WEEKLY_GOVERNANCE_DAY_UTC &&
+    now.getUTCHours() === WEEKLY_GOVERNANCE_HOUR_UTC &&
     now.getUTCMinutes() < 30
   )
-}
-
-export const shouldRunWeeklyRuleRegistryReconcile = shouldRunWeeklyRuleRegistryGovernance
-
-function reconcileRunKey(now: Date): string {
-  return `${RECONCILE_RUN_KEY_PREFIX}:${now.toISOString().slice(0, 16)}Z`
 }
 
 function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, now: Date): boolean {
@@ -127,34 +98,8 @@ function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, no
   )
 }
 
-function sourceCanAutoReconcile(source: RuleSource): boolean {
-  return (
-    source.healthStatus !== 'paused' && AUTOMATED_RECONCILE_METHODS.has(source.acquisitionMethod)
-  )
-}
-
-function rulesForSource(sourceId: string): ObligationRule[] {
-  return listObligationRules({ includeCandidates: true }).filter((rule) =>
-    rule.sourceIds.includes(sourceId),
-  )
-}
-
-function ruleSummary(rule: ObligationRule) {
-  return {
-    id: rule.id,
-    title: rule.title,
-    jurisdiction: rule.jurisdiction,
-    version: rule.version,
-    status: rule.status,
-    entityApplicability: rule.entityApplicability,
-    taxType: rule.taxType,
-    formName: rule.formName,
-    eventType: rule.eventType,
-    dueDateLogic: rule.dueDateLogic,
-    extensionPolicy: rule.extensionPolicy,
-    coverageStatus: rule.coverageStatus,
-    requiresApplicabilityReview: rule.requiresApplicabilityReview,
-  }
+function sourceCanAutoScan(source: RuleSource): boolean {
+  return source.healthStatus !== 'paused' && AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod)
 }
 
 function sourceTemplateInput(source: RuleSource) {
@@ -195,67 +140,6 @@ function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolea
   return rule.dueDateLogic.kind === 'source_defined_calendar'
 }
 
-function proposalTypeForOutput(
-  output: RuleRegistryReconcileOutput,
-): 'no_rule_change' | 'existing_rule_update' | 'new_rule' {
-  return output.classification
-}
-
-function outputStatus(output: RuleRegistryReconcileOutput): 'open' | 'dismissed' {
-  return output.classification === 'no_rule_change' ? 'dismissed' : 'open'
-}
-
-async function recordAnalyzerRun(input: {
-  env: Env
-  source: RuleSource
-  snapshotId: string
-  contentHash: string
-  result: AiRunResult<RuleRegistryReconcileOutput>
-}) {
-  const aiRepo = makeAiRepo(createDb(input.env.DB), 'global')
-  return aiRepo.recordGlobalRun({
-    userId: null,
-    kind: 'rule_registry_reconcile',
-    inputContextRef: `rule-registry-reconcile:${input.source.id}:${input.contentHash}`,
-    trace: {
-      ...input.result.trace,
-      model: input.result.model ?? input.result.trace.model,
-    },
-    outputText: JSON.stringify(input.result.result ?? input.result.refusal),
-    citations: {
-      sourceId: input.source.id,
-      sourceUrl: input.source.url,
-      sourceSnapshotId: input.snapshotId,
-      contentHash: input.contentHash,
-    },
-    errorMsg: input.result.refusal?.message ?? null,
-  })
-}
-
-async function recordManualProposal(input: {
-  env: Env
-  runId: string
-  source: RuleSource
-  reason: string
-}): Promise<void> {
-  const db = createDb(input.env.DB)
-  const ops = makeRulesOpsRepo(db)
-  await ops.recordChangeProposal({
-    runId: input.runId,
-    sourceId: input.source.id,
-    proposalType: 'manual_check_due',
-    status: 'open',
-    affectedRuleIds: rulesForSource(input.source.id).map((rule) => rule.id),
-    diffSummary: input.reason,
-    failureReason: input.reason,
-  })
-  await ops.recordReconcileSourceOutcome({
-    runId: input.runId,
-    changed: false,
-    proposalCreated: true,
-  })
-}
-
 export async function enqueueRuleRegistryCatalogSync(
   env: Pick<Env, 'PULSE_QUEUE'>,
   reason: RuleRegistryCatalogSyncMessage['reason'] = 'scheduled',
@@ -266,12 +150,12 @@ export async function enqueueRuleRegistryCatalogSync(
   } satisfies RuleRegistryCatalogSyncMessage)
 }
 
-export async function enqueueDueRuleRegistryReconcile(
+export async function enqueueDueRuleSourceScans(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
   now: Date,
-): Promise<{ queued: number; runId: string | null }> {
+): Promise<{ queued: number }> {
   const sources = listRuleSources()
-  const weeklyGovernance = shouldRunWeeklyRuleRegistryGovernance(now)
+  const weeklyGovernance = shouldRunWeeklyRuleSourceGovernance(now)
   const pulseOps = makePulseOpsRepo(createDb(env.DB))
   const queueItems = (
     await Promise.all(
@@ -285,7 +169,7 @@ export async function enqueueDueRuleRegistryReconcile(
           enabled: source.healthStatus !== 'paused',
         })
         if (!state.enabled) return null
-        if (sourceCanAutoReconcile(source)) {
+        if (sourceCanAutoScan(source)) {
           return sourceIsDue(state, now) ? { source, reason: 'cadence_due' as const } : null
         }
         return weeklyGovernance ? { source, reason: 'weekly_governance' as const } : null
@@ -293,64 +177,71 @@ export async function enqueueDueRuleRegistryReconcile(
     )
   ).filter((item): item is NonNullable<typeof item> => item !== null)
 
-  if (queueItems.length === 0) return { queued: 0, runId: null }
-
-  const ops = makeRulesOpsRepo(createDb(env.DB))
-  const { run, inserted } = await ops.startReconcileRun({
-    runKey: reconcileRunKey(now),
-    sourceCount: queueItems.length,
-    startedAt: now,
-    triggeredBy: 'scheduled_cron',
-  })
-  if (!inserted || run.status !== 'running') return { queued: 0, runId: run.id }
-
   await Promise.all(
     queueItems.map(({ source, reason }) =>
       env.PULSE_QUEUE.send({
-        type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-        runId: run.id,
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
         sourceId: source.id,
         reason,
-      } satisfies RuleRegistrySourceReconcileMessage),
+      } satisfies PulseRuleSourceScanMessage),
     ),
   )
-  return { queued: queueItems.length, runId: run.id }
+  return { queued: queueItems.length }
 }
 
-export const enqueueWeeklyRuleRegistryReconcile = enqueueDueRuleRegistryReconcile
+async function recordManualSourceSignal(input: {
+  env: Env
+  source: RuleSource
+  reason: PulseRuleSourceScanMessage['reason']
+  now: Date
+}): Promise<void> {
+  const pulseOps = makePulseOpsRepo(createDb(input.env.DB))
+  const externalId = `${input.source.id}:${input.reason}:${input.now.toISOString().slice(0, 10)}`
+  const contentHash = await hashText(externalId)
+  await pulseOps.createSourceSignal({
+    sourceId: input.source.id,
+    externalId,
+    title: `${input.source.title} source check due`,
+    officialSourceUrl: input.source.url,
+    publishedAt: input.now,
+    fetchedAt: input.now,
+    contentHash,
+    rawR2Key: `ops/rule-source/${input.source.id}/${contentHash}.txt`,
+    tier: sourceTier(input.source),
+    jurisdiction: input.source.jurisdiction,
+    signalType: 'source_check_due',
+  })
+  await pulseOps.recordSourceSuccess({
+    sourceId: input.source.id,
+    checkedAt: input.now,
+    nextCheckAt: nextCheckAt(input.now, input.source),
+    changed: true,
+  })
+}
 
-export async function consumeRuleRegistrySourceReconcile(
-  message: RuleRegistrySourceReconcileMessage,
+export async function consumePulseRuleSourceScan(
+  message: PulseRuleSourceScanMessage,
   env: Env,
 ): Promise<void> {
   const source = listRuleSources().find((item) => item.id === message.sourceId)
   const db = createDb(env.DB)
-  const ops = makeRulesOpsRepo(db)
   const pulseOps = makePulseOpsRepo(db)
   if (!source) {
-    await ops.recordReconcileSourceOutcome({
-      runId: message.runId,
-      failed: true,
-      errorText: `Rule source not found: ${message.sourceId}`,
-    })
+    recordPulseMetric('pulse.rule_source_scan.source_missing', { sourceId: message.sourceId })
     return
   }
 
+  const now = new Date()
   await pulseOps.ensureSourceState({
     sourceId: source.id,
     tier: sourceTier(source),
     jurisdiction: source.jurisdiction,
     cadenceMs: sourceCadenceMs(source),
-    now: new Date(),
+    now,
   })
 
-  if (!AUTOMATED_RECONCILE_METHODS.has(source.acquisitionMethod)) {
-    await recordManualProposal({
-      env,
-      runId: message.runId,
-      source,
-      reason: `${source.acquisitionMethod} source requires product developer review.`,
-    })
+  if (!AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod)) {
+    await recordManualSourceSignal({ env, source, reason: message.reason, now })
     return
   }
 
@@ -377,14 +268,13 @@ export async function consumeRuleRegistrySourceReconcile(
         ...(fetched.etag !== undefined ? { etag: fetched.etag } : {}),
         ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
       })
-      await ops.recordReconcileSourceOutcome({ runId: message.runId, changed: false })
       return
     }
 
     const snapshot = await pulseOps.createSourceSnapshot({
       sourceId: source.id,
       externalId: source.url,
-      title: `${source.title} weekly source snapshot`,
+      title: `${source.title} official source snapshot`,
       officialSourceUrl: source.url,
       publishedAt: checkedAt,
       fetchedAt: checkedAt,
@@ -400,93 +290,20 @@ export async function consumeRuleRegistrySourceReconcile(
       ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
     })
 
-    if (!snapshot.inserted) {
-      await ops.recordReconcileSourceOutcome({ runId: message.runId, changed: false })
-      return
-    }
-
-    const relatedRules = rulesForSource(source.id)
-    const ai = createAI(env)
-    const aiResult = await ai.runPrompt(
-      RULE_REGISTRY_RECONCILE_PROMPT,
-      {
-        source: {
-          id: source.id,
-          title: source.title,
-          url: source.url,
-          jurisdiction: source.jurisdiction,
-          sourceType: source.sourceType,
-          acquisitionMethod: source.acquisitionMethod,
-          domains: source.domains,
-          entityApplicability: source.entityApplicability,
-        },
-        existingRules: relatedRules.map(ruleSummary),
-        sourceText: fetched.body.slice(0, 24_000),
-      },
-      RuleRegistryReconcileOutputSchema,
-      { taskKind: 'pulse' },
-    )
-    const recorded = await recordAnalyzerRun({
-      env,
-      source,
-      snapshotId: snapshot.snapshot.id,
-      contentHash: fetched.contentHash,
-      result: aiResult,
-    })
-
-    if (!aiResult.result) {
-      await ops.recordChangeProposal({
-        runId: message.runId,
-        sourceId: source.id,
-        sourceSnapshotId: snapshot.snapshot.id,
-        contentHash: fetched.contentHash,
-        rawR2Key: fetched.r2Key,
-        proposalType: 'analyzer_failed',
-        status: 'open',
-        affectedRuleIds: relatedRules.map((rule) => rule.id),
-        aiOutputId: recorded.aiOutputId,
-        failureReason: aiResult.refusal?.message ?? 'Rule registry reconcile analyzer failed.',
+    if (snapshot.inserted) {
+      await env.PULSE_QUEUE.send({
+        type: 'pulse.extract',
+        snapshotId: snapshot.snapshot.id,
       })
-      await ops.recordReconcileSourceOutcome({
-        runId: message.runId,
-        changed: true,
-        proposalCreated: true,
-      })
-      return
     }
-
-    await ops.recordChangeProposal({
-      runId: message.runId,
-      sourceId: source.id,
-      sourceSnapshotId: snapshot.snapshot.id,
-      contentHash: fetched.contentHash,
-      rawR2Key: fetched.r2Key,
-      proposalType: proposalTypeForOutput(aiResult.result),
-      status: outputStatus(aiResult.result),
-      affectedRuleIds: aiResult.result.affectedRuleIds,
-      proposedRuleIds: aiResult.result.proposedRuleIds,
-      normalizedRuleJson: aiResult.result.normalizedRuleJson ?? null,
-      diffSummary: aiResult.result.diffSummary,
-      aiOutputId: recorded.aiOutputId,
-    })
-    await ops.recordReconcileSourceOutcome({
-      runId: message.runId,
-      changed: true,
-      proposalCreated: aiResult.result.classification !== 'no_rule_change',
-    })
   } catch (error) {
-    const messageText = error instanceof Error ? error.message : 'Rule source reconcile failed.'
+    const messageText = error instanceof Error ? error.message : 'Rule source scan failed.'
     await pulseOps.recordSourceFailure({
       sourceId: source.id,
       nextCheckAt: nextCheckAt(new Date(), source),
       error: messageText,
     })
-    await ops.recordReconcileSourceOutcome({
-      runId: message.runId,
-      failed: true,
-      errorText: messageText,
-    })
-    recordPulseMetric('rule.registry.reconcile.source_failed', {
+    recordPulseMetric('pulse.rule_source_scan.source_failed', {
       sourceId: source.id,
       error: messageText,
     })

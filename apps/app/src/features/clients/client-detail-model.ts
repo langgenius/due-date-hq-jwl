@@ -58,7 +58,7 @@ export type ClientPulseMatch = {
   status: PulseAffectedClient['matchStatus']
   taxType: string
   currentDueDate: string
-  newDueDate: string
+  newDueDate: string | null
   reason: string | null
 }
 

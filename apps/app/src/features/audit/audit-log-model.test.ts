@@ -231,7 +231,7 @@ describe('audit-log-model', () => {
     ).toMatchObject({
       headline: 'Penalty inputs changed',
       changes: [
-        { field: 'Estimated tax liability', previous: 'Not set', next: '$1,250.00' },
+        { field: 'Estimated tax liability', previous: 'Not set', next: '$1,250' },
         { field: 'Owner count', previous: '2', next: '3' },
       ],
     })

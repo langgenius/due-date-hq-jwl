@@ -75,6 +75,7 @@ const REVERTABLE_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
 const REVIEW_UNAVAILABLE_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
   'dismissed',
   'reverted',
+  'reviewed',
 ])
 const SHOW_PRIORITY_REVIEW_UI = false
 
@@ -168,7 +169,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
   const [reviewNote, setReviewNote] = useState('')
   // Reason capture for destructive Pulse actions (dismiss / snooze).
   // The PDF guide flags reason-on-override as a core audit requirement.
-  const [reasonAction, setReasonAction] = useState<'dismiss' | 'snooze' | null>(null)
+  const [reasonAction, setReasonAction] = useState<'dismiss' | 'snooze' | 'reviewed' | null>(null)
   const [reasonText, setReasonText] = useState('')
 
   // Re-derive default selection when the loaded alert changes — without
@@ -344,6 +345,23 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
     }),
   )
 
+  const markReviewedMutation = useMutation(
+    orpc.pulse.markReviewed.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Pulse marked reviewed`)
+        setReasonAction(null)
+        setReasonText('')
+        invalidate()
+        onClose()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't mark Pulse reviewed`, {
+          description: i18n._(pulseErrorDescriptor(err)),
+        })
+      },
+    }),
+  )
+
   const requestReviewMutation = useMutation(
     orpc.pulse.requestReview.mutationOptions({
       onSuccess: () => {
@@ -404,6 +422,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
     applyReviewedMutation.isPending ||
     applyMutation.isPending ||
     dismissMutation.isPending ||
+    markReviewedMutation.isPending ||
     reviewPriorityMutation.isPending ||
     reactivateMutation.isPending ||
     requestReviewMutation.isPending ||
@@ -526,29 +545,34 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
               ) : null}
 
               <section className="flex flex-col gap-3">
-                <header className="flex items-baseline justify-between">
-                  <h3 className="text-md font-semibold text-text-primary">
-                    <ConceptLabel concept="pulse">
-                      <Trans>Affected clients</Trans>
-                    </ConceptLabel>
-                  </h3>
-                  {stats ? <SelectionSummary stats={stats} /> : null}
-                </header>
-                <AffectedClientsTable
-                  rows={detail.affectedClients}
-                  selection={selection}
-                  confirmedReviewIds={confirmedReviewIds}
-                  excludedIds={excludedIds}
-                  onChangeSelection={setSelection}
-                  onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                  onToggleExcluded={
-                    permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
-                  }
-                  readOnly={!canApply}
-                />
+                {detail.alert.actionMode === 'due_date_overlay' ? (
+                  <>
+                    <header className="flex items-baseline justify-between">
+                      <h3 className="text-md font-semibold text-text-primary">
+                        <ConceptLabel concept="pulse">
+                          <Trans>Affected clients</Trans>
+                        </ConceptLabel>
+                      </h3>
+                      {stats ? <SelectionSummary stats={stats} /> : null}
+                    </header>
+                    <AffectedClientsTable
+                      rows={detail.affectedClients}
+                      selection={selection}
+                      confirmedReviewIds={confirmedReviewIds}
+                      excludedIds={excludedIds}
+                      onChangeSelection={setSelection}
+                      onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                      onToggleExcluded={
+                        permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
+                      }
+                      readOnly={!canApply}
+                    />
+                  </>
+                ) : null}
               </section>
 
-              {permissions.canViewPriorityQueue ? (
+              {detail.alert.actionMode === 'due_date_overlay' &&
+              permissions.canViewPriorityQueue ? (
                 <ManagerReviewPanel
                   canManage={permissions.canManagePriorityReview}
                   reviewStatus={priorityReview?.status ?? null}
@@ -579,12 +603,17 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                 sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
                 isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
                 isMutating={isMutating}
+                actionMode={detail.alert.actionMode}
                 onApply={handleApply}
+                onMarkReviewed={() => {
+                  setReasonAction('reviewed')
+                  setReasonText('')
+                }}
                 onCopyDraft={handleCopyDraft}
                 onRequestReview={() => setReviewDialogOpen(true)}
               />
 
-              <ApplySafetyChecklist />
+              {detail.alert.actionMode === 'due_date_overlay' ? <ApplySafetyChecklist /> : null}
             </>
           ) : null}
         </div>
@@ -595,6 +624,7 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
               alertStatus={detail.alert.status}
               sourceStatus={detail.alert.sourceStatus}
               selectionCount={stats?.selectedCount ?? 0}
+              actionMode={detail.alert.actionMode}
               canApply={canApply}
               canRequestReview={canRequestPulseReview({
                 role: permissions.role,
@@ -605,6 +635,10 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
               reviewedSetReady={priorityReview?.status === 'reviewed'}
               isMutating={isMutating}
               onApply={handleApply}
+              onMarkReviewed={() => {
+                setReasonAction('reviewed')
+                setReasonText('')
+              }}
               onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
               onDismiss={() => {
                 setReasonAction('dismiss')
@@ -641,7 +675,9 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
         <PulseReasonDialog
           action={reasonAction}
           reason={reasonText}
-          pending={dismissMutation.isPending || snoozeMutation.isPending}
+          pending={
+            dismissMutation.isPending || snoozeMutation.isPending || markReviewedMutation.isPending
+          }
           onChangeReason={setReasonText}
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {
@@ -654,12 +690,14 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
             if (!trimmed || !reasonAction) return
             if (reasonAction === 'dismiss') {
               dismissMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
-            } else {
+            } else if (reasonAction === 'snooze') {
               snoozeMutation.mutate({
                 alertId: detail.alert.id,
                 until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                 reason: trimmed,
               })
+            } else {
+              markReviewedMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
             }
           }}
         />
@@ -676,7 +714,7 @@ function PulseReasonDialog({
   onOpenChange,
   onSubmit,
 }: {
-  action: 'dismiss' | 'snooze' | null
+  action: 'dismiss' | 'snooze' | 'reviewed' | null
   reason: string
   pending: boolean
   onChangeReason: (next: string) => void
@@ -686,6 +724,7 @@ function PulseReasonDialog({
   const { t } = useLingui()
   const open = action !== null
   const isDismiss = action === 'dismiss'
+  const isReviewed = action === 'reviewed'
   const trimmed = reason.trim()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -699,7 +738,13 @@ function PulseReasonDialog({
         >
           <DialogHeader>
             <DialogTitle>
-              {isDismiss ? <Trans>Dismiss alert</Trans> : <Trans>Snooze alert 24h</Trans>}
+              {isReviewed ? (
+                <Trans>Mark reviewed</Trans>
+              ) : isDismiss ? (
+                <Trans>Dismiss alert</Trans>
+              ) : (
+                <Trans>Snooze alert 24h</Trans>
+              )}
             </DialogTitle>
             <DialogDescription>
               <Trans>
@@ -717,9 +762,11 @@ function PulseReasonDialog({
               maxLength={500}
               disabled={pending}
               placeholder={
-                isDismiss
-                  ? t`Why is this alert not relevant?`
-                  : t`Why snooze — what unblocks it tomorrow?`
+                isReviewed
+                  ? t`What did you review?`
+                  : isDismiss
+                    ? t`Why is this alert not relevant?`
+                    : t`Why snooze — what unblocks it tomorrow?`
               }
               onChange={(event) => onChangeReason(event.target.value)}
               autoFocus
@@ -740,6 +787,8 @@ function PulseReasonDialog({
             <Button type="submit" disabled={pending || trimmed.length === 0}>
               {pending ? (
                 <Trans>Saving…</Trans>
+              ) : isReviewed ? (
+                <Trans>Mark reviewed</Trans>
               ) : isDismiss ? (
                 <Trans>Dismiss</Trans>
               ) : (
@@ -755,26 +804,32 @@ function PulseReasonDialog({
 
 function SuggestedActionsPanel({
   selectionCount,
+  actionMode,
   canApply,
   canRequestReview,
   sourceRevoked,
   isClosed,
   isMutating,
   onApply,
+  onMarkReviewed,
   onCopyDraft,
   onRequestReview,
 }: {
   selectionCount: number
+  actionMode: PulseDetail['alert']['actionMode']
   canApply: boolean
   canRequestReview: boolean
   sourceRevoked: boolean
   isClosed: boolean
   isMutating: boolean
   onApply: () => void
+  onMarkReviewed: () => void
   onCopyDraft: () => void
   onRequestReview: () => void
 }) {
-  const applyDisabled = !canApply || isMutating || isClosed || sourceRevoked || selectionCount === 0
+  const reviewOnly = actionMode === 'review_only'
+  const applyDisabled =
+    !canApply || isMutating || isClosed || sourceRevoked || selectionCount === 0 || reviewOnly
   return (
     <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-3">
       <header className="flex flex-col gap-1">
@@ -800,10 +855,18 @@ function SuggestedActionsPanel({
           <div className="grid min-w-0 flex-1 gap-2">
             <div className="grid gap-0.5">
               <h4 className="text-sm font-semibold text-text-primary">
-                <Trans>Apply deadline exception</Trans>
+                {reviewOnly ? (
+                  <Trans>Review source change</Trans>
+                ) : (
+                  <Trans>Apply deadline exception</Trans>
+                )}
               </h4>
               <p className="text-sm text-text-secondary">
-                {selectionCount === 0 ? (
+                {reviewOnly ? (
+                  <Trans>
+                    Review the official source and mark this Pulse reviewed when complete.
+                  </Trans>
+                ) : selectionCount === 0 ? (
                   <Trans>Select eligible obligations before applying.</Trans>
                 ) : (
                   <Plural
@@ -814,8 +877,16 @@ function SuggestedActionsPanel({
                 )}
               </p>
             </div>
-            <Button size="sm" disabled={applyDisabled} onClick={onApply}>
-              {selectionCount === 0 ? (
+            <Button
+              size="sm"
+              disabled={
+                reviewOnly ? !canApply || isMutating || isClosed || sourceRevoked : applyDisabled
+              }
+              onClick={reviewOnly ? onMarkReviewed : onApply}
+            >
+              {reviewOnly ? (
+                <Trans>Mark reviewed</Trans>
+              ) : selectionCount === 0 ? (
                 <Trans>Select obligations</Trans>
               ) : (
                 <Plural
@@ -867,12 +938,14 @@ function DrawerActions({
   alertStatus,
   sourceStatus,
   selectionCount,
+  actionMode,
   canApply,
   canRequestReview,
   canApplyReviewed,
   reviewedSetReady,
   isMutating,
   onApply,
+  onMarkReviewed,
   onApplyReviewed,
   onDismiss,
   onSnooze,
@@ -884,12 +957,14 @@ function DrawerActions({
   alertStatus: PulseFirmAlertStatus
   sourceStatus: PulseStatus
   selectionCount: number
+  actionMode: PulseDetail['alert']['actionMode']
   canApply: boolean
   canRequestReview: boolean
   canApplyReviewed: boolean
   reviewedSetReady: boolean
   isMutating: boolean
   onApply: () => void
+  onMarkReviewed: () => void
   onApplyReviewed: () => void
   onDismiss: () => void
   onSnooze: () => void
@@ -903,6 +978,7 @@ function DrawerActions({
   const isDismissed = alertStatus === 'dismissed'
   const sourceRevoked = sourceStatus === 'source_revoked'
   const isClosed = alertStatus === 'reverted' || isDismissed || sourceRevoked
+  const reviewOnly = actionMode === 'review_only'
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
       <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
@@ -956,11 +1032,13 @@ function DrawerActions({
       <Button
         size="sm"
         variant={canRequestReview ? 'outline' : undefined}
-        disabled={!canApply || isMutating || isClosed || selectionCount === 0}
-        onClick={onApply}
+        disabled={!canApply || isMutating || isClosed || (!reviewOnly && selectionCount === 0)}
+        onClick={reviewOnly ? onMarkReviewed : onApply}
         aria-busy={isMutating || undefined}
       >
-        {selectionCount === 0 ? (
+        {reviewOnly ? (
+          <Trans>Mark reviewed</Trans>
+        ) : selectionCount === 0 ? (
           <Trans>Select obligations to apply</Trans>
         ) : (
           <Plural
@@ -970,7 +1048,7 @@ function DrawerActions({
           />
         )}
       </Button>
-      {canApplyReviewed ? (
+      {canApplyReviewed && !reviewOnly ? (
         <Button
           size="sm"
           disabled={isMutating || isClosed || !reviewedSetReady}
@@ -1125,16 +1203,17 @@ function PulseReviewRequestDialog({
 function buildClientEmailDraft(detail: PulseDetail, selection: ReadonlySet<string>): string {
   const affectedClients = detail.affectedClients
     .filter((row) => selection.has(row.obligationId))
-    .map((row) => `- ${row.clientName}: ${row.currentDueDate} -> ${row.newDueDate}`)
+    .map((row) => `- ${row.clientName}: ${row.currentDueDate} -> ${row.newDueDate ?? 'review'}`)
   return [
-    `Subject: Deadline update: ${detail.alert.title}`,
+    `Subject: ${detail.alert.actionMode === 'review_only' ? 'Tax source review' : 'Deadline update'}: ${detail.alert.title}`,
     '',
     'Hi,',
     '',
     detail.alert.summary,
     '',
-    `Original due date: ${detail.originalDueDate}`,
-    `New due date: ${detail.newDueDate}`,
+    ...(detail.alert.actionMode === 'due_date_overlay'
+      ? [`Original due date: ${detail.originalDueDate}`, `New due date: ${detail.newDueDate}`]
+      : ['Action: Review official source change.']),
     '',
     'Affected client deadlines:',
     ...(affectedClients.length > 0

@@ -1,5 +1,8 @@
 # 2026-05-22 Weekly Rule Registry Reconcile
 
+Superseded on 2026-05-23 by `docs/dev-log/2026-05-23-pulse-rule-source-watch.md`.
+The implementation now routes source changes into Pulse instead of internal proposal review.
+
 ## Summary
 
 Implemented the product-owned weekly source/rule reconcile flow. Worker scheduled runs now gate a

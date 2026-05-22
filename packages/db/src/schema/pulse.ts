@@ -21,8 +21,23 @@ export const PULSE_FIRM_ALERT_STATUSES = [
   'partially_applied',
   'applied',
   'reverted',
+  'reviewed',
 ] as const
 export type PulseFirmAlertStatus = (typeof PULSE_FIRM_ALERT_STATUSES)[number]
+
+export const PULSE_CHANGE_KINDS = [
+  'deadline_shift',
+  'filing_requirement',
+  'applicability_scope',
+  'form_instruction',
+  'source_status',
+  'new_obligation',
+  'other',
+] as const
+export type PulseChangeKind = (typeof PULSE_CHANGE_KINDS)[number]
+
+export const PULSE_ACTION_MODES = ['due_date_overlay', 'review_only'] as const
+export type PulseActionMode = (typeof PULSE_ACTION_MODES)[number]
 
 export const PULSE_PRIORITY_REVIEW_STATUSES = ['open', 'reviewed', 'applied', 'dismissed'] as const
 export type PulsePriorityReviewStatus = (typeof PULSE_PRIORITY_REVIEW_STATUSES)[number]
@@ -33,6 +48,7 @@ export const PULSE_SOURCE_SNAPSHOT_STATUSES = [
   'extracted',
   'duplicate',
   'failed',
+  'ignored',
 ] as const
 export type PulseSourceSnapshotStatus = (typeof PULSE_SOURCE_SNAPSHOT_STATUSES)[number]
 
@@ -57,6 +73,13 @@ export const pulse = sqliteTable(
     rawR2Key: text('raw_r2_key'),
     publishedAt: integer('published_at', { mode: 'timestamp_ms' }).notNull(),
 
+    changeKind: text('change_kind', { enum: PULSE_CHANGE_KINDS })
+      .notNull()
+      .default('deadline_shift'),
+    actionMode: text('action_mode', { enum: PULSE_ACTION_MODES })
+      .notNull()
+      .default('due_date_overlay'),
+
     aiSummary: text('ai_summary').notNull(),
     verbatimQuote: text('verbatim_quote').notNull(),
 
@@ -66,9 +89,15 @@ export const pulse = sqliteTable(
     parsedEntityTypes: text('parsed_entity_types', { mode: 'json' }).$type<string[]>().notNull(),
     parsedOriginalDueDate: integer('parsed_original_due_date', {
       mode: 'timestamp_ms',
-    }).notNull(),
-    parsedNewDueDate: integer('parsed_new_due_date', { mode: 'timestamp_ms' }).notNull(),
+    }),
+    parsedNewDueDate: integer('parsed_new_due_date', { mode: 'timestamp_ms' }),
     parsedEffectiveFrom: integer('parsed_effective_from', { mode: 'timestamp_ms' }),
+    parsedEffectiveUntil: integer('parsed_effective_until', { mode: 'timestamp_ms' }),
+    affectedRuleIdsJson: text('affected_rule_ids_json', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    structuredChangeJson: text('structured_change_json', { mode: 'json' }).$type<unknown>(),
 
     confidence: real('confidence').notNull(),
     status: text('status', { enum: PULSE_STATUSES }).notNull().default('pending_review'),

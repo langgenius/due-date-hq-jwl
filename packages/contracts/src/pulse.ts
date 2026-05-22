@@ -19,8 +19,23 @@ export const PulseFirmAlertStatusSchema = z.enum([
   'partially_applied',
   'applied',
   'reverted',
+  'reviewed',
 ])
 export type PulseFirmAlertStatus = z.infer<typeof PulseFirmAlertStatusSchema>
+
+export const PulseChangeKindSchema = z.enum([
+  'deadline_shift',
+  'filing_requirement',
+  'applicability_scope',
+  'form_instruction',
+  'source_status',
+  'new_obligation',
+  'other',
+])
+export type PulseChangeKind = z.infer<typeof PulseChangeKindSchema>
+
+export const PulseActionModeSchema = z.enum(['due_date_overlay', 'review_only'])
+export type PulseActionMode = z.infer<typeof PulseActionModeSchema>
 
 export const PulseSourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 export type PulseSourceHealthStatus = z.infer<typeof PulseSourceHealthStatusSchema>
@@ -63,6 +78,8 @@ export const PulseAlertPublicSchema = z.object({
   pulseId: EntityIdSchema,
   status: PulseFirmAlertStatusSchema,
   sourceStatus: PulseStatusSchema,
+  changeKind: PulseChangeKindSchema,
+  actionMode: PulseActionModeSchema,
   title: z.string().min(1),
   source: z.string().min(1),
   sourceUrl: z.url(),
@@ -84,7 +101,7 @@ export const PulseAffectedClientSchema = z.object({
   entityType: EntityTypeSchema,
   taxType: z.string().min(1),
   currentDueDate: z.iso.date(),
-  newDueDate: z.iso.date(),
+  newDueDate: z.iso.date().nullable(),
   status: ObligationStatusSchema,
   matchStatus: PulseAffectedClientStatusSchema,
   reason: z.string().nullable(),
@@ -97,9 +114,12 @@ export const PulseDetailSchema = z.object({
   counties: z.array(z.string()),
   forms: z.array(z.string()),
   entityTypes: z.array(EntityTypeSchema),
-  originalDueDate: z.iso.date(),
-  newDueDate: z.iso.date(),
+  originalDueDate: z.iso.date().nullable(),
+  newDueDate: z.iso.date().nullable(),
   effectiveFrom: z.iso.date().nullable(),
+  effectiveUntil: z.iso.date().nullable(),
+  affectedRuleIds: z.array(z.string()),
+  structuredChange: z.unknown().nullable(),
   sourceExcerpt: z.string().min(1),
   reviewedAt: z.iso.datetime().nullable(),
   affectedClients: z.array(PulseAffectedClientSchema),
@@ -218,6 +238,9 @@ export const PulseDismissInputSchema = z.object({
 })
 export type PulseDismissInput = z.infer<typeof PulseDismissInputSchema>
 
+export const PulseMarkReviewedInputSchema = PulseDismissInputSchema
+export type PulseMarkReviewedInput = z.infer<typeof PulseMarkReviewedInputSchema>
+
 export const PulseRequestReviewInputSchema = z.object({
   alertId: EntityIdSchema,
   note: z.string().trim().max(500).optional(),
@@ -255,6 +278,9 @@ export type PulseSnoozeOutput = z.infer<typeof PulseSnoozeOutputSchema>
 
 export const PulseReactivateOutputSchema = PulseDismissOutputSchema
 export type PulseReactivateOutput = z.infer<typeof PulseReactivateOutputSchema>
+
+export const PulseMarkReviewedOutputSchema = PulseDismissOutputSchema
+export type PulseMarkReviewedOutput = z.infer<typeof PulseMarkReviewedOutputSchema>
 
 export const PulseRevertOutputSchema = z.object({
   alert: PulseAlertPublicSchema,
@@ -298,6 +324,7 @@ export const pulseContract = oc.router({
   apply: oc.input(PulseApplyInputSchema).output(PulseApplyOutputSchema),
   dismiss: oc.input(PulseDismissInputSchema).output(PulseDismissOutputSchema),
   snooze: oc.input(PulseSnoozeInputSchema).output(PulseSnoozeOutputSchema),
+  markReviewed: oc.input(PulseMarkReviewedInputSchema).output(PulseMarkReviewedOutputSchema),
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),
   requestReview: oc.input(PulseRequestReviewInputSchema).output(PulseRequestReviewOutputSchema),

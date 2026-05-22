@@ -695,6 +695,9 @@ function buildScopedRepo(firmId: string) {
     async snooze() {
       return unexpectedRepoCall('pulse.snooze')
     },
+    async markReviewed() {
+      return unexpectedRepoCall('pulse.markReviewed')
+    },
     async revert() {
       return unexpectedRepoCall('pulse.revert')
     },
@@ -950,7 +953,7 @@ function buildAi(rawResult?: unknown): AI {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v1', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
 
   return { extractPulse, runPrompt, runStreaming: runPrompt }
 }
@@ -1043,7 +1046,7 @@ function buildCountingMigrationAi(): {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v1', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
 
   return { ai: { extractPulse, runPrompt, runStreaming: runPrompt }, calls, routings }
 }

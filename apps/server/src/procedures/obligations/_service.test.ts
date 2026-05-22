@@ -393,6 +393,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async snooze() {
       return unused('pulse.snooze')
     },
+    async markReviewed() {
+      return unused('pulse.markReviewed')
+    },
     async revert() {
       return unused('pulse.revert')
     },

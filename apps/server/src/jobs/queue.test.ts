@@ -68,14 +68,13 @@ describe('queue consumer', () => {
     ).not.toThrow()
   })
 
-  it('allows rule registry reconcile and catalog sync messages', () => {
+  it('allows rule source scan and catalog sync messages', () => {
     expect(() =>
       assertQueueDispatchable(
         batch([
           {
             body: {
-              type: 'rule.registry.source.reconcile',
-              runId: 'run-1',
+              type: 'pulse.rule_source.scan',
               sourceId: 'ca.ftb_business_due_dates',
               reason: 'cadence_due',
             },

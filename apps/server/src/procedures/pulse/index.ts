@@ -25,6 +25,8 @@ interface PulseAlertRow {
   pulseId: string
   status: PulseAlertPublic['status']
   sourceStatus: PulseAlertPublic['sourceStatus']
+  changeKind: PulseAlertPublic['changeKind']
+  actionMode: PulseAlertPublic['actionMode']
   title: string
   source: string
   sourceUrl: string
@@ -62,7 +64,7 @@ interface PulseAffectedClientRow {
   entityType: PulseAffectedClient['entityType']
   taxType: string
   currentDueDate: Date
-  newDueDate: Date
+  newDueDate: Date | null
   status: PulseAffectedClient['status']
   matchStatus: PulseAffectedClient['matchStatus']
   reason: string | null
@@ -116,7 +118,7 @@ interface PulsePriorityQueueItemRow {
 }
 
 type PulseRepoErrorShape = Error & {
-  code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible'
+  code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible' | 'review_only'
 }
 
 const REVIEW_UNAVAILABLE_ALERT_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
@@ -131,7 +133,8 @@ function pulseRepoErrorCode(error: unknown): PulseRepoErrorShape['code'] | null 
     code === 'not_found' ||
     code === 'conflict' ||
     code === 'revert_expired' ||
-    code === 'no_eligible'
+    code === 'no_eligible' ||
+    code === 'review_only'
   ) {
     return code
   }
@@ -148,6 +151,8 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     pulseId: row.pulseId,
     status: row.status,
     sourceStatus: row.sourceStatus,
+    changeKind: row.changeKind,
+    actionMode: row.actionMode,
     title: row.title,
     source: row.source,
     sourceUrl: row.sourceUrl,
@@ -170,7 +175,7 @@ function toAffectedClientPublic(row: PulseAffectedClientRow): PulseAffectedClien
     entityType: row.entityType,
     taxType: row.taxType,
     currentDueDate: toDateOnly(row.currentDueDate),
-    newDueDate: toDateOnly(row.newDueDate),
+    newDueDate: row.newDueDate ? toDateOnly(row.newDueDate) : null,
     status: row.status,
     matchStatus: row.matchStatus,
     reason: row.reason,
@@ -267,6 +272,9 @@ function mapPulseError(error: unknown): never {
     }
     if (code === 'no_eligible') {
       throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS })
+    }
+    if (code === 'review_only') {
+      throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_REVIEW_ONLY })
     }
   }
   throw error
@@ -398,9 +406,12 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
       counties: detail.counties,
       forms: detail.forms,
       entityTypes: detail.entityTypes,
-      originalDueDate: toDateOnly(detail.originalDueDate),
-      newDueDate: toDateOnly(detail.newDueDate),
+      originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+      newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
       effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+      effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+      affectedRuleIds: detail.affectedRuleIds,
+      structuredChange: detail.structuredChange ?? null,
       sourceExcerpt: detail.sourceExcerpt,
       reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
       affectedClients: detail.affectedClients.map(toAffectedClientPublic),
@@ -529,6 +540,26 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
       alertId: input.alertId,
       userId,
       until: new Date(input.until),
+      reason: input.reason,
+    })
+    await enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'pulse_dismiss',
+    }).catch(() => false)
+    return { alert: toAlertPublic(result.alert), auditId: result.auditId }
+  } catch (error) {
+    return mapPulseError(error)
+  }
+})
+
+const markReviewed = os.pulse.markReviewed.handler(async ({ input, context }) => {
+  const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
+  const { scoped, tenant } = requireTenant(context)
+  requireProductionPulse(tenant.plan)
+  try {
+    const result = await scoped.pulse.markReviewed({
+      alertId: input.alertId,
+      userId,
       reason: input.reason,
     })
     await enqueueDashboardBriefRefresh(context.env, {
@@ -728,6 +759,7 @@ export const pulseHandlers = {
   apply,
   dismiss,
   snooze,
+  markReviewed,
   revert,
   reactivate,
   requestReview,

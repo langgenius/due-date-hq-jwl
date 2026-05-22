@@ -238,6 +238,7 @@ export const PULSE_AUDIT_ACTIONS = [
   'pulse.revert',
   'pulse.reactivate',
   'pulse.review_requested',
+  'pulse.reviewed',
 ] as const
 export type PulseAuditAction = (typeof PULSE_AUDIT_ACTIONS)[number]
 

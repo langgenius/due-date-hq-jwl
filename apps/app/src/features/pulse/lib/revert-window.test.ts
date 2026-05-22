@@ -13,6 +13,8 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     title: 'IRS storm relief',
     source: 'irs.gov',
     sourceUrl: 'https://irs.gov',
+    changeKind: 'deadline_shift',
+    actionMode: 'due_date_overlay',
     summary: 'IRS extends deadlines.',
     publishedAt: new Date('2026-04-15T00:00:00Z').toISOString(),
     matchedCount: 0,

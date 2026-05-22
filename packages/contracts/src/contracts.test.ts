@@ -1140,6 +1140,7 @@ describe('@duedatehq/contracts', () => {
       'apply',
       'dismiss',
       'snooze',
+      'markReviewed',
       'revert',
       'reactivate',
       'requestReview',
@@ -1151,6 +1152,7 @@ describe('@duedatehq/contracts', () => {
       'partially_applied',
       'applied',
       'reverted',
+      'reviewed',
     ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
     expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
@@ -1164,6 +1166,8 @@ describe('@duedatehq/contracts', () => {
       title: 'IRS CA storm relief',
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
       summary: 'IRS extends selected filing deadlines for Los Angeles County.',
       publishedAt: '2026-04-15T17:00:00.000Z',
       matchedCount: 1,

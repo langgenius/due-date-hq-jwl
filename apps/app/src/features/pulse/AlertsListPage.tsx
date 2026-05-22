@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import type {
   PulseAlertPublic,
+  PulseChangeKind,
   PulseFirmAlertStatus,
   PulseSourceHealth,
 } from '@duedatehq/contracts'
@@ -47,8 +48,20 @@ const STATUS_FILTER_OPTIONS = [
   'dismissed',
   'reverted',
   'snoozed',
+  'reviewed',
 ] as const
 type PulseStatusFilter = (typeof STATUS_FILTER_OPTIONS)[number]
+const CHANGE_KIND_FILTER_OPTIONS = [
+  'all',
+  'deadline_shift',
+  'filing_requirement',
+  'applicability_scope',
+  'form_instruction',
+  'source_status',
+  'new_obligation',
+  'other',
+] as const
+type PulseChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 
@@ -64,6 +77,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const { openDrawer } = usePulseDrawer()
   const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
+  const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
   const invalidatePulse = usePulseInvalidation()
   // Dismiss alerts directly from the Radar list (Rules › Radar). Mirrors
@@ -122,14 +136,19 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
         (alert) =>
           matchesPulseImpactFilter(alert, impactFilter) &&
           matchesStatusFilter(alert.status, statusFilter) &&
+          (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
           (sourceFilter === 'all' || alert.source === sourceFilter),
       ),
-    [alerts, impactFilter, sourceFilter, statusFilter],
+    [alerts, changeKindFilter, impactFilter, sourceFilter, statusFilter],
   )
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const breathingAlertId = filteredAlerts.find(isBreathingAlertRow)?.id
-  const filtersActive = impactFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all'
+  const filtersActive =
+    impactFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    changeKindFilter !== 'all' ||
+    sourceFilter !== 'all'
 
   return (
     // Match the 1100px cap applied across narrow content pages
@@ -199,7 +218,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       ) : (
         <>
           <div className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 md:flex-row md:items-center md:justify-between">
-            <div className="grid gap-2 md:grid-cols-[180px_180px_minmax(220px,320px)]">
+            <div className="grid gap-2 md:grid-cols-[180px_180px_180px_minmax(220px,320px)]">
               <Select
                 value={impactFilter}
                 onValueChange={(value) => {
@@ -214,6 +233,25 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                   {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
                     <SelectItem key={option} value={option}>
                       {impactFilterLabel(option)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={changeKindFilter}
+                onValueChange={(value) => {
+                  if (typeof value === 'string' && isChangeKindFilter(value))
+                    setChangeKindFilter(value)
+                }}
+              >
+                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by change type`}>
+                  <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent align="start">
+                  {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {changeKindFilterLabel(option)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -267,6 +305,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               onClick={() => {
                 setImpactFilter('all')
                 setStatusFilter('all')
+                setChangeKindFilter('all')
                 setSourceFilter('all')
               }}
             >
@@ -361,6 +400,10 @@ function isStatusFilter(value: string): value is PulseStatusFilter {
   return STATUS_FILTER_OPTIONS.some((option) => option === value)
 }
 
+function isChangeKindFilter(value: string): value is PulseChangeKindFilter {
+  return CHANGE_KIND_FILTER_OPTIONS.some((option) => option === value)
+}
+
 function matchesStatusFilter(status: PulseFirmAlertStatus, filter: PulseStatusFilter): boolean {
   if (filter === 'all') return true
   if (filter === 'active') return status === 'matched'
@@ -382,7 +425,23 @@ function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
   if (filter === 'applied') return <Trans>Applied</Trans>
   if (filter === 'dismissed') return <Trans>Dismissed</Trans>
   if (filter === 'reverted') return <Trans>Reverted</Trans>
+  if (filter === 'reviewed') return <Trans>Reviewed</Trans>
   return <Trans>Snoozed</Trans>
+}
+
+function changeKindFilterLabel(filter: PulseChangeKindFilter): React.ReactNode {
+  if (filter === 'all') return <Trans>All change types</Trans>
+  return changeKindLabel(filter)
+}
+
+function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
+  if (kind === 'deadline_shift') return <Trans>Deadline shifts</Trans>
+  if (kind === 'filing_requirement') return <Trans>Filing requirements</Trans>
+  if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
+  if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
+  if (kind === 'source_status') return <Trans>Source status</Trans>
+  if (kind === 'new_obligation') return <Trans>New obligations</Trans>
+  return <Trans>Other changes</Trans>
 }
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {

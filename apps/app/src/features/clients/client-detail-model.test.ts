@@ -169,6 +169,8 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       title: 'CA disaster relief',
       source: 'CA FTB',
       sourceUrl: 'https://example.com/source',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
       summary: 'Deadline moved.',
       publishedAt: '2026-05-01T00:00:00.000Z',
       matchedCount: 1,
@@ -183,6 +185,9 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     originalDueDate: '2026-04-15',
     newDueDate: '2026-06-15',
     effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    structuredChange: null,
     sourceExcerpt: 'Official extension.',
     reviewedAt: null,
     affectedClients: [

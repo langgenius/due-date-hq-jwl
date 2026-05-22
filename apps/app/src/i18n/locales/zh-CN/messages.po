@@ -829,6 +829,10 @@ msgstr "操作"
 msgid "Action category"
 msgstr "操作分类"
 
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "Action mode"
+msgstr "操作模式"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Actions"
 msgstr "操作"
@@ -1152,6 +1156,10 @@ msgid "All categories"
 msgstr "所有分类"
 
 #: src/features/pulse/AlertsListPage.tsx
+msgid "All change types"
+msgstr "所有变更类型"
+
+#: src/features/pulse/AlertsListPage.tsx
 msgid "All clear. We're watching configured Pulse sources; new matches will appear here."
 msgstr "全部正常。我们正在监控已配置的 Pulse 来源；新的匹配会显示在这里。"
 
@@ -1279,6 +1287,10 @@ msgstr "适用性审核"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Applicability review · needs CPA confirmation at generation time."
 msgstr "适用性复核 · 在生成义务时需要 CPA 确认。"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Applicability scope"
+msgstr "适用范围"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Applicable rules with no deadline scheduled yet."
@@ -1568,6 +1580,10 @@ msgstr "备用码已复制"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Base due date"
 msgstr "基准截止日"
+
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "Base rules"
+msgstr "基座规则"
 
 #: src/routes/rules.library.tsx
 msgid "Basic"
@@ -2597,6 +2613,10 @@ msgstr "无法标记电子申报被拒"
 msgid "Couldn't mark notification read"
 msgstr "无法将通知标记为已读"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Couldn't mark Pulse reviewed"
+msgstr "无法将 Pulse 标记为已审核"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Couldn't parse the input"
 msgstr "无法解析输入内容"
@@ -2958,6 +2978,7 @@ msgstr "天数"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Deadline"
 msgstr "截止日期"
 
@@ -2992,6 +3013,10 @@ msgstr "截止日提醒"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Deadline shift"
+msgstr "截止日变更"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Deadline shifts"
 msgstr "截止日变更"
 
 #: src/features/audit/audit-log-labels.ts
@@ -3587,6 +3612,10 @@ msgstr "已过期"
 msgid "Expired {0}"
 msgstr "已过期 {0}"
 
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "Expires"
+msgstr "到期"
+
 #. placeholder {0}: formatInvitationDate(invitation.expiresAt, firmTimezone)
 #: src/features/members/members-page.tsx
 msgid "Expires {0}"
@@ -3781,6 +3810,7 @@ msgstr "文件"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/obligation-type.ts
+#: src/features/pulse/components/PulseAlertCard.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
 msgstr "申报"
@@ -3805,6 +3835,10 @@ msgstr "报税辖区已保存"
 msgid "Filing plan"
 msgstr "申报计划"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Filing requirements"
+msgstr "申报要求"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing states"
@@ -3821,6 +3855,10 @@ msgstr "仅延期申报；付款不延期。"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filter by alert status"
 msgstr "按提醒状态筛选"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Filter by change type"
+msgstr "按变更类型筛选"
 
 #: src/routes/rules.library.tsx
 msgid "Filter by entity"
@@ -3930,6 +3968,7 @@ msgstr "海外账户"
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
+#: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/routes/rules.library.tsx
@@ -3949,6 +3988,10 @@ msgstr "格式"
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
 msgstr "表格"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Forms and instructions"
+msgstr "表格和说明"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Forms catalog"
@@ -4768,6 +4811,10 @@ msgstr "标记准备工作完成"
 msgid "Mark read"
 msgstr "标记已读"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Mark reviewed"
+msgstr "标记为已审核"
+
 #: src/routes/obligations.tsx
 msgid "Mark selected extended"
 msgstr "将所选项标记为已延期"
@@ -5134,6 +5181,11 @@ msgstr "需要批量恢复时，新的客户导入会显示在这里。"
 msgid "New custom rule"
 msgstr "新建自定义规则"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "New obligations"
+msgstr "新义务"
+
+#: src/features/pulse/components/PulseAlertCard.tsx
 #: src/routes/rules.library.tsx
 msgid "New rule"
 msgstr "新建规则"
@@ -5538,6 +5590,10 @@ msgstr "尚未注册任何来源。来源监控器会为规则目录提供数据
 #: src/routes/obligations.tsx
 msgid "No states"
 msgstr "没有州"
+
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "No structured fields."
+msgstr "没有结构化字段。"
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -6107,6 +6163,7 @@ msgid "Original entry"
 msgstr "原始条目"
 
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/pulse/components/PulseAlertCard.tsx
 #: src/routes/clients.tsx
 #: src/routes/rules.library.tsx
 msgid "Other"
@@ -6119,6 +6176,10 @@ msgstr "Other activity"
 #: src/features/calendar/calendar-page.tsx
 msgid "Other calendars -> From URL"
 msgstr "其他日历 -> 通过 URL 添加"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "Other changes"
+msgstr "其他变更"
 
 #: src/routes/account.security.tsx
 msgid "Other sessions revoked"
@@ -6991,6 +7052,10 @@ msgstr "为每条义务关联监管证据"
 msgid "Pulse hits"
 msgstr "Pulse 命中"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Pulse marked reviewed"
+msgstr "Pulse 已标记为已审核"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Pulse quarantined"
 msgstr "Pulse 已隔离"
@@ -7582,6 +7647,10 @@ msgstr "查看覆盖、来源和待审核规则。"
 msgid "Review lightweight client business cues."
 msgstr "查看轻量客户业务提示。"
 
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "Review only"
+msgstr "仅供审核"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review per-jurisdiction rule coverage by entity."
 msgstr "按实体审核各辖区的规则覆盖情况。"
@@ -7627,6 +7696,10 @@ msgstr "审核所选规则"
 msgid "Review signed-in browsers and revoke stale access."
 msgstr "查看已登录的浏览器，并撤销过期访问。"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Review source change"
+msgstr "审核来源变更"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Review suggested"
 msgstr "建议复核"
@@ -7643,6 +7716,10 @@ msgstr "查看当前计划和账单控制。"
 msgid "Review the active practice plan, open billing controls, and choose the right workspace tier."
 msgstr "查看当前事务所计划，打开账单控制，并选择合适的工作区层级。"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Review the official source and mark this Pulse reviewed when complete."
+msgstr "审核官方来源，完成后将此 Pulse 标记为已审核。"
+
 #: src/routes/billing.checkout.tsx
 msgid "Review the practice subscription before opening secure checkout."
 msgstr "打开安全 checkout 前先确认事务所订阅。"
@@ -7655,6 +7732,12 @@ msgstr "应用此提醒前，请复核来源摘录和结构化字段。"
 msgid "Review-only rule"
 msgstr "仅供复核的规则"
 
+#: src/features/pulse/components/PulseAlertCard.tsx
+msgid "Review-only source change. No due-date overlay will be applied."
+msgstr "仅供审核的来源变更。不会应用截止日覆盖。"
+
+#: src/features/pulse/AlertsListPage.tsx
+#: src/features/pulse/components/PulseStatusBadge.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Reviewed"
 msgstr "已审核"
@@ -8053,6 +8136,7 @@ msgid "Schedule payment with authority"
 msgstr "与机关安排付款"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Scope"
 msgstr "范围"
 
@@ -8601,6 +8685,7 @@ msgstr "来源"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
+#: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Source"
@@ -8660,6 +8745,7 @@ msgstr "来源信号记录"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
+#: src/features/pulse/AlertsListPage.tsx
 msgid "Source status"
 msgstr "来源状态"
 
@@ -8810,6 +8896,10 @@ msgstr "仍在准备中。你可以离开此页面，稍后再回来查看。"
 #: src/routes/billing.success.tsx
 msgid "Still waiting on confirmation"
 msgstr "仍在等待确认"
+
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "Structured change"
+msgstr "结构化变更"
 
 #: src/routes/obligations.tsx
 msgid "Sub-status mutation pending backend — wires up once the RPC procedure ships."
@@ -9330,6 +9420,10 @@ msgstr "此事务所已经是所选计划。"
 msgid "This Pulse alert is closed and cannot be sent for review."
 msgstr "此 Pulse 提醒已关闭，无法发送审核请求。"
 
+#: src/features/pulse/lib/error-mapping.ts
+msgid "This Pulse is review-only and does not apply due-date overlays."
+msgstr "此 Pulse 仅供审核，不会应用截止日覆盖。"
+
 #: src/routes/readiness.tsx
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "此准备状态链接已过期、已撤销或无效。"
@@ -9600,6 +9694,8 @@ msgid "Unique clients represented by the source-year obligations in this preview
 msgstr "本次预览中，上一年度义务对应的唯一客户数。"
 
 #: src/features/permissions/permission-gate.tsx
+#: src/features/pulse/components/AffectedClientsTable.tsx
+#: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Unknown"
 msgstr "未知"
@@ -9903,6 +9999,10 @@ msgstr "What"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "What changed"
 msgstr "变更内容"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "What did you review?"
+msgstr "你审核了什么？"
 
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"

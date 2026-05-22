@@ -1,80 +1,66 @@
 /* eslint-disable typescript-eslint/no-unsafe-type-assertion --
- * Focused Worker doubles only implement the rule registry reconcile job surface.
+ * Focused Worker doubles only implement the rule source scan job surface.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Env } from '../../env'
 import {
+  consumePulseRuleSourceScan,
   consumeRuleRegistryCatalogSync,
-  consumeRuleRegistrySourceReconcile,
-  enqueueDueRuleRegistryReconcile,
+  enqueueDueRuleSourceScans,
+  PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
   RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE,
-  RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-  shouldRunWeeklyRuleRegistryGovernance,
-  shouldRunWeeklyRuleRegistryReconcile,
+  shouldRunWeeklyRuleSourceGovernance,
 } from './reconcile'
 
-const { aiMocks, coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.hoisted(
-  () => {
-    const sources: unknown[] = []
-    const rules: unknown[] = []
-    const ai = { runPrompt: vi.fn() }
-    const opsRepo = {
-      startReconcileRun: vi.fn(),
-      recordReconcileSourceOutcome: vi.fn(),
-      recordChangeProposal: vi.fn(),
-      listGlobalRuleTemplates: vi.fn(),
-      fanoutReviewTasks: vi.fn(),
-    }
-    const rulesRepo = { upsertGlobalTemplates: vi.fn() }
-    const pulseOpsRepo = {
-      ensureSourceState: vi.fn(),
-      getSourceState: vi.fn(),
-      createSourceSnapshot: vi.fn(),
-      recordSourceSuccess: vi.fn(),
-      recordSourceFailure: vi.fn(),
-    }
-    const aiRepo = {
-      findSuccessfulGlobalRunsByContextRefs: vi.fn(),
-      recordGlobalRun: vi.fn(),
-    }
-    return {
-      aiMocks: {
-        ai,
-        createAI: vi.fn(() => ai),
-      },
-      coreMocks: {
-        sources,
-        rules,
-        listRuleSources: vi.fn(() => sources),
-        listObligationRules: vi.fn(() => rules),
-      },
-      dbMocks: {
-        createDb: vi.fn(() => ({})),
-        makeRulesOpsRepo: vi.fn(() => opsRepo),
-        makeRulesRepo: vi.fn(() => rulesRepo),
-        makePulseOpsRepo: vi.fn(() => pulseOpsRepo),
-        makeAiRepo: vi.fn(() => aiRepo),
-        opsRepo,
-        rulesRepo,
-        pulseOpsRepo,
-        aiRepo,
-      },
-      fetchMocks: {
-        fetchTextSnapshot: vi.fn(),
-      },
-      metricsMocks: {
-        recordPulseMetric: vi.fn(),
-      },
-      pulseIngestMocks: {
-        archivePulseRaw: vi.fn(),
-      },
-    }
-  },
-)
-
-vi.mock('@duedatehq/ai', () => ({
-  createAI: aiMocks.createAI,
-}))
+const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.hoisted(() => {
+  const sources: unknown[] = []
+  const rules: unknown[] = []
+  const opsRepo = {
+    listGlobalRuleTemplates: vi.fn(),
+    fanoutReviewTasks: vi.fn(),
+  }
+  const rulesRepo = { upsertGlobalTemplates: vi.fn() }
+  const pulseOpsRepo = {
+    ensureSourceState: vi.fn(),
+    getSourceState: vi.fn(),
+    createSourceSnapshot: vi.fn(),
+    createSourceSignal: vi.fn(),
+    recordSourceSuccess: vi.fn(),
+    recordSourceFailure: vi.fn(),
+  }
+  const aiRepo = {
+    findSuccessfulGlobalRunsByContextRefs: vi.fn(),
+  }
+  return {
+    coreMocks: {
+      sources,
+      rules,
+      listRuleSources: vi.fn(() => sources),
+      listObligationRules: vi.fn(() => rules),
+    },
+    dbMocks: {
+      createDb: vi.fn(() => ({})),
+      makeAiRepo: vi.fn(() => aiRepo),
+      makePulseOpsRepo: vi.fn(() => pulseOpsRepo),
+      makeRulesOpsRepo: vi.fn(() => opsRepo),
+      makeRulesRepo: vi.fn(() => rulesRepo),
+      opsRepo,
+      rulesRepo,
+      pulseOpsRepo,
+      aiRepo,
+    },
+    fetchMocks: {
+      fetchTextSnapshot: vi.fn(),
+      hashText: vi.fn(async (value: string) => `hash-${value.length}`),
+    },
+    metricsMocks: {
+      recordPulseMetric: vi.fn(),
+    },
+    pulseIngestMocks: {
+      archivePulseRaw: vi.fn(),
+    },
+  }
+})
 
 vi.mock('@duedatehq/core/rules', () => ({
   listRuleSources: coreMocks.listRuleSources,
@@ -91,6 +77,7 @@ vi.mock('@duedatehq/db', () => ({
 
 vi.mock('@duedatehq/ingest/http', () => ({
   fetchTextSnapshot: fetchMocks.fetchTextSnapshot,
+  hashText: fetchMocks.hashText,
 }))
 
 vi.mock('../pulse/ingest', () => ({
@@ -170,44 +157,11 @@ function env(queueSend = vi.fn()): Pick<Env, 'DB' | 'PULSE_QUEUE' | 'R2_PULSE'> 
   }
 }
 
-function okAnalyzerResult(classification: 'no_rule_change' | 'existing_rule_update' | 'new_rule') {
-  return {
-    result: {
-      classification,
-      affectedRuleIds:
-        classification === 'existing_rule_update'
-          ? ['ca.business_income_return.candidate.2026']
-          : [],
-      proposedRuleIds: classification === 'new_rule' ? ['ca.new.rule.candidate.2026'] : [],
-      diffSummary:
-        classification === 'no_rule_change'
-          ? 'Source content changed, but no rule semantics changed.'
-          : 'Rule pack proposal requires review.',
-      normalizedRuleJson: classification === 'no_rule_change' ? null : { rules: [] },
-      confidence: 0.9,
-      reasoning: 'Test analyzer result.',
-    },
-    refusal: null,
-    trace: {
-      promptVersion: 'rule-registry-reconcile@v1',
-      model: 'test-model',
-      latencyMs: 1,
-      guardResult: 'ok',
-      inputHash: 'hash-input',
-    },
-    model: 'test-model',
-    confidence: 0.9,
-    cost: null,
-  }
-}
-
-describe('rule registry reconcile jobs', () => {
+describe('rule source scan jobs', () => {
   beforeEach(() => {
     coreMocks.sources.splice(0, coreMocks.sources.length, source())
     coreMocks.rules.splice(0, coreMocks.rules.length, sourceDefinedRule())
-    aiMocks.createAI.mockClear()
-    aiMocks.ai.runPrompt.mockClear()
-    Object.values(fetchMocks).forEach((mock) => mock.mockReset())
+    Object.values(fetchMocks).forEach((mock) => mock.mockClear())
     Object.values(metricsMocks).forEach((mock) => mock.mockClear())
     Object.values(pulseIngestMocks).forEach((mock) => mock.mockClear())
     dbMocks.createDb.mockClear()
@@ -220,8 +174,6 @@ describe('rule registry reconcile jobs', () => {
     Object.values(dbMocks.pulseOpsRepo).forEach((mock) => mock.mockReset())
     Object.values(dbMocks.aiRepo).forEach((mock) => mock.mockReset())
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
-    dbMocks.opsRepo.recordReconcileSourceOutcome.mockResolvedValue({})
-    dbMocks.opsRepo.recordChangeProposal.mockResolvedValue({})
     dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
     dbMocks.opsRepo.fanoutReviewTasks.mockResolvedValue({
       newTaskTargets: 0,
@@ -238,35 +190,28 @@ describe('rule registry reconcile jobs', () => {
       inserted: true,
       snapshot: { id: 'snapshot-1' },
     })
+    dbMocks.pulseOpsRepo.createSourceSignal.mockResolvedValue({
+      inserted: true,
+      signal: { id: 'signal-1' },
+    })
     dbMocks.pulseOpsRepo.recordSourceSuccess.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.recordSourceFailure.mockResolvedValue(undefined)
-    dbMocks.aiRepo.recordGlobalRun.mockResolvedValue({ aiOutputId: 'ai-output-1' })
-    aiMocks.ai.runPrompt.mockResolvedValue(okAnalyzerResult('no_rule_change'))
   })
 
-  it('runs the weekly scheduler gate only during the Monday 09:00 UTC window', () => {
-    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:00:00.000Z'))).toBe(true)
-    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:29:59.000Z'))).toBe(true)
-    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-25T09:30:00.000Z'))).toBe(false)
-    expect(shouldRunWeeklyRuleRegistryGovernance(new Date('2026-05-26T09:00:00.000Z'))).toBe(false)
-    expect(shouldRunWeeklyRuleRegistryReconcile(new Date('2026-05-25T09:00:00.000Z'))).toBe(true)
+  it('runs the weekly governance gate only during the Monday 09:00 UTC window', () => {
+    expect(shouldRunWeeklyRuleSourceGovernance(new Date('2026-05-25T09:00:00.000Z'))).toBe(true)
+    expect(shouldRunWeeklyRuleSourceGovernance(new Date('2026-05-25T09:29:59.000Z'))).toBe(true)
+    expect(shouldRunWeeklyRuleSourceGovernance(new Date('2026-05-25T09:30:00.000Z'))).toBe(false)
+    expect(shouldRunWeeklyRuleSourceGovernance(new Date('2026-05-26T09:00:00.000Z'))).toBe(false)
   })
 
-  it('starts one cadence run and enqueues only due automated sources', async () => {
+  it('enqueues only due automated sources', async () => {
     const queueSend = vi.fn()
     coreMocks.sources.splice(
       0,
       coreMocks.sources.length,
-      source({
-        id: 'daily-source',
-        cadence: 'daily',
-        acquisitionMethod: 'html_watch',
-      }),
-      source({
-        id: 'weekly-source',
-        cadence: 'weekly',
-        acquisitionMethod: 'html_watch',
-      }),
+      source({ id: 'daily-source', cadence: 'daily', acquisitionMethod: 'html_watch' }),
+      source({ id: 'weekly-source', cadence: 'weekly', acquisitionMethod: 'html_watch' }),
     )
     dbMocks.pulseOpsRepo.ensureSourceState
       .mockResolvedValueOnce({
@@ -277,33 +222,18 @@ describe('rule registry reconcile jobs', () => {
         enabled: true,
         nextCheckAt: new Date('2026-05-26T09:00:00.000Z'),
       })
-    dbMocks.opsRepo.startReconcileRun.mockResolvedValue({
-      inserted: true,
-      run: { id: 'run-1', status: 'running' },
-    })
 
-    const result = await enqueueDueRuleRegistryReconcile(
+    const result = await enqueueDueRuleSourceScans(
       env(queueSend),
       new Date('2026-05-25T09:00:00.000Z'),
     )
 
-    expect(dbMocks.opsRepo.startReconcileRun).toHaveBeenCalledWith(
-      expect.objectContaining({
-        runKey: 'cadence:2026-05-25T09:00Z',
-        sourceCount: 1,
-        triggeredBy: 'scheduled_cron',
-      }),
-    )
-    expect(result).toEqual({ queued: 1, runId: 'run-1' })
-    expect(queueSend).toHaveBeenCalledTimes(1)
-    expect(queueSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-        runId: 'run-1',
-        sourceId: 'daily-source',
-        reason: 'cadence_due',
-      }),
-    )
+    expect(result).toEqual({ queued: 1 })
+    expect(queueSend).toHaveBeenCalledWith({
+      type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+      sourceId: 'daily-source',
+      reason: 'cadence_due',
+    })
   })
 
   it('queues non-automated sources only during the weekly governance window', async () => {
@@ -311,61 +241,31 @@ describe('rule registry reconcile jobs', () => {
     coreMocks.sources.splice(
       0,
       coreMocks.sources.length,
-      source({
-        id: 'fema-api',
-        cadence: 'daily',
-        acquisitionMethod: 'api_watch',
-      }),
+      source({ id: 'manual-source', acquisitionMethod: 'api_watch' }),
     )
-    dbMocks.opsRepo.startReconcileRun.mockResolvedValue({
-      inserted: true,
-      run: { id: 'run-1', status: 'running' },
-    })
 
-    const outsideWindow = await enqueueDueRuleRegistryReconcile(
+    const outsideWindow = await enqueueDueRuleSourceScans(
       env(queueSend),
       new Date('2026-05-26T09:00:00.000Z'),
     )
-    expect(outsideWindow).toEqual({ queued: 0, runId: null })
+    expect(outsideWindow).toEqual({ queued: 0 })
     expect(queueSend).not.toHaveBeenCalled()
 
-    const insideWindow = await enqueueDueRuleRegistryReconcile(
+    const insideWindow = await enqueueDueRuleSourceScans(
       env(queueSend),
       new Date('2026-05-25T09:00:00.000Z'),
     )
 
-    expect(insideWindow).toEqual({ queued: 1, runId: 'run-1' })
-    expect(queueSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourceId: 'fema-api',
-        reason: 'weekly_governance',
-      }),
-    )
+    expect(insideWindow).toEqual({ queued: 1 })
+    expect(queueSend).toHaveBeenCalledWith({
+      type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+      sourceId: 'manual-source',
+      reason: 'weekly_governance',
+    })
   })
 
-  it('does not enqueue paused or disabled sources', async () => {
+  it('treats unchanged sources as freshness updates without Pulse extraction', async () => {
     const queueSend = vi.fn()
-    coreMocks.sources.splice(
-      0,
-      coreMocks.sources.length,
-      source({ id: 'paused-source', healthStatus: 'paused' }),
-      source({ id: 'disabled-source' }),
-    )
-    dbMocks.pulseOpsRepo.ensureSourceState
-      .mockResolvedValueOnce({ enabled: false, nextCheckAt: new Date('2026-05-25T09:00:00.000Z') })
-      .mockResolvedValueOnce({ enabled: false, nextCheckAt: new Date('2026-05-25T09:00:00.000Z') })
-
-    const result = await enqueueDueRuleRegistryReconcile(
-      env(queueSend),
-      new Date('2026-05-25T09:00:00.000Z'),
-    )
-
-    expect(result).toEqual({ queued: 0, runId: null })
-    expect(dbMocks.opsRepo.startReconcileRun).not.toHaveBeenCalled()
-    expect(queueSend).not.toHaveBeenCalled()
-  })
-
-  it('treats unchanged sources as freshness updates without analyzer proposals', async () => {
     fetchMocks.fetchTextSnapshot.mockResolvedValue({
       notModified: true,
       fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
@@ -373,112 +273,77 @@ describe('rule registry reconcile jobs', () => {
       lastModified: 'Mon, 25 May 2026 09:00:00 GMT',
     })
 
-    await consumeRuleRegistrySourceReconcile(
+    await consumePulseRuleSourceScan(
       {
-        type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-        runId: 'run-1',
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
         sourceId: 'ca.ftb_business_due_dates',
         reason: 'cadence_due',
       },
-      env() as Env,
+      env(queueSend) as Env,
     )
 
     expect(dbMocks.pulseOpsRepo.recordSourceSuccess).toHaveBeenCalledWith(
       expect.objectContaining({ sourceId: 'ca.ftb_business_due_dates', changed: false }),
     )
-    expect(dbMocks.opsRepo.recordReconcileSourceOutcome).toHaveBeenCalledWith({
-      runId: 'run-1',
-      changed: false,
-    })
-    expect(aiMocks.ai.runPrompt).not.toHaveBeenCalled()
-    expect(dbMocks.opsRepo.recordChangeProposal).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.createSourceSnapshot).not.toHaveBeenCalled()
+    expect(queueSend).not.toHaveBeenCalled()
   })
 
-  it('records changed-source no_rule_change analyzer output without invalidating drafts', async () => {
+  it('routes changed automated source snapshots into Pulse extraction', async () => {
+    const queueSend = vi.fn()
     fetchMocks.fetchTextSnapshot.mockResolvedValue({
       notModified: false,
       fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
       contentHash: 'content-hash-1',
       r2Key: 'raw/source.html',
-      body: 'Updated official page text.',
       etag: 'etag-2',
       lastModified: null,
     })
-    aiMocks.ai.runPrompt.mockResolvedValue(okAnalyzerResult('no_rule_change'))
 
-    await consumeRuleRegistrySourceReconcile(
+    await consumePulseRuleSourceScan(
       {
-        type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-        runId: 'run-1',
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
         sourceId: 'ca.ftb_business_due_dates',
         reason: 'cadence_due',
       },
-      env() as Env,
+      env(queueSend) as Env,
     )
 
-    expect(dbMocks.opsRepo.recordChangeProposal).toHaveBeenCalledWith(
+    expect(dbMocks.pulseOpsRepo.createSourceSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceId: 'ca.ftb_business_due_dates',
-        proposalType: 'no_rule_change',
-        status: 'dismissed',
-        aiOutputId: 'ai-output-1',
+        contentHash: 'content-hash-1',
+        rawR2Key: 'raw/source.html',
       }),
     )
-    expect(dbMocks.opsRepo.recordReconcileSourceOutcome).toHaveBeenCalledWith({
-      runId: 'run-1',
-      changed: true,
-      proposalCreated: false,
-    })
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
   })
 
-  it('records analyzer failures as open operational proposals and acks the source item', async () => {
-    fetchMocks.fetchTextSnapshot.mockResolvedValue({
-      notModified: false,
-      fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
-      contentHash: 'content-hash-2',
-      r2Key: 'raw/source.html',
-      body: 'Updated official page text.',
-      etag: null,
-      lastModified: null,
-    })
-    aiMocks.ai.runPrompt.mockResolvedValue({
-      result: null,
-      refusal: { code: 'SCHEMA_INVALID', message: 'Schema mismatch' },
-      trace: {
-        promptVersion: 'rule-registry-reconcile@v1',
-        model: 'test-model',
-        latencyMs: 1,
-        guardResult: 'schema_fail',
-        inputHash: 'hash-input',
-        refusalCode: 'SCHEMA_INVALID',
-      },
-      model: 'test-model',
-      confidence: null,
-      cost: null,
-    })
+  it('records non-automated source checks as Pulse source signals', async () => {
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({ id: 'manual-source', acquisitionMethod: 'api_watch' }),
+    )
 
-    await consumeRuleRegistrySourceReconcile(
+    await consumePulseRuleSourceScan(
       {
-        type: RULE_REGISTRY_SOURCE_RECONCILE_MESSAGE_TYPE,
-        runId: 'run-1',
-        sourceId: 'ca.ftb_business_due_dates',
-        reason: 'cadence_due',
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'manual-source',
+        reason: 'weekly_governance',
       },
       env() as Env,
     )
 
-    expect(dbMocks.opsRepo.recordChangeProposal).toHaveBeenCalledWith(
+    expect(dbMocks.pulseOpsRepo.createSourceSignal).toHaveBeenCalledWith(
       expect.objectContaining({
-        proposalType: 'analyzer_failed',
-        status: 'open',
-        failureReason: 'Schema mismatch',
+        sourceId: 'manual-source',
+        signalType: 'source_check_due',
       }),
     )
-    expect(dbMocks.opsRepo.recordReconcileSourceOutcome).toHaveBeenCalledWith({
-      runId: 'run-1',
-      changed: true,
-      proposalCreated: true,
-    })
+    expect(dbMocks.pulseOpsRepo.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'manual-source', changed: true }),
+    )
   })
 
   it('fans out changed/new catalog rules and enqueues current-version concrete drafts', async () => {

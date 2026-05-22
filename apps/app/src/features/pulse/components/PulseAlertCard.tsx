@@ -2,6 +2,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, ArrowRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -67,12 +68,17 @@ export function PulseAlertCard({
         >
           {alert.title}
         </h3>
+        <Badge variant="outline" className="hidden shrink-0 font-mono text-[11px] sm:inline-flex">
+          {changeKindLabel(alert.changeKind)}
+        </Badge>
         <PulseConfidenceBadge confidence={alert.confidence} />
         <PulseSourceStatusBadge status={alert.sourceStatus} />
       </header>
 
       <p className="pl-4 text-sm text-text-secondary">
-        {impacted === 0 ? (
+        {alert.actionMode === 'review_only' ? (
+          <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
+        ) : impacted === 0 ? (
           <Trans>No matching clients in this practice.</Trans>
         ) : (
           <>
@@ -128,4 +134,24 @@ export function PulseAlertCard({
       )}
     </article>
   )
+}
+
+function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
+  switch (kind) {
+    case 'deadline_shift':
+      return <Trans>Deadline</Trans>
+    case 'filing_requirement':
+      return <Trans>Filing</Trans>
+    case 'applicability_scope':
+      return <Trans>Scope</Trans>
+    case 'form_instruction':
+      return <Trans>Form</Trans>
+    case 'source_status':
+      return <Trans>Source</Trans>
+    case 'new_obligation':
+      return <Trans>New rule</Trans>
+    case 'other':
+      return <Trans>Other</Trans>
+  }
+  return kind
 }

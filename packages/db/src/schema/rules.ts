@@ -25,27 +25,6 @@ export const PRACTICE_RULE_REVIEW_TASK_REASONS = [
 ] as const
 export type PracticeRuleReviewTaskReason = (typeof PRACTICE_RULE_REVIEW_TASK_REASONS)[number]
 
-export const RULE_REGISTRY_RECONCILE_RUN_STATUSES = ['running', 'completed', 'failed'] as const
-export type RuleRegistryReconcileRunStatus = (typeof RULE_REGISTRY_RECONCILE_RUN_STATUSES)[number]
-
-export const RULE_REGISTRY_CHANGE_PROPOSAL_TYPES = [
-  'no_rule_change',
-  'existing_rule_update',
-  'new_rule',
-  'manual_check_due',
-  'analyzer_failed',
-] as const
-export type RuleRegistryChangeProposalType = (typeof RULE_REGISTRY_CHANGE_PROPOSAL_TYPES)[number]
-
-export const RULE_REGISTRY_CHANGE_PROPOSAL_STATUSES = [
-  'open',
-  'accepted',
-  'dismissed',
-  'superseded',
-] as const
-export type RuleRegistryChangeProposalStatus =
-  (typeof RULE_REGISTRY_CHANGE_PROPOSAL_STATUSES)[number]
-
 /**
  * rule_source_template / rule_template — global catalog rows. They are
  * product-provided templates and source metadata, not production approval.
@@ -173,82 +152,6 @@ export const practiceRuleReviewTask = sqliteTable(
   ],
 )
 
-export const ruleRegistryReconcileRun = sqliteTable(
-  'rule_registry_reconcile_run',
-  {
-    id: text('id').primaryKey(),
-    runKey: text('run_key').notNull(),
-    status: text('status', { enum: RULE_REGISTRY_RECONCILE_RUN_STATUSES })
-      .notNull()
-      .default('running'),
-    triggeredBy: text('triggered_by').notNull().default('weekly_cron'),
-    startedAt: integer('started_at', { mode: 'timestamp_ms' }).notNull(),
-    completedAt: integer('completed_at', { mode: 'timestamp_ms' }),
-    sourceCount: integer('source_count').notNull().default(0),
-    checkedCount: integer('checked_count').notNull().default(0),
-    unchangedCount: integer('unchanged_count').notNull().default(0),
-    changedCount: integer('changed_count').notNull().default(0),
-    proposalCount: integer('proposal_count').notNull().default(0),
-    failureCount: integer('failure_count').notNull().default(0),
-    errorText: text('error_text'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex('uq_rule_registry_reconcile_run_key').on(table.runKey),
-    index('idx_rule_registry_reconcile_run_status').on(table.status, table.startedAt),
-  ],
-)
-
-export const ruleRegistryChangeProposal = sqliteTable(
-  'rule_registry_change_proposal',
-  {
-    id: text('id').primaryKey(),
-    runId: text('run_id')
-      .notNull()
-      .references(() => ruleRegistryReconcileRun.id, { onDelete: 'cascade' }),
-    sourceId: text('source_id').notNull(),
-    sourceSnapshotId: text('source_snapshot_id'),
-    contentHash: text('content_hash'),
-    rawR2Key: text('raw_r2_key'),
-    proposalType: text('proposal_type', {
-      enum: RULE_REGISTRY_CHANGE_PROPOSAL_TYPES,
-    }).notNull(),
-    status: text('status', { enum: RULE_REGISTRY_CHANGE_PROPOSAL_STATUSES })
-      .notNull()
-      .default('open'),
-    affectedRuleIdsJson: text('affected_rule_ids_json', { mode: 'json' })
-      .$type<string[]>()
-      .notNull()
-      .default(sql`'[]'`),
-    proposedRuleIdsJson: text('proposed_rule_ids_json', { mode: 'json' })
-      .$type<string[]>()
-      .notNull()
-      .default(sql`'[]'`),
-    normalizedRuleJson: text('normalized_rule_json', { mode: 'json' }).$type<unknown>(),
-    diffSummary: text('diff_summary'),
-    aiOutputId: text('ai_output_id'),
-    failureReason: text('failure_reason'),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [
-    index('idx_rule_registry_proposal_run').on(table.runId),
-    index('idx_rule_registry_proposal_status').on(table.status, table.createdAt),
-    index('idx_rule_registry_proposal_source').on(table.sourceId, table.createdAt),
-  ],
-)
-
 /**
  * rule_review_decision — legacy firm-scoped candidate decisions. New runtime
  * code writes practice_rule / practice_rule_review_task instead; this table is
@@ -327,16 +230,6 @@ export const practiceRuleReviewTaskRelations = relations(practiceRuleReviewTask,
   }),
 }))
 
-export const ruleRegistryChangeProposalRelations = relations(
-  ruleRegistryChangeProposal,
-  ({ one }) => ({
-    run: one(ruleRegistryReconcileRun, {
-      fields: [ruleRegistryChangeProposal.runId],
-      references: [ruleRegistryReconcileRun.id],
-    }),
-  }),
-)
-
 export type RuleReviewDecision = typeof ruleReviewDecision.$inferSelect
 export type NewRuleReviewDecision = typeof ruleReviewDecision.$inferInsert
 export type RuleSourceTemplate = typeof ruleSourceTemplate.$inferSelect
@@ -347,7 +240,3 @@ export type PracticeRule = typeof practiceRule.$inferSelect
 export type NewPracticeRule = typeof practiceRule.$inferInsert
 export type PracticeRuleReviewTask = typeof practiceRuleReviewTask.$inferSelect
 export type NewPracticeRuleReviewTask = typeof practiceRuleReviewTask.$inferInsert
-export type RuleRegistryReconcileRun = typeof ruleRegistryReconcileRun.$inferSelect
-export type NewRuleRegistryReconcileRun = typeof ruleRegistryReconcileRun.$inferInsert
-export type RuleRegistryChangeProposal = typeof ruleRegistryChangeProposal.$inferSelect
-export type NewRuleRegistryChangeProposal = typeof ruleRegistryChangeProposal.$inferInsert

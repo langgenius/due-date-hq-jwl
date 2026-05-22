@@ -1,11 +1,8 @@
-import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, lt } from 'drizzle-orm'
 import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
   PracticeRuleReviewTaskInput,
-  RuleRegistryChangeProposalInput,
-  RuleRegistryChangeProposalRow,
-  RuleRegistryReconcileRunRow,
   RuleSourceTemplateInput,
   RuleTemplateInput,
   TemporaryRuleRow,
@@ -19,15 +16,11 @@ import { pulse, pulseFirmAlert } from '../schema/pulse'
 import {
   practiceRule,
   practiceRuleReviewTask,
-  ruleRegistryChangeProposal,
-  ruleRegistryReconcileRun,
   ruleReviewDecision,
   ruleSourceTemplate,
   ruleTemplate,
   type PracticeRule,
   type PracticeRuleReviewTask,
-  type RuleRegistryChangeProposal,
-  type RuleRegistryReconcileRun,
   type RuleReviewDecision,
   type RuleReviewDecisionStatus,
 } from '../schema/rules'
@@ -51,18 +44,6 @@ function latestDate(...values: Array<Date | null | undefined>): Date | null {
   const dates = values.filter((value): value is Date => value instanceof Date)
   if (dates.length === 0) return null
   return dates.reduce((latest, value) => (value.getTime() > latest.getTime() ? value : latest))
-}
-
-function toRegistryRun(row: RuleRegistryReconcileRun): RuleRegistryReconcileRunRow {
-  return row
-}
-
-function toRegistryProposal(row: RuleRegistryChangeProposal): RuleRegistryChangeProposalRow {
-  return {
-    ...row,
-    affectedRuleIds: row.affectedRuleIdsJson,
-    proposedRuleIds: row.proposedRuleIdsJson,
-  }
 }
 
 export function makeRulesRepo(db: Db, firmId: string) {
@@ -494,26 +475,6 @@ export function makeRulesRepo(db: Db, firmId: string) {
 export type RulesRepo = ReturnType<typeof makeRulesRepo>
 
 export function makeRulesOpsRepo(db: Db) {
-  async function getReconcileRunByKey(runKey: string): Promise<RuleRegistryReconcileRun | null> {
-    const rows = await db
-      .select()
-      .from(ruleRegistryReconcileRun)
-      .where(eq(ruleRegistryReconcileRun.runKey, runKey))
-      .limit(1)
-    return rows[0] ?? null
-  }
-
-  async function getReconcileRun(runId: string): Promise<RuleRegistryReconcileRun> {
-    const rows = await db
-      .select()
-      .from(ruleRegistryReconcileRun)
-      .where(eq(ruleRegistryReconcileRun.id, runId))
-      .limit(1)
-    const row = rows[0]
-    if (!row) throw new Error(`Rule registry reconcile run not found: ${runId}`)
-    return row
-  }
-
   async function activeFirmIds(): Promise<string[]> {
     const rows = await db
       .select({ id: firmProfile.id })
@@ -587,117 +548,6 @@ export function makeRulesOpsRepo(db: Db) {
         ruleJson: row.ruleJson,
         sourceIds: row.sourceIds ?? [],
       }))
-    },
-
-    async startReconcileRun(input: {
-      runKey: string
-      sourceCount: number
-      startedAt?: Date
-      triggeredBy?: string
-    }): Promise<{ run: RuleRegistryReconcileRunRow; inserted: boolean }> {
-      const id = crypto.randomUUID()
-      const startedAt = input.startedAt ?? new Date()
-      await db
-        .insert(ruleRegistryReconcileRun)
-        .values({
-          id,
-          runKey: input.runKey,
-          status: 'running',
-          triggeredBy: input.triggeredBy ?? 'scheduled_cron',
-          startedAt,
-          sourceCount: input.sourceCount,
-          updatedAt: startedAt,
-        })
-        .onConflictDoNothing({ target: ruleRegistryReconcileRun.runKey })
-
-      const row = await getReconcileRunByKey(input.runKey)
-      if (!row) throw new Error(`Rule registry reconcile run was not persisted: ${input.runKey}`)
-      return { run: toRegistryRun(row), inserted: row.id === id }
-    },
-
-    async recordReconcileSourceOutcome(input: {
-      runId: string
-      changed?: boolean
-      proposalCreated?: boolean
-      failed?: boolean
-      errorText?: string | null
-    }): Promise<RuleRegistryReconcileRunRow> {
-      const now = new Date()
-      await db
-        .update(ruleRegistryReconcileRun)
-        .set({
-          checkedCount: sql`${ruleRegistryReconcileRun.checkedCount} + 1`,
-          ...(!input.failed && input.changed
-            ? { changedCount: sql`${ruleRegistryReconcileRun.changedCount} + 1` }
-            : !input.failed
-              ? { unchangedCount: sql`${ruleRegistryReconcileRun.unchangedCount} + 1` }
-              : {}),
-          ...(input.proposalCreated
-            ? { proposalCount: sql`${ruleRegistryReconcileRun.proposalCount} + 1` }
-            : {}),
-          ...(input.failed
-            ? {
-                failureCount: sql`${ruleRegistryReconcileRun.failureCount} + 1`,
-                errorText: input.errorText?.slice(0, 1000) ?? null,
-              }
-            : {}),
-          updatedAt: now,
-        })
-        .where(eq(ruleRegistryReconcileRun.id, input.runId))
-
-      const row = await getReconcileRun(input.runId)
-      if (row.status === 'running' && row.checkedCount >= row.sourceCount) {
-        await db
-          .update(ruleRegistryReconcileRun)
-          .set({
-            status: row.failureCount > 0 ? 'failed' : 'completed',
-            completedAt: now,
-            updatedAt: now,
-          })
-          .where(eq(ruleRegistryReconcileRun.id, input.runId))
-        return toRegistryRun(await getReconcileRun(input.runId))
-      }
-      return toRegistryRun(row)
-    },
-
-    async recordChangeProposal(
-      input: RuleRegistryChangeProposalInput,
-    ): Promise<RuleRegistryChangeProposalRow> {
-      const id = crypto.randomUUID()
-      await db.insert(ruleRegistryChangeProposal).values({
-        id,
-        runId: input.runId,
-        sourceId: input.sourceId,
-        sourceSnapshotId: input.sourceSnapshotId ?? null,
-        contentHash: input.contentHash ?? null,
-        rawR2Key: input.rawR2Key ?? null,
-        proposalType: input.proposalType,
-        status: input.status ?? 'open',
-        affectedRuleIdsJson: input.affectedRuleIds ?? [],
-        proposedRuleIdsJson: input.proposedRuleIds ?? [],
-        normalizedRuleJson: input.normalizedRuleJson ?? null,
-        diffSummary: normalizeNote(input.diffSummary),
-        aiOutputId: input.aiOutputId ?? null,
-        failureReason: normalizeNote(input.failureReason),
-      })
-      const rows = await db
-        .select()
-        .from(ruleRegistryChangeProposal)
-        .where(eq(ruleRegistryChangeProposal.id, id))
-        .limit(1)
-      const row = rows[0]
-      if (!row) throw new Error(`Rule registry proposal was not persisted: ${id}`)
-      return toRegistryProposal(row)
-    },
-
-    async listOpenChangeProposals(limit = 50): Promise<RuleRegistryChangeProposalRow[]> {
-      const rows = await db
-        .select()
-        .from(ruleRegistryChangeProposal)
-        .where(eq(ruleRegistryChangeProposal.status, 'open'))
-        .orderBy(desc(ruleRegistryChangeProposal.createdAt))
-        .limit(Math.min(Math.max(limit, 1), 200))
-      return rows.map(toRegistryProposal)
     },
 
     async fanoutReviewTasks(input: {

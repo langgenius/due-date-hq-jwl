@@ -13,9 +13,9 @@ import {
 } from './rules/concrete-draft'
 import {
   consumeRuleRegistryCatalogSync,
-  consumeRuleRegistrySourceReconcile,
+  consumePulseRuleSourceScan,
+  isPulseRuleSourceScanMessage,
   isRuleRegistryCatalogSyncMessage,
-  isRuleRegistrySourceReconcileMessage,
 } from './rules/reconcile'
 
 interface QueueBatchLike {
@@ -41,7 +41,7 @@ function isDispatchableMessage(body: unknown): boolean {
     isDashboardBriefRefreshMessage(body) ||
     isPulseExtractMessage(body) ||
     isRuleConcreteDraftGenerateMessage(body) ||
-    isRuleRegistrySourceReconcileMessage(body) ||
+    isPulseRuleSourceScanMessage(body) ||
     isRuleRegistryCatalogSyncMessage(body) ||
     isEmailFlushMessage(body) ||
     isAuditPackageGenerateMessage(body)
@@ -88,8 +88,8 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     if (isRuleConcreteDraftGenerateMessage(body)) {
       await consumeRuleConcreteDraftGenerate(body, env)
     }
-    if (isRuleRegistrySourceReconcileMessage(body)) {
-      await consumeRuleRegistrySourceReconcile(body, env)
+    if (isPulseRuleSourceScanMessage(body)) {
+      await consumePulseRuleSourceScan(body, env)
     }
     if (isRuleRegistryCatalogSyncMessage(body)) {
       await consumeRuleRegistryCatalogSync(body, env)

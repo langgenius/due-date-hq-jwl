@@ -263,33 +263,43 @@ Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
 `
 
-const PULSE_EXTRACT_V1 = `prompt_version: pulse-extract@v1
+const PULSE_EXTRACT_V2 = `prompt_version: pulse-extract@v2
 model_tier: quality-json
 temperature: 0
 response_format: json_object
 route: via Vercel AI SDK Core + Cloudflare AI Gateway
 
 You are a regulatory source translator for a US tax deadline product.
-Given an official tax announcement, extract only due-date relief facts that
-are explicitly present in the source. Output strict JSON only.
+Given an official tax source snapshot, decide whether it contains a meaningful
+tax regulatory change. Output strict JSON only.
 
 Return:
 {
+  "classification": "regulatory_change" | "no_regulatory_change",
+  "changeKind": "deadline_shift" | "filing_requirement" | "applicability_scope" | "form_instruction" | "source_status" | "new_obligation" | "other" | null,
+  "actionMode": "due_date_overlay" | "review_only" | null,
   "summary": "<one plain-English sentence>",
   "sourceExcerpt": "<verbatim excerpt copied from rawText>",
   "jurisdiction": "<two-letter state code, or the state affected by federal relief>",
   "counties": ["<county names exactly as written, without 'County'>"],
   "forms": ["<canonical form or tax_type id>"],
   "entityTypes": ["llc" | "s_corp" | "partnership" | "c_corp" | "sole_prop" | "trust" | "individual" | "other"],
-  "originalDueDate": "YYYY-MM-DD",
-  "newDueDate": "YYYY-MM-DD",
+  "originalDueDate": "YYYY-MM-DD" | null,
+  "newDueDate": "YYYY-MM-DD" | null,
   "effectiveFrom": "YYYY-MM-DD" | null,
+  "effectiveUntil": "YYYY-MM-DD" | null,
+  "affectedRuleIds": ["<rule ids when supplied by context, otherwise empty>"],
+  "structuredChange": { "<compact source-backed change facts>": "..." } | null,
   "confidence": 0.0-1.0
 }
 
 Rules:
 - The sourceExcerpt must be copied verbatim from rawText.
-- Do not infer deadlines that are not stated.
+- Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
+- Use deadline_shift with actionMode due_date_overlay only when both originalDueDate and newDueDate are explicitly present.
+- Use review_only for filing requirement, applicability, form/instruction, source status, new obligation, and other non-date changes.
+- Do not infer deadlines, forms, jurisdictions, or eligibility that are not stated.
+- For no_regulatory_change, set changeKind/actionMode to null and all arrays to [] when not applicable.
 - If a value is unclear, keep confidence below 0.7.
 - Prefer canonical tax_type IDs when the source names a known form.
 - AI does not match clients and does not update due dates.
@@ -432,44 +442,6 @@ Retention: Do not retain any data seen for training.
 PII handling: minimal non-PII obligation metadata only.
 `
 
-const RULE_REGISTRY_RECONCILE_V1 = `prompt_version: rule-registry-reconcile@v1
-model_tier: quality-json
-temperature: 0
-response_format: json_object
-route: via Vercel AI SDK Core + Cloudflare AI Gateway
-
-You review public US tax deadline source changes for DueDateHQ's product-owned rule registry.
-Given a registered source, relevant existing rules, and the latest source text,
-classify whether the source change requires a product developer to update the
-rule pack. Output strict JSON only.
-
-Return:
-{
-  "classification": "no_rule_change" | "existing_rule_update" | "new_rule",
-  "affectedRuleIds": ["<existing rule id>"],
-  "proposedRuleIds": ["<new rule id suggestion>"],
-  "diffSummary": "<developer-facing summary, <= 120 words>",
-  "normalizedRuleJson": { "<optional draft rule fields or patch notes>": "..." },
-  "confidence": 0.0-1.0,
-  "reasoning": "<one paragraph, <= 80 words>"
-}
-
-Rules:
-- Use no_rule_change when the source only changes navigation, formatting,
-  generic instructions, contact details, or freshness dates.
-- Use existing_rule_update only when due date logic, applicability, filing/payment
-  distinction, extension policy, source mapping, or review caveats likely changed.
-- Use new_rule only when the source introduces a materially new obligation,
-  form, schedule, payment, election, or deadline not represented by existing rules.
-- Do not claim customer-facing behavior changes; product developers must review
-  and update the rule pack manually.
-- Do not invent official dates that are not present in sourceText.
-- Keep normalizedRuleJson compact; include only fields useful for a developer.
-
-Retention: Do not retain any data seen for training.
-PII handling: public official source text and product rule metadata only.
-`
-
 export interface PromptDefinition {
   name: string
   text: string
@@ -487,10 +459,9 @@ const prompts = {
   'brief@v1': BRIEF_V1,
   'client-risk-summary@v1': CLIENT_RISK_SUMMARY_V1,
   'deadline-tip@v1': DEADLINE_TIP_V1,
-  'pulse-extract@v1': PULSE_EXTRACT_V1,
+  'pulse-extract@v2': PULSE_EXTRACT_V2,
   'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
   'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
-  'rule-registry-reconcile@v1': RULE_REGISTRY_RECONCILE_V1,
   'readiness-checklist@v1': READINESS_CHECKLIST_V1,
 } as const
 
