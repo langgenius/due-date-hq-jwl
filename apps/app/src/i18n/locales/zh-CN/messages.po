@@ -263,11 +263,6 @@ msgstr "{0} 个逾期"
 msgid "{0} payment-linked"
 msgstr "{0} 个关联付款"
 
-#. placeholder {0}: matches.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} Pulse alerts affecting this client"
-msgstr "{0} Pulse alerts affecting this client"
-
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
 #: src/features/rules/coverage-tab.tsx
@@ -447,6 +442,10 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, other {# 个客户}}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{label} is coming soon"
+msgstr "{label} 功能即将推出"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "{label}, selected"
@@ -666,10 +665,6 @@ msgstr "1 个事务所工作区"
 msgid "1 production practice"
 msgstr "1 个生产事务所"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "1 Pulse alert affecting this client"
-msgstr "1 Pulse alert affecting this client"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -876,6 +871,10 @@ msgstr "活跃"
 msgid "active — accepted by this practice"
 msgstr "已生效 — 当前事务所已接受"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Active alerts for this client"
+msgstr "此客户的活跃提醒"
+
 #: src/features/members/members-page.tsx
 msgid "Active members"
 msgstr "活跃成员"
@@ -978,10 +977,6 @@ msgstr "添加截止日"
 #: src/routes/obligations.tsx
 msgid "Add evidence for {0}"
 msgstr "为 {0} 添加证据"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Add facts"
-msgstr "Add facts"
 
 #: src/routes/obligations.tsx
 msgid "Add item"
@@ -1346,6 +1341,19 @@ msgstr "全部应用"
 #: src/routes/obligations.tsx
 msgid "Approved — ready to file"
 msgstr "已批准 — 可申报"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive"
+msgstr "归档"
+
+#. placeholder {0}: client.name
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive {0}?"
+msgstr "归档 {0}？"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive client"
+msgstr "归档客户"
 
 #: src/routes/obligations.tsx
 msgid "Archive workpapers"
@@ -2001,6 +2009,10 @@ msgstr "客户动作"
 msgid "Client approval pending"
 msgstr "等待客户确认"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client archived"
+msgstr "客户已归档"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Client assignee changed"
 msgstr "客户经办人已更改"
@@ -2414,6 +2426,10 @@ msgstr "无法应用已审核集合"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't apply tax type suggestions"
 msgstr "无法应用税种建议"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't archive client"
+msgstr "无法归档客户"
 
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
@@ -3190,6 +3206,10 @@ msgstr "Dot order"
 msgid "Download"
 msgstr "Download"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Download client PDF"
+msgstr "下载客户 PDF"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
 msgstr "下载最新包"
@@ -3316,6 +3336,10 @@ msgstr "早期提醒"
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "编辑"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Edit client info"
+msgstr "编辑客户信息"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Effective"
@@ -3698,6 +3722,10 @@ msgstr "兜底文件清单已就绪"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "FBAR / FinCEN 114 + Form 8938 may apply"
 msgstr "可能适用 FBAR / FinCEN 114 + Form 8938"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
+msgstr "该功能在路线图中 — 详见 docs/Design/clients-list-and-detail-critique-2026-05-22.md"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Federal EIN"
@@ -4930,10 +4958,6 @@ msgstr "缺少截止日"
 msgid "missing facts"
 msgstr "事实缺失"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Missing required facts"
-msgstr "Missing required facts"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing rule"
 msgstr "缺少规则"
@@ -4963,6 +4987,10 @@ msgstr "每位所有者的月度罚金"
 #: src/routes/obligations.tsx
 msgid "Months late"
 msgstr "逾期月数"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "More client actions"
+msgstr "更多客户操作"
 
 #: src/features/clients/ClientsCreateSplitButton.tsx
 msgid "More create options"
@@ -6493,6 +6521,10 @@ msgstr "个人晨间摘要偏好与类型。"
 msgid "Pick a client…"
 msgstr "选择一个客户…"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Pin to sidebar"
+msgstr "钉到侧边栏"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Pinned"
 msgstr "已置顶"
@@ -7517,6 +7549,7 @@ msgstr "Reverting this batch will commit these changes"
 msgid "review"
 msgstr "复核"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/rules/generation-preview-tab.tsx
@@ -9109,6 +9142,10 @@ msgstr "客户导入流程会映射列、整理字段值、预览截止日，并
 msgid "The client whose closed source-year obligation is being considered for next-year generation."
 msgstr "其来源年度已关闭义务正在被用于生成下一年度义务的客户。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The client will be hidden from the active list and dashboards. All audit history, filings, and obligations stay retained. You can restore from the archived view if you change your mind."
+msgstr "该客户将从活跃列表和仪表盘中隐藏。所有审计记录、申报单和义务都会保留。如果改变主意，可以在归档视图中恢复。"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "The code expires in 5 minutes."
 msgstr "验证码将在 5 分钟后过期。"
@@ -9726,7 +9763,6 @@ msgid "View all in Inbox"
 msgstr "在收件箱中查看全部"
 
 #: src/features/clients/ClientDetailDrawer.tsx
-#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View all obligations"
 msgstr "查看全部义务"
 
@@ -9754,10 +9790,6 @@ msgstr "查看审计日志"
 #: src/routes/billing.checkout.tsx
 msgid "View billing"
 msgstr "查看账单"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "View on Radar"
-msgstr "View on Radar"
 
 #: src/routes/rules.library.tsx
 msgid "View sources"

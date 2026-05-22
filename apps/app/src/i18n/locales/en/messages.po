@@ -263,11 +263,6 @@ msgstr "{0} overdue"
 msgid "{0} payment-linked"
 msgstr "{0} payment-linked"
 
-#. placeholder {0}: matches.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} Pulse alerts affecting this client"
-msgstr "{0} Pulse alerts affecting this client"
-
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
 #: src/features/rules/coverage-tab.tsx
@@ -447,6 +442,10 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, one {# client} other {# clients}}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{label} is coming soon"
+msgstr "{label} is coming soon"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "{label}, selected"
@@ -666,10 +665,6 @@ msgstr "1 practice workspace"
 msgid "1 production practice"
 msgstr "1 production practice"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "1 Pulse alert affecting this client"
-msgstr "1 Pulse alert affecting this client"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -876,6 +871,10 @@ msgstr "Active"
 msgid "active — accepted by this practice"
 msgstr "active — accepted by this practice"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Active alerts for this client"
+msgstr "Active alerts for this client"
+
 #: src/features/members/members-page.tsx
 msgid "Active members"
 msgstr "Active members"
@@ -978,10 +977,6 @@ msgstr "Add deadline"
 #: src/routes/obligations.tsx
 msgid "Add evidence for {0}"
 msgstr "Add evidence for {0}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Add facts"
-msgstr "Add facts"
 
 #: src/routes/obligations.tsx
 msgid "Add item"
@@ -1346,6 +1341,19 @@ msgstr "Apply to all"
 #: src/routes/obligations.tsx
 msgid "Approved — ready to file"
 msgstr "Approved — ready to file"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive"
+msgstr "Archive"
+
+#. placeholder {0}: client.name
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive {0}?"
+msgstr "Archive {0}?"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Archive client"
+msgstr "Archive client"
 
 #: src/routes/obligations.tsx
 msgid "Archive workpapers"
@@ -2001,6 +2009,10 @@ msgstr "Client action"
 msgid "Client approval pending"
 msgstr "Client approval pending"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client archived"
+msgstr "Client archived"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Client assignee changed"
 msgstr "Client assignee changed"
@@ -2414,6 +2426,10 @@ msgstr "Couldn't apply reviewed set"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't apply tax type suggestions"
 msgstr "Couldn't apply tax type suggestions"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't archive client"
+msgstr "Couldn't archive client"
 
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
@@ -3190,6 +3206,10 @@ msgstr "Dot order"
 msgid "Download"
 msgstr "Download"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Download client PDF"
+msgstr "Download client PDF"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
 msgstr "Download latest"
@@ -3316,6 +3336,10 @@ msgstr "Early alert"
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "Edit"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Edit client info"
+msgstr "Edit client info"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Effective"
@@ -3698,6 +3722,10 @@ msgstr "Fallback document list ready"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "FBAR / FinCEN 114 + Form 8938 may apply"
 msgstr "FBAR / FinCEN 114 + Form 8938 may apply"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
+msgstr "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Federal EIN"
@@ -4930,10 +4958,6 @@ msgstr "Missing due date"
 msgid "missing facts"
 msgstr "missing facts"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Missing required facts"
-msgstr "Missing required facts"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing rule"
 msgstr "Missing rule"
@@ -4963,6 +4987,10 @@ msgstr "Monthly penalty per owner"
 #: src/routes/obligations.tsx
 msgid "Months late"
 msgstr "Months late"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "More client actions"
+msgstr "More client actions"
 
 #: src/features/clients/ClientsCreateSplitButton.tsx
 msgid "More create options"
@@ -6493,6 +6521,10 @@ msgstr "Personal morning digest preferences and types."
 msgid "Pick a client…"
 msgstr "Pick a client…"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Pin to sidebar"
+msgstr "Pin to sidebar"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Pinned"
 msgstr "Pinned"
@@ -7517,6 +7549,7 @@ msgstr "Reverting this batch will commit these changes"
 msgid "review"
 msgstr "review"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/rules/generation-preview-tab.tsx
@@ -9109,6 +9142,10 @@ msgstr "The client import flow that maps columns, normalizes values, previews de
 msgid "The client whose closed source-year obligation is being considered for next-year generation."
 msgstr "The client whose closed source-year obligation is being considered for next-year generation."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The client will be hidden from the active list and dashboards. All audit history, filings, and obligations stay retained. You can restore from the archived view if you change your mind."
+msgstr "The client will be hidden from the active list and dashboards. All audit history, filings, and obligations stay retained. You can restore from the archived view if you change your mind."
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "The code expires in 5 minutes."
 msgstr "The code expires in 5 minutes."
@@ -9726,7 +9763,6 @@ msgid "View all in Inbox"
 msgstr "View all in Inbox"
 
 #: src/features/clients/ClientDetailDrawer.tsx
-#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View all obligations"
 msgstr "View all obligations"
 
@@ -9754,10 +9790,6 @@ msgstr "View audit log"
 #: src/routes/billing.checkout.tsx
 msgid "View billing"
 msgstr "View billing"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "View on Radar"
-msgstr "View on Radar"
 
 #: src/routes/rules.library.tsx
 msgid "View sources"

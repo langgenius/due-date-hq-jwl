@@ -14,18 +14,23 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
-  ArrowUpRightIcon,
+  ArchiveIcon,
+  CheckCircle2Icon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
+  DownloadIcon,
   EyeIcon,
-  ExternalLinkIcon,
   FileSearchIcon,
+  MegaphoneIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  PinIcon,
   PlusIcon,
   RefreshCwIcon,
+  ScrollTextIcon,
   SparklesIcon,
   UsersRoundIcon,
 } from 'lucide-react'
@@ -40,8 +45,25 @@ import type {
   ObligationRule,
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription } from '@duedatehq/ui/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import {
   Collapsible,
   CollapsiblePanel,
@@ -107,7 +129,6 @@ import {
   type ClientReadiness,
   type ClientReadinessStatus,
   type ClientSourceType,
-  type RequiredClientFact,
 } from './client-readiness'
 import {
   buildClientPulseMatches,
@@ -300,7 +321,7 @@ function taxClassificationLabel(value: ClientPublic['taxClassification']): strin
   }
 }
 
-function formatClientIdentitySubLine({
+function renderClientHeaderSubLine({
   workPlan,
   entityType,
   taxClassification,
@@ -308,20 +329,50 @@ function formatClientIdentitySubLine({
   workPlan: ClientWorkPlanSummary
   entityType: ClientPublic['entityType']
   taxClassification: ClientPublic['taxClassification']
-}): string {
-  const parts: string[] = []
+}): ReactNode {
+  // Daily-driver signal line under the client name. Tone-coded so a
+  // CPA scanning the page in <1 second can spot "anything overdue?"
+  // without reading prose. Order mirrors the four canonical questions
+  // (what kind of client → workload → urgency → tone).
+  const parts: ReactNode[] = []
   const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
-  if (taxLabel) parts.push(taxLabel)
-  parts.push(workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`)
+  if (taxLabel) parts.push(<span key="tax">{taxLabel}</span>)
+  parts.push(
+    <span key="open">
+      {workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`}
+    </span>,
+  )
   if (workPlan.nextDueDate) {
-    parts.push(`next due ${formatDatePretty(workPlan.nextDueDate)}`)
+    parts.push(<span key="due">next due {formatDatePretty(workPlan.nextDueDate)}</span>)
   }
   if (workPlan.overdueOpenCount > 0) {
-    parts.push(workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`)
+    parts.push(
+      <span key="late" className="font-medium text-text-destructive">
+        {workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`}
+      </span>,
+    )
   } else if (workPlan.openCount > 0) {
-    parts.push('all on track')
+    parts.push(
+      <span key="ontrack" className="inline-flex items-center gap-1 text-text-success">
+        <CheckCircle2Icon className="size-3.5" aria-hidden />
+        All on track
+      </span>,
+    )
   }
-  return parts.join(' · ')
+  return (
+    <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
+      {parts.map((node, index) => (
+        <span key={`wrap-${index}`} className="inline-flex items-baseline gap-x-1.5">
+          {node}
+          {index < parts.length - 1 ? (
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+          ) : null}
+        </span>
+      ))}
+    </span>
+  )
 }
 
 function formatJurisdictionSummary(client: ClientPublic): string {
@@ -1094,6 +1145,7 @@ export function ClientDetailWorkspace({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const permission = useFirmPermission()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
@@ -1216,6 +1268,32 @@ export function ClientDetailWorkspace({
     openFilingJurisdictions()
   }, [openFilingJurisdictions])
 
+  // Archive (a.k.a. soft-delete) state + mutation. CPA compliance
+  // requires soft-delete — `clients.delete` actually flips `deletedAt`
+  // server-side, audit log retains everything. The UI surfaces the
+  // action as "Archive" (the action verb a CPA would use) instead of
+  // "Delete" (which implies irreversible). See critique L-10 for the
+  // rationale on Archive vs Delete vocabulary.
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const archiveMutation = useMutation(
+    orpc.clients.delete.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        toast.success(t`Client archived`, { description: client.name })
+        setArchiveOpen(false)
+        void navigate('/clients')
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't archive client`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+
   return (
     <>
       <div className="flex min-h-0 flex-col gap-6">
@@ -1229,8 +1307,36 @@ export function ClientDetailWorkspace({
               <Trans>Clients</Trans>
             </Link>
           }
-          title={<ClientTitleSwitcher client={client} />}
-          description={formatClientIdentitySubLine({
+          title={
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <ClientTitleSwitcher client={client} />
+              {/* Identity chips inline with the title (D-2). Entity badge
+                  + filing-state chips read the client's shape in one
+                  scan. The readiness chip is **conditional**: only
+                  renders when something needs the CPA's attention — no
+                  ghost slot when ready. Replaces the standalone
+                  identity strip that lived below the header. */}
+              <span className="inline-flex flex-wrap items-center gap-1.5 align-middle">
+                <Badge variant="info" className="text-xs">
+                  {entityLabels[client.entityType]}
+                </Badge>
+                <ClientFilingStateChips client={client} />
+                {readiness?.status === 'needs_facts' ? (
+                  <button
+                    type="button"
+                    onClick={openMissingFacts}
+                    className="rounded-md outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <Badge variant="destructive" className="cursor-pointer text-xs">
+                      <BadgeStatusDot tone="error" />
+                      <MissingFactsLabel readiness={readiness} />
+                    </Badge>
+                  </button>
+                ) : null}
+              </span>
+            </span>
+          }
+          description={renderClientHeaderSubLine({
             workPlan,
             entityType: client.entityType,
             taxClassification: client.taxClassification,
@@ -1238,24 +1344,12 @@ export function ClientDetailWorkspace({
           actions={
             <>
               <ClientCycleArrows currentClientId={client.id} />
-              <CreateObligationDialog defaultClientId={client.id} />
-              <Button
-                variant="outline"
-                size="sm"
-                render={<Link to={`/obligations?client=${client.id}`} />}
-              >
-                <Trans>View all obligations</Trans>
-                <ArrowUpRightIcon data-icon="inline-end" />
+              <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
+              <Button variant="outline" size="sm" onClick={() => setArchiveOpen(true)}>
+                <ArchiveIcon data-icon="inline-start" />
+                <Trans>Archive</Trans>
               </Button>
-              {canReadAudit ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  render={<Link to={`/audit?entityId=${client.id}&entityType=client`} />}
-                >
-                  <Trans>View audit log</Trans>
-                </Button>
-              ) : null}
+              <CreateObligationDialog defaultClientId={client.id} />
             </>
           }
         />
@@ -1270,25 +1364,17 @@ export function ClientDetailWorkspace({
             cluster remain anchored regardless of panel state. */}
         <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
           <section className="flex min-w-0 flex-1 flex-col gap-6">
-            {/* Identity strip — small horizontal badge row carrying
-                entity type, filing-state chips, source / readiness /
-                Pulse-radar badges so the user can read the client's
-                shape in one scan. */}
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="info" className="text-xs">
-                {entityLabels[client.entityType]}
-              </Badge>
-              <ClientFilingStateChips client={client} />
-              <ClientSourceBadge client={client} />
-              <ClientReadinessBadge readiness={readiness} compact={false} />
-              {pulseMatches.length > 0 ? <ClientRadarBadge matches={pulseMatches} /> : null}
-            </div>
+            {/* Source provenance (Imported / Manual) sits below the
+                title as a small muted line. Was previously part of the
+                full identity strip; the strip was retired in D-2
+                because most of its chips moved into the title row.
+                Source stays here because it's metadata — not a status
+                the CPA needs to act on. */}
+            <ClientSourceMetaRow client={client} />
 
-            <ClientAlertsBand
+            <ClientActiveAlertsSection
               pulseMatches={pulseMatches}
-              readiness={readiness}
               extensionPaymentMismatches={extensionPaymentMismatches}
-              onAddFacts={openMissingFacts}
             />
 
             <ClientSummaryStrip clientId={client.id} obligations={obligations} />
@@ -1497,6 +1583,41 @@ export function ClientDetailWorkspace({
           ) : null}
         </div>
       </div>
+
+      {/* Archive confirmation. `clients.delete` is a soft-delete server-
+          side (sets `deletedAt` + writes an audit row) — see commit
+          b925449. We surface it as "Archive" because that's the CPA's
+          mental model: hide from daily views, retain for audit /
+          historical record. Critique L-10. */}
+      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Archive {client.name}?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                The client will be hidden from the active list and dashboards. All audit history,
+                filings, and obligations stay retained. You can restore from the archived view if
+                you change your mind.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={archiveMutation.isPending}>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={archiveMutation.isPending}
+              onClick={() => archiveMutation.mutate({ id: client.id })}
+            >
+              <ArchiveIcon data-icon="inline-start" />
+              <Trans>Archive client</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
@@ -1708,63 +1829,85 @@ function FilingPlanYearSection({
   )
 }
 
-export function ClientAlertsBand({
+/**
+ * Active alerts affecting this specific client. Pulse matches +
+ * extension-without-payment warnings live here. The old
+ * `ClientAlertsBand` lumped these together with missing-facts into a
+ * single warning strip — D-3 split them apart:
+ *
+ *  - **Missing facts** (page setup gap) → inline chip in the header
+ *    (rendered next to identity chips). It's a *configuration*
+ *    problem, not an *in-flight* alert.
+ *  - **Active alerts** (this component) → a labeled section with a
+ *    count, individual cards per alert. These are in-flight signals
+ *    the CPA needs to act on right now.
+ *
+ * The visual treatment matches the reference design Yuqi shared
+ * (`📢 ACTIVE ALERTS FOR THIS CLIENT · N` + per-alert cards). When
+ * nothing is active, the whole section disappears.
+ */
+function ClientActiveAlertsSection({
   pulseMatches,
-  readiness,
   extensionPaymentMismatches,
-  onAddFacts,
 }: {
   pulseMatches: readonly ClientPulseMatch[]
-  readiness: ClientReadiness | undefined
   extensionPaymentMismatches: readonly ObligationInstancePublic[]
-  onAddFacts: () => void
 }) {
-  const radarCount = pulseMatches.length
-  const missingFacts = readiness?.missingRequiredFacts ?? []
-  const extensionMismatchCount = extensionPaymentMismatches.length
-  if (radarCount === 0 && missingFacts.length === 0 && extensionMismatchCount === 0) {
-    return null
-  }
+  const totalCount = pulseMatches.length + extensionPaymentMismatches.length
+  if (totalCount === 0) return null
   return (
-    <div className="grid gap-2.5 rounded-md border border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/60 p-3">
-      {radarCount > 0 ? <ClientAlertsBandRadarRow matches={pulseMatches} /> : null}
-      {extensionMismatchCount > 0 ? (
-        <ClientAlertsBandExtensionRow obligations={extensionPaymentMismatches} />
-      ) : null}
-      {missingFacts.length > 0 ? (
-        <ClientAlertsBandMissingFactsRow missing={missingFacts} onAddFacts={onAddFacts} />
-      ) : null}
-    </div>
+    <section
+      aria-label="Active alerts for this client"
+      className="overflow-hidden rounded-md border border-divider-regular bg-background-default"
+    >
+      <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
+        <h3 className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-text-warning">
+          <MegaphoneIcon className="size-3.5" aria-hidden />
+          <Trans>Active alerts for this client</Trans>
+        </h3>
+        <span className="text-xs tabular-nums text-text-tertiary">{totalCount}</span>
+      </header>
+      <ul className="divide-y divide-divider-subtle">
+        {pulseMatches.map((match) => (
+          <li key={match.alertId}>
+            <ClientActiveAlertsPulseCard match={match} />
+          </li>
+        ))}
+        {extensionPaymentMismatches.length > 0 ? (
+          <li>
+            <ClientActiveAlertsExtensionCard obligations={extensionPaymentMismatches} />
+          </li>
+        ) : null}
+      </ul>
+    </section>
   )
 }
 
-function ClientAlertsBandRadarRow({ matches }: { matches: readonly ClientPulseMatch[] }) {
-  const taxTypes = Array.from(new Set(matches.map((match) => formatTaxCode(match.taxType)))).slice(
-    0,
-    3,
-  )
+function ClientActiveAlertsPulseCard({ match }: { match: ClientPulseMatch }) {
+  // `ClientPulseMatch` doesn't carry a jurisdiction code today (the
+  // server-side model returns `source` as a free-text label like
+  // "Pennsylvania Department of Revenue"). Show the tax code as the
+  // leading chip so the CPA sees what kind of filing is affected;
+  // source goes on the secondary line. If a future schema iteration
+  // adds a jurisdiction column, the chip becomes the 2-letter state.
   return (
-    <div className="flex flex-wrap items-start gap-3">
-      <ActivityIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+    <div className="flex flex-wrap items-start gap-3 px-4 py-3">
+      <Badge variant="secondary" className="rounded-sm uppercase">
+        {formatTaxCode(match.taxType)}
+      </Badge>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-text-primary">
-          {matches.length === 1 ? (
-            <Trans>1 Pulse alert affecting this client</Trans>
-          ) : (
-            <Trans>{matches.length} Pulse alerts affecting this client</Trans>
-          )}
-        </p>
-        <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
+        <p className="text-sm font-medium text-text-primary">{match.title}</p>
+        <p className="mt-0.5 text-xs text-text-tertiary">{match.source}</p>
       </div>
       <Button variant="ghost" size="sm" render={<Link to="/rules/pulse" />}>
-        <Trans>View on Radar</Trans>
-        <ExternalLinkIcon data-icon="inline-end" aria-hidden />
+        <Trans>Review</Trans>
+        <ChevronRightIcon data-icon="inline-end" aria-hidden />
       </Button>
     </div>
   )
 }
 
-function ClientAlertsBandExtensionRow({
+function ClientActiveAlertsExtensionCard({
   obligations,
 }: {
   obligations: readonly ObligationInstancePublic[]
@@ -1774,7 +1917,7 @@ function ClientAlertsBandExtensionRow({
     3,
   )
   return (
-    <div className="flex flex-wrap items-start gap-3">
+    <div className="flex flex-wrap items-start gap-3 px-4 py-3">
       <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-text-primary">
@@ -1784,36 +1927,89 @@ function ClientAlertsBandExtensionRow({
             <Trans>{obligations.length} filings extended — payment is NOT extended</Trans>
           )}
         </p>
-        <p className="mt-0.5 text-xs text-text-secondary">{taxTypes.join(' · ')}</p>
+        <p className="mt-0.5 text-xs text-text-tertiary">{taxTypes.join(' · ')}</p>
       </div>
     </div>
   )
 }
 
-function ClientAlertsBandMissingFactsRow({
-  missing,
-  onAddFacts,
-}: {
-  missing: readonly RequiredClientFact[]
-  onAddFacts: () => void
-}) {
-  const labels = missing.map((fact) => {
-    if (fact === 'state') return 'filing state'
-    return 'entity type'
-  })
+/**
+ * Quiet metadata row below the title — just the provenance chip
+ * (Imported / Manual). The full identity strip retired in D-2; this
+ * keeps source visible without giving it visual weight.
+ */
+function ClientSourceMetaRow({ client }: { client: ClientPublic }) {
   return (
-    <div className="flex flex-wrap items-start gap-3">
-      <ClipboardListIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-text-primary">
-          <Trans>Missing required facts</Trans>
-        </p>
-        <p className="mt-0.5 text-xs text-text-secondary">{labels.join(' · ')}</p>
-      </div>
-      <Button variant="ghost" size="sm" onClick={onAddFacts}>
-        <Trans>Add facts</Trans>
-      </Button>
+    <div className="flex items-center gap-2 text-xs text-text-tertiary">
+      <ClientSourceBadge client={client} />
     </div>
+  )
+}
+
+/**
+ * Overflow menu (`···`) in the header action cluster. Hosts the
+ * lower-priority actions that don't belong on the primary button row:
+ *
+ *  - **Pin to sidebar** (planned — TODO note for follow-up commit)
+ *  - **Download client PDF** (planned — TODO)
+ *  - **Edit client info** (planned — TODO)
+ *  - **View audit log** (real — routes to /audit with this client
+ *    pre-filtered)
+ *
+ * The three pre-implementation items render a toast when clicked so
+ * the affordance feels live during the design pass; replace each
+ * `onClick` handler when the underlying feature lands. See sequencing
+ * doc P2 backlog entries D-extra-* for the implementation order.
+ */
+function ClientHeaderOverflowMenu({
+  clientId,
+  canReadAudit,
+}: {
+  clientId: string
+  canReadAudit: boolean
+}) {
+  const { t } = useLingui()
+  const navigate = useNavigate()
+  const announceComingSoon = (label: string) => {
+    toast(t`${label} is coming soon`, {
+      description: t`Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md`,
+    })
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" size="sm" aria-label={t`More client actions`}>
+            <MoreHorizontalIcon className="size-4" aria-hidden />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="min-w-[220px]">
+        <DropdownMenuItem onClick={() => announceComingSoon(t`Pin to sidebar`)}>
+          <PinIcon className="size-4" aria-hidden />
+          <Trans>Pin to sidebar</Trans>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => announceComingSoon(t`Download client PDF`)}>
+          <DownloadIcon className="size-4" aria-hidden />
+          <Trans>Download client PDF</Trans>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => announceComingSoon(t`Edit client info`)}>
+          <PencilIcon className="size-4" aria-hidden />
+          <Trans>Edit client info</Trans>
+        </DropdownMenuItem>
+        {canReadAudit ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+            >
+              <ScrollTextIcon className="size-4" aria-hidden />
+              <Trans>View audit log</Trans>
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
