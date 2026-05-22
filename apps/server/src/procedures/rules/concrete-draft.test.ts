@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isUsableConcreteDraftOfficialSourceText,
   normalizeRuleConcreteDraftAiOutput,
   ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
@@ -31,6 +32,23 @@ describe('rule concrete draft normalization', () => {
         sourceId: 'ca.ftb_business_due_dates',
       }),
     ).toBe('rule:ca.business_income_return.candidate.2026:v2:ca.ftb_business_due_dates')
+  })
+
+  it('does not reject official source text that contains tax code section numbers', () => {
+    expect(
+      isUsableConcreteDraftOfficialSourceText(
+        [
+          'Idaho unemployment insurance tax handbook.',
+          'Reports and payments are due the last day of the month following the end of each calendar quarter.',
+          'Amounts excluded from wages may reference IRS Code Sections 401(a), 403(a), and 501(a).',
+        ].join(' '),
+      ),
+    ).toBe(true)
+    expect(
+      isUsableConcreteDraftOfficialSourceText(
+        '404 page not found. The page you requested could not be located.',
+      ),
+    ).toBe(false)
   })
 
   it('normalizes Alabama-style month/day installment drafts into the strict contract shape', () => {

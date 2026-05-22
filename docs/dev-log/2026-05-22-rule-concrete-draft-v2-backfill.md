@@ -171,6 +171,132 @@ global cached draft successfully. Follow-up report:
 - missing successful drafts: 116
 - Georgia failures: 0
 
+## Hawaii and Idaho URL Repair
+
+Hawaii and Idaho exposed two different stale-source failures. Hawaii's
+individual income source pointed at the retired
+`/forms/a1_b1_1indinc/` URL, which now returns 404. The current Hawaii
+individual return source is the Tax Year 2025 information page, while individual
+estimated tax is better sourced from the revised February 2026 Tax Facts PDF for
+estimated income tax. The Hawaii estimated-tax candidate now has its own
+`pdf_watch` source so it no longer depends on a generic income-tax page.
+
+Idaho's unemployment wage-report source pointed at the old DNN employer portal
+path. The source now tracks the Department of Labor unemployment insurance tax
+handbook PDF. During snapshotting, the PDF was initially rejected because the
+source-text guard treated the text `403(a)` inside an IRS Code citation as an
+HTTP 403 error page. The guard now keeps real error-page checks while allowing
+ordinary tax-code section references.
+
+Targeted snapshots and backfills now succeed for both repaired sources:
+
+- `hi.individual_estimated_tax`: PDF snapshot extracted 21,996 characters and
+  generated a successful global cached draft.
+- `id.ui_wage_report`: PDF snapshot extracted 68,494 characters and generated a
+  successful global cached draft.
+- follow-up report: 317 successful global cached drafts, 114 missing successful
+  drafts, and no HI or ID rows in the latest failure groups.
+
+## Maine URL Repair
+
+Maine had two stale source URLs. `me.income_tax` pointed at
+`/revenue/taxes/individual-income-tax`, which now returns 404, and
+`me.ui_wage_report` pointed at `/unemployment/tax/`, which also returns 404.
+The current Maine Revenue Services due-date page is
+`https://www.maine.gov/revenue/tax-return-forms/due-dates` and includes the
+1040ME, 1040ES-ME, and ME UC-1 due-date rows needed by the affected candidate
+rules.
+
+Updated the Maine income and UI wage sources to the current MRS due-date page,
+added focused source-backed excerpts for 1040ME, 1040ES-ME, and ME UC-1, and
+changed concrete-draft source text construction so source-backed excerpts are
+used as the focused source text instead of appending a long index page ahead of
+the excerpt. This prevents the model from selecting adjacent form rows on broad
+due-date index pages.
+
+The local ME concrete draft cache was refreshed for:
+
+- `me.individual_income_return.candidate.2026`: fixed date April 15, 2026.
+- `me.individual_estimated_tax.candidate.2026`: April 15, June 15, September
+  15, 2026, and January 15, 2027.
+- `me.ui_wage_report.candidate.2026`: April 30, July 31, October 31, 2026, and
+  January 31, 2027.
+
+Follow-up report: 319 successful global cached drafts, 112 missing successful
+drafts, and no ME rows in the latest failure groups.
+
+## Mississippi FAQ Source Repair
+
+Mississippi's two `SOURCE_TEXT_UNAVAILABLE` rows were not caused by the current
+Business Tax FAQ page being unusable. The source registry still pointed
+`ms.pass_through_entity_tax` at the retired
+`https://www.dor.ms.gov/business/corporate-income-and-franchise-tax-faqs`
+path, while the current page is
+`https://www.dor.ms.gov/business/business-tax-frequently-asked-questions#corporate-income-and-franchise-tax`.
+
+The two failing rules also needed separate source ownership:
+
+- `ms.pass_through_entity_return.candidate.2026` now uses the current
+  Mississippi DOR Business Tax FAQ page and a focused source-backed excerpt for
+  the 15th day of the 3rd month due-date rule.
+- `ms.fiduciary_income_return.candidate.2026` now uses the 2025 Mississippi
+  Fiduciary Return Instructions PDF and a focused excerpt for calendar-year
+  April 15 and fiscal-year 15th day of the 4th month filing rules.
+
+Targeted local backfill succeeded for both rules. Follow-up report: 321
+successful global cached drafts, 110 missing successful drafts, and no
+Mississippi `SOURCE_TEXT_UNAVAILABLE` rows in the latest failure groups. The
+remaining Mississippi rows are separate issues: `ms.sales_withholding_tax` is
+`GUARD_REJECTED`, and `ms.ui_wage_report` is `SCHEMA_INVALID`.
+
+## Montana URL Repair
+
+Montana's retired `https://mtrevenue.gov/tax-due-dates/` page was the source of
+the MT `SOURCE_TEXT_UNAVAILABLE` rows. The current Department of Revenue content
+now lives on `revenue.mt.gov` tax-specific pages rather than the old aggregated
+due-date URL.
+
+The MT source pack was updated to use current official URLs:
+
+- `mt.income_tax`: `https://revenue.mt.gov/taxes/individual-income-tax/`.
+- `mt.tax_due_dates`: `https://revenue.mt.gov/taxes/corporate-income-tax` for
+  corporate returns and corporate estimated payments.
+- `mt.fiduciary_income_tax`:
+  `https://revenue.mt.gov/taxes/fiduciaries/estate-and-trust-filing-requirements`.
+- `mt.pass_through_entity_tax`:
+  `https://revenue.mt.gov/taxes/pass-through-entities/`.
+- `mt.withholding_due_dates`:
+  `https://revenue.mt.gov/taxes/withholding-tax/wage-withholding-returns-and-payments`.
+
+Focused source-backed excerpts were added for MT individual returns, individual
+estimated tax, fiduciary returns, corporate returns, corporate estimated tax,
+pass-through returns, and wage withholding. Targeted local backfill succeeded
+for all seven MT rows. Follow-up report: 328 successful global cached drafts,
+103 missing successful drafts, zero targets with no attempt, and no MT rows in
+the latest missing/failure list.
+
+## New Hampshire URL Repair
+
+New Hampshire's old `https://www.revenue.nh.gov/businesses/business-tax` source
+and the NHES employer tax-rate page were not usable for concrete-draft source
+text. The business tax source now points at the official DRA BT-SUMMARY
+instructions PDF, which includes BET/BPT due dates, estimated-payment
+requirements, and extension language. The UI wage source now points at the NHES
+WebTax quarterly tax and wage report filing PDF.
+
+The updated NH sources are:
+
+- `nh.business_tax`:
+  `https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2024.pdf`.
+- `nh.ui_wage_report`:
+  `https://www2.nhes.nh.gov/webtax/File_Employer_Quarterly_Tax_Wage_Report.pdf`.
+
+Focused source-backed excerpts were added for NH business returns, business
+estimated tax, pass-through return handling, BET/BPT entity-tax handling, and UI
+wage reporting. Targeted local backfill succeeded for all five NH rows. Follow-up
+report: 333 successful global cached drafts, 98 missing successful drafts, and
+no NH rows in the latest missing/failure list.
+
 ## Verification
 
 - `pnpm --filter @duedatehq/ai test -- src/ai.test.ts`
@@ -192,3 +318,31 @@ global cached draft successfully. Follow-up report:
 - `pnpm rules:concrete-drafts:snapshot-sources -- --source=ga.fiduciary_income_tax_booklet --concurrency=1`
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ga.fiduciary_income_tax_booklet`
 - `pnpm rules:concrete-drafts:inspect -- --source=ga.fiduciary_income_tax_booklet --limit=3 --show-source-excerpt`
+- `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts`
+- `pnpm rules:concrete-drafts:snapshot-sources -- --source=hi.individual_estimated_tax --concurrency=1`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=hi.individual_estimated_tax`
+- `pnpm rules:concrete-drafts:snapshot-sources -- --source=id.ui_wage_report --concurrency=1`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=id.ui_wage_report`
+- `pnpm rules:concrete-drafts:inspect -- --source=hi.individual_estimated_tax --limit=2 --show-source-excerpt`
+- `pnpm rules:concrete-drafts:inspect -- --source=id.ui_wage_report --limit=2 --show-source-excerpt`
+- `pnpm rules:concrete-drafts:snapshot-sources -- --source=me.income_tax --concurrency=1`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=me.income_tax`
+- `pnpm rules:concrete-drafts:snapshot-sources -- --source=me.ui_wage_report --concurrency=1`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=me.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ms.fiduciary_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ms.pass_through_entity_tax`
+- `pnpm rules:concrete-drafts:inspect -- --source=ms.fiduciary_income_tax --limit=2 --show-source-excerpt`
+- `pnpm rules:concrete-drafts:inspect -- --source=ms.pass_through_entity_tax --limit=2 --show-source-excerpt`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mt.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mt.tax_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mt.fiduciary_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mt.pass_through_entity_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mt.withholding_due_dates`
+- `pnpm rules:concrete-drafts:inspect -- --source=mt.tax_due_dates --limit=5`
+- `pnpm rules:concrete-drafts:inspect -- --source=mt.income_tax --limit=5`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nh.business_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nh.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction`

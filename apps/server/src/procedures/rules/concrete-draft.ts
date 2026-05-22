@@ -37,7 +37,7 @@ const OFFICIAL_SOURCE_FETCH_HEADERS: HeadersInit[] = [
 ]
 const MIN_USABLE_OFFICIAL_SOURCE_TEXT_CHARS = 120
 const UNUSABLE_OFFICIAL_SOURCE_TEXT_RE =
-  /\b(access denied|forbidden|enable javascript|request blocked|not authorized|temporarily unavailable|page not found|not found|404|403)\b|page we don['’]t have/i
+  /\b(access denied|forbidden|enable javascript|request blocked|not authorized|temporarily unavailable|page not found|not found)\b|(?:^|\b)(?:error|http|status)\s*(?:404|403)\b|page we don['’]t have/i
 
 const nullableBoolean = z.union([z.boolean(), z.string()]).nullable().optional()
 const nullableNumber = z.union([z.number(), z.string()]).nullable().optional()
@@ -567,36 +567,6 @@ export async function buildConcreteDraftSourceText(input: {
   const chunks: string[] = []
   let hasSourceBackedText = false
 
-  if (input.sourceSignal) {
-    const rawText = await readR2Text(input.env, input.sourceSignal.rawR2Key)
-    if (rawText) hasSourceBackedText = true
-    chunks.push(
-      [
-        input.sourceSignal.title,
-        input.sourceSignal.officialSourceUrl,
-        input.sourceSignal.publishedAt.toISOString().slice(0, 10),
-        rawText,
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join('\n'),
-    )
-  }
-
-  if (input.latestSourceSnapshot) {
-    const snapshotText = await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key)
-    if (snapshotText) {
-      hasSourceBackedText = true
-      chunks.push(
-        [
-          input.latestSourceSnapshot.title,
-          input.latestSourceSnapshot.officialSourceUrl,
-          `Fetched ${input.latestSourceSnapshot.fetchedAt.toISOString().slice(0, 10)}`,
-          snapshotText,
-        ].join('\n'),
-      )
-    }
-  }
-
   const evidenceChunks = input.base.evidence
     .filter(
       (evidence) =>
@@ -613,6 +583,48 @@ export async function buildConcreteDraftSourceText(input: {
         .join('\n'),
     )
   if (evidenceChunks.length > 0) hasSourceBackedText = true
+
+  chunks.push(
+    [
+      input.source.title,
+      input.source.url,
+      input.source.lastReviewedOn ? `Reviewed ${input.source.lastReviewedOn}` : null,
+      ...evidenceChunks,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join('\n'),
+  )
+
+  if (evidenceChunks.length === 0 && input.sourceSignal) {
+    const rawText = await readR2Text(input.env, input.sourceSignal.rawR2Key)
+    if (rawText) hasSourceBackedText = true
+    chunks.push(
+      [
+        input.sourceSignal.title,
+        input.sourceSignal.officialSourceUrl,
+        input.sourceSignal.publishedAt.toISOString().slice(0, 10),
+        rawText,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .join('\n'),
+    )
+  }
+
+  if (evidenceChunks.length === 0 && input.latestSourceSnapshot) {
+    const snapshotText = await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key)
+    if (snapshotText) {
+      hasSourceBackedText = true
+      chunks.push(
+        [
+          input.latestSourceSnapshot.title,
+          input.latestSourceSnapshot.officialSourceUrl,
+          `Fetched ${input.latestSourceSnapshot.fetchedAt.toISOString().slice(0, 10)}`,
+          snapshotText,
+        ].join('\n'),
+      )
+    }
+  }
+
   const officialSourceText = hasSourceBackedText
     ? null
     : await fetchOfficialSourceText({
@@ -622,17 +634,7 @@ export async function buildConcreteDraftSourceText(input: {
       })
   if (officialSourceText) hasSourceBackedText = true
 
-  chunks.push(
-    [
-      input.source.title,
-      input.source.url,
-      input.source.lastReviewedOn ? `Reviewed ${input.source.lastReviewedOn}` : null,
-      ...evidenceChunks,
-      officialSourceText ? `Official source text\n${officialSourceText}` : null,
-    ]
-      .filter((value): value is string => Boolean(value))
-      .join('\n'),
-  )
+  if (officialSourceText) chunks.push(`Official source text\n${officialSourceText}`)
 
   return {
     sourceText: chunks.filter(Boolean).join('\n\n'),
@@ -697,7 +699,12 @@ export function concreteDraftAiInput(input: {
 }
 
 function selectConcreteDraftSourceText(base: CoreObligationRule, sourceText: string): string {
-  if (sourceText.length <= MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS) return sourceText
+  const hasSourceBackedEvidence = base.evidence.some(
+    (evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt),
+  )
+  if (sourceText.length <= MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS && !hasSourceBackedEvidence) {
+    return sourceText
+  }
 
   const terms = [
     base.title,

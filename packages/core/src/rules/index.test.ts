@@ -446,6 +446,171 @@ describe('@duedatehq/core/rules', () => {
     expect(rule?.sourceIds).toEqual(['ga.fiduciary_income_tax_booklet'])
   })
 
+  it('uses current official Hawaii and Idaho source URLs for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('hi.income_tax')).toMatchObject({
+      url: 'https://tax.hawaii.gov/tax-year-information/',
+      domains: ['individual_income_return'],
+    })
+    expect(sourcesById.get('hi.individual_estimated_tax')).toMatchObject({
+      url: 'https://files.hawaii.gov/tax/legal/taxfacts/tf2019-3.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: ['individual_estimated_tax'],
+    })
+    expect(sourcesById.get('id.ui_wage_report')).toMatchObject({
+      url: 'https://labor.idaho.gov/wp-content/uploads/publications/UI_TAX_Information-1.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: ['ui_wage_report'],
+    })
+
+    expect(findRuleById('hi.individual_income_return.candidate.2026')?.sourceIds).toEqual([
+      'hi.income_tax',
+    ])
+    expect(findRuleById('hi.individual_estimated_tax.candidate.2026')?.sourceIds).toEqual([
+      'hi.individual_estimated_tax',
+    ])
+    expect(findRuleById('id.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'id.ui_wage_report',
+    ])
+  })
+
+  it('uses current official Maine due-date URLs for income and unemployment candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    const dueDatesUrl = 'https://www.maine.gov/revenue/tax-return-forms/due-dates'
+
+    expect(sourcesById.get('me.income_tax')).toMatchObject({
+      url: dueDatesUrl,
+      domains: ['individual_income_return', 'individual_estimated_tax'],
+    })
+    expect(sourcesById.get('me.ui_wage_report')).toMatchObject({
+      url: dueDatesUrl,
+      sourceType: 'due_dates',
+      domains: ['ui_wage_report'],
+    })
+    expect(findRuleById('me.individual_estimated_tax.candidate.2026')?.sourceIds).toEqual([
+      'me.income_tax',
+    ])
+    expect(findRuleById('me.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'me.ui_wage_report',
+    ])
+    expect(
+      findRuleById('me.individual_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('1040ES-ME')
+    expect(findRuleById('me.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'ME UC-1',
+    )
+  })
+
+  it('uses current official Mississippi sources for fiduciary and pass-through candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ms.fiduciary_income_tax')).toMatchObject({
+      url: 'https://www.dor.ms.gov/sites/default/files/tax-forms/individual/81100251%201.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: ['fiduciary_income_return'],
+    })
+    expect(sourcesById.get('ms.pass_through_entity_tax')).toMatchObject({
+      url: 'https://www.dor.ms.gov/business/business-tax-frequently-asked-questions#corporate-income-and-franchise-tax',
+      sourceType: 'due_dates',
+      domains: ['pass_through_entity_return'],
+    })
+    expect(findRuleById('ms.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
+      'ms.fiduciary_income_tax',
+    ])
+    expect(findRuleById('ms.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'ms.pass_through_entity_tax',
+    ])
+    expect(
+      findRuleById('ms.fiduciary_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 15')
+    expect(
+      findRuleById('ms.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('15th day of the 3rd month')
+  })
+
+  it('uses current official Montana URLs after the tax due dates page moved', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('mt.income_tax')).toMatchObject({
+      url: 'https://revenue.mt.gov/taxes/individual-income-tax/',
+      domains: ['individual_income_return', 'individual_estimated_tax'],
+    })
+    expect(sourcesById.get('mt.tax_due_dates')).toMatchObject({
+      url: 'https://revenue.mt.gov/taxes/corporate-income-tax',
+      domains: ['business_income_return', 'business_estimated_tax'],
+    })
+    expect(sourcesById.get('mt.fiduciary_income_tax')).toMatchObject({
+      url: 'https://revenue.mt.gov/taxes/fiduciaries/estate-and-trust-filing-requirements',
+      domains: ['fiduciary_income_return'],
+    })
+    expect(sourcesById.get('mt.pass_through_entity_tax')).toMatchObject({
+      url: 'https://revenue.mt.gov/taxes/pass-through-entities/',
+      domains: ['pass_through_entity_return'],
+    })
+    expect(sourcesById.get('mt.withholding_due_dates')).toMatchObject({
+      url: 'https://revenue.mt.gov/taxes/withholding-tax/wage-withholding-returns-and-payments',
+      domains: ['withholding'],
+    })
+
+    expect(findRuleById('mt.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
+      'mt.fiduciary_income_tax',
+    ])
+    expect(findRuleById('mt.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'mt.tax_due_dates',
+    ])
+    expect(findRuleById('mt.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'mt.pass_through_entity_tax',
+    ])
+    expect(findRuleById('mt.withholding.candidate.2026')?.sourceIds).toEqual([
+      'mt.withholding_due_dates',
+    ])
+    expect(
+      findRuleById('mt.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('May 15')
+    expect(findRuleById('mt.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'January 31',
+    )
+  })
+
+  it('uses current official New Hampshire PDF sources for business and UI candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('nh.business_tax')).toMatchObject({
+      url: 'https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2024.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: [
+        'business_income_return',
+        'business_estimated_tax',
+        'pass_through_entity_return',
+        'franchise_or_entity_tax',
+      ],
+    })
+    expect(sourcesById.get('nh.ui_wage_report')).toMatchObject({
+      url: 'https://www2.nhes.nh.gov/webtax/File_Employer_Quarterly_Tax_Wage_Report.pdf',
+      acquisitionMethod: 'pdf_watch',
+      domains: ['ui_wage_report'],
+    })
+    expect(findRuleById('nh.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'nh.business_tax',
+    ])
+    expect(findRuleById('nh.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'nh.business_tax',
+    ])
+    expect(findRuleById('nh.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
+      'nh.business_tax',
+    ])
+    expect(findRuleById('nh.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'nh.ui_wage_report',
+    ])
+    expect(
+      findRuleById('nh.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 15')
+    expect(findRuleById('nh.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'July 31',
+    )
+  })
+
   it('treats no-tax source matrix cells as not applicable for completed source packs', () => {
     for (const jurisdiction of [
       'CA',
