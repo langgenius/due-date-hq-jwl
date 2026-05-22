@@ -473,12 +473,32 @@ function useRuleLibraryPendingCount(): number {
   return total
 }
 
-function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
+// Total active-clients count for the sidebar badge next to "Clients".
+// Shares the cache with `/clients` + `ClientTitleSwitcher` +
+// `ClientCycleArrows` — all use the same `listByFirm({limit:500})`
+// query, so no extra fetch when the user has visited any of those
+// surfaces. On a cold load the sidebar triggers the first fetch; the
+// downstream surfaces hit warm cache after that.
+const CLIENTS_LIST_INPUT = { limit: 500 } as const
+function useClientsCount(): number {
+  const query = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
+  return query.data?.length ?? 0
+}
+
+function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
   const pulseCount = useInboxUnreadCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
   const ruleReviewCount = useRuleLibraryPendingCount()
   const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
+  // D-2: sidebar counts. Clients = total active clients; Obligations =
+  // open-obligation count from FirmPublic.openObligationCount (already
+  // aggregated server-side, no extra query). Counts render only when
+  // > 0 to avoid `Clients (0)` ghost text on a fresh workspace.
+  const clientsCount = useClientsCount()
+  const clientsBadge = clientsCount > 0 ? String(clientsCount) : undefined
+  const obligationsBadge =
+    firm.openObligationCount > 0 ? String(firm.openObligationCount) : undefined
   return useMemo<NavConfig>(() => {
     if (navV2) {
       // v2 IA per 2026-05-19 design mockup. Radar disappears from the
@@ -524,6 +544,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
             label: t`Obligations`,
             icon: CalendarClockIcon,
             end: false,
+            ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),
           },
         ],
         operations: [],
@@ -543,7 +564,13 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         // here too would be duplicate chrome — sidebar keeps only the
         // daily client-facing destinations.
         practice: [
-          { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
+          {
+            href: '/clients',
+            label: t`Clients`,
+            icon: UsersIcon,
+            end: false,
+            ...(clientsBadge !== undefined ? { badge: clientsBadge } : {}),
+          },
           {
             href: '/opportunities',
             label: t`Opportunities`,
@@ -567,6 +594,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
           label: t`Obligations`,
           icon: CalendarClockIcon,
           end: false,
+          ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),
         },
         // Radar is the spine of the product (per the canonical product
         // spec — "you won't be the last CPA in your state to find out about
@@ -584,7 +612,13 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
         },
       ],
       clients: [
-        { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
+        {
+          href: '/clients',
+          label: t`Clients`,
+          icon: UsersIcon,
+          end: false,
+          ...(clientsBadge !== undefined ? { badge: clientsBadge } : {}),
+        },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
       // Preview-integration adjustment: surface Coverage alongside
@@ -610,7 +644,7 @@ function useNavItems(_firm: FirmPublic, navV2: boolean): NavConfig {
       practice: [],
       footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
     }
-  }, [t, pulseBadge, ruleReviewBadge, navV2])
+  }, [t, pulseBadge, ruleReviewBadge, clientsBadge, obligationsBadge, navV2])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
