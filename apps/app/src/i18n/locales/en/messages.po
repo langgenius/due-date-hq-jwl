@@ -1403,6 +1403,7 @@ msgid "At risk"
 msgstr "At risk"
 
 #. placeholder {0}: result.auditId.slice(0, 8)
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Audit {0}"
 msgstr "Audit {0}"
@@ -2035,6 +2036,10 @@ msgstr "Client detail"
 msgid "Client docs are in — move to In review so preparation can continue."
 msgstr "Client docs are in — move to In review so preparation can continue."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client docs are in — move to In review."
+msgstr "Client docs are in — move to In review."
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "Client email draft copied"
@@ -2415,6 +2420,7 @@ msgstr "Couldn't archive client"
 msgid "Couldn't calculate preview"
 msgstr "Couldn't calculate preview"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't change status"
 msgstr "Couldn't change status"
@@ -3134,6 +3140,10 @@ msgstr "Dismissed"
 msgid "Distribution of prep work across the team."
 msgstr "Distribution of prep work across the team."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Docs received"
+msgstr "Docs received"
+
 #: src/routes/obligations.tsx
 msgid "Document audit trail captured {receivedCount} of {checklistCount} items as received."
 msgstr "Document audit trail captured {receivedCount} of {checklistCount} items as received."
@@ -3674,6 +3684,7 @@ msgstr "Extension plan saved"
 msgid "Extension source"
 msgstr "Extension source"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "External blocker resolved — move to In review."
 msgstr "External blocker resolved — move to In review."
@@ -4736,6 +4747,7 @@ msgstr "Mark document received"
 msgid "Mark extended"
 msgstr "Mark extended"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark filed"
 msgstr "Mark filed"
@@ -4760,6 +4772,7 @@ msgstr "Mark read"
 msgid "Mark selected extended"
 msgstr "Mark selected extended"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark unblocked"
 msgstr "Mark unblocked"
@@ -4990,6 +5003,10 @@ msgstr "Most provider exports are CSV or XLSX. Use Paste / Upload with an import
 #: src/routes/obligations.tsx
 msgid "Move this row to In review — preparation work has begun."
 msgstr "Move this row to In review — preparation work has begun."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Move to In review — preparation work has begun."
+msgstr "Move to In review — preparation work has begun."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7465,6 +7482,10 @@ msgstr "Return has been submitted to the tax authority — awaiting acceptance."
 msgid "Return home"
 msgstr "Return home"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Return submitted to the tax authority."
+msgstr "Return submitted to the tax authority."
+
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/migration.new.tsx
 msgid "Return to Today"
@@ -8695,6 +8716,10 @@ msgstr "SSO and custom coverage"
 msgid "Stale"
 msgstr "Stale"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Start prep"
+msgstr "Start prep"
+
 #: src/routes/obligations.tsx
 msgid "Start preparation"
 msgstr "Start preparation"
@@ -8743,6 +8768,8 @@ msgid "Status"
 msgstr "Status"
 
 #. placeholder {0}: statusLabels[vars.status]
+#. placeholder {0}: v2StatusLabels[vars.status]
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "Status changed to {0}"

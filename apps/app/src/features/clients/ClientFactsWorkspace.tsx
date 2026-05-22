@@ -108,7 +108,12 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
-import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
+import {
+  LIFECYCLE_V2_STATUSES,
+  ObligationQueueStatusControl,
+  useLifecycleV2StatusLabels,
+  type ObligationStatus,
+} from '@/features/obligations/status-control'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
@@ -1278,6 +1283,38 @@ export function ClientDetailWorkspace({
     openFilingJurisdictions()
   }, [openFilingJurisdictions])
 
+  // Obligation status change — wired from the filing-plan rows
+  // (D-6a/b). Same RPC the queue uses, same invalidation set, so
+  // status changes made here propagate to the queue, dashboard, and
+  // back into this client's filing-plan rows.
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const changeStatusMutation = useMutation(
+    orpc.obligations.updateStatus.mutationOptions({
+      onSuccess: (result, vars) => {
+        void queryClient.invalidateQueries({
+          queryKey: orpc.obligations.listByClient.key(),
+        })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        toast.success(t`Status changed to ${v2StatusLabels[vars.status]}`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't change status`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const handleChangeObligationStatus = useCallback(
+    (id: string, status: ObligationStatus) => {
+      changeStatusMutation.mutate({ id, status })
+    },
+    [changeStatusMutation],
+  )
+
   // Archive (a.k.a. soft-delete) state + mutation. CPA compliance
   // requires soft-delete — `clients.delete` actually flips `deletedAt`
   // server-side, audit log retains everything. The UI surfaces the
@@ -1441,6 +1478,9 @@ export function ClientDetailWorkspace({
                   obligations={obligations}
                   isLoading={obligationsQuery.isLoading}
                   summary={workPlan}
+                  clientName={client.name}
+                  onChangeStatus={handleChangeObligationStatus}
+                  isStatusChangePending={changeStatusMutation.isPending}
                 />
               </TabsContent>
 
@@ -1693,6 +1733,9 @@ function ClientWorkPlanPanel({
   obligations,
   isLoading,
   summary: _summary,
+  clientName,
+  onChangeStatus,
+  isStatusChangePending,
 }: {
   obligations: readonly ObligationInstancePublic[]
   isLoading: boolean
@@ -1701,6 +1744,14 @@ function ClientWorkPlanPanel({
   // header below). The page-level subtitle already carries the
   // overdue / on-track signal in tone-coded form.
   summary: ClientWorkPlanSummary
+  // Threaded down to FilingPlanYearSection so each row can render the
+  // canonical status picker (D-6b) and a forward-action button
+  // (D-6a). `clientName` is what ObligationQueueStatusControl uses
+  // for its aria-label so the picker reads "Change status for
+  // Riverbend Draft Client".
+  clientName: string
+  onChangeStatus: (id: string, status: ObligationStatus) => void
+  isStatusChangePending: boolean
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
@@ -1755,7 +1806,10 @@ function ClientWorkPlanPanel({
               >
                 <FilingPlanYearSection
                   group={group}
+                  clientName={clientName}
                   onOpen={(obligationId) => openObligationDrawer(obligationId)}
+                  onChangeStatus={onChangeStatus}
+                  isStatusChangePending={isStatusChangePending}
                 />
               </div>
             ))}
@@ -1776,11 +1830,18 @@ function ClientWorkPlanPanel({
 //    two ends of a row — that orphans the heading.
 function FilingPlanYearSection({
   group,
+  clientName,
   onOpen,
+  onChangeStatus,
+  isStatusChangePending,
 }: {
   group: FilingPlanYearGroup
+  clientName: string
   onOpen: (obligationId: string) => void
+  onChangeStatus: (id: string, status: ObligationStatus) => void
+  isStatusChangePending: boolean
 }) {
+  const statusPickerLabels = useLifecycleV2StatusLabels()
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
@@ -1813,13 +1874,6 @@ function FilingPlanYearSection({
       <Table className="table-fixed">
         <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
           {group.obligations.map((obligation) => {
-            // Currency column shows only when the obligation carries a
-            // real estimate — `—` dashes across the column were just
-            // visual noise. When the estimate is null we collapse the
-            // cell to empty whitespace; the column width stays so the
-            // row still aligns. (Per-column gating across the whole
-            // group could shrink the layout further; deferred until we
-            // see the column actually matter in production data.)
             const hasEstimate = obligation.estimatedTaxDueCents !== null
             return (
               <TableRow
@@ -1827,7 +1881,7 @@ function FilingPlanYearSection({
                 tabIndex={0}
                 role="link"
                 aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}`}
-                className="cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
+                className="group/row cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
                 onClick={() => onOpen(obligation.id)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
@@ -1837,13 +1891,6 @@ function FilingPlanYearSection({
                 }}
               >
                 <TableCell>
-                  {/* Single confident line for the form name — the
-                      sub-line that used to render
-                      `jurisdiction ?? generationSource ?? 'manual'`
-                      was arbitrary fallback text that read as noise.
-                      Jurisdiction belongs to the form code via
-                      `TaxCodeLabel` already; provenance is the
-                      drawer's responsibility, not the row's. */}
                   <span className="truncate font-medium text-text-primary">
                     <TaxCodeLabel code={obligation.taxType} />
                   </span>
@@ -1851,11 +1898,36 @@ function FilingPlanYearSection({
                 <TableCell className="w-[132px]">
                   {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
                 </TableCell>
-                <TableCell className="w-[140px]">
-                  <ObligationStatusReadBadge status={obligation.status} />
+                <TableCell className="w-[160px]">
+                  {/* D-6b: status chip is now a real picker dropdown.
+                      Same canonical control as the obligations queue
+                      uses, so the v2 lifecycle vocabulary (and the
+                      illegal-transition guard) stays consistent. The
+                      control internally `event.stopPropagation()`s so
+                      opening the dropdown doesn't also trigger
+                      row-click → in-page drawer. */}
+                  <ObligationQueueStatusControl
+                    row={{ id: obligation.id, status: obligation.status, clientName }}
+                    labels={statusPickerLabels}
+                    statuses={LIFECYCLE_V2_STATUSES}
+                    disabled={isStatusChangePending}
+                    onChange={onChangeStatus}
+                  />
                 </TableCell>
-                <TableCell className="w-[120px] text-right tabular-nums text-text-tertiary">
+                <TableCell className="w-[110px] text-right tabular-nums text-text-tertiary">
                   {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
+                </TableCell>
+                {/* D-6a: hover-revealed forward action. Same labels +
+                    target-status logic as the obligations queue, so a
+                    CPA who's used to "Mark filed" from the queue gets
+                    the identical affordance here. Hidden until row
+                    hover so the row reads clean by default. */}
+                <TableCell className="w-[140px] text-right">
+                  <FilingPlanRowQuickAction
+                    obligation={obligation}
+                    disabled={isStatusChangePending}
+                    onChangeStatus={onChangeStatus}
+                  />
                 </TableCell>
               </TableRow>
             )
@@ -1863,6 +1935,91 @@ function FilingPlanYearSection({
         </TableBody>
       </Table>
     </div>
+  )
+}
+
+/**
+ * Per-row hover-revealed quick action on filing-plan rows. Matches
+ * the obligations queue's forward-action vocabulary so the CPA gets
+ * the same affordance regardless of which surface they're on.
+ *
+ * Hidden by default (opacity 0); fades in on row hover or when the
+ * button itself receives focus (keyboard-only users can still get
+ * to it via Tab). Always uses `event.stopPropagation()` so clicking
+ * the button doesn't also trigger the row's in-page-drawer open.
+ *
+ * Renders nothing for terminal statuses (`done` / `paid` /
+ * `completed` / `not_applicable`) — there's no forward target.
+ */
+function FilingPlanRowQuickAction({
+  obligation,
+  disabled,
+  onChangeStatus,
+}: {
+  obligation: ObligationInstancePublic
+  disabled: boolean
+  onChangeStatus: (id: string, status: ObligationStatus) => void
+}) {
+  // Switch lives inline so Lingui's `t` macro statically extracts the
+  // label / tooltip strings (a helper taking `t` as a parameter would
+  // be skipped by the AST walker, leaving the strings untranslated).
+  const { t } = useLingui()
+  let forward: { label: string; tooltip: string; nextStatus: ObligationStatus } | null = null
+  switch (obligation.status) {
+    case 'pending':
+      forward = {
+        label: t`Start prep`,
+        tooltip: t`Move to In review — preparation work has begun.`,
+        nextStatus: 'review',
+      }
+      break
+    case 'waiting_on_client':
+      forward = {
+        label: t`Docs received`,
+        tooltip: t`Client docs are in — move to In review.`,
+        nextStatus: 'review',
+      }
+      break
+    case 'blocked':
+      forward = {
+        label: t`Mark unblocked`,
+        tooltip: t`External blocker resolved — move to In review.`,
+        nextStatus: 'review',
+      }
+      break
+    case 'in_progress':
+    case 'review':
+    case 'extended':
+      forward = {
+        label: t`Mark filed`,
+        tooltip: t`Return submitted to the tax authority.`,
+        nextStatus: 'done',
+      }
+      break
+    case 'done':
+    case 'paid':
+    case 'completed':
+    case 'not_applicable':
+    default:
+      forward = null
+  }
+  if (!forward) return null
+  const nextStatus = forward.nextStatus
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={disabled}
+      onClick={(event) => {
+        event.stopPropagation()
+        onChangeStatus(obligation.id, nextStatus)
+      }}
+      className="opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100"
+      title={forward.tooltip}
+    >
+      {forward.label}
+    </Button>
   )
 }
 

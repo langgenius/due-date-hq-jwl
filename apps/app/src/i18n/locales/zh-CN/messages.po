@@ -1403,6 +1403,7 @@ msgid "At risk"
 msgstr "At risk"
 
 #. placeholder {0}: result.auditId.slice(0, 8)
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Audit {0}"
 msgstr "审计 {0}"
@@ -2035,6 +2036,10 @@ msgstr "客户详情"
 msgid "Client docs are in — move to In review so preparation can continue."
 msgstr "客户资料已到 — 请转入「复核中」以便继续准备。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Client docs are in — move to In review."
+msgstr "客户文件已收到 — 移至 In review。"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "客户邮件草稿已复制"
@@ -2415,6 +2420,7 @@ msgstr "无法归档客户"
 msgid "Couldn't calculate preview"
 msgstr "无法计算预览"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't change status"
 msgstr "无法变更状态"
@@ -3134,6 +3140,10 @@ msgstr "已忽略"
 msgid "Distribution of prep work across the team."
 msgstr "团队中准备工作的分配情况。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Docs received"
+msgstr "文件已收到"
+
 #: src/routes/obligations.tsx
 msgid "Document audit trail captured {receivedCount} of {checklistCount} items as received."
 msgstr "文档审计记录显示 {checklistCount} 项中已收到 {receivedCount} 项。"
@@ -3674,6 +3684,7 @@ msgstr "延期计划已保存"
 msgid "Extension source"
 msgstr "延期来源"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "External blocker resolved — move to In review."
 msgstr "外部阻塞已解除 — 请转入「复核中」。"
@@ -4736,6 +4747,7 @@ msgstr "标记文件已收到"
 msgid "Mark extended"
 msgstr "标记已延期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark filed"
 msgstr "标记已申报"
@@ -4760,6 +4772,7 @@ msgstr "标记已读"
 msgid "Mark selected extended"
 msgstr "将所选项标记为已延期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark unblocked"
 msgstr "标记已解除阻塞"
@@ -4990,6 +5003,10 @@ msgstr "多数服务商导出文件是 CSV 或 XLSX。此类文件请使用\"粘
 #: src/routes/obligations.tsx
 msgid "Move this row to In review — preparation work has begun."
 msgstr "将此行转入「复核中」 — 准备工作已开始。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Move to In review — preparation work has begun."
+msgstr "移至 In review — 准备工作已开始。"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7465,6 +7482,10 @@ msgstr "申报表已提交至税务机关 — 等待接受。"
 msgid "Return home"
 msgstr "返回首页"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Return submitted to the tax authority."
+msgstr "已向税务机关提交报税。"
+
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/migration.new.tsx
 msgid "Return to Today"
@@ -8695,6 +8716,10 @@ msgstr "SSO 与自定义覆盖"
 msgid "Stale"
 msgstr "已过期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Start prep"
+msgstr "开始准备"
+
 #: src/routes/obligations.tsx
 msgid "Start preparation"
 msgstr "开始准备"
@@ -8743,6 +8768,8 @@ msgid "Status"
 msgstr "状态"
 
 #. placeholder {0}: statusLabels[vars.status]
+#. placeholder {0}: v2StatusLabels[vars.status]
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "状态已变更为 {0}"
