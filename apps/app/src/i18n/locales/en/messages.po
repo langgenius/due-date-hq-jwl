@@ -791,8 +791,8 @@ msgstr "Accepted practice rules for source and deadline review."
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
-msgstr "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
+msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
+msgstr "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting rule…"
@@ -9364,8 +9364,8 @@ msgstr "This rule does not allow an extension."
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
-msgstr "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
+msgid "This rule is active for client filings in {0} for {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
+msgstr "This rule is active for client filings in {0} for {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
 
 #. placeholder {0}: seed.jurisdiction
 #. placeholder {1}: ENTITY_LABELS[seed.entity ?? 'llc']

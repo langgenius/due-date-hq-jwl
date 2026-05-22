@@ -264,6 +264,18 @@ function pendingContractRule(rule: CoreObligationRule): ObligationRule {
   })
 }
 
+export function isDefaultActiveTemplateRule(
+  rule: Pick<CoreObligationRule, 'jurisdiction' | 'status'>,
+): boolean {
+  return rule.jurisdiction === 'FED' && rule.status === 'verified'
+}
+
+export function defaultContractRuleForTemplate(rule: CoreObligationRule): ObligationRule {
+  return isDefaultActiveTemplateRule(rule)
+    ? toPracticeContractRule(rule, 'active')
+    : pendingContractRule(rule)
+}
+
 function reviewTaskKey(ruleId: string, templateVersion: number): string {
   return `${ruleId}:${templateVersion}`
 }
@@ -402,6 +414,7 @@ async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
     if (rule.status === 'deprecated') continue
     const reviewed = reviewedByRuleId.get(rule.id)
     if (!reviewed) {
+      if (isDefaultActiveTemplateRule(rule)) continue
       reviewTasks.push({
         ruleId: rule.id,
         templateVersion: rule.version,
@@ -487,7 +500,11 @@ async function listPracticeRules(input: {
       reviewTaskKey(template.id, template.version),
     )
     if (!practice) {
-      rows.push(pendingContractRule(template))
+      rows.push(defaultContractRuleForTemplate(template))
+      continue
+    }
+    if (isDefaultActiveTemplateRule(template) && practice.status === 'pending_review') {
+      rows.push(toPracticeContractRule(template, 'active'))
       continue
     }
 
@@ -495,7 +512,7 @@ async function listPracticeRules(input: {
       ? ObligationRuleSchema.safeParse(practice.ruleJson)
       : { success: false as const }
     if (practice.status === 'active' && parsed.success) {
-      if (isSourceDefinedRule(parsed.data)) {
+      if (isSourceDefinedRule(parsed.data) && !isDefaultActiveTemplateRule(template)) {
         rows.push({
           ...parsed.data,
           status: 'pending_review',
@@ -567,10 +584,21 @@ async function listPracticeRules(input: {
 
 async function listActiveCoreRules(scoped: ReturnType<typeof requireTenant>['scoped']) {
   const rows = await scoped.rules.listActivePracticeRules()
-  return rows.flatMap((row) => {
+  const activeRows = rows.flatMap((row) => {
     const rule = parsePracticeRule(row)
     return rule ? [rule] : []
   })
+  const practiceRowsByRuleId = new Map(
+    (await scoped.rules.listPracticeRules()).map((row) => [row.ruleId, row]),
+  )
+  const activeRowIds = new Set(activeRows.map((rule) => rule.id))
+  const defaultActiveRules = templateRules().filter((rule) => {
+    if (!isDefaultActiveTemplateRule(rule)) return false
+    if (activeRowIds.has(rule.id)) return false
+    const practice = practiceRowsByRuleId.get(rule.id)
+    return practice?.status !== 'rejected' && practice?.status !== 'archived'
+  })
+  return [...activeRows, ...defaultActiveRules]
 }
 
 function ruleMatchesEntity(rule: CoreObligationRule, entityType: RuleGenerationEntity): boolean {
@@ -975,6 +1003,13 @@ const listReviewTasks = os.rules.listReviewTasks.handler(async ({ input, context
   return rows.flatMap((row) => {
     const template = templateById.get(row.ruleId)
     if (!template) return []
+    if (
+      row.status === 'open' &&
+      row.reason === 'new_template' &&
+      isDefaultActiveTemplateRule(template)
+    ) {
+      return []
+    }
     if (input?.jurisdiction && template.jurisdiction !== input.jurisdiction) return []
     const status: ObligationRule['status'] =
       row.status === 'accepted'

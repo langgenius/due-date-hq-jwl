@@ -71,8 +71,8 @@ import { orpc } from '@/lib/rpc'
  *   - Search flattens groups: typing in the search box collapses the
  *     jurisdiction grouping and shows a flat list with a Jurisdiction
  *     column added
- *   - Federal collapses by default (big); others auto-expand if they
- *     have gaps, otherwise collapse
+ *   - Federal expands by default for orientation; state groups start
+ *     collapsed so the catalog is scannable on first load
  *   - Clicking a rule sets `?rule=X` and the rule detail renders in a
  *     side panel
  *
@@ -501,15 +501,11 @@ function buildGroups(
 }
 
 function defaultExpandedSet(groups: readonly JurisdictionGroup[]): Set<RuleJurisdiction> {
-  // Auto-expand jurisdictions with gaps; collapse Federal by default
-  // (typically the biggest group); collapse the rest unless they have
-  // gaps. Keeps the page compact on first paint while surfacing
-  // attention-needed groups.
+  // Keep first paint compact: Federal is the orientation row, and
+  // state-level work stays one click away instead of expanding dozens
+  // of pending-review jurisdictions at once.
   const set = new Set<RuleJurisdiction>()
-  for (const g of groups) {
-    if (g.jurisdiction === 'FED') continue
-    if (g.hasGap) set.add(g.jurisdiction)
-  }
+  if (groups.some((g) => g.jurisdiction === 'FED')) set.add('FED')
   return set
 }
 

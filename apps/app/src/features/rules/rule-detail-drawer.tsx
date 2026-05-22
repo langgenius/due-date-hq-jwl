@@ -32,6 +32,23 @@ import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
 const ACCEPT_RULE_TOOLTIP_MS = 1_200
+const ENTITY_APPLICABILITY_LABELS: Record<string, string> = {
+  any_business: 'business clients',
+  c_corp: 'C corporations',
+  individual: 'individuals',
+  llc: 'LLCs',
+  partnership: 'partnerships',
+  s_corp: 'S corporations',
+  sole_prop: 'sole proprietors',
+  trust: 'trusts',
+}
+
+function formatEntityApplicability(values: readonly string[]): string {
+  const labels = values.map((value) => ENTITY_APPLICABILITY_LABELS[value] ?? formatEnumLabel(value))
+  if (labels.length <= 1) return labels[0] ?? ''
+  if (labels.length === 2) return labels.join(' and ')
+  return `${labels.slice(0, -1).join(', ')}, and ${labels.at(-1)}`
+}
 
 /**
  * Inline-renderable version of the rule detail — full section list, no
@@ -131,7 +148,7 @@ export function RuleDetailCompact({
       <DetailSection label={<Trans>Applicability</Trans>}>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-primary">
           <JurisdictionCode code={rule.jurisdiction} />
-          <span>{rule.entityApplicability.join(', ')}</span>
+          <span>{formatEntityApplicability(rule.entityApplicability)}</span>
           <span aria-hidden className="text-text-tertiary">
             ·
           </span>
@@ -389,7 +406,7 @@ function CandidateReviewForm({
   const acceptDisabled =
     reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
 
-  const entitySummary = rule.entityApplicability.join(', ')
+  const entitySummary = formatEntityApplicability(rule.entityApplicability)
   return (
     <section className="flex flex-col gap-3 rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3">
       {/* Section header used to include a right-aligned "Needs review"
@@ -402,12 +419,12 @@ function CandidateReviewForm({
       <p className="text-sm text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
-            This rule is active for every client filing in {rule.jurisdiction} as {entitySummary},
-            but it still needs concrete due-date logic before it can create obligations.
+            This rule is active for client filings in {rule.jurisdiction} for {entitySummary}, but
+            it still needs concrete due-date logic before it can create obligations.
           </Trans>
         ) : (
           <Trans>
-            Accepting activates this rule for every client filing in {rule.jurisdiction} as{' '}
+            Accepting activates this rule for client filings in {rule.jurisdiction} for{' '}
             {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension
             handling should not become active.
           </Trans>
@@ -574,7 +591,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
       </SectionLabel>
       <div className="flex flex-wrap items-center gap-2 text-base">
         <JurisdictionCode code={rule.jurisdiction} />
-        <span className="text-text-secondary">{rule.entityApplicability.join(', ')}</span>
+        <span className="text-text-secondary">
+          {formatEntityApplicability(rule.entityApplicability)}
+        </span>
       </div>
       <div className="grid grid-cols-[88px_1fr] gap-y-1.5 text-base">
         <span className="text-text-tertiary">

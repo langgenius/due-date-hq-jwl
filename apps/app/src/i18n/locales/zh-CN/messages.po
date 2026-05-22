@@ -791,8 +791,8 @@ msgstr "已接受的事务所规则，用于核对来源和截止日。"
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
-msgstr "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
+msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
+msgstr "接受后，这条规则会应用于 {0} 中适用于 {entitySummary} 的客户申报。若证据、适用范围、截止日逻辑或延期处理不应生效，请拒绝。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting rule…"
@@ -9364,8 +9364,8 @@ msgstr "这条规则不允许申请延期。"
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "This rule is active for every client filing in {0} as {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
-msgstr "这条规则已对在 {0} 以 {entitySummary} 申报的所有客户激活，但仍需要具体截止日期逻辑，之后才能创建义务。"
+msgid "This rule is active for client filings in {0} for {entitySummary}, but it still needs concrete due-date logic before it can create obligations."
+msgstr "这条规则已对 {0} 中适用于 {entitySummary} 的客户申报生效，但仍需要具体截止日逻辑后才能创建义务。"
 
 #. placeholder {0}: seed.jurisdiction
 #. placeholder {1}: ENTITY_LABELS[seed.entity ?? 'llc']

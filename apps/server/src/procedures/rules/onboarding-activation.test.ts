@@ -12,7 +12,9 @@ import type {
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   activateOnboardingJurisdictionRules,
+  defaultContractRuleForTemplate,
   isOnboardingActivatableRule,
+  isDefaultActiveTemplateRule,
   isPracticeRuleBehindTemplate,
   onboardingActivationJurisdictions,
 } from './index'
@@ -81,6 +83,12 @@ function makeScoped() {
 }
 
 describe('onboarding rule activation', () => {
+  function requireRule(id: string) {
+    const rule = listObligationRules({ includeCandidates: true }).find((item) => item.id === id)
+    if (!rule) throw new Error(`Expected rule fixture ${id} to exist.`)
+    return rule
+  }
+
   it('derives FED plus selected states only when at least one state is selected', () => {
     expect(onboardingActivationJurisdictions([])).toEqual([])
     expect(onboardingActivationJurisdictions(['CA', 'TX', 'CA'])).toEqual(['FED', 'CA', 'TX'])
@@ -90,6 +98,22 @@ describe('onboarding rule activation', () => {
     expect(isOnboardingActivatableRule({ status: 'verified' })).toBe(true)
     expect(isOnboardingActivatableRule({ status: 'candidate' })).toBe(true)
     expect(isOnboardingActivatableRule({ status: 'deprecated' })).toBe(false)
+  })
+
+  it('defaults verified Federal templates to active practice rules', () => {
+    const federalVerified = requireRule('fed.1040.return.2025')
+    const federalSourceDefined = requireRule('fed.payroll_deposit.monthly.2026')
+    const federalCandidate = requireRule('fed.disaster_relief.watch')
+    const stateCandidate = requireRule('az.individual_income_return.candidate.2026')
+
+    expect(isDefaultActiveTemplateRule(federalVerified)).toBe(true)
+    expect(isDefaultActiveTemplateRule(federalSourceDefined)).toBe(true)
+    expect(isDefaultActiveTemplateRule(federalCandidate)).toBe(false)
+    expect(isDefaultActiveTemplateRule(stateCandidate)).toBe(false)
+    expect(defaultContractRuleForTemplate(federalVerified).status).toBe('active')
+    expect(defaultContractRuleForTemplate(federalSourceDefined).status).toBe('active')
+    expect(defaultContractRuleForTemplate(federalCandidate).status).toBe('pending_review')
+    expect(defaultContractRuleForTemplate(stateCandidate).status).toBe('pending_review')
   })
 
   it('does not treat accepted concrete drafts as stale template reviews', () => {

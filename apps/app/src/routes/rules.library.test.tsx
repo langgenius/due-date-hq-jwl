@@ -316,6 +316,40 @@ afterEach(() => {
 })
 
 describe('RulesLibraryRoute', () => {
+  it('defaults to only the Federal group expanded', async () => {
+    const federalRule = obligationRule({
+      id: 'fed.1040.return.2026',
+      title: 'Federal individual income tax return',
+      jurisdiction: 'FED',
+      formName: 'Federal Row Form',
+      sourceIds: ['irs.1040'],
+      evidence: [
+        {
+          sourceId: 'irs.1040',
+          authorityRole: 'basis',
+          locator: { kind: 'html', heading: 'Federal due dates' },
+          summary: 'Federal individual income tax due date.',
+          sourceExcerpt: 'Returns are due by April 15, 2026.',
+          retrievedAt: '2026-05-22',
+        },
+      ],
+    })
+    const stateRule = obligationRule({
+      id: 'az.individual_income_return.candidate.2026',
+      title: 'Arizona individual income tax return',
+      jurisdiction: 'AZ',
+      formName: 'Arizona Row Form',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule, stateRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Federal Row Form')
+    await waitForText('Arizona')
+
+    expect(document.body.textContent).toContain('Federal Row Form')
+    expect(document.body.textContent).not.toContain('Arizona Row Form')
+  })
+
   it('does not render add-rule gaps for not-applicable entity coverage', async () => {
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({
@@ -376,6 +410,14 @@ describe('RulesLibraryRoute', () => {
     ])
 
     await render(<RulesLibraryRoute />)
+    await waitForText('Arizona')
+    const arizonaRow = Array.from(document.querySelectorAll('tr')).find((row) =>
+      row.textContent?.includes('Arizona'),
+    )
+    expect(arizonaRow).toBeDefined()
+    await act(async () => {
+      arizonaRow?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
     await waitForText('Missing rules')
 
     expect(document.body.textContent).toContain('No rule defined for this entity in Arizona')
