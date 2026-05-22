@@ -247,6 +247,7 @@ function CandidateReviewForm({
       input: { ruleId: rule.id, sourceId: reviewSourceId },
     }),
     enabled: sourceDefined && reviewSourceId.length > 0 && draftableSource,
+    retry: false,
   })
 
   const invalidateRules = () => {

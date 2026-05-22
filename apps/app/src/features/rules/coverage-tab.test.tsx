@@ -357,11 +357,22 @@ const keyboardShellTestValue: KeyboardShellContextValue = {
   closeShortcutHelp: () => undefined,
 }
 
-async function render(children: ReactNode) {
+async function render(
+  children: ReactNode,
+  options: { queryRetry?: false | number; retryDelay?: number } = {},
+) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryDefaults =
+    options.retryDelay === undefined
+      ? { retry: options.queryRetry ?? false }
+      : { retry: options.queryRetry ?? false, retryDelay: options.retryDelay }
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: queryDefaults,
+    },
+  })
 
   await act(async () => {
     root?.render(
@@ -889,5 +900,35 @@ describe('CoverageTab canonical layout', () => {
       ],
       reviewNote: 'Reviewed current AI draft.',
     })
+  })
+
+  it('shows draftConcreteRule errors after the first failed request', async () => {
+    const sourceDefinedRule = obligationRule({
+      id: 'fed.pending.source-defined.2026',
+      title: 'Federal source-defined calendar',
+      jurisdiction: 'FED',
+      status: 'pending_review',
+      sourceIds: ['fed.source.2026'],
+      dueDateLogic: {
+        kind: 'source_defined_calendar',
+        description: 'Official source publishes the annual calendar.',
+        holidayRollover: 'source_adjusted',
+      },
+    })
+    nuqsMocks.rule = sourceDefinedRule.id
+    rpcMocks.listSourcesQueryFn.mockResolvedValue([ruleSource()])
+    rpcMocks.listRulesQueryFn.mockResolvedValue([sourceDefinedRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(sourceDefinedRule)])
+    rpcMocks.draftConcreteRuleQueryFn.mockRejectedValue(
+      new Error('Official source text could not be fetched for the selected source.'),
+    )
+
+    await render(<CoverageTab />, { queryRetry: 2, retryDelay: 1 })
+    await waitForText('Official source text could not be fetched for the selected source.')
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    })
+
+    expect(rpcMocks.draftConcreteRuleQueryFn).toHaveBeenCalledTimes(1)
   })
 })

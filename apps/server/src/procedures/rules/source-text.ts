@@ -8,6 +8,8 @@ const JSON_LD_SCRIPT_RE =
 const TABLE_ROW_RE = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi
 const TABLE_CELL_RE = /<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi
 const EMPTY_LINE_RE = /\n{3,}/g
+const ORDINAL_CARET_RE = /\b(\d{1,2})\s*\^\{\s*(st|nd|rd|th)\s*\}/gi
+const ORDINAL_SPACED_RE = /\b(\d{1,2})\s+(st|nd|rd|th)\b/gi
 
 export function extractOfficialSourceText(html: string): string {
   const faqText = extractJsonLdFaqText(html)
@@ -106,11 +108,17 @@ function htmlToText(html: string): string {
 function normalizeSourceText(value: string): string {
   return value
     .split('\n')
-    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .map((line) => normalizeOrdinals(line).replace(/\s+/g, ' ').trim())
     .filter(Boolean)
     .join('\n')
     .replace(EMPTY_LINE_RE, '\n\n')
     .trim()
+}
+
+function normalizeOrdinals(value: string): string {
+  return value
+    .replace(ORDINAL_CARET_RE, (_match, day: string, suffix: string) => `${day}${suffix}`)
+    .replace(ORDINAL_SPACED_RE, (_match, day: string, suffix: string) => `${day}${suffix}`)
 }
 
 function decodeHtmlEntities(value: string): string {

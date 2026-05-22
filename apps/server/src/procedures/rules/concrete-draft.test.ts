@@ -14,6 +14,13 @@ const ALABAMA_ESTIMATED_SOURCE_TEXT = [
   'Will be due on the 15th day of the fourth, sixth, ninth, and 12th months of the fiscal year.',
 ].join('\n')
 
+const ALABAMA_BPT_SOURCE_TEXT = [
+  'Business Privilege Tax',
+  "C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
+  "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+  "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+].join('\n')
+
 describe('rule concrete draft normalization', () => {
   it('normalizes Alabama-style month/day installment drafts into the strict contract shape', () => {
     const parsed = RuleConcreteDraftAiOutputSchema.parse({
@@ -182,5 +189,57 @@ describe('rule concrete draft normalization', () => {
         'Payment 4 - December 15',
       ].join('\n'),
     )
+  })
+
+  it('normalizes Alabama business privilege tax due dates from tax-year-begin logic', () => {
+    const parsed = RuleConcreteDraftAiOutputSchema.parse({
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_begin',
+        monthOffset: '3',
+        day: '15',
+        holidayRollover: 'next_business_day',
+      },
+      extensionPolicy: {
+        available: false,
+        paymentExtended: false,
+        notes: 'The source excerpt gives the original business privilege tax due date.',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      quality: {
+        filingPaymentDistinguished: true,
+        extensionHandled: false,
+        calendarFiscalSpecified: false,
+        holidayRolloverHandled: false,
+        crossVerified: false,
+        exceptionChannel: true,
+      },
+      sourceHeading: 'Business Privilege Tax',
+      sourceExcerpt:
+        "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+      confidence: 0.82,
+      reasoning:
+        'The S corporation row supports a March 15-style rule, while entity-specific applicability still needs review.',
+    })
+
+    const result = normalizeRuleConcreteDraftAiOutput({
+      output: parsed,
+      applicableYear: 2026,
+      sourceTitle: 'Alabama DOR Income Tax Due Dates',
+      sourceText: ALABAMA_BPT_SOURCE_TEXT,
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.draft).toMatchObject({
+      dueDateLogic: {
+        kind: 'nth_day_after_tax_year_begin',
+        monthOffset: 3,
+        day: 15,
+        holidayRollover: 'next_business_day',
+      },
+      coverageStatus: 'manual',
+      requiresApplicabilityReview: true,
+      sourceHeading: 'Business Privilege Tax',
+    })
   })
 })

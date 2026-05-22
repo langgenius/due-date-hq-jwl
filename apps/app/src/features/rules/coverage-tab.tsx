@@ -338,6 +338,7 @@ export function CoverageTab({
         : { ruleId: '', sourceId: '' },
     }),
     enabled: selectedConcreteDraftEnabled,
+    retry: false,
   })
 
   const rowsData = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
