@@ -5,6 +5,7 @@ import { parseAsStringLiteral, useQueryState } from 'nuqs'
 import {
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
   type ColumnDef,
   type RowData,
@@ -15,6 +16,8 @@ import {
   AlertTriangleIcon,
   ArrowUpRightIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CheckCircle2Icon,
   ClipboardCheckIcon,
   ClipboardListIcon,
@@ -709,6 +712,7 @@ export function ClientFactsWorkspace({
     data: filteredClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getRowId: (client) => client.id,
     // OTHER STATES + SERVICES start hidden because they're empty for
     // the typical single-state, no-services-managed firm shape (the
@@ -721,6 +725,15 @@ export function ClientFactsWorkspace({
       columnVisibility: {
         otherStates: false,
         servicesCount: false,
+      },
+      pagination: {
+        // 25-row pages — covers single-page rendering for most small/
+        // mid firms (the typical seeded demo has ~10 clients) while
+        // keeping the buffer reasonable for firms with 200+ clients.
+        // The pagination footer only renders when total > 25 so small
+        // firms don't see empty controls.
+        pageIndex: 0,
+        pageSize: 25,
       },
     },
   })
@@ -828,6 +841,49 @@ export function ClientFactsWorkspace({
           }
         />
       )}
+
+      {/* Pagination footer — renders only when the filtered client
+          set spans more than one page so small firms / empty filters
+          don't see vestigial controls. Same shape + icons as the
+          Obligations queue footer (sticky bottom-of-table block).
+          Page count uses `getFilteredRowModel`/`getRowCount` semantics
+          via `table.getPageCount()`. */}
+      {table.getPageCount() > 1 ? (
+        <div className="flex items-center justify-between border-t border-divider-subtle pt-3 text-xs text-text-tertiary">
+          <span>
+            <Plural
+              value={table.getFilteredRowModel().rows.length}
+              one="# client"
+              other="# clients"
+            />
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t`Previous page`}
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
+            >
+              <ChevronLeftIcon className="size-4" aria-hidden />
+            </Button>
+            <span className="px-2 tabular-nums">
+              <Trans>
+                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              </Trans>
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t`Next page`}
+              disabled={!table.getCanNextPage()}
+              onClick={() => table.nextPage()}
+            >
+              <ChevronRightIcon className="size-4" aria-hidden />
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </>
   )
 }
