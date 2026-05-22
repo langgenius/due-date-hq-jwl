@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, FileClockIcon, FileSearchIcon } from 'lucide-react'
+import { AlertCircleIcon, FileClockIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -13,7 +13,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { writeClientCycleList } from '@/features/clients/client-cycle'
-import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
+import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitButton'
 import {
   buildClientObligationListSummaries,
   buildOpportunityCountByClient,
@@ -305,14 +305,12 @@ export function ClientsRoute() {
               <FileClockIcon data-icon="inline-start" />
               <Trans>Import history</Trans>
             </Button>
-            <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
-              <FileSearchIcon data-icon="inline-start" />
-              <Trans>Import clients</Trans>
-            </Button>
-            <CreateClientDialog
+            <ClientsCreateSplitButton
               entityLabels={entityLabels}
               isPending={createMutation.isPending}
               onCreate={handleCreateClient}
+              onImport={openWizard}
+              canImport={canRunMigration}
             />
           </>
         }

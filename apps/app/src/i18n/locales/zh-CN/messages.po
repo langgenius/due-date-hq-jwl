@@ -4096,7 +4096,6 @@ msgstr "导入清理"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/dashboard/actions-list.tsx
-#: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
@@ -4130,6 +4129,10 @@ msgstr "导入完成：{0} 个客户，{1} 个截止日，{2} 行已跳过"
 #: src/features/audit/audit-log-labels.ts
 msgid "Import file uploaded"
 msgstr "导入文件已上传"
+
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "Import from CSV…"
+msgstr "从 CSV 导入…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/clients.tsx
@@ -4375,7 +4378,6 @@ msgstr "发布"
 msgid "JUR"
 msgstr "辖区"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/rules/coverage-tab.tsx
@@ -4962,6 +4964,10 @@ msgstr "每位所有者的月度罚金"
 msgid "Months late"
 msgstr "逾期月数"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "More create options"
+msgstr "更多创建选项"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest"
 msgstr "Morning digest"
@@ -5096,6 +5102,7 @@ msgstr "从未"
 msgid "New"
 msgstr "新"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
 #: src/features/clients/CreateClientDialog.tsx
 msgid "New client"
 msgstr "新客户"
@@ -6097,10 +6104,6 @@ msgstr "其他日历 -> 通过 URL 添加"
 #: src/routes/account.security.tsx
 msgid "Other sessions revoked"
 msgstr "其他会话已撤销"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Other states"
-msgstr "其他州"
 
 #: src/routes/settings.tsx
 msgid "Outbound deadline reminders to clients and team."
@@ -8719,6 +8722,7 @@ msgstr "州规则覆盖"
 msgid "State sales-tax filings on the registered states"
 msgstr "已注册州的州销售税申报"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step3Normalize.tsx
 msgid "States"
 msgstr "州"

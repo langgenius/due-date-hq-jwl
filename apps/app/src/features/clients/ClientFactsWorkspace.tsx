@@ -227,8 +227,9 @@ function getPrimaryFilingState(client: ClientPublic): string | null {
 
 /**
  * Filing states the client owes filings in *beyond* the primary
- * jurisdiction. Used by the standalone "Other states" column so the
- * primary state column stays a clean single-token.
+ * jurisdiction. Rendered as outline badges alongside the primary
+ * state in the unified `States` column (the earlier standalone
+ * "Other states" column was retired per critique L-7).
  */
 function getOtherFilingStates(client: ClientPublic): string[] {
   const primary = getPrimaryFilingState(client)
@@ -412,10 +413,12 @@ export function ClientFactsWorkspace({
     setOpenHeaderFilter((current) => (nextOpen ? filterId : current === filterId ? null : current))
   }, [])
 
-  // Column order per the 2026-05-21 product review:
+  // Column order per the 2026-05-21 product review (with L-7
+  // "Other states" merged into the unified States column 2026-05-22):
   //
-  //   Client · Jurisdiction · Next due (date + form + readiness) ·
-  //   Other states · # Services · # Open · Owner (avatar) · Opportunities
+  //   Client · States (primary + others inline) ·
+  //   Next due (date + form + readiness) ·
+  //   # Services · # Open · Owner (avatar) · Opportunities
   //
   // Source column was dropped — provenance trivia, not a reason to
   // pick a row. The filter param + filter pipeline are still wired
@@ -489,7 +492,7 @@ export function ClientFactsWorkspace({
         header: () => (
           <TableHeaderMultiFilter
             trigger="header"
-            label={t`Jurisdiction`}
+            label={t`States`}
             open={openHeaderFilter === 'state'}
             onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
             options={stateOptions}
@@ -498,20 +501,50 @@ export function ClientFactsWorkspace({
             onSelectedChange={onStateFilterChange}
           />
         ),
+        // Render primary state and any additional filing states inline:
+        // primary state = filled secondary badge, additional states =
+        // outline badges. Replaces the earlier `otherStates` column —
+        // primary + others are the same scan signal ("which states does
+        // this client file in?") and splitting them across two columns
+        // duplicated header space + forced the user's eye to track both.
+        // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
+        // L-7 for the rationale.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
             return <span className="text-text-tertiary">—</span>
           }
+          const others = getOtherFilingStates(row.original)
+          const visibleOthers = others.slice(0, 2)
+          const overflow = others.length - visibleOthers.length
           return (
-            <Badge variant="secondary" className="rounded-sm font-mono uppercase tabular-nums">
-              {primary}
-            </Badge>
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge variant="secondary" className="rounded-sm font-mono uppercase tabular-nums">
+                {primary}
+              </Badge>
+              {visibleOthers.map((state) => (
+                <Badge
+                  key={state}
+                  variant="outline"
+                  className="rounded-sm font-mono uppercase tabular-nums"
+                >
+                  {state}
+                </Badge>
+              ))}
+              {overflow > 0 ? (
+                <span
+                  className="font-mono text-[11px] tabular-nums text-text-tertiary"
+                  title={others.slice(2).join(', ')}
+                >
+                  +{overflow}
+                </span>
+              ) : null}
+            </div>
           )
         },
         meta: {
-          headerClassName: 'w-[110px]',
-          cellClassName: 'w-[110px]',
+          headerClassName: 'w-[160px]',
+          cellClassName: 'w-[160px]',
         },
       },
       {
@@ -545,43 +578,6 @@ export function ClientFactsWorkspace({
         meta: {
           headerClassName: 'w-[200px]',
           cellClassName: 'w-[200px]',
-        },
-      },
-      {
-        id: 'otherStates',
-        header: t`Other states`,
-        cell: ({ row }) => {
-          const others = getOtherFilingStates(row.original)
-          if (others.length === 0) {
-            return <span className="text-text-tertiary">—</span>
-          }
-          const visible = others.slice(0, 3)
-          const overflow = others.length - visible.length
-          return (
-            <div className="flex flex-wrap items-center gap-1">
-              {visible.map((state) => (
-                <Badge
-                  key={state}
-                  variant="outline"
-                  className="rounded-sm font-mono uppercase tabular-nums"
-                >
-                  {state}
-                </Badge>
-              ))}
-              {overflow > 0 ? (
-                <span
-                  className="font-mono text-[11px] tabular-nums text-text-tertiary"
-                  title={others.slice(3).join(', ')}
-                >
-                  +{overflow}
-                </span>
-              ) : null}
-            </div>
-          )
-        },
-        meta: {
-          headerClassName: 'w-[140px]',
-          cellClassName: 'w-[140px]',
         },
       },
       {
@@ -744,7 +740,6 @@ export function ClientFactsWorkspace({
     // wasted columns that otherwise train the eye to scan past data.
     initialState: {
       columnVisibility: {
-        otherStates: false,
         servicesCount: false,
       },
       pagination: {

@@ -4096,7 +4096,6 @@ msgstr "Import cleanup"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/dashboard/actions-list.tsx
-#: src/routes/clients.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
@@ -4130,6 +4129,10 @@ msgstr "Import completed: {0} clients, {1} deadlines, {2} skipped rows"
 #: src/features/audit/audit-log-labels.ts
 msgid "Import file uploaded"
 msgstr "Import file uploaded"
+
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "Import from CSV…"
+msgstr "Import from CSV…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/clients.tsx
@@ -4375,7 +4378,6 @@ msgstr "Issued"
 msgid "JUR"
 msgstr "JUR"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/rules/coverage-tab.tsx
@@ -4962,6 +4964,10 @@ msgstr "Monthly penalty per owner"
 msgid "Months late"
 msgstr "Months late"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "More create options"
+msgstr "More create options"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest"
 msgstr "Morning digest"
@@ -5096,6 +5102,7 @@ msgstr "Never"
 msgid "New"
 msgstr "New"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
 #: src/features/clients/CreateClientDialog.tsx
 msgid "New client"
 msgstr "New client"
@@ -6097,10 +6104,6 @@ msgstr "Other calendars -> From URL"
 #: src/routes/account.security.tsx
 msgid "Other sessions revoked"
 msgstr "Other sessions revoked"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Other states"
-msgstr "Other states"
 
 #: src/routes/settings.tsx
 msgid "Outbound deadline reminders to clients and team."
@@ -8719,6 +8722,7 @@ msgstr "State rule coverage"
 msgid "State sales-tax filings on the registered states"
 msgstr "State sales-tax filings on the registered states"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step3Normalize.tsx
 msgid "States"
 msgstr "States"
