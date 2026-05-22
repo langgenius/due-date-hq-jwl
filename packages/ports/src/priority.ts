@@ -1,9 +1,8 @@
-export type SmartPriorityFactorKey = 'exposure' | 'urgency' | 'importance' | 'history' | 'readiness'
+export type SmartPriorityFactorKey = 'urgency' | 'importance' | 'history' | 'readiness'
 
 export interface SmartPriorityProfile {
-  version: 'smart-priority-profile-v1'
+  version: 'smart-priority-profile-v2'
   weights: Record<SmartPriorityFactorKey, number>
-  exposureCapCents: number
   urgencyWindowDays: number
   historyCapCount: number
 }

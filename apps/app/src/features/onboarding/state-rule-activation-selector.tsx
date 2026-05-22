@@ -3,6 +3,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { CheckIcon } from 'lucide-react'
 
 import { RuleGenerationStateValues, type RuleGenerationState } from '@duedatehq/contracts'
+import { listObligationRules } from '@duedatehq/core/rules'
 import {
   Tooltip,
   TooltipContent,
@@ -41,6 +42,32 @@ const STATE_TILES = STATE_GRID.flatMap((row, rowIndex) =>
 const RULE_GENERATION_STATE_SET = new Set<string>(RuleGenerationStateValues)
 const ALL_RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
 
+function isRuleGenerationState(value: string): value is RuleGenerationState {
+  return RULE_GENERATION_STATE_SET.has(value)
+}
+
+const SOURCE_DEFINED_CALENDAR_REVIEW_STATE_SET = new Set<RuleGenerationState>(
+  listObligationRules({ includeCandidates: true }).reduce<RuleGenerationState[]>((states, rule) => {
+    if (
+      rule.status !== 'deprecated' &&
+      rule.dueDateLogic.kind === 'source_defined_calendar' &&
+      isRuleGenerationState(rule.jurisdiction)
+    ) {
+      states.push(rule.jurisdiction)
+    }
+    return states
+  }, []),
+)
+
+export function sourceDefinedCalendarReviewStates(
+  selected: readonly RuleGenerationState[],
+): RuleGenerationState[] {
+  return selected.filter(
+    (state, index) =>
+      selected.indexOf(state) === index && SOURCE_DEFINED_CALENDAR_REVIEW_STATE_SET.has(state),
+  )
+}
+
 export interface StateRuleActivationSelectorProps {
   selected: readonly RuleGenerationState[]
   onChange: (states: RuleGenerationState[]) => void
@@ -55,6 +82,10 @@ export function StateRuleActivationSelector({
   const selectedSet = useMemo(() => new Set(selected), [selected])
   const hoveredLabel = hoverCode ? jurisdictionLabel(hoverCode) : null
   const allStatesSelected = ALL_RULE_GENERATION_STATES.every((state) => selectedSet.has(state))
+  const sourceDefinedReviewStates = useMemo(
+    () => sourceDefinedCalendarReviewStates(selected),
+    [selected],
+  )
 
   function toggleState(code: RuleGenerationState) {
     if (selectedSet.has(code)) {
@@ -156,6 +187,19 @@ export function StateRuleActivationSelector({
           </>
         ) : null}
       </p>
+
+      {sourceDefinedReviewStates.length > 0 ? (
+        <div className="rounded-md border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-[12px] leading-relaxed text-text-secondary">
+          <span className="font-medium text-text-primary">
+            <Trans>Rule Library review required.</Trans>
+          </span>{' '}
+          <Trans>
+            Some selected states publish deadlines through official calendars that need practice
+            review. After entering the product, open Rule Library and review the pending rules
+            before those due dates can be generated.
+          </Trans>
+        </div>
+      ) : null}
     </div>
   )
 }

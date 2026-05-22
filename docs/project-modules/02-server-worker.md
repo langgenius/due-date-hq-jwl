@@ -262,7 +262,7 @@ server 权限基于 Better Auth role 和自定义 permission：
 | owner       | 全量业务、成员、计费、审计、组织管理         |
 | manager     | 客户、义务、migration、Pulse、审计和计费读写 |
 | preparer    | 客户/义务/迁移/Pulse 业务操作，较少管理权限  |
-| coordinator | 只读或有限操作，可能隐藏 dollar exposure     |
+| coordinator | 只读或有限操作，可能隐藏 deadline readiness  |
 
 权限 helper 的重点是：
 

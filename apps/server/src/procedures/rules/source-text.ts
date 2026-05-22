@@ -5,13 +5,31 @@ const MAIN_CONTAINER_RE =
   /<(main|article)\b[\s\S]*?<\/\1>|<[^>]+(?:role=(["'])main\2|(?:id|class)=(["'])[^"']*(?:main|content|faq|answer|entry)[^"']*\3)[^>]*>[\s\S]*?<\/[^>]+>/gi
 const JSON_LD_SCRIPT_RE =
   /<script\b[^>]*type=(["'])application\/ld\+json\1[^>]*>([\s\S]*?)<\/script>/gi
+const TABLE_ROW_RE = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi
+const TABLE_CELL_RE = /<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi
 const EMPTY_LINE_RE = /\n{3,}/g
 
 export function extractOfficialSourceText(html: string): string {
   const faqText = extractJsonLdFaqText(html)
+  const tableText = extractHtmlTableRows(html)
   const candidates = extractReadableHtmlCandidates(html)
   const pageText = candidates.length > 0 ? candidates.join('\n\n') : htmlToText(html)
-  return normalizeSourceText([faqText, pageText].filter(Boolean).join('\n\n'))
+  return normalizeSourceText([faqText, tableText, pageText].filter(Boolean).join('\n\n'))
+}
+
+function extractHtmlTableRows(html: string): string {
+  const rows: string[] = []
+  for (const rowMatch of html.matchAll(TABLE_ROW_RE)) {
+    const cells = Array.from((rowMatch[1] ?? '').matchAll(TABLE_CELL_RE))
+      .map((cellMatch) =>
+        htmlToText(cellMatch[1] ?? '')
+          .replace(/\s+/g, ' ')
+          .trim(),
+      )
+      .filter(Boolean)
+    if (cells.length > 0) rows.push(cells.join(' '))
+  }
+  return rows.join('\n')
 }
 
 function extractReadableHtmlCandidates(html: string): string[] {

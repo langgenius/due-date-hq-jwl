@@ -31,10 +31,10 @@ function topPriorityFactors(row: DashboardTopRow): string[] {
 //   - Hovering the row expands it INLINE (the row's container grows
 //     downward to reveal a details panel). Hover-out collapses it.
 //   - Keyboard focus on the row also expands it (focus parity).
-//   - The Review button on the right opens the obligation drawer
+//   - The Review button opens the obligation drawer
 //     in place via the parent's onOpenObligation handler.
-//   - Row meta is just the time signal ("3d late" / "today" /
-//     "in 2d"). No dollar amounts.
+//   - Row meta is the right-aligned time signal ("3d late" /
+//     "today" / "in 2d"). No dollar amounts.
 
 function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): number {
   if (!asOfDate) return 0
@@ -47,7 +47,6 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   if (row.status === 'waiting_on_client') return 'Follow up for client materials'
   if (row.evidenceCount === 0) return 'Attach a source before review'
-  if (row.exposureStatus === 'needs_input') return 'Add penalty inputs before ranking by risk'
   if (row.status === 'review') return 'Complete CPA review and close the row'
   if (days <= 0) return 'Confirm filing or payment status today'
   if (days <= 2) return 'Verify owner, source, and filing cutoff'
@@ -155,25 +154,32 @@ function ActionRow({
           {row.clientName}
         </span>
         <span className="min-w-0 flex-1 truncate text-base text-text-primary">{prompt}</span>
+        {/* Review button — always rendered, opacity-animated based on
+          `expanded`. Keeps the row layout stable on hover (no reflow
+          from a button mounting/unmounting) and lets the time signal
+          sit flush right whether or not the row is expanded.
+          `tabIndex` + `aria-hidden` gate keyboard / screen-reader
+          access on the expanded state so users only land on it when
+          they meant to. Per hanxujiang's 30f29dc element-order pass,
+          merged with Yuqi's 3084d44 whole-row click target above. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            'transition-opacity',
+            expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+          tabIndex={expanded ? 0 : -1}
+          aria-hidden={!expanded}
+          onClick={(event) => {
+            event.stopPropagation()
+            onOpenObligation()
+          }}
+        >
+          <Trans>Review</Trans>
+          <ArrowRightIcon data-icon="inline-end" />
+        </Button>
         <RowMeta days={days} />
-        {/* Review button — only mounted when the row is
-          hovered/focused (i.e. `expanded`). No reserved slot in the
-          collapsed state, so the row meta ("16d late") sits flush
-          against the right edge until the user is actually on the
-          row. */}
-        {expanded ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(event) => {
-              event.stopPropagation()
-              onOpenObligation()
-            }}
-          >
-            <Trans>Review</Trans>
-            <ArrowRightIcon data-icon="inline-end" />
-          </Button>
-        ) : null}
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,

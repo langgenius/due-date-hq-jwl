@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
@@ -72,6 +72,10 @@ import { orpc } from '@/lib/rpc'
  *     have gaps, otherwise collapse
  *   - Clicking a rule sets `?rule=X` and the rule detail renders in a
  *     side panel
+ *
+ * Legacy `?view=rules` / `?library=` / `?jur=` links still land here;
+ * `normalizeRulesLibrarySearch` rewrites them to V3's `?q=` state so
+ * older bookmarks/docs don't 404 silently.
  *
  * Compare with `/rules/library` (original toggle-driven surface) and
  * the now-retired v2 (gap section above flat list). If this lands,
@@ -158,6 +162,55 @@ function useStatusGroupLabels(): Record<StatusGroupKey, string> {
     }),
     [t],
   )
+}
+
+/**
+ * Rewrites legacy rule-library URL params (introduced before the V3
+ * collapse) onto the param shape V3 understands. Returns `null` when
+ * the URL already looks current — V3's main route uses that as the
+ * signal to render normally instead of issuing a redirect.
+ *
+ * Legacy → V3:
+ *   ?view=rules         → (dropped; V3 is one surface, no toggle)
+ *   ?library=active|…   → (dropped; V3 doesn't expose a status filter
+ *                          in URL state)
+ *   ?jur=CA             → ?q=CA  (V3's search flattens groups and
+ *                                  matches by jurisdiction name)
+ *
+ * Ported (lightly adapted) from the preview-integration branch so old
+ * bookmarks, docs, and shared links don't silently 404.
+ */
+function normalizeRulesLibrarySearch(search: string): string | null {
+  const params = new URLSearchParams(search)
+  let changed = false
+
+  if (params.has('view')) {
+    params.delete('view')
+    changed = true
+  }
+  if (params.has('library')) {
+    // V3 has no equivalent URL-level status filter; drop it rather
+    // than translate to a no-op param.
+    params.delete('library')
+    changed = true
+  }
+  if (params.has('jur')) {
+    const jurisdictions = params
+      .getAll('jur')
+      .flatMap((value) => value.split(','))
+      .map((value) => value.trim())
+      .filter(Boolean)
+    const first = jurisdictions[0]
+    if (jurisdictions.length === 1 && first && !params.has('q')) {
+      params.set('q', first)
+    }
+    params.delete('jur')
+    changed = true
+  }
+
+  if (!changed) return null
+  const next = params.toString()
+  return next.length > 0 ? `?${next}` : ''
 }
 
 // Entity coverage state cell — rendered in the per-entity columns of
@@ -455,6 +508,16 @@ const STATUS_TONE: Record<RuleStatus, 'success' | 'review' | 'destructive' | 'mu
 export function RulesLibraryRoute() {
   const { t } = useLingui()
   const navigate = useNavigate()
+  const location = useLocation()
+  // Legacy deep-link redirect — see normalizeRulesLibrarySearch.
+  // Calculated before any hooks that depend on URL state so the
+  // <Navigate /> early-return swaps params before nuqs latches onto
+  // them. The hook order below the redirect is stable; React only
+  // unmounts/remounts when the URL actually changes.
+  const normalizedSearch = useMemo(
+    () => normalizeRulesLibrarySearch(location.search),
+    [location.search],
+  )
   const [search, setSearch] = useQueryState('q', parseAsString)
   const [ruleId, setRuleId] = useQueryState('rule', parseAsString)
   const [entityFilter, setEntityFilter] = useQueryState('entity', parseAsString)
@@ -753,6 +816,18 @@ export function RulesLibraryRoute() {
       </Button>
     </>
   )
+
+  // After all hooks have run, swap legacy URLs in place. Returning
+  // <Navigate replace /> avoids dirtying history with the old shape.
+  if (normalizedSearch !== null) {
+    return (
+      <Navigate
+        replace
+        to={{ pathname: location.pathname, search: normalizedSearch, hash: location.hash }}
+      />
+    )
+  }
+
   return (
     <RulesPageShell
       title={t`Rule library`}

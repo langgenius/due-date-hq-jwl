@@ -18,7 +18,7 @@ repeated the top metrics and exposed an internal glass-box implementation note.
   Dashboard action table.
 - Removed `Operational closure`.
 - Promoted `Needs review` into the top metric strip.
-- Kept Penalty Radar visible as the top exposure metric with ready / needs-input / unsupported
+- Kept Deadline Radar visible as the top exposure metric with ready / needs-input / unsupported
   counts in the card detail.
 - Preserved the Dashboard `#pulse` anchor on the Pulse banner wrapper.
 

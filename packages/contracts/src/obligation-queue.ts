@@ -9,12 +9,7 @@ import {
   ReadinessDocumentChecklistItemPublicSchema,
 } from './readiness'
 import { ExtensionPolicySchema, RuleEvidenceSchema } from './rules'
-import {
-  ExposureStatusSchema,
-  ObligationReadinessSchema,
-  ObligationStatusSchema,
-  StateCodeSchema,
-} from './shared/enums'
+import { ObligationReadinessSchema, ObligationStatusSchema, StateCodeSchema } from './shared/enums'
 import { EntityIdSchema, TenantIdSchema } from './shared/ids'
 
 /**
@@ -31,8 +26,6 @@ export const ObligationQueueSortSchema = z.enum([
   'smart_priority',
   'due_asc',
   'due_desc',
-  'exposure_desc',
-  'exposure_asc',
   'updated_desc',
 ])
 export type ObligationQueueSort = z.infer<typeof ObligationQueueSortSchema>
@@ -80,10 +73,7 @@ export const ObligationQueueListInputSchema = z.object({
   owner: ObligationQueueOwnerFilterSchema.optional(),
   due: ObligationQueueDueFilterSchema.optional(),
   dueWithinDays: z.number().int().min(1).max(30).optional(),
-  exposureStatus: ExposureStatusSchema.optional(),
   readiness: z.array(ObligationQueueReadinessSchema).max(3).optional(),
-  minExposureCents: z.number().int().min(0).optional(),
-  maxExposureCents: z.number().int().min(0).optional(),
   minDaysUntilDue: z.number().int().min(-3650).max(3650).optional(),
   maxDaysUntilDue: z.number().int().min(-3650).max(3650).optional(),
   needsEvidence: z.boolean().optional(),
@@ -94,7 +84,11 @@ export const ObligationQueueListInputSchema = z.object({
 })
 export type ObligationQueueListInput = z.infer<typeof ObligationQueueListInputSchema>
 
-export const ObligationQueueRowSchema = ObligationInstancePublicSchema.extend({
+export const ObligationQueueRowSchema = ObligationInstancePublicSchema.omit({
+  estimatedExposureCents: true,
+  exposureStatus: true,
+  exposureCalculatedAt: true,
+}).extend({
   clientName: z.string().min(1),
   clientState: StateCodeSchema.nullable(),
   clientCounty: ObligationQueueFilterValueSchema.nullable(),

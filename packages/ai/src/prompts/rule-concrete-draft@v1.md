@@ -50,11 +50,26 @@ Due-date logic shapes:
 Rules:
 
 - Never output source_defined_calendar.
+- For estimated tax installment schedules with four payments, use
+  "frequency": "quarterly".
+- Do not output null for optional fields such as formName or durationMonths;
+  omit unknown optional fields instead.
 - Do not infer a deadline that is not supported by sourceText.
 - Summarize the page text into the compact fields above; do not copy navigation,
   category lists, or unrelated FAQs into reasoning.
 - sourceExcerpt must be copied verbatim from sourceText and should be the
   shortest official passage that supports the due-date logic.
+- sourceExcerpt is required; if the support appears across several adjacent
+  sourceText lines, copy those lines instead of returning null.
+- If the source is a due-date table, copy the relevant table row exactly as it
+  appears in sourceText.
+- If sourceText gives calendar-year installment dates as month/day values
+  without a year, fill the year from rule.applicableYear so period_table
+  dueDate values still use YYYY-MM-DD.
+- If sourceText gives fiscal-year installment timing as relative month/day
+  prose, keep the calendar-year period_table when available and summarize the
+  fiscal-year caveat in extensionPolicy.notes or reasoning; do not invent an
+  unsupported schema shape.
 - Do not use source registry metadata such as "official source registered" as
   evidence for a deadline.
 - Use coverageStatus="full" and requiresApplicabilityReview=false only when the source gives concrete date logic and no client-specific applicability caveat remains.

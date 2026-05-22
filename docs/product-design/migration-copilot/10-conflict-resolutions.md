@@ -62,15 +62,15 @@
 
 ## 4. KPI 起点与终点口径
 
-- **冲突点**：PRD Part2B §12.2 Activation 表里 `Migration Time-to-First-Value` 起点 = "signup"、终点 = "首次看到 Penalty Radar $"；`Migration P95 完成时间（S2-AC5）` 起点 = "Signup"、终点 = "Import 完成（30 客户基准）"。两条起点文字相同都是"signup"，容易被工程侧误合并为"一个起点两个终点"的单 funnel；且 PRD 未明说"是否同一个 PostHog session"。Part1B §6A.10 S2-AC5 备注又单独提供了一组预算分解（粘贴 5min + mapping review 10min + normalize 5min + import 10min buffer）。
+- **冲突点**：PRD Part2B §12.2 Activation 表里 `Migration Time-to-First-Value` 起点 = "signup"、终点 = "首次看到 Deadline Radar $"；`Migration P95 完成时间（S2-AC5）` 起点 = "Signup"、终点 = "Import 完成（30 客户基准）"。两条起点文字相同都是"signup"，容易被工程侧误合并为"一个起点两个终点"的单 funnel；且 PRD 未明说"是否同一个 PostHog session"。Part1B §6A.10 S2-AC5 备注又单独提供了一组预算分解（粘贴 5min + mapping review 10min + normalize 5min + import 10min buffer）。
 - **PRD 引用位置**：
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part2B.md` §12.2 Activation 表第 1 / 第 2 行
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1B.md` §6A.10 S2-AC5（预算分解）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md` §0.3 第 2 条铁律（"30 分钟完成 30 客户"）
 - **裁定**：**两个指标两条起止点，各自独立埋点**，不合并。
-  - Time-to-First-Value：`signup.completed` → `dashboard.penalty_radar.first_rendered`（第一次 Dashboard 顶栏渲染出美元敞口数字，对齐 Part1A §0.3 第 1 条铁律）
+  - Time-to-First-Value：`signup.completed` → `dashboard.penalty_radar.first_rendered`（第一次 Dashboard 顶栏渲染出截止日风险数字，对齐 Part1A §0.3 第 1 条铁律）
   - P95 完成（S2-AC5）：`signup.completed` → `migration.imported`（对齐 Part2B §13.2.1 audit action 名 + Part2B §12.3 T-S2-05）
-- **理由**：Time-to-First-Value 强调"首次 wow"（用户粘贴 5 行、即使没全导完也能看到 Penalty Radar 有数字），是 Demo 现场 60 秒的北极星；P95 完成则强调"30 分钟跑完 30 客户全链路"，是对 FIT 替换承诺的兑现。两者目标值不同（10min vs 30min）、语义不同，必须两条独立 funnel 才能分别做 Go/Gray/Rethink 判断（Part2B §12.4）。
+- **理由**：Time-to-First-Value 强调"首次 wow"（用户粘贴 5 行、即使没全导完也能看到 Deadline Radar 有数字），是 Demo 现场 60 秒的北极星；P95 完成则强调"30 分钟跑完 30 客户全链路"，是对 FIT 替换承诺的兑现。两者目标值不同（10min vs 30min）、语义不同，必须两条独立 funnel 才能分别做 Go/Gray/Rethink 判断（Part2B §12.4）。
 - **工程落地影响**：`./01-mvp-and-journeys.md` §3 KPI 表明确两条 funnel；`../../dev-file/09-Demo-Sprint-Module-Playbook.md` §5.8 Dashboard 模块负责 emit `dashboard.penalty_radar.first_rendered`；§5.6 Migration 模块负责 emit `migration.imported`。
 
 ---

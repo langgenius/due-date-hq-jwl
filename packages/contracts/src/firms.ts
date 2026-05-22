@@ -162,10 +162,6 @@ export const FirmSmartPriorityPreviewOutputSchema = z.object({
   rows: z.array(FirmSmartPriorityPreviewRowSchema),
 })
 
-export const FirmPenaltyExposureBackfillOutputSchema = z.object({
-  recalculatedObligationCount: z.number().int().min(0),
-})
-
 export const FirmBillingSubscriptionPublicSchema = z.object({
   id: z.string().min(1),
   plan: z.string().min(1),
@@ -208,7 +204,6 @@ export const firmsContract = oc.router({
   previewSmartPriorityProfile: oc
     .input(FirmSmartPriorityPreviewInputSchema)
     .output(FirmSmartPriorityPreviewOutputSchema),
-  backfillPenaltyExposure: oc.input(z.undefined()).output(FirmPenaltyExposureBackfillOutputSchema),
   listSubscriptions: oc.input(z.undefined()).output(z.array(FirmBillingSubscriptionPublicSchema)),
   billingCheckoutConfig: oc.input(z.undefined()).output(FirmBillingCheckoutConfigSchema),
   softDeleteCurrent: oc
@@ -226,9 +221,6 @@ export type FirmSelfServeBillingPlan = z.infer<typeof FirmSelfServeBillingPlanSc
 export type FirmSmartPriorityPreviewInput = z.infer<typeof FirmSmartPriorityPreviewInputSchema>
 export type FirmSmartPriorityPreviewOutput = z.infer<typeof FirmSmartPriorityPreviewOutputSchema>
 export type FirmSmartPriorityPreviewRow = z.infer<typeof FirmSmartPriorityPreviewRowSchema>
-export type FirmPenaltyExposureBackfillOutput = z.infer<
-  typeof FirmPenaltyExposureBackfillOutputSchema
->
 export type FirmStatus = z.infer<typeof FirmStatusSchema>
 export type FirmUpdateInput = z.infer<typeof FirmUpdateInputSchema>
 export type FirmsContract = typeof firmsContract

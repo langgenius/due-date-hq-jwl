@@ -153,7 +153,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'rules-library',
         label: t`Rule library`,
-        description: t`Browse pending, active, rejected, and archived rules.`,
+        description: t`Review coverage, sources, and pending rules.`,
         group: 'navigate',
         icon: LibraryIcon,
         onSelect: () => navigate('/rules/library'),

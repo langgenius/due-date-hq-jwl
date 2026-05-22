@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
 import type { PenaltyBreakdownItem } from '@duedatehq/core/penalty'
@@ -38,18 +38,12 @@ import { loadDerivedReadinessByObligation } from './readiness-derived'
  *   - Keeps the join SQL out of the obligation write path, so future
  *     overlay logic (Phase 1) can replace this read alone.
  *
- * Cursor format: base64(`${score}|${ISO_DATE}|${exposureSortValue}|${id}`).
+ * Cursor format: base64(`${score}|${ISO_DATE}|${id}`).
  * `updated_desc` falls back to offset-less single page in Demo Sprint (limit
  * caps at 100 per request).
  */
 
-export type ObligationQueueSort =
-  | 'smart_priority'
-  | 'due_asc'
-  | 'due_desc'
-  | 'exposure_desc'
-  | 'exposure_asc'
-  | 'updated_desc'
+export type ObligationQueueSort = 'smart_priority' | 'due_asc' | 'due_desc' | 'updated_desc'
 export type ObligationQueueReadiness = ObligationReadiness
 
 export interface ObligationQueueListInput {
@@ -66,10 +60,7 @@ export interface ObligationQueueListInput {
   owner?: 'unassigned'
   due?: 'overdue'
   dueWithinDays?: number
-  exposureStatus?: 'ready' | 'needs_input' | 'unsupported'
   readiness?: ObligationQueueReadiness[]
-  minExposureCents?: number
-  maxExposureCents?: number
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean
@@ -344,41 +335,32 @@ function addDays(date: Date, days: number): Date {
 }
 
 function encodeCursor(
-  row: Pick<
-    ObligationQueueListRow,
-    'currentDueDate' | 'estimatedExposureCents' | 'exposureStatus' | 'id' | 'smartPriority'
-  >,
+  row: Pick<ObligationQueueListRow, 'currentDueDate' | 'id' | 'smartPriority'>,
 ): string {
   const iso = row.currentDueDate.toISOString()
-  return Buffer.from(
-    `${row.smartPriority.score}|${iso}|${exposureSortValue(row)}|${row.id}`,
-    'utf8',
-  ).toString('base64url')
+  return Buffer.from(`${row.smartPriority.score}|${iso}|${row.id}`, 'utf8').toString('base64url')
 }
 
 function decodeCursor(cursor: string): {
   currentDueDate: Date
-  exposureSortValue: number | null
   id: string
   smartPriorityScore: number | null
 } | null {
   try {
     const raw = Buffer.from(cursor, 'base64url').toString('utf8')
     const parts = raw.split('|')
-    const [scoreValue, iso, exposureValue, id] =
+    const [scoreValue, iso, id] =
       parts.length === 4
-        ? parts
+        ? [parts[0] ?? '', parts[1] ?? '', parts[3] ?? '']
         : parts.length === 3
-          ? [parts[0] ?? '', parts[1] ?? '', null, parts[2] ?? '']
-          : [null, parts[0] ?? '', null, parts[1] ?? '']
+          ? [parts[0] ?? '', parts[1] ?? '', parts[2] ?? '']
+          : [null, parts[0] ?? '', parts[1] ?? '']
     if (!iso || !id) return null
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return null
     const score = scoreValue === null ? Number.NaN : Number(scoreValue)
-    const exposure = exposureValue === null ? Number.NaN : Number(exposureValue)
     return {
       currentDueDate: d,
-      exposureSortValue: Number.isFinite(exposure) ? exposure : null,
       id,
       smartPriorityScore: Number.isFinite(score) ? score : null,
     }
@@ -471,14 +453,6 @@ function compareRows(
     if (clientDelta !== 0) return clientDelta
     return b.id.localeCompare(a.id)
   }
-  if (sort === 'exposure_desc' || sort === 'exposure_asc') {
-    const direction = sort === 'exposure_desc' ? -1 : 1
-    const exposureDelta = exposureSortValue(a) - exposureSortValue(b)
-    if (exposureDelta !== 0) return exposureDelta * direction
-    const clientDelta = a.clientId.localeCompare(b.clientId)
-    if (clientDelta !== 0) return clientDelta
-    return a.id.localeCompare(b.id) * direction
-  }
   const direction = sort === 'due_desc' ? -1 : 1
   const dateDelta = a.currentDueDate.getTime() - b.currentDueDate.getTime()
   if (dateDelta !== 0) return dateDelta * direction
@@ -487,21 +461,11 @@ function compareRows(
   return a.id.localeCompare(b.id) * direction
 }
 
-function exposureSortValue(
-  row: Pick<ObligationQueueListRow, 'estimatedExposureCents' | 'exposureStatus'>,
-): number {
-  if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
-    return row.estimatedExposureCents
-  }
-  return -1
-}
-
 function isAfterCursor(
   row: ObligationQueueListRow,
   sort: ObligationQueueSort,
   cursor: {
     currentDueDate: Date
-    exposureSortValue: number | null
     id: string
     smartPriorityScore: number | null
   },
@@ -523,14 +487,6 @@ function isAfterCursor(
         },
       ) > 0
     )
-  }
-  if (sort === 'exposure_desc' || sort === 'exposure_asc') {
-    if (cursor.exposureSortValue === null) return true
-    const exposureDelta = exposureSortValue(row) - cursor.exposureSortValue
-    if (sort === 'exposure_desc') {
-      return exposureDelta < 0 || (exposureDelta === 0 && row.id < cursor.id)
-    }
-    return exposureDelta > 0 || (exposureDelta === 0 && row.id > cursor.id)
   }
   const dateDelta = row.currentDueDate.getTime() - cursor.currentDueDate.getTime()
   if (sort === 'due_desc') return dateDelta < 0 || (dateDelta === 0 && row.id < cursor.id)
@@ -699,35 +655,18 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         filters.push(or(isNull(client.assigneeName), eq(client.assigneeName, ''))!)
       }
 
-      if (input.exposureStatus) {
-        filters.push(eq(obligationInstance.exposureStatus, input.exposureStatus))
-      }
-
-      if (input.minExposureCents !== undefined) {
-        filters.push(gte(obligationInstance.estimatedExposureCents, input.minExposureCents))
-      }
-
-      if (input.maxExposureCents !== undefined) {
-        filters.push(lte(obligationInstance.estimatedExposureCents, input.maxExposureCents))
-      }
-
       const search = normalizeObligationQueueSearch(input.search)
       if (search) {
         const needle = `%${escapeLikePattern(search)}%`
         filters.push(sql`${client.name} like ${needle} escape '\\'`)
       }
 
-      const exposureSortSql = sql<number>`case when ${obligationInstance.exposureStatus} = 'ready' and ${obligationInstance.estimatedExposureCents} is not null then ${obligationInstance.estimatedExposureCents} else -1 end`
       const orderBy =
         sort === 'due_desc'
           ? [desc(obligationInstance.currentDueDate), desc(obligationInstance.id)]
-          : sort === 'exposure_desc'
-            ? [desc(exposureSortSql), desc(obligationInstance.id)]
-            : sort === 'exposure_asc'
-              ? [asc(exposureSortSql), asc(obligationInstance.id)]
-              : sort === 'updated_desc'
-                ? [desc(obligationInstance.updatedAt), desc(obligationInstance.id)]
-                : [asc(obligationInstance.currentDueDate), asc(obligationInstance.id)]
+          : sort === 'updated_desc'
+            ? [desc(obligationInstance.updatedAt), desc(obligationInstance.id)]
+            : [asc(obligationInstance.currentDueDate), asc(obligationInstance.id)]
 
       const rawRows = await db
         .select({

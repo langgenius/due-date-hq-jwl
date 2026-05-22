@@ -158,7 +158,7 @@ The row is a **hub**. Every interactive element on it leads somewhere specific:
 | Client name                      | `/clients/:clientId` (groups all obligations under that client)            | No — full nav |
 | Tax type code                    | Drawer · Readiness tab (rule definition + requirements)                    | Yes           |
 | Due cell / date                  | Drawer · Timeline tab (anchor on current state node)                       | Yes           |
-| Projected risk pill              | Drawer · Risk tab                                                          | Yes           |
+| Legacy penalty estimate pill     | Drawer · Risk tab                                                          | Yes           |
 | Evidence count                   | Evidence drawer (multi-row evidence side-panel, not the obligation drawer) | Side panel    |
 | Status chip                      | Inline dropdown (status change)                                            | No            |
 | Status chip · `Blocked by #1065` | Navigate to parent obligation's drawer                                     | Yes           |
@@ -175,33 +175,33 @@ The queue's filter + selection state is fully URL-encoded so saved views are sha
 
 ### 4.1 Query parameter surface (`useQueryStates`)
 
-| Param               | Type     | Meaning                                                            |
-| ------------------- | -------- | ------------------------------------------------------------------ |
-| `q`                 | string   | Free-text search                                                   |
-| `status`            | string[] | Lifecycle states (one or more)                                     |
-| `client`            | uuid[]   | Client filter                                                      |
-| `state`             | string[] | State code filter                                                  |
-| `county`            | string[] | County filter (depends on state)                                   |
-| `taxType`           | string[] | Tax type filter                                                    |
-| `assignees`         | string[] | Assignee names                                                     |
-| `owner`             | enum     | `unassigned`                                                       |
-| `due`               | enum     | `overdue`                                                          |
-| `dueWithin`         | int 1–30 | Days                                                               |
-| `exposure`          | enum     | `ready` `needs_input` `unsupported`                                |
-| `evidence`          | enum     | `needs`                                                            |
-| `riskMin` `riskMax` | int      | Exposure range ($)                                                 |
-| `daysMin` `daysMax` | int      | Days-until-due range                                               |
-| `sort`              | enum     | `smart_priority` `due_asc/desc` `exposure_asc/desc` `updated_desc` |
-| `view`              | uuid     | Active saved view                                                  |
-| `obligation`        | uuid     | (deprecated; see `id`)                                             |
-| `id`                | uuid     | Active row in drawer                                               |
-| `drawer`            | enum     | `obligation`                                                       |
-| `tab`               | enum     | `readiness` `timeline` `extension` `risk` `evidence` `audit`       |
-| `row`               | uuid     | Currently-focused row (keyboard nav anchor)                        |
-| `density`           | enum     | `comfortable` `compact`                                            |
-| `hide`              | string[] | Hidden column ids                                                  |
-| `lifecycle`         | enum     | `v1` `v2` (feature flag; defaults to v2)                           |
-| `asOf`              | iso date | Historical view (back-tests exposure)                              |
+| Param               | Type     | Meaning                                                       |
+| ------------------- | -------- | ------------------------------------------------------------- |
+| `q`                 | string   | Free-text search                                              |
+| `status`            | string[] | Lifecycle states (one or more)                                |
+| `client`            | uuid[]   | Client filter                                                 |
+| `state`             | string[] | State code filter                                             |
+| `county`            | string[] | County filter (depends on state)                              |
+| `taxType`           | string[] | Tax type filter                                               |
+| `assignees`         | string[] | Assignee names                                                |
+| `owner`             | enum     | `unassigned`                                                  |
+| `due`               | enum     | `overdue`                                                     |
+| `dueWithin`         | int 1–30 | Days                                                          |
+| `exposure`          | enum     | `ready` `needs_input` `unsupported`                           |
+| `evidence`          | enum     | `needs`                                                       |
+| `riskMin` `riskMax` | int      | Exposure range ($)                                            |
+| `daysMin` `daysMax` | int      | Days-until-due range                                          |
+| `sort`              | enum     | `smart_priority` `due_asc/desc` `due_asc/desc` `updated_desc` |
+| `view`              | uuid     | Active saved view                                             |
+| `obligation`        | uuid     | (deprecated; see `id`)                                        |
+| `id`                | uuid     | Active row in drawer                                          |
+| `drawer`            | enum     | `obligation`                                                  |
+| `tab`               | enum     | `readiness` `timeline` `extension` `risk` `evidence` `audit`  |
+| `row`               | uuid     | Currently-focused row (keyboard nav anchor)                   |
+| `density`           | enum     | `comfortable` `compact`                                       |
+| `hide`              | string[] | Hidden column ids                                             |
+| `lifecycle`         | enum     | `v1` `v2` (feature flag; defaults to v2)                      |
+| `asOf`              | iso date | Historical view (back-tests exposure)                         |
 
 ### 4.2 What's NOT in the URL
 
@@ -297,7 +297,7 @@ Per PDF §5 — different events route to different recipients. Today only some 
 | `filed → completed`                                  | Owner + Client contact              | Email (filing confirmation) |
 | Statutory deadline date changed (state announcement) | All affected obligations' assignees | In-app bell + Pulse alert   |
 | Days-until-due crosses T-7 / T-1 thresholds          | Owner + Preparer                    | Morning digest email        |
-| Penalty exposure grows >20%                          | Owner                               | In-app bell                 |
+| Deadline readiness grows >20%                        | Owner                               | In-app bell                 |
 
 ---
 

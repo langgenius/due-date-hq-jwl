@@ -1,10 +1,10 @@
 ---
-title: 'Penalty Exposure v2'
+title: 'Deadline Readiness v2'
 date: 2026-05-04
 author: 'Codex'
 ---
 
-# Penalty Exposure v2
+# Deadline Readiness v2
 
 ## Context
 
@@ -14,18 +14,18 @@ showing what may already have been incurred as of a specific date.
 
 ## Change
 
-- Rebuilt `packages/core/src/penalty` around `estimateProjectedExposure` and
-  `estimateAccruedPenalty`, with `penalty-v2-2026q2` as the stored projected-risk formula version.
-- Kept `estimatedExposureCents`, `exposureStatus`, and stored breakdowns as 90-day projected risk.
+- Rebuilt `packages/core/src/penalty` around the legacy penalty amount helper and
+  `estimateAccruedPenalty`, with `penalty-v2-2026q2` as the stored legacy formula version.
+- Kept `estimatedExposureCents`, `exposureStatus`, and stored breakdowns as 90-day legacy penalty estimate.
 - Added runtime accrued penalty fields to obligation, Obligations, and Dashboard contracts without
   adding DB columns.
 - Corrected federal tax-due penalty math for failure-to-file / failure-to-pay same-month offset and
   the 60-day minimum.
 - Limited ready federal formulas to 1065, 1120S, and 1120; estimated-tax underpayment and state tax
   types now return `unsupported` until source-backed metadata exists.
-- Added a firm maintenance endpoint to backfill stored projected exposure for existing obligations.
+- Added a firm maintenance endpoint to backfill stored legacy penalty estimate for existing obligations.
 - Updated Dashboard, Obligations, Smart Priority, and Migration Live Genesis wording so the main risk
-  amount is explicitly 90-day projected risk, while accrued penalty is shown separately.
+  amount is explicitly 90-day legacy penalty estimate, while accrued penalty is shown separately.
 
 ## Data Contract
 

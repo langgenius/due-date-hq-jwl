@@ -29,7 +29,7 @@ const corePages = [
     label: 'CPA deadline risk guide',
     pathname: '/guides/cpa-deadline-risk',
     description:
-      'answers which client deadline a CPA team should touch first using migration data, penalty exposure, evidence, ownership, and state changes.',
+      'answers which client deadline a CPA team should touch first using migration data, evidence, ownership, readiness, and state changes.',
   },
   {
     label: 'Evidence-backed tax deadline software guide',

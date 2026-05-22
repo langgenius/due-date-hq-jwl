@@ -73,4 +73,4 @@ to what was rendered inline before.
   page holds the full obligations table, audit log, contact chain, and
   opportunities. Truncations called out in conversation: panel will hide
   the full obligations table, Contact chain, Activity log, EIN row, Notes
-  editor, Delete dialog, and the Projected risk / Payment track metrics.
+  editor, Delete dialog, and the Legacy penalty estimate / Payment track metrics.

@@ -72,10 +72,6 @@ export const DashboardLoadInputSchema = z
       .array(DashboardSeveritySchema)
       .max(DashboardSeveritySchema.options.length)
       .optional(),
-    exposureStatus: z
-      .array(ExposureStatusSchema)
-      .max(ExposureStatusSchema.options.length)
-      .optional(),
     evidence: z
       .array(DashboardEvidenceFilterSchema)
       .max(DashboardEvidenceFilterSchema.options.length)
@@ -89,10 +85,6 @@ export const DashboardSummarySchema = z.object({
   dueThisWeekCount: z.number().int().min(0),
   needsReviewCount: z.number().int().min(0),
   evidenceGapCount: z.number().int().min(0),
-  totalExposureCents: z.number().int().min(0),
-  exposureReadyCount: z.number().int().min(0),
-  exposureNeedsInputCount: z.number().int().min(0),
-  exposureUnsupportedCount: z.number().int().min(0),
   totalAccruedPenaltyCents: z.number().int().min(0),
   accruedPenaltyReadyCount: z.number().int().min(0),
   accruedPenaltyNeedsInputCount: z.number().int().min(0),
@@ -108,8 +100,6 @@ export const DashboardTopRowSchema = z.object({
   taxType: z.string().min(1),
   currentDueDate: z.iso.date(),
   status: ObligationStatusSchema,
-  estimatedExposureCents: z.number().int().min(0).nullable(),
-  exposureStatus: ExposureStatusSchema,
   missingPenaltyFacts: z.array(z.string().min(1)),
   penaltySourceRefs: z.array(PenaltySourceRefSchema),
   penaltyFormulaLabel: z.string().nullable(),
@@ -130,7 +120,6 @@ export const DashboardTriageTabSchema = z.object({
   key: DashboardTriageTabKeySchema,
   label: z.string().min(1),
   count: z.number().int().min(0),
-  totalExposureCents: z.number().int().min(0),
   rows: z.array(DashboardTopRowSchema),
 })
 export type DashboardTriageTab = z.infer<typeof DashboardTriageTabSchema>
@@ -153,7 +142,6 @@ export const DashboardFacetsOutputSchema = z.object({
   dueBuckets: z.array(DashboardFacetOptionSchema.extend({ value: DashboardDueBucketSchema })),
   statuses: z.array(DashboardFacetOptionSchema.extend({ value: ObligationStatusSchema })),
   severities: z.array(DashboardFacetOptionSchema.extend({ value: DashboardSeveritySchema })),
-  exposureStatuses: z.array(DashboardFacetOptionSchema.extend({ value: ExposureStatusSchema })),
   evidence: z.array(DashboardFacetOptionSchema.extend({ value: DashboardEvidenceFilterSchema })),
 })
 export type DashboardFacetsOutput = z.infer<typeof DashboardFacetsOutputSchema>

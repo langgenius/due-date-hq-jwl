@@ -25,7 +25,7 @@
 | 核心叙事               | Clarity Engine™（Glass-Box + Pulse + Penalty）+ Migration Copilot™ | Autopilot Regulatory Radar + AI Migration Copilot        | **继承 v1.0 叙事**（更利于 Demo 记忆），融入 Competitor 的工程细节                           |
 | AC 可追溯性            | §3.4 有矩阵，但偏章节映射                                          | §14.1 对比 v0.3 边界，AC 散落 §5                         | **前置 AC Traceability Matrix**（§3.5），每条 AC → 功能 + 验收测试编号                       |
 | 时间分组命名           | This Week / This Month / Long-term（对齐 Story S1 AC#1）           | Critical / High / Upcoming（需语义映射）                 | **采用 v1.0 命名**，并叠加风险色条（Critical/High）作为段内次级视觉                          |
-| Penalty 引擎           | Penalty Radar™（顶栏 $ 聚合 + What-If）                            | F-18 Penalty Forecaster（硬编码表 + `needs input` 降级） | **融合**：Radar 的 UX + Forecaster 的计算表（§7.5）                                          |
+| Penalty 引擎           | Deadline Radar™（顶栏 $ 聚合 + What-If）                           | F-18 Penalty Forecaster（硬编码表 + `needs input` 降级） | **融合**：Radar 的 UX + Forecaster 的计算表（§7.5）                                          |
 | AI Smart Priority      | §6.4 纯函数打分（权重固定）                                        | F-5b 段内 AI 排序 + 硬排 fallback                        | **采纳 v1.0 纯函数版**（可解释、零幻觉），**可在未来配置 surface 切 AI tie-breaker**（§7.4） |
 | AI Q&A                 | §6.5 DSL 中间层（安全）                                            | F-19 直接 NL→SQL + parser 校验                           | **融合**：DSL 外层 + SQL 白名单内层，双保险（§7.7）                                          |
 | 证据链纪律             | Evidence Mode + `EvidenceLink` 表                                  | SourceBadge + source excerpt                             | **采纳 v1.0 Evidence Mode**，并强制每条 Pulse 结构化字段附 source excerpt（Competitor 做法） |
@@ -43,7 +43,7 @@
 
 ### 0.3 v2.0 的三条铁律（产品必须达成的体验级 SLA）
 
-1. **30 秒** 看清本周最危险的 3–5 个客户（Dashboard 首屏 + Penalty Radar 顶栏）
+1. **30 秒** 看清本周最危险的 3–5 个客户（Dashboard 首屏 + Deadline Radar 顶栏）
 2. **30 分钟** 完成 30 客户的**从粘贴到生成全年日历**的全链路（Migration Copilot）
 3. **24 小时** 内一条州税局 / IRS 官方公告进入 Dashboard Banner + Email，附官方来源链接与受影响客户清单（Regulatory Pulse）
 
@@ -60,8 +60,8 @@
 | 核心定位 | Desktop deadline tracker | All-in-one firm OS        | **Deadline intelligence copilot**                         |
 | 部署     | Windows 桌面 + 网络盘    | Cloud SaaS                | Cloud-native SaaS + ICS 单向订阅                          |
 | 规则更新 | 年度维护包               | 用户自维护                | **24h 内 AI 捕获 → 人工复核 → 发布**                      |
-| AI 能力  | 无                       | 点缀型                    | **Glass-Box，强制 provenance + 美元敞口 + Ask**           |
-| 风险表达 | 红色字体                 | 天数                      | **美元敞口 + 风险因子分解 + Penalty 规则链接**            |
+| AI 能力  | 无                       | 点缀型                    | **Glass-Box，强制 provenance + 截止日风险 + Ask**         |
+| 风险表达 | 红色字体                 | 天数                      | **截止日风险 + 风险因子分解 + Penalty 规则链接**          |
 | 目标用户 | 传统小所                 | 中大型事务所              | **独立 CPA + 1–10 人事务所**                              |
 | 迁移摩擦 | 结构化 CSV               | 人工录入 / 顾问协助       | **Paste-anywhere + AI Mapper + 24h Revert**               |
 | 价格锚点 | ~$199/user/年 + 维护     | $600–1,500/席/年          | **Solo $39 / Pro $79 / Team $149 / Enterprise from $399** |
@@ -121,7 +121,7 @@
 
 > 周一 8:00，Sarah（Solo CPA，85 客户）打开 laptop，只 15 分钟喝咖啡。她需要 5 分钟知道：本周谁最急、为什么急、敞口多少钱、下一步做什么。
 
-→ 命中：Dashboard 三段时间分组 + Penalty Radar + Smart Priority row drivers；Weekly Brief 作为后台物化 / 邮件摘要，不在 Dashboard 首屏渲染独立卡片
+→ 命中：Dashboard 三段时间分组 + Deadline Radar + Smart Priority row drivers；Weekly Brief 作为后台物化 / 邮件摘要，不在 Dashboard 首屏渲染独立卡片
 
 #### 场景 B · The 30-Minute Migration（Story S2 · P0）
 
@@ -199,16 +199,16 @@
 
 **Pains（严重度 高 / 中）全覆盖：**
 
-| 条目                                  | 严重度 | ✦   | v2.0 覆盖章节                                          |
-| ------------------------------------- | ------ | --- | ------------------------------------------------------ |
-| Excel 无法应对 50 州 × 多税种         | 高     | —   | §6.1 Rule Engine + §6A.5 Default Matrix                |
-| 各州税局公告分散，需人工每日浏览      | 高     | ✦   | §6.3.1 Pulse Ingest                                    |
-| 政府公告语言晦涩                      | 高     | ✦   | §6.3.2 AI Extraction                                   |
-| 客户跨州后需手工查 PTE / Franchise    | 高     | —   | §6.1 Rule Engine 50 州骨架 + §7.5 Penalty              |
-| 错过截止日罚款责任由 CPA 承担，无保障 | 高     | —   | §7.5 Penalty Radar + §5.5 Evidence Mode + §13 合规 SLA |
-| 现有专业工具定价不友好                | 中     | —   | §11.1 Pricing                                          |
-| 从竞品迁移需手工录入                  | 中     | ✦   | §6A Migration Copilot 全链路                           |
-| 申报季加班仍担心遗漏                  | 中     | —   | Dashboard + Pulse + 异步 / 邮件 Weekly Brief 合力      |
+| 条目                                  | 严重度 | ✦   | v2.0 覆盖章节                                           |
+| ------------------------------------- | ------ | --- | ------------------------------------------------------- |
+| Excel 无法应对 50 州 × 多税种         | 高     | —   | §6.1 Rule Engine + §6A.5 Default Matrix                 |
+| 各州税局公告分散，需人工每日浏览      | 高     | ✦   | §6.3.1 Pulse Ingest                                     |
+| 政府公告语言晦涩                      | 高     | ✦   | §6.3.2 AI Extraction                                    |
+| 客户跨州后需手工查 PTE / Franchise    | 高     | —   | §6.1 Rule Engine 50 州骨架 + §7.5 Penalty               |
+| 错过截止日罚款责任由 CPA 承担，无保障 | 高     | —   | §7.5 Deadline Radar + §5.5 Evidence Mode + §13 合规 SLA |
+| 现有专业工具定价不友好                | 中     | —   | §11.1 Pricing                                           |
+| 从竞品迁移需手工录入                  | 中     | ✦   | §6A Migration Copilot 全链路                            |
+| 申报季加班仍担心遗漏                  | 中     | —   | Dashboard + Pulse + 异步 / 邮件 Weekly Brief 合力       |
 
 **Gains（严重度 高 / 中）全覆盖：**
 
@@ -422,7 +422,7 @@ Dashboard、Obligations、Rules > Pulse Changes 三处首屏顶部加 **View Sco
 | My work   | `assignee_id = :me` | Preparer（Coordinator 只读 Firm-wide） |
 
 - URL 持久化：`?scope=firm` / `?scope=me`
-- 切换对 **Penalty Radar 顶栏 $ 聚合也生效**（My work 时只聚合自己的）
+- 切换对 **Deadline Radar 顶栏 $ 聚合也生效**（My work 时只聚合自己的）
 - Weekly Brief 在 My work 视图下也切换为 "Your top 3"
 
 ### 3.6.6 并发编辑与冲突处理
@@ -517,7 +517,7 @@ Dashboard、Obligations、Rules > Pulse Changes 三处首屏顶部加 **View Sco
 | P0-7  | Client CRUD + 手动添加                           | 字段 `name / ein / state / county / entity_type / tax_types / importance / estimated_annual_revenue / assignee / notes`                                                                                         | —              |
 | P0-8  | **Rule Engine v1（全辖区 source-backed）**       | `FED + 50 states + DC` rules/source registry；source-backed candidate review-only，practice-reviewed active rule 才能生成 reminder-ready obligation                                                             | —              |
 | P0-9  | Obligation Instances                             | `state × entity_type × tax_types` 生成全年 instances                                                                                                                                                            | S2-AC4         |
-| P0-10 | **Dashboard（Story S1 主屏）**                   | 顶栏 Penalty Radar + Pulse Banner + **三段时间 Tabs（This Week / This Month / Long-term）**                                                                                                                     | S1-AC1, S3-AC3 |
+| P0-10 | **Dashboard（Story S1 主屏）**                   | 顶栏 Deadline Radar + Pulse Banner + **三段时间 Tabs（This Week / This Month / Long-term）**                                                                                                                    | S1-AC1, S3-AC3 |
 | P0-11 | 倒计时徽章 + Days 列                             | 每个 obligation 显示精确到天的倒计时                                                                                                                                                                            | S1-AC2         |
 | P0-12 | **Obligations（表格视图）**                      | 多列可见 + Saved Views + 批量操作 + 密度切换                                                                                                                                                                    | —              |
 | P0-13 | **筛选器（< 1s 响应）**                          | Client / State / **County** / **Form/Tax Type** / Status / Readiness / Assignee / $ At Risk / Days                                                                                                              | S1-AC3         |
@@ -525,7 +525,7 @@ Dashboard、Obligations、Rules > Pulse Changes 三处首屏顶部加 **View Sco
 | P0-15 | Obligation Detail 抽屉                           | readiness / extension / risk / evidence / audit 五标签                                                                                                                                                          | —              |
 | P0-16 | Status & Readiness 状态机                        | Status: Not started / In progress / Waiting on client / Needs review / Filed / Paid / Extended / Not applicable；Readiness: Ready / Waiting / Needs review                                                      | —              |
 | P0-17 | **Glass-Box AI Layer**                           | Weekly Brief / Client Risk Summary / Deadline Tip / Smart Priority，全部 citation + source chip                                                                                                                 | S1-AC5         |
-| P0-18 | **Penalty Radar™**                               | 美元敞口实时计算 + 顶栏聚合 + 每条 obligation 徽章                                                                                                                                                              | S1-AC5         |
+| P0-18 | **Deadline Radar™**                              | 截止日风险实时计算 + 顶栏聚合 + 每条 obligation 徽章                                                                                                                                                            | S1-AC5         |
 | P0-19 | Evidence Mode                                    | 任意 AI 句子 / 数字 / risk score 可点开 provenance 抽屉                                                                                                                                                         | S3-AC5         |
 | P0-20 | Audit Log                                        | 状态变更 / Pulse Apply / 批量操作 / Migration / Revert 全留痕                                                                                                                                                   | —              |
 | P0-21 | Email Reminders                                  | 30 / 7 / 1 天阶梯；模板带上下文 + source link                                                                                                                                                                   | —              |
@@ -593,7 +593,7 @@ Dashboard、Obligations、Rules > Pulse Changes 三处首屏顶部加 **View Sco
 
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
-│  Penalty Radar       $12,400 at risk this week   ▲ up $3,100    │  ← Layer 1 · 顶栏永远置顶
+│  Deadline Radar       $12,400 at risk this week   ▲ up $3,100    │  ← Layer 1 · 顶栏永远置顶
 │  🔴 Critical (3)       🟠 High (7)       🟡 Upcoming (12)        │
 ├──────────────────────────────────────────────────────────────────┤
 │  🚨 Pulse Banner (Story S3)                                      │  ← Layer 2 · Banner
@@ -641,7 +641,7 @@ Tabs 之上加一行 scope 切换（Solo Plan 下该行不渲染）：
 [    Firm-wide ]  [ ●  My work  ]    (Preparer 默认 My work)
 ```
 
-- 切换立刻影响：Triage Tabs 计数 + Penalty Radar 顶栏 $ 聚合 + Weekly Brief 候选池 + Smart Priority 打分池
+- 切换立刻影响：Triage Tabs 计数 + Deadline Radar 顶栏 $ 聚合 + Weekly Brief 候选池 + Smart Priority 打分池
 - URL 持久化：`?scope=firm` / `?scope=me`
 - Coordinator 只有 Firm-wide（无 My work 视图，因为不直接承担 assignee 任务）
 
@@ -681,7 +681,7 @@ Tabs 之上加一行 scope 切换（Solo Plan 下该行不渲染）：
 
 #### 5.1.5 Mobile 响应式
 
-`< 768px`：堆叠纵向，保留 Penalty Radar + Pulse Banner + Triage Tabs 三层；Ask 输入框折叠为 Cmd-K 按钮。
+`< 768px`：堆叠纵向，保留 Deadline Radar + Pulse Banner + Triage Tabs 三层；Ask 输入框折叠为 Cmd-K 按钮。
 
 ### 5.2 Obligations（表格视图 · 对齐 S1-AC3 / AC4）
 
@@ -746,7 +746,7 @@ Tabs 之上加一行 scope 切换（Solo Plan 下该行不渲染）：
 │  🔀 Extension: Not filed           [Decide...]       │
 │  👤 Assignee:  Sarah                                 │
 ├─────────────────────────────────────────────────────┤
-│  Penalty Radar                                       │
+│  Deadline Radar                                       │
 │  Failure-to-file:  $210/mo (est.)   max $1,050       │
 │  Failure-to-pay:   $21/mo (est.)                     │
 │  Interest:         $14/mo @ 8% AFR                   │
@@ -1207,14 +1207,14 @@ Story S1 AC#5 要求 "5 分钟完成分诊"；仅有三段 Tabs 不够——Tab 
 ```typescript
 // Weights versioned in /prompts/priority.v2.yaml for auditability.
 function priorityScore(o: ObligationInstance, c: Client): PriorityBreakdown {
-  const exposure = o.estimated_exposure_usd // Penalty Radar 输出（§7.5）
+  const exposure = o.estimated_exposure_usd // Deadline Radar 输出（§7.5）
   const urgency = daysUntil(o.current_due_date) // 剩余天数
   const importance = c.importance_weight // high=3 / med=2 / low=1
   const history = c.late_filing_count_last_12mo // 历史延误
   const readiness = o.readiness === 'waiting_on_client' ? 1.3 : 1.0
 
   const score =
-    0.45 * normalize(exposure, 0, 10_000) + // 美元敞口主导
+    0.45 * normalize(exposure, 0, 10_000) + // 截止日风险主导
     0.25 * inverseUrgency(urgency) + // 越近越高
     0.15 * normalize(importance, 1, 3) + // 客户分级
     0.1 * normalize(history, 0, 5) + // 爱迟到 → 优先盯
@@ -1247,7 +1247,7 @@ Rank #1 — Acme LLC · CA Franchise
 
 未来配置 surface 中开关：`Use AI for tie-breaking` → 仅当 top-5 打分相差 < 5% 时调用 AI SDK 给出排序理由（不改变打分）。这让异步 Weekly Brief 的"Top 3 to touch first"和 Dashboard 列表 100% 一致，避免割裂感。
 
-### 6.5 Penalty Radar™（美元敞口引擎）
+### 6.5 Deadline Radar™（截止日风险引擎）
 
 见 §7.5 独立章节（在"亮点模块"之外，因其跨页面）。
 

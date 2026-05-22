@@ -269,7 +269,7 @@
 | `text-2xl`           | 24px | 600    | 1.2         | Client Detail 顶部名称                                                                          |
 | `text-section-title` | 32px | 600    | 1.1875      | Marketing landing 段标题（即 `typography.section-title`，仅 marketing 使用）                    |
 | `text-display-large` | 36px | 600    | 1.167       | Marketing landing 二级 hero（即 `typography.display-large`，仅 marketing；权威值与 Figma 同步） |
-| `text-hero`          | 56px | 700    | 1.0         | **Penalty Radar Hero 数字**（即 `typography.hero-metric`，tabular-nums 必开）                   |
+| `text-hero`          | 56px | 700    | 1.0         | **Deadline Radar Hero 数字**（即 `typography.hero-metric`，tabular-nums 必开）                  |
 | `text-display-hero`  | 54px | 600    | 1.074       | Marketing landing h1（即 `typography.display-hero`，**禁用**于 workbench；权威值与 Figma 同步） |
 
 > **铁律**：`text-section-title` / `text-display-large` / `text-display-hero` 仅限 marketing landing（`apps/app/src/routes/landing.*` 之类）使用，**禁止**进入 dashboard / obligations / drawer / modal 等 workbench 表面。
@@ -333,12 +333,12 @@ Tax Period review。
 - Selected：`background: var(--accent-tint)` + 2px 左 `--accent-default`
 - **行内操作区** `[Apply]` `[Start]` 用 `text-accent-default`，hover underline
 
-| Row kind            | Severity bar (left)                  | Background                      | 触发条件                                       |
-| ------------------- | ------------------------------------ | ------------------------------- | ---------------------------------------------- |
-| `risk-row-critical` | `2px solid var(--severity-critical)` | `var(--severity-critical-tint)` | `days_left ≤ 2` 或 projected risk > $10,000    |
-| `risk-row-high`     | `2px solid var(--severity-high)`     | `var(--severity-high-tint)`     | `3 ≤ days_left ≤ 7` 或 projected risk > $3,000 |
-| `risk-row-upcoming` | `2px solid var(--severity-medium)`   | `var(--severity-medium-tint)`   | `8 ≤ days_left ≤ 30`                           |
-| Neutral row         | —（仅 `--border-subtle` 1px 底线）   | 透明                            | `days_left > 30` 或 `status = OK`              |
+| Row kind            | Severity bar (left)                  | Background                      | 触发条件                                                |
+| ------------------- | ------------------------------------ | ------------------------------- | ------------------------------------------------------- |
+| `risk-row-critical` | `2px solid var(--severity-critical)` | `var(--severity-critical-tint)` | `days_left ≤ 2` 或 legacy penalty estimate > $10,000    |
+| `risk-row-high`     | `2px solid var(--severity-high)`     | `var(--severity-high-tint)`     | `3 ≤ days_left ≤ 7` 或 legacy penalty estimate > $3,000 |
+| `risk-row-upcoming` | `2px solid var(--severity-medium)`   | `var(--severity-medium-tint)`   | `8 ≤ days_left ≤ 30`                                    |
+| Neutral row         | —（仅 `--border-subtle` 1px 底线）   | 透明                            | `days_left > 30` 或 `status = OK`                       |
 
 ### 4.2 Hero Metric（Dashboard 顶部 $ 风险聚合）
 
@@ -424,7 +424,7 @@ Tax Period review。
 - 鼠标 hover 是浅层中性反馈 `bg-background-subtle`；键盘 active item 使用更深的 `bg-state-base-hover`，不加左侧指示条
 - 快捷键提示用 `<kbd>` 小胶囊，`background: bg-subtle` + 1px border
 
-### 4.6 Penalty Radar Strip（首屏顶栏）
+### 4.6 Deadline Radar Strip（首屏顶栏）
 
 - 始终 sticky 顶部，高度 48px
 - 默认灰色文字；有新 alert 时 `background: var(--severity-critical-tint)` 脉冲 1.5s 后淡出
@@ -790,7 +790,7 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 | ------------------------ | ---------------------------------------------- |
 | §1 / §2 / §3             | PRD v2.0 §1.3（设计原则）+ §10.1（视觉语言）   |
 | §4.1 Risk Row            | PRD v2.0 §5.2 Obligations                      |
-| §4.2 Hero Metric         | PRD v2.0 §5.1.1 Layer 1 Penalty Radar          |
+| §4.2 Hero Metric         | PRD v2.0 §5.1.1 Layer 1 Deadline Radar         |
 | §4.3 Pulse Banner        | PRD v2.0 §5.1.4 + §6.3                         |
 | §4.4 Evidence Chip       | PRD v2.0 §5.5 Evidence Mode + §6.2 Glass-Box   |
 | §4.5 Command Palette     | PRD v2.0 §10.3 + §6.6 Ask                      |
@@ -999,13 +999,13 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 
 把产品语义压成一个 fintech / accounting workbench 风格的 256×256 几何符号：
 
-| 元素                    | 产品语义                                | 视觉                                            |
-| ----------------------- | --------------------------------------- | ----------------------------------------------- |
-| 圆角方块外壳            | fintech app / HQ 工作台                 | radius 54，深 midnight navy                     |
-| 银色 `D` monogram       | DueDateHQ 产品识别                      | 大单形状，Cash App / Stripe 式小尺寸强识别      |
-| D 内部 ledger ticks     | 会计账本 / source-backed working papers | brass 主 tick + 两条 muted silver 账本行        |
-| Cyan deadline pulse dot | 截止日风险被命中                        | 单一高记忆信号色；与 Penalty Radar 语义保持关联 |
-| Pulse halo（256 only）  | 风险提醒的可见度                        | 仅大尺寸保留；favicon 删除以避免小尺寸糊掉      |
+| 元素                    | 产品语义                                | 视觉                                             |
+| ----------------------- | --------------------------------------- | ------------------------------------------------ |
+| 圆角方块外壳            | fintech app / HQ 工作台                 | radius 54，深 midnight navy                      |
+| 银色 `D` monogram       | DueDateHQ 产品识别                      | 大单形状，Cash App / Stripe 式小尺寸强识别       |
+| D 内部 ledger ticks     | 会计账本 / source-backed working papers | brass 主 tick + 两条 muted silver 账本行         |
+| Cyan deadline pulse dot | 截止日风险被命中                        | 单一高记忆信号色；与 Deadline Radar 语义保持关联 |
+| Pulse halo（256 only）  | 风险提醒的可见度                        | 仅大尺寸保留；favicon 删除以避免小尺寸糊掉       |
 
 刻意避开的（呼应 §0 / §2.4 / §9 禁用清单）：渐变、阴影（除 `--shadow-subtle`）、纯黑 dark 背景、绿色"OK"语义、emoji 装饰、泛用日历图标、`>12px` 圆角胶囊。
 

@@ -475,7 +475,7 @@ function CandidateReviewForm({
   )
 }
 
-function hasConcreteDraftSourceEvidence(
+export function hasConcreteDraftSourceEvidence(
   rule: ObligationRule,
   sourceId: string,
   source: RuleSource | undefined,

@@ -74,7 +74,7 @@
 
 - 姓名占位：**David**（CPA · 独立事务所 owner · 1-10 人 · 服务 30–80 business clients）
 - 上一套工具：TaxDome / Drake / QuickBooks 其中之一（导出 CSV 在手）
-- 目标：**30 分钟** 内完成 30 客户导入 + 看到全年 deadline + Penalty Radar 第一次跳出美元敞口（PRD Part1A §0.3 第 2 条铁律）
+- 目标：**30 分钟** 内完成 30 客户导入 + 看到全年 deadline + Deadline Radar 第一次跳出截止日风险（PRD Part1A §0.3 第 2 条铁律）
 - 焦虑点：不想重输一天 / 不想录到一半崩溃 / 不想没审计就 Go Live
 
 ### 4.2 端到端时序（P95 ≤ 30 min 的预算分解）

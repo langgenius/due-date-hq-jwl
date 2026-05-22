@@ -200,13 +200,10 @@ const ALL_SORTS = [
   'smart_priority',
   'due_asc',
   'due_desc',
-  'exposure_desc',
-  'exposure_asc',
   'updated_desc',
 ] as const satisfies readonly ObligationQueueSort[]
 const OWNER_FILTERS = ['unassigned'] as const
 const DUE_FILTERS = ['overdue'] as const
-const EXPOSURE_FILTERS = ['ready', 'needs_input', 'unsupported'] as const
 const EVIDENCE_FILTERS = ['needs'] as const
 const DETAIL_DRAWERS = ['obligation'] as const
 const DETAIL_TABS = ['readiness', 'extension', 'risk', 'evidence', 'audit'] as const
@@ -372,15 +369,12 @@ export const obligationQueueSearchParamsParsers = {
   owner: parseAsStringLiteral(OWNER_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   due: parseAsStringLiteral(DUE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   dueWithin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  exposure: parseAsStringLiteral(EXPOSURE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   evidence: parseAsStringLiteral(EVIDENCE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
   id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   tab: parseAsStringLiteral(DETAIL_TABS)
     .withDefault('readiness')
     .withOptions({ ...REPLACE_HISTORY_OPTIONS, clearOnDefault: false }),
-  riskMin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  riskMax: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   daysMin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   daysMax: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   asOf: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
@@ -430,8 +424,6 @@ function isObligationStatus(value: string): value is ObligationStatus {
 function getSortingState(sort: ObligationQueueSort): SortingState {
   if (sort === 'smart_priority') return [{ id: 'smartPriority', desc: true }]
   if (sort === 'due_desc') return [{ id: 'currentDueDate', desc: true }]
-  if (sort === 'exposure_desc') return [{ id: 'estimatedExposureCents', desc: true }]
-  if (sort === 'exposure_asc') return [{ id: 'estimatedExposureCents', desc: false }]
   if (sort === 'updated_desc') return [{ id: 'updatedAt', desc: true }]
   return [{ id: 'currentDueDate', desc: false }]
 }
@@ -460,11 +452,6 @@ function obligationQueueColumnAriaSort(columnId: string, sort: ObligationQueueSo
   if (columnId === 'currentDueDate') {
     if (sort === 'due_asc') return 'ascending'
     if (sort === 'due_desc') return 'descending'
-    return 'none'
-  }
-  if (columnId === 'estimatedExposureCents') {
-    if (sort === 'exposure_asc') return 'ascending'
-    if (sort === 'exposure_desc') return 'descending'
     return 'none'
   }
   return undefined
@@ -511,12 +498,6 @@ function integerFromInput(value: string, min?: number): number | null {
   const parsed = Number(trimmed)
   if (!Number.isSafeInteger(parsed)) return null
   return min === undefined ? parsed : Math.max(min, parsed)
-}
-
-function dollarsToCents(value: number | null): number | undefined {
-  if (value === null || value < 0 || !Number.isSafeInteger(value)) return undefined
-  const cents = value * 100
-  return Number.isSafeInteger(cents) ? cents : undefined
 }
 
 function daysFilterValue(value: number | null): number | undefined {
@@ -703,13 +684,10 @@ export function ObligationQueueRoute() {
       owner,
       due,
       dueWithin,
-      exposure,
       evidence,
       drawer,
       id: detailId,
       tab: detailTab,
-      riskMin,
-      riskMax,
       daysMin,
       daysMax,
       asOf,
@@ -801,8 +779,6 @@ export function ObligationQueueRoute() {
     [assignee],
   )
   const assigneeQuery = useMemo(() => cleanStringFilters(assigneeFilter), [assigneeFilter])
-  const minExposureCents = useMemo(() => dollarsToCents(riskMin), [riskMin])
-  const maxExposureCents = useMemo(() => dollarsToCents(riskMax), [riskMax])
   const minDaysUntilDue = useMemo(() => daysFilterValue(daysMin), [daysMin])
   const maxDaysUntilDue = useMemo(() => daysFilterValue(daysMax), [daysMax])
 
@@ -865,9 +841,6 @@ export function ObligationQueueRoute() {
       ...(owner ? { owner } : {}),
       ...(due ? { due } : {}),
       ...(dueWithin && dueWithin > 0 && dueWithin <= 30 ? { dueWithinDays: dueWithin } : {}),
-      ...(exposure ? { exposureStatus: exposure } : {}),
-      ...(minExposureCents !== undefined ? { minExposureCents } : {}),
-      ...(maxExposureCents !== undefined ? { maxExposureCents } : {}),
       ...(minDaysUntilDue !== undefined ? { minDaysUntilDue } : {}),
       ...(maxDaysUntilDue !== undefined ? { maxDaysUntilDue } : {}),
       ...(evidence === 'needs' ? { needsEvidence: true } : {}),
@@ -889,9 +862,6 @@ export function ObligationQueueRoute() {
       owner,
       due,
       dueWithin,
-      exposure,
-      minExposureCents,
-      maxExposureCents,
       minDaysUntilDue,
       maxDaysUntilDue,
       evidence,
@@ -1456,7 +1426,7 @@ export function ObligationQueueRoute() {
             </span>
           )
         },
-        meta: { cellClassName: 'tabular-nums whitespace-nowrap' },
+        meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
       // "Projected risk" column removed 2026-05-21 per UX call —
       // the dollar exposure number lives inside the obligation drawer
@@ -1696,6 +1666,10 @@ export function ObligationQueueRoute() {
       ),
     [scopeStatuses, statusFacetCounts, activeScope],
   )
+  // Note: the applied-filter chip row (hanxujiang's 30f29dc) was
+  // intentionally dropped during the design call — column-header
+  // filters are the only filter UI surface now. See dev-log
+  // 2026-05-22-preview-integration-merge.md.
   const hideableColumns = useMemo(
     () => table.getAllLeafColumns().filter((column) => column.getCanHide()),
     [table],
@@ -2185,18 +2159,11 @@ export function ObligationQueueRoute() {
               >
                 <Trans>Needs evidence</Trans>
               </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={exposure === 'needs_input'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    exposure: exposure === 'needs_input' ? null : 'needs_input',
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              >
-                <Trans>Penalty input needed</Trans>
-              </ObligationQueueActionChip>
+              {/* "Penalty input needed" chip retired 2026-05-22 with
+                hanxujiang's projected-exposure refactor (30f29dc).
+                The `exposure` query param and its filter pipeline are
+                gone; the surface that asks for penalty inputs lives
+                inside the obligation drawer. */}
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {/* "Applied · <chip> · Clear filters" strip removed
@@ -2464,10 +2431,7 @@ export function ObligationQueueRoute() {
                             owner ||
                             due ||
                             dueWithin ||
-                            exposure?.length ||
                             evidence?.length ||
-                            riskMin !== null ||
-                            riskMax !== null ||
                             daysMin !== null ||
                             daysMax !== null,
                           )}
@@ -3238,7 +3202,7 @@ export function ObligationQueueDetailDrawer({
   // surface wants the human label, re-add via `useObligationTypeLabels()`.
   // Type-aware drawer surface: per PRD §3.1 different obligation types
   // expose different tabs. A `payment` row has no readiness checklist;
-  // a `client_action` row has no penalty exposure surface.
+  // a `client_action` row has no deadline readiness surface.
   const visibleTabsList = useMemo(
     () => tabsForObligationType(row?.obligationType ?? null),
     [row?.obligationType],
@@ -7296,7 +7260,7 @@ function ObligationQueueSearchControl({
   // on inputRef; we just react to the focus.
   useEffect(() => {
     const el = inputRef.current
-    if (!el) return
+    if (!el) return undefined
     const onFocus = () => setOpen(true)
     el.addEventListener('focus', onFocus)
     return () => el.removeEventListener('focus', onFocus)

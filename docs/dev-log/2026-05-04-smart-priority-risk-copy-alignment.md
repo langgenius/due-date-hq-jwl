@@ -8,13 +8,13 @@ author: 'Codex'
 
 ## Background
 
-Dashboard and Obligations now present the dollar-risk column as `Projected risk`, while Practice
+Dashboard and Obligations now present the dollar-risk column as `Legacy penalty estimate`, while Practice
 profile still used older `exposure` wording in Smart Priority settings.
 
 ## Changes
 
-- Renamed the Smart Priority weight label from `Dollar exposure` to `Projected risk`.
-- Renamed `Exposure cap` to `Projected risk cap`.
+- Renamed the Smart Priority weight label from `Readiness signal` to `Legacy penalty estimate`.
+- Renamed `Exposure cap` to `Legacy penalty estimate cap`.
 - Updated concept help and role-hidden Dashboard copy to avoid user-facing `exposure` wording.
 - Refreshed Lingui catalogs and generated messages.
 

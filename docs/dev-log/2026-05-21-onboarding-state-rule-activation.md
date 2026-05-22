@@ -20,19 +20,23 @@ creation to bootstrap Rules Library coverage.
   for `FED + selected states`. Empty state selection is allowed and skips rule
   activation.
 - Added `rules.activateOnboardingJurisdictions`, a dedicated bootstrap RPC that
-  activates matching non-deprecated templates and reports how many activated
-  `source_defined_calendar` templates still need due-date review before they can
-  generate obligations.
+  activates matching non-deprecated templates with concrete due-date logic and
+  queues `source_defined_calendar` templates as pending due-date review before
+  they can generate obligations.
 - Added a post-onboarding activation prompt on `/migration/new` when selected
   jurisdictions include source-defined rules; the prompt links to Rule Library's
-  applicability-review rule list.
+  pending-review rule list.
+- Added a create-practice hint directly under the state map when selected states
+  include `source_defined_calendar` rules, so users know they must enter the
+  product and review pending rules in Rule Library before those due dates can
+  generate.
 - Corrected accepted concrete-draft version handling so accepting one
   source-defined rule does not re-add the older template version to the pending
   review count.
-- Kept active source-defined rules out of the pending count; they stay active
-  while their detail panel exposes the due-date review action.
+- Changed onboarding source-defined rules to remain `pending_review`; they no
+  longer inflate active counts or appear production-ready before CPA acceptance.
 - Added active rules to the Coverage expanded jurisdiction detail, alongside
-  pending rules and watched sources, with a due-date review chip for active
+  pending rules and watched sources, with a due-date review chip for
   source-defined rules.
 - Wrote `rules.onboarding_activated` audit metadata with selected states,
   activated jurisdictions, activation count, skipped count, review-required
@@ -47,6 +51,7 @@ creation to bootstrap Rules Library coverage.
 - `pnpm --filter @duedatehq/app exec tsc --noEmit`
 - `pnpm --filter @duedatehq/app i18n:extract`
 - `pnpm --filter @duedatehq/app i18n:compile`
+- `pnpm --filter @duedatehq/app test -- state-rule-activation-selector.test.tsx`
 - Playwright render check against local `/rules/library` with mocked rules RPC
   data: expanded California row showed active rules, pending rules, watched
   sources, and the source-defined due-date review chip.

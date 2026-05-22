@@ -8,7 +8,7 @@ author: 'Codex'
 
 ## Context
 
-DueDateHQ now has several product-specific operating terms, such as Smart Priority, Penalty Radar,
+DueDateHQ now has several product-specific operating terms, such as Smart Priority, Deadline Radar,
 Evidence gap, and Migration Copilot. New users need short in-product explanations without turning
 dense tables and work queues into onboarding copy.
 
@@ -49,6 +49,6 @@ and `migration-wizard.spec.ts` timed out waiting for AI normalization.
 ## Follow-up
 
 - `ConceptLabel` now uses string children as the popover trigger accessible label, so inline copy
-  like `Exposure` can remain distinct from the glossary title `Projected risk`.
+  like `Exposure` can remain distinct from the glossary title `Legacy penalty estimate`.
 - Validation: `pnpm --filter @duedatehq/app exec vp test src/features/concepts/concept-help.test.tsx`;
   `pnpm exec vp run ci`.

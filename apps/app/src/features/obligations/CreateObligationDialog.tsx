@@ -37,11 +37,46 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
-// The dialog targets v2 lifecycle states for manual creation. The
-// status enum still carries legacy tokens (pending, in_progress, done,
-// etc.) for back-compat; we restrict the picker to the meaningful
-// "where do you start" options. The most common case — "I just created
-// this row, nothing has happened yet" — defaults to `pending`.
+// The 6 canonical obligation types — picked up from
+// `hanxujiang`'s 535e2c8 because they're real fields the server
+// reads to route payment-vs-filing deadlines + populate the
+// queue's tax-type filter. Type drives the conditional
+// `paymentDueDate` vs `filingDueDate` assignment below.
+const OBLIGATION_TYPES = [
+  'filing',
+  'payment',
+  'deposit',
+  'information',
+  'client_action',
+  'internal_review',
+] as const satisfies readonly NonNullable<ObligationCreateInput['obligationType']>[]
+type ObligationTypeValue = (typeof OBLIGATION_TYPES)[number]
+
+function isObligationTypeValue(value: string | null): value is ObligationTypeValue {
+  return OBLIGATION_TYPES.some((type) => type === value)
+}
+
+function useObligationTypeLabels(): Record<ObligationTypeValue, string> {
+  const { t } = useLingui()
+  return useMemo(
+    () => ({
+      filing: t`Filing`,
+      payment: t`Payment`,
+      deposit: t`Deposit`,
+      information: t`Information return`,
+      client_action: t`Client action`,
+      internal_review: t`Internal review`,
+    }),
+    [t],
+  )
+}
+
+// Starting status — restricted to v2 lifecycle states that make
+// sense for a brand-new manual row. The schema still accepts the
+// legacy 10-state enum; this dialog narrows to the three honest
+// "where do you start" options. Other states are reached via
+// lifecycle transitions, not creation. See
+// docs/Design/obligation-lifecycle-design-brief.md.
 const CREATE_STATUS_VALUES = ['pending', 'waiting_on_client', 'blocked'] as const
 type CreateStatusValue = (typeof CREATE_STATUS_VALUES)[number]
 
@@ -49,6 +84,9 @@ type FormValues = {
   clientId: string
   taxType: string
   baseDueDate: string
+  jurisdiction: string
+  formName: string
+  obligationType: ObligationTypeValue
   status: CreateStatusValue
   internalNotes: string
 }
@@ -57,6 +95,9 @@ const defaultFormValues: FormValues = {
   clientId: '',
   taxType: '',
   baseDueDate: '',
+  jurisdiction: '',
+  formName: '',
+  obligationType: 'filing',
   status: 'pending',
   internalNotes: '',
 }
@@ -73,6 +114,15 @@ function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
       .string()
       .trim()
       .refine((value) => ISO_DATE_RE.test(value), { message: t`Pick a base due date` }),
+    jurisdiction: z
+      .string()
+      .trim()
+      .max(80, t`Jurisdiction must be 80 characters or fewer`),
+    formName: z
+      .string()
+      .trim()
+      .max(80, t`Form must be 80 characters or fewer`),
+    obligationType: z.enum(OBLIGATION_TYPES),
     status: z.enum(CREATE_STATUS_VALUES),
     internalNotes: z
       .string()
@@ -81,13 +131,39 @@ function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
   })
 }
 
+function nullableText(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+/**
+ * Build the wire-shaped `ObligationCreateInput`. Crucially, the
+ * `paymentDueDate` vs `filingDueDate` assignment branches on
+ * `obligationType` — payment / deposit rows route to
+ * paymentDueDate, everything else to filingDueDate. This matches
+ * how the server's exposure + reminder pipelines read the row
+ * (see hanxujiang's 535e2c8 for the original routing logic).
+ *
+ * `recurrence: 'once'` and `riskLevel: 'low'` are sensible
+ * defaults for a manual row — annual rollover / risk inputs are
+ * separate flows the CPA can graduate to after creation.
+ */
 function formValuesToInput(values: FormValues): ObligationCreateInput {
+  const dueDate = values.baseDueDate
+  const isPaymentDeadline =
+    values.obligationType === 'payment' || values.obligationType === 'deposit'
   return {
     clientId: values.clientId,
     taxType: values.taxType.trim(),
-    baseDueDate: values.baseDueDate,
-    status: values.status,
     generationSource: 'manual',
+    jurisdiction: nullableText(values.jurisdiction),
+    formName: nullableText(values.formName),
+    obligationType: values.obligationType,
+    baseDueDate: dueDate,
+    recurrence: 'once',
+    riskLevel: 'low',
+    status: values.status,
+    ...(isPaymentDeadline ? { paymentDueDate: dueDate } : { filingDueDate: dueDate }),
   }
 }
 
@@ -123,20 +199,34 @@ function useEntityLabels(): Record<ClientEntityType, string> {
 }
 
 /**
- * "+ Add obligation" entry-point dialog. Used by the Today page (no
- * `defaultClientId`) and the Client detail page (`defaultClientId` set,
- * which locks the combobox to that client).
+ * "+ Add deadline" entry-point dialog. Used by the Today page
+ * (no `defaultClientId`) and the Client detail page
+ * (`defaultClientId` set, which locks the combobox to that
+ * client).
  *
- * The required fields mirror the lean `ObligationCreateInputSchema`
- * surface: `clientId`, `taxType`, `baseDueDate`, and an opt-in
- * `status`. K-1 / partner context is captured as freeform text in the
- * "Internal notes" textarea — per the 2026-05-21 product review, the
- * old K-1 dropdown couldn't store partner info, so manual notes
- * replace it. The notes textarea exists on the form for capture; the
- * server-side `obligations.addReviewNote` endpoint is the eventual
- * persistence target and is tracked as follow-up — until it ships, the
- * dialog warns the user when they fill notes during a brand-new
- * obligation (see `onSubmit` toast hint).
+ * Vocabulary split (deliberate):
+ *  - Outside the dialog (trigger button, toast headline) uses
+ *    "deadline" — the CPA's workflow voice.
+ *  - Inside the dialog (title, form fields, submit button) uses
+ *    "obligation" — the data-model voice that matches the schema,
+ *    the queue, and the audit log.
+ *  - The description bridges them in one sentence so the
+ *    mapping is honest.
+ *
+ * This is the merged shape of two parallel implementations:
+ *  - Yuqi's 083c860 contributed the searchable `ClientCombobox`,
+ *    the inline "Create new client" link, the internal-notes
+ *    textarea (the K-1 → notes decision from the 2026-05-21
+ *    meeting), and the Zod + react-form validation pattern.
+ *  - Hanxujiang's 535e2c8 contributed the jurisdiction + form
+ *    name + obligation-type fields, the payment-vs-filing date
+ *    routing in `formValuesToInput`, and the broader query-key
+ *    invalidation set on success.
+ *
+ * Together: the dialog produces a complete obligation row (server
+ * reads obligationType + jurisdiction for routing and filtering)
+ * with the human-friendly creation UX (search + create-new +
+ * notes for partner context).
  */
 export function CreateObligationDialog({
   trigger,
@@ -150,6 +240,7 @@ export function CreateObligationDialog({
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const entityLabels = useEntityLabels()
+  const obligationTypeLabels = useObligationTypeLabels()
   const [open, setOpen] = useState(false)
   const [createClientOpen, setCreateClientOpen] = useState(false)
 
@@ -167,22 +258,31 @@ export function CreateObligationDialog({
 
   const clientId = useStore(form.store, (state) => state.values.clientId)
   const status = useStore(form.store, (state) => state.values.status)
+  const obligationType = useStore(form.store, (state) => state.values.obligationType)
   const internalNotes = useStore(form.store, (state) => state.values.internalNotes)
 
   const createMutation = useMutation(
     orpc.obligations.createBatch.mutationOptions({
       onSuccess: (result) => {
         const obligation = result.obligations[0]
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+        // Invalidate every consumer that surfaces obligation data
+        // so the new row appears immediately: dashboard counts,
+        // queue facets, queue list, client filing plan list.
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-        toast.success(t`Obligation added`, {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        toast.success(t`Deadline added`, {
+          // The toast headline matches the CPA's workflow voice
+          // ("I added a deadline"); the detail line uses the system
+          // word so it's clear what got created in the data model.
           description: t`${result.obligations.length} obligation created.`,
         })
         if (internalNotes.trim().length > 0) {
           // Notes capture is intentionally local until the
-          // `obligations.addReviewNote` endpoint ships. Surface that
-          // expectation so the user knows the textarea content didn't
-          // silently drop.
+          // `obligations.addReviewNote` endpoint ships. Surface
+          // that expectation so the user knows the textarea
+          // content didn't silently drop.
           toast.info(t`Internal notes drafted`, {
             description: t`Open the obligation drawer to save your notes; the create endpoint doesn't accept notes yet.`,
           })
@@ -231,7 +331,14 @@ export function CreateObligationDialog({
             trigger ?? (
               <Button type="button" size="sm">
                 <PlusIcon data-icon="inline-start" />
-                <Trans>Add obligation</Trans>
+                {/* "Deadline" outside the dialog matches the CPA's
+                    workflow voice — that's what they're adding. The
+                    dialog title below switches to "Obligation" (the
+                    data-model word) so the form fields and submit
+                    button stay aligned with the schema + the rest of
+                    the app's vocabulary. See the description for the
+                    bridge. */}
+                <Trans>Add deadline</Trans>
               </Button>
             )
           }
@@ -243,8 +350,9 @@ export function CreateObligationDialog({
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Create an obligation manually. Use this for K-1 dependencies and other rows the rule
-                library doesn't generate automatically.
+                You're adding a deadline; the form below captures it as an obligation row the queue
+                tracks. Use this for K-1 dependencies and other rows the rule library doesn't
+                generate automatically.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -288,18 +396,18 @@ export function CreateObligationDialog({
                 )}
               </form.Field>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-[1fr_180px]">
                 <form.Field name="taxType">
                   {(field) => (
                     <Field>
                       <FieldLabel htmlFor="obligation-tax-type">
-                        <Trans>Tax type / form</Trans>
+                        <Trans>Tax type</Trans>
                       </FieldLabel>
                       <Input
                         id="obligation-tax-type"
                         name={field.name}
                         value={field.state.value}
-                        placeholder={t`e.g. 1065, 1040, CA-540`}
+                        placeholder={t`1040, 1120-S, payroll…`}
                         aria-invalid={!field.state.meta.isValid}
                         onBlur={field.handleBlur}
                         onChange={(event) => field.handleChange(event.target.value)}
@@ -329,46 +437,114 @@ export function CreateObligationDialog({
                 </form.Field>
               </div>
 
-              <Field>
-                <FieldLabel htmlFor="obligation-status">
-                  <Trans>Starting status</Trans>
-                </FieldLabel>
-                <Select
-                  value={status}
-                  onValueChange={(value) => {
-                    if (
-                      value === 'pending' ||
-                      value === 'waiting_on_client' ||
-                      value === 'blocked'
-                    ) {
-                      form.setFieldValue('status', value)
-                    }
-                  }}
-                >
-                  <SelectTrigger id="obligation-status" className="w-full">
-                    <SelectValue>
-                      {status === 'waiting_on_client'
-                        ? t`Waiting on client`
-                        : status === 'blocked'
-                          ? t`Blocked`
-                          : t`Not started`}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="pending">
-                        <Trans>Not started</Trans>
-                      </SelectItem>
-                      <SelectItem value="waiting_on_client">
-                        <Trans>Waiting on client</Trans>
-                      </SelectItem>
-                      <SelectItem value="blocked">
-                        <Trans>Blocked (waiting on K-1 or another upstream)</Trans>
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
+              <div className="grid gap-4 md:grid-cols-2">
+                <form.Field name="formName">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="obligation-form-name">
+                        <Trans>Form</Trans>
+                      </FieldLabel>
+                      <Input
+                        id="obligation-form-name"
+                        name={field.name}
+                        value={field.state.value}
+                        placeholder={t`Optional`}
+                        onBlur={field.handleBlur}
+                        onChange={(event) => field.handleChange(event.target.value)}
+                      />
+                      <FieldError errors={fieldErrors(field.state.meta.errors)} />
+                    </Field>
+                  )}
+                </form.Field>
+                <form.Field name="jurisdiction">
+                  {(field) => (
+                    <Field>
+                      <FieldLabel htmlFor="obligation-jurisdiction">
+                        <Trans>Jurisdiction</Trans>
+                      </FieldLabel>
+                      <Input
+                        id="obligation-jurisdiction"
+                        name={field.name}
+                        value={field.state.value}
+                        placeholder={t`Federal, CA, NY…`}
+                        onBlur={field.handleBlur}
+                        onChange={(event) => field.handleChange(event.target.value)}
+                      />
+                      <FieldError errors={fieldErrors(field.state.meta.errors)} />
+                    </Field>
+                  )}
+                </form.Field>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="obligation-type">
+                    <Trans>Obligation type</Trans>
+                  </FieldLabel>
+                  <Select
+                    value={obligationType}
+                    onValueChange={(value) => {
+                      if (isObligationTypeValue(value)) {
+                        form.setFieldValue('obligationType', value)
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="obligation-type" className="w-full">
+                      <SelectValue>{obligationTypeLabels[obligationType]}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent align="start">
+                      <SelectGroup>
+                        {OBLIGATION_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {obligationTypeLabels[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="obligation-status">
+                    <Trans>Starting status</Trans>
+                  </FieldLabel>
+                  <Select
+                    value={status}
+                    onValueChange={(value) => {
+                      if (
+                        value === 'pending' ||
+                        value === 'waiting_on_client' ||
+                        value === 'blocked'
+                      ) {
+                        form.setFieldValue('status', value)
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="obligation-status" className="w-full">
+                      <SelectValue>
+                        {status === 'waiting_on_client'
+                          ? t`Waiting on client`
+                          : status === 'blocked'
+                            ? t`Blocked`
+                            : t`Not started`}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="pending">
+                          <Trans>Not started</Trans>
+                        </SelectItem>
+                        <SelectItem value="waiting_on_client">
+                          <Trans>Waiting on client</Trans>
+                        </SelectItem>
+                        <SelectItem value="blocked">
+                          <Trans>Blocked (waiting on K-1 or another upstream)</Trans>
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
 
               <form.Field name="internalNotes">
                 {(field) => (

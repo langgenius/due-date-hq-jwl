@@ -660,6 +660,59 @@ export const RuleConcreteDraftSchema = z.object({
 })
 export type RuleConcreteDraft = z.infer<typeof RuleConcreteDraftSchema>
 
+export const RuleListConcreteDraftsInputSchema = z.object({
+  rules: z.array(RuleDraftConcreteRuleInputSchema).max(500),
+})
+export type RuleListConcreteDraftsInput = z.infer<typeof RuleListConcreteDraftsInputSchema>
+
+export const RuleConcreteDraftCacheEntrySchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.nullable(),
+  draft: RuleConcreteDraftSchema,
+})
+export type RuleConcreteDraftCacheEntry = z.infer<typeof RuleConcreteDraftCacheEntrySchema>
+
+export const RuleBulkVerifyCandidateSelectionSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.optional(),
+  aiOutputId: EntityIdSchema,
+})
+export type RuleBulkVerifyCandidateSelection = z.infer<
+  typeof RuleBulkVerifyCandidateSelectionSchema
+>
+
+export const RuleBulkVerifyCandidatesInputSchema = z.object({
+  rules: z.array(RuleBulkVerifyCandidateSelectionSchema).min(1).max(100),
+  reviewNote: z.string().trim().min(1).max(1000),
+})
+export type RuleBulkVerifyCandidatesInput = z.infer<typeof RuleBulkVerifyCandidatesInputSchema>
+
+export const RuleBulkVerifyCandidateSkipSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1).nullable(),
+  reason: z.enum([
+    'rule_not_found',
+    'not_source_defined',
+    'draft_not_found',
+    'draft_mismatch',
+    'already_active',
+    'rejected',
+    'archived',
+    'source_changed_requires_review',
+    'no_open_task',
+    'validation_failed',
+  ]),
+})
+export type RuleBulkVerifyCandidateSkip = z.infer<typeof RuleBulkVerifyCandidateSkipSchema>
+
+export const RuleBulkVerifyCandidatesOutputSchema = z.object({
+  verified: z.array(RuleReviewDecisionSchema),
+  skipped: z.array(RuleBulkVerifyCandidateSkipSchema),
+})
+export type RuleBulkVerifyCandidatesOutput = z.infer<typeof RuleBulkVerifyCandidatesOutputSchema>
+
 export const RuleRejectCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
   reason: z.string().trim().min(1).max(1000),
@@ -706,7 +759,13 @@ export const rulesContract = oc.router({
     .input(RuleBulkImpactPreviewInputSchema)
     .output(RuleBulkImpactPreviewSchema),
   draftConcreteRule: oc.input(RuleDraftConcreteRuleInputSchema).output(RuleConcreteDraftSchema),
+  listConcreteDrafts: oc
+    .input(RuleListConcreteDraftsInputSchema)
+    .output(z.array(RuleConcreteDraftCacheEntrySchema)),
   verifyCandidate: oc.input(RuleVerifyCandidateInputSchema).output(RuleReviewDecisionSchema),
+  bulkVerifyCandidates: oc
+    .input(RuleBulkVerifyCandidatesInputSchema)
+    .output(RuleBulkVerifyCandidatesOutputSchema),
   rejectCandidate: oc.input(RuleRejectCandidateInputSchema).output(RuleReviewDecisionSchema),
   coverage: oc.input(z.undefined()).output(z.array(RuleCoverageRowSchema)),
   previewObligations: oc

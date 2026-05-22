@@ -33,7 +33,7 @@ due.langgenius.app
 
 ### 2.1 ICP
 
-首版面向美国中小 CPA practice 的 owner / operations lead。核心焦虑不是“日历好看”，而是高峰季的罚款敞口、客户资料缺口、州税变更和团队分诊成本。
+首版面向美国中小 CPA practice 的 owner / operations lead。核心焦虑不是“日历好看”，而是高峰季的截止日风险、客户资料缺口、州税变更和团队分诊成本。
 
 ### 2.2 核心承诺
 
@@ -58,7 +58,7 @@ Homepage 只讲一个 offer：
 - Primary：`Open the workbench` -> `https://app.due.langgenius.app`
 - Secondary：`See the workflow` -> 页面内锚点
 
-首屏视觉必须直接展示产品工作台状态：风险金额、截止日队列、证据来源、Pulse 变更。禁止纯装饰渐变、抽象插画、漂浮卡片堆叠。
+首屏视觉必须直接展示产品工作台状态：截止日风险、截止日队列、证据来源、Pulse 变更。禁止纯装饰渐变、抽象插画、漂浮卡片堆叠。
 
 ### 2.4 页面模块
 
@@ -66,7 +66,7 @@ Homepage 只讲一个 offer：
 
 | 模块      | 目的                 | 内容要求                                                                                                         |
 | --------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Hero      | 说明 offer + CTA     | 产品名、风险金额 mock、deadline queue 截图或复刻 UI                                                              |
+| Hero      | 说明 offer + CTA     | 产品名、截止日风险 mock、deadline queue 截图或复刻 UI                                                            |
 | Problem   | 触发 ICP 共鸣        | 高峰季错过州税变更、K-1 资料缺口、客户 deadline 分散                                                             |
 | Workflow  | 展示产品如何工作     | 7-day queue、evidence gate、Pulse update 三步                                                                    |
 | Proof     | 建立可信度           | verified source、audit trail、no black-box AI                                                                    |

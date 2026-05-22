@@ -6,7 +6,10 @@ import { RuleGenerationStateValues, type RuleGenerationState } from '@duedatehq/
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
-import { StateRuleActivationSelector } from './state-rule-activation-selector'
+import {
+  StateRuleActivationSelector,
+  sourceDefinedCalendarReviewStates,
+} from './state-rule-activation-selector'
 
 declare global {
   // eslint-disable-next-line no-var
@@ -105,6 +108,24 @@ describe('StateRuleActivationSelector', () => {
 
     expect(document.querySelector('[aria-label="Selected states"]')).toBeNull()
     expect(document.querySelector('button[aria-label="Remove California"]')).toBeNull()
+  })
+
+  it('shows a Rule Library review hint when selected states include source-defined calendars', () => {
+    renderSelector({ selected: ['CA'] })
+
+    expect(document.body.textContent).toContain('Rule Library review required.')
+    expect(document.body.textContent).toContain('official calendars')
+  })
+
+  it('hides the Rule Library review hint until a review-required state is selected', () => {
+    renderSelector()
+
+    expect(document.body.textContent).not.toContain('Rule Library review required.')
+  })
+
+  it('derives source-defined calendar review states from the rule catalog', () => {
+    expect(sourceDefinedCalendarReviewStates(['CA', 'TX', 'CA'])).toEqual(['CA', 'TX'])
+    expect(sourceDefinedCalendarReviewStates([])).toEqual([])
   })
 
   it('emits all rule-generation states when select all is clicked', () => {

@@ -22,8 +22,6 @@ describe('dashboard aggregation', () => {
           baseDueDate: due('2026-04-27'),
           currentDueDate: due('2026-04-27'),
           status: 'pending',
-          estimatedExposureCents: null,
-          exposureStatus: 'needs_input',
           penaltyFormulaVersion: null,
           clientState: 'CA',
           clientEntityType: 'c_corp',
@@ -41,8 +39,6 @@ describe('dashboard aggregation', () => {
           baseDueDate: due('2026-05-02'),
           currentDueDate: due('2026-05-02'),
           status: 'review',
-          estimatedExposureCents: 125_000,
-          exposureStatus: 'ready',
           penaltyFormulaVersion: 'penalty-v1-2026q2',
           clientState: 'NY',
           clientEntityType: 'c_corp',
@@ -60,8 +56,6 @@ describe('dashboard aggregation', () => {
           baseDueDate: due('2026-05-20'),
           currentDueDate: due('2026-05-20'),
           status: 'waiting_on_client',
-          estimatedExposureCents: null,
-          exposureStatus: 'unsupported',
           penaltyFormulaVersion: null,
           clientState: null,
           clientEntityType: 'c_corp',
@@ -79,8 +73,6 @@ describe('dashboard aggregation', () => {
           baseDueDate: due('2026-05-05'),
           currentDueDate: due('2026-05-05'),
           status: 'pending',
-          estimatedExposureCents: 80_000,
-          exposureStatus: 'ready',
           penaltyFormulaVersion: 'penalty-v1-2026q2',
           clientState: null,
           clientEntityType: 'c_corp',
@@ -112,28 +104,25 @@ describe('dashboard aggregation', () => {
       dueThisWeekCount: 3,
       needsReviewCount: 1,
       evidenceGapCount: 3,
-      totalExposureCents: 205_000,
-      exposureReadyCount: 2,
-      exposureNeedsInputCount: 1,
-      exposureUnsupportedCount: 0,
       totalAccruedPenaltyCents: 0,
       accruedPenaltyReadyCount: 0,
       accruedPenaltyNeedsInputCount: 1,
       accruedPenaltyUnsupportedCount: 0,
     })
-    expect(result.topRows[0]!.obligationId).toBe('oi_week')
-    expect(result.topRows[0]!.severity).toBe('high')
+    expect(result.topRows[0]!.obligationId).toBe('oi_overdue')
+    expect(result.topRows[0]!.severity).toBe('critical')
     expect(result.topRows[0]!.smartPriority.rank).toBe(1)
-    expect(result.topRows[1]!.obligationId).toBe('oi_overdue')
-    expect(result.topRows[1]!.evidenceCount).toBe(1)
-    expect(result.triageTabs.map((tab) => [tab.key, tab.count, tab.totalExposureCents])).toEqual([
-      ['this_week', 3, 205_000],
-      ['this_month', 1, 0],
-      ['long_term', 0, 0],
+    expect(result.topRows[0]!.evidenceCount).toBe(1)
+    expect(result.topRows[1]!.obligationId).toBe('oi_week')
+    expect(result.topRows[1]!.severity).toBe('high')
+    expect(result.triageTabs.map((tab) => [tab.key, tab.count])).toEqual([
+      ['this_week', 3],
+      ['this_month', 1],
+      ['long_term', 0],
     ])
     expect(result.triageTabs[0]!.rows.map((row) => row.obligationId)).toEqual([
-      'oi_week',
       'oi_overdue',
+      'oi_week',
       'oi_day_7',
     ])
     expect(new Map(result.facets.clients.map((option) => [option.value, option.count]))).toEqual(
@@ -160,7 +149,7 @@ describe('dashboard aggregation', () => {
         ['day_31', '2026-05-29', 50_000],
         ['day_180', '2026-10-25', 60_000],
         ['day_181', '2026-10-26', 70_000],
-      ].map(([obligationId, currentDueDate, estimatedExposureCents]) => {
+      ].map(([obligationId, currentDueDate]) => {
         const dueDate = due(String(currentDueDate))
         return {
           obligationId: String(obligationId),
@@ -173,8 +162,6 @@ describe('dashboard aggregation', () => {
           baseDueDate: dueDate,
           currentDueDate: dueDate,
           status: 'pending' as const,
-          estimatedExposureCents: Number(estimatedExposureCents),
-          exposureStatus: 'ready' as const,
           penaltyFormulaVersion: 'penalty-v1-2026q2',
           clientState: null,
           clientEntityType: 'c_corp',
@@ -186,24 +173,22 @@ describe('dashboard aggregation', () => {
       { asOfDate: AS_OF, windowDays: 7, topLimit: 20 },
     )
 
-    expect(result.triageTabs.map((tab) => [tab.key, tab.count, tab.totalExposureCents])).toEqual([
-      ['this_week', 2, 30_000],
-      ['this_month', 2, 70_000],
-      ['long_term', 2, 110_000],
+    expect(result.triageTabs.map((tab) => [tab.key, tab.count])).toEqual([
+      ['this_week', 2],
+      ['this_month', 2],
+      ['long_term', 2],
     ])
-    expect(result.summary.totalExposureCents).toBe(30_000)
-    expect(result.summary.exposureReadyCount).toBe(2)
     expect(result.triageTabs.flatMap((tab) => tab.rows.map((row) => row.obligationId))).toEqual([
       'overdue',
       'day_7',
       'day_8',
       'day_30',
-      'day_180',
       'day_31',
+      'day_180',
     ])
   })
 
-  it('filters triage table rows without changing global summary or top risk rows', () => {
+  it('filters triage table rows without changing global summary or top priority rows', () => {
     const rows = [
       {
         obligationId: 'oi_overdue',
@@ -216,8 +201,6 @@ describe('dashboard aggregation', () => {
         baseDueDate: due('2026-04-27'),
         currentDueDate: due('2026-04-27'),
         status: 'pending' as const,
-        estimatedExposureCents: null,
-        exposureStatus: 'needs_input' as const,
         penaltyFormulaVersion: null,
         clientState: 'CA',
         clientEntityType: 'c_corp',
@@ -235,8 +218,6 @@ describe('dashboard aggregation', () => {
         baseDueDate: due('2026-05-02'),
         currentDueDate: due('2026-05-02'),
         status: 'review' as const,
-        estimatedExposureCents: 125_000,
-        exposureStatus: 'ready' as const,
         penaltyFormulaVersion: 'penalty-v1-2026q2',
         clientState: 'NY',
         clientEntityType: 'c_corp',
@@ -254,8 +235,6 @@ describe('dashboard aggregation', () => {
         baseDueDate: due('2026-05-05'),
         currentDueDate: due('2026-05-05'),
         status: 'in_progress' as const,
-        estimatedExposureCents: 80_000,
-        exposureStatus: 'ready' as const,
         penaltyFormulaVersion: 'penalty-v1-2026q2',
         clientState: null,
         clientEntityType: 'c_corp',
@@ -273,8 +252,6 @@ describe('dashboard aggregation', () => {
         baseDueDate: due('2026-05-20'),
         currentDueDate: due('2026-05-20'),
         status: 'waiting_on_client' as const,
-        estimatedExposureCents: null,
-        exposureStatus: 'unsupported' as const,
         penaltyFormulaVersion: null,
         clientState: null,
         clientEntityType: 'c_corp',
@@ -308,7 +285,6 @@ describe('dashboard aggregation', () => {
       [{ dueBuckets: ['next_7_days'] }, ['oi_week', 'oi_day_7']],
       [{ status: ['review'] }, ['oi_week']],
       [{ severity: ['critical'] }, ['oi_overdue']],
-      [{ exposureStatus: ['unsupported'] }, ['oi_later']],
       [{ evidence: ['needs'] }, ['oi_week', 'oi_day_7', 'oi_later']],
     ]
 

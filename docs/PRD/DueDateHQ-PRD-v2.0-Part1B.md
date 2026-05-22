@@ -20,7 +20,7 @@
 - **First-run wow**：Demo Day 前 60 秒让现场观众看到产品"魔法"
 - **激活杠杆**：trial-to-paid 转化从"我得录 80 客户"障碍解放
 - **Glass-Box 布道**：让 Glass-Box 不是抽象概念，而是第一次接触就感受到的（每一次 AI 映射 / 归一都进 Audit）
-- **Demo 戏剧性**：Live Deadline Genesis 动画 + Penalty Radar 数字实时跳动
+- **Demo 戏剧性**：Live Deadline Genesis 动画 + Deadline Radar 数字实时跳动
 
 ### 6A.2 AI Field Mapper（S2-AC2 · 含 EIN）
 
@@ -286,7 +286,7 @@ Suggested tax types (inferred from entity × state)
 点击 → **Live Genesis Animation**（4–6 秒）：
 
 - 屏幕中央 deadline 卡片按州 / 日期涌出
-- 顶栏 Penalty Radar 从 $0 滚到总 $
+- 顶栏 Deadline Radar 从 $0 滚到总 $
 - 自动跳 Dashboard，Top of `This Week` tab 选中第 1 条
 
 **导入后 Toast 常驻 24h：**

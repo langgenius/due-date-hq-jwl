@@ -324,8 +324,6 @@ export function makeFirmsRepo(db: Db) {
           taxType: obligationInstance.taxType,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
-          estimatedExposureCents: obligationInstance.estimatedExposureCents,
-          exposureStatus: obligationInstance.exposureStatus,
           importanceWeight: client.importanceWeight,
           lateFilingCountLast12mo: client.lateFilingCountLast12mo,
         })

@@ -13,7 +13,6 @@ import {
 import { validateEin } from '@duedatehq/core/pii'
 import {
   buildPenaltyFactsFromLegacy,
-  estimateProjectedExposure,
   PENALTY_FACTS_VERSION,
   type PenaltyFacts,
 } from '@duedatehq/core/penalty'
@@ -254,14 +253,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           equityOwnerCount: facts.equityOwnerCount,
         })
         penaltyFacts.facts = { ...penaltyFacts.facts, ...facts.penaltyFacts }
-        const exposure = estimateProjectedExposure({
-          jurisdiction: preview.jurisdiction,
-          taxType: preview.taxType,
-          entityType: facts.entityType,
-          dueDate,
-          asOfDate: appliedAt,
-          penaltyFactsJson: penaltyFacts,
-        })
         const status = preview.requiresReview ? 'review' : 'pending'
         obligations.push({
           id: obligationId,
@@ -299,17 +290,9 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           currentDueDate: internalDueDate,
           status,
           migrationBatchId: batchId,
-          estimatedTaxDueCents: exposure.estimatedTaxDueCents,
-          estimatedExposureCents: exposure.estimatedExposureCents,
-          exposureStatus: exposure.status,
+          estimatedTaxDueCents: facts.estimatedTaxLiabilityCents,
           penaltyFactsJson: penaltyFacts,
           penaltyFactsVersion: PENALTY_FACTS_VERSION,
-          penaltyBreakdownJson: exposure.breakdown,
-          penaltyFormulaVersion: exposure.formulaVersion,
-          missingPenaltyFactsJson: exposure.missingPenaltyFacts,
-          penaltySourceRefsJson: exposure.penaltySourceRefs,
-          penaltyFormulaLabel: exposure.penaltyFormulaLabel,
-          exposureCalculatedAt: appliedAt,
         })
         for (const externalRow of group.externalRows) {
           externalReferences.push(

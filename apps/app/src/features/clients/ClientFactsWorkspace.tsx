@@ -1604,11 +1604,6 @@ function FilingPlanYearSection({
                   <ObligationStatusBadge obligation={obligation} />
                 </TableCell>
                 <TableCell className="w-[140px] text-right tabular-nums">
-                  {obligation.estimatedExposureCents !== null
-                    ? formatCents(obligation.estimatedExposureCents)
-                    : '—'}
-                </TableCell>
-                <TableCell className="w-[140px] text-right tabular-nums">
                   {obligation.estimatedTaxDueCents !== null
                     ? formatCents(obligation.estimatedTaxDueCents)
                     : '—'}

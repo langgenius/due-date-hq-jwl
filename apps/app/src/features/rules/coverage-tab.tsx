@@ -1,27 +1,39 @@
-import { Fragment, useMemo, useState, type MouseEvent } from 'react'
-import { Link } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertTriangleIcon,
-  CheckCircle2Icon,
   CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  EyeIcon,
   ExternalLinkIcon,
   SearchIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { toast } from 'sonner'
 
 import type {
   ObligationRule,
+  RuleBulkImpactPreview,
+  RuleConcreteDraft,
+  RuleConcreteDraftCacheEntry,
   RuleCoverageRow,
   RuleJurisdiction,
+  RuleReviewTask,
   RuleSource,
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@duedatehq/ui/components/ui/sheet'
 import {
   Table,
   TableBody,
@@ -30,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -39,14 +52,17 @@ import {
 } from '@/components/patterns/keyboard-shell'
 import { KbdHint } from '@/components/patterns/kbd'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import {
+  formatEnumLabel,
+  humanizeDueDateLogic,
   jurisdictionLabel,
   type CoverageCellState,
   type CoverageEntityColumn,
 } from './rules-console-model'
 import { JurisdictionCode, QueryPanelState, SectionFrame } from './rules-console-primitives'
-import { RuleDetailCompact } from './rule-detail-drawer'
+import { RuleDetailCompact, hasConcreteDraftSourceEvidence } from './rule-detail-drawer'
 
 // Column order matches the canonical Coverage design — full names in
 // the sub-column header, no codes. "Partner." abbreviates Partnership
@@ -71,6 +87,66 @@ const filterParser = parseAsStringLiteral(ROW_FILTERS)
   .withDefault('all')
   .withOptions({ history: 'replace' })
 const searchParser = parseAsString.withDefault('').withOptions({ history: 'replace' })
+const legacyLibraryParser = parseAsString.withOptions({ history: 'replace' })
+const legacyJurisdictionParser = parseAsArrayOf(parseAsString)
+  .withDefault([])
+  .withOptions({ history: 'replace' })
+
+function ruleRowKey(rule: Pick<ObligationRule, 'id' | 'status' | 'version'>): string {
+  return `${rule.id}:${rule.version}:${rule.status}`
+}
+
+function reviewTaskKey(input: Pick<RuleReviewTask, 'ruleId' | 'templateVersion'>): string {
+  return `${input.ruleId}:${input.templateVersion}`
+}
+
+function reviewTaskKeyForRule(rule: Pick<ObligationRule, 'id' | 'version'>): string {
+  return `${rule.id}:${rule.version}`
+}
+
+function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+type RuleConcreteDraftTarget = {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string
+}
+
+type SelectedConcreteDraftRule = {
+  rule: ObligationRule
+  sourceId: string
+  sourceSignalId: string | null
+  draft: RuleConcreteDraft
+}
+
+function ruleReviewSourceId(rule: Pick<ObligationRule, 'sourceIds' | 'evidence'>): string {
+  return rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+}
+
+function concreteDraftTargetForRule(rule: ObligationRule): RuleConcreteDraftTarget | null {
+  if (!isSourceDefinedRule(rule)) return null
+  const sourceId = ruleReviewSourceId(rule)
+  if (sourceId.length === 0) return null
+  return { ruleId: rule.id, sourceId }
+}
+
+function concreteDraftTargetKey(input: {
+  ruleId: string
+  sourceId: string
+  sourceSignalId?: string | null
+}): string {
+  return [input.ruleId, input.sourceId, input.sourceSignalId ?? ''].join(':')
+}
+
+function concreteDraftInputForTarget(target: RuleConcreteDraftTarget): RuleConcreteDraftTarget {
+  return {
+    ruleId: target.ruleId,
+    sourceId: target.sourceId,
+    ...(target.sourceSignalId ? { sourceSignalId: target.sourceSignalId } : {}),
+  }
+}
 
 export function CoverageTab({
   onJurisdictionDrillIn,
@@ -88,6 +164,7 @@ export function CoverageTab({
   ) => void
 } = {}) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   // Filter + search live in URL state (nuqs) — survives refresh,
   // back/forward navigation, and shareable links to "Coverage filtered
@@ -95,11 +172,25 @@ export function CoverageTab({
   // on refresh and broken browser-back through filter changes.
   const [filterRaw, setFilterQuery] = useQueryState('filter', filterParser)
   const [search, setSearch] = useQueryState('q', searchParser)
-  const filter = filterRaw
+  const [legacyLibraryFilter, setLegacyLibraryFilter] = useQueryState(
+    'library',
+    legacyLibraryParser,
+  )
+  const [legacyJurisdictionFilters, setLegacyJurisdictionFilters] = useQueryState(
+    'jur',
+    legacyJurisdictionParser,
+  )
+  const legacyFilter = legacyLibraryFilterToCoverageFilter(legacyLibraryFilter)
+  const legacyJurisdictions = legacyJurisdictionFilters ?? []
+  const filter = filterRaw === 'all' && legacyFilter ? legacyFilter : filterRaw
+  const effectiveSearch =
+    search.length > 0 || legacyJurisdictions.length !== 1 ? search : (legacyJurisdictions[0] ?? '')
   const setFilter = (next: RowFilter) => {
+    void setLegacyLibraryFilter(null)
     void setFilterQuery(next)
   }
   const setSearchValue = (next: string) => {
+    void setLegacyJurisdictionFilters(null)
     void setSearch(next)
   }
 
@@ -108,6 +199,13 @@ export function CoverageTab({
   const rulesQuery = useQuery(
     orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
   )
+  const tasksQuery = useQuery(
+    orpc.rules.listReviewTasks.queryOptions({ input: { status: 'open' } }),
+  )
+  const [selectedRuleKeys, setSelectedRuleKeys] = useState<string[]>([])
+  const [bulkDrawerOpen, setBulkDrawerOpen] = useState(false)
+  const [reviewNote, setReviewNote] = useState('')
+  const [preview, setPreview] = useState<RuleBulkImpactPreview | null>(null)
   // Per-jurisdiction expansion state. Row-click toggles a jurisdiction
   // into this set; multiple rows can be expanded simultaneously so the
   // user can compare two jurisdictions inline without context-switching.
@@ -131,7 +229,8 @@ export function CoverageTab({
     parseAsString.withOptions({ history: 'replace' }),
   )
   const selectRule = (ruleId: string) => {
-    void setSelectedRuleId((prev) => (prev === ruleId ? null : ruleId))
+    if (selectedRuleId === ruleId) return
+    void setSelectedRuleId(ruleId)
   }
 
   const sourcesByJurisdiction = useMemo(() => {
@@ -193,7 +292,7 @@ export function CoverageTab({
   // `expanded` still takes precedence; effective expansion is the
   // union of the two sets.
   const searchExpanded = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = effectiveSearch.trim().toLowerCase()
     if (q.length === 0) return new Set<string>()
     const matches = new Set<string>()
     for (const [jurisdiction, rules] of rulesByJurisdiction.entries()) {
@@ -205,7 +304,7 @@ export function CoverageTab({
       }
     }
     return matches
-  }, [search, rulesByJurisdiction])
+  }, [effectiveSearch, rulesByJurisdiction])
 
   // Lookup so expanded rows can render the actual cited source per
   // rule (rule.sourceIds → RuleSource).
@@ -219,6 +318,27 @@ export function CoverageTab({
     if (!selectedRuleId) return null
     return (rulesQuery.data ?? []).find((rule) => rule.id === selectedRuleId) ?? null
   }, [selectedRuleId, rulesQuery.data])
+  const selectedConcreteDraftTarget = selectedRule ? concreteDraftTargetForRule(selectedRule) : null
+  const selectedConcreteDraftSource = selectedConcreteDraftTarget
+    ? sourceById.get(selectedConcreteDraftTarget.sourceId)
+    : undefined
+  const selectedConcreteDraftEnabled = Boolean(
+    selectedRule &&
+    selectedConcreteDraftTarget &&
+    hasConcreteDraftSourceEvidence(
+      selectedRule,
+      selectedConcreteDraftTarget.sourceId,
+      selectedConcreteDraftSource,
+    ),
+  )
+  const selectedConcreteDraftQuery = useQuery({
+    ...orpc.rules.draftConcreteRule.queryOptions({
+      input: selectedConcreteDraftTarget
+        ? concreteDraftInputForTarget(selectedConcreteDraftTarget)
+        : { ruleId: '', sourceId: '' },
+    }),
+    enabled: selectedConcreteDraftEnabled,
+  })
 
   const rowsData = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
   const filteredRows = useMemo(() => {
@@ -227,8 +347,8 @@ export function CoverageTab({
       const pending = row.pendingReviewCount ?? row.candidateCount
       if (filter === 'pending' && pending === 0) return false
       if (filter === 'active' && active === 0) return false
-      if (search.trim().length > 0) {
-        const q = search.trim().toLowerCase()
+      if (effectiveSearch.trim().length > 0) {
+        const q = effectiveSearch.trim().toLowerCase()
         const code = row.jurisdiction.toLowerCase()
         const name = jurisdictionLabel(row.jurisdiction).toLowerCase()
         if (code.includes(q) || name.includes(q)) return true
@@ -241,7 +361,7 @@ export function CoverageTab({
       }
       return true
     })
-  }, [rowsData, filter, search, rulesByJurisdiction])
+  }, [rowsData, filter, effectiveSearch, rulesByJurisdiction])
 
   // Pending-review queue flattened to a single ordered list — AL → AK
   // → AZ … with each jurisdiction's pending rules in submission order.
@@ -255,7 +375,145 @@ export function CoverageTab({
     }
     return out
   }, [rowsData, pendingRulesByJurisdiction])
-  const firstPendingRule = pendingQueue[0] ?? null
+  const visiblePendingQueue = useMemo<ObligationRule[]>(() => {
+    const out: ObligationRule[] = []
+    for (const row of filteredRows) {
+      const rules = pendingRulesByJurisdiction.get(row.jurisdiction) ?? []
+      out.push(...rules)
+    }
+    return out
+  }, [filteredRows, pendingRulesByJurisdiction])
+  const reviewTasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
+  const openTaskByRuleVersion = useMemo(
+    () => new Map(reviewTasks.map((task) => [reviewTaskKey(task), task])),
+    [reviewTasks],
+  )
+  const concreteDraftInputs = useMemo(() => {
+    const seen = new Set<string>()
+    const inputs: RuleConcreteDraftTarget[] = []
+    for (const rule of pendingQueue) {
+      const target = concreteDraftTargetForRule(rule)
+      if (!target) continue
+      const key = concreteDraftTargetKey(target)
+      if (seen.has(key)) continue
+      seen.add(key)
+      inputs.push(target)
+    }
+    return inputs
+  }, [pendingQueue])
+  const concreteDraftsQuery = useQuery({
+    ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
+    enabled: concreteDraftInputs.length > 0,
+  })
+  const selectedConcreteDraftDataUpdatedAt = selectedConcreteDraftQuery.dataUpdatedAt
+  const concreteDraftByTarget = useMemo(() => {
+    const map = new Map<string, RuleConcreteDraftCacheEntry>()
+    for (const entry of concreteDraftsQuery.data ?? []) {
+      map.set(concreteDraftTargetKey(entry), entry)
+    }
+    const shouldReadDraftQueryCache = selectedConcreteDraftDataUpdatedAt >= 0
+    if (shouldReadDraftQueryCache) {
+      for (const target of concreteDraftInputs) {
+        const draft = queryClient.getQueryData<RuleConcreteDraft>(
+          orpc.rules.draftConcreteRule.queryOptions({
+            input: concreteDraftInputForTarget(target),
+          }).queryKey,
+        )
+        if (!draft) continue
+        map.set(concreteDraftTargetKey(target), {
+          ruleId: target.ruleId,
+          sourceId: target.sourceId,
+          sourceSignalId: target.sourceSignalId ?? null,
+          draft,
+        })
+      }
+    }
+    return map
+  }, [
+    concreteDraftInputs,
+    concreteDraftsQuery.data,
+    queryClient,
+    selectedConcreteDraftDataUpdatedAt,
+  ])
+  const selectedRows = useMemo(
+    () =>
+      visiblePendingQueue.filter(
+        (rule) =>
+          selectedRuleKeys.includes(ruleRowKey(rule)) &&
+          canBulkReviewRule(rule, openTaskByRuleVersion, concreteDraftByTarget),
+      ),
+    [concreteDraftByTarget, openTaskByRuleVersion, selectedRuleKeys, visiblePendingQueue],
+  )
+  const templateRows = selectedRows.filter((rule) => !isSourceDefinedRule(rule))
+  const concreteDraftRows = selectedRows.flatMap((rule): SelectedConcreteDraftRule[] => {
+    const target = concreteDraftTargetForRule(rule)
+    if (!target) return []
+    const entry = concreteDraftByTarget.get(concreteDraftTargetKey(target))
+    if (!entry) return []
+    return [
+      {
+        rule,
+        sourceId: entry.sourceId,
+        sourceSignalId: entry.sourceSignalId,
+        draft: entry.draft,
+      },
+    ]
+  })
+  const selections = templateRows.map((rule) => ({
+    ruleId: rule.id,
+    expectedVersion:
+      openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))?.templateVersion ?? rule.version,
+  }))
+  const concreteDraftSelections = concreteDraftRows.map((entry) => ({
+    ruleId: entry.rule.id,
+    sourceId: entry.sourceId,
+    ...(entry.sourceSignalId ? { sourceSignalId: entry.sourceSignalId } : {}),
+    aiOutputId: entry.draft.aiOutputId,
+  }))
+  const visibleSelectableRows = visiblePendingQueue.filter((rule) =>
+    canBulkReviewRule(rule, openTaskByRuleVersion, concreteDraftByTarget),
+  )
+  const visibleSelectedRows = visibleSelectableRows.filter((rule) =>
+    selectedRuleKeys.includes(ruleRowKey(rule)),
+  )
+  const allVisibleSelected =
+    visibleSelectableRows.length > 0 && visibleSelectedRows.length === visibleSelectableRows.length
+  const visibleSingleReviewCount = Math.max(
+    0,
+    visiblePendingQueue.length - visibleSelectableRows.length,
+  )
+
+  const clearBulkSelection = () => {
+    setSelectedRuleKeys([])
+    setBulkDrawerOpen(false)
+    setPreview(null)
+  }
+
+  const invalidateRules = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+  }
+
+  const invalidateAcceptedRuleOutputs = () => {
+    invalidateRules()
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+  }
+
+  const previewMutation = useMutation(
+    orpc.rules.previewBulkRuleImpact.mutationOptions({
+      onSuccess: (result) => setPreview(result),
+      onError: (error) => {
+        toast.error(t`Couldn't preview selected rules`, {
+          description: rpcErrorMessage(error) ?? t`Check the selected rows and try again.`,
+        })
+      },
+    }),
+  )
+  const bulkAcceptMutation = useMutation(orpc.rules.bulkAcceptTemplates.mutationOptions({}))
+  const bulkVerifyMutation = useMutation(orpc.rules.bulkVerifyCandidates.mutationOptions({}))
 
   // Queue navigation helpers + keyboard shortcuts. All hoisted ABOVE
   // the loading/error early-returns so the hook order stays stable
@@ -402,14 +660,74 @@ export function CoverageTab({
     return <QueryPanelState state="error" message={t`Couldn't load rules coverage`} />
   }
 
-  const rows = rowsData
-  const stats = aggregateStats(rows)
   const panelOpen = selectedRuleId !== null
   const visibleEntityColumns = panelOpen ? [] : ENTITY_DISPLAY
   const totalColumnCount = 3 + 1 + visibleEntityColumns.length
 
-  const startReview = () => {
-    if (firstPendingRule) void setSelectedRuleId(firstPendingRule.id)
+  const toggleRuleSelection = (rowKey: string, checked: boolean) => {
+    setSelectedRuleKeys((current) =>
+      checked
+        ? current.includes(rowKey)
+          ? current
+          : [...current, rowKey]
+        : current.filter((key) => key !== rowKey),
+    )
+    setPreview(null)
+  }
+  const toggleVisibleSelection = (checked: boolean) => {
+    const visibleKeys = visibleSelectableRows.map(ruleRowKey)
+    setSelectedRuleKeys((current) =>
+      checked
+        ? Array.from(new Set([...current, ...visibleKeys]))
+        : current.filter((key) => !visibleKeys.includes(key)),
+    )
+    setPreview(null)
+  }
+  const openBulkReview = () => {
+    if (selectedRows.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    setBulkDrawerOpen(true)
+  }
+  const runBulkPreview = () => {
+    if (selections.length === 0) {
+      toast.error(t`Select at least one template rule to preview.`)
+      return
+    }
+    setBulkDrawerOpen(true)
+    previewMutation.mutate({ rules: selections })
+  }
+  const bulkAccept = async () => {
+    const note = reviewNote.trim()
+    if (selectedRows.length === 0) {
+      toast.error(t`Select at least one pending rule.`)
+      return
+    }
+    if (!note) {
+      toast.error(t`Batch review note is required.`)
+      return
+    }
+    try {
+      const [templateResult, concreteDraftResult] = await Promise.all([
+        selections.length > 0
+          ? bulkAcceptMutation.mutateAsync({ rules: selections, reviewNote: note })
+          : Promise.resolve({ accepted: [], skipped: [] }),
+        concreteDraftSelections.length > 0
+          ? bulkVerifyMutation.mutateAsync({ rules: concreteDraftSelections, reviewNote: note })
+          : Promise.resolve({ verified: [], skipped: [] }),
+      ])
+      invalidateAcceptedRuleOutputs()
+      clearBulkSelection()
+      setReviewNote('')
+      toast.success(t`Rules accepted`, {
+        description: t`${templateResult.accepted.length + concreteDraftResult.verified.length} accepted · ${templateResult.skipped.length + concreteDraftResult.skipped.length} skipped.`,
+      })
+    } catch (error) {
+      toast.error(t`Couldn't accept selected rules`, {
+        description: rpcErrorMessage(error) ?? t`Add a review note and try again.`,
+      })
+    }
   }
 
   return (
@@ -417,27 +735,21 @@ export function CoverageTab({
       {/* StatsStrip removed 2026-05-21 per docs/Design/ux-audit-2026-05-21.md
         P0 #5 — the active/pending/jurisdiction counts already render in
         `CoverageSummaryStrip` at the page top (drillable). Repeating
-        them here read as "this designer hasn't decided." The
-        StartReviewCTA stays because it's an action, not a stat. */}
-      {!panelOpen && firstPendingRule ? (
-        <StartReviewCTA pendingCount={stats.pending} onStartReview={startReview} />
-      ) : null}
+        them here read as "this designer hasn't decided." */}
 
       <section className="flex flex-col gap-3">
         {/* In normal mode, the section header carries the "Entity
-          coverage" label + search input + watched-source banner.
-          In review mode, all of that orientation chrome moves into
-          the workspace (search goes into the queue header) so the
-          banner-to-workspace gap collapses. */}
+          coverage" label + search input. In review mode, that
+          orientation chrome moves into the workspace (search goes into
+          the queue header). */}
         {!panelOpen ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xs font-semibold tracking-[0.12em] text-text-primary uppercase">
                 <Trans>Entity coverage</Trans>
               </h2>
-              <SearchInput value={search} onChange={setSearchValue} />
+              <SearchInput value={effectiveSearch} onChange={setSearchValue} />
             </div>
-            <SourceStatusBanner total={stats.sourcesTotal} />
             <EntityCoverageLegend />
           </>
         ) : null}
@@ -465,8 +777,19 @@ export function CoverageTab({
                   sourceById={sourceById}
                   selectedRuleId={selectedRuleId}
                   onSelectRule={selectRule}
-                  search={search}
+                  search={effectiveSearch}
                   onSearchChange={setSearchValue}
+                  selectedRuleKeys={selectedRuleKeys}
+                  selectedCount={selectedRows.length}
+                  allVisibleSelected={allVisibleSelected}
+                  visibleSelectableCount={visibleSelectableRows.length}
+                  visibleSingleReviewCount={visibleSingleReviewCount}
+                  openTaskByRuleVersion={openTaskByRuleVersion}
+                  concreteDraftByTarget={concreteDraftByTarget}
+                  onRuleSelectionChange={toggleRuleSelection}
+                  onToggleVisibleSelection={toggleVisibleSelection}
+                  onReviewSelected={openBulkReview}
+                  onClearSelection={clearBulkSelection}
                 />
               </div>
               {selectedRule ? (
@@ -565,73 +888,27 @@ export function CoverageTab({
           )}
         </div>
       </section>
+      <BulkReviewDrawer
+        open={bulkDrawerOpen}
+        onOpenChange={setBulkDrawerOpen}
+        selectedRules={selectedRows}
+        selectedConcreteDrafts={concreteDraftRows}
+        templateRuleCount={templateRows.length}
+        preview={preview}
+        reviewNote={reviewNote}
+        previewPending={previewMutation.isPending}
+        acceptPending={bulkAcceptMutation.isPending || bulkVerifyMutation.isPending}
+        onReviewNoteChange={setReviewNote}
+        onPreview={runBulkPreview}
+        onAccept={() => void bulkAccept()}
+      />
     </div>
   )
-}
-
-type Stats = {
-  active: number
-  pending: number
-  missingSources: number
-  sourcesWorking: number
-  sourcesTotal: number
-  jurisdictions: number
-}
-
-function aggregateStats(rows: readonly RuleCoverageRow[]): Stats {
-  let active = 0
-  let pending = 0
-  let missingSources = 0
-  let sourcesTotal = 0
-  for (const row of rows) {
-    active += row.activeRuleCount ?? row.verifiedRuleCount
-    pending += row.pendingReviewCount ?? row.candidateCount
-    missingSources += row.missingSourceCount
-    sourcesTotal += row.sourceCount
-  }
-  return {
-    active,
-    pending,
-    missingSources,
-    sourcesWorking: sourcesTotal,
-    sourcesTotal,
-    jurisdictions: rows.length,
-  }
 }
 
 // StatsStrip + Stat removed 2026-05-21 — counts now live in the page-
 // level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
 // See docs/Design/ux-audit-2026-05-21.md P0 #5.
-
-/**
- * Primary entry point for reviewing pending rules. Sits right under
- * the stats strip in matrix mode so a user landing on the page can
- * jump straight into triage without first hunting for a jurisdiction
- * with pending rules. Hidden when there's nothing pending.
- */
-function StartReviewCTA({
-  pendingCount,
-  onStartReview,
-}: {
-  pendingCount: number
-  onStartReview: () => void
-}) {
-  const { t } = useLingui()
-  return (
-    <button
-      type="button"
-      onClick={onStartReview}
-      aria-label={t`Start reviewing ${pendingCount} pending rules`}
-      className="group/cta inline-flex h-9 w-fit items-center gap-2 rounded-md bg-text-primary px-3 text-sm font-medium text-text-inverted outline-none hover:bg-text-primary/90 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-    >
-      <Trans>Review {pendingCount} pending rules</Trans>
-      <ChevronRightIcon
-        aria-hidden
-        className="size-4 transition-transform group-hover/cta:translate-x-0.5"
-      />
-    </button>
-  )
-}
 
 function SearchInput({
   value,
@@ -690,7 +967,7 @@ function ActiveFilterChip({
 
 /**
  * Compact legend for the entity-coverage glyphs. Sits between the
- * source banner and the table so a first-time CPA can decode the
+ * section header and the table so a first-time CPA can decode the
  * orange triangle / green check / em-dash glyphs without hover-discovering them.
  */
 function EntityCoverageLegend() {
@@ -735,35 +1012,6 @@ function EntityCoverageLegend() {
         <Trans>Not applicable</Trans>
       </span>
     </div>
-  )
-}
-
-/**
- * Source-status banner — always visible. Source fetch/parser failures are
- * internal ops diagnostics; CPA users only need to know which authorities are
- * being monitored.
- */
-function SourceStatusBanner({ total }: { total: number }) {
-  return (
-    <Link
-      to="/rules/sources"
-      aria-label={`Open Sources — all ${total} official sources are watched`}
-      className={cn(
-        'group/cta inline-flex h-9 w-fit items-center gap-2',
-        'rounded-md bg-status-done/10 px-3',
-        'text-sm text-text-secondary outline-none',
-        'hover:bg-status-done/15 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-      )}
-    >
-      <CheckCircle2Icon aria-hidden className="size-4 text-status-done" />
-      <span className="font-medium text-text-primary">
-        <Trans>All {total} sources watched</Trans>
-      </span>
-      <ChevronRightIcon
-        aria-hidden
-        className="size-4 text-text-tertiary transition-transform group-hover/cta:translate-x-0.5 group-hover/cta:text-text-accent"
-      />
-    </Link>
   )
 }
 
@@ -1135,11 +1383,21 @@ function CoverageRuleItem({
   ruleSource,
   isSelected,
   onSelect,
+  selection,
+  selectionUnavailableLabel,
+  sourceDefinedDraftReady = false,
 }: {
   rule: ObligationRule
   ruleSource: RuleSource | null
   isSelected: boolean
   onSelect: () => void
+  selection?: {
+    checked: boolean
+    label: string
+    onChange: (checked: boolean) => void
+  }
+  selectionUnavailableLabel?: ReactNode
+  sourceDefinedDraftReady?: boolean
 }) {
   const { t } = useLingui()
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
@@ -1166,11 +1424,13 @@ function CoverageRuleItem({
         target. Selected state shows as a bg-tint that spans the
         natural row width. */}
       <div
+        onClick={() => onSelect()}
         className={cn(
-          'flex items-center justify-between gap-3 rounded py-2 transition-colors',
+          'flex cursor-pointer items-center justify-between gap-3 rounded py-2 transition-colors',
           isSelected ? 'bg-state-accent-tint/50' : 'hover:bg-background-subtle/50',
         )}
       >
+        {selection ? <RuleSelectionCheckbox selection={selection} /> : null}
         <button
           type="button"
           onClick={(event) => {
@@ -1180,7 +1440,7 @@ function CoverageRuleItem({
           aria-pressed={isSelected}
           title={rule.title}
           className={cn(
-            'flex-1 truncate rounded text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+            'flex-1 cursor-pointer truncate rounded text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             // Selection: heavier weight + bg-tint instead of accent
             // colour — keeps blue reserved for the primary CTA.
             isSelected
@@ -1192,7 +1452,16 @@ function CoverageRuleItem({
         </button>
         {ruleSource ? (
           <div className="flex shrink-0 items-center gap-2">
-            <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+            {selectionUnavailableLabel ? (
+              <RuleSelectionUnavailableChip>
+                {selectionUnavailableLabel}
+              </RuleSelectionUnavailableChip>
+            ) : null}
+            <RuleStatusChip
+              rule={rule}
+              sourceDefined={sourceDefined}
+              sourceDefinedDraftReady={sourceDefinedDraftReady}
+            />
             <a
               href={ruleSource.url}
               target="_blank"
@@ -1207,31 +1476,82 @@ function CoverageRuleItem({
             </a>
           </div>
         ) : (
-          <RuleStatusChip rule={rule} sourceDefined={sourceDefined} />
+          <div className="flex shrink-0 items-center gap-2">
+            {selectionUnavailableLabel ? (
+              <RuleSelectionUnavailableChip>
+                {selectionUnavailableLabel}
+              </RuleSelectionUnavailableChip>
+            ) : null}
+            <RuleStatusChip
+              rule={rule}
+              sourceDefined={sourceDefined}
+              sourceDefinedDraftReady={sourceDefinedDraftReady}
+            />
+          </div>
         )}
       </div>
     </li>
   )
 }
 
+function RuleSelectionCheckbox({
+  selection,
+}: {
+  selection: {
+    checked: boolean
+    label: string
+    onChange: (checked: boolean) => void
+  }
+}) {
+  return (
+    <input
+      type="checkbox"
+      aria-label={selection.label}
+      checked={selection.checked}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+      onChange={(event) => selection.onChange(event.target.checked)}
+      className="size-4 shrink-0"
+    />
+  )
+}
+
+function RuleSelectionUnavailableChip({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-background-subtle px-1.5 text-[10px] font-medium text-text-tertiary">
+      {children}
+    </span>
+  )
+}
+
 function RuleStatusChip({
   rule,
   sourceDefined,
+  sourceDefinedDraftReady = false,
 }: {
   rule: Pick<ObligationRule, 'status'>
   sourceDefined: boolean
+  sourceDefinedDraftReady?: boolean
 }) {
+  if (sourceDefined) {
+    if (sourceDefinedDraftReady) {
+      return (
+        <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-[10px] font-medium text-status-review">
+          <Trans>AI draft ready</Trans>
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium">
+        <Trans>AI draft needed</Trans>
+      </span>
+    )
+  }
+
   if (rule.status === 'active' || rule.status === 'verified') {
     return (
-      <span
-        className={cn(
-          'inline-flex h-[18px] shrink-0 items-center rounded-sm px-1.5 text-[10px] font-medium',
-          sourceDefined
-            ? 'bg-severity-medium-tint text-severity-medium'
-            : 'bg-status-done/10 text-status-done',
-        )}
-      >
-        {sourceDefined ? <Trans>Due-date review</Trans> : <Trans>Active</Trans>}
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-done/10 px-1.5 text-[10px] font-medium text-status-done">
+        <Trans>Active</Trans>
       </span>
     )
   }
@@ -1267,6 +1587,17 @@ function PendingRuleQueue({
   onSelectRule,
   search,
   onSearchChange,
+  selectedRuleKeys,
+  selectedCount,
+  allVisibleSelected,
+  visibleSelectableCount,
+  visibleSingleReviewCount,
+  openTaskByRuleVersion,
+  concreteDraftByTarget,
+  onRuleSelectionChange,
+  onToggleVisibleSelection,
+  onReviewSelected,
+  onClearSelection,
 }: {
   filteredRows: readonly RuleCoverageRow[]
   pendingRulesByJurisdiction: ReadonlyMap<RuleJurisdiction, ObligationRule[]>
@@ -1275,7 +1606,19 @@ function PendingRuleQueue({
   onSelectRule: (ruleId: string) => void
   search: string
   onSearchChange: (value: string) => void
+  selectedRuleKeys: readonly string[]
+  selectedCount: number
+  allVisibleSelected: boolean
+  visibleSelectableCount: number
+  visibleSingleReviewCount: number
+  openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
+  onRuleSelectionChange: (rowKey: string, checked: boolean) => void
+  onToggleVisibleSelection: (checked: boolean) => void
+  onReviewSelected: () => void
+  onClearSelection: () => void
 }) {
+  const { t } = useLingui()
   const jurisdictionsWithPending = filteredRows.filter(
     (row) => (row.pendingReviewCount ?? row.candidateCount) > 0,
   )
@@ -1295,6 +1638,46 @@ function PendingRuleQueue({
           </span>
         </div>
         <SearchInput value={search} onChange={onSearchChange} fullWidth />
+        <div className="flex items-center justify-between gap-2">
+          {visibleSelectableCount > 0 ? (
+            <label className="inline-flex min-w-0 items-center gap-2 text-xs text-text-secondary">
+              <input
+                type="checkbox"
+                aria-label={t`Select visible batch-ready rules`}
+                checked={allVisibleSelected}
+                onChange={(event) => onToggleVisibleSelection(event.target.checked)}
+                className="size-4"
+              />
+              <span className="truncate">
+                <Trans>Select batch-ready</Trans>
+              </span>
+            </label>
+          ) : (
+            <span className="text-xs text-text-tertiary">
+              <Trans>No batch-ready rules</Trans>
+            </span>
+          )}
+          {selectedCount > 0 ? (
+            <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
+              <Trans>{selectedCount} selected</Trans>
+            </span>
+          ) : null}
+        </div>
+        <p className="text-xs text-text-tertiary">
+          <Trans>
+            {visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review
+          </Trans>
+        </p>
+        {selectedCount > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button type="button" size="sm" onClick={onReviewSelected}>
+              <Trans>Review selected</Trans>
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onClearSelection}>
+              <Trans>Clear</Trans>
+            </Button>
+          </div>
+        ) : null}
       </header>
       <div className="flex-1 overflow-y-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {jurisdictionsWithPending.length === 0 ? (
@@ -1317,15 +1700,50 @@ function PendingRuleQueue({
                     </span>
                   </header>
                   <ul className="flex flex-col">
-                    {rules.map((rule) => (
-                      <CoverageRuleItem
-                        key={rule.id}
-                        rule={rule}
-                        ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
-                        isSelected={selectedRuleId === rule.id}
-                        onSelect={() => onSelectRule(rule.id)}
-                      />
-                    ))}
+                    {rules.map((rule) => {
+                      const rowKey = ruleRowKey(rule)
+                      const reviewTask = openTaskByRuleVersion.get(reviewTaskKeyForRule(rule))
+                      const disabledReason = bulkReviewDisabledReason(
+                        rule,
+                        reviewTask ?? null,
+                        concreteDraftByTarget,
+                      )
+                      const disabledReasonLabel =
+                        disabledReason === 'source_defined'
+                          ? t`AI draft needed`
+                          : disabledReason === 'source_changed'
+                            ? t`Single review`
+                            : disabledReason === 'no_open_task'
+                              ? t`No open review task.`
+                              : null
+                      const draftTarget = concreteDraftTargetForRule(rule)
+                      const concreteDraftReady = draftTarget
+                        ? concreteDraftByTarget.has(concreteDraftTargetKey(draftTarget))
+                        : false
+                      return (
+                        <CoverageRuleItem
+                          key={rule.id}
+                          rule={rule}
+                          ruleSource={sourceById.get(rule.sourceIds[0] ?? '') ?? null}
+                          isSelected={selectedRuleId === rule.id}
+                          onSelect={() => onSelectRule(rule.id)}
+                          sourceDefinedDraftReady={concreteDraftReady}
+                          {...(disabledReason === null
+                            ? {
+                                selection: {
+                                  checked: selectedRuleKeys.includes(rowKey),
+                                  label: concreteDraftReady
+                                    ? t`Select AI draft rule ${rule.title}`
+                                    : t`Select rule ${rule.title}`,
+                                  onChange: (checked) => onRuleSelectionChange(rowKey, checked),
+                                },
+                              }
+                            : disabledReasonLabel !== null && disabledReason !== 'source_defined'
+                              ? { selectionUnavailableLabel: disabledReasonLabel }
+                              : {})}
+                        />
+                      )
+                    })}
                   </ul>
                 </section>
               )
@@ -1334,6 +1752,337 @@ function PendingRuleQueue({
         )}
       </div>
     </>
+  )
+}
+
+type BulkReviewDisabledReason = 'source_defined' | 'source_changed' | 'no_open_task'
+
+function legacyLibraryFilterToCoverageFilter(value: string | null): RowFilter | null {
+  if (value === 'active' || value === 'verified') return 'active'
+  if (value === 'pending_review' || value === 'candidate') return 'pending'
+  return null
+}
+
+function canBulkReviewRule(
+  rule: ObligationRule,
+  openTaskByRuleVersion: ReadonlyMap<string, RuleReviewTask>,
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>,
+): boolean {
+  if (rule.status !== 'pending_review') return false
+  if (!canBulkReviewTask(openTaskByRuleVersion.get(reviewTaskKeyForRule(rule)) ?? null)) {
+    return false
+  }
+  if (!isSourceDefinedRule(rule)) return true
+  const target = concreteDraftTargetForRule(rule)
+  return target ? concreteDraftByTarget.has(concreteDraftTargetKey(target)) : false
+}
+
+function canBulkReviewTask(task: RuleReviewTask | null): boolean {
+  return task !== null && task.reason !== 'source_changed'
+}
+
+function bulkReviewDisabledReason(
+  rule: ObligationRule,
+  reviewTask: RuleReviewTask | null,
+  concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>,
+): BulkReviewDisabledReason | null {
+  if (reviewTask?.reason === 'source_changed') return 'source_changed'
+  if (!canBulkReviewTask(reviewTask)) return 'no_open_task'
+  if (isSourceDefinedRule(rule)) {
+    const target = concreteDraftTargetForRule(rule)
+    if (!target || !concreteDraftByTarget.has(concreteDraftTargetKey(target))) {
+      return 'source_defined'
+    }
+  }
+  return null
+}
+
+function BulkReviewDrawer({
+  open,
+  onOpenChange,
+  selectedRules,
+  selectedConcreteDrafts,
+  templateRuleCount,
+  preview,
+  reviewNote,
+  previewPending,
+  acceptPending,
+  onReviewNoteChange,
+  onPreview,
+  onAccept,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  selectedRules: ObligationRule[]
+  selectedConcreteDrafts: SelectedConcreteDraftRule[]
+  templateRuleCount: number
+  preview: RuleBulkImpactPreview | null
+  reviewNote: string
+  previewPending: boolean
+  acceptPending: boolean
+  onReviewNoteChange: (value: string) => void
+  onPreview: () => void
+  onAccept: () => void
+}) {
+  const { t } = useLingui()
+  const hiddenRuleCount = Math.max(0, selectedRules.length - 8)
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(720px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
+        <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
+          <SheetTitle className="text-md text-text-primary">
+            <Trans>Review selected rules</Trans>
+          </SheetTitle>
+          <SheetDescription>
+            <Trans>
+              Review batch-ready templates and AI concrete drafts, add one batch note, then accept
+              them into active practice rules.
+            </Trans>
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex flex-col gap-5">
+            <section className="flex flex-col gap-2">
+              <BulkSectionLabel>
+                <Trans>SELECTED RULES</Trans>
+              </BulkSectionLabel>
+              <div className="overflow-hidden rounded-md border border-divider-regular bg-background-subtle">
+                {selectedRules.length > 0 ? (
+                  selectedRules.slice(0, 8).map((rule) => (
+                    <div
+                      key={ruleRowKey(rule)}
+                      className="flex items-center gap-3 border-b border-divider-subtle px-3 py-2 last:border-b-0"
+                    >
+                      <JurisdictionCode code={rule.jurisdiction} />
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium text-text-primary">
+                          {rule.title}
+                        </span>
+                        <span className="block truncate font-mono text-[11px] text-text-tertiary">
+                          {rule.id}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs text-text-tertiary">v{rule.version}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-3 py-3 text-xs text-text-tertiary">
+                    <Trans>Select pending rules from the queue.</Trans>
+                  </div>
+                )}
+                {hiddenRuleCount > 0 ? (
+                  <div className="border-t border-divider-subtle px-3 py-2 text-xs text-text-tertiary">
+                    <Trans>{hiddenRuleCount} more selected rules</Trans>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+            {selectedConcreteDrafts.length > 0 ? (
+              <section className="flex flex-col gap-2">
+                <BulkSectionLabel>
+                  <Trans>AI CONCRETE DRAFTS</Trans>
+                </BulkSectionLabel>
+                <BulkConcreteDraftSummary selectedDrafts={selectedConcreteDrafts} />
+              </section>
+            ) : null}
+            {templateRuleCount > 0 ? (
+              <section className="flex flex-col gap-2">
+                <BulkSectionLabel>
+                  <Trans>PREVIEW</Trans>
+                </BulkSectionLabel>
+                <BulkPreviewSummary preview={preview} />
+              </section>
+            ) : null}
+            <label className="flex flex-col gap-2">
+              <BulkSectionLabel>
+                <Trans>BATCH REVIEW NOTE</Trans>
+              </BulkSectionLabel>
+              <Textarea
+                value={reviewNote}
+                onChange={(event) => onReviewNoteChange(event.target.value)}
+                placeholder={t`Reviewed source authority and practice applicability.`}
+                className="min-h-24 text-xs"
+              />
+            </label>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-divider-regular px-5 py-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onPreview}
+            disabled={previewPending || templateRuleCount === 0}
+          >
+            <EyeIcon className="size-3.5" />
+            <Trans>Preview</Trans>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={onAccept}
+            disabled={acceptPending || selectedRules.length === 0}
+          >
+            <CheckIcon className="size-3.5" />
+            <Trans>Accept selected</Trans>
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function BulkConcreteDraftSummary({
+  selectedDrafts,
+}: {
+  selectedDrafts: SelectedConcreteDraftRule[]
+}) {
+  const hiddenDraftCount = Math.max(0, selectedDrafts.length - 5)
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+      {selectedDrafts.slice(0, 5).map(({ rule, draft }) => (
+        <div
+          key={ruleRowKey(rule)}
+          className="flex flex-col gap-1 border-b border-divider-subtle pb-2 last:border-b-0 last:pb-0"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="min-w-0 truncate font-medium text-text-primary">{rule.title}</span>
+            <span className="shrink-0 text-text-tertiary">
+              <Trans>{Math.round(draft.confidence * 100)}% confidence</Trans>
+            </span>
+          </div>
+          <span className="text-text-secondary">{humanizeDueDateLogic(draft.dueDateLogic)}</span>
+          <div className="flex flex-wrap gap-1.5 text-text-tertiary">
+            <span>{formatEnumLabel(draft.coverageStatus)}</span>
+            {draft.requiresApplicabilityReview ? (
+              <span>
+                <Trans>Applicability review</Trans>
+              </span>
+            ) : null}
+          </div>
+          <p className="line-clamp-2 text-text-tertiary">"{draft.sourceExcerpt}"</p>
+        </div>
+      ))}
+      {hiddenDraftCount > 0 ? (
+        <span className="text-text-tertiary">
+          <Trans>{hiddenDraftCount} more AI drafts</Trans>
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
+function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null }) {
+  const { t } = useLingui()
+
+  if (!preview) {
+    return (
+      <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs text-text-tertiary">
+        <Trans>Preview selected rules before accepting them into production.</Trans>
+      </div>
+    )
+  }
+
+  const skipReasonLabels: Record<RuleBulkImpactPreview['skipped'][number]['reason'], string> = {
+    template_not_found: t`Rule not found`,
+    version_conflict: t`Version conflict`,
+    already_active: t`Already active`,
+    rejected: t`Rejected`,
+    archived: t`Archived`,
+    invalid_template: t`Invalid rule`,
+    source_changed_requires_review: t`Source changed requires single-rule review`,
+    source_defined_requires_ai_review: t`AI draft review required`,
+  }
+
+  return (
+    <div className="flex flex-col gap-3 rounded-md border border-divider-regular bg-background-subtle px-3 py-3 text-xs">
+      <div className="grid gap-2 text-text-secondary">
+        <span>
+          <Trans>
+            {preview.acceptReadyCount} ready · {preview.estimatedObligationCount} estimated
+            obligation matches
+          </Trans>
+        </span>
+        <span>
+          <Trans>{preview.sourceCount} sources involved</Trans>
+        </span>
+      </div>
+      {preview.jurisdictionCounts.length > 0 ? (
+        <PreviewList label={<Trans>Jurisdictions</Trans>} rows={preview.jurisdictionCounts} />
+      ) : null}
+      {preview.formCounts.length > 0 ? (
+        <PreviewList label={<Trans>Forms</Trans>} rows={preview.formCounts} />
+      ) : null}
+      {preview.entityCounts.length > 0 ? (
+        <PreviewList label={<Trans>Entities</Trans>} rows={preview.entityCounts} />
+      ) : null}
+      {preview.reviewReasonCounts.length > 0 ? (
+        <PreviewList label={<Trans>Review reasons</Trans>} rows={preview.reviewReasonCounts} />
+      ) : null}
+      {preview.reviewReasonCounts.some((row) => row.key === 'source_changed') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>Source-changed rules should be checked against evidence before accepting.</Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.some((row) => row.reason === 'source_changed_requires_review') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>
+              Source-changed rules are skipped from bulk accept. Review them one by one.
+            </Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.some((row) => row.reason === 'source_defined_requires_ai_review') ? (
+        <div className="flex items-start gap-2 text-severity-medium">
+          <span>
+            <Trans>
+              Source-defined rules are skipped from bulk accept. Generate and review their AI draft
+              one by one.
+            </Trans>
+          </span>
+        </div>
+      ) : null}
+      {preview.skipped.length > 0 ? (
+        <div className="flex flex-col gap-1 text-severity-medium">
+          <span className="font-medium">
+            <Trans>Skipped</Trans>
+          </span>
+          <span>{preview.skipped.map((row) => skipReasonLabels[row.reason]).join(', ')}</span>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function PreviewList({
+  label,
+  rows,
+}: {
+  label: ReactNode
+  rows: RuleBulkImpactPreview['jurisdictionCounts']
+}) {
+  return (
+    <div className="flex flex-col gap-1 text-text-secondary">
+      <span className="font-medium">{label}</span>
+      <span>
+        {rows
+          .slice(0, 6)
+          .map((row) => `${row.key} ${row.count}`)
+          .join(' · ')}
+      </span>
+    </div>
+  )
+}
+
+function BulkSectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      {children}
+    </p>
   )
 }
 

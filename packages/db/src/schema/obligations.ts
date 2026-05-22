@@ -277,7 +277,7 @@ export const obligationInstance = sqliteTable(
     // Dashboard tabs: This Week / This Month / All — scan by firm + status +
     // soonest due first.
     index('idx_oi_firm_status_due').on(table.firmId, table.status, table.currentDueDate),
-    // Penalty Radar / Obligations triage: sort open obligations by exposure.
+    // Deadline Radar / Obligations triage: sort open obligations by exposure.
     index('idx_oi_firm_due_exposure').on(
       table.firmId,
       table.currentDueDate,

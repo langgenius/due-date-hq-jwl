@@ -59,4 +59,39 @@ describe('rule source text extraction', () => {
       'Answer: Returns are due April 15 unless the date falls on a weekend or holiday.',
     )
   })
+
+  it('keeps due-date table rows as source-backed excerpt text', () => {
+    const html = `
+      <html>
+        <body>
+          <main>
+            <h1>Due Dates</h1>
+            <p>Some Income Taxes have set due dates and others vary by situation. See table below.</p>
+            <table>
+              <thead>
+                <tr><th>Tax Type</th><th>Due Date</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Individual Income Tax</td>
+                  <td>Due the same date as the corresponding federal income tax return.</td>
+                </tr>
+                <tr>
+                  <td>S-Corporation</td>
+                  <td>Due annually on March 15 for calendar year taxpayers.</td>
+                </tr>
+              </tbody>
+            </table>
+          </main>
+        </body>
+      </html>
+    `
+
+    const text = extractOfficialSourceText(html)
+
+    expect(text).toContain(
+      'Individual Income Tax Due the same date as the corresponding federal income tax return.',
+    )
+    expect(text).toContain('S-Corporation Due annually on March 15 for calendar year taxpayers.')
+  })
 })

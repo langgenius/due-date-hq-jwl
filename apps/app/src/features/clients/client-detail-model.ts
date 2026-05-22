@@ -43,8 +43,6 @@ export type ClientWorkPlanSummary = {
   openCount: number
   overdueOpenCount: number
   needsReviewCount: number
-  projectedExposureCents: number
-  exposureNeedsInputCount: number
   estimatedTaxDueCents: number
   paymentTrackCount: number
   nextDueDate: string | null
@@ -86,21 +84,11 @@ export function buildClientWorkPlanSummary(
     needsReviewCount: open.filter(
       (obligation) => obligation.status === 'review' || obligation.readiness === 'needs_review',
     ).length,
-    projectedExposureCents: open.reduce(
-      (total, obligation) => total + (obligation.estimatedExposureCents ?? 0),
-      0,
-    ),
-    exposureNeedsInputCount: open.filter(
-      (obligation) => obligation.exposureStatus === 'needs_input',
-    ).length,
     estimatedTaxDueCents: open.reduce(
       (total, obligation) => total + (obligation.estimatedTaxDueCents ?? 0),
       0,
     ),
-    paymentTrackCount: open.filter(
-      (obligation) =>
-        obligation.estimatedTaxDueCents !== null || obligation.estimatedExposureCents !== null,
-    ).length,
+    paymentTrackCount: open.filter((obligation) => obligation.estimatedTaxDueCents !== null).length,
     nextDueDate,
   }
 }

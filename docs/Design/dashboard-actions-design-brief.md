@@ -102,7 +102,7 @@ Status names everywhere use the v2 vocabulary (`not_started · waiting_on_client
 **Aggregate strip chips are deep links.**
 
 - `5 need your decision` → `/obligations?status=in_review`
-- `$14,200 at risk` → `/obligations?sort=projectedRisk&exposure=ready`
+- `$14,200 at risk` → `/obligations?sort=legacyPenaltyEstimate&exposure=ready`
 - `2 blocked` → `/obligations?status=blocked`
 - `3 waiting on client` → `/obligations?status=waiting_on_client`
 

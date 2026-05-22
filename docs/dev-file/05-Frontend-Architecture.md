@@ -209,7 +209,7 @@ feature 语义留在 members vertical 内。
 - 动作受限：按钮、dropdown、command palette 项保留但 disabled，右侧显示所需角色 badge 或
   inline note。Members、Billing、Audit 等整页 gate 必须在权限不足时禁用对应 RPC query，
   不能先请求再把 403 当 UI 状态处理。
-- projected risk / accrued penalty 金额对 coordinator 默认显示 `Hidden by role`；只有 firm 开启
+- legacy penalty estimate / accrued penalty 金额对 coordinator 默认显示 `Hidden by role`；只有 firm 开启
   `coordinatorCanSeeDollars` 时才展示金额和 breakdown。
 
 ---
@@ -228,9 +228,9 @@ feature 语义留在 members vertical 内。
 Activation Slice v1 约束：Dashboard 不再维护本地 fake risk rows / queue stats / pulse items。
 `apps/app/src/routes/dashboard.tsx` 直接消费
 `useQuery(orpc.dashboard.load.queryOptions({ input: {} }))`，只负责 loading / error / empty /
-real-data 呈现；open risk、due window、needs review、evidence gap、Penalty Radar projected risk
-和 severity 都由 server aggregation 统一计算。Penalty Radar 的首屏主金额口径是
-overdue + next-seven-day ready 90-day projected risk；accrued penalty 作为辅助指标，只聚合
+real-data 呈现；open risk、due window、needs review、evidence gap、Deadline Radar legacy penalty estimate
+和 severity 都由 server aggregation 统一计算。Deadline Radar 的首屏主金额口径是
+overdue + next-seven-day ready 90-day legacy penalty estimate；accrued penalty 作为辅助指标，只聚合
 overdue open obligations；Dashboard 只保留一个 row-level 操作表
 `Triage queue`，默认选中 `This Week` 并使用同一组 urgent rows。`Needs review` 进入顶部
 metrics，不再用单独的 `Operational closure` 面板重复 summary count。前端只渲染
@@ -526,7 +526,7 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   when the obligation's rule is tax-year driven, with legacy fiscal obligations kept editable.
   Saving requires the server to resolve the statutory due date from that obligation's tax period and
   updates internal, filing, and payment deadlines as one unit.
-- **表头筛选**：Client / Owner / State / County / Tax type / Days / Projected risk /
+- **表头筛选**：Client / Owner / State / County / Tax type / Days / Legacy penalty estimate /
   Readiness / Status 的筛选入口直接挂在 TanStack Table header 上；顶部控制区只保留搜索、排序、
   Reset 和少量 triage 快捷 chip，避免 Obligations 出现两套筛选面。
 - **搜索防抖**：Obligations 搜索是客户端 TanStack Query fetching，不是 React Router
@@ -639,7 +639,7 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
 - 所有交互元素 `tabindex` 正确；Base UI 自带正确 focus management
 - 颜色对比度 ≥ 4.5:1（DESIGN.md 的 token 已满足）
 - 暗色模式真实切换（不只是 media query）
-- `prefers-reduced-motion` → Live Genesis / Penalty Radar 金额动画降级为短 fade
+- `prefers-reduced-motion` → Live Genesis / Deadline Radar 金额动画降级为短 fade
 
 ---
 

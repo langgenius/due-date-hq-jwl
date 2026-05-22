@@ -87,7 +87,7 @@
 1. **30 秒看清风险**
 
 - Dashboard 首屏 Edge 冷响应 ≤ 200ms；SPA 回访热加载（chunk hash 长缓存 + TanStack Query 内存缓存）≤ 50ms
-- Penalty Radar 顶栏**必须服务端预聚合**，前端不在 render 阶段做累加
+- Deadline Radar 顶栏**必须服务端预聚合**，前端不在 render 阶段做累加
 - 1000 obligations × 200 clients 规模下筛选 P95 < 1s（复合索引 + 服务端 pagination）
 
 2. **30 分钟完成导入**
@@ -177,7 +177,7 @@ Schema、索引、目录结构**一次性覆盖到 Phase 1**：Firm / User / Mem
 
 | 指标                                 | 目标                 | 埋点                                   |
 | ------------------------------------ | -------------------- | -------------------------------------- |
-| Migration Time-to-First-Value P50    | ≤ 10 min             | signup → 首次看到 Penalty Radar `$`    |
+| Migration Time-to-First-Value P50    | ≤ 10 min             | signup → 首次看到 Deadline Radar `$`   |
 | **Migration P95 完成时间（S2-AC5）** | ≤ 30 min             | Signup → Import 完成（30 客户基准）    |
 | Migration Completion Rate            | ≥ 70%                | Step 1 → Step 4                        |
 | Migration Mapping Confidence         | ≥ 85%                | AI Mapper 平均 confidence              |
@@ -215,7 +215,7 @@ Schema、索引、目录结构**一次性覆盖到 Phase 1**：Firm / User / Mem
 - **Transactional Outbox**：Pulse Apply 与 Email Job 在同一 D1 事务内写入 `email_outbox` 表，由 Queue 消费者异步 flush
 - **migration_batch**：单次 Import 的事务边界；PK = `id`；挂载 `migration_mapping` / `migration_normalization` / `migration_error` / 生成的 `client[].migration_batch_id`；24h revert 窗口以 `applied_at + 24h` 表示（对齐 `../product-design/migration-copilot/01-mvp-and-journeys.md` §4 · ADR 0011 Decision I）
 - **Default Matrix**：`(entity_type × state) → tax_types[]` 的 practice-reviewed 静态查表；Demo Sprint v1.0 覆盖 Federal + CA + NY × 8 实体 = 24 格；定义在 `../product-design/migration-copilot/05-default-matrix.v1.0.yaml`；运行期由 Rule Engine 读取并写 `evidence_link(source_type='default_inference_by_entity_state', matrix_version='v1.0')`
-- **Live Genesis**：Import 完成后 4–6 秒的前端驱动动画，粒子弧线飞入 Penalty Radar + odometer 数字滚动；`prefers-reduced-motion` 降级为 200ms fade-in；规格详见 `../product-design/migration-copilot/07-live-genesis.md`
+- **Live Genesis**：Import 完成后 4–6 秒的前端驱动动画，粒子弧线飞入 Deadline Radar + odometer 数字滚动；`prefers-reduced-motion` 降级为 200ms fade-in；规格详见 `../product-design/migration-copilot/07-live-genesis.md`
 - **confidence-badge**：Migration AI Mapper / Normalizer 输出的 3 档置信度徽章（≥ 0.95 / 0.80–0.94 / < 0.80）；与 severity / status 语义解耦——**数据质量类 `needs_review` 用 `severity-medium` 黄，工作流 Review 用 `status-review` 紫**（ADR 0011 Decision III 权威裁定；token 见 `../../DESIGN.md` `confidence-badge:`）
 
 ---

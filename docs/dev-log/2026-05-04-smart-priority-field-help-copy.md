@@ -14,7 +14,7 @@ setting.
 
 ## Changes
 
-- Added field-specific concept help for `Projected risk cap`, `Urgency window`, and
+- Added field-specific concept help for `Legacy penalty estimate cap`, `Urgency window`, and
   `Late filing cap`.
 - Pointed the Practice profile Smart Priority field icons at those specific concepts.
 - Refreshed Lingui catalogs and generated messages.

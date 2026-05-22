@@ -21,10 +21,7 @@ export interface ObligationQueueListInput {
   owner?: ObligationQueueOwnerFilter
   due?: ObligationQueueDueFilter
   dueWithinDays?: number
-  exposureStatus?: ObligationInstanceRow['exposureStatus']
   readiness?: ObligationQueueReadiness[]
-  minExposureCents?: number
-  maxExposureCents?: number
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean

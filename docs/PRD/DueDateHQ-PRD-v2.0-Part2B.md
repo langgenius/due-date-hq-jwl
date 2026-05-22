@@ -72,7 +72,7 @@ DueDateHQ 的模型执行层只依赖 **Vercel AI SDK Core**，运行在 Cloudfl
 | 组件                | 功能语义                                                                                                     | 对应场景                             |
 | ------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
 | **Risk Row**        | 客户 + 义务 + 倒计时 + $ 敞口 + Status + 行内操作；Critical / High 行带 2px 左边框 + tint 背景               | Obligations / Dashboard 表格行       |
-| **Hero Metric**     | Dashboard 顶部 `$142,300 · AT RISK · NEXT 7 DAYS`（Geist Mono Bold 56px），靠排版层级而非容器                | Dashboard Layer 1 · Penalty Radar    |
+| **Hero Metric**     | Dashboard 顶部 `$142,300 · AT RISK · NEXT 7 DAYS`（Geist Mono Bold 56px），靠排版层级而非容器                | Dashboard Layer 1 · Deadline Radar   |
 | **Pulse Banner**    | 暖黄 tint + 1px 琥珀边框，源标题 + 受影响客户数 + `[Review]` `[Dismiss]`                                     | Dashboard Layer 2 · Story S3         |
 | **Triage Tabs**     | This Week / This Month / Long-term 三段，每段带 `count + $` 数字，选中态使用 DESIGN.md 定义的 selected token | Dashboard Layer 3 · Story S1 AC1     |
 | **Evidence Chip**   | 极小 mono 10px 徽章 `[IRS.GOV]`，hover 500ms 延迟弹 Verbatim Quote Popover；**DueDateHQ 独占设计资产**       | 所有 AI 输出 / 规则字段 / Pulse 条目 |
@@ -192,7 +192,7 @@ Public 页面相互 cross-link，形成 Rule Library → Source Registry → Ver
 
 | 指标                                 | 目标             | 测量                                |
 | ------------------------------------ | ---------------- | ----------------------------------- |
-| Migration Time-to-First-Value        | **P50 ≤ 10 min** | signup → 首次看到 Penalty Radar $   |
+| Migration Time-to-First-Value        | **P50 ≤ 10 min** | signup → 首次看到 Deadline Radar $  |
 | **Migration P95 完成时间（S2-AC5）** | **≤ 30 min**     | Signup → Import 完成（30 客户基准） |
 | Migration Completion Rate            | ≥ 70%            | 进入 Step 1 → 完成 Step 4           |
 | Migration Mapping Confidence         | ≥ 85%            | AI Mapper 平均 confidence           |
@@ -488,7 +488,7 @@ Time (UTC + local)  |  Actor  |  Action  |  Entity  |  Before → After  |  IP /
 >
 > Body: `She's a solo CPA with ~80 clients across CA and NV. Every Monday she spent 45 min building a triage list in Excel, cross-checking Outlook and TaxDome exports. Last March she missed a Form 3522 by 2 days and the client got slapped with $800 penalty.`
 >
-> `So I built DueDateHQ. Paste your TaxDome/Drake/Karbon CSV, it AI-maps the fields (including Tax ID → EIN), generates the full year calendar with dollar exposure per deadline, and pulls IRS + 5 state regulatory bulletins into your inbox within 24 hours. Free 14-day trial, no CC.`
+> `So I built DueDateHQ. Paste your TaxDome/Drake/Karbon CSV, it AI-maps the fields (including Tax ID → EIN), generates the full year calendar with deadline readiness per deadline, and pulls IRS + 5 state regulatory bulletins into your inbox within 24 hours. Free 14-day trial, no CC.`
 >
 > `Does this solve a real problem for you, or is it solving a problem I imagined? Brutally honest feedback wanted.`
 
@@ -732,7 +732,7 @@ Presenter: "One click — $4,200 disappears."
 
 [顶栏数字滚动 $31,400 → $27,200，绿色闪光]
 
-Presenter: "Smart Priority ranks by dollar exposure, not due date.
+Presenter: "Smart Priority ranks by deadline readiness, not due date.
 Hover this sparkle badge..."
 
 [Hover Smart Priority badge → 展开因子分解]
@@ -966,7 +966,7 @@ Presenter: "Thank you."
 - **Pulse Application**: Pulse 应用到某个客户的单次记录
 - **Glass-Box**: 所有 AI 输出强制 provenance 的产品纪律
 - **Migration Batch**: 一次外部数据源导入的事务单元，原子提交 + 24h 可 Revert
-- **Live Genesis**: 导入完成瞬间 deadline 卡片涌出 + Penalty Radar 滚动的动画
+- **Live Genesis**: 导入完成瞬间 deadline 卡片涌出 + Deadline Radar 滚动的动画
 - **Default Tax Types Matrix**: `entity × state` 查表兜底的合规组合表（§6A.5）
 - **Smart Priority**: 纯函数打分的跨页面统一排序（§6.4）
 - **WISP**: Written Information Security Plan（IRS Pub 5708 要求）
@@ -979,7 +979,7 @@ Presenter: "Thank you."
 | Clarity Engine 叙事                  | v1.0 §0.1                        | §1.2 / §6       |
 | Migration Copilot 4 步               | v1.0 §5.8 / §6A                  | §6A.6           |
 | Evidence Mode 完整设计               | v1.0 §5.5                        | §5.5            |
-| Penalty Radar 计算                   | v1.0 §6.3 + Competitor F-18      | §7.5            |
+| Deadline Radar 计算                  | v1.0 §6.3 + Competitor F-18      | §7.5            |
 | Default Tax Types Matrix             | v1.0 §6A.3A                      | §6A.5           |
 | Smart Priority 纯函数                | v1.0 §6.4                        | §6.4            |
 | AI tie-breaking                      | Competitor F-5b 思路 + v1.0 约束 | §6.4.5          |

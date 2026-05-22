@@ -18,8 +18,6 @@ interface DashboardRepoTopRow {
   taxType: string
   currentDueDate: Date
   status: DashboardTopRow['status']
-  estimatedExposureCents: number | null
-  exposureStatus: DashboardTopRow['exposureStatus']
   missingPenaltyFacts: string[]
   penaltySourceRefs: DashboardTopRow['penaltySourceRefs']
   penaltyFormulaLabel: string | null
@@ -77,8 +75,6 @@ function toTopRow(
     taxType: row.taxType,
     currentDueDate: toDateOnly(row.currentDueDate),
     status: row.status,
-    estimatedExposureCents: opts.hideDollars ? null : row.estimatedExposureCents,
-    exposureStatus: row.exposureStatus,
     missingPenaltyFacts: opts.hideDollars ? [] : row.missingPenaltyFacts,
     penaltySourceRefs: opts.hideDollars ? [] : row.penaltySourceRefs,
     penaltyFormulaLabel: opts.hideDollars ? null : row.penaltyFormulaLabel,
@@ -143,7 +139,6 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
     ...(input?.dueBuckets ? { dueBuckets: input.dueBuckets } : {}),
     ...(input?.status ? { status: input.status } : {}),
     ...(input?.severity ? { severity: input.severity } : {}),
-    ...(input?.exposureStatus ? { exposureStatus: input.exposureStatus } : {}),
     ...(input?.evidence ? { evidence: input.evidence } : {}),
   })
 
@@ -156,7 +151,6 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
     windowDays: result.windowDays,
     summary: {
       ...result.summary,
-      totalExposureCents: hideDollars ? 0 : result.summary.totalExposureCents,
       totalAccruedPenaltyCents: hideDollars ? 0 : result.summary.totalAccruedPenaltyCents,
     },
     topRows: result.topRows.map((row) => toTopRow(row, { hideDollars, hideSmartPriorityFactors })),
@@ -164,7 +158,6 @@ const load = os.dashboard.load.handler(async ({ input, context }) => {
       key: tab.key,
       label: tab.label,
       count: tab.count,
-      totalExposureCents: hideDollars ? 0 : tab.totalExposureCents,
       rows: tab.rows.map((row) => toTopRow(row, { hideDollars, hideSmartPriorityFactors })),
     })),
     facets: result.facets,

@@ -11,8 +11,6 @@ const baseInput = {
   currentDueDate: '2026-05-10',
   asOfDate: '2026-05-01',
   status: 'pending' as const,
-  estimatedExposureCents: 250_000,
-  exposureStatus: 'ready' as const,
   importanceWeight: 2,
   lateFilingCountLast12mo: 0,
   evidenceCount: 1,
@@ -24,10 +22,9 @@ describe('smart priority', () => {
 
     expect(result.version).toBe('smart-priority-v1')
     expect(result.rank).toBeNull()
-    expect(result.score).toBe(36.3)
+    expect(result.score).toBe(56.5)
     expect(result.factors.map((factor) => [factor.key, factor.weight])).toEqual([
-      ['exposure', 0.45],
-      ['urgency', 0.25],
+      ['urgency', 0.7],
       ['importance', 0.15],
       ['history', 0.1],
       ['readiness', 0.05],
@@ -35,6 +32,28 @@ describe('smart priority', () => {
   })
 
   it('accepts a custom deterministic profile without changing the output shape', () => {
+    const result = scoreSmartPriority(baseInput, {
+      version: 'smart-priority-profile-v2',
+      weights: {
+        urgency: 50,
+        importance: 20,
+        history: 20,
+        readiness: 10,
+      },
+      urgencyWindowDays: 15,
+      historyCapCount: 5,
+    })
+
+    expect(result.score).toBe(30)
+    expect(result.factors.map((factor) => [factor.key, factor.weight])).toEqual([
+      ['urgency', 0.5],
+      ['importance', 0.2],
+      ['history', 0.2],
+      ['readiness', 0.1],
+    ])
+  })
+
+  it('migrates legacy v1 profiles by moving exposure weight to urgency', () => {
     const result = scoreSmartPriority(baseInput, {
       version: 'smart-priority-profile-v1',
       weights: {
@@ -49,34 +68,29 @@ describe('smart priority', () => {
       historyCapCount: 5,
     })
 
-    expect(result.score).toBe(35)
     expect(result.factors.map((factor) => [factor.key, factor.weight])).toEqual([
-      ['exposure', 0.2],
-      ['urgency', 0.5],
+      ['urgency', 0.7],
       ['importance', 0.1],
       ['history', 0.1],
       ['readiness', 0.1],
     ])
   })
 
-  it('uses custom caps for exposure, urgency, and history normalization', () => {
+  it('uses custom caps for urgency and history normalization', () => {
     const result = scoreSmartPriority(
       {
         ...baseInput,
         currentDueDate: '2026-05-06',
-        estimatedExposureCents: 200_000,
         lateFilingCountLast12mo: 3,
       },
       {
         ...SMART_PRIORITY_DEFAULT_PROFILE,
-        exposureCapCents: 400_000,
         urgencyWindowDays: 10,
         historyCapCount: 3,
       },
     )
 
     expect(result.factors.map((factor) => [factor.key, factor.normalized])).toEqual([
-      ['exposure', 0.5],
       ['urgency', 0.5],
       ['importance', 0.5],
       ['history', 1],
@@ -96,17 +110,15 @@ describe('smart priority', () => {
 
   it('ranks by score, then due date, then id', () => {
     const rows = rankSmartPriorities([
-      { ...baseInput, obligationId: 'c', estimatedExposureCents: 100_000 },
+      { ...baseInput, obligationId: 'c' },
       {
         ...baseInput,
         obligationId: 'b',
         currentDueDate: '2026-05-05',
-        estimatedExposureCents: 100_000,
       },
       {
         ...baseInput,
         obligationId: 'a',
-        estimatedExposureCents: 900_000,
         importanceWeight: 3,
         lateFilingCountLast12mo: 5,
       },
@@ -128,13 +140,11 @@ describe('smart priority', () => {
           ...baseInput,
           obligationId: 'a',
           currentDueDate: '2026-05-20',
-          estimatedExposureCents: 900_000,
         },
       ],
       {
         ...SMART_PRIORITY_DEFAULT_PROFILE,
         weights: {
-          exposure: 0,
           urgency: 100,
           importance: 0,
           history: 0,

@@ -690,6 +690,9 @@ function buildScopedRepo(firmId: string) {
       async findSuccessfulRun() {
         return null
       },
+      async findSuccessfulRunsByContextRefs() {
+        return []
+      },
       async recordRun(input) {
         const aiOutputId = `ai-output-${aiRuns.length + 1}`
         aiRuns.push({ kind: input.kind, aiOutputId })
@@ -1633,7 +1636,7 @@ describe('MigrationService fixture golden tests', () => {
     expect(state.errors.filter((error) => error.errorCode === 'EIN_INVALID')).toHaveLength(8)
   })
 
-  it('calculates exposure preview from explicit tax-due fixture inputs', async () => {
+  it('imports obligations from explicit tax-due fixture inputs', async () => {
     const { repo } = buildScopedRepo(FIRM)
     const ai = buildAi()
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
@@ -1672,14 +1675,10 @@ describe('MigrationService fixture golden tests', () => {
     await service.confirmNormalization(batch.id, normalizer.normalizations)
 
     const dryRun = await service.applyDefaultMatrix(batch.id)
-    expect(dryRun.exposurePreview?.totalExposureCents).toBeGreaterThan(0)
-    expect(dryRun.exposurePreview?.readyCount).toBeGreaterThan(0)
-    expect(dryRun.exposurePreview?.needsInputCount).toBeGreaterThan(0)
+    expect(dryRun.obligationsToCreate).toBeGreaterThan(0)
 
     const applied = await service.apply(batch.id)
-    expect(applied.exposureSummary.totalExposureCents).toBe(
-      dryRun.exposurePreview?.totalExposureCents,
-    )
+    expect(applied.obligationCount).toBeGreaterThanOrEqual(dryRun.obligationsToCreate)
   })
 })
 

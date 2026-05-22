@@ -51,7 +51,7 @@
   drawer 时自动生成一次默认 checklist。
 - `/readiness/:token` 是公开客户 portal route，脱离受保护 app shell，只展示客户安全字段并提交
   readiness response。
-- coordinator 角色在 practice 设置禁止时隐藏 dollar exposure。
+- coordinator 角色在 practice 设置禁止时隐藏 deadline readiness。
 
 ### Migration Copilot
 
@@ -102,9 +102,8 @@ Migration Step 2 支持 `Filing states` 目标；Step 3 的 matrix counts 会把
 
 ### Rules Console
 
-- 规则工作台，展示 source coverage、source list、rule library、Pulse Changes、Temporary Rules
-  和 obligation preview。
-- 用于解释系统支持哪些 jurisdiction、source 和 obligation rule。
+- 规则工作台，展示 Rule Library coverage map、pending review queue、source list、Pulse Changes、Temporary Rules 和 obligation preview。
+- 用于解释系统支持哪些 jurisdiction、source 和 obligation rule，并在 Coverage pending queue 中完成单条或批量规则审核。
 
 ### 通知、成员、计费和设置
 

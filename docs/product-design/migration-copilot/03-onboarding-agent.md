@@ -167,7 +167,7 @@
                                                                                         ← 同时写 `migration.imported` 工程 audit（complicance 归属同一 batch），见 §7.3
 
    ✓ Done. Your Dashboard is ready — top 3 urgent items are                           ← state 转移：dry_run_commit → handoff（§4 #7）
-   Acme LLC (CA Franchise, 3 days, $4,200), Bright Studio                             ← 这 3 条来自 Dashboard 的 Penalty Radar（Part1A §0.3 第 1 条铁律）
+   Acme LLC (CA Franchise, 3 days, $4,200), Bright Studio                             ← 这 3 条来自 Dashboard 的 Deadline Radar（Part1A §0.3 第 1 条铁律）
    (1120-S, 5 days, $2,800), Zen Holdings (Q1 Est., 7 days, $1,650).
 
    Want me to walk you through the weekly triage workflow?                            ← Handoff：二选一，不再推进 state；下一轮会话可由用户从 Dashboard 继续

@@ -1,29 +1,29 @@
-# Rules Module Interaction Map (v4 IA)
+# Rules Module Interaction Map (v5 IA)
 
-_Last updated: 2026-05-19. Reflects the IA shipped today: Coverage status
-promoted to sidebar; Library cleaned to a single action surface; per-row
-source citations everywhere; nuqs URL-state for jurisdiction filters._
+_Last updated: 2026-05-21. Reflects the IA where Rule Library keeps Coverage
+map as the only primary view; the standalone Rule List table is removed and
+bulk review lives in the Coverage pending review queue._
 
 ## Summary
 
 The Rules module has four user-facing surfaces:
 
-| Slug                | URL               | Sidebar?                 | Primary job                                         |
-| ------------------- | ----------------- | ------------------------ | --------------------------------------------------- |
-| **Radar**           | `/rules/pulse`    | Yes (OPERATIONS)         | Real-time gov changes that may affect deadlines     |
-| **Coverage status** | `/rules/coverage` | Yes (RULES)              | "Do we have rules where clients file?"              |
-| **Rule library**    | `/rules/library`  | Yes (RULES)              | Accept / activate / reject / archive rule templates |
-| **Sources**         | `/rules/sources`  | **No** (incident-driven) | Watcher health, last-checked, official URL          |
+| Slug                | URL               | Sidebar?                 | Primary job                                     |
+| ------------------- | ----------------- | ------------------------ | ----------------------------------------------- |
+| **Radar**           | `/rules/pulse`    | Yes (OPERATIONS)         | Real-time gov changes that may affect deadlines |
+| **Rule library**    | `/rules/library`  | Yes (RULES)              | Coverage map, pending review queue, rule detail |
+| **Coverage status** | `/rules/coverage` | Back-compat              | Legacy read-only coverage route                 |
+| **Sources**         | `/rules/sources`  | **No** (incident-driven) | Watcher health, last-checked, official URL      |
 
 Sources earns no sidebar slot because it's incident-driven sysops, not
-daily-use. It's reachable from inline pointers on Coverage status
-(snapshot strip pill + per-row SOURCES count) and Radar attention
-callouts, plus ⌘K.
+daily-use. It's reachable from inline pointers on Rule Library Coverage
+(sources summary strip + per-row source count) and Radar attention callouts,
+plus ⌘K.
 
-The four pages share URL conventions: `?jur=AL,CA,NY` (jurisdiction
-filter, multi-value, nuqs) is honored by Library, Sources, and Coverage
-status drill-ins. `?library=pending_review` (Library-only) selects the
-chip filter.
+The Rule Library canonical URL state is `?filter=pending|active&q=CA`.
+Legacy `?view=rules&library=pending_review&jur=CA` links are replaced to
+the Coverage map equivalent. `?rule=<ruleId>` still opens the right-side
+rule detail workflow.
 
 ---
 
@@ -31,19 +31,19 @@ chip filter.
 
 ### Clickables
 
-| Element                                                          | Type                    | Action                                  | Destination                                    | Back-path                                 |
-| ---------------------------------------------------------------- | ----------------------- | --------------------------------------- | ---------------------------------------------- | ----------------------------------------- |
-| **Sidebar entries** (8)                                          | NavLink                 | Standard nav                            | route URLs                                     | Sidebar persists across pages             |
-| **Snapshot › Sources pill** (incident state)                     | Link                    | Open Sources filtered to all            | `/rules/sources`                               | Browser back ／ Coverage entry in sidebar |
-| **Snapshot › "N sources watched" link** (healthy state)          | Link                    | Same as above                           | `/rules/sources`                               | Browser back                              |
-| **Snapshot › active / needs review / jurisdictions counts**      | Static text             | None (informational)                    | —                                              | —                                         |
-| **Snapshot › concept tooltip labels**                            | Hover only              | Show ConceptLabel definition            | — (inline)                                     | Hover-off                                 |
-| **Jurisdiction summary › PENDING cell**                          | Button (when count > 0) | Drill to Library, pre-filtered          | `/rules/library?library=pending_review&jur=AL` | Browser back ／ Coverage entry            |
-| **Jurisdiction summary › SOURCES cell**                          | Link (when count > 0)   | Drill to Sources, jurisdiction-filtered | `/rules/sources?jur=AL`                        | Browser back ／ Coverage entry            |
-| **Jurisdiction summary › other cells** (JUR/NAME/ACTIVE/STATUS)  | Static                  | None                                    | —                                              | —                                         |
-| **Entity matrix › Business / Personal & fiduciary / All toggle** | Button group            | Switch column set (local state)         | (re-renders matrix)                            | Toggle again                              |
-| **Entity matrix › cells**                                        | Static                  | None (dot indicator only)               | —                                              | —                                         |
-| **Entity matrix › "Show 48 jurisdictions defaulting to review"** | Button                  | Expand collapsed section (local state)  | (re-renders matrix)                            | Click again to hide                       |
+| Element                                                          | Type                    | Action                                  | Destination                          | Back-path                                 |
+| ---------------------------------------------------------------- | ----------------------- | --------------------------------------- | ------------------------------------ | ----------------------------------------- |
+| **Sidebar entries** (8)                                          | NavLink                 | Standard nav                            | route URLs                           | Sidebar persists across pages             |
+| **Snapshot › Sources pill** (incident state)                     | Link                    | Open Sources filtered to all            | `/rules/sources`                     | Browser back ／ Coverage entry in sidebar |
+| **Snapshot › "N sources watched" link** (healthy state)          | Link                    | Same as above                           | `/rules/sources`                     | Browser back                              |
+| **Snapshot › active / needs review / jurisdictions counts**      | Static text             | None (informational)                    | —                                    | —                                         |
+| **Snapshot › concept tooltip labels**                            | Hover only              | Show ConceptLabel definition            | — (inline)                           | Hover-off                                 |
+| **Jurisdiction summary › PENDING cell**                          | Button (when count > 0) | Drill to Library, pre-filtered          | `/rules/library?filter=pending&q=AL` | Browser back ／ Coverage entry            |
+| **Jurisdiction summary › SOURCES cell**                          | Link (when count > 0)   | Drill to Sources, jurisdiction-filtered | `/rules/sources?jur=AL`              | Browser back ／ Coverage entry            |
+| **Jurisdiction summary › other cells** (JUR/NAME/ACTIVE/STATUS)  | Static                  | None                                    | —                                    | —                                         |
+| **Entity matrix › Business / Personal & fiduciary / All toggle** | Button group            | Switch column set (local state)         | (re-renders matrix)                  | Toggle again                              |
+| **Entity matrix › cells**                                        | Static                  | None (dot indicator only)               | —                                    | —                                         |
+| **Entity matrix › "Show 48 jurisdictions defaulting to review"** | Button                  | Expand collapsed section (local state)  | (re-renders matrix)                  | Click again to hide                       |
 
 ### Notes
 
@@ -56,22 +56,29 @@ chip filter.
 
 ### Clickables
 
-| Element                                                                 | Type                     | Action                         | Destination                   | Back-path                                     |
-| ----------------------------------------------------------------------- | ------------------------ | ------------------------------ | ----------------------------- | --------------------------------------------- |
-| **Filter chips** (5: Needs review · Active · All · Rejected · Archived) | Button                   | Set `?library=` filter         | Same page, filtered           | Click another chip ／ Coverage drill restores |
-| **JUR header filter**                                                   | Multi-select dropdown    | Set `?jur=` (URL state)        | Same page, filtered           | Open dropdown, clear                          |
-| **ENTITY / TIER / STATUS header filters**                               | Multi-select dropdown    | Set local filter state         | Same page, filtered           | Open dropdown, clear                          |
-| **Row checkbox**                                                        | Checkbox                 | Select row for bulk review     | Updates Review selected count | Uncheck ／ filter change clears selection     |
-| **Select-all header checkbox**                                          | Checkbox                 | Toggle all visible             | Same                          | Toggle again                                  |
-| **Row body (title / id / form / entity / tier / status / version)**     | Click ／ Enter ／ Space  | Open RuleDetailDrawer          | Drawer overlay                | Close drawer (Esc, outside click, X)          |
-| **SOURCE citation link**                                                | External `<a>` (new tab) | Open official document         | `https://...` (external)      | Browser back in new tab ／ close tab          |
-| **Review selected button** (visible when ≥1 selected)                   | Button                   | Open BulkReviewDrawer          | Drawer overlay                | Close drawer ／ click outside                 |
-| **BulkReview › Preview button**                                         | Button                   | Fetch + render impact preview  | Inline in drawer              | Click Accept to apply ／ close drawer         |
-| **BulkReview › Accept selected button**                                 | Button                   | Mutate (orpc.rules.bulkAccept) | Drawer closes on success      | Failure → toast, drawer stays                 |
-| **BulkReview › Batch note textarea**                                    | Textarea                 | Capture review note            | (required for accept)         | Edit / clear                                  |
-| **Pagination › Previous / Next**                                        | Button                   | Change `pageIndex` (local)     | Same page, different slice    | Opposite button                               |
+| Element                                            | Type                   | Action                                  | Destination / result         | Back-path                     |
+| -------------------------------------------------- | ---------------------- | --------------------------------------- | ---------------------------- | ----------------------------- | ------------ |
+| **Coverage summary active / needs review numbers** | Button                 | Set `?filter=active                     | pending`                     | Same page, Coverage filtered  | Clear filter |
+| **Coverage search**                                | Search input           | Set `?q=`                               | Same page, Coverage filtered | Clear search                  |
+| **Jurisdiction row**                               | Row button             | Expand active / pending rule summary    | Inline expanded row          | Click again                   |
+| **Pending count / entity coverage cell**           | Button                 | Filter Coverage to focused queue        | `?filter=pending&q=<jur>`    | Clear filter / browser back   |
+| **Review pending rules CTA**                       | Button                 | Open review workspace                   | Pending queue + rule detail  | Esc / close detail            |
+| **Pending queue rule row**                         | Button                 | Open right-side RuleDetail workflow     | `?rule=<ruleId>`             | Close detail / next-previous  |
+| **Pending queue checkbox**                         | Checkbox               | Select batch-ready rule for bulk review | Updates selected count       | Uncheck / Clear               |
+| **Select batch-ready checkbox**                    | Checkbox               | Toggle visible batch-ready rules        | Same queue                   | Toggle again                  |
+| **Review selected button**                         | Button                 | Open BulkReview drawer                  | Drawer overlay               | Close drawer                  |
+| **BulkReview › Preview button**                    | Button                 | Fetch + render impact preview           | Inline in drawer             | Accept / close drawer         |
+| **BulkReview › Accept selected button**            | Button                 | Mutate `bulkAcceptTemplates`            | Drawer closes on success     | Failure → toast, drawer stays |
+| **BulkReview › Batch note textarea**               | Textarea               | Capture review note                     | Required for accept          | Edit / clear                  |
+| **Source citation link**                           | External `<a>` new tab | Open official document                  | `https://...` external       | Browser back in new tab       |
 
-### RuleDetailDrawer clickables (opens on row click)
+Source-defined pending rules without a cached AI concrete draft and
+`source_changed` tasks do not render row checkboxes; they remain single-rule
+detail workflow rows. Source-defined rules with a cached AI concrete draft can
+enter bulk review, where the drawer shows the draft fields and the server
+re-validates the draft before activation.
+
+### Rule detail clickables
 
 | Element                                      | Type                   | Action                     | Destination                  | Back-path                     |
 | -------------------------------------------- | ---------------------- | -------------------------- | ---------------------------- | ----------------------------- |
@@ -160,8 +167,9 @@ chip filter.
 
 URL parameters shared across pages:
 
-- `?jur=AL,CA,NY` — jurisdiction filter (Library, Sources, Coverage drill-in)
-- `?library=pending_review|active|all|rejected|archived` — Library chip filter (Coverage drill-in)
+- `?filter=pending|active&q=CA` — Rule Library Coverage filter and search state
+- `?rule=<ruleId>` — open right-side rule detail in the Coverage review workspace
+- `?jur=AL,CA,NY` — Sources jurisdiction filter
 
 ---
 
@@ -170,16 +178,16 @@ URL parameters shared across pages:
 ### Journey 1: Owner reviews this week's pending rules (most frequent)
 
 1. **Land** → Dashboard. See "23 rules need review" digest banner.
-2. **Click** banner → `/rules/library?library=pending_review`.
-3. **Scan rows**. Each row shows: title, rule id, "New rule" tag, **SOURCE citation**.
-4. **Verify source** for an unfamiliar rule → click `SOURCE Alabama DOR Individual Income Tax Return Filing FAQ ↗` (opens official doc in new tab).
-5. **Switch tab back** → row is still in same scroll position (no nav happened in app).
-6. **Click row** → RuleDetailDrawer opens with full evidence.
-7. **Decide** → Accept ／ Reject in drawer.
-8. **Drawer closes**, table refetches. Row's STATUS updates.
-9. **Repeat** for bulk: select multiple rows → Review selected → BulkReviewDrawer → Preview → Accept selected.
+2. **Click** banner → `/rules/library?filter=pending`.
+3. **Open review queue** → click `Review pending rules`.
+4. **Scan queue rows**. Each row shows title, status, source citation.
+5. **Verify source** for an unfamiliar rule → click `SOURCE Alabama DOR Individual Income Tax Return Filing FAQ ↗` (opens official doc in new tab).
+6. **Switch tab back** → queue stays in the same scroll position.
+7. **Click row** → right-side rule detail opens with full evidence.
+8. **Decide** → Accept ／ Reject in detail.
+9. **Repeat** for bulk: select visible queue rows → Review selected → BulkReviewDrawer → Preview → Accept selected.
 
-**Back-paths**: drawer Esc returns to filtered Library. Library row remains scroll-stable across drawer open/close.
+**Back-paths**: Esc exits rule detail. Queue row remains scroll-stable across detail open/close.
 
 ### Journey 2: Manager audits watched sources
 

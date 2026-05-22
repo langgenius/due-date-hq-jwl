@@ -141,7 +141,7 @@ A row that says `In review` should NOT also need the user to open the drawer to 
 
 The row answers in under 3 seconds:
 
-- **Projected risk** ($ amount, soft-amber pill if non-zero)
+- **Legacy penalty estimate** ($ amount, soft-amber pill if non-zero)
 - **Accrued penalty subtitle** when relevant
 - **$0 or unknown** rendered as `—` so the eye doesn't read it as data
 

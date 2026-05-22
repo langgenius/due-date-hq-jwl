@@ -32,7 +32,7 @@
 | ------------------------ | ----------------------------------------------------------------- | ------------------ |
 | 真实用户口证             | 录屏 + 公开 Worker URL 可访问                                     | §15.3.1            |
 | Migration + Live Genesis | Paste CSV → AI Mapper → Default Matrix → 原子导入 → exposure 变化 | §6A + §7.5.6       |
-| Triage Workbench         | Dashboard tabs + Penalty Radar + Smart Priority + Evidence Mode   | §5.1 + §6.4 + §7.5 |
+| Triage Workbench         | Dashboard tabs + Deadline Radar + Smart Priority + Evidence Mode  | §5.1 + §6.4 + §7.5 |
 | Pulse Apply              | 预置 Pulse → 匹配客户 → Batch Apply → audit/evidence/email outbox | §6.3               |
 | Glass-Box Brief          | AI Weekly Brief 带 citation，点击打开 Evidence                    | §6.2               |
 
