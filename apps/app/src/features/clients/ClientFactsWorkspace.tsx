@@ -1833,7 +1833,13 @@ function ObligationStatusBadge({ obligation }: { obligation: ObligationInstanceP
       </Badge>
     )
   }
-  return <Badge variant="outline">{obligation.status.replaceAll('_', ' ')}</Badge>
+  // Fallback case: render the raw status name with title-case first
+  // letter so "blocked" / "pending" read as "Blocked" / "Pending" —
+  // matches the case of the explicit branches above (Complete, Needs
+  // review, Waiting) and avoids the lowercase-in-a-Badge mismatch.
+  const raw = obligation.status.replaceAll('_', ' ')
+  const label = raw.charAt(0).toUpperCase() + raw.slice(1)
+  return <Badge variant="outline">{label}</Badge>
 }
 
 function importanceLabel(value: number): ReactNode {
@@ -2352,13 +2358,17 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
 }
 
 function ClientSourceBadge({ client }: { client: ClientPublic }) {
+  // Both variants render as quiet outline chips — provenance ("how
+  // did this client get into the system") is metadata, not a status
+  // the CPA needs to act on. The previous `variant="info"` blue made
+  // Imported compete with entity-type and readiness for visual
+  // priority in the identity row.
   return getClientSourceType(client) === 'imported' ? (
-    <Badge variant="info" className="text-xs">
-      <BadgeStatusDot tone="normal" />
+    <Badge variant="outline" className="text-xs text-text-tertiary">
       <Trans>Imported</Trans>
     </Badge>
   ) : (
-    <Badge variant="outline" className="text-xs">
+    <Badge variant="outline" className="text-xs text-text-tertiary">
       <Trans>Manual</Trans>
     </Badge>
   )

@@ -7,7 +7,6 @@ import {
   FileSpreadsheetIcon,
   GlobeIcon,
   Link2Icon,
-  MinusIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -276,9 +275,14 @@ function ActivityChipPill({ chip }: { chip: ActivityChip }) {
       </Badge>
     )
   }
+  // Inactive chip: just the label, no leading icon. The previous
+  // `MinusIcon` read as a "remove" action because the chips look
+  // tappable, but they're maintainer-only status indicators (see the
+  // help text below the chip strip). Plain text with muted color +
+  // outline border + no icon reads as "this is off / not applicable"
+  // without implying an action.
   return (
     <Badge variant="outline" className="gap-1.5 text-xs text-text-tertiary" title={chip.hint}>
-      <MinusIcon className="size-3.5" aria-hidden />
       <span>{chip.label}</span>
     </Badge>
   )

@@ -184,7 +184,11 @@ export function ClientSummaryStrip({
         ariaLabel={t`View at-risk obligations`}
       />
       <TileShell
-        tone={teamCount > 0 ? 'neutral' : 'muted'}
+        // Unassigned is actionable, not neutral — surface it as a
+        // warning (amber) so the CPA reads "someone should own this"
+        // instead of "this is just an empty field." Was 'muted' (gray
+        // tertiary text) before, which read as inert data.
+        tone={teamCount > 0 ? 'neutral' : 'warning'}
         value={teamCount > 0 ? teamCount : t`Unassigned`}
         label={<Trans>Team</Trans>}
         onClick={() => void navigate(`/obligations?client=${clientId}`)}
