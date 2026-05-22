@@ -414,6 +414,7 @@ msgid "{days}d"
 msgstr "{days}天"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
 msgstr "逾期 {daysAbs} 天"
 
@@ -486,6 +487,7 @@ msgid "{offsetDays} days before"
 msgstr "提前 {offsetDays} 天"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open obligations"
 msgstr "{openCount} 条未完成义务"
 
@@ -649,6 +651,7 @@ msgid "1 item linked. The original panel has the full editor."
 msgstr "已关联 1 项。完整编辑器在原面板中。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open obligation"
 msgstr "1 条未完成义务"
 
@@ -1195,6 +1198,7 @@ msgstr "全部忽略"
 msgid "All impact"
 msgstr "全部影响"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "All obligations"
 msgstr "所有义务"
@@ -2578,6 +2582,10 @@ msgstr "无法加载该提醒"
 msgid "Couldn't load this client"
 msgstr "Couldn't load this client"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Couldn't load this client."
+msgstr "无法加载该客户。"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
@@ -3232,6 +3240,7 @@ msgid "Due dates"
 msgstr "截止日"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "due in {days}d"
 msgstr "{days} 天后到期"
 
@@ -3244,6 +3253,7 @@ msgid "Due this week"
 msgstr "本周到期"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "今天到期"
@@ -5041,6 +5051,7 @@ msgstr "需补证据"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Needs facts"
 msgstr "需要补充事实"
 
@@ -5163,6 +5174,7 @@ msgstr "下一个客户 (j)"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Next due"
 msgstr "Next due"
@@ -5367,6 +5379,7 @@ msgid "No obligations yet. Import clients to get started."
 msgstr "尚无义务。请导入客户开始使用。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations"
 msgstr "没有打开的义务"
 
@@ -5379,6 +5392,7 @@ msgid "No open obligations match the workload window."
 msgstr "当前负载窗口内没有匹配的未完成义务。"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations right now."
 msgstr "当前没有未完成义务。"
 
@@ -5929,6 +5943,7 @@ msgid "Open full Inbox"
 msgstr "打开完整收件箱"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Open full page"
 msgstr "打开完整页面"
 
@@ -7107,6 +7122,7 @@ msgstr "可复核"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Ready for rules"
 msgstr "规则就绪"
 
@@ -8313,6 +8329,7 @@ msgid "Settings"
 msgstr "设置"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "设置"

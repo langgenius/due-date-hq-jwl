@@ -414,6 +414,7 @@ msgid "{days}d"
 msgstr "{days}d"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
 msgstr "{daysAbs}d late"
 
@@ -486,6 +487,7 @@ msgid "{offsetDays} days before"
 msgstr "{offsetDays} days before"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open obligations"
 msgstr "{openCount} open obligations"
 
@@ -649,6 +651,7 @@ msgid "1 item linked. The original panel has the full editor."
 msgstr "1 item linked. The original panel has the full editor."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open obligation"
 msgstr "1 open obligation"
 
@@ -1195,6 +1198,7 @@ msgstr "All ignored"
 msgid "All impact"
 msgstr "All impact"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "All obligations"
 msgstr "All obligations"
@@ -2578,6 +2582,10 @@ msgstr "Couldn't load this alert"
 msgid "Couldn't load this client"
 msgstr "Couldn't load this client"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Couldn't load this client."
+msgstr "Couldn't load this client."
+
 #: src/routes/obligations.tsx
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
@@ -3232,6 +3240,7 @@ msgid "Due dates"
 msgstr "Due dates"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "due in {days}d"
 msgstr "due in {days}d"
 
@@ -3244,6 +3253,7 @@ msgid "Due this week"
 msgstr "Due this week"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "due today"
@@ -5041,6 +5051,7 @@ msgstr "Needs evidence"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Needs facts"
 msgstr "Needs facts"
 
@@ -5163,6 +5174,7 @@ msgstr "Next client (j)"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Next due"
 msgstr "Next due"
@@ -5367,6 +5379,7 @@ msgid "No obligations yet. Import clients to get started."
 msgstr "No obligations yet. Import clients to get started."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations"
 msgstr "No open obligations"
 
@@ -5379,6 +5392,7 @@ msgid "No open obligations match the workload window."
 msgstr "No open obligations match the workload window."
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "No open obligations right now."
 msgstr "No open obligations right now."
 
@@ -5929,6 +5943,7 @@ msgid "Open full Inbox"
 msgstr "Open full Inbox"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Open full page"
 msgstr "Open full page"
 
@@ -7107,6 +7122,7 @@ msgstr "Ready for review"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Ready for rules"
 msgstr "Ready for rules"
 
@@ -8313,6 +8329,7 @@ msgid "Settings"
 msgstr "Settings"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
 #: src/routes/route-summary.ts
 msgid "Setup"
 msgstr "Setup"
