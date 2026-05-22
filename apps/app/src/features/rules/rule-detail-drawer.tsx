@@ -46,7 +46,13 @@ const ACCEPT_RULE_TOOLTIP_MS = 1_200
  * `CandidateReviewSection` (Accept / Reject) so the inline view can
  * complete the daily-triage flow.
  */
-export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
+export function RuleDetailInline({
+  rule,
+  concreteDraft,
+}: {
+  rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
+}) {
   const sourceLookup = useSourceLookup()
   return (
     <div className="flex flex-col gap-5">
@@ -62,7 +68,7 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
       <ExtensionSection rule={rule} />
       <ReviewReasonsSection rule={rule} />
       <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
-      <CandidateReviewSection key={rule.id} rule={rule} />
+      <CandidateReviewSection key={rule.id} rule={rule} concreteDraft={concreteDraft ?? null} />
       <VerificationSection rule={rule} />
     </div>
   )
@@ -410,9 +416,7 @@ function CandidateReviewForm({
       {sourceDefined ? (
         <AiDraftReviewPanel draft={draft} errorMessage={draftPanelMessage} generating={false} />
       ) : null}
-      {acceptDisabledReason ? (
-        <p className="text-xs text-severity-medium">{acceptDisabledReason}</p>
-      ) : null}
+
       <div className="flex justify-end gap-2">
         {/* `data-rule-action` lets parent surfaces (e.g. the batch-
             review modal) bind keyboard shortcuts to these buttons

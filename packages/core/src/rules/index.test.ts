@@ -414,6 +414,38 @@ describe('@duedatehq/core/rules', () => {
     ])
   })
 
+  it('uses source-backed excerpts for DC candidate rules whose index pages are sparse', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    const filingDeadlinesSource = sourcesById.get('dc.tax_filing_deadlines')
+    const uiWageSource = sourcesById.get('dc.ui_wage_report')
+    const businessRule = findRuleById('dc.business_income_return.candidate.2026')
+    const salesRule = findRuleById('dc.sales_use_tax.candidate.2026')
+    const uiWageRule = findRuleById('dc.ui_wage_report.candidate.2026')
+
+    expect(filingDeadlinesSource?.domains).toContain('business_income_return')
+    expect(filingDeadlinesSource?.domains).toContain('sales_use_tax')
+    expect(uiWageSource?.url).toBe('https://does.dc.gov/service/reporting-questions')
+    expect(businessRule?.evidence[0]?.sourceExcerpt).toContain('April 15, 2026')
+    expect(salesRule?.evidence[0]?.sourceExcerpt).toContain('FR-800M')
+    expect(uiWageRule?.evidence[0]?.sourceExcerpt).toContain('Form UC-30')
+    expect(uiWageRule?.evidence[0]?.sourceExcerpt).not.toMatch(
+      /official source registered|templates require practice owner or manager acceptance/i,
+    )
+  })
+
+  it('tracks the current Georgia fiduciary booklet as a PDF source', () => {
+    const source = RULE_SOURCES.find((item) => item.id === 'ga.fiduciary_income_tax_booklet')
+    const rule = findRuleById('ga.fiduciary_income_return.candidate.2026')
+
+    expect(source).toMatchObject({
+      acquisitionMethod: 'pdf_watch',
+      sourceType: 'instructions',
+      domains: ['fiduciary_income_return'],
+    })
+    expect(source?.url).toContain('2025-501-and-501x-fiduciary-income-tax-instruction-booklet')
+    expect(rule?.sourceIds).toEqual(['ga.fiduciary_income_tax_booklet'])
+  })
+
   it('treats no-tax source matrix cells as not applicable for completed source packs', () => {
     for (const jurisdiction of [
       'CA',
