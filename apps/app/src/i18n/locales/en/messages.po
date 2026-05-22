@@ -523,6 +523,10 @@ msgstr "{selectionCount, plural, one {Apply to # obligation} other {Apply to # o
 msgid "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "{totalActive} rules"
+msgstr "{totalActive} rules"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open obligation} other {View # open obligations}}"
 msgstr "{totalOpen, plural, one {View # open obligation} other {View # open obligations}}"
@@ -712,6 +716,10 @@ msgstr "Accepted AI concrete draft from rule detail review."
 msgid "Accepted as shown from rule detail review."
 msgstr "Accepted as shown from rule detail review."
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Accepted practice rules for source and deadline review."
+msgstr "Accepted practice rules for source and deadline review."
+
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
@@ -811,6 +819,10 @@ msgstr "Active practice summary"
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule"
 msgstr "Active rule"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rule queue"
+msgstr "Active rule queue"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rules"
@@ -4695,13 +4707,22 @@ msgid "next"
 msgstr "next"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Next"
 msgstr "Next"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Next · j"
+msgstr "Next · j"
+
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Next 30 days"
 msgstr "Next 30 days"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Next active rule (j)"
+msgstr "Next active rule (j)"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
@@ -4742,6 +4763,10 @@ msgstr "No active practice is selected."
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "No active rules for this jurisdiction."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No active rules match this view."
+msgstr "No active rules match this view."
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
@@ -7122,6 +7147,10 @@ msgstr "Rule not found"
 msgid "Rule notes"
 msgstr "Rule notes"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Rule queue"
+msgstr "Rule queue"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
@@ -8974,6 +9003,16 @@ msgstr "View on Radar"
 #: src/routes/rules.library.tsx
 msgid "View sources"
 msgstr "View sources"
+
+#. placeholder {0}: queuePosition.index + 1
+#. placeholder {1}: queuePosition.total
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing {0} of {1}"
+msgstr "Viewing {0} of {1}"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing rule"
+msgstr "Viewing rule"
 
 #: src/routes/obligations.tsx
 msgid "Visible columns"

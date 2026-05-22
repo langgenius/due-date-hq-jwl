@@ -523,6 +523,10 @@ msgstr "{selectionCount, plural, other {应用到 # 条义务}}"
 msgid "{skipped, plural, one {# row will be skipped (see errors)} other {# rows will be skipped (see errors)}}"
 msgstr "{skipped, plural, other {# 行将被跳过（见错误明细）}}"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "{totalActive} rules"
+msgstr "{totalActive} 条规则"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open obligation} other {View # open obligations}}"
 msgstr "{totalOpen, plural, one {查看 # 条打开的义务} other {查看 # 条打开的义务}}"
@@ -712,6 +716,10 @@ msgstr "已从规则详情审核接受 AI 具体草案。"
 msgid "Accepted as shown from rule detail review."
 msgstr "已按规则详情所示原样接受。"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Accepted practice rules for source and deadline review."
+msgstr "已接受的事务所规则，用于核对来源和截止日。"
+
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting activates this rule for every client filing in {0} as {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
@@ -811,6 +819,10 @@ msgstr "当前事务所摘要"
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule"
 msgstr "Active rule"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rule queue"
+msgstr "已生效规则队列"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rules"
@@ -4695,13 +4707,22 @@ msgid "next"
 msgstr "下一项"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Next"
 msgstr "下一页"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Next · j"
+msgstr "下一条 · j"
+
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Next 30 days"
 msgstr "未来 30 天"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Next active rule (j)"
+msgstr "下一条已生效规则 (j)"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
@@ -4742,6 +4763,10 @@ msgstr "未选择当前事务所。"
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "该辖区暂无已激活规则。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No active rules match this view."
+msgstr "没有符合当前视图的已生效规则。"
 
 #: src/routes/obligations.tsx
 msgid "No activity yet. The first transition will log a note here."
@@ -7122,6 +7147,10 @@ msgstr "未找到规则"
 msgid "Rule notes"
 msgstr "规则备注"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "Rule queue"
+msgstr "规则队列"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
@@ -8974,6 +9003,16 @@ msgstr "View on Radar"
 #: src/routes/rules.library.tsx
 msgid "View sources"
 msgstr "查看来源"
+
+#. placeholder {0}: queuePosition.index + 1
+#. placeholder {1}: queuePosition.total
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing {0} of {1}"
+msgstr "正在查看第 {0} / {1} 条"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Viewing rule"
+msgstr "正在查看规则"
 
 #: src/routes/obligations.tsx
 msgid "Visible columns"

@@ -586,6 +586,135 @@ describe('CoverageTab canonical layout', () => {
     await waitForText('pending individual return')
   })
 
+  it('shows the active rule queue when an active rule detail is open', async () => {
+    const federalActiveRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const californiaActiveRule = obligationRule({
+      id: 'ca.active.business.2026',
+      title: 'California active business return',
+      status: 'active',
+    })
+    const californiaPendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = federalActiveRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      federalActiveRule,
+      californiaActiveRule,
+      californiaPendingRule,
+    ])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(californiaPendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+    await waitForText('Viewing 1 of 2')
+
+    expect(document.body.textContent).not.toContain('Pending review queue')
+    expect(document.body.textContent).not.toContain('Select batch-ready')
+    expect(document.body.textContent).not.toContain('Review selected')
+    await waitForText('active individual return')
+    await waitForText('active business return')
+    expect(document.body.textContent).not.toContain('pending individual return')
+  })
+
+  it('moves to the next active rule from the active queue', async () => {
+    const federalActiveRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const californiaActiveRule = obligationRule({
+      id: 'ca.active.business.2026',
+      title: 'California active business return',
+      status: 'active',
+    })
+    nuqsMocks.rule = federalActiveRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([federalActiveRule, californiaActiveRule])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+
+    const nextButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Next'),
+    )
+    expect(nextButton).toBeDefined()
+
+    await act(async () => {
+      nextButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(californiaActiveRule.id)
+  })
+
+  it('switches from active to pending queue with the queue toggle', async () => {
+    const activeRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const pendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = activeRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule, pendingRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(pendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Active rule queue')
+
+    const pendingTab = Array.from(document.querySelectorAll('button[role="tab"]')).find((button) =>
+      button.textContent?.includes('Pending'),
+    )
+    expect(pendingTab).toBeDefined()
+
+    await act(async () => {
+      pendingTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(pendingRule.id)
+  })
+
+  it('switches from pending to active queue with the queue toggle', async () => {
+    const activeRule = obligationRule({
+      id: 'fed.active.individual.2026',
+      title: 'Federal active individual return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const pendingRule = obligationRule({
+      id: 'ca.pending.individual.2026',
+      title: 'California pending individual return',
+      status: 'pending_review',
+    })
+    nuqsMocks.rule = pendingRule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule, pendingRule])
+    rpcMocks.listReviewTasksQueryFn.mockResolvedValue([reviewTask(pendingRule)])
+
+    await render(<CoverageTab />)
+    await waitForText('Pending review queue')
+
+    const activeTab = Array.from(document.querySelectorAll('button[role="tab"]')).find((button) =>
+      button.textContent?.includes('Active'),
+    )
+    expect(activeTab).toBeDefined()
+
+    await act(async () => {
+      activeTab?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(nuqsMocks.setRule).toHaveBeenCalledWith(activeRule.id)
+  })
+
   it('selects visible bulk-reviewable pending rules from the review queue', async () => {
     const selectableRule = obligationRule({
       id: 'ca.pending.individual.2026',

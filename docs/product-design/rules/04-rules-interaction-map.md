@@ -1,19 +1,20 @@
 # Rules Module Interaction Map (v5 IA)
 
-_Last updated: 2026-05-21. Reflects the IA where Rule Library keeps Coverage
-map as the only primary view; the standalone Rule List table is removed and
-bulk review lives in the Coverage pending review queue._
+_Last updated: 2026-05-22. Reflects the IA where Rule Library keeps Coverage
+map as the only primary view; the standalone Rule List table is removed,
+active rule browsing lives in the active rule queue, and bulk review lives in
+the Coverage pending review queue._
 
 ## Summary
 
 The Rules module has four user-facing surfaces:
 
-| Slug                | URL               | Sidebar?                 | Primary job                                     |
-| ------------------- | ----------------- | ------------------------ | ----------------------------------------------- |
-| **Radar**           | `/rules/pulse`    | Yes (OPERATIONS)         | Real-time gov changes that may affect deadlines |
-| **Rule library**    | `/rules/library`  | Yes (RULES)              | Coverage map, pending review queue, rule detail |
-| **Coverage status** | `/rules/coverage` | Back-compat              | Legacy read-only coverage route                 |
-| **Sources**         | `/rules/sources`  | **No** (incident-driven) | Watcher health, last-checked, official URL      |
+| Slug                | URL               | Sidebar?                 | Primary job                                      |
+| ------------------- | ----------------- | ------------------------ | ------------------------------------------------ |
+| **Radar**           | `/rules/pulse`    | Yes (OPERATIONS)         | Real-time gov changes that may affect deadlines  |
+| **Rule library**    | `/rules/library`  | Yes (RULES)              | Coverage map, active/pending queues, rule detail |
+| **Coverage status** | `/rules/coverage` | Back-compat              | Legacy read-only coverage route                  |
+| **Sources**         | `/rules/sources`  | **No** (incident-driven) | Watcher health, last-checked, official URL       |
 
 Sources earns no sidebar slot because it's incident-driven sysops, not
 daily-use. It's reachable from inline pointers on Rule Library Coverage
@@ -63,7 +64,9 @@ rule detail workflow.
 | **Jurisdiction row**                               | Row button             | Expand active / pending rule summary    | Inline expanded row          | Click again                   |
 | **Pending count / entity coverage cell**           | Button                 | Filter Coverage to focused queue        | `?filter=pending&q=<jur>`    | Clear filter / browser back   |
 | **Review pending rules CTA**                       | Button                 | Open review workspace                   | Pending queue + rule detail  | Esc / close detail            |
+| **Queue toggle**                                   | Segmented control      | Switch Active / Pending queue           | First rule in target queue   | Toggle back                   |
 | **Pending queue rule row**                         | Button                 | Open right-side RuleDetail workflow     | `?rule=<ruleId>`             | Close detail / next-previous  |
+| **Active rule row**                                | Button                 | Open right-side read-only RuleDetail    | Active queue + rule detail   | Close detail / next-previous  |
 | **Pending queue checkbox**                         | Checkbox               | Select batch-ready rule for bulk review | Updates selected count       | Uncheck / Clear               |
 | **Select batch-ready checkbox**                    | Checkbox               | Toggle visible batch-ready rules        | Same queue                   | Toggle again                  |
 | **Review selected button**                         | Button                 | Open BulkReview drawer                  | Drawer overlay               | Close drawer                  |
@@ -77,6 +80,14 @@ Source-defined pending rules without a cached AI concrete draft and
 detail workflow rows. Source-defined rules with a cached AI concrete draft can
 enter bulk review, where the drawer shows the draft fields and the server
 re-validates the draft before activation.
+
+When the selected `?rule=` is already `active` / `verified`, the same workspace
+switches its left rail to the Active rule queue. That queue keeps the Coverage
+search and jurisdiction grouping, but removes batch-ready checkboxes and bulk
+review controls because accepted practice rules are a browse/audit workflow.
+The rail header has an Active / Pending toggle; switching queues selects the
+first rule in the target queue so the left rail and right-side detail stay in
+sync. Next/previous navigation stays inside the selected queue.
 
 ### Rule detail clickables
 
