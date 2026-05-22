@@ -48,7 +48,7 @@ vi.mock('@duedatehq/db', () => ({
 vi.mock('../../procedures/rules/concrete-draft', () => ({
   cachedConcreteDraftKey: draftMocks.cachedConcreteDraftKey,
   generateConcreteDraft: draftMocks.generateConcreteDraft,
-  RULE_CONCRETE_DRAFT_PROMPT: 'rule-concrete-draft@v1',
+  RULE_CONCRETE_DRAFT_PROMPT: 'rule-concrete-draft@v2',
 }))
 
 vi.mock('../pulse/metrics', () => ({

@@ -379,6 +379,27 @@ Retention: Do not retain any data seen for training.
 PII handling: public official source text only.
 `
 
+const RULE_CONCRETE_DRAFT_V2 = `${RULE_CONCRETE_DRAFT_V1.replace(
+  'prompt_version: rule-concrete-draft@v1',
+  'prompt_version: rule-concrete-draft@v2',
+)}
+Additional v2 rules:
+- Return only the contract shape above. Do not rename dueDateLogic, dueDate,
+  sourceExcerpt, sourceHeading, extensionPolicy, or quality fields.
+- Never return null inside dueDateLogic.periods. If a row lacks a supported
+  due date, omit that row and mention the caveat in reasoning.
+- If the source uses month/day dates without a year, fill the year from
+  rule.applicableYear. If the source gives a tax-year-relative due date, use
+  nth_day_after_tax_year_begin or nth_day_after_tax_year_end exactly.
+- Use period_table for multiple due dates. Use fixed_date for a single
+  calendar date. Do not invent custom kinds such as installment_schedule,
+  annual_due_date, return_due_date, or payment_due_date.
+- extensionPolicy.durationMonths must be omitted unless the source explicitly
+  states a positive extension duration. Do not output durationMonths: 0.
+- sourceExcerpt must include the concrete date or relative timing phrase that
+  supports the dueDateLogic. Prefer table rows or adjacent source lines.
+`
+
 const READINESS_CHECKLIST_V1 = `prompt_version: readiness-checklist@v1
 model_tier: fast-json
 temperature: 0
@@ -468,6 +489,7 @@ const prompts = {
   'deadline-tip@v1': DEADLINE_TIP_V1,
   'pulse-extract@v1': PULSE_EXTRACT_V1,
   'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
+  'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
   'rule-registry-reconcile@v1': RULE_REGISTRY_RECONCILE_V1,
   'readiness-checklist@v1': READINESS_CHECKLIST_V1,
 } as const

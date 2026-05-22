@@ -178,6 +178,14 @@ rule version 变化或新 rule 发布后，catalog sync 会 enqueue 当前版本
 source-defined rule 还没有成功的全局 draft，也会 backfill 一次当前版本 draft，避免从旧无版本 cache
 迁移后用户看到整队 `not ready`。失败仅记录为 AI output / metric，不阻塞 review task。
 
+内部 concrete draft cache report/backfill：
+
+```sh
+pnpm rules:concrete-drafts:report -- --failures
+pnpm rules:concrete-drafts:backfill -- --retry-failed
+pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=4
+```
+
 内部 proposal report：
 
 ```sh
@@ -605,15 +613,16 @@ MVP 的用户提醒只消费 `obligation_instance`，不直接消费 `rule_templ
 
 ## 8. 变更记录
 
-| 版本 | 日期       | 作者  | 摘要                                                                                                                |
-| ---- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------- |
-| v1.1 | 2026-05-22 | Codex | Source-defined AI draft 改为全局预热缓存，rule pack 只要求用户审阅 cached concrete draft 后才能 active。            |
-| v1.0 | 2026-05-20 | Codex | 新增 business source-backed candidate domains，source-defined candidate 必须 AI draft + 用户 review 后才能 active。 |
-| v0.9 | 2026-05-05 | Codex | 改为全局模板 + practice owner/manager active rule 模型，pending template 只能 preview/review。                      |
-| v0.8 | 2026-05-04 | Codex | Pulse source promotion 覆盖 51 辖区，并收窄部分州 source。                                                          |
-| v0.7 | 2026-05-04 | Codex | 移除 agency-homepage 级 source，template generation 改为 precision-gated。                                          |
-| v0.6 | 2026-05-04 | Codex | 扩展 50 州 + DC source-backed templates，并补 rules review workflow。                                               |
-| v0.5 | 2026-04-27 | Codex | Source health checker 移出 core，改为 repo-level source checker。                                                   |
-| v0.4 | 2026-04-27 | Codex | 新增 rule-to-obligation preview contract 与 reminderReady 边界。                                                    |
-| v0.3 | 2026-04-27 | Codex | 官方来源复核后同步 source health、规则状态与 DueDateLogic DSL。                                                     |
-| v0.1 | 2026-04-27 | Codex | 新增 MVP source registry、初始 rule pack、结构化模型和通知边界。                                                    |
+| 版本 | 日期       | 作者  | 摘要                                                                                                                            |
+| ---- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------- |
+| v1.2 | 2026-05-22 | Codex | AI concrete draft cache 增加 v2 prompt、本地 backfill/report 命令和失败分类；source 缺正文与 schema 失败作为 ops 数据继续排查。 |
+| v1.1 | 2026-05-22 | Codex | Source-defined AI draft 改为全局预热缓存，rule pack 只要求用户审阅 cached concrete draft 后才能 active。                        |
+| v1.0 | 2026-05-20 | Codex | 新增 business source-backed candidate domains，source-defined candidate 必须 AI draft + 用户 review 后才能 active。             |
+| v0.9 | 2026-05-05 | Codex | 改为全局模板 + practice owner/manager active rule 模型，pending template 只能 preview/review。                                  |
+| v0.8 | 2026-05-04 | Codex | Pulse source promotion 覆盖 51 辖区，并收窄部分州 source。                                                                      |
+| v0.7 | 2026-05-04 | Codex | 移除 agency-homepage 级 source，template generation 改为 precision-gated。                                                      |
+| v0.6 | 2026-05-04 | Codex | 扩展 50 州 + DC source-backed templates，并补 rules review workflow。                                                           |
+| v0.5 | 2026-04-27 | Codex | Source health checker 移出 core，改为 repo-level source checker。                                                               |
+| v0.4 | 2026-04-27 | Codex | 新增 rule-to-obligation preview contract 与 reminderReady 边界。                                                                |
+| v0.3 | 2026-04-27 | Codex | 官方来源复核后同步 source health、规则状态与 DueDateLogic DSL。                                                                 |
+| v0.1 | 2026-04-27 | Codex | 新增 MVP source registry、初始 rule pack、结构化模型和通知边界。                                                                |
