@@ -153,6 +153,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { useClientDrawer } from '@/features/clients/ClientDrawerProvider'
+import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import {
   extensionDecisionEvidenceDescription,
@@ -661,7 +662,10 @@ export function ObligationQueueRoute() {
   // row peek (see ClientFactsWorkspace.tsx). One click into the
   // client without leaving the queue or swapping the obligation
   // drawer's content.
-  const { openDrawer: openClientPeekDrawer } = useClientDrawer()
+  // The queue eye-icon's client peek now uses ClientPeekHoverCard
+  // (hover-anchored PreviewCard). Click-to-open drawer behavior was
+  // retired for this surface 2026-05-22 — useClientDrawer still
+  // exists for other call sites (e.g. ClientFactsWorkspace).
   // Lifecycle v2 (?lifecycle=v2) swaps the status vocabulary on this
   // page: dropdown shows 6 target states instead of legacy 10, and
   // `review` re-labels to "In review". See
@@ -1187,23 +1191,27 @@ export function ObligationQueueRoute() {
               >
                 {tableRow.original.clientName}
               </span>
-              {/* Peek the client drawer in place — same pattern as the
-                  /clients list row peek. The button stops propagation
-                  so the row's obligation-drawer click still works for
-                  the rest of the cell. Visible on row hover, also on
+              {/* Peek the client info in place. The eye icon is the
+                  hover/focus trigger for a small popover (ClientPeek
+                  HoverCard) — no click required to see identity. The
+                  popover has its own "Open full page" / "All
+                  obligations" navigation buttons.
+
+                  `stopPropagation` on click prevents the row's
+                  obligation-drawer onClick from firing if the user
+                  does click the eye. Visible on row hover, also on
                   keyboard focus for accessibility. */}
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  openClientPeekDrawer(tableRow.original.clientId)
-                }}
-                aria-label={t`Peek ${tableRow.original.clientName} details`}
-                title={t`Peek client details`}
-                className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <EyeIcon className="size-3.5" aria-hidden />
-              </button>
+              <ClientPeekHoverCard clientId={tableRow.original.clientId}>
+                <button
+                  type="button"
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={t`Peek ${tableRow.original.clientName} details`}
+                  title={t`Peek client details`}
+                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
+                  <EyeIcon className="size-3.5" aria-hidden />
+                </button>
+              </ClientPeekHoverCard>
             </div>
           )
         },
@@ -1558,7 +1566,6 @@ export function ObligationQueueRoute() {
       daysMax,
       daysMin,
       filtersDisabled,
-      openClientPeekDrawer,
       openHeaderFilter,
       openEvidence,
       panelOpenIntent,
