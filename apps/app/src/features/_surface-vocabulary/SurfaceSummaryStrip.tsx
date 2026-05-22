@@ -32,6 +32,13 @@ export interface SurfaceSummaryItem {
   tone?: SurfaceSummaryItemTone
   onClick?: () => void
   href?: string
+  /**
+   * When true, the chip renders in a pressed/active visual state —
+   * use for filter-toggle chips (Clients action strip) so the CPA
+   * can see at a glance which subset is currently filtering the
+   * table below. Defaults to false.
+   */
+  active?: boolean
 }
 
 export interface SurfaceSummaryStripProps {
@@ -94,28 +101,40 @@ function SurfaceSummaryNumber({
   tone = 'default',
   onClick,
   href,
+  active = false,
 }: SurfaceSummaryItem) {
   const toneClass = toneToClass(tone, value)
   const inner = (
     <>
       <span className={cn('text-sm font-semibold tabular-nums', toneClass)}>{value}</span>
-      <span className="text-xs text-text-secondary">{label}</span>
+      <span className={cn('text-xs', active ? 'text-text-primary' : 'text-text-secondary')}>
+        {label}
+      </span>
     </>
   )
+  // `active` adds a subtle background pill so the chip reads as
+  // "pressed / filter on" without competing with the destructive /
+  // warning tone tints on the value itself.
   const interactiveClass = cn(
-    'inline-flex items-baseline gap-1 rounded-sm outline-none',
+    'inline-flex items-baseline gap-1 rounded-md px-1.5 py-0.5 outline-none',
     'hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+    active && 'bg-state-base-hover-alt hover:no-underline',
   )
   if (href) {
     return (
-      <Link to={href} className={interactiveClass}>
+      <Link to={href} className={interactiveClass} aria-pressed={active || undefined}>
         {inner}
       </Link>
     )
   }
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={interactiveClass}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={interactiveClass}
+        aria-pressed={active || undefined}
+      >
         {inner}
       </button>
     )

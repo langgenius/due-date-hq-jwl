@@ -708,8 +708,29 @@ export function ClientFactsWorkspace({
     ],
   )
 
+  // Action-strip chip filters — local to this surface so they're not
+  // entangled with the URL state. Click "8 at risk" / "1 waiting on
+  // client" to narrow the table; click again to clear. The chips
+  // render with `active` state so the CPA sees which filter is on.
+  // Pulse hits + missing facts still route through the URL-backed
+  // parent filters (onPulseFilterChange / onReadinessFilterChange) so
+  // deep links continue to work for those.
+  const [atRiskActive, setAtRiskActive] = useState(false)
+  const [waitingActive, setWaitingActive] = useState(false)
+
+  const visibleClients = useMemo(() => {
+    if (!atRiskActive && !waitingActive) return filteredClients
+    return filteredClients.filter((client) => {
+      const summary = obligationSummariesByClient.get(client.id)
+      if (!summary) return false
+      if (atRiskActive && summary.overdueCount === 0) return false
+      if (waitingActive && summary.waitingOnClientCount === 0) return false
+      return true
+    })
+  }, [filteredClients, atRiskActive, waitingActive, obligationSummariesByClient])
+
   const table = useReactTable({
-    data: filteredClients,
+    data: visibleClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -751,9 +772,11 @@ export function ClientFactsWorkspace({
         needsFactsCount={factsModel.summary.needsFacts}
         obligationSummariesByClient={obligationSummariesByClient}
         pulseHitCount={pulseMatchesByClient.size}
+        atRiskActive={atRiskActive}
+        waitingActive={waitingActive}
         onFixNeedsFacts={() => onReadinessFilterChange(['needs_facts'])}
-        onOpenAtRisk={() => navigate('/obligations?status=blocked')}
-        onOpenWaitingOnClient={() => navigate('/obligations?status=waiting_on_client')}
+        onToggleAtRisk={() => setAtRiskActive((prev) => !prev)}
+        onToggleWaiting={() => setWaitingActive((prev) => !prev)}
         onOpenPulseHits={() => onPulseFilterChange(['affected'])}
       />
 
@@ -929,18 +952,22 @@ function ClientsActionStrip({
   needsFactsCount,
   obligationSummariesByClient,
   pulseHitCount,
+  atRiskActive,
+  waitingActive,
   onFixNeedsFacts,
-  onOpenAtRisk,
-  onOpenWaitingOnClient,
+  onToggleAtRisk,
+  onToggleWaiting,
   onOpenPulseHits,
 }: {
   isLoading: boolean
   needsFactsCount: number
   obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
   pulseHitCount: number
+  atRiskActive: boolean
+  waitingActive: boolean
   onFixNeedsFacts: () => void
-  onOpenAtRisk: () => void
-  onOpenWaitingOnClient: () => void
+  onToggleAtRisk: () => void
+  onToggleWaiting: () => void
   onOpenPulseHits: () => void
 }) {
   const { t } = useLingui()
@@ -996,14 +1023,19 @@ function ClientsActionStrip({
             value: atRiskCount,
             label: t`at risk`,
             tone: atRiskCount > 0 ? 'destructive' : 'muted',
-            ...(atRiskCount > 0 ? { onClick: onOpenAtRisk } : {}),
+            active: atRiskActive,
+            // Clickable when there's something to filter OR when the
+            // filter is already active (so the user can toggle it off
+            // even if a different filter brought the count to 0).
+            ...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {}),
           },
           {
             key: 'waiting',
             value: waitingOnClientCount,
             label: t`waiting on client`,
             tone: waitingOnClientCount > 0 ? 'warning' : 'muted',
-            ...(waitingOnClientCount > 0 ? { onClick: onOpenWaitingOnClient } : {}),
+            active: waitingActive,
+            ...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {}),
           },
           {
             key: 'pulse',
