@@ -37,8 +37,8 @@ function readStoredThemePreference(storage: Pick<Storage, 'getItem'>): ThemePref
     return stored
   }
 
-  storedThemePreferenceCache.set(storage, 'system')
-  return 'system'
+  storedThemePreferenceCache.set(storage, 'light')
+  return 'light'
 }
 
 function clearStoredThemePreferenceCache(storage: Pick<Storage, 'getItem'>): void {
