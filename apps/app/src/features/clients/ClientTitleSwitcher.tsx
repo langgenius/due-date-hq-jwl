@@ -96,21 +96,27 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
                       onSelect={() => goToClient(entry.id)}
                       aria-current={entry.id === client.id ? 'page' : undefined}
                     >
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-text-primary">
-                          {entry.name}
-                        </span>
-                        <span className="block truncate text-xs text-text-tertiary">
-                          {[entry.state, entry.entityType]
-                            .filter((value): value is string => Boolean(value))
-                            .join(' · ')}
-                        </span>
-                      </span>
-                      {entry.id === client.id ? (
-                        <span className="text-[10px] font-medium uppercase text-text-tertiary">
-                          <Trans>Current</Trans>
-                        </span>
-                      ) : null}
+                      {/* Force a flex row so `min-w-0` + `flex-1` propagate to
+                          the name column — without this wrapper, CommandItem's
+                          own intrinsic layout collapses the truncated name to
+                          3-4 characters before the ellipsis kicks in. */}
+                      <div className="flex w-full items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-text-primary">
+                            {entry.name}
+                          </span>
+                          <span className="block truncate text-xs text-text-tertiary">
+                            {[entry.state, entry.entityType]
+                              .filter((value): value is string => Boolean(value))
+                              .join(' · ')}
+                          </span>
+                        </div>
+                        {entry.id === client.id ? (
+                          <span className="shrink-0 text-[10px] font-medium uppercase text-text-tertiary">
+                            <Trans>Current</Trans>
+                          </span>
+                        ) : null}
+                      </div>
                     </CommandItem>
                   ))}
                 </CommandGroup>
