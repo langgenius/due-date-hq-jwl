@@ -2293,20 +2293,49 @@ function ClientAssigneeAvatar({
   const isMine =
     currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
   const title = isMine ? t`Assigned to you (${name})` : name
+  // Stable color hash so "AR" and "KP" look visually distinct even
+  // though they're both gray-on-gray badges otherwise. Hash the
+  // assignee name to a 6-bucket palette of background + text colors
+  // that all read as muted/quiet (no high-saturation accent colors —
+  // these are avatars, not status). `isMine` overrides with the
+  // accent palette to keep the "yours" signal louder than the
+  // identity-distinction signal.
+  const tint = ASSIGNEE_TINTS[hashStringToBucket(name, ASSIGNEE_TINTS.length)]
   return (
     <span
       aria-label={title}
       title={title}
       className={cn(
         'inline-flex size-6 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
-        isMine
-          ? 'bg-state-accent-hover-alt text-text-accent'
-          : 'bg-background-subtle text-text-secondary',
+        isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
       )}
     >
       {initialsFromName(name)}
     </span>
   )
+}
+
+// Six muted background+text pairings. Picked to feel like assignee
+// avatars (low chroma, distinguishable) without competing with the
+// status / readiness palette which carries semantic meaning.
+const ASSIGNEE_TINTS = [
+  'bg-state-base-hover-alt text-text-secondary',
+  'bg-state-warning-hover text-text-primary',
+  'bg-state-success-hover text-text-primary',
+  'bg-state-destructive-hover text-text-primary',
+  'bg-state-accent-hover-alt text-text-accent',
+  'bg-background-subtle text-text-tertiary',
+] as const
+
+function hashStringToBucket(value: string, buckets: number): number {
+  // FNV-1a-ish. Pure, stable per input — same name always lands in
+  // the same bucket so the same person looks the same across the app.
+  let hash = 2166136261
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i)
+    hash = (hash * 16777619) >>> 0
+  }
+  return hash % buckets
 }
 
 function ClientReadinessBadge({
