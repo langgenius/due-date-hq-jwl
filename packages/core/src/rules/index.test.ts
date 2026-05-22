@@ -82,6 +82,7 @@ const OFFICIAL_NON_GOV_HOSTS = new Set([
   'www.marylandtaxes.gov',
   'www.jobsnd.com',
   'www.revenue.state.mn.us',
+  'www.uimn.org',
   'workforcewv.org',
   'uimn.org',
 ])
@@ -211,7 +212,10 @@ describe('@duedatehq/core/rules', () => {
 
       if (!isStateIncomeReviewRule || !incomeSourceJurisdictions.has(rule.jurisdiction)) continue
 
-      const expectedSourceId = `${rule.jurisdiction.toLowerCase()}.income_tax`
+      const expectedSourceId =
+        rule.jurisdiction === 'KS'
+          ? 'ks.tax_calendar'
+          : `${rule.jurisdiction.toLowerCase()}.income_tax`
       expect(rule.sourceIds, `${rule.id} should use a specific income source`).toEqual([
         expectedSourceId,
       ])
@@ -502,6 +506,36 @@ describe('@duedatehq/core/rules', () => {
     )
   })
 
+  it('uses the Kansas tax calendar and unemployment sources', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ks.tax_calendar')).toMatchObject({
+      url: 'https://www.ksrevenue.gov/pub1515.html',
+      sourceType: 'calendar',
+      domains: expect.arrayContaining(['individual_income_return', 'individual_estimated_tax']),
+      entityApplicability: expect.arrayContaining(['individual', 'sole_prop']),
+    })
+    expect(findRuleById('ks.individual_income_return.candidate.2026')?.sourceIds).toEqual([
+      'ks.tax_calendar',
+    ])
+    expect(findRuleById('ks.individual_estimated_tax.candidate.2026')?.sourceIds).toEqual([
+      'ks.tax_calendar',
+    ])
+    expect(sourcesById.get('ks.ui_wage_report')?.domains).toEqual(['ui_wage_report'])
+    expect(
+      findRuleById('ks.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Form K-40')
+    expect(
+      findRuleById('ks.individual_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Form K-40ES')
+    expect(findRuleById('ks.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'ks.ui_wage_report',
+    ])
+    expect(findRuleById('ks.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'quarterly wage reports',
+    )
+  })
+
   it('uses current official Mississippi sources for fiduciary and pass-through candidates', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
 
@@ -608,6 +642,191 @@ describe('@duedatehq/core/rules', () => {
     ).toContain('April 15')
     expect(findRuleById('nh.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
       'July 31',
+    )
+  })
+
+  it('uses focused North Dakota deadline pages and excerpts for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('nd.income_tax')).toMatchObject({
+      url: 'https://www.tax.nd.gov/news/resources/tax-deadlines/individual-income-tax-deadlines',
+      domains: ['individual_income_return', 'individual_estimated_tax'],
+    })
+    expect(sourcesById.get('nd.fiduciary_tax')).toMatchObject({
+      url: 'https://www.tax.nd.gov/business/fiduciary-tax',
+      domains: ['fiduciary_income_return'],
+    })
+    expect(sourcesById.get('nd.s_corp_partnership_tax_deadlines')).toMatchObject({
+      url: 'https://www.tax.nd.gov/s-corp-and-partnership-tax-deadlines',
+      domains: ['pass_through_entity_return'],
+    })
+    expect(sourcesById.get('nd.sales_use_tax')).toMatchObject({
+      url: 'https://www.tax.nd.gov/sales-and-use-tax-deadlines',
+      sourceType: 'due_dates',
+    })
+    expect(sourcesById.get('nd.withholding_tax')).toMatchObject({
+      url: 'https://www.tax.nd.gov/news/resources/tax-deadlines/income-tax-withholding-deadlines',
+      sourceType: 'due_dates',
+    })
+
+    expect(findRuleById('nd.individual_income_return.candidate.2026')?.sourceIds).toEqual([
+      'nd.income_tax',
+    ])
+    expect(findRuleById('nd.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
+      'nd.fiduciary_tax',
+    ])
+    expect(findRuleById('nd.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'nd.s_corp_partnership_tax_deadlines',
+    ])
+    expect(
+      findRuleById('nd.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Form ND-1')
+    expect(
+      findRuleById('nd.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Form 40')
+    expect(
+      findRuleById('nd.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Form 60')
+  })
+
+  it('uses current official Minnesota and Missouri unemployment due-date sources', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('mn.ui_wage_report')).toMatchObject({
+      title: 'Minnesota Employer Handbook Reports and Payments Due Dates',
+      url: 'https://www.uimn.org/employers/publications/emp-hbook/due-date.jsp',
+      sourceType: 'due_dates',
+    })
+    expect(sourcesById.get('mo.ui_wage_report')).toMatchObject({
+      title: 'Missouri Labor Quarterly Reports',
+      url: 'https://labor.mo.gov/des/employers/quarterly-reports',
+      sourceType: 'due_dates',
+    })
+  })
+
+  it('uses focused Michigan due-date pages and excerpts for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('mi.income_tax')).toMatchObject({
+      title: 'Michigan Treasury 2026 Individual Income Tax Filing Season',
+      url: 'https://www.michigan.gov/treasury/news/2026/01/26/individual-income-tax-filing-season-begins-today',
+      sourceType: 'due_dates',
+      domains: ['individual_income_return'],
+    })
+    expect(sourcesById.get('mi.individual_estimated_tax')).toMatchObject({
+      title: 'Michigan Treasury Quarterly Estimated Tax Payments',
+      url: 'https://www.michigan.gov/taxes/questions/iit/accordion/estimate/when-are-the-quarterly-estimated-tax-payments-due-1',
+      sourceType: 'due_dates',
+      domains: ['individual_estimated_tax'],
+    })
+    expect(sourcesById.get('mi.corporate_income_tax')).toMatchObject({
+      title: 'Michigan Treasury Corporate Income Tax Filing Requirements',
+      url: 'https://www.michigan.gov/taxes/business-taxes/cit/detail/michigan-corporate-income-tax-cit/filing-requirements',
+      sourceType: 'due_dates',
+    })
+    expect(sourcesById.get('mi.flow_through_entity_tax')).toMatchObject({
+      title: 'Michigan Treasury Flow-Through Entity Tax Due Dates',
+      url: 'https://www.michigan.gov/taxes/business-taxes/flowthrough-entity-tax',
+      sourceType: 'due_dates',
+    })
+
+    expect(findRuleById('mi.individual_income_return.candidate.2026')?.sourceIds).toEqual([
+      'mi.income_tax',
+    ])
+    expect(findRuleById('mi.individual_estimated_tax.candidate.2026')?.sourceIds).toEqual([
+      'mi.individual_estimated_tax',
+    ])
+    expect(findRuleById('mi.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'mi.corporate_income_tax',
+    ])
+    expect(findRuleById('mi.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'mi.flow_through_entity_tax',
+    ])
+    expect(findRuleById('mi.sales_use_tax.candidate.2026')?.sourceIds).toEqual(['mi.sales_use_tax'])
+    expect(findRuleById('mi.withholding.candidate.2026')?.sourceIds).toEqual([
+      'mi.withholding_due_dates',
+    ])
+    expect(findRuleById('mi.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
+      'mi.ui_wage_report',
+    ])
+    expect(
+      findRuleById('mi.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 15, 2026')
+    expect(
+      findRuleById('mi.business_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('July 15')
+    expect(
+      findRuleById('mi.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 30, 2026')
+    expect(
+      findRuleById('mi.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('March 31')
+    expect(findRuleById('mi.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'April 20',
+    )
+    expect(findRuleById('mi.withholding.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'February 28',
+    )
+    expect(findRuleById('mi.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'April 25',
+    )
+  })
+
+  it('uses repaired Vermont, Rhode Island, Pennsylvania, and Ohio source links', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('pa.income_tax')).toMatchObject({
+      title: 'Pennsylvania Personal Income Tax Filing Requirements',
+      url: 'https://www.pa.gov/agencies/revenue/forms-and-publications/pa-personal-income-tax-guide/brief-overview-and-filing-requirements',
+      sourceType: 'due_dates',
+    })
+    expect(sourcesById.get('oh.income_tax')).toMatchObject({
+      title: 'Ohio 2025 Individual Income Tax IT 1040 and SD 100 Instructions',
+      url: 'https://dam.assets.ohio.gov/image/upload/v1735920104/tax.ohio.gov/forms/ohio_individual/individual/2025/it1040-booklet.pdf',
+      acquisitionMethod: 'pdf_watch',
+    })
+    expect(sourcesById.get('vt.individual_estimated_tax')).toMatchObject({
+      url: 'https://tax.vermont.gov/sites/tax/files/documents/IN-114-Instr-2025.pdf',
+      domains: ['individual_estimated_tax'],
+    })
+    expect(sourcesById.get('vt.corporate_income_tax')).toMatchObject({
+      url: 'https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr.pdf',
+      domains: ['business_income_return', 'business_estimated_tax'],
+      entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
+    })
+    expect(sourcesById.get('ri.fiduciary_income_tax')).toMatchObject({
+      url: 'https://tax.ri.gov/tax-sections/personal-income-tax/fiduciary-tax-filing-requirements',
+      domains: ['fiduciary_income_return'],
+      sourceType: 'due_dates',
+    })
+
+    expect(findRuleById('vt.individual_estimated_tax.candidate.2026')?.sourceIds).toEqual([
+      'vt.individual_estimated_tax',
+    ])
+    expect(findRuleById('vt.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
+      'vt.fiduciary_income_tax',
+    ])
+    expect(findRuleById('vt.business_income_return.candidate.2026')?.sourceIds).toEqual([
+      'vt.corporate_income_tax',
+    ])
+    expect(findRuleById('vt.pass_through_entity_return.candidate.2026')?.sourceIds).toEqual([
+      'vt.pass_through_entity_tax',
+    ])
+    expect(findRuleById('ri.fiduciary_income_return.candidate.2026')?.sourceIds).toEqual([
+      'ri.fiduciary_income_tax',
+    ])
+
+    expect(
+      findRuleById('pa.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 15')
+    expect(
+      findRuleById('oh.individual_estimated_tax.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('January 15, 2027')
+    expect(
+      findRuleById('ri.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('fifteenth day of the fourth month')
+    expect(findRuleById('vt.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'April 30',
     )
   })
 

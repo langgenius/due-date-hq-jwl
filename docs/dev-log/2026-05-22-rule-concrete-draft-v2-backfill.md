@@ -297,6 +297,111 @@ wage reporting. Targeted local backfill succeeded for all five NH rows. Follow-u
 report: 333 successful global cached drafts, 98 missing successful drafts, and
 no NH rows in the latest missing/failure list.
 
+## North Dakota, Minnesota, And Missouri Source Repair
+
+North Dakota source pages were browser-visible, but the concrete draft source
+builder still saw only registry metadata for several manual-review sources. The
+ND source registry now points candidate rules at more specific official pages:
+
+- `nd.income_tax`:
+  `https://www.tax.nd.gov/news/resources/tax-deadlines/individual-income-tax-deadlines`.
+- `nd.fiduciary_tax`:
+  `https://www.tax.nd.gov/business/fiduciary-tax`.
+- `nd.s_corp_partnership_tax_deadlines`:
+  `https://www.tax.nd.gov/s-corp-and-partnership-tax-deadlines`.
+- `nd.sales_use_tax`:
+  `https://www.tax.nd.gov/sales-and-use-tax-deadlines`.
+- `nd.withholding_tax`:
+  `https://www.tax.nd.gov/news/resources/tax-deadlines/income-tax-withholding-deadlines`.
+
+Focused source-backed excerpts were added for ND individual returns, individual
+estimated tax, fiduciary returns, corporate returns, corporate estimated tax,
+pass-through returns, sales/use tax, and withholding. Targeted local backfill
+succeeded for all six current ND concrete-draft targets.
+
+Minnesota and Missouri UI wage report source URLs were also repaired for the
+source registry. Minnesota now uses the UI employer handbook due-date page,
+`https://www.uimn.org/employers/publications/emp-hbook/due-date.jsp`. Missouri
+now uses the current DES quarterly reports page,
+`https://labor.mo.gov/des/employers/quarterly-reports`, replacing the stale
+`/quarterly-contribution-and-wage-report` URL that returned Page Not Found.
+Focused UI wage report excerpts were added for both sources so future
+conditional UI concrete-draft targets do not depend on live page extraction.
+
+Follow-up report on the current working tree: 292 source-defined targets, 250
+successful global cached drafts, 42 missing successful drafts, zero targets with
+no attempt, and no ND, MN, or MO rows in the latest missing/failure list.
+
+## Michigan Source Repair
+
+Michigan still had `SOURCE_TEXT_UNAVAILABLE` rows in the broader current target
+scope. The broad CIT directory URL was replaced with a more precise official
+filing requirements page:
+`https://www.michigan.gov/taxes/business-taxes/cit/detail/michigan-corporate-income-tax-cit/filing-requirements`.
+I checked the Michigan tax year 2025 CIT due dates PDF as an even more precise
+candidate, but direct local fetch returned HTTP 403, so it is not suitable as
+the registered source URL for automated backfill. The CIT source now uses the
+fetchable detail page plus source-backed excerpts with the exact 2025
+calendar-year dates.
+
+The Michigan individual income source now points to the 2026 filing-season
+announcement for the April 15, 2026 return/payment deadline. Individual
+estimated tax was split into its own official quarterly estimated-tax FAQ
+source. Flow-through entity tax now points to the main FTE page that contains
+the due-date section instead of the FAQ page. Fiduciary remains on the existing
+fiduciary filing guidance page, but is treated as a due-date source because the
+page contains the "When to File" rule. Focused excerpts were also added for
+Michigan sales/use, withholding, and UI wage report rules.
+
+Targeted local backfill succeeded for all current Michigan source-defined
+targets:
+
+- `mi.income_tax`
+- `mi.individual_estimated_tax`
+- `mi.fiduciary_income_tax`
+- `mi.corporate_income_tax`
+- `mi.flow_through_entity_tax`
+- `mi.sales_use_tax`
+- `mi.withholding_due_dates`
+- `mi.ui_wage_report`
+
+Follow-up report on the broader current working tree: 431 source-defined
+targets, 357 successful global cached drafts, 74 missing successful drafts, zero
+targets with no attempt, and no MI rows in the latest missing/failure groups.
+
+## Vermont, Rhode Island, Pennsylvania, and Ohio Source Repair
+
+Vermont's previous concrete-draft failures were caused by stale or overly broad
+source paths. I split the Vermont coverage across focused official sources:
+individual estimated tax now uses the IN-114 instructions PDF, fiduciary income
+uses the Vermont statute filing rule, corporate income uses the CO-411
+instructions PDF, pass-through returns use the BI-471 instructions PDF,
+sales/use uses the SUT filing source, and withholding uses the WHT-436
+instructions. Source-backed excerpts were tightened with explicit calendar-year
+or periodic due dates so the model no longer has to infer dates from "same as
+federal" language.
+
+Rhode Island's source pages were reachable, but several rules depended on PDF
+lists or broad forms pages. I added focused excerpts for individual estimated,
+fiduciary, corporate, pass-through, franchise/entity, sales/use, withholding,
+and UI wage rules. The withholding excerpt now uses the Division of Taxation's
+weekly, monthly, and quarterly due-date rules, and the franchise/entity excerpt
+states the RI-1120C calendar-year and fiscal-year due-date rule directly.
+
+Pennsylvania's old PIT source returned Page Not Found, so `pa.income_tax` now
+points to the current PA Personal Income Tax Guide filing requirements page.
+Ohio's individual filing source returned HTTP 403, so `oh.income_tax` now points
+to the official Ohio IT 1040 and SD 100 instructions PDF. The Ohio UI wage rule
+did not need a source replacement; it succeeded when retried with the default
+model after a fast-model parse failure.
+
+Targeted local backfill succeeded for all current VT, RI, PA, and OH rows after
+the source/excerpt repairs. Follow-up report on the broader current working
+tree: 431 source-defined targets, 380 successful global cached drafts, 51
+missing successful drafts, zero targets with no attempt, and no VT, RI, PA, or
+OH rows in the latest missing/failure groups. `SOURCE_TEXT_UNAVAILABLE` dropped
+from 35 to 12 in this pass.
+
 ## Verification
 
 - `pnpm --filter @duedatehq/ai test -- src/ai.test.ts`
@@ -346,3 +451,39 @@ no NH rows in the latest missing/failure list.
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nh.business_tax`
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nh.ui_wage_report`
 - `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm check:deps`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.fiduciary_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.corporate_income_tax_deadlines`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=nd.s_corp_partnership_tax_deadlines`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.individual_estimated_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.fiduciary_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.corporate_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.flow_through_entity_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.sales_use_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.withholding_due_dates`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=mi.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=pa.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=oh.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=oh.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.fiduciary_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.corporate_tax_forms`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.sales_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.withholding_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=ri.ui_wage_report`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.individual_estimated_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.fiduciary_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.corporate_income_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.pass_through_entity_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --concurrency=1 --source=vt.sales_use_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.withholding_tax`
+- `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=vt.ui_wage_report`
+- `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`

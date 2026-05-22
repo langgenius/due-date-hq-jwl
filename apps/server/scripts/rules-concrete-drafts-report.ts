@@ -321,6 +321,8 @@ async function main() {
                     ruleId: target.ruleId,
                     ruleVersion: target.ruleVersion,
                     sourceId: target.sourceId,
+                    sourceTitle: target.sourceTitle,
+                    sourceUrl: target.sourceUrl,
                     sourceType: target.sourceType,
                     acquisitionMethod: target.acquisitionMethod,
                     domain: target.domain,
