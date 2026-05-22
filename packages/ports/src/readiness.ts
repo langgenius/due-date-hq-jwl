@@ -17,6 +17,8 @@ export interface ReadinessDocumentChecklistItemRow {
   obligationInstanceId: string
   label: string
   description: string | null
+  templateKey: string | null
+  templateVersion: number | null
   source: ReadinessDocumentChecklistItemSource
   status: ReadinessDocumentChecklistItemStatus
   sortOrder: number
@@ -89,11 +91,25 @@ export interface ReadinessRepo {
       id: string
       label: string
       description: string | null
+      templateKey?: string | null
+      templateVersion?: number | null
       source: ReadinessDocumentChecklistItemSource
       status?: ReadinessDocumentChecklistItemStatus
       sortOrder: number
       note?: string | null
     }>
+  }): Promise<ReadinessDocumentChecklistItemRow[]>
+  reconcileDocumentChecklistItems(input: {
+    obligationInstanceId: string
+    createdByUserId: string
+    template: Array<{
+      templateKey: string
+      templateVersion: number
+      label: string
+      description: string | null
+      source: 'template'
+    }>
+    now: Date
   }): Promise<ReadinessDocumentChecklistItemRow[]>
   updateDocumentChecklistItem(input: {
     id: string
@@ -104,7 +120,10 @@ export interface ReadinessRepo {
     receivedByUserId?: string | null
     now: Date
   }): Promise<ReadinessDocumentChecklistItemRow>
-  deleteDocumentChecklistItem(id: string): Promise<ReadinessDocumentChecklistItemRow | undefined>
+  deleteDocumentChecklistItem(input: {
+    id: string
+    deletedByUserId: string
+  }): Promise<ReadinessDocumentChecklistItemRow | undefined>
   listByObligation(obligationInstanceId: string): Promise<ClientReadinessRequestWithResponses[]>
   createRequest(input: {
     id: string

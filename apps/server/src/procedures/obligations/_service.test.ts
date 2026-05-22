@@ -495,6 +495,9 @@ function buildScoped(firmId: string, rows: Row[]) {
       async createDocumentChecklistItems() {
         return unused('readiness.createDocumentChecklistItems')
       },
+      async reconcileDocumentChecklistItems() {
+        return unused('readiness.reconcileDocumentChecklistItems')
+      },
       async updateDocumentChecklistItem() {
         return unused('readiness.updateDocumentChecklistItem')
       },

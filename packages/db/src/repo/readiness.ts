@@ -9,6 +9,7 @@ import {
   clientReadinessRequest,
   clientReadinessResponse,
   obligationReadinessChecklistItem,
+  obligationReadinessTemplateItemSuppression,
   type ClientReadinessRequest,
   type ClientReadinessResponse,
   type ObligationReadinessChecklistItem,
@@ -17,6 +18,81 @@ import {
 } from '../schema/readiness'
 
 const RESPONSE_LOOKUP_BATCH_SIZE = 90
+const LEGACY_TEMPLATE_LABEL_TO_KEYS = new Map<string, string[]>([
+  ['w 2 1099 and income forms', ['1040.individual_return.w2_forms']],
+  ['brokerage and crypto statements', ['1040.individual_return.brokerage_crypto']],
+  ['deduction and credit support', ['1040.individual_return.deductions_credits']],
+  ['schedule c business records', ['1040.individual_return.schedule_c']],
+  ['k 1 packages', ['1040.individual_return.schedule_k1']],
+  [
+    'trial balance and general ledger',
+    [
+      '1065.partnership_return.books_trial_balance',
+      '1120s.s_corporation_return.books_trial_balance',
+      '1120.c_corporation_return.corporate_books',
+    ],
+  ],
+  [
+    'bank and card reconciliations',
+    [
+      '1065.partnership_return.bank_loan_reconciliations',
+      '1120s.s_corporation_return.bank_loan_reconciliations',
+    ],
+  ],
+  [
+    'fixed asset additions and disposals',
+    [
+      '1065.partnership_return.fixed_assets',
+      '1120s.s_corporation_return.fixed_assets',
+      '1120.c_corporation_return.fixed_assets',
+    ],
+  ],
+  ['partner capital and ownership changes', ['1065.partnership_return.capital_accounts']],
+  [
+    'k 1 recipient delivery list',
+    ['1065.partnership_return.k1_delivery', '1120s.s_corporation_return.k1_delivery'],
+  ],
+  ['payroll and officer wages', ['1120s.s_corporation_return.reasonable_compensation']],
+  ['shareholder basis and ownership changes', ['1120s.s_corporation_return.shareholder_basis']],
+  ['balance sheet support', ['1120.c_corporation_return.balance_sheet_support']],
+  ['state apportionment support', ['1120.c_corporation_return.state_apportionment']],
+  ['e file authorization signer', ['1120.c_corporation_return.signature_payment_authorization']],
+  ['source documents', ['generic.fallback_readiness.source_documents']],
+  ['bookkeeping export', ['generic.fallback_readiness.bookkeeping_export']],
+  ['client confirmations', ['generic.fallback_readiness.open_questions']],
+])
+
+export interface ReadinessDocumentChecklistTemplateRow {
+  templateKey: string
+  templateVersion: number
+  label: string
+  description: string | null
+  source: 'template'
+}
+
+interface ReconciliationExistingItem {
+  id: string
+  label: string
+  description: string | null
+  templateKey: string | null
+  templateVersion: number | null
+  source: 'template' | 'custom'
+  sortOrder: number
+}
+
+interface ReconciliationSuppression {
+  templateKey: string
+}
+
+export interface ReadinessDocumentChecklistReconciliationPlan {
+  updates: Array<{
+    id: string
+    templateKey: string | null
+    templateVersion: number | null
+    sortOrder: number
+  }>
+  inserts: Array<ReadinessDocumentChecklistTemplateRow & { sortOrder: number }>
+}
 
 export interface ReadinessPortalRequestRow {
   request: ClientReadinessRequest
@@ -43,6 +119,96 @@ function readinessDocumentStatusFromResponse(
   if (status === 'ready') return 'received'
   if (status === 'need_help') return 'needs_review'
   return 'missing'
+}
+
+function normalizeTemplateMatch(value: string | null | undefined): string {
+  return (value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+function legacyMatchKey(value: { label: string; description: string | null }): string {
+  return `${normalizeTemplateMatch(value.label)}\n${normalizeTemplateMatch(value.description)}`
+}
+
+export function planReadinessDocumentChecklistReconciliation(input: {
+  existing: readonly ReconciliationExistingItem[]
+  suppressions: readonly ReconciliationSuppression[]
+  template: readonly ReadinessDocumentChecklistTemplateRow[]
+}): ReadinessDocumentChecklistReconciliationPlan {
+  const updates: ReadinessDocumentChecklistReconciliationPlan['updates'] = []
+  const inserts: ReadinessDocumentChecklistReconciliationPlan['inserts'] = []
+  const suppressed = new Set(input.suppressions.map((row) => row.templateKey))
+  const matchedExistingIds = new Set<string>()
+  const byTemplateKey = new Map<string, ReconciliationExistingItem>()
+  const legacyByLabel = new Map<string, ReconciliationExistingItem[]>()
+  const legacyByTemplateKey = new Map<string, ReconciliationExistingItem[]>()
+
+  for (const row of input.existing) {
+    if (row.source === 'template' && row.templateKey) {
+      byTemplateKey.set(row.templateKey, row)
+    } else if (row.source === 'template') {
+      const key = legacyMatchKey(row)
+      const bucket = legacyByLabel.get(key) ?? []
+      bucket.push(row)
+      legacyByLabel.set(key, bucket)
+      const legacyTemplateKeys = LEGACY_TEMPLATE_LABEL_TO_KEYS.get(
+        normalizeTemplateMatch(row.label),
+      )
+      for (const legacyTemplateKey of legacyTemplateKeys ?? []) {
+        const legacyBucket = legacyByTemplateKey.get(legacyTemplateKey) ?? []
+        legacyBucket.push(row)
+        legacyByTemplateKey.set(legacyTemplateKey, legacyBucket)
+      }
+    }
+  }
+
+  input.template.forEach((templateItem, sortOrder) => {
+    if (suppressed.has(templateItem.templateKey)) return
+    const exact = byTemplateKey.get(templateItem.templateKey)
+    const legacyBucket = legacyByLabel.get(legacyMatchKey(templateItem))
+    const legacyByKeyBucket = legacyByTemplateKey.get(templateItem.templateKey)
+    const legacy = legacyByKeyBucket?.shift() ?? legacyBucket?.shift()
+    const existing = exact ?? legacy
+    if (existing) {
+      matchedExistingIds.add(existing.id)
+      if (
+        existing.sortOrder !== sortOrder ||
+        existing.templateKey !== templateItem.templateKey ||
+        existing.templateVersion !== templateItem.templateVersion
+      ) {
+        updates.push({
+          id: existing.id,
+          templateKey: templateItem.templateKey,
+          templateVersion: templateItem.templateVersion,
+          sortOrder,
+        })
+      }
+      return
+    }
+    inserts.push({ ...templateItem, sortOrder })
+  })
+
+  let overflowSortOrder = input.template.filter((item) => !suppressed.has(item.templateKey)).length
+  const overflow = input.existing
+    .filter((row) => !matchedExistingIds.has(row.id))
+    .toSorted((a, b) => a.sortOrder - b.sortOrder)
+  for (const row of overflow) {
+    if (row.sortOrder === overflowSortOrder) {
+      overflowSortOrder += 1
+      continue
+    }
+    updates.push({
+      id: row.id,
+      templateKey: row.templateKey,
+      templateVersion: row.templateVersion,
+      sortOrder: overflowSortOrder,
+    })
+    overflowSortOrder += 1
+  }
+
+  return { updates, inserts }
 }
 
 export function makeReadinessPortalRepo(db: Db) {
@@ -165,6 +331,8 @@ export function makeReadinessRepo(db: Db, firmId: string) {
         id: string
         label: string
         description: string | null
+        templateKey?: string | null
+        templateVersion?: number | null
         source: 'template' | 'custom'
         status?: ReadinessDocumentChecklistItemStatus
         sortOrder: number
@@ -182,6 +350,8 @@ export function makeReadinessRepo(db: Db, firmId: string) {
           obligationInstanceId: input.obligationInstanceId,
           label: item.label,
           description: item.description,
+          templateKey: item.templateKey ?? null,
+          templateVersion: item.templateVersion ?? null,
           source: item.source,
           status: item.status ?? 'missing',
           sortOrder: item.sortOrder,
@@ -189,6 +359,77 @@ export function makeReadinessRepo(db: Db, firmId: string) {
           createdByUserId: input.createdByUserId,
         })),
       )
+      return this.listDocumentChecklistByObligation(input.obligationInstanceId)
+    },
+
+    async reconcileDocumentChecklistItems(input: {
+      obligationInstanceId: string
+      createdByUserId: string
+      template: ReadinessDocumentChecklistTemplateRow[]
+      now: Date
+    }) {
+      await assertObligationsInFirm([input.obligationInstanceId])
+      const [existing, suppressions] = await Promise.all([
+        this.listDocumentChecklistByObligation(input.obligationInstanceId),
+        db
+          .select({
+            templateKey: obligationReadinessTemplateItemSuppression.templateKey,
+          })
+          .from(obligationReadinessTemplateItemSuppression)
+          .where(
+            and(
+              eq(obligationReadinessTemplateItemSuppression.firmId, firmId),
+              eq(
+                obligationReadinessTemplateItemSuppression.obligationInstanceId,
+                input.obligationInstanceId,
+              ),
+            ),
+          ),
+      ])
+      const plan = planReadinessDocumentChecklistReconciliation({
+        existing,
+        suppressions,
+        template: input.template,
+      })
+
+      await Promise.all([
+        ...plan.updates.map((update) =>
+          db
+            .update(obligationReadinessChecklistItem)
+            .set({
+              templateKey: update.templateKey,
+              templateVersion: update.templateVersion,
+              sortOrder: update.sortOrder,
+              updatedAt: input.now,
+            })
+            .where(
+              and(
+                eq(obligationReadinessChecklistItem.firmId, firmId),
+                eq(obligationReadinessChecklistItem.id, update.id),
+              ),
+            ),
+        ),
+        ...(plan.inserts.length > 0
+          ? [
+              db.insert(obligationReadinessChecklistItem).values(
+                plan.inserts.map((item) => ({
+                  id: crypto.randomUUID(),
+                  firmId,
+                  obligationInstanceId: input.obligationInstanceId,
+                  label: item.label,
+                  description: item.description,
+                  templateKey: item.templateKey,
+                  templateVersion: item.templateVersion,
+                  source: item.source,
+                  status: 'missing' as const,
+                  sortOrder: item.sortOrder,
+                  createdByUserId: input.createdByUserId,
+                })),
+              ),
+            ]
+          : []),
+      ])
+
       return this.listDocumentChecklistByObligation(input.obligationInstanceId)
     },
 
@@ -258,26 +499,46 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       return after
     },
 
-    async deleteDocumentChecklistItem(
-      id: string,
-    ): Promise<ObligationReadinessChecklistItem | undefined> {
+    async deleteDocumentChecklistItem(input: {
+      id: string
+      deletedByUserId: string
+    }): Promise<ObligationReadinessChecklistItem | undefined> {
       const [before] = await db
         .select()
         .from(obligationReadinessChecklistItem)
         .where(
           and(
             eq(obligationReadinessChecklistItem.firmId, firmId),
-            eq(obligationReadinessChecklistItem.id, id),
+            eq(obligationReadinessChecklistItem.id, input.id),
           ),
         )
         .limit(1)
       if (!before) return undefined
+      if (before.source === 'template' && before.templateKey) {
+        await db
+          .insert(obligationReadinessTemplateItemSuppression)
+          .values({
+            id: crypto.randomUUID(),
+            firmId,
+            obligationInstanceId: before.obligationInstanceId,
+            templateKey: before.templateKey,
+            templateVersion: before.templateVersion ?? 1,
+            suppressedByUserId: input.deletedByUserId,
+          })
+          .onConflictDoNothing({
+            target: [
+              obligationReadinessTemplateItemSuppression.firmId,
+              obligationReadinessTemplateItemSuppression.obligationInstanceId,
+              obligationReadinessTemplateItemSuppression.templateKey,
+            ],
+          })
+      }
       await db
         .delete(obligationReadinessChecklistItem)
         .where(
           and(
             eq(obligationReadinessChecklistItem.firmId, firmId),
-            eq(obligationReadinessChecklistItem.id, id),
+            eq(obligationReadinessChecklistItem.id, input.id),
           ),
         )
       return before

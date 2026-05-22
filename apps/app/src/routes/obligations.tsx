@@ -320,7 +320,7 @@ const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const STATE_CODE_RE = /^[A-Z]{2}$/
-const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(8)
+const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
 
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
@@ -3312,7 +3312,7 @@ export function ObligationQueueDetailDrawer({
     }),
   )
   const shouldAutoGenerateChecklist = Boolean(
-    row && storedChecklist.length === 0 && !generateChecklistMutation.isPending,
+    row && visibleTabs.has('readiness') && !generateChecklistMutation.isPending,
   )
   const autoGenerateChecklistMutationOptions = orpc.readiness.generateChecklist.mutationOptions()
   const autoGenerateChecklistQuery = useQuery({

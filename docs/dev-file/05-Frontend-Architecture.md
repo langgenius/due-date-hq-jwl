@@ -516,10 +516,10 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   `waiting`，全部 `received` → `ready`。没有内部 checklist 时才 fallback 到最新 Readiness
   Portal response 和 `waiting_on_client` / `review` obligation status。
 - **Readiness document checklist**：Obligation detail 的 Readiness tab 以 CPA 内部收件清单为主。
-  打开未生成清单的 obligation 时可按 tax type / form / obligation type 生成 deterministic
-  document list；CPA 可勾选 received、标记 needs review、编辑 label/description/internal note、
-  添加 custom item。`Send to client` 使用当前内部清单映射成 client-safe portal checklist，客户提交后
-  同步回内部清单。
+  打开 obligation 时按 tax type / form / obligation type 对 versioned template catalog 做
+  reconciliation：旧的 4-5 项清单会自动补齐缺失模板项，CPA 编辑过的状态、note、receivedAt 和
+  label/description 保留；CPA 删除 template item 会写 suppression，避免下次补回。`Send to client`
+  使用完整内部清单映射成 client-safe portal checklist（最多 30 项），客户提交后同步回内部清单。
 - **Readiness tax year profile**：Tax year profile editor belongs in the obligation detail
   Readiness tab, not Client facts. CPA can switch one obligation between calendar/fiscal year and
   maintain fiscal year end without changing the client's other obligations; the editor appears only

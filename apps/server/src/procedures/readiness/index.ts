@@ -5,6 +5,7 @@ import type {
   ReadinessDocumentChecklistItemPublic,
   ReadinessGenerateChecklistOutput,
 } from '@duedatehq/contracts'
+import type { ReadinessRepo } from '@duedatehq/ports/readiness'
 import { requireTenant } from '../_context'
 import { OBLIGATION_STATUS_WRITE_ROLES, requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
@@ -13,10 +14,10 @@ import { toReadinessDocumentChecklistItemPublic, toReadinessRequestPublic } from
 
 const READINESS_PORTAL_TTL_MS = 14 * 24 * 60 * 60 * 1000
 
-function toPortalChecklist(
+export function toPortalChecklist(
   items: readonly ReadinessDocumentChecklistItemPublic[],
 ): ReadinessChecklistItem[] {
-  return items.slice(0, 8).map((item) => ({
+  return items.map((item) => ({
     id: item.id,
     label: item.label.slice(0, 120),
     description: item.description,
@@ -33,6 +34,41 @@ function toPublicDocumentChecklist(
 
 function portalUrl(baseUrl: string, token: string): string {
   return `${baseUrl.replace(/\/$/, '')}/readiness/${encodeURIComponent(token)}`
+}
+
+interface ReconcileChecklistObligation {
+  id: string
+  taxType: string
+  formName: string | null
+  obligationType: string
+  jurisdiction: string | null
+}
+
+interface ReconcileChecklistClient {
+  entityType: string | null
+  state: string | null
+}
+
+export async function reconcileChecklistForObligation(input: {
+  readiness: Pick<ReadinessRepo, 'reconcileDocumentChecklistItems'>
+  obligation: ReconcileChecklistObligation
+  client: ReconcileChecklistClient
+  userId: string
+  now: Date
+}) {
+  const template = generateReadinessDocumentChecklist({
+    taxType: input.obligation.taxType,
+    formName: input.obligation.formName,
+    obligationType: input.obligation.obligationType,
+    entityType: input.client.entityType,
+    jurisdiction: input.obligation.jurisdiction ?? input.client.state,
+  })
+  return input.readiness.reconcileDocumentChecklistItems({
+    obligationInstanceId: input.obligation.id,
+    createdByUserId: input.userId,
+    template,
+    now: input.now,
+  })
 }
 
 async function portalUrlForRequest(input: {
@@ -83,33 +119,12 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
     throw new ORPCError('NOT_FOUND', { message: 'Client not found for obligation.' })
   }
 
-  const existing = await scoped.readiness.listDocumentChecklistByObligation(obligation.id)
-  if (existing.length > 0) {
-    return {
-      checklist: toPublicDocumentChecklist(existing),
-      degraded: false,
-      aiOutputId: null,
-      evidenceId: null,
-    } satisfies ReadinessGenerateChecklistOutput
-  }
-
-  const template = generateReadinessDocumentChecklist({
-    taxType: obligation.taxType,
-    formName: obligation.formName,
-    obligationType: obligation.obligationType,
-    entityType: client.entityType,
-    jurisdiction: obligation.jurisdiction ?? client.state,
-  })
-  const rows = await scoped.readiness.createDocumentChecklistItems({
-    obligationInstanceId: obligation.id,
-    createdByUserId: userId,
-    items: template.map((item, index) => ({
-      id: crypto.randomUUID(),
-      label: item.label,
-      description: item.description,
-      source: 'template' as const,
-      sortOrder: index,
-    })),
+  const rows = await reconcileChecklistForObligation({
+    readiness: scoped.readiness,
+    obligation,
+    client,
+    userId,
+    now: new Date(),
   })
   return {
     checklist: toPublicDocumentChecklist(rows),
@@ -131,7 +146,13 @@ const sendRequest = os.readiness.sendRequest.handler(async ({ input, context }) 
   const client = await scoped.clients.findById(obligation.clientId)
   if (!client) throw new ORPCError('NOT_FOUND', { message: 'Client not found.' })
   const documentChecklist = toPublicDocumentChecklist(
-    await scoped.readiness.listDocumentChecklistByObligation(obligation.id),
+    await reconcileChecklistForObligation({
+      readiness: scoped.readiness,
+      obligation,
+      client,
+      userId,
+      now: new Date(),
+    }),
   )
   const checklist =
     documentChecklist.length > 0 ? toPortalChecklist(documentChecklist) : input.checklist
@@ -270,7 +291,10 @@ const updateChecklistItem = os.readiness.updateChecklistItem.handler(async ({ in
 const deleteChecklistItem = os.readiness.deleteChecklistItem.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, userId } = requireTenant(context)
-  const deleted = await scoped.readiness.deleteDocumentChecklistItem(input.itemId)
+  const deleted = await scoped.readiness.deleteDocumentChecklistItem({
+    id: input.itemId,
+    deletedByUserId: userId,
+  })
   if (!deleted) throw new ORPCError('NOT_FOUND', { message: 'Readiness checklist item not found.' })
   const checklist = await scoped.readiness.listDocumentChecklistByObligation(
     deleted.obligationInstanceId,

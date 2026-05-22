@@ -132,6 +132,11 @@ import {
   TemporaryRuleSchema,
   rulesContract,
 } from './rules'
+import {
+  ClientReadinessRequestPublicSchema,
+  ReadinessChecklistItemSchema,
+  ReadinessSendRequestInputSchema,
+} from './readiness'
 
 describe('@duedatehq/contracts', () => {
   it('freezes audit.list read contract', () => {
@@ -458,6 +463,44 @@ describe('@duedatehq/contracts', () => {
 
   it('keeps the obligation readiness enum stable', () => {
     expect(ObligationReadinessSchema.options).toEqual(['ready', 'waiting', 'needs_review'])
+  })
+
+  it('allows readiness portal checklist payloads up to thirty items', () => {
+    const checklist = Array.from({ length: 30 }, (_, index) => ({
+      id: `item_${index}`,
+      label: `Document ${index}`,
+      description: null,
+      reason: null,
+      sourceHint: null,
+    }))
+
+    expect(ReadinessChecklistItemSchema.array().min(1).max(30).parse(checklist)).toHaveLength(30)
+    expect(
+      ReadinessSendRequestInputSchema.parse({
+        obligationId: '11111111-1111-4111-8111-111111111111',
+        checklist,
+      }).checklist,
+    ).toHaveLength(30)
+    expect(
+      ClientReadinessRequestPublicSchema.parse({
+        id: '22222222-2222-4222-8222-222222222222',
+        firmId: 'firm_123',
+        obligationInstanceId: '11111111-1111-4111-8111-111111111111',
+        clientId: '33333333-3333-4333-8333-333333333333',
+        createdByUserId: 'user_1',
+        recipientEmail: null,
+        status: 'sent',
+        checklist,
+        portalUrl: null,
+        expiresAt: '2026-06-05T00:00:00.000Z',
+        sentAt: null,
+        firstOpenedAt: null,
+        lastRespondedAt: null,
+        createdAt: '2026-05-22T00:00:00.000Z',
+        updatedAt: '2026-05-22T00:00:00.000Z',
+        responses: [],
+      }).checklist,
+    ).toHaveLength(30)
   })
 
   it('exposes obligations.updateStatus with before/after audit contract', () => {

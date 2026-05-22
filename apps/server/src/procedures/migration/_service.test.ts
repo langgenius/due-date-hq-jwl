@@ -801,6 +801,9 @@ function buildScopedRepo(firmId: string) {
       async createDocumentChecklistItems() {
         return unexpectedRepoCall('readiness.createDocumentChecklistItems')
       },
+      async reconcileDocumentChecklistItems() {
+        return unexpectedRepoCall('readiness.reconcileDocumentChecklistItems')
+      },
       async updateDocumentChecklistItem() {
         return unexpectedRepoCall('readiness.updateDocumentChecklistItem')
       },

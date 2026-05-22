@@ -303,19 +303,32 @@ Structured reviewer notes and blocking issues for prep/review workflow.
 
 **obligation_readiness_checklist_item**
 
-Internal CPA-facing document checklist for one obligation. Generated deterministically from
-`tax_type` / `form_name` / `obligation_type` / entity and jurisdiction context, then editable by the
-CPA. This table is the primary readiness source for open obligations; once generated, CPA edits and
-custom rows become the source of truth rather than being overwritten by template generation.
+Internal CPA-facing document checklist for one obligation. Generated and reconciled
+deterministically from a versioned template catalog keyed by `tax_type` / `form_name` /
+`obligation_type` / entity and jurisdiction context, then editable by the CPA. This table is the
+primary readiness source for open obligations; reconciliation appends missing unsuppressed template
+items while preserving CPA status, notes, received timestamps, and edited copy.
 
 | 字段                                                                                       | 备注                                                             |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | `id` / `firm_id` / `obligation_instance_id`                                                | tenant-scoped；repo 通过 obligation 同 firm 校验                 |
 | `label` / `description`                                                                    | CPA-visible document requirement                                 |
+| `template_key` / `template_version`                                                        | stable catalog identity for template reconciliation              |
 | `source ∈ (template, custom)`                                                              | deterministic template item vs manually added item               |
 | `status ∈ (missing, received, needs_review)`                                               | readiness derivation input；`received` 勾选时写 `received_at/by` |
 | `sort_order` / `note`                                                                      | stable display order and internal CPA note                       |
 | `received_at` / `received_by_user_id` / `created_by_user_id` / `created_at` / `updated_at` | audit-friendly metadata                                          |
+
+**obligation_readiness_template_item_suppression**
+
+One row per CPA-deleted template checklist item. Reconciliation reads this tombstone table so a
+template item intentionally removed from an obligation is not automatically added back.
+
+| 字段                                        | 备注                                                       |
+| ------------------------------------------- | ---------------------------------------------------------- |
+| `id` / `firm_id` / `obligation_instance_id` | tenant-scoped；cascade with obligation                     |
+| `template_key` / `template_version`         | suppressed template item identity                          |
+| `suppressed_by_user_id` / `created_at`      | who removed it and when; user may be null after user purge |
 
 **exception_rule**（Overlay Engine）
 

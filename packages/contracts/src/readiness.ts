@@ -78,7 +78,7 @@ export const ClientReadinessRequestPublicSchema = z.object({
   createdByUserId: z.string().min(1),
   recipientEmail: z.email().nullable(),
   status: ReadinessRequestStatusSchema,
-  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(8),
+  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(30),
   portalUrl: z.string().min(1).nullable(),
   expiresAt: z.iso.datetime(),
   sentAt: z.iso.datetime().nullable(),
@@ -107,7 +107,7 @@ export type ReadinessGenerateChecklistOutput = z.infer<
 
 export const ReadinessSendRequestInputSchema = z.object({
   obligationId: EntityIdSchema,
-  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(8).optional(),
+  checklist: z.array(ReadinessChecklistItemSchema).min(1).max(30).optional(),
 })
 export type ReadinessSendRequestInput = z.infer<typeof ReadinessSendRequestInputSchema>
 
