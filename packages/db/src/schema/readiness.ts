@@ -49,6 +49,8 @@ export const obligationReadinessChecklistItem = sqliteTable(
       .references(() => obligationInstance.id, { onDelete: 'cascade' }),
     label: text('label').notNull(),
     description: text('description'),
+    templateKey: text('template_key'),
+    templateVersion: integer('template_version'),
     source: text('source', { enum: READINESS_DOCUMENT_CHECKLIST_ITEM_SOURCES })
       .notNull()
       .default('template'),
@@ -75,6 +77,38 @@ export const obligationReadinessChecklistItem = sqliteTable(
   (table) => [
     index('idx_readiness_doc_item_obligation').on(table.firmId, table.obligationInstanceId),
     index('idx_readiness_doc_item_status').on(table.firmId, table.status),
+  ],
+)
+
+export const obligationReadinessTemplateItemSuppression = sqliteTable(
+  'obligation_readiness_template_item_suppression',
+  {
+    id: text('id').primaryKey(),
+    firmId: text('firm_id')
+      .notNull()
+      .references(() => firmProfile.id, { onDelete: 'cascade' }),
+    obligationInstanceId: text('obligation_instance_id')
+      .notNull()
+      .references(() => obligationInstance.id, { onDelete: 'cascade' }),
+    templateKey: text('template_key').notNull(),
+    templateVersion: integer('template_version').notNull(),
+    suppressedByUserId: text('suppressed_by_user_id').references(() => user.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('uq_readiness_template_suppression_item').on(
+      table.firmId,
+      table.obligationInstanceId,
+      table.templateKey,
+    ),
+    index('idx_readiness_template_suppression_obligation').on(
+      table.firmId,
+      table.obligationInstanceId,
+    ),
   ],
 )
 
@@ -191,6 +225,24 @@ export const obligationReadinessChecklistItemRelations = relations(
   }),
 )
 
+export const obligationReadinessTemplateItemSuppressionRelations = relations(
+  obligationReadinessTemplateItemSuppression,
+  ({ one }) => ({
+    firm: one(firmProfile, {
+      fields: [obligationReadinessTemplateItemSuppression.firmId],
+      references: [firmProfile.id],
+    }),
+    obligation: one(obligationInstance, {
+      fields: [obligationReadinessTemplateItemSuppression.obligationInstanceId],
+      references: [obligationInstance.id],
+    }),
+    suppressor: one(user, {
+      fields: [obligationReadinessTemplateItemSuppression.suppressedByUserId],
+      references: [user.id],
+    }),
+  }),
+)
+
 export const clientReadinessResponseRelations = relations(clientReadinessResponse, ({ one }) => ({
   request: one(clientReadinessRequest, {
     fields: [clientReadinessResponse.requestId],
@@ -205,6 +257,10 @@ export const clientReadinessResponseRelations = relations(clientReadinessRespons
 export type ObligationReadinessChecklistItem = typeof obligationReadinessChecklistItem.$inferSelect
 export type NewObligationReadinessChecklistItem =
   typeof obligationReadinessChecklistItem.$inferInsert
+export type ObligationReadinessTemplateItemSuppression =
+  typeof obligationReadinessTemplateItemSuppression.$inferSelect
+export type NewObligationReadinessTemplateItemSuppression =
+  typeof obligationReadinessTemplateItemSuppression.$inferInsert
 export type ClientReadinessRequest = typeof clientReadinessRequest.$inferSelect
 export type NewClientReadinessRequest = typeof clientReadinessRequest.$inferInsert
 export type ClientReadinessResponse = typeof clientReadinessResponse.$inferSelect
