@@ -776,3 +776,91 @@ working tree: 431 source-defined targets, 413 successful global cached drafts,
 - `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
 - `pnpm rules:concrete-drafts:backfill -- --retry-failed --fast-model --concurrency=1 --source=fed.irs_pub_15_2026`
 - `pnpm rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+
+## 2026-05-22 22:49 CST - SCHEMA_INVALID source repair pass
+
+Fixed the remaining `SCHEMA_INVALID` bucket by replacing broad directory sources with focused
+official due-date sources and deterministic source-backed excerpts:
+
+- IL business/replacement tax now uses the Illinois DOR personal property replacement tax page.
+- IA individual return now uses the Iowa DOR individual income FAQ; IA estimated tax is split to
+  the Iowa estimated income tax payment page.
+- MS UI wage now uses the MDES quarterly report and tax due-date page.
+- NM individual return now uses the official New Mexico income-tax due-date reminder PDF.
+- NC individual return now uses the NCDOR when/where/how-to-file page; NC estimated tax is split to
+  the NCDOR estimated income tax page.
+- SC individual return now uses the SCDOR March 26 statement extending 2025 returns to
+  October 15, 2026; SC estimated tax is split to the 2026 SC1040ES PDF.
+- WI individual return now uses the Wisconsin DOR deadline FAQ; WI estimated tax is split to the
+  Wisconsin estimated-payment FAQ.
+- WY sales/use now uses the Wyoming Title 39 PDF plus 2026 monthly and quarterly date expansions.
+
+Validation:
+
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=il.business_income_tax_forms --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=ia.income_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=ia.individual_estimated_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=ms.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=nm.income_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=nc.income_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=nc.individual_estimated_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=sc.income_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=sc.individual_estimated_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=wi.income_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=wi.individual_estimated_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=wy.sales_use_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+
+Result:
+
+- Source-defined targets: 431
+- Successful global cached drafts: 423
+- Missing successful drafts: 8
+- Failure buckets: `AI_GATEWAY_ERROR=8`
+- `SCHEMA_INVALID=0`, `GUARD_REJECTED=0`, `SOURCE_TEXT_UNAVAILABLE=0`
+
+## 2026-05-22 23:11 CST - AI_GATEWAY_ERROR final repair pass
+
+Fixed the remaining gateway-error bucket with source tightening plus a deterministic fallback
+improvement for compact PDF due-date tables:
+
+- KY UI wage kept the reachable KCC KUIP PDF as the source, but changed it to a due-date source and
+  added a deterministic quarterly wage/tax report excerpt because server-side source fetches returned
+  a blocked service page even though the PDF opens in a browser.
+- LA UI wage now uses the accessible Louisiana Workforce Commission Employer Tax FAQ URL and a short
+  last-day-of-month-after-quarter excerpt.
+- NC partnership/PTE now uses the official D-403A partnership return instructions instead of the
+  broad forms directory.
+- ND UI wage now carries a due-date-oriented quarterly contribution and wage report excerpt.
+- OK UI wage now uses the OESC wage reporting page instead of the broad employers portal.
+- TN franchise/excise now uses the official due dates and tax rates page instead of the broad
+  franchise/excise overview.
+- WV UI wage now uses the focused WorkForce WV tax filing and reporting page instead of the large
+  employer handbook PDF.
+- FL corporate estimated tax kept the Florida DOR Corporate Income Tax Due Dates PDF. The server
+  deterministic fallback now recognizes `Taxable Year End` + `Installment #1..#4` tables, preserves
+  the table header with the date row as the source excerpt, and ignores the first tax-year-end column
+  when generating installment due dates.
+
+Validation:
+
+- `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
+- `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=ky.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=la.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=nc.pass_through_entity_return --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=nd.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=ok.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=tn.franchise_excise_tax --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=wv.ui_wage_report --retry-failed`
+- `pnpm -s rules:concrete-drafts:backfill -- --source=fl.cit_due_dates_2026 --retry-failed --fast-model --concurrency=1`
+- `pnpm -s rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json`
+
+Result:
+
+- Source-defined targets: 431
+- Successful global cached drafts: 431
+- Missing successful drafts: 0
+- Targets with no attempt: 0
+- Failure buckets: none

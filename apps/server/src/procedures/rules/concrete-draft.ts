@@ -959,7 +959,7 @@ export async function generateConcreteDraft(input: {
   })
 }
 
-function inferDeterministicConcreteDraft(input: {
+export function inferDeterministicConcreteDraft(input: {
   base: CoreObligationRule
   source: CoreRuleSource
   sourceText: string
@@ -972,11 +972,17 @@ function inferDeterministicConcreteDraft(input: {
     'unknown',
     input.base.applicableYear,
   )
+  const dateCandidates = deterministicDateCandidatesForSourceText({
+    sourceExcerpt,
+    focusedText,
+    sourceText: input.sourceText,
+    applicableYear: input.base.applicableYear,
+  })
   const dateLogic =
     relative ??
     dueDateLogicFromDateCandidates(
-      extractDateOnlyCandidates(sourceExcerpt ?? focusedText, input.base.applicableYear),
-      'annual',
+      dateCandidates.dates,
+      dateCandidates.frequency,
       'source_adjusted',
     )
   if (!dateLogic || !sourceExcerpt) return null
@@ -999,6 +1005,54 @@ function inferDeterministicConcreteDraft(input: {
   }
   const parsed = RuleConcreteDraftPayloadSchema.safeParse(draft)
   return parsed.success ? parsed.data : null
+}
+
+function deterministicDateCandidatesForSourceText(input: {
+  sourceExcerpt: string | null
+  focusedText: string
+  sourceText: string
+  applicableYear: number
+}): { dates: string[]; frequency: string } {
+  const tableDates = inferInstallmentTableDateCandidates(
+    [input.sourceExcerpt, input.focusedText, input.sourceText].filter(Boolean).join('\n'),
+    input.applicableYear,
+  )
+  const evidenceText = input.sourceExcerpt ?? input.focusedText
+  const dates = tableDates ?? extractDateOnlyCandidates(evidenceText, input.applicableYear)
+  const frequency = /\b(installment|estimated|quarter|payment)\b/i.test(evidenceText)
+    ? 'quarterly'
+    : 'annual'
+  return { dates, frequency }
+}
+
+function inferInstallmentTableDateCandidates(
+  text: string,
+  applicableYear: number,
+): string[] | null {
+  const lines = text
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+
+  const headerIndex = lines.findIndex(
+    (line) => /\btax(?:able)?\s+year\s+end\b/i.test(line) && /\binstallment\b/i.test(line),
+  )
+  if (headerIndex < 0) return null
+
+  for (const line of lines.slice(headerIndex + 1, headerIndex + 4)) {
+    const rowDates = extractDateOnlyCandidates(line, applicableYear, { unique: false })
+    if (rowDates.length < 3) continue
+
+    const leadingYearEnd = rowDates[0]
+    const installmentDates =
+      leadingYearEnd && isCalendarYearEndDate(leadingYearEnd) ? rowDates.slice(1) : rowDates
+    const uniqueDates = installmentDates.filter(
+      (date, index) => installmentDates.indexOf(date) === index,
+    )
+    if (uniqueDates.length >= 2) return uniqueDates
+  }
+
+  return null
 }
 
 async function runConcreteDraftPrompt(env: Env, aiInput: ConcreteDraftAiInput) {
@@ -1578,13 +1632,14 @@ function normalizeDateOnly(
 function extractDateOnlyCandidates(
   value: string | null | undefined,
   applicableYear: number,
+  options: { unique?: boolean } = {},
 ): string[] {
   const text = stringValue(value)
   if (!text) return []
 
   const dates: string[] = []
   const add = (date: string | null) => {
-    if (date && !dates.includes(date)) dates.push(date)
+    if (date && (options.unique === false || !dates.includes(date))) dates.push(date)
   }
 
   for (const match of text.matchAll(MONTH_DAY_RE)) {
@@ -1605,6 +1660,10 @@ function extractDateOnlyCandidates(
   }
 
   return dates
+}
+
+function isCalendarYearEndDate(date: string): boolean {
+  return /-\d{2}-\d{2}$/.test(date) && date.endsWith('-12-31')
 }
 
 function inferSourceExcerpt(sourceText: string): string | null {
@@ -1628,6 +1687,20 @@ function inferSourceExcerpt(sourceText: string): string | null {
       ) {
         selected.push(line)
       }
+    }
+    if (extractDateOnlyCandidates(selected.join('\n'), 2000).length > 0) {
+      return selected.join('\n')
+    }
+  }
+
+  const installmentHeaderIndex = lines.findIndex(
+    (line) => /\btax(?:able)?\s+year\s+end\b/i.test(line) && /\binstallment\b/i.test(line),
+  )
+  if (installmentHeaderIndex >= 0) {
+    const selected = [lines[installmentHeaderIndex]!]
+    for (const line of lines.slice(installmentHeaderIndex + 1, installmentHeaderIndex + 4)) {
+      selected.push(line)
+      if (extractDateOnlyCandidates(line, 2000).length > 0) break
     }
     if (extractDateOnlyCandidates(selected.join('\n'), 2000).length > 0) {
       return selected.join('\n')

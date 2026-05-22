@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { findRuleById, RULE_SOURCES } from '@duedatehq/core/rules'
 import {
+  inferDeterministicConcreteDraft,
   isUsableConcreteDraftOfficialSourceText,
   normalizeRuleConcreteDraftAiOutput,
   ruleConcreteDraftContextRef,
@@ -21,6 +23,17 @@ const ALABAMA_BPT_SOURCE_TEXT = [
   "C-Corporation Due no later than 15th day of the 4th month after the beginning of a taxpayer's taxable year.",
   "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
   "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
+].join('\n')
+
+const FLORIDA_ESTIMATED_SOURCE_TEXT = [
+  'Florida Corporate Income Tax Due Dates',
+  'https://floridarevenue.com/taxes/Documents/flCitDueDates.pdf',
+  'Reviewed 2026-04-27',
+  'Estimated tax due dates table',
+  'Updated 2026-04-27',
+  'Florida Corporate Income Tax Due Dates for Declaration of Estimated Tax',
+  'Taxable Year End Installment #1 Installment #2 Installment #3 Installment #4',
+  '12/31/26 06/01/26 06/30/26 09/30/26 12/31/26',
 ].join('\n')
 
 describe('rule concrete draft normalization', () => {
@@ -269,6 +282,39 @@ describe('rule concrete draft normalization', () => {
         'Payment 4 - December 15',
       ].join('\n'),
     )
+  })
+
+  it('deterministically extracts Florida estimated tax installment tables', () => {
+    const base = findRuleById('fl.cit.estimated_tax.2026')
+    const source = RULE_SOURCES.find((item) => item.id === 'fl.cit_due_dates_2026')
+
+    expect(base).toBeDefined()
+    expect(source).toBeDefined()
+    if (!base || !source) return
+
+    const draft = inferDeterministicConcreteDraft({
+      base,
+      source,
+      sourceText: FLORIDA_ESTIMATED_SOURCE_TEXT,
+    })
+
+    expect(draft?.sourceExcerpt).toBe(
+      [
+        'Taxable Year End Installment #1 Installment #2 Installment #3 Installment #4',
+        '12/31/26 06/01/26 06/30/26 09/30/26 12/31/26',
+      ].join('\n'),
+    )
+    expect(draft?.dueDateLogic).toEqual({
+      kind: 'period_table',
+      frequency: 'quarterly',
+      periods: [
+        { period: 'Period 1', dueDate: '2026-06-01' },
+        { period: 'Period 2', dueDate: '2026-06-30' },
+        { period: 'Period 3', dueDate: '2026-09-30' },
+        { period: 'Period 4', dueDate: '2026-12-31' },
+      ],
+      holidayRollover: 'source_adjusted',
+    })
   })
 
   it('normalizes Alabama business privilege tax due dates from tax-year-begin logic', () => {

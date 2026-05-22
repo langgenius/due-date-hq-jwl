@@ -85,6 +85,7 @@ const OFFICIAL_NON_GOV_HOSTS = new Set([
   'www.uimn.org',
   'workforcewv.org',
   'uimn.org',
+  'www2.laworks.net',
 ])
 const STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES = ['_state_individual_income_tax'] as const
 const STATE_BUSINESS_CANDIDATE_TAX_TYPE_SUFFIXES = [
@@ -229,7 +230,7 @@ describe('@duedatehq/core/rules', () => {
       'https://tax.wv.gov/Individuals/Pages/Individuals.aspx',
     )
     expect(sourcesById.get('wi.income_tax')?.url).toBe(
-      'https://www.revenue.wi.gov/Pages/Individuals/income.aspx',
+      'https://www.revenue.wi.gov/Pages/FAQS/pcs-late.aspx',
     )
   })
 
@@ -266,6 +267,7 @@ describe('@duedatehq/core/rules', () => {
   })
 
   it('keeps personal and business source-backed candidates separated by source domain', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
     const businessCandidates = OBLIGATION_RULES.filter(
       (rule) =>
         rule.status === 'candidate' &&
@@ -325,6 +327,10 @@ describe('@duedatehq/core/rules', () => {
     expect(findRuleById('il.franchise_or_entity_tax.candidate.2026')?.sourceIds).toEqual([
       'il.business_income_tax_forms',
     ])
+    expect(sourcesById.get('il.business_income_tax_forms')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://tax.illinois.gov/localgovernments/personal-property-replacement-tax.html',
+    })
     expect(findRuleById('ma.business_income_return.candidate.2026')?.sourceIds).toEqual([
       'ma.dor_tax_due_dates_extensions',
     ])
@@ -365,6 +371,102 @@ describe('@duedatehq/core/rules', () => {
       sourceIds: ['wi.corporation_franchise_income_tax'],
       entityApplicability: ['c_corp'],
     })
+  })
+
+  it('pins schema-invalid concrete draft repairs to precise due-date excerpts', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ia.income_tax')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://revenue.iowa.gov/taxes/frequently-asked-questions/individual-income',
+    })
+    expect(
+      findRuleById('ia.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('April 30')
+
+    expect(sourcesById.get('ms.ui_wage_report')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://mdes.ms.gov/employers/unemployment-tax/reporting-and-filing/quarterly-report-and-tax-due-dates/',
+    })
+    expect(findRuleById('ms.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      '1st Quarter Due April 30th',
+    )
+
+    expect(sourcesById.get('nm.income_tax')).toMatchObject({
+      sourceType: 'publication',
+      url: 'https://www.tax.newmexico.gov/wp-content/uploads/2026/03/20260315_Reminder-Income-tax-returns-due-April-15.pdf',
+    })
+    expect(
+      findRuleById('nm.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('Wednesday, April 15')
+
+    expect(sourcesById.get('sc.income_tax')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://dor.sc.gov/news/scdor-statement-income-tax-conformity-april-15-filing-deadline-extended-sc-returns',
+    })
+    expect(
+      findRuleById('sc.individual_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('October 15, 2026')
+
+    expect(sourcesById.get('wy.sales_use_tax')).toMatchObject({
+      sourceType: 'publication',
+      url: 'https://wyoleg.gov/statutes/compress/title39.pdf',
+    })
+    expect(findRuleById('wy.sales_use_tax.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'last day of each month',
+    )
+  })
+
+  it('pins gateway-error concrete draft repairs to short deterministic source text', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+
+    expect(sourcesById.get('ky.ui_wage_report')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://kcc.ky.gov/Documents/KUIP%20Delimited%20File%20Format%20Reference%20Guide.pdf',
+    })
+    expect(findRuleById('ky.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Q1 is due April 30, 2026',
+    )
+
+    expect(sourcesById.get('la.ui_wage_report')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://www2.laworks.net/FAQs/FAQ_UI_EmployerTaxes.asp',
+    })
+    expect(findRuleById('la.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Quarter end date of 03/31/__ Due date 04/30/__',
+    )
+
+    expect(sourcesById.get('nc.pass_through_entity_return')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://www.ncdor.gov/tax-forms/2025-d-403a-partnership-tax-return-instructions/open',
+    })
+    expect(
+      findRuleById('nc.pass_through_entity_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('15th day of the 4th month')
+
+    expect(sourcesById.get('ok.ui_wage_report')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://oklahoma.gov/oesc/employers/tax/wage-reporting.html',
+    })
+    expect(findRuleById('ok.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'last day of the month following the calendar quarter',
+    )
+
+    expect(sourcesById.get('tn.franchise_excise_tax')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://www.tn.gov/revenue/taxes/franchise---excise-tax/due-dates-and-tax-rates.html',
+    })
+    expect(
+      findRuleById('tn.business_income_return.candidate.2026')?.evidence[0]?.sourceExcerpt,
+    ).toContain('15th day of the fourth month')
+
+    expect(sourcesById.get('wv.ui_wage_report')).toMatchObject({
+      sourceType: 'due_dates',
+      url: 'https://workforcewv.org/businesses/unemployment-tax-information/tax-filing-reporting/',
+    })
+    expect(findRuleById('wv.ui_wage_report.candidate.2026')?.evidence[0]?.sourceExcerpt).toContain(
+      'Quarter ending March 31 is due April 30',
+    )
   })
 
   it('tracks Alabama source coverage separately from active rule coverage', () => {
