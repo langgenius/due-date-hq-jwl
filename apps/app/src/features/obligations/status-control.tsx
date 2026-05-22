@@ -3,7 +3,7 @@ import { useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic, ObligationQueueRow } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
-import { BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
+import { Badge, BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -233,10 +233,45 @@ function ObligationQueueStatusControl({
   )
 }
 
+/**
+ * Read-only canonical status badge. Renders the same visual vocabulary
+ * (variant + dot tone + v2 label) as `ObligationQueueStatusControl`,
+ * but as a plain Badge — no dropdown, no click target.
+ *
+ * Use this wherever a surface needs to *display* an obligation's
+ * status without giving the user a way to change it from the chip.
+ * Today: filing-plan rows on `/clients/[id]`, the obligation drawer
+ * header on read-only views, and future cross-surface listings.
+ *
+ * One status, one label, one color — across the whole product. If a
+ * caller needs the legacy 10-label set (e.g. an admin / debug
+ * surface), pass `useV2Labels={false}`.
+ */
+function ObligationStatusReadBadge({
+  status,
+  useV2Labels = true,
+  className,
+}: {
+  status: ObligationStatus
+  useV2Labels?: boolean
+  className?: string
+}) {
+  const v2Labels = useLifecycleV2StatusLabels()
+  const legacyLabels = useStatusLabels()
+  const labels = useV2Labels ? v2Labels : legacyLabels
+  return (
+    <Badge variant={STATUS_VARIANT[status]} className={className}>
+      <BadgeStatusDot tone={STATUS_DOT[status]} />
+      {labels[status]}
+    </Badge>
+  )
+}
+
 export {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
+  ObligationStatusReadBadge,
   STATUS_DOT,
   STATUS_VARIANT,
   isObligationStatus,

@@ -107,6 +107,7 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
@@ -1689,38 +1690,39 @@ const OPEN_FILING_PLAN_STATUSES = new Set([
 function ClientWorkPlanPanel({
   obligations,
   isLoading,
-  summary,
+  summary: _summary,
 }: {
   obligations: readonly ObligationInstancePublic[]
   isLoading: boolean
+  // Kept on the props contract for now; the per-summary counts that
+  // used to render here as warning/outline chips were retired (see
+  // header below). The page-level subtitle already carries the
+  // overdue / on-track signal in tone-coded form.
   summary: ClientWorkPlanSummary
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary">
-            <Trans>Filing plan</Trans>
-          </span>
-          <span className="truncate text-xs text-text-tertiary">
-            <Plural value={obligations.length} one="# filing" other="# filings" />{' '}
-            <Trans>across</Trans>{' '}
-            <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
-          </span>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant={summary.overdueOpenCount > 0 ? 'warning' : 'outline'}>
-            <Trans>{summary.overdueOpenCount} overdue</Trans>
-          </Badge>
-          <Badge variant={summary.needsReviewCount > 0 ? 'warning' : 'outline'}>
-            <Trans>{summary.needsReviewCount} need review</Trans>
-          </Badge>
-          <Badge variant="outline">
-            <Trans>{summary.paymentTrackCount} payment-linked</Trans>
-          </Badge>
-        </div>
+      {/* Title row: title + count line left-clustered, NOT split with
+          `justify-between`. On wide screens content shouldn't sit at
+          the two edges of the row — that's how titles get visually
+          orphaned. The 3 "filter-looking" summary badges
+          (`{N} overdue`, `{N} need review`, `{N} payment-linked`)
+          that used to live on the right were dropped 2026-05-22 per
+          critique: they looked like interactive filter chips but
+          were inert badges, mixing the two visual vocabularies. The
+          page subtitle already shows overdue count in tone-coded
+          form; the row status badges below speak for review state. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-4 py-3">
+        <span className="text-sm font-medium text-text-primary">
+          <Trans>Filing plan</Trans>
+        </span>
+        <span className="text-xs text-text-tertiary">
+          <Plural value={obligations.length} one="# filing" other="# filings" />{' '}
+          <Trans>across</Trans>{' '}
+          <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
+        </span>
       </div>
       <div className="border-t border-divider-subtle px-4 py-3">
         {isLoading ? (
@@ -1738,13 +1740,22 @@ function ClientWorkPlanPanel({
             }
           />
         ) : (
-          <div className="grid gap-4">
-            {yearGroups.map((group) => (
-              <FilingPlanYearSection
+          // Year sections separated by `divide-y` so each year has a
+          // clear terminus — addresses the "no hierarchy / 视觉上没有
+          // 终点" feedback. `pt-4` on the second-and-later sections
+          // (via space-y/divide) gives breathing room without
+          // re-introducing card chrome.
+          <div className="divide-y divide-divider-subtle">
+            {yearGroups.map((group, index) => (
+              <div
                 key={group.year}
-                group={group}
-                onOpen={(obligationId) => openObligationDrawer(obligationId)}
-              />
+                className={cn(index === 0 ? 'pb-2' : 'py-2 first:pt-0 last:pb-0')}
+              >
+                <FilingPlanYearSection
+                  group={group}
+                  onOpen={(obligationId) => openObligationDrawer(obligationId)}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -1755,6 +1766,12 @@ function ClientWorkPlanPanel({
 
 // Per-tax-year section in the Filing plan panel. Rendered once per year
 // bucket; current tax year sits at the top with a CURRENT TAX YEAR chip.
+//
+// 2026-05-22 hierarchy pass:
+//  - Year number reads as a clear section heading (text-base, tabular)
+//  - Chip + counts cluster CLOSE to the year, not pushed to the far
+//    edge with `ml-auto`. Wide-screen content shouldn't be split at the
+//    two ends of a row — that orphans the heading.
 function FilingPlanYearSection({
   group,
   onOpen,
@@ -1764,8 +1781,8 @@ function FilingPlanYearSection({
 }) {
   return (
     <div className="grid gap-2">
-      <div className="flex flex-wrap items-baseline gap-2 px-1">
-        <span className="text-sm font-medium tabular-nums text-text-primary">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+        <span className="text-base font-semibold tabular-nums text-text-primary">
           {group.year === 'unknown' ? <Trans>No tax year</Trans> : group.year}
         </span>
         {group.isCurrent ? (
@@ -1773,16 +1790,16 @@ function FilingPlanYearSection({
             <Trans>Current tax year</Trans>
           </Badge>
         ) : null}
-        <span className="ml-auto text-xs text-text-tertiary">
+        <span className="text-xs text-text-tertiary">
+          <Trans>{group.openCount} open</Trans>
           {group.extendedCount > 0 ? (
             <>
-              <Trans>{group.extendedCount} extended</Trans>
               <span aria-hidden className="mx-1">
                 ·
               </span>
+              <Trans>{group.extendedCount} extended</Trans>
             </>
           ) : null}
-          <Trans>{group.openCount} open</Trans>
         </span>
       </div>
       <div className="rounded-md border border-divider-subtle">
@@ -1817,7 +1834,7 @@ function FilingPlanYearSection({
                   {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
                 </TableCell>
                 <TableCell className="w-[140px]">
-                  <ObligationStatusBadge obligation={obligation} />
+                  <ObligationStatusReadBadge status={obligation.status} />
                 </TableCell>
                 <TableCell className="w-[140px] text-right tabular-nums">
                   {obligation.estimatedTaxDueCents !== null
@@ -2063,37 +2080,6 @@ function ClientActivityPanel({
       ))}
     </div>
   )
-}
-
-function ObligationStatusBadge({ obligation }: { obligation: ObligationInstancePublic }) {
-  if (obligation.status === 'done' || obligation.status === 'paid') {
-    return (
-      <Badge variant="success">
-        <Trans>Complete</Trans>
-      </Badge>
-    )
-  }
-  if (obligation.status === 'review' || obligation.readiness === 'needs_review') {
-    return (
-      <Badge variant="warning">
-        <Trans>Needs review</Trans>
-      </Badge>
-    )
-  }
-  if (obligation.status === 'waiting_on_client') {
-    return (
-      <Badge variant="info">
-        <Trans>Waiting</Trans>
-      </Badge>
-    )
-  }
-  // Fallback case: render the raw status name with title-case first
-  // letter so "blocked" / "pending" read as "Blocked" / "Pending" —
-  // matches the case of the explicit branches above (Complete, Needs
-  // review, Waiting) and avoids the lowercase-in-a-Badge mismatch.
-  const raw = obligation.status.replaceAll('_', ' ')
-  const label = raw.charAt(0).toUpperCase() + raw.slice(1)
-  return <Badge variant="outline">{label}</Badge>
 }
 
 function importanceLabel(value: number): ReactNode {
