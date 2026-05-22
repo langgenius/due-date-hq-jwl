@@ -146,11 +146,13 @@ function concreteDraftTargetKey(input: {
 }
 
 export function CoverageTab({
+  fitViewport = false,
   onJurisdictionDrillIn,
   onActiveDrillIn,
   onSourceDrillIn,
   onEntityDrillIn,
 }: {
+  fitViewport?: boolean
   onJurisdictionDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onActiveDrillIn?: (jurisdiction: RuleJurisdiction) => void
   onSourceDrillIn?: (jurisdiction: RuleJurisdiction, domain?: string) => void
@@ -725,13 +727,13 @@ export function CoverageTab({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className={cn('flex flex-col gap-6', fitViewport && 'min-h-0 flex-1')}>
       {/* StatsStrip removed 2026-05-21 per docs/Design/ux-audit-2026-05-21.md
         P0 #5 — the active/pending/jurisdiction counts already render in
         `CoverageSummaryStrip` at the page top (drillable). Repeating
         them here read as "this designer hasn't decided." */}
 
-      <section className="flex flex-col gap-3">
+      <section className={cn('flex flex-col gap-3', fitViewport && 'min-h-0 flex-1')}>
         {/* In normal mode, the section header carries the "Entity
           coverage" label + search input. In review mode, that
           orientation chrome moves into the workspace (search goes into
@@ -753,7 +755,13 @@ export function CoverageTab({
           <ActiveFilterChip filter={filter} onClear={() => setFilter('all')} />
         ) : null}
 
-        <div className={cn('flex items-start', !panelOpen && 'gap-4')}>
+        <div
+          className={cn(
+            'flex',
+            fitViewport ? 'min-h-0 flex-1 items-stretch' : 'items-start',
+            !panelOpen && 'gap-4',
+          )}
+        >
           {panelOpen ? (
             /* Unified workspace card — one white surface containing
               both the pending-rule queue (left) and the rule detail
@@ -761,7 +769,12 @@ export function CoverageTab({
               the two-cards-with-mismatched-borders look and reads
               as a single workspace surface. */
             <div
-              className="sticky top-4 flex flex-1 min-w-0 self-start overflow-hidden rounded-md bg-background-default min-h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)]"
+              className={cn(
+                'flex flex-1 min-w-0 overflow-hidden rounded-md bg-background-default',
+                fitViewport
+                  ? 'min-h-0 self-stretch'
+                  : 'sticky top-4 min-h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] self-start',
+              )}
               aria-label="Review workspace"
             >
               <div className="flex w-[320px] shrink-0 flex-col border-r border-divider-regular">
@@ -828,8 +841,15 @@ export function CoverageTab({
               ) : null}
             </div>
           ) : (
-            <div className="flex-1 min-w-0">
-              <SectionFrame className="max-h-[clamp(420px,calc(100svh-12rem),920px)] overflow-auto overscroll-auto">
+            <div className={cn('flex-1 min-w-0', fitViewport && 'flex min-h-0 flex-col')}>
+              <SectionFrame
+                className={cn(
+                  'overflow-auto',
+                  fitViewport
+                    ? 'min-h-0 flex-1 overscroll-contain'
+                    : 'max-h-[clamp(420px,calc(100svh-12rem),920px)] overscroll-auto',
+                )}
+              >
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-background-default">
                     {/* Single-row header — the group-eyebrow strip ("Rules"

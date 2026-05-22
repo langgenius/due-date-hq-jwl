@@ -13,6 +13,7 @@ import type {
   RuleSource as CoreRuleSource,
 } from '@duedatehq/core/rules'
 import type { Env } from '../../env'
+import { createBrowserlessFetch } from '../../jobs/pulse/browserless'
 import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source-text'
 
 export const RuleConcreteDraftPayloadSchema = RuleConcreteDraftSchema.omit({ aiOutputId: true })
@@ -20,6 +21,23 @@ export type RuleConcreteDraftPayload = Omit<RuleConcreteDraft, 'aiOutputId'>
 export const RULE_CONCRETE_DRAFT_PROMPT = 'rule-concrete-draft@v2'
 const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const OFFICIAL_SOURCE_FETCH_TIMEOUT_MS = 20_000
+const OFFICIAL_SOURCE_FETCH_HEADERS: HeadersInit[] = [
+  {
+    accept: 'text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.1',
+    'accept-language': 'en-US,en;q=0.9',
+    'cache-control': 'no-cache',
+    'user-agent': 'Mozilla/5.0 (compatible; DueDateHQSourceReview/1.0; +https://duedatehq.com)',
+  },
+  {
+    accept: 'text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.1',
+    'accept-language': 'en-US,en;q=0.9',
+    'cache-control': 'no-cache',
+    'user-agent': 'curl/8.7.1',
+  },
+]
+const MIN_USABLE_OFFICIAL_SOURCE_TEXT_CHARS = 120
+const UNUSABLE_OFFICIAL_SOURCE_TEXT_RE =
+  /\b(access denied|forbidden|enable javascript|request blocked|not authorized|temporarily unavailable|page not found|not found|404|403)\b|page we don['’]t have/i
 
 const nullableBoolean = z.union([z.boolean(), z.string()]).nullable().optional()
 const nullableNumber = z.union([z.number(), z.string()]).nullable().optional()
@@ -56,7 +74,9 @@ const MONTH_DAY_SINGLE_RE =
   /\b(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,\s*(\d{4}))?\b/i
 const SLASH_DATE_RE = /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g
 const RELATIVE_DUE_DATE_RE =
-  /\b(\d{1,2})(?:st|nd|rd|th)?\s+day\s+of\s+the\s+([a-z0-9 -]+?)\s+month\b[^.\n]*(beginning|start|end|close)/i
+  /\b(\d{1,2}(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\s+day\s+of\s+the\s+([a-z0-9 -]+?)\s+month\b[^.\n]*(beginning|start|end|close)/i
+const RELATIVE_INSTALLMENT_MONTHS_RE =
+  /\b(\d{1,2}(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\s+day\s+of\s+the\s+([a-z0-9,\s-]+?)\s+months?\b[^.\n]*(?:taxable|tax|fiscal|calendar)?\s*year/i
 
 const AiPeriodSchema = z.object({
   period: nullableString,
@@ -69,10 +89,13 @@ const AiPeriodSchema = z.object({
 })
 
 const AiDueDateLogicSchema = z.object({
-  kind: z.string().min(1),
+  kind: nullableString,
   date: nullableString,
   dueDate: nullableString,
   due_date: nullableString,
+  deadline: nullableString,
+  filingDueDate: nullableString,
+  filing_due_date: nullableString,
   returnDueDate: nullableString,
   return_due_date: nullableString,
   paymentDueDate: nullableString,
@@ -134,8 +157,9 @@ const AiQualitySchema = z
   .nullable()
   .optional()
 
-export const RuleConcreteDraftAiOutputSchema = z.object({
+const RuleConcreteDraftAiOutputObjectSchema = z.object({
   dueDateLogic: AiDueDateLogicSchema,
+  due_date_logic: AiDueDateLogicSchema.optional(),
   extensionPolicy: AiExtensionPolicySchema,
   extension_policy: AiExtensionPolicySchema,
   coverageStatus: nullableString,
@@ -151,7 +175,62 @@ export const RuleConcreteDraftAiOutputSchema = z.object({
   reasoning: nullableString,
 })
 
+export const RuleConcreteDraftAiOutputSchema = z.preprocess(
+  unwrapRuleConcreteDraftAiOutput,
+  RuleConcreteDraftAiOutputObjectSchema,
+)
+
 export type RuleConcreteDraftAiOutput = z.infer<typeof RuleConcreteDraftAiOutputSchema>
+
+function unwrapRuleConcreteDraftAiOutput(value: unknown): unknown {
+  if (!isRecord(value)) return value
+
+  for (const key of ['draft', 'result', 'rule', 'concreteDraft', 'concrete_draft']) {
+    const nested = value[key]
+    if (isRecord(nested)) return unwrapRuleConcreteDraftAiOutput(nested)
+  }
+
+  const dueDateLogic = value.dueDateLogic ?? value.due_date_logic
+  if (isRecord(dueDateLogic)) {
+    return { ...value, dueDateLogic }
+  }
+
+  const dueDateArray = value.dueDates ?? value.due_dates ?? value.dates ?? value.schedule
+  if (Array.isArray(dueDateArray)) {
+    return {
+      ...value,
+      dueDateLogic: {
+        kind: 'period_table',
+        dueDates: dueDateArray,
+      },
+    }
+  }
+
+  const fixedDate =
+    value.date ??
+    value.dueDate ??
+    value.due_date ??
+    value.deadline ??
+    value.filingDueDate ??
+    value.filing_due_date ??
+    value.paymentDueDate ??
+    value.payment_due_date
+  if (typeof fixedDate === 'string' && fixedDate.trim()) {
+    return {
+      ...value,
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: fixedDate,
+      },
+    }
+  }
+
+  return value
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
 
 export interface ConcreteDraftSourceText {
   sourceText: string
@@ -310,16 +389,73 @@ export function validateConcreteRuleDraft(input: {
   return null
 }
 
-async function fetchOfficialSourceText(url: string): Promise<string | null> {
+type OfficialSourceFetchEnv = Pick<
+  Env,
+  'PULSE_BROWSERLESS_URL' | 'PULSE_BROWSERLESS_TOKEN' | 'PULSE_BROWSERLESS_SOURCE_IDS'
+>
+type OfficialSourceFetcher = (input: string | URL, init?: RequestInit) => Promise<Response>
+
+function parseSourceIdList(value: string | undefined): ReadonlySet<string> {
+  return new Set(
+    (value ?? '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  )
+}
+
+async function fetchOfficialSourceText(input: {
+  url: string
+  sourceId: string
+  env: OfficialSourceFetchEnv
+}): Promise<string | null> {
+  const browserlessSourceIds = parseSourceIdList(input.env.PULSE_BROWSERLESS_SOURCE_IDS)
+  const browserlessFetch = createBrowserlessFetch({
+    ...(input.env.PULSE_BROWSERLESS_URL ? { endpoint: input.env.PULSE_BROWSERLESS_URL } : {}),
+    ...(input.env.PULSE_BROWSERLESS_TOKEN ? { token: input.env.PULSE_BROWSERLESS_TOKEN } : {}),
+  })
+  const shouldPreferBrowserless = browserlessSourceIds.has(input.sourceId)
+
+  if (shouldPreferBrowserless && browserlessFetch) {
+    const browserlessText = await fetchOfficialSourceTextWith(input.url, browserlessFetch)
+    if (browserlessText) return browserlessText
+  }
+
+  const directText = await fetchOfficialSourceTextWith(input.url, (request, init) =>
+    fetch(request, init),
+  )
+  if (directText) return directText
+
+  if (!shouldPreferBrowserless && browserlessFetch) {
+    return fetchOfficialSourceTextWith(input.url, browserlessFetch)
+  }
+
+  return null
+}
+
+async function fetchOfficialSourceTextWith(
+  url: string,
+  fetcher: OfficialSourceFetcher,
+): Promise<string | null> {
+  const results = await Promise.all(
+    OFFICIAL_SOURCE_FETCH_HEADERS.map((headers) =>
+      fetchOfficialSourceTextOnce(url, fetcher, headers),
+    ),
+  )
+  return results.find((text): text is string => Boolean(text)) ?? null
+}
+
+async function fetchOfficialSourceTextOnce(
+  url: string,
+  fetcher: OfficialSourceFetcher,
+  headers: HeadersInit,
+): Promise<string | null> {
   let response: Response
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), OFFICIAL_SOURCE_FETCH_TIMEOUT_MS)
   try {
-    response = await fetch(url, {
-      headers: {
-        accept: 'text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.1',
-        'user-agent': 'Mozilla/5.0 (compatible; DueDateHQSourceReview/1.0; +https://duedatehq.com)',
-      },
+    response = await fetcher(url, {
+      headers,
       signal: controller.signal,
     })
   } catch {
@@ -388,6 +524,13 @@ function htmlishToText(value: string): string | null {
   return text?.replace(/\s+/g, ' ').trim() || null
 }
 
+export function isUsableConcreteDraftOfficialSourceText(value: string | null | undefined): boolean {
+  const text = value?.replace(/\s+/g, ' ').trim()
+  if (!text) return false
+  if (text.length < MIN_USABLE_OFFICIAL_SOURCE_TEXT_CHARS) return false
+  return !UNUSABLE_OFFICIAL_SOURCE_TEXT_RE.test(text)
+}
+
 function shouldKeepJsonText(key: string, text: string): boolean {
   if (text.length < 20) return false
   if (/\b(script|style|nonce|hash|etag|uuid|id|guid)\b/i.test(key)) return false
@@ -404,11 +547,18 @@ async function readR2Text(
   if (!key) return null
   const raw = await env.R2_PULSE.get(key).catch(() => null)
   const text = raw ? await raw.text().catch(() => null) : null
-  return text?.trim() ? text : null
+  const trimmed = text?.trim()
+  return trimmed && isUsableConcreteDraftOfficialSourceText(trimmed) ? trimmed : null
 }
 
 export async function buildConcreteDraftSourceText(input: {
-  env: Pick<Env, 'R2_PULSE'>
+  env: Pick<
+    Env,
+    | 'R2_PULSE'
+    | 'PULSE_BROWSERLESS_URL'
+    | 'PULSE_BROWSERLESS_TOKEN'
+    | 'PULSE_BROWSERLESS_SOURCE_IDS'
+  >
   base: CoreObligationRule
   source: CoreRuleSource
   sourceSignal: PulseSourceSignalRow | null
@@ -465,7 +615,11 @@ export async function buildConcreteDraftSourceText(input: {
   if (evidenceChunks.length > 0) hasSourceBackedText = true
   const officialSourceText = hasSourceBackedText
     ? null
-    : await fetchOfficialSourceText(input.source.url)
+    : await fetchOfficialSourceText({
+        url: input.source.url,
+        sourceId: input.source.id,
+        env: input.env,
+      })
   if (officialSourceText) hasSourceBackedText = true
 
   chunks.push(
@@ -723,8 +877,9 @@ export async function generateConcreteDraft(input: {
         sourceText,
       })
     : { draft: null, error: null }
-  const draft = normalized.draft
-  const guardError = draft
+  let draft = normalized.draft
+  let usedFallback = false
+  let guardError = draft
     ? validateConcreteRuleDraft({
         rule: input.base,
         dueDateLogic: draft.dueDateLogic,
@@ -734,6 +889,30 @@ export async function generateConcreteDraft(input: {
         requiresApplicabilityReview: draft.requiresApplicabilityReview,
       })
     : null
+
+  if (!draft || guardError) {
+    const fallbackDraft = inferDeterministicConcreteDraft({
+      base: input.base,
+      source: input.source,
+      sourceText,
+    })
+    const fallbackGuardError = fallbackDraft
+      ? validateConcreteRuleDraft({
+          rule: input.base,
+          dueDateLogic: fallbackDraft.dueDateLogic,
+          sourceText,
+          sourceExcerpt: fallbackDraft.sourceExcerpt,
+          coverageStatus: fallbackDraft.coverageStatus,
+          requiresApplicabilityReview: fallbackDraft.requiresApplicabilityReview,
+        })
+      : null
+    if (fallbackDraft && !fallbackGuardError) {
+      draft = fallbackDraft
+      guardError = null
+      usedFallback = true
+    }
+  }
+
   const recorded = await recordConcreteDraftRun({
     aiRepo: input.aiRepo,
     scope: input.scope,
@@ -741,8 +920,11 @@ export async function generateConcreteDraft(input: {
     inputContextRef,
     trace: {
       ...aiResult.trace,
-      model: aiResult.model ?? aiResult.trace.model,
-      ...(normalized.error ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' } : {}),
+      model: usedFallback ? 'deterministic-source-text' : (aiResult.model ?? aiResult.trace.model),
+      ...(usedFallback ? { guardResult: 'ok', refusalCode: null } : {}),
+      ...(normalized.error && !usedFallback
+        ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' }
+        : {}),
       ...(guardError ? { guardResult: 'guard_rejected', refusalCode: 'GUARD_REJECTED' } : {}),
     },
     outputText: draft ? JSON.stringify(draft) : null,
@@ -752,10 +934,10 @@ export async function generateConcreteDraft(input: {
       sourceSignalId: input.sourceSignal?.id ?? null,
       sourceExcerpt: draft?.sourceExcerpt ?? null,
     },
-    errorMsg: aiResult.refusal?.message ?? normalized.error ?? guardError,
+    errorMsg: usedFallback ? null : (aiResult.refusal?.message ?? normalized.error ?? guardError),
   })
 
-  if (aiResult.refusal || !draft) {
+  if ((aiResult.refusal && !usedFallback) || !draft) {
     throw new Error(
       aiResult.refusal?.message ?? normalized.error ?? 'AI concrete draft was unavailable.',
     )
@@ -768,6 +950,48 @@ export async function generateConcreteDraft(input: {
     aiOutputId: recorded.aiOutputId,
     draft,
   })
+}
+
+function inferDeterministicConcreteDraft(input: {
+  base: CoreObligationRule
+  source: CoreRuleSource
+  sourceText: string
+}): RuleConcreteDraftPayload | null {
+  const focusedText = selectConcreteDraftSourceText(input.base, input.sourceText)
+  const sourceExcerpt = inferSourceExcerpt(focusedText) ?? inferSourceExcerpt(input.sourceText)
+  const relative = inferRelativeDueDateLogic(
+    sourceExcerpt,
+    focusedText,
+    'unknown',
+    input.base.applicableYear,
+  )
+  const dateLogic =
+    relative ??
+    dueDateLogicFromDateCandidates(
+      extractDateOnlyCandidates(sourceExcerpt ?? focusedText, input.base.applicableYear),
+      'annual',
+      'source_adjusted',
+    )
+  if (!dateLogic || !sourceExcerpt) return null
+
+  const draft: RuleConcreteDraftPayload = {
+    dueDateLogic: dateLogic,
+    extensionPolicy: {
+      available: false,
+      paymentExtended: false,
+      notes: 'No extension policy was deterministically extracted from the selected source text.',
+    },
+    coverageStatus: 'manual',
+    requiresApplicabilityReview: true,
+    quality: normalizeQuality(null, input.sourceText),
+    sourceHeading: input.source.title,
+    sourceExcerpt,
+    confidence: 0.6,
+    reasoning:
+      'Draft deterministically extracted from source-backed text after the AI model did not return a usable object; review before accepting.',
+  }
+  const parsed = RuleConcreteDraftPayloadSchema.safeParse(draft)
+  return parsed.success ? parsed.data : null
 }
 
 async function runConcreteDraftPrompt(env: Env, aiInput: ConcreteDraftAiInput) {
@@ -860,6 +1084,7 @@ function normalizeDueDateLogic(
     sourceExcerpt,
     stringValue(logic.description),
     kind,
+    applicableYear,
   )
   if (
     inferredRelative &&
@@ -924,15 +1149,27 @@ function normalizeDueDateLogic(
       logic.date ??
       logic.dueDate ??
       logic.due_date ??
+      logic.deadline ??
+      logic.filingDueDate ??
+      logic.filing_due_date ??
       logic.returnDueDate ??
       logic.return_due_date ??
       logic.paymentDueDate ??
       logic.payment_due_date ??
       logic.description ??
       sourceExcerpt
+    const date = normalizeDateOnly(rawDate, applicableYear)
+    const fallback = date
+      ? null
+      : dueDateLogicFromDateCandidates(
+          dueDateCandidatesForLogic(logic, applicableYear, sourceText, sourceExcerpt),
+          logic.frequency,
+          logic.holidayRollover ?? logic.holiday_rollover,
+        )
+    if (fallback) return fallback
     return {
       kind: 'fixed_date',
-      date: normalizeDateOnly(rawDate, applicableYear),
+      date,
       holidayRollover: normalizeFixedDateHolidayRollover(
         logic.holidayRollover ?? logic.holiday_rollover,
       ),
@@ -940,19 +1177,39 @@ function normalizeDueDateLogic(
   }
 
   if (kind === 'nth_day_after_tax_year_begin') {
+    const monthOffset = intValue(logic.monthOffset ?? logic.month_offset ?? logic.month)
+    const day = intValue(logic.day ?? logic.dayOfMonth ?? logic.day_of_month)
+    if (!monthOffset || !day) {
+      const fallback = dueDateLogicFromDateCandidates(
+        dueDateCandidatesForLogic(logic, applicableYear, sourceText, sourceExcerpt),
+        logic.frequency,
+        logic.holidayRollover ?? logic.holiday_rollover,
+      )
+      if (fallback) return fallback
+    }
     return {
       kind: 'nth_day_after_tax_year_begin',
-      monthOffset: intValue(logic.monthOffset ?? logic.month_offset ?? logic.month),
-      day: intValue(logic.day ?? logic.dayOfMonth ?? logic.day_of_month),
+      monthOffset,
+      day,
       holidayRollover: 'next_business_day',
     }
   }
 
   if (kind === 'nth_day_after_tax_year_end') {
+    const monthOffset = intValue(logic.monthOffset ?? logic.month_offset ?? logic.month)
+    const day = intValue(logic.day ?? logic.dayOfMonth ?? logic.day_of_month)
+    if (!monthOffset || !day) {
+      const fallback = dueDateLogicFromDateCandidates(
+        dueDateCandidatesForLogic(logic, applicableYear, sourceText, sourceExcerpt),
+        logic.frequency,
+        logic.holidayRollover ?? logic.holiday_rollover,
+      )
+      if (fallback) return fallback
+    }
     return {
       kind: 'nth_day_after_tax_year_end',
-      monthOffset: intValue(logic.monthOffset ?? logic.month_offset ?? logic.month),
-      day: intValue(logic.day ?? logic.dayOfMonth ?? logic.day_of_month),
+      monthOffset,
+      day,
       holidayRollover: 'next_business_day',
     }
   }
@@ -965,8 +1222,8 @@ function normalizeDueDateLogic(
   return fallback ?? logic
 }
 
-function normalizeDueDateKindAlias(value: string): string {
-  const normalized = normalizeToken(value)
+function normalizeDueDateKindAlias(value: string | null | undefined): string {
+  const normalized = normalizeToken(value ?? '')
   if (
     normalized === 'period_table' ||
     normalized === 'periodtable' ||
@@ -1049,6 +1306,9 @@ function dueDateCandidatesForLogic(
     logic.date,
     logic.dueDate,
     logic.due_date,
+    logic.deadline,
+    logic.filingDueDate,
+    logic.filing_due_date,
     logic.returnDueDate,
     logic.return_due_date,
     logic.paymentDueDate,
@@ -1101,12 +1361,16 @@ function inferRelativeDueDateLogic(
   sourceExcerpt: string | null,
   description: string | null,
   kind: string,
+  applicableYear?: number,
 ): RuleConcreteDraftPayload['dueDateLogic'] | null {
   const text = [sourceExcerpt, description].filter(Boolean).join('\n')
   if (!text) return null
+  const installment = inferRelativeInstallmentDueDateLogic(text, applicableYear)
+  if (installment) return installment
+
   const match = text.match(RELATIVE_DUE_DATE_RE)
-  const day = match?.[1] ? Number(match[1]) : null
-  const monthOffset = match?.[2] ? ordinalValue(match[2]) : null
+  const day = match?.[1] ? ordinalValue(match[1], 31) : null
+  const monthOffset = match?.[2] ? ordinalValue(match[2], 12) : null
   if (!day || !monthOffset) return null
   const anchor = normalizeToken(match?.[3] ?? '')
   const inferredKind =
@@ -1121,15 +1385,50 @@ function inferRelativeDueDateLogic(
   }
 }
 
-function ordinalValue(value: string): number | null {
+function inferRelativeInstallmentDueDateLogic(
+  text: string,
+  applicableYear: number | undefined,
+): RuleConcreteDraftPayload['dueDateLogic'] | null {
+  if (!applicableYear) return null
+  const match = text.match(RELATIVE_INSTALLMENT_MONTHS_RE)
+  const day = match?.[1] ? ordinalValue(match[1], 31) : null
+  const monthText = match?.[2]
+  if (!day || !monthText) return null
+
+  const months = ordinalValuesInText(monthText, 12)
+  if (months.length < 2) return null
+
+  return {
+    kind: 'period_table',
+    frequency: normalizeFrequency(null, months.length),
+    periods: months.flatMap((month, index) => {
+      const dueDate = formatDateParts(applicableYear, month, day)
+      return dueDate ? [{ period: `Installment ${index + 1}`, dueDate }] : []
+    }),
+    holidayRollover: 'source_adjusted',
+  }
+}
+
+function ordinalValuesInText(text: string, max: number): number[] {
+  const matches = text.match(
+    /\b(\d{1,2}(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\b/gi,
+  )
+  const values = (matches ?? []).flatMap((match) => {
+    const parsed = ordinalValue(match, max)
+    return parsed ? [parsed] : []
+  })
+  return values.filter((ordinal, index) => values.indexOf(ordinal) === index)
+}
+
+function ordinalValue(value: string, max = 31): number | null {
   const normalized = normalizeToken(value)
   const ordinalNumber = normalized.match(/^(\d{1,2})(?:st|nd|rd|th)?$/)
   if (ordinalNumber?.[1]) {
     const parsed = Number(ordinalNumber[1])
-    return parsed >= 1 && parsed <= 12 ? parsed : null
+    return parsed >= 1 && parsed <= max ? parsed : null
   }
   const direct = Number(normalized)
-  if (Number.isInteger(direct) && direct >= 1 && direct <= 12) return direct
+  if (Number.isInteger(direct) && direct >= 1 && direct <= max) return direct
   const words: Record<string, number> = {
     first: 1,
     second: 2,
@@ -1143,8 +1442,18 @@ function ordinalValue(value: string): number | null {
     tenth: 10,
     eleventh: 11,
     twelfth: 12,
+    thirteenth: 13,
+    fourteenth: 14,
+    fifteenth: 15,
+    sixteenth: 16,
+    seventeenth: 17,
+    eighteenth: 18,
+    nineteenth: 19,
+    twentieth: 20,
+    thirtieth: 30,
   }
-  return words[normalized] ?? null
+  const word = words[normalized] ?? null
+  return word !== null && word <= max ? word : null
 }
 
 function normalizeExtensionPolicy(

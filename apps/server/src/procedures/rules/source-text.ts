@@ -15,7 +15,12 @@ export function extractOfficialSourceText(html: string): string {
   const faqText = extractJsonLdFaqText(html)
   const tableText = extractHtmlTableRows(html)
   const candidates = extractReadableHtmlCandidates(html)
-  const pageText = candidates.length > 0 ? candidates.join('\n\n') : htmlToText(html)
+  const fallbackText = htmlToText(html)
+  const candidateText = candidates.join('\n\n')
+  const pageText =
+    candidateText.length > 2_000 || candidateText.length >= fallbackText.length * 0.5
+      ? candidateText
+      : [candidateText, fallbackText].filter(Boolean).join('\n\n')
   return normalizeSourceText([faqText, tableText, pageText].filter(Boolean).join('\n\n'))
 }
 
