@@ -727,6 +727,19 @@ export function ClientFactsWorkspace({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (client) => client.id,
+    // OTHER STATES + SERVICES start hidden because they're empty for
+    // the typical single-state, no-services-managed firm shape (the
+    // seeded demo's nine clients all show "—" in both columns). They
+    // become useful once a firm starts tracking multiple states or
+    // tax-type services — at which point a column-toggle UI can
+    // surface them. Until then, keeping them off-screen kills two
+    // wasted columns that otherwise train the eye to scan past data.
+    initialState: {
+      columnVisibility: {
+        otherStates: false,
+        servicesCount: false,
+      },
+    },
   })
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
