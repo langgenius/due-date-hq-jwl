@@ -340,7 +340,6 @@ export function ClientsRoute() {
         clients={clients}
         filteredClients={filteredClients}
         factsModel={factsModel}
-        entityLabels={entityLabels}
         isLoading={clientsQuery.isLoading}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}

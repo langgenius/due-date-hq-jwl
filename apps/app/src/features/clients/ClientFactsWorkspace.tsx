@@ -154,7 +154,6 @@ type ClientFactsWorkspaceProps = {
   clients: ClientPublic[]
   filteredClients: ClientPublic[]
   factsModel: ClientFactsModel
-  entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
@@ -336,40 +335,52 @@ function renderClientHeaderSubLine({
   // CPA scanning the page in <1 second can spot "anything overdue?"
   // without reading prose. Order mirrors the four canonical questions
   // (what kind of client → workload → urgency → tone).
-  const parts: ReactNode[] = []
+  const parts: Array<{ id: string; node: ReactNode }> = []
   const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
-  if (taxLabel) parts.push(<span key="tax">{taxLabel}</span>)
-  parts.push(
-    <span key="open">
-      {workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`}
-    </span>,
-  )
+  if (taxLabel) parts.push({ id: 'tax', node: <span>{taxLabel}</span> })
+  parts.push({
+    id: 'open',
+    node: (
+      <span>
+        {workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`}
+      </span>
+    ),
+  })
   if (workPlan.nextDueDate) {
-    parts.push(<span key="due">next due {formatDatePretty(workPlan.nextDueDate)}</span>)
+    parts.push({
+      id: 'due',
+      node: <span>next due {formatDatePretty(workPlan.nextDueDate)}</span>,
+    })
   }
   if (workPlan.overdueOpenCount > 0) {
-    parts.push(
-      <span key="late" className="font-medium text-text-destructive">
-        {workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`}
-      </span>,
-    )
+    parts.push({
+      id: 'late',
+      node: (
+        <span className="font-medium text-text-destructive">
+          {workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`}
+        </span>
+      ),
+    })
   } else if (workPlan.openCount > 0) {
     // Positive-state chip. Stops the app from relying on "absence of
     // red" as the implicit positive — every other surface that ends
     // a daily-driver line cleanly should use this same Badge variant.
     // See critique D-3 cont. "positive status visual vocabulary".
-    parts.push(
-      <Badge key="ontrack" variant="success" className="text-xs">
-        <CheckCircle2Icon className="size-3" aria-hidden />
-        <span>All on track</span>
-      </Badge>,
-    )
+    parts.push({
+      id: 'ontrack',
+      node: (
+        <Badge variant="success" className="text-xs">
+          <CheckCircle2Icon className="size-3" aria-hidden />
+          <span>All on track</span>
+        </Badge>
+      ),
+    })
   }
   return (
     <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
-      {parts.map((node, index) => (
-        <span key={`wrap-${index}`} className="inline-flex items-baseline gap-x-1.5">
-          {node}
+      {parts.map((part, index) => (
+        <span key={part.id} className="inline-flex items-baseline gap-x-1.5">
+          {part.node}
           {index < parts.length - 1 ? (
             <span aria-hidden className="text-text-tertiary">
               ·
@@ -405,7 +416,6 @@ export function ClientFactsWorkspace({
   clients,
   filteredClients,
   factsModel,
-  entityLabels,
   isLoading,
   clientFilter,
   stateFilter,
@@ -510,16 +520,15 @@ export function ClientFactsWorkspace({
           const matches = pulseMatchesByClient.get(row.original.id)
           return (
             <div className="flex min-w-0 items-center gap-2">
-              <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate font-medium text-text-primary">
-                    {row.original.name}
-                  </span>
-                  {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
-                </div>
-                <span className="truncate text-xs text-text-tertiary">
-                  {entityLabels[row.original.entityType]}
-                </span>
+              {/* L-6 (2026-05-22): dropped the entity-type sub-line that
+                  lived under the client name. Entity is already
+                  filterable via the column header dropdown + visible on
+                  the detail page header chip; surfacing it under every
+                  list row was redundant noise. The row now reads as a
+                  single confident name line. */}
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="truncate font-medium text-text-primary">{row.original.name}</span>
+                {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
               </div>
               {/* Hover-revealed peek affordance: row click still goes to
                   the full page; this opens the read-only drawer for a
@@ -743,7 +752,6 @@ export function ClientFactsWorkspace({
       clientFilter,
       clientOptions,
       currentUserName,
-      entityLabels,
       factsModel.readinessById,
       obligationSummariesByClient,
       onClientFilterChange,
@@ -1401,7 +1409,16 @@ export function ClientDetailWorkspace({
                   • Activity   — what happened recently? (lazy) */}
             <Tabs
               value={activeTab}
-              onValueChange={(value) => void setActiveTab(value as typeof activeTab)}
+              onValueChange={(value) => {
+                if (
+                  value === 'work' ||
+                  value === 'info' ||
+                  value === 'discover' ||
+                  value === 'activity'
+                ) {
+                  void setActiveTab(value)
+                }
+              }}
             >
               <TabsList variant="line" className="border-b border-divider-subtle">
                 <TabsTrigger value="work">
@@ -1787,10 +1804,24 @@ function FilingPlanYearSection({
           ) : null}
         </span>
       </div>
-      <div className="rounded-md border border-divider-subtle">
-        <Table className="table-fixed">
-          <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-            {group.obligations.map((obligation) => (
+      {/* Filing plan row table: no inner border. The outer
+          ClientWorkPlanPanel already carries `rounded-md border` —
+          nesting a second border inside (the previous shape) gave a
+          card-inside-a-card visual. Rows just live as a flat list
+          inside the panel's content area, separated by light
+          dividers. Cleaner read. */}
+      <Table className="table-fixed">
+        <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
+          {group.obligations.map((obligation) => {
+            // Currency column shows only when the obligation carries a
+            // real estimate — `—` dashes across the column were just
+            // visual noise. When the estimate is null we collapse the
+            // cell to empty whitespace; the column width stays so the
+            // row still aligns. (Per-column gating across the whole
+            // group could shrink the layout further; deferred until we
+            // see the column actually matter in production data.)
+            const hasEstimate = obligation.estimatedTaxDueCents !== null
+            return (
               <TableRow
                 key={obligation.id}
                 tabIndex={0}
@@ -1806,14 +1837,16 @@ function FilingPlanYearSection({
                 }}
               >
                 <TableCell>
-                  <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-medium text-text-primary">
-                      <TaxCodeLabel code={obligation.taxType} />
-                    </span>
-                    <span className="truncate text-xs text-text-tertiary">
-                      {obligation.jurisdiction ?? obligation.generationSource ?? 'manual'}
-                    </span>
-                  </div>
+                  {/* Single confident line for the form name — the
+                      sub-line that used to render
+                      `jurisdiction ?? generationSource ?? 'manual'`
+                      was arbitrary fallback text that read as noise.
+                      Jurisdiction belongs to the form code via
+                      `TaxCodeLabel` already; provenance is the
+                      drawer's responsibility, not the row's. */}
+                  <span className="truncate font-medium text-text-primary">
+                    <TaxCodeLabel code={obligation.taxType} />
+                  </span>
                 </TableCell>
                 <TableCell className="w-[132px]">
                   {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
@@ -1821,16 +1854,14 @@ function FilingPlanYearSection({
                 <TableCell className="w-[140px]">
                   <ObligationStatusReadBadge status={obligation.status} />
                 </TableCell>
-                <TableCell className="w-[140px] text-right tabular-nums">
-                  {obligation.estimatedTaxDueCents !== null
-                    ? formatCents(obligation.estimatedTaxDueCents)
-                    : '—'}
+                <TableCell className="w-[120px] text-right tabular-nums text-text-tertiary">
+                  {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            )
+          })}
+        </TableBody>
+      </Table>
     </div>
   )
 }
