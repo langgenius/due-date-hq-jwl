@@ -1462,9 +1462,15 @@ export function ClientDetailWorkspace({
             entityType: client.entityType,
             taxClassification: client.taxClassification,
           })}
+          // Cycle arrows are page-level navigation (move between
+          // clients in the filtered list), NOT client actions. Putting
+          // them next to Archive / Add deadline made the destructive-
+          // action cluster feel busy and gave the chevrons accidental
+          // visual weight. They live in the eyebrow row now — same
+          // tier as the breadcrumb / back-link, opposite side.
+          eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
           actions={
             <>
-              <ClientCycleArrows currentClientId={client.id} />
               <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
               <Button variant="outline" size="sm" onClick={() => setArchiveOpen(true)}>
                 <ArchiveIcon data-icon="inline-start" />
@@ -1860,12 +1866,50 @@ function ClientWorkPlanPanel({
         <span className="text-sm font-semibold text-text-primary">
           <Trans>Filing plan</Trans>
         </span>
+        {/* Count subtitle uses the same word ("deadlines") as the
+            sidebar / queue / Deadlines page so the CPA reads this as
+            a year-grouped slice of the same primitive, not a
+            separate concept. Earlier this said "# filings" which
+            quietly invented a new noun. */}
         <span className="text-xs text-text-tertiary">
-          <Plural value={obligations.length} one="# filing" other="# filings" />{' '}
+          <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
           <Trans>across</Trans>{' '}
           <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
         </span>
       </div>
+      {/* Column legend lives at the panel body level, above the year
+          sections, so it reads as the table's column header for the
+          whole filing plan — not just the first year. Earlier the
+          legend was rendered inside the first year's `<Table>` as a
+          real `<TableHeader>`; visually it landed UNDER the "2026"
+          year heading, which inverts the expected
+          legend-above-content reading order. Critique flagged this
+          directly ("header should be above the year?").
+
+          Widths mirror the per-row TableCells inside FilingPlanYearSection
+          (132 / 160 / 110 / 140 with Form column taking remaining
+          space). Inner `px-3` matches the TableCell primitive's `p-3`,
+          and the outer `px-4` matches the panel body wrapper. Close-enough
+          alignment with the table-fixed rows below; pixel-perfect
+          isn't required since this is an orientation cue, not a real
+          column header. */}
+      {!isLoading && obligations.length > 0 ? (
+        <div className="flex items-center border-b border-divider-subtle px-4 py-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+          <div className="flex-1 px-3">
+            <Trans>Form</Trans>
+          </div>
+          <div className="w-[132px] px-3">
+            <Trans>Due</Trans>
+          </div>
+          <div className="w-[160px] px-3">
+            <Trans>Status</Trans>
+          </div>
+          <div className="w-[110px] px-3 text-right">
+            <Trans>Est. tax</Trans>
+          </div>
+          <div className="w-[140px] px-3" aria-hidden />
+        </div>
+      ) : null}
       <div className="px-4 py-3">
         {isLoading ? (
           <div className="grid gap-2">
@@ -1896,13 +1940,6 @@ function ClientWorkPlanPanel({
                 <FilingPlanYearSection
                   group={group}
                   clientName={clientName}
-                  // The column legend (FORM · DUE · STATUS · EST. TAX)
-                  // renders once, inside the first year section, as a
-                  // real `<TableHeader>`. This way it lines up with
-                  // the underlying `table-fixed` column widths instead
-                  // of being a separate hand-tuned flex row that
-                  // drifts when columns change.
-                  isFirstSection={index === 0}
                   onOpen={(obligationId) => openObligationDrawer(obligationId)}
                   onChangeStatus={onChangeStatus}
                   isStatusChangePending={isStatusChangePending}
@@ -1927,14 +1964,12 @@ function ClientWorkPlanPanel({
 function FilingPlanYearSection({
   group,
   clientName,
-  isFirstSection,
   onOpen,
   onChangeStatus,
   isStatusChangePending,
 }: {
   group: FilingPlanYearGroup
   clientName: string
-  isFirstSection: boolean
   onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
@@ -1977,33 +2012,10 @@ function FilingPlanYearSection({
           inside the panel's content area, separated by light
           dividers. Cleaner read.
 
-          2026-05-23: only the first year section renders the
-          `<TableHeader>`. Other years inherit the visual rhythm
-          without repeating the column labels — once is enough for a
-          legend, and repeating it gave the panel a noisy "table
-          stack" look instead of "filing plan." */}
+          2026-05-23: column header lives at the panel-body level
+          (above all year sections) so it reads as a real legend, not
+          as a row inside the first year. */}
       <Table className="table-fixed">
-        {isFirstSection ? (
-          <TableHeader className="bg-transparent [&_tr]:border-b-divider-subtle">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="h-7 px-3">
-                <Trans>Form</Trans>
-              </TableHead>
-              <TableHead className="h-7 w-[132px] px-3">
-                <Trans>Due</Trans>
-              </TableHead>
-              <TableHead className="h-7 w-[160px] px-3">
-                <Trans>Status</Trans>
-              </TableHead>
-              <TableHead className="h-7 w-[110px] px-3 text-right">
-                <Trans>Est. tax</Trans>
-              </TableHead>
-              {/* Quick-action column has no header — it's a
-                  hover-revealed affordance, not a content column. */}
-              <TableHead className="h-7 w-[140px] px-3" aria-hidden />
-            </TableRow>
-          </TableHeader>
-        ) : null}
         <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
           {group.obligations.map((obligation) => {
             const hasEstimate = obligation.estimatedTaxDueCents !== null
@@ -2945,20 +2957,44 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
  * not a status signal. Doesn't compete with the identity chips above
  * or the active-alerts section below.
  */
+/**
+ * UI guards against malformed `client.primary*` values bleeding
+ * through from demo / migration / import data. Real-world cases that
+ * have shown up:
+ *  - phone field carrying the literal source column name
+ *    (`"primary_phone"`) when a migration mapping wasn't fully
+ *    resolved at commit time;
+ *  - email field similarly carrying `"primary_contact_email"`.
+ * If the value clearly isn't a phone (no digits) or an email (no @),
+ * we treat it as absent rather than print the raw token on the
+ * header. The underlying data still needs fixing in those cases —
+ * but the workbench header should never render `primary_phone` to a
+ * CPA in the meantime.
+ */
+function looksLikePhone(value: string | null | undefined): value is string {
+  if (!value) return false
+  const digits = value.replace(/\D/g, '')
+  return digits.length >= 3
+}
+
+function looksLikeEmail(value: string | null | undefined): value is string {
+  if (!value) return false
+  return /.+@.+\..+/.test(value)
+}
+
 function ClientContactMetaRow({ client }: { client: ClientPublic }) {
-  const hasEmail = Boolean(client.primaryContactEmail)
-  const hasPhone = Boolean(client.primaryPhone)
-  const sinceLabel = useMemo(() => {
-    const parsed = Date.parse(client.createdAt)
-    if (!Number.isFinite(parsed)) return null
-    return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(
-      new Date(parsed),
-    )
-  }, [client.createdAt])
-  if (!hasEmail && !hasPhone && !sinceLabel) return null
+  // 2026-05-23: dropped the "Since {Mon YYYY}" tag from this row.
+  // It was the third entry alongside email + phone and didn't help
+  // the daily workflow — the CPA already knows when they took this
+  // client on, and the precise import/created date is discoverable
+  // via the Activity tab / Audit log when needed. Critique flagged
+  // it as "is this important? can you group it somewhere else?"
+  const showEmail = looksLikeEmail(client.primaryContactEmail)
+  const showPhone = looksLikePhone(client.primaryPhone)
+  if (!showEmail && !showPhone) return null
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
-      {hasEmail && client.primaryContactEmail ? (
+      {showEmail ? (
         <a
           href={`mailto:${client.primaryContactEmail}`}
           className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -2967,7 +3003,7 @@ function ClientContactMetaRow({ client }: { client: ClientPublic }) {
           <span className="truncate">{client.primaryContactEmail}</span>
         </a>
       ) : null}
-      {hasPhone && client.primaryPhone ? (
+      {showPhone ? (
         <a
           href={`tel:${client.primaryPhone}`}
           className="inline-flex items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
@@ -2975,11 +3011,6 @@ function ClientContactMetaRow({ client }: { client: ClientPublic }) {
           <PhoneIcon className="size-3.5" aria-hidden />
           <span>{client.primaryPhone}</span>
         </a>
-      ) : null}
-      {sinceLabel ? (
-        <span className="inline-flex items-center gap-1">
-          <Trans>Since {sinceLabel}</Trans>
-        </span>
       ) : null}
     </div>
   )

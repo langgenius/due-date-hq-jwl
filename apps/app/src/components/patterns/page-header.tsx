@@ -32,6 +32,7 @@ import { Breadcrumb, type BreadcrumbItem } from './breadcrumb'
  */
 export function PageHeader({
   eyebrow,
+  eyebrowAside,
   breadcrumbs,
   title,
   description,
@@ -39,6 +40,15 @@ export function PageHeader({
   className,
 }: {
   eyebrow?: ReactNode
+  /**
+   * Optional content rendered on the right side of the eyebrow /
+   * breadcrumb row. Use for page-level navigation aids that are
+   * distinctly NOT actions on the page subject (e.g. prev/next
+   * cycling through a filtered list of clients) so they don't sit
+   * cheek-to-cheek with destructive actions like "Archive" or
+   * "Delete" in the right-edge action cluster.
+   */
+  eyebrowAside?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
   title: ReactNode
   description?: ReactNode
@@ -46,6 +56,7 @@ export function PageHeader({
   className?: string
 }) {
   const hasBreadcrumbs = breadcrumbs && breadcrumbs.length > 0
+  const hasEyebrowLeft = (eyebrow && !hasBreadcrumbs) || hasBreadcrumbs
   return (
     <header
       className={cn(
@@ -54,11 +65,21 @@ export function PageHeader({
       )}
     >
       <div className="flex min-w-0 flex-col gap-2">
-        {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
-        {eyebrow && !hasBreadcrumbs ? (
-          <p className="text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
-            {eyebrow}
-          </p>
+        {/* Eyebrow row: left side is the back-link / breadcrumb,
+            right side is optional page-level navigation (e.g.
+            ClientCycleArrows). Wrapped in `<div>` rather than `<p>`
+            so it can host non-inline children like button groups
+            without producing invalid HTML. The uppercase tag styling
+            only applies to plain-text descendants; the
+            navAside content provides its own visual treatment. */}
+        {hasEyebrowLeft || eyebrowAside ? (
+          <div className="flex min-w-0 items-center justify-between gap-3 text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
+            <div className="min-w-0 flex-1">
+              {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
+              {eyebrow && !hasBreadcrumbs ? eyebrow : null}
+            </div>
+            {eyebrowAside ? <div className="shrink-0">{eyebrowAside}</div> : null}
+          </div>
         ) : null}
         <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
         {description ? (

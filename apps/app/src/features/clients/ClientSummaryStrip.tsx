@@ -58,8 +58,10 @@ function TileShell({
   if (to) {
     return (
       <Link to={to} aria-label={ariaLabel} className={baseClass}>
+        <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+          {label}
+        </span>
         <span className={valueClass}>{value}</span>
-        <span className="text-sm text-text-secondary">{label}</span>
       </Link>
     )
   }
@@ -71,8 +73,10 @@ function TileShell({
         aria-label={ariaLabel}
         className={cn(baseClass, 'text-left')}
       >
+        <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+          {label}
+        </span>
         <span className={valueClass}>{value}</span>
-        <span className="text-sm text-text-secondary">{label}</span>
       </button>
     )
   }

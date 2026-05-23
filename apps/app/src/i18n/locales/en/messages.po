@@ -58,8 +58,8 @@ msgstr "{0, plural, one {# day until due} other {# days until due}}"
 
 #. placeholder {0}: obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0, plural, one {# filing} other {# filings}}"
-msgstr "{0, plural, one {# filing} other {# filings}}"
+msgid "{0, plural, one {# deadline} other {# deadlines}}"
+msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 
 #. placeholder {0}: suggested.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -8778,10 +8778,6 @@ msgstr "Signed in"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signing out…"
 msgstr "Signing out…"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Since {sinceLabel}"
-msgstr "Since {sinceLabel}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"

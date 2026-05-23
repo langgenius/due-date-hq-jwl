@@ -58,8 +58,8 @@ msgstr "{0, plural, other {还有 # 天到期}}"
 
 #. placeholder {0}: obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0, plural, one {# filing} other {# filings}}"
-msgstr "{0, plural, one {# 个申报} other {# 个申报}}"
+msgid "{0, plural, one {# deadline} other {# deadlines}}"
+msgstr "{0, plural, other {# 个截止事项}}"
 
 #. placeholder {0}: suggested.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -8778,10 +8778,6 @@ msgstr "已登录"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signing out…"
 msgstr "正在退出…"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Since {sinceLabel}"
-msgstr "起始于 {sinceLabel}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"
