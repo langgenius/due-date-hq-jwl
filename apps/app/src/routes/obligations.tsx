@@ -6380,44 +6380,55 @@ function ActiveStageDetailCard({
   // came back empty in the prototype). Each canonical sub-status
   // gets a human-readable phrase here.
   const subStatus: string | null = (() => {
+    // Sub-status text answers "WHAT is the row actually doing right
+    // now?" — appears next to the stage label as "STAGE · sub-status".
+    // Earlier copy ("Documents from client", "Upstream obligation",
+    // "Submitted") punted on the object; readers had to fill in the
+    // gap mentally. Each label below names the object + actor so the
+    // line reads as a complete sentence.
     switch (row.status) {
       case 'waiting_on_client':
-        if (row.prepStage === 'waiting_on_client') return t`Documents from client`
-        if (row.prepStage === 'waiting_on_third_party') return t`Third-party docs`
-        if (row.prepStage === 'bookkeeping_cleanup') return t`Bookkeeping cleanup`
-        if (row.prepStage === 'ready_for_prep') return t`Ready for prep`
+        if (row.prepStage === 'waiting_on_client') return t`Waiting on client to send docs`
+        if (row.prepStage === 'waiting_on_third_party')
+          return t`Waiting on third party for K-1 / 1099`
+        if (row.prepStage === 'bookkeeping_cleanup') return t`Cleaning up client's books`
+        if (row.prepStage === 'ready_for_prep') return t`All docs in — ready to draft`
         return null
       case 'blocked':
-        if (row.blockedByObligationInstanceId) return t`Upstream obligation`
+        if (row.blockedByObligationInstanceId) return t`Waiting on upstream return to file`
         return null
       case 'review':
       case 'in_progress':
-        if (row.reviewStage === 'ready_for_review') return t`Ready for review`
-        if (row.reviewStage === 'in_review') return t`In review`
-        if (row.reviewStage === 'notes_open') return t`Notes open`
-        if (row.reviewStage === 'approved') return t`Approved — ready to file`
-        if (row.prepStage === 'in_prep') return t`Preparer in progress`
-        if (row.prepStage === 'prepared') return t`Prepared — handing off`
-        if (row.prepStage === 'ready_for_prep') return t`Ready for prep`
+        if (row.reviewStage === 'ready_for_review') return t`Ready for reviewer sign-off`
+        if (row.reviewStage === 'in_review') return t`Reviewer checking the return`
+        if (row.reviewStage === 'notes_open') return t`Reviewer left notes to address`
+        if (row.reviewStage === 'approved') return t`Reviewer approved — ready to file`
+        if (row.prepStage === 'in_prep') return t`Preparer drafting the return`
+        if (row.prepStage === 'prepared') return t`Draft complete — sent to reviewer`
+        if (row.prepStage === 'ready_for_prep') return t`Ready to draft the return`
         return null
       case 'extended':
-        return t`Extension active`
+        return t`Extension filed — new due date in effect`
       case 'done':
-        if (row.efileState === 'authorization_requested') return t`8879 sent to client`
-        if (row.efileState === 'authorization_signed') return t`8879 signed — ready to submit`
-        if (row.efileState === 'ready_to_submit') return t`Ready to submit`
-        if (row.efileState === 'submitted') return t`Submitted, awaiting acceptance`
-        if (row.efileState === 'accepted') return t`Accepted by authority`
-        if (row.efileState === 'rejected') return t`Rejected by authority`
-        if (row.efileState === 'corrected_resubmitted') return t`Corrected & resubmitted`
-        if (row.efileState === 'paper_filed') return t`Paper filed`
-        if (row.efileState === 'final_package_delivered') return t`Final package delivered`
+        if (row.efileState === 'authorization_requested')
+          return t`8879 sent to client for signature`
+        if (row.efileState === 'authorization_signed')
+          return t`Client returned signed 8879 — ready to e-file`
+        if (row.efileState === 'ready_to_submit') return t`Ready to e-file with authority`
+        if (row.efileState === 'submitted') return t`E-filed — awaiting authority acceptance`
+        if (row.efileState === 'accepted') return t`Authority accepted the return`
+        if (row.efileState === 'rejected') return t`Authority rejected the e-file`
+        if (row.efileState === 'corrected_resubmitted')
+          return t`Corrected and re-submitted to authority`
+        if (row.efileState === 'paper_filed') return t`Paper-filed with authority`
+        if (row.efileState === 'final_package_delivered') return t`Final package sent to client`
         return null
       case 'paid':
-        if (row.paymentState === 'estimate_needed') return t`Estimate needed`
-        if (row.paymentState === 'client_approval_needed') return t`Client approval pending`
-        if (row.paymentState === 'scheduled') return t`Payment scheduled`
-        if (row.paymentState === 'confirmed') return t`Payment confirmed`
+        if (row.paymentState === 'estimate_needed') return t`Calculating the tax estimate`
+        if (row.paymentState === 'client_approval_needed')
+          return t`Awaiting client approval of estimate`
+        if (row.paymentState === 'scheduled') return t`Payment scheduled with authority`
+        if (row.paymentState === 'confirmed') return t`Authority confirmed payment cleared`
         return null
       default:
         return null
@@ -6440,32 +6451,68 @@ function ActiveStageDetailCard({
     switch (stageKey) {
       case 'pending':
         return [
-          { id: 'engagement', label: t`Confirm engagement letter on file`, flavor: 'manual' },
-          { id: 'assign', label: t`Assign preparer`, flavor: 'manual' },
-          { id: 'start', label: t`Start preparation`, flavor: 'mutation', primary: true },
+          {
+            id: 'engagement',
+            label: t`Confirm engagement letter is on file for this client`,
+            flavor: 'manual',
+          },
+          { id: 'assign', label: t`Assign a preparer to this return`, flavor: 'manual' },
+          {
+            id: 'start',
+            label: t`Start drafting the return`,
+            flavor: 'mutation',
+            primary: true,
+          },
         ]
       case 'waiting_on_client': {
         if (row.prepStage === 'bookkeeping_cleanup') {
           return [
-            { id: 'books', label: t`Complete bookkeeping pass`, flavor: 'manual' },
-            { id: 'resume', label: t`Resume preparation`, flavor: 'mutation', primary: true },
+            {
+              id: 'books',
+              label: t`Finish cleaning up the client's books`,
+              flavor: 'manual',
+            },
+            {
+              id: 'resume',
+              label: t`Resume drafting the return`,
+              flavor: 'mutation',
+              primary: true,
+            },
           ]
         }
         if (row.prepStage === 'waiting_on_third_party') {
           return [
-            { id: 'eta', label: t`Confirm third-party ETA`, flavor: 'manual' },
-            { id: 'received', label: t`Mark docs received`, flavor: 'mutation', primary: true },
+            {
+              id: 'eta',
+              label: t`Confirm ETA with the third party`,
+              flavor: 'manual',
+            },
+            {
+              id: 'received',
+              label: t`Mark client docs received`,
+              flavor: 'mutation',
+              primary: true,
+            },
           ]
         }
         return [
           {
             id: 'readiness',
-            label: t`Send readiness request`,
+            label: t`Send document request to client`,
             flavor: 'routing',
-            hint: t`Opens the Readiness tab`,
+            hint: t`Opens the Readiness tab to send and track the request`,
           },
-          { id: 'chase', label: t`Chase outstanding documents`, flavor: 'manual' },
-          { id: 'received', label: t`Mark docs received`, flavor: 'mutation', primary: true },
+          {
+            id: 'chase',
+            label: t`Chase client for outstanding documents`,
+            flavor: 'manual',
+          },
+          {
+            id: 'received',
+            label: t`Mark client docs received`,
+            flavor: 'mutation',
+            primary: true,
+          },
         ]
       }
       case 'blocked':
@@ -6473,28 +6520,48 @@ function ActiveStageDetailCard({
         // routes to the blocking obligation. Dropping the duplicate
         // "Open blocking obligation" task — the card IS that
         // affordance, with the blocker's identity attached.
-        return [{ id: 'unblocked', label: t`Mark unblocked`, flavor: 'mutation', primary: true }]
+        return [
+          {
+            id: 'unblocked',
+            label: t`Mark upstream return resolved`,
+            flavor: 'mutation',
+            primary: true,
+          },
+        ]
       case 'review': {
         const reviewTasks: StageTask[] = []
         if (row.prepStage === 'ready_for_prep' || row.prepStage === 'in_prep') {
           reviewTasks.push({
             id: 'prep-done',
-            label: t`Mark preparation complete`,
+            label: t`Mark drafting complete and hand off to reviewer`,
             flavor: 'manual',
           })
         }
         if (row.reviewStage === 'ready_for_review' || row.reviewStage === 'in_review') {
-          reviewTasks.push({ id: 'review-pass', label: t`Reviewer sign-off`, flavor: 'manual' })
+          reviewTasks.push({
+            id: 'review-pass',
+            label: t`Get reviewer sign-off on the return`,
+            flavor: 'manual',
+          })
         }
         if (row.reviewStage === 'notes_open') {
-          reviewTasks.push({ id: 'notes', label: t`Resolve review notes`, flavor: 'manual' })
+          reviewTasks.push({
+            id: 'notes',
+            label: t`Address reviewer's notes on the return`,
+            flavor: 'manual',
+          })
         }
         reviewTasks.push({
           id: 'sign-8879',
           label: t`Get 8879 signed by client`,
           flavor: 'routing',
         })
-        reviewTasks.push({ id: 'file', label: t`Mark filed`, flavor: 'mutation', primary: true })
+        reviewTasks.push({
+          id: 'file',
+          label: t`Mark return submitted to authority`,
+          flavor: 'mutation',
+          primary: true,
+        })
         return reviewTasks
       }
       case 'done': {
@@ -6519,10 +6586,14 @@ function ActiveStageDetailCard({
           switch (row.paymentState) {
             case 'estimate_needed':
               return [
-                { id: 'compute-estimate', label: t`Compute payment estimate`, flavor: 'manual' },
+                {
+                  id: 'compute-estimate',
+                  label: t`Calculate the tax payment estimate`,
+                  flavor: 'manual',
+                },
                 {
                   id: 'send-estimate',
-                  label: t`Send estimate to client for approval`,
+                  label: t`Send the estimate to client for approval`,
                   flavor: 'manual',
                 },
               ]
@@ -6530,12 +6601,12 @@ function ActiveStageDetailCard({
               return [
                 {
                   id: 'follow-up-approval',
-                  label: t`Follow up on client approval`,
+                  label: t`Follow up with client to approve the estimate`,
                   flavor: 'manual',
                 },
                 {
                   id: 'mark-approved',
-                  label: t`Mark client approved when received`,
+                  label: t`Mark client approved the estimate`,
                   flavor: 'manual',
                 },
               ]
@@ -6543,7 +6614,7 @@ function ActiveStageDetailCard({
               return [
                 {
                   id: 'confirm-cleared',
-                  label: t`Confirm payment cleared with the authority`,
+                  label: t`Confirm authority received the payment`,
                   flavor: 'manual',
                 },
               ]
@@ -6551,7 +6622,7 @@ function ActiveStageDetailCard({
               return [
                 {
                   id: 'complete-paid',
-                  label: t`Mark obligation complete`,
+                  label: t`Close out this payment`,
                   flavor: 'mutation',
                   primary: true,
                 },
@@ -6560,12 +6631,12 @@ function ActiveStageDetailCard({
               return [
                 {
                   id: 'schedule',
-                  label: t`Schedule payment with authority`,
+                  label: t`Schedule the payment with the authority`,
                   flavor: 'manual',
                 },
                 {
                   id: 'confirm-cleared',
-                  label: t`Confirm payment cleared offline`,
+                  label: t`Confirm the payment cleared (offline)`,
                   flavor: 'manual',
                 },
               ]
@@ -6577,12 +6648,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'remind-8879',
-                label: t`Remind client to sign 8879`,
+                label: t`Remind client to sign the 8879`,
                 flavor: 'manual',
               },
               {
                 id: 'mark-signed',
-                label: t`Mark 8879 signed when received`,
+                label: t`Mark 8879 signed when client returns it`,
                 flavor: 'manual',
               },
               // Even pre-submission rows benefit from a direct route
@@ -6590,9 +6661,9 @@ function ActiveStageDetailCard({
               // lives.
               {
                 id: 'request-auth',
-                label: t`Open evidence`,
+                label: t`Open the Evidence tab`,
                 flavor: 'routing',
-                hint: t`Open the Evidence tab for this row`,
+                hint: t`The Evidence tab is where the 8879 packet lives`,
               },
             ]
           case 'authorization_signed':
@@ -6600,12 +6671,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'submit',
-                label: t`Submit return to the tax authority`,
+                label: t`E-file the return with the tax authority`,
                 flavor: 'manual',
               },
               {
                 id: 'request-auth',
-                label: t`Open evidence`,
+                label: t`Open the Evidence tab`,
                 flavor: 'routing',
               },
             ]
@@ -6613,13 +6684,13 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'confirm',
-                label: t`Confirm authority acceptance`,
+                label: t`Confirm the authority accepted the return`,
                 flavor: 'mutation',
                 primary: true,
               },
               {
                 id: 'record-rejection',
-                label: t`Record authority rejection`,
+                label: t`Record the authority rejected the return`,
                 flavor: 'mutation',
               },
             ]
@@ -6627,12 +6698,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'deliver',
-                label: t`Send final package to client`,
+                label: t`Send the final package to the client`,
                 flavor: 'routing',
               },
               {
                 id: 'mark-delivered',
-                label: t`Mark package delivered when sent`,
+                label: t`Mark final package sent when delivered`,
                 flavor: 'manual',
               },
               // Skip past the unbacked `final_package_delivered`
@@ -6640,7 +6711,7 @@ function ActiveStageDetailCard({
               // workflow.
               {
                 id: 'complete',
-                label: t`Mark obligation complete`,
+                label: t`Close out this return`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6649,12 +6720,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'correct',
-                label: t`Correct return for resubmission`,
+                label: t`Correct the return for re-submission`,
                 flavor: 'manual',
               },
               {
                 id: 'resubmit',
-                label: t`Resubmit when corrected`,
+                label: t`Re-submit the corrected return to the authority`,
                 flavor: 'manual',
               },
               // Unwinding to In review is the canonical wired path
@@ -6662,7 +6733,7 @@ function ActiveStageDetailCard({
               // records the rejection and reopens the row.
               {
                 id: 'unwind',
-                label: t`Unwind to In review`,
+                label: t`Reopen the return for drafting`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6671,7 +6742,7 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'confirm-resubmit',
-                label: t`Confirm acceptance of resubmission`,
+                label: t`Confirm the authority accepted the re-submission`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6680,12 +6751,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'deliver-paper',
-                label: t`Send final package to client`,
+                label: t`Send the final package to the client`,
                 flavor: 'routing',
               },
               {
                 id: 'mark-delivered-paper',
-                label: t`Mark package delivered when sent`,
+                label: t`Mark final package sent when delivered`,
                 flavor: 'manual',
               },
               {
@@ -6712,12 +6783,12 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'request-auth',
-                label: t`Request 8879 authorization from client`,
+                label: t`Send 8879 to client for signature`,
                 flavor: 'routing',
               },
               {
                 id: 'confirm-default',
-                label: t`Confirm authority acceptance`,
+                label: t`Confirm the authority accepted the return`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6725,7 +6796,7 @@ function ActiveStageDetailCard({
         }
       }
       case 'completed':
-        return [{ id: 'archive', label: t`Archive workpapers`, flavor: 'manual' }]
+        return [{ id: 'archive', label: t`File the workpapers in the archive`, flavor: 'manual' }]
       default:
         return []
     }
@@ -6740,27 +6811,37 @@ function ActiveStageDetailCard({
   const [expandedPast, setExpandedPast] = useState<TimelineStageKey | null>(null)
   // Label maps for the e-file / payment sub-status pipelines, computed
   // inline so the Lingui macro transforms the t-tags correctly.
+  // Same "actor + object" treatment as the review pipeline above.
+  // "Ready to submit" → ready to submit *what*? The e-file. "Final
+  // package delivered" → delivered *to whom*? The client. Naming the
+  // object (the return, the e-file, the package) keeps the CPA
+  // anchored on what's actually happening at this step.
   const efilePipelineLabels: Record<(typeof EFILE_PIPELINE_KEYS)[number], string> = {
-    authorization_requested: t`8879 authorization requested`,
-    authorization_signed: t`8879 signed`,
-    ready_to_submit: t`Ready to submit`,
-    submitted: t`Submitted, awaiting acceptance`,
-    accepted: t`Accepted by authority`,
-    final_package_delivered: t`Final package delivered`,
+    authorization_requested: t`8879 sent to client for signature`,
+    authorization_signed: t`Client returned signed 8879`,
+    ready_to_submit: t`Ready to e-file the return`,
+    submitted: t`E-filed — awaiting authority acceptance`,
+    accepted: t`Authority accepted the return`,
+    final_package_delivered: t`Final package sent to client`,
   }
   const paymentPipelineLabels: Record<(typeof PAYMENT_PIPELINE_KEYS)[number], string> = {
-    estimate_needed: t`Estimate needed`,
-    client_approval_needed: t`Client approval pending`,
-    scheduled: t`Payment scheduled`,
-    confirmed: t`Payment confirmed`,
+    estimate_needed: t`Calculating tax estimate`,
+    client_approval_needed: t`Awaiting client approval of estimate`,
+    scheduled: t`Payment scheduled with authority`,
+    confirmed: t`Authority confirmed payment cleared`,
   }
+  // Step labels say WHO is doing WHAT to the return, not generic
+  // verbs. Earlier copy ("Preparer in progress", "Prepared — handing
+  // off", "Ready for prep") punted on the object — prep of what,
+  // ready for what? Each label below names both the actor (preparer
+  // / reviewer / etc.) and what's happening to the return.
   const reviewPipelineLabels: Record<ReviewPipelineKey, string> = {
-    ready_for_prep: t`Ready for prep`,
-    in_prep: t`Preparer in progress`,
-    prepared: t`Prepared — handing off`,
-    ready_for_review: t`Ready for review`,
-    in_review: t`In review`,
-    approved: t`Approved — ready to file`,
+    ready_for_prep: t`Ready to draft the return`,
+    in_prep: t`Preparer drafting the return`,
+    prepared: t`Draft complete — sent to reviewer`,
+    ready_for_review: t`Ready for reviewer sign-off`,
+    in_review: t`Reviewer checking the return`,
+    approved: t`Reviewer approved — ready to file`,
   }
   const reviewCurrent = reviewPipelineCurrent(row)
   const notesOpen = row.reviewStage === 'notes_open'

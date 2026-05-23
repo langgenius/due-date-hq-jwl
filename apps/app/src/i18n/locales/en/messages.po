@@ -695,20 +695,8 @@ msgid "404"
 msgstr "404"
 
 #: src/routes/obligations.tsx
-msgid "8879 authorization requested"
-msgstr "8879 authorization requested"
-
-#: src/routes/obligations.tsx
-msgid "8879 sent to client"
-msgstr "8879 sent to client"
-
-#: src/routes/obligations.tsx
-msgid "8879 signed"
-msgstr "8879 signed"
-
-#: src/routes/obligations.tsx
-msgid "8879 signed — ready to submit"
-msgstr "8879 signed — ready to submit"
+msgid "8879 sent to client for signature"
+msgstr "8879 sent to client for signature"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "941 quarterly · 940 annual · W-2 / W-3 year-end"
@@ -786,10 +774,6 @@ msgstr "Accepted AI concrete draft from rule detail review."
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepted as shown from rule detail review."
 msgstr "Accepted as shown from rule detail review."
-
-#: src/routes/obligations.tsx
-msgid "Accepted by authority"
-msgstr "Accepted by authority"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Accepted practice rules for source and deadline review."
@@ -1009,6 +993,10 @@ msgstr "Adding…"
 msgid "Address line 1"
 msgstr "Address line 1"
 
+#: src/routes/obligations.tsx
+msgid "Address reviewer's notes on the return"
+msgstr "Address reviewer's notes on the return"
+
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -1186,6 +1174,10 @@ msgstr "All clients"
 msgid "All deadlines"
 msgstr "All deadlines"
 
+#: src/routes/obligations.tsx
+msgid "All docs in — ready to draft"
+msgstr "All docs in — ready to draft"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "All done"
 msgstr "All done"
@@ -1352,10 +1344,6 @@ msgstr "Apply tax type suggestions"
 msgid "Apply to all"
 msgstr "Apply to all"
 
-#: src/routes/obligations.tsx
-msgid "Approved — ready to file"
-msgstr "Approved — ready to file"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Archive"
 msgstr "Archive"
@@ -1368,10 +1356,6 @@ msgstr "Archive {0}?"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Archive client"
 msgstr "Archive client"
-
-#: src/routes/obligations.tsx
-msgid "Archive workpapers"
-msgstr "Archive workpapers"
 
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/rules.library.tsx
@@ -1395,12 +1379,12 @@ msgid "Ask the practice owner to send a new invitation."
 msgstr "Ask the practice owner to send a new invitation."
 
 #: src/routes/obligations.tsx
-msgid "Assign owner"
-msgstr "Assign owner"
+msgid "Assign a preparer to this return"
+msgstr "Assign a preparer to this return"
 
 #: src/routes/obligations.tsx
-msgid "Assign preparer"
-msgstr "Assign preparer"
+msgid "Assign owner"
+msgstr "Assign owner"
 
 #: src/routes/obligations.tsx
 msgid "Assigned {count} obligations to {label}"
@@ -1551,8 +1535,20 @@ msgid "Authority"
 msgstr "Authority"
 
 #: src/routes/obligations.tsx
+msgid "Authority accepted the return"
+msgstr "Authority accepted the return"
+
+#: src/routes/obligations.tsx
 msgid "Authority citation"
 msgstr "Authority citation"
+
+#: src/routes/obligations.tsx
+msgid "Authority confirmed payment cleared"
+msgstr "Authority confirmed payment cleared"
+
+#: src/routes/obligations.tsx
+msgid "Authority rejected the e-file"
+msgstr "Authority rejected the e-file"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable — using default suggestions"
@@ -1570,6 +1566,10 @@ msgstr "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
 msgstr "Avoid document archives; they are not client account or contact lists."
+
+#: src/routes/obligations.tsx
+msgid "Awaiting client approval of estimate"
+msgstr "Awaiting client approval of estimate"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
@@ -1703,10 +1703,6 @@ msgstr "Blocked by {label} — click to open."
 msgid "Body"
 msgstr "Body"
 
-#: src/routes/obligations.tsx
-msgid "Bookkeeping cleanup"
-msgstr "Bookkeeping cleanup"
-
 #: src/features/migration/WizardShell.tsx
 msgid "Building the import preview"
 msgstr "Building the import preview"
@@ -1751,6 +1747,18 @@ msgstr "CADENCE"
 #: src/routes/practice.tsx
 msgid "Calculate preview"
 msgstr "Calculate preview"
+
+#: src/routes/obligations.tsx
+msgid "Calculate the tax payment estimate"
+msgstr "Calculate the tax payment estimate"
+
+#: src/routes/obligations.tsx
+msgid "Calculating tax estimate"
+msgstr "Calculating tax estimate"
+
+#: src/routes/obligations.tsx
+msgid "Calculating the tax estimate"
+msgstr "Calculating the tax estimate"
 
 #: src/routes/practice.tsx
 msgid "Calculating…"
@@ -1858,8 +1866,8 @@ msgid "Changed from {before} to {after}"
 msgstr "Changed from {before} to {after}"
 
 #: src/routes/obligations.tsx
-msgid "Chase outstanding documents"
-msgstr "Chase outstanding documents"
+msgid "Chase client for outstanding documents"
+msgstr "Chase client for outstanding documents"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
@@ -1966,6 +1974,10 @@ msgstr "City"
 msgid "Cleaned up an imported value."
 msgstr "Cleaned up an imported value."
 
+#: src/routes/obligations.tsx
+msgid "Cleaning up client's books"
+msgstr "Cleaning up client's books"
+
 #: src/components/primitives/iso-date-picker.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
@@ -2039,10 +2051,6 @@ msgstr "CLIENT"
 #: src/features/obligations/obligation-type.ts
 msgid "Client action"
 msgstr "Client action"
-
-#: src/routes/obligations.tsx
-msgid "Client approval pending"
-msgstr "Client approval pending"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Client archived"
@@ -2161,6 +2169,14 @@ msgstr "Client response"
 msgid "Client response due {0}"
 msgstr "Client response due {0}"
 
+#: src/routes/obligations.tsx
+msgid "Client returned signed 8879"
+msgstr "Client returned signed 8879"
+
+#: src/routes/obligations.tsx
+msgid "Client returned signed 8879 — ready to e-file"
+msgstr "Client returned signed 8879 — ready to e-file"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Client since"
 msgstr "Client since"
@@ -2210,6 +2226,14 @@ msgstr "Close"
 msgid "Close obligation detail"
 msgstr "Close obligation detail"
 
+#: src/routes/obligations.tsx
+msgid "Close out this payment"
+msgstr "Close out this payment"
+
+#: src/routes/obligations.tsx
+msgid "Close out this return"
+msgstr "Close out this return"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Close rule detail"
 msgstr "Close rule detail"
@@ -2254,10 +2278,6 @@ msgstr "Coming soon"
 msgid "Command palette"
 msgstr "Command palette"
 
-#: src/routes/obligations.tsx
-msgid "Complete bookkeeping pass"
-msgstr "Complete bookkeeping pass"
-
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Completed"
@@ -2271,10 +2291,6 @@ msgstr "Compliance"
 msgid "Compliance posture"
 msgstr "Compliance posture"
 
-#: src/routes/obligations.tsx
-msgid "Compute payment estimate"
-msgstr "Compute payment estimate"
-
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
@@ -2285,10 +2301,6 @@ msgstr "Confidence"
 msgid "Confirm {0} applies to this relief"
 msgstr "Confirm {0} applies to this relief"
 
-#: src/routes/obligations.tsx
-msgid "Confirm acceptance of resubmission"
-msgstr "Confirm acceptance of resubmission"
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Confirm all review-needed"
 msgstr "Confirm all review-needed"
@@ -2298,28 +2310,32 @@ msgid "Confirm applies"
 msgstr "Confirm applies"
 
 #: src/routes/obligations.tsx
-msgid "Confirm authority acceptance"
-msgstr "Confirm authority acceptance"
+msgid "Confirm authority received the payment"
+msgstr "Confirm authority received the payment"
 
 #: src/routes/billing.checkout.tsx
 msgid "Confirm checkout"
 msgstr "Confirm checkout"
 
 #: src/routes/obligations.tsx
-msgid "Confirm engagement letter on file"
-msgstr "Confirm engagement letter on file"
+msgid "Confirm engagement letter is on file for this client"
+msgstr "Confirm engagement letter is on file for this client"
 
 #: src/routes/obligations.tsx
-msgid "Confirm payment cleared offline"
-msgstr "Confirm payment cleared offline"
+msgid "Confirm ETA with the third party"
+msgstr "Confirm ETA with the third party"
 
 #: src/routes/obligations.tsx
-msgid "Confirm payment cleared with the authority"
-msgstr "Confirm payment cleared with the authority"
+msgid "Confirm the authority accepted the re-submission"
+msgstr "Confirm the authority accepted the re-submission"
 
 #: src/routes/obligations.tsx
-msgid "Confirm third-party ETA"
-msgstr "Confirm third-party ETA"
+msgid "Confirm the authority accepted the return"
+msgstr "Confirm the authority accepted the return"
+
+#: src/routes/obligations.tsx
+msgid "Confirm the payment cleared (offline)"
+msgstr "Confirm the payment cleared (offline)"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Confirmed"
@@ -2410,12 +2426,12 @@ msgid "Copy URL"
 msgstr "Copy URL"
 
 #: src/routes/obligations.tsx
-msgid "Correct return for resubmission"
-msgstr "Correct return for resubmission"
+msgid "Correct the return for re-submission"
+msgstr "Correct the return for re-submission"
 
 #: src/routes/obligations.tsx
-msgid "Corrected & resubmitted"
-msgstr "Corrected & resubmitted"
+msgid "Corrected and re-submitted to authority"
+msgstr "Corrected and re-submitted to authority"
 
 #: src/routes/accept-invite.tsx
 msgid "Couldn't accept invitation"
@@ -3260,10 +3276,6 @@ msgid "Document list generated"
 msgstr "Document list generated"
 
 #: src/routes/obligations.tsx
-msgid "Documents from client"
-msgstr "Documents from client"
-
-#: src/routes/obligations.tsx
 msgid "Documents received"
 msgstr "Documents received"
 
@@ -3290,6 +3302,10 @@ msgstr "Download client PDF"
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
 msgstr "Download latest"
+
+#: src/routes/obligations.tsx
+msgid "Draft complete — sent to reviewer"
+msgstr "Draft complete — sent to reviewer"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Draft import discarded"
@@ -3386,6 +3402,14 @@ msgstr "Duplicate"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicates"
 msgstr "Duplicates"
+
+#: src/routes/obligations.tsx
+msgid "E-file the return with the tax authority"
+msgstr "E-file the return with the tax authority"
+
+#: src/routes/obligations.tsx
+msgid "E-filed — awaiting authority acceptance"
+msgstr "E-filed — awaiting authority acceptance"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -3568,10 +3592,6 @@ msgstr "Entry"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Est. tax"
 msgstr "Est. tax"
-
-#: src/routes/obligations.tsx
-msgid "Estimate needed"
-msgstr "Estimate needed"
 
 #: src/routes/obligations.tsx
 msgid "Estimated tax due"
@@ -3812,10 +3832,6 @@ msgstr "Extended"
 msgid "Extension"
 msgstr "Extension"
 
-#: src/routes/obligations.tsx
-msgid "Extension active"
-msgstr "Extension active"
-
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Extension also covers payment."
@@ -3826,6 +3842,10 @@ msgstr "Extension also covers payment."
 #: src/routes/obligations.tsx
 msgid "Extension decision"
 msgstr "Extension decision"
+
+#: src/routes/obligations.tsx
+msgid "Extension filed — new due date in effect"
+msgstr "Extension filed — new due date in effect"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
@@ -3906,6 +3926,10 @@ msgstr "File kind"
 #: src/features/audit/audit-log-labels.ts
 msgid "File size"
 msgstr "File size"
+
+#: src/routes/obligations.tsx
+msgid "File the workpapers in the archive"
+msgstr "File the workpapers in the archive"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "File type"
@@ -4009,12 +4033,16 @@ msgid "Filtering"
 msgstr "Filtering"
 
 #: src/routes/obligations.tsx
-msgid "Final package delivered"
-msgstr "Final package delivered"
+msgid "Final package sent to client"
+msgstr "Final package sent to client"
 
 #: src/routes/rules.library.tsx
 msgid "Finish"
 msgstr "Finish"
+
+#: src/routes/obligations.tsx
+msgid "Finish cleaning up the client's books"
+msgstr "Finish cleaning up the client's books"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Firm"
@@ -4058,8 +4086,8 @@ msgid "FL tentative tax"
 msgstr "FL tentative tax"
 
 #: src/routes/obligations.tsx
-msgid "Follow up on client approval"
-msgstr "Follow up on client approval"
+msgid "Follow up with client to approve the estimate"
+msgstr "Follow up with client to approve the estimate"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "For deadline history, export Work separately from the Work page cloud icon."
@@ -4212,6 +4240,10 @@ msgstr "Generating…"
 #: src/routes/obligations.tsx
 msgid "Get 8879 signed by client"
 msgstr "Get 8879 signed by client"
+
+#: src/routes/obligations.tsx
+msgid "Get reviewer sign-off on the return"
+msgstr "Get reviewer sign-off on the return"
 
 #: src/routes/not-found.tsx
 msgid "Go back"
@@ -4922,8 +4954,8 @@ msgid "Mapping"
 msgstr "Mapping"
 
 #: src/routes/obligations.tsx
-msgid "Mark 8879 signed when received"
-msgstr "Mark 8879 signed when received"
+msgid "Mark 8879 signed when client returns it"
+msgstr "Mark 8879 signed when client returns it"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -4931,12 +4963,12 @@ msgid "Mark all read"
 msgstr "Mark all read"
 
 #: src/routes/obligations.tsx
-msgid "Mark client approved when received"
-msgstr "Mark client approved when received"
+msgid "Mark client approved the estimate"
+msgstr "Mark client approved the estimate"
 
 #: src/routes/obligations.tsx
-msgid "Mark docs received"
-msgstr "Mark docs received"
+msgid "Mark client docs received"
+msgstr "Mark client docs received"
 
 #: src/routes/obligations.tsx
 msgid "Mark document missing"
@@ -4947,24 +4979,20 @@ msgid "Mark document received"
 msgstr "Mark document received"
 
 #: src/routes/obligations.tsx
+msgid "Mark drafting complete and hand off to reviewer"
+msgstr "Mark drafting complete and hand off to reviewer"
+
+#: src/routes/obligations.tsx
 msgid "Mark extended"
 msgstr "Mark extended"
 
 #: src/routes/obligations.tsx
-msgid "Mark filed"
-msgstr "Mark filed"
+msgid "Mark final package sent when delivered"
+msgstr "Mark final package sent when delivered"
 
 #: src/routes/obligations.tsx
 msgid "Mark obligation complete"
 msgstr "Mark obligation complete"
-
-#: src/routes/obligations.tsx
-msgid "Mark package delivered when sent"
-msgstr "Mark package delivered when sent"
-
-#: src/routes/obligations.tsx
-msgid "Mark preparation complete"
-msgstr "Mark preparation complete"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark read"
@@ -4973,6 +5001,10 @@ msgstr "Mark read"
 #: src/routes/obligations.tsx
 msgid "Mark received"
 msgstr "Mark received"
+
+#: src/routes/obligations.tsx
+msgid "Mark return submitted to authority"
+msgstr "Mark return submitted to authority"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Mark reviewed"
@@ -4983,8 +5015,8 @@ msgid "Mark selected extended"
 msgstr "Mark selected extended"
 
 #: src/routes/obligations.tsx
-msgid "Mark unblocked"
-msgstr "Mark unblocked"
+msgid "Mark upstream return resolved"
+msgstr "Mark upstream return resolved"
 
 #: src/routes/obligations.tsx
 msgid "Marked accepted"
@@ -6167,10 +6199,6 @@ msgstr "Open Contacts and select the cloud export icon; Admin access may be requ
 msgid "Open Deadlines."
 msgstr "Open Deadlines."
 
-#: src/routes/obligations.tsx
-msgid "Open evidence"
-msgstr "Open evidence"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Open first created obligation"
 msgstr "Open first created obligation"
@@ -6249,8 +6277,8 @@ msgid "Open the deadline drawer to save your notes; the create endpoint doesn't 
 msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 
 #: src/routes/obligations.tsx
-msgid "Open the Evidence tab for this row"
-msgstr "Open the Evidence tab for this row"
+msgid "Open the Evidence tab"
+msgstr "Open the Evidence tab"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
@@ -6294,8 +6322,8 @@ msgid "Opens the existing duplicate obligation or the newly created obligation a
 msgstr "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
 
 #: src/routes/obligations.tsx
-msgid "Opens the Readiness tab"
-msgstr "Opens the Readiness tab"
+msgid "Opens the Readiness tab to send and track the request"
+msgstr "Opens the Readiness tab to send and track the request"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -6498,8 +6526,8 @@ msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "Paid subscriptions bill the practice, not an individual user."
 
 #: src/routes/obligations.tsx
-msgid "Paper filed"
-msgstr "Paper filed"
+msgid "Paper-filed with authority"
+msgstr "Paper-filed with authority"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Parsed scope"
@@ -6576,10 +6604,6 @@ msgstr "Payment confirmation can take a few seconds."
 msgid "Payment confirmation received"
 msgstr "Payment confirmation received"
 
-#: src/routes/obligations.tsx
-msgid "Payment confirmed"
-msgstr "Payment confirmed"
-
 #: src/routes/billing.checkout.tsx
 msgid "Payment details stay with the processor"
 msgstr "Payment details stay with the processor"
@@ -6589,8 +6613,8 @@ msgid "Payment model"
 msgstr "Payment model"
 
 #: src/routes/obligations.tsx
-msgid "Payment scheduled"
-msgstr "Payment scheduled"
+msgid "Payment scheduled with authority"
+msgstr "Payment scheduled with authority"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Payment still due by original deadline"
@@ -6957,10 +6981,6 @@ msgstr "Preferences"
 msgid "Prepare client draft"
 msgstr "Prepare client draft"
 
-#: src/routes/obligations.tsx
-msgid "Prepared — handing off"
-msgstr "Prepared — handing off"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Prepared a readiness checklist."
 msgstr "Prepared a readiness checklist."
@@ -6974,8 +6994,8 @@ msgid "Preparer"
 msgstr "Preparer"
 
 #: src/routes/obligations.tsx
-msgid "Preparer in progress"
-msgstr "Preparer in progress"
+msgid "Preparer drafting the return"
+msgstr "Preparer drafting the return"
 
 #: src/routes/obligations.tsx
 msgid "Preparing"
@@ -7305,6 +7325,10 @@ msgstr "Re-run AI with my overrides"
 msgid "Re-run failed."
 msgstr "Re-run failed."
 
+#: src/routes/obligations.tsx
+msgid "Re-submit the corrected return to the authority"
+msgstr "Re-submit the corrected return to the authority"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Reactivate / Re-apply"
 msgstr "Reactivate / Re-apply"
@@ -7380,18 +7404,26 @@ msgid "Ready answers"
 msgstr "Ready answers"
 
 #: src/routes/obligations.tsx
-msgid "Ready for prep"
-msgstr "Ready for prep"
-
-#: src/routes/obligations.tsx
-msgid "Ready for review"
-msgstr "Ready for review"
+msgid "Ready for reviewer sign-off"
+msgstr "Ready for reviewer sign-off"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Ready for rules"
 msgstr "Ready for rules"
+
+#: src/routes/obligations.tsx
+msgid "Ready to draft the return"
+msgstr "Ready to draft the return"
+
+#: src/routes/obligations.tsx
+msgid "Ready to e-file the return"
+msgstr "Ready to e-file the return"
+
+#: src/routes/obligations.tsx
+msgid "Ready to e-file with authority"
+msgstr "Ready to e-file with authority"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Ready to generate your deadline list"
@@ -7404,10 +7436,6 @@ msgstr "Ready to import"
 #: src/routes/obligations.tsx
 msgid "Ready to prep"
 msgstr "Ready to prep"
-
-#: src/routes/obligations.tsx
-msgid "Ready to submit"
-msgstr "Ready to submit"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
@@ -7453,8 +7481,8 @@ msgid "Record audit trail"
 msgstr "Record audit trail"
 
 #: src/routes/obligations.tsx
-msgid "Record authority rejection"
-msgstr "Record authority rejection"
+msgid "Record the authority rejected the return"
+msgstr "Record the authority rejected the return"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Recorded"
@@ -7538,10 +7566,6 @@ msgstr "Reject"
 msgid "Rejected"
 msgstr "Rejected"
 
-#: src/routes/obligations.tsx
-msgid "Rejected by authority"
-msgstr "Rejected by authority"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Rejected from rule detail review."
 msgstr "Rejected from rule detail review."
@@ -7551,8 +7575,8 @@ msgid "Relief notice"
 msgstr "Relief notice"
 
 #: src/routes/obligations.tsx
-msgid "Remind client to sign 8879"
-msgstr "Remind client to sign 8879"
+msgid "Remind client to sign the 8879"
+msgstr "Remind client to sign the 8879"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder"
@@ -7611,6 +7635,10 @@ msgstr "Removes"
 msgid "Removing this member will commit these changes"
 msgstr "Removing this member will commit these changes"
 
+#: src/routes/obligations.tsx
+msgid "Reopen the return for drafting"
+msgstr "Reopen the return for drafting"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Replaces the old K-1 dropdown — capture partner info or any free-form context here."
 msgstr "Replaces the old K-1 dropdown — capture partner info or any free-form context here."
@@ -7618,10 +7646,6 @@ msgstr "Replaces the old K-1 dropdown — capture partner info or any free-form 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
 msgstr "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
-
-#: src/routes/obligations.tsx
-msgid "Request 8879 authorization from client"
-msgstr "Request 8879 authorization from client"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Request export"
@@ -7678,25 +7702,17 @@ msgstr "Reset filters to return to the latest practice-wide events."
 msgid "Reset to default"
 msgstr "Reset to default"
 
-#: src/routes/obligations.tsx
-msgid "Resolve review notes"
-msgstr "Resolve review notes"
-
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
 msgstr "Restart checkout"
-
-#: src/routes/obligations.tsx
-msgid "Resubmit when corrected"
-msgstr "Resubmit when corrected"
 
 #: src/routes/obligations.tsx
 msgid "Resulting readiness"
 msgstr "Resulting readiness"
 
 #: src/routes/obligations.tsx
-msgid "Resume preparation"
-msgstr "Resume preparation"
+msgid "Resume drafting the return"
+msgstr "Resume drafting the return"
 
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Retention check-ins"
@@ -7926,8 +7942,16 @@ msgid "Reviewed source authority and practice applicability."
 msgstr "Reviewed source authority and practice applicability."
 
 #: src/routes/obligations.tsx
-msgid "Reviewer sign-off"
-msgstr "Reviewer sign-off"
+msgid "Reviewer approved — ready to file"
+msgstr "Reviewer approved — ready to file"
+
+#: src/routes/obligations.tsx
+msgid "Reviewer checking the return"
+msgstr "Reviewer checking the return"
+
+#: src/routes/obligations.tsx
+msgid "Reviewer left notes to address"
+msgstr "Reviewer left notes to address"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Reviewing"
@@ -8315,8 +8339,8 @@ msgid "Scan the QR code"
 msgstr "Scan the QR code"
 
 #: src/routes/obligations.tsx
-msgid "Schedule payment with authority"
-msgstr "Schedule payment with authority"
+msgid "Schedule the payment with the authority"
+msgstr "Schedule the payment with the authority"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/components/PulseAlertCard.tsx
@@ -8522,6 +8546,10 @@ msgstr "SELECTED RULES"
 msgid "Selected states activate with federal rules after this practice is created."
 msgstr "Selected states activate with federal rules after this practice is created."
 
+#: src/routes/obligations.tsx
+msgid "Send 8879 to client for signature"
+msgstr "Send 8879 to client for signature"
+
 #: src/features/members/members-page.tsx
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "Send a 7-day magic link to add a member to this practice."
@@ -8531,12 +8559,8 @@ msgid "Send a morning digest"
 msgstr "Send a morning digest"
 
 #: src/routes/obligations.tsx
-msgid "Send estimate to client for approval"
-msgstr "Send estimate to client for approval"
-
-#: src/routes/obligations.tsx
-msgid "Send final package to client"
-msgstr "Send final package to client"
+msgid "Send document request to client"
+msgstr "Send document request to client"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send hour"
@@ -8550,13 +8574,17 @@ msgstr "Send invite"
 msgid "Send preview now"
 msgstr "Send preview now"
 
-#: src/routes/obligations.tsx
-msgid "Send readiness request"
-msgstr "Send readiness request"
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Send request"
 msgstr "Send request"
+
+#: src/routes/obligations.tsx
+msgid "Send the estimate to client for approval"
+msgstr "Send the estimate to client for approval"
+
+#: src/routes/obligations.tsx
+msgid "Send the final package to the client"
+msgstr "Send the final package to the client"
 
 #: src/routes/obligations.tsx
 msgid "Send to client"
@@ -8994,8 +9022,8 @@ msgid "Stale"
 msgstr "Stale"
 
 #: src/routes/obligations.tsx
-msgid "Start preparation"
-msgstr "Start preparation"
+msgid "Start drafting the return"
+msgstr "Start drafting the return"
 
 #: src/routes/rules.library.tsx
 msgid "Start review ({reviewCount})"
@@ -9098,16 +9126,8 @@ msgid "Submit readiness response"
 msgstr "Submit readiness response"
 
 #: src/routes/obligations.tsx
-msgid "Submit return to the tax authority"
-msgstr "Submit return to the tax authority"
-
-#: src/routes/obligations.tsx
 msgid "Submitted"
 msgstr "Submitted"
-
-#: src/routes/obligations.tsx
-msgid "Submitted, awaiting acceptance"
-msgstr "Submitted, awaiting acceptance"
 
 #: src/routes/obligations.tsx
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
@@ -9420,6 +9440,10 @@ msgstr "The code expires in 5 minutes."
 msgid "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 msgstr "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 
+#: src/routes/obligations.tsx
+msgid "The Evidence tab is where the 8879 packet lives"
+msgstr "The Evidence tab is where the 8879 packet lives"
+
 #: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open obligations for the chosen window — work these first."
 msgstr "The highest-risk open obligations for the chosen window — work these first."
@@ -9539,10 +9563,6 @@ msgstr "These flags drive what obligations get generated for this client. Active
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "They are only shown during setup. Store them somewhere private before verification."
 msgstr "They are only shown during setup. Store them somewhere private before verification."
-
-#: src/routes/obligations.tsx
-msgid "Third-party docs"
-msgstr "Third-party docs"
 
 #: src/lib/i18n-error.ts
 msgid "This action conflicts with the current state. Refresh and try again."
@@ -9878,10 +9898,6 @@ msgstr "Unknown browser"
 msgid "Unknown reviewer"
 msgstr "Unknown reviewer"
 
-#: src/routes/obligations.tsx
-msgid "Unwind to In review"
-msgstr "Unwind to In review"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -9937,10 +9953,6 @@ msgstr "Upload the exported client file, task-view spreadsheet, or both."
 #: src/features/migration/Step1Intake.tsx
 msgid "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
 msgstr "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
-
-#: src/routes/obligations.tsx
-msgid "Upstream obligation"
-msgstr "Upstream obligation"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/practice.tsx
@@ -10129,6 +10141,18 @@ msgstr "waiting on client"
 #: src/features/obligations/status-control.tsx
 msgid "Waiting on client"
 msgstr "Waiting on client"
+
+#: src/routes/obligations.tsx
+msgid "Waiting on client to send docs"
+msgstr "Waiting on client to send docs"
+
+#: src/routes/obligations.tsx
+msgid "Waiting on third party for K-1 / 1099"
+msgstr "Waiting on third party for K-1 / 1099"
+
+#: src/routes/obligations.tsx
+msgid "Waiting on upstream return to file"
+msgstr "Waiting on upstream return to file"
 
 #: src/routes/rules.library.tsx
 msgid "watched"
