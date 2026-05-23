@@ -61,6 +61,11 @@ msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 msgid "{0, plural, one {# gap} other {# gap}}"
 msgstr "{0, plural, one {# gap} other {# gap}}"
 
+#. placeholder {0}: materialsSelection.itemIds.size
+#: src/routes/obligations.tsx
+msgid "{0, plural, one {# item selected} other {# items selected}}"
+msgstr "{0, plural, one {# item selected} other {# items selected}}"
+
 #. placeholder {0}: checklist.length
 #. placeholder {0}: detail.evidence.length
 #: src/routes/obligations.tsx
@@ -1901,6 +1906,14 @@ msgstr "Changed from {0} to {1}"
 msgid "Changed from {before} to {after}"
 msgstr "Changed from {before} to {after}"
 
+#: src/routes/obligations.tsx
+msgid "Check Materials"
+msgstr "Check Materials"
+
+#: src/routes/obligations.tsx
+msgid "Check Materials to review {outstandingDocsCount} outstanding items"
+msgstr "Check Materials to review {outstandingDocsCount} outstanding items"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
 msgstr "Check the fields and try again."
@@ -3183,6 +3196,15 @@ msgstr "Deposit"
 #: src/routes/rules.library.tsx
 msgid "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 msgstr "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
+
+#: src/routes/obligations.tsx
+msgid "Deselect"
+msgstr "Deselect"
+
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "Deselect document {0}"
+msgstr "Deselect document {0}"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "Detail"
@@ -4554,6 +4576,10 @@ msgstr "Instructions"
 msgid "Intake"
 msgstr "Intake"
 
+#: src/routes/obligations.tsx
+msgid "Internal"
+msgstr "Internal"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -4579,10 +4605,6 @@ msgstr "Internal deadline offset must be between 0 and 365 days."
 #: src/routes/obligations.tsx
 msgid "Internal document note"
 msgstr "Internal document note"
-
-#: src/routes/obligations.tsx
-msgid "Internal due"
-msgstr "Internal due"
 
 #: src/routes/obligations.tsx
 msgid "Internal Due"
@@ -4701,6 +4723,10 @@ msgstr "Keeps deadline follow-up accountable."
 #: src/routes/obligations.tsx
 msgid "Key dates"
 msgstr "Key dates"
+
+#: src/routes/obligations.tsx
+msgid "Key deadlines"
+msgstr "Key deadlines"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Keyboard shortcuts"
@@ -5008,10 +5034,6 @@ msgid "Mark client approved the estimate"
 msgstr "Mark client approved the estimate"
 
 #: src/routes/obligations.tsx
-msgid "Mark document missing"
-msgstr "Mark document missing"
-
-#: src/routes/obligations.tsx
 msgid "Mark document received"
 msgstr "Mark document received"
 
@@ -5058,6 +5080,14 @@ msgstr "Mark selected extended"
 #: src/routes/obligations.tsx
 msgid "Mark upstream return resolved"
 msgstr "Mark upstream return resolved"
+
+#: src/routes/obligations.tsx
+msgid "Marked {firedCount} items received"
+msgstr "Marked {firedCount} items received"
+
+#: src/routes/obligations.tsx
+msgid "Marked 1 item received"
+msgstr "Marked 1 item received"
 
 #: src/routes/obligations.tsx
 msgid "Marked accepted"
@@ -5248,6 +5278,10 @@ msgstr "Min days"
 #: src/routes/obligations.tsx
 msgid "Minimum days until due"
 msgstr "Minimum days until due"
+
+#: src/routes/obligations.tsx
+msgid "Missed"
+msgstr "Missed"
 
 #: src/routes/rules.library.tsx
 msgid "missing"
@@ -6321,14 +6355,6 @@ msgstr "Open HomeBase View and make sure you are not inside a client return."
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Open in queue"
 msgstr "Open in queue"
-
-#: src/routes/obligations.tsx
-msgid "Open Materials"
-msgstr "Open Materials"
-
-#: src/routes/obligations.tsx
-msgid "Open Materials to review {outstandingDocsCount} outstanding items"
-msgstr "Open Materials to review {outstandingDocsCount} outstanding items"
 
 #: src/features/members/members-page.tsx
 msgid "Open member actions"
@@ -8582,6 +8608,11 @@ msgstr "Select clients and apply again."
 #: src/components/primitives/iso-date-picker.tsx
 msgid "Select date"
 msgstr "Select date"
+
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "Select document {0} for batch action"
+msgstr "Select document {0} for batch action"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Select eligible obligations before applying."

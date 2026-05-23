@@ -3160,6 +3160,16 @@ export function ObligationQueueDetailDrawer({
   // mutation lifecycle without triggering a re-render.
   const prepStagePreviousRef = useRef<ObligationPrepStage | null>(null)
   const reviewStagePreviousRef = useRef<ObligationReviewStage | null>(null)
+  // Materials tab multi-select model (2026-05-23). Keyed by the
+  // checklist item id so the floating action bar can batch a
+  // "Mark received" mutation across every selected row. Carries the
+  // owning obligationId so the selection clears automatically when
+  // the user switches rows — selection is local to the open drawer,
+  // not a global UI state.
+  const [materialsSelection, setMaterialsSelection] = useState<{
+    obligationId: string
+    itemIds: ReadonlySet<string>
+  }>({ obligationId: '', itemIds: new Set<string>() })
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -3302,6 +3312,32 @@ export function ObligationQueueDetailDrawer({
       taxYearType: row.taxYearType,
       fiscalYearEndDate: fiscalYearEndDraftValue(row.fiscalYearEndMonth, row.fiscalYearEndDay),
     })
+  }
+  // Switching rows clears the Materials multi-selection. The
+  // selection is local to the drawer of a single obligation — when
+  // the user navigates to a different row, the old selection is
+  // meaningless. Same pattern as the extensionDraft / taxYearDraft
+  // syncs above.
+  if (row && materialsSelection.obligationId !== row.id) {
+    setMaterialsSelection({ obligationId: row.id, itemIds: new Set<string>() })
+  }
+  // Items that exist in the selection but no longer in the checklist
+  // (deleted, regenerated) shouldn't keep accumulating. Quietly prune.
+  const checklistItemIds = useMemo(
+    () => new Set(detail?.readinessChecklist.map((item) => item.id) ?? []),
+    [detail?.readinessChecklist],
+  )
+  if (row && materialsSelection.obligationId === row.id) {
+    let prunedItemIds: Set<string> | null = null
+    for (const id of materialsSelection.itemIds) {
+      if (!checklistItemIds.has(id)) {
+        if (!prunedItemIds) prunedItemIds = new Set(materialsSelection.itemIds)
+        prunedItemIds.delete(id)
+      }
+    }
+    if (prunedItemIds) {
+      setMaterialsSelection({ obligationId: row.id, itemIds: prunedItemIds })
+    }
   }
 
   function invalidateDetail() {
@@ -3653,6 +3689,42 @@ export function ObligationQueueDetailDrawer({
     updateChecklistItemMutation.mutate({ itemId, ...patch })
   }
 
+  // Materials multi-select handlers (2026-05-23). Toggling a row's
+  // selection updates the local Set; the floating action bar mounts
+  // when itemIds.size > 0. The batch "Mark received" calls the
+  // existing per-item update RPC for each selected id in parallel —
+  // no new backend procedure needed. Items already received are
+  // skipped to avoid emitting no-op audit events.
+  function toggleMaterialsSelection(itemId: string) {
+    if (!row) return
+    setMaterialsSelection((current) => {
+      const next = new Set(current.itemIds)
+      if (next.has(itemId)) next.delete(itemId)
+      else next.add(itemId)
+      return { obligationId: row.id, itemIds: next }
+    })
+  }
+  function clearMaterialsSelection() {
+    if (!row) return
+    setMaterialsSelection({ obligationId: row.id, itemIds: new Set<string>() })
+  }
+  function batchMarkReceived(itemIds: ReadonlySet<string>) {
+    if (!row) return
+    let firedCount = 0
+    for (const itemId of itemIds) {
+      const item = detail?.readinessChecklist.find((entry) => entry.id === itemId)
+      if (!item || item.status === 'received') continue
+      updateChecklistItemMutation.mutate({ itemId, status: 'received' })
+      firedCount += 1
+    }
+    clearMaterialsSelection()
+    if (firedCount > 0) {
+      toast.success(
+        firedCount === 1 ? t`Marked 1 item received` : t`Marked ${firedCount} items received`,
+      )
+    }
+  }
+
   function addChecklistItem() {
     if (!row) return
     addChecklistItemMutation.mutate({
@@ -3709,21 +3781,27 @@ export function ObligationQueueDetailDrawer({
 
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
-  // without duplicating header chrome.
+  // without duplicating header chrome. Title uses the form code now
+  // (e.g. "Form 1040") with the client name as a kicker label above
+  // — see header comment below for the rationale.
   const titleText = row?.clientName ?? null
   const body = (
     <>
-      {/* Header — distilled 2026-05-21. Old shape stacked client name
-          + 7 metadata chips + 2 deadline rows + "Open client detail"
-          link + maybe a 2-button CTA cluster. At 440px panel width
-          everything wrapped into 5+ lines of chrome. New shape:
-            line 1: client name (h2) + close X
-            line 2: Form code · TY year · jurisdiction code (one row)
-            line 3: status pill (matches queue's colored pill) + Open client
-            line 4: action CTAs (Mark accepted / Reject) only when status==done/paid
-          Internal/statutory deadlines moved entirely to the Dates
-          panel below — they were duplicated. */}
-      <header className="relative flex flex-col gap-2 border-b border-divider-subtle px-5 py-4">
+      {/* Header — flipped 2026-05-23. The drawer is a per-obligation
+          surface, so the obligation identity (Form 1040, Form 1120-S)
+          deserves the primary slot, not the client. Earlier shape
+          made client name the h2 and pushed the form code into a
+          tertiary line under it; CPAs scanning a drawer just opened
+          from "what is THIS row?" had to read three lines to know
+          which deadline they were looking at.
+
+          New shape:
+            line 1: client name (clickable kicker) + close X
+            line 2: Form code (h2) + status pill, on one row
+            line 3: TY year · jurisdiction (compact secondary meta)
+          Internal/statutory deadlines moved into a dedicated 3-col
+          strip below the header (was: duplicated in dates panel). */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-5 py-4">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner. */}
@@ -3737,77 +3815,56 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* 2026-05-21: the whole h2 + arrow is a single click target.
-            Hovering the client name highlights the arrow blue (group
-            hover) — the entire title reads as "open the client" not
-            just the tiny ↗ icon. Title attribute carries the verb. */}
+        {/* Client kicker — small label above the form code so the user
+            knows whose return this is without burying the form
+            identity. The whole row (name + arrow) is one click target
+            that opens the client drawer in place. Title attribute
+            carries the verb. */}
         {row?.clientId && row.clientName ? (
           <button
             type="button"
             aria-label={t`Open ${row.clientName}`}
             title={t`Open ${row.clientName}`}
             onClick={() => openClientDrawer(row.clientId)}
-            className="group/clientlink inline-flex w-fit items-baseline gap-1.5 rounded-sm pr-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-xs text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
-            <h2 className="text-lg font-semibold leading-tight text-text-primary transition-colors group-hover/clientlink:text-text-accent">
-              {titleText}
-            </h2>
+            <span className="font-medium">{titleText}</span>
             <ArrowUpRightIcon
               aria-hidden
-              className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+              className="size-3 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
             />
           </button>
         ) : row?.clientId ? (
-          <div className="flex items-baseline gap-1.5 pr-8">
-            <h2 className="text-lg font-semibold leading-tight text-text-primary">
-              {titleText ?? <Trans>Obligation detail</Trans>}
-            </h2>
+          <div className="flex items-center gap-1 pr-8 text-xs text-text-tertiary">
+            <span className="font-medium">{titleText ?? <Trans>Obligation detail</Trans>}</span>
             <span
               aria-label={t`Client record missing`}
               title={t`Client record missing — obligation may be orphaned`}
               className="inline-flex items-center text-text-warning"
             >
-              <AlertTriangleIcon className="size-3.5" aria-hidden />
+              <AlertTriangleIcon className="size-3" aria-hidden />
             </span>
           </div>
-        ) : (
-          <div className="flex items-baseline gap-1.5 pr-8">
-            <h2 className="text-lg font-semibold leading-tight text-text-primary">
-              {titleText ?? <Trans>Obligation detail</Trans>}
-            </h2>
-          </div>
-        )}
-        {row ? (
-          <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-text-tertiary">
-            <span className="font-medium text-text-secondary">
-              <TaxCodeLabel code={row.taxType} />
-            </span>
-            {row.taxYear ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="tabular-nums">
-                  <Trans>TY {row.taxYear}</Trans>
-                </span>
-              </>
-            ) : null}
-            {row.jurisdiction ? (
-              <>
-                <span aria-hidden>·</span>
-                <span className="tabular-nums">{row.jurisdiction}</span>
-              </>
-            ) : null}
-          </p>
         ) : null}
         {row ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {/* Status pill — now INTERACTIVE in the drawer (was a
-                static span pre-2026-05-21). Re-uses the same control
-                that drives the queue row's status pill, so the
-                drawer + queue share one mutation path, one legal-
-                transition policy, and one keyboard a11y surface.
-                Clicking opens a dropdown of all reachable statuses;
-                illegal transitions render as disabled with a
-                tooltip explaining why. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pr-8">
+            {/* Form code as primary h2. TaxCodeLabel renders the
+                human label ("Form 1040", "Form 1120-S") — the same
+                vocabulary the rest of the app uses, so the drawer
+                heading matches the obligation row label the user
+                clicked on. */}
+            <h2 className="text-lg font-semibold leading-tight text-text-primary">
+              <TaxCodeLabel code={row.taxType} />
+            </h2>
+            {/* Status pill — interactive in the drawer. Re-uses the
+                same control that drives the queue row's status pill,
+                so the drawer + queue share one mutation path, one
+                legal-transition policy, and one keyboard a11y
+                surface. Clicking opens a dropdown of all reachable
+                statuses; illegal transitions render as disabled with
+                a tooltip explaining why. Sits inline with the h2 so
+                the obligation identity + workflow state read as a
+                single header unit. */}
             <ObligationQueueStatusControl
               row={row}
               labels={statusLabels}
@@ -3816,6 +3873,17 @@ export function ObligationQueueDetailDrawer({
               onChange={(id, status) => changeStatus(id, status, row.status)}
             />
           </div>
+        ) : null}
+        {row && (row.taxYear || row.jurisdiction) ? (
+          <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-text-tertiary">
+            {row.taxYear ? (
+              <span className="tabular-nums">
+                <Trans>TY {row.taxYear}</Trans>
+              </span>
+            ) : null}
+            {row.taxYear && row.jurisdiction ? <span aria-hidden>·</span> : null}
+            {row.jurisdiction ? <span className="tabular-nums">{row.jurisdiction}</span> : null}
+          </p>
         ) : null}
         {/* 2026-05-23: dropped the canonical-forward-action row
             (`ObligationDrawerStatusActions`) per critique. The
@@ -3874,6 +3942,18 @@ export function ObligationQueueDetailDrawer({
                   : 'mb-4',
               )}
             >
+              {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
+                  CPA actually checks first — Internal, Filing, Payment
+                  — promoted out of the bottom dates panel into a
+                  3-column strip at the top of the snapshot. Each
+                  column carries a one-word label + the date + a small
+                  state tag ("MISSED" if past, blank otherwise).
+                  Reading order: identity (header) → key dates (this
+                  strip) → milestone overview → stage card → tabs. The
+                  remaining secondary dates (Statutory, Tax period,
+                  Created, Last touched, e-file timestamps) still live
+                  in the bottom FlatDateList under "Reference dates". */}
+              <PrimaryDeadlineStrip row={row} />
               {/* PathToFilingSummary now renders for ALL rows. Terminal
                   rows benefit from seeing the dated history of each
                   milestone (when did we hit Collecting, Preparing,
@@ -3941,11 +4021,16 @@ export function ObligationQueueDetailDrawer({
                 dates above. Tradeoff: tabs scroll away with the body
                 rather than staying pinned. In practice the CPA
                 rarely switches tabs mid-scroll on the same
-                obligation, so the visual clarity wins. A subtle
-                border-t separates the tab row from the snapshot
-                above. */}
-            <div className="border-t border-divider-regular pt-3">
-              <TabsList className="flex w-full flex-wrap justify-start">
+                obligation, so the visual clarity wins.
+
+                2026-05-23: dropped the `border-t` separator above. The
+                pill segmented control is visually self-contained
+                (rounded bg track + raised active item) — adding a top
+                rule above it made the tabs feel like the bottom of
+                the snapshot block above instead of the top of the tab
+                content below. */}
+            <div className="pt-1">
+              <TabsList className="flex">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
                     <Trans>Materials</Trans>
@@ -4131,12 +4216,15 @@ export function ObligationQueueDetailDrawer({
                       {checklist.map((item) => {
                         const response =
                           latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
+                        const isSelected = materialsSelection.itemIds.has(item.id)
                         return (
                           <ChecklistItemRow
                             key={`${item.id}:${item.updatedAt}`}
                             item={item}
                             response={response}
                             pending={updateChecklistItemMutation.isPending}
+                            selected={isSelected}
+                            onToggleSelect={() => toggleMaterialsSelection(item.id)}
                             onStatusChange={(status) =>
                               updateDocumentChecklistItem(item.id, { status })
                             }
@@ -4559,6 +4647,44 @@ export function ObligationQueueDetailDrawer({
           </div>
         ) : null}
       </div>
+      {/* Floating multi-select action bar (2026-05-23). Mounts only
+          when the Materials tab is active and the user has selected
+          at least one document item via the row-leading checkbox.
+          Sits between the scrolling body and the persistent footer
+          so it floats over the dates panel without covering the
+          provenance line + Copy-link / Close cluster. Primary action
+          is "Mark received" (most common batch op); Deselect clears
+          the selection back to zero. Receivd items are skipped
+          server-side via batchMarkReceived's filter. */}
+      {row && activeTab === 'readiness' && materialsSelection.itemIds.size > 0 ? (
+        <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle bg-background-section px-5 py-2.5">
+          <span className="text-xs font-medium text-text-primary">
+            <Plural
+              value={materialsSelection.itemIds.size}
+              one="# item selected"
+              other="# items selected"
+            />
+          </span>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={clearMaterialsSelection}
+              disabled={updateChecklistItemMutation.isPending}
+            >
+              <Trans>Deselect</Trans>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => batchMarkReceived(materialsSelection.itemIds)}
+              disabled={updateChecklistItemMutation.isPending}
+            >
+              <CheckCircle2Icon data-icon="inline-start" />
+              <Trans>Mark received</Trans>
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {row ? (
         <div className="sticky bottom-0 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-default px-5 py-3">
           <span className="text-xs text-text-tertiary">
@@ -5538,6 +5664,8 @@ function ChecklistItemRow({
   item,
   response,
   pending,
+  selected,
+  onToggleSelect,
   onStatusChange,
   onLabelCommit,
   onDescriptionCommit,
@@ -5547,6 +5675,15 @@ function ChecklistItemRow({
   item: ReadinessDocumentChecklistItemPublic
   response: ClientReadinessResponsePublic | null
   pending: boolean
+  // Multi-select model (2026-05-23). The leading Checkbox now tracks
+  // selection (for the floating "Mark received" batch action), NOT
+  // the item's received-state. To toggle a single row's received-
+  // state the CPA uses the explicit right-side "Mark received" button
+  // (or the expanded panel's badge toggle). Decoupling the leading
+  // checkbox from the row status lets batch + per-row coexist
+  // cleanly without overloading one affordance.
+  selected: boolean
+  onToggleSelect: () => void
   onStatusChange: (status: ReadinessDocumentChecklistItemPublic['status']) => void
   onLabelCommit: (label: string) => void
   onDescriptionCommit: (description: string) => void
@@ -5574,18 +5711,26 @@ function ChecklistItemRow({
       })()
     : null
   return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
+    <div
+      className={cn(
+        'rounded-md border bg-background-default transition-colors',
+        selected ? 'border-accent-default ring-1 ring-accent-default/30' : 'border-divider-subtle',
+      )}
+    >
       {/* Inner row padding tightened from py-2 → py-1.5 per critique
           ("waste of space on top and bottom"). The chevron Button +
           Input height already define the row's vertical metric;
           extra py wasn't doing structural work. */}
       <div className="flex items-center gap-2 px-3 py-1.5">
         <Checkbox
-          aria-label={received ? t`Mark document missing` : t`Mark document received`}
-          checked={received}
-          indeterminate={needsReview}
+          aria-label={
+            selected
+              ? t`Deselect document ${item.label}`
+              : t`Select document ${item.label} for batch action`
+          }
+          checked={selected}
           disabled={pending}
-          onCheckedChange={(checked) => onStatusChange(checked ? 'received' : 'missing')}
+          onCheckedChange={onToggleSelect}
         />
         <Input
           aria-label={t`Document item label`}
@@ -5734,33 +5879,100 @@ function formatTaxPeriod(start: string | null | undefined, end: string | null | 
   return `${formatDate(startIso)} – ${formatDate(endIso)}`
 }
 
-// FlatDateList — every date on the row, always visible. Reverted
-// from the status-aware variant (Direction F) because hiding dates
-// per stage made the CPA hunt for info they expected to see. Simple
-// definition list with a fixed-width label column on the left and
-// tight tabular-num values on the right.
+// PrimaryDeadlineStrip — three-column row at the top of the snapshot
+// (2026-05-23). The three dates the CPA reaches for first — Internal,
+// Filing, Payment — promoted out of the bottom dates panel so they're
+// answer-at-a-glance instead of buried under "Reference dates". Each
+// column shows: small uppercase label / date in tabular-num / a small
+// state tag (MISSED in red when the date is in the past, otherwise
+// blank to keep the row quiet). Internal due is the primary CPA-
+// internal deadline; Filing is the statutory; Payment is the
+// authority-payment due.
+function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
+  const { t } = useLingui()
+  const todayIso = todayIsoDate()
+  const filingDate = row.filingDueDate ?? row.baseDueDate
+  const paymentDate = row.paymentDueDate ?? row.baseDueDate
+  const columns: Array<{
+    key: string
+    label: string
+    value: string
+    iso: string | null
+    primary?: boolean
+  }> = [
+    {
+      key: 'internal',
+      label: t`Internal`,
+      value: formatDate(row.currentDueDate),
+      iso: row.currentDueDate ?? null,
+      primary: true,
+    },
+    {
+      key: 'filing',
+      label: t`Filing`,
+      value: formatDate(filingDate),
+      iso: filingDate ?? null,
+    },
+    {
+      key: 'payment',
+      label: t`Payment`,
+      value: formatDate(paymentDate),
+      iso: paymentDate ?? null,
+    },
+  ]
+  return (
+    <div
+      aria-label={t`Key deadlines`}
+      className="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-divider-subtle bg-background-default"
+    >
+      {columns.map((col, idx) => {
+        const isPast = col.iso ? col.iso < todayIso : false
+        return (
+          <div
+            key={col.key}
+            className={cn(
+              'flex flex-col gap-1 px-3 py-2.5',
+              idx > 0 && 'border-l border-divider-subtle',
+            )}
+          >
+            <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+              {col.label}
+            </span>
+            <span
+              className={cn(
+                'text-sm font-semibold tabular-nums leading-tight',
+                col.primary && isPast ? 'text-text-destructive' : 'text-text-primary',
+              )}
+            >
+              {col.value}
+            </span>
+            {isPast ? (
+              <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-text-destructive">
+                <Trans>Missed</Trans>
+              </span>
+            ) : (
+              <span aria-hidden className="text-[10px] leading-tight">
+                {' '}
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// FlatDateList — secondary dates only (2026-05-23). The three primary
+// dates the CPA reaches for first — Internal, Filing, Payment — now
+// live in the PrimaryDeadlineStrip at the top of the snapshot. This
+// list carries everything else (statutory + period + create/touched
+// timestamps + e-file pipeline timestamps) as a quiet reference
+// surface under "Reference dates" at the bottom of the drawer.
 function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
-  const isOverdue = row.daysUntilDue < 0
   const dateRows = useMemo(
     () => [
-      {
-        key: 'internal',
-        label: t`Internal due`,
-        value: formatDate(row.currentDueDate),
-        primary: true,
-      },
       { key: 'statutory', label: t`Statutory`, value: formatDate(row.baseDueDate) },
-      {
-        key: 'filing',
-        label: t`Filing`,
-        value: formatDate(row.filingDueDate ?? row.baseDueDate),
-      },
-      {
-        key: 'payment',
-        label: t`Payment`,
-        value: formatDate(row.paymentDueDate ?? row.baseDueDate),
-      },
       ...(row.efileSubmittedAt
         ? [
             {
@@ -5806,18 +6018,7 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
       {dateRows.map((entry) => (
         <Fragment key={entry.key}>
           <dt className="text-text-tertiary">{entry.label}</dt>
-          <dd
-            className={cn(
-              'tabular-nums',
-              entry.primary && isOverdue
-                ? 'font-medium text-text-destructive'
-                : entry.primary
-                  ? 'font-medium text-text-primary'
-                  : 'text-text-primary',
-            )}
-          >
-            {entry.value}
-          </dd>
+          <dd className="text-text-primary tabular-nums">{entry.value}</dd>
         </Fragment>
       ))}
     </dl>
@@ -7166,12 +7367,23 @@ function ActiveStageDetailCard({
       aria-label={t`Active stage detail`}
       className="rounded-lg border border-divider-subtle bg-background-default p-4"
     >
-      {/* Header: stage name + sub-status + when we entered this stage. */}
+      {/* Header: stage name + sub-status + when we entered this stage.
+          2026-05-23: dropped the uppercase tracking-wider treatment on
+          the stage label — at h3 weight it read as a section tag, not
+          a heading. Title-case + base text size lets "Waiting" /
+          "Blocked" / "In review" read as honest noun phrases, matching
+          the milestone strip labels above. Sub-status follows on the
+          same line with a thin dot separator. */}
       <header className="flex flex-col gap-0.5">
-        <h3 className="flex flex-wrap items-baseline gap-x-2 text-xs font-medium uppercase tracking-wider text-text-tertiary">
-          <span className="text-text-primary">{stageLabel}</span>
+        <h3 className="flex flex-wrap items-baseline gap-x-1.5 text-sm leading-tight">
+          <span className="font-semibold text-text-primary">{stageLabel}</span>
           {subStatus ? (
-            <span className="normal-case tracking-normal text-text-secondary">· {subStatus}</span>
+            <>
+              <span aria-hidden className="text-text-tertiary">
+                ·
+              </span>
+              <span className="text-text-secondary">{subStatus}</span>
+            </>
           ) : null}
         </h3>
         {stageEnteredAt ? (
@@ -7203,17 +7415,22 @@ function ActiveStageDetailCard({
       ) : null}
       {/* 2026-05-23 Option D: the WaitingOutstandingDocs panel
           (count header + bullet list of doc names) was retired here —
-          that data lives on the Client readiness tab, not duplicated
-          in the stage card. The card carries a one-line signal
-          instead: "N docs outstanding · Open Client readiness →".
-          Single-line, no list, no panel chrome. The CPA who needs
-          the actual document inventory clicks through. */}
+          that data lives on the Materials tab, not duplicated in the
+          stage card. The card carries a one-line signal instead:
+          "N items outstanding · Check Materials →". Single-line, no
+          list, no panel chrome. The CPA who needs the actual document
+          inventory clicks through.
+
+          Verb 2026-05-23 (pass 2): "Open Materials" → "Check
+          Materials". "Open" reads as "open the tab"; "Check" reads as
+          "go review what's outstanding" — the CPA's actual intent
+          when the count is non-zero. */}
       {isWaitingDocsCase && outstandingDocsCount > 0 ? (
         <button
           type="button"
           onClick={() => onChangeTab('readiness')}
           className="mt-3 -mx-1 flex items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          aria-label={t`Open Materials to review ${outstandingDocsCount} outstanding items`}
+          aria-label={t`Check Materials to review ${outstandingDocsCount} outstanding items`}
         >
           <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
           <span>
@@ -7225,7 +7442,7 @@ function ActiveStageDetailCard({
           </span>
           <span className="text-text-tertiary">·</span>
           <span className="text-text-tertiary">
-            <Trans>Open Materials</Trans>
+            <Trans>Check Materials</Trans>
           </span>
           <ArrowUpRightIcon className="size-3 text-text-tertiary" aria-hidden />
         </button>
