@@ -411,6 +411,10 @@ msgstr "{expiredCount} expired needs resend"
 msgid "{field} changed from {previous} to {next}"
 msgstr "{field} changed from {previous} to {next}"
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "{fixedCount, plural, one {# of {0} fixed} other {# of {0} fixed}}"
+msgstr "{fixedCount, plural, one {# of {0} fixed} other {# of {0} fixed}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{hiddenDraftCount} more AI drafts"
 msgstr "{hiddenDraftCount} more AI drafts"
@@ -1155,6 +1159,10 @@ msgstr "All applicable rules scheduled"
 msgid "All categories"
 msgstr "All categories"
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "All caught up"
+msgstr "All caught up"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "All change types"
 msgstr "All change types"
@@ -1175,6 +1183,10 @@ msgstr "All clients"
 #: src/features/dashboard/actions-list.tsx
 msgid "All deadlines"
 msgstr "All deadlines"
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "All done"
+msgstr "All done"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All entity types"
@@ -2198,6 +2210,7 @@ msgid "Clients affected"
 msgstr "Clients affected"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
@@ -2710,6 +2723,10 @@ msgstr "Couldn't run annual rollover preview"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run obligation preview"
 msgstr "Couldn't run obligation preview"
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Couldn't save"
+msgstr "Couldn't save"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't save extension plan"
@@ -3609,6 +3626,14 @@ msgstr "events"
 msgid "Every active rule the catalog matches to this client already has a generated obligation."
 msgstr "Every active rule the catalog matches to this client already has a generated obligation."
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Every client on this list has the facts the rule library needs. Close to return."
+msgstr "Every client on this list has the facts the rule library needs. Close to return."
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix-now if more clients come in."
+msgstr "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix-now if more clients come in."
+
 #: src/routes/rules.library.tsx
 msgid "Every filing obligation the practice tracks. Review pending rules, fill missing coverage, and add new ones."
 msgstr "Every filing obligation the practice tracks. Review pending rules, fill missing coverage, and add new ones."
@@ -4037,6 +4062,10 @@ msgstr "Fiscal year end"
 #: src/routes/obligations.tsx
 msgid "Fiscal-year obligations require a year end."
 msgstr "Fiscal-year obligations require a year end."
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Fix missing facts"
+msgstr "Fix missing facts"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Fix now"
@@ -5272,6 +5301,10 @@ msgstr "needs applicability review"
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
 msgstr "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Needs entity"
+msgstr "Needs entity"
+
 #: src/routes/obligations.tsx
 msgid "Needs evidence"
 msgstr "Needs evidence"
@@ -5319,6 +5352,10 @@ msgstr "Needs review"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Needs review · never generates user reminders."
 msgstr "Needs review · never generates user reminders."
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Needs state"
+msgstr "Needs state"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Never"
@@ -5897,6 +5934,10 @@ msgstr "Nothing open"
 msgid "Nothing started yet. Move into work via the original panel for now."
 msgstr "Nothing started yet. Move into work via the original panel for now."
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Nothing to fix"
+msgstr "Nothing to fix"
+
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
@@ -6171,6 +6212,10 @@ msgstr "Open client detail for {0}"
 #: src/features/migration/Step1Intake.tsx
 msgid "Open Client Manager, run Quick Search with filters set to All, then choose Export Grid."
 msgstr "Open Client Manager, run Quick Search with filters set to All, then choose Export Grid."
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Open client to fix entity"
+msgstr "Open client to fix entity"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Open Contacts, then use the cloud / export-import icon."
@@ -6743,6 +6788,10 @@ msgstr "Personal morning digest preferences and types."
 msgid "Pick a client…"
 msgstr "Pick a client…"
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Pick state"
+msgstr "Pick state"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Pin to sidebar"
 msgstr "Pin to sidebar"
@@ -6783,6 +6832,7 @@ msgstr "Please enter at least 2 characters."
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/migration/Wizard.tsx
 #: src/features/notifications/notification-preferences-page.tsx
@@ -8263,6 +8313,10 @@ msgstr "Save risk profile"
 msgid "Save Smart Priority"
 msgstr "Save Smart Priority"
 
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Save state"
+msgstr "Save state"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Save template"
 msgstr "Save template"
@@ -8278,6 +8332,10 @@ msgstr "Save the reviewed client set before applying when a Pulse has low confid
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Save these recovery codes now"
 msgstr "Save these recovery codes now"
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "Saved"
+msgstr "Saved"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved obligation view"
@@ -9497,6 +9555,10 @@ msgstr "The reviewed client set is ready to apply."
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date."
 msgstr "The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date."
+
+#: src/features/clients/FixNeedsFactsSheet.tsx
+msgid "The rule library skips clients without a filing state or entity type. Fill them in here so generated deadlines start landing."
+msgstr "The rule library skips clients without a filing state or entity type. Fill them in here so generated deadlines start landing."
 
 #: src/routes/rules.library.tsx
 msgid "The rule starts with a source-defined calendar. Refine to a specific date or schedule after creation."

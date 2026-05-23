@@ -124,6 +124,7 @@ import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { ClientCycleArrows } from './ClientCycleArrows'
 import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientPeekHoverCard } from './ClientPeekHoverCard'
+import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
 
 import {
@@ -173,7 +174,6 @@ type ClientFactsWorkspaceProps = {
   onClientFilterChange: (value: string[]) => void
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
-  onReadinessFilterChange: (value: string[]) => void
   onSourceFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
   onPulseFilterChange: (value: string[]) => void
@@ -475,7 +475,6 @@ export function ClientFactsWorkspace({
   opportunityCountByClient,
   onClientFilterChange,
   onStateFilterChange,
-  onReadinessFilterChange,
   onOwnerFilterChange,
   onPulseFilterChange,
   onImport,
@@ -872,6 +871,13 @@ export function ClientFactsWorkspace({
     [navigate],
   )
 
+  // L-2: Fix-now banner now opens an inline batch sheet
+  // (FixNeedsFactsSheet) instead of narrowing the table to a
+  // needs-facts filter. Filter-then-drill was the previous behavior —
+  // CPA still had to open every row, drill, edit, save, back. Batch
+  // sheet skips that loop.
+  const [fixNeedsFactsOpen, setFixNeedsFactsOpen] = useState(false)
+
   return (
     <>
       <ClientsActionStrip
@@ -881,10 +887,16 @@ export function ClientFactsWorkspace({
         pulseHitCount={pulseMatchesByClient.size}
         atRiskActive={atRiskActive}
         waitingActive={waitingActive}
-        onFixNeedsFacts={() => onReadinessFilterChange(['needs_facts'])}
+        onFixNeedsFacts={() => setFixNeedsFactsOpen(true)}
         onToggleAtRisk={() => setAtRiskActive((prev) => !prev)}
         onToggleWaiting={() => setWaitingActive((prev) => !prev)}
         onOpenPulseHits={() => onPulseFilterChange(['affected'])}
+      />
+
+      <FixNeedsFactsSheet
+        open={fixNeedsFactsOpen}
+        onOpenChange={setFixNeedsFactsOpen}
+        clients={clients}
       />
 
       {/* Column-header filters are the only filter pattern on this

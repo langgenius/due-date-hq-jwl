@@ -33,7 +33,6 @@ import {
   filterClients,
   isClientEntityType,
   isClientPulseFilter,
-  isClientReadinessStatus,
   isClientSourceType,
   type ClientEntityType,
 } from '@/features/clients/client-readiness'
@@ -229,17 +228,6 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
-  const handleReadinessFilterChange = useCallback(
-    (values: string[]) => {
-      const typedReadiness = values.filter(isClientReadinessStatus)
-      void setClientsQuery({
-        q: null,
-        readiness: nullableQueryArray(typedReadiness),
-      })
-    },
-    [setClientsQuery],
-  )
-
   const handleSourceFilterChange = useCallback(
     (values: string[]) => {
       const typedSources = values.filter(isClientSourceType)
@@ -354,7 +342,6 @@ export function ClientsRoute() {
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
-        onReadinessFilterChange={handleReadinessFilterChange}
         onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
         onPulseFilterChange={handlePulseFilterChange}
