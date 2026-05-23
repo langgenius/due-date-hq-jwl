@@ -2293,8 +2293,12 @@ msgid "Confirm engagement letter on file"
 msgstr "Confirm engagement letter on file"
 
 #: src/routes/obligations.tsx
-msgid "Confirm payment cleared"
-msgstr "Confirm payment cleared"
+msgid "Confirm payment cleared offline"
+msgstr "Confirm payment cleared offline"
+
+#: src/routes/obligations.tsx
+msgid "Confirm payment cleared with the authority"
+msgstr "Confirm payment cleared with the authority"
 
 #: src/routes/obligations.tsx
 msgid "Confirm third-party ETA"
@@ -4686,10 +4690,6 @@ msgstr "Link copied"
 msgid "Link unavailable"
 msgstr "Link unavailable"
 
-#: src/routes/obligations.tsx
-msgid "Linking through to the blocking obligation needs the blocker UI — coming next."
-msgstr "Linking through to the blocking obligation needs the blocker UI — coming next."
-
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "LLC"
@@ -4892,8 +4892,8 @@ msgid "Mapping"
 msgstr "Mapping"
 
 #: src/routes/obligations.tsx
-msgid "Mark 8879 signed"
-msgstr "Mark 8879 signed"
+msgid "Mark 8879 signed when received"
+msgstr "Mark 8879 signed when received"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -4901,8 +4901,8 @@ msgid "Mark all read"
 msgstr "Mark all read"
 
 #: src/routes/obligations.tsx
-msgid "Mark client approved"
-msgstr "Mark client approved"
+msgid "Mark client approved when received"
+msgstr "Mark client approved when received"
 
 #: src/routes/obligations.tsx
 msgid "Mark docs received"
@@ -4929,8 +4929,8 @@ msgid "Mark obligation complete"
 msgstr "Mark obligation complete"
 
 #: src/routes/obligations.tsx
-msgid "Mark package delivered"
-msgstr "Mark package delivered"
+msgid "Mark package delivered when sent"
+msgstr "Mark package delivered when sent"
 
 #: src/routes/obligations.tsx
 msgid "Mark preparation complete"
@@ -6135,6 +6135,10 @@ msgstr "Open Contacts and select the cloud export icon; Admin access may be requ
 msgid "Open Deadlines."
 msgstr "Open Deadlines."
 
+#: src/routes/obligations.tsx
+msgid "Open evidence"
+msgstr "Open evidence"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Open first created obligation"
 msgstr "Open first created obligation"
@@ -6211,6 +6215,10 @@ msgstr "Open the client to review facts before deciding whether to follow up."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
+
+#: src/routes/obligations.tsx
+msgid "Open the Evidence tab for this row"
+msgstr "Open the Evidence tab for this row"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
@@ -7638,8 +7646,8 @@ msgid "Restart checkout"
 msgstr "Restart checkout"
 
 #: src/routes/obligations.tsx
-msgid "Resubmit to authority"
-msgstr "Resubmit to authority"
+msgid "Resubmit when corrected"
+msgstr "Resubmit when corrected"
 
 #: src/routes/obligations.tsx
 msgid "Resulting readiness"
@@ -9044,10 +9052,6 @@ msgstr "Still waiting on confirmation"
 msgid "Structured change"
 msgstr "Structured change"
 
-#: src/routes/obligations.tsx
-msgid "Sub-status mutation pending backend — wires up once the RPC procedure ships."
-msgstr "Sub-status mutation pending backend — wires up once the RPC procedure ships."
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
 msgstr "Subject"
@@ -9057,8 +9061,8 @@ msgid "Submit readiness response"
 msgstr "Submit readiness response"
 
 #: src/routes/obligations.tsx
-msgid "Submit return to authority"
-msgstr "Submit return to authority"
+msgid "Submit return to the tax authority"
+msgstr "Submit return to the tax authority"
 
 #: src/routes/obligations.tsx
 msgid "Submitted"
@@ -9507,6 +9511,10 @@ msgstr "Third-party docs"
 msgid "This action conflicts with the current state. Refresh and try again."
 msgstr "This action conflicts with the current state. Refresh and try again."
 
+#: src/routes/obligations.tsx
+msgid "This action isn't wired up yet."
+msgstr "This action isn't wired up yet."
+
 #: src/features/pulse/lib/error-mapping.ts
 msgid "This alert is no longer available."
 msgstr "This alert is no longer available."
@@ -9570,6 +9578,10 @@ msgstr "This removes the client and deadlines created by this import. Use Client
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."
 msgstr "This removes the clients and deadlines created by this import. Other practice data will not be changed."
+
+#: src/routes/obligations.tsx
+msgid "This row isn't linked to a blocking obligation."
+msgstr "This row isn't linked to a blocking obligation."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule allows an extension."
@@ -9830,8 +9842,8 @@ msgid "Unknown reviewer"
 msgstr "Unknown reviewer"
 
 #: src/routes/obligations.tsx
-msgid "Unwind back to In review"
-msgstr "Unwind back to In review"
+msgid "Unwind to In review"
+msgstr "Unwind to In review"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"

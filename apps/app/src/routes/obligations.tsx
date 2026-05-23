@@ -177,6 +177,7 @@ import {
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
 import { isTabVisibleForType, tabsForObligationType } from '@/features/obligations/obligation-type'
+import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
@@ -6097,6 +6098,11 @@ function ActiveStageDetailCard({
   onRecordRejection: () => void
 }) {
   const { t } = useLingui()
+  // For the `blocked` stage's "Open blocking obligation" action.
+  // Routes to the drawer for whichever upstream row blocks this one
+  // (row.blockedByObligationInstanceId). Same provider the queue +
+  // client-detail surfaces use, so the navigation is consistent.
+  const { openDrawer } = useObligationDrawer()
   const stageIdx = timelineIndexForStatus(row.status)
   const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
   const stageLabels: Record<TimelineStageKey, string> = {
@@ -6236,10 +6242,23 @@ function ActiveStageDetailCard({
         return reviewTasks
       }
       case 'done': {
-        // Payment obligations (status === 'paid') ALSO map to the
-        // Filed milestone but follow a paymentState pipeline rather
-        // than the e-file pipeline. Branch on row.status to pick the
-        // right vocabulary.
+        // Sub-status mutations on a `done` row (advancing efileState
+        // through 8879-requested → signed → submitted → accepted, or
+        // paymentState through estimate → approval → scheduled →
+        // confirmed) need their own RPC procedures that don't ship
+        // yet — see `apps/server/src/procedures/obligations/` for
+        // the surfaces that exist (`updateStatus`, `markFiledRejected`)
+        // and the ones that DON'T (`updateEfileState`,
+        // `updatePaymentState`). Until those land, the stage card
+        // surfaces sub-status work as MANUAL reminders ("do this
+        // offline") rather than as buttons that click into a
+        // "pending backend" toast. Where the status-level mutation
+        // can still close the workflow (e.g. accepted → mark
+        // obligation complete), THAT becomes the wired primary.
+        //
+        // Payment obligations (status === 'paid') walk the
+        // paymentState pipeline; e-file rows walk efileState. Branch
+        // on row.status to pick the right vocabulary.
         if (row.status === 'paid') {
           switch (row.paymentState) {
             case 'estimate_needed':
@@ -6249,7 +6268,6 @@ function ActiveStageDetailCard({
                   id: 'send-estimate',
                   label: t`Send estimate to client for approval`,
                   flavor: 'manual',
-                  primary: true,
                 },
               ]
             case 'client_approval_needed':
@@ -6261,18 +6279,16 @@ function ActiveStageDetailCard({
                 },
                 {
                   id: 'mark-approved',
-                  label: t`Mark client approved`,
-                  flavor: 'mutation',
-                  primary: true,
+                  label: t`Mark client approved when received`,
+                  flavor: 'manual',
                 },
               ]
             case 'scheduled':
               return [
                 {
                   id: 'confirm-cleared',
-                  label: t`Confirm payment cleared`,
-                  flavor: 'mutation',
-                  primary: true,
+                  label: t`Confirm payment cleared with the authority`,
+                  flavor: 'manual',
                 },
               ]
             case 'confirmed':
@@ -6285,7 +6301,6 @@ function ActiveStageDetailCard({
                 },
               ]
             default:
-              // No paymentState set — fall back to the canonical pair.
               return [
                 {
                   id: 'schedule',
@@ -6294,18 +6309,13 @@ function ActiveStageDetailCard({
                 },
                 {
                   id: 'confirm-cleared',
-                  label: t`Confirm payment cleared`,
-                  flavor: 'mutation',
-                  primary: true,
+                  label: t`Confirm payment cleared offline`,
+                  flavor: 'manual',
                 },
               ]
           }
         }
-        // e-file pipeline. The 9 canonical efileState values each
-        // have their own "next move" — the CPA opens the drawer and
-        // sees the action that matches where the return currently
-        // sits. Earlier prototype showed only 2 hardcoded tasks
-        // regardless of sub-status, which buried the actual workflow.
+        // e-file pipeline.
         switch (row.efileState) {
           case 'authorization_requested':
             return [
@@ -6316,9 +6326,17 @@ function ActiveStageDetailCard({
               },
               {
                 id: 'mark-signed',
-                label: t`Mark 8879 signed`,
-                flavor: 'mutation',
-                primary: true,
+                label: t`Mark 8879 signed when received`,
+                flavor: 'manual',
+              },
+              // Even pre-submission rows benefit from a direct route
+              // to the Evidence tab — that's where the 8879 packet
+              // lives.
+              {
+                id: 'request-auth',
+                label: t`Open evidence`,
+                flavor: 'routing',
+                hint: t`Open the Evidence tab for this row`,
               },
             ]
           case 'authorization_signed':
@@ -6326,9 +6344,13 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'submit',
-                label: t`Submit return to authority`,
-                flavor: 'mutation',
-                primary: true,
+                label: t`Submit return to the tax authority`,
+                flavor: 'manual',
+              },
+              {
+                id: 'request-auth',
+                label: t`Open evidence`,
+                flavor: 'routing',
               },
             ]
           case 'submitted':
@@ -6354,7 +6376,15 @@ function ActiveStageDetailCard({
               },
               {
                 id: 'mark-delivered',
-                label: t`Mark package delivered`,
+                label: t`Mark package delivered when sent`,
+                flavor: 'manual',
+              },
+              // Skip past the unbacked `final_package_delivered`
+              // sub-status; this canonical status advance closes the
+              // workflow.
+              {
+                id: 'complete',
+                label: t`Mark obligation complete`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6368,14 +6398,17 @@ function ActiveStageDetailCard({
               },
               {
                 id: 'resubmit',
-                label: t`Resubmit to authority`,
-                flavor: 'mutation',
-                primary: true,
+                label: t`Resubmit when corrected`,
+                flavor: 'manual',
               },
+              // Unwinding to In review is the canonical wired path
+              // when a return is rejected — `markFiledRejected`
+              // records the rejection and reopens the row.
               {
                 id: 'unwind',
-                label: t`Unwind back to In review`,
+                label: t`Unwind to In review`,
                 flavor: 'mutation',
+                primary: true,
               },
             ]
           case 'corrected_resubmitted':
@@ -6396,7 +6429,12 @@ function ActiveStageDetailCard({
               },
               {
                 id: 'mark-delivered-paper',
-                label: t`Mark package delivered`,
+                label: t`Mark package delivered when sent`,
+                flavor: 'manual',
+              },
+              {
+                id: 'complete',
+                label: t`Mark obligation complete`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -6498,19 +6536,29 @@ function ActiveStageDetailCard({
         return onChangeTab('evidence')
       case 'readiness':
         return onChangeTab('readiness')
-      case 'open-blocker':
-        return toast.info(
-          t`Linking through to the blocking obligation needs the blocker UI — coming next.`,
-        )
-      // Sub-status mutations not yet wired (mark-signed, submit,
-      // mark-delivered, mark-approved, confirm-cleared, etc.). These
-      // need new RPC procedures (updateEfileState / updatePaymentState
-      // / updateReviewStage / updatePrepStage). Surface a toast so
-      // the CPA knows the click registered and that it's pending.
+      // Blocked → open the blocking obligation's drawer. Uses the
+      // same ObligationDrawerProvider the queue + client-detail
+      // mount, so the navigation matches every other "open this
+      // obligation" affordance. If the row carries a blocker ID but
+      // the provider isn't mounted for some reason, fall back to
+      // the toast so the click isn't silently dropped.
+      case 'open-blocker': {
+        if (row.blockedByObligationInstanceId) {
+          openDrawer(row.blockedByObligationInstanceId)
+        } else {
+          toast.info(t`This row isn't linked to a blocking obligation.`)
+        }
+        return
+      }
+      // Defensive fallback. Earlier this branch absorbed sub-status
+      // mutations (mark-signed / submit / mark-approved / etc.) that
+      // didn't have RPC procedures yet — those tasks are now
+      // declared as `manual` flavor so they render as text reminders
+      // and never reach `handleTaskClick`. If we ever reintroduce a
+      // wired task without updating this switch, the toast at least
+      // tells the user the click registered.
       default:
-        return toast.info(
-          t`Sub-status mutation pending backend — wires up once the RPC procedure ships.`,
-        )
+        return toast.info(t`This action isn't wired up yet.`)
     }
   }
   // Is this Filed (done) AND in the e-file route, vs Filed (paid)
