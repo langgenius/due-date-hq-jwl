@@ -154,19 +154,17 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
   const lateFlag = client.lateFilingCountLast12mo
 
   return (
+    // 2026-05-24: dropped the panel's own h3 + uppercase eyebrow
+    // header. The wrapping <TabSection> on the Client info tab now
+    // owns the section heading + subtitle, so an inner header here
+    // doubled it. The "{N} of 5 active" count is preserved as a
+    // small inline counter chip floating on the Activity scope
+    // sub-heading below — it stays useful as a sub-section signal,
+    // it just doesn't get an h3 of its own anymore.
     <section
       aria-label={t`Compliance posture`}
       className="overflow-hidden rounded-md border border-divider-regular bg-background-default"
     >
-      <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle px-4 py-3">
-        <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-          <Trans>Compliance posture</Trans>
-        </h3>
-        <span className="text-xs text-text-tertiary">
-          <Trans>{activeCount} of 5 active</Trans>
-        </span>
-      </header>
-
       <div className="grid gap-4 p-4">
         {/* Identity row — four facts the CPA copies most often.
           Renders as a 2x2 grid below md and 4-up above. */}
@@ -221,11 +219,19 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
         {/* Activity scope — the five compliance booleans. Active
           renders as a tone-coded badge with icon; inactive as a muted
           chip with em-dash. Showing both states so the CPA can
-          *verify* the schema rather than just see what's on. */}
+          *verify* the schema rather than just see what's on. The
+          "N of 5 active" count was the panel's old header counter;
+          it moved here to sit next to the sub-section label after
+          the outer h3 retired in favour of TabSection. */}
         <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
-          <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-            <Trans>Activity scope</Trans>
-          </span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+              <Trans>Activity scope</Trans>
+            </span>
+            <span className="text-xs text-text-tertiary">
+              <Trans>{activeCount} of 5 active</Trans>
+            </span>
+          </div>
           <ul className="flex flex-wrap gap-2">
             {activityChips.map((chip) => (
               <li key={chip.key}>

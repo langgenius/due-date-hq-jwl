@@ -57,14 +57,15 @@ function TileShell({
     tone === 'neutral' && 'text-text-primary',
     tone === 'muted' && 'text-text-tertiary',
   )
-  // Tile chrome: `divider-regular` (8%) at rest. Previously
-  // `divider-subtle` (4%) — paired with the white `background-default`
-  // body, the tiles read as "barely there boxes" against the page,
-  // contributing to the overall "pale and white" feel. Bumping the
-  // border to match the panel chrome elsewhere on the detail page
-  // gives the summary strip presence as a real section.
+  // Tile chrome: `divider-regular` (8% black) at rest — matches the
+  // Figma `components/panel/border` token. Previously paired with
+  // `px-4 py-3` (16×12) — the vertical breathing room felt tight
+  // next to the Figma reference's generous tile padding, so the y
+  // padding went up to py-4 (16). Internal gap stays gap-2 (8) so
+  // the label / value / subline stack tracks the Figma spacing
+  // rhythm exactly.
   const baseClass =
-    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-regular bg-background-default px-4 py-3 transition-colors hover:border-divider-deep hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
+    'group flex min-w-[160px] flex-1 flex-col gap-2 rounded-md border border-divider-regular bg-background-default px-4 py-4 transition-colors hover:border-divider-deep hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
   // Inner content shared by all three variants. Renders label → value
   // → optional subline so each tile reads top-down (eyebrow → number

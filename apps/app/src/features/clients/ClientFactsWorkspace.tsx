@@ -21,7 +21,6 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   CheckCircle2Icon,
-  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
@@ -73,11 +72,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
-import {
-  Collapsible,
-  CollapsiblePanel,
-  CollapsibleTrigger,
-} from '@duedatehq/ui/components/ui/collapsible'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import {
@@ -128,7 +122,10 @@ import {
 import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
-import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primitives'
+// `SectionFrame` + `SectionLabel` imports retired 2026-05-24 with the
+// switch to <TabSection>. They're still exported from
+// rules-console-primitives for any rules-console caller that wants
+// them.
 
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
@@ -199,60 +196,63 @@ type ClientFactsWorkspaceProps = {
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
 
-function DetailSection({
+/**
+ * `TabSection` — canonical section primitive for the client detail
+ * tabs (Work / Client info / Discover / Activity).
+ *
+ * 2026-05-24: introduced to unify what used to be three different
+ * section vocabularies on this page:
+ *   - Work tab's Filing plan rolled its own h2 + subtitle inline
+ *   - Client info / Discover used `DetailSection` (collapsible
+ *     disclosure with chevron, summary on the right, body hidden
+ *     until expanded)
+ *   - Activity tab mixed `DetailSection` with one ad-hoc
+ *     `SectionFrame` for the Notes block
+ *
+ * The Figma reference (node 109:13725) shows the Work tab's flat
+ * pattern as the canonical: h2 (text-base / semibold / primary) +
+ * subtitle (text-xs / tertiary) on a single baseline, optional
+ * actions cluster on the right, content rendered flat directly
+ * underneath without a nested card frame.
+ *
+ * All four tabs now use this primitive so the four-tab body reads
+ * as one consistent surface, not four design dialects stitched
+ * together. Content inside a section can still introduce its own
+ * card chrome where the data shape calls for it (compliance
+ * panel, jurisdiction form) — but the SECTION HEADER is
+ * pixel-identical across all surfaces.
+ */
+function TabSection({
   title,
   summary,
-  defaultOpen = false,
-  open,
-  onOpenChange,
-  attention = false,
-  id,
+  actions,
   children,
 }: {
   title: ReactNode
   summary?: ReactNode
-  defaultOpen?: boolean
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  attention?: boolean
-  id?: string
+  actions?: ReactNode
   children: ReactNode
 }) {
-  const collapsibleStateProps = open === undefined ? { defaultOpen } : { open, onOpenChange }
-
   return (
-    <SectionFrame
-      className={cn(
-        'scroll-mt-20',
-        attention &&
-          'border-components-badge-bg-warning-soft bg-components-badge-bg-warning-soft/40',
-      )}
-    >
-      <Collapsible id={id} {...collapsibleStateProps}>
-        <CollapsibleTrigger
-          className={cn(
-            'group flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-state-accent-active-alt',
-            attention && 'hover:bg-components-badge-bg-warning-soft/70',
-          )}
-        >
-          <div className="flex min-w-0 flex-col gap-1">
-            <SectionLabel>{title}</SectionLabel>
-            {summary ? (
-              <span className="truncate text-[13px] text-text-secondary">{summary}</span>
-            ) : null}
-          </div>
-          <ChevronDownIcon
-            className="size-4 shrink-0 text-text-tertiary transition-transform group-data-[panel-open]:rotate-180"
-            aria-hidden
-          />
-        </CollapsibleTrigger>
-        <CollapsiblePanel className="border-t border-divider-subtle px-4 py-3">
-          {children}
-        </CollapsiblePanel>
-      </Collapsible>
-    </SectionFrame>
+    <section className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <h2 className="text-base font-semibold text-text-primary">{title}</h2>
+          {summary ? <span className="text-xs text-text-tertiary">{summary}</span> : null}
+        </div>
+        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+      </div>
+      {children}
+    </section>
   )
 }
+
+// `DetailSection` (collapsible disclosure) retired 2026-05-24 in
+// favour of the flat <TabSection> primitive above. Sections on the
+// client detail page no longer collapse — the four tabs share one
+// heading style so the body reads as a single consistent surface.
+// Git history has the prior implementation if a future surface
+// needs a disclosure pattern again (e.g. on an admin-only screen).
 
 /**
  * Primary filing state — the marked-primary profile if present, else
@@ -1481,7 +1481,9 @@ export function ClientDetailWorkspace({
   const navigate = useNavigate()
   const permission = useFirmPermission()
   const currentUserName = useCurrentUserName()
-  const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
+  // 2026-05-24: `filingJurisdictionsOpen` state retired with the
+  // DetailSection collapsible. Sections are flat now, so the "scroll
+  // me into view" callback just scrolls — no panel state to toggle.
   const canReadAudit = permission.can('audit.read')
   // Body is now a 4-tab structure (Work / Client info / Discover /
   // Activity) — see docs/Design/client-page-information-architecture.md
@@ -1587,12 +1589,9 @@ export function ClientDetailWorkspace({
   )
   const missingFilingState = Boolean(readiness?.missingRequiredFacts.includes('state'))
   const openFilingJurisdictions = useCallback(() => {
-    setFilingJurisdictionsOpen(true)
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById('client-filing-jurisdictions')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    document
+      .getElementById('client-filing-jurisdictions')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
   const openMissingFacts = useCallback(() => {
     openFilingJurisdictions()
@@ -1886,7 +1885,7 @@ export function ClientDetailWorkspace({
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="work" className="flex flex-col gap-4 pt-4">
+              <TabsContent value="work" className="flex flex-col gap-6 pt-4">
                 <ClientWorkPlanPanel
                   obligations={obligations}
                   isLoading={obligationsQuery.isLoading}
@@ -1897,42 +1896,62 @@ export function ClientDetailWorkspace({
                 />
               </TabsContent>
 
-              <TabsContent value="info" className="flex flex-col gap-4 pt-4">
-                {/* Compliance posture — moved here from the daily-driver
-                    area. EIN + tax year + owners + activity-scope flags
-                    are client identity facts, not "work" in progress.
-                    The CPA edits / verifies these quarterly, not daily. */}
-                <ClientCompliancePosturePanel client={client} />
+              {/* 2026-05-24: every tab below uses <TabSection> for its
+                  section heading so all four tabs share one visual
+                  language (h2 + subtitle, no disclosure, no nested
+                  card frame around the section block itself). The
+                  DetailSection collapsible pattern + the ad-hoc
+                  SectionFrame "Notes" block both retired here. */}
+              <TabsContent value="info" className="flex flex-col gap-6 pt-4">
+                {/* Compliance posture — EIN + tax year + owners +
+                    activity-scope flags. Client identity facts, not
+                    "work" in progress; the CPA edits / verifies these
+                    quarterly, not daily. Panel renders its own grid
+                    inside; TabSection owns the section heading. */}
+                <TabSection
+                  title={t`Compliance posture`}
+                  summary={t`Identity facts that drive the obligation generator`}
+                >
+                  <ClientCompliancePosturePanel client={client} />
+                </TabSection>
 
-                <DetailSection
-                  id="client-filing-jurisdictions"
+                <TabSection
                   title={t`Filing jurisdictions`}
                   summary={formatJurisdictionSummary(client)}
-                  open={filingJurisdictionsOpen}
-                  onOpenChange={setFilingJurisdictionsOpen}
-                  attention={missingFilingState}
                 >
-                  <ClientJurisdictionPanel
-                    key={`${client.id}:jurisdiction`}
-                    client={client}
-                    isSaving={replaceFilingProfilesMutation.isPending}
-                    onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
-                  />
-                </DetailSection>
+                  <div
+                    id="client-filing-jurisdictions"
+                    className={cn(
+                      'scroll-mt-20 overflow-hidden rounded-md border bg-background-default',
+                      missingFilingState
+                        ? 'border-components-badge-bg-warning-soft'
+                        : 'border-divider-regular',
+                    )}
+                  >
+                    <ClientJurisdictionPanel
+                      key={`${client.id}:jurisdiction`}
+                      client={client}
+                      isSaving={replaceFilingProfilesMutation.isPending}
+                      onSave={(input) => replaceFilingProfilesMutation.mutate(input)}
+                    />
+                  </div>
+                </TabSection>
 
-                <DetailSection
+                <TabSection
                   title={t`Risk profile`}
                   summary={t`Penalty exposure and tax-attribute flags`}
                 >
-                  <ClientRiskInputsPanel
-                    key={`${client.id}:risk`}
-                    client={client}
-                    isSaving={updateRiskProfileMutation.isPending}
-                    onSave={(input) => updateRiskProfileMutation.mutate(input)}
-                  />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientRiskInputsPanel
+                      key={`${client.id}:risk`}
+                      client={client}
+                      isSaving={updateRiskProfileMutation.isPending}
+                      onSave={(input) => updateRiskProfileMutation.mutate(input)}
+                    />
+                  </div>
+                </TabSection>
 
-                <DetailSection
+                <TabSection
                   title={t`Onboarding state`}
                   summary={
                     readiness && readiness.missingRequiredFacts.length > 0
@@ -1940,78 +1959,89 @@ export function ClientDetailWorkspace({
                       : t`All required facts present`
                   }
                 >
-                  <ClientFactChecklist client={client} readiness={readiness} />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientFactChecklist client={client} readiness={readiness} />
+                  </div>
+                </TabSection>
 
-                <DetailSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
-                  <ClientImportSourcePanel client={client} />
-                </DetailSection>
+                <TabSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientImportSourcePanel client={client} />
+                  </div>
+                </TabSection>
               </TabsContent>
 
-              <TabsContent value="discover" className="flex flex-col gap-4 pt-4">
-                <DetailSection
+              <TabsContent value="discover" className="flex flex-col gap-6 pt-4">
+                <TabSection
                   title={t`Suggested forms`}
                   summary={t`Forms the rule library can add without a new deadline`}
-                  defaultOpen
                 >
-                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
+                  </div>
+                </TabSection>
 
-                <DetailSection
+                <TabSection
                   title={t`Future business cues`}
                   summary={t`Advisory, scope, and retention opportunities`}
                 >
-                  <ClientOpportunitiesCard clientId={client.id} />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientOpportunitiesCard clientId={client.id} />
+                  </div>
+                </TabSection>
               </TabsContent>
 
-              <TabsContent value="activity" className="flex flex-col gap-4 pt-4">
+              <TabsContent value="activity" className="flex flex-col gap-6 pt-4">
                 {/* Activity content only renders when the tab is the
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
-                <DetailSection
+                <TabSection
                   title={t`Client summary (AI)`}
                   summary={
                     riskSummaryQuery.data?.generatedAt
                       ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
                       : t`No summary yet`
                   }
-                  defaultOpen
                 >
-                  <ClientRiskSummaryPanel
-                    insight={riskSummaryQuery.data ?? null}
-                    isLoading={riskSummaryQuery.isLoading}
-                    isRefreshing={requestRiskSummaryMutation.isPending}
-                    canRefresh={practiceAiEnabled}
-                    firmTimezone={firmTimezone}
-                    onRefresh={() =>
-                      requestRiskSummaryMutation.mutate({
-                        clientId: client.id,
-                      })
-                    }
-                  />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientRiskSummaryPanel
+                      insight={riskSummaryQuery.data ?? null}
+                      isLoading={riskSummaryQuery.isLoading}
+                      isRefreshing={requestRiskSummaryMutation.isPending}
+                      canRefresh={practiceAiEnabled}
+                      firmTimezone={firmTimezone}
+                      onRefresh={() =>
+                        requestRiskSummaryMutation.mutate({
+                          clientId: client.id,
+                        })
+                      }
+                    />
+                  </div>
+                </TabSection>
 
-                <SectionFrame className="bg-background-section p-3">
-                  <SectionLabel>
-                    <Trans>Notes</Trans>
-                  </SectionLabel>
-                  <p className="mt-2 text-sm text-text-secondary">
-                    {client.notes || <Trans>No notes.</Trans>}
-                  </p>
-                </SectionFrame>
+                <TabSection title={t`Notes`}>
+                  <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
+                    {client.notes || (
+                      <span className="text-text-tertiary italic">
+                        <Trans>No notes.</Trans>
+                      </span>
+                    )}
+                  </div>
+                </TabSection>
 
-                <DetailSection
+                <TabSection
                   title={t`Activity log`}
                   summary={t`Recent audited changes for this client record`}
                 >
-                  <ClientActivityPanel
-                    events={auditQuery.data?.events ?? []}
-                    canReadAudit={canReadAudit}
-                    isLoading={auditQuery.isLoading}
-                    firmTimezone={firmTimezone}
-                  />
-                </DetailSection>
+                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                    <ClientActivityPanel
+                      events={auditQuery.data?.events ?? []}
+                      canReadAudit={canReadAudit}
+                      isLoading={auditQuery.isLoading}
+                      firmTimezone={firmTimezone}
+                    />
+                  </div>
+                </TabSection>
               </TabsContent>
             </Tabs>
           </section>
@@ -2165,33 +2195,25 @@ function ClientWorkPlanPanel({
   isStatusChangePending: boolean
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
+  const { t } = useLingui()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
+  // 2026-05-24: the Filing plan heading went through TabSection so it
+  // sits on the same h2 / subtitle baseline as every other section
+  // header on this client detail page. Subtitle stays factual
+  // ("N deadlines across N tax years") — same wording as the sidebar
+  // and the Deadlines page so it reads as a year-grouped slice of the
+  // same primitive, not a separate concept.
+  const subtitle = (
+    <>
+      <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
+      <Trans>across</Trans>{' '}
+      <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
+    </>
+  )
   return (
-    // 2026-05-23: dropped the outer panel frame. The Work tab now
-    // contains only this filing-plan view — wrapping it in a
-    // bordered card created chrome-on-chrome ("card inside the tab
-    // body, which is inside a section, which is inside a page").
-    // Headings + legend + rows now live flat against the tab
-    // background, with type hierarchy carrying the structure.
-    <div className="grid gap-3">
-      {/* Title + count line. Flat heading, no tinted band — the H2
-          itself does the section-anchoring job that the bordered
-          panel header used to do. */}
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <h2 className="text-base font-semibold text-text-primary">
-          <Trans>Filing plan</Trans>
-        </h2>
-        {/* Count subtitle uses the same word ("deadlines") as the
-            sidebar / queue / Deadlines page so the CPA reads this as
-            a year-grouped slice of the same primitive, not a
-            separate concept. */}
-        <span className="text-xs text-text-tertiary">
-          <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
-          <Trans>across</Trans>{' '}
-          <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
-        </span>
-      </div>
-      {/* Column legend sits above all year sections so it reads as
+    <TabSection title={t`Filing plan`} summary={subtitle}>
+      <div className="grid gap-3">
+        {/* Column legend sits above all year sections so it reads as
           the table's column header for the whole filing plan — not
           just the first year. Widths mirror the per-row TableCells
           below (flex-1 / 132 / 132 / 160 / 110) with matching `px-3`
@@ -2203,76 +2225,77 @@ function ClientWorkPlanPanel({
           dates already live on the obligation; surfacing them side by
           side lets the CPA spot the gap (extension target vs filing
           deadline) without opening the drawer. */}
-      {!isLoading && obligations.length > 0 ? (
-        <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium text-text-tertiary">
-          {/* 2026-05-23: row leader column reserves space for the
+        {!isLoading && obligations.length > 0 ? (
+          <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium text-text-tertiary">
+            {/* 2026-05-23: row leader column reserves space for the
               small leading "N" badge on each row. Empty header cell —
               the badge is visual punctuation, not a data column with
               a sortable identity. */}
-          <div className="w-7 shrink-0 px-1" aria-hidden />
-          <div className="flex-1 px-3 uppercase tracking-[0.08em]">
-            <Trans>Form</Trans>
-          </div>
-          {/* 2026-05-23: column header copy switched from sentence
+            <div className="w-7 shrink-0 px-1" aria-hidden />
+            <div className="flex-1 px-3 uppercase tracking-[0.08em]">
+              <Trans>Form</Trans>
+            </div>
+            {/* 2026-05-23: column header copy switched from sentence
               case ("Internal deadline") to Title Case ("Internal
               Deadline" / "Official Deadline") per Figma. Status +
               Estimated tax stay sentence case because the Figma is
               inconsistent there and Title Case for every header
               would be loud. */}
-          <div className="w-[132px] px-3">
-            <Trans>Internal Deadline</Trans>
+            <div className="w-[132px] px-3">
+              <Trans>Internal Deadline</Trans>
+            </div>
+            <div className="w-[132px] px-3">
+              <Trans>Official Deadline</Trans>
+            </div>
+            <div className="w-[160px] px-3">
+              <Trans>Status</Trans>
+            </div>
+            <div className="w-[110px] px-3 text-right">
+              <Trans>Estimated tax</Trans>
+            </div>
           </div>
-          <div className="w-[132px] px-3">
-            <Trans>Official Deadline</Trans>
-          </div>
-          <div className="w-[160px] px-3">
-            <Trans>Status</Trans>
-          </div>
-          <div className="w-[110px] px-3 text-right">
-            <Trans>Estimated tax</Trans>
-          </div>
+        ) : null}
+        <div>
+          {isLoading ? (
+            <div className="grid gap-2">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : obligations.length === 0 ? (
+            <EmptyState
+              icon={ClipboardListIcon}
+              title={<Trans>No deadlines yet</Trans>}
+              description={
+                <Trans>Run migration or generate rules before this client has due-date work.</Trans>
+              }
+            />
+          ) : (
+            // Year sections separated by `divide-y` so each year has a
+            // clear terminus — addresses the "no hierarchy / 视觉上没有
+            // 终点" feedback. `pt-4` on the second-and-later sections
+            // (via space-y/divide) gives breathing room without
+            // re-introducing card chrome.
+            <div className="divide-y divide-divider-subtle">
+              {yearGroups.map((group, index) => (
+                <div
+                  key={group.year}
+                  className={cn(index === 0 ? 'pb-2' : 'py-2 first:pt-0 last:pb-0')}
+                >
+                  <FilingPlanYearSection
+                    group={group}
+                    clientName={clientName}
+                    onOpen={(obligationId) => openObligationDrawer(obligationId)}
+                    onChangeStatus={onChangeStatus}
+                    isStatusChangePending={isStatusChangePending}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ) : null}
-      <div>
-        {isLoading ? (
-          <div className="grid gap-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : obligations.length === 0 ? (
-          <EmptyState
-            icon={ClipboardListIcon}
-            title={<Trans>No deadlines yet</Trans>}
-            description={
-              <Trans>Run migration or generate rules before this client has due-date work.</Trans>
-            }
-          />
-        ) : (
-          // Year sections separated by `divide-y` so each year has a
-          // clear terminus — addresses the "no hierarchy / 视觉上没有
-          // 终点" feedback. `pt-4` on the second-and-later sections
-          // (via space-y/divide) gives breathing room without
-          // re-introducing card chrome.
-          <div className="divide-y divide-divider-subtle">
-            {yearGroups.map((group, index) => (
-              <div
-                key={group.year}
-                className={cn(index === 0 ? 'pb-2' : 'py-2 first:pt-0 last:pb-0')}
-              >
-                <FilingPlanYearSection
-                  group={group}
-                  clientName={clientName}
-                  onOpen={(obligationId) => openObligationDrawer(obligationId)}
-                  onChangeStatus={onChangeStatus}
-                  isStatusChangePending={isStatusChangePending}
-                />
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-    </div>
+    </TabSection>
   )
 }
 
