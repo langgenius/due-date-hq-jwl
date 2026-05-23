@@ -246,6 +246,11 @@ msgstr "{0} 个需要确认"
 msgid "{0} obligations created."
 msgstr "已创建 {0} 个义务。"
 
+#. placeholder {0}: reviewerNames.length
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} on this client"
+msgstr "{0} 人参与该客户"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} open"
@@ -386,12 +391,9 @@ msgstr "{days, plural, other {# 天}}"
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {# 天后} other {# 天后}}"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{days}d"
-msgstr "{days}天"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "{daysAbs}d late"
 msgstr "逾期 {daysAbs} 天"
 
@@ -961,6 +963,10 @@ msgstr "请添加审核说明后重试。"
 msgid "Add a state to at least one client before running obligation preview."
 msgstr "先为至少一个客户添加州信息，再运行义务预览。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Add client facts"
+msgstr "补充客户信息"
+
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
 msgstr "先补充客户事实、filing profiles 和截止日工作，业务提示队列才会有足够信号。"
@@ -978,6 +984,10 @@ msgstr "添加截止日"
 #: src/routes/obligations.tsx
 msgid "Add evidence for {0}"
 msgstr "为 {0} 添加证据"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Add filing state"
+msgstr "添加申报州"
 
 #: src/routes/obligations.tsx
 msgid "Add item"
@@ -3349,6 +3359,7 @@ msgstr "截止日"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "due in {days}d"
 msgstr "{days} 天后到期"
 
@@ -3362,6 +3373,7 @@ msgstr "本周到期"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "今天到期"
@@ -5635,6 +5647,10 @@ msgstr "没有义务符合当前筛选。"
 #: src/routes/obligations.tsx
 msgid "No obligations yet."
 msgstr "No obligations yet."
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "No one assigned"
+msgstr "无负责人"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -9343,6 +9359,7 @@ msgstr "税务年度类型"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -9851,6 +9868,7 @@ msgid "Unable to start Microsoft sign-in"
 msgstr "无法启动 Microsoft 登录"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx

@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { initialsFromName } from '@/lib/auth'
+import { orpc } from '@/lib/rpc'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 
 /**
@@ -144,7 +147,12 @@ export function ClientSummaryStrip({
   if (nextDue) {
     const dueTs = Date.parse(nextDue.currentDueDate)
     const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
-    const daysText = days <= 0 ? t`${days}d` : t`${days}d`
+    // Date format matches what ClientDetailDrawer + ClientPeekHoverCard
+    // already use — `5d late` / `due today` / `due in 12d`. The
+    // earlier `${days}d` form (e.g. `-17d`) read as a math expression,
+    // not a deadline, and was inconsistent with the rest of the app.
+    const daysAbs = Math.abs(days)
+    const daysText = days < 0 ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
     nextDueValue = (
       <span className="flex items-baseline gap-2">
         {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
@@ -162,14 +170,52 @@ export function ClientSummaryStrip({
     nextDueAria = t`Open next-due deadline`
   }
 
-  // Two tiles (Next due / At risk). The earlier 3-tile shape had a
-  // "Team" tile that just counted unique `reviewerUserId`s — weak
-  // signal that didn't tell the CPA who's actually on this client. A
-  // proper owner-avatar treatment is queued separately (see
-  // docs/Design/clients-user-journey-2026-05-22.md "Team / Owner
-  // surfacing" follow-up).
+  // Team derived from open obligations' reviewerUserId set. The
+  // earlier audit removed a Team tile that just counted unique
+  // reviewers (a count of nameless IDs isn't useful); this version
+  // resolves IDs to names via `members.listAssignable` and shows
+  // up to 3 initialed avatars + an "+N" overflow. The query is
+  // cached app-wide (the obligations queue + CreateClientDialog hit
+  // the same endpoint), so the lookup is usually a cache read.
+  const reviewerIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const o of obligations) {
+      if (o.reviewerUserId && !TERMINAL_STATUSES.has(o.status)) {
+        ids.add(o.reviewerUserId)
+      }
+    }
+    return [...ids]
+  }, [obligations])
+
+  const membersQuery = useQuery({
+    ...orpc.members.listAssignable.queryOptions({ input: undefined }),
+    enabled: reviewerIds.length > 0,
+  })
+
+  const reviewerNames = useMemo(() => {
+    if (reviewerIds.length === 0) return []
+    const lookup = new Map<string, string>()
+    for (const m of membersQuery.data ?? []) {
+      lookup.set(m.assigneeId, m.name)
+    }
+    return reviewerIds.map((id) => lookup.get(id) ?? '—').toSorted((a, b) => a.localeCompare(b))
+  }, [reviewerIds, membersQuery.data])
+
+  const teamTone: TileTone = reviewerNames.length === 0 ? 'muted' : 'neutral'
+  const teamValue =
+    reviewerNames.length === 0 ? (
+      <span className="text-base font-medium text-text-tertiary">
+        <Trans>Unassigned</Trans>
+      </span>
+    ) : (
+      <TeamAvatarStack names={reviewerNames} />
+    )
+
   return (
-    <section aria-label={t`Client summary`} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <section
+      aria-label={t`Client summary`}
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+    >
       <TileShell
         tone={nextDueTone}
         value={nextDueValue}
@@ -188,6 +234,70 @@ export function ClientSummaryStrip({
         }
         ariaLabel={t`View at-risk deadlines`}
       />
+      <TileShell
+        tone={teamTone}
+        value={teamValue}
+        label={<Trans>Team</Trans>}
+        ariaLabel={
+          reviewerNames.length === 0
+            ? t`No one assigned`
+            : t`${reviewerNames.length} on this client`
+        }
+      />
     </section>
   )
+}
+
+/**
+ * Up to 3 24px initial avatars + an "+N" pill for the overflow.
+ * Uses the same `initialsFromName` helper as the rest of the app so
+ * "Alex Reyes" reads as `AR` everywhere. Avatars get a stable hash
+ * to a 6-bucket muted palette so two different members never look
+ * identical even though they're both grey-on-grey.
+ */
+function TeamAvatarStack({ names }: { names: readonly string[] }) {
+  const visible = names.slice(0, 3)
+  const overflow = names.length - visible.length
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="inline-flex -space-x-1.5">
+        {visible.map((name) => (
+          <span
+            key={name}
+            title={name}
+            aria-label={name}
+            className={cn(
+              'inline-flex size-6 items-center justify-center rounded-full border border-background-default text-[10px] font-semibold uppercase tracking-tight',
+              TEAM_TINTS[hashTeamMember(name)],
+            )}
+          >
+            {initialsFromName(name)}
+          </span>
+        ))}
+      </span>
+      {overflow > 0 ? (
+        <span className="text-sm font-medium text-text-tertiary tabular-nums">+{overflow}</span>
+      ) : null}
+      {names.length === 1 ? (
+        <span className="truncate text-sm font-medium text-text-primary">{names[0]}</span>
+      ) : null}
+    </span>
+  )
+}
+
+const TEAM_TINTS = [
+  'bg-state-base-hover-alt text-text-secondary',
+  'bg-state-warning-hover text-text-primary',
+  'bg-state-success-hover text-text-primary',
+  'bg-state-destructive-hover text-text-primary',
+  'bg-state-accent-hover-alt text-text-accent',
+  'bg-background-section text-text-secondary',
+]
+
+function hashTeamMember(name: string): number {
+  let hash = 5381
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 33) ^ name.charCodeAt(i)
+  }
+  return Math.abs(hash) % TEAM_TINTS.length
 }

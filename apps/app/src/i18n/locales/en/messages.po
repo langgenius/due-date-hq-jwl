@@ -246,6 +246,11 @@ msgstr "{0} need review"
 msgid "{0} obligations created."
 msgstr "{0} obligations created."
 
+#. placeholder {0}: reviewerNames.length
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} on this client"
+msgstr "{0} on this client"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} open"
@@ -386,12 +391,9 @@ msgstr "{days, plural, one {# day} other {# days}}"
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {in #d} other {in #d}}"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{days}d"
-msgstr "{days}d"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "{daysAbs}d late"
 msgstr "{daysAbs}d late"
 
@@ -961,6 +963,10 @@ msgstr "Add a review note and try again."
 msgid "Add a state to at least one client before running obligation preview."
 msgstr "Add a state to at least one client before running obligation preview."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Add client facts"
+msgstr "Add client facts"
+
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
 msgstr "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
@@ -978,6 +984,10 @@ msgstr "Add deadline"
 #: src/routes/obligations.tsx
 msgid "Add evidence for {0}"
 msgstr "Add evidence for {0}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Add filing state"
+msgstr "Add filing state"
 
 #: src/routes/obligations.tsx
 msgid "Add item"
@@ -3349,6 +3359,7 @@ msgstr "Due dates"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 msgid "due in {days}d"
 msgstr "due in {days}d"
 
@@ -3362,6 +3373,7 @@ msgstr "Due this week"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/routes/obligations.tsx
 msgid "due today"
 msgstr "due today"
@@ -5635,6 +5647,10 @@ msgstr "No obligations match these filters."
 #: src/routes/obligations.tsx
 msgid "No obligations yet."
 msgstr "No obligations yet."
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "No one assigned"
+msgstr "No one assigned"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -9343,6 +9359,7 @@ msgstr "Tax year type"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -9851,6 +9868,7 @@ msgid "Unable to start Microsoft sign-in"
 msgstr "Unable to start Microsoft sign-in"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientSummaryStrip.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx

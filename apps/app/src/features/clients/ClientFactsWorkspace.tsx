@@ -33,6 +33,7 @@ import {
   PlusIcon,
   RefreshCwIcon,
   ScrollTextIcon,
+  SettingsIcon,
   SparklesIcon,
   UsersRoundIcon,
 } from 'lucide-react'
@@ -1435,7 +1436,16 @@ export function ClientDetailWorkspace({
                   ghost slot when ready. Replaces the standalone
                   identity strip that lived below the header. */}
               <span className="inline-flex flex-wrap items-center gap-1.5 align-middle">
-                <Badge variant="info" className="text-xs">
+                {/* Entity badge uses the same `outline` style as
+                    every other place that surfaces entity type
+                    (ClientPeekHoverCard, ClientDetailDrawer,
+                    obligations queue, Create-client dialog). The
+                    `info` variant the H1 row was using was the only
+                    blue-tinted entity chip in the whole app — it
+                    drew attention as a signal, but entity type is
+                    a static identity fact, not a status. Quieted to
+                    match. */}
+                <Badge variant="outline" className="text-xs">
                   {entityLabels[client.entityType]}
                 </Badge>
                 <ClientFilingStateChips client={client} />
@@ -1445,13 +1455,20 @@ export function ClientDetailWorkspace({
                   // target — no wrapping <button> nested in the <h1>
                   // (which caused nested-interactive DOM + an
                   // inconsistent click area in the earlier revision).
+                  //
+                  // 2026-05-23: label reframed from "Needs filing
+                  // state" (which read as an obligation status) to
+                  // "Add filing state" (imperative — clearly an
+                  // action the CPA needs to take on the client's
+                  // setup). SettingsIcon prefix visually anchors
+                  // it as configuration, not in-flight work.
                   <Badge
                     variant="destructive"
                     className="cursor-pointer text-xs"
                     render={<button type="button" onClick={openMissingFacts} />}
                   >
-                    <BadgeStatusDot tone="error" />
-                    <MissingFactsLabel readiness={readiness} />
+                    <SettingsIcon className="size-3" aria-hidden />
+                    <MissingFactsActionLabel readiness={readiness} />
                   </Badge>
                 ) : null}
               </span>
@@ -2831,6 +2848,20 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
     return <Trans>Needs filing state</Trans>
   }
   return <Trans>Needs facts</Trans>
+}
+
+/**
+ * Imperative variant of `MissingFactsLabel`. Used on the detail
+ * header's destructive Badge where the chip is itself an action
+ * (clicking opens the Fix-now sheet). "Add filing state" reads as a
+ * call-to-action; "Needs filing state" reads as a status descriptor
+ * and was being mis-parsed as an obligation status by users.
+ */
+function MissingFactsActionLabel({ readiness }: { readiness: ClientReadiness }) {
+  if (readiness.missingRequiredFacts.includes('state')) {
+    return <Trans>Add filing state</Trans>
+  }
+  return <Trans>Add client facts</Trans>
 }
 
 /**
