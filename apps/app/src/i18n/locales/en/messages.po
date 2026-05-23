@@ -2081,10 +2081,6 @@ msgstr "Client deleted"
 msgid "Client detail"
 msgstr "Client detail"
 
-#: src/routes/obligations.tsx
-msgid "Client docs are in — move to In review so preparation can continue."
-msgstr "Client docs are in — move to In review so preparation can continue."
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "Client email draft copied"
@@ -2320,10 +2316,6 @@ msgstr "Confirm engagement letter on file"
 #: src/routes/obligations.tsx
 msgid "Confirm payment cleared"
 msgstr "Confirm payment cleared"
-
-#: src/routes/obligations.tsx
-msgid "Confirm rejection"
-msgstr "Confirm rejection"
 
 #: src/routes/obligations.tsx
 msgid "Confirm third-party ETA"
@@ -3854,10 +3846,6 @@ msgstr "Extension plan saved"
 msgid "Extension source"
 msgstr "Extension source"
 
-#: src/routes/obligations.tsx
-msgid "External blocker resolved — move to In review."
-msgstr "External blocker resolved — move to In review."
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
 msgid "External client ID"
@@ -5229,10 +5217,6 @@ msgstr "Morning digest preview queued"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
-
-#: src/routes/obligations.tsx
-msgid "Move this row to In review — preparation work has begun."
-msgstr "Move this row to In review — preparation work has begun."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7744,10 +7728,6 @@ msgstr "Retracted"
 msgid "Retry"
 msgstr "Retry"
 
-#: src/routes/obligations.tsx
-msgid "Return has been submitted to the tax authority — awaiting acceptance."
-msgstr "Return has been submitted to the tax authority — awaiting acceptance."
-
 #: src/routes/error.tsx
 msgid "Return home"
 msgstr "Return home"
@@ -9559,14 +9539,6 @@ msgstr "The stored deadline risk view, mainly based on due date pressure, readin
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
 msgstr "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
 
-#: src/routes/obligations.tsx
-msgid "The tax authority confirmed acceptance — advances this row to Completed."
-msgstr "The tax authority confirmed acceptance — advances this row to Completed."
-
-#: src/routes/obligations.tsx
-msgid "The tax authority rejected the e-filed return — unwinds this row back to In review."
-msgstr "The tax authority rejected the e-filed return — unwinds this row back to In review."
-
 #: src/features/concepts/concept-help.tsx
 msgid "The tax facts used when the app needs to calculate penalty context for overdue work."
 msgstr "The tax facts used when the app needs to calculate penalty context for overdue work."
@@ -9662,10 +9634,6 @@ msgstr "This removes the client and deadlines created by this import. Use Client
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."
 msgstr "This removes the clients and deadlines created by this import. Other practice data will not be changed."
-
-#: src/routes/obligations.tsx
-msgid "This row will move from Filed back to In review and an audit-log entry will record the rejection. Use this when the IRS or state has rejected your e-filed submission."
-msgstr "This row will move from Filed back to In review and an audit-log entry will record the rejection. Use this when the IRS or state has rejected your e-filed submission."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule allows an extension."
@@ -9928,10 +9896,6 @@ msgstr "Unknown browser"
 #: src/routes/obligations.tsx
 msgid "Unwind back to In review"
 msgstr "Unwind back to In review"
-
-#: src/routes/obligations.tsx
-msgid "Unwind to In review?"
-msgstr "Unwind to In review?"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"

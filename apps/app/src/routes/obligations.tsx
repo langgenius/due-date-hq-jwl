@@ -3701,38 +3701,14 @@ export function ObligationQueueDetailDrawer({
             />
           </div>
         ) : null}
-        {row ? (
-          /*
-           * Contextual action row — primary forward + (where it
-           * applies) a recovery action. Surfaces ONE canonical next
-           * step per status so the CPA never has to translate
-           * "what's the most common next move?" into a dropdown pick:
-           *
-           *   pending            → Start preparation        → review
-           *   waiting_on_client  → Mark docs received       → review
-           *   blocked            → Mark unblocked           → review
-           *   in_progress|review|extended → Mark filed      → done
-           *   done|paid          → Confirm authority acceptance → completed
-           *   completed|not_applicable → no button (terminal-ish; status pill
-           *                              dropdown still handles re-activation)
-           *
-           * For the special done/paid case the recovery action
-           * (Record authority rejection) sits adjacent — that's the
-           * one state where two verdicts are equally common.
-           */
-          <ObligationDrawerStatusActions
-            row={row}
-            lifecycleV2={lifecycleV2}
-            changeStatusPending={changeStatusMutation.isPending}
-            markAcceptedPending={markAcceptedMutation.isPending}
-            markFiledRejectedPending={markFiledRejectedMutation.isPending}
-            onChangeStatus={(status) => changeStatusMutation.mutate({ id: row.id, status })}
-            onConfirmAcceptance={() =>
-              markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-            }
-            onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
-          />
-        ) : null}
+        {/* 2026-05-23: dropped the canonical-forward-action row
+            (`ObligationDrawerStatusActions`) per critique. The
+            interactive `ObligationQueueStatusControl` chip above
+            already exposes every valid transition with one click;
+            adding a second forward-action button below it created
+            redundant affordances ("Start preparation" + "pending →
+            review" picker dropdown both go to the same place).
+            Status pill is the single source of truth now. */}
       </header>
       {/* Body — in panel mode the aside has fixed height, so this
           inner div owns the scrolling. That lets the snapshot block
@@ -5490,158 +5466,6 @@ function formatTaxPeriod(start: string | null | undefined, end: string | null | 
     return startYear
   }
   return `${formatDate(startIso)} – ${formatDate(endIso)}`
-}
-
-// Per-status forward action that surfaces in the obligation drawer
-// header. One opinionated "what's next?" button per mutable state —
-// the dropdown on the status pill still handles every legal
-// transition; this surface highlights the most common one so the
-// CPA doesn't have to translate "what's the canonical next step
-// from this status?" into a dropdown pick.
-type DrawerForwardAction = {
-  label: string
-  tooltip: string
-  nextStatus: ObligationStatus
-}
-
-function ObligationDrawerStatusActions({
-  row,
-  lifecycleV2,
-  changeStatusPending,
-  markAcceptedPending,
-  markFiledRejectedPending,
-  onChangeStatus,
-  onConfirmAcceptance,
-  onRecordRejection,
-}: {
-  row: ObligationQueueRow
-  lifecycleV2: boolean
-  changeStatusPending: boolean
-  markAcceptedPending: boolean
-  markFiledRejectedPending: boolean
-  onChangeStatus: (status: ObligationStatus) => void
-  onConfirmAcceptance: () => void
-  onRecordRejection: () => void
-}) {
-  const { t } = useLingui()
-  // Pre-v2 status taxonomy uses different state names + transition
-  // rules. Keep the v2-only forward buttons gated; legacy users
-  // still get the interactive pill above to drive transitions.
-  if (!lifecycleV2) return null
-  const forward: DrawerForwardAction | null = (() => {
-    switch (row.status) {
-      case 'pending':
-        return {
-          label: t`Start preparation`,
-          tooltip: t`Move this row to In review — preparation work has begun.`,
-          nextStatus: 'review',
-        }
-      case 'waiting_on_client':
-        return {
-          label: t`Mark docs received`,
-          tooltip: t`Client docs are in — move to In review so preparation can continue.`,
-          nextStatus: 'review',
-        }
-      case 'blocked':
-        return {
-          label: t`Mark unblocked`,
-          tooltip: t`External blocker resolved — move to In review.`,
-          nextStatus: 'review',
-        }
-      case 'in_progress':
-      case 'review':
-      case 'extended':
-        return {
-          label: t`Mark filed`,
-          tooltip: t`Return has been submitted to the tax authority — awaiting acceptance.`,
-          nextStatus: 'done',
-        }
-      // done / paid use the dedicated markAcceptedMutation below
-      // because the toast copy + audit semantics differ. Handled
-      // outside this map.
-      case 'done':
-      case 'paid':
-      case 'completed':
-      case 'not_applicable':
-      default:
-        return null
-    }
-  })()
-  const isDoneLike = row.status === 'done' || row.status === 'paid'
-  if (!forward && !isDoneLike) return null
-  return (
-    <div className="mt-1 flex flex-wrap items-center gap-2">
-      {forward ? (
-        <Button
-          size="sm"
-          onClick={() => onChangeStatus(forward.nextStatus)}
-          disabled={changeStatusPending}
-          title={forward.tooltip}
-        >
-          <CheckCircle2Icon aria-hidden="true" />
-          {forward.label}
-        </Button>
-      ) : null}
-      {isDoneLike ? (
-        <>
-          {/* Forward action for done/paid — records that the tax
-              authority accepted the e-filing (or that payment
-              cleared), advancing the row from Filed → Completed.
-              Uses a dedicated mutation with bespoke audit/toast
-              semantics (vs. the generic onChangeStatus path above). */}
-          <Button
-            size="sm"
-            onClick={onConfirmAcceptance}
-            disabled={markAcceptedPending}
-            title={t`The tax authority confirmed acceptance — advances this row to Completed.`}
-          >
-            <CheckCircle2Icon aria-hidden="true" />
-            <Trans>Confirm authority acceptance</Trans>
-          </Button>
-          <Popover>
-            <PopoverTrigger
-              render={
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={markFiledRejectedPending}
-                  title={t`The tax authority rejected the e-filed return — unwinds this row back to In review.`}
-                  className="text-text-secondary"
-                >
-                  <AlertTriangleIcon aria-hidden="true" />
-                  <Trans>Record authority rejection</Trans>
-                </Button>
-              }
-            />
-            <PopoverContent className="w-80" align="start">
-              <PopoverHeader>
-                <PopoverTitle>
-                  <Trans>Unwind to In review?</Trans>
-                </PopoverTitle>
-              </PopoverHeader>
-              <p className="text-xs leading-snug text-text-secondary">
-                <Trans>
-                  This row will move from Filed back to In review and an audit-log entry will record
-                  the rejection. Use this when the IRS or state has rejected your e-filed
-                  submission.
-                </Trans>
-              </p>
-              <div className="mt-3 flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={onRecordRejection}
-                  disabled={markFiledRejectedPending}
-                >
-                  <Trans>Confirm rejection</Trans>
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </>
-      ) : null}
-    </div>
-  )
 }
 
 // FlatDateList — every date on the row, always visible. Reverted

@@ -125,7 +125,6 @@ import { SectionFrame, SectionLabel } from '@/features/rules/rules-console-primi
 
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
-import { ClientCycleArrows } from './ClientCycleArrows'
 import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientPeekHoverCard } from './ClientPeekHoverCard'
 import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
@@ -1479,13 +1478,15 @@ export function ClientDetailWorkspace({
             entityType: client.entityType,
             taxClassification: client.taxClassification,
           })}
-          // Cycle arrows are page-level navigation (move between
-          // clients in the filtered list), NOT client actions. Putting
-          // them next to Archive / Add deadline made the destructive-
-          // action cluster feel busy and gave the chevrons accidental
-          // visual weight. They live in the eyebrow row now — same
-          // tier as the breadcrumb / back-link, opposite side.
-          eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
+          // 2026-05-23: dropped ClientCycleArrows entirely per
+          // critique ("remove first"). The prev/next chevrons +
+          // position counter took space on every client detail page
+          // for a workflow CPAs rarely used. The component file
+          // (./ClientCycleArrows.tsx) is left in place — keyboard
+          // j/k cycling lives inside it, and we may reintroduce
+          // the visual control later in a different surface (e.g.
+          // a peek dropdown). Removing the import + render here is
+          // enough to drop it from this header.
           actions={
             <>
               <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />

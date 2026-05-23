@@ -2081,10 +2081,6 @@ msgstr "客户已删除"
 msgid "Client detail"
 msgstr "客户详情"
 
-#: src/routes/obligations.tsx
-msgid "Client docs are in — move to In review so preparation can continue."
-msgstr "客户资料已到 — 请转入「复核中」以便继续准备。"
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "客户邮件草稿已复制"
@@ -2320,10 +2316,6 @@ msgstr "确认业务约定书已存档"
 #: src/routes/obligations.tsx
 msgid "Confirm payment cleared"
 msgstr "确认税款已到账"
-
-#: src/routes/obligations.tsx
-msgid "Confirm rejection"
-msgstr "确认拒绝"
 
 #: src/routes/obligations.tsx
 msgid "Confirm third-party ETA"
@@ -3854,10 +3846,6 @@ msgstr "延期计划已保存"
 msgid "Extension source"
 msgstr "延期来源"
 
-#: src/routes/obligations.tsx
-msgid "External blocker resolved — move to In review."
-msgstr "外部阻塞已解除 — 请转入「复核中」。"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
 msgid "External client ID"
@@ -5229,10 +5217,6 @@ msgstr "Morning digest 预览已排队"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "早间摘要的发送时间，以及 DueDateHQ 用来联系你的渠道。"
-
-#: src/routes/obligations.tsx
-msgid "Move this row to In review — preparation work has begun."
-msgstr "将此行转入「复核中」 — 准备工作已开始。"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7744,10 +7728,6 @@ msgstr "已撤回"
 msgid "Retry"
 msgstr "重试"
 
-#: src/routes/obligations.tsx
-msgid "Return has been submitted to the tax authority — awaiting acceptance."
-msgstr "申报表已提交至税务机关 — 等待接受。"
-
 #: src/routes/error.tsx
 msgid "Return home"
 msgstr "返回首页"
@@ -9559,14 +9539,6 @@ msgstr "已保存的截止日风险视图，主要基于截止日压力、准备
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
 msgstr "系统发现了一个可能的截止日，但必须由 CPA、Owner 或 Manager 确认后才会视为最终结果。"
 
-#: src/routes/obligations.tsx
-msgid "The tax authority confirmed acceptance — advances this row to Completed."
-msgstr "税务机关已确认接受 — 此行将进入「已完成」状态。"
-
-#: src/routes/obligations.tsx
-msgid "The tax authority rejected the e-filed return — unwinds this row back to In review."
-msgstr "税务机关拒绝了电子申报 — 此行将回退到「复核中」。"
-
 #: src/features/concepts/concept-help.tsx
 msgid "The tax facts used when the app needs to calculate penalty context for overdue work."
 msgstr "当应用需要为逾期工作计算罚金上下文时使用的税务事实。"
@@ -9662,10 +9634,6 @@ msgstr "这会移除此导入创建的客户和截止日。请改用“客户”
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."
 msgstr "这会移除此导入创建的客户和截止日。其他事务所数据不会被更改。"
-
-#: src/routes/obligations.tsx
-msgid "This row will move from Filed back to In review and an audit-log entry will record the rejection. Use this when the IRS or state has rejected your e-filed submission."
-msgstr "此行将从「已申报」回到「复核中」,审计日志将记录此次拒绝。当 IRS 或州税务机关拒绝您的电子申报时使用此操作。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This rule allows an extension."
@@ -9928,10 +9896,6 @@ msgstr "未知浏览器"
 #: src/routes/obligations.tsx
 msgid "Unwind back to In review"
 msgstr "回退到「复核中」"
-
-#: src/routes/obligations.tsx
-msgid "Unwind to In review?"
-msgstr "回退到「复核中」?"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
