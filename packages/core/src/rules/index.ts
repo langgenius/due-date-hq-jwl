@@ -5531,7 +5531,7 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   ].join('\n'),
   'AR:individual_estimated_tax': [
     'Arkansas AR1000ES is required when the taxpayer can reasonably expect estimated tax to be more than $1,000.',
-    'For tax year 2025, AR1000ES Voucher 1 is due April 15, 2025; Voucher 2 is due June 15, 2025; Voucher 3 is due September 15, 2025; Voucher 4 is due January 15, 2026.',
+    'AR1000ES vouchers are generally due April 15, June 15, September 15, and January 15.',
     'If an AR1000ES voucher due date falls on a Saturday, Sunday, or legal holiday, it is timely if postmarked on the next business day.',
   ].join('\n'),
   'AR:fiduciary_income_return': [
@@ -5541,32 +5541,32 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Interest is charged on taxes not paid by the due date even when a filing extension is granted.',
   ].join('\n'),
   'AR:business_income_return': [
-    'Arkansas corporate income tax returns are due the 15th day of the fourth month following the end of the tax year.',
-    'Arkansas Form AR1100CT extensions extend the time to file, but tax must be paid in full by the original return due date.',
+    'Arkansas corporation income tax returns are due the 15th day of the fourth month following the end of the tax year.',
+    'Arkansas Form AR1100CT extensions extend the filing window, but tax must be paid in full by the original return due date.',
   ].join('\n'),
   'AR:business_estimated_tax': [
     'Arkansas corporations expecting to owe income tax over $1,000 must make a declaration and timely pay estimated tax in equal installments.',
     'Non-farm corporate estimated tax installments are due on the 15th day of the 4th, 6th, 9th, and 12th months of the tax year.',
   ].join('\n'),
   'AR:pass_through_entity_return': [
-    'Arkansas elective pass-through entity tax applies to eligible partnerships, Sub-S corporations, and LLCs and is not available to C corporations, trusts, sole proprietorships, or LLCs taxed as C corporations.',
+    'Arkansas elective pass-through entity tax applies to eligible partnerships and LLCs and S-corporations.',
     'The Arkansas PET due date is April 15 for calendar-year filers.',
   ].join('\n'),
   'AR:franchise_or_entity_tax': [
     'Arkansas Secretary of State franchise tax and annual reports apply to corporations, LLCs, banks, and insurance companies registered in Arkansas.',
-    'Arkansas franchise tax filing is due on or before May 1 to avoid penalties.',
+    'Arkansas franchise tax filing is generally due on or before May 1.',
   ].join('\n'),
   'AR:sales_use_tax': [
-    'Arkansas DFA 2026 Sales and Use Tax due dates list monthly reports for the previous month on January 20, February 20, March 20, April 20, May 20, June 22, July 20, August 20, September 21, October 20, November 20, and December 21.',
-    'The 2026 due-date page also lists first and second sales and use tax prepayment dates by month.',
+    '2026 Sales and Use Tax due dates list filing frequencies and reporting periods for monthly, quarterly, and annual filing.',
+    'Monthly and quarterly sales and use tax reports are typically filed around the 20th day of the month after the reporting period.',
   ].join('\n'),
   'AR:withholding': [
-    'Arkansas withholding instructions require employers to furnish Forms W-2 and 1099 by January 31.',
-    'Form AR3MAR, Employer Annual Reconciliation of Income Tax Withheld, is due February 28 with any tax due for the prior calendar year.',
+    'Arkansas employer withholding instructions govern when income tax withheld is returned and reconciled.',
+    'Form AR3MAR, Employer Annual Reconciliation of Income Tax Withheld, is used for annual employer filing and payment.',
     'If a withholding due date falls on a Saturday, Sunday, or legal holiday, the return is timely if postmarked on the next business day.',
   ].join('\n'),
   'AR:ui_wage_report': [
-    'Arkansas employers report total wages paid to all employees in the quarter unless specifically excluded by law.',
+    'Arkansas employers report total wages paid to all employees in the quarterly report.',
     'Arkansas unemployment tax payments are remitted with the quarterly report and are delinquent if not postmarked or received by the last day of the month following the close of the calendar quarter.',
   ].join('\n'),
   'DC:individual_income_return': [
@@ -5770,8 +5770,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Pennsylvania PA-40 returns must be filed before midnight on April 15 or the next business day if April 15 falls on a Saturday, Sunday, or IRS recognized holiday.',
   ].join('\n'),
   'PA:individual_estimated_tax': [
-    'Pennsylvania estimated personal income tax payments are generally due April 15, June 15, September 15, and January 15.',
-    'The Pennsylvania estimated tax payment table states that the due date moves to the next business day if the due date falls on a Saturday, Sunday, or holiday.',
+    'Pennsylvania estimated personal income tax payments for individual taxpayers are generally due April 15, June 15, September 15, and January 15.',
+    'The Pennsylvania estimated tax table adjusts due dates to the next business day when a due date falls on a weekend or legal holiday.',
   ].join('\n'),
   'RI:individual_income_return': [
     'Rhode Island income tax returns will be considered timely filed if postmarked by Wednesday, April 15, 2026.',
@@ -5976,8 +5976,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Extension  | Seven months extension',
   ].join('\n'),
   'TN:business_estimated_tax': [
-    'Quarterly estimated payments are generally due on the 15th day of the fourth, sixth, and ninth months of the current tax year.',
-    'For 2026 Tennessee franchise and excise estimated payments, calendar-year taxpayers pay in April, June, September, and January.',
+    'The Tennessee franchise and excise tax guide states estimated installments are due on the 15th day of the fourth, sixth, and ninth months of the current tax year.',
+    'For calendar-year taxpayers, the annual payment is due on the 15th day of the first month of the next tax year.',
   ].join('\n'),
   'TN:franchise_or_entity_tax': [
     'Annual  | 15th day of the fourth month following the close of your books and records.',

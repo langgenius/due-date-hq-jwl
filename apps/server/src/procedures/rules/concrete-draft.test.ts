@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isUsableConcreteDraftOfficialSourceText,
   normalizeRuleConcreteDraftAiOutput,
+  sourceTextContainsExcerpt,
   ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
 } from './concrete-draft'
@@ -469,5 +470,32 @@ describe('rule concrete draft normalization', () => {
       day: 15,
       holidayRollover: 'next_business_day',
     })
+  })
+
+  it('matches short excerpts when date wording differs (April 15 vs 4/15)', () => {
+    expect(
+      sourceTextContainsExcerpt(
+        'Your estimated tax payment is due on 4/15/26 for the first quarter.',
+        'Payment is due on April 15',
+      ),
+    ).toBe(true)
+  })
+
+  it('does not match short excerpts with no date or due/filing anchors', () => {
+    expect(
+      sourceTextContainsExcerpt(
+        'This state tracks many unrelated compliance topics and forms.',
+        'the source says this',
+      ),
+    ).toBe(false)
+  })
+
+  it('keeps strict matching for long, unrelated excerpts', () => {
+    expect(
+      sourceTextContainsExcerpt(
+        'Individual returns are filed by April 15.',
+        'The office opened on a different date at a different address',
+      ),
+    ).toBe(false)
   })
 })

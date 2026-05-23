@@ -330,14 +330,73 @@ export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): 
   const normalizedExcerpt = normalizeExcerptText(excerpt)
   if (normalizedSource.includes(normalizedExcerpt)) return true
 
-  const sourceTokens = new Set(normalizedSource.match(/[a-z0-9]+/g) ?? [])
-  const excerptTokens = Array.from(new Set(normalizedExcerpt.match(/[a-z0-9]+/g) ?? [])).filter(
-    (token) => token.length > 2,
+  const sourceDateCodes = new Set(extractComparableDateCodes(normalizedSource))
+  const excerptDateCodes = extractComparableDateCodes(normalizedExcerpt)
+  if (excerptDateCodes.length > 0 && excerptDateCodes.every((code) => sourceDateCodes.has(code))) {
+    return true
+  }
+
+  const sourceTokens = new Set(
+    normalizedSource
+      .match(/[a-z0-9]+/g)
+      ?.map((token) => token.toLowerCase())
+      ?.filter((token) => token.length > 2) ?? [],
   )
-  if (excerptTokens.length < 4) return false
+  const excerptTokens = Array.from(
+    new Set(
+      normalizedExcerpt
+        .match(/[a-z0-9]+/g)
+        ?.map((token) => token.toLowerCase())
+        ?.filter((token) => token.length > 1) ?? [],
+    ),
+  )
+  if (excerptTokens.length === 0) return false
+
+  const hasNumericExcerptToken = excerptTokens.some((token) => /\d/.test(token))
+  const hasExcerptAnchor =
+    /(due|deadline|return|payment|filing|tax|filer|withholding|wage|installment|due-date)/i.test(
+      normalizedExcerpt,
+    )
+  if (excerptTokens.length < 4 && !hasNumericExcerptToken && !hasExcerptAnchor) return false
 
   const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
-  return hitCount / excerptTokens.length >= 0.85
+  const threshold = excerptTokens.length <= 3 ? 1 : 0.85
+  return hitCount / excerptTokens.length >= threshold
+}
+
+function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean {
+  return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
+}
+
+function extractComparableDateCodes(value: string): string[] {
+  const normalized = normalizeExcerptText(value)
+  const codes = new Set<string>()
+
+  for (const match of normalized.matchAll(MONTH_DAY_RE)) {
+    const monthName = match[1]?.toLowerCase()
+    const day = Number(match[2])
+    const month = monthName ? MONTH_NAMES[monthName] : null
+    if (!month || !Number.isFinite(day)) continue
+    codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
+  }
+
+  for (const match of normalized.matchAll(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g)) {
+    const month = Number(match[1])
+    const day = Number(match[2])
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
+    }
+  }
+
+  for (const match of normalized.matchAll(/\b(\d{2,4})-(\d{1,2})-(\d{1,2})\b/g)) {
+    const month = Number(match[2])
+    const day = Number(match[3])
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      codes.add(`${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`)
+    }
+  }
+
+  return Array.from(codes)
 }
 
 function validateConcreteDueDateLogic(input: {
@@ -371,7 +430,7 @@ export function validateConcreteRuleDraft(input: {
   const dueDateError = validateConcreteDueDateLogic(input)
   if (dueDateError) return dueDateError
 
-  if (SOURCE_WATCH_PLACEHOLDER_RE.test(input.sourceExcerpt)) {
+  if (isSourceWatchTemplateExcerpt(input.sourceExcerpt)) {
     return 'AI source excerpt used source-watch metadata instead of official source text.'
   }
 
@@ -572,7 +631,7 @@ export async function buildConcreteDraftSourceText(input: {
     .filter(
       (evidence) =>
         evidence.sourceId === input.source.id &&
-        !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt),
+        !isSourceWatchTemplateExcerpt(evidence.sourceExcerpt),
     )
     .map((evidence) =>
       [
@@ -695,13 +754,18 @@ export function concreteDraftAiInput(input: {
           },
         }
       : {}),
-    sourceText: selectConcreteDraftSourceText(input.base, input.sourceText),
+    sourceText: selectConcreteDraftSourceText(input.base, input.source.id, input.sourceText),
   }
 }
 
-function selectConcreteDraftSourceText(base: CoreObligationRule, sourceText: string): string {
+function selectConcreteDraftSourceText(
+  base: CoreObligationRule,
+  sourceId: string,
+  sourceText: string,
+): string {
   const hasSourceBackedEvidence = base.evidence.some(
-    (evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt),
+    (evidence) =>
+      evidence.sourceId === sourceId && !isSourceWatchTemplateExcerpt(evidence.sourceExcerpt),
   )
   if (sourceText.length <= MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS && !hasSourceBackedEvidence) {
     return sourceText
@@ -837,6 +901,7 @@ export async function generateConcreteDraft(input: {
         sourceUrl: input.source.url,
         sourceSignalId: input.sourceSignal?.id ?? null,
         sourceExcerpt: null,
+        sourceText: sourceText,
       },
       errorMsg: 'Official source text could not be fetched for the selected source.',
     })
@@ -917,6 +982,7 @@ export async function generateConcreteDraft(input: {
       sourceUrl: input.source.url,
       sourceSignalId: input.sourceSignal?.id ?? null,
       sourceExcerpt: draft?.sourceExcerpt ?? null,
+      sourceText,
     },
     errorMsg: aiResult.refusal?.message ?? normalized.error ?? guardError,
   })

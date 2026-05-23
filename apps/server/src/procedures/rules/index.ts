@@ -43,11 +43,9 @@ import { requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
-  buildConcreteDraftSourceText,
   cachedConcreteDraftKey,
   generateConcreteDraft,
   parseCachedConcreteDraft,
-  requireConcreteDraftSourceText as requireConcreteDraftSourceTextValue,
   RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
   RULE_CONCRETE_DRAFT_PROMPT,
   validateConcreteRuleDraft,
@@ -1518,9 +1516,35 @@ function skipConcreteDraftSelection(
 }
 
 function concreteDraftSourceSignalId(run: AiOutputRow): string | null {
-  if (typeof run.citations !== 'object' || run.citations === null) return null
-  const sourceSignalId = (run.citations as { sourceSignalId?: unknown }).sourceSignalId
+  const citations = parseConcreteDraftRunCitations(run)
+  if (!citations) return null
+  const sourceSignalId = citations.sourceSignalId
   return typeof sourceSignalId === 'string' && sourceSignalId.length > 0 ? sourceSignalId : null
+}
+
+function parseConcreteDraftRunCitations(run: AiOutputRow): Record<string, unknown> | null {
+  if (!isRecord(run.citations)) return null
+  return run.citations
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function parseNullableString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value : null
+}
+
+function concreteDraftSourceTextFromRun(run: AiOutputRow): string | null {
+  const citations = parseConcreteDraftRunCitations(run)
+  return parseNullableString(citations?.sourceText)
+}
+
+function missingConcreteDraftSourceTextError(): never {
+  throw new ORPCError('BAD_REQUEST', {
+    message:
+      'AI concrete draft source text was not found. Please regenerate this draft before accepting.',
+  })
 }
 
 function toConcreteDraftRule(input: {
@@ -1575,30 +1599,27 @@ function toConcreteDraftRule(input: {
 
 async function loadConcreteDraftSourceText(input: {
   context: RpcContext
-  base: CoreObligationRule
   source: ReturnType<typeof listRuleSources>[number]
   sourceSignal: CandidateSourceSignal
+  contextRef: string
+  aiOutputId?: string
+  cachedRun?: AiOutputRow
 }): Promise<string> {
   const { scoped } = requireTenant(input.context)
-  const latestSourceSnapshot = await scoped.pulse.getLatestSourceSnapshotBySourceId(input.source.id)
-  try {
-    return requireConcreteDraftSourceTextValue(
-      await buildConcreteDraftSourceText({
-        env: input.context.env,
-        base: input.base,
-        source: input.source,
-        sourceSignal: input.sourceSignal,
-        latestSourceSnapshot,
-      }),
-    )
-  } catch (error) {
-    throw new ORPCError('BAD_REQUEST', {
-      message:
-        error instanceof Error
-          ? error.message
-          : 'Official source text could not be fetched for the selected source.',
-    })
-  }
+  const cachedText = input.cachedRun ? concreteDraftSourceTextFromRun(input.cachedRun) : null
+  if (cachedText) return cachedText
+
+  const { allRuns } = await findConcreteDraftRuns({
+    scoped,
+    inputContextRefs: [input.contextRef],
+  })
+  const matchingRun = input.aiOutputId
+    ? allRuns.find((run) => run.id === input.aiOutputId)
+    : allRuns.find((run) => run.inputContextRef === input.contextRef)
+  const matchText = matchingRun ? concreteDraftSourceTextFromRun(matchingRun) : null
+  if (matchText) return matchText
+
+  return missingConcreteDraftSourceTextError()
 }
 
 async function loadLatestSourceSnapshot(input: { context: RpcContext; sourceId: string }) {
@@ -1654,7 +1675,19 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     sourceId: input.sourceId,
     ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
-  const sourceText = await loadConcreteDraftSourceText({ context, base, source, sourceSignal })
+  const contextRef = cachedConcreteDraftKey({
+    ruleId: base.id,
+    ruleVersion: base.version,
+    sourceId: source.id,
+    sourceSignalId: sourceSignal?.id ?? null,
+  })
+  const sourceText = await loadConcreteDraftSourceText({
+    context,
+    source,
+    sourceSignal: sourceSignal,
+    contextRef,
+    ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
+  })
   const validationError = validateConcreteRuleDraft({
     rule: base,
     dueDateLogic: input.dueDateLogic,
@@ -1811,9 +1844,11 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         })
         sourceText = await loadConcreteDraftSourceText({
           context,
-          base,
           source: sourceContext.source,
           sourceSignal: sourceContext.sourceSignal,
+          contextRef,
+          ...(selection.aiOutputId ? { aiOutputId: selection.aiOutputId } : {}),
+          cachedRun: cachedRun,
         })
       } catch {
         return skipConcreteDraftSelection(selection, 'validation_failed')

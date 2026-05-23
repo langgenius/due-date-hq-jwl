@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { generateText } from '../packages/ai/node_modules/ai/dist/index.mjs'
 import { createAiGateway } from '../packages/ai/node_modules/ai-gateway-provider/dist/index.mjs'
 import { createOpenRouter } from '../packages/ai/node_modules/ai-gateway-provider/dist/providers/openrouter.mjs'
+import { SOURCE_WATCH_PLACEHOLDER_RE } from '../apps/server/src/procedures/rules/source-text'
 import { findRuleById, listRuleSources } from '../packages/core/src/rules/index'
 import type { AiOutputRow } from '../packages/ports/src/ai'
 import {
@@ -266,6 +267,7 @@ async function generateStructuredLocalDraftWithText(input: {
     input.source.url,
     ...input.base.evidence
       .filter((evidence) => evidence.sourceId === input.source.id)
+      .filter((evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt))
       .map((evidence) => evidence.sourceExcerpt),
   ].join('\n')
   const aiInput = concreteDraftAiInput({
@@ -357,6 +359,7 @@ async function generateStructuredLocalDraftWithText(input: {
       sourceUrl: input.source.url,
       sourceSignalId: null,
       sourceExcerpt: parsed.sourceExcerpt,
+      sourceText,
     },
   })
   return recorded.aiOutputId
