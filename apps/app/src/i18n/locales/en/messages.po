@@ -46,16 +46,6 @@ msgstr "{0, plural, one {# client} other {# clients}}"
 msgid "{0, plural, one {# day late} other {# days late}}"
 msgstr "{0, plural, one {# day late} other {# days late}}"
 
-#. placeholder {0}: -row.daysUntilDue
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# day past due} other {# days past due}}"
-msgstr "{0, plural, one {# day past due} other {# days past due}}"
-
-#. placeholder {0}: row.daysUntilDue
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# day until due} other {# days until due}}"
-msgstr "{0, plural, one {# day until due} other {# days until due}}"
-
 #. placeholder {0}: obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
@@ -3374,7 +3364,6 @@ msgstr "Due this week"
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
-#: src/routes/obligations.tsx
 msgid "due today"
 msgstr "due today"
 
@@ -9752,10 +9741,6 @@ msgstr "today"
 msgid "Today"
 msgstr "Today"
 
-#: src/routes/obligations.tsx
-msgid "Today {todayIso}"
-msgstr "Today {todayIso}"
-
 #: src/routes/billing.tsx
 msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
@@ -10372,10 +10357,6 @@ msgstr "XLSX or CSV"
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX or IIF"
 msgstr "XLSX or IIF"
-
-#: src/routes/obligations.tsx
-msgid "Year timeline"
-msgstr "Year timeline"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

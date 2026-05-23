@@ -46,16 +46,6 @@ msgstr "{0, plural, one {# 个客户} other {# 个客户}}"
 msgid "{0, plural, one {# day late} other {# days late}}"
 msgstr "{0, plural, other {逾期 # 天}}"
 
-#. placeholder {0}: -row.daysUntilDue
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# day past due} other {# days past due}}"
-msgstr "{0, plural, other {逾期 # 天}}"
-
-#. placeholder {0}: row.daysUntilDue
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# day until due} other {# days until due}}"
-msgstr "{0, plural, other {还有 # 天到期}}"
-
 #. placeholder {0}: obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
@@ -3374,7 +3364,6 @@ msgstr "本周到期"
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/clients/ClientSummaryStrip.tsx
-#: src/routes/obligations.tsx
 msgid "due today"
 msgstr "今天到期"
 
@@ -9752,10 +9741,6 @@ msgstr "今天"
 msgid "Today"
 msgstr "今天"
 
-#: src/routes/obligations.tsx
-msgid "Today {todayIso}"
-msgstr "今天 {todayIso}"
-
 #: src/routes/billing.tsx
 msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
@@ -10372,10 +10357,6 @@ msgstr "XLSX 或 CSV"
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX or IIF"
 msgstr "XLSX 或 IIF"
-
-#: src/routes/obligations.tsx
-msgid "Year timeline"
-msgstr "年度时间线"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

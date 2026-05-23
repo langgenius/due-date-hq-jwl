@@ -5644,187 +5644,6 @@ function ObligationDrawerStatusActions({
   )
 }
 
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value))
-}
-
-// LifecycleTimeline (Direction B, fixed bounds 2026-05-21) — plots
-// every relevant date on a horizontal strip. Earlier version bounded
-// the strip by `taxPeriodStart`/`taxPeriodEnd`, but lifecycle dates
-// (filed, due, today) typically fall AFTER the period ends — the
-// strip became useless because everything clamped to the right edge.
-//
-// New bounds: min/max of every date on the row + today, with a
-// 30-day minimum span and 10% padding on each side. The strip now
-// always frames the obligation's actual lifecycle — created → due →
-// filed → today → upcoming acceptance — instead of an arbitrary tax
-// year that the lifecycle outgrew.
-function YearStripTimeline({ row }: { row: ObligationQueueRow }) {
-  const { t } = useLingui()
-  const todayIso = new Date().toISOString().slice(0, 10)
-  // Gather every date that matters to the row's lifecycle.
-  const dateCandidates: string[] = [
-    row.createdAt.slice(0, 10),
-    row.updatedAt.slice(0, 10),
-    row.currentDueDate,
-    row.baseDueDate,
-    todayIso,
-  ]
-  if (row.filingDueDate) dateCandidates.push(row.filingDueDate)
-  if (row.paymentDueDate) dateCandidates.push(row.paymentDueDate)
-  if (row.efileSubmittedAt) dateCandidates.push(row.efileSubmittedAt.slice(0, 10))
-  if (row.efileAcceptedAt) dateCandidates.push(row.efileAcceptedAt.slice(0, 10))
-  if (row.efileRejectedAt) dateCandidates.push(row.efileRejectedAt.slice(0, 10))
-  const datesMs = dateCandidates.map((d) => new Date(`${d}T00:00:00`).getTime())
-  const dataMin = Math.min(...datesMs)
-  const dataMax = Math.max(...datesMs)
-  const dataSpan = Math.max(1, dataMax - dataMin)
-  // 30-day minimum so tight lifecycles (created today, filed today)
-  // don't collapse the strip to zero width; 10% padding on each side
-  // keeps edge markers from sitting flush against the labels.
-  const MIN_SPAN_MS = 30 * 24 * 60 * 60 * 1000
-  let startMs: number
-  let endMs: number
-  if (dataSpan < MIN_SPAN_MS) {
-    const center = (dataMin + dataMax) / 2
-    startMs = center - MIN_SPAN_MS / 2
-    endMs = center + MIN_SPAN_MS / 2
-  } else {
-    const pad = dataSpan * 0.1
-    startMs = dataMin - pad
-    endMs = dataMax + pad
-  }
-  const periodStartIso = new Date(startMs).toISOString().slice(0, 10)
-  const periodEndIso = new Date(endMs).toISOString().slice(0, 10)
-  const span = Math.max(1, endMs - startMs)
-  const pctOf = (iso: string) =>
-    clamp01((new Date(`${iso.slice(0, 10)}T00:00:00`).getTime() - startMs) / span) * 100
-  const todayPct = pctOf(todayIso)
-  const isOverdue = row.daysUntilDue < 0
-  // Collect marker positions. Dedupe by date so dots that coincide
-  // collapse into one. The PRIMARY marker is whichever date is the
-  // current operational deadline (currentDueDate). Other dates render
-  // as muted dots with a hover tooltip.
-  type Marker = {
-    key: string
-    pct: number
-    iso: string
-    label: string
-    primary?: boolean
-  }
-  const seen = new Map<string, Marker>()
-  const push = (m: Marker) => {
-    const existing = seen.get(m.iso)
-    if (!existing) seen.set(m.iso, m)
-    else if (m.primary && !existing.primary) seen.set(m.iso, { ...existing, ...m })
-    else seen.set(m.iso, { ...existing, label: `${existing.label} · ${m.label}` })
-  }
-  push({
-    key: 'internal',
-    pct: pctOf(row.currentDueDate),
-    iso: row.currentDueDate,
-    label: t`Internal due`,
-    primary: true,
-  })
-  push({
-    key: 'statutory',
-    pct: pctOf(row.baseDueDate),
-    iso: row.baseDueDate,
-    label: t`Statutory`,
-  })
-  if (row.filingDueDate) {
-    push({
-      key: 'filing',
-      pct: pctOf(row.filingDueDate),
-      iso: row.filingDueDate,
-      label: t`Filing`,
-    })
-  }
-  if (row.paymentDueDate) {
-    push({
-      key: 'payment',
-      pct: pctOf(row.paymentDueDate),
-      iso: row.paymentDueDate,
-      label: t`Payment`,
-    })
-  }
-  push({
-    key: 'created',
-    pct: pctOf(row.createdAt),
-    iso: row.createdAt.slice(0, 10),
-    label: t`Created`,
-  })
-  if (row.updatedAt.slice(0, 10) !== row.createdAt.slice(0, 10)) {
-    push({
-      key: 'updated',
-      pct: pctOf(row.updatedAt),
-      iso: row.updatedAt.slice(0, 10),
-      label: t`Last touched`,
-    })
-  }
-  const markers = [...seen.values()].toSorted((a, b) => a.pct - b.pct)
-  const primary = markers.find((m) => m.primary)
-  return (
-    <div aria-label={t`Year timeline`} className="flex flex-col gap-1.5">
-      <div className="relative h-7 w-full">
-        {/* Track line */}
-        <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-divider-regular" />
-        {/* Today vertical line — taller than the track so it reads as
-            "the now cursor." Color shifts to destructive when the row
-            is past its internal due. */}
-        <div
-          className={cn(
-            'absolute top-0 bottom-0 w-0.5',
-            isOverdue ? 'bg-state-destructive-solid' : 'bg-state-accent-solid',
-          )}
-          style={{ left: `${todayPct}%` }}
-          aria-label={t`Today ${todayIso}`}
-        />
-        {/* Markers */}
-        {markers.map((m) => (
-          <span
-            key={m.key}
-            title={`${m.label} · ${m.iso}`}
-            className={cn(
-              'absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background-subtle',
-              m.primary ? 'size-3 bg-text-primary' : 'size-2 bg-text-tertiary',
-            )}
-            style={{ left: `${m.pct}%` }}
-          />
-        ))}
-      </div>
-      {/* Edge + cursor labels. Edge dates anchor the strip in time;
-          the cursor caption surfaces the primary deadline relative to
-          today so the CPA reads "you're 36 days past Internal due"
-          without parsing the visual. */}
-      <div className="flex items-center justify-between text-[10px] tabular-nums text-text-tertiary">
-        <span>{periodStartIso}</span>
-        <span
-          className={cn('tabular-nums', isOverdue ? 'text-text-destructive' : 'text-text-accent')}
-        >
-          {todayIso}
-          {primary ? (
-            <>
-              {' '}
-              <span className="text-text-tertiary">
-                ·{' '}
-                {row.daysUntilDue === 0 ? (
-                  <Trans>due today</Trans>
-                ) : row.daysUntilDue > 0 ? (
-                  <Plural value={row.daysUntilDue} one="# day until due" other="# days until due" />
-                ) : (
-                  <Plural value={-row.daysUntilDue} one="# day past due" other="# days past due" />
-                )}
-              </span>
-            </>
-          ) : null}
-        </span>
-        <span>{periodEndIso}</span>
-      </div>
-    </div>
-  )
-}
-
 // FlatDateList — every date on the row, always visible. Reverted
 // from the status-aware variant (Direction F) because hiding dates
 // per stage made the CPA hunt for info they expected to see. Simple
@@ -5915,19 +5734,17 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
   )
 }
 
-// StatutoryDatesPanel — YearStripTimeline as the spatial headline,
-// then the full flat list of every date the row carries. The
-// status-aware variant (Direction F) was retired 2026-05-21 because
-// hiding dates by lifecycle stage left the CPA hunting for info
-// they expected to see. Listing every date always reduces cognitive
-// load — same vocabulary regardless of which row they open.
+// StatutoryDatesPanel — just the flat date list (2026-05-23). The
+// `YearStripTimeline` that used to sit above the list was dropped
+// per critique ("can remove the timeline for dates first"). It
+// duplicated the PathToFilingSummary at the top of the drawer (also
+// a spatial lifecycle view) and was redundant with the explicit
+// per-row dates here. Two timelines on the same drawer screen
+// competed for attention without adding signal. Component + its
+// `clamp01` helper were removed entirely; git history has them if
+// we ever need to revive the visualization for multi-year cycles.
 function StatutoryDatesPanel({ row }: { row: ObligationQueueRow }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <YearStripTimeline row={row} />
-      <FlatDateList row={row} />
-    </div>
-  )
+  return <FlatDateList row={row} />
 }
 
 // `stageIndexForStatus` + `mineStageTimestamps` + `STAGE_ANCHOR_STATUSES`
@@ -6099,47 +5916,64 @@ function PathToFilingSummary({
               >
                 {stage.label}
               </span>
-              {/* Date + state lines render ONLY for Done / Active /
+              {/* Date + state + sub-status grouped into a single block
+                  with a real gap from the stage label above. Earlier
+                  they were direct flex children with no separation, so
+                  the eye couldn't tell that the stage name (e.g.
+                  "Filed") and the date + Overdue/Active/Expected
+                  pill below it were two different units. Critique
+                  flagged this: "you should make clear the status
+                  (Filed) is a thing, and the date+Overdue/completed
+                  is another thing. So bigger gap in between." Wrapping
+                  them in a child flex column with `mt-2` + internal
+                  `gap-0.5` separates the stage label from its
+                  status detail without bloating the timeline height
+                  more than necessary.
+
+                  Date + state lines render ONLY for Done / Active /
                   Expected-Filed stages. Upcoming stages with no
                   projection skip both lines entirely — the em-dash
-                  placeholders read as visual noise across 5 columns. */}
+                  placeholders read as visual noise across 6 columns. */}
               {state === 'done' || state === 'active' || isExpected ? (
-                <span
-                  className={cn(
-                    'text-center text-[10px] tabular-nums leading-tight',
-                    state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
-                  )}
-                >
-                  {stamp ? formatDate(stamp.slice(0, 10)) : '—'}
-                </span>
-              ) : null}
-              {state === 'active' || isExpected ? (
-                <span
-                  className={cn(
-                    'text-center text-[10px] font-medium uppercase tracking-wide leading-tight',
-                    overdueActive
-                      ? 'text-text-destructive'
-                      : state === 'active'
-                        ? 'text-text-accent'
-                        : 'text-text-tertiary',
-                  )}
-                >
-                  {overdueActive ? t`Overdue` : state === 'active' ? t`Active` : t`Expected`}
-                </span>
-              ) : null}
-              {/* Sub-status annotation — only on the ACTIVE stage,
-                  only when there's something meaningful to add (e.g.,
-                  "Awaiting acceptance" on Filed; "Partner sign-off"
-                  later when review_level lands). Reads existing
-                  schema fields (prepStage / reviewStage / efileState).
-                  See subStatusForActiveStage() above. */}
-              {state === 'active' && activeSubStatus ? (
-                <span
-                  className="text-center text-[10px] leading-tight text-text-secondary"
-                  title={activeSubStatus}
-                >
-                  {activeSubStatus}
-                </span>
+                <div className="mt-2 flex w-full flex-col items-center gap-0.5">
+                  <span
+                    className={cn(
+                      'text-center text-[10px] tabular-nums leading-tight',
+                      state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
+                    )}
+                  >
+                    {stamp ? formatDate(stamp.slice(0, 10)) : '—'}
+                  </span>
+                  {state === 'active' || isExpected ? (
+                    <span
+                      className={cn(
+                        'text-center text-[10px] font-medium uppercase tracking-wide leading-tight',
+                        overdueActive
+                          ? 'text-text-destructive'
+                          : state === 'active'
+                            ? 'text-text-accent'
+                            : 'text-text-tertiary',
+                      )}
+                    >
+                      {overdueActive ? t`Overdue` : state === 'active' ? t`Active` : t`Expected`}
+                    </span>
+                  ) : null}
+                  {/* Sub-status annotation — only on the ACTIVE stage,
+                      only when there's something meaningful to add
+                      (e.g., "Awaiting acceptance" on Filed; "Partner
+                      sign-off" later when review_level lands). Reads
+                      existing schema fields (prepStage / reviewStage
+                      / efileState). See subStatusForActiveStage()
+                      above. */}
+                  {state === 'active' && activeSubStatus ? (
+                    <span
+                      className="text-center text-[10px] leading-tight text-text-secondary"
+                      title={activeSubStatus}
+                    >
+                      {activeSubStatus}
+                    </span>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           )
