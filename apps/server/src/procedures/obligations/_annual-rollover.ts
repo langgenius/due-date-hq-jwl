@@ -157,8 +157,12 @@ function sourceUrlForPreview(
 function previewForOutput(
   preview: ObligationGenerationPreview,
 ): NonNullable<AnnualRolloverOutput['rows'][number]['preview']> {
+  const { localFactRequirements, ...previewRest } = preview
   return {
-    ...preview,
+    ...previewRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
     sourceIds: [...preview.sourceIds],
     evidence: preview.evidence.map((evidence) => ({
       ...evidence,

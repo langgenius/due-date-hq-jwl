@@ -1474,6 +1474,34 @@ describe('@duedatehq/contracts', () => {
     })
     expect(source.jurisdiction).toBe('FED')
 
+    const localSource = RuleSourceSchema.parse({
+      id: 'pa.local_eit_lit_psd',
+      jurisdiction: 'PA',
+      localJurisdiction: {
+        level: 'municipality',
+        state: 'PA',
+        localCode: 'PA:PSD:*',
+        displayName: 'Pennsylvania PSD / local earned income tax jurisdictions',
+        administeredBy: 'local_collector',
+        collectedVia: 'manual_review',
+        sourceAuthority: 'Pennsylvania Department of Community and Economic Development',
+      },
+      title: 'Pennsylvania DCED PSD Codes and Local EIT Rates',
+      url: 'https://dced.pa.gov/local-government/local-income-tax-information/psd-codes-and-eit-rates/',
+      sourceType: 'instructions',
+      acquisitionMethod: 'manual_review',
+      cadence: 'pre_season',
+      priority: 'high',
+      healthStatus: 'healthy',
+      isEarlyWarning: false,
+      domains: ['local_individual_income', 'local_employer_withholding', 'local_services_tax'],
+      entityApplicability: ['individual', 'sole_prop', 'llc'],
+      authorityRole: 'basis',
+      notificationChannels: ['practice_rule_review', 'practice_rule_preview'],
+      lastReviewedOn: '2026-05-23',
+    })
+    expect(localSource.localJurisdiction?.collectedVia).toBe('manual_review')
+
     const onboardingActivationInput = RuleOnboardingActivationInputSchema.parse({
       states: ['CA', 'TX'],
     })
@@ -1645,10 +1673,14 @@ describe('@duedatehq/contracts', () => {
       },
       verifiedBy: 'practice.template_seed',
       verifiedAt: '2026-04-27',
+      reviewedByName: 'Sarah Martinez',
+      reviewedAt: '2026-05-23T14:08:09.000Z',
       nextReviewOn: '2026-11-15',
       version: 1,
     })
     expect(rule.status).toBe('verified')
+    expect(rule.reviewedByName).toBe('Sarah Martinez')
+    expect(rule.reviewedAt).toBe('2026-05-23T14:08:09.000Z')
 
     const previewInput = RuleGenerationPreviewInputSchema.parse({
       client: {
@@ -1658,10 +1690,18 @@ describe('@duedatehq/contracts', () => {
         taxTypes: ['ca_llc_franchise_min_800'],
         taxYearStart: '2026-01-01',
         taxYearEnd: '2025-12-31',
+        localFacts: {
+          resident_county: 'Los Angeles',
+          local_filing_channel: 'state_return',
+        },
       },
       holidays: ['2026-01-01'],
     })
     expect(previewInput.client.taxTypes).toEqual(['ca_llc_franchise_min_800'])
+    expect(previewInput.client.localFacts).toMatchObject({
+      resident_county: 'Los Angeles',
+      local_filing_channel: 'state_return',
+    })
 
     expect(() =>
       RuleGenerationPreviewInputSchema.parse({

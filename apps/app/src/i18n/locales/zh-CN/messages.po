@@ -5279,10 +5279,6 @@ msgstr "待审核"
 msgid "Needs review"
 msgstr "需复核"
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Needs review · never generates user reminders."
-msgstr "待审核 · 永远不会生成用户提醒。"
-
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs state"
 msgstr "需要申报州"
@@ -5392,10 +5388,6 @@ msgstr "下一页"
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Next quarter"
 msgstr "下个季度"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Next review"
-msgstr "下次复核"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Next years"
@@ -7798,6 +7790,10 @@ msgstr "审核原因"
 msgid "Review requested"
 msgstr "已请求审核"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Review required before this rule can create client deadlines."
+msgstr "此规则需先完成审核，才能创建客户截止日期。"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review risk and operating pressure."
 msgstr "查看风险与运营压力。"
@@ -9828,6 +9824,10 @@ msgstr "未知"
 #: src/routes/account.security.tsx
 msgid "Unknown browser"
 msgstr "未知浏览器"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Unknown reviewer"
+msgstr "未知复核人"
 
 #: src/routes/obligations.tsx
 msgid "Unwind back to In review"

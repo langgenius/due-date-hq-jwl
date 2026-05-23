@@ -76,8 +76,12 @@ const BUSINESS_COVERAGE_ENTITIES = new Set<keyof RuleCoverageRow['entityCoverage
 type CandidateSourceSignal = PulseSourceSignalRow | null
 
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
+  const { localFactRequirements, ...sourceRest } = source
   return {
-    ...source,
+    ...sourceRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
     domains: [...source.domains],
     entityApplicability: [...source.entityApplicability],
     notificationChannels: [...source.notificationChannels],
@@ -87,8 +91,12 @@ function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSourc
 function toPreview(
   preview: ReturnType<typeof previewObligationsFromRules>[number],
 ): ObligationGenerationPreview {
+  const { localFactRequirements, ...previewRest } = preview
   return {
-    ...preview,
+    ...previewRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
     sourceIds: [...preview.sourceIds],
     evidence: preview.evidence.map((item) => ({ ...item })),
     reviewReasons: [...preview.reviewReasons],
@@ -108,16 +116,39 @@ function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
 }
 
-function practiceReviewMetadata(row: PracticeRuleRow): {
+function practiceReviewMetadata(
+  row: PracticeRuleRow,
+  reviewerNames: ReadonlyMap<string, string>,
+): {
   verifiedBy?: string
   verifiedAt?: string
+  reviewedByName?: string
+  reviewedAt?: string
   version: number
 } {
+  const reviewerName = row.reviewedBy
+    ? (reviewerNames.get(row.reviewedBy) ?? 'Unknown reviewer')
+    : null
   return {
-    ...(row.reviewedBy ? { verifiedBy: row.reviewedBy } : {}),
+    ...(reviewerName ? { verifiedBy: reviewerName, reviewedByName: reviewerName } : {}),
     ...(row.reviewedAt ? { verifiedAt: toDateOnly(row.reviewedAt) } : {}),
+    ...(row.reviewedAt ? { reviewedAt: row.reviewedAt.toISOString() } : {}),
     version: row.templateVersion,
   }
+}
+
+async function reviewerNamesByUserId(context: RpcContext): Promise<ReadonlyMap<string, string>> {
+  const { tenant } = requireTenant(context)
+  const members = context.vars.members
+  if (!members) return new Map()
+  const rows = await members.listMembers(tenant.firmId)
+  return new Map(rows.map((member) => [member.userId, member.name || member.email]))
+}
+
+async function currentReviewerName(context: RpcContext, userId: string): Promise<string> {
+  const { tenant } = requireTenant(context)
+  const member = await context.vars.members?.findMembership(tenant.firmId, userId)
+  return member?.name || member?.email || 'Unknown reviewer'
 }
 
 function templateRules(): readonly CoreObligationRule[] {
@@ -462,6 +493,7 @@ async function acceptedTaskForRule(input: {
   status: Exclude<PracticeRuleReviewTaskRow['status'], 'open'>
   reviewNote: string | null
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
 }): Promise<RuleReviewTask> {
   const { scoped } = requireTenant(input.context)
@@ -485,6 +517,7 @@ async function listPracticeRules(input: {
   await ensureTemplateReviewTasks(input.context)
   const { scoped } = requireTenant(input.context)
   const practiceRows = await scoped.rules.listPracticeRules()
+  const reviewerNames = await reviewerNamesByUserId(input.context)
   const practiceByRuleId = new Map(practiceRows.map((row) => [row.ruleId, row]))
   const openReviewTaskKeys = new Set(
     (await scoped.rules.listReviewTasks({ status: 'open' })).map((task) =>
@@ -516,16 +549,18 @@ async function listPracticeRules(input: {
         rows.push({
           ...parsed.data,
           status: 'pending_review',
-          verifiedBy: 'practice.owner_or_manager_required',
           version: practice.templateVersion,
         })
         continue
       }
+      const metadata = practiceReviewMetadata(practice, reviewerNames)
       const activeRule: ObligationRule = {
         ...parsed.data,
         status: 'active',
-        verifiedBy: practice.reviewedBy ?? parsed.data.verifiedBy,
-        verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
+        verifiedBy: metadata.verifiedBy ?? parsed.data.verifiedBy,
+        verifiedAt: metadata.verifiedAt ?? parsed.data.verifiedAt,
+        ...(metadata.reviewedByName ? { reviewedByName: metadata.reviewedByName } : {}),
+        ...(metadata.reviewedAt ? { reviewedAt: metadata.reviewedAt } : {}),
         version: practice.templateVersion,
       }
       rows.push(activeRule)
@@ -541,7 +576,13 @@ async function listPracticeRules(input: {
       continue
     }
 
-    rows.push(toPracticeContractRule(template, practice.status, practiceReviewMetadata(practice)))
+    rows.push(
+      toPracticeContractRule(
+        template,
+        practice.status,
+        practiceReviewMetadata(practice, reviewerNames),
+      ),
+    )
     if (
       practice.status !== 'pending_review' &&
       isPracticeRuleBehindTemplate({
@@ -564,11 +605,14 @@ async function listPracticeRules(input: {
     if (!practice.ruleJson) continue
     const parsed = ObligationRuleSchema.safeParse(practice.ruleJson)
     if (!parsed.success) continue
+    const metadata = practiceReviewMetadata(practice, reviewerNames)
     rows.push({
       ...parsed.data,
       status: practice.status,
-      verifiedBy: practice.reviewedBy ?? parsed.data.verifiedBy,
-      verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
+      verifiedBy: metadata.verifiedBy ?? parsed.data.verifiedBy,
+      verifiedAt: metadata.verifiedAt ?? parsed.data.verifiedAt,
+      ...(metadata.reviewedByName ? { reviewedByName: metadata.reviewedByName } : {}),
+      ...(metadata.reviewedAt ? { reviewedAt: metadata.reviewedAt } : {}),
       version: practice.templateVersion,
     })
   }
@@ -873,11 +917,12 @@ async function previewBulkImpactForSelections(
   }
 }
 
-async function acceptTemplateRule(input: {
+export async function acceptTemplateRule(input: {
   context: RpcContext
   rule: CoreObligationRule
   reviewNote: string
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
   editedRule?: ObligationRule
   catalogSeeded?: boolean
@@ -889,14 +934,18 @@ async function acceptTemplateRule(input: {
   const contractRule =
     input.editedRule ??
     toPracticeContractRule(input.rule, 'active', {
-      verifiedBy: input.reviewedBy,
+      verifiedBy: input.reviewedByName ?? input.reviewedBy,
       verifiedAt: toDateOnly(input.reviewedAt),
+      ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+      reviewedAt: input.reviewedAt.toISOString(),
     })
   const activeRule: ObligationRule = {
     ...contractRule,
     status: 'active',
-    verifiedBy: input.reviewedBy,
+    verifiedBy: input.reviewedByName ?? input.reviewedBy,
     verifiedAt: toDateOnly(input.reviewedAt),
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+    reviewedAt: input.reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: input.rule.id,
@@ -938,11 +987,12 @@ async function acceptTemplateRule(input: {
   return task
 }
 
-async function rejectTemplateRule(input: {
+export async function rejectTemplateRule(input: {
   context: RpcContext
   rule: CoreObligationRule
   reason: string
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
 }): Promise<RuleReviewTask> {
   const { scoped } = requireTenant(input.context)
@@ -960,12 +1010,15 @@ async function rejectTemplateRule(input: {
   const task = await acceptedTaskForRule({
     context: input.context,
     rule: toPracticeContractRule(input.rule, 'rejected', {
-      verifiedBy: input.reviewedBy,
+      verifiedBy: input.reviewedByName ?? input.reviewedBy,
       verifiedAt: toDateOnly(input.reviewedAt),
+      ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+      reviewedAt: input.reviewedAt.toISOString(),
     }),
     status: 'rejected',
     reviewNote: input.reason,
     reviewedBy: input.reviewedBy,
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
     reviewedAt: input.reviewedAt,
   })
   await scoped.audit.write({
@@ -1035,6 +1088,7 @@ const listTemporaryRules = os.rules.listTemporaryRules.handler(async ({ context 
 const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }) => {
   const { userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
   if (!rule) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
   if (rule.version !== input.expectedVersion) {
@@ -1045,6 +1099,7 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
     rule,
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt: new Date(),
   })
 })
@@ -1052,6 +1107,7 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
 const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input, context }) => {
   const { scoped, tenant, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
   const practiceById = new Map(
     (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
@@ -1130,6 +1186,7 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
         rule,
         reviewNote: input.reviewNote,
         reviewedBy: userId,
+        reviewedByName: reviewerName,
         reviewedAt,
         catalogSeeded: true,
         generateObligations: false,
@@ -1180,6 +1237,7 @@ const activateOnboardingJurisdictions = os.rules.activateOnboardingJurisdictions
 const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }) => {
   const { userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
   if (!rule) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
   if (rule.version !== input.expectedVersion) {
@@ -1191,6 +1249,7 @@ const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }
     rule,
     reason: input.reason,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -1199,11 +1258,14 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = {
     ...input.rule,
     status: 'active' as const,
-    verifiedBy: userId,
+    verifiedBy: reviewerName,
     verifiedAt: toDateOnly(reviewedAt),
+    reviewedByName: reviewerName,
+    reviewedAt: reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: rule.id,
@@ -1229,6 +1291,7 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
     status: 'accepted',
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -1237,13 +1300,16 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const existing = await scoped.rules.getPracticeRule(input.rule.id)
   if (!existing) throw new ORPCError('NOT_FOUND', { message: 'Practice rule was not found.' })
   const rule = {
     ...input.rule,
     status: 'active' as const,
-    verifiedBy: userId,
+    verifiedBy: reviewerName,
     verifiedAt: toDateOnly(reviewedAt),
+    reviewedByName: reviewerName,
+    reviewedAt: reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: rule.id,
@@ -1270,6 +1336,7 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
     status: 'accepted',
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -1280,6 +1347,7 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
   const existing = await scoped.rules.getPracticeRule(input.ruleId)
   if (!existing) throw new ORPCError('NOT_FOUND', { message: 'Practice rule was not found.' })
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   await scoped.rules.upsertPracticeRule({
     ruleId: existing.ruleId,
     templateId: existing.templateId,
@@ -1299,10 +1367,17 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
     ? {
         ...parsed.data,
         status: 'archived' as const,
-        verifiedBy: userId,
+        verifiedBy: reviewerName,
         verifiedAt: toDateOnly(reviewedAt),
+        reviewedByName: reviewerName,
+        reviewedAt: reviewedAt.toISOString(),
       }
-    : toPracticeContractRule(template!, 'archived')
+    : toPracticeContractRule(template!, 'archived', {
+        verifiedBy: reviewerName,
+        verifiedAt: toDateOnly(reviewedAt),
+        reviewedByName: reviewerName,
+        reviewedAt: reviewedAt.toISOString(),
+      })
   await scoped.audit.write({
     actorId: userId,
     entityType: 'rule',
@@ -1318,6 +1393,7 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
     status: 'superseded',
     reviewNote: input.reason,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -1444,6 +1520,7 @@ function toConcreteDraftRule(input: {
   base: CoreObligationRule
   source: ReturnType<typeof listRuleSources>[number]
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
   draft: RuleConcreteDraftPayload
   aiOutputId?: string
@@ -1452,8 +1529,10 @@ function toConcreteDraftRule(input: {
   nextReviewOn?: string
 }): ObligationRule {
   const activeRule = toPracticeContractRule(input.base, 'active', {
-    verifiedBy: input.reviewedBy,
+    verifiedBy: input.reviewedByName ?? input.reviewedBy,
     verifiedAt: toDateOnly(input.reviewedAt),
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+    reviewedAt: input.reviewedAt.toISOString(),
     version: input.base.version + 1,
   })
   return {
@@ -1585,10 +1664,12 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
 
   const dueDateLogic = ConcreteDueDateLogicSchema.parse(input.dueDateLogic)
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const editedRule = toConcreteDraftRule({
     base,
     source,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
     draft: {
       dueDateLogic,
@@ -1612,6 +1693,7 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     rule: base,
     reviewNote: input.reviewNote ?? 'Accepted from rule review.',
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
     editedRule,
   })
@@ -1667,6 +1749,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
     allRuns.map((run) => [`${run.inputContextRef ?? ''}:${run.id}`, run]),
   )
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const verified: RuleReviewDecision[] = []
   const skipped: RuleBulkVerifyCandidateSkip[] = []
   const acceptedRules: CoreObligationRule[] = []
@@ -1743,6 +1826,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         base,
         source: sourceContext.source,
         reviewedBy: userId,
+        reviewedByName: reviewerName,
         reviewedAt,
         draft,
         aiOutputId: cachedRun.id,
@@ -1752,6 +1836,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         rule: base,
         reviewNote: input.reviewNote,
         reviewedBy: userId,
+        reviewedByName: reviewerName,
         reviewedAt,
         editedRule,
         catalogSeeded: true,
@@ -1824,13 +1909,16 @@ const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context
 
   const base = templateRuleById(input.ruleId)
   if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
+  const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
 
   await rejectTemplateRule({
     context,
     rule: base,
     reason: input.reason,
     reviewedBy: userId,
-    reviewedAt: new Date(),
+    reviewedByName: reviewerName,
+    reviewedAt,
   })
   const row = await scoped.rules.upsertDecision({
     ruleId: base.id,
@@ -1839,6 +1927,7 @@ const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context
     ruleJson: null,
     reviewNote: input.reason,
     reviewedBy: userId,
+    reviewedAt,
   })
   return toReviewDecision(row)
 })
@@ -1981,6 +2070,9 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
   }
   if (input.client.taxPeriodSource !== undefined) {
     generationClient.taxPeriodSource = input.client.taxPeriodSource
+  }
+  if (input.client.localFacts !== undefined) {
+    generationClient.localFacts = input.client.localFacts
   }
   const generationInput: Parameters<typeof previewObligationsFromRules>[0] = {
     client: generationClient,

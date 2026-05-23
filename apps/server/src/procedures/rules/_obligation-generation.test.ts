@@ -318,4 +318,66 @@ describe('generateObligationsForAcceptedRules', () => {
     ])
     expect(createdInputs[0]?.taxYearType).toBeUndefined()
   })
+
+  it('creates accepted local rules as review-only when required local facts are missing', async () => {
+    const candidate = mustRule('oh.local_individual_income.candidate.2026')
+    const localRule: ObligationRule = {
+      ...candidate,
+      status: 'verified',
+      coverageStatus: 'full',
+      ruleTier: 'basic',
+      requiresApplicabilityReview: false,
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'next_business_day',
+      },
+    }
+    const client = makeClient({
+      state: 'OH',
+      entityType: 'individual',
+      taxClassification: 'individual',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      state: 'OH',
+      taxTypes: [localRule.taxType],
+      migrationBatchId: null,
+    })
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [localRule],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({ candidateCount: 1, createdCount: 1, duplicateCount: 0 })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientFilingProfileId: PROFILE_ID,
+        taxType: 'oh_local_individual_income_tax',
+        authority: 'Ohio Revised Code Chapter 718',
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        status: 'review',
+        prepStage: 'ready_for_prep',
+        reviewStage: 'ready_for_review',
+        preview: expect.objectContaining({
+          reminderReady: false,
+          reviewReasons: ['local_fact_requirements_missing'],
+          missingClientFacts: [
+            'resident_municipality',
+            'work_municipality',
+            'local_collector',
+            'local_filing_channel',
+          ],
+        }),
+      }),
+    ])
+  })
 })

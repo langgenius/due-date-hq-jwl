@@ -100,6 +100,10 @@ export type RuleSourceDomain =
   | 'sales_use_tax'
   | 'withholding'
   | 'ui_wage_report'
+  | 'local_individual_income'
+  | 'local_business_income'
+  | 'local_employer_withholding'
+  | 'local_services_tax'
 
 export type SourceCoverageStatus =
   | 'missing_source'
@@ -115,9 +119,50 @@ export type RuleNotificationChannel =
   | 'practice_rule_preview'
   | 'user_deadline_reminder'
 
+export type LocalJurisdictionLevel =
+  | 'state_administered_local'
+  | 'county'
+  | 'municipality'
+  | 'school_district'
+  | 'special_district'
+
+export type LocalJurisdictionAdministeredBy = 'state' | 'local_collector' | 'municipal_authority'
+
+export type LocalJurisdictionCollectedVia =
+  | 'state_return'
+  | 'local_return'
+  | 'employer_withholding'
+  | 'manual_review'
+
+export type LocalFactRequirement =
+  | 'resident_county'
+  | 'resident_municipality'
+  | 'work_county'
+  | 'work_municipality'
+  | 'worksite_psd_code'
+  | 'principal_office_municipality'
+  | 'local_collector'
+  | 'local_filing_channel'
+  | 'local_tax_rate'
+  | 'lst_exemption_status'
+
+export type RuleGenerationMissingClientFact = TaxPeriodMissingClientFact | LocalFactRequirement
+
+export interface LocalJurisdictionRef {
+  level: LocalJurisdictionLevel
+  state: RuleGenerationState
+  localCode: string
+  displayName: string
+  administeredBy: LocalJurisdictionAdministeredBy
+  collectedVia: LocalJurisdictionCollectedVia
+  sourceAuthority: string
+}
+
 export interface RuleSource {
   id: string
   jurisdiction: RuleJurisdiction
+  localJurisdiction?: LocalJurisdictionRef
+  localFactRequirements?: readonly LocalFactRequirement[]
   title: string
   url: string
   sourceType: RuleSourceType
@@ -156,6 +201,10 @@ export const RULE_SOURCE_DOMAINS = [
   'sales_use_tax',
   'withholding',
   'ui_wage_report',
+  'local_individual_income',
+  'local_business_income',
+  'local_employer_withholding',
+  'local_services_tax',
 ] as const satisfies readonly RuleSourceDomain[]
 
 export const RULE_SOURCE_COVERAGE_ENTITIES = [
@@ -264,6 +313,8 @@ export interface ObligationRule {
   id: string
   title: string
   jurisdiction: RuleJurisdiction
+  localJurisdiction?: LocalJurisdictionRef
+  localFactRequirements?: readonly LocalFactRequirement[]
   entityApplicability: readonly EntityApplicability[]
   taxType: string
   formName: string
@@ -286,6 +337,8 @@ export interface ObligationRule {
   quality: RuleQualityChecklist
   verifiedBy: string
   verifiedAt: string
+  reviewedByName?: string
+  reviewedAt?: string
   nextReviewOn: string
   version: number
 }
@@ -314,6 +367,7 @@ export interface RuleGenerationClientFacts {
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
   taxPeriodSource?: TaxPeriodSource
+  localFacts?: Partial<Record<LocalFactRequirement, string>>
 }
 
 export interface RuleGenerationInput {
@@ -335,6 +389,8 @@ export interface ObligationGenerationPreview {
   ruleVersion: number
   ruleTitle: string
   jurisdiction: RuleJurisdiction
+  localJurisdiction?: LocalJurisdictionRef
+  localFactRequirements?: readonly LocalFactRequirement[]
   taxType: string
   matchedTaxType: string
   period: string
@@ -353,7 +409,7 @@ export interface ObligationGenerationPreview {
   requiresReview: boolean
   reminderReady: boolean
   reviewReasons: readonly string[]
-  missingClientFacts: readonly TaxPeriodMissingClientFact[]
+  missingClientFacts: readonly RuleGenerationMissingClientFact[]
 }
 
 const VERIFIED_QUALITY: RuleQualityChecklist = {
@@ -519,6 +575,8 @@ interface StateIncomeTaxSourceSeed {
 interface StateAdditionalRuleSourceSeed {
   jurisdiction: RuleGenerationState
   id: string
+  localJurisdiction?: LocalJurisdictionRef
+  localFactRequirements?: readonly LocalFactRequirement[]
   title: string
   url: string
   sourceType: RuleSourceType
@@ -1025,7 +1083,7 @@ const STATE_INCOME_TAX_SOURCE_BY_JURISDICTION = new Map<
   StateIncomeTaxSourceSeed
 >(STATE_INCOME_TAX_SOURCE_SEEDS.map((seed) => [seed.jurisdiction, seed]))
 
-const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
+const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed[] = [
   {
     jurisdiction: 'AL',
     id: 'al.individual_estimated_tax',
@@ -1176,6 +1234,28 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
     healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'NY',
+    id: 'ny.nyc_yonkers_income_tax',
+    title: 'New York Tax Department NYC and Yonkers Personal Income Tax',
+    url: 'https://www.tax.ny.gov/pit/file/nyc_yonkers_residents.htm',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['local_individual_income'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: ['resident_municipality', 'local_filing_channel'],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'NY',
+      localCode: 'NY:NYC-YONKERS',
+      displayName: 'New York City and Yonkers local income tax',
+      administeredBy: 'state',
+      collectedVia: 'state_return',
+      sourceAuthority: 'New York State Department of Taxation and Finance',
+    },
   },
   {
     jurisdiction: 'NY',
@@ -1484,6 +1564,88 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
     healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'PA',
+    id: 'pa.local_eit_lit_psd',
+    title: 'Pennsylvania DCED PSD Codes and Local EIT Rates',
+    url: 'https://dced.pa.gov/local-government/local-income-tax-information/psd-codes-and-eit-rates/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'manual_review',
+    domains: ['local_individual_income'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'resident_municipality',
+      'work_municipality',
+      'worksite_psd_code',
+      'local_collector',
+      'local_tax_rate',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'PA',
+      localCode: 'PA:PSD:*',
+      displayName: 'Pennsylvania PSD / local earned income tax jurisdictions',
+      administeredBy: 'local_collector',
+      collectedVia: 'manual_review',
+      sourceAuthority: 'Pennsylvania Department of Community and Economic Development',
+    },
+  },
+  {
+    jurisdiction: 'PA',
+    id: 'pa.local_eit_act32_employer_withholding',
+    title: 'Pennsylvania DCED Act 32 Local Earned Income Tax Withholding FAQ',
+    url: 'https://dced.pa.gov/local-government/local-income-tax-information/act32-faq/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['local_employer_withholding'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'resident_municipality',
+      'work_municipality',
+      'worksite_psd_code',
+      'local_collector',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'PA',
+      localCode: 'PA:PSD:*',
+      displayName: 'Pennsylvania Act 32 local earned income tax withholding',
+      administeredBy: 'local_collector',
+      collectedVia: 'employer_withholding',
+      sourceAuthority: 'Pennsylvania Department of Community and Economic Development',
+    },
+  },
+  {
+    jurisdiction: 'PA',
+    id: 'pa.local_services_tax',
+    title: 'Pennsylvania DCED Local Services Tax',
+    url: 'https://dced.pa.gov/local-government/local-income-tax-information/local-services-tax/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'html_watch',
+    domains: ['local_services_tax'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'work_municipality',
+      'local_collector',
+      'local_tax_rate',
+      'lst_exemption_status',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'PA',
+      localCode: 'PA:LST:*',
+      displayName: 'Pennsylvania local services tax jurisdictions',
+      administeredBy: 'local_collector',
+      collectedVia: 'employer_withholding',
+      sourceAuthority: 'Pennsylvania Department of Community and Economic Development',
+    },
   },
   {
     jurisdiction: 'PA',
@@ -1920,6 +2082,87 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'critical',
     healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'OH',
+    id: 'oh.municipal_income_tax_finder',
+    title: 'Ohio The Finder Municipal Income Tax',
+    url: 'https://thefinder.tax.ohio.gov/StreamlineSalesTaxWeb/default_municipal.aspx',
+    sourceType: 'instructions',
+    acquisitionMethod: 'manual_review',
+    domains: ['local_individual_income', 'local_business_income'],
+    entityApplicability: ['individual', 'sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'resident_municipality',
+      'work_municipality',
+      'principal_office_municipality',
+      'local_tax_rate',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'OH',
+      localCode: 'OH:MUNI:*',
+      displayName: 'Ohio municipal income tax jurisdictions',
+      administeredBy: 'municipal_authority',
+      collectedVia: 'manual_review',
+      sourceAuthority: 'Ohio Department of Taxation',
+    },
+  },
+  {
+    jurisdiction: 'OH',
+    id: 'oh.municipal_income_tax_annual_return',
+    title: 'Ohio Revised Code Municipal Income Tax Annual Return Filing',
+    url: 'https://codes.ohio.gov/ohio-revised-code/section-718.05',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    domains: ['local_individual_income'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'resident_municipality',
+      'work_municipality',
+      'local_collector',
+      'local_filing_channel',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'OH',
+      localCode: 'OH:MUNI:*',
+      displayName: 'Ohio municipal income tax annual return jurisdictions',
+      administeredBy: 'municipal_authority',
+      collectedVia: 'local_return',
+      sourceAuthority: 'Ohio Revised Code Chapter 718',
+    },
+  },
+  {
+    jurisdiction: 'OH',
+    id: 'oh.municipal_net_profit_filing',
+    title: 'Ohio Revised Code Municipal Net Profit Filing',
+    url: 'https://codes.ohio.gov/ohio-revised-code/section-718.051',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    domains: ['local_business_income'],
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: [
+      'principal_office_municipality',
+      'work_municipality',
+      'local_collector',
+      'local_filing_channel',
+    ],
+    localJurisdiction: {
+      level: 'municipality',
+      state: 'OH',
+      localCode: 'OH:MUNI-NET-PROFIT:*',
+      displayName: 'Ohio municipal net profit tax jurisdictions',
+      administeredBy: 'municipal_authority',
+      collectedVia: 'local_return',
+      sourceAuthority: 'Ohio Revised Code Chapter 718',
+    },
   },
   {
     jurisdiction: 'OH',
@@ -2659,6 +2902,28 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
   },
   {
     jurisdiction: 'IN',
+    id: 'in.local_county_income_tax',
+    title: 'Indiana DOR Local County Income Tax Rates',
+    url: 'https://www.in.gov/dor/business-tax/county-tax-information/',
+    sourceType: 'instructions',
+    acquisitionMethod: 'manual_review',
+    domains: ['local_individual_income'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: ['resident_county', 'work_county', 'local_tax_rate'],
+    localJurisdiction: {
+      level: 'county',
+      state: 'IN',
+      localCode: 'IN:COUNTY:*',
+      displayName: 'Indiana county local income tax',
+      administeredBy: 'state',
+      collectedVia: 'state_return',
+      sourceAuthority: 'Indiana Department of Revenue',
+    },
+  },
+  {
+    jurisdiction: 'IN',
     id: 'in.tax_filing_deadlines',
     title: 'Indiana DOR Filing Deadlines',
     url: 'https://www.in.gov/dor/i-am-a/individual/tax-filing-deadlines/',
@@ -2883,6 +3148,28 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
     healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'MD',
+    id: 'md.local_income_tax',
+    title: 'Comptroller of Maryland Local Income Tax',
+    url: 'https://www.marylandtaxes.gov/forms/Personal_Tax_Tips/tip50.pdf',
+    sourceType: 'publication',
+    acquisitionMethod: 'pdf_watch',
+    domains: ['local_individual_income'],
+    entityApplicability: ['individual'],
+    priority: 'high',
+    healthStatus: 'healthy',
+    localFactRequirements: ['resident_county', 'local_tax_rate', 'local_filing_channel'],
+    localJurisdiction: {
+      level: 'state_administered_local',
+      state: 'MD',
+      localCode: 'MD:LOCAL-INCOME:*',
+      displayName: 'Maryland counties and Baltimore City local income tax',
+      administeredBy: 'state',
+      collectedVia: 'state_return',
+      sourceAuthority: 'Comptroller of Maryland',
+    },
   },
   {
     jurisdiction: 'MD',
@@ -3695,7 +3982,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     priority: 'high',
     healthStatus: 'healthy',
   },
-] as const satisfies readonly StateAdditionalRuleSourceSeed[]
+] as const
 
 type StateRuleSourceIds = Readonly<{
   incomeTax: string
@@ -3750,6 +4037,10 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
     sources.push({
       id: source.id,
       jurisdiction: source.jurisdiction,
+      ...(source.localJurisdiction ? { localJurisdiction: source.localJurisdiction } : {}),
+      ...(source.localFactRequirements
+        ? { localFactRequirements: [...source.localFactRequirements] }
+        : {}),
       title: source.title,
       url: source.url,
       sourceType: source.sourceType,
@@ -4861,6 +5152,24 @@ const SOURCE_EXCERPTS: Record<string, string> = {
   'ny.email_services': 'NY Tax Department email subscription channel; not a primary basis source.',
   'ny.article_9a':
     'Article 9-A franchise tax on general business corporations; calendar-year due date is April 15.',
+  'ny.nyc_yonkers_income_tax':
+    'New York Tax Department says NYC or Yonkers resident income tax is reported on the New York State personal income tax return when the taxpayer is required to file a New York State income tax return.',
+  'in.local_county_income_tax':
+    'Indiana DOR states that all counties have a Local Income Tax rate and that county tax is based on residence or employment county facts.',
+  'md.local_income_tax':
+    'Comptroller of Maryland guidance says local income tax is collected on the state income tax form as a convenience for local governments.',
+  'pa.local_eit_lit_psd':
+    'Pennsylvania DCED states that PSD codes identify municipalities for local Earned Income Tax and help employers and tax collectors remit to the correct taxing jurisdictions.',
+  'pa.local_eit_act32_employer_withholding':
+    'Pennsylvania DCED Act 32 guidance says employers with worksites in Pennsylvania must withhold local earned income tax using employee residence and workplace facts.',
+  'pa.local_services_tax':
+    'Pennsylvania DCED Local Services Tax guidance states that employers with worksites in taxing jurisdictions must withhold and remit LST when the tax is listed in the Official Tax Register.',
+  'oh.municipal_income_tax_finder':
+    'Ohio The Finder provides municipal income tax lookup by address and notes JEDD/JEDZ income tax may require a separate lookup.',
+  'oh.municipal_income_tax_annual_return':
+    'Ohio Revised Code section 718.05 governs annual municipal income tax return filing and extension treatment for municipal corporations.',
+  'oh.municipal_net_profit_filing':
+    'Ohio Revised Code section 718.051 covers municipal filings by business or profession, including net profit returns, estimated returns, and extensions.',
   'tx.franchise_overview':
     'Franchise tax reports are due on May 15 each year. If May 15 falls on a Saturday, Sunday or legal holiday, the next business day becomes the due date.',
   'tx.franchise_home':
@@ -4960,6 +5269,23 @@ interface StateCandidateRuleDomain {
   isFiling: boolean
   isPayment: boolean
   entityApplicability: readonly EntityApplicability[]
+  reviewReason: string
+}
+
+interface LocalCandidateRuleDomain {
+  slug:
+    | 'local_individual_income'
+    | 'local_business_income'
+    | 'local_employer_withholding'
+    | 'local_services_tax'
+  title: string
+  taxType: string
+  formName: string
+  eventType: ObligationEventType
+  isFiling: boolean
+  isPayment: boolean
+  entityApplicability: readonly EntityApplicability[]
+  localFactRequirements: readonly LocalFactRequirement[]
   reviewReason: string
 }
 
@@ -5085,6 +5411,61 @@ const STATE_CANDIDATE_RULE_DOMAINS = [
       'Confirm state unemployment contribution and wage report due dates, payment treatment, and employer applicability against the labor source.',
   },
 ] as const satisfies readonly StateCandidateRuleDomain[]
+
+const LOCAL_CANDIDATE_RULE_DOMAINS = [
+  {
+    slug: 'local_individual_income',
+    title: 'local individual income tax applicability',
+    taxType: 'local_individual_income_tax',
+    formName: 'Local individual income tax return or state-return overlay',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['individual', 'sole_prop'],
+    localFactRequirements: ['local_filing_channel'],
+    reviewReason:
+      'Confirm local residence, work location, collector, and whether the local obligation is collected through a state return or local return.',
+  },
+  {
+    slug: 'local_business_income',
+    title: 'local business income or net profits tax applicability',
+    taxType: 'local_business_income_tax',
+    formName: 'Local business income or net profits return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    localFactRequirements: ['principal_office_municipality', 'local_collector'],
+    reviewReason:
+      'Confirm local business presence, municipality, collector, and net-profits filing requirement before creating obligations.',
+  },
+  {
+    slug: 'local_employer_withholding',
+    title: 'local employer withholding applicability',
+    taxType: 'local_employer_withholding_tax',
+    formName: 'Local employer withholding return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    localFactRequirements: ['work_municipality', 'worksite_psd_code', 'local_collector'],
+    reviewReason:
+      'Confirm employee residence/worksite codes and local collector withholding requirements before creating obligations.',
+  },
+  {
+    slug: 'local_services_tax',
+    title: 'local services tax applicability',
+    taxType: 'local_services_tax',
+    formName: 'Local services tax return',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
+    localFactRequirements: ['work_municipality', 'local_collector', 'lst_exemption_status'],
+    reviewReason:
+      'Confirm worksite municipality, LST rate, and collector filing cadence before creating obligations.',
+  },
+] as const satisfies readonly LocalCandidateRuleDomain[]
 
 const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
   Record<`${RuleJurisdiction}:${StateCandidateRuleSlug}`, string>
@@ -6613,6 +6994,107 @@ function buildStateCandidateRule(
   }
 }
 
+const LOCAL_CANDIDATE_RULE_PACKS = [
+  { jurisdiction: 'MD', sourceId: 'md.local_income_tax', name: 'Maryland local income tax' },
+  { jurisdiction: 'IN', sourceId: 'in.local_county_income_tax', name: 'Indiana county LIT' },
+  { jurisdiction: 'NY', sourceId: 'ny.nyc_yonkers_income_tax', name: 'NYC and Yonkers income tax' },
+  {
+    jurisdiction: 'PA',
+    sourceId: 'pa.local_eit_lit_psd',
+    name: 'Pennsylvania local earned income tax',
+  },
+  {
+    jurisdiction: 'PA',
+    sourceId: 'pa.local_eit_act32_employer_withholding',
+    name: 'Pennsylvania Act 32 local EIT withholding',
+  },
+  {
+    jurisdiction: 'PA',
+    sourceId: 'pa.local_services_tax',
+    name: 'Pennsylvania local services tax',
+  },
+  {
+    jurisdiction: 'OH',
+    sourceId: 'oh.municipal_income_tax_annual_return',
+    name: 'Ohio municipal income tax',
+  },
+  {
+    jurisdiction: 'OH',
+    sourceId: 'oh.municipal_net_profit_filing',
+    name: 'Ohio municipal net profit tax',
+  },
+] as const satisfies readonly {
+  jurisdiction: RuleGenerationState
+  sourceId: string
+  name: string
+}[]
+
+function buildLocalCandidateRule(
+  pack: (typeof LOCAL_CANDIDATE_RULE_PACKS)[number],
+  domain: LocalCandidateRuleDomain,
+): ObligationRule | null {
+  const source = RULE_SOURCES.find((item) => item.id === pack.sourceId)
+  if (!source?.localJurisdiction) return null
+  if (!source.domains.includes(domain.slug)) return null
+
+  const entityApplicability = domain.entityApplicability.filter((entity) =>
+    sourceCoversEntity(source, entity),
+  )
+  if (entityApplicability.length === 0) return null
+
+  const sourceExcerpt =
+    SOURCE_EXCERPTS[source.id] ??
+    `${source.title} is registered as an official local-income source; practice review is required before any obligation can be generated.`
+  const localFactRequirements = Array.from(
+    new Set([...(source.localFactRequirements ?? []), ...domain.localFactRequirements]),
+  )
+
+  return {
+    id: `${pack.jurisdiction.toLowerCase()}.${domain.slug}.candidate.2026`,
+    title: `${pack.name} ${domain.title}`,
+    jurisdiction: pack.jurisdiction,
+    localJurisdiction: source.localJurisdiction,
+    localFactRequirements,
+    entityApplicability,
+    taxType: `${pack.jurisdiction.toLowerCase()}_${domain.taxType}`,
+    formName: domain.formName,
+    eventType: domain.eventType,
+    isFiling: domain.isFiling,
+    isPayment: domain.isPayment,
+    taxYear: 2025,
+    applicableYear: 2026,
+    ruleTier: 'applicability_review',
+    status: 'candidate',
+    coverageStatus: 'manual',
+    riskLevel: 'med',
+    requiresApplicabilityReview: true,
+    dueDateLogic: {
+      kind: 'source_defined_calendar',
+      description: `${pack.name} requires local fact and collector review before a concrete due date can be accepted.`,
+      holidayRollover: 'source_adjusted',
+    },
+    extensionPolicy: {
+      available: false,
+      paymentExtended: false,
+      notes:
+        'Pending local applicability review; do not assume state-return or local-return extension behavior.',
+    },
+    sourceIds: [source.id],
+    evidence: [
+      sourceEvidence(source.id, domain.formName, domain.reviewReason, {
+        authorityRole: 'basis',
+        sourceExcerpt,
+      }),
+    ],
+    defaultTip: domain.reviewReason,
+    quality: PENDING_REVIEW_QUALITY,
+    verifiedBy: 'practice.owner_or_manager_required',
+    verifiedAt: VERIFIED_AT,
+    nextReviewOn: NEXT_PRE_SEASON_REVIEW,
+    version: 1,
+  }
+}
+
 export const STATE_CANDIDATE_RULES = STATE_RULE_SOURCE_SEEDS.flatMap((seed) =>
   STATE_CANDIDATE_RULE_DOMAINS.flatMap((domain) => {
     const rule = buildStateCandidateRule(seed, domain)
@@ -6620,8 +7102,16 @@ export const STATE_CANDIDATE_RULES = STATE_RULE_SOURCE_SEEDS.flatMap((seed) =>
   }),
 )
 
-export const OBLIGATION_RULES = [
+export const LOCAL_CANDIDATE_RULES = LOCAL_CANDIDATE_RULE_PACKS.flatMap((pack) =>
+  LOCAL_CANDIDATE_RULE_DOMAINS.flatMap((domain) => {
+    const rule = buildLocalCandidateRule(pack, domain)
+    return rule ? [rule] : []
+  }),
+)
+
+export const OBLIGATION_RULES: readonly ObligationRule[] = [
   ...STATE_CANDIDATE_RULES,
+  ...LOCAL_CANDIDATE_RULES,
   {
     id: 'fed.1040.return.2025',
     title: 'Federal Form 1040 individual income tax return',
@@ -8367,7 +8857,7 @@ export const OBLIGATION_RULES = [
     nextReviewOn: NEXT_PRE_SEASON_REVIEW,
     version: 1,
   },
-] as const satisfies readonly ObligationRule[]
+] as const
 
 export function listRuleSources(jurisdiction?: RuleJurisdiction): readonly RuleSource[] {
   if (!jurisdiction) return RULE_SOURCES
@@ -8377,9 +8867,14 @@ export function listRuleSources(jurisdiction?: RuleJurisdiction): readonly RuleS
 export function sourceDomainsForRule(
   rule: Pick<ObligationRule, 'taxType'>,
 ): readonly RuleSourceDomain[] {
-  return STATE_CANDIDATE_RULE_DOMAINS.filter((domain) => rule.taxType.endsWith(domain.taxType)).map(
-    (domain) => domain.slug,
-  )
+  return [
+    ...STATE_CANDIDATE_RULE_DOMAINS.filter((domain) => rule.taxType.endsWith(domain.taxType)).map(
+      (domain) => domain.slug,
+    ),
+    ...LOCAL_CANDIDATE_RULE_DOMAINS.filter((domain) => rule.taxType.endsWith(domain.taxType)).map(
+      (domain) => domain.slug,
+    ),
+  ]
 }
 
 export function sourceCoversRuleDomain(
@@ -8707,6 +9202,7 @@ function reviewReasonsForRule(
   match: RuleTaxTypeCandidate,
   expandedRequiresReview: boolean,
   expandedReason: string | null,
+  missingLocalFacts: readonly LocalFactRequirement[],
 ): string[] {
   const reasons: string[] = []
 
@@ -8714,10 +9210,21 @@ function reviewReasonsForRule(
   if (rule.requiresApplicabilityReview) reasons.push('rule_requires_applicability_review')
   if (rule.ruleTier === 'applicability_review') reasons.push('rule_tier_applicability_review')
   if (rule.coverageStatus !== 'full') reasons.push(`coverage_${rule.coverageStatus}`)
+  if (missingLocalFacts.length > 0) reasons.push('local_fact_requirements_missing')
   if (expandedRequiresReview) reasons.push('due_date_requires_review')
   if (expandedReason) reasons.push(expandedReason)
 
   return Array.from(new Set(reasons))
+}
+
+function missingLocalClientFacts(
+  rule: Pick<ObligationRule, 'localFactRequirements'>,
+  client: Pick<RuleGenerationClientFacts, 'localFacts'>,
+): LocalFactRequirement[] {
+  return (rule.localFactRequirements ?? []).filter((fact) => {
+    const value = client.localFacts?.[fact]
+    return value === undefined || value.trim().length === 0
+  })
 }
 
 export function previewObligationsFromRules(
@@ -8794,7 +9301,11 @@ export function previewObligationsFromRules(
     if (input.holidays !== undefined) expandInput.holidays = input.holidays
 
     const expandedDates = expandDueDateLogic(rule.dueDateLogic, expandInput)
-    const missingClientFacts = taxPeriod.missingClientFacts
+    const missingLocalFacts = missingLocalClientFacts(rule, input.client)
+    const missingClientFacts: RuleGenerationMissingClientFact[] = [
+      ...taxPeriod.missingClientFacts,
+      ...missingLocalFacts,
+    ]
 
     for (const expanded of expandedDates) {
       const reviewReasons = reviewReasonsForRule(
@@ -8802,6 +9313,7 @@ export function previewObligationsFromRules(
         match,
         missingClientFacts.length > 0 ? false : expanded.requiresReview,
         missingClientFacts.length > 0 ? null : expanded.reason,
+        missingLocalFacts,
       )
       if (taxPeriod.taxPeriodReviewReason && missingClientFacts.length === 0) {
         reviewReasons.push(taxPeriod.taxPeriodReviewReason)
@@ -8814,6 +9326,10 @@ export function previewObligationsFromRules(
         ruleVersion: rule.version,
         ruleTitle: rule.title,
         jurisdiction: rule.jurisdiction,
+        ...(rule.localJurisdiction ? { localJurisdiction: rule.localJurisdiction } : {}),
+        ...(rule.localFactRequirements
+          ? { localFactRequirements: rule.localFactRequirements }
+          : {}),
         taxType: rule.taxType,
         matchedTaxType: match.inputTaxType,
         period: expanded.period,

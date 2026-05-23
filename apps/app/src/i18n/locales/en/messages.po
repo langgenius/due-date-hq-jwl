@@ -5279,10 +5279,6 @@ msgstr "needs review"
 msgid "Needs review"
 msgstr "Needs review"
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Needs review · never generates user reminders."
-msgstr "Needs review · never generates user reminders."
-
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs state"
 msgstr "Needs state"
@@ -5392,10 +5388,6 @@ msgstr "Next page"
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Next quarter"
 msgstr "Next quarter"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Next review"
-msgstr "Next review"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Next years"
@@ -7798,6 +7790,10 @@ msgstr "Review reasons"
 msgid "Review requested"
 msgstr "Review requested"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Review required before this rule can create client deadlines."
+msgstr "Review required before this rule can create client deadlines."
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review risk and operating pressure."
 msgstr "Review risk and operating pressure."
@@ -9828,6 +9824,10 @@ msgstr "Unknown"
 #: src/routes/account.security.tsx
 msgid "Unknown browser"
 msgstr "Unknown browser"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Unknown reviewer"
+msgstr "Unknown reviewer"
 
 #: src/routes/obligations.tsx
 msgid "Unwind back to In review"

@@ -611,7 +611,7 @@ export function RulesLibraryRoute() {
   const totalGaps = groups.reduce((acc, g) => acc + g.gapEntities.length, 0)
   // Per-entity statistics — for each entity type:
   //   - `count`       total rules applicable to it across the catalog
-  //   - `gapCount`    jurisdictions with NO rule for this entity
+  //   - `gapCount`    applicable jurisdictions with NO rule for this entity
   //   - `reviewCount` jurisdictions needing CPA review for this entity
   //
   // Previously this collapsed to a single 'worst-wins' state ('none'
@@ -637,6 +637,8 @@ export function RulesLibraryRoute() {
       let reviewCount = 0
       for (const row of coverageRows) {
         const cell = row.entityCoverage[entity]
+        const sourceCell = row.entitySourceCoverage[entity]
+        if (sourceCell === 'not_applicable') continue
         if (cell === 'none') gapCount++
         else if (cell === 'review') reviewCount++
       }
@@ -1187,9 +1189,9 @@ function StatsBar({
 //   2. "Color logic too pessimistic" — the prior implementation
 //      lit up a destructive red dot the moment ANY one of 52
 //      jurisdictions had a gap for that entity, which fired almost
-//      always. Now we show actual gap count as quiet `· N missing`
-//      text only when N > 0, with no color tint on the chip. The
-//      user reads numbers, not severity inferences.
+//      always. Now we show actual gap count as `· N missing` text
+//      only when N > 0. The label stays explicit because a bare red
+//      number is too easy to misread as a review queue count.
 function EntityChipRow({
   entityStats,
   activeEntity,
@@ -1261,7 +1263,7 @@ function EntityChipRow({
               </span>
               {hasGaps ? (
                 // Sub-figure showing how many jurisdictions are
-                // missing a rule for this entity. Reads as `· 9`
+                // missing a rule for this entity. Reads as `· 9 missing`
                 // beside the main count. On the inactive chip it
                 // takes the destructive tone (red on white — high
                 // contrast). On the ACTIVE chip (dark background)
@@ -1282,13 +1284,16 @@ function EntityChipRow({
                   </span>
                   <span
                     className={cn(
-                      'tabular-nums',
+                      'inline-flex items-center gap-1 tabular-nums',
                       isActive
                         ? 'rounded-full bg-state-destructive-subtle px-1.5 text-[11px] font-semibold leading-4 text-text-destructive'
                         : 'font-medium text-text-destructive',
                     )}
                   >
-                    {gapCount}
+                    <span>{gapCount}</span>
+                    <span className="font-normal">
+                      <Trans>missing</Trans>
+                    </span>
                   </span>
                 </>
               ) : null}
@@ -1854,7 +1859,8 @@ function StatusSectionHeaderRow({
   const hasSelectAll = selectAllState !== undefined && onToggleSelectAll !== undefined
   // Section header inside an expanded jurisdiction. The TITLE itself
   // is highlighted (per /critique) — NEEDS REVIEW reads in accent,
-  // MISSING RULES reads in destructive. Other groups stay tertiary.
+  // ACTIVE reads in the same success green as active entity counts,
+  // and MISSING RULES reads in destructive. Other groups stay tertiary.
   // Both the label and the count carry the same color so the row
   // reads as one tinted line, not a label + colored badge.
   return (
@@ -1883,8 +1889,12 @@ function StatusSectionHeaderRow({
             className={cn(
               'text-xs font-semibold uppercase tracking-wider',
               statusKey === 'needs_review' && 'text-text-accent',
+              statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
-              statusKey !== 'needs_review' && statusKey !== 'gaps' && 'text-text-tertiary',
+              statusKey !== 'needs_review' &&
+                statusKey !== 'active' &&
+                statusKey !== 'gaps' &&
+                'text-text-tertiary',
             )}
           >
             {label}
@@ -1893,8 +1903,12 @@ function StatusSectionHeaderRow({
             className={cn(
               'text-xs font-semibold tabular-nums',
               statusKey === 'needs_review' && 'text-text-accent',
+              statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
-              statusKey !== 'needs_review' && statusKey !== 'gaps' && 'text-text-tertiary',
+              statusKey !== 'needs_review' &&
+                statusKey !== 'active' &&
+                statusKey !== 'gaps' &&
+                'text-text-tertiary',
             )}
           >
             {count}

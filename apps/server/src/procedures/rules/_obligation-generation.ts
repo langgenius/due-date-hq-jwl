@@ -140,7 +140,9 @@ function buildCreateInput(input: {
     jurisdiction: input.preview.jurisdiction,
     obligationType: obligationTypeForPreview(input.preview),
     formName: input.preview.formName,
-    authority: input.preview.jurisdiction === 'FED' ? 'IRS' : input.preview.jurisdiction,
+    authority:
+      input.preview.localJurisdiction?.sourceAuthority ??
+      (input.preview.jurisdiction === 'FED' ? 'IRS' : input.preview.jurisdiction),
     filingDueDate: input.preview.isFiling ? dueDate : null,
     paymentDueDate,
     sourceEvidenceJson: input.preview.evidence,

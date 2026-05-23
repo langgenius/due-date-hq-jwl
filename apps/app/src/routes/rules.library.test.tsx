@@ -393,6 +393,11 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).not.toContain('Missing rules')
     expect(document.body.textContent).not.toContain('No rule defined for this entity in Alaska')
     expect(document.body.textContent).not.toContain('Add rule')
+    const entityChipTitles = Array.from(document.querySelectorAll('button[title]')).map((button) =>
+      button.getAttribute('title'),
+    )
+    expect(entityChipTitles).not.toContain('Individual — 0 rules · 1 jurisdiction missing a rule')
+    expect(entityChipTitles).not.toContain('Trust — 0 rules · 1 jurisdiction missing a rule')
   })
 
   it('still renders add-rule gaps for applicable entity coverage without a rule', async () => {
@@ -454,5 +459,68 @@ describe('RulesLibraryRoute', () => {
 
     expect(document.body.textContent).not.toContain('AI concrete draft is not ready.')
     expect(rpcMocks.listConcreteDraftsQueryFn).toHaveBeenCalled()
+  })
+
+  it('does not show seed review placeholders as practice review metadata', async () => {
+    const rule = obligationRule({
+      status: 'pending_review',
+      verifiedBy: 'practice.owner_or_manager_required',
+      verifiedAt: '2026-04-27',
+    })
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText(rule.title)
+
+    expect(document.body.textContent).not.toContain('Reviewed by')
+    expect(document.body.textContent).not.toContain('Reviewed at')
+    expect(document.body.textContent).not.toContain('practice.owner_or_manager_required')
+  })
+
+  it('does not show review metadata for default-active templates without practice review', async () => {
+    const rule = obligationRule({
+      id: 'fed.1040.return.2025',
+      title: 'Federal Form 1040 individual income tax return',
+      jurisdiction: 'FED',
+      status: 'active',
+      verifiedBy: 'practice.template_seed',
+      verifiedAt: '2026-04-27',
+      nextReviewOn: '2026-11-15',
+    })
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText(rule.title)
+
+    expect(document.body.textContent).not.toContain('Reviewed by')
+    expect(document.body.textContent).not.toContain('Reviewed at')
+    expect(document.body.textContent).not.toContain('Template verification')
+    expect(document.body.textContent).not.toContain('practice.template_seed')
+    expect(document.body.textContent).not.toContain('Next source review')
+    expect(document.body.textContent).not.toContain('2026-11-15')
+  })
+
+  it('shows the reviewer name and audit timestamp for reviewed practice rules', async () => {
+    const rule = obligationRule({
+      status: 'active',
+      verifiedBy: 'Sarah Martinez',
+      verifiedAt: '2026-05-23',
+      reviewedByName: 'Sarah Martinez',
+      reviewedAt: '2026-05-23T14:08:09.000Z',
+    })
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Sarah Martinez')
+
+    expect(document.body.textContent).toContain('Reviewed by')
+    expect(document.body.textContent).toContain('Sarah Martinez')
+    expect(document.body.textContent).toContain('Reviewed at')
+    expect(document.body.textContent).toContain('2026-05-23 10:08:09')
+    expect(document.body.textContent).not.toContain('Next review')
+    expect(document.body.textContent).not.toContain('Next source review')
   })
 })

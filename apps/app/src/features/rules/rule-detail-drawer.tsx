@@ -19,8 +19,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
@@ -103,8 +105,8 @@ export function RuleDetailInline({
  *     review decision)
  *   - Standalone "Needs review" callout (redundant with the status
  *     pill in the header)
- *   - Verification footer (Reviewed by / Reviewed at / Next review —
- *     audit history, not relevant to Accept/Reject)
+ *   - Practice review footer (Reviewed by / Reviewed at — audit
+ *     history, not relevant to Accept/Reject).
  *   - Multi-row applicability grid (collapsed into a single line)
  *
  * Kept:
@@ -714,7 +716,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
     return (
       <section className="rounded-md border border-state-accent-active-alt bg-accent-tint px-3 py-2 text-xs">
         <p className="font-medium text-status-review">
-          <Trans>Needs review · never generates user reminders.</Trans>
+          <Trans>Review required before this rule can create client deadlines.</Trans>
         </p>
         <p className="mt-1 text-text-secondary">{rule.defaultTip}</p>
       </section>
@@ -868,6 +870,9 @@ function EvidenceMeta({ evidence }: { evidence: RuleEvidence }) {
 }
 
 function VerificationSection({ rule }: { rule: ObligationRule }) {
+  const practiceTimezone = usePracticeTimezone()
+  if (!rule.reviewedAt) return null
+
   return (
     <section className="flex flex-col gap-1.5 border-t border-divider-subtle pt-4">
       <SectionLabel>
@@ -877,15 +882,15 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>
         </span>
-        <span className="font-mono text-text-secondary">{rule.verifiedBy}</span>
+        <span className="text-text-secondary">
+          {rule.reviewedByName ?? <Trans>Unknown reviewer</Trans>}
+        </span>
         <span className="text-text-tertiary">
           <Trans>Reviewed at</Trans>
         </span>
-        <span className="font-mono text-text-secondary">{rule.verifiedAt}</span>
-        <span className="text-text-tertiary">
-          <Trans>Next review</Trans>
+        <span className="font-mono text-text-secondary">
+          {formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)}
         </span>
-        <span className="font-mono text-text-secondary">{rule.nextReviewOn}</span>
       </div>
     </section>
   )

@@ -106,6 +106,10 @@ export const RuleSourceDomainSchema = z.enum([
   'sales_use_tax',
   'withholding',
   'ui_wage_report',
+  'local_individual_income',
+  'local_business_income',
+  'local_employer_withholding',
+  'local_services_tax',
 ])
 export type RuleSourceDomain = z.infer<typeof RuleSourceDomainSchema>
 
@@ -145,12 +149,63 @@ export const RuleEvidenceAuthorityRoleSchema = z.enum([
 ])
 export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
 
+export const LocalJurisdictionLevelSchema = z.enum([
+  'state_administered_local',
+  'county',
+  'municipality',
+  'school_district',
+  'special_district',
+])
+export type LocalJurisdictionLevel = z.infer<typeof LocalJurisdictionLevelSchema>
+
+export const LocalJurisdictionAdministeredBySchema = z.enum([
+  'state',
+  'local_collector',
+  'municipal_authority',
+])
+export type LocalJurisdictionAdministeredBy = z.infer<typeof LocalJurisdictionAdministeredBySchema>
+
+export const LocalJurisdictionCollectedViaSchema = z.enum([
+  'state_return',
+  'local_return',
+  'employer_withholding',
+  'manual_review',
+])
+export type LocalJurisdictionCollectedVia = z.infer<typeof LocalJurisdictionCollectedViaSchema>
+
+export const LocalFactRequirementSchema = z.enum([
+  'resident_county',
+  'resident_municipality',
+  'work_county',
+  'work_municipality',
+  'worksite_psd_code',
+  'principal_office_municipality',
+  'local_collector',
+  'local_filing_channel',
+  'local_tax_rate',
+  'lst_exemption_status',
+])
+export type LocalFactRequirement = z.infer<typeof LocalFactRequirementSchema>
+
+export const LocalJurisdictionRefSchema = z.object({
+  level: LocalJurisdictionLevelSchema,
+  state: RuleGenerationStateSchema,
+  localCode: z.string().min(1),
+  displayName: z.string().min(1),
+  administeredBy: LocalJurisdictionAdministeredBySchema,
+  collectedVia: LocalJurisdictionCollectedViaSchema,
+  sourceAuthority: z.string().min(1),
+})
+export type LocalJurisdictionRef = z.infer<typeof LocalJurisdictionRefSchema>
+
 export const SourceAdapterKindSchema = z.enum(['rss_or_announcement_list'])
 export type SourceAdapterKind = z.infer<typeof SourceAdapterKindSchema>
 
 export const RuleSourceSchema = z.object({
   id: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
   title: z.string().min(1),
   url: z.url(),
   sourceType: RuleSourceTypeSchema,
@@ -321,6 +376,8 @@ export const ObligationRuleSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
   entityApplicability: z.array(EntityApplicabilitySchema),
   taxType: z.string().min(1),
   formName: z.string().min(1),
@@ -343,6 +400,8 @@ export const ObligationRuleSchema = z.object({
   quality: RuleQualityChecklistSchema,
   verifiedBy: z.string().min(1),
   verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  reviewedByName: z.string().min(1).optional(),
+  reviewedAt: z.iso.datetime().optional(),
   nextReviewOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   version: z.number().int().positive(),
 })
@@ -402,6 +461,7 @@ export const RuleGenerationClientFactsSchema = z.object({
   fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
   fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
   taxPeriodSource: TaxPeriodSourceSchema.optional(),
+  localFacts: z.partialRecord(LocalFactRequirementSchema, z.string().min(1)).optional(),
 })
 export type RuleGenerationClientFacts = z.infer<typeof RuleGenerationClientFactsSchema>
 
@@ -411,7 +471,19 @@ export const RuleGenerationPreviewInputSchema = z.object({
 })
 export type RuleGenerationPreviewInput = z.infer<typeof RuleGenerationPreviewInputSchema>
 
-export const RuleGenerationMissingClientFactSchema = z.enum(['fiscalYearEnd'])
+export const RuleGenerationMissingClientFactSchema = z.enum([
+  'fiscalYearEnd',
+  'resident_county',
+  'resident_municipality',
+  'work_county',
+  'work_municipality',
+  'worksite_psd_code',
+  'principal_office_municipality',
+  'local_collector',
+  'local_filing_channel',
+  'local_tax_rate',
+  'lst_exemption_status',
+])
 export type RuleGenerationMissingClientFact = z.infer<typeof RuleGenerationMissingClientFactSchema>
 
 export const ObligationGenerationPreviewSchema = z.object({
@@ -420,6 +492,8 @@ export const ObligationGenerationPreviewSchema = z.object({
   ruleVersion: z.number().int().positive(),
   ruleTitle: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
   taxType: z.string().min(1),
   matchedTaxType: z.string().min(1),
   period: z.string().min(1),

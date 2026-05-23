@@ -132,6 +132,26 @@ Rule-to-obligation preview 已落地：
 - 输出：`ruleId`、`ruleVersion`、`matchedTaxType`、`period`、`dueDate`、`sourceIds`、`evidence`、`requiresReview`、`reviewReasons`、`reminderReady`。
 - 只有 `reminderReady=true` 的 preview 才能进入后续 reminder scheduling；review-only preview 只允许页面展示来源、证据和 CPA 检查项。
 
+2026-05-23 local income coverage note：
+
+- Local income coverage v1 **不新增独立 local UI**，也不把 city/county/PSD 直接扩进
+  `RuleJurisdiction`；`RuleJurisdiction` 继续只表示 `FED + 50 states + DC`。
+- Local source 进入现有 Rule Library / Sources / Pending rules 流程，通过
+  `RuleSource.localJurisdiction` / `ObligationRule.localJurisdiction` 标记父州下的 local
+  source scope，并用 `localFactRequirements` 记录生成前必须确认的结构化 local facts（例如
+  resident county、work municipality、PSD code、collector、filing channel）。
+- 首批 local sources 只覆盖五个 high-value review-only pack：MD local income、IN county
+  LIT、NYC/Yonkers、PA EIT/LST、OH municipal income。
+- 这些 local candidate rules 均为 `source_defined_calendar` + `applicability_review`，默认
+  不会生成 reminder-ready obligation。即使 practice 以后接受了 concrete local rule，只要
+  `localFactRequirements` 对应事实缺失，preview 仍保持 `requiresReview=true` /
+  `reminderReady=false`。
+- PA/OH 不把一个 lookup source 当成所有 local obligations 的 basis：PA EIT、Act 32 employer
+  withholding、LST 分别注册；OH The Finder 保留为 lookup source，annual return / net profit
+  filing 使用 Ohio Revised Code source。
+- Public/product copy 应表达为："Local coverage is available only where explicitly listed and
+  reviewed." 不能表达为 full county/city coverage。
+
 Source 拉取命令：
 
 ```sh

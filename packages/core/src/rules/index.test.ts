@@ -191,6 +191,78 @@ describe('@duedatehq/core/rules', () => {
     }
   })
 
+  it('registers selected local income sources as review-only Rule Library inputs', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    const expectedSourceIds = [
+      'md.local_income_tax',
+      'in.local_county_income_tax',
+      'ny.nyc_yonkers_income_tax',
+      'pa.local_eit_lit_psd',
+      'pa.local_eit_act32_employer_withholding',
+      'pa.local_services_tax',
+      'oh.municipal_income_tax_finder',
+      'oh.municipal_income_tax_annual_return',
+      'oh.municipal_net_profit_filing',
+    ]
+
+    for (const sourceId of expectedSourceIds) {
+      const source = sourcesById.get(sourceId)
+      expect(source, sourceId).toBeDefined()
+      expect(source?.localJurisdiction, sourceId).toBeDefined()
+      expect(source?.notificationChannels, sourceId).toContain('practice_rule_review')
+      expect(
+        source?.domains.some((domain) => domain.startsWith('local_')),
+        sourceId,
+      ).toBe(true)
+      expect(source?.localFactRequirements?.length, sourceId).toBeGreaterThan(0)
+    }
+
+    const localRules = OBLIGATION_RULES.filter((rule) => rule.localJurisdiction)
+    expect(localRules.map((rule) => rule.id)).toEqual([
+      'md.local_individual_income.candidate.2026',
+      'in.local_individual_income.candidate.2026',
+      'ny.local_individual_income.candidate.2026',
+      'pa.local_individual_income.candidate.2026',
+      'pa.local_employer_withholding.candidate.2026',
+      'pa.local_services_tax.candidate.2026',
+      'oh.local_individual_income.candidate.2026',
+      'oh.local_business_income.candidate.2026',
+    ])
+
+    for (const rule of localRules) {
+      expect(rule.status, rule.id).toBe('candidate')
+      expect(rule.coverageStatus, rule.id).toBe('manual')
+      expect(rule.requiresApplicabilityReview, rule.id).toBe(true)
+      expect(rule.dueDateLogic.kind, rule.id).toBe('source_defined_calendar')
+      expect(rule.localFactRequirements?.length, rule.id).toBeGreaterThan(0)
+      const sourceId = rule.sourceIds[0]
+      expect(sourceId, rule.id).toBeDefined()
+      if (sourceId === undefined) throw new Error(`Missing source id for ${rule.id}`)
+      expect(sourceCoversRuleDomain(sourcesById.get(sourceId)!, rule), rule.id).toBe(true)
+    }
+
+    expect(
+      localRules.find((rule) => rule.id === 'pa.local_individual_income.candidate.2026'),
+    ).toMatchObject({ sourceIds: ['pa.local_eit_lit_psd'] })
+    expect(
+      localRules.find((rule) => rule.id === 'pa.local_employer_withholding.candidate.2026'),
+    ).toMatchObject({ sourceIds: ['pa.local_eit_act32_employer_withholding'] })
+    expect(
+      localRules.find((rule) => rule.id === 'pa.local_services_tax.candidate.2026'),
+    ).toMatchObject({ sourceIds: ['pa.local_services_tax'] })
+    expect(
+      localRules.find((rule) => rule.id === 'oh.local_individual_income.candidate.2026'),
+    ).toMatchObject({ sourceIds: ['oh.municipal_income_tax_annual_return'] })
+    expect(
+      localRules.find((rule) => rule.id === 'oh.local_business_income.candidate.2026'),
+    ).toMatchObject({ sourceIds: ['oh.municipal_net_profit_filing'] })
+
+    expect(listRequiredSourceCoverage('PA').some((cell) => cell.domain.startsWith('local_'))).toBe(
+      false,
+    )
+    expect(MVP_RULE_JURISDICTIONS).not.toContain('PA:PSD:*')
+  })
+
   it('links every rule to existing official sources', () => {
     const sourceIds = new Set<string>(RULE_SOURCES.map((source) => source.id))
 
@@ -1672,6 +1744,74 @@ describe('@duedatehq/core/rules', () => {
       reminderReady: false,
       reviewReasons: [],
       missingClientFacts: ['fiscalYearEnd'],
+    })
+  })
+
+  it('keeps accepted local rules review-only until required local facts are present', () => {
+    const candidate = findRuleById('pa.local_services_tax.candidate.2026')
+    if (!candidate) throw new Error('Missing PA LST local candidate rule')
+    const rule = {
+      ...candidate,
+      status: 'verified' as const,
+      coverageStatus: 'full' as const,
+      ruleTier: 'basic' as const,
+      requiresApplicabilityReview: false,
+      dueDateLogic: {
+        kind: 'fixed_date' as const,
+        date: '2026-04-30',
+        holidayRollover: 'next_business_day' as const,
+      },
+    }
+
+    const missingFactPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_pa_employer',
+        entityType: 'llc',
+        state: 'PA',
+        taxTypes: [rule.taxType],
+        taxYearStart: '2025-01-01',
+        taxYearEnd: '2025-12-31',
+      },
+      rules: [rule],
+    })
+
+    expect(missingFactPreviews).toHaveLength(1)
+    expect(missingFactPreviews[0]).toMatchObject({
+      dueDate: '2026-04-30',
+      requiresReview: true,
+      reminderReady: false,
+      reviewReasons: ['local_fact_requirements_missing'],
+      missingClientFacts: [
+        'work_municipality',
+        'local_collector',
+        'local_tax_rate',
+        'lst_exemption_status',
+      ],
+    })
+
+    const readyPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_pa_employer',
+        entityType: 'llc',
+        state: 'PA',
+        taxTypes: [rule.taxType],
+        taxYearStart: '2025-01-01',
+        taxYearEnd: '2025-12-31',
+        localFacts: {
+          work_municipality: 'Pittsburgh',
+          local_collector: 'Jordan Tax Service',
+          local_tax_rate: '52.00',
+          lst_exemption_status: 'not_exempt',
+        },
+      },
+      rules: [rule],
+    })
+
+    expect(readyPreviews[0]).toMatchObject({
+      requiresReview: false,
+      reminderReady: true,
+      reviewReasons: [],
+      missingClientFacts: [],
     })
   })
 
