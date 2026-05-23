@@ -331,6 +331,147 @@ UPDATE obligation_instance
 SET prep_stage = 'waiting_on_client'
 WHERE id = '20000000-0000-4000-8000-000000000005';
 
+-- =========================================================================
+-- DEMO STATUS SPREAD (2026-05-23)
+--
+-- Forces each of the 9 brightline demo clients to surface a DIFFERENT
+-- obligation status on the /clients list, so the design surfaces (stage
+-- card, pipeline strips, sub-status text, status chips) can be evaluated
+-- against every state from a single seed.
+--
+-- The /clients list shows the EARLIEST non-terminal obligation's status as
+-- the row's signal. For each client we flip the earliest-non-terminal row
+-- to the target status + set the matching sub-status fields so the stage
+-- card has something to render. Terminal-status showcases (completed,
+-- paid) need every other obligation closed out too, otherwise the
+-- earlier non-terminal one steals the row signal.
+-- =========================================================================
+
+-- Client 0001 — Arbor & Vale LLC → pending (Not started)
+-- The CA 568 (oblig 0002) is the earliest non-terminal. Flip it to
+-- pending so the row reads "Not started" cleanly. The federal 1065
+-- (oblig 0001) is already pending, so the whole client now sits in
+-- the Not started bucket.
+UPDATE obligation_instance
+SET status = 'pending',
+    prep_stage = NULL,
+    review_stage = NULL,
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000002';
+
+-- Client 0002 — Bright Studio S-Corp → waiting_on_client
+-- Federal 1120S (oblig 0003) is the earliest non-terminal. Flip from
+-- review → waiting_on_client + prep_stage so the sub-status reads
+-- "Waiting on client to send docs."
+UPDATE obligation_instance
+SET status = 'waiting_on_client',
+    prep_stage = 'waiting_on_client',
+    review_stage = NULL,
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000003';
+
+-- Client 0003 — Northstar Dental Group → blocked
+-- This client has 5 obligations. The Q1 941 (oblig 0022, due
+-- 2026-04-30) is already the earliest non-terminal row, so we just
+-- flip it to blocked + point at the upstream Lakeview partnership
+-- return (oblig 0009) so the inline BlockerContextCard has a real
+-- K-1 dependency story to render.
+UPDATE obligation_instance
+SET status = 'blocked',
+    blocked_by_obligation_instance_id = '20000000-0000-4000-8000-000000000009',
+    prep_stage = NULL,
+    review_stage = NULL,
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000022';
+
+-- Client 0004 — Copperline Studios Inc. → review
+-- Only one obligation (TX franchise, 0005). Flip to review with
+-- reviewStage='in_review' so the In Review pipeline strip lights up
+-- mid-flow ("Reviewer checking the return").
+UPDATE obligation_instance
+SET status = 'review',
+    prep_stage = 'prepared',
+    review_stage = 'in_review',
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000005';
+
+-- Client 0005 — Cascade Florist → in_progress (drafting)
+-- Federal 1040 (oblig 0006) flipped from pending to in_progress with
+-- prep_stage='in_prep' so the In Review pipeline shows "Preparer
+-- drafting the return" as the current step.
+UPDATE obligation_instance
+SET status = 'in_progress',
+    prep_stage = 'in_prep',
+    review_stage = NULL,
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000006';
+
+-- Client 0006 — Magnolia Family Trust → done (Filed, awaiting acceptance)
+-- Trust currently has 2 obligations: 0007 (already done/accepted) and
+-- 0008 (pending FL corp income). Flip 0008 to done + efile submitted
+-- (awaiting acceptance) so the next-due signal reads as a fresh Filed
+-- row with the e-file pipeline visible.
+UPDATE obligation_instance
+SET status = 'done',
+    efile_state = 'submitted',
+    efile_submitted_at = CAST(unixepoch('2026-05-20 14:00:00') * 1000 AS INTEGER),
+    efile_accepted_at = NULL,
+    prep_stage = NULL,
+    review_stage = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000008';
+
+-- Client 0007 — Lakeview Medical Partners → extended
+-- Federal 1065 (oblig 0009) flipped to extended with the new internal
+-- due date 6 months out. Sets extension_filed_at so the extension
+-- timeline + sub-status both render meaningfully.
+UPDATE obligation_instance
+SET status = 'extended',
+    extension_filed_at = CAST(unixepoch('2026-04-25 11:00:00') * 1000 AS INTEGER),
+    current_due_date = CAST(unixepoch('2026-11-15 00:00:00') * 1000 AS INTEGER),
+    prep_stage = NULL,
+    review_stage = NULL,
+    efile_state = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000009';
+
+-- Client 0008 — Orbit Design LLC → paid (payment confirmed)
+-- CA LLC minimum tax (oblig 0010) flipped to paid + payment_state
+-- 'confirmed' so the payment pipeline strip ends at "Authority
+-- confirmed payment cleared" and the canonical "Close out this
+-- payment" button is the wired primary.
+UPDATE obligation_instance
+SET status = 'paid',
+    payment_state = 'confirmed',
+    prep_stage = NULL,
+    review_stage = NULL,
+    efile_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000010';
+
+-- Client 0009 — Riverbend Draft Client → completed
+-- Single obligation (federal 1040, oblig 0011). Flip to completed with
+-- e-file fully delivered so the Completed stage's key-dates summary
+-- (Opened / Filed / Completed / Cycle time) has full audit-derived
+-- data to render. Filed two weeks ago, completed today.
+UPDATE obligation_instance
+SET status = 'completed',
+    efile_state = 'final_package_delivered',
+    efile_submitted_at = CAST(unixepoch('2026-05-09 09:30:00') * 1000 AS INTEGER),
+    efile_accepted_at = CAST(unixepoch('2026-05-12 10:15:00') * 1000 AS INTEGER),
+    prep_stage = NULL,
+    review_stage = NULL,
+    payment_state = NULL
+WHERE id = '20000000-0000-4000-8000-000000000011';
+
+-- =========================================================================
+-- End demo status spread
+-- =========================================================================
+
 WITH inferred_period AS (
   SELECT
     id,
