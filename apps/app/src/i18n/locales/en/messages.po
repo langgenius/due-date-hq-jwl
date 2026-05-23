@@ -439,6 +439,10 @@ msgstr "{label} is coming soon"
 msgid "{label}, selected"
 msgstr "{label}, selected"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{late}d late"
+msgstr "{late}d late"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
@@ -4392,6 +4396,10 @@ msgstr "Importing…"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Improves identity matching and audit review."
 msgstr "Improves identity matching and audit review."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "in {days}d"
+msgstr "in {days}d"
 
 #: src/features/obligations/status-control.tsx
 msgid "In progress"
@@ -9700,6 +9708,7 @@ msgstr "today"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts

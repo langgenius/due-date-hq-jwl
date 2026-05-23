@@ -281,6 +281,51 @@ function getClientServicesCount(client: ClientPublic): number {
   return taxTypes.size
 }
 
+/**
+ * Single-line urgency label for the Next-due column in the clients
+ * list. Replaces the previous 3-line composite cell (date + form +
+ * readiness chip) flagged as "三行不友好" in the design review.
+ *
+ * Vocabulary:
+ *   - days < 0 → "Nd late" (destructive tone)
+ *   - days = 0 → "Today"   (warning tone)
+ *   - 1 ≤ days ≤ 7 → "in Nd" (warning tone)
+ *   - days > 7  → prose date ("May 23") in primary text
+ *
+ * Mirrors the obligations queue's urgency phrasing so a CPA scanning
+ * either surface reads the same signal.
+ */
+function NextDueRelativeLabel({ iso }: { iso: string }) {
+  const dueTs = Date.parse(iso)
+  if (!Number.isFinite(dueTs)) {
+    return <span className="text-text-tertiary">{iso}</span>
+  }
+  const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
+  if (days < 0) {
+    const late = Math.abs(days)
+    return (
+      <span className="whitespace-nowrap font-medium text-text-destructive tabular-nums">
+        <Trans>{late}d late</Trans>
+      </span>
+    )
+  }
+  if (days === 0) {
+    return (
+      <span className="whitespace-nowrap font-medium text-text-warning">
+        <Trans>Today</Trans>
+      </span>
+    )
+  }
+  if (days <= 7) {
+    return (
+      <span className="whitespace-nowrap text-text-warning tabular-nums">
+        <Trans>in {days}d</Trans>
+      </span>
+    )
+  }
+  return <span className="whitespace-nowrap text-text-primary">{formatDatePretty(iso)}</span>
+}
+
 function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   const states = getClientFilingStates(client)
   if (states.length === 0) return null
@@ -523,16 +568,23 @@ export function ClientFactsWorkspace({
         ),
         cell: ({ row }) => {
           const matches = pulseMatchesByClient.get(row.original.id)
+          const readiness = factsModel.readinessById.get(row.original.id)
           return (
             <div className="flex min-w-0 items-center gap-2">
               {/* L-6 (2026-05-22): dropped the entity-type sub-line that
                   lived under the client name. Entity is already
                   filterable via the column header dropdown + visible on
                   the detail page header chip; surfacing it under every
-                  list row was redundant noise. The row now reads as a
-                  single confident name line. */}
+                  list row was redundant noise.
+                  L-5 (2026-05-23): readiness chip moves into this row so
+                  the page-level scan sees identity + setup state
+                  together. The Next-due cell then carries ONLY urgency
+                  (a single tone-coded line). */}
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 <span className="truncate font-medium text-text-primary">{row.original.name}</span>
+                {readiness?.status === 'needs_facts' ? (
+                  <ClientReadinessBadge readiness={readiness} compact />
+                ) : null}
                 {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
               </div>
               {/* Hover-revealed peek affordance: row click still goes to
@@ -619,36 +671,26 @@ export function ClientFactsWorkspace({
         },
       },
       {
+        // L-5 (2026-05-23): collapsed from a 3-line composite (date +
+        // form + readiness chip) to a single tone-coded line. The
+        // form/tax-type moved to the hover peek (already accessible
+        // via the eye icon next to the client name) and the readiness
+        // chip moved to the NAME column so the row reads in one scan.
+        // Tone semantics: late = red, due today = amber, within 7d =
+        // amber, beyond = neutral. Matches the obligations queue's
+        // urgency vocabulary.
         id: 'nextDue',
         header: t`Next due`,
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
-          const readiness = factsModel.readinessById.get(row.original.id)
-          const hasNextDue = Boolean(summary?.nextDueDate)
-          if (!hasNextDue && !readiness) {
+          if (!summary?.nextDueDate) {
             return <span className="text-text-tertiary">—</span>
           }
-          return (
-            <div className="flex min-w-0 flex-col gap-1">
-              {summary?.nextDueDate ? (
-                <span className="whitespace-nowrap text-text-primary">
-                  {formatDatePretty(summary.nextDueDate)}
-                </span>
-              ) : (
-                <span className="text-text-tertiary">—</span>
-              )}
-              {summary?.nextTaxType ? (
-                <span className="truncate text-xs text-text-tertiary">
-                  <TaxCodeLabel code={summary.nextTaxType} />
-                </span>
-              ) : null}
-              {readiness ? <ClientReadinessBadge readiness={readiness} compact /> : null}
-            </div>
-          )
+          return <NextDueRelativeLabel iso={summary.nextDueDate} />
         },
         meta: {
-          headerClassName: 'w-[200px]',
-          cellClassName: 'w-[200px]',
+          headerClassName: 'w-[120px]',
+          cellClassName: 'w-[120px]',
         },
       },
       {

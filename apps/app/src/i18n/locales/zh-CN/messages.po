@@ -439,6 +439,10 @@ msgstr "{label} 功能即将推出"
 msgid "{label}, selected"
 msgstr "{label}，已选择"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{late}d late"
+msgstr "逾期 {late} 天"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
@@ -4392,6 +4396,10 @@ msgstr "正在导入…"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Improves identity matching and audit review."
 msgstr "提升身份匹配与审计复核质量。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "in {days}d"
+msgstr "{days} 天后"
 
 #: src/features/obligations/status-control.tsx
 msgid "In progress"
@@ -9700,6 +9708,7 @@ msgstr "今天"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
