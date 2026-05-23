@@ -614,6 +614,11 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Back to original panel"
 msgstr "← Back to original panel"
 
+#. placeholder {0}: suggested.length - 6
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "+ {0} more"
+msgstr "+ {0} more"
+
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
@@ -5183,6 +5188,10 @@ msgstr "Missing due date"
 msgid "missing facts"
 msgstr "missing facts"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Missing from this client"
+msgstr "Missing from this client"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing rule"
 msgstr "Missing rule"
@@ -8795,6 +8804,10 @@ msgstr "Signed in"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signing out…"
 msgstr "Signing out…"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Since {sinceLabel}"
+msgstr "Since {sinceLabel}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"

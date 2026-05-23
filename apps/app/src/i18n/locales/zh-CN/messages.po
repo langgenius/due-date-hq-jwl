@@ -614,6 +614,11 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Back to original panel"
 msgstr "← 返回原面板"
 
+#. placeholder {0}: suggested.length - 6
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "+ {0} more"
+msgstr "还有 {0} 项"
+
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
@@ -5183,6 +5188,10 @@ msgstr "缺少截止日"
 msgid "missing facts"
 msgstr "事实缺失"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Missing from this client"
+msgstr "此客户缺少"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Missing rule"
 msgstr "缺少规则"
@@ -8795,6 +8804,10 @@ msgstr "已登录"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signing out…"
 msgstr "正在退出…"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Since {sinceLabel}"
+msgstr "起始于 {sinceLabel}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Single review"

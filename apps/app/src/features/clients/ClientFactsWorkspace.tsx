@@ -24,9 +24,11 @@ import {
   DownloadIcon,
   EyeIcon,
   FileSearchIcon,
+  MailIcon,
   MegaphoneIcon,
   MoreHorizontalIcon,
   PencilIcon,
+  PhoneIcon,
   PinIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -89,6 +91,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
@@ -1475,6 +1478,8 @@ export function ClientDetailWorkspace({
                 migration history is still discoverable from the
                 /clients header Import-history drawer. */}
 
+            <ClientContactMetaRow client={client} />
+
             {/* Active alerts + summary strip stay ABOVE the tabs —
                 they're global signals about the client ("anything wrong
                 with this client right now?") that apply regardless of
@@ -2853,6 +2858,60 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
   return <Trans>Needs facts</Trans>
 }
 
+/**
+ * D-extra (2026-05-23): quiet metadata row under the client title.
+ * Reads `✉ email · ☎ phone · Since Mar 2023` — only the fields the
+ * schema has on this client, hidden entirely when nothing's there.
+ *
+ * Email + phone are real action links (`mailto:` / `tel:`) so a CPA
+ * can act without leaving the page. "Since" is derived from
+ * `client.createdAt` via the same Intl format the Compliance posture
+ * panel uses (Mar 2023 / Apr 2024).
+ *
+ * Stays muted (`text-text-tertiary text-xs`) — it's reference info,
+ * not a status signal. Doesn't compete with the identity chips above
+ * or the active-alerts section below.
+ */
+function ClientContactMetaRow({ client }: { client: ClientPublic }) {
+  const hasEmail = Boolean(client.primaryContactEmail)
+  const hasPhone = Boolean(client.primaryPhone)
+  const sinceLabel = useMemo(() => {
+    const parsed = Date.parse(client.createdAt)
+    if (!Number.isFinite(parsed)) return null
+    return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(
+      new Date(parsed),
+    )
+  }, [client.createdAt])
+  if (!hasEmail && !hasPhone && !sinceLabel) return null
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
+      {hasEmail && client.primaryContactEmail ? (
+        <a
+          href={`mailto:${client.primaryContactEmail}`}
+          className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <MailIcon className="size-3.5" aria-hidden />
+          <span className="truncate">{client.primaryContactEmail}</span>
+        </a>
+      ) : null}
+      {hasPhone && client.primaryPhone ? (
+        <a
+          href={`tel:${client.primaryPhone}`}
+          className="inline-flex items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <PhoneIcon className="size-3.5" aria-hidden />
+          <span>{client.primaryPhone}</span>
+        </a>
+      ) : null}
+      {sinceLabel ? (
+        <span className="inline-flex items-center gap-1">
+          <Trans>Since {sinceLabel}</Trans>
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 function ClientOpportunityCountBadge({ count }: { count: number }) {
   const { t } = useLingui()
   return (
@@ -3049,17 +3108,51 @@ function SuggestedFormsCatalogPanel({
           <span className="text-sm font-medium text-text-primary">
             <Trans>Forms catalog</Trans>
           </span>
-          <span className="truncate text-xs text-text-tertiary">
-            <Plural value={applicable.length} one="# applicable" other="# applicable" /> ·{' '}
-            {client.name}
+          <span className="inline-flex items-center gap-2 truncate text-xs text-text-tertiary">
+            <span>
+              <Plural value={applicable.length} one="# applicable" other="# applicable" /> ·{' '}
+              {client.name}
+            </span>
+            {/* D-6e (2026-05-23): the gap count is now a tooltip-
+                anchored chip. Hover reveals the actual form list so
+                the CPA can scan what's missing without opening the
+                accordion. Inert (no click target) — Tooltip is the
+                right primitive per Dify's overlay rules. */}
             {suggested.length > 0 ? (
-              <>
-                {' '}
-                ·{' '}
-                <span className="text-text-warning">
-                  <Plural value={suggested.length} one="# gap" other="# gap" />
-                </span>
-              </>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Badge
+                      variant="warning"
+                      className="cursor-default rounded-sm text-[10px] uppercase tracking-wide"
+                    >
+                      <Plural value={suggested.length} one="# gap" other="# gap" />
+                    </Badge>
+                  }
+                />
+                <TooltipContent className="max-w-sm whitespace-normal text-left">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
+                      <Trans>Missing from this client</Trans>
+                    </span>
+                    <ul className="flex flex-col gap-0.5">
+                      {suggested.slice(0, 6).map((s) => (
+                        <li key={s.rule.id} className="flex items-baseline gap-1.5">
+                          <span className="font-mono uppercase tabular-nums opacity-70">
+                            {s.rule.jurisdiction}
+                          </span>
+                          <span className="truncate">{s.rule.formName}</span>
+                        </li>
+                      ))}
+                      {suggested.length > 6 ? (
+                        <li className="opacity-70">
+                          <Trans>+ {suggested.length - 6} more</Trans>
+                        </li>
+                      ) : null}
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             ) : null}
           </span>
         </div>
