@@ -258,6 +258,8 @@ describe('rule source scan jobs', () => {
         title: 'Texas Comptroller News',
         sourceType: 'news',
         acquisitionMethod: 'api_watch',
+        adapterKind: 'rss_or_announcement_list',
+        feedUrl: 'https://comptroller.texas.gov/about/media-center/news/',
         cadence: 'daily',
         authorityRole: 'watch',
         notificationChannels: ['source_change', 'practice_rule_review'],

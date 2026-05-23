@@ -105,7 +105,8 @@ function ActionRow({
         // moving between children (the Review button gets focus
         // before the chevron, etc.). `relatedTarget` is the element
         // receiving focus next.
-        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+        const nextTarget = event.relatedTarget
+        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
           onHoverChange(false)
         }
       }}

@@ -55,8 +55,8 @@ export function KbdHint({
               ·
             </span>
           ) : null}
-          {item.keys.map((key, keyIndex) => (
-            <Kbd key={`${item.label}-${key}-${keyIndex}`}>{key}</Kbd>
+          {item.keys.map((key) => (
+            <Kbd key={`${item.label}-${key}`}>{key}</Kbd>
           ))}
           <span>{item.label}</span>
         </span>

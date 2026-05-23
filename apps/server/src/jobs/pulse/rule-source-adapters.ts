@@ -32,6 +32,10 @@ const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMe
   'api_watch',
 ])
 
+function sourceFetchUrl(source: RuleSource): string {
+  return source.feedUrl ?? source.url
+}
+
 function intervalForCadence(cadence: RuleSource['cadence']): number {
   const hour = 60 * 60 * 1000
   const day = 24 * hour
@@ -111,11 +115,13 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
     jurisdiction: source.jurisdiction,
     fetcher: 'browserless',
     async fetch(ctx) {
-      return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: source.url })]
+      return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
     },
     async parse(snapshot) {
       if (snapshot.notModified) return []
-      return announcementItemsFromSnapshot(source, snapshot, { fallbackToSourceSnapshot: true })
+      return announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, snapshot, {
+        fallbackToSourceSnapshot: true,
+      })
     },
   }
 }
@@ -131,6 +137,7 @@ export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
 export function isTemporaryAnnouncementAdapterEligible(source: RuleSource): boolean {
   if (!isTemporaryAnnouncementSource(source)) return false
   if (!TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS.has(source.acquisitionMethod)) return false
+  if (source.adapterKind !== 'rss_or_announcement_list') return false
   if (EXISTING_ADAPTER_IDS.has(source.id)) return false
   return true
 }

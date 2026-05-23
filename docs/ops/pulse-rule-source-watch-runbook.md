@@ -35,21 +35,31 @@ counted, and a jurisdiction is covered only when at least one registered officia
 - `sourceType='emergency_relief'` or `sourceType='news'`
 - `authorityRole='watch'`
 - `acquisitionMethod='html_watch'`, `acquisitionMethod='pdf_watch'`, or
-  `acquisitionMethod='api_watch'` backed by a dedicated announcement feed/list adapter
+  `acquisitionMethod='api_watch'` backed by `adapterKind='rss_or_announcement_list'`
 - `healthStatus='healthy'`
 - subscribed to `practice_rule_review`
+
+For `api_watch` temporary announcement sources, set `feedUrl` when the machine-readable RSS/Atom
+endpoint differs from the human-facing `url`. The scan path fetches `feedUrl ?? url`, parses RSS,
+Atom, or same-page announcement links, and stores item-level source snapshots.
 
 These watch sources do not count as Rule Library baseline source coverage. Baseline source matrix
 coverage only counts `authorityRole='basis'`, so a news or relief page cannot make a tax-domain cell
 look source-backed by itself.
 
 Use `listTemporaryAnnouncementSourceCoverage()` or `pnpm rules:check-sources` to inspect the
-internal coverage gate. Official pages that are registered but return `403`, `404`, or timeout from
-the generic checker should be treated as source-health work, not as public product coverage.
+internal coverage gate. Dedicated RSS/list adapters are smoke-tested when the feed/list can be
+fetched locally. Local curl network/TLS probe failures are reported as skipped after retry, but real
+HTTP failures still fail the gate. Official pages that are registered but return persistent `403`,
+`404`, or timeout from the generic checker should be treated as source-health work, not as public
+product coverage.
 
 For noisy news or RSS sources, the scan path should split the list page into candidate items before
 `pulse.extract`. This keeps generic list-page boilerplate from creating false positives; extraction
-should classify only the narrowed item.
+should classify only the narrowed item. Common agency-news noise such as awards, staffing,
+auctions, portal maintenance, newsletters, scam alerts, and generic webinars should not reach
+actionable extraction unless the item also contains high-signal deadline, relief, disaster, filing,
+or payment language.
 
 ## Pulse Behavior
 
@@ -63,6 +73,10 @@ should classify only the narrowed item.
 Review-only Pulse alerts are visible in Pulse, can be dismissed, snoozed, or marked reviewed, and do
 not write obligation overlays. Due-date overlays keep the existing apply, audit, evidence, email,
 and revert workflow.
+
+Extraction guards reject deadline-shift outputs that lack both original and new due dates. They also
+reject `no_regulatory_change` outputs that include actionable change fields, keeping noisy
+announcement items review-only or out of Pulse rather than creating partial overlays.
 
 ## Catalog Sync
 

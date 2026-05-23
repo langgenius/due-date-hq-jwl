@@ -29,6 +29,9 @@ describe('rule source adapters', () => {
         candidateReviewSources.length +
         temporaryAnnouncementSourceAdapters.length,
     )
+    expect(new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id)).size).toBe(
+      liveRegulatorySourceAdapters.length,
+    )
   })
 
   it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {
@@ -42,12 +45,17 @@ describe('rule source adapters', () => {
       'co.temporary_announcements',
       'ks.temporary_announcements',
       'mi.temporary_announcements',
+      'mo.temporary_announcements',
       'nd.temporary_announcements',
       'nh.temporary_announcements',
       'ri.temporary_announcements',
     ])
 
     const source = sources.find((candidate) => candidate.id === 'az.temporary_announcements')!
+    expect(source).toMatchObject({
+      adapterKind: 'rss_or_announcement_list',
+      feedUrl: 'https://azdor.gov/news-center',
+    })
     const items = await createTemporaryAnnouncementAdapter(source).parse(
       {
         sourceId: source.id,

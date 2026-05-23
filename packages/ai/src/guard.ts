@@ -61,6 +61,28 @@ export function verifyMapperEinHitRate(input: unknown, output: unknown): void {
 
 export function verifyPulseSourceExcerpt(input: unknown, output: unknown): void {
   if (!isRecord(input) || !isRecord(output)) return
+  if (output.classification === 'no_regulatory_change') {
+    if (
+      output.changeKind !== null ||
+      output.actionMode !== null ||
+      output.originalDueDate !== null ||
+      output.newDueDate !== null
+    ) {
+      throw new GuardRejection(
+        'Pulse extract rejected because no-change output included actionable fields.',
+        'SCHEMA_INVALID',
+      )
+    }
+  }
+  if (output.changeKind === 'deadline_shift' || output.actionMode === 'due_date_overlay') {
+    if (output.originalDueDate === null || output.newDueDate === null) {
+      throw new GuardRejection(
+        'Pulse extract rejected because deadline shifts require original and new due dates.',
+        'SCHEMA_INVALID',
+      )
+    }
+  }
+
   const rawText = input.rawText
   const sourceExcerpt = output.sourceExcerpt
   if (typeof rawText !== 'string' || typeof sourceExcerpt !== 'string') return

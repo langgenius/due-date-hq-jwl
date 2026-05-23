@@ -367,6 +367,134 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal?.code).toBe('GUARD_REJECTED')
   })
 
+  it('keeps noisy Pulse news fixtures review-only or no-change unless dates are explicit', async () => {
+    callGatewayMock
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'no_regulatory_change',
+          changeKind: null,
+          actionMode: null,
+          summary: 'Agency warning does not change a filing or payment obligation.',
+          sourceExcerpt: 'Tax fraud warning for taxpayers',
+          jurisdiction: 'AZ',
+          counties: [],
+          forms: [],
+          entityTypes: [],
+          originalDueDate: null,
+          newDueDate: null,
+          effectiveFrom: null,
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.88,
+        },
+        model: 'test-model',
+      })
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'regulatory_change',
+          changeKind: 'form_instruction',
+          actionMode: 'review_only',
+          summary: 'Agency published new form instructions without an explicit due-date move.',
+          sourceExcerpt: 'new form instructions are available',
+          jurisdiction: 'CA',
+          counties: [],
+          forms: ['Form 100'],
+          entityTypes: ['c_corp'],
+          originalDueDate: null,
+          newDueDate: null,
+          effectiveFrom: '2026-01-01',
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.82,
+        },
+        model: 'test-model',
+      })
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'regulatory_change',
+          changeKind: 'deadline_shift',
+          actionMode: 'due_date_overlay',
+          summary: 'Disaster relief moved the filing and payment deadline.',
+          sourceExcerpt: 'extended from April 15, 2026 to October 15, 2026',
+          jurisdiction: 'CA',
+          counties: ['Los Angeles'],
+          forms: ['federal_1040'],
+          entityTypes: ['individual'],
+          originalDueDate: '2026-04-15',
+          newDueDate: '2026-10-15',
+          effectiveFrom: '2026-04-15',
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.9,
+        },
+        model: 'test-model',
+      })
+    const ai = createAI(CONFIGURED_ENV)
+
+    await expect(
+      ai.extractPulse({
+        sourceId: 'az.temporary_announcements',
+        title: 'Tax fraud warning',
+        officialSourceUrl: 'https://azdor.gov/news/fraud-warning',
+        rawText: 'Tax fraud warning for taxpayers',
+      }),
+    ).resolves.toMatchObject({ result: { classification: 'no_regulatory_change' } })
+    await expect(
+      ai.extractPulse({
+        sourceId: 'ca.temporary_announcements',
+        title: 'New form instructions',
+        officialSourceUrl: 'https://www.ftb.ca.gov/forms/',
+        rawText: 'new form instructions are available',
+      }),
+    ).resolves.toMatchObject({ result: { actionMode: 'review_only' } })
+    await expect(
+      ai.extractPulse({
+        sourceId: 'irs.disaster',
+        title: 'Disaster relief',
+        officialSourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+        rawText: 'extended from April 15, 2026 to October 15, 2026',
+      }),
+    ).resolves.toMatchObject({ result: { actionMode: 'due_date_overlay' } })
+  })
+
+  it('rejects deadline shift Pulse output unless both due dates are explicit', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Agency says some deadlines were extended.',
+        sourceExcerpt: 'some deadlines were extended',
+        jurisdiction: 'CA',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.8,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'ca.temporary_announcements',
+      title: 'Deadline extension',
+      officialSourceUrl: 'https://www.ftb.ca.gov/file/when-to-file/emergency-tax-relief.html',
+      rawText: 'some deadlines were extended',
+    })
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
   it('rejects rule concrete drafts when the source excerpt is not source-backed', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {

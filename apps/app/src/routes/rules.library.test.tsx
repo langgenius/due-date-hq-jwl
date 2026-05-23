@@ -316,7 +316,7 @@ afterEach(() => {
 })
 
 describe('RulesLibraryRoute', () => {
-  it('defaults to only the Federal group expanded', async () => {
+  it('defaults to all jurisdiction groups collapsed', async () => {
     const federalRule = obligationRule({
       id: 'fed.1040.return.2026',
       title: 'Federal individual income tax return',
@@ -343,11 +343,22 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule, stateRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForText('Federal Row Form')
+    await waitForText('Federal')
     await waitForText('Arizona')
 
-    expect(document.body.textContent).toContain('Federal Row Form')
+    expect(document.body.textContent).not.toContain('Federal Row Form')
     expect(document.body.textContent).not.toContain('Arizona Row Form')
+
+    const federalRow = Array.from(document.querySelectorAll('tbody tr')).find((row) =>
+      row.textContent?.includes('Federal'),
+    )
+    expect(federalRow).toBeDefined()
+
+    await act(async () => {
+      federalRow?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Federal Row Form')
   })
 
   it('does not render add-rule gaps for not-applicable entity coverage', async () => {

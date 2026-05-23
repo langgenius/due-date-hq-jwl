@@ -145,6 +145,9 @@ export const RuleEvidenceAuthorityRoleSchema = z.enum([
 ])
 export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
 
+export const SourceAdapterKindSchema = z.enum(['rss_or_announcement_list'])
+export type SourceAdapterKind = z.infer<typeof SourceAdapterKindSchema>
+
 export const RuleSourceSchema = z.object({
   id: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
@@ -161,6 +164,8 @@ export const RuleSourceSchema = z.object({
   authorityRole: RuleEvidenceAuthorityRoleSchema,
   notificationChannels: z.array(RuleNotificationChannelSchema),
   lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  adapterKind: SourceAdapterKindSchema.optional(),
+  feedUrl: z.url().optional(),
 })
 export type RuleSource = z.infer<typeof RuleSourceSchema>
 

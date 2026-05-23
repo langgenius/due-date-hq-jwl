@@ -87,6 +87,29 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  it('filters noisy agency news links before Pulse extraction', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'az.temporary_announcements',
+        title: 'Arizona DOR News',
+        url: 'https://azdor.gov/news-center',
+        jurisdiction: 'AZ',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: [
+          '<a href="/news/fraud-warning">Tax fraud warning for taxpayers</a>',
+          '<a href="/news/webinar">Sales tax webinar for small businesses</a>',
+          '<a href="/news/extension">Disaster relief extends filing and payment deadline</a>',
+        ].join(''),
+      },
+    )
+
+    expect(items.map((item) => item.title)).toEqual([
+      'Disaster relief extends filing and payment deadline',
+    ])
+  })
+
   it('runs the NY DTF fixture adapter end-to-end', async () => {
     const ctx: IngestCtx = {
       async fetch() {

@@ -67,7 +67,7 @@ interface ClientDetailDrawerProps {
 const EMPTY_OBLIGATIONS = [] as const
 
 export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProps) {
-  const open = clientId !== null
+  const isOpen = clientId !== null
   const isQueryEnabled = clientId !== null && clientId.length > 0
 
   const clientQuery = useQuery({
@@ -87,24 +87,24 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
   // Compute the next-due obligation inline. Same logic as
   // ClientSummaryStrip's tile so the peek matches the full-page tile.
   const { openCount, nextDue } = useMemo(() => {
-    const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
+    const openObligations = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
     let best: ObligationInstancePublic | null = null
     let bestTs = Infinity
-    for (const o of open) {
+    for (const o of openObligations) {
       const ts = Date.parse(o.currentDueDate)
       if (!Number.isNaN(ts) && ts < bestTs) {
         bestTs = ts
         best = o
       }
     }
-    return { openCount: open.length, nextDue: best }
+    return { openCount: openObligations.length, nextDue: best }
   }, [obligations])
 
   const entityLabels = useEntityLabels()
   const { t } = useLingui()
 
   return (
-    <Sheet open={open} onOpenChange={(next) => (!next ? onClose() : undefined)}>
+    <Sheet open={isOpen} onOpenChange={(next) => (!next ? onClose() : undefined)}>
       {/* Slim peek width (~400px). Was ~640px when the drawer carried
           the full SummaryStrip + alerts band + compliance posture —
           that content moved to the full page; this peek is just for

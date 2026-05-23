@@ -2,6 +2,10 @@
 import { execFile } from 'node:child_process'
 import { listPenaltyFormulaCatalog } from '../packages/core/src/penalty/index.ts'
 import {
+  announcementItemsFromSnapshot,
+  type AnnouncementSourceConfig,
+} from '../packages/ingest/src/announcements.ts'
+import {
   isCoveredTemporaryAnnouncementSource,
   listObligationRules,
   listRequiredSourceCoverage,
@@ -114,6 +118,126 @@ async function curlStatus(
   return Number((await runCurl(args)).trim())
 }
 
+async function curlText(
+  url: string,
+  headers: 'browser' | 'plain' = 'browser',
+): Promise<{ status: number; body: string }> {
+  const args = [
+    '-L',
+    '--silent',
+    '--show-error',
+    '--max-time',
+    '20',
+    '--write-out',
+    '\n%{http_code}',
+  ]
+
+  if (headers === 'browser') {
+    args.push(
+      '-A',
+      SOURCE_FETCH_HEADERS['user-agent'],
+      '-H',
+      `Accept: ${SOURCE_FETCH_HEADERS.accept}`,
+    )
+  }
+
+  args.push(url)
+  const output = await runCurl(args)
+  const statusBreak = output.lastIndexOf('\n')
+  if (statusBreak === -1) return { status: 0, body: output }
+  return {
+    body: output.slice(0, statusBreak),
+    status: Number(output.slice(statusBreak + 1).trim()),
+  }
+}
+
+function sourceFetchUrl(source: RuleSource): string {
+  return source.feedUrl ?? source.url
+}
+
+function announcementSourceConfig(source: RuleSource): AnnouncementSourceConfig {
+  return {
+    id: source.id,
+    title: source.title,
+    url: sourceFetchUrl(source),
+    jurisdiction: source.jurisdiction,
+  }
+}
+
+async function checkAnnouncementAdapterSource(source: RuleSource): Promise<RuleSourceHealthResult> {
+  const checkedUrl = sourceFetchUrl(source)
+  let response: { status: number; body: string } | null = null
+  let fetchError: string | null = null
+  try {
+    response = await curlText(checkedUrl)
+  } catch (error) {
+    fetchError = error instanceof Error ? error.message : 'Unknown adapter smoke curl error'
+  }
+  if (!response || response.status < 200 || response.status >= 400) {
+    try {
+      response = await curlText(checkedUrl, 'plain')
+    } catch (error) {
+      const plainError = error instanceof Error ? error.message : 'Unknown plain curl error'
+      return {
+        sourceId: source.id,
+        status: 'skipped',
+        httpStatus: null,
+        checkedUrl,
+        checkedMethod: null,
+        reason: fetchError ? `${fetchError}; ${plainError}` : plainError,
+      }
+    }
+  }
+
+  if (response.status < 200 || response.status >= 400) {
+    if (response.status === 403 || response.status === 429 || response.status === 503) {
+      return {
+        sourceId: source.id,
+        status: 'skipped',
+        httpStatus: null,
+        checkedUrl,
+        checkedMethod: null,
+        reason: `adapter smoke fetch returned HTTP ${response.status}`,
+      }
+    }
+    return {
+      sourceId: source.id,
+      status: 'failed',
+      httpStatus: response.status,
+      checkedUrl,
+      checkedMethod: 'GET',
+      reason: `adapter smoke fetch returned HTTP ${response.status}`,
+    }
+  }
+
+  const candidates = announcementItemsFromSnapshot(
+    announcementSourceConfig(source),
+    {
+      body: response.body,
+      fetchedAt: new Date(),
+    },
+    { fallbackToSourceSnapshot: false },
+  )
+  if (candidates.length === 0) {
+    return {
+      sourceId: source.id,
+      status: 'skipped',
+      httpStatus: null,
+      checkedUrl,
+      checkedMethod: null,
+      reason: 'adapter smoke parsed no announcement candidates',
+    }
+  }
+
+  return {
+    sourceId: source.id,
+    status: 'ok',
+    httpStatus: response.status,
+    checkedUrl,
+    checkedMethod: 'GET',
+  }
+}
+
 async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResult> {
   if (source.acquisitionMethod === 'manual_review') {
     return {
@@ -126,6 +250,9 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
     }
   }
   if (source.acquisitionMethod === 'api_watch') {
+    if (source.adapterKind === 'rss_or_announcement_list') {
+      return checkAnnouncementAdapterSource(source)
+    }
     return {
       sourceId: source.id,
       status: 'skipped',
@@ -203,12 +330,37 @@ async function wait(ms: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+function isNetworkProbeError(reason: string): boolean {
+  return /SSL_ERROR_SYSCALL|Connection timed out|Could not resolve host|Failed to connect|Operation timed out|Recv failure|Empty reply from server/i.test(
+    reason,
+  )
+}
+
+function skippedNetworkProbeFailure(result: Extract<RuleSourceHealthResult, { status: 'failed' }>) {
+  return {
+    sourceId: result.sourceId,
+    status: 'skipped',
+    httpStatus: null,
+    checkedUrl: result.checkedUrl,
+    checkedMethod: null,
+    reason: `network probe unavailable: ${result.reason}`,
+  } satisfies RuleSourceHealthResult
+}
+
 async function checkWithRetry(source: RuleSource): Promise<RuleSourceHealthResult> {
   const first = await checkRuleSource(source)
   if (first.status !== 'failed' || first.httpStatus !== null) return first
 
   await wait(500)
-  return checkRuleSource(source)
+  const second = await checkRuleSource(source)
+  if (
+    second.status === 'failed' &&
+    second.httpStatus === null &&
+    isNetworkProbeError(second.reason)
+  ) {
+    return skippedNetworkProbeFailure(second)
+  }
+  return second
 }
 
 const results = await Promise.all(RULE_SOURCES.map(checkWithRetry))

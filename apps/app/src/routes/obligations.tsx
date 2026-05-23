@@ -4309,7 +4309,7 @@ export function ObligationQueueDetailDrawer({
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
               <div className="grid gap-4">
-                <section aria-labelledby="evidence-workpapers-heading" className="grid gap-2">
+                <section aria-labelledby="evidence-workpapers-heading" className="grid gap-2 pt-2">
                   <div className="flex items-baseline justify-between gap-2">
                     <h3
                       id="evidence-workpapers-heading"

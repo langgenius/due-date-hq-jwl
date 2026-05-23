@@ -87,6 +87,7 @@ export type AcquisitionMethod =
 export type SourceCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'pre_season'
 export type SourcePriority = 'critical' | 'high' | 'medium' | 'low'
 export type SourceHealthStatus = 'healthy' | 'degraded' | 'failing' | 'paused'
+export type SourceAdapterKind = 'rss_or_announcement_list'
 
 export type RuleSourceDomain =
   | 'individual_income_return'
@@ -130,6 +131,8 @@ export interface RuleSource {
   authorityRole: RuleEvidenceAuthorityRole
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
+  adapterKind?: SourceAdapterKind
+  feedUrl?: string
 }
 
 export type EntityApplicability =
@@ -1351,7 +1354,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     jurisdiction: 'IL',
     id: 'il.fiduciary_income_replacement_tax',
     title: 'Illinois DOR Fiduciary Income and Replacement Tax',
-    url: 'https://tax.illinois.gov/research/taxinformation/income/fiduciary.html',
+    url: 'https://tax.illinois.gov/questionsandanswers/answer.73.html',
     sourceType: 'instructions',
     acquisitionMethod: 'html_watch',
     domains: ['fiduciary_income_return'],
@@ -3777,6 +3780,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   sourceType?: RuleSourceType
   acquisitionMethod?: AcquisitionMethod
   priority?: SourcePriority
+  adapterKind?: SourceAdapterKind
+  feedUrl?: string
 }[] = [
   {
     id: 'ak.temporary_announcements',
@@ -3802,6 +3807,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Arizona DOR News Center',
     url: 'https://azdor.gov/news-center',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://azdor.gov/news-center',
   },
   {
     id: 'ca.temporary_announcements',
@@ -3817,6 +3824,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Colorado DOR Tax Newsroom',
     url: 'https://tax.colorado.gov/newsroom',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://tax.colorado.gov/newsroom',
   },
   {
     id: 'ct.temporary_announcements',
@@ -3884,6 +3893,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Kansas DOR Press Releases',
     url: 'https://www.ksrevenue.gov/pressreleases.html',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.ksrevenue.gov/pressreleases.html',
   },
   {
     id: 'ky.temporary_announcements',
@@ -3921,6 +3932,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Michigan Treasury Taxes News',
     url: 'https://www.michigan.gov/taxes/news',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.michigan.gov/taxes/news',
   },
   {
     id: 'mn.temporary_announcements',
@@ -3933,6 +3946,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'MO',
     title: 'Missouri DOR News',
     url: 'https://dor.mo.gov/news/',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://dor.mo.gov/news/rss',
   },
   {
     id: 'ms.temporary_announcements',
@@ -3958,6 +3974,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'North Dakota Tax and Legislative Changes',
     url: 'https://www.tax.nd.gov/news/tax-legislative-changes',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.tax.nd.gov/news/tax-legislative-changes',
   },
   {
     id: 'ne.temporary_announcements',
@@ -3971,6 +3989,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'New Hampshire DRA News and Media',
     url: 'https://www.revenue.nh.gov/',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://www.revenue.nh.gov/',
   },
   {
     id: 'nj.temporary_announcements',
@@ -4027,6 +4047,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     title: 'Rhode Island DOR Press Releases',
     url: 'https://dor.ri.gov/press-releases',
     acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://dor.ri.gov/press-releases',
   },
   {
     id: 'sc.temporary_announcements',
@@ -4097,23 +4119,28 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
 ] as const
 
 const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES.map(
-  (source): RuleSourceSeedRecord => ({
-    id: source.id,
-    jurisdiction: source.jurisdiction,
-    title: source.title,
-    url: source.url,
-    sourceType: source.sourceType ?? 'news',
-    acquisitionMethod: source.acquisitionMethod ?? 'html_watch',
-    cadence: 'daily',
-    priority: source.priority ?? 'high',
-    healthStatus: 'healthy',
-    isEarlyWarning: false,
-    domains: RULE_SOURCE_DOMAINS,
-    entityApplicability: ['any_business'],
-    authorityRole: 'watch',
-    notificationChannels: ['source_change', 'practice_rule_review'],
-    lastReviewedOn: VERIFIED_AT,
-  }),
+  (source): RuleSourceSeedRecord => {
+    const record: RuleSourceSeedRecord = {
+      id: source.id,
+      jurisdiction: source.jurisdiction,
+      title: source.title,
+      url: source.url,
+      sourceType: source.sourceType ?? 'news',
+      acquisitionMethod: source.acquisitionMethod ?? 'html_watch',
+      cadence: 'daily',
+      priority: source.priority ?? 'high',
+      healthStatus: 'healthy',
+      isEarlyWarning: false,
+      domains: RULE_SOURCE_DOMAINS,
+      entityApplicability: ['any_business'],
+      authorityRole: 'watch',
+      notificationChannels: ['source_change', 'practice_rule_review'],
+      lastReviewedOn: VERIFIED_AT,
+    }
+    if (source.adapterKind) record.adapterKind = source.adapterKind
+    if (source.feedUrl) record.feedUrl = source.feedUrl
+    return record
+  },
 )
 
 const SOURCE_DOMAIN_OVERRIDES: Record<string, readonly RuleSourceDomain[]> = {
@@ -8408,7 +8435,8 @@ export function isCoveredTemporaryAnnouncementSource(source: RuleSource): boolea
   return (
     isTemporaryAnnouncementSource(source) &&
     source.healthStatus === 'healthy' &&
-    TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS.has(source.acquisitionMethod)
+    TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS.has(source.acquisitionMethod) &&
+    (source.acquisitionMethod !== 'api_watch' || source.adapterKind === 'rss_or_announcement_list')
   )
 }
 

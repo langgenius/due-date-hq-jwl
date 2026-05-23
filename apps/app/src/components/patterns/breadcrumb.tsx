@@ -73,8 +73,9 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
             </span>
           )
         }
+        const itemKey = `${item.to ?? (isLast ? 'current' : 'segment')}:${item.label}`
         return (
-          <Fragment key={`${item.label}-${index}`}>
+          <Fragment key={itemKey}>
             {node}
             {!isLast ? (
               <ChevronRightIcon aria-hidden className="size-3 shrink-0 text-text-tertiary" />

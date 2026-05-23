@@ -173,6 +173,10 @@ describe('@duedatehq/core/rules', () => {
         expect(['html_watch', 'pdf_watch', 'api_watch'], sourceId).toContain(
           source.acquisitionMethod,
         )
+        if (source.acquisitionMethod === 'api_watch') {
+          expect(source.adapterKind, sourceId).toBe('rss_or_announcement_list')
+          expect(source.feedUrl, sourceId).toMatch(/^https:\/\//)
+        }
         expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
       }
     }

@@ -29,5 +29,5 @@ Federal baseline.
 - `pnpm --filter @duedatehq/server test -- src/procedures/rules/onboarding-activation.test.ts`
 - `pnpm --filter @duedatehq/app test -- --run src/routes/rules.library.test.tsx`
 - `pnpm check`
-- Chrome at `http://localhost:5173/rules/library`: Federal defaults expanded with `ACTIVE 13`;
-  only the Federal disaster-relief candidate remains in `NEEDS REVIEW 1`.
+- Chrome at `http://localhost:5173/rules/library`: Federal showed `ACTIVE 13`;
+  only the Federal disaster-relief candidate remained in `NEEDS REVIEW 1`.

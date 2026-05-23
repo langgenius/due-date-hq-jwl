@@ -4,11 +4,11 @@ import { PDFDocument, StandardFonts } from 'pdf-lib'
 import type {
   AuditEventPublic,
   EvidencePublic,
-  ObligationQueueFacetsOutput,
   ObligationQueueListInput,
   ObligationQueueMatchedRule,
   ObligationQueueRow,
 } from '@duedatehq/contracts'
+import { ObligationQueueFacetsOutputSchema } from '@duedatehq/contracts'
 import {
   canEditTaxYearProfileForObligation,
   findRuleById,
@@ -651,10 +651,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
 
 const facets = os.obligations.facets.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
-  // Repo types describe the raw shape; the contract narrows state codes
-  // and county strings to their schema-validated enums. The runtime
-  // values are equivalent — the contract schema validates on the wire.
-  return (await scoped.obligationQueue.facets()) as ObligationQueueFacetsOutput
+  return ObligationQueueFacetsOutputSchema.parse(await scoped.obligationQueue.facets())
 })
 
 const listSavedViews = os.obligations.listSavedViews.handler(async ({ context }) => {

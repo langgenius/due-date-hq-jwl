@@ -11,10 +11,15 @@ export interface AnnouncementSourceConfig {
 }
 
 const TAX_ANNOUNCEMENT_RE =
-  /deadline|relief|disaster|storm|wildfire|flood|tax|filing|payment|extension|franchise|due|return|notice/i
+  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|tax alert|tax notice|withholding|sales tax|estimated tax/i
+const HIGH_SIGNAL_TAX_CHANGE_RE = /deadline|due date|relief|disaster|extension|filing|payment/i
+const ANNOUNCEMENT_NOISE_RE =
+  /award|auction|career|hiring|job opening|staff|appointment|webinar|seminar|office hour|office closure|holiday schedule|unclaimed property|scam|fraud|phishing|identity theft|password|login|portal maintenance|system maintenance|newsletter/i
 
 export function linkLooksTaxAnnouncementRelevant(text: string, href: string): boolean {
-  return TAX_ANNOUNCEMENT_RE.test(`${text} ${href}`)
+  const candidate = `${text} ${href}`
+  if (!TAX_ANNOUNCEMENT_RE.test(candidate)) return false
+  return !ANNOUNCEMENT_NOISE_RE.test(candidate) || HIGH_SIGNAL_TAX_CHANGE_RE.test(candidate)
 }
 
 export function announcementItemsFromHtml(

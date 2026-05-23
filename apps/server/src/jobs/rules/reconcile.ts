@@ -104,8 +104,14 @@ function sourceCanAutoScan(source: RuleSource): boolean {
   return (
     source.healthStatus !== 'paused' &&
     (AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod) ||
-      (isTemporaryAnnouncementSource(source) && source.acquisitionMethod === 'api_watch'))
+      (isTemporaryAnnouncementSource(source) &&
+        source.acquisitionMethod === 'api_watch' &&
+        source.adapterKind === 'rss_or_announcement_list'))
   )
+}
+
+function sourceFetchUrl(source: RuleSource): string {
+  return source.feedUrl ?? source.url
 }
 
 function sourceTemplateInput(source: RuleSource) {
@@ -261,7 +267,7 @@ export async function consumePulseRuleSourceScan(
         },
         archiveRaw: (input) => archivePulseRaw(env, input),
       },
-      { sourceId: source.id, url: source.url },
+      { sourceId: source.id, url: sourceFetchUrl(source) },
     )
     const checkedAt = fetched.fetchedAt
 
@@ -278,7 +284,7 @@ export async function consumePulseRuleSourceScan(
     }
 
     const announcementItems = isTemporaryAnnouncementSource(source)
-      ? announcementItemsFromSnapshot(source, fetched)
+      ? announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, fetched)
       : []
     const snapshotResults =
       announcementItems.length > 0

@@ -71,8 +71,8 @@ import { orpc } from '@/lib/rpc'
  *   - Search flattens groups: typing in the search box collapses the
  *     jurisdiction grouping and shows a flat list with a Jurisdiction
  *     column added
- *   - Federal expands by default for orientation; state groups start
- *     collapsed so the catalog is scannable on first load
+ *   - All jurisdiction groups start collapsed so the catalog is
+ *     scannable on first load
  *   - Clicking a rule sets `?rule=X` and the rule detail renders in a
  *     side panel
  *
@@ -500,13 +500,10 @@ function buildGroups(
   })
 }
 
-function defaultExpandedSet(groups: readonly JurisdictionGroup[]): Set<RuleJurisdiction> {
-  // Keep first paint compact: Federal is the orientation row, and
-  // state-level work stays one click away instead of expanding dozens
-  // of pending-review jurisdictions at once.
-  const set = new Set<RuleJurisdiction>()
-  if (groups.some((g) => g.jurisdiction === 'FED')) set.add('FED')
-  return set
+function defaultExpandedSet(): Set<RuleJurisdiction> {
+  // Keep first paint compact: jurisdictions, including Federal, open
+  // only when the user expands them or uses Expand all.
+  return new Set<RuleJurisdiction>()
 }
 
 // ---------------------------------------------------------------------------
@@ -648,9 +645,9 @@ export function RulesLibraryRoute() {
     return out
   }, [rules, coverageRows])
 
-  // Expansion state — local to the page. Defaults computed from
-  // groups on first paint and on group-set changes.
-  const [expanded, setExpanded] = useState<Set<RuleJurisdiction>>(() => defaultExpandedSet(groups))
+  // Expansion state — local to the page. Start collapsed and reset to
+  // collapsed when the available jurisdiction set changes.
+  const [expanded, setExpanded] = useState<Set<RuleJurisdiction>>(() => defaultExpandedSet())
   // Re-init when groups change (e.g., data loaded after the first render).
   // We use a JSON shape of the jurisdiction list so we only re-init
   // when the SET of jurisdictions changes, not on every data refetch.
@@ -664,7 +661,7 @@ export function RulesLibraryRoute() {
   )
   // useMemo on the fingerprint gives us a single re-init point.
   useMemo(() => {
-    setExpanded(defaultExpandedSet(groups))
+    setExpanded(defaultExpandedSet())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
   }, [jurisdictionFingerprint])
 
