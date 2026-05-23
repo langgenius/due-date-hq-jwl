@@ -386,10 +386,6 @@ msgstr "{days, plural, one {# day} other {# days}}"
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {in #d} other {in #d}}"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{daysAbs} days late"
-msgstr "{daysAbs} days late"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
@@ -1367,9 +1363,10 @@ msgstr "Apply tax type suggestions"
 msgid "Apply to all"
 msgstr "Apply to all"
 
+#. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Archive"
-msgstr "Archive"
+msgid "Archive {0}"
+msgstr "Archive {0}"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -3404,6 +3401,14 @@ msgstr "Due"
 msgid "Due {0}"
 msgstr "Due {0}"
 
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "Due {dueDateLabel} · {daysAbs} days late"
+msgstr "Due {dueDateLabel} · {daysAbs} days late"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "Due {dueDateLabel} · in {days} days"
+msgstr "Due {dueDateLabel} · in {days} days"
+
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -3421,10 +3426,6 @@ msgstr "Due date logic"
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
 msgstr "Due dates"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due in {days} days"
-msgstr "Due in {days} days"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -3445,8 +3446,8 @@ msgid "due today"
 msgstr "due today"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due today"
-msgstr "Due today"
+msgid "Due today ({dueDateLabel})"
+msgstr "Due today ({dueDateLabel})"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Due-date extension"
@@ -4597,12 +4598,15 @@ msgstr "Internal"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline"
 msgstr "Internal deadline"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Internal Deadline"
+msgstr "Internal Deadline"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Internal deadline changed"
@@ -6151,8 +6155,8 @@ msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP 
 msgstr "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Official deadline"
-msgstr "Official deadline"
+msgid "Official Deadline"
+msgstr "Official Deadline"
 
 #: src/routes/obligations.tsx
 msgid "Official form or method"

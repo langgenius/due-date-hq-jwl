@@ -386,10 +386,6 @@ msgstr "{days, plural, other {# 天}}"
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {# 天后} other {# 天后}}"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{daysAbs} days late"
-msgstr "已逾期 {daysAbs} 天"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
@@ -1367,9 +1363,10 @@ msgstr "应用税种建议"
 msgid "Apply to all"
 msgstr "全部应用"
 
+#. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Archive"
-msgstr "归档"
+msgid "Archive {0}"
+msgstr "归档 {0}"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -3404,6 +3401,14 @@ msgstr "到期日"
 msgid "Due {0}"
 msgstr "到期 {0}"
 
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "Due {dueDateLabel} · {daysAbs} days late"
+msgstr "{dueDateLabel} 到期 · 已逾期 {daysAbs} 天"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "Due {dueDateLabel} · in {days} days"
+msgstr "{dueDateLabel} 到期 · 还有 {days} 天"
+
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -3421,10 +3426,6 @@ msgstr "截止日逻辑"
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
 msgstr "截止日"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due in {days} days"
-msgstr "{days} 天后到期"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -3445,8 +3446,8 @@ msgid "due today"
 msgstr "今天到期"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due today"
-msgstr "今天到期"
+msgid "Due today ({dueDateLabel})"
+msgstr "今天到期（{dueDateLabel}）"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Due-date extension"
@@ -4597,11 +4598,14 @@ msgstr "内部"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline"
+msgstr "内部截止日"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Internal Deadline"
 msgstr "内部截止日"
 
 #: src/features/audit/audit-log-labels.ts
@@ -6151,7 +6155,7 @@ msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP 
 msgstr "Office Manager > Backup Client Data 会创建用于税务软件转换的 CLNTBKUP 和专有 ZIP 文件，不适合 DueDateHQ 导入。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Official deadline"
+msgid "Official Deadline"
 msgstr "官方截止日"
 
 #: src/routes/obligations.tsx

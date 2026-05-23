@@ -1766,11 +1766,24 @@ export function ClientDetailWorkspace({
                 </span>
               </span>
             }
-            description={renderClientHeaderSubLine({
-              workPlan,
-              entityType: client.entityType,
-              taxClassification: client.taxClassification,
-            })}
+            // 2026-05-23: subtitle suppressed when readiness gap chip is
+            // present in the H1 chip cluster. The "Missing filing state"
+            // chip is itself the page-level signal; piling a workPlan
+            // summary line on top creates two summary lines stacked
+            // ("alert chip row" + "N open filings · …") and feels noisy.
+            // Per Figma — when the alert chip is there, it owns the
+            // sub-h1 slot; the workPlan summary returns once the gap
+            // is resolved. Subtitle keeps rendering for every other
+            // client so the at-a-glance state stays visible.
+            description={
+              readiness?.status === 'needs_facts'
+                ? null
+                : renderClientHeaderSubLine({
+                    workPlan,
+                    entityType: client.entityType,
+                    taxClassification: client.taxClassification,
+                  })
+            }
             // 2026-05-23: dropped ClientCycleArrows entirely per
             // critique ("remove first"). The prev/next chevrons +
             // position counter took space on every client detail page
@@ -1783,9 +1796,19 @@ export function ClientDetailWorkspace({
             actions={
               <>
                 <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
-                <Button variant="outline" size="sm" onClick={() => setArchiveOpen(true)}>
-                  <ArchiveIcon data-icon="inline-start" />
-                  <Trans>Archive</Trans>
+                {/* 2026-05-23: archive button collapsed to icon-only per
+                    Figma. The verb is unambiguous from the icon (file-
+                    cabinet glyph) and the action is rarely the daily-
+                    driver task — the +Add deadline button next to it
+                    deserves the only labeled CTA in the cluster. */}
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  aria-label={t`Archive ${client.name}`}
+                  title={t`Archive client`}
+                  onClick={() => setArchiveOpen(true)}
+                >
+                  <ArchiveIcon aria-hidden />
                 </Button>
                 <CreateObligationDialog defaultClientId={client.id} />
               </>
@@ -2182,14 +2205,25 @@ function ClientWorkPlanPanel({
           deadline) without opening the drawer. */}
       {!isLoading && obligations.length > 0 ? (
         <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium text-text-tertiary">
+          {/* 2026-05-23: row leader column reserves space for the
+              small leading "N" badge on each row. Empty header cell —
+              the badge is visual punctuation, not a data column with
+              a sortable identity. */}
+          <div className="w-7 shrink-0 px-1" aria-hidden />
           <div className="flex-1 px-3 uppercase tracking-[0.08em]">
             <Trans>Form</Trans>
           </div>
+          {/* 2026-05-23: column header copy switched from sentence
+              case ("Internal deadline") to Title Case ("Internal
+              Deadline" / "Official Deadline") per Figma. Status +
+              Estimated tax stay sentence case because the Figma is
+              inconsistent there and Title Case for every header
+              would be loud. */}
           <div className="w-[132px] px-3">
-            <Trans>Internal deadline</Trans>
+            <Trans>Internal Deadline</Trans>
           </div>
           <div className="w-[132px] px-3">
-            <Trans>Official deadline</Trans>
+            <Trans>Official Deadline</Trans>
           </div>
           <div className="w-[160px] px-3">
             <Trans>Status</Trans>
@@ -2312,14 +2346,14 @@ function FilingPlanYearSection({
           as a row inside the first year. */}
       <Table className="table-fixed">
         <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
-          {group.obligations.map((obligation) => {
+          {group.obligations.map((obligation, rowIndex) => {
             const hasEstimate = obligation.estimatedTaxDueCents !== null
             return (
               <TableRow
                 key={obligation.id}
                 tabIndex={0}
                 role="link"
-                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}`}
+                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
                 className="group/row cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
                 onClick={() => onOpen(obligation.id)}
                 onKeyDown={(event) => {
@@ -2329,22 +2363,40 @@ function FilingPlanYearSection({
                   }
                 }}
               >
+                {/* 2026-05-23: leading row-index badge. Visual anchor
+                    on the left edge so a long filing plan reads as a
+                    numbered list. Per Figma — small gray circle, 1-
+                    indexed, scoped to the year section so each year
+                    resets to 1. Acts as a sort-of bookmark when
+                    scanning rows. */}
+                <TableCell className="w-7 shrink-0 px-1">
+                  <span
+                    aria-hidden
+                    className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-[11px] font-medium tabular-nums text-text-secondary"
+                  >
+                    {rowIndex + 1}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <span className="truncate font-medium text-text-primary">
                     <TaxCodeLabel code={obligation.taxType} />
                   </span>
                 </TableCell>
+                {/* 2026-05-23: date format switched from prose ("May 6,
+                    2026") to ISO ("2026-05-06") per Figma. The filing
+                    plan is a dense reference table — ISO sorts visually
+                    and fits in the column without wrapping. Tile
+                    sublines + drawer header still use prose where the
+                    surface is conversational. */}
                 <TableCell className="w-[132px] tabular-nums">
-                  {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
+                  {formatDate(obligation.currentDueDate)}
                 </TableCell>
                 <TableCell className="w-[132px] tabular-nums text-text-secondary">
                   {/* Official deadline = statutory due date. Falls back
                       to currentDueDate when the obligation never had a
                       separate filingDueDate set (legacy rows + simple
                       single-date forms). */}
-                  {formatDatePretty(obligation.filingDueDate ?? obligation.currentDueDate, {
-                    alwaysShowYear: true,
-                  })}
+                  {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
                 </TableCell>
                 <TableCell className="w-[160px]">
                   {/* D-6b: status chip is now a real picker dropdown.

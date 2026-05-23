@@ -7,6 +7,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
+import { formatDatePretty } from '@/lib/utils'
 
 /**
  * ClientSummaryStrip — three-tile horizontal strip on the Client detail
@@ -183,16 +184,22 @@ export function ClientSummaryStrip({
   if (nextDue) {
     const dueTs = Date.parse(nextDue.currentDueDate)
     const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
-    // Date format matches what ClientDetailDrawer + ClientPeekHoverCard
-    // already use — `5d late` / `due today` / `due in 12d`. The
-    // earlier `${days}d` form (e.g. `-17d`) read as a math expression,
-    // not a deadline, and was inconsistent with the rest of the app.
     const daysAbs = Math.abs(days)
-    // Subline carries the lateness phrase. Late deadlines tint
-    // destructive so the tile reads as a real alert without making
-    // the form code itself red.
+    // 2026-05-23: subline format upgraded to lead with the deadline
+    // date itself, then the lateness phrase. Earlier shape was just
+    // "{N} days late" — useful for urgency but hid WHEN the deadline
+    // was. The Figma renders "Due May 6  17 days late" so the CPA
+    // gets both anchors (calendar date + lateness countdown) without
+    // opening the drawer. Late deadlines tint destructive so the
+    // tile reads as a real alert without making the form code itself
+    // red.
+    const dueDateLabel = formatDatePretty(nextDue.currentDueDate)
     const sublineText =
-      days < 0 ? t`${daysAbs} days late` : days === 0 ? t`Due today` : t`Due in ${days} days`
+      days < 0
+        ? t`Due ${dueDateLabel} · ${daysAbs} days late`
+        : days === 0
+          ? t`Due today (${dueDateLabel})`
+          : t`Due ${dueDateLabel} · in ${days} days`
     nextDueValue = (
       <span className="inline-flex items-baseline gap-2">
         {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
