@@ -546,6 +546,7 @@ const STATUS_TONE: Record<RuleStatus, 'success' | 'review' | 'destructive' | 'mu
 
 export function RulesLibraryRoute() {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
   // Legacy deep-link redirect — see normalizeRulesLibrarySearch.
@@ -570,6 +571,7 @@ export function RulesLibraryRoute() {
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
   const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
   const [batchReviewIndex, setBatchReviewIndex] = useState<number | null>(null)
+  const [batchReviewDirty, setBatchReviewDirty] = useState(false)
   // New-rule modal. `null` = closed. Setting to an object opens the
   // modal with the given seed (used to pre-fill jurisdiction + entity
   // when launched from a "+ Add rule" gap row).
@@ -722,10 +724,13 @@ export function RulesLibraryRoute() {
     ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
     enabled: concreteDraftInputs.length > 0,
   })
+  const concreteDraftSessionCacheRef = useRef(new Map<string, RuleConcreteDraftCacheEntry>())
   const concreteDraftByTarget = useMemo(() => {
-    const map = new Map<string, RuleConcreteDraftCacheEntry>()
+    const map = new Map(concreteDraftSessionCacheRef.current)
     for (const entry of concreteDraftsQuery.data ?? []) {
-      map.set(concreteDraftTargetKey(entry), entry)
+      const key = concreteDraftTargetKey(entry)
+      map.set(key, entry)
+      concreteDraftSessionCacheRef.current.set(key, entry)
     }
     return map
   }, [concreteDraftsQuery.data])
@@ -804,12 +809,26 @@ export function RulesLibraryRoute() {
     if (selectedReviewRules.length === 0) return
     setBatchReviewRuleIds(selectedReviewRules.map((rule) => rule.id))
     setBatchReviewIndex(0)
+    setBatchReviewDirty(false)
   }, [selectedReviewRules])
 
+  const refreshAfterBatchReview = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewTasks.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewDecisions.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+  }, [queryClient])
+
   const closeBatchReview = useCallback(() => {
+    if (batchReviewDirty) refreshAfterBatchReview()
     setBatchReviewRuleIds(null)
     setBatchReviewIndex(null)
-  }, [])
+    setBatchReviewDirty(false)
+  }, [batchReviewDirty, refreshAfterBatchReview])
 
   // Called when the user accepts/rejects/skips inside the modal —
   // advance to the next selected rule. If we're on the last one,
@@ -822,6 +841,21 @@ export function RulesLibraryRoute() {
       return next
     })
   }, [batchReviewRuleIds])
+
+  const completeBatchReviewAction = useCallback(() => {
+    if (batchReviewIndex === null) return
+    const total = batchReviewRuleIds?.length ?? 0
+    const next = batchReviewIndex + 1
+    if (next >= total) {
+      setBatchReviewRuleIds(null)
+      setBatchReviewIndex(null)
+      setBatchReviewDirty(false)
+      refreshAfterBatchReview()
+      return
+    }
+    setBatchReviewDirty(true)
+    setBatchReviewIndex(next)
+  }, [batchReviewIndex, batchReviewRuleIds, refreshAfterBatchReview])
 
   const goBackBatchReview = useCallback(() => {
     setBatchReviewIndex((current) => {
@@ -861,6 +895,7 @@ export function RulesLibraryRoute() {
     setSelectedRuleIds(new Set(allReviewableRuleIds))
     setBatchReviewRuleIds(allReviewableRuleIds)
     setBatchReviewIndex(0)
+    setBatchReviewDirty(false)
   }, [allReviewableRuleIds])
 
   const selectAllPending = useCallback(() => {
@@ -1028,9 +1063,10 @@ export function RulesLibraryRoute() {
           totalCount={batchReviewRuleIds?.length ?? 0}
           currentIndex={batchReviewIndex}
           concreteDraftByTarget={concreteDraftByTarget}
+          concreteDraftLoading={concreteDraftsQuery.isFetching}
           onPrev={goBackBatchReview}
           onSkip={advanceBatchReview}
-          onActionComplete={advanceBatchReview}
+          onActionComplete={completeBatchReviewAction}
           onClose={closeBatchReview}
         />
       ) : null}
@@ -2156,6 +2192,7 @@ function BatchReviewModal({
   totalCount,
   currentIndex,
   concreteDraftByTarget,
+  concreteDraftLoading,
   onPrev,
   onSkip,
   onActionComplete,
@@ -2165,6 +2202,7 @@ function BatchReviewModal({
   totalCount: number
   currentIndex: number
   concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
+  concreteDraftLoading: boolean
   onPrev: () => void
   onSkip: () => void
   onActionComplete: () => void
@@ -2271,6 +2309,8 @@ function BatchReviewModal({
           <RuleDetailCompact
             rule={current}
             concreteDraft={concreteDraft}
+            concreteDraftLoading={concreteDraftLoading}
+            deferQueryInvalidation
             onActionComplete={onActionComplete}
           />
         </div>

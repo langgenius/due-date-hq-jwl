@@ -223,10 +223,20 @@ export function CoverageTab({
   // can read the same state to hide the page-level title +
   // description in review mode. `null` = matrix view; any string =
   // review mode for that rule id.
-  const [selectedRuleId, setSelectedRuleId] = useQueryState(
+  const [urlSelectedRuleId, setUrlSelectedRuleId] = useQueryState(
     'rule',
     parseAsString.withOptions({ history: 'replace' }),
   )
+  const [optimisticSelectedRuleId, setOptimisticSelectedRuleId] = useState<
+    string | null | undefined
+  >(undefined)
+  const selectedRuleId =
+    optimisticSelectedRuleId === undefined ? urlSelectedRuleId : optimisticSelectedRuleId
+  const setSelectedRuleId = async (ruleId: string | null) => {
+    setOptimisticSelectedRuleId(ruleId)
+    await setUrlSelectedRuleId(ruleId)
+  }
+
   const selectRule = (ruleId: string) => {
     if (selectedRuleId === ruleId) return
     void setSelectedRuleId(ruleId)
@@ -419,13 +429,16 @@ export function CoverageTab({
     ...orpc.rules.listConcreteDrafts.queryOptions({ input: { rules: concreteDraftInputs } }),
     enabled: concreteDraftInputs.length > 0,
   })
+  const [concreteDraftSessionCache] = useState(() => new Map<string, RuleConcreteDraftCacheEntry>())
   const concreteDraftByTarget = useMemo(() => {
-    const map = new Map<string, RuleConcreteDraftCacheEntry>()
+    const map = new Map(concreteDraftSessionCache)
     for (const entry of concreteDraftsQuery.data ?? []) {
-      map.set(concreteDraftTargetKey(entry), entry)
+      const key = concreteDraftTargetKey(entry)
+      map.set(key, entry)
+      concreteDraftSessionCache.set(key, entry)
     }
     return map
-  }, [concreteDraftsQuery.data])
+  }, [concreteDraftSessionCache, concreteDraftsQuery.data])
   const selectedConcreteDraft = useMemo(() => {
     if (!selectedRule) return null
     const target = concreteDraftTargetForRule(selectedRule)
@@ -824,6 +837,7 @@ export function CoverageTab({
                   <RulePanel
                     rule={selectedRule}
                     concreteDraft={selectedConcreteDraft}
+                    concreteDraftLoading={concreteDraftsQuery.isFetching}
                     onClose={() => void setSelectedRuleId(null)}
                     onActionComplete={advanceAfterDecision}
                     mode={queueMode}
@@ -2295,6 +2309,7 @@ function BulkSectionLabel({ children }: { children: ReactNode }) {
 function RulePanel({
   rule,
   concreteDraft,
+  concreteDraftLoading,
   mode,
   onClose,
   onSkip,
@@ -2303,6 +2318,7 @@ function RulePanel({
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading: boolean
   mode: RuleQueueMode
   onClose: () => void
   onSkip?: () => void
@@ -2390,6 +2406,7 @@ function RulePanel({
         <RuleDetailCompact
           rule={rule}
           concreteDraft={concreteDraft}
+          concreteDraftLoading={concreteDraftLoading}
           onActionComplete={onActionComplete}
         />
       </div>

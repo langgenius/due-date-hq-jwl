@@ -120,10 +120,14 @@ export function RuleDetailInline({
 export function RuleDetailCompact({
   rule,
   concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
   onActionComplete,
 }: {
   rule: ObligationRule
   concreteDraft?: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
   const sourceLookup = useSourceLookup()
@@ -194,6 +198,8 @@ export function RuleDetailCompact({
         key={rule.id}
         rule={rule}
         concreteDraft={concreteDraft ?? null}
+        concreteDraftLoading={concreteDraftLoading}
+        deferQueryInvalidation={deferQueryInvalidation}
         {...(onActionComplete ? { onActionComplete } : {})}
       />
     </div>
@@ -236,20 +242,25 @@ function ExtensionCompact({ policy }: { policy: ObligationRule['extensionPolicy'
 function CandidateReviewSection({
   rule,
   concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
   onActionComplete,
 }: {
   rule: ObligationRule
   concreteDraft?: RuleConcreteDraftCacheEntry | null
-  onActionComplete?: () => void
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
+  onActionComplete?: () => void | Promise<void>
 }) {
-  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
-  if (rule.status !== 'candidate' && rule.status !== 'pending_review' && !sourceDefined) {
+  if (rule.status !== 'candidate' && rule.status !== 'pending_review') {
     return null
   }
   return (
     <CandidateReviewForm
       rule={rule}
       concreteDraft={concreteDraft ?? null}
+      concreteDraftLoading={concreteDraftLoading}
+      deferQueryInvalidation={deferQueryInvalidation}
       {...(onActionComplete ? { onActionComplete } : {})}
     />
   )
@@ -258,10 +269,14 @@ function CandidateReviewSection({
 function CandidateReviewForm({
   rule,
   concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
   onActionComplete,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
 }) {
   const { t } = useLingui()
@@ -275,7 +290,9 @@ function CandidateReviewForm({
   const draft = concreteDraft?.draft ?? null
 
   const invalidateRules = () => {
-    void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewTasks.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewDecisions.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
   }
 
@@ -302,7 +319,7 @@ function CandidateReviewForm({
         } finally {
           window.requestAnimationFrame(() => {
             setAcceptTooltipState(null)
-            invalidateAcceptedRuleOutputs()
+            if (!deferQueryInvalidation) invalidateAcceptedRuleOutputs()
           })
           acceptTooltipTimeoutRef.current = null
         }
@@ -344,7 +361,7 @@ function CandidateReviewForm({
           try {
             await onActionComplete?.()
           } finally {
-            invalidateRules()
+            if (!deferQueryInvalidation) invalidateRules()
           }
         })()
       },
@@ -396,17 +413,20 @@ function CandidateReviewForm({
       ? t`This source-defined rule is missing an official source.`
       : null
   const draftPanelMessage =
-    draftUnavailableMessage ?? (sourceDefined && !draft ? t`AI concrete draft is not ready.` : null)
+    draftUnavailableMessage ??
+    (sourceDefined && !draft && !concreteDraftLoading ? t`AI concrete draft is not ready.` : null)
   const acceptDisabledReason = sourceDefined
     ? reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
       : draftUnavailableMessage
         ? draftUnavailableMessage
-        : draftPanelMessage && !draft
-          ? draftPanelMessage
-          : !draft
-            ? t`AI concrete draft is not ready.`
-            : null
+        : concreteDraftLoading && !draft
+          ? t`AI concrete draft is loading.`
+          : draftPanelMessage && !draft
+            ? draftPanelMessage
+            : !draft
+              ? t`AI concrete draft is not ready.`
+              : null
     : null
   const acceptDisabled =
     reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
@@ -436,7 +456,11 @@ function CandidateReviewForm({
         )}
       </p>
       {sourceDefined ? (
-        <AiDraftReviewPanel draft={draft} errorMessage={draftPanelMessage} generating={false} />
+        <AiDraftReviewPanel
+          draft={draft}
+          errorMessage={draftPanelMessage}
+          generating={concreteDraftLoading && !draft}
+        />
       ) : null}
 
       <div className="flex justify-end gap-2">
