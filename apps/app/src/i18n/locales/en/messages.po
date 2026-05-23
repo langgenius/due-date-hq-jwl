@@ -993,10 +993,6 @@ msgstr "Adding…"
 msgid "Address line 1"
 msgstr "Address line 1"
 
-#: src/routes/obligations.tsx
-msgid "Address reviewer's notes on the return"
-msgstr "Address reviewer's notes on the return"
-
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -2834,6 +2830,10 @@ msgstr "Couldn't update Smart Priority"
 msgid "Couldn't update status"
 msgstr "Couldn't update status"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't update step"
+msgstr "Couldn't update step"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account.security.tsx
 #: src/routes/two-factor.tsx
@@ -4237,10 +4237,6 @@ msgstr "Generating your deadline list"
 msgid "Generating…"
 msgstr "Generating…"
 
-#: src/routes/obligations.tsx
-msgid "Get reviewer sign-off on the return"
-msgstr "Get reviewer sign-off on the return"
-
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "Go back"
@@ -4728,6 +4724,10 @@ msgstr "Latest readiness: {0}."
 msgid "Latest status"
 msgstr "Latest status"
 
+#: src/routes/obligations.tsx
+msgid "Leave note for preparer"
+msgstr "Leave note for preparer"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Legend"
 msgstr "Legend"
@@ -4975,16 +4975,16 @@ msgid "Mark document received"
 msgstr "Mark document received"
 
 #: src/routes/obligations.tsx
-msgid "Mark drafting complete and hand off to reviewer"
-msgstr "Mark drafting complete and hand off to reviewer"
-
-#: src/routes/obligations.tsx
 msgid "Mark extended"
 msgstr "Mark extended"
 
 #: src/routes/obligations.tsx
 msgid "Mark final package sent when delivered"
 msgstr "Mark final package sent when delivered"
+
+#: src/routes/obligations.tsx
+msgid "Mark notes addressed"
+msgstr "Mark notes addressed"
 
 #: src/routes/obligations.tsx
 msgid "Mark obligation complete"
@@ -5232,6 +5232,10 @@ msgstr "Morning digest preview queued"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
+
+#: src/routes/obligations.tsx
+msgid "Move to: {label}"
+msgstr "Move to: {label}"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -9102,6 +9106,10 @@ msgid "Step {step} / 4"
 msgstr "Step {step} / 4"
 
 #: src/routes/obligations.tsx
+msgid "Step updated"
+msgstr "Step updated"
+
+#: src/routes/obligations.tsx
 msgid "Steps"
 msgstr "Steps"
 
@@ -10363,6 +10371,10 @@ msgstr "You're about to create"
 #: src/features/dashboard/actions-list.tsx
 msgid "You're caught up. Next deadline appears here when one's within a week."
 msgstr "You're caught up. Next deadline appears here when one's within a week."
+
+#: src/routes/obligations.tsx
+msgid "You're on this step"
+msgstr "You're on this step"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@firm.com"

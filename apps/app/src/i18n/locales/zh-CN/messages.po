@@ -993,10 +993,6 @@ msgstr "添加中…"
 msgid "Address line 1"
 msgstr "地址第 1 行"
 
-#: src/routes/obligations.tsx
-msgid "Address reviewer's notes on the return"
-msgstr "处理审核人对该申报的留言"
-
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Adds"
@@ -2834,6 +2830,10 @@ msgstr "无法更新 Smart Priority"
 msgid "Couldn't update status"
 msgstr "状态更新失败"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't update step"
+msgstr "无法更新步骤"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account.security.tsx
 #: src/routes/two-factor.tsx
@@ -4237,10 +4237,6 @@ msgstr "正在生成你的截止日清单"
 msgid "Generating…"
 msgstr "正在生成…"
 
-#: src/routes/obligations.tsx
-msgid "Get reviewer sign-off on the return"
-msgstr "获取审核人对该申报的签字"
-
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "Go back"
@@ -4728,6 +4724,10 @@ msgstr "最新就绪状态：{0}。"
 msgid "Latest status"
 msgstr "最新状态"
 
+#: src/routes/obligations.tsx
+msgid "Leave note for preparer"
+msgstr "给办税员留备注"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Legend"
 msgstr "Legend"
@@ -4975,16 +4975,16 @@ msgid "Mark document received"
 msgstr "标记文件已收到"
 
 #: src/routes/obligations.tsx
-msgid "Mark drafting complete and hand off to reviewer"
-msgstr "标记起草完成并交给审核人"
-
-#: src/routes/obligations.tsx
 msgid "Mark extended"
 msgstr "标记已延期"
 
 #: src/routes/obligations.tsx
 msgid "Mark final package sent when delivered"
 msgstr "寄出后标记最终材料已交付"
+
+#: src/routes/obligations.tsx
+msgid "Mark notes addressed"
+msgstr "标记备注已处理"
 
 #: src/routes/obligations.tsx
 msgid "Mark obligation complete"
@@ -5232,6 +5232,10 @@ msgstr "Morning digest 预览已排队"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "早间摘要的发送时间，以及 DueDateHQ 用来联系你的渠道。"
+
+#: src/routes/obligations.tsx
+msgid "Move to: {label}"
+msgstr "切换到：{label}"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -9102,6 +9106,10 @@ msgid "Step {step} / 4"
 msgstr "第 {step} 步 / 共 4 步"
 
 #: src/routes/obligations.tsx
+msgid "Step updated"
+msgstr "步骤已更新"
+
+#: src/routes/obligations.tsx
 msgid "Steps"
 msgstr "步骤"
 
@@ -10363,6 +10371,10 @@ msgstr "你即将创建"
 #: src/features/dashboard/actions-list.tsx
 msgid "You're caught up. Next deadline appears here when one's within a week."
 msgstr "You're caught up. Next deadline appears here when one's within a week."
+
+#: src/routes/obligations.tsx
+msgid "You're on this step"
+msgstr "当前正处于此步骤"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@firm.com"

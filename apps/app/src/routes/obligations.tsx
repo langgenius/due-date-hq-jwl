@@ -71,11 +71,13 @@ import {
   type ObligationQueueDetailTab,
   type ObligationQueueDensity,
   type ObligationQueueFacetOption,
+  type ObligationPrepStage,
   type ObligationQueueListInput,
   type ObligationQueueRow,
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
+  type ObligationReviewStage,
   type AiInsightPublic,
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
@@ -3151,6 +3153,13 @@ export function ObligationQueueDetailDrawer({
   })
   const [extensionSaveSuccessOpen, setExtensionSaveSuccessOpen] = useState(false)
   const extensionSaveSuccessTimeoutRef = useRef<number | null>(null)
+  // Previous-value snapshots for the In Review sub-status mutations.
+  // Captured at click time (in the handlers passed to ActiveStageDetailCard)
+  // so the success toast can offer an Undo that fires the reverse
+  // mutation. Stored on refs (not state) so the snapshot survives the
+  // mutation lifecycle without triggering a re-render.
+  const prepStagePreviousRef = useRef<ObligationPrepStage | null>(null)
+  const reviewStagePreviousRef = useRef<ObligationReviewStage | null>(null)
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -3526,6 +3535,74 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
+  // In Review sub-status mutations — the prep ↔ review pipeline strip
+  // in the active stage card flips these on click. Slider model: any
+  // step can move to any other step (forward, backward, jump). Each
+  // success surfaces an Undo toast that fires the inverse mutation if
+  // the user catches a misclick. Previous value comes from the caller
+  // (captured at click time from `row.prepStage` / `row.reviewStage`)
+  // since by the time the success handler runs, react-query has
+  // already invalidated the cache and the "previous" is gone.
+  const updatePrepStageMutation = useMutation(
+    orpc.obligations.updatePrepStage.mutationOptions({
+      onSuccess: (result, vars) => {
+        invalidateDetail()
+        const previous = prepStagePreviousRef.current
+        // Wipe the ref so consecutive clicks don't replay an
+        // older snapshot. Each click re-captures before mutate.
+        prepStagePreviousRef.current = null
+        const message = t`Step updated`
+        if (previous && previous !== vars.prepStage) {
+          toast.success(message, {
+            description: t`Audit ${result.auditId.slice(0, 8)}`,
+            action: {
+              label: t`Undo`,
+              onClick: () => {
+                updatePrepStageMutation.mutate({ id: vars.id, prepStage: previous })
+              },
+            },
+          })
+        } else {
+          toast.success(message, { description: t`Audit ${result.auditId.slice(0, 8)}` })
+        }
+      },
+      onError: (err) => {
+        prepStagePreviousRef.current = null
+        toast.error(t`Couldn't update step`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const updateReviewStageMutation = useMutation(
+    orpc.obligations.updateReviewStage.mutationOptions({
+      onSuccess: (result, vars) => {
+        invalidateDetail()
+        const previous = reviewStagePreviousRef.current
+        reviewStagePreviousRef.current = null
+        const message = t`Step updated`
+        if (previous && previous !== vars.reviewStage) {
+          toast.success(message, {
+            description: t`Audit ${result.auditId.slice(0, 8)}`,
+            action: {
+              label: t`Undo`,
+              onClick: () => {
+                updateReviewStageMutation.mutate({ id: vars.id, reviewStage: previous })
+              },
+            },
+          })
+        } else {
+          toast.success(message, { description: t`Audit ${result.auditId.slice(0, 8)}` })
+        }
+      },
+      onError: (err) => {
+        reviewStagePreviousRef.current = null
+        toast.error(t`Couldn't update step`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
   // `updateBlockedByMutation` retired 2026-05-21 with the K-1 editor.
   // The RPC procedure (orpc.obligations.updateBlockedBy) still ships;
   // re-bind here when the new blocker UX lands.
@@ -3789,6 +3866,23 @@ export function ObligationQueueDetailDrawer({
                   markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
                 }
                 onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
+                onChangePrepStage={(nextPrepStage) => {
+                  // Capture the previous value so the success toast can
+                  // offer an Undo that fires the reverse mutation. No-op
+                  // clicks (same value) still let the request through —
+                  // the server short-circuits and emits a zero-uuid
+                  // auditId, but the toast logic uses the captured
+                  // previous to decide whether to show Undo.
+                  prepStagePreviousRef.current = row.prepStage
+                  updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                }}
+                onChangeReviewStage={(nextReviewStage) => {
+                  reviewStagePreviousRef.current = row.reviewStage
+                  updateReviewStageMutation.mutate({
+                    id: row.id,
+                    reviewStage: nextReviewStage,
+                  })
+                }}
               />
               <StatutoryDatesPanel row={row} />
               {/* `ObligationForwardingPanel` removed 2026-05-21 — the
@@ -6348,6 +6442,8 @@ function ActiveStageDetailCard({
   onChangeStatus,
   onConfirmAcceptance,
   onRecordRejection,
+  onChangePrepStage,
+  onChangeReviewStage,
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
@@ -6356,6 +6452,8 @@ function ActiveStageDetailCard({
   onChangeStatus: (status: ObligationStatus) => void
   onConfirmAcceptance: () => void
   onRecordRejection: () => void
+  onChangePrepStage: (prepStage: ObligationPrepStage) => void
+  onChangeReviewStage: (reviewStage: ObligationReviewStage) => void
 }) {
   const { t } = useLingui()
   // For the `blocked` stage's "Open blocking obligation" action.
@@ -6529,28 +6627,17 @@ function ActiveStageDetailCard({
           },
         ]
       case 'review': {
+        // 2026-05-23: the three "manual" reminders that used to live here
+        // ("Mark drafting complete and hand off to reviewer", "Get
+        // reviewer sign-off on the return", "Address reviewer's notes")
+        // were just text-shaped placeholders for steps that now have
+        // real mutations. Clicking step 3 of the pipeline strip flips
+        // prepStage='prepared'; clicking step 6 flips
+        // reviewStage='approved'; the "Leave note" / "Notes addressed"
+        // affordances rendered inline with step 5 handle the notes_open
+        // round-trip. So the strip itself is the action surface and the
+        // manual reminders are redundant.
         const reviewTasks: StageTask[] = []
-        if (row.prepStage === 'ready_for_prep' || row.prepStage === 'in_prep') {
-          reviewTasks.push({
-            id: 'prep-done',
-            label: t`Mark drafting complete and hand off to reviewer`,
-            flavor: 'manual',
-          })
-        }
-        if (row.reviewStage === 'ready_for_review' || row.reviewStage === 'in_review') {
-          reviewTasks.push({
-            id: 'review-pass',
-            label: t`Get reviewer sign-off on the return`,
-            flavor: 'manual',
-          })
-        }
-        if (row.reviewStage === 'notes_open') {
-          reviewTasks.push({
-            id: 'notes',
-            label: t`Address reviewer's notes on the return`,
-            flavor: 'manual',
-          })
-        }
         // 2026-05-23: renamed from "Get 8879 signed by client" per
         // critique. The 8879 signature actually flows through the
         // Filed stage's e-file pipeline (`efileState='authorization_
@@ -6811,7 +6898,7 @@ function ActiveStageDetailCard({
       default:
         return []
     }
-  }, [stageKey, row.status, row.prepStage, row.reviewStage, row.efileState, row.paymentState, t])
+  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, t])
   const stageEnteredAt =
     stageEvents.length > 0 ? stageEvents[stageEvents.length - 1]!.createdAt : null
   // Past stages — every stage the row visited BEFORE the active one.
@@ -7083,10 +7170,15 @@ function ActiveStageDetailCard({
       ) : showReviewPipeline ? (
         /* In Review pipeline strip — same shape as the e-file /
            payment strips above but walks prepStage → reviewStage.
+           Each step is a real <button> (slider model): clicking moves
+           the row to that step, forward or backward. Steps 1-3 fire
+           updatePrepStage; steps 4-6 fire updateReviewStage. Current
+           step is rendered as a non-button label since clicking "go
+           to where you already are" is a no-op (server short-circuits
+           anyway, but suppressing the button avoids a stray toast).
            When `reviewStage === 'notes_open'` the in_review step
-           keeps the current-step treatment but picks up a small
-           "Notes open" annotation, since notes_open is a flag on
-           the in_review step rather than its own step. */
+           picks up a "Notes open" annotation plus a "Notes addressed"
+           affordance; otherwise step 5 surfaces a "Leave note" button. */
         <div className="mt-3 flex flex-col gap-2">
           <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
@@ -7096,9 +7188,37 @@ function ActiveStageDetailCard({
               const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
               const label = reviewPipelineLabels[key]
               const showNotesOpen = state === 'current' && key === 'in_review' && notesOpen
+              // prep stage owns ready_for_prep / in_prep / prepared;
+              // review stage owns ready_for_review / in_review /
+              // approved. Each step's click target is the matching
+              // mutation handler with the step's value.
+              const handleStepClick = () => {
+                if (state === 'current') return
+                if (key === 'ready_for_prep' || key === 'in_prep' || key === 'prepared') {
+                  onChangePrepStage(key)
+                } else {
+                  // notes_open never appears as a step key; the
+                  // remaining three (ready_for_review / in_review /
+                  // approved) all flow through reviewStage.
+                  onChangeReviewStage(key)
+                }
+              }
+              const stepTitle = state === 'current' ? t`You're on this step` : t`Move to: ${label}`
               return (
                 <li key={key} className="flex flex-col">
-                  <div className="flex items-start gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={handleStepClick}
+                    disabled={state === 'current'}
+                    title={stepTitle}
+                    aria-label={stepTitle}
+                    className={cn(
+                      '-mx-1 flex w-full items-start gap-2 rounded px-1 py-0.5 text-left text-xs outline-none transition-colors',
+                      state === 'current'
+                        ? 'cursor-default'
+                        : 'cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    )}
+                  >
                     {state === 'done' ? (
                       <CheckCircle2Icon
                         className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
@@ -7134,7 +7254,36 @@ function ActiveStageDetailCard({
                         </span>
                       ) : null}
                     </span>
-                  </div>
+                  </button>
+                  {/* notes_open affordances on the in_review step.
+                      When the reviewer is checking the return:
+                        - notes NOT open → small "Leave note" ghost
+                          button flips reviewStage='notes_open'
+                        - notes ARE open → "Notes addressed" flips
+                          back to 'in_review'. */}
+                  {state === 'current' && key === 'in_review' ? (
+                    <div className="ml-6 mt-1 mb-1">
+                      {notesOpen ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => onChangeReviewStage('in_review')}
+                        >
+                          <Trans>Mark notes addressed</Trans>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => onChangeReviewStage('notes_open')}
+                        >
+                          <Trans>Leave note for preparer</Trans>
+                        </Button>
+                      )}
+                    </div>
+                  ) : null}
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-6 mt-2 mb-2">
                       <StageActions tasks={tasks} onTaskClick={handleTaskClick} />

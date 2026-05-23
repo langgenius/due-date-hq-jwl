@@ -869,14 +869,18 @@ export { EvidenceSourceTypes, EvidenceSourceTypeSchema } from './shared/evidence
 export type { EvidenceSourceType } from './shared/evidence-source-types'
 export {
   ObligationExtensionDecisionSchema,
+  ObligationPrepStageSchema,
   ObligationReadinessSchema,
+  ObligationReviewStageSchema,
   ObligationStatusSchema,
   TaxPeriodKindSchema,
   TaxPeriodSourceSchema,
 } from './shared/enums'
 export type {
   ObligationExtensionDecision,
+  ObligationPrepStage,
   ObligationReadiness,
+  ObligationReviewStage,
   ObligationStatus,
   TaxPeriodKind,
   TaxPeriodSource,
