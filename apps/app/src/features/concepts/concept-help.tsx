@@ -84,7 +84,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'readiness':
       return {
-        title: t`Readiness`,
+        title: t`Client readiness`,
         description: t`Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs.`,
       }
     case 'obligation':

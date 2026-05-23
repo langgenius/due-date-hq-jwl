@@ -173,7 +173,7 @@ export function useAuditChangeLabels({
         plan: t`Plan`,
         presetUsed: t`Preset`,
         pulseStatus: t`Pulse status`,
-        readiness: t`Readiness`,
+        readiness: t`Client readiness`,
         role: t`Role`,
         rowCount: t`Rows`,
         scope: t`Scope`,

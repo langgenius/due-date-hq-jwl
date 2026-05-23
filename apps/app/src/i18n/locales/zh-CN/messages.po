@@ -14,8 +14,8 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/routes/obligations.tsx
-msgid "· firm-set deadline for this readiness request"
-msgstr "· 事务所为此准备状态请求设置的截止日"
+msgid "· firm-set deadline for this client readiness request"
+msgstr "· 事务所为此客户准备请求设定的截止日期"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {1}: cell.entityType.toUpperCase()
@@ -91,11 +91,6 @@ msgstr "{0, plural, other {# 项待审核}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# obligation} other {# obligations}}"
 msgstr "{0, plural, other {# 项申报义务}}"
-
-#. placeholder {0}: outstanding.length
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# outstanding document} other {# outstanding documents}}"
-msgstr "{0, plural, other {# 项待收资料}}"
 
 #. placeholder {0}: errors.length
 #. placeholder {0}: summary.errors.length
@@ -486,6 +481,10 @@ msgstr "{openCount} 个未完成截止日期"
 msgid "{outstanding} of {checklistCount} document items are still missing."
 msgstr "{checklistCount} 个文件项中仍有 {outstanding} 个缺失。"
 
+#: src/routes/obligations.tsx
+msgid "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
+msgstr "{outstandingDocsCount, plural, one {# 份文件待提交} other {# 份文件待提交}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
 msgstr "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
@@ -627,10 +626,6 @@ msgid "+{0} more"
 msgstr "+{0} more"
 
 #: src/routes/obligations.tsx
-msgid "+{overflow} more in the Readiness tab"
-msgstr "Readiness 标签页中还有 +{overflow} 项"
-
-#: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
 msgstr "每位所有者 ${rate} x {owners} 位所有者 x {months} 个月"
 
@@ -710,10 +705,6 @@ msgstr "8879 已发给客户签字"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "941 quarterly · 940 annual · W-2 / W-3 year-end"
 msgstr "941 季报 · 940 年报 · W-2 / W-3 年末"
-
-#: src/routes/obligations.tsx
-msgid "A · Strip"
-msgstr "A · 精简"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list."
@@ -1039,6 +1030,10 @@ msgstr "AI"
 msgid "AI {percent}%"
 msgstr "AI {percent}%"
 
+#: src/routes/obligations.tsx
+msgid "AI client readiness checklist"
+msgstr "AI 客户准备清单"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft"
 msgstr "AI 具体草案"
@@ -1082,10 +1077,6 @@ msgstr "AI 映射"
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI Mapper means AI suggested the fields."
 msgstr "AI Mapper 表示 AI 建议了字段。"
-
-#: src/routes/obligations.tsx
-msgid "AI readiness checklist"
-msgstr "AI 准备状态清单"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "AI refused request"
@@ -1600,10 +1591,6 @@ msgstr "等待客户回复"
 msgid "Awaiting sources"
 msgstr "Awaiting sources"
 
-#: src/routes/obligations.tsx
-msgid "B · Differentiate"
-msgstr "B · 区分"
-
 #: src/features/migration/WizardShell.tsx
 msgid "Back"
 msgstr "返回"
@@ -1760,10 +1747,6 @@ msgstr "by {label}"
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
 msgstr "登录即表示您同意 <termsLink>条款</termsLink> 和 <privacyLink>隐私政策</privacyLink>。登录遇到问题？请发送邮件至 <supportLink>support@duedatehq.com</supportLink>。"
 
-#: src/routes/obligations.tsx
-msgid "C · Merge"
-msgstr "C · 合并"
-
 #: src/routes/clients.tsx
 msgid "C corp"
 msgstr "C 公司"
@@ -1897,10 +1880,6 @@ msgstr "从 {0} 改为 {1}"
 #: src/routes/obligations.tsx
 msgid "Changed from {before} to {after}"
 msgstr "从 {before} 改为 {after}"
-
-#: src/routes/obligations.tsx
-msgid "Chase client for outstanding documents"
-msgstr "向客户催收缺失资料"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
@@ -2172,6 +2151,28 @@ msgstr "Client not found"
 #: src/routes/obligations.tsx
 msgid "Client note"
 msgstr "客户备注"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/features/concepts/concept-help.tsx
+#: src/routes/obligations.tsx
+msgid "Client readiness"
+msgstr "客户准备情况"
+
+#: src/features/evidence/EvidenceDrawerProvider.tsx
+msgid "Client readiness checklist"
+msgstr "客户准备清单"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness link created"
+msgstr "客户准备链接已生成"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness request revoked"
+msgstr "客户准备请求已撤销"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness request sent"
+msgstr "客户准备请求已发送"
 
 #: src/routes/obligations.tsx
 msgid "Client readiness response"
@@ -2786,8 +2787,8 @@ msgid "Couldn't save tax year profile"
 msgstr "无法保存税务年度资料"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't send readiness request"
-msgstr "无法发送准备状态请求"
+msgid "Couldn't send client readiness request"
+msgstr "无法发送客户准备请求"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Couldn't send the code"
@@ -3355,10 +3356,6 @@ msgstr "导入草稿已丢弃"
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 msgstr "将 CSV / Excel / ZIP / TXT / IIF 拖到这里，或点击选择 · 最多 1000 行 · 5 MB"
-
-#: src/routes/obligations.tsx
-msgid "Drop sub-status + extra buttons. Panel + one primary action only."
-msgstr "去掉子状态和多余按钮。仅保留面板和一个主操作。"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -4348,10 +4345,6 @@ msgid "I'm coming from… (optional)"
 msgstr "我正在从…迁移过来（可选）"
 
 #: src/routes/obligations.tsx
-msgid "IA preview"
-msgstr "信息架构预览"
-
-#: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
 
@@ -5009,10 +5002,6 @@ msgid "Mark all read"
 msgstr "全部标记已读"
 
 #: src/routes/obligations.tsx
-msgid "Mark all received"
-msgstr "标记全部已收到"
-
-#: src/routes/obligations.tsx
 msgid "Mark client approved the estimate"
 msgstr "标记客户已批准预估"
 
@@ -5292,8 +5281,8 @@ msgid "Move to: {label}"
 msgstr "切换到：{label}"
 
 #: src/routes/obligations.tsx
-msgid "Moves the row to Waiting and opens the Readiness tab to send the request."
-msgstr "将该行移至「等待中」状态，并打开「准备情况」标签发送请求。"
+msgid "Moves the row to Waiting and opens the Client readiness tab to send the request."
+msgstr "将该行移至「等待中」状态，并打开「客户准备情况」标签发送请求。"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -6249,6 +6238,14 @@ msgstr "打开客户"
 msgid "Open client detail for {0}"
 msgstr "打开 {0} 的客户详情"
 
+#: src/routes/obligations.tsx
+msgid "Open Client readiness"
+msgstr "打开客户准备情况"
+
+#: src/routes/obligations.tsx
+msgid "Open Client readiness to review {outstandingDocsCount} outstanding documents"
+msgstr "打开客户准备情况查看 {outstandingDocsCount} 份待提交文件"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Open client to fix entity"
 msgstr "打开客户以补充实体类型"
@@ -6346,11 +6343,6 @@ msgstr "打开 Evidence 标签页"
 msgid "Open the Migration Copilot wizard."
 msgstr "打开 Migration Copilot 向导。"
 
-#. placeholder {0}: outstanding.length
-#: src/routes/obligations.tsx
-msgid "Open the Readiness tab to review {0} outstanding documents"
-msgstr "打开 Readiness 标签页查看 {0} 项待收资料"
-
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
 msgstr "Open the upstream obligation that's blocking this row."
@@ -6382,14 +6374,6 @@ msgstr "正在打开…"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
 msgstr "打开已存在的重复义务，或在 Generate 成功后打开新创建的义务。"
-
-#: src/routes/obligations.tsx
-msgid "Opens the Readiness tab to chase the open documents"
-msgstr "打开「准备情况」标签催收未交文件"
-
-#: src/routes/obligations.tsx
-msgid "Opens the Readiness tab to send and track the request"
-msgstr "打开 Readiness 标签页发送并跟踪请求"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -6593,10 +6577,6 @@ msgstr "付费功能"
 #: src/routes/billing.tsx
 msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "付费订阅向事务所计费，而不是向个人用户计费。"
-
-#: src/routes/obligations.tsx
-msgid "Panel becomes the sub-status. Full button stack stays."
-msgstr "面板替代子状态行。完整按钮组保留。"
 
 #: src/routes/obligations.tsx
 msgid "Paper-filed with authority"
@@ -6835,10 +6815,6 @@ msgstr "个人晨间摘要偏好与类型。"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client…"
 msgstr "选择一个客户…"
-
-#: src/routes/obligations.tsx
-msgid "Pick a Waiting-card variant to preview"
-msgstr "选择「等待中」卡片的预览方案"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -7435,35 +7411,13 @@ msgstr "阅读官方来源"
 msgid "Read-only view"
 msgstr "只读视图"
 
-#: src/features/audit/audit-log-labels.ts
-#: src/features/concepts/concept-help.tsx
-#: src/routes/obligations.tsx
-msgid "Readiness"
-msgstr "就绪度"
-
 #: src/routes/readiness.tsx
 msgid "Readiness check"
 msgstr "准备状态检查"
 
-#: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Readiness checklist"
-msgstr "就绪检查清单"
-
-#: src/routes/obligations.tsx
-msgid "Readiness link created"
-msgstr "准备状态链接已创建"
-
 #: src/routes/practice.tsx
 msgid "Readiness pressure"
 msgstr "准备状态压力"
-
-#: src/routes/obligations.tsx
-msgid "Readiness request revoked"
-msgstr "准备状态请求已撤销"
-
-#: src/routes/obligations.tsx
-msgid "Readiness request sent"
-msgstr "准备状态请求已发送"
 
 #: src/routes/readiness.tsx
 msgid "Readiness response submitted"
@@ -7792,8 +7746,8 @@ msgid "Restart checkout"
 msgstr "重新开始支付"
 
 #: src/routes/obligations.tsx
-msgid "Resulting readiness"
-msgstr "最终准备状态"
+msgid "Resulting client readiness"
+msgstr "结果客户准备状态"
 
 #: src/routes/obligations.tsx
 msgid "Resume drafting the return"
@@ -8643,10 +8597,6 @@ msgstr "发送 7 天有效的 magic link，将成员添加到该事务所。"
 msgid "Send a morning digest"
 msgstr "发送 morning digest"
 
-#: src/routes/obligations.tsx
-msgid "Send document request to client"
-msgstr "向客户发送资料请求"
-
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send hour"
 msgstr "发送时间"
@@ -8658,10 +8608,6 @@ msgstr "发送邀请"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send preview now"
 msgstr "立即发送预览"
-
-#: src/routes/obligations.tsx
-msgid "Send reminder to client"
-msgstr "向客户发送提醒"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Send request"
@@ -9209,10 +9155,6 @@ msgstr "仍在等待确认"
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Structured change"
 msgstr "结构化变更"
-
-#: src/routes/obligations.tsx
-msgid "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
-msgstr "子状态说明「何时」；面板说明「内容」；按钮只用动词。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
@@ -10137,10 +10079,6 @@ msgstr "UTC 时间"
 msgid "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
 msgstr "变量使用双花括号，例如 client_name、tax_type、due_date、offset_days、obligation_url 或 unsubscribe_url。"
 
-#: src/routes/obligations.tsx
-msgid "Variants only differ when prep_stage = waiting_on_client. Open Bright Studio S-Corp's 1120S to see them."
-msgstr "仅当 prep_stage = waiting_on_client 时各方案才有差异。打开 Bright Studio S-Corp 的 1120S 行查看。"
-
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account-security-two-factor-setup.tsx
 #: src/routes/two-factor.tsx
@@ -10240,14 +10178,6 @@ msgstr "WA 扣除抵免后的小计"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "等待中"
-
-#: src/routes/obligations.tsx
-msgid "Waiting card IA preview"
-msgstr "等待中卡片 信息架构预览"
-
-#: src/routes/obligations.tsx
-msgid "Waiting card layout"
-msgstr "等待中卡片布局"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "waiting on client"

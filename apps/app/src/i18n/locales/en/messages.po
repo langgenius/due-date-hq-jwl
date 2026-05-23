@@ -14,8 +14,8 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/routes/obligations.tsx
-msgid "· firm-set deadline for this readiness request"
-msgstr "· firm-set deadline for this readiness request"
+msgid "· firm-set deadline for this client readiness request"
+msgstr "· firm-set deadline for this client readiness request"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {1}: cell.entityType.toUpperCase()
@@ -91,11 +91,6 @@ msgstr "{0, plural, one {# needs review} other {# need review}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# obligation} other {# obligations}}"
 msgstr "{0, plural, one {# obligation} other {# obligations}}"
-
-#. placeholder {0}: outstanding.length
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# outstanding document} other {# outstanding documents}}"
-msgstr "{0, plural, one {# outstanding document} other {# outstanding documents}}"
 
 #. placeholder {0}: errors.length
 #. placeholder {0}: summary.errors.length
@@ -486,6 +481,10 @@ msgstr "{openCount} open deadlines"
 msgid "{outstanding} of {checklistCount} document items are still missing."
 msgstr "{outstanding} of {checklistCount} document items are still missing."
 
+#: src/routes/obligations.tsx
+msgid "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
+msgstr "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
 msgstr "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
@@ -627,10 +626,6 @@ msgid "+{0} more"
 msgstr "+{0} more"
 
 #: src/routes/obligations.tsx
-msgid "+{overflow} more in the Readiness tab"
-msgstr "+{overflow} more in the Readiness tab"
-
-#: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
 msgstr "${rate} per owner x {owners} owners x {months} months"
 
@@ -710,10 +705,6 @@ msgstr "8879 sent to client for signature"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "941 quarterly · 940 annual · W-2 / W-3 year-end"
 msgstr "941 quarterly · 940 annual · W-2 / W-3 year-end"
-
-#: src/routes/obligations.tsx
-msgid "A · Strip"
-msgstr "A · Strip"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list."
@@ -1039,6 +1030,10 @@ msgstr "AI"
 msgid "AI {percent}%"
 msgstr "AI {percent}%"
 
+#: src/routes/obligations.tsx
+msgid "AI client readiness checklist"
+msgstr "AI client readiness checklist"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft"
 msgstr "AI concrete draft"
@@ -1082,10 +1077,6 @@ msgstr "AI Mapper"
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI Mapper means AI suggested the fields."
 msgstr "AI Mapper means AI suggested the fields."
-
-#: src/routes/obligations.tsx
-msgid "AI readiness checklist"
-msgstr "AI readiness checklist"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "AI refused request"
@@ -1600,10 +1591,6 @@ msgstr "Awaiting client response"
 msgid "Awaiting sources"
 msgstr "Awaiting sources"
 
-#: src/routes/obligations.tsx
-msgid "B · Differentiate"
-msgstr "B · Differentiate"
-
 #: src/features/migration/WizardShell.tsx
 msgid "Back"
 msgstr "Back"
@@ -1760,10 +1747,6 @@ msgstr "by {label}"
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
 msgstr "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
 
-#: src/routes/obligations.tsx
-msgid "C · Merge"
-msgstr "C · Merge"
-
 #: src/routes/clients.tsx
 msgid "C corp"
 msgstr "C corp"
@@ -1897,10 +1880,6 @@ msgstr "Changed from {0} to {1}"
 #: src/routes/obligations.tsx
 msgid "Changed from {before} to {after}"
 msgstr "Changed from {before} to {after}"
-
-#: src/routes/obligations.tsx
-msgid "Chase client for outstanding documents"
-msgstr "Chase client for outstanding documents"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
@@ -2172,6 +2151,28 @@ msgstr "Client not found"
 #: src/routes/obligations.tsx
 msgid "Client note"
 msgstr "Client note"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/features/concepts/concept-help.tsx
+#: src/routes/obligations.tsx
+msgid "Client readiness"
+msgstr "Client readiness"
+
+#: src/features/evidence/EvidenceDrawerProvider.tsx
+msgid "Client readiness checklist"
+msgstr "Client readiness checklist"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness link created"
+msgstr "Client readiness link created"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness request revoked"
+msgstr "Client readiness request revoked"
+
+#: src/routes/obligations.tsx
+msgid "Client readiness request sent"
+msgstr "Client readiness request sent"
 
 #: src/routes/obligations.tsx
 msgid "Client readiness response"
@@ -2786,8 +2787,8 @@ msgid "Couldn't save tax year profile"
 msgstr "Couldn't save tax year profile"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't send readiness request"
-msgstr "Couldn't send readiness request"
+msgid "Couldn't send client readiness request"
+msgstr "Couldn't send client readiness request"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Couldn't send the code"
@@ -3355,10 +3356,6 @@ msgstr "Draft import discarded"
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
-
-#: src/routes/obligations.tsx
-msgid "Drop sub-status + extra buttons. Panel + one primary action only."
-msgstr "Drop sub-status + extra buttons. Panel + one primary action only."
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -4348,10 +4345,6 @@ msgid "I'm coming from… (optional)"
 msgstr "I'm coming from… (optional)"
 
 #: src/routes/obligations.tsx
-msgid "IA preview"
-msgstr "IA preview"
-
-#: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
 
@@ -5009,10 +5002,6 @@ msgid "Mark all read"
 msgstr "Mark all read"
 
 #: src/routes/obligations.tsx
-msgid "Mark all received"
-msgstr "Mark all received"
-
-#: src/routes/obligations.tsx
 msgid "Mark client approved the estimate"
 msgstr "Mark client approved the estimate"
 
@@ -5292,8 +5281,8 @@ msgid "Move to: {label}"
 msgstr "Move to: {label}"
 
 #: src/routes/obligations.tsx
-msgid "Moves the row to Waiting and opens the Readiness tab to send the request."
-msgstr "Moves the row to Waiting and opens the Readiness tab to send the request."
+msgid "Moves the row to Waiting and opens the Client readiness tab to send the request."
+msgstr "Moves the row to Waiting and opens the Client readiness tab to send the request."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -6249,6 +6238,14 @@ msgstr "Open client"
 msgid "Open client detail for {0}"
 msgstr "Open client detail for {0}"
 
+#: src/routes/obligations.tsx
+msgid "Open Client readiness"
+msgstr "Open Client readiness"
+
+#: src/routes/obligations.tsx
+msgid "Open Client readiness to review {outstandingDocsCount} outstanding documents"
+msgstr "Open Client readiness to review {outstandingDocsCount} outstanding documents"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Open client to fix entity"
 msgstr "Open client to fix entity"
@@ -6346,11 +6343,6 @@ msgstr "Open the Evidence tab"
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
 
-#. placeholder {0}: outstanding.length
-#: src/routes/obligations.tsx
-msgid "Open the Readiness tab to review {0} outstanding documents"
-msgstr "Open the Readiness tab to review {0} outstanding documents"
-
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
 msgstr "Open the upstream obligation that's blocking this row."
@@ -6382,14 +6374,6 @@ msgstr "Opening…"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
 msgstr "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
-
-#: src/routes/obligations.tsx
-msgid "Opens the Readiness tab to chase the open documents"
-msgstr "Opens the Readiness tab to chase the open documents"
-
-#: src/routes/obligations.tsx
-msgid "Opens the Readiness tab to send and track the request"
-msgstr "Opens the Readiness tab to send and track the request"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -6593,10 +6577,6 @@ msgstr "Paid feature"
 #: src/routes/billing.tsx
 msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "Paid subscriptions bill the practice, not an individual user."
-
-#: src/routes/obligations.tsx
-msgid "Panel becomes the sub-status. Full button stack stays."
-msgstr "Panel becomes the sub-status. Full button stack stays."
 
 #: src/routes/obligations.tsx
 msgid "Paper-filed with authority"
@@ -6835,10 +6815,6 @@ msgstr "Personal morning digest preferences and types."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client…"
 msgstr "Pick a client…"
-
-#: src/routes/obligations.tsx
-msgid "Pick a Waiting-card variant to preview"
-msgstr "Pick a Waiting-card variant to preview"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -7435,35 +7411,13 @@ msgstr "Read official source"
 msgid "Read-only view"
 msgstr "Read-only view"
 
-#: src/features/audit/audit-log-labels.ts
-#: src/features/concepts/concept-help.tsx
-#: src/routes/obligations.tsx
-msgid "Readiness"
-msgstr "Readiness"
-
 #: src/routes/readiness.tsx
 msgid "Readiness check"
 msgstr "Readiness check"
 
-#: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Readiness checklist"
-msgstr "Readiness checklist"
-
-#: src/routes/obligations.tsx
-msgid "Readiness link created"
-msgstr "Readiness link created"
-
 #: src/routes/practice.tsx
 msgid "Readiness pressure"
 msgstr "Readiness pressure"
-
-#: src/routes/obligations.tsx
-msgid "Readiness request revoked"
-msgstr "Readiness request revoked"
-
-#: src/routes/obligations.tsx
-msgid "Readiness request sent"
-msgstr "Readiness request sent"
 
 #: src/routes/readiness.tsx
 msgid "Readiness response submitted"
@@ -7792,8 +7746,8 @@ msgid "Restart checkout"
 msgstr "Restart checkout"
 
 #: src/routes/obligations.tsx
-msgid "Resulting readiness"
-msgstr "Resulting readiness"
+msgid "Resulting client readiness"
+msgstr "Resulting client readiness"
 
 #: src/routes/obligations.tsx
 msgid "Resume drafting the return"
@@ -8643,10 +8597,6 @@ msgstr "Send a 7-day magic link to add a member to this practice."
 msgid "Send a morning digest"
 msgstr "Send a morning digest"
 
-#: src/routes/obligations.tsx
-msgid "Send document request to client"
-msgstr "Send document request to client"
-
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send hour"
 msgstr "Send hour"
@@ -8658,10 +8608,6 @@ msgstr "Send invite"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send preview now"
 msgstr "Send preview now"
-
-#: src/routes/obligations.tsx
-msgid "Send reminder to client"
-msgstr "Send reminder to client"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Send request"
@@ -9209,10 +9155,6 @@ msgstr "Still waiting on confirmation"
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Structured change"
 msgstr "Structured change"
-
-#: src/routes/obligations.tsx
-msgid "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
-msgstr "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
@@ -10137,10 +10079,6 @@ msgstr "UTC time"
 msgid "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
 msgstr "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
 
-#: src/routes/obligations.tsx
-msgid "Variants only differ when prep_stage = waiting_on_client. Open Bright Studio S-Corp's 1120S to see them."
-msgstr "Variants only differ when prep_stage = waiting_on_client. Open Bright Studio S-Corp's 1120S to see them."
-
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account-security-two-factor-setup.tsx
 #: src/routes/two-factor.tsx
@@ -10240,14 +10178,6 @@ msgstr "WA subtotal minus credits"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "Waiting"
-
-#: src/routes/obligations.tsx
-msgid "Waiting card IA preview"
-msgstr "Waiting card IA preview"
-
-#: src/routes/obligations.tsx
-msgid "Waiting card layout"
-msgstr "Waiting card layout"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "waiting on client"

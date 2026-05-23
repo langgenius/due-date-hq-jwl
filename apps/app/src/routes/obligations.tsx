@@ -3367,10 +3367,12 @@ export function ObligationQueueDetailDrawer({
     orpc.readiness.sendRequest.mutationOptions({
       onSuccess: (result) => {
         invalidateDetail()
-        toast.success(result.emailQueued ? t`Readiness request sent` : t`Readiness link created`)
+        toast.success(
+          result.emailQueued ? t`Client readiness request sent` : t`Client readiness link created`,
+        )
       },
       onError: (err) => {
-        toast.error(t`Couldn't send readiness request`, {
+        toast.error(t`Couldn't send client readiness request`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -3418,7 +3420,7 @@ export function ObligationQueueDetailDrawer({
     orpc.readiness.revokeRequest.mutationOptions({
       onSuccess: () => {
         invalidateDetail()
-        toast.success(t`Readiness request revoked`)
+        toast.success(t`Client readiness request revoked`)
       },
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
@@ -3939,7 +3941,7 @@ export function ObligationQueueDetailDrawer({
               <TabsList className="flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
-                    <Trans>Readiness</Trans>
+                    <Trans>Client readiness</Trans>
                   </TabsTrigger>
                 ) : null}
                 {visibleTabs.has('extension') ? (
@@ -3994,7 +3996,7 @@ export function ObligationQueueDetailDrawer({
                       </Trans>
                     </Badge>
                     <span className="text-text-tertiary">
-                      <Trans>· firm-set deadline for this readiness request</Trans>
+                      <Trans>· firm-set deadline for this client readiness request</Trans>
                     </span>
                   </div>
                 ) : null}
@@ -5033,7 +5035,7 @@ function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'pulse_revert') return <Trans>Rule update undone</Trans>
   if (sourceType === 'migration_revert') return <Trans>Import undone</Trans>
   if (sourceType === 'user_override') return <Trans>Manual note</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>AI readiness checklist</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>AI client readiness checklist</Trans>
   if (sourceType === 'readiness_client_response') return <Trans>Client readiness response</Trans>
   return humanizeToken(sourceType)
 }
@@ -5226,7 +5228,7 @@ function ReadinessClientResponseEvidence({
       {readiness ? (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-text-secondary">
-            <Trans>Resulting readiness</Trans>
+            <Trans>Resulting client readiness</Trans>
           </span>
           <Badge variant="outline">{humanizeToken(readiness)}</Badge>
         </div>
@@ -6329,67 +6331,11 @@ function BlockerContextCard({
   )
 }
 
-/**
- * Inline outstanding-docs summary rendered on the Waiting stage.
- * Shows the CPA what they're actually waiting on without forcing
- * them to switch to the Readiness tab. Up to 3 item labels surface
- * inline; the rest collapse into a "+N more" count. Clicking the
- * whole block routes to the Readiness tab for the full editor.
- *
- * Hidden entirely when no checklist exists (the row may be a
- * lightweight `payment` obligation with no readiness surface, in
- * which case the Waiting state is being used loosely). The Waiting
- * stage's regular task list still renders below to give the CPA
- * the canonical forward affordance.
- */
-function WaitingOutstandingDocs({
-  items,
-  onOpenReadiness,
-}: {
-  items: readonly ReadinessDocumentChecklistItemPublic[]
-  onOpenReadiness: () => void
-}) {
-  const { t } = useLingui()
-  const outstanding = useMemo(() => items.filter((item) => item.status !== 'received'), [items])
-  if (outstanding.length === 0) return null
-  const visible = outstanding.slice(0, 3)
-  const overflow = outstanding.length - visible.length
-  return (
-    <button
-      type="button"
-      onClick={onOpenReadiness}
-      className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
-      aria-label={t`Open the Readiness tab to review ${outstanding.length} outstanding documents`}
-    >
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
-          <Plural
-            value={outstanding.length}
-            one="# outstanding document"
-            other="# outstanding documents"
-          />
-        </span>
-        <ArrowUpRightIcon
-          className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
-          aria-hidden
-        />
-      </div>
-      <ul className="flex flex-col gap-1">
-        {visible.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-sm text-text-primary">
-            <CircleIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
-            <span className="truncate">{item.label}</span>
-          </li>
-        ))}
-        {overflow > 0 ? (
-          <li className="text-xs text-text-tertiary">
-            <Trans>+{overflow} more in the Readiness tab</Trans>
-          </li>
-        ) : null}
-      </ul>
-    </button>
-  )
-}
+// 2026-05-23: WaitingOutstandingDocs component retired with Option D.
+// The full panel (count header + bullet list of doc names + routing
+// button) duplicated content from the Client readiness tab. Replaced
+// inline in ActiveStageDetailCard with a one-line signal that links
+// to the tab; the tab owns the actual document inventory.
 
 /**
  * Inline key-dates summary rendered on the Completed stage. The
@@ -6505,34 +6451,23 @@ function ActiveStageDetailCard({
     completed: t`Completed`,
   }
   const stageLabel = stageLabels[stageKey]
-  // 2026-05-23 IA preview: temporary 3-variant switcher for the
-  // Waiting stage card so Yuqi can compare treatments before picking
-  // one. Only active when stageKey==='waiting_on_client' AND
-  // row.prepStage==='waiting_on_client' (the docs-from-client case
-  // that has the three-layer overlap). Other Waiting prepStages
-  // (waiting_on_third_party / bookkeeping_cleanup) keep existing
-  // behavior. Once Yuqi picks a winner, this switcher + the other
-  // two variants get deleted in a follow-up commit.
-  //   A — Strip: drop sub-status text, drop routing + chase, keep
-  //              panel + primary button only.
-  //   B — Differentiate: sub-status carries the WHEN (days since
-  //              entering Waiting), panel carries the WHAT, buttons
-  //              carry the verbs (Send reminder + Mark all received).
-  //   C — Merge: drop sub-status text, panel becomes the only
-  //              context surface, full button stack stays.
-  const [waitingVariant, setWaitingVariant] = useState<'A' | 'B' | 'C'>('A')
-  // The picker is visible on every Waiting row so it's easy to find
-  // during design review (2026-05-23: widened from the original
-  // prep_stage-gated condition because the user couldn't locate it
-  // on rows where prep_stage was null / non-docs). The variant
-  // *effects* (sub-status suppression, task list overrides) only
-  // apply when prep_stage === 'waiting_on_client' — that's the case
-  // with the actual docs-from-client overlap. On other Waiting
-  // sub-stages (third-party / bookkeeping / null) the picker is
-  // visible but flipping it doesn't change much, and the label
-  // below the chip says so.
+  // 2026-05-23: A/B/C IA preview retired. Winning shape (Option D):
+  // the stage card carries WAITING header + a single one-line signal
+  // ("3 docs outstanding · Open Client readiness →") + the primary
+  // "Mark client docs received" button. The full outstanding-docs
+  // panel is gone — that data lives on the Client readiness tab,
+  // not duplicated here. Sub-status reads "Awaiting client · N days
+  // so far" so the header is honest about *time elapsed*, not just
+  // a generic "waiting on docs" repeat of what the count line says.
   const isWaitingStage = stageKey === 'waiting_on_client'
   const isWaitingDocsCase = isWaitingStage && row.prepStage === 'waiting_on_client'
+  // Outstanding docs count powers the inline signal in the Waiting
+  // card body. Same filter logic the old WaitingOutstandingDocs panel
+  // used (anything not yet `received`), just without the bullet list.
+  const outstandingDocsCount = useMemo(
+    () => readinessChecklist.filter((item) => item.status !== 'received').length,
+    [readinessChecklist],
+  )
   // Sub-status descriptor — read inline (NOT from
   // `subStatusForActiveStage(row, t)` because that helper takes `t`
   // as a parameter, which the Lingui macro doesn't transform → label
@@ -6548,17 +6483,14 @@ function ActiveStageDetailCard({
     switch (row.status) {
       case 'waiting_on_client':
         if (row.prepStage === 'waiting_on_client') {
-          // Variant-aware sub-status for the docs-from-client case
-          // (see waitingVariant comment above). A and C suppress
-          // the line because the outstanding-docs panel says the
-          // same thing more specifically; B differentiates by
-          // showing how long the row has been Waiting.
-          if (waitingVariant === 'A' || waitingVariant === 'C') return null
-          // Variant B: name the WHEN, not the WHAT. Find the most
-          // recent status_changed → waiting_on_client event to get
-          // the timestamp the row entered this stage; the days
-          // counter ticks from there. If no audit event matches,
-          // fall back to neutral "awaiting client" phrasing.
+          // Sub-status names the WHEN (days since entering Waiting),
+          // not the WHAT — the WHAT is the inline signal line below
+          // ("3 docs outstanding"). Header should add information,
+          // not repeat the body. Find the most recent
+          // status_changed → waiting_on_client event for the
+          // timestamp; fall back to neutral phrasing if no audit
+          // event matches (e.g., demo-seed rows with no transition
+          // history).
           let enteredAt: string | null = null
           for (const event of auditEvents) {
             if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
@@ -6658,7 +6590,7 @@ function ActiveStageDetailCard({
             label: t`Request documents from client`,
             flavor: 'mutation',
             primary: true,
-            hint: t`Moves the row to Waiting and opens the Readiness tab to send the request.`,
+            hint: t`Moves the row to Waiting and opens the Client readiness tab to send the request.`,
           },
           {
             id: 'start',
@@ -6698,53 +6630,12 @@ function ActiveStageDetailCard({
             },
           ]
         }
-        // 2026-05-23 IA preview: 3 variant button stacks for the
-        // docs-from-client overlap. See `waitingVariant` comment up
-        // top. Yuqi picks one; we delete the other two.
-        if (waitingVariant === 'A') {
-          // Strip: panel + outstanding-docs panel + one primary button only.
-          return [
-            {
-              id: 'received',
-              label: t`Mark client docs received`,
-              flavor: 'mutation',
-              primary: true,
-            },
-          ]
-        }
-        if (waitingVariant === 'B') {
-          // Differentiate: routing verb + primary verb only,
-          // sub-status carries the WHEN, panel carries the WHAT.
-          return [
-            {
-              id: 'readiness',
-              label: t`Send reminder to client`,
-              flavor: 'routing',
-              hint: t`Opens the Readiness tab to chase the open documents`,
-            },
-            {
-              id: 'received',
-              label: t`Mark all received`,
-              flavor: 'mutation',
-              primary: true,
-            },
-          ]
-        }
-        // Variant C — Merge: panel becomes the sub-status surface
-        // (rendered directly under the stage label). Full button
-        // stack stays but routing label is verb-first.
+        // 2026-05-23: Option D shape — just the primary mutation.
+        // The routing affordance (open Client readiness tab) moved
+        // into the inline signal line in the card body; the manual
+        // chase reminder dropped because "Send reminder" is the same
+        // action surfaced from the Client readiness tab itself.
         return [
-          {
-            id: 'readiness',
-            label: t`Send document request to client`,
-            flavor: 'routing',
-            hint: t`Opens the Readiness tab to send and track the request`,
-          },
-          {
-            id: 'chase',
-            label: t`Chase client for outstanding documents`,
-            flavor: 'manual',
-          },
           {
             id: 'received',
             label: t`Mark client docs received`,
@@ -7038,7 +6929,7 @@ function ActiveStageDetailCard({
       default:
         return []
     }
-  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, waitingVariant, t])
+  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, t])
   const stageEnteredAt =
     stageEvents.length > 0 ? stageEvents[stageEvents.length - 1]!.createdAt : null
   // Past stages — every stage the row visited BEFORE the active one.
@@ -7167,99 +7058,26 @@ function ActiveStageDetailCard({
   // see "we're in prep" vs "we're in review" at a glance.
   const showReviewPipeline = stageKey === 'review'
   return (
-    <>
-      {/* 2026-05-23 IA preview STRIP — promoted out of the stage card
-          body so the comparison tool sits as a dedicated horizontal
-          band above the stage card. Distinct visual treatment (accent-
-          tinted background, dashed border) signals "preview mode, not
-          part of the actual obligation surface." Only renders on
-          Waiting rows. Removed once Yuqi picks a winner. */}
-      {isWaitingStage ? (
-        <div
-          role="region"
-          aria-label={t`Waiting card IA preview`}
-          className="mb-3 flex flex-col gap-2 rounded-lg border border-dashed border-state-accent-active-alt/40 bg-state-accent-hover-alt/30 p-3"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="rounded-sm bg-state-accent-active-alt/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-accent">
-                <Trans>IA preview</Trans>
-              </span>
-              <span className="text-[11px] font-medium uppercase tracking-wider text-text-secondary">
-                <Trans>Waiting card layout</Trans>
-              </span>
-            </div>
-          </div>
-          <div
-            role="radiogroup"
-            aria-label={t`Pick a Waiting-card variant to preview`}
-            className="inline-flex flex-wrap gap-1.5"
-          >
-            {(['A', 'B', 'C'] as const).map((variant) => {
-              const labels: Record<'A' | 'B' | 'C', string> = {
-                A: t`A · Strip`,
-                B: t`B · Differentiate`,
-                C: t`C · Merge`,
-              }
-              const descriptions: Record<'A' | 'B' | 'C', string> = {
-                A: t`Drop sub-status + extra buttons. Panel + one primary action only.`,
-                B: t`Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs.`,
-                C: t`Panel becomes the sub-status. Full button stack stays.`,
-              }
-              const isActive = waitingVariant === variant
-              return (
-                <button
-                  key={variant}
-                  type="button"
-                  role="radio"
-                  aria-checked={isActive}
-                  title={descriptions[variant]}
-                  onClick={() => setWaitingVariant(variant)}
-                  className={cn(
-                    'flex min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                    isActive
-                      ? 'border-state-accent-active-alt bg-background-default text-text-primary shadow-xs'
-                      : 'border-transparent text-text-secondary hover:border-state-accent-active-alt/30 hover:bg-background-default/60',
-                  )}
-                >
-                  <span className="font-semibold">{labels[variant]}</span>
-                  <span className="text-[10px] leading-tight text-text-tertiary">
-                    {descriptions[variant]}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-          {!isWaitingDocsCase ? (
-            <p className="text-[10px] italic text-text-tertiary">
-              <Trans>
-                Variants only differ when prep_stage = waiting_on_client. Open Bright Studio
-                S-Corp's 1120S to see them.
-              </Trans>
-            </p>
+    <section
+      aria-label={t`Active stage detail`}
+      className="rounded-lg border border-divider-subtle bg-background-default p-4"
+    >
+      {/* Header: stage name + sub-status + when we entered this stage. */}
+      <header className="flex flex-col gap-0.5">
+        <h3 className="flex flex-wrap items-baseline gap-x-2 text-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="text-text-primary">{stageLabel}</span>
+          {subStatus ? (
+            <span className="normal-case tracking-normal text-text-secondary">· {subStatus}</span>
           ) : null}
-        </div>
-      ) : null}
-      <section
-        aria-label={t`Active stage detail`}
-        className="rounded-lg border border-divider-subtle bg-background-default p-4"
-      >
-        {/* Header: stage name + sub-status + when we entered this stage. */}
-        <header className="flex flex-col gap-0.5">
-          <h3 className="flex flex-wrap items-baseline gap-x-2 text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <span className="text-text-primary">{stageLabel}</span>
-            {subStatus ? (
-              <span className="normal-case tracking-normal text-text-secondary">· {subStatus}</span>
-            ) : null}
-          </h3>
-          {stageEnteredAt ? (
-            <p className="text-xs text-text-tertiary">
-              <Trans>Entered {formatDate(stageEnteredAt.slice(0, 10))}</Trans>
-            </p>
-          ) : null}
-        </header>
+        </h3>
+        {stageEnteredAt ? (
+          <p className="text-xs text-text-tertiary">
+            <Trans>Entered {formatDate(stageEnteredAt.slice(0, 10))}</Trans>
+          </p>
+        ) : null}
+      </header>
 
-        {/* Stage-specific context. Each branch surfaces the info the
+      {/* Stage-specific context. Each branch surfaces the info the
           CPA actually needs to act on this stage without leaving the
           drawer (per docs/Design/deadline-status-meaning-and-journey-2026-05-23.md):
             - Blocked → WHICH upstream obligation is blocking (form +
@@ -7271,130 +7089,147 @@ function ActiveStageDetailCard({
           The other stages either have their info already (e-file /
           payment pipelines) or land in P1 (In Review pipeline,
           Completed summary). */}
-        {stageKey === 'blocked' && row.blockedByObligationInstanceId ? (
-          <div className="mt-3">
-            <BlockerContextCard
-              blockerId={row.blockedByObligationInstanceId}
-              onOpen={(id) => openDrawer(id)}
+      {stageKey === 'blocked' && row.blockedByObligationInstanceId ? (
+        <div className="mt-3">
+          <BlockerContextCard
+            blockerId={row.blockedByObligationInstanceId}
+            onOpen={(id) => openDrawer(id)}
+          />
+        </div>
+      ) : null}
+      {/* 2026-05-23 Option D: the WaitingOutstandingDocs panel
+          (count header + bullet list of doc names) was retired here —
+          that data lives on the Client readiness tab, not duplicated
+          in the stage card. The card carries a one-line signal
+          instead: "N docs outstanding · Open Client readiness →".
+          Single-line, no list, no panel chrome. The CPA who needs
+          the actual document inventory clicks through. */}
+      {isWaitingDocsCase && outstandingDocsCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => onChangeTab('readiness')}
+          className="mt-3 -mx-1 flex items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          aria-label={t`Open Client readiness to review ${outstandingDocsCount} outstanding documents`}
+        >
+          <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
+          <span>
+            <Plural
+              value={outstandingDocsCount}
+              one="# doc outstanding"
+              other="# docs outstanding"
             />
-          </div>
-        ) : null}
-        {/* 2026-05-23: inline IA preview switcher promoted to a
-          dedicated strip rendered ABOVE this section — see the strip
-          block at the top of the component's return. The picker no
-          longer sits inside the stage card body. */}
-        {stageKey === 'waiting_on_client' ? (
-          <div className={isWaitingDocsCase && waitingVariant === 'C' ? 'mt-2' : 'mt-3'}>
-            <WaitingOutstandingDocs
-              items={readinessChecklist}
-              onOpenReadiness={() => onChangeTab('readiness')}
-            />
-          </div>
-        ) : null}
-        {stageKey === 'completed' ? (
-          <div className="mt-3">
-            <CompletedKeyDates row={row} auditEvents={auditEvents} />
-          </div>
-        ) : null}
+          </span>
+          <span className="text-text-tertiary">·</span>
+          <span className="text-text-tertiary">
+            <Trans>Open Client readiness</Trans>
+          </span>
+          <ArrowUpRightIcon className="size-3 text-text-tertiary" aria-hidden />
+        </button>
+      ) : null}
+      {stageKey === 'completed' ? (
+        <div className="mt-3">
+          <CompletedKeyDates row={row} auditEvents={auditEvents} />
+        </div>
+      ) : null}
 
-        {/* Steps within the current stage — vertical list of every
+      {/* Steps within the current stage — vertical list of every
           canonical sub-status. Done steps render with a green check,
           the current step gets an accent dot + bold label + its task
           list indented beneath, and upcoming steps render as quiet
           empty circles. "Steps" (not "Pipeline") because CPAs say
           "what step am I on?" — pipeline reads as engineering jargon. */}
-        {showEfilePipeline || showPaymentPipeline ? (
-          <div className="mt-3 flex flex-col gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Steps</Trans>
-            </p>
-            <ul className="flex flex-col gap-1">
-              {(showEfilePipeline ? EFILE_PIPELINE_KEYS : PAYMENT_PIPELINE_KEYS).map((key) => {
-                // The 4 casts in this block (key + row state, repeated for
-                // efile/payment branches) are runtime-correlated with
-                // `showEfilePipeline` by construction: when true the keys
-                // came from EFILE_PIPELINE_KEYS and `row.efileState` is the
-                // relevant column; when false the payment-side equivalents
-                // apply. TypeScript can't track the correlation through the
-                // ternary, but the existing call shape is safe — the lint
-                // suppressions match the runtime-safe pattern used elsewhere
-                // in this file.
-                const state = showEfilePipeline
-                  ? pipelineStateOf(
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
-                      key as (typeof EFILE_PIPELINE_KEYS)[number],
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.efileState is the matching column
-                      row.efileState as (typeof EFILE_PIPELINE_KEYS)[number] | null | undefined,
-                      EFILE_PIPELINE_KEYS,
-                    )
-                  : pipelineStateOf(
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
-                      key as (typeof PAYMENT_PIPELINE_KEYS)[number],
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.paymentState is the matching column
-                      row.paymentState as (typeof PAYMENT_PIPELINE_KEYS)[number] | null | undefined,
-                      PAYMENT_PIPELINE_KEYS,
-                    )
-                // `key` is iterated from EFILE_PIPELINE_KEYS or PAYMENT_PIPELINE_KEYS
-                // depending on `showEfilePipeline` — same correlation already
-                // applied at the `pipelineStateOf` calls above. The cast is
-                // runtime-safe by construction; lint can't prove the ternary
-                // correlation so we suppress the same way as the adjacent
-                // pipelineStateOf args.
-                const label = showEfilePipeline
-                  ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
-                    efilePipelineLabels[key as (typeof EFILE_PIPELINE_KEYS)[number]]
-                  : // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
-                    paymentPipelineLabels[key as (typeof PAYMENT_PIPELINE_KEYS)[number]]
-                return (
-                  <li key={key} className="flex flex-col">
-                    <div className="flex items-start gap-2 text-xs">
-                      {state === 'done' ? (
-                        <CheckCircle2Icon
-                          className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
-                          aria-hidden
-                        />
-                      ) : state === 'current' ? (
-                        <span
-                          aria-hidden
-                          className="mt-0.5 grid size-3.5 shrink-0 place-items-center rounded-full border-2 border-accent-default bg-background-default"
-                        >
-                          <span className="size-1.5 rounded-full bg-accent-default" />
-                        </span>
-                      ) : (
-                        <span
-                          aria-hidden
-                          className="mt-0.5 inline-block size-3.5 shrink-0 rounded-full border border-divider-regular bg-background-default"
-                        />
-                      )}
+      {showEfilePipeline || showPaymentPipeline ? (
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Steps</Trans>
+          </p>
+          <ul className="flex flex-col gap-1">
+            {(showEfilePipeline ? EFILE_PIPELINE_KEYS : PAYMENT_PIPELINE_KEYS).map((key) => {
+              // The 4 casts in this block (key + row state, repeated for
+              // efile/payment branches) are runtime-correlated with
+              // `showEfilePipeline` by construction: when true the keys
+              // came from EFILE_PIPELINE_KEYS and `row.efileState` is the
+              // relevant column; when false the payment-side equivalents
+              // apply. TypeScript can't track the correlation through the
+              // ternary, but the existing call shape is safe — the lint
+              // suppressions match the runtime-safe pattern used elsewhere
+              // in this file.
+              const state = showEfilePipeline
+                ? pipelineStateOf(
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                    key as (typeof EFILE_PIPELINE_KEYS)[number],
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.efileState is the matching column
+                    row.efileState as (typeof EFILE_PIPELINE_KEYS)[number] | null | undefined,
+                    EFILE_PIPELINE_KEYS,
+                  )
+                : pipelineStateOf(
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                    key as (typeof PAYMENT_PIPELINE_KEYS)[number],
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- row.paymentState is the matching column
+                    row.paymentState as (typeof PAYMENT_PIPELINE_KEYS)[number] | null | undefined,
+                    PAYMENT_PIPELINE_KEYS,
+                  )
+              // `key` is iterated from EFILE_PIPELINE_KEYS or PAYMENT_PIPELINE_KEYS
+              // depending on `showEfilePipeline` — same correlation already
+              // applied at the `pipelineStateOf` calls above. The cast is
+              // runtime-safe by construction; lint can't prove the ternary
+              // correlation so we suppress the same way as the adjacent
+              // pipelineStateOf args.
+              const label = showEfilePipeline
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                  efilePipelineLabels[key as (typeof EFILE_PIPELINE_KEYS)[number]]
+                : // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- key correlated with showEfilePipeline
+                  paymentPipelineLabels[key as (typeof PAYMENT_PIPELINE_KEYS)[number]]
+              return (
+                <li key={key} className="flex flex-col">
+                  <div className="flex items-start gap-2 text-xs">
+                    {state === 'done' ? (
+                      <CheckCircle2Icon
+                        className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
+                        aria-hidden
+                      />
+                    ) : state === 'current' ? (
                       <span
-                        className={cn(
-                          'flex-1 leading-snug',
-                          state === 'done'
-                            ? 'text-text-tertiary'
-                            : state === 'current'
-                              ? 'font-medium text-text-primary'
-                              : 'text-text-tertiary opacity-70',
-                        )}
+                        aria-hidden
+                        className="mt-0.5 grid size-3.5 shrink-0 place-items-center rounded-full border-2 border-accent-default bg-background-default"
                       >
-                        {label}
+                        <span className="size-1.5 rounded-full bg-accent-default" />
                       </span>
-                    </div>
-                    {/* Actions ONLY under the current step. Primary
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="mt-0.5 inline-block size-3.5 shrink-0 rounded-full border border-divider-regular bg-background-default"
+                      />
+                    )}
+                    <span
+                      className={cn(
+                        'flex-1 leading-snug',
+                        state === 'done'
+                          ? 'text-text-tertiary'
+                          : state === 'current'
+                            ? 'font-medium text-text-primary'
+                            : 'text-text-tertiary opacity-70',
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                  {/* Actions ONLY under the current step. Primary
                       mutation becomes a solid button; secondary
                       options become ghost text-links; manual
                       reminders collapse to one tertiary text line. */}
-                    {state === 'current' && tasks.length > 0 ? (
-                      <div className="ml-6 mt-2 mb-2">
-                        <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
-                      </div>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ) : showReviewPipeline ? (
-          /* In Review pipeline strip — same shape as the e-file /
+                  {state === 'current' && tasks.length > 0 ? (
+                    <div className="ml-6 mt-2 mb-2">
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ) : showReviewPipeline ? (
+        /* In Review pipeline strip — same shape as the e-file /
            payment strips above but walks prepStage → reviewStage.
            Each step is a real <button> (slider model): clicking moves
            the row to that step, forward or backward. Steps 1-3 fire
@@ -7405,233 +7240,231 @@ function ActiveStageDetailCard({
            When `reviewStage === 'notes_open'` the in_review step
            picks up a "Notes open" annotation plus a "Notes addressed"
            affordance; otherwise step 5 surfaces a "Leave note" button. */
-          <div className="mt-3 flex flex-col gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Steps</Trans>
-            </p>
-            <ul className="flex flex-col gap-1">
-              {REVIEW_PIPELINE_KEYS.map((key) => {
-                const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
-                const label = reviewPipelineLabels[key]
-                const showNotesOpen = state === 'current' && key === 'in_review' && notesOpen
-                // prep stage owns ready_for_prep / in_prep / prepared;
-                // review stage owns ready_for_review / in_review /
-                // approved. Each step's click target is the matching
-                // mutation handler with the step's value.
-                const handleStepClick = () => {
-                  if (state === 'current') return
-                  if (key === 'ready_for_prep' || key === 'in_prep' || key === 'prepared') {
-                    onChangePrepStage(key)
-                  } else {
-                    // notes_open never appears as a step key; the
-                    // remaining three (ready_for_review / in_review /
-                    // approved) all flow through reviewStage.
-                    onChangeReviewStage(key)
-                  }
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Steps</Trans>
+          </p>
+          <ul className="flex flex-col gap-1">
+            {REVIEW_PIPELINE_KEYS.map((key) => {
+              const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
+              const label = reviewPipelineLabels[key]
+              const showNotesOpen = state === 'current' && key === 'in_review' && notesOpen
+              // prep stage owns ready_for_prep / in_prep / prepared;
+              // review stage owns ready_for_review / in_review /
+              // approved. Each step's click target is the matching
+              // mutation handler with the step's value.
+              const handleStepClick = () => {
+                if (state === 'current') return
+                if (key === 'ready_for_prep' || key === 'in_prep' || key === 'prepared') {
+                  onChangePrepStage(key)
+                } else {
+                  // notes_open never appears as a step key; the
+                  // remaining three (ready_for_review / in_review /
+                  // approved) all flow through reviewStage.
+                  onChangeReviewStage(key)
                 }
-                const stepTitle =
-                  state === 'current' ? t`You're on this step` : t`Move to: ${label}`
-                return (
-                  <li key={key} className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={handleStepClick}
-                      disabled={state === 'current'}
-                      title={stepTitle}
-                      aria-label={stepTitle}
+              }
+              const stepTitle = state === 'current' ? t`You're on this step` : t`Move to: ${label}`
+              return (
+                <li key={key} className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={handleStepClick}
+                    disabled={state === 'current'}
+                    title={stepTitle}
+                    aria-label={stepTitle}
+                    className={cn(
+                      '-mx-1 flex w-full items-start gap-2 rounded px-1 py-0.5 text-left text-xs outline-none transition-colors',
+                      state === 'current'
+                        ? 'cursor-default'
+                        : 'cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    )}
+                  >
+                    {state === 'done' ? (
+                      <CheckCircle2Icon
+                        className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
+                        aria-hidden
+                      />
+                    ) : state === 'current' ? (
+                      <span
+                        aria-hidden
+                        className="mt-0.5 grid size-3.5 shrink-0 place-items-center rounded-full border-2 border-accent-default bg-background-default"
+                      >
+                        <span className="size-1.5 rounded-full bg-accent-default" />
+                      </span>
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="mt-0.5 inline-block size-3.5 shrink-0 rounded-full border border-divider-regular bg-background-default"
+                      />
+                    )}
+                    <span
                       className={cn(
-                        '-mx-1 flex w-full items-start gap-2 rounded px-1 py-0.5 text-left text-xs outline-none transition-colors',
-                        state === 'current'
-                          ? 'cursor-default'
-                          : 'cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                        'flex-1 leading-snug',
+                        state === 'done'
+                          ? 'text-text-tertiary'
+                          : state === 'current'
+                            ? 'font-medium text-text-primary'
+                            : 'text-text-tertiary opacity-70',
                       )}
                     >
-                      {state === 'done' ? (
-                        <CheckCircle2Icon
-                          className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
-                          aria-hidden
-                        />
-                      ) : state === 'current' ? (
-                        <span
-                          aria-hidden
-                          className="mt-0.5 grid size-3.5 shrink-0 place-items-center rounded-full border-2 border-accent-default bg-background-default"
-                        >
-                          <span className="size-1.5 rounded-full bg-accent-default" />
+                      {label}
+                      {showNotesOpen ? (
+                        <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-text-warning">
+                          · <Trans>Notes open</Trans>
                         </span>
-                      ) : (
-                        <span
-                          aria-hidden
-                          className="mt-0.5 inline-block size-3.5 shrink-0 rounded-full border border-divider-regular bg-background-default"
-                        />
-                      )}
-                      <span
-                        className={cn(
-                          'flex-1 leading-snug',
-                          state === 'done'
-                            ? 'text-text-tertiary'
-                            : state === 'current'
-                              ? 'font-medium text-text-primary'
-                              : 'text-text-tertiary opacity-70',
-                        )}
-                      >
-                        {label}
-                        {showNotesOpen ? (
-                          <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-text-warning">
-                            · <Trans>Notes open</Trans>
-                          </span>
-                        ) : null}
-                      </span>
-                    </button>
-                    {/* notes_open affordances on the in_review step.
+                      ) : null}
+                    </span>
+                  </button>
+                  {/* notes_open affordances on the in_review step.
                       When the reviewer is checking the return:
                         - notes NOT open → small "Leave note" ghost
                           button flips reviewStage='notes_open'
                         - notes ARE open → "Notes addressed" flips
                           back to 'in_review'. */}
-                    {state === 'current' && key === 'in_review' ? (
-                      <div className="ml-6 mt-1 mb-1">
-                        {notesOpen ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => onChangeReviewStage('in_review')}
-                          >
-                            <Trans>Mark notes addressed</Trans>
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => onChangeReviewStage('notes_open')}
-                          >
-                            <Trans>Leave note for preparer</Trans>
-                          </Button>
-                        )}
-                      </div>
-                    ) : null}
-                    {state === 'current' && tasks.length > 0 ? (
-                      <div className="ml-6 mt-2 mb-2">
-                        <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
-                      </div>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ) : tasks.length > 0 ? (
-          /* Non-pipeline stages (Not started / Waiting / Blocked /
+                  {state === 'current' && key === 'in_review' ? (
+                    <div className="ml-6 mt-1 mb-1">
+                      {notesOpen ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => onChangeReviewStage('in_review')}
+                        >
+                          <Trans>Mark notes addressed</Trans>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => onChangeReviewStage('notes_open')}
+                        >
+                          <Trans>Leave note for preparer</Trans>
+                        </Button>
+                      )}
+                    </div>
+                  ) : null}
+                  {state === 'current' && tasks.length > 0 ? (
+                    <div className="ml-6 mt-2 mb-2">
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ) : tasks.length > 0 ? (
+        /* Non-pipeline stages (Not started / Waiting / Blocked /
            Completed) — no pipeline strip, just the action surface.
            Primary button + secondary ghost links + manual reminders
            inline. No "What's next" eyebrow because the button is
            self-evident as the next action. */
-          <div className="mt-3">
-            <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
-          </div>
-        ) : null}
+        <div className="mt-3">
+          <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+        </div>
+      ) : null}
 
-        {/* Done this stage: audit events whose afterJson.status maps to
+      {/* Done this stage: audit events whose afterJson.status maps to
           the current stage. Shows the recent chronology so the CPA can
           see HOW the row landed here without leaving the panel. */}
-        {stageEvents.length > 0 ? (
-          <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Done this stage</Trans>
-            </p>
-            <ul className="flex flex-col gap-1.5">
-              {stageEvents.map((event) => (
-                <li key={event.id} className="flex items-start gap-2 text-xs">
-                  <CheckCircle2Icon
-                    className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
-                    aria-hidden
-                  />
-                  <span className="flex-1 leading-snug text-text-secondary">
-                    {humanizeAuditAction(event.action)}
-                    {event.actorLabel ? (
-                      <span className="text-text-tertiary"> · {event.actorLabel}</span>
-                    ) : null}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-text-tertiary">
-                    {formatDate(event.createdAt.slice(0, 10))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
+      {stageEvents.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Done this stage</Trans>
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {stageEvents.map((event) => (
+              <li key={event.id} className="flex items-start gap-2 text-xs">
+                <CheckCircle2Icon
+                  className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
+                  aria-hidden
+                />
+                <span className="flex-1 leading-snug text-text-secondary">
+                  {humanizeAuditAction(event.action)}
+                  {event.actorLabel ? (
+                    <span className="text-text-tertiary"> · {event.actorLabel}</span>
+                  ) : null}
+                </span>
+                <span className="shrink-0 tabular-nums text-text-tertiary">
+                  {formatDate(event.createdAt.slice(0, 10))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
-        {/* Previous stages — every stage the row passed through before
+      {/* Previous stages — every stage the row passed through before
           landing on the active one. Collapsed by default so the card
           stays quiet; each row expands individually to show that
           stage's audit chronology. Answers "how did we get here?"
           without taking up vertical space when the CPA only cares
           about what's happening now. */}
-        {pastEntries.length > 0 ? (
-          <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Previous stages</Trans> · {pastEntries.length}
-            </p>
-            <ul className="flex flex-col gap-0.5">
-              {pastEntries.map((entry) => {
-                const open = expandedPast === entry.stageKey
-                const days = daysBetween(entry.entryAt, entry.exitAt)
-                return (
-                  <li key={entry.stageKey} className="flex flex-col">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedPast(open ? null : entry.stageKey)}
-                      aria-expanded={open}
-                      className="-mx-1 flex items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                    >
-                      <ChevronRightIcon
-                        className={cn(
-                          'size-3 shrink-0 text-text-tertiary transition-transform',
-                          open && 'rotate-90',
-                        )}
-                        aria-hidden
-                      />
-                      <CheckCircle2Icon
-                        className="size-3.5 shrink-0 text-state-success-solid"
-                        aria-hidden
-                      />
-                      <span className="flex-1 truncate text-text-secondary">
-                        {stageLabels[entry.stageKey]}
-                      </span>
-                      <span className="shrink-0 tabular-nums text-text-tertiary">
-                        {days === 0 ? (
-                          <Trans>same day</Trans>
-                        ) : (
-                          <Plural value={days} one="# day" other="# days" />
-                        )}
-                      </span>
-                    </button>
-                    {open ? (
-                      <ul className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3">
-                        {entry.events.map((event) => (
-                          <li key={event.id} className="flex items-start gap-2 text-xs">
-                            <span className="flex-1 leading-snug text-text-secondary">
-                              {humanizeAuditAction(event.action)}
-                              {event.actorLabel ? (
-                                <span className="text-text-tertiary"> · {event.actorLabel}</span>
-                              ) : null}
-                            </span>
-                            <span className="shrink-0 tabular-nums text-text-tertiary">
-                              {formatDate(event.createdAt.slice(0, 10))}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ) : null}
-      </section>
-    </>
+      {pastEntries.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Previous stages</Trans> · {pastEntries.length}
+          </p>
+          <ul className="flex flex-col gap-0.5">
+            {pastEntries.map((entry) => {
+              const open = expandedPast === entry.stageKey
+              const days = daysBetween(entry.entryAt, entry.exitAt)
+              return (
+                <li key={entry.stageKey} className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedPast(open ? null : entry.stageKey)}
+                    aria-expanded={open}
+                    className="-mx-1 flex items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <ChevronRightIcon
+                      className={cn(
+                        'size-3 shrink-0 text-text-tertiary transition-transform',
+                        open && 'rotate-90',
+                      )}
+                      aria-hidden
+                    />
+                    <CheckCircle2Icon
+                      className="size-3.5 shrink-0 text-state-success-solid"
+                      aria-hidden
+                    />
+                    <span className="flex-1 truncate text-text-secondary">
+                      {stageLabels[entry.stageKey]}
+                    </span>
+                    <span className="shrink-0 tabular-nums text-text-tertiary">
+                      {days === 0 ? (
+                        <Trans>same day</Trans>
+                      ) : (
+                        <Plural value={days} one="# day" other="# days" />
+                      )}
+                    </span>
+                  </button>
+                  {open ? (
+                    <ul className="ml-7 mt-1 mb-1 flex flex-col gap-1 border-l border-divider-subtle pl-3">
+                      {entry.events.map((event) => (
+                        <li key={event.id} className="flex items-start gap-2 text-xs">
+                          <span className="flex-1 leading-snug text-text-secondary">
+                            {humanizeAuditAction(event.action)}
+                            {event.actorLabel ? (
+                              <span className="text-text-tertiary"> · {event.actorLabel}</span>
+                            ) : null}
+                          </span>
+                          <span className="shrink-0 tabular-nums text-text-tertiary">
+                            {formatDate(event.createdAt.slice(0, 10))}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ) : null}
+    </section>
   )
 }
 
