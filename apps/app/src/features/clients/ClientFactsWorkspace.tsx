@@ -1400,42 +1400,62 @@ export function ClientDetailWorkspace({
 
   return (
     <>
-      <div className="flex min-h-0 flex-col gap-6">
-        <PageHeader
-          eyebrow={
-            <Link
-              to="/clients"
-              // Eyebrow back-link styling overrides the eyebrow slot's
-              // default uppercase / tracked / 11px tag treatment so the
-              // back-nav reads as a friendly link, not as a section
-              // label tag. The section labels inside tabs (`CONFIGURE`,
-              // `NOTES`) keep that tracked-uppercase style — two
-              // visually distinct typographic tiers for two different
-              // semantic intents.
-              className="inline-flex items-center gap-1 rounded-sm text-xs font-normal normal-case tracking-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <ChevronLeftIcon className="size-3.5" aria-hidden />
-              <Trans>Clients</Trans>
-            </Link>
-          }
-          title={
-            // Stack title + identity chips vertically by default so the
-            // chip cluster lives on its own row immediately under the
-            // H1. On xl+ viewports they share one row — the previous
-            // `flex-wrap` behavior at every breakpoint caused chips to
-            // collide with the right-edge action cluster on 1100-1280px
-            // viewports and the second line of chips left-aligned to
-            // the page edge instead of under the H1.
-            <span className="flex flex-col items-start gap-y-2 xl:flex-row xl:flex-wrap xl:items-center xl:gap-x-3">
-              <ClientTitleSwitcher client={client} />
-              {/* Identity chips inline with the title (D-2). Entity badge
+      {/* 2026-05-23 (critique #9): the obligation panel splits the
+          ENTIRE page now, not just the body underneath the
+          PageHeader. Previously only the body section flexed
+          left/right when a filing-plan row was selected — the
+          PageHeader stayed full-width above and got visually
+          truncated by the panel's right rail.
+
+          New shape: a top-level xl:flex-row split. The left column
+          (`<div flex-1 min-w-0>`) holds BOTH the PageHeader and the
+          body. The aside panel becomes a true full-page right rail
+          when an obligation is open. PageHeader's own flex layout
+          (title left, actions right) keeps working inside the
+          narrower left column. */}
+      <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
+        <div
+          className={cn(
+            'flex min-w-0 flex-1 flex-col gap-6',
+            // No extra width math needed — the aside below has fixed
+            // xl:w-[480px] + xl:shrink-0, so flex-1 fills the rest.
+          )}
+        >
+          <PageHeader
+            eyebrow={
+              <Link
+                to="/clients"
+                // Eyebrow back-link styling overrides the eyebrow slot's
+                // default uppercase / tracked / 11px tag treatment so the
+                // back-nav reads as a friendly link, not as a section
+                // label tag. The section labels inside tabs (`CONFIGURE`,
+                // `NOTES`) keep that tracked-uppercase style — two
+                // visually distinct typographic tiers for two different
+                // semantic intents.
+                className="inline-flex items-center gap-1 rounded-sm text-xs font-normal normal-case tracking-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <ChevronLeftIcon className="size-3.5" aria-hidden />
+                <Trans>Clients</Trans>
+              </Link>
+            }
+            title={
+              // Stack title + identity chips vertically by default so the
+              // chip cluster lives on its own row immediately under the
+              // H1. On xl+ viewports they share one row — the previous
+              // `flex-wrap` behavior at every breakpoint caused chips to
+              // collide with the right-edge action cluster on 1100-1280px
+              // viewports and the second line of chips left-aligned to
+              // the page edge instead of under the H1.
+              <span className="flex flex-col items-start gap-y-2 xl:flex-row xl:flex-wrap xl:items-center xl:gap-x-3">
+                <ClientTitleSwitcher client={client} />
+                {/* Identity chips inline with the title (D-2). Entity badge
                   + filing-state chips read the client's shape in one
                   scan. The readiness chip is **conditional**: only
                   renders when something needs the CPA's attention — no
                   ghost slot when ready. Replaces the standalone
                   identity strip that lived below the header. */}
-              <span className="inline-flex flex-wrap items-center gap-1.5 align-middle">
-                {/* Entity badge uses the same `outline` style as
+                <span className="inline-flex flex-wrap items-center gap-1.5 align-middle">
+                  {/* Entity badge uses the same `outline` style as
                     every other place that surfaces entity type
                     (ClientPeekHoverCard, ClientDetailDrawer,
                     obligations queue, Create-client dialog). The
@@ -1444,71 +1464,66 @@ export function ClientDetailWorkspace({
                     drew attention as a signal, but entity type is
                     a static identity fact, not a status. Quieted to
                     match. */}
-                <Badge variant="outline" className="text-xs">
-                  {entityLabels[client.entityType]}
-                </Badge>
-                <ClientFilingStateChips client={client} />
-                {readiness?.status === 'needs_facts' ? (
-                  // Badge's `render` prop swaps in a <button> as the
-                  // root element so the chip itself is the click
-                  // target — no wrapping <button> nested in the <h1>
-                  // (which caused nested-interactive DOM + an
-                  // inconsistent click area in the earlier revision).
-                  //
-                  // 2026-05-23: label reframed from "Needs filing
-                  // state" (which read as an obligation status) to
-                  // "Add filing state" (imperative — clearly an
-                  // action the CPA needs to take on the client's
-                  // setup). SettingsIcon prefix visually anchors
-                  // it as configuration, not in-flight work.
-                  <Badge
-                    variant="destructive"
-                    className="cursor-pointer text-xs"
-                    render={<button type="button" onClick={openMissingFacts} />}
-                  >
-                    <SettingsIcon className="size-3" aria-hidden />
-                    <MissingFactsActionLabel readiness={readiness} />
+                  <Badge variant="outline" className="text-xs">
+                    {entityLabels[client.entityType]}
                   </Badge>
-                ) : null}
+                  <ClientFilingStateChips client={client} />
+                  {readiness?.status === 'needs_facts' ? (
+                    // Badge's `render` prop swaps in a <button> as the
+                    // root element so the chip itself is the click
+                    // target — no wrapping <button> nested in the <h1>
+                    // (which caused nested-interactive DOM + an
+                    // inconsistent click area in the earlier revision).
+                    //
+                    // 2026-05-23: label reframed from "Needs filing
+                    // state" (which read as an obligation status) to
+                    // "Add filing state" (imperative — clearly an
+                    // action the CPA needs to take on the client's
+                    // setup). SettingsIcon prefix visually anchors
+                    // it as configuration, not in-flight work.
+                    <Badge
+                      variant="destructive"
+                      className="cursor-pointer text-xs"
+                      render={<button type="button" onClick={openMissingFacts} />}
+                    >
+                      <SettingsIcon className="size-3" aria-hidden />
+                      <MissingFactsActionLabel readiness={readiness} />
+                    </Badge>
+                  ) : null}
+                </span>
               </span>
-            </span>
-          }
-          description={renderClientHeaderSubLine({
-            workPlan,
-            entityType: client.entityType,
-            taxClassification: client.taxClassification,
-          })}
-          // 2026-05-23: dropped ClientCycleArrows entirely per
-          // critique ("remove first"). The prev/next chevrons +
-          // position counter took space on every client detail page
-          // for a workflow CPAs rarely used. The component file
-          // (./ClientCycleArrows.tsx) is left in place — keyboard
-          // j/k cycling lives inside it, and we may reintroduce
-          // the visual control later in a different surface (e.g.
-          // a peek dropdown). Removing the import + render here is
-          // enough to drop it from this header.
-          actions={
-            <>
-              <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
-              <Button variant="outline" size="sm" onClick={() => setArchiveOpen(true)}>
-                <ArchiveIcon data-icon="inline-start" />
-                <Trans>Archive</Trans>
-              </Button>
-              <CreateObligationDialog defaultClientId={client.id} />
-            </>
-          }
-        />
+            }
+            description={renderClientHeaderSubLine({
+              workPlan,
+              entityType: client.entityType,
+              taxClassification: client.taxClassification,
+            })}
+            // 2026-05-23: dropped ClientCycleArrows entirely per
+            // critique ("remove first"). The prev/next chevrons +
+            // position counter took space on every client detail page
+            // for a workflow CPAs rarely used. The component file
+            // (./ClientCycleArrows.tsx) is left in place — keyboard
+            // j/k cycling lives inside it, and we may reintroduce
+            // the visual control later in a different surface (e.g.
+            // a peek dropdown). Removing the import + render here is
+            // enough to drop it from this header.
+            actions={
+              <>
+                <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
+                <Button variant="outline" size="sm" onClick={() => setArchiveOpen(true)}>
+                  <ArchiveIcon data-icon="inline-start" />
+                  <Trans>Archive</Trans>
+                </Button>
+                <CreateObligationDialog defaultClientId={client.id} />
+              </>
+            }
+          />
 
-        {/* Body — split into the client-context column (left) and an
-            optional obligation page panel (right) when a row in the
-            filing plan is selected. The panel replaces the modal
-            Sheet that used to overlay on top of the client page; the
-            ObligationDrawerProvider defers to this route via the
-            `routeOwnsPanel` check. PageHeader stays full-width above
-            so prev/next arrows, breadcrumb switcher, and action
-            cluster remain anchored regardless of panel state. */}
-        <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
-          <section className="flex min-w-0 flex-1 flex-col gap-6">
+          {/* Body — client-context content. The outer xl:flex-row
+            split (one wrapper above) already separates this from the
+            right-rail obligation panel, so this section just renders
+            the column-of-content inline. */}
+          <section className="flex min-w-0 flex-col gap-6">
             {/* Provenance (Imported / Manual) lived here briefly during
                 the D-2 transition. Dropped 2026-05-22 per design call —
                 low-signal: most clients are Manual by default, and the
@@ -1704,33 +1719,31 @@ export function ClientDetailWorkspace({
               </TabsContent>
             </Tabs>
           </section>
-
-          {/* Obligation page panel — replaces the modal Sheet on this
-              route. Width is fixed 480px on xl+, full-width stacked
-              below the client content at narrower viewports. The
-              ObligationDrawerProvider defers to this mount when
-              `pathname.startsWith('/clients/')`. The panel reads
-              obligationId + activeTab from the same provider state
-              that the filing plan rows write, so cross-tab navigation
-              stays coherent. */}
-          {activeObligationId ? (
-            <aside className="w-full min-w-0 xl:w-[480px] xl:shrink-0">
-              <ObligationPanelDispatcher
-                obligationId={activeObligationId}
-                activeTab={obligationTab}
-                onTabChange={setObligationTab}
-                onClose={closeObligationPanel}
-                onNeedsInput={() => {
-                  // Penalty-input dialog is route-local to /obligations;
-                  // not wired here. CPAs can deep-link to the queue
-                  // for that flow.
-                }}
-                practiceAiEnabled={practiceAiEnabled}
-                blockerCandidates={[]}
-              />
-            </aside>
-          ) : null}
         </div>
+        {/* Obligation page panel — replaces the modal Sheet on this
+            route. Width is fixed 480px on xl+, full-width stacked
+            below the entire client surface at narrower viewports.
+            Now a sibling of the left column wrapper (was nested
+            inside the body) so opening an obligation pushes the
+            PageHeader, summary strip, alerts, AND the filing plan
+            all left at once. */}
+        {activeObligationId ? (
+          <aside className="w-full min-w-0 xl:w-[480px] xl:shrink-0">
+            <ObligationPanelDispatcher
+              obligationId={activeObligationId}
+              activeTab={obligationTab}
+              onTabChange={setObligationTab}
+              onClose={closeObligationPanel}
+              onNeedsInput={() => {
+                // Penalty-input dialog is route-local to /obligations;
+                // not wired here. CPAs can deep-link to the queue
+                // for that flow.
+              }}
+              practiceAiEnabled={practiceAiEnabled}
+              blockerCandidates={[]}
+            />
+          </aside>
+        ) : null}
       </div>
 
       {/* Archive confirmation. `clients.delete` is a soft-delete server-
