@@ -33,6 +33,7 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CircleIcon,
   ClipboardListIcon,
   Columns3Icon,
   CopyIcon,
@@ -171,6 +172,7 @@ import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   STATUS_DOT,
+  STATUS_VARIANT,
   useLifecycleV2StatusLabels,
   useStatusLabels,
   type ObligationStatus,
@@ -3778,6 +3780,7 @@ export function ObligationQueueDetailDrawer({
               <ActiveStageDetailCard
                 row={row}
                 auditEvents={detail.auditEvents}
+                readinessChecklist={detail.readinessChecklist}
                 onChangeTab={(nextTab) => onTabChange(nextTab)}
                 onChangeStatus={(nextStatus) =>
                   changeStatusMutation.mutate({ id: row.id, status: nextStatus })
@@ -6082,9 +6085,146 @@ function StageActions({
   )
 }
 
+/**
+ * Inline blocker card rendered on the Blocked stage. Shows the
+ * upstream obligation's form / client / due / current status so the
+ * CPA understands WHY this row is blocked without leaving the
+ * drawer. The whole card is clickable — opens the blocker's drawer
+ * via the same provider the queue + client detail use.
+ *
+ * Fetches via `obligations.getDetail` (the same query the drawer
+ * itself uses), so when the CPA clicks through to the blocker the
+ * data is already in cache and the destination drawer opens
+ * instantly.
+ */
+function BlockerContextCard({
+  blockerId,
+  onOpen,
+}: {
+  blockerId: string
+  onOpen: (id: string) => void
+}) {
+  const { t } = useLingui()
+  const detailQuery = useQuery({
+    ...orpc.obligations.getDetail.queryOptions({
+      input: { obligationId: blockerId },
+    }),
+    enabled: blockerId !== '',
+  })
+  const labels = useLifecycleV2StatusLabels()
+  const blocker = detailQuery.data?.row ?? null
+  if (detailQuery.isLoading || !blocker) {
+    return (
+      <div
+        role="status"
+        aria-label={t`Loading blocker details`}
+        className="rounded-md border border-divider-subtle bg-background-subtle p-3"
+      >
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="mt-2 h-3 w-1/3" />
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(blockerId)}
+      className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+      aria-label={t`Open blocking obligation: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+          <Trans>Blocked by</Trans>
+        </span>
+        <ArrowUpRightIcon
+          className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
+          aria-hidden
+        />
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-sm font-medium text-text-primary">
+          {formatTaxCode(blocker.taxType)}
+        </span>
+        <span className="text-xs text-text-secondary">{blocker.clientName}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
+        <Badge variant={STATUS_VARIANT[blocker.status]} className="text-[10px]">
+          {labels[blocker.status]}
+        </Badge>
+        <span className="tabular-nums">
+          <Trans>Due {formatDate(blocker.currentDueDate)}</Trans>
+        </span>
+      </div>
+    </button>
+  )
+}
+
+/**
+ * Inline outstanding-docs summary rendered on the Waiting stage.
+ * Shows the CPA what they're actually waiting on without forcing
+ * them to switch to the Readiness tab. Up to 3 item labels surface
+ * inline; the rest collapse into a "+N more" count. Clicking the
+ * whole block routes to the Readiness tab for the full editor.
+ *
+ * Hidden entirely when no checklist exists (the row may be a
+ * lightweight `payment` obligation with no readiness surface, in
+ * which case the Waiting state is being used loosely). The Waiting
+ * stage's regular task list still renders below to give the CPA
+ * the canonical forward affordance.
+ */
+function WaitingOutstandingDocs({
+  items,
+  onOpenReadiness,
+}: {
+  items: readonly ReadinessDocumentChecklistItemPublic[]
+  onOpenReadiness: () => void
+}) {
+  const { t } = useLingui()
+  const outstanding = useMemo(() => items.filter((item) => item.status !== 'received'), [items])
+  if (outstanding.length === 0) return null
+  const visible = outstanding.slice(0, 3)
+  const overflow = outstanding.length - visible.length
+  return (
+    <button
+      type="button"
+      onClick={onOpenReadiness}
+      className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
+      aria-label={t`Open the Readiness tab to review ${outstanding.length} outstanding documents`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+          <Plural
+            value={outstanding.length}
+            one="# outstanding document"
+            other="# outstanding documents"
+          />
+        </span>
+        <ArrowUpRightIcon
+          className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
+          aria-hidden
+        />
+      </div>
+      <ul className="flex flex-col gap-1">
+        {visible.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 text-sm text-text-primary">
+            <CircleIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+            <span className="truncate">{item.label}</span>
+          </li>
+        ))}
+        {overflow > 0 ? (
+          <li className="text-xs text-text-tertiary">
+            <Trans>+{overflow} more in the Readiness tab</Trans>
+          </li>
+        ) : null}
+      </ul>
+    </button>
+  )
+}
+
 function ActiveStageDetailCard({
   row,
   auditEvents,
+  readinessChecklist,
   onChangeTab,
   onChangeStatus,
   onConfirmAcceptance,
@@ -6092,6 +6232,7 @@ function ActiveStageDetailCard({
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
+  readinessChecklist: readonly ReadinessDocumentChecklistItemPublic[]
   onChangeTab: (tab: ObligationQueueDetailTab) => void
   onChangeStatus: (status: ObligationStatus) => void
   onConfirmAcceptance: () => void
@@ -6209,15 +6350,11 @@ function ActiveStageDetailCard({
         ]
       }
       case 'blocked':
-        return [
-          {
-            id: 'open-blocker',
-            label: t`Open blocking obligation`,
-            flavor: 'routing',
-            hint: t`Routes to the upstream return that is blocking this row`,
-          },
-          { id: 'unblocked', label: t`Mark unblocked`, flavor: 'mutation', primary: true },
-        ]
+        // The inline `BlockerContextCard` above already surfaces +
+        // routes to the blocking obligation. Dropping the duplicate
+        // "Open blocking obligation" task — the card IS that
+        // affordance, with the blocker's identity attached.
+        return [{ id: 'unblocked', label: t`Mark unblocked`, flavor: 'mutation', primary: true }]
       case 'review': {
         const reviewTasks: StageTask[] = []
         if (row.prepStage === 'ready_for_prep' || row.prepStage === 'in_prep') {
@@ -6585,6 +6722,35 @@ function ActiveStageDetailCard({
           </p>
         ) : null}
       </header>
+
+      {/* Stage-specific context. Each branch surfaces the info the
+          CPA actually needs to act on this stage without leaving the
+          drawer (per docs/Design/deadline-status-meaning-and-journey-2026-05-23.md):
+            - Blocked → WHICH upstream obligation is blocking (form +
+              client + due + status, clickable into the blocker's
+              drawer).
+            - Waiting → outstanding documents count + first few items
+              so the CPA knows what they're waiting on without
+              switching to the Readiness tab.
+          The other stages either have their info already (e-file /
+          payment pipelines) or land in P1 (In Review pipeline,
+          Completed summary). */}
+      {stageKey === 'blocked' && row.blockedByObligationInstanceId ? (
+        <div className="mt-3">
+          <BlockerContextCard
+            blockerId={row.blockedByObligationInstanceId}
+            onOpen={(id) => openDrawer(id)}
+          />
+        </div>
+      ) : null}
+      {stageKey === 'waiting_on_client' ? (
+        <div className="mt-3">
+          <WaitingOutstandingDocs
+            items={readinessChecklist}
+            onOpenReadiness={() => onChangeTab('readiness')}
+          />
+        </div>
+      ) : null}
 
       {/* Steps within the current stage — vertical list of every
           canonical sub-status. Done steps render with a green check,

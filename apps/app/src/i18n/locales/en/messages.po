@@ -87,6 +87,11 @@ msgstr "{0, plural, one {# needs review} other {# need review}}"
 msgid "{0, plural, one {# obligation} other {# obligations}}"
 msgstr "{0, plural, one {# obligation} other {# obligations}}"
 
+#. placeholder {0}: outstanding.length
+#: src/routes/obligations.tsx
+msgid "{0, plural, one {# outstanding document} other {# outstanding documents}}"
+msgstr "{0, plural, one {# outstanding document} other {# outstanding documents}}"
+
 #. placeholder {0}: errors.length
 #. placeholder {0}: summary.errors.length
 #: src/features/migration/Step2Mapping.tsx
@@ -607,6 +612,10 @@ msgstr "+ {0} more"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#: src/routes/obligations.tsx
+msgid "+{overflow} more in the Readiness tab"
+msgstr "+{overflow} more in the Readiness tab"
 
 #: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
@@ -1677,6 +1686,10 @@ msgstr "Blocked"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Blocked (waiting on K-1 or another upstream)"
 msgstr "Blocked (waiting on K-1 or another upstream)"
+
+#: src/routes/obligations.tsx
+msgid "Blocked by"
+msgstr "Blocked by"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Blocked by {label} — click to open."
@@ -3288,6 +3301,7 @@ msgstr "Dry-Run"
 msgid "Due"
 msgstr "Due"
 
+#. placeholder {0}: formatDate(blocker.currentDueDate)
 #. placeholder {0}: formatDate(currentDueDate)
 #. placeholder {0}: rule.overrideDueDate
 #: src/features/rules/temporary-rules-tab.tsx
@@ -4707,6 +4721,10 @@ msgstr "Loading alerts…"
 msgid "Loading annual rollover preview…"
 msgstr "Loading annual rollover preview…"
 
+#: src/routes/obligations.tsx
+msgid "Loading blocker details"
+msgstr "Loading blocker details"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Loading client"
 msgstr "Loading client"
@@ -6105,9 +6123,11 @@ msgstr "Open {prompt} for {0}"
 msgid "Open Billing"
 msgstr "Open Billing"
 
+#. placeholder {0}: formatTaxCode(blocker.taxType)
+#. placeholder {1}: blocker.clientName
 #: src/routes/obligations.tsx
-msgid "Open blocking obligation"
-msgstr "Open blocking obligation"
+msgid "Open blocking obligation: {0} for {1}"
+msgstr "Open blocking obligation: {0} for {1}"
 
 #. placeholder {0}: ruleSource.title
 #: src/features/rules/coverage-tab.tsx
@@ -6223,6 +6243,11 @@ msgstr "Open the Evidence tab for this row"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
+
+#. placeholder {0}: outstanding.length
+#: src/routes/obligations.tsx
+msgid "Open the Readiness tab to review {0} outstanding documents"
+msgstr "Open the Readiness tab to review {0} outstanding documents"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
@@ -7940,10 +7965,6 @@ msgstr "Role"
 #: src/routes/error.tsx
 msgid "Route failed"
 msgstr "Route failed"
-
-#: src/routes/obligations.tsx
-msgid "Routes to the upstream return that is blocking this row"
-msgstr "Routes to the upstream return that is blocking this row"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Row"

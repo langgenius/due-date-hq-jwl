@@ -87,6 +87,11 @@ msgstr "{0, plural, other {# 项待审核}}"
 msgid "{0, plural, one {# obligation} other {# obligations}}"
 msgstr "{0, plural, other {# 项申报义务}}"
 
+#. placeholder {0}: outstanding.length
+#: src/routes/obligations.tsx
+msgid "{0, plural, one {# outstanding document} other {# outstanding documents}}"
+msgstr "{0, plural, other {# 项待收资料}}"
+
 #. placeholder {0}: errors.length
 #. placeholder {0}: summary.errors.length
 #: src/features/migration/Step2Mapping.tsx
@@ -607,6 +612,10 @@ msgstr "还有 {0} 项"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#: src/routes/obligations.tsx
+msgid "+{overflow} more in the Readiness tab"
+msgstr "Readiness 标签页中还有 +{overflow} 项"
 
 #: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
@@ -1677,6 +1686,10 @@ msgstr "Blocked"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Blocked (waiting on K-1 or another upstream)"
 msgstr "受阻(等待 K-1 或其他上游事项)"
+
+#: src/routes/obligations.tsx
+msgid "Blocked by"
+msgstr "受阻于"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Blocked by {label} — click to open."
@@ -3288,6 +3301,7 @@ msgstr "试运行"
 msgid "Due"
 msgstr "到期日"
 
+#. placeholder {0}: formatDate(blocker.currentDueDate)
 #. placeholder {0}: formatDate(currentDueDate)
 #. placeholder {0}: rule.overrideDueDate
 #: src/features/rules/temporary-rules-tab.tsx
@@ -4707,6 +4721,10 @@ msgstr "正在加载提醒…"
 msgid "Loading annual rollover preview…"
 msgstr "正在加载年度滚转预览…"
 
+#: src/routes/obligations.tsx
+msgid "Loading blocker details"
+msgstr "正在加载阻塞事项详情"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Loading client"
 msgstr "正在加载客户"
@@ -6105,9 +6123,11 @@ msgstr "为 {0} 打开 {prompt}"
 msgid "Open Billing"
 msgstr "打开账单"
 
+#. placeholder {0}: formatTaxCode(blocker.taxType)
+#. placeholder {1}: blocker.clientName
 #: src/routes/obligations.tsx
-msgid "Open blocking obligation"
-msgstr "打开阻塞的申报义务"
+msgid "Open blocking obligation: {0} for {1}"
+msgstr "打开阻塞事项：{0}（{1}）"
 
 #. placeholder {0}: ruleSource.title
 #: src/features/rules/coverage-tab.tsx
@@ -6223,6 +6243,11 @@ msgstr "打开此行的 Evidence 标签页"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
 msgstr "打开 Migration Copilot 向导。"
+
+#. placeholder {0}: outstanding.length
+#: src/routes/obligations.tsx
+msgid "Open the Readiness tab to review {0} outstanding documents"
+msgstr "打开 Readiness 标签页查看 {0} 项待收资料"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
@@ -7940,10 +7965,6 @@ msgstr "角色"
 #: src/routes/error.tsx
 msgid "Route failed"
 msgstr "路由加载失败"
-
-#: src/routes/obligations.tsx
-msgid "Routes to the upstream return that is blocking this row"
-msgstr "跳转到阻塞此行的上游申报表"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Row"
