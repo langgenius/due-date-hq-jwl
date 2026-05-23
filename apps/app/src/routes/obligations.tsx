@@ -30,6 +30,7 @@ import {
   ArrowUpRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -6177,56 +6178,56 @@ function PathToFilingSummary({
             state === 'active' && isPastInternalDue && !TERMINAL_STAGE_KEYS.has(stage.key)
           return (
             <div key={stage.key} className="flex flex-col items-center gap-0.5">
+              {/* 2026-05-24 (Figma replica pass): milestone strip
+                  rebuilt to match the Figma’s rhythm:
+                    — Connectors switch from solid 2px bars to a
+                      DOTTED hairline so the strip reads as "stages on
+                      a thin track", not "stages connected by a pipe".
+                    — Completed circles drop the bold green fill
+                      in favour of a softer success-hover bg + a small
+                      green tick — less dominant per Yuqi’s "finished
+                      state looks too dominant" critique.
+                    — Active stage uses a stronger accent ring;
+                      the inner blue dot retired since the ring + bold
+                      stage label carries the active signal alone. */}
               <div className="flex w-full items-center gap-1">
                 <span
                   aria-hidden
                   className={cn(
-                    'h-0.5 flex-1',
+                    'h-0 flex-1 border-t border-dotted',
                     i === 0
                       ? 'opacity-0'
                       : state === 'upcoming'
-                        ? 'bg-divider-regular'
-                        : 'bg-state-success-solid',
+                        ? 'border-divider-regular'
+                        : 'border-state-success-solid/60',
                   )}
                 />
-                {/* All circles share `size-5 border-2` so the connector
-                    line stays perfectly horizontal regardless of state
-                    — the prior larger-active variant disrupted line
-                    alignment. Color + fill alone signal the state. */}
                 <span
                   aria-hidden
                   className={cn(
-                    'grid size-5 shrink-0 place-items-center rounded-full border-2',
+                    'grid size-5 shrink-0 place-items-center rounded-full border',
                     state === 'done'
-                      ? 'border-state-success-solid bg-state-success-solid'
+                      ? 'border-state-success-solid bg-state-success-hover'
                       : overdueActive
-                        ? 'border-state-destructive-solid bg-background-default'
+                        ? 'border-state-destructive-solid bg-background-default ring-1 ring-state-destructive-solid'
                         : state === 'active'
-                          ? 'border-accent-default bg-background-default'
+                          ? 'border-accent-default bg-background-default ring-1 ring-accent-default'
                           : 'border-divider-regular bg-background-default',
                   )}
                 >
                   {state === 'done' ? (
-                    <CheckCircle2Icon className="size-3 text-text-inverted" aria-hidden />
-                  ) : state === 'active' ? (
-                    <span
-                      className={cn(
-                        'size-2 rounded-full',
-                        overdueActive ? 'bg-state-destructive-solid' : 'bg-accent-default',
-                      )}
-                      aria-hidden
-                    />
+                    <CheckIcon className="size-3 text-text-success" aria-hidden />
                   ) : null}
                 </span>
                 <span
                   aria-hidden
                   className={cn(
-                    'h-0.5 flex-1',
+                    'h-0 flex-1 border-t border-dotted',
                     i === stages.length - 1
                       ? 'opacity-0'
                       : i < currentIndex
-                        ? 'bg-state-success-solid'
-                        : 'bg-divider-regular',
+                        ? 'border-state-success-solid/60'
+                        : 'border-divider-regular',
                   )}
                 />
               </div>
@@ -6259,31 +6260,35 @@ function PathToFilingSummary({
                   timeline reads as a level baseline across all six
                   stages instead of a ragged active-tall / upcoming-
                   short pattern. */}
-              <div className="mt-2 flex w-full flex-col items-center gap-0.5">
+              {/* Date + Overdue label. 2026-05-24 cleanup:
+                    — Em-dash placeholders dropped. Stages with no
+                      date render a non-breaking space so the
+                      baseline stays consistent without "—" noise
+                      cluttering future stages.
+                    — "ACTIVE" word retired — it was redundant
+                      against the bold stage label + ring. Only
+                      "Overdue" (destructive, when the active stage
+                      is past internal due) and "Expected" (tertiary,
+                      when projecting the Filed milestone forward)
+                      still render. */}
+              <div className="mt-1.5 flex w-full flex-col items-center gap-0.5">
                 <span
                   className={cn(
                     'text-center text-[10px] tabular-nums leading-tight',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
                 >
-                  {state === 'done' || state === 'active' || isExpected
-                    ? stamp
-                      ? formatDate(stamp.slice(0, 10))
-                      : '—'
+                  {(state === 'done' || state === 'active' || isExpected) && stamp
+                    ? formatDate(stamp.slice(0, 10))
                     : ' '}
                 </span>
-                {state === 'active' || isExpected ? (
-                  <span
-                    className={cn(
-                      'text-center text-[10px] font-medium uppercase tracking-wide leading-tight',
-                      overdueActive
-                        ? 'text-text-destructive'
-                        : state === 'active'
-                          ? 'text-text-accent'
-                          : 'text-text-tertiary',
-                    )}
-                  >
-                    {overdueActive ? t`Overdue` : state === 'active' ? t`Active` : t`Expected`}
+                {overdueActive ? (
+                  <span className="text-center text-[10px] font-medium uppercase tracking-wide leading-tight text-text-destructive">
+                    <Trans>Overdue</Trans>
+                  </span>
+                ) : isExpected ? (
+                  <span className="text-center text-[10px] font-medium uppercase tracking-wide leading-tight text-text-tertiary">
+                    <Trans>Expected</Trans>
                   </span>
                 ) : null}
                 {/* Sub-status annotation — only on the ACTIVE stage,
@@ -7389,8 +7394,22 @@ function ActiveStageDetailCard({
   // Is this Filed (done) AND in the e-file route, vs Filed (paid)
   // AND in the payment route? Both map to the same milestone but
   // walk different sub-status pipelines.
-  const showEfilePipeline = stageKey === 'done' && row.status !== 'paid'
-  const showPaymentPipeline = stageKey === 'done' && row.status === 'paid'
+  //
+  // 2026-05-24: also require that there's an ACTIVE sub-state before
+  // rendering the STEPS list. The drawer was showing a column of 4-6
+  // empty/dim sub-steps for a freshly-filed obligation that hadn't
+  // entered any e-file or payment sub-stage yet (e.g. a partnership
+  // return where status=done but efileState is null). Empty checklist
+  // reads as "nothing's happening" — the design (Figma node 109:13725)
+  // collapses the stage card to a compact info box in that case.
+  const efileStateSet =
+    row.efileState !== null && row.efileState !== undefined && row.efileState !== 'not_applicable'
+  const paymentStateSet =
+    row.paymentState !== null &&
+    row.paymentState !== undefined &&
+    row.paymentState !== 'not_applicable'
+  const showEfilePipeline = stageKey === 'done' && row.status !== 'paid' && efileStateSet
+  const showPaymentPipeline = stageKey === 'done' && row.status === 'paid' && paymentStateSet
   // In Review gets the same pipeline strip treatment as Filed, but
   // only for `review`/`in_progress`/`extended` rows that actually
   // live in the canonical review flow. The strip walks the row's
