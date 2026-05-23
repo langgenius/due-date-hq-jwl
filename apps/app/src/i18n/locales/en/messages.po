@@ -2245,10 +2245,6 @@ msgstr "Client summary (AI)"
 msgid "Client suppressions"
 msgstr "Client suppressions"
 
-#: src/routes/obligations.tsx
-msgid "Client-facing detail"
-msgstr "Client-facing detail"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "clients"
 msgstr "clients"
@@ -2467,6 +2463,10 @@ msgstr "Copy draft"
 #: src/routes/obligations.tsx
 msgid "Copy link"
 msgstr "Copy link"
+
+#: src/routes/obligations.tsx
+msgid "Copy link to this obligation"
+msgstr "Copy link to this obligation"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Copy source excerpt"
@@ -3309,20 +3309,8 @@ msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; 
 msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 
 #: src/routes/obligations.tsx
-msgid "Document item"
-msgstr "Document item"
-
-#: src/routes/obligations.tsx
 msgid "Document item added"
 msgstr "Document item added"
-
-#: src/routes/obligations.tsx
-msgid "Document item description"
-msgstr "Document item description"
-
-#: src/routes/obligations.tsx
-msgid "Document item label"
-msgstr "Document item label"
 
 #: src/routes/obligations.tsx
 msgid "Document item removed"
@@ -4034,9 +4022,12 @@ msgstr "Files"
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/obligation-type.ts
 #: src/features/pulse/components/PulseAlertCard.tsx
-#: src/routes/obligations.tsx
 msgid "Filing"
 msgstr "Filing"
+
+#: src/routes/obligations.tsx
+msgid "Filing deadline"
+msgstr "Filing deadline"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing frequency"
@@ -4361,10 +4352,6 @@ msgstr "Hidden by role"
 msgid "Hide"
 msgstr "Hide"
 
-#: src/routes/obligations.tsx
-msgid "Hide detail"
-msgstr "Hide detail"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
@@ -4592,13 +4579,10 @@ msgstr "Instructions"
 msgid "Intake"
 msgstr "Intake"
 
-#: src/routes/obligations.tsx
-msgid "Internal"
-msgstr "Internal"
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/routes/obligations.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline"
@@ -4623,10 +4607,6 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "Internal deadline offset must be between 0 and 365 days."
 
 #: src/routes/obligations.tsx
-msgid "Internal document note"
-msgstr "Internal document note"
-
-#: src/routes/obligations.tsx
 msgid "Internal Due"
 msgstr "Internal Due"
 
@@ -4642,10 +4622,6 @@ msgstr "Internal extension target date is required."
 #: src/routes/obligations.tsx
 msgid "Internal extension target date must be on or before the filing deadline."
 msgstr "Internal extension target date must be on or before the filing deadline."
-
-#: src/routes/obligations.tsx
-msgid "Internal note"
-msgstr "Internal note"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Internal notes"
@@ -5054,8 +5030,8 @@ msgid "Mark client approved the estimate"
 msgstr "Mark client approved the estimate"
 
 #: src/routes/obligations.tsx
-msgid "Mark document received"
-msgstr "Mark document received"
+msgid "Mark client docs received"
+msgstr "Mark client docs received"
 
 #: src/routes/obligations.tsx
 msgid "Mark extended"
@@ -5070,6 +5046,14 @@ msgid "Mark materials received"
 msgstr "Mark materials received"
 
 #: src/routes/obligations.tsx
+msgid "Mark needs review"
+msgstr "Mark needs review"
+
+#: src/routes/obligations.tsx
+msgid "Mark not received"
+msgstr "Mark not received"
+
+#: src/routes/obligations.tsx
 msgid "Mark notes addressed"
 msgstr "Mark notes addressed"
 
@@ -5080,10 +5064,6 @@ msgstr "Mark obligation complete"
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark read"
 msgstr "Mark read"
-
-#: src/routes/obligations.tsx
-msgid "Mark received"
-msgstr "Mark received"
 
 #: src/routes/obligations.tsx
 msgid "Mark return submitted to authority"
@@ -5348,6 +5328,11 @@ msgstr "Monthly penalty per owner"
 #: src/routes/obligations.tsx
 msgid "Months late"
 msgstr "Months late"
+
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "More actions for {0}"
+msgstr "More actions for {0}"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "More client actions"
@@ -6762,7 +6747,6 @@ msgstr "Paused"
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/obligation-type.ts
-#: src/routes/obligations.tsx
 msgid "Payment"
 msgstr "Payment"
 
@@ -6777,6 +6761,10 @@ msgstr "Payment confirmation can take a few seconds."
 #: src/routes/billing.tsx
 msgid "Payment confirmation received"
 msgstr "Payment confirmation received"
+
+#: src/routes/obligations.tsx
+msgid "Payment deadline"
+msgstr "Payment deadline"
 
 #: src/routes/billing.checkout.tsx
 msgid "Payment details stay with the processor"
@@ -8859,10 +8847,6 @@ msgstr "Show"
 msgid "Show all"
 msgstr "Show all"
 
-#: src/routes/obligations.tsx
-msgid "Show detail"
-msgstr "Show detail"
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "Show work as due this many days before the statutory deadline."
@@ -9475,6 +9459,11 @@ msgstr "Tax year"
 msgid "TAX YEAR"
 msgstr "TAX YEAR"
 
+#. placeholder {0}: row.taxYear
+#: src/routes/obligations.tsx
+msgid "Tax Year {0}"
+msgstr "Tax Year {0}"
+
 #: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "Tax year profile"
@@ -9971,11 +9960,6 @@ msgstr "TX prior-year franchise tax"
 #: src/features/migration/Step1Intake.tsx
 msgid "TXT, CSV, or Excel"
 msgstr "TXT, CSV, or Excel"
-
-#. placeholder {0}: row.taxYear
-#: src/routes/obligations.tsx
-msgid "TY {0}"
-msgstr "TY {0}"
 
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"

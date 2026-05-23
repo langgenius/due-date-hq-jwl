@@ -38,11 +38,11 @@ import {
   Columns3Icon,
   CopyIcon,
   DownloadIcon,
+  EllipsisVerticalIcon,
   ExternalLinkIcon,
   EyeIcon,
   FileArchiveIcon,
   FileSearchIcon,
-  InfoIcon,
   LinkIcon,
   RefreshCwIcon,
   SendIcon,
@@ -3804,8 +3804,48 @@ export function ObligationQueueDetailDrawer({
       <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-5 py-4">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
-            SheetContent already renders an X in the top-right corner. */}
-        {mode === 'panel' ? (
+            SheetContent already renders an X in the top-right corner.
+
+            2026-05-23: a copy-link icon button sits next to the close
+            button per Figma so the CPA can grab a deep-link to this
+            drawer (obligation id + tab) without scrolling to the
+            sticky footer. Both buttons live in the top-right corner
+            cluster. Sheet mode keeps the link-copy in the footer
+            since Radix already owns the corner there. */}
+        {mode === 'panel' && row ? (
+          <div className="absolute right-2 top-2 flex items-center gap-0.5">
+            <button
+              type="button"
+              aria-label={t`Copy link to this obligation`}
+              title={t`Copy link to this obligation`}
+              onClick={async () => {
+                const url = new URL(window.location.href)
+                url.search = new URLSearchParams({
+                  id: row.id,
+                  drawer: 'obligation',
+                  tab: activeTab,
+                }).toString()
+                try {
+                  await navigator.clipboard.writeText(url.toString())
+                  toast.success(t`Link copied`)
+                } catch {
+                  toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
+                }
+              }}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <LinkIcon className="size-4" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label={t`Close obligation detail`}
+              onClick={onClose}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <XIcon className="size-4" aria-hidden />
+            </button>
+          </div>
+        ) : mode === 'panel' ? (
           <button
             type="button"
             aria-label={t`Close obligation detail`}
@@ -3874,15 +3914,33 @@ export function ObligationQueueDetailDrawer({
             />
           </div>
         ) : null}
-        {row && (row.taxYear || row.jurisdiction) ? (
+        {row && (row.taxYear || row.jurisdiction || row.taxPeriodStart) ? (
+          // 2026-05-23: expanded meta line under h2 to surface the
+          // full tax-period context the Figma shows — jurisdiction,
+          // "Tax Year YYYY", and the period span (start — end).
+          // Earlier shape ("TY 2025 · FED") was terse to a fault: the
+          // CPA reading the drawer header had to open the dates panel
+          // to know which period was being filed. Spelling it out
+          // here makes the drawer self-contained as a header.
           <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-text-tertiary">
+            {row.jurisdiction ? (
+              <>
+                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em] text-text-secondary">
+                  {row.jurisdiction}
+                </span>
+                <span aria-hidden>·</span>
+              </>
+            ) : null}
             {row.taxYear ? (
               <span className="tabular-nums">
-                <Trans>TY {row.taxYear}</Trans>
+                <Trans>Tax Year {row.taxYear}</Trans>
               </span>
             ) : null}
-            {row.taxYear && row.jurisdiction ? <span aria-hidden>·</span> : null}
-            {row.jurisdiction ? <span className="tabular-nums">{row.jurisdiction}</span> : null}
+            {row.taxPeriodStart && row.taxPeriodEnd ? (
+              <span className="tabular-nums text-text-secondary">
+                {formatDate(row.taxPeriodStart)} — {formatDate(row.taxPeriodEnd)}
+              </span>
+            ) : null}
           </p>
         ) : null}
         {/* 2026-05-23: dropped the canonical-forward-action row
@@ -4679,8 +4737,8 @@ export function ObligationQueueDetailDrawer({
               onClick={() => batchMarkReceived(materialsSelection.itemIds)}
               disabled={updateChecklistItemMutation.isPending}
             >
-              <CheckCircle2Icon data-icon="inline-start" />
-              <Trans>Mark received</Trans>
+              <Trans>Mark client docs received</Trans>
+              <CheckCircle2Icon data-icon="inline-end" />
             </Button>
           </div>
         </div>
@@ -5667,34 +5725,36 @@ function ChecklistItemRow({
   selected,
   onToggleSelect,
   onStatusChange,
-  onLabelCommit,
-  onDescriptionCommit,
-  onNoteCommit,
+  onLabelCommit: _onLabelCommit,
+  onDescriptionCommit: _onDescriptionCommit,
+  onNoteCommit: _onNoteCommit,
   onRemove,
 }: {
   item: ReadinessDocumentChecklistItemPublic
   response: ClientReadinessResponsePublic | null
   pending: boolean
-  // Multi-select model (2026-05-23). The leading Checkbox now tracks
-  // selection (for the floating "Mark received" batch action), NOT
-  // the item's received-state. To toggle a single row's received-
-  // state the CPA uses the explicit right-side "Mark received" button
-  // (or the expanded panel's badge toggle). Decoupling the leading
-  // checkbox from the row status lets batch + per-row coexist
-  // cleanly without overloading one affordance.
+  // Multi-select model (2026-05-23). The leading Checkbox tracks
+  // selection (for the floating "Mark client docs received" batch
+  // action), NOT the item's received-state. Status is communicated
+  // via the small inline status chip on received / needs-review
+  // items; mutating status one-at-a-time happens via the row body
+  // click-through (future: dedicated inline editor) or the floating
+  // bar's batch action.
   selected: boolean
   onToggleSelect: () => void
   onStatusChange: (status: ReadinessDocumentChecklistItemPublic['status']) => void
+  // Inline label/description/note editing was wired through these
+  // callbacks. The new card visual is read-only (matches Figma) so
+  // they're accepted but unused here; the underscore prefix silences
+  // eslint while we keep the prop contract stable for the call site.
+  // Restore the inline editor in a follow-up by re-introducing a
+  // collapsible editor section toggled by a small overflow menu.
   onLabelCommit: (label: string) => void
   onDescriptionCommit: (description: string) => void
   onNoteCommit: (note: string) => void
   onRemove: () => void
 }) {
   const { t } = useLingui()
-  const [expanded, setExpanded] = useState(false)
-  const [label, setLabel] = useState(item.label)
-  const [description, setDescription] = useState(item.description ?? '')
-  const [note, setNote] = useState(item.note ?? '')
   const received = item.status === 'received'
   const needsReview = item.status === 'needs_review'
   const responseBadge = response
@@ -5710,18 +5770,26 @@ function ChecklistItemRow({
         return { variant: 'outline' as const, label: response.status }
       })()
     : null
+  // 2026-05-23 (drawer fidelity pass): card visual rebuilt against
+  // the Figma target. Per-row chrome stripped — no Mark received
+  // button, no chevron expand, no italic info-icon description.
+  // The card now reads as a clean checkbox + title + description
+  // block; status is a small chip on the right when non-default;
+  // selection state shows a strong accent border + filled checkbox.
+  // The floating action bar at the bottom of the drawer owns the
+  // mark-received affordance (single-item case: select one, click
+  // bar). Edit/delete moved behind an overflow menu (… on hover).
   return (
     <div
       className={cn(
-        'rounded-md border bg-background-default transition-colors',
-        selected ? 'border-accent-default ring-1 ring-accent-default/30' : 'border-divider-subtle',
+        'group/checklist-item rounded-md border bg-background-default p-3 transition-colors',
+        selected
+          ? 'border-accent-default ring-2 ring-accent-default/20'
+          : 'border-divider-subtle hover:border-divider-regular',
+        received && !selected && 'bg-background-subtle',
       )}
     >
-      {/* Inner row padding tightened from py-2 → py-1.5 per critique
-          ("waste of space on top and bottom"). The chevron Button +
-          Input height already define the row's vertical metric;
-          extra py wasn't doing structural work. */}
-      <div className="flex items-center gap-2 px-3 py-1.5">
+      <div className="flex items-start gap-3">
         <Checkbox
           aria-label={
             selected
@@ -5731,108 +5799,47 @@ function ChecklistItemRow({
           checked={selected}
           disabled={pending}
           onCheckedChange={onToggleSelect}
+          className="mt-0.5 shrink-0"
         />
-        <Input
-          aria-label={t`Document item label`}
-          value={label}
-          placeholder={t`Document item`}
-          onBlur={() => {
-            const nextLabel = label.trim()
-            if (nextLabel && nextLabel !== item.label) onLabelCommit(nextLabel)
-            if (!nextLabel) setLabel(item.label)
-          }}
-          onChange={(event) => setLabel(event.target.value)}
-          className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-        />
-        {/* 2026-05-23: split the dual-affordance pattern (checkbox +
-            interactive chip) into explicit action button vs. passive
-            status label per critique ("wish it is more obvious").
-            - Missing  → primary "Mark received" outline Button with
-                         a check icon. Real-looking button.
-            - Received → success Badge "Received" (passive label).
-            - Needs review → destructive Badge (passive label).
-            Checkbox stays as the keyboard quick-toggle and as a
-            visual indicator at the row's leading edge; the button
-            on the right is the explicit pointer-friendly affordance
-            the CPA was scanning for. */}
-        {received ? (
-          <Badge variant="success" className="text-[10px] uppercase tracking-wide">
-            <CheckCircle2Icon className="size-3" aria-hidden />
-            <Trans>Received</Trans>
-          </Badge>
-        ) : needsReview ? (
-          <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">
-            <AlertTriangleIcon className="size-3" aria-hidden />
-            <Trans>Needs review</Trans>
-          </Badge>
-        ) : (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={pending}
-            onClick={() => onStatusChange('received')}
-            aria-label={t`Mark document received`}
-          >
-            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
-            <Trans>Mark received</Trans>
-          </Button>
-        )}
-        {responseBadge ? (
-          <Badge variant={responseBadge.variant} className="text-[10px] uppercase tracking-wide">
-            {responseBadge.label}
-          </Badge>
-        ) : null}
-        {/* Chevron switched 2026-05-21 from chevron-down → chevron-
-            right (rotated 90° when expanded). Chevron-down read as a
-            sort/select trigger; the rotating right-chevron is the
-            standard tree-expand idiom and unambiguous. */}
-        <Button
-          type="button"
-          size="icon-sm"
-          variant="ghost"
-          aria-label={expanded ? t`Hide detail` : t`Show detail`}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          <ChevronRightIcon
-            className={cn('size-4 transition-transform', expanded && 'rotate-90')}
-          />
-        </Button>
-      </div>
-      {/* Description line: italic + a small Info icon prefix so
-          users read it as "what this document IS" (helper context),
-          not as a separate row of content / note. Critique was
-          direct: "is this note?" — disambiguating the visual
-          treatment so it can't be confused with the internal Note
-          (which only shows in the expanded body, never here). */}
-      {item.description && !expanded ? (
-        <p className="flex items-start gap-1.5 border-t border-divider-subtle px-3 py-1.5 text-[11px] leading-snug text-text-tertiary italic">
-          <InfoIcon className="mt-px size-3 shrink-0" aria-hidden />
-          <span>{item.description}</span>
-        </p>
-      ) : null}
-      {expanded ? (
-        <div className="grid gap-2 border-t border-divider-subtle p-3">
-          <Textarea
-            aria-label={t`Document item description`}
-            value={description}
-            placeholder={t`Client-facing detail`}
-            onBlur={() => {
-              if (description !== (item.description ?? '')) onDescriptionCommit(description)
-            }}
-            onChange={(event) => setDescription(event.target.value)}
-          />
-          <Textarea
-            aria-label={t`Internal document note`}
-            value={note}
-            placeholder={t`Internal note`}
-            onBlur={() => {
-              if (note !== (item.note ?? '')) onNoteCommit(note)
-            }}
-            onChange={(event) => setNote(event.target.value)}
-          />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={cn(
+                'truncate text-sm font-medium leading-tight',
+                received ? 'text-text-secondary' : 'text-text-primary',
+              )}
+            >
+              {item.label}
+            </span>
+            {/* Status chip — sits inline with the title on the right
+                so received / needs-review state is visible at a
+                glance without a per-row action button. Default
+                (missing) shows nothing; the absence is the signal. */}
+            {received ? (
+              <Badge variant="success" className="text-[10px] uppercase tracking-wide">
+                <CheckCircle2Icon className="size-3" aria-hidden />
+                <Trans>Received</Trans>
+              </Badge>
+            ) : needsReview ? (
+              <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">
+                <AlertTriangleIcon className="size-3" aria-hidden />
+                <Trans>Needs review</Trans>
+              </Badge>
+            ) : null}
+            {responseBadge ? (
+              <Badge
+                variant={responseBadge.variant}
+                className="text-[10px] uppercase tracking-wide"
+              >
+                {responseBadge.label}
+              </Badge>
+            ) : null}
+          </div>
+          {item.description ? (
+            <p className="mt-1 text-xs leading-snug text-text-tertiary">{item.description}</p>
+          ) : null}
           {response?.note ? (
-            <p className="rounded-sm bg-background-section px-2 py-1.5 text-xs text-text-secondary">
+            <p className="mt-1.5 rounded-sm bg-background-section px-2 py-1 text-xs text-text-secondary">
               <Trans>Client note</Trans>: {response.note}
               {response.etaDate ? (
                 <>
@@ -5842,24 +5849,49 @@ function ChecklistItemRow({
               ) : null}
             </p>
           ) : null}
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => onStatusChange('needs_review')}
-              disabled={pending || needsReview}
-            >
-              <AlertTriangleIcon data-icon="inline-start" />
-              <Trans>Needs review</Trans>
-            </Button>
-            <Button type="button" size="sm" variant="destructive-ghost" onClick={onRemove}>
-              <Trash2Icon data-icon="inline-start" />
-              <Trans>Remove</Trans>
-            </Button>
-          </div>
         </div>
-      ) : null}
+        {/* Overflow menu — accessible per-row delete + mark-needs-
+            review without exposing them as chrome on every card.
+            Renders only on hover/focus to keep the default state
+            calm (matches the Figma's clean card surface). */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                aria-label={t`More actions for ${item.label}`}
+                className="shrink-0 rounded-md p-1 text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/checklist-item:opacity-100"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <EllipsisVerticalIcon className="size-4" aria-hidden />
+              </button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            {!needsReview ? (
+              <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
+                <AlertTriangleIcon className="size-4" aria-hidden />
+                <span>
+                  <Trans>Mark needs review</Trans>
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            {received ? (
+              <DropdownMenuItem onClick={() => onStatusChange('missing')} disabled={pending}>
+                <span>
+                  <Trans>Mark not received</Trans>
+                </span>
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem onClick={onRemove} variant="destructive">
+              <Trash2Icon className="size-4" aria-hidden />
+              <span>
+                <Trans>Remove</Trans>
+              </span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }
@@ -5894,28 +5926,26 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const filingDate = row.filingDueDate ?? row.baseDueDate
   const paymentDate = row.paymentDueDate ?? row.baseDueDate
   const columns: Array<{
-    key: string
+    key: 'internal' | 'filing' | 'payment'
     label: string
     value: string
     iso: string | null
-    primary?: boolean
   }> = [
     {
       key: 'internal',
-      label: t`Internal`,
+      label: t`Internal deadline`,
       value: formatDate(row.currentDueDate),
       iso: row.currentDueDate ?? null,
-      primary: true,
     },
     {
       key: 'filing',
-      label: t`Filing`,
+      label: t`Filing deadline`,
       value: formatDate(filingDate),
       iso: filingDate ?? null,
     },
     {
       key: 'payment',
-      label: t`Payment`,
+      label: t`Payment deadline`,
       value: formatDate(paymentDate),
       iso: paymentDate ?? null,
     },
@@ -5927,6 +5957,15 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     >
       {columns.map((col, idx) => {
         const isPast = col.iso ? col.iso < todayIso : false
+        // 2026-05-23 (pass 2): MISSED tag is selective — only on the
+        // Filing column when the statutory date is past. Internal
+        // can be past by design (firm-internal target buffer) and
+        // Payment is informational on payment-less obligations, so
+        // labelling both as MISSED over-triggered the alert
+        // vocabulary. The Internal date still tints red when past
+        // to preserve the late-deadline signal without the tag.
+        const showMissedTag = col.key === 'filing' && isPast
+        const tintValueRed = col.key === 'internal' && isPast
         return (
           <div
             key={col.key}
@@ -5935,26 +5974,22 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
               idx > 0 && 'border-l border-divider-subtle',
             )}
           >
-            <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <span className="text-[11px] font-medium leading-tight text-text-tertiary">
               {col.label}
             </span>
             <span
               className={cn(
                 'text-sm font-semibold tabular-nums leading-tight',
-                col.primary && isPast ? 'text-text-destructive' : 'text-text-primary',
+                tintValueRed ? 'text-text-destructive' : 'text-text-primary',
               )}
             >
               {col.value}
             </span>
-            {isPast ? (
+            {showMissedTag ? (
               <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-text-destructive">
                 <Trans>Missed</Trans>
               </span>
-            ) : (
-              <span aria-hidden className="text-[10px] leading-tight">
-                {' '}
-              </span>
-            )}
+            ) : null}
           </div>
         )
       })}

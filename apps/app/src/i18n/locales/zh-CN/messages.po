@@ -2245,10 +2245,6 @@ msgstr "Client summary (AI)"
 msgid "Client suppressions"
 msgstr "客户抑制列表"
 
-#: src/routes/obligations.tsx
-msgid "Client-facing detail"
-msgstr "给客户看的说明"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "clients"
 msgstr "客户"
@@ -2467,6 +2463,10 @@ msgstr "复制草稿"
 #: src/routes/obligations.tsx
 msgid "Copy link"
 msgstr "复制链接"
+
+#: src/routes/obligations.tsx
+msgid "Copy link to this obligation"
+msgstr "复制此截止日的链接"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Copy source excerpt"
@@ -3309,20 +3309,8 @@ msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; 
 msgstr "不要为本次导入使用 File > Client File Maintenance > Copy/Backup；它备份的是 YYi、YYp、YYc 或 YYs 等申报文件。"
 
 #: src/routes/obligations.tsx
-msgid "Document item"
-msgstr "文件项"
-
-#: src/routes/obligations.tsx
 msgid "Document item added"
 msgstr "文件项已添加"
-
-#: src/routes/obligations.tsx
-msgid "Document item description"
-msgstr "文件项说明"
-
-#: src/routes/obligations.tsx
-msgid "Document item label"
-msgstr "文件项名称"
 
 #: src/routes/obligations.tsx
 msgid "Document item removed"
@@ -4034,9 +4022,12 @@ msgstr "文件"
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/obligation-type.ts
 #: src/features/pulse/components/PulseAlertCard.tsx
-#: src/routes/obligations.tsx
 msgid "Filing"
 msgstr "申报"
+
+#: src/routes/obligations.tsx
+msgid "Filing deadline"
+msgstr "申报截止日"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing frequency"
@@ -4361,10 +4352,6 @@ msgstr "因角色隐藏"
 msgid "Hide"
 msgstr "隐藏"
 
-#: src/routes/obligations.tsx
-msgid "Hide detail"
-msgstr "隐藏详情"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
@@ -4592,13 +4579,10 @@ msgstr "说明"
 msgid "Intake"
 msgstr "入料"
 
-#: src/routes/obligations.tsx
-msgid "Internal"
-msgstr "内部"
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/routes/obligations.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline"
@@ -4623,10 +4607,6 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "内部截止日提前天数必须在 0 到 365 天之间。"
 
 #: src/routes/obligations.tsx
-msgid "Internal document note"
-msgstr "内部文件备注"
-
-#: src/routes/obligations.tsx
 msgid "Internal Due"
 msgstr "内部截止日"
 
@@ -4642,10 +4622,6 @@ msgstr "必须填写内部延期目标日期。"
 #: src/routes/obligations.tsx
 msgid "Internal extension target date must be on or before the filing deadline."
 msgstr "内部延期目标日期必须早于或等于申报截止日。"
-
-#: src/routes/obligations.tsx
-msgid "Internal note"
-msgstr "内部备注"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Internal notes"
@@ -5054,8 +5030,8 @@ msgid "Mark client approved the estimate"
 msgstr "标记客户已批准预估"
 
 #: src/routes/obligations.tsx
-msgid "Mark document received"
-msgstr "标记文件已收到"
+msgid "Mark client docs received"
+msgstr "标记客户文件已收到"
 
 #: src/routes/obligations.tsx
 msgid "Mark extended"
@@ -5070,6 +5046,14 @@ msgid "Mark materials received"
 msgstr "标记材料已收到"
 
 #: src/routes/obligations.tsx
+msgid "Mark needs review"
+msgstr "标记需复核"
+
+#: src/routes/obligations.tsx
+msgid "Mark not received"
+msgstr "标记未收到"
+
+#: src/routes/obligations.tsx
 msgid "Mark notes addressed"
 msgstr "标记备注已处理"
 
@@ -5080,10 +5064,6 @@ msgstr "标记申报义务完成"
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark read"
 msgstr "标记已读"
-
-#: src/routes/obligations.tsx
-msgid "Mark received"
-msgstr "标记已收到"
 
 #: src/routes/obligations.tsx
 msgid "Mark return submitted to authority"
@@ -5348,6 +5328,11 @@ msgstr "每位所有者的月度罚金"
 #: src/routes/obligations.tsx
 msgid "Months late"
 msgstr "逾期月数"
+
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "More actions for {0}"
+msgstr "{0} 的更多操作"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "More client actions"
@@ -6762,7 +6747,6 @@ msgstr "已暂停"
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/obligation-type.ts
-#: src/routes/obligations.tsx
 msgid "Payment"
 msgstr "付款"
 
@@ -6777,6 +6761,10 @@ msgstr "支付确认可能需要几秒钟。"
 #: src/routes/billing.tsx
 msgid "Payment confirmation received"
 msgstr "已收到付款确认"
+
+#: src/routes/obligations.tsx
+msgid "Payment deadline"
+msgstr "付款截止日"
 
 #: src/routes/billing.checkout.tsx
 msgid "Payment details stay with the processor"
@@ -8859,10 +8847,6 @@ msgstr "显示"
 msgid "Show all"
 msgstr "全部显示"
 
-#: src/routes/obligations.tsx
-msgid "Show detail"
-msgstr "显示详情"
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "Show work as due this many days before the statutory deadline."
@@ -9475,6 +9459,11 @@ msgstr "税年"
 msgid "TAX YEAR"
 msgstr "税务年度"
 
+#. placeholder {0}: row.taxYear
+#: src/routes/obligations.tsx
+msgid "Tax Year {0}"
+msgstr "{0} 纳税年度"
+
 #: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "税务年度资料"
@@ -9971,11 +9960,6 @@ msgstr "TX 上年 franchise tax"
 #: src/features/migration/Step1Intake.tsx
 msgid "TXT, CSV, or Excel"
 msgstr "TXT、CSV 或 Excel"
-
-#. placeholder {0}: row.taxYear
-#: src/routes/obligations.tsx
-msgid "TY {0}"
-msgstr "税年 {0}"
 
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"
