@@ -6551,10 +6551,21 @@ function ActiveStageDetailCard({
             flavor: 'manual',
           })
         }
+        // 2026-05-23: renamed from "Get 8879 signed by client" per
+        // critique. The 8879 signature actually flows through the
+        // Filed stage's e-file pipeline (`efileState='authorization_
+        // requested' → 'authorization_signed' → 'ready_to_submit'`),
+        // which starts the moment the CPA marks this row filed. The
+        // affordance here lets the CPA pre-stage the packet inside
+        // the Evidence tab BEFORE marking filed, so the 8879 is
+        // ready to send the second the row enters the Filed stage.
+        // Tooltip names that timing relationship so the routing
+        // doesn't read as a duplicate of the Filed sub-status work.
         reviewTasks.push({
           id: 'sign-8879',
-          label: t`Get 8879 signed by client`,
+          label: t`Pre-stage 8879 packet for client`,
           flavor: 'routing',
+          hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
         })
         reviewTasks.push({
           id: 'file',

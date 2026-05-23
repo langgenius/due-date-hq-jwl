@@ -4238,10 +4238,6 @@ msgid "Generating…"
 msgstr "正在生成…"
 
 #: src/routes/obligations.tsx
-msgid "Get 8879 signed by client"
-msgstr "让客户在 8879 上签字"
-
-#: src/routes/obligations.tsx
 msgid "Get reviewer sign-off on the return"
 msgstr "获取审核人对该申报的签字"
 
@@ -6973,6 +6969,10 @@ msgstr "用于确定性截止日排序的事务所级权重。"
 msgid "Practices"
 msgstr "事务所"
 
+#: src/routes/obligations.tsx
+msgid "Pre-stage 8879 packet for client"
+msgstr "提前准备给客户的 8879 文件包"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
 msgstr "偏好设置"
@@ -9399,6 +9399,10 @@ msgstr "该资源属于其他事务所。"
 #: src/features/pulse/lib/error-mapping.ts
 msgid "The 24h undo window has expired for this alert."
 msgstr "该提醒的 24 小时撤销窗口已过期。"
+
+#: src/routes/obligations.tsx
+msgid "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
+msgstr "标记为已提交后会将 8879 寄给客户 — 现在打开 Evidence 标签页提前准备文件包。"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "The accepted source-backed rule matched the client facts for this obligation."

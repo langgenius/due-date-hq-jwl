@@ -4238,10 +4238,6 @@ msgid "Generating…"
 msgstr "Generating…"
 
 #: src/routes/obligations.tsx
-msgid "Get 8879 signed by client"
-msgstr "Get 8879 signed by client"
-
-#: src/routes/obligations.tsx
 msgid "Get reviewer sign-off on the return"
 msgstr "Get reviewer sign-off on the return"
 
@@ -6973,6 +6969,10 @@ msgstr "Practice-wide weights for deterministic deadline ranking."
 msgid "Practices"
 msgstr "Practices"
 
+#: src/routes/obligations.tsx
+msgid "Pre-stage 8879 packet for client"
+msgstr "Pre-stage 8879 packet for client"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
 msgstr "Preferences"
@@ -9399,6 +9399,10 @@ msgstr "That resource belongs to a different practice."
 #: src/features/pulse/lib/error-mapping.ts
 msgid "The 24h undo window has expired for this alert."
 msgstr "The 24h undo window has expired for this alert."
+
+#: src/routes/obligations.tsx
+msgid "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
+msgstr "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "The accepted source-backed rule matched the client facts for this obligation."
