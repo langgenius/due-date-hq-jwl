@@ -7559,6 +7559,10 @@ msgstr "Redirecting to Google…"
 msgid "Redirecting to Microsoft…"
 msgstr "Redirecting to Microsoft…"
 
+#: src/routes/obligations.tsx
+msgid "Reference dates"
+msgstr "Reference dates"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx

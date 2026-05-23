@@ -3919,7 +3919,16 @@ export function ObligationQueueDetailDrawer({
                   })
                 }}
               />
-              <StatutoryDatesPanel row={row} />
+              {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
+                  sticky snapshot block — relocated to AFTER the
+                  TabsContent so the tabs sit immediately under the
+                  stage card. The dates panel is reference info (most
+                  rows show the same date 4× anyway: Internal due =
+                  Statutory = Filing = Payment), so paying for it with
+                  prime vertical real estate above the tabs was the
+                  wrong trade. New reading order: identity → milestone
+                  → stage card → TABS → tab content → dates (scroll for
+                  reference). */}
               {/* `ObligationForwardingPanel` removed 2026-05-21 — the
                   "Forward to task · bright-studio-…@duedatehq.com · Phase 2"
                   block was a feature stub crowding the drawer with chrome
@@ -4536,6 +4545,21 @@ export function ObligationQueueDetailDrawer({
             </TabsContent>
           </Tabs>
         )}
+        {/* 2026-05-23: dates panel relocated here from the sticky
+            snapshot block above. The CPA scans reference dates AFTER
+            acting on the active surface (stage card + tabs), so they
+            land naturally at the bottom of the drawer body just above
+            the sticky footer. Small uppercase eyebrow gives it gentle
+            visual separation from the tab content above without
+            needing a full divider. */}
+        {row ? (
+          <div className="mt-4 flex flex-col gap-2">
+            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+              <Trans>Reference dates</Trans>
+            </p>
+            <StatutoryDatesPanel row={row} />
+          </div>
+        ) : null}
       </div>
       {row ? (
         <div className="sticky bottom-0 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-default px-5 py-3">

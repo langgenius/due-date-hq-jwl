@@ -7559,6 +7559,10 @@ msgstr "正在跳转到 Google…"
 msgid "Redirecting to Microsoft…"
 msgstr "正在跳转到 Microsoft…"
 
+#: src/routes/obligations.tsx
+msgid "Reference dates"
+msgstr "参考日期"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 #: src/features/workload/workload-page.tsx
