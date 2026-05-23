@@ -5344,6 +5344,10 @@ msgstr "需要适用性审核"
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
 msgstr "需要客户事实 — {0} 项需要先更新客户详情，才能创建截止日"
 
+#: src/features/obligations/status-control.tsx
+msgid "Needs CPA action"
+msgstr "需要 CPA 处理"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs entity"
 msgstr "需要实体类型"

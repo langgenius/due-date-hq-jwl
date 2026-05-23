@@ -67,7 +67,10 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
     readinessLabels: {
       ready: 'Ready',
       waiting: 'Waiting',
-      needs_review: 'Needs review',
+      // 2026-05-23: was 'Needs review' — renamed to 'Needs CPA action'
+      // to disambiguate from the obligation status `review` which also
+      // displays as a "Needs review" / "In review" label.
+      needs_review: 'Needs CPA action',
     },
     fields: {
       assigneeName: 'Assignee',

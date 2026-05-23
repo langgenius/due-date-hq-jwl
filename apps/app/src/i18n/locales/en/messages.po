@@ -5344,6 +5344,10 @@ msgstr "needs applicability review"
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
 msgstr "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
 
+#: src/features/obligations/status-control.tsx
+msgid "Needs CPA action"
+msgstr "Needs CPA action"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs entity"
 msgstr "Needs entity"

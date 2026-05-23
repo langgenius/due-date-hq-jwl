@@ -153,7 +153,13 @@ function useReadinessLabels(): ReadinessLabels {
     () => ({
       ready: t`Ready`,
       waiting: t`Waiting`,
-      needs_review: t`Needs review`,
+      // 2026-05-23: was "Needs review" — collided visually with the
+      // obligation status `review` (which also displays as "Needs
+      // review" / "In review"). Renamed to "Needs CPA action" so the
+      // readiness chip clearly names what the firm has to DO with the
+      // client's response: the client said "I need help", the CPA
+      // needs to take an action to unblock them.
+      needs_review: t`Needs CPA action`,
     }),
     [t],
   )
