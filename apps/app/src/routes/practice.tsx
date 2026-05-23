@@ -366,7 +366,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     urgency: t`Deadline urgency`,
     importance: t`Client importance`,
     history: t`Late filing history`,
-    readiness: t`Readiness pressure`,
+    readiness: t`Client readiness pressure`,
   }
 
   return (

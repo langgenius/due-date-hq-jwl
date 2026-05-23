@@ -2158,6 +2158,14 @@ msgstr "Client note"
 msgid "Client readiness"
 msgstr "Client readiness"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client readiness changed"
+msgstr "Client readiness changed"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Client readiness changed from {previous} to {next}"
+msgstr "Client readiness changed from {previous} to {next}"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Client readiness checklist"
 msgstr "Client readiness checklist"
@@ -2165,6 +2173,10 @@ msgstr "Client readiness checklist"
 #: src/routes/obligations.tsx
 msgid "Client readiness link created"
 msgstr "Client readiness link created"
+
+#: src/routes/practice.tsx
+msgid "Client readiness pressure"
+msgstr "Client readiness pressure"
 
 #: src/routes/obligations.tsx
 msgid "Client readiness request revoked"
@@ -3080,14 +3092,6 @@ msgstr "Deadline batch"
 msgid "Deadline list"
 msgstr "Deadline list"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Deadline readiness changed"
-msgstr "Deadline readiness changed"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Deadline readiness changed from {previous} to {next}"
-msgstr "Deadline readiness changed from {previous} to {next}"
-
 #: src/features/notifications/notifications-page.tsx
 msgid "Deadline reminder"
 msgstr "Deadline reminder"
@@ -3434,8 +3438,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current obligation deadlines."
 
 #: src/features/concepts/concept-help.tsx
-msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure."
-msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure."
+msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure."
+msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicate"
@@ -4760,8 +4764,8 @@ msgstr "Late filings, 12mo"
 
 #. placeholder {0}: humanizeToken(readiness)
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Latest readiness: {0}."
-msgstr "Latest readiness: {0}."
+msgid "Latest client readiness: {0}."
+msgstr "Latest client readiness: {0}."
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Latest status"
@@ -4923,8 +4927,8 @@ msgid "Manage billing"
 msgstr "Manage billing"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Manage client facts and readiness."
-msgstr "Manage client facts and readiness."
+msgid "Manage client facts and client readiness."
+msgstr "Manage client facts and client readiness."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage deadline reminder templates and delivery status."
@@ -7043,8 +7047,8 @@ msgid "Prepare client draft"
 msgstr "Prepare client draft"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Prepared a readiness checklist."
-msgstr "Prepared a readiness checklist."
+msgid "Prepared a client readiness checklist."
+msgstr "Prepared a client readiness checklist."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -7414,10 +7418,6 @@ msgstr "Read-only view"
 #: src/routes/readiness.tsx
 msgid "Readiness check"
 msgstr "Readiness check"
-
-#: src/routes/practice.tsx
-msgid "Readiness pressure"
-msgstr "Readiness pressure"
 
 #: src/routes/readiness.tsx
 msgid "Readiness response submitted"
@@ -9460,8 +9460,8 @@ msgid "The billing portal opens with the payment provider for invoices, payment 
 msgstr "The billing portal opens with the payment provider for invoices, payment methods, and cancellation."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "The client answered readiness questions."
-msgstr "The client answered readiness questions."
+msgid "The client answered the client readiness questions."
+msgstr "The client answered the client readiness questions."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The client import flow that maps columns, normalizes values, previews deadlines, and creates the initial deadline list."
@@ -9576,8 +9576,8 @@ msgid "The status assigned if this row is generated: pending for reminder-ready 
 msgstr "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
 
 #: src/features/concepts/concept-help.tsx
-msgid "The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status."
-msgstr "The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status."
+msgid "The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status."
+msgstr "The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
@@ -10294,8 +10294,8 @@ msgid "Where is your data coming from?"
 msgstr "Where is your data coming from?"
 
 #: src/features/concepts/concept-help.tsx
-msgid "Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs."
-msgstr "Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs."
+msgid "Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status."
+msgstr "Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status."
 
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx

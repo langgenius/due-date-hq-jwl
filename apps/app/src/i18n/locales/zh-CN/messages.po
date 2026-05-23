@@ -2158,6 +2158,14 @@ msgstr "客户备注"
 msgid "Client readiness"
 msgstr "客户准备情况"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client readiness changed"
+msgstr "客户准备状态已变更"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Client readiness changed from {previous} to {next}"
+msgstr "客户准备状态从 {previous} 变更为 {next}"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Client readiness checklist"
 msgstr "客户准备清单"
@@ -2165,6 +2173,10 @@ msgstr "客户准备清单"
 #: src/routes/obligations.tsx
 msgid "Client readiness link created"
 msgstr "客户准备链接已生成"
+
+#: src/routes/practice.tsx
+msgid "Client readiness pressure"
+msgstr "客户准备紧迫度"
 
 #: src/routes/obligations.tsx
 msgid "Client readiness request revoked"
@@ -3080,14 +3092,6 @@ msgstr "截止日期批次"
 msgid "Deadline list"
 msgstr "截止日清单"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Deadline readiness changed"
-msgstr "截止日准备状态已更改"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Deadline readiness changed from {previous} to {next}"
-msgstr "截止日就绪度从 {previous} 变更为 {next}"
-
 #: src/features/notifications/notifications-page.tsx
 msgid "Deadline reminder"
 msgstr "截止日提醒"
@@ -3434,8 +3438,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ 会把工作显示为比每个法定基础截止日提前这些天到期。修改后会重新计算当前义务截止日。"
 
 #: src/features/concepts/concept-help.tsx
-msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure."
-msgstr "DueDateHQ 用于截止日工作的确定性排序分数。它结合紧急度、客户重要性、逾期申报历史和就绪压力。"
+msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure."
+msgstr "DueDateHQ 用于截止日期工作的确定性排序分数。综合考量紧迫度、客户重要性、过往逾期申报记录以及客户准备紧迫度。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicate"
@@ -4760,8 +4764,8 @@ msgstr "近 12 个月迟交次数"
 
 #. placeholder {0}: humanizeToken(readiness)
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Latest readiness: {0}."
-msgstr "最新就绪状态：{0}。"
+msgid "Latest client readiness: {0}."
+msgstr "最新客户准备状态：{0}。"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Latest status"
@@ -4923,8 +4927,8 @@ msgid "Manage billing"
 msgstr "管理账单"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Manage client facts and readiness."
-msgstr "管理客户事实与就绪度。"
+msgid "Manage client facts and client readiness."
+msgstr "管理客户事实和客户准备情况。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage deadline reminder templates and delivery status."
@@ -7043,8 +7047,8 @@ msgid "Prepare client draft"
 msgstr "准备客户草稿"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Prepared a readiness checklist."
-msgstr "已准备就绪检查清单。"
+msgid "Prepared a client readiness checklist."
+msgstr "已准备客户准备清单。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -7414,10 +7418,6 @@ msgstr "只读视图"
 #: src/routes/readiness.tsx
 msgid "Readiness check"
 msgstr "准备状态检查"
-
-#: src/routes/practice.tsx
-msgid "Readiness pressure"
-msgstr "准备状态压力"
 
 #: src/routes/readiness.tsx
 msgid "Readiness response submitted"
@@ -9460,8 +9460,8 @@ msgid "The billing portal opens with the payment provider for invoices, payment 
 msgstr "账单门户会在支付服务商处打开，用于查看发票、支付方式和取消订阅。"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "The client answered readiness questions."
-msgstr "客户已回答就绪问题。"
+msgid "The client answered the client readiness questions."
+msgstr "客户已回答客户准备情况问卷。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The client import flow that maps columns, normalizes values, previews deadlines, and creates the initial deadline list."
@@ -9576,8 +9576,8 @@ msgid "The status assigned if this row is generated: pending for reminder-ready 
 msgstr "如果生成该行，将分配的状态：可提醒行是 pending，需要 CPA 确认的行是 review。"
 
 #: src/features/concepts/concept-help.tsx
-msgid "The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status."
-msgstr "已保存的截止日风险视图，主要基于截止日压力、准备状态、客户历史和证据状态。"
+msgid "The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status."
+msgstr "存储的截止日期风险视图，主要基于到期日紧迫度、客户准备情况、客户历史和证据状态。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
@@ -10294,8 +10294,8 @@ msgid "Where is your data coming from?"
 msgstr "你的数据从哪里来？"
 
 #: src/features/concepts/concept-help.tsx
-msgid "Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs."
-msgstr "该截止日是否具备推进所需条件，例如客户资料、复核、证据或风险输入。"
+msgid "Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status."
+msgstr "客户是否已为此截止日期提供事务所所需的材料 — 原始文件、签字和确认信息。按每个截止日期单独跟踪。与事务所的工作流状态不同。"
 
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx

@@ -65,7 +65,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'smartPriority':
       return {
         title: t`Smart Priority`,
-        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and readiness pressure.`,
+        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure.`,
       }
     case 'urgencyWindow':
       return {
@@ -85,7 +85,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'readiness':
       return {
         title: t`Client readiness`,
-        description: t`Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs.`,
+        description: t`Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status.`,
       }
     case 'obligation':
       return {
@@ -185,7 +185,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'risk':
       return {
         title: t`Risk`,
-        description: t`The stored deadline risk view, mainly based on due date pressure, readiness, client history, and evidence status.`,
+        description: t`The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status.`,
       }
     case 'aiConfidence':
       return {
