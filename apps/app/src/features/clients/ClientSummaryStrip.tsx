@@ -204,7 +204,14 @@ export function ClientSummaryStrip({
       </span>
     )
     nextDueLabel = <Trans>Next due</Trans>
-    nextDueTone = days <= 0 ? 'warning' : days <= 7 ? 'neutral' : 'neutral'
+    // 2026-05-23: tone ladder split into three steps so already-late
+    // tiles render in `critical` (red) instead of the prior `warning`
+    // (orange). Per Figma — when a deadline is actually past, the
+    // tile value (e.g. "Form 1041") needs to read at the same urgency
+    // as the destructive subline ("15 days late"). One tone, both
+    // pieces. `warning` is reserved for due-today (last-chance) which
+    // is the actual amber semantic.
+    nextDueTone = days < 0 ? 'critical' : days === 0 ? 'warning' : 'neutral'
     nextDueOnClick = () => openObligationDrawer(nextDue.id)
     nextDueAria = t`Open next-due deadline`
     nextDueSubline = sublineText

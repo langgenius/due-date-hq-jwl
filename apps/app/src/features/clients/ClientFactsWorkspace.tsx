@@ -1697,14 +1697,15 @@ export function ClientDetailWorkspace({
               </Link>
             }
             title={
-              // Stack title + identity chips vertically by default so the
-              // chip cluster lives on its own row immediately under the
-              // H1. On xl+ viewports they share one row — the previous
-              // `flex-wrap` behavior at every breakpoint caused chips to
-              // collide with the right-edge action cluster on 1100-1280px
-              // viewports and the second line of chips left-aligned to
-              // the page edge instead of under the H1.
-              <span className="flex flex-col items-start gap-y-2 xl:flex-row xl:flex-wrap xl:items-center xl:gap-x-3">
+              // 2026-05-23: relaxed the inline-with-h1 breakpoint from
+              // xl (1280px) down to md (768px). At lg/xl viewports the
+              // chips fit comfortably next to the title — the wrap-to-
+              // a-second-row treatment shown in the prior commit was
+              // the wrong tradeoff for typical desktop widths, where
+              // the Figma keeps Trust + owner + state inline with the
+              // h1. Still stacks vertically on tablet/mobile where the
+              // chip set would otherwise collide with the title.
+              <span className="flex flex-col items-start gap-y-2 md:flex-row md:flex-wrap md:items-center md:gap-x-3">
                 <ClientTitleSwitcher client={client} />
                 {/* Identity chips inline with the title (D-2). Entity badge
                   + filing-state chips read the client's shape in one
