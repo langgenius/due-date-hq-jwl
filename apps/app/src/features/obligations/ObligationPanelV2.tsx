@@ -1,7 +1,13 @@
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckCircle2Icon, CircleIcon, CircleDotIcon, LinkIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  CircleIcon,
+  CircleDotIcon,
+  LinkIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ObligationQueueRow } from '@duedatehq/contracts'
@@ -11,6 +17,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   LIFECYCLE_V2_STATUSES,
   STATUS_VARIANT,
@@ -61,12 +68,59 @@ export function ObligationPanelV2({
   obligationId: string | null
   onClose: () => void
 }) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
   const detailQuery = useQuery({
     ...orpc.obligations.getDetail.queryOptions({
       input: { obligationId: obligationId ?? '' },
     }),
     enabled: obligationId !== null,
   })
+  // 2026-05-23: V2 panel now owns its own status mutations. Earlier
+  // the active-stage card pointed back at V1 ("Move into work via
+  // the original panel for now"); V1's status-actions row was
+  // removed in the same commit pass, so V2 has to stand on its own.
+  // Mirrors the mutation set V1 had: generic updateStatus +
+  // dedicated markFiledRejected (different RPC for that audit
+  // semantic). Invalidating the obligation detail queries on success
+  // refetches the row so the V2 surface reflects the new status
+  // without a manual close+reopen.
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+  }
+  const labels = useLifecycleV2StatusLabels()
+  const changeStatusMutation = useMutation(
+    orpc.obligations.updateStatus.mutationOptions({
+      onSuccess: (result, vars) => {
+        invalidate()
+        toast.success(t`Status changed to ${labels[vars.status]}`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't change status`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const markFiledRejectedMutation = useMutation(
+    orpc.obligations.markFiledRejected.mutationOptions({
+      onSuccess: (result) => {
+        invalidate()
+        toast.success(t`Marked e-file rejected`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't mark e-file rejected`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const mutationsPending = changeStatusMutation.isPending || markFiledRejectedMutation.isPending
 
   const row = detailQuery.data?.row ?? null
   // Stabilize the array fallbacks via useMemo so `[]` doesn't get
@@ -124,7 +178,13 @@ export function ObligationPanelV2({
       <PanelHeader row={row} />
       <VersionToggle />
       <StatusPipeline statuses={statusTimestamps} currentStatus={row.status} />
-      <ActiveStageCard status={row.status} readinessChecklist={readinessChecklist} />
+      <ActiveStageCard
+        row={row}
+        readinessChecklist={readinessChecklist}
+        pending={mutationsPending}
+        onChangeStatus={(status) => changeStatusMutation.mutate({ id: row.id, status })}
+        onMarkRejected={() => markFiledRejectedMutation.mutate({ id: row.id })}
+      />
       <DeadlinesSection row={row} />
       <PeriodSection row={row} />
       <EvidenceSection count={evidence.length} />
@@ -280,11 +340,17 @@ function Connector({ active, hidden }: { active: boolean; hidden: boolean }) {
 // ---------------------------------------------------------------------------
 
 function ActiveStageCard({
-  status,
+  row,
   readinessChecklist,
+  pending,
+  onChangeStatus,
+  onMarkRejected,
 }: {
-  status: ObligationStatus
+  row: ObligationQueueRow
   readinessChecklist: Array<{ id: string; label: string; receivedAt: string | null }>
+  pending: boolean
+  onChangeStatus: (status: ObligationStatus) => void
+  onMarkRejected: () => void
 }) {
   const labels = useLifecycleV2StatusLabels()
   return (
@@ -293,91 +359,177 @@ function ActiveStageCard({
         <h3 className="text-xs font-semibold uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Current stage</Trans>
         </h3>
-        <Badge variant={STATUS_VARIANT[status]} className="h-6 text-xs">
-          {labels[status]}
+        <Badge variant={STATUS_VARIANT[row.status]} className="h-6 text-xs">
+          {labels[row.status]}
         </Badge>
       </div>
-      <ActiveStageBody status={status} readinessChecklist={readinessChecklist} />
+      <ActiveStageBody
+        row={row}
+        readinessChecklist={readinessChecklist}
+        pending={pending}
+        onChangeStatus={onChangeStatus}
+        onMarkRejected={onMarkRejected}
+      />
     </section>
   )
 }
 
+/**
+ * Stage-dispatched body for the Current stage card. Each branch
+ * returns:
+ *  - a brief contextual headline (optional — only when there's a
+ *    sub-message worth saying, e.g. "Waiting on N documents"),
+ *  - a primary forward-action button that advances the canonical
+ *    status transition for this stage,
+ *  - any recovery actions that apply (e.g. "Record rejection" on
+ *    filed rows).
+ *
+ * Previous shape had placeholder copy pointing back to "the
+ * original panel"; that pointer was removed in the same commit pass
+ * that retired V1's status-actions row, so V2 has to carry the
+ * primary forward affordances itself.
+ */
 function ActiveStageBody({
-  status,
+  row,
   readinessChecklist,
+  pending,
+  onChangeStatus,
+  onMarkRejected,
 }: {
-  status: ObligationStatus
+  row: ObligationQueueRow
   readinessChecklist: Array<{ id: string; label: string; receivedAt: string | null }>
+  pending: boolean
+  onChangeStatus: (status: ObligationStatus) => void
+  onMarkRejected: () => void
 }) {
-  if (status === 'pending') {
+  if (row.status === 'pending') {
     return (
-      <p className="text-sm text-text-secondary">
-        <Trans>Nothing started yet. Move into work via the original panel for now.</Trans>
-      </p>
-    )
-  }
-  if (status === 'waiting_on_client') {
-    const outstanding = readinessChecklist.filter((item) => !item.receivedAt)
-    return (
-      <div className="flex flex-col gap-2">
-        <p className="text-xs text-text-tertiary">
-          <Trans>Waiting on these documents:</Trans>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>
+            No work has started on this return. Move to In review when preparation begins.
+          </Trans>
         </p>
-        {outstanding.length === 0 ? (
-          <p className="text-sm text-text-secondary">
-            <Trans>No outstanding checklist items.</Trans>
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {outstanding.map((item) => (
-              <li key={item.id} className="flex items-center gap-2 text-sm text-text-primary">
-                <CircleIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                <span className="truncate">{item.label}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div>
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('review')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Start preparation</Trans>
+          </Button>
+        </div>
       </div>
     )
   }
-  if (status === 'blocked') {
+  if (row.status === 'waiting_on_client') {
+    const outstanding = readinessChecklist.filter((item) => !item.receivedAt)
     return (
-      <p className="text-sm text-text-secondary">
-        <Trans>
-          Blocked. Inline blocker editor lands when we promote V2 — for now, use the original panel.
-        </Trans>
-      </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-text-tertiary">
+            <Trans>Waiting on these documents:</Trans>
+          </p>
+          {outstanding.length === 0 ? (
+            <p className="text-sm text-text-secondary">
+              <Trans>No outstanding checklist items.</Trans>
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {outstanding.map((item) => (
+                <li key={item.id} className="flex items-center gap-2 text-sm text-text-primary">
+                  <CircleIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                  <span className="truncate">{item.label}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div>
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('review')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Mark docs received</Trans>
+          </Button>
+        </div>
+      </div>
     )
   }
-  if (status === 'review') {
+  if (row.status === 'blocked') {
     return (
-      <p className="text-sm text-text-secondary">
-        <Trans>In review. Approve or send back via the original panel.</Trans>
-      </p>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>
+            An external blocker is holding this return. Move it back to In review once the blocker
+            is resolved.
+          </Trans>
+        </p>
+        <div>
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('review')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Mark unblocked</Trans>
+          </Button>
+        </div>
+      </div>
     )
   }
-  if (status === 'done') {
+  if (row.status === 'review' || row.status === 'in_progress' || row.status === 'extended') {
     return (
-      <p className="text-sm text-text-secondary">
-        <Trans>
-          Filed. Inside this stage the e-file pipeline tracks: authorization requested → signed →
-          submitted → accepted. Substep UI lands in the next pass.
-        </Trans>
-      </p>
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>Preparation in progress. Mark filed once the return is submitted.</Trans>
+        </p>
+        <div>
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('done')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Mark filed</Trans>
+          </Button>
+        </div>
+      </div>
     )
   }
-  if (status === 'completed') {
+  if (row.status === 'done') {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>Filed — awaiting authority acceptance.</Trans>
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('completed')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Confirm authority acceptance</Trans>
+          </Button>
+          <Button size="sm" variant="ghost" disabled={pending} onClick={onMarkRejected}>
+            <AlertTriangleIcon data-icon="inline-start" aria-hidden />
+            <Trans>Record authority rejection</Trans>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+  if (row.status === 'paid') {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-text-secondary">
+          <Trans>Payment processed. Close the obligation once everything is reconciled.</Trans>
+        </p>
+        <div>
+          <Button size="sm" disabled={pending} onClick={() => onChangeStatus('completed')}>
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Mark obligation complete</Trans>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+  if (row.status === 'completed') {
     return (
       <p className="text-sm text-text-secondary">
         <Trans>Closed out — no further action.</Trans>
       </p>
     )
   }
+  // not_applicable + any unrecognized status. Quiet terminal label,
+  // no forward affordance.
   return (
     <p className="text-sm text-text-secondary">
-      <Trans>
-        Legacy status outside lifecycle v2 — switch back to the original panel to advance.
-      </Trans>
+      <Trans>No outstanding work for this status.</Trans>
     </p>
   )
 }

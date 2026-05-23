@@ -1247,6 +1247,10 @@ msgstr "备选路径：在 Return Manager 中将 Quick Search 过滤器设为 Al
 msgid "An active practice rule supports this deadline."
 msgstr "一个已生效事务所规则支撑此截止日。"
 
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "An external blocker is holding this return. Move it back to In review once the blocker is resolved."
+msgstr "存在外部阻塞。障碍解除后将其移回 In review。"
+
 #: src/routes/billing.tsx
 msgid "Annual contract"
 msgstr "年度合同"
@@ -1433,6 +1437,7 @@ msgstr "At risk"
 
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Audit {0}"
 msgstr "审计 {0}"
@@ -1693,10 +1698,6 @@ msgstr "受阻(等待 K-1 或其他上游事项)"
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Blocked by {label} — click to open."
 msgstr "受 {label} 阻塞 — 点击打开。"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Blocked. Inline blocker editor lands when we promote V2 — for now, use the original panel."
-msgstr "受阻。内嵌阻塞编辑器将在 V2 正式上线时推出 — 暂请使用原面板。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -2301,6 +2302,7 @@ msgstr "确认所有需复核项"
 msgid "Confirm applies"
 msgstr "确认适用"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Confirm authority acceptance"
 msgstr "确认机关接受"
@@ -2460,6 +2462,7 @@ msgid "Couldn't calculate preview"
 msgstr "无法计算预览"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't change status"
 msgstr "无法变更状态"
@@ -2628,6 +2631,7 @@ msgstr "无法加载该客户。"
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't mark e-file rejected"
 msgstr "无法标记电子申报被拒"
@@ -3920,13 +3924,13 @@ msgstr "文件类型"
 msgid "Filed"
 msgstr "已申报"
 
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "Filed — awaiting authority acceptance."
+msgstr "已申报 — 等待税务机关确认。"
+
 #: src/routes/obligations.tsx
 msgid "Filed with {checklistCount} document items"
 msgstr "已申报,包含 {checklistCount} 项文档"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Filed. Inside this stage the e-file pipeline tracks: authorization requested → signed → submitted → accepted. Substep UI lands in the next pass."
-msgstr "已申报。本阶段内电子申报流程为:已请求授权 → 已签字 → 已提交 → 已接受。子步骤界面将在下一版推出。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -4438,10 +4442,6 @@ msgstr "进行中"
 msgid "In review"
 msgstr "In review"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "In review. Approve or send back via the original panel."
-msgstr "复核中。请通过原面板批准或退回。"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "In the client export/report screen, select the clients and fields to export, then click Export."
 msgstr "在客户导出/报表界面中，选择要导出的客户和字段，然后点击 Export。"
@@ -4708,10 +4708,6 @@ msgstr "最新就绪状态：{0}。"
 msgid "Latest status"
 msgstr "最新状态"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Legacy status outside lifecycle v2 — switch back to the original panel to advance."
-msgstr "该状态在生命周期 v2 之外 — 请切回原面板继续推进。"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "Legend"
 msgstr "Legend"
@@ -4947,6 +4943,7 @@ msgstr "全部标记已读"
 msgid "Mark client approved"
 msgstr "标记客户已确认"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark docs received"
 msgstr "标记资料已收到"
@@ -4963,10 +4960,12 @@ msgstr "标记文件已收到"
 msgid "Mark extended"
 msgstr "标记已延期"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark filed"
 msgstr "标记已申报"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark obligation complete"
 msgstr "标记申报义务完成"
@@ -4995,6 +4994,7 @@ msgstr "标记为已审核"
 msgid "Mark selected extended"
 msgstr "将所选项标记为已延期"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark unblocked"
 msgstr "标记已解除阻塞"
@@ -5003,6 +5003,7 @@ msgstr "标记已解除阻塞"
 msgid "Marked accepted"
 msgstr "Marked accepted"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Marked e-file rejected"
 msgstr "已标记电子申报被拒"
@@ -5154,10 +5155,6 @@ msgstr "距离截止日的最小天数"
 
 #: src/routes/rules.library.tsx
 msgid "missing"
-msgstr "缺失"
-
-#: src/routes/obligations.tsx
-msgid "Missing"
 msgstr "缺失"
 
 #: src/features/rules/generation-preview-tab.tsx
@@ -5663,6 +5660,10 @@ msgstr "没有选项"
 msgid "No outstanding checklist items."
 msgstr "清单中没有待办项。"
 
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "No outstanding work for this status."
+msgstr "当前状态没有待办事项。"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No owners"
 msgstr "没有负责人"
@@ -5802,6 +5803,10 @@ msgstr "当前没有匹配 30 / 7 / 1 天窗口的即将触发提醒。"
 msgid "No user-facing field change was recorded."
 msgstr "未记录面向用户的字段变更。"
 
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "No work has started on this return. Move to In review when preparation begins."
+msgstr "尚未开始处理此申报。准备工作开始后请移至 In review。"
+
 #: src/routes/obligations.tsx
 msgid "No workpapers attached to this obligation yet."
 msgstr "该申报义务尚未附加工作底稿。"
@@ -5906,10 +5911,6 @@ msgstr "这里暂无内容。"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Nothing open"
 msgstr "暂无打开事项"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Nothing started yet. Move into work via the original panel for now."
-msgstr "尚未开始任何工作。请暂时通过原面板进入工作流。"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
@@ -6606,6 +6607,10 @@ msgstr "支付详情由支付处理方保存"
 msgid "Payment model"
 msgstr "支付模型"
 
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "Payment processed. Close the obligation once everything is reconciled."
+msgstr "付款已处理。对账完成后即可关闭此 obligation。"
+
 #: src/routes/obligations.tsx
 msgid "Payment scheduled"
 msgstr "付款已排程"
@@ -6803,6 +6808,7 @@ msgstr "请至少输入 2 个字符。"
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/features/opportunities/opportunities-page.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -6970,6 +6976,10 @@ msgstr "事务所"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
 msgstr "偏好设置"
+
+#: src/features/obligations/ObligationPanelV2.tsx
+msgid "Preparation in progress. Mark filed once the return is submitted."
+msgstr "正在准备申报。提交后请标记为 Filed。"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Prepare client draft"
@@ -7470,6 +7480,7 @@ msgstr "推荐"
 msgid "Record audit trail"
 msgstr "记录审计轨迹"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Record authority rejection"
 msgstr "记录机关拒绝"
@@ -9011,6 +9022,7 @@ msgstr "SSO 与自定义覆盖"
 msgid "Stale"
 msgstr "已过期"
 
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Start preparation"
 msgstr "开始准备"
@@ -9059,9 +9071,11 @@ msgstr "州"
 msgid "Status"
 msgstr "状态"
 
+#. placeholder {0}: labels[vars.status]
 #. placeholder {0}: statusLabels[vars.status]
 #. placeholder {0}: v2StatusLabels[vars.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "状态已变更为 {0}"
