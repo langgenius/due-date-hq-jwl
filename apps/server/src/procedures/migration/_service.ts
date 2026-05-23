@@ -25,14 +25,9 @@ import {
   type MappingRow,
   type MatrixSelection,
   type MigrationBatch,
-  type MigrationExternalEntityType,
-  type MigrationExternalStagingRowInput,
-  type MigrationIntegrationProvider,
   type MigrationError,
   type MigrationSource,
   type MigrationSourceManifest,
-  type MigrationStageExternalRowsOutput,
-  type MigrationStagingRow,
   type NormalizationRow,
 } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -44,12 +39,7 @@ import {
 } from './_preset-mappings'
 import { buildCommitPlan } from './_commit-plan'
 import { sanitizeMapperOutput, validateNormalizedRows, validateRows } from './_deterministic'
-import type {
-  DeterministicError,
-  ExternalStagingPayloadRow,
-  MappingJsonPayload,
-  MatrixApplicationEntry,
-} from './_types'
+import type { DeterministicError, MappingJsonPayload, MatrixApplicationEntry } from './_types'
 import { toCoreRule } from '../rules/runtime'
 
 /**
@@ -370,121 +360,6 @@ export class MigrationService {
     return { rawInputR2Key }
   }
 
-  async stageExternalRows(input: {
-    batchId: string
-    provider: MigrationIntegrationProvider
-    rows: MigrationExternalStagingRowInput[]
-  }): Promise<MigrationStageExternalRowsOutput> {
-    const batch = await this.requireDraftBatch(input.batchId)
-    if (!isIntegrationSource(batch.source)) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'External staging rows require an integration migration source.',
-      })
-    }
-    if (providerForSource(batch.source) !== input.provider) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: `Batch source ${batch.source} does not match provider ${input.provider}.`,
-      })
-    }
-
-    const staged = await buildExternalStagingProjection(input.provider, input.rows)
-    await this.deps.scoped.migration.createStagingRows(
-      input.batchId,
-      staged.rows.map((row) => ({
-        id: row.stagingRowId,
-        provider: row.provider,
-        externalEntityType: row.externalEntityType,
-        externalId: row.externalId,
-        externalUrl: row.externalUrl,
-        rowIndex: row.rowIndex,
-        rowHash: row.rowHash,
-        rawRowJson: input.rows[row.rowIndex]?.rawJson ?? {},
-      })),
-    )
-
-    const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
-    payload.providerContext = { provider: input.provider, source: batch.source }
-    payload.externalStagingRows = staged.rows
-    payload.rawInput = {
-      kind: 'csv',
-      headers: staged.headers,
-      rows: staged.tabularRows,
-      rowCount: staged.tabularRows.length,
-      truncated: false,
-    }
-
-    await this.deps.scoped.migration.updateBatch(input.batchId, {
-      mappingJson: payload,
-      rawInputFileName: `${input.provider}-integration.json`,
-      rawInputContentType: 'application/json',
-      rawInputSizeBytes: new TextEncoder().encode(JSON.stringify(input.rows)).byteLength,
-      rowCount: staged.tabularRows.length,
-      status: 'mapping',
-    })
-
-    await this.deps.scoped.audit.write({
-      actorId: this.deps.userId,
-      entityType: 'migration_batch',
-      entityId: input.batchId,
-      action: 'migration.staging_rows.created',
-      after: {
-        provider: input.provider,
-        source: batch.source,
-        rowCount: staged.tabularRows.length,
-      },
-    })
-
-    const updated = await this.requireBatch(input.batchId)
-    return {
-      batch: toMigrationBatch(updated),
-      rowCount: staged.tabularRows.length,
-      headers: staged.headers,
-    }
-  }
-
-  async cloneStagingRows(sourceBatchId: string): Promise<MigrationStageExternalRowsOutput> {
-    const sourceBatch = await this.requireBatch(sourceBatchId)
-    if (!isIntegrationSource(sourceBatch.source)) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Only integration migration batches can be cloned from staging rows.',
-      })
-    }
-    const existingRows = await this.deps.scoped.migration.listStagingRows(sourceBatchId)
-    if (existingRows.length === 0) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'No staging rows are available for this migration batch.',
-      })
-    }
-    const provider = existingRows[0]?.provider
-    if (!provider) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Staging rows are missing provider metadata.',
-      })
-    }
-    const newBatch = await this.createBatch({
-      source: sourceBatch.source,
-      presetUsed: sourceBatch.presetUsed,
-      rowCount: existingRows.length,
-    })
-
-    return this.stageExternalRows({
-      batchId: newBatch.id,
-      provider,
-      rows: existingRows.map((row) => ({
-        externalId: row.externalId,
-        externalUrl: row.externalUrl,
-        externalEntityType: row.externalEntityType,
-        rawJson: normalizeJsonObject(row.rawRowJson),
-      })),
-    })
-  }
-
-  async listStagingRows(batchId: string): Promise<MigrationStagingRow[]> {
-    await this.requireBatch(batchId)
-    const rows = await this.deps.scoped.migration.listStagingRows(batchId)
-    return rows.map(toMigrationStagingRow)
-  }
-
   // ---------------------------------------------------------------------
   // Step 2 — AI Field Mapper
   // ---------------------------------------------------------------------
@@ -510,7 +385,6 @@ export class MigrationService {
         header: headers,
         sample_rows: sampleRows,
         preset: batch.presetUsed,
-        provider_context: payload.providerContext ?? null,
         firm_id_hash: this.deps.scoped.firmId,
       },
       MapperOutputSchema,
@@ -842,17 +716,15 @@ export class MigrationService {
 
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
     const rules = await runtimeRulesForFirm(this.deps.scoped)
-    const plan = await this.filterExistingExternalClients(
-      buildCommitPlan({
-        batchId,
-        firmId: this.deps.scoped.firmId,
-        userId: this.deps.userId,
-        payload,
-        internalDeadlineOffsetDays:
-          this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
-        rules,
-      }),
-    )
+    const plan = buildCommitPlan({
+      batchId,
+      firmId: this.deps.scoped.firmId,
+      userId: this.deps.userId,
+      payload,
+      internalDeadlineOffsetDays:
+        this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+      rules,
+    })
 
     if (plan.clients.length === 0) {
       throw new ORPCError('BAD_REQUEST', {
@@ -893,55 +765,6 @@ export class MigrationService {
     })
 
     return { discardedAt: discardedAt.toISOString() }
-  }
-
-  private async filterExistingExternalClients(
-    plan: ReturnType<typeof buildCommitPlan>,
-  ): Promise<ReturnType<typeof buildCommitPlan>> {
-    const clientRefs = (plan.externalReferences ?? []).filter(
-      (ref) => ref.internalEntityType === 'client',
-    )
-    const provider = clientRefs[0]?.provider
-    if (!provider) return plan
-
-    const existing = await this.deps.scoped.migration.findExternalReferences({
-      provider,
-      externalIds: clientRefs.map((ref) => ref.externalId),
-      internalEntityType: 'client',
-    })
-    if (existing.length === 0) return plan
-
-    const existingExternalIds = new Set(existing.map((ref) => ref.externalId))
-    const skippedClientIds = new Set(
-      clientRefs
-        .filter((ref) => existingExternalIds.has(ref.externalId))
-        .map((ref) => ref.internalEntityId),
-    )
-    if (skippedClientIds.size === 0) return plan
-
-    const keptObligationIds = new Set(
-      plan.obligations
-        .filter((obligation) => !skippedClientIds.has(obligation.clientId))
-        .map((obligation) => obligation.id),
-    )
-
-    return {
-      ...plan,
-      clients: plan.clients.filter((client) => !skippedClientIds.has(client.id)),
-      obligations: plan.obligations.filter((obligation) => keptObligationIds.has(obligation.id)),
-      evidence: plan.evidence.filter(
-        (evidence) =>
-          !evidence.obligationInstanceId || keptObligationIds.has(evidence.obligationInstanceId),
-      ),
-      externalReferences: (plan.externalReferences ?? []).filter((ref) => {
-        if (ref.internalEntityType === 'client') return !skippedClientIds.has(ref.internalEntityId)
-        if (ref.internalEntityType === 'obligation')
-          return keptObligationIds.has(ref.internalEntityId)
-        return true
-      }),
-      successCount: plan.clients.length - skippedClientIds.size,
-      skippedCount: plan.skippedCount + skippedClientIds.size,
-    }
   }
 
   async revert(batchId: string): Promise<{ revertedAt: string }> {
@@ -1292,112 +1115,6 @@ export class MigrationService {
 // ---------------------------------------------------------------------
 // Pure helpers (kept outside the class for testability + tree-shake)
 // ---------------------------------------------------------------------
-
-interface StagingProjection {
-  headers: string[]
-  tabularRows: string[][]
-  rows: ExternalStagingPayloadRow[]
-}
-
-async function buildExternalStagingProjection(
-  provider: MigrationIntegrationProvider,
-  rows: readonly MigrationExternalStagingRowInput[],
-): Promise<StagingProjection> {
-  const rawHeaders = Array.from(
-    new Set(rows.flatMap((row) => Object.keys(row.rawJson).filter((key) => key.trim()))),
-  ).toSorted((a, b) => a.localeCompare(b))
-  const headers = [
-    'External Provider',
-    'External Entity Type',
-    'External ID',
-    'External URL',
-    ...rawHeaders,
-  ]
-  const projectedRows: string[][] = []
-  const externalRows: ExternalStagingPayloadRow[] = []
-  const rowHashes = await Promise.all(
-    rows.map((row) =>
-      hashValue({
-        provider,
-        externalEntityType: row.externalEntityType ?? 'unknown',
-        rawJson: row.rawJson,
-      }),
-    ),
-  )
-
-  for (const [rowIndex, row] of rows.entries()) {
-    const rowHash = rowHashes[rowIndex] ?? ''
-    const externalId = row.externalId?.trim() || `row_${rowHash.slice(0, 24)}`
-    const externalEntityType = row.externalEntityType ?? 'unknown'
-    const externalUrl = row.externalUrl ?? null
-    const stagingRowId = crypto.randomUUID()
-
-    externalRows.push({
-      rowIndex,
-      stagingRowId,
-      provider,
-      externalEntityType,
-      externalId,
-      externalUrl,
-      rowHash,
-    })
-    projectedRows.push([
-      provider,
-      externalEntityType,
-      externalId,
-      externalUrl ?? '',
-      ...rawHeaders.map((header) => stringifyCell(row.rawJson[header])),
-    ])
-  }
-
-  return { headers, tabularRows: projectedRows, rows: externalRows }
-}
-
-function stringifyCell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
-  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value)
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => stringifyCell(item))
-      .filter(Boolean)
-      .join('; ')
-  }
-  if (typeof value === 'object') return JSON.stringify(value)
-  return ''
-}
-
-function normalizeJsonObject(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    const out: Record<string, unknown> = {}
-    for (const [key, item] of Object.entries(value)) out[key] = item
-    return out
-  }
-  return { value }
-}
-
-function isIntegrationSource(source: MigrationSource): boolean {
-  return providerForSource(source) !== null
-}
-
-function providerForSource(source: MigrationSource): MigrationIntegrationProvider | null {
-  switch (source) {
-    case 'integration_taxdome_zapier':
-      return 'taxdome'
-    case 'integration_karbon_api':
-      return 'karbon'
-    case 'integration_soraban_api':
-      return 'soraban'
-    case 'integration_safesend_api':
-      return 'safesend'
-    case 'integration_proconnect_export':
-      return 'proconnect'
-    default:
-      return null
-  }
-}
 
 function collectValuesByField(
   headers: string[],
@@ -1766,34 +1483,6 @@ function toMigrationError(row: {
     rawRowJson: row.rawRowJson ?? null,
     errorCode: row.errorCode,
     errorMessage: row.errorMessage,
-    createdAt: row.createdAt.toISOString(),
-  }
-}
-
-function toMigrationStagingRow(row: {
-  id: string
-  firmId: string
-  batchId: string
-  provider: MigrationIntegrationProvider
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl: string | null
-  rowIndex: number
-  rowHash: string
-  rawRowJson: unknown
-  createdAt: Date
-}): MigrationStagingRow {
-  return {
-    id: row.id,
-    firmId: row.firmId,
-    batchId: row.batchId,
-    provider: row.provider,
-    externalEntityType: row.externalEntityType,
-    externalId: row.externalId,
-    externalUrl: row.externalUrl,
-    rowIndex: row.rowIndex,
-    rowHash: row.rowHash,
-    rawRowJson: row.rawRowJson,
     createdAt: row.createdAt.toISOString(),
   }
 }

@@ -961,10 +961,6 @@ msgstr "Add a review note and try again."
 msgid "Add a state to at least one client before running obligation preview."
 msgstr "Add a state to at least one client before running obligation preview."
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Add at least one provider record to continue."
-msgstr "Add at least one provider record to continue."
-
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
 msgstr "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
@@ -1931,10 +1927,6 @@ msgstr "Checkout is temporarily unavailable for this plan. Contact support."
 #: src/routes/billing.tsx
 msgid "Checkout, cards, invoices, and portal sessions stay with the processor."
 msgstr "Checkout, cards, invoices, and portal sessions stay with the processor."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Choose a previous provider import"
-msgstr "Choose a previous provider import"
 
 #: src/routes/billing.tsx
 msgid "Choose a workspace tier"
@@ -4419,10 +4411,6 @@ msgstr "Import reverted"
 msgid "Import source"
 msgstr "Import source"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Import source type"
-msgstr "Import source type"
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "Import template"
 msgstr "Import template"
@@ -4448,10 +4436,6 @@ msgstr "Importance"
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "Imported client undone"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Imported records still need review"
-msgstr "Imported records still need review"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
@@ -4532,14 +4516,6 @@ msgstr "Instructions"
 #: src/features/migration/Stepper.tsx
 msgid "Intake"
 msgstr "Intake"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Integration record source"
-msgstr "Integration record source"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Integration records"
-msgstr "Integration records"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -5264,10 +5240,6 @@ msgstr "Morning digest preview queued"
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Most provider exports are CSV or XLSX. Use Paste / Upload with an import template for those. This path is for records copied from integration tools or converted provider reports, and generated obligations still require enough imported facts."
-msgstr "Most provider exports are CSV or XLSX. Use Paste / Upload with an import template for those. This path is for records copied from integration tools or converted provider reports, and generated obligations still require enough imported facts."
-
 #: src/routes/obligations.tsx
 msgid "Move this row to In review — preparation work has begun."
 msgstr "Move this row to In review — preparation work has begun."
@@ -5736,10 +5708,6 @@ msgstr "No practice selected"
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No previous client"
 msgstr "No previous client"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "No previous provider imports are available yet."
-msgstr "No previous provider imports are available yet."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No production records"
@@ -6608,28 +6576,12 @@ msgid "Past due"
 msgstr "Past due"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste / Upload"
-msgstr "Paste / Upload"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste client data"
 msgstr "Paste client data"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose an import template."
-msgstr "Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose an import template."
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 msgstr "Paste here — any shape, we'll figure it out. Include the header row if you have one."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste provider client records"
-msgstr "Paste provider client records"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste provider records in the integration handoff format."
-msgstr "Paste provider records in the integration handoff format."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste rows"
@@ -7228,10 +7180,6 @@ msgstr "Pro"
 msgid "Production Pulse actions require Pro or above."
 msgstr "Production Pulse actions require Pro or above."
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Provider client records"
-msgstr "Provider client records"
-
 #: src/routes/billing.tsx
 msgid "Provider hosted"
 msgstr "Provider hosted"
@@ -7826,10 +7774,6 @@ msgstr "Return to Today"
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "Returned from filed status — IRS/state rejected the submission."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Reuse provider import"
-msgstr "Reuse provider import"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
@@ -9659,10 +9603,6 @@ msgstr "Theme"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "then"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "These choices mark where the records came from and keep source-system IDs for future audit and status matching. They do not convert CSV exports into another format."
-msgstr "These choices mark where the records came from and keep source-system IDs for future audit and status matching. They do not convert CSV exports into another format."
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "These flags drive what obligations get generated for this client. Active flags need a maintainer's edit flow — see the audit doc for follow-up."

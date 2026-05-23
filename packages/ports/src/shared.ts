@@ -140,11 +140,6 @@ export type MigrationSource =
   | 'preset_proseries'
   | 'preset_ultratax_cs'
   | 'preset_proconnect_tax'
-  | 'integration_taxdome_zapier'
-  | 'integration_karbon_api'
-  | 'integration_soraban_api'
-  | 'integration_safesend_api'
-  | 'integration_proconnect_export'
 
 export type MigrationBatchStatus =
   | 'draft'

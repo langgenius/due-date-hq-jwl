@@ -228,8 +228,8 @@ status 的记录仍按对应流程进入 review 或补事实。
 2. Step 1 `Intake`：
    - 粘贴表格，或上传 CSV、TSV、XLSX。
    - 可选择 TaxDome、Drake、Karbon、QuickBooks、File In Time 等来源模板。
-   - 普通供应商 CSV/XLSX 导出仍走 `Paste / Upload`；`Integration records` 只用于粘贴
-     集成工具或已转换报表产生的结构化客户记录。
+   - CCH Axcess、CCH ProSystem fx、Lacerte、ProSeries、UltraTax CS、ProConnect Tax 等税务软件导出走对应 preset。
+   - 普通供应商 CSV/XLSX 导出仍走 `Paste / Upload`；当前向导不接收 provider integration records。
    - 文件大小上限为 2 MB。
    - 如果检测到 SSN 列或无法解析，会显示错误并阻止继续。
 3. Step 2 `AI Mapping`：

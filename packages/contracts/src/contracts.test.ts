@@ -74,10 +74,8 @@ import {
   MappingTargetSchema,
   MigrationDetectedSourceProductSchema,
   MigrationErrorStageSchema,
-  MigrationIntegrationProviderSchema,
   MigrationSourceFileRoleSchema,
   MigrationSourceSchema,
-  MigrationStageExternalRowsInputSchema,
   migrationContract,
 } from './migration'
 import {
@@ -1013,19 +1011,18 @@ describe('@duedatehq/contracts', () => {
   it('freezes migration.listErrors stages', () => {
     expect(MigrationErrorStageSchema.options).toEqual(['mapping', 'normalize', 'matrix', 'all'])
     expect(Object.keys(migrationContract)).toEqual(
-      expect.arrayContaining([
-        'runMapper',
-        'stageExternalRows',
-        'cloneStagingRows',
-        'applyDefaultMatrix',
-        'discardDraft',
-        'listErrors',
-      ]),
+      expect.arrayContaining(['runMapper', 'applyDefaultMatrix', 'discardDraft', 'listErrors']),
     )
     expect(MigrationSourceSchema.options).toEqual(
       expect.arrayContaining([
-        'integration_taxdome_zapier',
-        'integration_karbon_api',
+        'paste',
+        'csv',
+        'xlsx',
+        'preset_taxdome',
+        'preset_drake',
+        'preset_karbon',
+        'preset_quickbooks',
+        'preset_file_in_time',
         'preset_cch_axcess',
         'preset_cch_prosystem_fx',
         'preset_lacerte',
@@ -1057,26 +1054,6 @@ describe('@duedatehq/contracts', () => {
         'client.source_status',
       ]),
     )
-    expect(MigrationIntegrationProviderSchema.options).toEqual([
-      'taxdome',
-      'karbon',
-      'soraban',
-      'safesend',
-      'proconnect',
-    ])
-    expect(
-      MigrationStageExternalRowsInputSchema.parse({
-        batchId: '11111111-1111-4111-8111-111111111111',
-        provider: 'karbon',
-        rows: [
-          {
-            externalId: 'work_123',
-            externalEntityType: 'work_item',
-            rawJson: { 'Organization Name': 'Acme LLC', State: 'CA' },
-          },
-        ],
-      }).rows[0]?.externalEntityType,
-    ).toBe('work_item')
   })
 
   it('accepts explicit Default Matrix cell selections', () => {
@@ -1101,9 +1078,6 @@ describe('@duedatehq/contracts', () => {
 
   it('allows migration and Pulse audit strings used by batch apply', () => {
     expect(AuditActionSchema.parse('migration.batch.created')).toBe('migration.batch.created')
-    expect(AuditActionSchema.parse('migration.staging_rows.created')).toBe(
-      'migration.staging_rows.created',
-    )
     expect(AuditActionSchema.parse('migration.discarded')).toBe('migration.discarded')
     expect(PulseAuditActionSchema.parse('pulse.apply')).toBe('pulse.apply')
     expect(PulseAuditActionSchema.parse('pulse.dismiss')).toBe('pulse.dismiss')

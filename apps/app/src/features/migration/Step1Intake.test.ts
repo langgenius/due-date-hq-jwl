@@ -1,61 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { strToU8, zipSync } from 'fflate'
 
-import {
-  normalizeIntegrationJsonText,
-  normalizePastedRowsText,
-  parseIntegrationRows,
-} from './Step1Intake'
+import { normalizePastedRowsText } from './Step1Intake'
 import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
-import { PROVIDER_CAPABILITY_BY_PROVIDER } from './provider-capabilities'
-
-describe('provider integration intake parsing', () => {
-  it('labels Soraban as a routed export path, not a direct API', () => {
-    expect(PROVIDER_CAPABILITY_BY_PROVIDER.soraban.label).toBe(
-      'Soraban via Karbon/Zapier or uploaded export',
-    )
-    expect(PROVIDER_CAPABILITY_BY_PROVIDER.soraban.label).not.toContain('API')
-  })
-
-  it('parses standard provider arrays', () => {
-    const rows = parseIntegrationRows('[{"id":"acct_1","name":"Acme"}]', 'taxdome')
-
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?.externalId).toBe('acct_1')
-    expect(rows[0]?.externalEntityType).toBe('account')
-  })
-
-  it('accepts copied JSON objects without wrapping brackets', () => {
-    const rows = parseIntegrationRows(
-      '{"id":"work_1","name":"Alpha"}\n{"id":"work_2","name":"Beta"}',
-      'karbon',
-    )
-
-    expect(rows.map((row) => row.externalId)).toEqual(['work_1', 'work_2'])
-    expect(rows.every((row) => row.externalEntityType === 'work_item')).toBe(true)
-  })
-
-  it('accepts common API wrapper keys', () => {
-    const rows = parseIntegrationRows('{"data":[{"id":101},{"id":102}]}', 'proconnect')
-
-    expect(rows.map((row) => row.externalId)).toEqual(['101', '102'])
-  })
-
-  it('normalizes paste-friendly JSONL and markdown fenced JSON into arrays', () => {
-    expect(normalizeIntegrationJsonText('```json\n{"id":"a"}\n{"id":"b"}\n```')).toBe(
-      '[\n  {\n    "id": "a"\n  },\n  {\n    "id": "b"\n  }\n]',
-    )
-  })
-
-  it('repairs trailing commas before parsing', () => {
-    const rows = parseIntegrationRows('[{"id":"acct_1",},]', 'taxdome')
-
-    expect(rows[0]?.externalId).toBe('acct_1')
-  })
-})
 
 describe('client rows paste normalization', () => {
-  it('turns copied provider records into tabular rows', () => {
+  it('turns copied JSON client rows into tabular rows', () => {
     expect(
       normalizePastedRowsText(
         '[{"Client name":"Acme LLC","State":"CA"},{"Client name":"Bright Books","State":"TX"}]',

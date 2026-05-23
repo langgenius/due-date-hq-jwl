@@ -31,24 +31,6 @@ describe('migration wizard state', () => {
         }),
       ),
     ).toBe(true)
-
-    expect(
-      hasDiscardableWizardWork(
-        wizardReducer(INITIAL_STATE, {
-          type: 'INTAKE_MODE',
-          mode: 'integration',
-        }),
-      ),
-    ).toBe(true)
-
-    expect(
-      hasDiscardableWizardWork(
-        wizardReducer(INITIAL_STATE, {
-          type: 'INTAKE_PREVIOUS_SYNC',
-          batchId: 'batch-1',
-        }),
-      ),
-    ).toBe(true)
   })
 
   it('requires discard confirmation after the wizard advances or produces results', () => {

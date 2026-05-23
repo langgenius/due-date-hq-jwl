@@ -28,7 +28,6 @@ type CommitFilingProfile = CommitImportInput['filingProfiles'][number]
 type CommitObligation = CommitImportInput['obligations'][number]
 type CommitEvidence = CommitImportInput['evidence'][number]
 type CommitAudit = CommitImportInput['audits'][number]
-type CommitExternalReference = NonNullable<CommitImportInput['externalReferences']>[number]
 
 interface BuildCommitPlanInput {
   batchId: string
@@ -50,7 +49,6 @@ interface PendingClientGroup {
   key: string
   facts: ClientImportFacts
   rowIndexes: number[]
-  externalRows: NonNullable<MappingJsonPayload['externalStagingRows']>
   profilesByState: Map<string, FilingProfileImportFacts>
 }
 
@@ -75,7 +73,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
   const filingProfiles: CommitFilingProfile[] = []
   const obligations: CommitObligation[] = []
   const evidence: CommitEvidence[] = []
-  const externalReferences: CommitExternalReference[] = []
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const runtimeRules = input.rules ?? listObligationRules({ includeCandidates: true })
   const ruleById = new Map(runtimeRules.map((rule) => [rule.id, rule]))
@@ -108,21 +105,18 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
     }
 
     const groupKey = clientMergeKey(facts)
-    const externalRow = payload.externalStagingRows?.find((item) => item.rowIndex === rowIndex)
     const current = groups.get(groupKey)
     if (!current) {
       groups.set(groupKey, {
         key: groupKey,
         facts,
         rowIndexes: [rowIndex],
-        externalRows: externalRow ? [externalRow] : [],
         profilesByState: new Map(facts.filingProfiles.map((profile) => [profile.state, profile])),
       })
       continue
     }
 
     current.rowIndexes.push(rowIndex)
-    if (externalRow) current.externalRows.push(externalRow)
     current.facts = mergeClientFacts(current.facts, facts)
     for (const profile of facts.filingProfiles) {
       const existing = current.profilesByState.get(profile.state)
@@ -197,26 +191,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
         migrationBatchId: batchId,
       }
       filingProfiles.push(profileRow)
-    }
-
-    for (const externalRow of group.externalRows) {
-      externalReferences.push(
-        buildExternalReference({
-          firmId,
-          batchId,
-          provider: externalRow.provider,
-          internalEntityType: 'client',
-          internalEntityId: clientId,
-          externalEntityType: externalRow.externalEntityType,
-          externalId: externalRow.externalId,
-          externalUrl: externalRow.externalUrl,
-          metadataJson: {
-            stagingRowId: externalRow.stagingRowId,
-            rowHash: externalRow.rowHash,
-          },
-          appliedAt,
-        }),
-      )
     }
 
     const seenPreviewKeys = new Set<string>()
@@ -300,29 +274,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           penaltyFactsJson: penaltyFacts,
           penaltyFactsVersion: PENALTY_FACTS_VERSION,
         })
-        for (const externalRow of group.externalRows) {
-          externalReferences.push(
-            buildExternalReference({
-              firmId,
-              batchId,
-              provider: externalRow.provider,
-              internalEntityType: 'obligation',
-              internalEntityId: obligationId,
-              externalEntityType: externalRow.externalEntityType,
-              externalId: externalRow.externalId,
-              externalUrl: externalRow.externalUrl,
-              metadataJson: {
-                stagingRowId: externalRow.stagingRowId,
-                rowHash: externalRow.rowHash,
-                sourceClientId: clientId,
-                taxType: preview.taxType,
-                jurisdiction: preview.jurisdiction,
-              },
-              appliedAt,
-            }),
-          )
-        }
-
         const primaryEvidence = preview.evidence[0]
         const sourceId = primaryEvidence?.sourceId ?? preview.sourceIds[0] ?? preview.ruleId
         const source = sourceById.get(sourceId)
@@ -402,38 +353,10 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
     obligations,
     evidence,
     audits,
-    externalReferences,
     successCount: clients.length,
     skippedCount: skippedRows.size,
     appliedAt,
     revertExpiresAt,
-  }
-}
-
-function buildExternalReference(input: {
-  firmId: string
-  batchId: string
-  provider: CommitExternalReference['provider']
-  internalEntityType: CommitExternalReference['internalEntityType']
-  internalEntityId: string
-  externalEntityType: CommitExternalReference['externalEntityType']
-  externalId: string
-  externalUrl: string | null
-  metadataJson: unknown
-  appliedAt: Date
-}): CommitExternalReference {
-  return {
-    id: crypto.randomUUID(),
-    firmId: input.firmId,
-    provider: input.provider,
-    migrationBatchId: input.batchId,
-    internalEntityType: input.internalEntityType,
-    internalEntityId: input.internalEntityId,
-    externalEntityType: input.externalEntityType,
-    externalId: input.externalId,
-    externalUrl: input.externalUrl,
-    metadataJson: input.metadataJson,
-    lastSyncedAt: input.appliedAt,
   }
 }
 

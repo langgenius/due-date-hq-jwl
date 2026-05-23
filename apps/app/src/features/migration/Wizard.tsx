@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useReducer, useState, type ReactNode } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -37,7 +37,6 @@ import { Step4Preview } from './Step4Preview'
 import { WizardRouteShell, WizardShell, type WizardTransitionState } from './WizardShell'
 import {
   INITIAL_STATE,
-  PROVIDER_TO_SOURCE,
   PRESET_TO_SOURCE,
   hasDiscardableWizardWork,
   wizardReducer,
@@ -120,24 +119,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       onSuccess: invalidateMigration,
     }),
   )
-  const stageExternalRowsMutation = useMutation(
-    orpc.migration.stageExternalRows.mutationOptions({
-      onSuccess: (out) => {
-        cacheBatch(out.batch)
-      },
-    }),
-  )
-  const cloneStagingRowsMutation = useMutation(
-    orpc.migration.cloneStagingRows.mutationOptions({
-      onSuccess: (out) => {
-        cacheBatch(out.batch)
-      },
-    }),
-  )
-  const previousSyncQuery = useQuery({
-    ...orpc.migration.listBatches.queryOptions({ input: { limit: 20 } }),
-    enabled: open,
-  })
   const runMapperMutation = useMutation(
     orpc.migration.runMapper.mutationOptions({
       onSuccess: invalidateMigration,
@@ -205,11 +186,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
   const handleStep1Continue = useCallback(() => {
     const intake = state.intake
-    if (intake.mode === 'previous_sync') {
-      if (!intake.previousSyncBatchId) return
-    } else if (intake.mode === 'integration') {
-      if (intake.integrationRows.length === 0 || intake.parseError !== null) return
-    } else if (!intake.rawText.trim() || intake.rowCount === 0) return
+    if (!intake.rawText.trim() || intake.rowCount === 0) return
 
     dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: null })
     const handleError = (err: unknown) => {
@@ -227,33 +204,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       listErrorsMutation.mutate({ batchId, stage: 'mapping' })
     }
 
-    if (intake.mode === 'previous_sync') {
-      cloneStagingRowsMutation.mutate(
-        { sourceBatchId: intake.previousSyncBatchId! },
-        {
-          onError: handleError,
-          onSuccess: (out) => {
-            dispatch({ type: 'BATCH_CREATED', batch: out.batch })
-            runMapperMutation.mutate(
-              { batchId: out.batch.id },
-              { onError: handleError, onSuccess: handleMapperSuccess(out.batch.id) },
-            )
-          },
-        },
-      )
-      return
-    }
-
-    const source: MigrationSource =
-      intake.mode === 'integration'
-        ? PROVIDER_TO_SOURCE[intake.integrationProvider]
-        : intake.preset
-          ? PRESET_TO_SOURCE[intake.preset]
-          : intake.fileKind === 'xlsx'
-            ? 'xlsx'
-            : intake.fileKind === 'csv'
-              ? 'csv'
-              : 'paste'
+    const source: MigrationSource = intake.preset
+      ? PRESET_TO_SOURCE[intake.preset]
+      : intake.fileKind === 'xlsx'
+        ? 'xlsx'
+        : intake.fileKind === 'csv'
+          ? 'csv'
+          : 'paste'
 
     createBatchMutation.mutate(
       {
@@ -265,25 +222,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         onError: handleError,
         onSuccess: (batch) => {
           dispatch({ type: 'BATCH_CREATED', batch })
-          if (intake.mode === 'integration') {
-            stageExternalRowsMutation.mutate(
-              {
-                batchId: batch.id,
-                provider: intake.integrationProvider,
-                rows: intake.integrationRows,
-              },
-              {
-                onError: handleError,
-                onSuccess: () => {
-                  runMapperMutation.mutate(
-                    { batchId: batch.id },
-                    { onError: handleError, onSuccess: handleMapperSuccess(batch.id) },
-                  )
-                },
-              },
-            )
-            return
-          }
           uploadRawMutation.mutate(
             {
               batchId: batch.id,
@@ -317,11 +255,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     )
   }, [
     createBatchMutation,
-    cloneStagingRowsMutation,
     listErrorsMutation,
     runMapperMutation,
     state.intake,
-    stageExternalRowsMutation,
     t,
     uploadRawMutation,
   ])
@@ -530,8 +466,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
   const isMutating =
     createBatchMutation.isPending ||
     uploadRawMutation.isPending ||
-    stageExternalRowsMutation.isPending ||
-    cloneStagingRowsMutation.isPending ||
     runMapperMutation.isPending ||
     confirmMappingMutation.isPending ||
     runNormalizerMutation.isPending ||
@@ -541,13 +475,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     revertMutation.isPending
   const transition = useMemo<WizardTransitionState | null>(() => {
     if (createBatchMutation.isPending) return { phase: 'intake', activeIndex: 0 }
-    if (
-      uploadRawMutation.isPending ||
-      stageExternalRowsMutation.isPending ||
-      cloneStagingRowsMutation.isPending
-    ) {
-      return { phase: 'intake', activeIndex: 1 }
-    }
+    if (uploadRawMutation.isPending) return { phase: 'intake', activeIndex: 1 }
     if (runMapperMutation.isPending) {
       return state.step === 2
         ? { phase: 'rerun_mapper', activeIndex: 1 }
@@ -565,10 +493,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     confirmMappingMutation.isPending,
     confirmNormalizationMutation.isPending,
     createBatchMutation.isPending,
-    cloneStagingRowsMutation.isPending,
     runMapperMutation.isPending,
     runNormalizerMutation.isPending,
-    stageExternalRowsMutation.isPending,
     state.step,
     uploadRawMutation.isPending,
   ])
@@ -616,15 +542,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             onPreset={(preset) => dispatch({ type: 'INTAKE_PRESET', preset })}
             onParsed={(args) => dispatch({ type: 'INTAKE_PARSED', ...args })}
             onParseError={(error) => dispatch({ type: 'INTAKE_PARSE_ERROR', error })}
-            previousSyncBatches={(previousSyncQuery.data?.batches ?? []).filter((batch) =>
-              batch.source.startsWith('integration_'),
-            )}
-            onMode={(mode) => dispatch({ type: 'INTAKE_MODE', mode })}
-            onIntegrationProvider={(provider) =>
-              dispatch({ type: 'INTAKE_INTEGRATION_PROVIDER', provider })
-            }
-            onIntegrationRows={(args) => dispatch({ type: 'INTAKE_INTEGRATION_ROWS', ...args })}
-            onPreviousSync={(batchId) => dispatch({ type: 'INTAKE_PREVIOUS_SYNC', batchId })}
           />
         ) : null}
 
@@ -727,7 +644,6 @@ function LiveGenesisOverlay({
 
 function computeCanContinue(state: WizardState): boolean {
   if (state.step === 1) {
-    if (state.intake.mode === 'previous_sync') return state.intake.previousSyncBatchId !== null
     return state.intake.rowCount > 0 && state.intake.parseError === null
   }
   if (state.step === 2) {

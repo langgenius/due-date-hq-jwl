@@ -127,9 +127,6 @@ export const router = os.router({
   migration: {
     createBatch: migrationHandlers.createBatch,
     uploadRaw: migrationHandlers.uploadRaw,
-    stageExternalRows: migrationHandlers.stageExternalRows,
-    cloneStagingRows: migrationHandlers.cloneStagingRows,
-    listStagingRows: migrationHandlers.listStagingRows,
     runMapper: migrationHandlers.runMapper,
     confirmMapping: migrationHandlers.confirmMapping,
     runNormalizer: migrationHandlers.runNormalizer,

@@ -7,26 +7,6 @@ import type {
   TaxPeriodSource,
 } from './shared'
 
-export type MigrationIntegrationProvider =
-  | 'taxdome'
-  | 'karbon'
-  | 'soraban'
-  | 'safesend'
-  | 'proconnect'
-
-export type MigrationExternalEntityType =
-  | 'account'
-  | 'contact'
-  | 'organization'
-  | 'work_item'
-  | 'client'
-  | 'return'
-  | 'organizer'
-  | 'delivery'
-  | 'signature'
-  | 'payment'
-  | 'unknown'
-
 export interface MigrationBatchRow {
   id: string
   firmId: string
@@ -87,36 +67,6 @@ export interface MigrationErrorRow {
   createdAt: Date
 }
 
-export interface MigrationStagingRow {
-  id: string
-  firmId: string
-  batchId: string
-  provider: MigrationIntegrationProvider
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl: string | null
-  rowIndex: number
-  rowHash: string
-  rawRowJson: unknown
-  createdAt: Date
-}
-
-export interface MigrationExternalReferenceRow {
-  id: string
-  firmId: string
-  provider: MigrationIntegrationProvider
-  migrationBatchId: string | null
-  internalEntityType: 'client' | 'obligation' | 'return_project'
-  internalEntityId: string
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl: string | null
-  metadataJson: unknown
-  lastSyncedAt: Date | null
-  createdAt: Date
-  updatedAt: Date
-}
-
 export interface CreateBatchInput {
   id?: string
   userId: string
@@ -172,30 +122,6 @@ export interface MigrationErrorInput {
   rawRowJson?: unknown
   errorCode: string
   errorMessage: string
-}
-
-export interface MigrationStagingRowInput {
-  id?: string
-  provider: MigrationIntegrationProvider
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl?: string | null
-  rowIndex: number
-  rowHash: string
-  rawRowJson: unknown
-}
-
-export interface MigrationExternalReferenceInput {
-  id?: string
-  provider: MigrationIntegrationProvider
-  migrationBatchId?: string | null
-  internalEntityType: 'client' | 'obligation' | 'return_project'
-  internalEntityId: string
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl?: string | null
-  metadataJson?: unknown
-  lastSyncedAt?: Date | null
 }
 
 export interface CommitClientInput {
@@ -316,7 +242,6 @@ export interface CommitImportInput {
   obligations: CommitObligationInput[]
   evidence: CommitEvidenceInput[]
   audits: CommitAuditInput[]
-  externalReferences?: Array<MigrationExternalReferenceInput & { id: string; firmId: string }>
   successCount: number
   skippedCount: number
   appliedAt: Date
@@ -343,20 +268,12 @@ export interface MigrationRepo {
   listMappings(batchId: string): Promise<MigrationMappingRow[]>
   listNormalizations(batchId: string): Promise<MigrationNormalizationRow[]>
   listErrors(batchId: string): Promise<MigrationErrorRow[]>
-  listStagingRows(batchId: string): Promise<MigrationStagingRow[]>
   createMappings(batchId: string, mappings: MigrationMappingInput[]): Promise<number>
   createNormalizations(
     batchId: string,
     normalizations: MigrationNormalizationInput[],
   ): Promise<number>
   createErrors(batchId: string, errors: MigrationErrorInput[]): Promise<number>
-  createStagingRows(batchId: string, rows: MigrationStagingRowInput[]): Promise<number>
-  createExternalReferences(refs: MigrationExternalReferenceInput[]): Promise<number>
-  findExternalReferences(input: {
-    provider: MigrationIntegrationProvider
-    externalIds: string[]
-    internalEntityType?: 'client' | 'obligation' | 'return_project'
-  }): Promise<MigrationExternalReferenceRow[]>
   commitImport(input: CommitImportInput): Promise<void>
   revertImport(input: RevertImportInput): Promise<{ clientCount: number; obligationCount: number }>
   singleUndoImport(

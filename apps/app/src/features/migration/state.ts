@@ -7,8 +7,6 @@ import type {
   DryRunSummary,
   MigrationSource,
   MigrationSourceManifest,
-  MigrationExternalStagingRowInput,
-  MigrationIntegrationProvider,
 } from '@duedatehq/contracts'
 
 /**
@@ -23,8 +21,6 @@ import type {
 
 export type StepIndex = 1 | 2 | 3 | 4
 
-export type IntakeMode = 'paste' | 'upload' | 'integration' | 'previous_sync'
-
 export type PresetId =
   | 'taxdome'
   | 'drake'
@@ -37,10 +33,8 @@ export type PresetId =
   | 'proseries'
   | 'ultratax_cs'
   | 'proconnect_tax'
-export type IntegrationProvider = MigrationIntegrationProvider
 
 export interface IntakeState {
-  mode: IntakeMode
   /** Raw paste text or file content as utf-8 string. */
   rawText: string
   fileName: string | null
@@ -50,10 +44,6 @@ export interface IntakeState {
   sizeBytes: number
   sourceManifest: MigrationSourceManifest | null
   preset: PresetId | null
-  integrationProvider: IntegrationProvider
-  integrationRawText: string
-  integrationRows: MigrationExternalStagingRowInput[]
-  previousSyncBatchId: string | null
   /** Header indexes blocked by SSN regex on the client side. */
   ssnBlockedColumnIndexes: number[]
   rowCount: number
@@ -107,7 +97,6 @@ export const INITIAL_STATE: WizardState = {
   batchId: null,
   batch: null,
   intake: {
-    mode: 'paste',
     rawText: '',
     fileName: null,
     fileKind: 'paste',
@@ -116,10 +105,6 @@ export const INITIAL_STATE: WizardState = {
     sizeBytes: 0,
     sourceManifest: null,
     preset: null,
-    integrationProvider: 'karbon',
-    integrationRawText: '',
-    integrationRows: [],
-    previousSyncBatchId: null,
     ssnBlockedColumnIndexes: [],
     rowCount: 0,
     truncated: false,
@@ -139,7 +124,6 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
 
   const intake = state.intake
   if (
-    intake.mode !== INITIAL_STATE.intake.mode ||
     intake.rawText !== '' ||
     intake.fileName !== null ||
     intake.fileKind !== INITIAL_STATE.intake.fileKind ||
@@ -148,10 +132,6 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
     intake.sizeBytes !== 0 ||
     intake.sourceManifest !== null ||
     intake.preset !== null ||
-    intake.integrationProvider !== INITIAL_STATE.intake.integrationProvider ||
-    intake.integrationRawText !== '' ||
-    intake.integrationRows.length > 0 ||
-    intake.previousSyncBatchId !== null ||
     intake.ssnBlockedColumnIndexes.length > 0 ||
     intake.rowCount !== 0 ||
     intake.truncated ||
@@ -185,7 +165,6 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
 export type WizardAction =
   | { type: 'SET_BUSY'; busy: boolean }
   | { type: 'GO_TO_STEP'; step: StepIndex }
-  | { type: 'INTAKE_MODE'; mode: IntakeMode }
   | {
       type: 'INTAKE_TEXT'
       text: string
@@ -197,15 +176,6 @@ export type WizardAction =
       sourceManifest?: MigrationSourceManifest | null
     }
   | { type: 'INTAKE_PRESET'; preset: PresetId | null }
-  | { type: 'INTAKE_INTEGRATION_PROVIDER'; provider: IntegrationProvider }
-  | {
-      type: 'INTAKE_INTEGRATION_ROWS'
-      rawText: string
-      tabularText: string
-      rows: MigrationExternalStagingRowInput[]
-      parseError: string | null
-    }
-  | { type: 'INTAKE_PREVIOUS_SYNC'; batchId: string | null }
   | {
       type: 'INTAKE_PARSED'
       rowCount: number
@@ -235,8 +205,6 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, isBusy: action.busy }
     case 'GO_TO_STEP':
       return { ...state, step: action.step }
-    case 'INTAKE_MODE':
-      return { ...state, intake: { ...state.intake, mode: action.mode } }
     case 'INTAKE_TEXT':
       return {
         ...state,
@@ -260,67 +228,6 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       }
     case 'INTAKE_PRESET':
       return { ...state, intake: { ...state.intake, preset: action.preset } }
-    case 'INTAKE_INTEGRATION_PROVIDER':
-      return {
-        ...state,
-        intake: {
-          ...state.intake,
-          integrationProvider: action.provider,
-          integrationRows: [],
-          integrationRawText: '',
-          rawText: '',
-          fileName: null,
-          fileKind: 'paste',
-          rawFileBase64: null,
-          contentType: null,
-          sizeBytes: 0,
-          sourceManifest: null,
-          rowCount: 0,
-          parseError: null,
-          submitError: null,
-        },
-      }
-    case 'INTAKE_INTEGRATION_ROWS':
-      return {
-        ...state,
-        intake: {
-          ...state.intake,
-          mode: 'integration',
-          integrationRawText: action.rawText,
-          integrationRows: action.rows,
-          rawText: action.tabularText,
-          fileName: `${state.intake.integrationProvider}-integration.json`,
-          fileKind: 'csv',
-          rawFileBase64: null,
-          contentType: 'application/json',
-          sizeBytes: action.rawText.length,
-          sourceManifest: null,
-          rowCount: action.rows.length,
-          truncated: false,
-          ssnBlockedColumnIndexes: [],
-          parseError: action.parseError,
-          submitError: null,
-        },
-      }
-    case 'INTAKE_PREVIOUS_SYNC':
-      return {
-        ...state,
-        intake: {
-          ...state.intake,
-          mode: 'previous_sync',
-          previousSyncBatchId: action.batchId,
-          rawText: '',
-          fileName: null,
-          fileKind: 'paste',
-          rawFileBase64: null,
-          contentType: null,
-          sizeBytes: 0,
-          sourceManifest: null,
-          rowCount: action.batchId ? 1 : 0,
-          parseError: null,
-          submitError: null,
-        },
-      }
     case 'INTAKE_PARSED':
       return {
         ...state,
@@ -432,20 +339,4 @@ export const PRESET_TO_SOURCE: Record<PresetId, MigrationSource> = {
   proseries: 'preset_proseries',
   ultratax_cs: 'preset_ultratax_cs',
   proconnect_tax: 'preset_proconnect_tax',
-}
-
-export const INTEGRATION_PROVIDERS: ReadonlyArray<IntegrationProvider> = [
-  'karbon',
-  'taxdome',
-  'soraban',
-  'safesend',
-  'proconnect',
-]
-
-export const PROVIDER_TO_SOURCE: Record<IntegrationProvider, MigrationSource> = {
-  taxdome: 'integration_taxdome_zapier',
-  karbon: 'integration_karbon_api',
-  soraban: 'integration_soraban_api',
-  safesend: 'integration_safesend_api',
-  proconnect: 'integration_proconnect_export',
 }

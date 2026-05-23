@@ -290,9 +290,6 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listErrors() {
       return []
     },
-    async listStagingRows() {
-      return []
-    },
     async createMappings() {
       return 0
     },
@@ -301,15 +298,6 @@ function buildScoped(firmId: string, rows: Row[]) {
     },
     async createErrors() {
       return 0
-    },
-    async createStagingRows() {
-      return 0
-    },
-    async createExternalReferences() {
-      return 0
-    },
-    async findExternalReferences() {
-      return []
     },
     async commitImport() {
       return unused('migration.commitImport')

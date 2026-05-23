@@ -961,10 +961,6 @@ msgstr "请添加审核说明后重试。"
 msgid "Add a state to at least one client before running obligation preview."
 msgstr "先为至少一个客户添加州信息，再运行义务预览。"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Add at least one provider record to continue."
-msgstr "至少添加一条服务商记录才能继续。"
-
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Add client facts, filing profiles, and due-date work before the guidance queue has enough signal."
 msgstr "先补充客户事实、filing profiles 和截止日工作，业务提示队列才会有足够信号。"
@@ -1931,10 +1927,6 @@ msgstr "此计划暂时无法结账。请联系支持。"
 #: src/routes/billing.tsx
 msgid "Checkout, cards, invoices, and portal sessions stay with the processor."
 msgstr "支付、银行卡、发票和账单门户会话都保留在支付处理方。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Choose a previous provider import"
-msgstr "选择之前的平台导入"
 
 #: src/routes/billing.tsx
 msgid "Choose a workspace tier"
@@ -4419,10 +4411,6 @@ msgstr "导入已回滚"
 msgid "Import source"
 msgstr "导入来源"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Import source type"
-msgstr "导入来源类型"
-
 #: src/features/migration/Step2Mapping.tsx
 msgid "Import template"
 msgstr "导入模板"
@@ -4448,10 +4436,6 @@ msgstr "重要性"
 #: src/features/audit/audit-log-labels.ts
 msgid "Imported client undone"
 msgstr "已撤销导入的客户"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Imported records still need review"
-msgstr "导入的记录仍需复核"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
@@ -4532,14 +4516,6 @@ msgstr "说明"
 #: src/features/migration/Stepper.tsx
 msgid "Intake"
 msgstr "入料"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Integration record source"
-msgstr "集成记录来源"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Integration records"
-msgstr "集成记录"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -5264,10 +5240,6 @@ msgstr "Morning digest 预览已排队"
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "早间摘要的发送时间，以及 DueDateHQ 用来联系你的渠道。"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Most provider exports are CSV or XLSX. Use Paste / Upload with an import template for those. This path is for records copied from integration tools or converted provider reports, and generated obligations still require enough imported facts."
-msgstr "多数服务商导出文件是 CSV 或 XLSX。此类文件请使用\"粘贴 / 上传\"并选择导入模板。此入口用于从集成工具复制或由服务商报表转换出的记录；生成义务仍需要足够的导入事实。"
-
 #: src/routes/obligations.tsx
 msgid "Move this row to In review — preparation work has begun."
 msgstr "将此行转入「复核中」 — 准备工作已开始。"
@@ -5736,10 +5708,6 @@ msgstr "未选择事务所"
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No previous client"
 msgstr "没有上一个客户"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "No previous provider imports are available yet."
-msgstr "暂无可复用的平台导入记录。"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No production records"
@@ -6608,28 +6576,12 @@ msgid "Past due"
 msgstr "已逾期"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste / Upload"
-msgstr "粘贴 / 上传"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste client data"
 msgstr "粘贴客户数据"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose an import template."
-msgstr "粘贴来自集成工具或已转换服务商报表的客户记录。CSV/XLSX 导出请切换到\"粘贴 / 上传\"并选择导入模板。"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 msgstr "粘贴到这里 —— 任何格式都行，我们会自动识别。如果有表头也请一并粘贴。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste provider client records"
-msgstr "粘贴服务商客户记录"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste provider records in the integration handoff format."
-msgstr "请粘贴集成交接格式的服务商记录。"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste rows"
@@ -7228,10 +7180,6 @@ msgstr "Pro"
 msgid "Production Pulse actions require Pro or above."
 msgstr "Production Pulse 操作需要 Pro 或更高计划。"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Provider client records"
-msgstr "服务商客户记录"
-
 #: src/routes/billing.tsx
 msgid "Provider hosted"
 msgstr "服务商托管"
@@ -7826,10 +7774,6 @@ msgstr "Return to Today"
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "Returned from filed status — IRS/state rejected the submission."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Reuse provider import"
-msgstr "复用平台导入"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
@@ -9659,10 +9603,6 @@ msgstr "主题"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "然后"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "These choices mark where the records came from and keep source-system IDs for future audit and status matching. They do not convert CSV exports into another format."
-msgstr "这些选择会标记记录来源，并保留来源系统中的编号，方便之后审计和状态匹配。它不会把 CSV 导出转换成其他格式。"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "These flags drive what obligations get generated for this client. Active flags need a maintainer's edit flow — see the audit doc for follow-up."

@@ -2,8 +2,6 @@ import type {
   MapperFallback,
   MappingRow,
   MatrixSelection,
-  MigrationExternalEntityType,
-  MigrationIntegrationProvider,
   MigrationSourceManifest,
   MigrationError,
   NormalizationRow,
@@ -27,15 +25,8 @@ export interface MappingJsonPayload {
     rowCount: number
     truncated: boolean
   }
-  /** Integration source context, present when Step 1 came from a provider. */
-  providerContext?: {
-    provider: MigrationIntegrationProvider
-    source: string
-  }
   /** Source/product/file detection from Step 1 upload intake. */
   sourceManifest?: MigrationSourceManifest
-  /** Per-row external provenance kept alongside the tabular projection. */
-  externalStagingRows?: ExternalStagingPayloadRow[]
   /** Pre-AI redaction record (column indexes flagged as SSN/ITIN-like). */
   ssnBlockedColumns?: number[]
   /** Last AI Mapper output, kept verbatim for the Re-run flow. */
@@ -52,16 +43,6 @@ export interface MappingJsonPayload {
   matrixSelections?: MatrixSelection[]
   /** Fallback channel marker for runMapper / confirmMapping outputs. */
   mapperFallback?: MapperFallback
-}
-
-export interface ExternalStagingPayloadRow {
-  rowIndex: number
-  stagingRowId: string
-  provider: MigrationIntegrationProvider
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl: string | null
-  rowHash: string
 }
 
 export interface MatrixApplicationEntry {
