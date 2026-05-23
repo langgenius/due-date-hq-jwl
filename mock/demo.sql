@@ -354,10 +354,10 @@ WHERE id = '20000000-0000-4000-8000-000000000005';
 -- the Not started bucket.
 UPDATE obligation_instance
 SET status = 'pending',
-    prep_stage = NULL,
-    review_stage = NULL,
-    efile_state = NULL,
-    payment_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000002';
 
 -- Client 0002 — Bright Studio S-Corp → waiting_on_client
@@ -367,9 +367,9 @@ WHERE id = '20000000-0000-4000-8000-000000000002';
 UPDATE obligation_instance
 SET status = 'waiting_on_client',
     prep_stage = 'waiting_on_client',
-    review_stage = NULL,
-    efile_state = NULL,
-    payment_state = NULL
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000003';
 
 -- Client 0003 — Northstar Dental Group → blocked
@@ -381,10 +381,10 @@ WHERE id = '20000000-0000-4000-8000-000000000003';
 UPDATE obligation_instance
 SET status = 'blocked',
     blocked_by_obligation_instance_id = '20000000-0000-4000-8000-000000000009',
-    prep_stage = NULL,
-    review_stage = NULL,
-    efile_state = NULL,
-    payment_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000022';
 
 -- Client 0004 — Copperline Studios Inc. → review
@@ -395,8 +395,8 @@ UPDATE obligation_instance
 SET status = 'review',
     prep_stage = 'prepared',
     review_stage = 'in_review',
-    efile_state = NULL,
-    payment_state = NULL
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000005';
 
 -- Client 0005 — Cascade Florist → in_progress (drafting)
@@ -406,9 +406,9 @@ WHERE id = '20000000-0000-4000-8000-000000000005';
 UPDATE obligation_instance
 SET status = 'in_progress',
     prep_stage = 'in_prep',
-    review_stage = NULL,
-    efile_state = NULL,
-    payment_state = NULL
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000006';
 
 -- Client 0006 — Magnolia Family Trust → done (Filed, awaiting acceptance)
@@ -421,9 +421,9 @@ SET status = 'done',
     efile_state = 'submitted',
     efile_submitted_at = CAST(unixepoch('2026-05-20 14:00:00') * 1000 AS INTEGER),
     efile_accepted_at = NULL,
-    prep_stage = NULL,
-    review_stage = NULL,
-    payment_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000008';
 
 -- Client 0007 — Lakeview Medical Partners → extended
@@ -434,10 +434,10 @@ UPDATE obligation_instance
 SET status = 'extended',
     extension_filed_at = CAST(unixepoch('2026-04-25 11:00:00') * 1000 AS INTEGER),
     current_due_date = CAST(unixepoch('2026-11-15 00:00:00') * 1000 AS INTEGER),
-    prep_stage = NULL,
-    review_stage = NULL,
-    efile_state = NULL,
-    payment_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000009';
 
 -- Client 0008 — Orbit Design LLC → paid (payment confirmed)
@@ -448,9 +448,9 @@ WHERE id = '20000000-0000-4000-8000-000000000009';
 UPDATE obligation_instance
 SET status = 'paid',
     payment_state = 'confirmed',
-    prep_stage = NULL,
-    review_stage = NULL,
-    efile_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000010';
 
 -- Client 0009 — Riverbend Draft Client → completed
@@ -463,9 +463,9 @@ SET status = 'completed',
     efile_state = 'final_package_delivered',
     efile_submitted_at = CAST(unixepoch('2026-05-09 09:30:00') * 1000 AS INTEGER),
     efile_accepted_at = CAST(unixepoch('2026-05-12 10:15:00') * 1000 AS INTEGER),
-    prep_stage = NULL,
-    review_stage = NULL,
-    payment_state = NULL
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    payment_state = 'not_applicable'
 WHERE id = '20000000-0000-4000-8000-000000000011';
 
 -- =========================================================================

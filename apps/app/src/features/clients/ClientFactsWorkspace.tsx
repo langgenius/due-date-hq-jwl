@@ -1922,7 +1922,7 @@ export function ClientDetailWorkspace({
                   <div
                     id="client-filing-jurisdictions"
                     className={cn(
-                      'scroll-mt-20 overflow-hidden rounded-md border bg-background-default',
+                      'scroll-mt-20 rounded-md border bg-background-default p-4',
                       missingFilingState
                         ? 'border-components-badge-bg-warning-soft'
                         : 'border-divider-regular',
@@ -1941,7 +1941,7 @@ export function ClientDetailWorkspace({
                   title={t`Risk profile`}
                   summary={t`Penalty exposure and tax-attribute flags`}
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
                     <ClientRiskInputsPanel
                       key={`${client.id}:risk`}
                       client={client}
@@ -1959,13 +1959,13 @@ export function ClientDetailWorkspace({
                       : t`All required facts present`
                   }
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
                     <ClientFactChecklist client={client} readiness={readiness} />
                   </div>
                 </TabSection>
 
                 <TabSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
                     <ClientImportSourcePanel client={client} />
                   </div>
                 </TabSection>
@@ -1976,7 +1976,7 @@ export function ClientDetailWorkspace({
                   title={t`Suggested forms`}
                   summary={t`Forms the rule library can add without a new deadline`}
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
                     <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
                   </div>
                 </TabSection>
@@ -1985,9 +1985,11 @@ export function ClientDetailWorkspace({
                   title={t`Future business cues`}
                   summary={t`Advisory, scope, and retention opportunities`}
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-                    <ClientOpportunitiesCard clientId={client.id} />
-                  </div>
+                  {/* ClientOpportunitiesCard renders its own <Card>
+                      chrome (frame + internal title). We let it stand
+                      alone — wrapping it in another frame doubled the
+                      border + duplicated the heading. */}
+                  <ClientOpportunitiesCard clientId={client.id} />
                 </TabSection>
               </TabsContent>
 
@@ -2003,7 +2005,7 @@ export function ClientDetailWorkspace({
                       : t`No summary yet`
                   }
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
                     <ClientRiskSummaryPanel
                       insight={riskSummaryQuery.data ?? null}
                       isLoading={riskSummaryQuery.isLoading}
@@ -2033,14 +2035,15 @@ export function ClientDetailWorkspace({
                   title={t`Activity log`}
                   summary={t`Recent audited changes for this client record`}
                 >
-                  <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-                    <ClientActivityPanel
-                      events={auditQuery.data?.events ?? []}
-                      canReadAudit={canReadAudit}
-                      isLoading={auditQuery.isLoading}
-                      firmTimezone={firmTimezone}
-                    />
-                  </div>
+                  {/* ClientActivityPanel renders each audit event as
+                      its own bordered row. No outer wrapper — would
+                      stack a frame around the per-row frames. */}
+                  <ClientActivityPanel
+                    events={auditQuery.data?.events ?? []}
+                    canReadAudit={canReadAudit}
+                    isLoading={auditQuery.isLoading}
+                    firmTimezone={firmTimezone}
+                  />
                 </TabSection>
               </TabsContent>
             </Tabs>
@@ -2434,7 +2437,7 @@ function ClientActiveAlertsSection({
   return (
     <section
       aria-label="Active alerts for this client"
-      className="overflow-hidden rounded-md border border-divider-regular bg-background-default"
+      className="rounded-md border border-divider-regular bg-background-default p-4"
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
         <h3 className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-text-warning">

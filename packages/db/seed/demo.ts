@@ -7,7 +7,14 @@ import { fileURLToPath } from 'node:url'
 const seedDir = dirname(fileURLToPath(import.meta.url))
 const sqlPath = resolve(seedDir, '../../../mock/demo.sql')
 const serverDir = resolve(seedDir, '../../../apps/server')
-const maxSqlChunkBytes = 75_000
+// 2026-05-24: bumped 75_000 → 120_000. The demo.sql grew a single
+// INSERT (alert templates, ~76 KB after the latest seed expansion)
+// that exceeded the prior cap, which made chunkSqlStatements throw
+// "Seed SQL statement exceeds N bytes". Wrangler `d1 execute --file`
+// happily takes much larger inputs than this; the chunking is just
+// to avoid passing one giant temp file to `spawnSync`, so the cap
+// can grow as the seed grows.
+const maxSqlChunkBytes = 120_000
 
 if (!existsSync(sqlPath)) {
   console.error(`[seed:demo] Missing mock SQL file: ${sqlPath}`)
@@ -68,6 +75,23 @@ function splitSqlStatements(sql: string): string[] {
 
   for (let index = 0; index < sql.length; index += 1) {
     const char = sql[index]
+
+    // 2026-05-24: skip `-- line comments` so apostrophes inside
+    // comments (e.g. "the row's signal" on line 343 of mock/demo.sql)
+    // don't toggle the in-string tracker and corrupt every downstream
+    // statement boundary. Comments only matter outside of strings;
+    // a `--` sequence inside a string literal is just text.
+    if (!inString && char === '-' && sql[index + 1] === '-') {
+      // Consume the entire comment but DON'T add it to `current` —
+      // wrangler accepts SQL without them and stripping them keeps the
+      // chunked payload smaller.
+      while (index < sql.length && sql[index] !== '\n') index += 1
+      // Preserve the newline so subsequent line numbers in error
+      // output still line up roughly with the source file.
+      if (index < sql.length) current += sql[index]
+      continue
+    }
+
     current += char
 
     if (char === "'") {

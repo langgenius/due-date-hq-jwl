@@ -167,8 +167,14 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
     >
       <div className="grid gap-4 p-4">
         {/* Identity row — four facts the CPA copies most often.
-          Renders as a 2x2 grid below md and 4-up above. */}
-        <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            2026-05-24: stayed at 2-col across all viewports. The
+            previous `lg:grid-cols-4` overflowed when the obligation
+            drawer was open on /clients/[id] (the right-rail panel
+            steals ~480px of body width, so the "lg" media query was
+            triggering at viewport-lg but rendering in a sub-lg
+            container). 2-col is comfortable at every supported
+            width and the labels still read in one scan. */}
+        <dl className="grid gap-3 sm:grid-cols-2">
           <IdentityCell
             label={t`Federal EIN`}
             value={
