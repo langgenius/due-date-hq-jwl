@@ -28,6 +28,17 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 
+import cchAxcessLogoUrl from './assets/source-logos/cch-axcess.png?url'
+import cchProSystemFxLogoUrl from './assets/source-logos/cch-prosystem-fx.png?url'
+import drakeLogoUrl from './assets/source-logos/drake.png?url'
+import fileInTimeLogoUrl from './assets/source-logos/file-in-time.svg?url'
+import karbonLogoUrl from './assets/source-logos/karbon.png?url'
+import lacerteLogoUrl from './assets/source-logos/lacerte.png?url'
+import proconnectTaxLogoUrl from './assets/source-logos/proconnect-tax.png?url'
+import proseriesLogoUrl from './assets/source-logos/proseries.png?url'
+import quickbooksLogoUrl from './assets/source-logos/quickbooks.svg?url'
+import taxdomeLogoUrl from './assets/source-logos/taxdome.png?url'
+import ultrataxCsLogoUrl from './assets/source-logos/ultratax-cs.png?url'
 import {
   INTEGRATION_PROVIDERS,
   PRESET_IDS,
@@ -57,6 +68,29 @@ const PRESET_LABELS: Record<PresetId, string> = {
   proseries: 'ProSeries',
   ultratax_cs: 'UltraTax CS',
   proconnect_tax: 'ProConnect Tax',
+}
+
+const SOURCE_PRESET_IDS: ReadonlyArray<PresetId> = [...PRESET_IDS, ...TAX_SOFTWARE_PRESET_IDS]
+
+const PRESET_LOGOS: Record<
+  PresetId,
+  {
+    src: string
+    tileClassName?: string | undefined
+    imageClassName?: string | undefined
+  }
+> = {
+  taxdome: { src: taxdomeLogoUrl },
+  drake: { src: drakeLogoUrl },
+  karbon: { src: karbonLogoUrl },
+  quickbooks: { src: quickbooksLogoUrl },
+  file_in_time: { src: fileInTimeLogoUrl },
+  cch_axcess: { src: cchAxcessLogoUrl },
+  cch_prosystem_fx: { src: cchProSystemFxLogoUrl },
+  lacerte: { src: lacerteLogoUrl, imageClassName: 'max-w-[30px]' },
+  proseries: { src: proseriesLogoUrl },
+  ultratax_cs: { src: ultrataxCsLogoUrl },
+  proconnect_tax: { src: proconnectTaxLogoUrl },
 }
 
 const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
@@ -654,22 +688,7 @@ export function Step1Intake({
               <Trans>I&apos;m coming from… (optional)</Trans>
             </span>
             <div className="flex flex-wrap gap-2">
-              {PRESET_IDS.map((id) => (
-                <PresetChip
-                  key={id}
-                  id={id}
-                  label={PRESET_LABELS[id]}
-                  selected={intake.preset === id}
-                  compact={compact}
-                  onToggle={() => onPreset(intake.preset === id ? null : id)}
-                />
-              ))}
-            </div>
-            <span className="pt-1 font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>Tax software exports</Trans>
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {TAX_SOFTWARE_PRESET_IDS.map((id) => (
+              {SOURCE_PRESET_IDS.map((id) => (
                 <PresetChip
                   key={id}
                   id={id}
@@ -788,14 +807,15 @@ interface PresetChipProps {
 }
 
 function PresetChip({ id, label, selected, compact = false, onToggle }: PresetChipProps) {
+  const logo = PRESET_LOGOS[id]
   const chip = (
     <button
       type="button"
       onClick={onToggle}
       aria-pressed={selected}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-1.5 rounded-md border font-medium transition-colors',
-        compact ? 'h-8 px-2.5 text-sm' : 'h-9 px-3 text-md',
+        'inline-flex cursor-pointer items-center gap-2 rounded-md border font-medium transition-colors',
+        compact ? 'h-8 px-2 pr-2.5 pl-1.5 text-sm' : 'h-9 px-3 pl-2 text-md',
         selected
           ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
           : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
@@ -804,10 +824,23 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       <span
         aria-hidden
         className={cn(
-          'block size-1.5 rounded-full transition-colors',
-          selected ? 'bg-state-accent-solid' : 'bg-state-accent-solid/60',
+          'grid shrink-0 place-items-center overflow-hidden rounded-[4px] bg-white ring-1 ring-black/10 transition-transform',
+          compact ? 'size-5' : 'size-5.5',
+          logo.tileClassName,
+          selected && 'scale-105',
         )}
-      />
+      >
+        <img
+          src={logo.src}
+          alt=""
+          draggable={false}
+          className={cn(
+            'max-h-[18px] max-w-[22px] object-contain',
+            compact && 'max-h-4 max-w-5',
+            logo.imageClassName,
+          )}
+        />
+      </span>
       {label}
     </button>
   )

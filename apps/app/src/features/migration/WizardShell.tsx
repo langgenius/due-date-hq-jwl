@@ -124,7 +124,7 @@ function WizardFrame({
     <div
       className={cn(
         'flex w-full flex-col gap-0 overflow-hidden rounded-xl border border-divider-regular bg-components-panel-bg p-3 shadow-overlay',
-        layout === 'route' ? 'min-h-0 flex-1' : 'max-h-[calc(100vh-4rem)]',
+        layout === 'route' ? 'min-h-0 flex-none' : 'max-h-[calc(100vh-4rem)]',
       )}
     >
       <div className="sr-only">
@@ -329,7 +329,7 @@ export function WizardRouteShell({
 
   return (
     <>
-      <div className="mx-auto flex min-h-0 w-full max-w-[1120px] flex-1 flex-col gap-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1120px] flex-none flex-col gap-4">
         <div className="shrink-0">{resolvedIntro}</div>
         <WizardFrame
           {...frameProps}

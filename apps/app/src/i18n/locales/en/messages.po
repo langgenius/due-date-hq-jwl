@@ -9064,10 +9064,6 @@ msgstr "Target filing year must be the next year after source filing year."
 msgid "Tax period"
 msgstr "Tax period"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Tax software exports"
-msgstr "Tax software exports"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/generation-preview-tab.tsx

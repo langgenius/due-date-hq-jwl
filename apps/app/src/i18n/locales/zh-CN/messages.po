@@ -9064,10 +9064,6 @@ msgstr "目标申报年度必须是来源申报年度的下一年。"
 msgid "Tax period"
 msgstr "税务期间"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Tax software exports"
-msgstr "报税软件导出"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/generation-preview-tab.tsx
