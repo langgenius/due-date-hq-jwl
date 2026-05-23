@@ -338,8 +338,11 @@ describe('client detail model', () => {
       nextDueDate: '2026-05-30',
       nextTaxType: 'CA Payroll',
       // earliest-due row is a2 (waiting_on_client) — its status
-      // populates the pill on the /clients list next to "Xd late"
+      // populates the pill INLINE inside the NEXT DUE cell next to
+      // "Xd late". a3 ('done') is counted toward doneCount but its
+      // historical due date doesn't move nextDueDate backward.
       nextDueStatus: 'waiting_on_client',
+      doneCount: 1,
     })
     expect(summaries.get('client_b')).toEqual({
       openCount: 1,
@@ -348,6 +351,7 @@ describe('client detail model', () => {
       nextDueDate: '2026-07-01',
       nextTaxType: 'NY Form CT-3',
       nextDueStatus: 'in_progress',
+      doneCount: 0,
     })
   })
 

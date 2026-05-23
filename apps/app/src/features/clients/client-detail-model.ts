@@ -169,44 +169,63 @@ export type ClientObligationListSummary = {
   nextDueDate: string | null
   nextTaxType: string | null
   // 2026-05-23: status of the earliest-non-terminal obligation. Surfaces
-  // on the /clients list as a colored pill next to NEXT DUE so the CPA
-  // can tell *why* a row is "Xd late" (blocked / waiting / in review /
-  // ...) without opening the drawer. Tracks the same row whose due
-  // date populates `nextDueDate`.
+  // on the /clients list as a colored pill inside the NEXT DUE cell so
+  // the CPA can tell *why* a row is "Xd late" (blocked / waiting / in
+  // review / ...) without opening the drawer. Tracks the same row whose
+  // due date populates `nextDueDate`.
   nextDueStatus: ObligationInstancePublic['status'] | null
+  // 2026-05-23: count of obligations the firm has already filed or
+  // closed out for this client. Pairs with `openCount` on the /clients
+  // list — answers "how many done?" alongside "how many in-flight?".
+  // Counts rows whose status is `done` or `completed` (terminal states
+  // in the workflow).
+  doneCount: number
 }
+
+// 2026-05-23: terminal-state statuses contribute to `doneCount` but
+// not to `openCount` or `nextDueDate`. Kept in sync with the list
+// route's widened query input (`OBLIGATIONS_LIST_INPUT.status`).
+const DONE_OBLIGATION_STATUSES = new Set<ObligationInstancePublic['status']>(['done', 'completed'])
 
 export function buildClientObligationListSummaries(
   rows: readonly ObligationQueueRow[],
 ): Map<string, ClientObligationListSummary> {
   const byClient = new Map<string, ClientObligationListSummary>()
+  const ensure = (clientId: string): ClientObligationListSummary => {
+    const existing = byClient.get(clientId)
+    if (existing) return existing
+    const fresh: ClientObligationListSummary = {
+      openCount: 0,
+      overdueCount: 0,
+      waitingOnClientCount: 0,
+      nextDueDate: null,
+      nextTaxType: null,
+      nextDueStatus: null,
+      doneCount: 0,
+    }
+    byClient.set(clientId, fresh)
+    return fresh
+  }
   for (const row of rows) {
-    if (!OPEN_OBLIGATION_STATUSES.has(row.status)) continue
-    const isOverdue = row.daysUntilDue < 0
-    const isWaiting = row.status === 'waiting_on_client'
-    const existing = byClient.get(row.clientId)
-    if (!existing) {
-      byClient.set(row.clientId, {
-        openCount: 1,
-        overdueCount: isOverdue ? 1 : 0,
-        waitingOnClientCount: isWaiting ? 1 : 0,
-        nextDueDate: row.currentDueDate,
-        nextTaxType: row.taxType,
-        nextDueStatus: row.status,
-      })
+    const isOpen = OPEN_OBLIGATION_STATUSES.has(row.status)
+    const isDone = DONE_OBLIGATION_STATUSES.has(row.status)
+    if (!isOpen && !isDone) continue
+    const summary = ensure(row.clientId)
+    if (isDone) {
+      summary.doneCount += 1
       continue
     }
-    existing.openCount += 1
-    if (isOverdue) existing.overdueCount += 1
-    if (isWaiting) existing.waitingOnClientCount += 1
-    if (!existing.nextDueDate || row.currentDueDate < existing.nextDueDate) {
-      existing.nextDueDate = row.currentDueDate
-      existing.nextTaxType = row.taxType
+    // Open row: count it, then maybe update next-due tracking.
+    summary.openCount += 1
+    if (row.daysUntilDue < 0) summary.overdueCount += 1
+    if (row.status === 'waiting_on_client') summary.waitingOnClientCount += 1
+    if (!summary.nextDueDate || row.currentDueDate < summary.nextDueDate) {
+      summary.nextDueDate = row.currentDueDate
+      summary.nextTaxType = row.taxType
       // Capture the status of WHICHEVER row populates nextDueDate so
-      // the list pill matches the date next to it. Without this we'd
-      // show the status of the first row we encountered (insertion
-      // order), not the earliest-due row.
-      existing.nextDueStatus = row.status
+      // the inline pill matches the date next to it. Done rows are
+      // explicitly excluded above so this only tracks open statuses.
+      summary.nextDueStatus = row.status
     }
   }
   return byClient

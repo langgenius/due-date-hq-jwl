@@ -6,15 +6,20 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type RowData,
+  type SortingState,
 } from '@tanstack/react-table'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
   ArchiveIcon,
+  ArrowDownIcon,
+  ArrowUpDownIcon,
+  ArrowUpIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -35,6 +40,7 @@ import {
   ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
+  UserRoundIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -164,6 +170,11 @@ type ClientFactsWorkspaceProps = {
   clients: ClientPublic[]
   filteredClients: ClientPublic[]
   factsModel: ClientFactsModel
+  // 2026-05-23: entity labels (LLC / S corp / Partnership / …) flow in
+  // from the route so the workspace can render them in the new ENTITY
+  // column without depending on the route module (avoids a circular
+  // import — route imports workspace).
+  entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
@@ -446,6 +457,48 @@ function renderClientHeaderSubLine({
   )
 }
 
+/**
+ * 2026-05-23: small sort-arrow widget that sits next to a column
+ * header label. Three states matching TanStack's column.getIsSorted():
+ *   - false (idle)  → muted up/down chevron pair (sortable affordance)
+ *   - 'asc'         → solid up arrow (active ascending)
+ *   - 'desc'        → solid down arrow (active descending)
+ * Click cycles asc → desc → cleared. The widget renders inline so it
+ * pairs visually with whatever sits in the header (the filter chevron
+ * dropdown trigger usually), and stops propagation so the filter
+ * popover doesn't open when the user means to sort.
+ */
+function ColumnSortIndicator({
+  sortState,
+  onToggle,
+  ariaLabel,
+}: {
+  sortState: false | 'asc' | 'desc'
+  onToggle: () => void
+  ariaLabel: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation()
+        onToggle()
+      }}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      className="ml-1 inline-flex size-4 shrink-0 items-center justify-center rounded text-text-tertiary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+    >
+      {sortState === 'asc' ? (
+        <ArrowUpIcon className="size-3" aria-hidden />
+      ) : sortState === 'desc' ? (
+        <ArrowDownIcon className="size-3" aria-hidden />
+      ) : (
+        <ArrowUpDownIcon className="size-3 opacity-60" aria-hidden />
+      )}
+    </button>
+  )
+}
+
 function formatJurisdictionSummary(client: ClientPublic): string {
   const stateCount = getClientFilingStates(client).length
   if (stateCount === 0) return 'Needs filing state'
@@ -470,14 +523,17 @@ export function ClientFactsWorkspace({
   clients,
   filteredClients,
   factsModel,
+  entityLabels,
   isLoading,
   clientFilter,
   stateFilter,
   ownerFilter,
+  entityFilter,
   pulseMatchesByClient,
   obligationSummariesByClient,
   opportunityCountByClient,
   onClientFilterChange,
+  onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
   onPulseFilterChange,
@@ -509,6 +565,18 @@ export function ClientFactsWorkspace({
       count: counts.get(state) ?? 0,
     }))
   }, [clients, factsModel.stateOptions])
+  // 2026-05-23: entity options for the new ENTITY column filter
+  // dropdown. Counts how many clients sit at each entity type so the
+  // dropdown shows "S corp · 7" / "LLC · 5" etc.
+  const entityOptions = useMemo<FilterOption[]>(() => {
+    const counts = new Map<ClientEntityType, number>()
+    for (const client of clients) {
+      counts.set(client.entityType, (counts.get(client.entityType) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .map(([value, count]) => ({ value, label: entityLabels[value], count }))
+      .toSorted((a, b) => a.label.localeCompare(b.label))
+  }, [clients, entityLabels])
   const ownerOptions = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>()
     const labels = new Map<string, string>()
@@ -550,24 +618,32 @@ export function ClientFactsWorkspace({
     () => [
       {
         accessorKey: 'name',
-        // Header is just the filter trigger — the bare "9" count badge
-        // that used to sit here was mysterious (sort order? sort dir?
-        // filtered subset?) and competed visually with the column
-        // label. The count belongs in the action strip / pagination
-        // footer, not the column header.
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Client`}
-            open={openHeaderFilter === 'client'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
-            options={clientOptions}
-            selected={clientFilter}
-            emptyLabel={t`No clients`}
-            searchable
-            searchPlaceholder={t`Search clients`}
-            onSelectedChange={onClientFilterChange}
-          />
+        // Header pairs the filter trigger with a sort-arrow widget
+        // (2026-05-23). The filter dropdown opens on label click via
+        // TableHeaderMultiFilter's own trigger; the sort arrow is a
+        // separate small button to its right that cycles asc/desc/off.
+        // Click propagation is stopped inside the indicator so opening
+        // the filter doesn't toggle sort and vice versa.
+        header: ({ column }) => (
+          <div className="flex items-center gap-0">
+            <TableHeaderMultiFilter
+              trigger="header"
+              label={t`Client`}
+              open={openHeaderFilter === 'client'}
+              onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
+              options={clientOptions}
+              selected={clientFilter}
+              emptyLabel={t`No clients`}
+              searchable
+              searchPlaceholder={t`Search clients`}
+              onSelectedChange={onClientFilterChange}
+            />
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by client name`}
+            />
+          </div>
         ),
         cell: ({ row }) => {
           const matches = pulseMatchesByClient.get(row.original.id)
@@ -615,17 +691,24 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'state',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`States`}
-            open={openHeaderFilter === 'state'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
-            options={stateOptions}
-            selected={stateFilter}
-            emptyLabel={t`No states`}
-            onSelectedChange={onStateFilterChange}
-          />
+        header: ({ column }) => (
+          <div className="flex items-center gap-0">
+            <TableHeaderMultiFilter
+              trigger="header"
+              label={t`States`}
+              open={openHeaderFilter === 'state'}
+              onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
+              options={stateOptions}
+              selected={stateFilter}
+              emptyLabel={t`No states`}
+              onSelectedChange={onStateFilterChange}
+            />
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by state`}
+            />
+          </div>
         ),
         // Render primary state and any additional filing states inline:
         // primary state = filled secondary badge, additional states =
@@ -674,50 +757,103 @@ export function ClientFactsWorkspace({
         },
       },
       {
-        // L-5 (2026-05-23): collapsed from a 3-line composite (date +
-        // form + readiness chip) to a single tone-coded line. The
-        // form/tax-type moved to the hover peek (already accessible
-        // via the eye icon next to the client name) and the readiness
-        // chip moved to the NAME column so the row reads in one scan.
-        // Tone semantics: late = red, due today = amber, within 7d =
-        // amber, beyond = neutral. Matches the obligations queue's
-        // urgency vocabulary.
+        // 2026-05-23: ENTITY column returns as its own column per the
+        // design mock. Was previously a sub-line under the client name
+        // (L-6 retired it), then a header-only filter with no body
+        // rendering. Now it gets a single chip per row showing the
+        // entity type (LLC / S corp / Partnership / …) so the CPA can
+        // scan "what kind of return am I looking at?" without opening
+        // the client.
+        accessorKey: 'entityType',
+        header: ({ column }) => (
+          <div className="flex items-center gap-0">
+            <TableHeaderMultiFilter
+              trigger="header"
+              label={t`Entity`}
+              open={openHeaderFilter === 'entity'}
+              onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
+              options={entityOptions}
+              selected={entityFilter}
+              emptyLabel={t`No entities`}
+              onSelectedChange={onEntityFilterChange}
+            />
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by entity type`}
+            />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <Badge variant="outline" className="rounded-sm font-normal tabular-nums">
+            {entityLabels[row.original.entityType]}
+          </Badge>
+        ),
+        meta: {
+          headerClassName: 'w-[110px]',
+          cellClassName: 'w-[110px]',
+        },
+      },
+      {
+        // 2026-05-23 design pass: NEXT DUE cell becomes a 2-line composite
+        // and absorbs the standalone STATUS column.
+        //   Line 1: relative urgency ("In 2 days" / "8d late") with the
+        //           same tone semantics as before.
+        //   Line 2: ISO calendar date (YYYY-MM-DD) so the CPA can read
+        //           the absolute deadline without hovering.
+        //   Inline: status pill next to the date — answers "Xd late, but
+        //           why?" without a separate column.
+        // The standalone STATUS column (added 2026-05-23, retired same
+        // day) is gone; the inline pill is its replacement.
         id: 'nextDue',
-        header: t`Next due`,
+        header: ({ column }) => (
+          <span className="inline-flex items-center">
+            <Trans>Next due</Trans>
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by next due date`}
+            />
+          </span>
+        ),
+        // Custom sortingFn — the value comes from the summary map
+        // (not row.original), so the default accessor-based sort
+        // doesn't apply. Rows with no nextDueDate sort last regardless
+        // of direction (clients with nothing open sit at the bottom of
+        // an asc sort and at the top of a desc sort would feel wrong).
+        sortingFn: (rowA, rowB) => {
+          const a = obligationSummariesByClient.get(rowA.original.id)?.nextDueDate
+          const b = obligationSummariesByClient.get(rowB.original.id)?.nextDueDate
+          if (!a && !b) return 0
+          if (!a) return 1
+          if (!b) return -1
+          return a.localeCompare(b)
+        },
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           if (!summary?.nextDueDate) {
             return <span className="text-text-tertiary">—</span>
           }
-          return <NextDueRelativeLabel iso={summary.nextDueDate} />
-        },
-        meta: {
-          headerClassName: 'w-[120px]',
-          cellClassName: 'w-[120px]',
-        },
-      },
-      {
-        // 2026-05-23: surfaces the WORKFLOW phase of the row whose due
-        // date populates the Next due cell. Answers the question
-        // "Xd late — but why?" without forcing the CPA to open the
-        // drawer. Same status pill the obligation drawer header uses
-        // (`ObligationStatusReadBadge`) for visual continuity. When
-        // the client has no open obligations, renders an em-dash to
-        // stay aligned with the Next due cell's empty treatment.
-        id: 'nextDueStatus',
-        header: t`Status`,
-        cell: ({ row }) => {
-          const summary = obligationSummariesByClient.get(row.original.id)
-          if (!summary?.nextDueStatus) {
-            return <span className="text-text-tertiary">—</span>
-          }
           return (
-            <ObligationStatusReadBadge status={summary.nextDueStatus} className="font-normal" />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <NextDueRelativeLabel iso={summary.nextDueDate} />
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-mono text-[11px] tabular-nums text-text-tertiary">
+                  {summary.nextDueDate}
+                </span>
+                {summary.nextDueStatus ? (
+                  <ObligationStatusReadBadge
+                    status={summary.nextDueStatus}
+                    className="px-1.5 py-0 text-[10px] font-normal"
+                  />
+                ) : null}
+              </div>
+            </div>
           )
         },
         meta: {
-          headerClassName: 'w-[140px]',
-          cellClassName: 'w-[140px]',
+          headerClassName: 'w-[200px]',
+          cellClassName: 'w-[200px]',
         },
       },
       {
@@ -749,7 +885,21 @@ export function ClientFactsWorkspace({
       },
       {
         id: 'openObligations',
-        header: () => <span className="block text-right">{t`Open`}</span>,
+        header: ({ column }) => (
+          <span className="flex items-center justify-end">
+            <Trans>Open</Trans>
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by open count`}
+            />
+          </span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = obligationSummariesByClient.get(rowA.original.id)?.openCount ?? 0
+          const b = obligationSummariesByClient.get(rowB.original.id)?.openCount ?? 0
+          return a - b
+        },
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           const count = summary?.openCount ?? 0
@@ -770,6 +920,51 @@ export function ClientFactsWorkspace({
             >
               {count}
             </Link>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[80px] text-right',
+          cellClassName: 'w-[80px] text-right',
+        },
+      },
+      {
+        // 2026-05-23: DONE column added per design mock. Counts
+        // obligations whose status is done/completed (terminal states).
+        // Built from the widened obligations query that now includes
+        // those statuses alongside the open ones — see route
+        // CLIENTS_LIST_OBLIGATION_STATUSES. Plain count, no deep link
+        // (we don't have a routed view for closed obligations yet; the
+        // client detail's Activity tab is the right destination when
+        // we add that link).
+        id: 'doneObligations',
+        header: ({ column }) => (
+          <span className="flex items-center justify-end">
+            <Trans>Done</Trans>
+            <ColumnSortIndicator
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+              ariaLabel={t`Sort by done count`}
+            />
+          </span>
+        ),
+        sortingFn: (rowA, rowB) => {
+          const a = obligationSummariesByClient.get(rowA.original.id)?.doneCount ?? 0
+          const b = obligationSummariesByClient.get(rowB.original.id)?.doneCount ?? 0
+          return a - b
+        },
+        cell: ({ row }) => {
+          const summary = obligationSummariesByClient.get(row.original.id)
+          const count = summary?.doneCount ?? 0
+          if (count === 0) {
+            return <span className="block text-right text-text-tertiary tabular-nums">0</span>
+          }
+          return (
+            <span
+              className="block text-right tabular-nums text-text-secondary"
+              title={t`${count} filed or closed-out obligations for this client`}
+            >
+              {count}
+            </span>
           )
         },
         meta: {
@@ -805,8 +1000,13 @@ export function ClientFactsWorkspace({
         },
       },
       {
+        // 2026-05-23: abbreviated header from "Opportunities" → "Opp."
+        // per design mock. Full label preserved in the cell's tooltip
+        // (via ClientOpportunityCountBadge) and the column-toggle UI.
+        // Tighter header frees room for the new ENTITY + DONE columns
+        // without overflowing the 1100px page cap.
         id: 'opportunities',
-        header: t`Opportunities`,
+        header: t`Opp.`,
         cell: ({ row }) => {
           const count = opportunityCountByClient.get(row.original.id) ?? 0
           if (count === 0) {
@@ -815,10 +1015,8 @@ export function ClientFactsWorkspace({
           return <ClientOpportunityCountBadge count={count} />
         },
         meta: {
-          // Was 120px → "OPPORTUNI…" truncated the header. Bump to
-          // 140px so the full "Opportunities" label fits.
-          headerClassName: 'w-[140px]',
-          cellClassName: 'w-[140px]',
+          headerClassName: 'w-[80px]',
+          cellClassName: 'w-[80px]',
         },
       },
     ],
@@ -826,9 +1024,13 @@ export function ClientFactsWorkspace({
       clientFilter,
       clientOptions,
       currentUserName,
+      entityFilter,
+      entityLabels,
+      entityOptions,
       factsModel.readinessById,
       obligationSummariesByClient,
       onClientFilterChange,
+      onEntityFilterChange,
       onOwnerFilterChange,
       onStateFilterChange,
       openHeaderFilter,
@@ -864,11 +1066,20 @@ export function ClientFactsWorkspace({
     })
   }, [filteredClients, atRiskActive, waitingActive, obligationSummariesByClient])
 
+  // 2026-05-23: column sort state for the new sort-arrow indicators
+  // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / DONE). Default sort
+  // is unset so rows render in the API's `due_asc` order — clicking
+  // a header opts in. Stored locally because sort feels transient (a
+  // "show me by ___" gesture) rather than something to deep-link.
+  const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
     data: visibleClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: { sorting },
+    onSortingChange: setSorting,
     getRowId: (client) => client.id,
     // OTHER STATES + SERVICES start hidden because they're empty for
     // the typical single-state, no-services-managed firm shape (the
@@ -1149,11 +1360,22 @@ function ClientsActionStrip({
           <div className="flex items-start gap-2">
             <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
             <AlertDescription>
-              <Plural
-                value={needsFactsCount}
-                one="# client is missing state or entity type — the rule library is skipping it."
-                other="# clients are missing state or entity type — the rule library is skipping them."
-              />
+              {/* 2026-05-23: the message itself is now a clickable link that
+                  fires the same Fix-now action — gives the CPA a second
+                  hit target with stronger reading-affordance. The explicit
+                  "Fix now" button stays on the right for users who scan
+                  the banner from the action edge first. */}
+              <button
+                type="button"
+                onClick={onFixNeedsFacts}
+                className="text-left underline decoration-dotted underline-offset-2 outline-none hover:decoration-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+              >
+                <Plural
+                  value={needsFactsCount}
+                  one="# client is missing state or entity type — the rule library is skipping it."
+                  other="# clients are missing state or entity type — the rule library is skipping them."
+                />
+              </button>
             </AlertDescription>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={onFixNeedsFacts}>
@@ -1185,9 +1407,14 @@ function ClientsActionStrip({
             ...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {}),
           },
           {
+            // 2026-05-23: relabeled per design mock from "Pulse hits" →
+            // "Pass file". Wiring is preserved (Pulse-match filter
+            // surfacing clients flagged by recent rule-library alerts).
+            // If the intent was a different filter, swap the data
+            // source — the label change alone is safe.
             key: 'pulse',
             value: pulseHitCount,
-            label: t`Pulse hits`,
+            label: t`Pass file`,
             tone: pulseHitCount > 0 ? 'review' : 'muted',
             ...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {}),
           },
@@ -2800,13 +3027,18 @@ function ClientAssigneeAvatar({
 }) {
   const { t } = useLingui()
   if (!name) {
+    // 2026-05-23: empty-silhouette circle replaces the dashed "?" badge.
+    // The "?" read as a status indicator (suggesting *something is
+    // missing*); the silhouette reads as "no person assigned here yet"
+    // and matches the muted treatment in the design mock. Title stays
+    // explicit for screen readers and tooltip discovery.
     return (
       <span
         aria-label={t`Unassigned`}
         title={t`Unassigned`}
-        className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-divider-regular text-[10px] text-text-tertiary"
+        className="inline-flex size-6 items-center justify-center rounded-full bg-background-subtle text-text-tertiary"
       >
-        ?
+        <UserRoundIcon className="size-3.5" aria-hidden />
       </span>
     )
   }

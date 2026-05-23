@@ -41,6 +41,11 @@ msgstr "{0, plural, one {# applicable} other {# applicable}}"
 msgid "{0, plural, one {# client} other {# clients}}"
 msgstr "{0, plural, one {# client} other {# clients}}"
 
+#. placeholder {0}: clients.length
+#: src/routes/clients.tsx
+msgid "{0, plural, one {# Client} other {# Clients}}"
+msgstr "{0, plural, one {# Client} other {# Clients}}"
+
 #. placeholder {0}: Math.abs(days)
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# day late} other {# days late}}"
@@ -361,6 +366,10 @@ msgstr "{count} {noun} updated"
 #: src/features/audit/audit-log-labels.ts
 msgid "{count} additional fields changed"
 msgstr "{count} additional fields changed"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{count} filed or closed-out obligations for this client"
+msgstr "{count} filed or closed-out obligations for this client"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{count} opportunity match(es)"
@@ -3311,6 +3320,10 @@ msgstr "Documents received"
 msgid "Don't see your client? Create one"
 msgstr "Don't see your client? Create one"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Done"
+msgstr "Done"
+
 #: src/routes/obligations.tsx
 msgid "Done this stage"
 msgstr "Done this stage"
@@ -3589,6 +3602,7 @@ msgstr "Entities"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-table.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Entity"
 msgstr "Entity"
 
@@ -5607,6 +5621,10 @@ msgstr "No eligible obligations are selected."
 msgid "No emails will be sent automatically"
 msgstr "No emails will be sent automatically"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No entities"
+msgstr "No entities"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "No evidence linked yet"
 msgstr "No evidence linked yet"
@@ -6378,9 +6396,12 @@ msgstr "Opens the Readiness tab to send and track the request"
 msgid "Operations"
 msgstr "Operations"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Opp."
+msgstr "Opp."
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/opportunities/opportunities-page.tsx
 #: src/routes/route-summary.ts
 msgid "Opportunities"
@@ -6610,6 +6631,10 @@ msgstr "Partner name, K-1 source, or other context that doesn't fit the structur
 #: src/routes/clients.tsx
 msgid "Partnership"
 msgstr "Partnership"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Pass file"
+msgstr "Pass file"
 
 #: src/routes/obligations.tsx
 msgid "Past due"
@@ -7290,10 +7315,6 @@ msgstr "Pulse dismissed"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Pulse evidence linked to each obligation"
 msgstr "Pulse evidence linked to each obligation"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pulse hits"
-msgstr "Pulse hits"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Pulse marked reviewed"
@@ -8962,9 +8983,33 @@ msgstr "Something went wrong. Please try again."
 msgid "Sort"
 msgstr "Sort"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by client name"
+msgstr "Sort by client name"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by done count"
+msgstr "Sort by done count"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by entity type"
+msgstr "Sort by entity type"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by next due date"
+msgstr "Sort by next due date"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by open count"
+msgstr "Sort by open count"
+
 #: src/routes/obligations.tsx
 msgid "Sort by Smart Priority"
 msgstr "Sort by Smart Priority"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Sort by state"
+msgstr "Sort by state"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"

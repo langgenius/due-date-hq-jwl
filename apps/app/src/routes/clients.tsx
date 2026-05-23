@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, FileClockIcon } from 'lucide-react'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { AlertCircleIcon, ArchiveIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -54,8 +54,20 @@ const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
   'waiting_on_client',
   'review',
 ]
+// 2026-05-23: widened the list query to include terminal-state rows
+// so the /clients list can render a DONE count column alongside OPEN.
+// Open rows still populate next-due tracking; done rows only bump the
+// done count (the summary builder distinguishes by status). For larger
+// firms this query should bound by filing year before scaling — done
+// rows accumulate over time and the 100-row limit would silently drop
+// older filings.
+const CLIENTS_LIST_OBLIGATION_STATUSES: ObligationStatus[] = [
+  ...OPEN_OBLIGATION_STATUSES,
+  'done',
+  'completed',
+]
 const OBLIGATIONS_LIST_INPUT = {
-  status: OPEN_OBLIGATION_STATUSES,
+  status: CLIENTS_LIST_OBLIGATION_STATUSES,
   sort: 'due_asc' as const,
   limit: OBLIGATION_LIST_LIMIT,
 }
@@ -286,12 +298,31 @@ export function ClientsRoute() {
   return (
     <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 p-4 md:p-6">
       <PageHeader
-        title={<Trans>Clients</Trans>}
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Trans>Clients</Trans>
+            {/* 2026-05-23: count chip next to the title gives a one-glance
+                "how many clients does this firm manage?" signal. Reads the
+                full unfiltered list (not the filtered subset) so it stays
+                stable as the user toggles action-strip chips. */}
+            <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
+              <Plural value={clients.length} one="# Client" other="# Clients" />
+            </span>
+          </span>
+        }
         actions={
           <>
-            <Button variant="ghost" size="sm" onClick={() => handleImportHistoryOpenChange(true)}>
-              <FileClockIcon data-icon="inline-start" />
-              <Trans>Import history</Trans>
+            {/* 2026-05-23: compressed from text+icon to icon-only — saves
+                header chrome and matches the boxed archive glyph in the
+                design mock. Tooltip preserves the action name. */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleImportHistoryOpenChange(true)}
+              aria-label={t`Import history`}
+              title={t`Import history`}
+            >
+              <ArchiveIcon className="size-4" aria-hidden />
             </Button>
             <ClientsCreateSplitButton
               entityLabels={entityLabels}
@@ -328,6 +359,7 @@ export function ClientsRoute() {
         clients={clients}
         filteredClients={filteredClients}
         factsModel={factsModel}
+        entityLabels={entityLabels}
         isLoading={clientsQuery.isLoading}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
