@@ -143,10 +143,6 @@ function WizardFrame({
               aria-hidden
             />
             <span>
-              <Trans>Workbench</Trans>
-            </span>
-            <span aria-hidden>/</span>
-            <span>
               <ConceptLabel concept="migrationCopilot">
                 <Trans>Import</Trans>
               </ConceptLabel>

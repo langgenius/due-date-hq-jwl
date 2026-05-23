@@ -1226,6 +1226,10 @@ msgstr "已激活"
 msgid "Already applied"
 msgstr "已应用"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Alternatively, use Dashboard > Application Links > Utilities > Create client list for Portal."
+msgstr "也可以使用 Dashboard > Application Links > Utilities > Create client list for Portal。"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "An active practice rule supports this deadline."
 msgstr "一个已生效事务所规则支撑此截止日。"
@@ -1548,6 +1552,14 @@ msgstr "自动化"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
 msgstr "平均置信度 <0>{avgConfidence}%</0> · EIN 识别率 <1>{0}</1>"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Avoid CLNTBKUP files or ProSystem fx backup ZIPs; they are not import-ready client lists."
+msgstr "避免上传 CLNTBKUP 文件或 ProSystem fx 备份 ZIP；这些不是可直接导入的客户清单。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Avoid document archives; they are not client account or contact lists."
+msgstr "避免上传文档归档；它们不是客户账户或联系人清单。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
@@ -1911,9 +1923,17 @@ msgstr "选择之前的平台导入"
 msgid "Choose a workspace tier"
 msgstr "选择工作区套餐"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Choose All contacts and download the spreadsheet or CSV."
+msgstr "选择 All contacts，并下载 spreadsheet 或 CSV。"
+
 #: src/routes/billing.checkout.tsx
 msgid "Choose another plan"
 msgstr "选择其他计划"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Choose Client Contact, General Client Information, or General Return Information, then select clients."
+msgstr "选择 Client Contact、General Client Information 或 General Return Information，然后选择客户。"
 
 #: src/routes/obligations.tsx
 msgid "Choose one option in each row. Export writes an audit event."
@@ -2310,6 +2330,10 @@ msgstr "正在确认订阅"
 #: src/routes/billing.tsx
 msgid "Contact sales"
 msgstr "联系销售"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Contacts.csv"
+msgstr "Contacts.csv"
 
 #: src/features/migration/WizardShell.tsx
 #: src/routes/onboarding.tsx
@@ -2891,9 +2915,18 @@ msgid "Creating…"
 msgstr "正在创建…"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/migration/Step1Intake.tsx
 #: src/routes/obligations.tsx
 msgid "CSV"
 msgstr "CSV"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "CSV or XLSX"
+msgstr "CSV 或 XLSX"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "CSV, XLS, or XLSX"
+msgstr "CSV、XLS 或 XLSX"
 
 #: src/routes/billing.tsx
 msgid "current"
@@ -3164,6 +3197,30 @@ msgstr "已忽略"
 #: src/routes/settings.tsx
 msgid "Distribution of prep work across the team."
 msgstr "团队中准备工作的分配情况。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload CSD client data files; export a listing report instead."
+msgstr "不要上传 CSD 客户数据文件；请导出 listing report。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload FBK database backups; export client information instead."
+msgstr "不要上传 FBK 数据库备份；请改为导出客户信息。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload IDATA, CDATA, PDATA, DBF, or MDX return-data folders/files."
+msgstr "不要上传 IDATA、CDATA、PDATA、DBF 或 MDX 申报数据文件夹/文件。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload ProSeries client return files such as YYi, YYp, YYc, or YYs files."
+msgstr "不要上传 ProSeries 客户申报文件，例如 YYi、YYp、YYc 或 YYs 文件。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists."
+msgstr "不要上传 QBB、QBW、QBM 或 CAB 备份；这些不是客户清单。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not upload RTNBAK or RCTRL return backup files."
+msgstr "不要上传 RTNBAK 或 RCTRL 申报备份文件。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Docs received"
@@ -3642,17 +3699,53 @@ msgstr "解释 Manual mapping"
 msgid "Export"
 msgstr "导出"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Export CCH Axcess clients"
+msgstr "导出 CCH Axcess 客户"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export CCH ProSystem fx clients"
+msgstr "导出 CCH ProSystem fx 客户"
+
 #: src/routes/rules.library.tsx
 msgid "Export coverage"
 msgstr "导出覆盖情况"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export Drake client data"
+msgstr "导出 Drake 客户数据"
 
 #: src/routes/obligations.tsx
 msgid "Export end date"
 msgstr "Export end date"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Export File In Time client information"
+msgstr "导出 File In Time 客户信息"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export Karbon contacts"
+msgstr "导出 Karbon 联系人"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export Lacerte clients"
+msgstr "导出 Lacerte 客户"
+
 #: src/routes/obligations.tsx
 msgid "Export obligations"
 msgstr "Export obligations"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export ProConnect Tax return data"
+msgstr "导出 ProConnect Tax 申报数据"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export ProSeries contacts"
+msgstr "导出 ProSeries 联系人"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export QuickBooks customers"
+msgstr "导出 QuickBooks 客户"
 
 #: src/routes/obligations.tsx
 msgid "Export ready"
@@ -3661,6 +3754,18 @@ msgstr "导出已就绪"
 #: src/routes/obligations.tsx
 msgid "Export start date"
 msgstr "Export start date"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export TaxDome accounts and contacts"
+msgstr "导出 TaxDome 账户和联系人"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export to Excel 97-2003 Workbook and include column headings when prompted."
+msgstr "导出为 Excel 97-2003 Workbook，并在提示时包含列标题。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export UltraTax CS client reports"
+msgstr "导出 UltraTax CS 客户报表"
 
 #: src/routes/obligations.tsx
 msgid "Exporting…"
@@ -3937,6 +4042,14 @@ msgstr "FL 暂定税额"
 msgid "Follow up on client approval"
 msgstr "跟进客户确认"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "For due-date history, export Work separately from the Work page export menu."
+msgstr "如需导入历史截止日，请从 Work 页面的导出菜单单独导出 Work。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "For existing tasks or due dates, use Tools > Display Task View in Excel."
+msgstr "如需现有任务或截止日，请使用 Tools > Display Task View in Excel。"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "For multi-practice operations, API access, and custom coverage."
@@ -3956,6 +4069,10 @@ msgstr "适合需要共享截止日运营的小型事务所。"
 #: src/routes/billing.tsx
 msgid "For solo owners running one practice workspace."
 msgstr "适合运营单个事务所工作区的个人 Owner。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "For supplemental organizer data, open Intuit Link and download client responses as CSV."
+msgstr "如需补充 organizer 数据，请打开 Intuit Link 并将客户回复下载为 CSV。"
 
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
@@ -4067,6 +4184,18 @@ msgstr "让客户在 8879 上签字"
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "Go back"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Go to Clients > Accounts > export icon, then download the emailed ZIP link."
+msgstr "进入 Clients > Accounts > export 图标，然后下载邮件中的 ZIP 链接。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Go to Clients > Contacts > Export contacts, then download that ZIP too."
+msgstr "进入 Clients > Contacts > Export contacts，并下载该 ZIP。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Go to Dashboard > Applications > Utilities > Create client list for Portal."
+msgstr "进入 Dashboard > Applications > Utilities > Create client list for Portal。"
 
 #: src/routes/billing.success.tsx
 #: src/routes/not-found.tsx
@@ -4277,6 +4406,10 @@ msgstr "In review"
 msgid "In review. Approve or send back via the original panel."
 msgstr "复核中。请通过原面板批准或退回。"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "In the Clients tab, highlight the clients to export."
+msgstr "在 Clients 标签页中选中要导出的客户。"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "In-app"
 msgstr "站内"
@@ -4293,6 +4426,14 @@ msgstr "收件箱"
 #: src/components/patterns/pulse-notifications-bell.tsx
 msgid "Inbox, {unreadCount} unread"
 msgstr "收件箱，{unreadCount} 条未读"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Include client ID, taxpayer name, taxpayer ID, state, return type, address, and email when available."
+msgstr "尽量包含 client ID、taxpayer name、taxpayer ID、state、return type、address 和 email。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Include client number, client name, email, phone, address, return type, and preparer fields."
+msgstr "包含 client number、client name、email、phone、address、return type 和 preparer 字段。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -4392,6 +4533,10 @@ msgstr "内部备注已起草"
 msgid "Internal review"
 msgstr "内部复核"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Intuit Link document ZIPs are document archives, not a primary client list."
+msgstr "Intuit Link 文档 ZIP 是文档归档，不是主要客户清单。"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Invalid rule"
 msgstr "规则无效"
@@ -4450,6 +4595,10 @@ msgstr "辖区"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "K-1 activity"
 msgstr "K-1 活动"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Karbon columns vary by firm setup, so keep the header row in the file."
+msgstr "Karbon 列会随事务所设置变化，请保留文件表头。"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Keep editing"
@@ -6014,6 +6163,14 @@ msgstr "打开客户"
 msgid "Open client detail for {0}"
 msgstr "打开 {0} 的客户详情"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Open Client Manager, run Quick Search with filters set to All, then choose Export Grid."
+msgstr "打开 Client Manager，将 Quick Search 过滤器设为 All 并运行，然后选择 Export Grid。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Open Contacts, then use the cloud / export-import icon."
+msgstr "打开 Contacts，然后使用 cloud / export-import 图标。"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Open first created obligation"
 msgstr "打开首个新建义务"
@@ -6026,6 +6183,10 @@ msgstr "打开完整收件箱"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Open full page"
 msgstr "打开完整页面"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Open HomeBase View and make sure you are not inside a client return."
+msgstr "打开 HomeBase View，并确认当前不在某个客户申报文件内。"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Open in queue"
@@ -6148,6 +6309,10 @@ msgstr "可选"
 #: src/routes/readiness.tsx
 msgid "Optional note"
 msgstr "可选备注"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer."
+msgstr "可先自定义 HomeBase 列，加入 client status、return type、address、phone、email 和 preparer。"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/routes/login.tsx
@@ -7106,6 +7271,14 @@ msgstr "已隔离"
 msgid "Queued"
 msgstr "已入队"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "QuickBooks Desktop: export the Customer Contact List to Excel/CSV, or export Customers to IIF."
+msgstr "QuickBooks Desktop：将 Customer Contact List 导出为 Excel/CSV，或将 Customers 导出为 IIF。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "QuickBooks Online: export the Customer Contact List report to Excel."
+msgstr "QuickBooks Online：将 Customer Contact List 报表导出为 Excel。"
+
 #: src/routes/practice.tsx
 msgid "Rank"
 msgstr "排名"
@@ -7700,6 +7873,10 @@ msgstr "查看已登录的浏览器，并撤销过期访问。"
 msgid "Review source change"
 msgstr "审核来源变更"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
+msgstr "上传前检查类似 SSN 的列；DueDateHQ 会阻止这些列进入 AI 映射。"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Review suggested"
 msgstr "建议复核"
@@ -8044,6 +8221,10 @@ msgstr "每年省 $96"
 msgid "Save about 20%"
 msgstr "约省 20%"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Save as CSV or Excel and keep columns like Client ID, Name, Client Type, FYE, email, and staff."
+msgstr "保存为 CSV 或 Excel，并保留 Client ID、Name、Client Type、FYE、email 和 staff 等列。"
+
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Save changes"
@@ -8080,6 +8261,10 @@ msgstr "保存 Smart Priority"
 #: src/features/reminders/reminders-page.tsx
 msgid "Save template"
 msgstr "保存模板"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Save the client list as CSV, XLS, or XLSX before uploading."
+msgstr "上传前将客户清单保存为 CSV、XLS 或 XLSX。"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
@@ -8297,6 +8482,10 @@ msgstr "选择要应用的义务"
 #: src/features/rules/coverage-tab.tsx
 msgid "Select pending rules from the queue."
 msgstr "从队列中选择待审核规则。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Select Quick Search criteria, run Go, then choose Export."
+msgstr "选择 Quick Search criteria，点击 Go，然后选择 Export。"
 
 #: src/routes/obligations.tsx
 msgid "Select rows to use this scope."
@@ -9607,6 +9796,10 @@ msgstr "TX 当年 franchise tax"
 msgid "TX prior-year franchise tax"
 msgstr "TX 上年 franchise tax"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "TXT, TSV, CSV, or XLSX"
+msgstr "TXT、TSV、CSV 或 XLSX"
+
 #. placeholder {0}: row.taxYear
 #: src/routes/obligations.tsx
 msgid "TY {0}"
@@ -9745,12 +9938,32 @@ msgid "Upgrade to Team"
 msgstr "升级到 Team"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Upload a client-data CSV, not return backup or e-file transmission files."
+msgstr "请上传客户数据 CSV，不要上传申报备份或 e-file 传输文件。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Upload both ZIPs or extracted CSVs so accounts can be matched to contacts."
+msgstr "上传两个 ZIP 或解压后的 CSV，以便将账户和联系人匹配。"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Upload file"
 msgstr "上传文件"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Upload rows"
 msgstr "上传行数据"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Upload the client information text file, task-view spreadsheet, or both."
+msgstr "上传客户信息文本文件、Task View 电子表格，或两者都上传。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Upload the customer list file; ZIP exports are okay if they contain customer reports."
+msgstr "上传客户清单文件；如果 ZIP 内包含客户报表，也可以上传 ZIP。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Upload the reporting CSV first; response CSVs can be added for context."
+msgstr "优先上传 reporting CSV；response CSV 可作为上下文补充。"
 
 #: src/routes/obligations.tsx
 msgid "Upstream obligation"
@@ -9785,9 +9998,33 @@ msgstr "请输入有效的月份和日期。"
 msgid "Use a whole number from 0 to 99"
 msgstr "请输入 0 到 99 之间的整数"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Client > Export > Export to File, then choose Comma Delimited."
+msgstr "使用 Client > Export > Export to File，然后选择 Comma Delimited。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use HomeBase > Export Contacts, then upload Contacts.csv."
+msgstr "使用 HomeBase > Export Contacts，然后上传 Contacts.csv。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Reporting > Download return data, then download CSV."
+msgstr "使用 Reporting > Download return data，然后下载 CSV。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Reports or Report Manager to export Client / EF data to CSV."
+msgstr "使用 Reports 或 Report Manager 将 Client / EF data 导出为 CSV。"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Use the source-backed path for deadline changes, then prepare client communication from the same selected obligations."
 msgstr "先通过来源支撑的路径处理截止日变更，再基于同一组选中义务准备客户沟通。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Tools > Export Client Information and save the text file."
+msgstr "使用 Tools > Export Client Information，并保存文本文件。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Utilities > Client Listing Reports."
+msgstr "使用 Utilities > Client Listing Reports。"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "User agent hash"
@@ -10058,10 +10295,6 @@ msgid "Work email"
 msgstr "工作邮箱"
 
 #: src/features/migration/WizardShell.tsx
-msgid "Workbench"
-msgstr "工作台"
-
-#: src/features/migration/WizardShell.tsx
 msgid "Working…"
 msgstr "处理中…"
 
@@ -10081,9 +10314,17 @@ msgstr "工作区配置中心——事务所、团队、账单、自动化。"
 msgid "Workspace settings"
 msgstr "工作区设置"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "XLS or DIF"
+msgstr "XLS 或 DIF"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "XLSX"
 msgstr "XLSX"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "XLSX, CSV, or IIF"
+msgstr "XLSX、CSV 或 IIF"
 
 #: src/routes/obligations.tsx
 msgid "Year timeline"
@@ -10174,3 +10415,7 @@ msgstr "订阅已确认，当前计划已生效。"
 #: src/features/migration/mapping-target-labels.ts
 msgid "ZIP / postal code"
 msgstr "邮编"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "ZIP or CSV"
+msgstr "ZIP 或 CSV"

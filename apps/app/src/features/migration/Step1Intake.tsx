@@ -8,6 +8,7 @@ import {
   type DragEvent,
   type ReactNode,
 } from 'react'
+import { msg } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
 import type {
@@ -93,6 +94,13 @@ const PRESET_LOGOS: Record<
   proconnect_tax: { src: proconnectTaxLogoUrl },
 }
 
+interface PresetExportGuide {
+  title: string
+  preferredFiles: string
+  steps: string[]
+  note: string
+}
+
 const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
   generic: 'Generic',
   file_in_time: 'File In Time',
@@ -170,7 +178,7 @@ export function Step1Intake({
   onParsed,
   onParseError,
 }: Step1Props) {
-  const { t } = useLingui()
+  const { i18n, t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const pasteId = useId()
   const uploadHintId = useId()
@@ -180,6 +188,8 @@ export function Step1Intake({
   const [isFileDragActive, setIsFileDragActive] = useState(false)
   const [isReadingFile, setIsReadingFile] = useState(false)
   const compact = density === 'compact'
+  const selectedPreset = intake.preset
+  const selectedExportGuide = getPresetExportGuide(selectedPreset, i18n)
 
   function handleIntegrationText(text: string) {
     try {
@@ -699,6 +709,14 @@ export function Step1Intake({
                 />
               ))}
             </div>
+            {selectedExportGuide && selectedPreset ? (
+              <PresetExportGuideCard
+                id={selectedPreset}
+                label={PRESET_LABELS[selectedPreset]}
+                guide={selectedExportGuide}
+                compact={compact}
+              />
+            ) : null}
             <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
               <Trans>
                 The AI mapper runs first. Selecting an import template adds source context and
@@ -860,6 +878,52 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
   return chip
 }
 
+interface PresetExportGuideCardProps {
+  id: PresetId
+  label: string
+  guide: PresetExportGuide
+  compact?: boolean | undefined
+}
+
+function PresetExportGuideCard({ id, label, guide, compact = false }: PresetExportGuideCardProps) {
+  const logo = PRESET_LOGOS[id]
+
+  return (
+    <div
+      className={cn(
+        'rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5',
+        compact ? 'space-y-2' : 'space-y-2.5',
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-[5px] bg-white ring-1 ring-black/10">
+          <img
+            src={logo.src}
+            alt=""
+            draggable={false}
+            className={cn('max-h-5 max-w-5 object-contain', logo.imageClassName)}
+          />
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-medium text-text-primary">{guide.title}</span>
+            <span className="rounded-sm border border-divider-subtle bg-background-body px-1.5 py-0.5 font-mono text-xs text-text-tertiary">
+              {guide.preferredFiles}
+            </span>
+          </div>
+          <span className="sr-only">{label}</span>
+        </div>
+      </div>
+      <ol className="list-decimal space-y-1 pl-9 text-sm text-text-secondary">
+        {guide.steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className="pl-9 text-xs text-text-tertiary">{guide.note}</p>
+    </div>
+  )
+}
+
 interface SourceModeButtonProps {
   selected: boolean
   compact?: boolean | undefined
@@ -884,6 +948,167 @@ function SourceModeButton({ selected, compact = false, onClick, children }: Sour
       {children}
     </button>
   )
+}
+
+type LinguiI18n = ReturnType<typeof useLingui>['i18n']
+
+function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): PresetExportGuide | null {
+  switch (preset) {
+    case 'taxdome':
+      return {
+        title: i18n._(msg`Export TaxDome accounts and contacts`),
+        preferredFiles: i18n._(msg`ZIP or CSV`),
+        steps: [
+          i18n._(msg`Go to Clients > Accounts > export icon, then download the emailed ZIP link.`),
+          i18n._(msg`Go to Clients > Contacts > Export contacts, then download that ZIP too.`),
+          i18n._(msg`Upload both ZIPs or extracted CSVs so accounts can be matched to contacts.`),
+        ],
+        note: i18n._(msg`Avoid document archives; they are not client account or contact lists.`),
+      }
+    case 'drake':
+      return {
+        title: i18n._(msg`Export Drake client data`),
+        preferredFiles: i18n._(msg`CSV`),
+        steps: [
+          i18n._(msg`Use Reports or Report Manager to export Client / EF data to CSV.`),
+          i18n._(
+            msg`Include client ID, taxpayer name, taxpayer ID, state, return type, address, and email when available.`,
+          ),
+          i18n._(
+            msg`Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Upload a client-data CSV, not return backup or e-file transmission files.`,
+        ),
+      }
+    case 'karbon':
+      return {
+        title: i18n._(msg`Export Karbon contacts`),
+        preferredFiles: i18n._(msg`CSV or XLSX`),
+        steps: [
+          i18n._(msg`Open Contacts, then use the cloud / export-import icon.`),
+          i18n._(msg`Choose All contacts and download the spreadsheet or CSV.`),
+          i18n._(msg`For due-date history, export Work separately from the Work page export menu.`),
+        ],
+        note: i18n._(msg`Karbon columns vary by firm setup, so keep the header row in the file.`),
+      }
+    case 'quickbooks':
+      return {
+        title: i18n._(msg`Export QuickBooks customers`),
+        preferredFiles: i18n._(msg`XLSX, CSV, or IIF`),
+        steps: [
+          i18n._(msg`QuickBooks Online: export the Customer Contact List report to Excel.`),
+          i18n._(
+            msg`QuickBooks Desktop: export the Customer Contact List to Excel/CSV, or export Customers to IIF.`,
+          ),
+          i18n._(
+            msg`Upload the customer list file; ZIP exports are okay if they contain customer reports.`,
+          ),
+        ],
+        note: i18n._(msg`Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists.`),
+      }
+    case 'file_in_time':
+      return {
+        title: i18n._(msg`Export File In Time client information`),
+        preferredFiles: i18n._(msg`TXT, TSV, CSV, or XLSX`),
+        steps: [
+          i18n._(msg`Use Tools > Export Client Information and save the text file.`),
+          i18n._(msg`For existing tasks or due dates, use Tools > Display Task View in Excel.`),
+          i18n._(msg`Upload the client information text file, task-view spreadsheet, or both.`),
+        ],
+        note: i18n._(msg`Do not upload FBK database backups; export client information instead.`),
+      }
+    case 'cch_axcess':
+      return {
+        title: i18n._(msg`Export CCH Axcess clients`),
+        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        steps: [
+          i18n._(
+            msg`Open Client Manager, run Quick Search with filters set to All, then choose Export Grid.`,
+          ),
+          i18n._(
+            msg`Alternatively, use Dashboard > Application Links > Utilities > Create client list for Portal.`,
+          ),
+          i18n._(
+            msg`Save as CSV or Excel and keep columns like Client ID, Name, Client Type, FYE, email, and staff.`,
+          ),
+        ],
+        note: i18n._(msg`Do not upload RTNBAK or RCTRL return backup files.`),
+      }
+    case 'cch_prosystem_fx':
+      return {
+        title: i18n._(msg`Export CCH ProSystem fx clients`),
+        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        steps: [
+          i18n._(msg`Go to Dashboard > Applications > Utilities > Create client list for Portal.`),
+          i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
+          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
+        ],
+        note: i18n._(
+          msg`Avoid CLNTBKUP files or ProSystem fx backup ZIPs; they are not import-ready client lists.`,
+        ),
+      }
+    case 'lacerte':
+      return {
+        title: i18n._(msg`Export Lacerte clients`),
+        preferredFiles: i18n._(msg`CSV`),
+        steps: [
+          i18n._(msg`In the Clients tab, highlight the clients to export.`),
+          i18n._(msg`Use Client > Export > Export to File, then choose Comma Delimited.`),
+          i18n._(
+            msg`Include client number, client name, email, phone, address, return type, and preparer fields.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Do not upload IDATA, CDATA, PDATA, DBF, or MDX return-data folders/files.`,
+        ),
+      }
+    case 'proseries':
+      return {
+        title: i18n._(msg`Export ProSeries contacts`),
+        preferredFiles: i18n._(msg`Contacts.csv`),
+        steps: [
+          i18n._(msg`Open HomeBase View and make sure you are not inside a client return.`),
+          i18n._(
+            msg`Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer.`,
+          ),
+          i18n._(msg`Use HomeBase > Export Contacts, then upload Contacts.csv.`),
+        ],
+        note: i18n._(
+          msg`Do not upload ProSeries client return files such as YYi, YYp, YYc, or YYs files.`,
+        ),
+      }
+    case 'ultratax_cs':
+      return {
+        title: i18n._(msg`Export UltraTax CS client reports`),
+        preferredFiles: i18n._(msg`XLS or DIF`),
+        steps: [
+          i18n._(msg`Use Utilities > Client Listing Reports.`),
+          i18n._(
+            msg`Choose Client Contact, General Client Information, or General Return Information, then select clients.`,
+          ),
+          i18n._(msg`Export to Excel 97-2003 Workbook and include column headings when prompted.`),
+        ],
+        note: i18n._(msg`Do not upload CSD client data files; export a listing report instead.`),
+      }
+    case 'proconnect_tax':
+      return {
+        title: i18n._(msg`Export ProConnect Tax return data`),
+        preferredFiles: i18n._(msg`CSV`),
+        steps: [
+          i18n._(msg`Use Reporting > Download return data, then download CSV.`),
+          i18n._(
+            msg`For supplemental organizer data, open Intuit Link and download client responses as CSV.`,
+          ),
+          i18n._(msg`Upload the reporting CSV first; response CSVs can be added for context.`),
+        ],
+        note: i18n._(
+          msg`Intuit Link document ZIPs are document archives, not a primary client list.`,
+        ),
+      }
+  }
+  return null
 }
 
 export function parseIntegrationRows(

@@ -24,6 +24,7 @@ export function MigrationNewRoute() {
   const permission = useFirmPermission(firm)
   const canRunMigration = permission.can('migration.run')
   const skipToDashboard = () => void navigate('/')
+  const isOnboardingSource = params.get('source') === 'onboarding'
   const ruleReviewCount = parseRuleReviewCount(params.get('ruleReview'))
   const ruleReviewJurisdictions = parseRuleReviewJurisdictions(params.get('ruleReviewJur'))
   const reviewRules = () => {
@@ -42,6 +43,7 @@ export function MigrationNewRoute() {
         <MigrationActivationIntro
           onSkip={skipToDashboard}
           onReviewRules={reviewRules}
+          showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
           ruleReviewJurisdictions={ruleReviewJurisdictions}
         />
@@ -59,6 +61,7 @@ export function MigrationNewRoute() {
         <MigrationActivationIntro
           onSkip={skipToDashboard}
           onReviewRules={reviewRules}
+          showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
           ruleReviewJurisdictions={ruleReviewJurisdictions}
         />
@@ -90,6 +93,7 @@ export function MigrationNewRoute() {
           <MigrationActivationIntro
             onSkip={onSkip}
             onReviewRules={reviewRules}
+            showRuleReviewAction={!isOnboardingSource}
             ruleReviewCount={ruleReviewCount}
             ruleReviewJurisdictions={ruleReviewJurisdictions}
           />
@@ -115,11 +119,13 @@ function parseRuleReviewJurisdictions(value: string | null): string[] {
 function MigrationActivationIntro({
   onSkip,
   onReviewRules,
+  showRuleReviewAction = true,
   ruleReviewCount,
   ruleReviewJurisdictions,
 }: {
   onSkip: () => void
   onReviewRules: () => void
+  showRuleReviewAction?: boolean | undefined
   ruleReviewCount: number
   ruleReviewJurisdictions: readonly string[]
 }) {
@@ -169,15 +175,17 @@ function MigrationActivationIntro({
                     before they can become active and create client obligations.
                   </Trans>
                 </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-fit shrink-0"
-                  onClick={onReviewRules}
-                >
-                  <Trans>Review rules</Trans>
-                </Button>
+                {showRuleReviewAction ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-fit shrink-0"
+                    onClick={onReviewRules}
+                  >
+                    <Trans>Review rules</Trans>
+                  </Button>
+                ) : null}
               </div>
             </AlertDescription>
           </Alert>

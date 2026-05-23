@@ -20,6 +20,11 @@ Changes:
 - Merged the general and tax-software preset chips into one list under "I'm coming from...".
 - Replaced the compact placeholder marks with local logo assets for each preset chip, matching the
   tax software logos from the StanfordTax reference and using direct brand assets where available.
+- Added selected-source export guidance below the preset chips, with file formats, export paths, and
+  backup-file warnings sourced from the CPA SaaS and tax-software export research reports.
+- Removed the stale "Workbench" breadcrumb from the migration wizard header.
+- Kept the onboarding rule-review notice informational by hiding the "Review rules" jump CTA when
+  the route is opened from `source=onboarding`.
 - Refreshed Lingui catalogs after removing the now-unused "Tax software exports" label.
 
 Validation:
