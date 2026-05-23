@@ -576,6 +576,10 @@ msgstr "{totalPending} rules"
 msgid "{totalShown, plural, one {# row} other {# rows}}"
 msgstr "{totalShown, plural, one {# row} other {# rows}}"
 
+#: src/routes/obligations.tsx
+msgid "{turnaroundDays, plural, one {# day} other {# days}}"
+msgstr "{turnaroundDays, plural, one {# day} other {# days}}"
+
 #: src/components/patterns/pulse-notifications-bell.tsx
 msgid "{unreadCount} unread"
 msgstr "{unreadCount} unread"
@@ -2982,6 +2986,10 @@ msgstr "Custom rule created"
 msgid "Custom rules currently need to be created from a missing-rule row in the table below so the jurisdiction and entity are unambiguous. Close this dialog and click \"+ Add rule\" on the row you want to fill in."
 msgstr "Custom rules currently need to be created from a missing-rule row in the table below so the jurisdiction and entity are unambiguous. Close this dialog and click \"+ Add rule\" on the row you want to fill in."
 
+#: src/routes/obligations.tsx
+msgid "Cycle time"
+msgstr "Cycle time"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "Dark"
@@ -4620,6 +4628,10 @@ msgstr "Keeps"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Keeps deadline follow-up accountable."
 msgstr "Keeps deadline follow-up accountable."
+
+#: src/routes/obligations.tsx
+msgid "Key dates"
+msgstr "Key dates"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Keyboard shortcuts"
@@ -6264,6 +6276,10 @@ msgstr "Open your personal notification inbox."
 #: src/routes/obligations.tsx
 msgid "Open, waiting, review, blocked, and extended work."
 msgstr "Open, waiting, review, blocked, and extended work."
+
+#: src/routes/obligations.tsx
+msgid "Opened"
+msgstr "Opened"
 
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"

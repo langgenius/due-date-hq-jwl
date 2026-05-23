@@ -576,6 +576,10 @@ msgstr "{totalPending} rules"
 msgid "{totalShown, plural, one {# row} other {# rows}}"
 msgstr "{totalShown, plural, other {# 行}}"
 
+#: src/routes/obligations.tsx
+msgid "{turnaroundDays, plural, one {# day} other {# days}}"
+msgstr "{turnaroundDays, plural, other {# 天}}"
+
 #: src/components/patterns/pulse-notifications-bell.tsx
 msgid "{unreadCount} unread"
 msgstr "{unreadCount} 条未读"
@@ -2982,6 +2986,10 @@ msgstr "自定义规则已创建"
 msgid "Custom rules currently need to be created from a missing-rule row in the table below so the jurisdiction and entity are unambiguous. Close this dialog and click \"+ Add rule\" on the row you want to fill in."
 msgstr "当前需在下方表格的「缺失规则」行中创建自定义规则,以确保司法管辖区和实体明确无歧义。请关闭此对话框,在要填补的行上点击「+ 添加规则」。"
 
+#: src/routes/obligations.tsx
+msgid "Cycle time"
+msgstr "处理周期"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "深色"
@@ -4620,6 +4628,10 @@ msgstr "Keeps"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Keeps deadline follow-up accountable."
 msgstr "保证截止日期跟进有人负责。"
+
+#: src/routes/obligations.tsx
+msgid "Key dates"
+msgstr "关键日期"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Keyboard shortcuts"
@@ -6264,6 +6276,10 @@ msgstr "打开你的个人通知收件箱。"
 #: src/routes/obligations.tsx
 msgid "Open, waiting, review, blocked, and extended work."
 msgstr "Open, waiting, review, blocked, and extended work."
+
+#: src/routes/obligations.tsx
+msgid "Opened"
+msgstr "打开"
 
 #: src/routes/billing.checkout.tsx
 msgid "Opening checkout…"

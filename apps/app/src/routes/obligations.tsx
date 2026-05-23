@@ -5993,6 +5993,49 @@ const PAYMENT_PIPELINE_KEYS = [
   'confirmed',
 ] as const
 
+// In-Review sub-status pipeline. Mirrors the e-file strip's shape —
+// six sequential steps the row walks through from "ready to prep"
+// to "approved, ready to file." Combines `prepStage` (three values:
+// ready_for_prep / in_prep / prepared) with `reviewStage` (three
+// non-flag values: ready_for_review / in_review / approved) into
+// one linear path the CPA can see. `notes_open` is a reactive flag
+// on the in_review step, not a separate step — surfaced as an
+// annotation when present rather than its own column.
+//
+// Why we visualize this: prep ↔ review is the longest stage in the
+// lifecycle and where the most days are typically spent. Without a
+// strip, the CPA only sees a single sub-status word ("Ready for
+// review") and has no idea what step that is in the journey, nor
+// what's ahead. Same critique that originally motivated the e-file
+// pipeline strip.
+const REVIEW_PIPELINE_KEYS = [
+  'ready_for_prep',
+  'in_prep',
+  'prepared',
+  'ready_for_review',
+  'in_review',
+  'approved',
+] as const
+type ReviewPipelineKey = (typeof REVIEW_PIPELINE_KEYS)[number]
+
+// Derive the current step from the row's prep + review sub-state
+// columns. Review takes priority over prep — once `reviewStage` is
+// set, the row has handed off to the reviewer and the strip should
+// reflect that.
+function reviewPipelineCurrent(row: ObligationQueueRow): ReviewPipelineKey | null {
+  if (row.reviewStage === 'approved') return 'approved'
+  if (row.reviewStage === 'in_review' || row.reviewStage === 'notes_open') return 'in_review'
+  if (row.reviewStage === 'ready_for_review') return 'ready_for_review'
+  if (row.prepStage === 'prepared') return 'prepared'
+  if (row.prepStage === 'in_prep') return 'in_prep'
+  if (row.prepStage === 'ready_for_prep') return 'ready_for_prep'
+  // Status is `review` but no sub-stage is set yet. Treat as just-
+  // started so the strip shows the first step as current rather than
+  // every step as upcoming (which would be misleading — the row IS
+  // in the In Review stage).
+  return 'ready_for_prep'
+}
+
 // Resolve the pipeline position of a step relative to where the row
 // currently sits. Returns 'done' for steps the row has already
 // passed, 'current' for the active step, 'upcoming' for steps still
@@ -6218,6 +6261,82 @@ function WaitingOutstandingDocs({
         ) : null}
       </ul>
     </button>
+  )
+}
+
+/**
+ * Inline key-dates summary rendered on the Completed stage. The
+ * terminal stage card is otherwise sparse — just a stage label and
+ * a "Archive workpapers" reminder. CPAs landing on a closed
+ * obligation are usually answering "when did this close and how
+ * long did it take" for client communication or year-end review;
+ * this card surfaces those answers without forcing a trip to the
+ * Dates panel.
+ *
+ * Dates derived from audit events:
+ *  - Filed: first event where status became `done`
+ *  - Completed: first event where status became `completed`
+ *  - Total turnaround: createdAt → completed (in days)
+ *
+ * `row.createdAt` is always available; the other two only render if
+ * we have audit evidence for them (some rows skip directly to
+ * completed via the status picker without a `done` intermediate
+ * stop — for those, the Filed row is omitted).
+ */
+function CompletedKeyDates({
+  row,
+  auditEvents,
+}: {
+  row: ObligationQueueRow
+  auditEvents: readonly AuditEventPublic[]
+}) {
+  const { t } = useLingui()
+  const [filedAt, completedAt] = useMemo(() => {
+    let filed: string | null = null
+    let completed: string | null = null
+    for (const event of auditEvents) {
+      if (event.action !== 'status_changed') continue
+      if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
+      const after = (event.afterJson as { status?: unknown }).status
+      if (typeof after !== 'string') continue
+      if (after === 'done' && !filed) filed = event.createdAt
+      if (after === 'completed' && !completed) completed = event.createdAt
+    }
+    return [filed, completed]
+  }, [auditEvents])
+  const turnaroundDays = useMemo(() => {
+    if (!completedAt) return null
+    return daysBetween(row.createdAt, completedAt)
+  }, [row.createdAt, completedAt])
+  const rows: Array<{ label: string; value: string }> = [
+    { label: t`Opened`, value: formatDate(row.createdAt.slice(0, 10)) },
+  ]
+  if (filedAt) rows.push({ label: t`Filed`, value: formatDate(filedAt.slice(0, 10)) })
+  if (completedAt) rows.push({ label: t`Completed`, value: formatDate(completedAt.slice(0, 10)) })
+  return (
+    <div className="rounded-md border border-divider-regular bg-background-subtle p-3">
+      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        <Trans>Key dates</Trans>
+      </p>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+        {rows.map((r) => (
+          <Fragment key={r.label}>
+            <dt className="text-text-tertiary">{r.label}</dt>
+            <dd className="text-right tabular-nums text-text-primary">{r.value}</dd>
+          </Fragment>
+        ))}
+        {turnaroundDays !== null ? (
+          <>
+            <dt className="text-text-tertiary">
+              <Trans>Cycle time</Trans>
+            </dt>
+            <dd className="text-right tabular-nums text-text-secondary">
+              <Plural value={turnaroundDays} one="# day" other="# days" />
+            </dd>
+          </>
+        ) : null}
+      </dl>
+    </div>
   )
 }
 
@@ -6635,6 +6754,16 @@ function ActiveStageDetailCard({
     scheduled: t`Payment scheduled`,
     confirmed: t`Payment confirmed`,
   }
+  const reviewPipelineLabels: Record<ReviewPipelineKey, string> = {
+    ready_for_prep: t`Ready for prep`,
+    in_prep: t`Preparer in progress`,
+    prepared: t`Prepared — handing off`,
+    ready_for_review: t`Ready for review`,
+    in_review: t`In review`,
+    approved: t`Approved — ready to file`,
+  }
+  const reviewCurrent = reviewPipelineCurrent(row)
+  const notesOpen = row.reviewStage === 'notes_open'
   // Task click dispatcher. Sub-status mutations (efileState /
   // paymentState / prepStage / reviewStage) don't have RPC procedures
   // yet — those tasks fall through to a toast placeholder. Status-
@@ -6703,6 +6832,12 @@ function ActiveStageDetailCard({
   // walk different sub-status pipelines.
   const showEfilePipeline = stageKey === 'done' && row.status !== 'paid'
   const showPaymentPipeline = stageKey === 'done' && row.status === 'paid'
+  // In Review gets the same pipeline strip treatment as Filed, but
+  // only for `review`/`in_progress`/`extended` rows that actually
+  // live in the canonical review flow. The strip walks the row's
+  // prepStage + reviewStage as a single 6-step path so the CPA can
+  // see "we're in prep" vs "we're in review" at a glance.
+  const showReviewPipeline = stageKey === 'review'
   return (
     <section
       aria-label={t`Active stage detail`}
@@ -6749,6 +6884,11 @@ function ActiveStageDetailCard({
             items={readinessChecklist}
             onOpenReadiness={() => onChangeTab('readiness')}
           />
+        </div>
+      ) : null}
+      {stageKey === 'completed' ? (
+        <div className="mt-3">
+          <CompletedKeyDates row={row} auditEvents={auditEvents} />
         </div>
       ) : null}
 
@@ -6848,11 +6988,77 @@ function ActiveStageDetailCard({
             })}
           </ul>
         </div>
+      ) : showReviewPipeline ? (
+        /* In Review pipeline strip — same shape as the e-file /
+           payment strips above but walks prepStage → reviewStage.
+           When `reviewStage === 'notes_open'` the in_review step
+           keeps the current-step treatment but picks up a small
+           "Notes open" annotation, since notes_open is a flag on
+           the in_review step rather than its own step. */
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <Trans>Steps</Trans>
+          </p>
+          <ul className="flex flex-col gap-1">
+            {REVIEW_PIPELINE_KEYS.map((key) => {
+              const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
+              const label = reviewPipelineLabels[key]
+              const showNotesOpen = state === 'current' && key === 'in_review' && notesOpen
+              return (
+                <li key={key} className="flex flex-col">
+                  <div className="flex items-start gap-2 text-xs">
+                    {state === 'done' ? (
+                      <CheckCircle2Icon
+                        className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
+                        aria-hidden
+                      />
+                    ) : state === 'current' ? (
+                      <span
+                        aria-hidden
+                        className="mt-0.5 grid size-3.5 shrink-0 place-items-center rounded-full border-2 border-accent-default bg-background-default"
+                      >
+                        <span className="size-1.5 rounded-full bg-accent-default" />
+                      </span>
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="mt-0.5 inline-block size-3.5 shrink-0 rounded-full border border-divider-regular bg-background-default"
+                      />
+                    )}
+                    <span
+                      className={cn(
+                        'flex-1 leading-snug',
+                        state === 'done'
+                          ? 'text-text-tertiary'
+                          : state === 'current'
+                            ? 'font-medium text-text-primary'
+                            : 'text-text-tertiary opacity-70',
+                      )}
+                    >
+                      {label}
+                      {showNotesOpen ? (
+                        <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-text-warning">
+                          · <Trans>Notes open</Trans>
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                  {state === 'current' && tasks.length > 0 ? (
+                    <div className="ml-6 mt-2 mb-2">
+                      <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       ) : tasks.length > 0 ? (
-        /* Non-Filed stages — no pipeline strip, just the action
-           surface. Primary button + secondary ghost links + manual
-           reminders inline. No "What's next" eyebrow because the
-           button is self-evident as the next action. */
+        /* Non-pipeline stages (Not started / Waiting / Blocked /
+           Completed) — no pipeline strip, just the action surface.
+           Primary button + secondary ghost links + manual reminders
+           inline. No "What's next" eyebrow because the button is
+           self-evident as the next action. */
         <div className="mt-3">
           <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
         </div>
