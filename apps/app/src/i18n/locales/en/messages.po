@@ -357,10 +357,6 @@ msgstr "{count} {noun} updated"
 msgid "{count} additional fields changed"
 msgstr "{count} additional fields changed"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "{count} items linked. The original panel has the full editor."
-msgstr "{count} items linked. The original panel has the full editor."
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{count} opportunity match(es)"
 msgstr "{count} opportunity match(es)"
@@ -602,10 +598,6 @@ msgstr "#{0}"
 msgid "© {0} DueDateHQ Inc."
 msgstr "© {0} DueDateHQ Inc."
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "← Back to original panel"
-msgstr "← Back to original panel"
-
 #. placeholder {0}: suggested.length - 6
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "+ {0} more"
@@ -635,10 +627,6 @@ msgstr "1 day before"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "1 filing extended — payment is NOT extended"
 msgstr "1 filing extended — payment is NOT extended"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "1 item linked. The original panel has the full editor."
-msgstr "1 item linked. The original panel has the full editor."
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -1247,10 +1235,6 @@ msgstr "Alternative: in Return Manager, run Quick Search with filters set to All
 msgid "An active practice rule supports this deadline."
 msgstr "An active practice rule supports this deadline."
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "An external blocker is holding this return. Move it back to In review once the blocker is resolved."
-msgstr "An external blocker is holding this return. Move it back to In review once the blocker is resolved."
-
 #: src/routes/billing.tsx
 msgid "Annual contract"
 msgstr "Annual contract"
@@ -1437,7 +1421,6 @@ msgstr "At risk"
 
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Audit {0}"
 msgstr "Audit {0}"
@@ -2202,7 +2185,6 @@ msgstr "Clients affected"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Close"
 msgstr "Close"
@@ -2222,10 +2204,6 @@ msgstr "Close wizard"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Closed"
 msgstr "Closed"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Closed out — no further action."
-msgstr "Closed out — no further action."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Closed source-year obligations eligible for rollover. Only done, paid, and extended rows count as source deadlines."
@@ -2302,7 +2280,6 @@ msgstr "Confirm all review-needed"
 msgid "Confirm applies"
 msgstr "Confirm applies"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Confirm authority acceptance"
 msgstr "Confirm authority acceptance"
@@ -2394,7 +2371,6 @@ msgstr "Copy client email draft"
 msgid "Copy draft"
 msgstr "Copy draft"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Copy link"
 msgstr "Copy link"
@@ -2462,7 +2438,6 @@ msgid "Couldn't calculate preview"
 msgstr "Couldn't calculate preview"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't change status"
 msgstr "Couldn't change status"
@@ -2475,10 +2450,6 @@ msgstr "Couldn't copy calendar URL"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't copy client email draft"
 msgstr "Couldn't copy client email draft"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Couldn't copy link"
-msgstr "Couldn't copy link"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't copy link — your browser blocked clipboard access."
@@ -2631,7 +2602,6 @@ msgstr "Couldn't load this client."
 msgid "Couldn't mark accepted"
 msgstr "Couldn't mark accepted"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't mark e-file rejected"
 msgstr "Couldn't mark e-file rejected"
@@ -2961,10 +2931,6 @@ msgstr "Current role: {currentRoleLabel}"
 #: src/features/permissions/permission-gate.tsx
 msgid "Current role: {currentRoleLabel}. Required: {requiredRoleText}."
 msgstr "Current role: {currentRoleLabel}. Required: {requiredRoleText}."
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Current stage"
-msgstr "Current stage"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "current year"
@@ -3924,10 +3890,6 @@ msgstr "File type"
 msgid "Filed"
 msgstr "Filed"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Filed — awaiting authority acceptance."
-msgstr "Filed — awaiting authority acceptance."
-
 #: src/routes/obligations.tsx
 msgid "Filed with {checklistCount} document items"
 msgstr "Filed with {checklistCount} document items"
@@ -4716,7 +4678,6 @@ msgstr "Legend"
 msgid "Light"
 msgstr "Light"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Link copied"
 msgstr "Link copied"
@@ -4943,7 +4904,6 @@ msgstr "Mark all read"
 msgid "Mark client approved"
 msgstr "Mark client approved"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark docs received"
 msgstr "Mark docs received"
@@ -4960,12 +4920,10 @@ msgstr "Mark document received"
 msgid "Mark extended"
 msgstr "Mark extended"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark filed"
 msgstr "Mark filed"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark obligation complete"
 msgstr "Mark obligation complete"
@@ -4994,7 +4952,6 @@ msgstr "Mark reviewed"
 msgid "Mark selected extended"
 msgstr "Mark selected extended"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Mark unblocked"
 msgstr "Mark unblocked"
@@ -5003,7 +4960,6 @@ msgstr "Mark unblocked"
 msgid "Marked accepted"
 msgstr "Marked accepted"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Marked e-file rejected"
 msgstr "Marked e-file rejected"
@@ -5557,10 +5513,6 @@ msgstr "No emails will be sent automatically"
 msgid "No evidence linked yet"
 msgstr "No evidence linked yet"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "No evidence linked yet."
-msgstr "No evidence linked yet."
-
 #: src/features/audit/audit-log-page.tsx
 msgid "No export packages yet."
 msgstr "No export packages yet."
@@ -5655,14 +5607,6 @@ msgstr "No opportunity cues yet"
 #: src/features/rules/sources-tab.tsx
 msgid "No options"
 msgstr "No options"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "No outstanding checklist items."
-msgstr "No outstanding checklist items."
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "No outstanding work for this status."
-msgstr "No outstanding work for this status."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No owners"
@@ -5802,10 +5746,6 @@ msgstr "No upcoming reminders match the current 30 / 7 / 1-day windows."
 #: src/features/audit/audit-log-labels.ts
 msgid "No user-facing field change was recorded."
 msgstr "No user-facing field change was recorded."
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "No work has started on this return. Move to In review when preparation begins."
-msgstr "No work has started on this return. Move to In review when preparation begins."
 
 #: src/routes/obligations.tsx
 msgid "No workpapers attached to this obligation yet."
@@ -6607,10 +6547,6 @@ msgstr "Payment details stay with the processor"
 msgid "Payment model"
 msgstr "Payment model"
 
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Payment processed. Close the obligation once everything is reconciled."
-msgstr "Payment processed. Close the obligation once everything is reconciled."
-
 #: src/routes/obligations.tsx
 msgid "Payment scheduled"
 msgstr "Payment scheduled"
@@ -6808,7 +6744,6 @@ msgstr "Please enter at least 2 characters."
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/features/opportunities/opportunities-page.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -6976,10 +6911,6 @@ msgstr "Practices"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
 msgstr "Preferences"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Preparation in progress. Mark filed once the return is submitted."
-msgstr "Preparation in progress. Mark filed once the return is submitted."
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Prepare client draft"
@@ -7480,7 +7411,6 @@ msgstr "Recommended"
 msgid "Record audit trail"
 msgstr "Record audit trail"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Record authority rejection"
 msgstr "Record authority rejection"
@@ -9022,7 +8952,6 @@ msgstr "SSO and custom coverage"
 msgid "Stale"
 msgstr "Stale"
 
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Start preparation"
 msgstr "Start preparation"
@@ -9071,11 +9000,9 @@ msgstr "States"
 msgid "Status"
 msgstr "Status"
 
-#. placeholder {0}: labels[vars.status]
 #. placeholder {0}: statusLabels[vars.status]
 #. placeholder {0}: v2StatusLabels[vars.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/obligations/ObligationPanelV2.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "Status changed to {0}"
@@ -9325,11 +9252,6 @@ msgstr "Tax year"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "TAX YEAR"
 msgstr "TAX YEAR"
-
-#. placeholder {0}: row.taxYear
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Tax Year {0}"
-msgstr "Tax Year {0}"
 
 #: src/routes/obligations.tsx
 msgid "Tax year profile"
@@ -9768,10 +9690,6 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 msgid "Try previewing again before generating."
 msgstr "Try previewing again before generating."
 
-#: src/features/obligations/ObligationPanelDispatcher.tsx
-msgid "Try the new panel shape →"
-msgstr "Try the new panel shape →"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "TSV"
 msgstr "TSV"
@@ -10162,10 +10080,6 @@ msgstr "waiting on client"
 #: src/features/obligations/status-control.tsx
 msgid "Waiting on client"
 msgstr "Waiting on client"
-
-#: src/features/obligations/ObligationPanelV2.tsx
-msgid "Waiting on these documents:"
-msgstr "Waiting on these documents:"
 
 #: src/routes/rules.library.tsx
 msgid "watched"

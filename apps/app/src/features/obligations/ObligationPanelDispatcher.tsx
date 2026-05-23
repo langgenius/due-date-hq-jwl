@@ -1,18 +1,19 @@
-import { Trans } from '@lingui/react/macro'
-
 import { ObligationQueueDetailDrawer } from '@/routes/obligations'
 import type { ObligationQueueRow, ObligationQueueDetailTab } from '@duedatehq/contracts'
 
-import { ObligationPanelV2 } from './ObligationPanelV2'
-import { useObligationPanelVersion } from './use-obligation-panel-version'
-
 /**
- * Picks V1 (current) or V2 (opt-in via `?panel=v2`).
+ * Renders the obligation detail panel inside whichever route owns
+ * the right-rail slot today (the obligations queue page, the client
+ * detail page). Always returns the canonical `ObligationQueueDetailDrawer`
+ * in `mode="panel"`.
  *
- * Both implementations are mounted simultaneously in the codebase so
- * designers can flip between them via the URL flag. Default = V1. The
- * "Try V2 →" link sits above the V1 panel; the "← Back to original"
- * link is inside V2's own chrome.
+ * Earlier (2026-05-22) this file dispatched between two parallel
+ * implementations behind a `?panel=v2` URL flag — V1 was the
+ * polished default, V2 a slimmer comparison prototype. The toggle +
+ * V2 implementation are gone now (2026-05-23) per Yuqi's call to
+ * stop maintaining two panels; V2's design ideas merged back into
+ * V1 over the previous commits in this batch. The component name
+ * survives as a thin pass-through so route call sites don't churn.
  */
 export function ObligationPanelDispatcher({
   obligationId,
@@ -31,34 +32,16 @@ export function ObligationPanelDispatcher({
   practiceAiEnabled: boolean
   blockerCandidates: ObligationQueueRow[]
 }) {
-  const { version, setVersion } = useObligationPanelVersion()
-
-  if (version === 'v2') {
-    return <ObligationPanelV2 obligationId={obligationId} onClose={onClose} />
-  }
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => setVersion('v2')}
-          className="text-xs text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline"
-          title="Toggle: ?panel=v2"
-        >
-          <Trans>Try the new panel shape →</Trans>
-        </button>
-      </div>
-      <ObligationQueueDetailDrawer
-        mode="panel"
-        obligationId={obligationId}
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        onClose={onClose}
-        onNeedsInput={onNeedsInput}
-        practiceAiEnabled={practiceAiEnabled}
-        blockerCandidates={blockerCandidates}
-      />
-    </div>
+    <ObligationQueueDetailDrawer
+      mode="panel"
+      obligationId={obligationId}
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      onClose={onClose}
+      onNeedsInput={onNeedsInput}
+      practiceAiEnabled={practiceAiEnabled}
+      blockerCandidates={blockerCandidates}
+    />
   )
 }
