@@ -3357,8 +3357,8 @@ msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 ro
 msgstr "将 CSV / Excel / ZIP / TXT / IIF 拖到这里，或点击选择 · 最多 1000 行 · 5 MB"
 
 #: src/routes/obligations.tsx
-msgid "Drop the sub-status line + redundant buttons. Panel + one primary action only."
-msgstr "去掉子状态行和多余按钮。仅保留面板和一个主操作。"
+msgid "Drop sub-status + extra buttons. Panel + one primary action only."
+msgstr "去掉子状态和多余按钮。仅保留面板和一个主操作。"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -6595,8 +6595,8 @@ msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "付费订阅向事务所计费，而不是向个人用户计费。"
 
 #: src/routes/obligations.tsx
-msgid "Panel becomes the sub-status indicator (no extra line). Full button stack stays."
-msgstr "面板替代子状态行（不再单独显示一行）。完整按钮组保留。"
+msgid "Panel becomes the sub-status. Full button stack stays."
+msgstr "面板替代子状态行。完整按钮组保留。"
 
 #: src/routes/obligations.tsx
 msgid "Paper-filed with authority"
@@ -8983,33 +8983,9 @@ msgstr "出现异常，请重试。"
 msgid "Sort"
 msgstr "排序"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by client name"
-msgstr "按客户名称排序"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by done count"
-msgstr "按已完成数量排序"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by entity type"
-msgstr "按实体类型排序"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by next due date"
-msgstr "按下次到期日排序"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by open count"
-msgstr "按未完成数量排序"
-
 #: src/routes/obligations.tsx
 msgid "Sort by Smart Priority"
 msgstr "按智能优先级排序"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by state"
-msgstr "按州排序"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -9182,7 +9158,7 @@ msgstr "州"
 msgid "Status"
 msgstr "状态"
 
-#. placeholder {0}: statusLabels[vars.status]
+#. placeholder {0}: statusLabels[nextStatus]
 #. placeholder {0}: v2StatusLabels[vars.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
@@ -9235,8 +9211,8 @@ msgid "Structured change"
 msgstr "结构化变更"
 
 #: src/routes/obligations.tsx
-msgid "Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs."
-msgstr "子状态说明「何时」（已等待天数）；面板说明「内容」；按钮只用动词。"
+msgid "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
+msgstr "子状态说明「何时」；面板说明「内容」；按钮只用动词。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
@@ -10264,6 +10240,14 @@ msgstr "WA 扣除抵免后的小计"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "等待中"
+
+#: src/routes/obligations.tsx
+msgid "Waiting card IA preview"
+msgstr "等待中卡片 信息架构预览"
+
+#: src/routes/obligations.tsx
+msgid "Waiting card layout"
+msgstr "等待中卡片布局"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "waiting on client"

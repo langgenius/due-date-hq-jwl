@@ -3357,8 +3357,8 @@ msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 ro
 msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 
 #: src/routes/obligations.tsx
-msgid "Drop the sub-status line + redundant buttons. Panel + one primary action only."
-msgstr "Drop the sub-status line + redundant buttons. Panel + one primary action only."
+msgid "Drop sub-status + extra buttons. Panel + one primary action only."
+msgstr "Drop sub-status + extra buttons. Panel + one primary action only."
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
@@ -6595,8 +6595,8 @@ msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "Paid subscriptions bill the practice, not an individual user."
 
 #: src/routes/obligations.tsx
-msgid "Panel becomes the sub-status indicator (no extra line). Full button stack stays."
-msgstr "Panel becomes the sub-status indicator (no extra line). Full button stack stays."
+msgid "Panel becomes the sub-status. Full button stack stays."
+msgstr "Panel becomes the sub-status. Full button stack stays."
 
 #: src/routes/obligations.tsx
 msgid "Paper-filed with authority"
@@ -8983,33 +8983,9 @@ msgstr "Something went wrong. Please try again."
 msgid "Sort"
 msgstr "Sort"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by client name"
-msgstr "Sort by client name"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by done count"
-msgstr "Sort by done count"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by entity type"
-msgstr "Sort by entity type"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by next due date"
-msgstr "Sort by next due date"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by open count"
-msgstr "Sort by open count"
-
 #: src/routes/obligations.tsx
 msgid "Sort by Smart Priority"
 msgstr "Sort by Smart Priority"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Sort by state"
-msgstr "Sort by state"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -9182,7 +9158,7 @@ msgstr "States"
 msgid "Status"
 msgstr "Status"
 
-#. placeholder {0}: statusLabels[vars.status]
+#. placeholder {0}: statusLabels[nextStatus]
 #. placeholder {0}: v2StatusLabels[vars.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
@@ -9235,8 +9211,8 @@ msgid "Structured change"
 msgstr "Structured change"
 
 #: src/routes/obligations.tsx
-msgid "Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs."
-msgstr "Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs."
+msgid "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
+msgstr "Sub-status names the WHEN. Panel names the WHAT. Buttons are pure verbs."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
@@ -10264,6 +10240,14 @@ msgstr "WA subtotal minus credits"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "Waiting"
+
+#: src/routes/obligations.tsx
+msgid "Waiting card IA preview"
+msgstr "Waiting card IA preview"
+
+#: src/routes/obligations.tsx
+msgid "Waiting card layout"
+msgstr "Waiting card layout"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "waiting on client"

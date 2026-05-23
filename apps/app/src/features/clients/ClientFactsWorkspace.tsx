@@ -458,42 +458,48 @@ function renderClientHeaderSubLine({
 }
 
 /**
- * 2026-05-23: small sort-arrow widget that sits next to a column
- * header label. Three states matching TanStack's column.getIsSorted():
+ * 2026-05-23: column-header SORT button. Wraps the label + a sort-
+ * arrow icon in a single click target so the whole label is clickable
+ * to cycle sort (asc → desc → cleared). Visually distinct from the
+ * separate filter funnel icon (`tableHeaderFilterIconTrigger`) that
+ * sits beside it — sort and filter are two controls, two clicks, no
+ * accidental triggering.
+ *
+ * The arrow has three states matching TanStack's column.getIsSorted():
  *   - false (idle)  → muted up/down chevron pair (sortable affordance)
  *   - 'asc'         → solid up arrow (active ascending)
  *   - 'desc'        → solid down arrow (active descending)
- * Click cycles asc → desc → cleared. The widget renders inline so it
- * pairs visually with whatever sits in the header (the filter chevron
- * dropdown trigger usually), and stops propagation so the filter
- * popover doesn't open when the user means to sort.
  */
-function ColumnSortIndicator({
+function ColumnSortHeader({
+  label,
   sortState,
   onToggle,
-  ariaLabel,
+  align = 'left',
 }: {
+  label: string
   sortState: false | 'asc' | 'desc'
   onToggle: () => void
-  ariaLabel: string
+  align?: 'left' | 'right'
 }) {
   return (
     <button
       type="button"
-      onClick={(event) => {
-        event.stopPropagation()
-        onToggle()
-      }}
-      aria-label={ariaLabel}
-      title={ariaLabel}
-      className="ml-1 inline-flex size-4 shrink-0 items-center justify-center rounded text-text-tertiary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      onClick={onToggle}
+      aria-label={`Sort by ${label}`}
+      title={`Sort by ${label}`}
+      data-active={sortState !== false ? true : undefined}
+      className={cn(
+        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-md px-1 text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
+        align === 'right' && 'justify-end',
+      )}
     >
+      <span className="truncate">{label}</span>
       {sortState === 'asc' ? (
-        <ArrowUpIcon className="size-3" aria-hidden />
+        <ArrowUpIcon className="size-3 shrink-0" aria-hidden />
       ) : sortState === 'desc' ? (
-        <ArrowDownIcon className="size-3" aria-hidden />
+        <ArrowDownIcon className="size-3 shrink-0" aria-hidden />
       ) : (
-        <ArrowUpDownIcon className="size-3 opacity-60" aria-hidden />
+        <ArrowUpDownIcon className="size-3 shrink-0 opacity-60" aria-hidden />
       )}
     </button>
   )
@@ -618,16 +624,20 @@ export function ClientFactsWorkspace({
     () => [
       {
         accessorKey: 'name',
-        // Header pairs the filter trigger with a sort-arrow widget
-        // (2026-05-23). The filter dropdown opens on label click via
-        // TableHeaderMultiFilter's own trigger; the sort arrow is a
-        // separate small button to its right that cycles asc/desc/off.
-        // Click propagation is stopped inside the indicator so opening
-        // the filter doesn't toggle sort and vice versa.
+        // 2026-05-23: filter and sort split into distinct click targets.
+        // Label + sort arrow on the LEFT (clicking anywhere on the
+        // label cycles sort); funnel icon on the RIGHT (opens the
+        // filter dropdown). Per Yuqi's audit — filter should never be
+        // mistaken for sort and vice versa.
         header: ({ column }) => (
-          <div className="flex items-center gap-0">
+          <div className="flex items-center justify-between gap-1">
+            <ColumnSortHeader
+              label={t`Client`}
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+            />
             <TableHeaderMultiFilter
-              trigger="header"
+              trigger="icon"
               label={t`Client`}
               open={openHeaderFilter === 'client'}
               onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
@@ -637,11 +647,6 @@ export function ClientFactsWorkspace({
               searchable
               searchPlaceholder={t`Search clients`}
               onSelectedChange={onClientFilterChange}
-            />
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by client name`}
             />
           </div>
         ),
@@ -692,9 +697,14 @@ export function ClientFactsWorkspace({
       {
         accessorKey: 'state',
         header: ({ column }) => (
-          <div className="flex items-center gap-0">
+          <div className="flex items-center justify-between gap-1">
+            <ColumnSortHeader
+              label={t`States`}
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+            />
             <TableHeaderMultiFilter
-              trigger="header"
+              trigger="icon"
               label={t`States`}
               open={openHeaderFilter === 'state'}
               onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
@@ -702,11 +712,6 @@ export function ClientFactsWorkspace({
               selected={stateFilter}
               emptyLabel={t`No states`}
               onSelectedChange={onStateFilterChange}
-            />
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by state`}
             />
           </div>
         ),
@@ -766,9 +771,14 @@ export function ClientFactsWorkspace({
         // the client.
         accessorKey: 'entityType',
         header: ({ column }) => (
-          <div className="flex items-center gap-0">
+          <div className="flex items-center justify-between gap-1">
+            <ColumnSortHeader
+              label={t`Entity`}
+              sortState={column.getIsSorted()}
+              onToggle={() => column.toggleSorting()}
+            />
             <TableHeaderMultiFilter
-              trigger="header"
+              trigger="icon"
               label={t`Entity`}
               open={openHeaderFilter === 'entity'}
               onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
@@ -776,11 +786,6 @@ export function ClientFactsWorkspace({
               selected={entityFilter}
               emptyLabel={t`No entities`}
               onSelectedChange={onEntityFilterChange}
-            />
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by entity type`}
             />
           </div>
         ),
@@ -807,14 +812,11 @@ export function ClientFactsWorkspace({
         // day) is gone; the inline pill is its replacement.
         id: 'nextDue',
         header: ({ column }) => (
-          <span className="inline-flex items-center">
-            <Trans>Next due</Trans>
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by next due date`}
-            />
-          </span>
+          <ColumnSortHeader
+            label={t`Next due`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+          />
         ),
         // Custom sortingFn — the value comes from the summary map
         // (not row.original), so the default accessor-based sort
@@ -886,14 +888,12 @@ export function ClientFactsWorkspace({
       {
         id: 'openObligations',
         header: ({ column }) => (
-          <span className="flex items-center justify-end">
-            <Trans>Open</Trans>
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by open count`}
-            />
-          </span>
+          <ColumnSortHeader
+            label={t`Open`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+            align="right"
+          />
         ),
         sortingFn: (rowA, rowB) => {
           const a = obligationSummariesByClient.get(rowA.original.id)?.openCount ?? 0
@@ -938,14 +938,12 @@ export function ClientFactsWorkspace({
         // we add that link).
         id: 'doneObligations',
         header: ({ column }) => (
-          <span className="flex items-center justify-end">
-            <Trans>Done</Trans>
-            <ColumnSortIndicator
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-              ariaLabel={t`Sort by done count`}
-            />
-          </span>
+          <ColumnSortHeader
+            label={t`Done`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+            align="right"
+          />
         ),
         sortingFn: (rowA, rowB) => {
           const a = obligationSummariesByClient.get(rowA.original.id)?.doneCount ?? 0
@@ -974,19 +972,26 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'assigneeName',
+        // Owner has filter but no sort in the mock — render the label
+        // as static text and the funnel icon as the only click target.
         header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Owner`}
-            open={openHeaderFilter === 'owner'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('owner', nextOpen)}
-            options={ownerOptions}
-            selected={ownerFilter}
-            emptyLabel={t`No owners`}
-            searchable
-            searchPlaceholder={t`Search owners`}
-            onSelectedChange={onOwnerFilterChange}
-          />
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-xs font-medium tracking-wider uppercase text-text-tertiary">
+              <Trans>Owner</Trans>
+            </span>
+            <TableHeaderMultiFilter
+              trigger="icon"
+              label={t`Owner`}
+              open={openHeaderFilter === 'owner'}
+              onOpenChange={(nextOpen) => setHeaderFilterOpen('owner', nextOpen)}
+              options={ownerOptions}
+              selected={ownerFilter}
+              emptyLabel={t`No owners`}
+              searchable
+              searchPlaceholder={t`Search owners`}
+              onSelectedChange={onOwnerFilterChange}
+            />
+          </div>
         ),
         cell: ({ row }) => (
           <ClientAssigneeAvatar

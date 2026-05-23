@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, ListFilterIcon } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -22,7 +22,12 @@ export interface TableFilterOption {
 }
 
 interface TableHeaderMultiFilterProps {
-  trigger?: 'toolbar' | 'header'
+  // 'toolbar' = wide button with label inline (above-the-table strips)
+  // 'header'  = compact uppercase header trigger (legacy column header)
+  // 'icon'    = funnel icon button only (2026-05-23: pairs with a
+  //             separate sort-arrow control so filter and sort are
+  //             visually distinct click targets on the same header cell)
+  trigger?: 'toolbar' | 'header' | 'icon'
   label: string
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -69,6 +74,12 @@ function TableHeaderMultiFilter({
   const triggerNode =
     trigger === 'header' ? (
       tableHeaderFilterTrigger({ label, activeCount: selectedCount, disabled: disabled ?? false })
+    ) : trigger === 'icon' ? (
+      tableHeaderFilterIconTrigger({
+        label,
+        activeCount: selectedCount,
+        disabled: disabled ?? false,
+      })
     ) : (
       <Button
         variant={selectedCount > 0 ? 'accent' : 'outline'}
@@ -174,6 +185,43 @@ function tableHeaderFilterTrigger({
         </Badge>
       ) : null}
       <ChevronDownIcon className="size-3 shrink-0" aria-hidden />
+    </button>
+  )
+}
+
+/**
+ * 2026-05-23: icon-only filter trigger. Used on table column headers
+ * where the LABEL is its own click target for sort, and the FUNNEL
+ * icon is the separate click target for filter. Keeps the two
+ * concerns distinct visually so a user clicking the column name
+ * never accidentally opens the filter dropdown (or vice versa).
+ * Active-count dot appears on the icon when filter has selections,
+ * matching the dot-as-state pattern used on other badges.
+ */
+function tableHeaderFilterIconTrigger({
+  label,
+  activeCount,
+  disabled,
+}: {
+  label: string
+  activeCount: number
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      aria-label={`Filter by ${label}`}
+      title={`Filter by ${label}`}
+      data-active={activeCount > 0 ? true : undefined}
+      className="relative inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
+    >
+      <ListFilterIcon className="size-3.5" aria-hidden />
+      {activeCount > 0 ? (
+        <span className="absolute -top-0.5 -right-0.5 inline-flex size-3 items-center justify-center rounded-full bg-state-accent-active-alt text-[8px] font-medium leading-none text-text-accent-inverse">
+          {activeCount}
+        </span>
+      ) : null}
     </button>
   )
 }
