@@ -16,13 +16,40 @@ source changes into Pulse instead of creating internal rule-pack proposals.
 ## Source Outcomes
 
 - `html_watch` / `pdf_watch`: fetch, archive raw text to R2, update source state freshness.
+- Temporary announcement `api_watch`: fetch the registered feed/list endpoint, normalize RSS/Atom
+  entries or tax-relevant list links into item-level snapshots, then enqueue extraction per item.
 - Not modified: update freshness only; do not run AI extraction and do not touch concrete drafts.
 - Changed content: create `pulse_source_snapshot` and enqueue `pulse.extract`.
-- `manual_review` / `email_subscription` / `api_watch`: create a `pulse_source_signal` with
+- `manual_review` / `email_subscription` / non-temporary `api_watch`: create a
+  `pulse_source_signal` with
   `signal_type='source_check_due'` so operations can inspect the source and link the signal to
   Pulse when needed.
 - Fetch failure: update source health and emit a Pulse metric; do not create a hidden rule-pack
   proposal.
+
+## Temporary Announcement Coverage
+
+Temporary announcement coverage is tracked internally by jurisdiction. `FED + 50 states + DC` are
+counted, and a jurisdiction is covered only when at least one registered official source is:
+
+- `sourceType='emergency_relief'` or `sourceType='news'`
+- `authorityRole='watch'`
+- `acquisitionMethod='html_watch'`, `acquisitionMethod='pdf_watch'`, or
+  `acquisitionMethod='api_watch'` backed by a dedicated announcement feed/list adapter
+- `healthStatus='healthy'`
+- subscribed to `practice_rule_review`
+
+These watch sources do not count as Rule Library baseline source coverage. Baseline source matrix
+coverage only counts `authorityRole='basis'`, so a news or relief page cannot make a tax-domain cell
+look source-backed by itself.
+
+Use `listTemporaryAnnouncementSourceCoverage()` or `pnpm rules:check-sources` to inspect the
+internal coverage gate. Official pages that are registered but return `403`, `404`, or timeout from
+the generic checker should be treated as source-health work, not as public product coverage.
+
+For noisy news or RSS sources, the scan path should split the list page into candidate items before
+`pulse.extract`. This keeps generic list-page boilerplate from creating false positives; extraction
+should classify only the narrowed item.
 
 ## Pulse Behavior
 

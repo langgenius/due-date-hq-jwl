@@ -540,8 +540,8 @@ msgid "{role} at {0}"
 msgstr "{role} at {0}"
 
 #: src/routes/migration.new.tsx
-msgid "{ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review before they can become active and create client obligations."
-msgstr "{ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review before they can become active and create client obligations."
+msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client obligations.} other {# rules are queued for due-date review before they can become active and create client obligations.}}"
+msgstr "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client obligations.} other {# rules are queued for due-date review before they can become active and create client obligations.}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
@@ -1244,8 +1244,8 @@ msgid "Already applied"
 msgstr "Already applied"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Alternatively, use Dashboard > Application Links > Utilities > Create client list for Portal."
-msgstr "Alternatively, use Dashboard > Application Links > Utilities > Create client list for Portal."
+msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
+msgstr "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "An active practice rule supports this deadline."
@@ -1569,10 +1569,6 @@ msgstr "Automation"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
 msgstr "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Avoid CLNTBKUP files or ProSystem fx backup ZIPs; they are not import-ready client lists."
-msgstr "Avoid CLNTBKUP files or ProSystem fx backup ZIPs; they are not import-ready client lists."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
@@ -1944,10 +1940,6 @@ msgstr "Choose a previous provider import"
 msgid "Choose a workspace tier"
 msgstr "Choose a workspace tier"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Choose All contacts and download the spreadsheet or CSV."
-msgstr "Choose All contacts and download the spreadsheet or CSV."
-
 #: src/routes/billing.checkout.tsx
 msgid "Choose another plan"
 msgstr "Choose another plan"
@@ -1956,6 +1948,10 @@ msgstr "Choose another plan"
 msgid "Choose Client Contact, General Client Information, or General Return Information, then select clients."
 msgstr "Choose Client Contact, General Client Information, or General Return Information, then select clients."
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
+msgstr "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
+
 #: src/routes/obligations.tsx
 msgid "Choose one option in each row. Export writes an audit event."
 msgstr "Choose one option in each row. Export writes an audit event."
@@ -1963,6 +1959,10 @@ msgstr "Choose one option in each row. Export writes an audit event."
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
 msgstr "Choose Solo, Pro, or Team to start the hosted checkout flow."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Choose the contact data to download; Karbon saves a spreadsheet to your device."
+msgstr "Choose the contact data to download; Karbon saves a spreadsheet to your device."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -2944,8 +2944,8 @@ msgid "CSV"
 msgstr "CSV"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV or XLSX"
-msgstr "CSV or XLSX"
+msgid "CSV or TXT"
+msgstr "CSV or TXT"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "CSV, XLS, or XLSX"
@@ -3237,20 +3237,24 @@ msgid "Do not upload FBK database backups; export client information instead."
 msgstr "Do not upload FBK database backups; export client information instead."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Do not upload IDATA, CDATA, PDATA, DBF, or MDX return-data folders/files."
-msgstr "Do not upload IDATA, CDATA, PDATA, DBF, or MDX return-data folders/files."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Do not upload ProSeries client return files such as YYi, YYp, YYc, or YYs files."
-msgstr "Do not upload ProSeries client return files such as YYi, YYp, YYc, or YYs files."
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists."
 msgstr "Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Do not upload RTNBAK or RCTRL return backup files."
 msgstr "Do not upload RTNBAK or RCTRL return backup files."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not use Backup or Restore for this import; those are for moving Drake data between Drake installs."
+msgstr "Do not use Backup or Restore for this import; those are for moving Drake data between Drake installs."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not use Client > Backup for this import; backups and IDATA/DBF/MDX files are return-data files, not client-list CSVs."
+msgstr "Do not use Client > Backup for this import; backups and IDATA/DBF/MDX files are return-data files, not client-list CSVs."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
+msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Docs received"
@@ -3779,8 +3783,8 @@ msgid "Export obligations"
 msgstr "Export obligations"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Export ProConnect Tax return data"
-msgstr "Export ProConnect Tax return data"
+msgid "Export ProConnect Tax clients"
+msgstr "Export ProConnect Tax clients"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Export ProSeries contacts"
@@ -3801,6 +3805,10 @@ msgstr "Export start date"
 #: src/features/migration/Step1Intake.tsx
 msgid "Export TaxDome accounts and contacts"
 msgstr "Export TaxDome accounts and contacts"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Export the client list to Excel; it includes client names and addresses."
+msgstr "Export the client list to Excel; it includes client names and addresses."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Export to Excel 97-2003 Workbook and include column headings when prompted."
@@ -4090,8 +4098,12 @@ msgid "Follow up on client approval"
 msgstr "Follow up on client approval"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "For due-date history, export Work separately from the Work page export menu."
-msgstr "For due-date history, export Work separately from the Work page export menu."
+msgid "For deadline history, export Work separately from the Work page cloud icon."
+msgstr "For deadline history, export Work separately from the Work page cloud icon."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List."
+msgstr "For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "For existing tasks or due dates, use Tools > Display Task View in Excel."
@@ -4107,6 +4119,10 @@ msgstr "For multi-practice operations, API access, and custom coverage."
 msgid "For practices coordinating a larger operations team."
 msgstr "For practices coordinating a larger operations team."
 
+#: src/features/migration/Step1Intake.tsx
+msgid "For return facts, use Reporting > Download return data to download the eligible e-filed return CSV."
+msgstr "For return facts, use Reporting > Download return data to download the eligible e-filed return CSV."
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "For small practices that need shared deadline operations."
@@ -4120,6 +4136,10 @@ msgstr "For solo owners running one practice workspace."
 #: src/features/migration/Step1Intake.tsx
 msgid "For supplemental organizer data, open Intuit Link and download client responses as CSV."
 msgstr "For supplemental organizer data, open Intuit Link and download client responses as CSV."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "For the client list, open Clients and use the top-right download arrow."
+msgstr "For the client list, open Clients and use the top-right download arrow."
 
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
@@ -4234,12 +4254,12 @@ msgid "Go back"
 msgstr "Go back"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Go to Clients > Accounts > export icon, then download the emailed ZIP link."
-msgstr "Go to Clients > Accounts > export icon, then download the emailed ZIP link."
+msgid "Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV."
+msgstr "Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Go to Clients > Contacts > Export contacts, then download that ZIP too."
-msgstr "Go to Clients > Contacts > Export contacts, then download that ZIP too."
+msgid "Go to Clients > Contacts, click Export contacts, then download that zipped CSV too."
+msgstr "Go to Clients > Contacts, click Export contacts, then download that zipped CSV too."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Go to Dashboard > Applications > Utilities > Create client list for Portal."
@@ -4459,6 +4479,10 @@ msgid "In review. Approve or send back via the original panel."
 msgstr "In review. Approve or send back via the original panel."
 
 #: src/features/migration/Step1Intake.tsx
+msgid "In the client export/report screen, select the clients and fields to export, then click Export."
+msgstr "In the client export/report screen, select the clients and fields to export, then click Export."
+
+#: src/features/migration/Step1Intake.tsx
 msgid "In the Clients tab, highlight the clients to export."
 msgstr "In the Clients tab, highlight the clients to export."
 
@@ -4478,10 +4502,6 @@ msgstr "Inbox"
 #: src/components/patterns/pulse-notifications-bell.tsx
 msgid "Inbox, {unreadCount} unread"
 msgstr "Inbox, {unreadCount} unread"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Include client ID, taxpayer name, taxpayer ID, state, return type, address, and email when available."
-msgstr "Include client ID, taxpayer name, taxpayer ID, state, return type, address, and email when available."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Include client number, client name, email, phone, address, return type, and preparer fields."
@@ -4584,10 +4604,6 @@ msgstr "Internal notes drafted"
 #: src/features/obligations/obligation-type.ts
 msgid "Internal review"
 msgstr "Internal review"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Intuit Link document ZIPs are document archives, not a primary client list."
-msgstr "Intuit Link document ZIPs are document archives, not a primary client list."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Invalid rule"
@@ -6037,6 +6053,10 @@ msgstr "Obligations export"
 msgid "Obligations exported"
 msgstr "Obligations exported"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
+msgstr "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
+
 #: src/routes/obligations.tsx
 msgid "Official form or method"
 msgstr "Official form or method"
@@ -6224,17 +6244,13 @@ msgstr "Open client"
 msgid "Open client detail for {0}"
 msgstr "Open client detail for {0}"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Open Client Manager, run Quick Search with filters set to All, then choose Export Grid."
-msgstr "Open Client Manager, run Quick Search with filters set to All, then choose Export Grid."
-
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Open client to fix entity"
 msgstr "Open client to fix entity"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Open Contacts, then use the cloud / export-import icon."
-msgstr "Open Contacts, then use the cloud / export-import icon."
+msgid "Open Contacts and select the cloud export icon; Admin access may be required."
+msgstr "Open Contacts and select the cloud export icon; Admin access may be required."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open Deadlines."
@@ -6374,6 +6390,10 @@ msgstr "Optional"
 #: src/routes/readiness.tsx
 msgid "Optional note"
 msgstr "Optional note"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
+msgstr "Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer."
@@ -7342,12 +7362,12 @@ msgid "Queued"
 msgstr "Queued"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "QuickBooks Desktop: export the Customer Contact List to Excel/CSV, or export Customers to IIF."
-msgstr "QuickBooks Desktop: export the Customer Contact List to Excel/CSV, or export Customers to IIF."
+msgid "QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List."
+msgstr "QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "QuickBooks Online: export the Customer Contact List report to Excel."
-msgstr "QuickBooks Online: export the Customer Contact List report to Excel."
+msgid "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
+msgstr "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
 
 #: src/routes/practice.tsx
 msgid "Rank"
@@ -7686,6 +7706,10 @@ msgstr "Removing this member will commit these changes"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Replaces the old K-1 dropdown — capture partner info or any free-form context here."
 msgstr "Replaces the old K-1 dropdown — capture partner info or any free-form context here."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
+msgstr "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
 
 #: src/routes/obligations.tsx
 msgid "Request 8879 authorization from client"
@@ -8291,10 +8315,6 @@ msgstr "Save $96/year"
 msgid "Save about 20%"
 msgstr "Save about 20%"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Save as CSV or Excel and keep columns like Client ID, Name, Client Type, FYE, email, and staff."
-msgstr "Save as CSV or Excel and keep columns like Client ID, Name, Client Type, FYE, email, and staff."
-
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Save changes"
@@ -8339,6 +8359,10 @@ msgstr "Save template"
 #: src/features/migration/Step1Intake.tsx
 msgid "Save the client list as CSV, XLS, or XLSX before uploading."
 msgstr "Save the client list as CSV, XLS, or XLSX before uploading."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
+msgstr "Save the export as EXPORT.CSV or choose your own CSV file name."
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
@@ -9059,6 +9083,10 @@ msgstr "Specific client"
 #: src/routes/obligations.tsx
 msgid "Specific date range"
 msgstr "Specific date range"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Spreadsheet"
+msgstr "Spreadsheet"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
@@ -9885,8 +9913,8 @@ msgid "TX prior-year franchise tax"
 msgstr "TX prior-year franchise tax"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "TXT, TSV, CSV, or XLSX"
-msgstr "TXT, TSV, CSV, or XLSX"
+msgid "TXT, CSV, or Excel"
+msgstr "TXT, CSV, or Excel"
 
 #. placeholder {0}: row.taxYear
 #: src/routes/obligations.tsx
@@ -10026,14 +10054,6 @@ msgid "Upgrade to Team"
 msgstr "Upgrade to Team"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Upload a client-data CSV, not return backup or e-file transmission files."
-msgstr "Upload a client-data CSV, not return backup or e-file transmission files."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Upload both ZIPs or extracted CSVs so accounts can be matched to contacts."
-msgstr "Upload both ZIPs or extracted CSVs so accounts can be matched to contacts."
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Upload file"
 msgstr "Upload file"
 
@@ -10042,16 +10062,16 @@ msgid "Upload rows"
 msgstr "Upload rows"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Upload the client information text file, task-view spreadsheet, or both."
-msgstr "Upload the client information text file, task-view spreadsheet, or both."
+msgid "Upload the customer list file; ZIP exports are okay only if they contain readable customer reports."
+msgstr "Upload the customer list file; ZIP exports are okay only if they contain readable customer reports."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Upload the customer list file; ZIP exports are okay if they contain customer reports."
-msgstr "Upload the customer list file; ZIP exports are okay if they contain customer reports."
+msgid "Upload the exported client file, task-view spreadsheet, or both."
+msgstr "Upload the exported client file, task-view spreadsheet, or both."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Upload the reporting CSV first; response CSVs can be added for context."
-msgstr "Upload the reporting CSV first; response CSVs can be added for context."
+msgid "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
+msgstr "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
 
 #: src/routes/obligations.tsx
 msgid "Upstream obligation"
@@ -10091,24 +10111,28 @@ msgid "Use Client > Export > Export to File, then choose Comma Delimited."
 msgstr "Use Client > Export > Export to File, then choose Comma Delimited."
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Use Create client list for Portal to export a client-list spreadsheet, not Office Manager backup."
+msgstr "Use Create client list for Portal to export a client-list spreadsheet, not Office Manager backup."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Dashboard > Application Links > Utilities > Create client list for Portal."
+msgstr "Use Dashboard > Application Links > Utilities > Create client list for Portal."
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Use HomeBase > Export Contacts, then upload Contacts.csv."
 msgstr "Use HomeBase > Export Contacts, then upload Contacts.csv."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use Reporting > Download return data, then download CSV."
-msgstr "Use Reporting > Download return data, then download CSV."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Use Reports or Report Manager to export Client / EF data to CSV."
-msgstr "Use Reports or Report Manager to export Client / EF data to CSV."
+msgid "Use Reports > Report Manager > Tax return data only when you need a custom column report."
+msgstr "Use Reports > Report Manager > Tax return data only when you need a custom column report."
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Use the source-backed path for deadline changes, then prepare client communication from the same selected obligations."
 msgstr "Use the source-backed path for deadline changes, then prepare client communication from the same selected obligations."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use Tools > Export Client Information and save the text file."
-msgstr "Use Tools > Export Client Information and save the text file."
+msgid "Use Tools > File Maintenance > Export Client/EF Data."
+msgstr "Use Tools > File Maintenance > Export Client/EF Data."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Use Utilities > Client Listing Reports."
@@ -10411,8 +10435,12 @@ msgid "XLSX"
 msgstr "XLSX"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "XLSX, CSV, or IIF"
-msgstr "XLSX, CSV, or IIF"
+msgid "XLSX or CSV"
+msgstr "XLSX or CSV"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "XLSX or IIF"
+msgstr "XLSX or IIF"
 
 #: src/routes/obligations.tsx
 msgid "Year timeline"

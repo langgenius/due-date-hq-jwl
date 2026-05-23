@@ -1375,7 +1375,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     jurisdiction: 'IL',
     id: 'il.sales_use_tax_due_dates',
     title: 'Illinois DOR Retailers Sales and Use Tax Filing Requirements',
-    url: 'https://tax.illinois.gov/research/publications/pubs/retailers-overview-of-sales-and-use-tax/requirements-for-retailers-who-file-form-st-1.html',
+    url: 'https://tax.illinois.gov/forms/sales/salesandusetax/st-1-instructions-2024.html',
     sourceType: 'instructions',
     acquisitionMethod: 'html_watch',
     domains: ['sales_use_tax'],
@@ -3199,7 +3199,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     title: 'New Hampshire DRA Business Tax Summary Instructions',
     url: 'https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2024.pdf',
     sourceType: 'publication',
-    acquisitionMethod: 'pdf_watch',
+    acquisitionMethod: 'manual_review',
     domains: [
       'business_income_return',
       'business_estimated_tax',
@@ -3216,7 +3216,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS = [
     title: 'New Hampshire Employment Security File Employer Quarterly Tax and Wage Report',
     url: 'https://www2.nhes.nh.gov/webtax/File_Employer_Quarterly_Tax_Wage_Report.pdf',
     sourceType: 'publication',
-    acquisitionMethod: 'pdf_watch',
+    acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
@@ -3769,6 +3769,353 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
 type RuleSourceSeedRecord = Omit<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'> &
   Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'>>
 
+const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
+  id: string
+  jurisdiction: RuleGenerationState
+  title: string
+  url: string
+  sourceType?: RuleSourceType
+  acquisitionMethod?: AcquisitionMethod
+  priority?: SourcePriority
+}[] = [
+  {
+    id: 'ak.temporary_announcements',
+    jurisdiction: 'AK',
+    title: 'Alaska Department of Revenue Announcements and Publications',
+    url: 'https://dor.alaska.gov/',
+  },
+  {
+    id: 'al.temporary_announcements',
+    jurisdiction: 'AL',
+    title: 'Alabama DOR News',
+    url: 'https://www.revenue.alabama.gov/news/',
+  },
+  {
+    id: 'ar.temporary_announcements',
+    jurisdiction: 'AR',
+    title: 'Arkansas DFA News',
+    url: 'https://www.dfa.arkansas.gov/',
+  },
+  {
+    id: 'az.temporary_announcements',
+    jurisdiction: 'AZ',
+    title: 'Arizona DOR News Center',
+    url: 'https://azdor.gov/news-center',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'ca.temporary_announcements',
+    jurisdiction: 'CA',
+    title: 'California FTB Emergency Tax Relief',
+    url: 'https://www.ftb.ca.gov/file/when-to-file/emergency-tax-relief.html',
+    sourceType: 'emergency_relief',
+    priority: 'critical',
+  },
+  {
+    id: 'co.temporary_announcements',
+    jurisdiction: 'CO',
+    title: 'Colorado DOR Tax Newsroom',
+    url: 'https://tax.colorado.gov/newsroom',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'ct.temporary_announcements',
+    jurisdiction: 'CT',
+    title: 'Connecticut DRS News Releases',
+    url: 'https://portal.ct.gov/drs/news-releases',
+  },
+  {
+    id: 'dc.temporary_announcements',
+    jurisdiction: 'DC',
+    title: 'District of Columbia OTR Newsroom',
+    url: 'https://otr.cfo.dc.gov/newsroom',
+  },
+  {
+    id: 'de.temporary_announcements',
+    jurisdiction: 'DE',
+    title: 'Delaware Division of Revenue News',
+    url: 'https://revenue.delaware.gov/',
+  },
+  {
+    id: 'fl.temporary_announcements',
+    jurisdiction: 'FL',
+    title: 'Florida DOR Tax Information Publications',
+    url: 'https://floridarevenue.com/taxes/tips/Pages/default.aspx',
+  },
+  {
+    id: 'ga.temporary_announcements',
+    jurisdiction: 'GA',
+    title: 'Georgia DOR Press Releases',
+    url: 'https://dor.georgia.gov/press-releases',
+  },
+  {
+    id: 'hi.temporary_announcements',
+    jurisdiction: 'HI',
+    title: 'Hawaii DOTAX News',
+    url: 'https://tax.hawaii.gov/news/',
+  },
+  {
+    id: 'ia.temporary_announcements',
+    jurisdiction: 'IA',
+    title: 'Iowa DOR Newsroom',
+    url: 'https://revenue.iowa.gov/newsroom',
+  },
+  {
+    id: 'id.temporary_announcements',
+    jurisdiction: 'ID',
+    title: 'Idaho Tax Commission Newsroom',
+    url: 'https://tax.idaho.gov/newsroom/',
+  },
+  {
+    id: 'il.temporary_announcements',
+    jurisdiction: 'IL',
+    title: 'Illinois DOR News',
+    url: 'https://tax.illinois.gov/aboutidor/news.html',
+  },
+  {
+    id: 'in.temporary_announcements',
+    jurisdiction: 'IN',
+    title: 'Indiana DOR News and Publications',
+    url: 'https://www.in.gov/dor/about/news-publications/',
+  },
+  {
+    id: 'ks.temporary_announcements',
+    jurisdiction: 'KS',
+    title: 'Kansas DOR Press Releases',
+    url: 'https://www.ksrevenue.gov/pressreleases.html',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'ky.temporary_announcements',
+    jurisdiction: 'KY',
+    title: 'Kentucky DOR News',
+    url: 'https://revenue.ky.gov/News/Pages/default.aspx',
+  },
+  {
+    id: 'la.temporary_announcements',
+    jurisdiction: 'LA',
+    title: 'Louisiana DOR News and Announcements',
+    url: 'https://revenue.louisiana.gov/news-and-announcements/',
+  },
+  {
+    id: 'ma.temporary_announcements',
+    jurisdiction: 'MA',
+    title: 'Massachusetts DOR Press Releases',
+    url: 'https://www.mass.gov/lists/2026-dor-press-releases',
+  },
+  {
+    id: 'md.temporary_announcements',
+    jurisdiction: 'MD',
+    title: 'Comptroller of Maryland Newsroom',
+    url: 'https://www.marylandcomptroller.gov/about/newsroom.html',
+  },
+  {
+    id: 'me.temporary_announcements',
+    jurisdiction: 'ME',
+    title: 'Maine Revenue Services Tax Alerts',
+    url: 'https://www.maine.gov/revenue/publications/maine-tax-alerts',
+  },
+  {
+    id: 'mi.temporary_announcements',
+    jurisdiction: 'MI',
+    title: 'Michigan Treasury Taxes News',
+    url: 'https://www.michigan.gov/taxes/news',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'mn.temporary_announcements',
+    jurisdiction: 'MN',
+    title: 'Minnesota DOR News Release Archive',
+    url: 'https://www.revenue.state.mn.us/newsroom/press-release-archive',
+  },
+  {
+    id: 'mo.temporary_announcements',
+    jurisdiction: 'MO',
+    title: 'Missouri DOR News',
+    url: 'https://dor.mo.gov/news/',
+  },
+  {
+    id: 'ms.temporary_announcements',
+    jurisdiction: 'MS',
+    title: 'Mississippi DOR News',
+    url: 'https://www.dor.ms.gov/news',
+  },
+  {
+    id: 'mt.temporary_announcements',
+    jurisdiction: 'MT',
+    title: 'Montana DOR News',
+    url: 'https://mtrevenue.gov/news/',
+  },
+  {
+    id: 'nc.temporary_announcements',
+    jurisdiction: 'NC',
+    title: 'North Carolina DOR Press Releases',
+    url: 'https://www.ncdor.gov/news/press-releases',
+  },
+  {
+    id: 'nd.temporary_announcements',
+    jurisdiction: 'ND',
+    title: 'North Dakota Tax and Legislative Changes',
+    url: 'https://www.tax.nd.gov/news/tax-legislative-changes',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'ne.temporary_announcements',
+    jurisdiction: 'NE',
+    title: 'Nebraska DOR News Releases',
+    url: 'https://revenue.nebraska.gov/about/news-releases',
+  },
+  {
+    id: 'nh.temporary_announcements',
+    jurisdiction: 'NH',
+    title: 'New Hampshire DRA News and Media',
+    url: 'https://www.revenue.nh.gov/',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'nj.temporary_announcements',
+    jurisdiction: 'NJ',
+    title: 'New Jersey Division of Taxation Latest News',
+    url: 'https://www.nj.gov/treasury/taxation/whatsnew.shtml',
+  },
+  {
+    id: 'nm.temporary_announcements',
+    jurisdiction: 'NM',
+    title: 'New Mexico TRD News Alerts',
+    url: 'https://www.tax.newmexico.gov/news-alerts/',
+  },
+  {
+    id: 'nv.temporary_announcements',
+    jurisdiction: 'NV',
+    title: 'Nevada Department of Taxation Tax Notes',
+    url: 'https://tax.nv.gov/News/Tax_Notes/',
+  },
+  {
+    id: 'ny.temporary_announcements',
+    jurisdiction: 'NY',
+    title: 'New York Tax Department Press Office',
+    url: 'https://www.tax.ny.gov/press/',
+  },
+  {
+    id: 'oh.temporary_announcements',
+    jurisdiction: 'OH',
+    title: 'Ohio Department of Taxation Tax Alert',
+    url: 'https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/ohiotaxalert/archivedalerts/incometaxformsavailable-122821.pdf',
+    acquisitionMethod: 'pdf_watch',
+  },
+  {
+    id: 'ok.temporary_announcements',
+    jurisdiction: 'OK',
+    title: 'Oklahoma Tax Commission Newsroom',
+    url: 'https://oklahoma.gov/tax/newsroom.html',
+  },
+  {
+    id: 'or.temporary_announcements',
+    jurisdiction: 'OR',
+    title: 'Oregon DOR Newsroom Press Releases',
+    url: 'https://apps.oregon.gov/oregon-newsroom/OR/DOR/Posts/Search?type=Press+Release',
+  },
+  {
+    id: 'pa.temporary_announcements',
+    jurisdiction: 'PA',
+    title: 'Pennsylvania DOR News and Statistics',
+    url: 'https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx',
+  },
+  {
+    id: 'ri.temporary_announcements',
+    jurisdiction: 'RI',
+    title: 'Rhode Island DOR Press Releases',
+    url: 'https://dor.ri.gov/press-releases',
+    acquisitionMethod: 'api_watch',
+  },
+  {
+    id: 'sc.temporary_announcements',
+    jurisdiction: 'SC',
+    title: 'South Carolina DOR News',
+    url: 'https://dor.sc.gov/index.php/',
+  },
+  {
+    id: 'sd.temporary_announcements',
+    jurisdiction: 'SD',
+    title: 'South Dakota DOR Newsroom',
+    url: 'https://dor.sd.gov/newsroom/',
+  },
+  {
+    id: 'tn.temporary_announcements',
+    jurisdiction: 'TN',
+    title: 'Tennessee DOR Revenue News',
+    url: 'https://www.tn.gov/revenue/revenue-news.html',
+  },
+  {
+    id: 'tx.temporary_announcements',
+    jurisdiction: 'TX',
+    title: 'Texas Comptroller News',
+    url: 'https://comptroller.texas.gov/about/media-center/news/',
+  },
+  {
+    id: 'ut.temporary_announcements',
+    jurisdiction: 'UT',
+    title: 'Utah Tax Commission Public Notices and Recent Information',
+    url: 'https://tax.utah.gov/public-info/',
+  },
+  {
+    id: 'va.temporary_announcements',
+    jurisdiction: 'VA',
+    title: 'Virginia Tax News',
+    url: 'https://www.tax.virginia.gov/news',
+  },
+  {
+    id: 'vt.temporary_announcements',
+    jurisdiction: 'VT',
+    title: 'Vermont Department of Taxes',
+    url: 'https://tax.vermont.gov/',
+  },
+  {
+    id: 'wa.temporary_announcements',
+    jurisdiction: 'WA',
+    title: 'Washington DOR News Releases',
+    url: 'https://dor.wa.gov/about/news-releases',
+  },
+  {
+    id: 'wi.temporary_announcements',
+    jurisdiction: 'WI',
+    title: 'Wisconsin DOR News',
+    url: 'https://www.revenue.wi.gov/',
+  },
+  {
+    id: 'wv.temporary_announcements',
+    jurisdiction: 'WV',
+    title: 'West Virginia Tax Division',
+    url: 'https://tax.wv.gov/',
+  },
+  {
+    id: 'wy.temporary_announcements',
+    jurisdiction: 'WY',
+    title: 'Wyoming Department of Revenue News',
+    url: 'https://revenue.wyo.gov/',
+  },
+] as const
+
+const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES.map(
+  (source): RuleSourceSeedRecord => ({
+    id: source.id,
+    jurisdiction: source.jurisdiction,
+    title: source.title,
+    url: source.url,
+    sourceType: source.sourceType ?? 'news',
+    acquisitionMethod: source.acquisitionMethod ?? 'html_watch',
+    cadence: 'daily',
+    priority: source.priority ?? 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    domains: RULE_SOURCE_DOMAINS,
+    entityApplicability: ['any_business'],
+    authorityRole: 'watch',
+    notificationChannels: ['source_change', 'practice_rule_review'],
+    lastReviewedOn: VERIFIED_AT,
+  }),
+)
+
 const SOURCE_DOMAIN_OVERRIDES: Record<string, readonly RuleSourceDomain[]> = {
   'ca.ftb_business_due_dates': [
     'business_income_return',
@@ -3845,6 +4192,7 @@ function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly 
 
 export const RULE_SOURCES = hydrateRuleSources([
   ...STATE_OFFICIAL_SOURCES,
+  ...TEMPORARY_ANNOUNCEMENT_RULE_SOURCES,
   {
     id: 'fed.irs_pub_509_2026',
     jurisdiction: 'FED',
@@ -8026,10 +8374,42 @@ export interface RequiredSourceCoverageCell {
   sourceIds: readonly string[]
 }
 
+export type TemporaryAnnouncementCoverageStatus = 'covered' | 'missing_source'
+
+export interface TemporaryAnnouncementSourceCoverage {
+  jurisdiction: RuleJurisdiction
+  status: TemporaryAnnouncementCoverageStatus
+  sourceIds: readonly string[]
+  missingReason: string | null
+}
+
+const TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES = new Set<RuleSourceType>(['emergency_relief', 'news'])
+const TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS = new Set<AcquisitionMethod>([
+  'html_watch',
+  'pdf_watch',
+  'api_watch',
+])
+
 function sourceVerificationStatus(source: RuleSource): SourceCoverageStatus {
   return source.healthStatus === 'healthy' && source.acquisitionMethod !== 'manual_review'
     ? 'source_verified'
     : 'source_registered'
+}
+
+export function isTemporaryAnnouncementSource(source: RuleSource): boolean {
+  return (
+    source.authorityRole === 'watch' &&
+    TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES.has(source.sourceType) &&
+    source.notificationChannels.includes('practice_rule_review')
+  )
+}
+
+export function isCoveredTemporaryAnnouncementSource(source: RuleSource): boolean {
+  return (
+    isTemporaryAnnouncementSource(source) &&
+    source.healthStatus === 'healthy' &&
+    TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS.has(source.acquisitionMethod)
+  )
 }
 
 function mergeSourceCoverageStatus(
@@ -8055,7 +8435,9 @@ export function listRequiredSourceCoverage(
 
   for (const currentJurisdiction of jurisdictions) {
     if (currentJurisdiction === 'FED') continue
-    const sources = listRuleSources(currentJurisdiction)
+    const sources = listRuleSources(currentJurisdiction).filter(
+      (source) => source.authorityRole === 'basis',
+    )
     for (const domain of STATE_CANDIDATE_RULE_DOMAINS) {
       for (const entity of domain.entityApplicability) {
         if (sourceCoverageNotApplicable(currentJurisdiction, domain.slug, entity)) {
@@ -8087,6 +8469,29 @@ export function listRequiredSourceCoverage(
   }
 
   return cells
+}
+
+export function listTemporaryAnnouncementSourceCoverage(
+  jurisdiction?: RuleJurisdiction,
+): readonly TemporaryAnnouncementSourceCoverage[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  return jurisdictions.map((currentJurisdiction) => {
+    const announcementSources = listRuleSources(currentJurisdiction).filter(
+      isTemporaryAnnouncementSource,
+    )
+    const coveredSources = announcementSources.filter(isCoveredTemporaryAnnouncementSource)
+    return {
+      jurisdiction: currentJurisdiction,
+      status: coveredSources.length > 0 ? 'covered' : 'missing_source',
+      sourceIds: coveredSources.map((source) => source.id),
+      missingReason:
+        coveredSources.length > 0
+          ? null
+          : announcementSources.length === 0
+            ? 'No official temporary announcement source is registered.'
+            : 'Registered temporary announcement sources are not healthy html_watch/pdf_watch/api_watch sources.',
+    }
+  })
 }
 
 export function listSourceCoverageGaps(

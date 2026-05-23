@@ -4,11 +4,13 @@ import {
   getMvpRuleCoverage,
   findRuleById,
   isTaxYearDrivenRule,
+  isCoveredTemporaryAnnouncementSource,
   listObligationRules,
   listRequiredSourceCoverage,
   listRuleSources,
   listSourceCoverageGaps,
   listSourcesByNotificationChannel,
+  listTemporaryAnnouncementSourceCoverage,
   MVP_RULE_JURISDICTIONS,
   normalizeRuleTaxTypeCandidates,
   OBLIGATION_RULES,
@@ -147,6 +149,41 @@ describe('@duedatehq/core/rules', () => {
       expect(source.authorityRole, `${source.id} has no authority role`).toMatch(
         /^(basis|cross_check|watch|early_warning)$/,
       )
+    }
+  })
+
+  it('keeps internal temporary announcement source coverage complete and machine-watchable', () => {
+    const coverage = listTemporaryAnnouncementSourceCoverage()
+    expect(coverage).toHaveLength(52)
+    expect(coverage.map((cell) => cell.jurisdiction)).toEqual(MVP_RULE_JURISDICTIONS)
+    expect(coverage.filter((cell) => cell.status === 'covered')).toHaveLength(52)
+
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    for (const cell of coverage) {
+      expect(
+        cell.sourceIds.length,
+        `${cell.jurisdiction} has no temporary announcement source`,
+      ).toBeGreaterThan(0)
+      for (const sourceId of cell.sourceIds) {
+        const source = sourcesById.get(sourceId)
+        expect(source, `${sourceId} should map to a registered source`).toBeDefined()
+        if (!source) continue
+        expect(isCoveredTemporaryAnnouncementSource(source), sourceId).toBe(true)
+        expect(source.authorityRole, sourceId).toBe('watch')
+        expect(['html_watch', 'pdf_watch', 'api_watch'], sourceId).toContain(
+          source.acquisitionMethod,
+        )
+        expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
+      }
+    }
+  })
+
+  it('does not let temporary watch sources satisfy baseline source coverage', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    for (const cell of listRequiredSourceCoverage()) {
+      for (const sourceId of cell.sourceIds) {
+        expect(sourcesById.get(sourceId)?.authorityRole, sourceId).toBe('basis')
+      }
     }
   })
 
@@ -836,12 +873,12 @@ describe('@duedatehq/core/rules', () => {
     )
   })
 
-  it('uses current official New Hampshire PDF sources for business and UI candidates', () => {
+  it('keeps current official New Hampshire sources registered for business and UI candidates', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
 
     expect(sourcesById.get('nh.business_tax')).toMatchObject({
       url: 'https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/bt-summary-instructions-2024.pdf',
-      acquisitionMethod: 'pdf_watch',
+      acquisitionMethod: 'manual_review',
       domains: [
         'business_income_return',
         'business_estimated_tax',
@@ -851,7 +888,7 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(sourcesById.get('nh.ui_wage_report')).toMatchObject({
       url: 'https://www2.nhes.nh.gov/webtax/File_Employer_Quarterly_Tax_Wage_Report.pdf',
-      acquisitionMethod: 'pdf_watch',
+      acquisitionMethod: 'manual_review',
       domains: ['ui_wage_report'],
     })
     expect(findRuleById('nh.business_income_return.candidate.2026')?.sourceIds).toEqual([

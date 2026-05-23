@@ -6,11 +6,13 @@ import {
   makeRulesRepo,
 } from '@duedatehq/db'
 import {
+  isTemporaryAnnouncementSource,
   listObligationRules,
   listRuleSources,
   type ObligationRule,
   type RuleSource,
 } from '@duedatehq/core/rules'
+import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
 import { fetchTextSnapshot, hashText } from '@duedatehq/ingest/http'
 import type { Env } from '../../env'
 import {
@@ -99,7 +101,11 @@ function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, no
 }
 
 function sourceCanAutoScan(source: RuleSource): boolean {
-  return source.healthStatus !== 'paused' && AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod)
+  return (
+    source.healthStatus !== 'paused' &&
+    (AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod) ||
+      (isTemporaryAnnouncementSource(source) && source.acquisitionMethod === 'api_watch'))
+  )
 }
 
 function sourceTemplateInput(source: RuleSource) {
@@ -240,7 +246,7 @@ export async function consumePulseRuleSourceScan(
     now,
   })
 
-  if (!AUTOMATED_SCAN_METHODS.has(source.acquisitionMethod)) {
+  if (!sourceCanAutoScan(source)) {
     await recordManualSourceSignal({ env, source, reason: message.reason, now })
     return
   }
@@ -271,29 +277,66 @@ export async function consumePulseRuleSourceScan(
       return
     }
 
-    const snapshot = await pulseOps.createSourceSnapshot({
-      sourceId: source.id,
-      externalId: source.url,
-      title: `${source.title} official source snapshot`,
-      officialSourceUrl: source.url,
-      publishedAt: checkedAt,
-      fetchedAt: checkedAt,
-      contentHash: fetched.contentHash,
-      rawR2Key: fetched.r2Key,
-    })
+    const announcementItems = isTemporaryAnnouncementSource(source)
+      ? announcementItemsFromSnapshot(source, fetched)
+      : []
+    const snapshotResults =
+      announcementItems.length > 0
+        ? await Promise.all(
+            announcementItems.map(async (item) => {
+              const archived = await archivePulseRaw(env, {
+                sourceId: item.sourceId,
+                externalId: item.externalId,
+                fetchedAt: checkedAt,
+                body: item.rawText,
+                contentType: 'text/plain; charset=utf-8',
+              })
+              return pulseOps.createSourceSnapshot({
+                sourceId: item.sourceId,
+                externalId: item.externalId,
+                title: item.title,
+                officialSourceUrl: item.officialSourceUrl,
+                publishedAt: item.publishedAt,
+                fetchedAt: checkedAt,
+                contentHash: archived.contentHash,
+                rawR2Key: archived.r2Key,
+              })
+            }),
+          )
+        : [
+            await pulseOps.createSourceSnapshot({
+              sourceId: source.id,
+              externalId: source.url,
+              title: `${source.title} official source snapshot`,
+              officialSourceUrl: source.url,
+              publishedAt: checkedAt,
+              fetchedAt: checkedAt,
+              contentHash: fetched.contentHash,
+              rawR2Key: fetched.r2Key,
+            }),
+          ]
+    const insertedSnapshots = snapshotResults.filter((result) => result.inserted)
     await pulseOps.recordSourceSuccess({
       sourceId: source.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, source),
-      changed: snapshot.inserted,
+      changed: insertedSnapshots.length > 0,
       ...(fetched.etag !== undefined ? { etag: fetched.etag } : {}),
       ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
     })
 
-    if (snapshot.inserted) {
-      await env.PULSE_QUEUE.send({
-        type: 'pulse.extract',
-        snapshotId: snapshot.snapshot.id,
+    await Promise.all(
+      insertedSnapshots.map((snapshot) =>
+        env.PULSE_QUEUE.send({
+          type: 'pulse.extract',
+          snapshotId: snapshot.snapshot.id,
+        }),
+      ),
+    )
+    if (insertedSnapshots.length > 0) {
+      recordPulseMetric('pulse.rule_source_scan.snapshots_created', {
+        sourceId: source.id,
+        count: insertedSnapshots.length,
       })
     }
   } catch (error) {

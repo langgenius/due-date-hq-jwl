@@ -10,6 +10,8 @@ import {
   txComptrollerRssAdapter,
 } from './adapters'
 import { createSourceFetcherRegistry } from './fetcher'
+import { announcementItemsFromSnapshot } from './announcements'
+import { parseRssItems, parsedItemsFromRss } from './rss'
 import { extractLinks, pickSelector } from './selectors'
 import type { IngestCtx } from './types'
 
@@ -37,6 +39,52 @@ describe('@duedatehq/ingest', () => {
     expect(extractLinks('<a href="/press/item">Press item</a>', 'https://tax.ny.gov')).toEqual([
       { href: 'https://tax.ny.gov/press/item', text: 'Press item' },
     ])
+  })
+
+  it('parses RSS and Atom announcement feed items into Pulse candidates', () => {
+    const rssItems = parsedItemsFromRss({
+      sourceId: 'az.temporary_announcements',
+      jurisdiction: 'AZ',
+      feedUrl: 'https://azdor.gov/news-center/feed',
+      xml: `<rss><channel><item><guid>ador-1</guid><title><![CDATA[TPT Filer - Please Submit Your Return]]></title><link>/news/tpt-filer</link><pubDate>Wed, 08 Apr 2026 00:00:00 GMT</pubDate><description>Taxpayers can file now and schedule payments up until the deadline.</description></item></channel></rss>`,
+    })
+    const atomItems = parseRssItems(
+      `<feed><entry><id>tag:tax.example,2026:1</id><title>Tax relief notice</title><link href="/notice"/><updated>2026-04-09T00:00:00Z</updated><summary>Relief applies to affected taxpayers.</summary></entry></feed>`,
+      'https://tax.example/feed',
+    )
+
+    expect(rssItems[0]).toMatchObject({
+      sourceId: 'az.temporary_announcements',
+      jurisdiction: 'AZ',
+      title: 'TPT Filer - Please Submit Your Return',
+      officialSourceUrl: 'https://azdor.gov/news/tpt-filer',
+    })
+    expect(atomItems[0]).toMatchObject({
+      title: 'Tax relief notice',
+      link: 'https://tax.example/notice',
+    })
+  })
+
+  it('splits official announcement list pages into tax-relevant item candidates', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'tx.temporary_announcements',
+        title: 'Texas Comptroller News',
+        url: 'https://comptroller.texas.gov/about/media-center/news/',
+        jurisdiction: 'TX',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<main><a href="/about/media-center/news/20260408-deadline">April 15 is the tax filing deadline</a><a href="/about">About the agency</a></main>',
+      },
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'tx.temporary_announcements',
+      title: 'April 15 is the tax filing deadline',
+      officialSourceUrl: 'https://comptroller.texas.gov/about/media-center/news/20260408-deadline',
+    })
   })
 
   it('runs the NY DTF fixture adapter end-to-end', async () => {

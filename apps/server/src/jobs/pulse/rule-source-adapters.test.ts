@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
 import {
+  createTemporaryAnnouncementAdapter,
   createRuleSourceAdapter,
   isRuleSourceAdapterEligible,
   isRuleSourcePulsePromoted,
+  isTemporaryAnnouncementAdapterEligible,
   liveRegulatorySourceAdapters,
   ruleSourceAdapters,
+  temporaryAnnouncementSourceAdapters,
 } from './rule-source-adapters'
 
 describe('rule source adapters', () => {
@@ -22,17 +25,72 @@ describe('rule source adapters', () => {
       candidateReviewSources.map((source) => source.id).toSorted(),
     )
     expect(liveRegulatorySourceAdapters).toHaveLength(
-      livePulseAdapters.length + candidateReviewSources.length,
+      livePulseAdapters.length +
+        candidateReviewSources.length +
+        temporaryAnnouncementSourceAdapters.length,
     )
+  })
+
+  it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {
+    const sources = listRuleSources().filter(isTemporaryAnnouncementAdapterEligible)
+
+    expect(temporaryAnnouncementSourceAdapters.map((adapter) => adapter.id).toSorted()).toEqual(
+      sources.map((source) => source.id).toSorted(),
+    )
+    expect(sources.map((source) => source.id).toSorted()).toEqual([
+      'az.temporary_announcements',
+      'co.temporary_announcements',
+      'ks.temporary_announcements',
+      'mi.temporary_announcements',
+      'nd.temporary_announcements',
+      'nh.temporary_announcements',
+      'ri.temporary_announcements',
+    ])
+
+    const source = sources.find((candidate) => candidate.id === 'az.temporary_announcements')!
+    const items = await createTemporaryAnnouncementAdapter(source).parse(
+      {
+        sourceId: source.id,
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.xml',
+        contentType: 'application/rss+xml',
+        etag: null,
+        lastModified: null,
+        body: `<rss><channel><item><title>TPT Filer - Please Submit Your Return</title><link>https://azdor.gov/news/tpt-filer</link><pubDate>Wed, 08 Apr 2026 00:00:00 GMT</pubDate><description>Taxpayers can file now and schedule payments up until the deadline.</description></item></channel></rss>`,
+      },
+      {
+        fetch: async () => new Response(''),
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+
+    expect(items[0]).toMatchObject({
+      sourceId: 'az.temporary_announcements',
+      title: 'TPT Filer - Please Submit Your Return',
+      officialSourceUrl: 'https://azdor.gov/news/tpt-filer',
+      jurisdiction: 'AZ',
+    })
   })
 
   it('keeps manual-review and pdf-only sources out of the automated ingest set', () => {
     const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
     const automatedIds = ruleSourceAdapters.map((adapter) => adapter.id)
 
-    for (const sourceId of ['ca.income_tax', 'dc.income_tax', 'wa.capital_gains_exception_2026']) {
+    for (const sourceId of [
+      'ca.income_tax',
+      'dc.income_tax',
+      'wa.capital_gains_exception_2026',
+      'tx.temporary_announcements',
+    ]) {
       const source = sourcesById.get(sourceId)
-      expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
+      if (sourceId === 'tx.temporary_announcements') {
+        expect(source?.authorityRole, sourceId).toBe('watch')
+      } else {
+        expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
+      }
       expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(false)
       expect(isRuleSourcePulsePromoted(source!), sourceId).toBe(false)
       expect(automatedIds, sourceId).not.toContain(sourceId)

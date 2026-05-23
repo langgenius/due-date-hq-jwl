@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/react/macro'
+import { Plural, Trans } from '@lingui/react/macro'
 import { ArrowRightIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
@@ -45,7 +45,6 @@ export function MigrationNewRoute() {
           onReviewRules={reviewRules}
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
-          ruleReviewJurisdictions={ruleReviewJurisdictions}
         />
         <div className="rounded-xl border border-divider-regular bg-components-panel-bg p-4">
           <Skeleton className="h-8 w-56" />
@@ -63,7 +62,6 @@ export function MigrationNewRoute() {
           onReviewRules={reviewRules}
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
-          ruleReviewJurisdictions={ruleReviewJurisdictions}
         />
         <Alert variant="destructive">
           <AlertTitle>
@@ -95,7 +93,6 @@ export function MigrationNewRoute() {
             onReviewRules={reviewRules}
             showRuleReviewAction={!isOnboardingSource}
             ruleReviewCount={ruleReviewCount}
-            ruleReviewJurisdictions={ruleReviewJurisdictions}
           />
         )}
         onClose={skipToDashboard}
@@ -121,16 +118,12 @@ function MigrationActivationIntro({
   onReviewRules,
   showRuleReviewAction = true,
   ruleReviewCount,
-  ruleReviewJurisdictions,
 }: {
   onSkip: () => void
   onReviewRules: () => void
   showRuleReviewAction?: boolean | undefined
   ruleReviewCount: number
-  ruleReviewJurisdictions: readonly string[]
 }) {
-  const jurisdictionSummary =
-    ruleReviewJurisdictions.length > 0 ? ruleReviewJurisdictions.join(', ') : 'selected states'
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
@@ -170,10 +163,11 @@ function MigrationActivationIntro({
             <AlertDescription>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span>
-                  <Trans>
-                    {ruleReviewCount} rules in {jurisdictionSummary} are queued for due-date review
-                    before they can become active and create client obligations.
-                  </Trans>
+                  <Plural
+                    value={ruleReviewCount}
+                    one="# rule is queued for due-date review before it can become active and create client obligations."
+                    other="# rules are queued for due-date review before they can become active and create client obligations."
+                  />
                 </span>
                 {showRuleReviewAction ? (
                   <Button

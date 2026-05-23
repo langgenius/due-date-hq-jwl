@@ -2,8 +2,10 @@
 import { execFile } from 'node:child_process'
 import { listPenaltyFormulaCatalog } from '../packages/core/src/penalty/index.ts'
 import {
+  isCoveredTemporaryAnnouncementSource,
   listObligationRules,
   listRequiredSourceCoverage,
+  listTemporaryAnnouncementSourceCoverage,
   RULE_SOURCE_DOMAINS,
   RULE_SOURCES,
   sourceCoversRuleDomain,
@@ -80,7 +82,11 @@ function runCurl(args: string[]): Promise<string> {
   })
 }
 
-async function curlStatus(url: string, method: CheckedMethod): Promise<number> {
+async function curlStatus(
+  url: string,
+  method: CheckedMethod,
+  headers: 'browser' | 'plain' = 'browser',
+): Promise<number> {
   const args = [
     '-L',
     '--silent',
@@ -91,11 +97,16 @@ async function curlStatus(url: string, method: CheckedMethod): Promise<number> {
     '/dev/null',
     '--write-out',
     '%{http_code}',
-    '-A',
-    SOURCE_FETCH_HEADERS['user-agent'],
-    '-H',
-    `Accept: ${SOURCE_FETCH_HEADERS.accept}`,
   ]
+
+  if (headers === 'browser') {
+    args.push(
+      '-A',
+      SOURCE_FETCH_HEADERS['user-agent'],
+      '-H',
+      `Accept: ${SOURCE_FETCH_HEADERS.accept}`,
+    )
+  }
 
   if (method === 'HEAD') args.push('-I')
   args.push(url)
@@ -151,6 +162,17 @@ async function checkRuleSource(source: RuleSource): Promise<RuleSourceHealthResu
         sourceId: source.id,
         status: 'ok',
         httpStatus: getStatus,
+        checkedUrl: source.url,
+        checkedMethod: 'GET',
+      }
+    }
+
+    const plainGetStatus = await curlStatus(source.url, 'GET', 'plain')
+    if (plainGetStatus >= 200 && plainGetStatus < 400) {
+      return {
+        sourceId: source.id,
+        status: 'ok',
+        httpStatus: plainGetStatus,
         checkedUrl: source.url,
         checkedMethod: 'GET',
       }
@@ -268,6 +290,23 @@ for (const jurisdiction of COMPLETED_SOURCE_PACK_JURISDICTIONS) {
     if (cell.status === 'missing_source') {
       sourceCoverageFailures.push(
         `${jurisdiction}: missing required source for ${cell.domain}/${cell.entity}`,
+      )
+    }
+  }
+}
+
+for (const cell of listTemporaryAnnouncementSourceCoverage()) {
+  if (cell.status !== 'covered') {
+    sourceCoverageFailures.push(
+      `${cell.jurisdiction}: missing machine-watchable temporary announcement source (${cell.missingReason})`,
+    )
+    continue
+  }
+  for (const sourceId of cell.sourceIds) {
+    const source = sourceById.get(sourceId)
+    if (!source || !isCoveredTemporaryAnnouncementSource(source)) {
+      sourceCoverageFailures.push(
+        `${cell.jurisdiction}: invalid temporary announcement source ${sourceId}`,
       )
     }
   }

@@ -296,6 +296,8 @@ Return:
 Rules:
 - The sourceExcerpt must be copied verbatim from rawText.
 - Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
+- Use no_regulatory_change for non-tax agency news, staffing, awards, auctions, fraud warnings, unclaimed property, portal availability, office hours, and generic taxpayer education unless the text changes a filing/payment requirement or due date.
+- RSS or news-list items are already narrowed to one candidate item. Classify only that item; do not infer a broader regulatory change from surrounding feed/list boilerplate.
 - Use deadline_shift with actionMode due_date_overlay only when both originalDueDate and newDueDate are explicitly present.
 - Use review_only for filing requirement, applicability, form/instruction, source status, new obligation, and other non-date changes.
 - Do not infer deadlines, forms, jurisdictions, or eligibility that are not stated.

@@ -1,4 +1,9 @@
-import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
+import {
+  isTemporaryAnnouncementSource,
+  listRuleSources,
+  type RuleSource,
+} from '@duedatehq/core/rules'
+import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
 import { fetchTextSnapshot, stableExternalId, textExcerpt } from '@duedatehq/ingest/http'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
 import { stripHtml } from '@duedatehq/ingest/selectors'
@@ -23,6 +28,9 @@ const PULSE_BASIS_SOURCE_TYPES = new Set<RuleSource['sourceType']>([
   'form',
 ])
 const AUTOMATED_RULE_SOURCE_METHODS = new Set<RuleSource['acquisitionMethod']>(['html_watch'])
+const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMethod']>([
+  'api_watch',
+])
 
 function intervalForCadence(cadence: RuleSource['cadence']): number {
   const hour = 60 * 60 * 1000
@@ -95,15 +103,48 @@ export function createRuleSourceAdapter(source: RuleSource): SourceAdapter {
   }
 }
 
+export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAdapter {
+  return {
+    id: source.id,
+    tier: tierForPriority(source.priority),
+    cronIntervalMs: intervalForCadence(source.cadence),
+    jurisdiction: source.jurisdiction,
+    fetcher: 'browserless',
+    async fetch(ctx) {
+      return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: source.url })]
+    },
+    async parse(snapshot) {
+      if (snapshot.notModified) return []
+      return announcementItemsFromSnapshot(source, snapshot, { fallbackToSourceSnapshot: true })
+    },
+  }
+}
+
 export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
   if (!source.notificationChannels.includes('practice_rule_review')) return false
   if (!AUTOMATED_RULE_SOURCE_METHODS.has(source.acquisitionMethod)) return false
+  if (source.authorityRole !== 'basis') return false
   if (EXISTING_ADAPTER_IDS.has(source.id)) return false
   return !SOURCE_INDEX_IDS.has(source.id)
+}
+
+export function isTemporaryAnnouncementAdapterEligible(source: RuleSource): boolean {
+  if (!isTemporaryAnnouncementSource(source)) return false
+  if (!TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS.has(source.acquisitionMethod)) return false
+  if (EXISTING_ADAPTER_IDS.has(source.id)) return false
+  return true
 }
 
 export const ruleSourceAdapters = listRuleSources()
   .filter(isRuleSourceAdapterEligible)
   .map(createRuleSourceAdapter)
 
-export const liveRegulatorySourceAdapters = [...livePulseAdapters, ...ruleSourceAdapters] as const
+export const temporaryAnnouncementSourceAdapters = listRuleSources()
+  .filter(isTemporaryAnnouncementAdapterEligible)
+  .map(createTemporaryAnnouncementAdapter)
+
+export const liveRegulatorySourceAdapters = [
+  ...livePulseAdapters,
+  ...ruleSourceAdapters,
+  ...temporaryAnnouncementSourceAdapters,
+] as const

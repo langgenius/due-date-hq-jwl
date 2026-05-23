@@ -304,18 +304,14 @@ function EvidenceChip({
   promptVersion: string | null
 }) {
   if (!promptVersion && model === null && confidence === null) return null
-  const conf = typeof confidence === 'number' ? confidence.toFixed(2) : '—'
-  const label = model ?? promptVersion ?? 'evidence'
+  const isAi = model !== null
+  const label = isAi ? 'AI' : 'Rules'
   return (
     <span
       className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-transparent px-1.5 font-mono text-xs tabular-nums text-text-secondary"
-      title={`${label} · ${conf}`}
+      title={label}
     >
-      <span>AI</span>
-      <span aria-hidden>·</span>
       <span>{label}</span>
-      <span aria-hidden>·</span>
-      <span>{conf}</span>
     </span>
   )
 }

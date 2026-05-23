@@ -959,51 +959,70 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
         title: i18n._(msg`Export TaxDome accounts and contacts`),
         preferredFiles: i18n._(msg`ZIP or CSV`),
         steps: [
-          i18n._(msg`Go to Clients > Accounts > export icon, then download the emailed ZIP link.`),
-          i18n._(msg`Go to Clients > Contacts > Export contacts, then download that ZIP too.`),
-          i18n._(msg`Upload both ZIPs or extracted CSVs so accounts can be matched to contacts.`),
+          i18n._(
+            msg`Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV.`,
+          ),
+          i18n._(
+            msg`Go to Clients > Contacts, click Export contacts, then download that zipped CSV too.`,
+          ),
+          i18n._(
+            msg`Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines.`,
+          ),
+          i18n._(msg`Upload the ZIPs or extracted CSVs so accounts can be matched to contacts.`),
         ],
         note: i18n._(msg`Avoid document archives; they are not client account or contact lists.`),
       }
     case 'drake':
       return {
         title: i18n._(msg`Export Drake client data`),
-        preferredFiles: i18n._(msg`CSV`),
+        preferredFiles: i18n._(msg`CSV or TXT`),
         steps: [
-          i18n._(msg`Use Reports or Report Manager to export Client / EF data to CSV.`),
+          i18n._(msg`Use Tools > File Maintenance > Export Client/EF Data.`),
           i18n._(
-            msg`Include client ID, taxpayer name, taxpayer ID, state, return type, address, and email when available.`,
+            msg`Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue.`,
+          ),
+          i18n._(
+            msg`Use Reports > Report Manager > Tax return data only when you need a custom column report.`,
           ),
           i18n._(
             msg`Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping.`,
           ),
         ],
         note: i18n._(
-          msg`Upload a client-data CSV, not return backup or e-file transmission files.`,
+          msg`Do not use Backup or Restore for this import; those are for moving Drake data between Drake installs.`,
         ),
       }
     case 'karbon':
       return {
         title: i18n._(msg`Export Karbon contacts`),
-        preferredFiles: i18n._(msg`CSV or XLSX`),
+        preferredFiles: i18n._(msg`Spreadsheet`),
         steps: [
-          i18n._(msg`Open Contacts, then use the cloud / export-import icon.`),
-          i18n._(msg`Choose All contacts and download the spreadsheet or CSV.`),
-          i18n._(msg`For due-date history, export Work separately from the Work page export menu.`),
+          i18n._(
+            msg`Open Contacts and select the cloud export icon; Admin access may be required.`,
+          ),
+          i18n._(
+            msg`Choose the contact data to download; Karbon saves a spreadsheet to your device.`,
+          ),
+          i18n._(msg`For deadline history, export Work separately from the Work page cloud icon.`),
         ],
         note: i18n._(msg`Karbon columns vary by firm setup, so keep the header row in the file.`),
       }
     case 'quickbooks':
       return {
         title: i18n._(msg`Export QuickBooks customers`),
-        preferredFiles: i18n._(msg`XLSX, CSV, or IIF`),
+        preferredFiles: i18n._(msg`XLSX or IIF`),
         steps: [
-          i18n._(msg`QuickBooks Online: export the Customer Contact List report to Excel.`),
           i18n._(
-            msg`QuickBooks Desktop: export the Customer Contact List to Excel/CSV, or export Customers to IIF.`,
+            msg`QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List.`,
           ),
           i18n._(
-            msg`Upload the customer list file; ZIP exports are okay if they contain customer reports.`,
+            msg`QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List.`,
+          ),
+          i18n._(
+            msg`For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List.`,
+          ),
+          i18n._(
+            msg`Upload the customer list file; ZIP exports are okay only if they contain readable customer reports.`,
           ),
         ],
         note: i18n._(msg`Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists.`),
@@ -1011,11 +1030,13 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'file_in_time':
       return {
         title: i18n._(msg`Export File In Time client information`),
-        preferredFiles: i18n._(msg`TXT, TSV, CSV, or XLSX`),
+        preferredFiles: i18n._(msg`TXT, CSV, or Excel`),
         steps: [
-          i18n._(msg`Use Tools > Export Client Information and save the text file.`),
+          i18n._(
+            msg`In the client export/report screen, select the clients and fields to export, then click Export.`,
+          ),
           i18n._(msg`For existing tasks or due dates, use Tools > Display Task View in Excel.`),
-          i18n._(msg`Upload the client information text file, task-view spreadsheet, or both.`),
+          i18n._(msg`Upload the exported client file, task-view spreadsheet, or both.`),
         ],
         note: i18n._(msg`Do not upload FBK database backups; export client information instead.`),
       }
@@ -1025,13 +1046,12 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
         preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
         steps: [
           i18n._(
-            msg`Open Client Manager, run Quick Search with filters set to All, then choose Export Grid.`,
+            msg`Use Dashboard > Application Links > Utilities > Create client list for Portal.`,
           ),
+          i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
+          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
           i18n._(
-            msg`Alternatively, use Dashboard > Application Links > Utilities > Create client list for Portal.`,
-          ),
-          i18n._(
-            msg`Save as CSV or Excel and keep columns like Client ID, Name, Client Type, FYE, email, and staff.`,
+            msg`Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid.`,
           ),
         ],
         note: i18n._(msg`Do not upload RTNBAK or RCTRL return backup files.`),
@@ -1041,12 +1061,15 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
         title: i18n._(msg`Export CCH ProSystem fx clients`),
         preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
         steps: [
+          i18n._(
+            msg`Use Create client list for Portal to export a client-list spreadsheet, not Office Manager backup.`,
+          ),
           i18n._(msg`Go to Dashboard > Applications > Utilities > Create client list for Portal.`),
           i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
           i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
         ],
         note: i18n._(
-          msg`Avoid CLNTBKUP files or ProSystem fx backup ZIPs; they are not import-ready client lists.`,
+          msg`Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import.`,
         ),
       }
     case 'lacerte':
@@ -1056,12 +1079,13 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
         steps: [
           i18n._(msg`In the Clients tab, highlight the clients to export.`),
           i18n._(msg`Use Client > Export > Export to File, then choose Comma Delimited.`),
+          i18n._(msg`Save the export as EXPORT.CSV or choose your own CSV file name.`),
           i18n._(
             msg`Include client number, client name, email, phone, address, return type, and preparer fields.`,
           ),
         ],
         note: i18n._(
-          msg`Do not upload IDATA, CDATA, PDATA, DBF, or MDX return-data folders/files.`,
+          msg`Do not use Client > Backup for this import; backups and IDATA/DBF/MDX files are return-data files, not client-list CSVs.`,
         ),
       }
     case 'proseries':
@@ -1076,7 +1100,7 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
           i18n._(msg`Use HomeBase > Export Contacts, then upload Contacts.csv.`),
         ],
         note: i18n._(
-          msg`Do not upload ProSeries client return files such as YYi, YYp, YYc, or YYs files.`,
+          msg`Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs.`,
         ),
       }
     case 'ultratax_cs':
@@ -1094,17 +1118,20 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
       }
     case 'proconnect_tax':
       return {
-        title: i18n._(msg`Export ProConnect Tax return data`),
-        preferredFiles: i18n._(msg`CSV`),
+        title: i18n._(msg`Export ProConnect Tax clients`),
+        preferredFiles: i18n._(msg`XLSX or CSV`),
         steps: [
-          i18n._(msg`Use Reporting > Download return data, then download CSV.`),
+          i18n._(msg`For the client list, open Clients and use the top-right download arrow.`),
+          i18n._(msg`Export the client list to Excel; it includes client names and addresses.`),
+          i18n._(
+            msg`For return facts, use Reporting > Download return data to download the eligible e-filed return CSV.`,
+          ),
           i18n._(
             msg`For supplemental organizer data, open Intuit Link and download client responses as CSV.`,
           ),
-          i18n._(msg`Upload the reporting CSV first; response CSVs can be added for context.`),
         ],
         note: i18n._(
-          msg`Intuit Link document ZIPs are document archives, not a primary client list.`,
+          msg`Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list.`,
         ),
       }
   }

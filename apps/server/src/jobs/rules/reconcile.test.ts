@@ -52,6 +52,8 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
     fetchMocks: {
       fetchTextSnapshot: vi.fn(),
       hashText: vi.fn(async (value: string) => `hash-${value.length}`),
+      stableExternalId: vi.fn((value: string) => value),
+      textExcerpt: vi.fn((value: string) => value.slice(0, 4000)),
     },
     metricsMocks: {
       recordPulseMetric: vi.fn(),
@@ -65,6 +67,9 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
 vi.mock('@duedatehq/core/rules', () => ({
   listRuleSources: coreMocks.listRuleSources,
   listObligationRules: coreMocks.listObligationRules,
+  isTemporaryAnnouncementSource: (ruleSource: { authorityRole?: string; sourceType?: string }) =>
+    ruleSource.authorityRole === 'watch' &&
+    (ruleSource.sourceType === 'news' || ruleSource.sourceType === 'emergency_relief'),
 }))
 
 vi.mock('@duedatehq/db', () => ({
@@ -78,6 +83,8 @@ vi.mock('@duedatehq/db', () => ({
 vi.mock('@duedatehq/ingest/http', () => ({
   fetchTextSnapshot: fetchMocks.fetchTextSnapshot,
   hashText: fetchMocks.hashText,
+  stableExternalId: fetchMocks.stableExternalId,
+  textExcerpt: fetchMocks.textExcerpt,
 }))
 
 vi.mock('../pulse/ingest', () => ({
@@ -196,6 +203,10 @@ describe('rule source scan jobs', () => {
     })
     dbMocks.pulseOpsRepo.recordSourceSuccess.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.recordSourceFailure.mockResolvedValue(undefined)
+    pulseIngestMocks.archivePulseRaw.mockResolvedValue({
+      contentHash: 'archived-item-hash',
+      r2Key: 'pulse/item.txt',
+    })
   })
 
   it('runs the weekly governance gate only during the Monday 09:00 UTC window', () => {
@@ -232,6 +243,40 @@ describe('rule source scan jobs', () => {
     expect(queueSend).toHaveBeenCalledWith({
       type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
       sourceId: 'daily-source',
+      reason: 'cadence_due',
+    })
+  })
+
+  it('enqueues due temporary announcement watch sources for Pulse scanning', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({
+        id: 'tx.temporary_announcements',
+        jurisdiction: 'TX',
+        title: 'Texas Comptroller News',
+        sourceType: 'news',
+        acquisitionMethod: 'api_watch',
+        cadence: 'daily',
+        authorityRole: 'watch',
+        notificationChannels: ['source_change', 'practice_rule_review'],
+      }),
+    )
+    dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValueOnce({
+      enabled: true,
+      nextCheckAt: new Date('2026-05-25T09:00:00.000Z'),
+    })
+
+    const result = await enqueueDueRuleSourceScans(
+      env(queueSend),
+      new Date('2026-05-25T09:00:00.000Z'),
+    )
+
+    expect(result).toEqual({ queued: 1 })
+    expect(queueSend).toHaveBeenCalledWith({
+      type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+      sourceId: 'tx.temporary_announcements',
       reason: 'cadence_due',
     })
   })
@@ -314,6 +359,61 @@ describe('rule source scan jobs', () => {
         sourceId: 'ca.ftb_business_due_dates',
         contentHash: 'content-hash-1',
         rawR2Key: 'raw/source.html',
+      }),
+    )
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('splits changed temporary announcement pages into detail snapshots', async () => {
+    const queueSend = vi.fn()
+    coreMocks.sources.splice(
+      0,
+      coreMocks.sources.length,
+      source({
+        id: 'tx.temporary_announcements',
+        jurisdiction: 'TX',
+        title: 'Texas Comptroller News',
+        sourceType: 'news',
+        acquisitionMethod: 'html_watch',
+        cadence: 'daily',
+        authorityRole: 'watch',
+        notificationChannels: ['source_change', 'practice_rule_review'],
+        url: 'https://comptroller.texas.gov/about/media-center/news/',
+      }),
+    )
+    fetchMocks.fetchTextSnapshot.mockResolvedValue({
+      notModified: false,
+      fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
+      contentHash: 'list-hash',
+      r2Key: 'raw/source.html',
+      etag: 'etag-2',
+      lastModified: null,
+      body: '<main><a href="/about/media-center/news/20260408-deadline">Texas businesses: April 15 is deadline for filing renditions</a><a href="/about">About us</a></main>',
+    })
+
+    await consumePulseRuleSourceScan(
+      {
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'tx.temporary_announcements',
+        reason: 'cadence_due',
+      },
+      env(queueSend) as Env,
+    )
+
+    expect(pulseIngestMocks.archivePulseRaw).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        sourceId: 'tx.temporary_announcements',
+        externalId: 'https://comptroller.texas.gov/about/media-center/news/20260408-deadline',
+        contentType: 'text/plain; charset=utf-8',
+      }),
+    )
+    expect(dbMocks.pulseOpsRepo.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'tx.temporary_announcements',
+        externalId: 'https://comptroller.texas.gov/about/media-center/news/20260408-deadline',
+        title: 'Texas businesses: April 15 is deadline for filing renditions',
+        rawR2Key: 'pulse/item.txt',
       }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
