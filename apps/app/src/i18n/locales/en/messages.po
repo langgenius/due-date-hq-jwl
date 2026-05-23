@@ -702,6 +702,10 @@ msgstr "8879 sent to client for signature"
 msgid "941 quarterly · 940 annual · W-2 / W-3 year-end"
 msgstr "941 quarterly · 940 annual · W-2 / W-3 year-end"
 
+#: src/routes/obligations.tsx
+msgid "A · Strip"
+msgstr "A · Strip"
+
 #: src/features/concepts/concept-help.tsx
 msgid "A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list."
 msgstr "A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list."
@@ -1029,6 +1033,10 @@ msgstr "AI {percent}%"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft"
 msgstr "AI concrete draft"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "AI concrete draft is loading."
+msgstr "AI concrete draft is loading."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft is not ready."
@@ -1564,12 +1572,28 @@ msgid "Avoid document archives; they are not client account or contact lists."
 msgstr "Avoid document archives; they are not client account or contact lists."
 
 #: src/routes/obligations.tsx
+msgid "Awaiting client · {days} days so far"
+msgstr "Awaiting client · {days} days so far"
+
+#: src/routes/obligations.tsx
+msgid "Awaiting client · 1 day so far"
+msgstr "Awaiting client · 1 day so far"
+
+#: src/routes/obligations.tsx
 msgid "Awaiting client approval of estimate"
 msgstr "Awaiting client approval of estimate"
+
+#: src/routes/obligations.tsx
+msgid "Awaiting client response"
+msgstr "Awaiting client response"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
 msgstr "Awaiting sources"
+
+#: src/routes/obligations.tsx
+msgid "B · Differentiate"
+msgstr "B · Differentiate"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Back"
@@ -1726,6 +1750,10 @@ msgstr "by {label}"
 #: src/routes/login.tsx
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
 msgstr "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>. Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
+
+#: src/routes/obligations.tsx
+msgid "C · Merge"
+msgstr "C · Merge"
 
 #: src/routes/clients.tsx
 msgid "C corp"
@@ -3315,6 +3343,10 @@ msgstr "Draft import discarded"
 msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
 
+#: src/routes/obligations.tsx
+msgid "Drop the sub-status line + redundant buttons. Panel + one primary action only."
+msgstr "Drop the sub-status line + redundant buttons. Panel + one primary action only."
+
 #: src/features/migration/Stepper.tsx
 msgid "Dry-Run"
 msgstr "Dry-Run"
@@ -4302,6 +4334,10 @@ msgid "I'm coming from… (optional)"
 msgstr "I'm coming from… (optional)"
 
 #: src/routes/obligations.tsx
+msgid "IA preview"
+msgstr "IA preview"
+
+#: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
 
@@ -4959,6 +4995,10 @@ msgid "Mark all read"
 msgstr "Mark all read"
 
 #: src/routes/obligations.tsx
+msgid "Mark all received"
+msgstr "Mark all received"
+
+#: src/routes/obligations.tsx
 msgid "Mark client approved the estimate"
 msgstr "Mark client approved the estimate"
 
@@ -5236,6 +5276,10 @@ msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 #: src/routes/obligations.tsx
 msgid "Move to: {label}"
 msgstr "Move to: {label}"
+
+#: src/routes/obligations.tsx
+msgid "Moves the row to Waiting and opens the Readiness tab to send the request."
+msgstr "Moves the row to Waiting and opens the Readiness tab to send the request."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -6322,6 +6366,10 @@ msgid "Opens the existing duplicate obligation or the newly created obligation a
 msgstr "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
 
 #: src/routes/obligations.tsx
+msgid "Opens the Readiness tab to chase the open documents"
+msgstr "Opens the Readiness tab to chase the open documents"
+
+#: src/routes/obligations.tsx
 msgid "Opens the Readiness tab to send and track the request"
 msgstr "Opens the Readiness tab to send and track the request"
 
@@ -6524,6 +6572,10 @@ msgstr "Paid feature"
 #: src/routes/billing.tsx
 msgid "Paid subscriptions bill the practice, not an individual user."
 msgstr "Paid subscriptions bill the practice, not an individual user."
+
+#: src/routes/obligations.tsx
+msgid "Panel becomes the sub-status indicator (no extra line). Full button stack stays."
+msgstr "Panel becomes the sub-status indicator (no extra line). Full button stack stays."
 
 #: src/routes/obligations.tsx
 msgid "Paper-filed with authority"
@@ -6758,6 +6810,10 @@ msgstr "Personal morning digest preferences and types."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client…"
 msgstr "Pick a client…"
+
+#: src/routes/obligations.tsx
+msgid "Pick a Waiting-card variant to preview"
+msgstr "Pick a Waiting-card variant to preview"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -7650,6 +7706,10 @@ msgstr "Replaces the old K-1 dropdown — capture partner info or any free-form 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
 msgstr "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
+
+#: src/routes/obligations.tsx
+msgid "Request documents from client"
+msgstr "Request documents from client"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Request export"
@@ -8578,6 +8638,10 @@ msgstr "Send invite"
 msgid "Send preview now"
 msgstr "Send preview now"
 
+#: src/routes/obligations.tsx
+msgid "Send reminder to client"
+msgstr "Send reminder to client"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Send request"
 msgstr "Send request"
@@ -8779,6 +8843,10 @@ msgstr "Skip — review next pending rule (j)"
 #: src/features/rules/coverage-tab.tsx
 msgid "Skip · j"
 msgstr "Skip · j"
+
+#: src/routes/obligations.tsx
+msgid "Skip ahead to drafting (docs already in hand)"
+msgstr "Skip ahead to drafting (docs already in hand)"
 
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
@@ -9025,10 +9093,6 @@ msgstr "SSO and custom coverage"
 msgid "Stale"
 msgstr "Stale"
 
-#: src/routes/obligations.tsx
-msgid "Start drafting the return"
-msgstr "Start drafting the return"
-
 #: src/routes/rules.library.tsx
 msgid "Start review ({reviewCount})"
 msgstr "Start review ({reviewCount})"
@@ -9124,6 +9188,10 @@ msgstr "Still waiting on confirmation"
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Structured change"
 msgstr "Structured change"
+
+#: src/routes/obligations.tsx
+msgid "Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs."
+msgstr "Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
@@ -10011,6 +10079,10 @@ msgstr "Use Dashboard > Application Links > Utilities > Create client list for P
 msgid "Use HomeBase > Export Contacts, then upload Contacts.csv."
 msgstr "Use HomeBase > Export Contacts, then upload Contacts.csv."
 
+#: src/routes/obligations.tsx
+msgid "Use only when you already have all client documents. Sends the row straight to In review."
+msgstr "Use only when you already have all client documents. Sends the row straight to In review."
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Use Reports > Report Manager > Tax return data only when you need a custom column report."
 msgstr "Use Reports > Report Manager > Tax return data only when you need a custom column report."
@@ -10153,10 +10225,6 @@ msgstr "waiting on client"
 #: src/features/obligations/status-control.tsx
 msgid "Waiting on client"
 msgstr "Waiting on client"
-
-#: src/routes/obligations.tsx
-msgid "Waiting on client to send docs"
-msgstr "Waiting on client to send docs"
 
 #: src/routes/obligations.tsx
 msgid "Waiting on third party for K-1 / 1099"

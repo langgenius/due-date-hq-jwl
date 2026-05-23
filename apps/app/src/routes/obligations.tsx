@@ -6472,6 +6472,23 @@ function ActiveStageDetailCard({
     completed: t`Completed`,
   }
   const stageLabel = stageLabels[stageKey]
+  // 2026-05-23 IA preview: temporary 3-variant switcher for the
+  // Waiting stage card so Yuqi can compare treatments before picking
+  // one. Only active when stageKey==='waiting_on_client' AND
+  // row.prepStage==='waiting_on_client' (the docs-from-client case
+  // that has the three-layer overlap). Other Waiting prepStages
+  // (waiting_on_third_party / bookkeeping_cleanup) keep existing
+  // behavior. Once Yuqi picks a winner, this switcher + the other
+  // two variants get deleted in a follow-up commit.
+  //   A — Strip: drop sub-status text, drop routing + chase, keep
+  //              panel + primary button only.
+  //   B — Differentiate: sub-status carries the WHEN (days since
+  //              entering Waiting), panel carries the WHAT, buttons
+  //              carry the verbs (Send reminder + Mark all received).
+  //   C — Merge: drop sub-status text, panel becomes the only
+  //              context surface, full button stack stays.
+  const [waitingVariant, setWaitingVariant] = useState<'A' | 'B' | 'C'>('A')
+  const isWaitingDocs = stageKey === 'waiting_on_client' && row.prepStage === 'waiting_on_client'
   // Sub-status descriptor — read inline (NOT from
   // `subStatusForActiveStage(row, t)` because that helper takes `t`
   // as a parameter, which the Lingui macro doesn't transform → label
@@ -6486,7 +6503,35 @@ function ActiveStageDetailCard({
     // line reads as a complete sentence.
     switch (row.status) {
       case 'waiting_on_client':
-        if (row.prepStage === 'waiting_on_client') return t`Waiting on client to send docs`
+        if (row.prepStage === 'waiting_on_client') {
+          // Variant-aware sub-status for the docs-from-client case
+          // (see waitingVariant comment above). A and C suppress
+          // the line because the outstanding-docs panel says the
+          // same thing more specifically; B differentiates by
+          // showing how long the row has been Waiting.
+          if (waitingVariant === 'A' || waitingVariant === 'C') return null
+          // Variant B: name the WHEN, not the WHAT. Find the most
+          // recent status_changed → waiting_on_client event to get
+          // the timestamp the row entered this stage; the days
+          // counter ticks from there. If no audit event matches,
+          // fall back to neutral "awaiting client" phrasing.
+          let enteredAt: string | null = null
+          for (const event of auditEvents) {
+            if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
+            const after = (event.afterJson as { status?: unknown }).status
+            if (after === 'waiting_on_client') {
+              if (!enteredAt || event.createdAt > enteredAt) enteredAt = event.createdAt
+            }
+          }
+          if (enteredAt) {
+            const today = new Date().toISOString().slice(0, 10)
+            const days = daysBetween(enteredAt.slice(0, 10), today)
+            if (days <= 0) return t`Awaiting client response`
+            if (days === 1) return t`Awaiting client · 1 day so far`
+            return t`Awaiting client · ${days} days so far`
+          }
+          return t`Awaiting client response`
+        }
         if (row.prepStage === 'waiting_on_third_party')
           return t`Waiting on third party for K-1 / 1099`
         if (row.prepStage === 'bookkeeping_cleanup') return t`Cleaning up client's books`
@@ -6548,6 +6593,15 @@ function ActiveStageDetailCard({
   const tasks: StageTask[] = useMemo(() => {
     switch (stageKey) {
       case 'pending':
+        // 2026-05-23 IA fix: Not Started used to offer a single primary
+        // "Start drafting the return" that jumped straight to In review,
+        // skipping Waiting entirely. Per the canonical CPA workflow
+        // (engagement → request docs → wait → receive → prep → review →
+        // file) most rows actually need a "Request docs from client"
+        // step first. Two explicit paths are honest about which
+        // situation applies: "Request documents from client" is the
+        // common case for brand-new rows, "Start drafting the return"
+        // is the rarer case where docs are already in hand.
         return [
           {
             id: 'engagement',
@@ -6556,10 +6610,17 @@ function ActiveStageDetailCard({
           },
           { id: 'assign', label: t`Assign a preparer to this return`, flavor: 'manual' },
           {
-            id: 'start',
-            label: t`Start drafting the return`,
+            id: 'request-docs',
+            label: t`Request documents from client`,
             flavor: 'mutation',
             primary: true,
+            hint: t`Moves the row to Waiting and opens the Readiness tab to send the request.`,
+          },
+          {
+            id: 'start',
+            label: t`Skip ahead to drafting (docs already in hand)`,
+            flavor: 'mutation',
+            hint: t`Use only when you already have all client documents. Sends the row straight to In review.`,
           },
         ]
       case 'waiting_on_client': {
@@ -6593,6 +6654,41 @@ function ActiveStageDetailCard({
             },
           ]
         }
+        // 2026-05-23 IA preview: 3 variant button stacks for the
+        // docs-from-client overlap. See `waitingVariant` comment up
+        // top. Yuqi picks one; we delete the other two.
+        if (waitingVariant === 'A') {
+          // Strip: panel + outstanding-docs panel + one primary button only.
+          return [
+            {
+              id: 'received',
+              label: t`Mark client docs received`,
+              flavor: 'mutation',
+              primary: true,
+            },
+          ]
+        }
+        if (waitingVariant === 'B') {
+          // Differentiate: routing verb + primary verb only,
+          // sub-status carries the WHEN, panel carries the WHAT.
+          return [
+            {
+              id: 'readiness',
+              label: t`Send reminder to client`,
+              flavor: 'routing',
+              hint: t`Opens the Readiness tab to chase the open documents`,
+            },
+            {
+              id: 'received',
+              label: t`Mark all received`,
+              flavor: 'mutation',
+              primary: true,
+            },
+          ]
+        }
+        // Variant C — Merge: panel becomes the sub-status surface
+        // (rendered directly under the stage label). Full button
+        // stack stays but routing label is verb-first.
         return [
           {
             id: 'readiness',
@@ -6898,7 +6994,7 @@ function ActiveStageDetailCard({
       default:
         return []
     }
-  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, t])
+  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, waitingVariant, t])
   const stageEnteredAt =
     stageEvents.length > 0 ? stageEvents[stageEvents.length - 1]!.createdAt : null
   // Past stages — every stage the row visited BEFORE the active one.
@@ -6957,6 +7053,15 @@ function ActiveStageDetailCard({
       case 'resume':
       case 'unblocked':
         return onChangeStatus('review')
+      // Status → waiting_on_client. Also opens the Readiness tab so
+      // the CPA can immediately send the document request from the
+      // place it actually lives. The status flip happens first; the
+      // tab change runs in the same tick so the CPA lands on the
+      // Readiness surface with the row already in the Waiting stage.
+      case 'request-docs':
+        onChangeStatus('waiting_on_client')
+        onChangeTab('readiness')
+        return
       // Status → done (mark filed)
       case 'file':
         return onChangeStatus('done')
@@ -7057,8 +7162,57 @@ function ActiveStageDetailCard({
           />
         </div>
       ) : null}
+      {/* 2026-05-23 IA preview switcher — temporary 3-up comparison
+          for the Waiting-on-docs overlap. Tucked at the top of the
+          Waiting card body so Yuqi can flip A/B/C and scan the
+          difference without re-mounting the drawer. Removed once a
+          winner is picked. */}
+      {isWaitingDocs ? (
+        <div className="mt-3 flex items-center gap-1.5">
+          <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <Trans>IA preview</Trans>
+          </span>
+          <div
+            role="radiogroup"
+            aria-label={t`Pick a Waiting-card variant to preview`}
+            className="inline-flex rounded-md border border-divider-regular bg-background-subtle p-0.5"
+          >
+            {(['A', 'B', 'C'] as const).map((variant) => {
+              const labels: Record<'A' | 'B' | 'C', string> = {
+                A: t`A · Strip`,
+                B: t`B · Differentiate`,
+                C: t`C · Merge`,
+              }
+              const titles: Record<'A' | 'B' | 'C', string> = {
+                A: t`Drop the sub-status line + redundant buttons. Panel + one primary action only.`,
+                B: t`Sub-status names the WHEN (days). Panel names the WHAT. Buttons are pure verbs.`,
+                C: t`Panel becomes the sub-status indicator (no extra line). Full button stack stays.`,
+              }
+              const isActive = waitingVariant === variant
+              return (
+                <button
+                  key={variant}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  title={titles[variant]}
+                  onClick={() => setWaitingVariant(variant)}
+                  className={cn(
+                    'rounded px-2 py-0.5 text-[11px] font-medium transition-colors',
+                    isActive
+                      ? 'bg-background-default text-text-primary shadow-xs'
+                      : 'text-text-tertiary hover:text-text-primary',
+                  )}
+                >
+                  {labels[variant]}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
       {stageKey === 'waiting_on_client' ? (
-        <div className="mt-3">
+        <div className={isWaitingDocs && waitingVariant === 'C' ? 'mt-2' : 'mt-3'}>
           <WaitingOutstandingDocs
             items={readinessChecklist}
             onOpenReadiness={() => onChangeTab('readiness')}
