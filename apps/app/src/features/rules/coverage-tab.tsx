@@ -528,18 +528,18 @@ export function CoverageTab({
     const prev = workspaceQueue[idx - 1] ?? workspaceQueue[workspaceQueue.length - 1]
     if (prev && prev.id !== selectedRuleId) void setSelectedRuleId(prev.id)
   }
-  const advanceAfterDecision = () => {
+  const advanceAfterDecision = async () => {
     if (!selectedRuleId) return
     const remaining = workspaceQueue.filter((r) => r.id !== selectedRuleId)
     if (remaining.length === 0) {
-      void setSelectedRuleId(null)
+      await setSelectedRuleId(null)
       return
     }
     const idx = workspaceQueue.findIndex((r) => r.id === selectedRuleId)
     const next =
       (idx >= 0 ? workspaceQueue.slice(idx + 1).find((r) => r.id !== selectedRuleId) : null) ??
       remaining[0]
-    if (next) void setSelectedRuleId(next.id)
+    if (next) await setSelectedRuleId(next.id)
   }
 
   // Keyboard shortcuts in review mode: j/↓ next, k/↑ prev, Esc exit.
@@ -2306,7 +2306,7 @@ function RulePanel({
   mode: RuleQueueMode
   onClose: () => void
   onSkip?: () => void
-  onActionComplete: () => void
+  onActionComplete: () => void | Promise<void>
   queuePosition: { index: number; total: number } | null
 }) {
   const { t } = useLingui()

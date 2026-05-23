@@ -124,7 +124,7 @@ export function RuleDetailCompact({
 }: {
   rule: ObligationRule
   concreteDraft?: RuleConcreteDraftCacheEntry | null
-  onActionComplete?: () => void
+  onActionComplete?: () => void | Promise<void>
 }) {
   const sourceLookup = useSourceLookup()
   const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
@@ -262,7 +262,7 @@ function CandidateReviewForm({
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
-  onActionComplete?: () => void
+  onActionComplete?: () => void | Promise<void>
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -296,12 +296,17 @@ function CandidateReviewForm({
   function scheduleAcceptCompletion() {
     clearAcceptTooltipTimeout()
     acceptTooltipTimeoutRef.current = window.setTimeout(() => {
-      onActionComplete?.()
-      window.requestAnimationFrame(() => {
-        setAcceptTooltipState(null)
-        invalidateAcceptedRuleOutputs()
-      })
-      acceptTooltipTimeoutRef.current = null
+      void (async () => {
+        try {
+          await onActionComplete?.()
+        } finally {
+          window.requestAnimationFrame(() => {
+            setAcceptTooltipState(null)
+            invalidateAcceptedRuleOutputs()
+          })
+          acceptTooltipTimeoutRef.current = null
+        }
+      })()
     }, ACCEPT_RULE_TOOLTIP_MS)
   }
 
@@ -334,9 +339,14 @@ function CandidateReviewForm({
   const rejectMutation = useMutation(
     orpc.rules.rejectTemplate.mutationOptions({
       onSuccess: () => {
-        invalidateRules()
         toast.success(t`Rule rejected`)
-        onActionComplete?.()
+        void (async () => {
+          try {
+            await onActionComplete?.()
+          } finally {
+            invalidateRules()
+          }
+        })()
       },
       onError: (error) => {
         toast.error(t`Couldn't reject rule`, {
