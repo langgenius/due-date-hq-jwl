@@ -478,8 +478,12 @@ msgid "{openCount} open deadlines"
 msgstr "{openCount} open deadlines"
 
 #: src/routes/obligations.tsx
-msgid "{outstanding} of {checklistCount} document items are still missing."
-msgstr "{outstanding} of {checklistCount} document items are still missing."
+msgid "{outstanding} items still owed"
+msgstr "{outstanding} items still owed"
+
+#: src/routes/obligations.tsx
+msgid "{outstanding} items still owed mid-prep"
+msgstr "{outstanding} items still owed mid-prep"
 
 #: src/routes/obligations.tsx
 msgid "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
@@ -518,8 +522,8 @@ msgid "{readyResponseCount}/{checklistCount} confirmed by client · {responseCou
 msgstr "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
 
 #: src/routes/obligations.tsx
-msgid "{receivedCount} of {checklistCount} document items are marked received."
-msgstr "{receivedCount} of {checklistCount} document items are marked received."
+msgid "{receivedCount} of {checklistCount} received"
+msgstr "{receivedCount} of {checklistCount} received"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
@@ -1130,8 +1134,12 @@ msgid "All"
 msgstr "All"
 
 #: src/routes/obligations.tsx
-msgid "All {checklistCount} document items are marked received."
-msgstr "All {checklistCount} document items are marked received."
+msgid "All {checklistCount} items in"
+msgstr "All {checklistCount} items in"
+
+#: src/routes/obligations.tsx
+msgid "All {checklistCount} items in workpapers"
+msgstr "All {checklistCount} items in workpapers"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "All actions"
@@ -1409,8 +1417,8 @@ msgid "Assignee"
 msgstr "Assignee"
 
 #: src/routes/obligations.tsx
-msgid "At least one document item needs preparer review."
-msgstr "At least one document item needs preparer review."
+msgid "At least one item flagged by client — review their portal responses."
+msgstr "At least one item flagged by client — review their portal responses."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "at risk"
@@ -1501,6 +1509,10 @@ msgstr "Audit timeline"
 #: src/features/concepts/concept-help.tsx
 msgid "Audit trail"
 msgstr "Audit trail"
+
+#: src/routes/obligations.tsx
+msgid "Audit trail captured {receivedCount} of {checklistCount} items as received."
+msgstr "Audit trail captured {receivedCount} of {checklistCount} items as received."
 
 #: src/routes/settings.tsx
 msgid "Audit trail for client, rule, status, and team changes."
@@ -1714,6 +1726,14 @@ msgstr "Blocked by"
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Blocked by {label} — click to open."
 msgstr "Blocked by {label} — click to open."
+
+#: src/routes/obligations.tsx
+msgid "Blocked by upstream return — {checklistCount} items in hand."
+msgstr "Blocked by upstream return — {checklistCount} items in hand."
+
+#: src/routes/obligations.tsx
+msgid "Blocked by upstream return AND awaiting client materials."
+msgstr "Blocked by upstream return AND awaiting client materials."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -2084,10 +2104,6 @@ msgstr "Client assignee changed to {assignee} for {count} clients"
 msgid "Client batch created"
 msgstr "Client batch created"
 
-#: src/routes/obligations.tsx
-msgid "Client confirmed all {checklistCount} items."
-msgstr "Client confirmed all {checklistCount} items."
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -2143,6 +2159,10 @@ msgstr "Client migration changes practice data, evidence, and audit records. Ask
 #: src/features/migration/mapping-target-labels.ts
 msgid "Client name"
 msgstr "Client name"
+
+#: src/routes/obligations.tsx
+msgid "Client needs CPA action"
+msgstr "Client needs CPA action"
 
 #: src/routes/clients.$clientId.tsx
 msgid "Client not found"
@@ -2403,6 +2423,10 @@ msgstr "Contacts.csv"
 #: src/routes/onboarding.tsx
 msgid "Continue"
 msgstr "Continue"
+
+#: src/routes/obligations.tsx
+msgid "Continue collecting before drafting."
+msgstr "Continue collecting before drafting."
 
 #: src/routes/billing.checkout.tsx
 msgid "Continue to secure checkout"
@@ -3290,10 +3314,6 @@ msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; 
 msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 
 #: src/routes/obligations.tsx
-msgid "Document audit trail captured {receivedCount} of {checklistCount} items as received."
-msgstr "Document audit trail captured {receivedCount} of {checklistCount} items as received."
-
-#: src/routes/obligations.tsx
 msgid "Document item"
 msgstr "Document item"
 
@@ -3356,6 +3376,14 @@ msgstr "Draft complete — sent to reviewer"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Draft import discarded"
 msgstr "Draft import discarded"
+
+#: src/routes/obligations.tsx
+msgid "Drafting in progress with everything the client provided."
+msgstr "Drafting in progress with everything the client provided."
+
+#: src/routes/obligations.tsx
+msgid "Drafting started without all client materials in hand."
+msgstr "Drafting started without all client materials in hand."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
@@ -3988,8 +4016,8 @@ msgid "Filed"
 msgstr "Filed"
 
 #: src/routes/obligations.tsx
-msgid "Filed with {checklistCount} document items"
-msgstr "Filed with {checklistCount} document items"
+msgid "Filed with {checklistCount} documents archived"
+msgstr "Filed with {checklistCount} documents archived"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -4259,6 +4287,10 @@ msgstr "General"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Generate"
 msgstr "Generate"
+
+#: src/routes/obligations.tsx
+msgid "Generate a list below or add items manually to start collecting."
+msgstr "Generate a list below or add items manually to start collecting."
 
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
@@ -5090,8 +5122,8 @@ msgid "Matches the filters and sort currently on this page."
 msgstr "Matches the filters and sort currently on this page."
 
 #: src/routes/obligations.tsx
-msgid "Materials on hand — no client request was needed."
-msgstr "Materials on hand — no client request was needed."
+msgid "Materials side is fine"
+msgstr "Materials side is fine"
 
 #: src/routes/obligations.tsx
 msgid "Max days"
@@ -5279,6 +5311,14 @@ msgstr "Morning digest preview queued"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
+
+#: src/routes/obligations.tsx
+msgid "Move forward when ready to start work."
+msgstr "Move forward when ready to start work."
+
+#: src/routes/obligations.tsx
+msgid "Move to In review when ready to draft."
+msgstr "Move to In review when ready to draft."
 
 #: src/routes/obligations.tsx
 msgid "Move to: {label}"
@@ -5603,12 +5643,12 @@ msgid "No document checklist was attached to this filing."
 msgstr "No document checklist was attached to this filing."
 
 #: src/routes/obligations.tsx
-msgid "No document list generated yet. Generate or add items below."
-msgstr "No document list generated yet. Generate or add items below."
-
-#: src/routes/obligations.tsx
 msgid "No documents listed yet. Generate an AI checklist or add items manually."
 msgstr "No documents listed yet. Generate an AI checklist or add items manually."
+
+#: src/routes/obligations.tsx
+msgid "No documents requested yet"
+msgstr "No documents requested yet"
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "No eligible obligations are selected."
@@ -5907,10 +5947,6 @@ msgstr "Not on file"
 msgid "Not reachable from {0}."
 msgstr "Not reachable from {0}."
 
-#: src/routes/obligations.tsx
-msgid "Not ready"
-msgstr "Not ready"
-
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
@@ -6052,6 +6088,10 @@ msgstr "Obligations export"
 #: src/features/audit/audit-log-labels.ts
 msgid "Obligations exported"
 msgstr "Obligations exported"
+
+#: src/routes/obligations.tsx
+msgid "Of {checklistCount} total, {outstanding} are still owed by the client."
+msgstr "Of {checklistCount} total, {outstanding} are still owed by the client."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -7472,10 +7512,6 @@ msgstr "Ready to generate your deadline list"
 msgid "Ready to import"
 msgstr "Ready to import"
 
-#: src/routes/obligations.tsx
-msgid "Ready to prep"
-msgstr "Ready to prep"
-
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -7705,6 +7741,10 @@ msgstr "Request Pulse review"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Request review"
 msgstr "Request review"
+
+#: src/routes/obligations.tsx
+msgid "Requested from client"
+msgstr "Requested from client"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Required for rule applicability."
@@ -8647,6 +8687,10 @@ msgstr "Sent"
 #: src/features/members/members-page.tsx
 msgid "Sent {0}"
 msgstr "Sent {0}"
+
+#: src/routes/obligations.tsx
+msgid "Sent {checklistCount} items — awaiting client response."
+msgstr "Sent {checklistCount} items — awaiting client response."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Sent last 7 days"
@@ -10005,6 +10049,10 @@ msgstr "Upload the exported client file, task-view spreadsheet, or both."
 msgid "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
 msgstr "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts."
 
+#: src/routes/obligations.tsx
+msgid "Upstream return also blocking — client flagged items separately."
+msgstr "Upstream return also blocking — client flagged items separately."
+
 #: src/features/concepts/concept-help.tsx
 #: src/routes/practice.tsx
 msgid "Urgency window"
@@ -10186,6 +10234,10 @@ msgstr "WA subtotal minus credits"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "Waiting"
+
+#: src/routes/obligations.tsx
+msgid "Waiting on {outstanding} items"
+msgstr "Waiting on {outstanding} items"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "waiting on client"

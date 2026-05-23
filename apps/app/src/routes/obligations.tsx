@@ -5359,43 +5359,119 @@ function ReadinessOverview({
   receivedCount: number
 }) {
   const { t } = useLingui()
-  const isReady = row.readiness === 'ready'
-  const isTerminal = row.status === 'done' || row.status === 'paid' || row.status === 'completed'
+  const stageIdx = timelineIndexForStatus(row.status)
+  const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
+  const isTerminal = stageKey === 'done' || stageKey === 'completed'
+  const isReady = row.readiness === 'ready' && !isTerminal
+  const needsCpaAction = row.readiness === 'needs_review' && !isTerminal
+  const outstanding = Math.max(0, checklistCount - receivedCount)
   const responseCount = latestRequest?.responses.length ?? 0
   const readyResponseCount =
     latestRequest?.responses.filter((r) => r.status === 'ready').length ?? 0
-  // Headline answers "is this filing ready?" binary — BUT only for
-  // non-terminal rows. Once the obligation is Filed/Paid/Completed,
-  // readiness is no longer the right question (the work is done), so
-  // we switch to a closure headline that summarizes what got delivered.
-  const headline = isTerminal
-    ? checklistCount > 0
-      ? t`Filed with ${checklistCount} document items`
-      : t`Filed`
-    : isReady
-      ? t`Ready to prep`
-      : t`Not ready`
-  const subline: string = (() => {
+  // 2026-05-23: per-state copy reframe. The earlier "Ready to prep" /
+  // "Not ready" headlines worked in the Waiting case but read awkwardly
+  // in Blocked / In review (where readiness is a watch-list signal) and
+  // wrong in Filed / Completed (where the question is closed and the
+  // tab is an audit trail). The headline + subline now branch on the
+  // lifecycle STAGE first, then on the readiness enum within that
+  // stage — so the copy matches what the CPA is actually doing at
+  // each phase of the row's life. See the docs/dev-log entry for the
+  // full matrix.
+  const { headline, subline }: { headline: string; subline: string } = (() => {
+    // 1. Filed / Completed — historical record, audit trail mode.
     if (isTerminal) {
-      if (checklistCount === 0) return t`No document checklist was attached to this filing.`
-      return t`Document audit trail captured ${receivedCount} of ${checklistCount} items as received.`
+      if (checklistCount === 0) {
+        return {
+          headline: t`Filed`,
+          subline: t`No document checklist was attached to this filing.`,
+        }
+      }
+      return {
+        headline: t`Filed with ${checklistCount} documents archived`,
+        subline: t`Audit trail captured ${receivedCount} of ${checklistCount} items as received.`,
+      }
     }
-    if (isReady) {
-      if (checklistCount > 0) return t`All ${checklistCount} document items are marked received.`
-      if (latestRequest) return t`Client confirmed all ${checklistCount} items.`
-      return t`Materials on hand — no client request was needed.`
+    // 2. Non-terminal — no checklist yet, regardless of stage.
+    if (checklistCount === 0) {
+      return {
+        headline: t`No documents requested yet`,
+        subline: t`Generate a list below or add items manually to start collecting.`,
+      }
     }
+    // 3. Non-terminal — client flagged items, needs CPA verification.
+    //    This trumps stage-specific copy because the action target
+    //    (review the client's notes) is the same regardless of stage.
     if (row.readiness === 'needs_review') {
-      return t`At least one document item needs preparer review.`
+      const subContext =
+        stageKey === 'blocked'
+          ? t`Upstream return also blocking — client flagged items separately.`
+          : t`At least one item flagged by client — review their portal responses.`
+      return {
+        headline: t`Client needs CPA action`,
+        subline: subContext,
+      }
     }
-    if (latestRequest && latestRequest.status !== 'revoked') {
-      const outstanding = checklistCount - receivedCount
-      return t`${outstanding} of ${checklistCount} document items are still missing.`
+    // 4. Non-terminal — readiness=ready (all materials in for this row).
+    if (row.readiness === 'ready') {
+      switch (stageKey) {
+        case 'waiting_on_client':
+          return {
+            headline: t`All ${checklistCount} items in`,
+            subline: t`Move to In review when ready to draft.`,
+          }
+        case 'blocked':
+          return {
+            headline: t`Materials side is fine`,
+            subline: t`Blocked by upstream return — ${checklistCount} items in hand.`,
+          }
+        case 'review':
+          return {
+            headline: t`All ${checklistCount} items in workpapers`,
+            subline: t`Drafting in progress with everything the client provided.`,
+          }
+        case 'pending':
+        default:
+          return {
+            headline: t`All ${checklistCount} items in`,
+            subline: t`Move forward when ready to start work.`,
+          }
+      }
     }
-    if (checklistCount > 0) {
-      return t`${receivedCount} of ${checklistCount} document items are marked received.`
+    // 5. Non-terminal — readiness=waiting (the typical state). Branch
+    //    on stage to reflect what the CPA is actually doing.
+    switch (stageKey) {
+      case 'pending':
+        if (latestRequest && receivedCount === 0) {
+          return {
+            headline: t`Requested from client`,
+            subline: t`Sent ${checklistCount} items — awaiting client response.`,
+          }
+        }
+        return {
+          headline: t`${receivedCount} of ${checklistCount} received`,
+          subline: t`Continue collecting before drafting.`,
+        }
+      case 'waiting_on_client':
+        return {
+          headline: t`Waiting on ${outstanding} items`,
+          subline: t`Of ${checklistCount} total, ${outstanding} are still owed by the client.`,
+        }
+      case 'blocked':
+        return {
+          headline: t`${outstanding} items still owed`,
+          subline: t`Blocked by upstream return AND awaiting client materials.`,
+        }
+      case 'review':
+        return {
+          headline: t`${outstanding} items still owed mid-prep`,
+          subline: t`Drafting started without all client materials in hand.`,
+        }
+      default:
+        return {
+          headline: t`${receivedCount} of ${checklistCount} received`,
+          subline: '',
+        }
     }
-    return t`No document list generated yet. Generate or add items below.`
   })()
   // 2026-05-23: tightened spacing per critique. Outer `py-2` dropped
   // (parent grid already supplies vertical rhythm), icon shrunk
@@ -5412,7 +5488,9 @@ function ReadinessOverview({
             ? 'bg-state-success-hover'
             : isReady
               ? 'bg-state-success-solid'
-              : 'bg-background-subtle border border-divider-deep',
+              : needsCpaAction
+                ? 'bg-state-warning-solid'
+                : 'bg-background-subtle border border-divider-deep',
         )}
       >
         {isTerminal || isReady ? (
@@ -5420,6 +5498,8 @@ function ReadinessOverview({
             className={cn('size-3', isTerminal ? 'text-text-success' : 'text-text-inverted')}
             aria-hidden
           />
+        ) : needsCpaAction ? (
+          <AlertTriangleIcon className="size-3 text-text-inverted" aria-hidden />
         ) : (
           <ClipboardListIcon className="size-3 text-text-secondary" aria-hidden />
         )}
@@ -5432,7 +5512,9 @@ function ReadinessOverview({
               ? 'text-text-secondary'
               : isReady
                 ? 'text-text-success'
-                : 'text-text-primary',
+                : needsCpaAction
+                  ? 'text-text-warning'
+                  : 'text-text-primary',
           )}
         >
           {headline}
