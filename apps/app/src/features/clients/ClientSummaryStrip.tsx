@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -50,45 +50,52 @@ function TileShell({
   to?: string | undefined
   ariaLabel?: string | undefined
 }) {
+  // 2026-05-24 (Figma replica pass): tile dimensions snapped to the
+  // exact pixel spec exported from Figma Make.
+  //   - Fill `bg-util-colors-gray-25` (#fcfcfd) — off-white, NOT pure
+  //     white. The fill itself does the section-anchoring; no border.
+  //   - `rounded-xl` = 12px (was rounded-md / 8px).
+  //   - Value is `text-sm font-semibold` (14px / leading-20) — much
+  //     smaller than the prior `text-xl` (20px) "big number" tile.
+  //     The Figma trades visual loudness for type-rhythm consistency
+  //     with everything else on the page.
+  //   - Label opacity dropped to ~30% (Figma uses `rgba(16,24,40,0.3)`)
+  //     so the eyebrow whispers instead of competing with the value.
+  //   - Inner padding split into a label row (`pt-3 pb-1 px-3`) +
+  //     a value row (`pt-1 pb-3 px-3`) to match the two-frame Figma
+  //     structure. Subline sits inline with the value at 13px.
   const valueClass = cn(
-    'text-xl font-semibold leading-tight tabular-nums tracking-tight',
+    'text-sm font-semibold leading-5 tabular-nums tracking-tight',
     tone === 'critical' && 'text-text-destructive',
     tone === 'warning' && 'text-text-warning',
     tone === 'neutral' && 'text-text-primary',
     tone === 'muted' && 'text-text-tertiary',
   )
-  // Tile chrome: `divider-regular` (8% black) at rest — matches the
-  // Figma `components/panel/border` token. Previously paired with
-  // `px-4 py-3` (16×12) — the vertical breathing room felt tight
-  // next to the Figma reference's generous tile padding, so the y
-  // padding went up to py-4 (16). Internal gap stays gap-2 (8) so
-  // the label / value / subline stack tracks the Figma spacing
-  // rhythm exactly.
   const baseClass =
-    'group flex min-w-[160px] flex-1 flex-col gap-2 rounded-md border border-divider-regular bg-background-default px-4 py-4 transition-colors hover:border-divider-deep hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
+    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-xl bg-[var(--color-util-colors-gray-25)] transition-colors hover:bg-background-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
   // Inner content shared by all three variants. Renders label → value
-  // → optional subline so each tile reads top-down (eyebrow → number
-  // → context phrase). The subline is the new piece (2026-05-23) —
-  // carries the small explanatory phrase the design shows beneath the
-  // big number ("17 days late", "some context here") so the user
-  // doesn't need to hover/click to find the secondary detail.
+  // → optional subline so each tile reads top-down (eyebrow → value
+  // → context phrase) with two stacked padding zones matching the
+  // Figma's split frames.
   const body = (
     <>
-      <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      <span className="px-3 pt-3 pb-1 text-xs leading-4 uppercase text-[rgba(16,24,40,0.3)]">
         {label}
       </span>
-      <span className={valueClass}>{value}</span>
-      {subline ? (
-        <span
-          className={cn(
-            'text-xs leading-snug',
-            sublineTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
-          )}
-        >
-          {subline}
-        </span>
-      ) : null}
+      <span className="flex flex-col gap-0.5 px-3 pb-3 pt-1">
+        <span className={valueClass}>{value}</span>
+        {subline ? (
+          <span
+            className={cn(
+              'text-[13px] leading-4',
+              sublineTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
+            )}
+          >
+            {subline}
+          </span>
+        ) : null}
+      </span>
     </>
   )
 
@@ -186,21 +193,37 @@ export function ClientSummaryStrip({
     const dueTs = Date.parse(nextDue.currentDueDate)
     const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
     const daysAbs = Math.abs(days)
-    // 2026-05-23: subline format upgraded to lead with the deadline
-    // date itself, then the lateness phrase. Earlier shape was just
-    // "{N} days late" — useful for urgency but hid WHEN the deadline
-    // was. The Figma renders "Due May 6  17 days late" so the CPA
-    // gets both anchors (calendar date + lateness countdown) without
-    // opening the drawer. Late deadlines tint destructive so the
-    // tile reads as a real alert without making the form code itself
-    // red.
+    // 2026-05-24 (Figma replica): subline renders as a split phrase —
+    // the calendar anchor ("Due May 6") stays gray-tertiary while the
+    // lateness tail ("17 days late") tints red. Matches the Figma
+    // exactly; previously the whole subline shared one tone. Tile
+    // value (the form code) STAYS BLACK — the Figma keeps the value
+    // neutral and lets the subline carry the urgency signal alone.
     const dueDateLabel = formatDatePretty(nextDue.currentDueDate)
-    const sublineText =
-      days < 0
-        ? t`Due ${dueDateLabel} · ${daysAbs} days late`
-        : days === 0
-          ? t`Due today (${dueDateLabel})`
-          : t`Due ${dueDateLabel} · in ${days} days`
+    const sublineNode: ReactNode =
+      days < 0 ? (
+        <span className="inline-flex items-center gap-1.5">
+          <span className="text-text-tertiary">
+            <Trans>Due {dueDateLabel}</Trans>
+          </span>
+          <span className="text-text-destructive">
+            <Plural value={daysAbs} one="# day late" other="# days late" />
+          </span>
+        </span>
+      ) : days === 0 ? (
+        <span className="text-text-warning">
+          <Trans>Due today ({dueDateLabel})</Trans>
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1.5 text-text-tertiary">
+          <span>
+            <Trans>Due {dueDateLabel}</Trans>
+          </span>
+          <span>
+            <Plural value={days} one="in # day" other="in # days" />
+          </span>
+        </span>
+      )
     nextDueValue = (
       <span className="inline-flex items-baseline gap-2">
         {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
@@ -212,18 +235,19 @@ export function ClientSummaryStrip({
       </span>
     )
     nextDueLabel = <Trans>Next due</Trans>
-    // 2026-05-23: tone ladder split into three steps so already-late
-    // tiles render in `critical` (red) instead of the prior `warning`
-    // (orange). Per Figma — when a deadline is actually past, the
-    // tile value (e.g. "Form 1041") needs to read at the same urgency
-    // as the destructive subline ("15 days late"). One tone, both
-    // pieces. `warning` is reserved for due-today (last-chance) which
-    // is the actual amber semantic.
-    nextDueTone = days < 0 ? 'critical' : days === 0 ? 'warning' : 'neutral'
+    // 2026-05-24 (Figma replica): tile VALUE stays neutral (black)
+    // even when overdue — the subline tail carries the red signal,
+    // not the value itself. Previously the value tinted critical
+    // when late; the replica shows that's not the Figma rhythm.
+    nextDueTone = 'neutral'
     nextDueOnClick = () => openObligationDrawer(nextDue.id)
     nextDueAria = t`Open next-due deadline`
-    nextDueSubline = sublineText
-    nextDueSublineTone = days < 0 ? 'destructive' : 'tertiary'
+    nextDueSubline = sublineNode
+    // Subline is now a composite node that owns its own per-segment
+    // tones — TileShell's blanket `sublineTone` no longer applies to
+    // this tile. Keeping the prop wired to 'tertiary' as a no-op so
+    // the prop contract stays stable.
+    nextDueSublineTone = 'tertiary'
   }
 
   // At-risk subline — explains *why* the tile is non-zero in one

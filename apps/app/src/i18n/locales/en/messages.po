@@ -13,6 +13,10 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "· current year"
+msgstr "· current year"
+
 #: src/routes/obligations.tsx
 msgid "· firm-set deadline for this materials request"
 msgstr "· firm-set deadline for this materials request"
@@ -382,9 +386,17 @@ msgstr "{count} tax-type services managed for this client"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# day} other {# days}}"
 
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{days, plural, one {in # day} other {in # days}}"
+msgstr "{days, plural, one {in # day} other {in # days}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {in #d} other {in #d}}"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{daysAbs, plural, one {# day late} other {# days late}}"
+msgstr "{daysAbs, plural, one {# day late} other {# days late}}"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -2336,6 +2348,7 @@ msgid "Compliance"
 msgstr "Compliance"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Compliance posture"
 msgstr "Compliance posture"
 
@@ -3029,10 +3042,6 @@ msgstr "Current role: {currentRoleLabel}"
 msgid "Current role: {currentRoleLabel}. Required: {requiredRoleText}."
 msgstr "Current role: {currentRoleLabel}. Required: {requiredRoleText}."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "current year"
-msgstr "current year"
-
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Currently available shortcuts and reserved keyboard slots."
 msgstr "Currently available shortcuts and reserved keyboard slots."
@@ -3390,12 +3399,8 @@ msgid "Due {0}"
 msgstr "Due {0}"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due {dueDateLabel} · {daysAbs} days late"
-msgstr "Due {dueDateLabel} · {daysAbs} days late"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due {dueDateLabel} · in {days} days"
-msgstr "Due {dueDateLabel} · in {days} days"
+msgid "Due {dueDateLabel}"
+msgstr "Due {dueDateLabel}"
 
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -4211,7 +4216,6 @@ msgstr "For US CPA practices"
 msgid "Foreign accounts"
 msgstr "Foreign accounts"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
@@ -4221,6 +4225,10 @@ msgstr "Foreign accounts"
 #: src/routes/rules.library.tsx
 msgid "Form"
 msgstr "Form"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "FORM"
+msgstr "FORM"
 
 #: src/routes/rules.library.tsx
 msgid "Form name"
@@ -4374,6 +4382,10 @@ msgstr "I'm coming from… (optional)"
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Identity facts that drive the obligation generator"
+msgstr "Identity facts that drive the obligation generator"
 
 #: src/routes/settings.tsx
 msgid "Identity, team, and capacity for this practice workspace."

@@ -2212,89 +2212,43 @@ function ClientWorkPlanPanel({
   )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
-      <div className="grid gap-3">
-        {/* Column legend sits above all year sections so it reads as
-          the table's column header for the whole filing plan — not
-          just the first year. Widths mirror the per-row TableCells
-          below (flex-1 / 132 / 132 / 160 / 110) with matching `px-3`
-          inner padding.
-
-          2026-05-23: split the single Due column into Internal
-          Deadline (currentDueDate — the firm's working target) and
-          Official Deadline (baseDueDate — the statutory date). Both
-          dates already live on the obligation; surfacing them side by
-          side lets the CPA spot the gap (extension target vs filing
-          deadline) without opening the drawer. */}
-        {!isLoading && obligations.length > 0 ? (
-          <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium text-text-tertiary">
-            {/* 2026-05-23: row leader column reserves space for the
-              small leading "N" badge on each row. Empty header cell —
-              the badge is visual punctuation, not a data column with
-              a sortable identity. */}
-            <div className="w-7 shrink-0 px-1" aria-hidden />
-            <div className="flex-1 px-3 uppercase tracking-[0.08em]">
-              <Trans>Form</Trans>
-            </div>
-            {/* 2026-05-23: column header copy switched from sentence
-              case ("Internal deadline") to Title Case ("Internal
-              Deadline" / "Official Deadline") per Figma. Status +
-              Estimated tax stay sentence case because the Figma is
-              inconsistent there and Title Case for every header
-              would be loud. */}
-            <div className="w-[132px] px-3">
-              <Trans>Internal Deadline</Trans>
-            </div>
-            <div className="w-[132px] px-3">
-              <Trans>Official Deadline</Trans>
-            </div>
-            <div className="w-[160px] px-3">
-              <Trans>Status</Trans>
-            </div>
-            <div className="w-[110px] px-3 text-right">
-              <Trans>Estimated tax</Trans>
-            </div>
-          </div>
-        ) : null}
-        <div>
-          {isLoading ? (
-            <div className="grid gap-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : obligations.length === 0 ? (
-            <EmptyState
-              icon={ClipboardListIcon}
-              title={<Trans>No deadlines yet</Trans>}
-              description={
-                <Trans>Run migration or generate rules before this client has due-date work.</Trans>
-              }
-            />
-          ) : (
-            // Year sections separated by `divide-y` so each year has a
-            // clear terminus — addresses the "no hierarchy / 视觉上没有
-            // 终点" feedback. `pt-4` on the second-and-later sections
-            // (via space-y/divide) gives breathing room without
-            // re-introducing card chrome.
-            <div className="divide-y divide-divider-subtle">
-              {yearGroups.map((group, index) => (
-                <div
-                  key={group.year}
-                  className={cn(index === 0 ? 'pb-2' : 'py-2 first:pt-0 last:pb-0')}
-                >
-                  <FilingPlanYearSection
-                    group={group}
-                    clientName={clientName}
-                    onOpen={(obligationId) => openObligationDrawer(obligationId)}
-                    onChangeStatus={onChangeStatus}
-                    isStatusChangePending={isStatusChangePending}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+      {/* 2026-05-24 (Figma replica): each year section is now wrapped
+          in its own framed block — `bg-background-soft` (#f9fafb) +
+          `rounded-xl` (12px) + a faint inset border. The column
+          header bar lives INSIDE the frame, paired with the rows it
+          legends. This replaces the prior single-column-header-above-
+          all-years shape. Trade-off: column legend repeats per year
+          (which the Figma accepts as the cost of self-contained
+          year cards) — but each section now reads as a self-
+          contained year card and scanning year-by-year is much
+          easier when there are 3+ years of history. */}
+      {isLoading ? (
+        <div className="grid gap-2">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
         </div>
-      </div>
+      ) : obligations.length === 0 ? (
+        <EmptyState
+          icon={ClipboardListIcon}
+          title={<Trans>No deadlines yet</Trans>}
+          description={
+            <Trans>Run migration or generate rules before this client has due-date work.</Trans>
+          }
+        />
+      ) : (
+        <div className="flex flex-col gap-3">
+          {yearGroups.map((group) => (
+            <FilingPlanYearSection
+              key={group.year}
+              group={group}
+              clientName={clientName}
+              onOpen={(obligationId) => openObligationDrawer(obligationId)}
+              onChangeStatus={onChangeStatus}
+              isStatusChangePending={isStatusChangePending}
+            />
+          ))}
+        </div>
+      )}
     </TabSection>
   )
 }
@@ -2321,142 +2275,132 @@ function FilingPlanYearSection({
   isStatusChangePending: boolean
 }) {
   const statusPickerLabels = useLifecycleV2StatusLabels()
+  // 2026-05-24 (Figma replica pass): year section snapped to the
+  // pixel-exact frame from the Figma Make export.
+  //   - Outer frame: `bg-background-soft` (#f9fafb) + `rounded-xl`
+  //     (12px) + an inset `border-divider-subtle` hairline.
+  //   - Year header row: year + `· current year` italic marker +
+  //     the "N open filing" badge — bg-accent-soft + text-accent for
+  //     the current year, bg-gray-soft + text-tertiary for any
+  //     prior year. Padding `px-3 py-3`.
+  //   - Column header bar: bg-gray-soft inside the frame (not
+  //     bg-white) so it reads as the section's legend. Padding
+  //     `px-3 py-2`, text 12px medium tertiary.
+  //   - Row cells: 12px text. Form name medium, dates regular,
+  //     status as the pill from ObligationQueueStatusControl,
+  //     estimate right-aligned regular. Row padding `px-3 py-2`,
+  //     border-b `#f3f4f6` hairline between rows.
+  //   - Leading "N" badge: pl-3 on the row, badge bg-gray-soft
+  //     rounded-full w-5 (20px), 12px medium tertiary text.
+  const isUnknown = group.year === 'unknown'
   return (
-    <div className="grid gap-2">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
-        <span className="text-base font-semibold tabular-nums text-text-primary">
-          {group.year === 'unknown' ? <Trans>No tax year</Trans> : group.year}
+    <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-soft">
+      {/* Year header bar */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-3">
+        <span className="text-sm font-medium leading-5 tabular-nums text-text-primary">
+          {isUnknown ? <Trans>No tax year</Trans> : group.year}
         </span>
-        {/* 2026-05-23: replaced the outline `Current tax year` Badge
-            with a quiet italic tertiary marker. The Badge competed
-            for attention with the next-due chip and the row status
-            chips below — three different visual vocabularies stacked
-            in one section. Italic small-text reads as a footnote, not
-            as a control; the year number is already the primary
-            anchor so the marker only needs to disambiguate. */}
         {group.isCurrent ? (
-          <span className="text-xs italic text-text-tertiary">
-            <Trans>current year</Trans>
+          <span className="text-xs leading-4 text-text-tertiary">
+            <Trans>· current year</Trans>
           </span>
         ) : null}
-        {/* Open-count badge (2026-05-23 pass 2). Promoted from plain
-            tertiary text to a soft accent-tinted pill so the count
-            reads as a real signal — the design call had this as the
-            light-blue pill that anchors the year row. Hidden when
-            there's nothing open so the row stays clean for archived
-            years. Extended count, if any, follows as a quiet dot-
-            separated phrase. */}
         {group.openCount > 0 ? (
-          <span className="inline-flex items-center rounded-full bg-state-accent-hover-alt px-2 py-0.5 text-[11px] font-medium text-text-accent">
+          <span
+            className={cn(
+              'inline-flex items-center rounded px-2 py-0.5 text-xs leading-4',
+              group.isCurrent
+                ? 'bg-[var(--color-util-colors-blue-100,#dbeafe)] text-[var(--color-util-colors-blue-700,#1447e6)]'
+                : 'bg-background-default text-text-tertiary',
+            )}
+          >
             <Plural value={group.openCount} one="# open filing" other="# open filings" />
           </span>
         ) : null}
         {group.extendedCount > 0 ? (
-          <span className="text-xs text-text-tertiary">
+          <span className="text-xs leading-4 text-text-tertiary">
             <Trans>{group.extendedCount} extended</Trans>
           </span>
         ) : null}
       </div>
-      {/* Filing plan row table: no inner border. The outer
-          ClientWorkPlanPanel already carries `rounded-md border` —
-          nesting a second border inside (the previous shape) gave a
-          card-inside-a-card visual. Rows just live as a flat list
-          inside the panel's content area, separated by light
-          dividers. Cleaner read.
-
-          2026-05-23: column header lives at the panel-body level
-          (above all year sections) so it reads as a real legend, not
-          as a row inside the first year. */}
-      <Table className="table-fixed">
-        <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
-          {group.obligations.map((obligation, rowIndex) => {
-            const hasEstimate = obligation.estimatedTaxDueCents !== null
-            return (
-              <TableRow
-                key={obligation.id}
-                tabIndex={0}
-                role="link"
-                aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
-                className="group/row cursor-pointer hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none"
-                onClick={() => onOpen(obligation.id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    onOpen(obligation.id)
-                  }
-                }}
+      {/* Column header bar — sits flush against the rows so the
+          header looks like the table's legend, not a separate
+          frame inside the year section. */}
+      <div className="flex items-center gap-2 border-y border-divider-subtle px-3 py-2 text-xs font-medium leading-4 text-text-tertiary">
+        <span className="w-5 shrink-0" aria-hidden />
+        <span className="flex-1">
+          <Trans>FORM</Trans>
+        </span>
+        <span className="w-[120px]">
+          <Trans>Internal Deadline</Trans>
+        </span>
+        <span className="w-[120px]">
+          <Trans>Official Deadline</Trans>
+        </span>
+        <span className="w-[120px]">
+          <Trans>Status</Trans>
+        </span>
+        <span className="w-[120px] text-right">
+          <Trans>Estimated tax</Trans>
+        </span>
+      </div>
+      {/* Rows — flat list against the section frame, each separated
+          by a `#f3f4f6` hairline. Last row has no border-b. */}
+      <div className="bg-background-default">
+        {group.obligations.map((obligation, rowIndex) => {
+          const hasEstimate = obligation.estimatedTaxDueCents !== null
+          const isLast = rowIndex === group.obligations.length - 1
+          return (
+            <div
+              key={obligation.id}
+              role="link"
+              tabIndex={0}
+              aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
+              className={cn(
+                'group/row flex cursor-pointer items-center gap-2 px-3 py-2 outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover',
+                !isLast && 'border-b border-divider-subtle',
+              )}
+              onClick={() => onOpen(obligation.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onOpen(obligation.id)
+                }
+              }}
+            >
+              {/* Leading "N" badge — small gray circle, scoped per
+                  year so each year resets to 1. */}
+              <span
+                aria-hidden
+                className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-background-soft text-xs font-medium leading-4 tabular-nums text-text-secondary"
               >
-                {/* 2026-05-23: leading row-index badge. Visual anchor
-                    on the left edge so a long filing plan reads as a
-                    numbered list. Per Figma — small gray circle, 1-
-                    indexed, scoped to the year section so each year
-                    resets to 1. Acts as a sort-of bookmark when
-                    scanning rows. */}
-                <TableCell className="w-7 shrink-0 px-1">
-                  <span
-                    aria-hidden
-                    className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-[11px] font-medium tabular-nums text-text-secondary"
-                  >
-                    {rowIndex + 1}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="truncate font-medium text-text-primary">
-                    <TaxCodeLabel code={obligation.taxType} />
-                  </span>
-                </TableCell>
-                {/* 2026-05-23: date format switched from prose ("May 6,
-                    2026") to ISO ("2026-05-06") per Figma. The filing
-                    plan is a dense reference table — ISO sorts visually
-                    and fits in the column without wrapping. Tile
-                    sublines + drawer header still use prose where the
-                    surface is conversational. */}
-                <TableCell className="w-[132px] tabular-nums">
-                  {formatDate(obligation.currentDueDate)}
-                </TableCell>
-                <TableCell className="w-[132px] tabular-nums text-text-secondary">
-                  {/* Official deadline = statutory due date. Falls back
-                      to currentDueDate when the obligation never had a
-                      separate filingDueDate set (legacy rows + simple
-                      single-date forms). */}
-                  {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
-                </TableCell>
-                <TableCell className="w-[160px]">
-                  {/* D-6b: status chip is now a real picker dropdown.
-                      Same canonical control as the obligations queue
-                      uses, so the v2 lifecycle vocabulary (and the
-                      illegal-transition guard) stays consistent. The
-                      control internally `event.stopPropagation()`s so
-                      opening the dropdown doesn't also trigger
-                      row-click → in-page drawer. */}
-                  <ObligationQueueStatusControl
-                    row={{ id: obligation.id, status: obligation.status, clientName }}
-                    labels={statusPickerLabels}
-                    statuses={LIFECYCLE_V2_STATUSES}
-                    disabled={isStatusChangePending}
-                    onChange={onChangeStatus}
-                  />
-                </TableCell>
-                <TableCell className="w-[110px] text-right tabular-nums text-text-tertiary">
-                  {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
-                </TableCell>
-                {/* 2026-05-23: dropped the per-row hover-revealed
-                    `FilingPlanRowQuickAction` (D-6a, "Start prep" /
-                    "Docs received" / "Mark filed" depending on
-                    status). It duplicated work the drawer's stage
-                    actions already do — clicking a row to open the
-                    drawer, then having the SAME "Start prep" button
-                    on the row AND in the drawer, was the source of
-                    "very confusing as there is no clarity" feedback.
-                    Single source of truth now: row click → drawer →
-                    stage action there. Status chip on the row stays
-                    interactive for quick status flips that don't
-                    need the full drawer context. */}
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+                {rowIndex + 1}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-text-primary">
+                <TaxCodeLabel code={obligation.taxType} />
+              </span>
+              <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
+                {formatDate(obligation.currentDueDate)}
+              </span>
+              <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
+                {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
+              </span>
+              <span className="w-[120px]">
+                <ObligationQueueStatusControl
+                  row={{ id: obligation.id, status: obligation.status, clientName }}
+                  labels={statusPickerLabels}
+                  statuses={LIFECYCLE_V2_STATUSES}
+                  disabled={isStatusChangePending}
+                  onChange={onChangeStatus}
+                />
+              </span>
+              <span className="w-[120px] text-right text-xs leading-4 tabular-nums text-text-primary">
+                {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

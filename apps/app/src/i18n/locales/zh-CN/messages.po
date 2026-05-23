@@ -13,6 +13,10 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "· current year"
+msgstr "· 本年度"
+
 #: src/routes/obligations.tsx
 msgid "· firm-set deadline for this materials request"
 msgstr "· 事务所为此材料请求设定的截止日期"
@@ -382,9 +386,17 @@ msgstr "为该客户管理的 {count} 个税种服务"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, other {# 天}}"
 
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{days, plural, one {in # day} other {in # days}}"
+msgstr "{days, plural, other {还有 # 天}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{days, plural, one {in #d} other {in #d}}"
 msgstr "{days, plural, one {# 天后} other {# 天后}}"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{daysAbs, plural, one {# day late} other {# days late}}"
+msgstr "{daysAbs, plural, other {已逾期 # 天}}"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -2336,6 +2348,7 @@ msgid "Compliance"
 msgstr "合规"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Compliance posture"
 msgstr "合规状态"
 
@@ -3029,10 +3042,6 @@ msgstr "当前角色：{currentRoleLabel}"
 msgid "Current role: {currentRoleLabel}. Required: {requiredRoleText}."
 msgstr "当前角色：{currentRoleLabel}。需要：{requiredRoleText}。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "current year"
-msgstr "当前年度"
-
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Currently available shortcuts and reserved keyboard slots."
 msgstr "当前可用的快捷键与已预留的键盘位。"
@@ -3390,12 +3399,8 @@ msgid "Due {0}"
 msgstr "到期 {0}"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due {dueDateLabel} · {daysAbs} days late"
-msgstr "{dueDateLabel} 到期 · 已逾期 {daysAbs} 天"
-
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Due {dueDateLabel} · in {days} days"
-msgstr "{dueDateLabel} 到期 · 还有 {days} 天"
+msgid "Due {dueDateLabel}"
+msgstr "{dueDateLabel} 到期"
 
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -4211,7 +4216,6 @@ msgstr "面向美国注册会计师事务所"
 msgid "Foreign accounts"
 msgstr "海外账户"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
@@ -4220,6 +4224,10 @@ msgstr "海外账户"
 #: src/features/rules/sources-tab.tsx
 #: src/routes/rules.library.tsx
 msgid "Form"
+msgstr "表单"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "FORM"
 msgstr "表单"
 
 #: src/routes/rules.library.tsx
@@ -4374,6 +4382,10 @@ msgstr "我正在从…迁移过来（可选）"
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Identity facts that drive the obligation generator"
+msgstr "驱动义务生成器的客户身份信息"
 
 #: src/routes/settings.tsx
 msgid "Identity, team, and capacity for this practice workspace."
