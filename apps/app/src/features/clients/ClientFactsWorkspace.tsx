@@ -115,6 +115,7 @@ import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPane
 import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
+  ObligationStatusReadBadge,
   useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
@@ -693,6 +694,30 @@ export function ClientFactsWorkspace({
         meta: {
           headerClassName: 'w-[120px]',
           cellClassName: 'w-[120px]',
+        },
+      },
+      {
+        // 2026-05-23: surfaces the WORKFLOW phase of the row whose due
+        // date populates the Next due cell. Answers the question
+        // "Xd late — but why?" without forcing the CPA to open the
+        // drawer. Same status pill the obligation drawer header uses
+        // (`ObligationStatusReadBadge`) for visual continuity. When
+        // the client has no open obligations, renders an em-dash to
+        // stay aligned with the Next due cell's empty treatment.
+        id: 'nextDueStatus',
+        header: t`Status`,
+        cell: ({ row }) => {
+          const summary = obligationSummariesByClient.get(row.original.id)
+          if (!summary?.nextDueStatus) {
+            return <span className="text-text-tertiary">—</span>
+          }
+          return (
+            <ObligationStatusReadBadge status={summary.nextDueStatus} className="font-normal" />
+          )
+        },
+        meta: {
+          headerClassName: 'w-[140px]',
+          cellClassName: 'w-[140px]',
         },
       },
       {

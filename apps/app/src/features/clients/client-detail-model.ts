@@ -168,6 +168,12 @@ export type ClientObligationListSummary = {
   waitingOnClientCount: number
   nextDueDate: string | null
   nextTaxType: string | null
+  // 2026-05-23: status of the earliest-non-terminal obligation. Surfaces
+  // on the /clients list as a colored pill next to NEXT DUE so the CPA
+  // can tell *why* a row is "Xd late" (blocked / waiting / in review /
+  // ...) without opening the drawer. Tracks the same row whose due
+  // date populates `nextDueDate`.
+  nextDueStatus: ObligationInstancePublic['status'] | null
 }
 
 export function buildClientObligationListSummaries(
@@ -186,6 +192,7 @@ export function buildClientObligationListSummaries(
         waitingOnClientCount: isWaiting ? 1 : 0,
         nextDueDate: row.currentDueDate,
         nextTaxType: row.taxType,
+        nextDueStatus: row.status,
       })
       continue
     }
@@ -195,6 +202,11 @@ export function buildClientObligationListSummaries(
     if (!existing.nextDueDate || row.currentDueDate < existing.nextDueDate) {
       existing.nextDueDate = row.currentDueDate
       existing.nextTaxType = row.taxType
+      // Capture the status of WHICHEVER row populates nextDueDate so
+      // the list pill matches the date next to it. Without this we'd
+      // show the status of the first row we encountered (insertion
+      // order), not the earliest-due row.
+      existing.nextDueStatus = row.status
     }
   }
   return byClient
