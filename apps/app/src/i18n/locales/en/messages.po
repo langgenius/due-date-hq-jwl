@@ -14,8 +14,8 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: src/routes/obligations.tsx
-msgid "· firm-set deadline for this client readiness request"
-msgstr "· firm-set deadline for this client readiness request"
+msgid "· firm-set deadline for this materials request"
+msgstr "· firm-set deadline for this materials request"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {1}: cell.entityType.toUpperCase()
@@ -486,8 +486,8 @@ msgid "{outstanding} items still owed mid-prep"
 msgstr "{outstanding} items still owed mid-prep"
 
 #: src/routes/obligations.tsx
-msgid "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
-msgstr "{outstandingDocsCount, plural, one {# doc outstanding} other {# docs outstanding}}"
+msgid "{outstandingDocsCount, plural, one {# item outstanding} other {# items outstanding}}"
+msgstr "{outstandingDocsCount, plural, one {# item outstanding} other {# items outstanding}}"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{overflow, plural, one {… # more in the queue} other {… # more in the queue}}"
@@ -1034,10 +1034,6 @@ msgstr "AI"
 msgid "AI {percent}%"
 msgstr "AI {percent}%"
 
-#: src/routes/obligations.tsx
-msgid "AI client readiness checklist"
-msgstr "AI client readiness checklist"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "AI concrete draft"
 msgstr "AI concrete draft"
@@ -1081,6 +1077,10 @@ msgstr "AI Mapper"
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI Mapper means AI suggested the fields."
 msgstr "AI Mapper means AI suggested the fields."
+
+#: src/routes/obligations.tsx
+msgid "AI materials checklist"
+msgstr "AI materials checklist"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "AI refused request"
@@ -2151,6 +2151,10 @@ msgstr "Client importance"
 msgid "Client info"
 msgstr "Client info"
 
+#: src/routes/obligations.tsx
+msgid "Client materials response"
+msgstr "Client materials response"
+
 #: src/routes/migration.new.tsx
 msgid "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
 msgstr "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
@@ -2171,44 +2175,6 @@ msgstr "Client not found"
 #: src/routes/obligations.tsx
 msgid "Client note"
 msgstr "Client note"
-
-#: src/features/audit/audit-log-labels.ts
-#: src/features/concepts/concept-help.tsx
-#: src/routes/obligations.tsx
-msgid "Client readiness"
-msgstr "Client readiness"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Client readiness changed"
-msgstr "Client readiness changed"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Client readiness changed from {previous} to {next}"
-msgstr "Client readiness changed from {previous} to {next}"
-
-#: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Client readiness checklist"
-msgstr "Client readiness checklist"
-
-#: src/routes/obligations.tsx
-msgid "Client readiness link created"
-msgstr "Client readiness link created"
-
-#: src/routes/practice.tsx
-msgid "Client readiness pressure"
-msgstr "Client readiness pressure"
-
-#: src/routes/obligations.tsx
-msgid "Client readiness request revoked"
-msgstr "Client readiness request revoked"
-
-#: src/routes/obligations.tsx
-msgid "Client readiness request sent"
-msgstr "Client readiness request sent"
-
-#: src/routes/obligations.tsx
-msgid "Client readiness response"
-msgstr "Client readiness response"
 
 #: src/routes/obligations.tsx
 msgid "Client ready"
@@ -2823,8 +2789,8 @@ msgid "Couldn't save tax year profile"
 msgstr "Couldn't save tax year profile"
 
 #: src/routes/obligations.tsx
-msgid "Couldn't send client readiness request"
-msgstr "Couldn't send client readiness request"
+msgid "Couldn't send materials request"
+msgstr "Couldn't send materials request"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Couldn't send the code"
@@ -3466,8 +3432,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current obligation deadlines."
 
 #: src/features/concepts/concept-help.tsx
-msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure."
-msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and client readiness pressure."
+msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
+msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicate"
@@ -4796,8 +4762,8 @@ msgstr "Late filings, 12mo"
 
 #. placeholder {0}: humanizeToken(readiness)
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Latest client readiness: {0}."
-msgstr "Latest client readiness: {0}."
+msgid "Latest materials state: {0}."
+msgstr "Latest materials state: {0}."
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Latest status"
@@ -4959,8 +4925,8 @@ msgid "Manage billing"
 msgstr "Manage billing"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Manage client facts and client readiness."
-msgstr "Manage client facts and client readiness."
+msgid "Manage client facts and materials."
+msgstr "Manage client facts and materials."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage deadline reminder templates and delivery status."
@@ -5042,10 +5008,6 @@ msgid "Mark client approved the estimate"
 msgstr "Mark client approved the estimate"
 
 #: src/routes/obligations.tsx
-msgid "Mark client docs received"
-msgstr "Mark client docs received"
-
-#: src/routes/obligations.tsx
 msgid "Mark document missing"
 msgstr "Mark document missing"
 
@@ -5060,6 +5022,10 @@ msgstr "Mark extended"
 #: src/routes/obligations.tsx
 msgid "Mark final package sent when delivered"
 msgstr "Mark final package sent when delivered"
+
+#: src/routes/obligations.tsx
+msgid "Mark materials received"
+msgstr "Mark materials received"
 
 #: src/routes/obligations.tsx
 msgid "Mark notes addressed"
@@ -5121,9 +5087,46 @@ msgstr "Matched clients"
 msgid "Matches the filters and sort currently on this page."
 msgstr "Matches the filters and sort currently on this page."
 
+#: src/features/concepts/concept-help.tsx
+#: src/routes/obligations.tsx
+msgid "Materials"
+msgstr "Materials"
+
+#: src/features/evidence/EvidenceDrawerProvider.tsx
+msgid "Materials checklist"
+msgstr "Materials checklist"
+
+#: src/routes/obligations.tsx
+msgid "Materials link created"
+msgstr "Materials link created"
+
+#: src/routes/practice.tsx
+msgid "Materials pressure"
+msgstr "Materials pressure"
+
+#: src/routes/obligations.tsx
+msgid "Materials request revoked"
+msgstr "Materials request revoked"
+
+#: src/routes/obligations.tsx
+msgid "Materials request sent"
+msgstr "Materials request sent"
+
 #: src/routes/obligations.tsx
 msgid "Materials side is fine"
 msgstr "Materials side is fine"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Materials state"
+msgstr "Materials state"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Materials state changed"
+msgstr "Materials state changed"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Materials state changed from {previous} to {next}"
+msgstr "Materials state changed from {previous} to {next}"
 
 #: src/routes/obligations.tsx
 msgid "Max days"
@@ -5325,8 +5328,8 @@ msgid "Move to: {label}"
 msgstr "Move to: {label}"
 
 #: src/routes/obligations.tsx
-msgid "Moves the row to Waiting and opens the Client readiness tab to send the request."
-msgstr "Moves the row to Waiting and opens the Client readiness tab to send the request."
+msgid "Moves the row to Waiting and opens the Materials tab to send the request."
+msgstr "Moves the row to Waiting and opens the Materials tab to send the request."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -6286,14 +6289,6 @@ msgstr "Open client"
 msgid "Open client detail for {0}"
 msgstr "Open client detail for {0}"
 
-#: src/routes/obligations.tsx
-msgid "Open Client readiness"
-msgstr "Open Client readiness"
-
-#: src/routes/obligations.tsx
-msgid "Open Client readiness to review {outstandingDocsCount} outstanding documents"
-msgstr "Open Client readiness to review {outstandingDocsCount} outstanding documents"
-
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Open client to fix entity"
 msgstr "Open client to fix entity"
@@ -6326,6 +6321,14 @@ msgstr "Open HomeBase View and make sure you are not inside a client return."
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Open in queue"
 msgstr "Open in queue"
+
+#: src/routes/obligations.tsx
+msgid "Open Materials"
+msgstr "Open Materials"
+
+#: src/routes/obligations.tsx
+msgid "Open Materials to review {outstandingDocsCount} outstanding items"
+msgstr "Open Materials to review {outstandingDocsCount} outstanding items"
 
 #: src/features/members/members-page.tsx
 msgid "Open member actions"
@@ -6503,6 +6506,10 @@ msgstr "Outbox-confirmed sends"
 #: src/features/calendar/calendar-page.tsx
 msgid "Outlook"
 msgstr "Outlook"
+
+#: src/features/obligations/status-control.tsx
+msgid "Outstanding"
+msgstr "Outstanding"
 
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -7091,8 +7098,8 @@ msgid "Prepare client draft"
 msgstr "Prepare client draft"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "Prepared a client readiness checklist."
-msgstr "Prepared a client readiness checklist."
+msgid "Prepared a materials checklist."
+msgstr "Prepared a materials checklist."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -7472,7 +7479,6 @@ msgid "Reading file…"
 msgstr "Reading file…"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 #: src/routes/readiness.tsx
 msgid "Ready"
@@ -7522,6 +7528,7 @@ msgstr "Reason"
 msgid "Receipts band"
 msgstr "Receipts band"
 
+#: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Received"
 msgstr "Received"
@@ -7794,8 +7801,8 @@ msgid "Restart checkout"
 msgstr "Restart checkout"
 
 #: src/routes/obligations.tsx
-msgid "Resulting client readiness"
-msgstr "Resulting client readiness"
+msgid "Resulting materials state"
+msgstr "Resulting materials state"
 
 #: src/routes/obligations.tsx
 msgid "Resume drafting the return"
@@ -9512,8 +9519,8 @@ msgid "The billing portal opens with the payment provider for invoices, payment 
 msgstr "The billing portal opens with the payment provider for invoices, payment methods, and cancellation."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-msgid "The client answered the client readiness questions."
-msgstr "The client answered the client readiness questions."
+msgid "The client answered the materials questions."
+msgstr "The client answered the materials questions."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The client import flow that maps columns, normalizes values, previews deadlines, and creates the initial deadline list."
@@ -9538,6 +9545,10 @@ msgstr "The concrete due date calculated from the active target-year practice ru
 #: src/routes/obligations.tsx
 msgid "The Evidence tab is where the 8879 packet lives"
 msgstr "The Evidence tab is where the 8879 packet lives"
+
+#: src/features/concepts/concept-help.tsx
+msgid "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
+msgstr "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open obligations for the chosen window — work these first."
@@ -9628,8 +9639,8 @@ msgid "The status assigned if this row is generated: pending for reminder-ready 
 msgstr "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
 
 #: src/features/concepts/concept-help.tsx
-msgid "The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status."
-msgstr "The stored deadline risk view, mainly based on due date pressure, client readiness, client history, and evidence status."
+msgid "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
+msgstr "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The system found a possible deadline, but a CPA, owner, or manager must confirm it before it is treated as final."
@@ -10229,7 +10240,6 @@ msgstr "Visible columns"
 msgid "WA subtotal minus credits"
 msgstr "WA subtotal minus credits"
 
-#: src/features/obligations/status-control.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/obligations.tsx
 msgid "Waiting"
@@ -10352,10 +10362,6 @@ msgstr "When is it due?"
 #: src/features/migration/Step1Intake.tsx
 msgid "Where is your data coming from?"
 msgstr "Where is your data coming from?"
-
-#: src/features/concepts/concept-help.tsx
-msgid "Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status."
-msgstr "Whether the client has provided what the firm needs for this deadline — source documents, signatures, and confirmations. Tracked per deadline. Distinct from the firm's workflow status."
 
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx

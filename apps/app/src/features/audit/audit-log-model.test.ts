@@ -65,11 +65,11 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
       not_applicable: 'Not applicable',
     },
     readinessLabels: {
-      ready: 'Ready',
-      waiting: 'Waiting',
-      // 2026-05-23: was 'Needs review' — renamed to 'Needs CPA action'
-      // to disambiguate from the obligation status `review` which also
-      // displays as a "Needs review" / "In review" label.
+      // 2026-05-23: materials state vocabulary (3rd-iteration labels).
+      // Ready→Received, Waiting→Outstanding, needs_review→Needs CPA
+      // action. See status-control.tsx for the full rationale.
+      ready: 'Received',
+      waiting: 'Outstanding',
       needs_review: 'Needs CPA action',
     },
     fields: {

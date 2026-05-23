@@ -265,7 +265,7 @@ function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule') return <Trans>Active practice rule</Trans>
   if (sourceType === 'ai_mapper') return <Trans>Import mapping</Trans>
   if (sourceType === 'ai_normalizer') return <Trans>Import cleanup</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>Client readiness checklist</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>Materials checklist</Trans>
   if (sourceType === 'readiness_client_response') return <Trans>Client response</Trans>
   if (sourceType === 'penalty_override') return <Trans>Penalty input</Trans>
   if (sourceType === 'extension_decision') return <Trans>Extension decision</Trans>
@@ -282,10 +282,10 @@ function evidenceHeadline(sourceType: string): ReactNode {
   if (sourceType === 'ai_mapper') return <Trans>Matched an imported column to DueDateHQ.</Trans>
   if (sourceType === 'ai_normalizer') return <Trans>Cleaned up an imported value.</Trans>
   if (sourceType === 'readiness_checklist_ai') {
-    return <Trans>Prepared a client readiness checklist.</Trans>
+    return <Trans>Prepared a materials checklist.</Trans>
   }
   if (sourceType === 'readiness_client_response') {
-    return <Trans>The client answered the client readiness questions.</Trans>
+    return <Trans>The client answered the materials questions.</Trans>
   }
   if (sourceType === 'penalty_override') return <Trans>Updated penalty inputs.</Trans>
   if (sourceType === 'extension_decision') return <Trans>Recorded an extension decision.</Trans>
@@ -302,7 +302,7 @@ function evidenceDescription(item: EvidencePublic): ReactNode {
   }
   if (item.sourceType === 'readiness_client_response') {
     const readiness = readRecordString(readJsonRecord(item.normalizedValue), 'readiness')
-    if (readiness) return <Trans>Latest client readiness: {humanizeToken(readiness)}.</Trans>
+    if (readiness) return <Trans>Latest materials state: {humanizeToken(readiness)}.</Trans>
   }
   if (item.sourceType === 'verified_rule') {
     return (

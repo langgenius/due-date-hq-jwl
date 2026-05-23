@@ -3367,12 +3367,10 @@ export function ObligationQueueDetailDrawer({
     orpc.readiness.sendRequest.mutationOptions({
       onSuccess: (result) => {
         invalidateDetail()
-        toast.success(
-          result.emailQueued ? t`Client readiness request sent` : t`Client readiness link created`,
-        )
+        toast.success(result.emailQueued ? t`Materials request sent` : t`Materials link created`)
       },
       onError: (err) => {
-        toast.error(t`Couldn't send client readiness request`, {
+        toast.error(t`Couldn't send materials request`, {
           description: rpcErrorMessage(err) ?? t`Please try again.`,
         })
       },
@@ -3420,7 +3418,7 @@ export function ObligationQueueDetailDrawer({
     orpc.readiness.revokeRequest.mutationOptions({
       onSuccess: () => {
         invalidateDetail()
-        toast.success(t`Client readiness request revoked`)
+        toast.success(t`Materials request revoked`)
       },
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
@@ -3950,7 +3948,7 @@ export function ObligationQueueDetailDrawer({
               <TabsList className="flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
-                    <Trans>Client readiness</Trans>
+                    <Trans>Materials</Trans>
                   </TabsTrigger>
                 ) : null}
                 {visibleTabs.has('extension') ? (
@@ -4005,7 +4003,7 @@ export function ObligationQueueDetailDrawer({
                       </Trans>
                     </Badge>
                     <span className="text-text-tertiary">
-                      <Trans>· firm-set deadline for this client readiness request</Trans>
+                      <Trans>· firm-set deadline for this materials request</Trans>
                     </span>
                   </div>
                 ) : null}
@@ -5059,8 +5057,8 @@ function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'pulse_revert') return <Trans>Rule update undone</Trans>
   if (sourceType === 'migration_revert') return <Trans>Import undone</Trans>
   if (sourceType === 'user_override') return <Trans>Manual note</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>AI client readiness checklist</Trans>
-  if (sourceType === 'readiness_client_response') return <Trans>Client readiness response</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>AI materials checklist</Trans>
+  if (sourceType === 'readiness_client_response') return <Trans>Client materials response</Trans>
   return humanizeToken(sourceType)
 }
 
@@ -5252,7 +5250,7 @@ function ReadinessClientResponseEvidence({
       {readiness ? (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-text-secondary">
-            <Trans>Resulting client readiness</Trans>
+            <Trans>Resulting materials state</Trans>
           </span>
           <Badge variant="outline">{humanizeToken(readiness)}</Badge>
         </div>
@@ -6696,7 +6694,7 @@ function ActiveStageDetailCard({
             label: t`Request documents from client`,
             flavor: 'mutation',
             primary: true,
-            hint: t`Moves the row to Waiting and opens the Client readiness tab to send the request.`,
+            hint: t`Moves the row to Waiting and opens the Materials tab to send the request.`,
           },
           {
             id: 'start',
@@ -6730,21 +6728,21 @@ function ActiveStageDetailCard({
             },
             {
               id: 'received',
-              label: t`Mark client docs received`,
+              label: t`Mark materials received`,
               flavor: 'mutation',
               primary: true,
             },
           ]
         }
         // 2026-05-23: Option D shape — just the primary mutation.
-        // The routing affordance (open Client readiness tab) moved
-        // into the inline signal line in the card body; the manual
-        // chase reminder dropped because "Send reminder" is the same
-        // action surfaced from the Client readiness tab itself.
+        // The routing affordance (open Materials tab) moved into the
+        // inline signal line in the card body; the manual chase
+        // reminder dropped because "Send reminder" is the same action
+        // surfaced from the Materials tab itself.
         return [
           {
             id: 'received',
-            label: t`Mark client docs received`,
+            label: t`Mark materials received`,
             flavor: 'mutation',
             primary: true,
           },
@@ -7215,19 +7213,19 @@ function ActiveStageDetailCard({
           type="button"
           onClick={() => onChangeTab('readiness')}
           className="mt-3 -mx-1 flex items-center gap-1.5 rounded-md px-1 py-1 text-left text-xs text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          aria-label={t`Open Client readiness to review ${outstandingDocsCount} outstanding documents`}
+          aria-label={t`Open Materials to review ${outstandingDocsCount} outstanding items`}
         >
           <CircleIcon className="size-2 fill-current text-state-warning-solid" aria-hidden />
           <span>
             <Plural
               value={outstandingDocsCount}
-              one="# doc outstanding"
-              other="# docs outstanding"
+              one="# item outstanding"
+              other="# items outstanding"
             />
           </span>
           <span className="text-text-tertiary">·</span>
           <span className="text-text-tertiary">
-            <Trans>Open Client readiness</Trans>
+            <Trans>Open Materials</Trans>
           </span>
           <ArrowUpRightIcon className="size-3 text-text-tertiary" aria-hidden />
         </button>

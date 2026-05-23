@@ -51,7 +51,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       obligationBatchCreated: t`Deadlines created`,
       obligationDueDateUpdated: t`Internal deadline changed`,
       obligationExtensionDecided: t`Extension plan saved`,
-      obligationReadinessUpdated: t`Client readiness changed`,
+      obligationReadinessUpdated: t`Materials state changed`,
       obligationStatusUpdated: t`Deadline status changed`,
       obligationTaxYearProfileUpdated: t`Deadline tax year changed`,
       onboardingAgentDryRunPreviewed: t`Onboarding dry run previewed`,
@@ -173,7 +173,7 @@ export function useAuditChangeLabels({
         plan: t`Plan`,
         presetUsed: t`Preset`,
         pulseStatus: t`Pulse status`,
-        readiness: t`Client readiness`,
+        readiness: t`Materials state`,
         role: t`Role`,
         rowCount: t`Rows`,
         scope: t`Scope`,
@@ -237,7 +237,7 @@ export function useAuditChangeLabels({
         deadlineDueDateChanged: (previous, next) =>
           t`Internal deadline changed from ${previous} to ${next}`,
         deadlineReadinessChanged: (previous, next) =>
-          t`Client readiness changed from ${previous} to ${next}`,
+          t`Materials state changed from ${previous} to ${next}`,
         deadlineStatusChanged: (previous, next) =>
           t`Deadline status changed from ${previous} to ${next}`,
         fieldChanged: (field, previous, next) => t`${field} changed from ${previous} to ${next}`,

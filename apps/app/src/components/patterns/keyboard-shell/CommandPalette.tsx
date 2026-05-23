@@ -110,7 +110,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'clients',
         label: t`Clients`,
-        description: t`Manage client facts and client readiness.`,
+        description: t`Manage client facts and materials.`,
         group: 'navigate',
         icon: UsersIcon,
         onSelect: () => navigate('/clients'),

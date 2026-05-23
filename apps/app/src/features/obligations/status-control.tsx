@@ -151,14 +151,20 @@ function useReadinessLabels(): ReadinessLabels {
   const { t } = useLingui()
   return useMemo(
     () => ({
-      ready: t`Ready`,
-      waiting: t`Waiting`,
-      // 2026-05-23: was "Needs review" — collided visually with the
-      // obligation status `review` (which also displays as "Needs
-      // review" / "In review"). Renamed to "Needs CPA action" so the
-      // readiness chip clearly names what the firm has to DO with the
-      // client's response: the client said "I need help", the CPA
-      // needs to take an action to unblock them.
+      // 2026-05-23: materials state vocabulary. Was "Ready / Waiting /
+      // Needs review". Renamed in three passes to break visual
+      // collisions with the obligation status palette:
+      //   - "Waiting" collided with status `waiting_on_client` → now
+      //     "Outstanding" (materials are outstanding).
+      //   - "Ready" was ambiguous (firm-side or client-side?) → now
+      //     "Received" (materials have been received).
+      //   - "Needs review" collided with status `review` → now
+      //     "Needs CPA action" (the firm has to act on the response).
+      // These chip labels appear in the audit log entries and the
+      // materials overview header. Each label answers the question
+      // "what state are the materials in?" not "is anyone ready?"
+      ready: t`Received`,
+      waiting: t`Outstanding`,
       needs_review: t`Needs CPA action`,
     }),
     [t],
