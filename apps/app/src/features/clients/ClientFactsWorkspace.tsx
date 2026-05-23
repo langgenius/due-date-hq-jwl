@@ -1405,14 +1405,28 @@ export function ClientDetailWorkspace({
           eyebrow={
             <Link
               to="/clients"
-              className="inline-flex items-center gap-1 rounded-sm normal-case tracking-normal outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              // Eyebrow back-link styling overrides the eyebrow slot's
+              // default uppercase / tracked / 11px tag treatment so the
+              // back-nav reads as a friendly link, not as a section
+              // label tag. The section labels inside tabs (`CONFIGURE`,
+              // `NOTES`) keep that tracked-uppercase style — two
+              // visually distinct typographic tiers for two different
+              // semantic intents.
+              className="inline-flex items-center gap-1 rounded-sm text-xs font-normal normal-case tracking-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <ChevronLeftIcon className="size-3.5" aria-hidden />
               <Trans>Clients</Trans>
             </Link>
           }
           title={
-            <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            // Stack title + identity chips vertically by default so the
+            // chip cluster lives on its own row immediately under the
+            // H1. On xl+ viewports they share one row — the previous
+            // `flex-wrap` behavior at every breakpoint caused chips to
+            // collide with the right-edge action cluster on 1100-1280px
+            // viewports and the second line of chips left-aligned to
+            // the page edge instead of under the H1.
+            <span className="flex flex-col items-start gap-y-2 xl:flex-row xl:flex-wrap xl:items-center xl:gap-x-3">
               <ClientTitleSwitcher client={client} />
               {/* Identity chips inline with the title (D-2). Entity badge
                   + filing-state chips read the client's shape in one

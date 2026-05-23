@@ -302,16 +302,45 @@ export function SidebarMenuButton({
   })
 }
 
-export function SidebarMenuBadge({ className, ...props }: React.ComponentProps<'span'>) {
+/**
+ * Two tones for sidebar count badges:
+ *  - `urgent` (default for back-compat): saturated warning pill — use
+ *    for counts that mean "look at this" (Alerts, Rule library
+ *    review backlog).
+ *  - `inventory`: slim tertiary number, no pill, no border — use for
+ *    counts that are reference facts (Clients, Deadlines). CPA
+ *    shouldn't read these as "do something."
+ *
+ * Both occupy the same right-edge slot so layout stays stable when a
+ * count's tone changes (e.g. Pulse alert tier escalates).
+ */
+export function SidebarMenuBadge({
+  className,
+  tone = 'urgent',
+  ...props
+}: React.ComponentProps<'span'> & { tone?: 'urgent' | 'inventory' }) {
+  if (tone === 'inventory') {
+    return (
+      <span
+        data-slot="sidebar-menu-badge"
+        data-tone="inventory"
+        className={cn(
+          'pointer-events-none ml-auto inline-flex shrink-0 font-mono text-xs tabular-nums text-text-tertiary',
+          'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
+          className,
+        )}
+        {...props}
+      />
+    )
+  }
   return (
     <span
       data-slot="sidebar-menu-badge"
+      data-tone="urgent"
       className={cn(
-        // Mono numeric pill, always white (so it stands out on neutral panel
-        // bg AND on accent-tint selected bg without a separate active-state
-        // override). The 1px hairline keeps it readable on both surfaces.
-        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-divider-regular bg-background-default px-1 font-mono text-xs font-medium tabular-nums text-text-tertiary',
-        'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
+        // Saturated warning pill — readable on the panel bg AND on the
+        // accent-tint selected bg without needing an active-state override.
+        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-state-warning-border bg-state-warning-hover px-1 font-mono text-xs font-medium tabular-nums text-text-warning',
         className,
       )}
       {...props}

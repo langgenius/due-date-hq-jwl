@@ -79,6 +79,13 @@ type NavItem = {
   icon: LucideIcon
   end?: boolean
   badge?: string
+  /**
+   * Visual tone for the badge:
+   *  - `urgent`   — saturated warning pill ("look at this"). Default.
+   *  - `inventory` — slim tertiary number ("reference fact"). Used
+   *    for counts the CPA shouldn't read as a call to action.
+   */
+  badgeTone?: 'urgent' | 'inventory'
   tag?: string
   disabledReason?: string
 }
@@ -544,7 +551,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             label: t`Deadlines`,
             icon: CalendarClockIcon,
             end: false,
-            ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),
+            ...(obligationsBadge !== undefined
+              ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+              : {}),
           },
         ],
         operations: [],
@@ -569,7 +578,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             label: t`Clients`,
             icon: UsersIcon,
             end: false,
-            ...(clientsBadge !== undefined ? { badge: clientsBadge } : {}),
+            ...(clientsBadge !== undefined
+              ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+              : {}),
           },
           {
             href: '/opportunities',
@@ -594,7 +605,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           label: t`Deadlines`,
           icon: CalendarClockIcon,
           end: false,
-          ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),
+          ...(obligationsBadge !== undefined
+            ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+            : {}),
         },
         // Radar is the spine of the product (per the canonical product
         // spec — "you won't be the last CPA in your state to find out about
@@ -617,7 +630,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           label: t`Clients`,
           icon: UsersIcon,
           end: false,
-          ...(clientsBadge !== undefined ? { badge: clientsBadge } : {}),
+          ...(clientsBadge !== undefined
+            ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+            : {}),
         },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
@@ -759,7 +774,9 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
       >
         <Icon aria-hidden />
         <span>{item.label}</span>
-        {item.badge ? <SidebarMenuBadge>{item.badge}</SidebarMenuBadge> : null}
+        {item.badge ? (
+          <SidebarMenuBadge tone={item.badgeTone ?? 'urgent'}>{item.badge}</SidebarMenuBadge>
+        ) : null}
         {item.tag ? (
           <span className="ml-auto font-mono text-xs tabular-nums text-text-muted">{item.tag}</span>
         ) : null}
