@@ -3520,13 +3520,17 @@ export function ObligationQueueDetailDrawer({
   // because those have specific authority-acceptance/-rejection
   // semantics (different RPC procedure for rejection) and bespoke
   // toast copy worth preserving.
+  // The base mutation only handles cache invalidation + error toast.
+  // The success toast (with its contextual Undo action) is fired by
+  // the `changeStatus` callback below so it can close over the
+  // `previousStatus` snapshot — react-query's onSuccess only sees the
+  // input vars and result, not the value the row was at before the
+  // mutation. Same pattern the queue page uses (see ObligationsRoute
+  // → `updateStatus` callback) so drawer + queue offer parity Undo.
   const changeStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
-      onSuccess: (result, vars) => {
+      onSuccess: () => {
         invalidateDetail()
-        toast.success(t`Status changed to ${statusLabels[vars.status]}`, {
-          description: t`Audit ${result.auditId.slice(0, 8)}`,
-        })
       },
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
@@ -3534,6 +3538,37 @@ export function ObligationQueueDetailDrawer({
         })
       },
     }),
+  )
+  // Per-call wrapper: captures the previous status so the success
+  // toast can offer Undo. Used by both the status pill in the drawer
+  // header and the forward-action buttons in ActiveStageDetailCard.
+  // No-op clicks (previous === next) skip the Undo affordance since
+  // there's nothing to reverse.
+  const changeStatus = useCallback(
+    (id: string, nextStatus: ObligationStatus, previousStatus: ObligationStatus) => {
+      changeStatusMutation.mutate(
+        { id, status: nextStatus },
+        {
+          onSuccess: (result) => {
+            const canUndo = previousStatus !== nextStatus
+            toast.success(t`Status changed to ${statusLabels[nextStatus]}`, {
+              description: t`Audit ${result.auditId.slice(0, 8)}`,
+              ...(canUndo
+                ? {
+                    action: {
+                      label: t`Undo`,
+                      onClick: () => {
+                        changeStatusMutation.mutate({ id, status: previousStatus })
+                      },
+                    },
+                  }
+                : {}),
+            })
+          },
+        },
+      )
+    },
+    [changeStatusMutation, statusLabels, t],
   )
   // In Review sub-status mutations — the prep ↔ review pipeline strip
   // in the active stage card flips these on click. Slider model: any
@@ -3778,7 +3813,7 @@ export function ObligationQueueDetailDrawer({
               labels={statusLabels}
               statuses={statusDropdownOptions}
               disabled={changeStatusMutation.isPending}
-              onChange={(id, status) => changeStatusMutation.mutate({ id, status })}
+              onChange={(id, status) => changeStatus(id, status, row.status)}
             />
           </div>
         ) : null}
@@ -3859,9 +3894,7 @@ export function ObligationQueueDetailDrawer({
                 auditEvents={detail.auditEvents}
                 readinessChecklist={detail.readinessChecklist}
                 onChangeTab={(nextTab) => onTabChange(nextTab)}
-                onChangeStatus={(nextStatus) =>
-                  changeStatusMutation.mutate({ id: row.id, status: nextStatus })
-                }
+                onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
                 onConfirmAcceptance={() =>
                   markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
                 }
