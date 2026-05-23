@@ -1530,7 +1530,12 @@ export function ClientDetailWorkspace({
                 }
               }}
             >
-              <TabsList variant="line" className="border-b border-divider-subtle">
+              {/* Tab underline: `divider-regular` (8%) not `subtle` (4%).
+                  The tabs are the primary navigation inside the
+                  detail body — a 4% line vanished against
+                  `background-default` and tabs felt like floating
+                  triggers instead of a real tabbar. */}
+              <TabsList variant="line" className="border-b border-divider-regular">
                 <TabsTrigger value="work">
                   <Trans>Work</Trans>
                 </TabsTrigger>
@@ -1829,7 +1834,13 @@ function ClientWorkPlanPanel({
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
+    // Outer panel chrome bumped from `divider-subtle` (4% black,
+    // basically invisible) to `divider-regular` (8% black) so the
+    // panel actually reads as a panel, not as content floating on the
+    // page. Same treatment as `ClientActiveAlertsSection` directly
+    // above — keeps the workbench feeling like sections instead of
+    // "everything is the same pale wash."
+    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
       {/* Title row: title + count line left-clustered, NOT split with
           `justify-between`. On wide screens content shouldn't sit at
           the two edges of the row — that's how titles get visually
@@ -1839,9 +1850,14 @@ function ClientWorkPlanPanel({
           critique: they looked like interactive filter chips but
           were inert badges, mixing the two visual vocabularies. The
           page subtitle already shows overdue count in tone-coded
-          form; the row status badges below speak for review state. */}
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-4 py-3">
-        <span className="text-sm font-medium text-text-primary">
+          form; the row status badges below speak for review state.
+
+          2026-05-23: tinted with `bg-background-section` + semibold
+          title so the header reads as a real section header instead
+          of a pale label sitting on the same white background as the
+          rows. Pairs with the stronger outer border. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-divider-subtle bg-background-section px-4 py-3">
+        <span className="text-sm font-semibold text-text-primary">
           <Trans>Filing plan</Trans>
         </span>
         <span className="text-xs text-text-tertiary">
@@ -1850,7 +1866,7 @@ function ClientWorkPlanPanel({
           <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
         </span>
       </div>
-      <div className="border-t border-divider-subtle px-4 py-3">
+      <div className="px-4 py-3">
         {isLoading ? (
           <div className="grid gap-2">
             <Skeleton className="h-12 w-full" />
@@ -1880,6 +1896,13 @@ function ClientWorkPlanPanel({
                 <FilingPlanYearSection
                   group={group}
                   clientName={clientName}
+                  // The column legend (FORM · DUE · STATUS · EST. TAX)
+                  // renders once, inside the first year section, as a
+                  // real `<TableHeader>`. This way it lines up with
+                  // the underlying `table-fixed` column widths instead
+                  // of being a separate hand-tuned flex row that
+                  // drifts when columns change.
+                  isFirstSection={index === 0}
                   onOpen={(obligationId) => openObligationDrawer(obligationId)}
                   onChangeStatus={onChangeStatus}
                   isStatusChangePending={isStatusChangePending}
@@ -1904,12 +1927,14 @@ function ClientWorkPlanPanel({
 function FilingPlanYearSection({
   group,
   clientName,
+  isFirstSection,
   onOpen,
   onChangeStatus,
   isStatusChangePending,
 }: {
   group: FilingPlanYearGroup
   clientName: string
+  isFirstSection: boolean
   onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
@@ -1921,10 +1946,17 @@ function FilingPlanYearSection({
         <span className="text-base font-semibold tabular-nums text-text-primary">
           {group.year === 'unknown' ? <Trans>No tax year</Trans> : group.year}
         </span>
+        {/* 2026-05-23: replaced the outline `Current tax year` Badge
+            with a quiet italic tertiary marker. The Badge competed
+            for attention with the next-due chip and the row status
+            chips below — three different visual vocabularies stacked
+            in one section. Italic small-text reads as a footnote, not
+            as a control; the year number is already the primary
+            anchor so the marker only needs to disambiguate. */}
         {group.isCurrent ? (
-          <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-            <Trans>Current tax year</Trans>
-          </Badge>
+          <span className="text-xs italic text-text-tertiary">
+            <Trans>current year</Trans>
+          </span>
         ) : null}
         <span className="text-xs text-text-tertiary">
           <Trans>{group.openCount} open</Trans>
@@ -1943,8 +1975,35 @@ function FilingPlanYearSection({
           nesting a second border inside (the previous shape) gave a
           card-inside-a-card visual. Rows just live as a flat list
           inside the panel's content area, separated by light
-          dividers. Cleaner read. */}
+          dividers. Cleaner read.
+
+          2026-05-23: only the first year section renders the
+          `<TableHeader>`. Other years inherit the visual rhythm
+          without repeating the column labels — once is enough for a
+          legend, and repeating it gave the panel a noisy "table
+          stack" look instead of "filing plan." */}
       <Table className="table-fixed">
+        {isFirstSection ? (
+          <TableHeader className="bg-transparent [&_tr]:border-b-divider-subtle">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-7 px-3">
+                <Trans>Form</Trans>
+              </TableHead>
+              <TableHead className="h-7 w-[132px] px-3">
+                <Trans>Due</Trans>
+              </TableHead>
+              <TableHead className="h-7 w-[160px] px-3">
+                <Trans>Status</Trans>
+              </TableHead>
+              <TableHead className="h-7 w-[110px] px-3 text-right">
+                <Trans>Est. tax</Trans>
+              </TableHead>
+              {/* Quick-action column has no header — it's a
+                  hover-revealed affordance, not a content column. */}
+              <TableHead className="h-7 w-[140px] px-3" aria-hidden />
+            </TableRow>
+          </TableHeader>
+        ) : null}
         <TableBody className="[&_tr]:border-b-divider-subtle [&_td]:py-3">
           {group.obligations.map((obligation) => {
             const hasEstimate = obligation.estimatedTaxDueCents !== null

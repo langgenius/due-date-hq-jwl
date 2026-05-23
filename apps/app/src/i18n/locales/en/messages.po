@@ -2983,8 +2983,8 @@ msgid "Current stage"
 msgstr "Current stage"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Current tax year"
-msgstr "Current tax year"
+msgid "current year"
+msgstr "current year"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Currently available shortcuts and reserved keyboard slots."
@@ -3328,6 +3328,7 @@ msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 r
 msgid "Dry-Run"
 msgstr "Dry-Run"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/practice.tsx
 msgid "Due"
@@ -3586,6 +3587,10 @@ msgstr "Entity types"
 #: src/routes/route-summary.ts
 msgid "Entry"
 msgstr "Entry"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Est. tax"
+msgstr "Est. tax"
 
 #: src/routes/obligations.tsx
 msgid "Estimate needed"
@@ -4124,6 +4129,7 @@ msgstr "For US CPA practices"
 msgid "Foreign accounts"
 msgstr "Foreign accounts"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
@@ -9111,6 +9117,7 @@ msgid "States"
 msgstr "States"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/generation-preview-tab.tsx

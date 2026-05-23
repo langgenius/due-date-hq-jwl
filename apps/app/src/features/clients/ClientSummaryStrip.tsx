@@ -46,8 +46,14 @@ function TileShell({
     tone === 'neutral' && 'text-text-primary',
     tone === 'muted' && 'text-text-tertiary',
   )
+  // Tile chrome: `divider-regular` (8%) at rest. Previously
+  // `divider-subtle` (4%) — paired with the white `background-default`
+  // body, the tiles read as "barely there boxes" against the page,
+  // contributing to the overall "pale and white" feel. Bumping the
+  // border to match the panel chrome elsewhere on the detail page
+  // gives the summary strip presence as a real section.
   const baseClass =
-    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
+    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-regular bg-background-default px-4 py-3 transition-colors hover:border-divider-deep hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
   if (to) {
     return (
