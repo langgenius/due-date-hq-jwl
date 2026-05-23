@@ -214,6 +214,16 @@ REVIEW · OPP` — fewer, more action-oriented.
 
 ### L-9. STATE ALERT banner becomes a filter toggle with session snooze
 
+**Verified 2026-05-23: N/A for our codebase.** The standalone "STATE
+ALERT — 34 clients have an active state alert affecting their
+filings" banner is a feature in the reference-screenshot fork that
+we never built. Our aggregate Pulse signal already lives in
+`ClientsActionStrip` as a filter-toggleable chip (commit `a30ba70`)
+— at-risk / waiting / Pulse hits / missing facts. Won't-do unless
+a dedicated banner pattern earns its place separately.
+
+Original text below kept for reference:
+
 - **Bug today:** banner CTA `Open alerts ↗` navigates to `/rules/pulse`
   — leaves the table the CPA is scanning. Banner has an `X` close
   button, but alerts don't disappear when you dismiss the banner —
