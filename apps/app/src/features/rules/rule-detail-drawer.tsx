@@ -360,15 +360,6 @@ function CandidateReviewForm({
         sourceId: reviewSourceId,
         ...(concreteDraft?.sourceSignalId ? { sourceSignalId: concreteDraft.sourceSignalId } : {}),
         aiOutputId: draft.aiOutputId,
-        sourceHeading: draft.sourceHeading,
-        sourceExcerpt: draft.sourceExcerpt,
-        dueDateLogic: draft.dueDateLogic,
-        extensionPolicy: draft.extensionPolicy,
-        ruleTier: rule.ruleTier,
-        coverageStatus: draft.coverageStatus,
-        requiresApplicabilityReview: draft.requiresApplicabilityReview,
-        quality: draft.quality,
-        nextReviewOn: rule.nextReviewOn,
         reviewNote: t`Accepted AI concrete draft from rule detail review.`,
       })
       return

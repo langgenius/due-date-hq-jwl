@@ -700,20 +700,7 @@ export const RuleVerifyCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
   sourceSignalId: EntityIdSchema.optional(),
-  aiOutputId: EntityIdSchema.optional(),
-  sourceHeading: z.string().min(1),
-  sourceExcerpt: z.string().min(1),
-  sourceUpdatedOn: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  dueDateLogic: DueDateLogicSchema,
-  extensionPolicy: ExtensionPolicySchema,
-  ruleTier: RuleTierSchema,
-  coverageStatus: CoverageStatusSchema,
-  requiresApplicabilityReview: z.boolean(),
-  quality: RuleQualityChecklistSchema,
-  nextReviewOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  aiOutputId: EntityIdSchema,
   reviewNote: z.string().trim().max(1000).optional(),
 })
 export type RuleVerifyCandidateInput = z.infer<typeof RuleVerifyCandidateInputSchema>

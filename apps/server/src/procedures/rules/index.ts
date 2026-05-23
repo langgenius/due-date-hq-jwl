@@ -1,6 +1,5 @@
 import { ORPCError } from '@orpc/server'
 import {
-  ConcreteDueDateLogicSchema,
   ObligationRuleSchema,
   type ObligationGenerationPreview,
   type ObligationRule,
@@ -48,7 +47,6 @@ import {
   parseCachedConcreteDraft,
   RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
   RULE_CONCRETE_DRAFT_PROMPT,
-  validateConcreteRuleDraft,
   type RuleConcreteDraftPayload,
 } from './concrete-draft'
 import { toContractRule, toCoreRule, toPracticeContractRule } from './runtime'
@@ -1531,19 +1529,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function parseNullableString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0 ? value : null
-}
-
-function concreteDraftSourceTextFromRun(run: AiOutputRow): string | null {
-  const citations = parseConcreteDraftRunCitations(run)
-  return parseNullableString(citations?.sourceText)
-}
-
-function missingConcreteDraftSourceTextError(): never {
+function missingAcceptedConcreteDraftError(): never {
   throw new ORPCError('BAD_REQUEST', {
-    message:
-      'AI concrete draft source text was not found. Please regenerate this draft before accepting.',
+    message: 'AI concrete draft is not ready. Regenerate or wait for backfill.',
   })
 }
 
@@ -1597,29 +1585,23 @@ function toConcreteDraftRule(input: {
   }
 }
 
-async function loadConcreteDraftSourceText(input: {
-  context: RpcContext
-  source: ReturnType<typeof listRuleSources>[number]
-  sourceSignal: CandidateSourceSignal
+export async function loadAcceptedConcreteDraft(input: {
+  scoped: ScopedRepo
   contextRef: string
-  aiOutputId?: string
-  cachedRun?: AiOutputRow
-}): Promise<string> {
-  const { scoped } = requireTenant(input.context)
-  const cachedText = input.cachedRun ? concreteDraftSourceTextFromRun(input.cachedRun) : null
-  if (cachedText) return cachedText
-
+  aiOutputId: string
+}): Promise<{ cachedRun: AiOutputRow; draft: RuleConcreteDraftPayload }> {
   const { allRuns } = await findConcreteDraftRuns({
-    scoped,
+    scoped: input.scoped,
     inputContextRefs: [input.contextRef],
   })
-  const matchingRun = input.aiOutputId
-    ? allRuns.find((run) => run.id === input.aiOutputId)
-    : allRuns.find((run) => run.inputContextRef === input.contextRef)
-  const matchText = matchingRun ? concreteDraftSourceTextFromRun(matchingRun) : null
-  if (matchText) return matchText
+  const cachedRun = allRuns.find(
+    (run) => run.id === input.aiOutputId && run.inputContextRef === input.contextRef,
+  )
+  if (!cachedRun || cachedRun.guardResult !== 'ok') return missingAcceptedConcreteDraftError()
 
-  return missingConcreteDraftSourceTextError()
+  const draft = parseCachedConcreteDraft(cachedRun.outputText)
+  if (!draft) return missingAcceptedConcreteDraftError()
+  return { cachedRun, draft }
 }
 
 async function loadLatestSourceSnapshot(input: { context: RpcContext; sourceId: string }) {
@@ -1681,28 +1663,12 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     sourceId: source.id,
     sourceSignalId: sourceSignal?.id ?? null,
   })
-  const sourceText = await loadConcreteDraftSourceText({
-    context,
-    source,
-    sourceSignal: sourceSignal,
+  const { draft, cachedRun } = await loadAcceptedConcreteDraft({
+    scoped,
     contextRef,
-    ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
+    aiOutputId: input.aiOutputId,
   })
-  const validationError = validateConcreteRuleDraft({
-    rule: base,
-    dueDateLogic: input.dueDateLogic,
-    sourceText,
-    sourceExcerpt: input.sourceExcerpt,
-    coverageStatus: input.coverageStatus,
-    requiresApplicabilityReview: input.requiresApplicabilityReview,
-  })
-  if (validationError) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: validationError,
-    })
-  }
 
-  const dueDateLogic = ConcreteDueDateLogicSchema.parse(input.dueDateLogic)
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
   const editedRule = toConcreteDraftRule({
@@ -1711,21 +1677,8 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedBy: userId,
     reviewedByName: reviewerName,
     reviewedAt,
-    draft: {
-      dueDateLogic,
-      extensionPolicy: input.extensionPolicy,
-      coverageStatus: input.coverageStatus,
-      requiresApplicabilityReview: input.requiresApplicabilityReview,
-      quality: input.quality,
-      sourceHeading: input.sourceHeading,
-      sourceExcerpt: input.sourceExcerpt,
-      confidence: 1,
-      reasoning: input.reviewNote ?? 'Accepted from rule review.',
-    },
-    ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
-    ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
-    ruleTier: input.ruleTier,
-    nextReviewOn: input.nextReviewOn,
+    draft,
+    aiOutputId: cachedRun.id,
   })
 
   const task = await acceptTemplateRule({
@@ -1826,7 +1779,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       })
       const cachedRun = cachedRunByContextAndId.get(`${contextRef}:${selection.aiOutputId}`)
       const draft = parseCachedConcreteDraft(cachedRun?.outputText ?? null)
-      if (!cachedRun || !draft) {
+      if (!cachedRun || cachedRun.guardResult !== 'ok' || !draft) {
         return skipConcreteDraftSelection(selection, 'draft_not_found')
       }
       if (cachedRun.id !== selection.aiOutputId) {
@@ -1834,7 +1787,6 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       }
 
       let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>
-      let sourceText: string
       try {
         sourceContext = await loadCandidateSourceContext({
           context,
@@ -1842,27 +1794,9 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
           sourceId: selection.sourceId,
           ...(selection.sourceSignalId ? { sourceSignalId: selection.sourceSignalId } : {}),
         })
-        sourceText = await loadConcreteDraftSourceText({
-          context,
-          source: sourceContext.source,
-          sourceSignal: sourceContext.sourceSignal,
-          contextRef,
-          ...(selection.aiOutputId ? { aiOutputId: selection.aiOutputId } : {}),
-          cachedRun: cachedRun,
-        })
       } catch {
         return skipConcreteDraftSelection(selection, 'validation_failed')
       }
-
-      const validationError = validateConcreteRuleDraft({
-        rule: base,
-        dueDateLogic: draft.dueDateLogic,
-        sourceText,
-        sourceExcerpt: draft.sourceExcerpt,
-        coverageStatus: draft.coverageStatus,
-        requiresApplicabilityReview: draft.requiresApplicabilityReview,
-      })
-      if (validationError) return skipConcreteDraftSelection(selection, 'validation_failed')
 
       const editedRule = toConcreteDraftRule({
         base,

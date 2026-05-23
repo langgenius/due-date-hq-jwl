@@ -1561,32 +1561,11 @@ describe('@duedatehq/contracts', () => {
       ruleId: 'ca.individual_income_return.candidate.2026',
       sourceId: 'ca.income_tax',
       sourceSignalId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-      sourceHeading: 'Personal filing due dates',
-      sourceExcerpt: 'California personal income tax returns are due April 15.',
-      dueDateLogic: {
-        kind: 'fixed_date',
-        date: '2026-04-15',
-        holidayRollover: 'source_adjusted',
-      },
-      extensionPolicy: {
-        available: false,
-        paymentExtended: false,
-        notes: 'No extension policy verified for this candidate.',
-      },
-      ruleTier: 'basic',
-      coverageStatus: 'full',
-      requiresApplicabilityReview: false,
-      quality: {
-        filingPaymentDistinguished: true,
-        extensionHandled: true,
-        calendarFiscalSpecified: true,
-        holidayRolloverHandled: true,
-        crossVerified: true,
-        exceptionChannel: true,
-      },
-      nextReviewOn: '2027-01-15',
+      aiOutputId: '44444444-4444-4444-8444-444444444444',
+      reviewNote: 'Accepted cached AI concrete draft.',
     })
     expect(verifyInput.sourceSignalId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+    expect(verifyInput.aiOutputId).toBe('44444444-4444-4444-8444-444444444444')
 
     const concreteDraft = RuleConcreteDraftSchema.parse({
       aiOutputId: '44444444-4444-4444-8444-444444444444',

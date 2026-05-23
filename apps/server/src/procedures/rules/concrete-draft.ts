@@ -236,6 +236,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export interface ConcreteDraftSourceText {
   sourceText: string
   hasSourceBackedText: boolean
+  sourceSnapshotId: string | null
+  sourceFetchedAt: string | null
+  sourcePublishedAt: string | null
 }
 
 interface ConcreteDraftAiInput {
@@ -626,6 +629,9 @@ export async function buildConcreteDraftSourceText(input: {
 }): Promise<ConcreteDraftSourceText> {
   const chunks: string[] = []
   let hasSourceBackedText = false
+  let sourceSnapshotId: string | null = null
+  let sourceFetchedAt: string | null = null
+  let sourcePublishedAt: string | null = null
 
   const evidenceChunks = input.base.evidence
     .filter(
@@ -657,7 +663,11 @@ export async function buildConcreteDraftSourceText(input: {
 
   if (evidenceChunks.length === 0 && input.sourceSignal) {
     const rawText = await readR2Text(input.env, input.sourceSignal.rawR2Key)
-    if (rawText) hasSourceBackedText = true
+    if (rawText) {
+      hasSourceBackedText = true
+      sourceFetchedAt = input.sourceSignal.fetchedAt.toISOString()
+      sourcePublishedAt = input.sourceSignal.publishedAt.toISOString()
+    }
     chunks.push(
       [
         input.sourceSignal.title,
@@ -674,6 +684,9 @@ export async function buildConcreteDraftSourceText(input: {
     const snapshotText = await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key)
     if (snapshotText) {
       hasSourceBackedText = true
+      sourceSnapshotId = input.latestSourceSnapshot.id
+      sourceFetchedAt = input.latestSourceSnapshot.fetchedAt.toISOString()
+      sourcePublishedAt = input.latestSourceSnapshot.publishedAt.toISOString()
       chunks.push(
         [
           input.latestSourceSnapshot.title,
@@ -692,13 +705,19 @@ export async function buildConcreteDraftSourceText(input: {
         sourceId: input.source.id,
         env: input.env,
       })
-  if (officialSourceText) hasSourceBackedText = true
+  if (officialSourceText) {
+    hasSourceBackedText = true
+    sourceFetchedAt = new Date().toISOString()
+  }
 
   if (officialSourceText) chunks.push(`Official source text\n${officialSourceText}`)
 
   return {
     sourceText: chunks.filter(Boolean).join('\n\n'),
     hasSourceBackedText,
+    sourceSnapshotId,
+    sourceFetchedAt,
+    sourcePublishedAt,
   }
 }
 
@@ -900,6 +919,9 @@ export async function generateConcreteDraft(input: {
         sourceId: input.source.id,
         sourceUrl: input.source.url,
         sourceSignalId: input.sourceSignal?.id ?? null,
+        sourceSnapshotId: sourceContext.sourceSnapshotId,
+        sourceFetchedAt: sourceContext.sourceFetchedAt,
+        sourcePublishedAt: sourceContext.sourcePublishedAt,
         sourceExcerpt: null,
         sourceText: sourceText,
       },
@@ -981,6 +1003,9 @@ export async function generateConcreteDraft(input: {
       sourceId: input.source.id,
       sourceUrl: input.source.url,
       sourceSignalId: input.sourceSignal?.id ?? null,
+      sourceSnapshotId: sourceContext.sourceSnapshotId,
+      sourceFetchedAt: sourceContext.sourceFetchedAt,
+      sourcePublishedAt: sourceContext.sourcePublishedAt,
       sourceExcerpt: draft?.sourceExcerpt ?? null,
       sourceText,
     },
