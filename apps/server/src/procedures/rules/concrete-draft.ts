@@ -19,6 +19,7 @@ import { extractOfficialSourceText, SOURCE_WATCH_PLACEHOLDER_RE } from './source
 export const RuleConcreteDraftPayloadSchema = RuleConcreteDraftSchema.omit({ aiOutputId: true })
 export type RuleConcreteDraftPayload = Omit<RuleConcreteDraft, 'aiOutputId'>
 export const RULE_CONCRETE_DRAFT_PROMPT = 'rule-concrete-draft@v2'
+export const RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL = 'deterministic-source-text'
 const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const OFFICIAL_SOURCE_FETCH_TIMEOUT_MS = 20_000
 const OFFICIAL_SOURCE_FETCH_HEADERS: HeadersInit[] = [
@@ -856,7 +857,10 @@ export async function generateConcreteDraft(input: {
           inputHash,
           promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
         })
-  const cachedDraft = parseCachedConcreteDraft(cached?.outputText ?? null)
+  const cachedDraft =
+    cached?.model === RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL
+      ? null
+      : parseCachedConcreteDraft(cached?.outputText ?? null)
   if (cached && cachedDraft) {
     const cachedGuardError = validateConcreteRuleDraft({
       rule: input.base,
@@ -885,7 +889,6 @@ export async function generateConcreteDraft(input: {
       })
     : { draft: null, error: null }
   let draft = normalized.draft
-  let usedFallback = false
   let guardError = draft
     ? validateConcreteRuleDraft({
         rule: input.base,
@@ -897,29 +900,6 @@ export async function generateConcreteDraft(input: {
       })
     : null
 
-  if (!draft || guardError) {
-    const fallbackDraft = inferDeterministicConcreteDraft({
-      base: input.base,
-      source: input.source,
-      sourceText,
-    })
-    const fallbackGuardError = fallbackDraft
-      ? validateConcreteRuleDraft({
-          rule: input.base,
-          dueDateLogic: fallbackDraft.dueDateLogic,
-          sourceText,
-          sourceExcerpt: fallbackDraft.sourceExcerpt,
-          coverageStatus: fallbackDraft.coverageStatus,
-          requiresApplicabilityReview: fallbackDraft.requiresApplicabilityReview,
-        })
-      : null
-    if (fallbackDraft && !fallbackGuardError) {
-      draft = fallbackDraft
-      guardError = null
-      usedFallback = true
-    }
-  }
-
   const recorded = await recordConcreteDraftRun({
     aiRepo: input.aiRepo,
     scope: input.scope,
@@ -927,11 +907,8 @@ export async function generateConcreteDraft(input: {
     inputContextRef,
     trace: {
       ...aiResult.trace,
-      model: usedFallback ? 'deterministic-source-text' : (aiResult.model ?? aiResult.trace.model),
-      ...(usedFallback ? { guardResult: 'ok', refusalCode: null } : {}),
-      ...(normalized.error && !usedFallback
-        ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' }
-        : {}),
+      model: aiResult.model ?? aiResult.trace.model,
+      ...(normalized.error ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' } : {}),
       ...(guardError ? { guardResult: 'guard_rejected', refusalCode: 'GUARD_REJECTED' } : {}),
     },
     outputText: draft ? JSON.stringify(draft) : null,
@@ -941,10 +918,10 @@ export async function generateConcreteDraft(input: {
       sourceSignalId: input.sourceSignal?.id ?? null,
       sourceExcerpt: draft?.sourceExcerpt ?? null,
     },
-    errorMsg: usedFallback ? null : (aiResult.refusal?.message ?? normalized.error ?? guardError),
+    errorMsg: aiResult.refusal?.message ?? normalized.error ?? guardError,
   })
 
-  if ((aiResult.refusal && !usedFallback) || !draft) {
+  if (aiResult.refusal || !draft) {
     throw new Error(
       aiResult.refusal?.message ?? normalized.error ?? 'AI concrete draft was unavailable.',
     )
@@ -957,102 +934,6 @@ export async function generateConcreteDraft(input: {
     aiOutputId: recorded.aiOutputId,
     draft,
   })
-}
-
-export function inferDeterministicConcreteDraft(input: {
-  base: CoreObligationRule
-  source: CoreRuleSource
-  sourceText: string
-}): RuleConcreteDraftPayload | null {
-  const focusedText = selectConcreteDraftSourceText(input.base, input.sourceText)
-  const sourceExcerpt = inferSourceExcerpt(focusedText) ?? inferSourceExcerpt(input.sourceText)
-  const relative = inferRelativeDueDateLogic(
-    sourceExcerpt,
-    focusedText,
-    'unknown',
-    input.base.applicableYear,
-  )
-  const dateCandidates = deterministicDateCandidatesForSourceText({
-    sourceExcerpt,
-    focusedText,
-    sourceText: input.sourceText,
-    applicableYear: input.base.applicableYear,
-  })
-  const dateLogic =
-    relative ??
-    dueDateLogicFromDateCandidates(
-      dateCandidates.dates,
-      dateCandidates.frequency,
-      'source_adjusted',
-    )
-  if (!dateLogic || !sourceExcerpt) return null
-
-  const draft: RuleConcreteDraftPayload = {
-    dueDateLogic: dateLogic,
-    extensionPolicy: {
-      available: false,
-      paymentExtended: false,
-      notes: 'No extension policy was deterministically extracted from the selected source text.',
-    },
-    coverageStatus: 'manual',
-    requiresApplicabilityReview: true,
-    quality: normalizeQuality(null, input.sourceText),
-    sourceHeading: input.source.title,
-    sourceExcerpt,
-    confidence: 0.6,
-    reasoning:
-      'Draft deterministically extracted from source-backed text after the AI model did not return a usable object; review before accepting.',
-  }
-  const parsed = RuleConcreteDraftPayloadSchema.safeParse(draft)
-  return parsed.success ? parsed.data : null
-}
-
-function deterministicDateCandidatesForSourceText(input: {
-  sourceExcerpt: string | null
-  focusedText: string
-  sourceText: string
-  applicableYear: number
-}): { dates: string[]; frequency: string } {
-  const tableDates = inferInstallmentTableDateCandidates(
-    [input.sourceExcerpt, input.focusedText, input.sourceText].filter(Boolean).join('\n'),
-    input.applicableYear,
-  )
-  const evidenceText = input.sourceExcerpt ?? input.focusedText
-  const dates = tableDates ?? extractDateOnlyCandidates(evidenceText, input.applicableYear)
-  const frequency = /\b(installment|estimated|quarter|payment)\b/i.test(evidenceText)
-    ? 'quarterly'
-    : 'annual'
-  return { dates, frequency }
-}
-
-function inferInstallmentTableDateCandidates(
-  text: string,
-  applicableYear: number,
-): string[] | null {
-  const lines = text
-    .split('\n')
-    .map((line) => line.replace(/\s+/g, ' ').trim())
-    .filter(Boolean)
-
-  const headerIndex = lines.findIndex(
-    (line) => /\btax(?:able)?\s+year\s+end\b/i.test(line) && /\binstallment\b/i.test(line),
-  )
-  if (headerIndex < 0) return null
-
-  for (const line of lines.slice(headerIndex + 1, headerIndex + 4)) {
-    const rowDates = extractDateOnlyCandidates(line, applicableYear, { unique: false })
-    if (rowDates.length < 3) continue
-
-    const leadingYearEnd = rowDates[0]
-    const installmentDates =
-      leadingYearEnd && isCalendarYearEndDate(leadingYearEnd) ? rowDates.slice(1) : rowDates
-    const uniqueDates = installmentDates.filter(
-      (date, index) => installmentDates.indexOf(date) === index,
-    )
-    if (uniqueDates.length >= 2) return uniqueDates
-  }
-
-  return null
 }
 
 async function runConcreteDraftPrompt(env: Env, aiInput: ConcreteDraftAiInput) {
@@ -1660,10 +1541,6 @@ function extractDateOnlyCandidates(
   }
 
   return dates
-}
-
-function isCalendarYearEndDate(date: string): boolean {
-  return /-\d{2}-\d{2}$/.test(date) && date.endsWith('-12-31')
 }
 
 function inferSourceExcerpt(sourceText: string): string | null {

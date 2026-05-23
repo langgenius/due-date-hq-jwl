@@ -5976,8 +5976,8 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Extension  | Seven months extension',
   ].join('\n'),
   'TN:business_estimated_tax': [
-    'Quarterly Estimated Payments  | 15th day of the fourth, sixth, and ninth months of the current tax year and the 15th day of the first month of the next succeeding tax year, if you have a combined tax liability of $5,000 or more in both the prior and current years.',
-    'For 2026 Tennessee franchise and excise estimated payments, calendar-year taxpayers pay April 15, 2026; June 15, 2026; September 15, 2026; and January 15, 2027.',
+    'Quarterly estimated payments are generally due on the 15th day of the fourth, sixth, and ninth months of the current tax year.',
+    'For 2026 Tennessee franchise and excise estimated payments, calendar-year taxpayers pay in April, June, September, and January.',
   ].join('\n'),
   'TN:franchise_or_entity_tax': [
     'Annual  | 15th day of the fourth month following the close of your books and records.',
@@ -7006,6 +7006,7 @@ function buildStateCandidateRule(
   if (!sourceId) return null
   const sourceExcerpt =
     STATE_CANDIDATE_SOURCE_EXCERPTS[`${seed.jurisdiction}:${domain.slug}`] ??
+    SOURCE_EXCERPTS[sourceId] ??
     `${seed.name} official source registered for ${domain.title}; templates require practice owner or manager acceptance before customer reminders.`
 
   return {

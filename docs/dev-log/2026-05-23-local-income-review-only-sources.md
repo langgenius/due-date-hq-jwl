@@ -24,6 +24,13 @@ author: 'Codex'
   synthetic drafts from `rules.listConcreteDrafts`.
 - Backfilled the selected local candidates in local D1. The latest successful rows for all eight
   local context refs use `model='google/gemini-2.5-flash-lite'` and `guard_result='ok'`.
+- Retired the old deterministic concrete-draft fallback. `generateConcreteDraft` no longer writes
+  synthetic `deterministic-source-text` success rows, and both cache reuse and Rule Library listing
+  ignore that retired model.
+- Reprocessed the existing local D1 rule concrete-draft cache with the real AI Gateway model.
+  Real AI output replaced 92 of the 141 latest deterministic context refs. The remaining 49 refs
+  failed schema, source-text, or concrete-date guards and were marked `retired_fallback` instead of
+  staying visible as successful drafts.
 - Accepted local concrete rules also stay reminder-blocked when required local facts are missing;
   preview marks `local_fact_requirements_missing` and lists the missing structured facts.
 - Kept UI scope unchanged: no new Local Coverage surface, Client local-facts panel, or local-only
@@ -39,6 +46,8 @@ license regimes.
 
 - `pnpm check`
 - `AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-2.5-flash-lite pnpm exec tsx scripts/generate-local-concrete-drafts.ts`
+- `AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-2.5-flash-lite pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all-deterministic --concurrency=4`
+- `sqlite3 ... "select count(*) from ai_output where kind='rule_concrete_draft' and model='deterministic-source-text' and guard_result='ok';"` → `0`
 - `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts src/procedures/rules/review-audit.test.ts src/procedures/rules/_obligation-generation.test.ts src/procedures/rules/onboarding-activation.test.ts`
 - `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
 - `pnpm --filter @duedatehq/contracts test -- contracts.test.ts`

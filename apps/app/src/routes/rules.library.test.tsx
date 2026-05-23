@@ -520,6 +520,30 @@ describe('RulesLibraryRoute', () => {
     expect(open).toHaveBeenCalledWith(source.url, '_blank', 'noopener,noreferrer')
   })
 
+  it('keeps the current page in place when evidence opens with noopener', async () => {
+    const rule = obligationRule({})
+    const source = ruleSource()
+    const open = vi.spyOn(window, 'open').mockReturnValue(null)
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+    rpcMocks.listSourcesQueryFn.mockResolvedValue([source])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText(source.title)
+
+    const link = document.querySelector<HTMLAnchorElement>(
+      `a[aria-label="Open official source: ${source.title}"]`,
+    )
+    expect(link).toBeDefined()
+
+    await act(async () => {
+      link?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    })
+
+    expect(open).toHaveBeenCalledWith(source.url, '_blank', 'noopener,noreferrer')
+    expect(window.location.href).toBe('http://localhost:3000/')
+  })
+
   it('does not show seed review placeholders as practice review metadata', async () => {
     const rule = obligationRule({
       status: 'pending_review',

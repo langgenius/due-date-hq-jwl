@@ -824,8 +824,7 @@ function EvidenceCard({
 function openEvidenceSource(event: React.MouseEvent<HTMLAnchorElement>, url: string) {
   event.preventDefault()
   event.stopPropagation()
-  const opened = window.open(url, '_blank', 'noopener,noreferrer')
-  if (!opened) window.location.assign(url)
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function evidenceKey(evidence: RuleEvidence): string {

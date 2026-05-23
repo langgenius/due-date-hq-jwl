@@ -628,6 +628,12 @@ describe('@duedatehq/core/rules', () => {
     expect(
       alCoverage.find((cell) => cell.domain === 'withholding' && cell.entity === 'llc')?.status,
     ).toBe('source_verified')
+    expect(individualRule?.evidence[0]?.sourceExcerpt).toContain(
+      'Alabama individual income tax returns are generally due April 15',
+    )
+    expect(individualRule?.evidence[0]?.sourceExcerpt).not.toMatch(
+      /official source registered|templates require practice owner or manager acceptance/i,
+    )
     expect(findRuleById('al.ui_wage_report.candidate.2026')?.sourceIds).toEqual([
       'al.ui_wage_report',
     ])

@@ -13,8 +13,9 @@ import {
   concreteDraftAiInput,
   generateConcreteDraft,
   hashAiInput,
+  normalizeRuleConcreteDraftAiOutput,
   ruleConcreteDraftContextRef,
-  RuleConcreteDraftPayloadSchema,
+  RuleConcreteDraftAiOutputSchema,
   RULE_CONCRETE_DRAFT_PROMPT,
   validateConcreteRuleDraft,
 } from '../apps/server/src/procedures/rules/concrete-draft'
@@ -33,6 +34,9 @@ const LOCAL_DRAFT_TARGETS = [
   ['oh.local_individual_income.candidate.2026', 'oh.municipal_income_tax_annual_return'],
   ['oh.local_business_income.candidate.2026', 'oh.municipal_net_profit_filing'],
 ] as const
+
+type DraftTarget = readonly [ruleId: string, sourceId: string]
+type DraftResult = { ruleId: string; sourceId: string; aiOutputId?: string; error?: string }
 
 function parseDevVars(path: string): Record<string, string> {
   if (!existsSync(path)) return {}
@@ -93,6 +97,33 @@ function aiOutputModel(dbPath: string, aiOutputId: string): string | null {
   return typeof model === 'string' ? model : null
 }
 
+function deterministicLatestTargets(dbPath: string): DraftTarget[] {
+  const rows = sqliteQueryJson(
+    dbPath,
+    [
+      'with latest as (',
+      'select input_context_ref, model, guard_result, output_text,',
+      'row_number() over (partition by input_context_ref order by generated_at desc) rn',
+      'from ai_output',
+      "where kind = 'rule_concrete_draft'",
+      'and guard_result = "ok"',
+      'and output_text is not null',
+      ')',
+      'select input_context_ref from latest',
+      'where rn = 1',
+      "and model = 'deterministic-source-text'",
+      'order by input_context_ref',
+    ].join(' '),
+  ) as Record<string, unknown>[]
+
+  return rows.flatMap((row): DraftTarget[] => {
+    const contextRef = row.input_context_ref
+    if (typeof contextRef !== 'string') return []
+    const match = /^rule:(.+):v\d+:(.+)$/.exec(contextRef)
+    return match?.[1] && match[2] ? [[match[1], match[2]]] : []
+  })
+}
+
 function toAiOutputRow(row: Record<string, unknown>): AiOutputRow {
   return {
     id: String(row.id),
@@ -114,13 +145,17 @@ function toAiOutputRow(row: Record<string, unknown>): AiOutputRow {
   }
 }
 
-function makeSqliteAiRepo(dbPath: string): GenerateAiRepo {
+function makeSqliteAiRepo(
+  dbPath: string,
+  opts: { ignoreSuccessfulCache?: boolean } = {},
+): GenerateAiRepo {
   async function findSuccessfulGlobalRun(input: {
     kind: 'rule_concrete_draft'
     inputContextRef: string
     inputHash: string
     promptVersion: string
   }): Promise<AiOutputRow | null> {
+    if (opts.ignoreSuccessfulCache) return null
     const rows = sqliteQueryJson(
       dbPath,
       [
@@ -244,7 +279,12 @@ async function generateStructuredLocalDraftWithText(input: {
     'Use only concrete due-date logic kinds allowed by the schema: fixed_date, nth_day_after_tax_year_end, nth_day_after_tax_year_begin, or period_table.',
     'Do not return source_defined_calendar or prose aliases.',
     'Copy sourceExcerpt exactly from sourceText.',
-    'For this local annual earned income tax return, use fixed_date 2026-04-15 with next_business_day rollover.',
+    'If the source text gives an exact calendar-year due date, use fixed_date.',
+    'If the source text gives a due date relative to tax-year end or beginning, use the matching relative due-date kind.',
+    'If the source text gives quarterly or periodic dates, use period_table with concrete dates.',
+    'Use confidence as a number between 0 and 1.',
+    'Use coverageStatus as full, skeleton, or manual.',
+    'Use frequency as semiweekly, monthly, quarterly, or annual.',
     'The JSON object must include dueDateLogic, extensionPolicy, coverageStatus, requiresApplicabilityReview, quality, sourceHeading, sourceExcerpt, confidence, and reasoning.',
     JSON.stringify(aiInput),
   ].join('\n\n')
@@ -264,7 +304,17 @@ async function generateStructuredLocalDraftWithText(input: {
     prompt,
     temperature: 0,
   })
-  const parsed = RuleConcreteDraftPayloadSchema.parse(extractJsonObject(result.text))
+  const aiOutput = RuleConcreteDraftAiOutputSchema.parse(extractJsonObject(result.text))
+  const normalized = normalizeRuleConcreteDraftAiOutput({
+    output: aiOutput,
+    applicableYear: input.base.applicableYear,
+    sourceTitle: input.source.title,
+    sourceText,
+  })
+  const parsed = normalized.draft
+  if (!parsed) {
+    throw new Error(normalized.error ?? 'AI concrete draft output could not be normalized.')
+  }
   const validationError = validateConcreteRuleDraft({
     rule: input.base,
     dueDateLogic: parsed.dueDateLogic,
@@ -356,47 +406,81 @@ if (!env.AI_GATEWAY_ACCOUNT_ID || !env.AI_GATEWAY_PROVIDER_API_KEY) {
 }
 
 const dbPath = localD1Path()
-const aiRepo = makeSqliteAiRepo(dbPath)
+const replaceAllDeterministic = process.argv.includes('--all-deterministic')
+const concurrencyArg = process.argv
+  .find((arg) => arg.startsWith('--concurrency='))
+  ?.slice('--concurrency='.length)
+const concurrency = Math.max(1, Number(concurrencyArg ?? (replaceAllDeterministic ? '4' : '1')))
+const aiRepo = makeSqliteAiRepo(dbPath, {
+  ignoreSuccessfulCache: replaceAllDeterministic,
+})
 const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
-const results: { ruleId: string; sourceId: string; aiOutputId?: string; error?: string }[] = []
+const results: DraftResult[] = []
+const targets: readonly DraftTarget[] = replaceAllDeterministic
+  ? deterministicLatestTargets(dbPath)
+  : LOCAL_DRAFT_TARGETS
 
-for (const [ruleId, sourceId] of LOCAL_DRAFT_TARGETS) {
+async function processTarget([ruleId, sourceId]: DraftTarget): Promise<DraftResult> {
   const base = findRuleById(ruleId)
   const source = sourcesById.get(sourceId)
   if (!base || !source) {
-    results.push({ ruleId, sourceId, error: 'rule_or_source_not_found' })
-    continue
+    return { ruleId, sourceId, error: 'rule_or_source_not_found' }
   }
   try {
-    const draft = await generateConcreteDraft({
-      env,
-      aiRepo,
-      scope: 'global',
-      userId: null,
-      base,
-      source,
-      sourceSignal: null,
-    })
-    const model = aiOutputModel(dbPath, draft.aiOutputId)
-    if (model === 'deterministic-source-text') {
-      const aiOutputId = await generateStructuredLocalDraftWithText({
+    let aiOutputId: string
+    try {
+      const draft = await generateConcreteDraft({
+        env,
+        aiRepo,
+        scope: 'global',
+        userId: null,
+        base,
+        source,
+        sourceSignal: null,
+      })
+      aiOutputId = draft.aiOutputId
+    } catch {
+      aiOutputId = await generateStructuredLocalDraftWithText({
         env,
         aiRepo,
         dbPath,
         base,
         source,
       })
-      results.push({ ruleId, sourceId, aiOutputId })
-    } else {
-      results.push({ ruleId, sourceId, aiOutputId: draft.aiOutputId })
     }
+    const model = aiOutputModel(dbPath, aiOutputId)
+    if (model === 'deterministic-source-text') throw new Error('still_deterministic_source_text')
+    return { ruleId, sourceId, aiOutputId }
   } catch (error) {
-    results.push({
+    return {
       ruleId,
       sourceId,
       error: error instanceof Error ? error.message : 'unknown_error',
-    })
+    }
   }
 }
 
-console.log(JSON.stringify({ promptVersion: RULE_CONCRETE_DRAFT_PROMPT, dbPath, results }, null, 2))
+let nextTargetIndex = 0
+async function worker() {
+  while (nextTargetIndex < targets.length) {
+    const target = targets[nextTargetIndex]
+    nextTargetIndex += 1
+    if (!target) continue
+    const result = await processTarget(target)
+    results.push(result)
+    const status = result.aiOutputId ? `ok ${result.aiOutputId}` : `error ${result.error}`
+    console.log(
+      `[${results.length}/${targets.length}] ${result.ruleId}:${result.sourceId} ${status}`,
+    )
+  }
+}
+
+await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) }, () => worker()))
+
+console.log(
+  JSON.stringify(
+    { promptVersion: RULE_CONCRETE_DRAFT_PROMPT, dbPath, concurrency, results },
+    null,
+    2,
+  ),
+)

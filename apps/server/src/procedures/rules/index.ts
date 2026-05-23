@@ -48,6 +48,7 @@ import {
   generateConcreteDraft,
   parseCachedConcreteDraft,
   requireConcreteDraftSourceText as requireConcreteDraftSourceTextValue,
+  RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
   RULE_CONCRETE_DRAFT_PROMPT,
   validateConcreteRuleDraft,
   type RuleConcreteDraftPayload,
@@ -1419,20 +1420,26 @@ async function findConcreteDraftRuns(input: {
     input.scoped.ai.findSuccessfulGlobalRunsByContextRefs(request),
     input.scoped.ai.findSuccessfulRunsByContextRefs(request),
   ])
+  const realGlobalRuns = globalRuns.filter(
+    (run) => run.model !== RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
+  )
+  const realFirmRuns = firmRuns.filter(
+    (run) => run.model !== RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
+  )
   const preferredByContext = new Map<string, AiOutputRow>()
-  for (const run of globalRuns) {
+  for (const run of realGlobalRuns) {
     if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
       preferredByContext.set(run.inputContextRef, run)
     }
   }
-  for (const run of firmRuns) {
+  for (const run of realFirmRuns) {
     if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
       preferredByContext.set(run.inputContextRef, run)
     }
   }
   return {
     preferredRuns: Array.from(preferredByContext.values()),
-    allRuns: [...globalRuns, ...firmRuns],
+    allRuns: [...realGlobalRuns, ...realFirmRuns],
   }
 }
 
