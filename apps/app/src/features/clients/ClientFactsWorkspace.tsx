@@ -1480,6 +1480,7 @@ export function ClientDetailWorkspace({
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const permission = useFirmPermission()
+  const currentUserName = useCurrentUserName()
   const [filingJurisdictionsOpen, setFilingJurisdictionsOpen] = useState(false)
   const canReadAudit = permission.can('audit.read')
   // Body is now a 4-tab structure (Work / Client info / Discover /
@@ -1724,6 +1725,20 @@ export function ClientDetailWorkspace({
                   <Badge variant="outline" className="text-xs">
                     {entityLabels[client.entityType]}
                   </Badge>
+                  {/* Owner pill (2026-05-23). Inline chip showing who
+                      this client is assigned to — was previously only
+                      surfaced inside the Team tile in the summary
+                      strip. Pulling it into the H1 chip cluster keeps
+                      "whose client?" answerable in the same scan as
+                      the entity type and filing state, so the third
+                      summary tile can be repurposed for Open Filing.
+                      Unassigned state uses a person silhouette icon
+                      + the literal word; assigned state shows a tiny
+                      stable-hashed avatar + the name. */}
+                  <ClientOwnerHeaderPill
+                    name={client.assigneeName ?? null}
+                    currentUserName={currentUserName}
+                  />
                   <ClientFilingStateChips client={client} />
                   {readiness?.status === 'needs_facts' ? (
                     // Badge's `render` prop swaps in a <button> as the
@@ -2155,21 +2170,31 @@ function ClientWorkPlanPanel({
       {/* Column legend sits above all year sections so it reads as
           the table's column header for the whole filing plan — not
           just the first year. Widths mirror the per-row TableCells
-          below (flex-1 / 132 / 160 / 110) with matching `px-3` inner
-          padding. */}
+          below (flex-1 / 132 / 132 / 160 / 110) with matching `px-3`
+          inner padding.
+
+          2026-05-23: split the single Due column into Internal
+          Deadline (currentDueDate — the firm's working target) and
+          Official Deadline (baseDueDate — the statutory date). Both
+          dates already live on the obligation; surfacing them side by
+          side lets the CPA spot the gap (extension target vs filing
+          deadline) without opening the drawer. */}
       {!isLoading && obligations.length > 0 ? (
-        <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-          <div className="flex-1 px-3">
+        <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium text-text-tertiary">
+          <div className="flex-1 px-3 uppercase tracking-[0.08em]">
             <Trans>Form</Trans>
           </div>
           <div className="w-[132px] px-3">
-            <Trans>Due</Trans>
+            <Trans>Internal deadline</Trans>
+          </div>
+          <div className="w-[132px] px-3">
+            <Trans>Official deadline</Trans>
           </div>
           <div className="w-[160px] px-3">
             <Trans>Status</Trans>
           </div>
           <div className="w-[110px] px-3 text-right">
-            <Trans>Est. tax</Trans>
+            <Trans>Estimated tax</Trans>
           </div>
         </div>
       ) : null}
@@ -2256,17 +2281,23 @@ function FilingPlanYearSection({
             <Trans>current year</Trans>
           </span>
         ) : null}
-        <span className="text-xs text-text-tertiary">
-          <Trans>{group.openCount} open</Trans>
-          {group.extendedCount > 0 ? (
-            <>
-              <span aria-hidden className="mx-1">
-                ·
-              </span>
-              <Trans>{group.extendedCount} extended</Trans>
-            </>
-          ) : null}
-        </span>
+        {/* Open-count badge (2026-05-23 pass 2). Promoted from plain
+            tertiary text to a soft accent-tinted pill so the count
+            reads as a real signal — the design call had this as the
+            light-blue pill that anchors the year row. Hidden when
+            there's nothing open so the row stays clean for archived
+            years. Extended count, if any, follows as a quiet dot-
+            separated phrase. */}
+        {group.openCount > 0 ? (
+          <span className="inline-flex items-center rounded-full bg-state-accent-hover-alt px-2 py-0.5 text-[11px] font-medium text-text-accent">
+            <Plural value={group.openCount} one="# open filing" other="# open filings" />
+          </span>
+        ) : null}
+        {group.extendedCount > 0 ? (
+          <span className="text-xs text-text-tertiary">
+            <Trans>{group.extendedCount} extended</Trans>
+          </span>
+        ) : null}
       </div>
       {/* Filing plan row table: no inner border. The outer
           ClientWorkPlanPanel already carries `rounded-md border` —
@@ -2302,8 +2333,17 @@ function FilingPlanYearSection({
                     <TaxCodeLabel code={obligation.taxType} />
                   </span>
                 </TableCell>
-                <TableCell className="w-[132px]">
+                <TableCell className="w-[132px] tabular-nums">
                   {formatDatePretty(obligation.currentDueDate, { alwaysShowYear: true })}
+                </TableCell>
+                <TableCell className="w-[132px] tabular-nums text-text-secondary">
+                  {/* Official deadline = statutory due date. Falls back
+                      to currentDueDate when the obligation never had a
+                      separate filingDueDate set (legacy rows + simple
+                      single-date forms). */}
+                  {formatDatePretty(obligation.filingDueDate ?? obligation.currentDueDate, {
+                    alwaysShowYear: true,
+                  })}
                 </TableCell>
                 <TableCell className="w-[160px]">
                   {/* D-6b: status chip is now a real picker dropdown.
@@ -3068,6 +3108,59 @@ function ClientAssigneeAvatar({
       )}
     >
       {initialsFromName(name)}
+    </span>
+  )
+}
+
+// ClientOwnerHeaderPill (2026-05-23). Inline chip variant of the
+// assignee avatar — paired with the assignee's name so the H1 chip
+// cluster can answer "whose client?" without a separate Team tile in
+// the summary strip. Unassigned state uses a person silhouette + the
+// literal word; assigned state shows a tiny stable-hashed avatar +
+// the name. Tone-matched to the entity Badge variant=outline next to
+// it so the chip cluster reads as a single horizontal scan of
+// identity facts.
+function ClientOwnerHeaderPill({
+  name,
+  currentUserName,
+}: {
+  name: string | null
+  currentUserName: string | null
+}) {
+  const { t } = useLingui()
+  if (!name) {
+    return (
+      <span
+        aria-label={t`Owner: unassigned`}
+        title={t`Owner: unassigned`}
+        className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs text-text-secondary"
+      >
+        <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
+          <UserRoundIcon className="size-3" aria-hidden />
+        </span>
+        <Trans>Unassigned</Trans>
+      </span>
+    )
+  }
+  const isMine =
+    currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
+  const tint = ASSIGNEE_TINTS[hashStringToBucket(name, ASSIGNEE_TINTS.length)]
+  const title = isMine ? t`Assigned to you (${name})` : t`Owner: ${name}`
+  return (
+    <span
+      aria-label={title}
+      title={title}
+      className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs text-text-primary"
+    >
+      <span
+        className={cn(
+          'inline-flex size-4 items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-tight',
+          isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
+        )}
+      >
+        {initialsFromName(name)}
+      </span>
+      <span className="truncate">{name}</span>
     </span>
   )
 }

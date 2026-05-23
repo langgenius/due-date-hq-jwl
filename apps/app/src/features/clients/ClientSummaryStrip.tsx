@@ -1,20 +1,23 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { initialsFromName } from '@/lib/auth'
-import { orpc } from '@/lib/rpc'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 
 /**
  * ClientSummaryStrip — three-tile horizontal strip on the Client detail
  * page that answers "what should I do here?" in a single scan: Next due,
- * At risk, Team.
+ * At risk, Open Filing.
+ *
+ * 2026-05-23: Tile 3 swapped from Team → Open Filing. The owner (who is
+ * this client assigned to?) now lives as a pill in the H1 chip cluster,
+ * so the third tile slot can carry a count signal instead. Each tile
+ * also gains a quiet secondary line under the value — "17 days late"
+ * under Next due, the kind of obligation under At risk, etc.
  *
  * Visual rhythm mirrors `apps/app/src/features/dashboard/exposure-strip.tsx`:
  * Link-styled tiles, big sans-serif numeral over a small label, only
@@ -31,6 +34,8 @@ function TileShell({
   tone,
   value,
   label,
+  subline,
+  sublineTone = 'tertiary',
   onClick,
   to,
   ariaLabel,
@@ -38,6 +43,8 @@ function TileShell({
   tone: TileTone
   value: React.ReactNode
   label: React.ReactNode
+  subline?: React.ReactNode
+  sublineTone?: 'tertiary' | 'destructive'
   onClick?: (() => void) | undefined
   to?: string | undefined
   ariaLabel?: string | undefined
@@ -58,13 +65,35 @@ function TileShell({
   const baseClass =
     'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-regular bg-background-default px-4 py-3 transition-colors hover:border-divider-deep hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
+  // Inner content shared by all three variants. Renders label → value
+  // → optional subline so each tile reads top-down (eyebrow → number
+  // → context phrase). The subline is the new piece (2026-05-23) —
+  // carries the small explanatory phrase the design shows beneath the
+  // big number ("17 days late", "some context here") so the user
+  // doesn't need to hover/click to find the secondary detail.
+  const body = (
+    <>
+      <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+        {label}
+      </span>
+      <span className={valueClass}>{value}</span>
+      {subline ? (
+        <span
+          className={cn(
+            'text-xs leading-snug',
+            sublineTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
+          )}
+        >
+          {subline}
+        </span>
+      ) : null}
+    </>
+  )
+
   if (to) {
     return (
       <Link to={to} aria-label={ariaLabel} className={baseClass}>
-        <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-          {label}
-        </span>
-        <span className={valueClass}>{value}</span>
+        {body}
       </Link>
     )
   }
@@ -76,17 +105,13 @@ function TileShell({
         aria-label={ariaLabel}
         className={cn(baseClass, 'text-left')}
       >
-        <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
-          {label}
-        </span>
-        <span className={valueClass}>{value}</span>
+        {body}
       </button>
     )
   }
   return (
     <div className={baseClass} aria-label={ariaLabel}>
-      <span className={valueClass}>{value}</span>
-      <span className="text-sm text-text-secondary">{label}</span>
+      {body}
     </div>
   )
 }
@@ -138,11 +163,22 @@ export function ClientSummaryStrip({
     [obligations, todayTs],
   )
 
+  // Open filing count (2026-05-23). All non-terminal obligations on
+  // this client — the third tile slot's number. "Open filing" matches
+  // the language used in /clients table (Open count column) and the
+  // year-section badge in the Filing plan below.
+  const openCount = useMemo(
+    () => obligations.filter((o) => !TERMINAL_STATUSES.has(o.status)).length,
+    [obligations],
+  )
+
   let nextDueValue: React.ReactNode = t`Nothing open`
   let nextDueLabel: React.ReactNode = <Trans>Next due</Trans>
   let nextDueTone: TileTone = 'muted'
   let nextDueOnClick: (() => void) | undefined
   let nextDueAria: string | undefined
+  let nextDueSubline: React.ReactNode = null
+  let nextDueSublineTone: 'tertiary' | 'destructive' = 'tertiary'
 
   if (nextDue) {
     const dueTs = Date.parse(nextDue.currentDueDate)
@@ -152,64 +188,45 @@ export function ClientSummaryStrip({
     // earlier `${days}d` form (e.g. `-17d`) read as a math expression,
     // not a deadline, and was inconsistent with the rest of the app.
     const daysAbs = Math.abs(days)
-    const daysText = days < 0 ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
+    // Subline carries the lateness phrase. Late deadlines tint
+    // destructive so the tile reads as a real alert without making
+    // the form code itself red.
+    const sublineText =
+      days < 0 ? t`${daysAbs} days late` : days === 0 ? t`Due today` : t`Due in ${days} days`
     nextDueValue = (
-      <span className="flex items-baseline gap-2">
+      <span className="inline-flex items-baseline gap-2">
         {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
             <span>, not a <button>. The Next-due tile itself is a
             <button> (TileShell renders one when `onClick` is set), so
             without `asChild` we get button-in-button DOM nesting and
             a hydration warning. */}
         <TaxCodeLabel code={nextDue.taxType} asChild />
-        <span className="text-sm font-medium text-text-secondary">{daysText}</span>
       </span>
     )
     nextDueLabel = <Trans>Next due</Trans>
     nextDueTone = days <= 0 ? 'warning' : days <= 7 ? 'neutral' : 'neutral'
     nextDueOnClick = () => openObligationDrawer(nextDue.id)
     nextDueAria = t`Open next-due deadline`
+    nextDueSubline = sublineText
+    nextDueSublineTone = days < 0 ? 'destructive' : 'tertiary'
   }
 
-  // Team derived from open obligations' reviewerUserId set. The
-  // earlier audit removed a Team tile that just counted unique
-  // reviewers (a count of nameless IDs isn't useful); this version
-  // resolves IDs to names via `members.listAssignable` and shows
-  // up to 3 initialed avatars + an "+N" overflow. The query is
-  // cached app-wide (the obligations queue + CreateClientDialog hit
-  // the same endpoint), so the lookup is usually a cache read.
-  const reviewerIds = useMemo(() => {
-    const ids = new Set<string>()
-    for (const o of obligations) {
-      if (o.reviewerUserId && !TERMINAL_STATUSES.has(o.status)) {
-        ids.add(o.reviewerUserId)
-      }
-    }
-    return [...ids]
-  }, [obligations])
+  // At-risk subline — explains *why* the tile is non-zero in one
+  // phrase. Empty state shows nothing under "0" so the tile reads as
+  // calm. Non-zero pulls "Blocked or overdue" as the canonical
+  // shorthand for the isAtRisk() predicate above (which OR's
+  // status='blocked', a rejected efile, or past-due non-terminal).
+  const atRiskSubline =
+    atRiskCount > 0 ? (atRiskCount === 1 ? t`Blocked or overdue` : t`Blocked or overdue`) : null
 
-  const membersQuery = useQuery({
-    ...orpc.members.listAssignable.queryOptions({ input: undefined }),
-    enabled: reviewerIds.length > 0,
-  })
-
-  const reviewerNames = useMemo(() => {
-    if (reviewerIds.length === 0) return []
-    const lookup = new Map<string, string>()
-    for (const m of membersQuery.data ?? []) {
-      lookup.set(m.assigneeId, m.name)
-    }
-    return reviewerIds.map((id) => lookup.get(id) ?? '—').toSorted((a, b) => a.localeCompare(b))
-  }, [reviewerIds, membersQuery.data])
-
-  const teamTone: TileTone = reviewerNames.length === 0 ? 'muted' : 'neutral'
-  const teamValue =
-    reviewerNames.length === 0 ? (
-      <span className="text-base font-medium text-text-tertiary">
-        <Trans>Unassigned</Trans>
-      </span>
-    ) : (
-      <TeamAvatarStack names={reviewerNames} />
-    )
+  // Open-filing subline — count of forms in the filing plan that are
+  // still doing work. Singular vs plural phrasing.
+  const openFilingSubline =
+    openCount === 0
+      ? t`Nothing open right now`
+      : openCount === 1
+        ? t`1 form in motion`
+        : t`${openCount} forms in motion`
 
   return (
     <section
@@ -220,6 +237,8 @@ export function ClientSummaryStrip({
         tone={nextDueTone}
         value={nextDueValue}
         label={nextDueLabel}
+        subline={nextDueSubline}
+        sublineTone={nextDueSublineTone}
         onClick={nextDueOnClick}
         ariaLabel={nextDueAria}
       />
@@ -227,6 +246,8 @@ export function ClientSummaryStrip({
         tone={atRiskCount > 0 ? 'critical' : 'muted'}
         value={atRiskCount}
         label={<Trans>At risk</Trans>}
+        subline={atRiskSubline}
+        sublineTone={atRiskCount > 0 ? 'destructive' : 'tertiary'}
         onClick={
           atRiskCount > 0
             ? () => void navigate(`/obligations?client=${clientId}&status=blocked`)
@@ -235,69 +256,20 @@ export function ClientSummaryStrip({
         ariaLabel={t`View at-risk deadlines`}
       />
       <TileShell
-        tone={teamTone}
-        value={teamValue}
-        label={<Trans>Team</Trans>}
-        ariaLabel={
-          reviewerNames.length === 0
-            ? t`No one assigned`
-            : t`${reviewerNames.length} on this client`
-        }
+        tone={openCount > 0 ? 'neutral' : 'muted'}
+        value={openCount}
+        label={<Trans>Open filing</Trans>}
+        subline={openFilingSubline}
+        onClick={openCount > 0 ? () => void navigate(`/obligations?client=${clientId}`) : undefined}
+        ariaLabel={t`View open filings for this client`}
       />
     </section>
   )
 }
 
-/**
- * Up to 3 24px initial avatars + an "+N" pill for the overflow.
- * Uses the same `initialsFromName` helper as the rest of the app so
- * "Alex Reyes" reads as `AR` everywhere. Avatars get a stable hash
- * to a 6-bucket muted palette so two different members never look
- * identical even though they're both grey-on-grey.
- */
-function TeamAvatarStack({ names }: { names: readonly string[] }) {
-  const visible = names.slice(0, 3)
-  const overflow = names.length - visible.length
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className="inline-flex -space-x-1.5">
-        {visible.map((name) => (
-          <span
-            key={name}
-            title={name}
-            aria-label={name}
-            className={cn(
-              'inline-flex size-6 items-center justify-center rounded-full border border-background-default text-[10px] font-semibold uppercase tracking-tight',
-              TEAM_TINTS[hashTeamMember(name)],
-            )}
-          >
-            {initialsFromName(name)}
-          </span>
-        ))}
-      </span>
-      {overflow > 0 ? (
-        <span className="text-sm font-medium text-text-tertiary tabular-nums">+{overflow}</span>
-      ) : null}
-      {names.length === 1 ? (
-        <span className="truncate text-sm font-medium text-text-primary">{names[0]}</span>
-      ) : null}
-    </span>
-  )
-}
-
-const TEAM_TINTS = [
-  'bg-state-base-hover-alt text-text-secondary',
-  'bg-state-warning-hover text-text-primary',
-  'bg-state-success-hover text-text-primary',
-  'bg-state-destructive-hover text-text-primary',
-  'bg-state-accent-hover-alt text-text-accent',
-  'bg-background-section text-text-secondary',
-]
-
-function hashTeamMember(name: string): number {
-  let hash = 5381
-  for (let i = 0; i < name.length; i++) {
-    hash = (hash * 33) ^ name.charCodeAt(i)
-  }
-  return Math.abs(hash) % TEAM_TINTS.length
-}
+// `TeamAvatarStack` + the team-tint palette + the hashTeamMember
+// helper were dropped 2026-05-23 with the Team-tile retirement. The
+// owner identity now lives in the H1 chip cluster (see
+// ClientOwnerHeaderPill in ClientFactsWorkspace.tsx) and the third
+// summary tile slot carries Open Filing instead. Git history has the
+// stack component if we ever bring back a multi-reviewer surface.
