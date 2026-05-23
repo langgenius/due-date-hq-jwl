@@ -3792,6 +3792,19 @@ export function ObligationQueueDetailDrawer({
                   block was a feature stub crowding the drawer with chrome
                   for capability that isn't shipping yet. Restore when the
                   inbound-file routing actually goes live. */}
+            </div>
+            {/* TabsList lives OUTSIDE the sticky snapshot block per
+                critique #4 ("shouldn't the tab belong to the
+                following information, not the top part information").
+                Pulled out so the tabs visually group with the
+                TabsContent they control, not with the milestones /
+                dates above. Tradeoff: tabs scroll away with the body
+                rather than staying pinned. In practice the CPA
+                rarely switches tabs mid-scroll on the same
+                obligation, so the visual clarity wins. A subtle
+                border-t separates the tab row from the snapshot
+                above. */}
+            <div className="border-t border-divider-regular pt-3">
               <TabsList className="flex w-full flex-wrap justify-start">
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
@@ -5761,60 +5774,61 @@ function PathToFilingSummary({
                   they were direct flex children with no separation, so
                   the eye couldn't tell that the stage name (e.g.
                   "Filed") and the date + Overdue/Active/Expected
-                  pill below it were two different units. Critique
-                  flagged this: "you should make clear the status
-                  (Filed) is a thing, and the date+Overdue/completed
-                  is another thing. So bigger gap in between." Wrapping
-                  them in a child flex column with `mt-2` + internal
-                  `gap-0.5` separates the stage label from its
-                  status detail without bloating the timeline height
-                  more than necessary.
+                  pill below it were two different units. Critique #16
+                  flagged this; wrapping them in a child flex column
+                  with `mt-2` + internal `gap-0.5` separates the stage
+                  label from its status detail.
 
-                  Date + state lines render ONLY for Done / Active /
-                  Expected-Filed stages. Upcoming stages with no
-                  projection skip both lines entirely — the em-dash
-                  placeholders read as visual noise across 6 columns. */}
-              {state === 'done' || state === 'active' || isExpected ? (
-                <div className="mt-2 flex w-full flex-col items-center gap-0.5">
+                  2026-05-23 (critique #2: "no alignment to the other
+                  states"): the inner block now renders for EVERY
+                  column with consistent height — empty columns
+                  reserve space via &nbsp; placeholders so the
+                  timeline reads as a level baseline across all six
+                  stages instead of a ragged active-tall / upcoming-
+                  short pattern. */}
+              <div className="mt-2 flex w-full flex-col items-center gap-0.5">
+                <span
+                  className={cn(
+                    'text-center text-[10px] tabular-nums leading-tight',
+                    state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
+                  )}
+                >
+                  {state === 'done' || state === 'active' || isExpected
+                    ? stamp
+                      ? formatDate(stamp.slice(0, 10))
+                      : '—'
+                    : ' '}
+                </span>
+                {state === 'active' || isExpected ? (
                   <span
                     className={cn(
-                      'text-center text-[10px] tabular-nums leading-tight',
-                      state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
+                      'text-center text-[10px] font-medium uppercase tracking-wide leading-tight',
+                      overdueActive
+                        ? 'text-text-destructive'
+                        : state === 'active'
+                          ? 'text-text-accent'
+                          : 'text-text-tertiary',
                     )}
                   >
-                    {stamp ? formatDate(stamp.slice(0, 10)) : '—'}
+                    {overdueActive ? t`Overdue` : state === 'active' ? t`Active` : t`Expected`}
                   </span>
-                  {state === 'active' || isExpected ? (
-                    <span
-                      className={cn(
-                        'text-center text-[10px] font-medium uppercase tracking-wide leading-tight',
-                        overdueActive
-                          ? 'text-text-destructive'
-                          : state === 'active'
-                            ? 'text-text-accent'
-                            : 'text-text-tertiary',
-                      )}
-                    >
-                      {overdueActive ? t`Overdue` : state === 'active' ? t`Active` : t`Expected`}
-                    </span>
-                  ) : null}
-                  {/* Sub-status annotation — only on the ACTIVE stage,
+                ) : null}
+                {/* Sub-status annotation — only on the ACTIVE stage,
                       only when there's something meaningful to add
                       (e.g., "Awaiting acceptance" on Filed; "Partner
                       sign-off" later when review_level lands). Reads
                       existing schema fields (prepStage / reviewStage
                       / efileState). See subStatusForActiveStage()
                       above. */}
-                  {state === 'active' && activeSubStatus ? (
-                    <span
-                      className="text-center text-[10px] leading-tight text-text-secondary"
-                      title={activeSubStatus}
-                    >
-                      {activeSubStatus}
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
+                {state === 'active' && activeSubStatus ? (
+                  <span
+                    className="text-center text-[10px] leading-tight text-text-secondary"
+                    title={activeSubStatus}
+                  >
+                    {activeSubStatus}
+                  </span>
+                ) : null}
+              </div>
             </div>
           )
         })}
