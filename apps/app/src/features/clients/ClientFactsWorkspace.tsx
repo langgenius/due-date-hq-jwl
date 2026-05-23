@@ -1840,61 +1840,37 @@ function ClientWorkPlanPanel({
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
   return (
-    // Outer panel chrome bumped from `divider-subtle` (4% black,
-    // basically invisible) to `divider-regular` (8% black) so the
-    // panel actually reads as a panel, not as content floating on the
-    // page. Same treatment as `ClientActiveAlertsSection` directly
-    // above — keeps the workbench feeling like sections instead of
-    // "everything is the same pale wash."
-    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-      {/* Title row: title + count line left-clustered, NOT split with
-          `justify-between`. On wide screens content shouldn't sit at
-          the two edges of the row — that's how titles get visually
-          orphaned. The 3 "filter-looking" summary badges
-          (`{N} overdue`, `{N} need review`, `{N} payment-linked`)
-          that used to live on the right were dropped 2026-05-22 per
-          critique: they looked like interactive filter chips but
-          were inert badges, mixing the two visual vocabularies. The
-          page subtitle already shows overdue count in tone-coded
-          form; the row status badges below speak for review state.
-
-          2026-05-23: tinted with `bg-background-section` + semibold
-          title so the header reads as a real section header instead
-          of a pale label sitting on the same white background as the
-          rows. Pairs with the stronger outer border. */}
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b border-divider-subtle bg-background-section px-4 py-3">
-        <span className="text-sm font-semibold text-text-primary">
+    // 2026-05-23: dropped the outer panel frame. The Work tab now
+    // contains only this filing-plan view — wrapping it in a
+    // bordered card created chrome-on-chrome ("card inside the tab
+    // body, which is inside a section, which is inside a page").
+    // Headings + legend + rows now live flat against the tab
+    // background, with type hierarchy carrying the structure.
+    <div className="grid gap-3">
+      {/* Title + count line. Flat heading, no tinted band — the H2
+          itself does the section-anchoring job that the bordered
+          panel header used to do. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>Filing plan</Trans>
-        </span>
+        </h2>
         {/* Count subtitle uses the same word ("deadlines") as the
             sidebar / queue / Deadlines page so the CPA reads this as
             a year-grouped slice of the same primitive, not a
-            separate concept. Earlier this said "# filings" which
-            quietly invented a new noun. */}
+            separate concept. */}
         <span className="text-xs text-text-tertiary">
           <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
           <Trans>across</Trans>{' '}
           <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
         </span>
       </div>
-      {/* Column legend lives at the panel body level, above the year
-          sections, so it reads as the table's column header for the
-          whole filing plan — not just the first year. Earlier the
-          legend was rendered inside the first year's `<Table>` as a
-          real `<TableHeader>`; visually it landed UNDER the "2026"
-          year heading, which inverts the expected
-          legend-above-content reading order. Critique flagged this
-          directly ("header should be above the year?").
-
-          Widths mirror the per-row TableCells inside FilingPlanYearSection
-          (132 / 160 / 110 / 140 with Form column taking remaining
-          space). Inner `px-3` matches the TableCell primitive's `p-3`,
-          and the outer `px-4` matches the panel body wrapper. Close-enough
-          alignment with the table-fixed rows below; pixel-perfect
-          isn't required since this is an orientation cue, not a real
-          column header. */}
+      {/* Column legend sits above all year sections so it reads as
+          the table's column header for the whole filing plan — not
+          just the first year. Widths mirror the per-row TableCells
+          below (flex-1 / 132 / 160 / 110) with matching `px-3` inner
+          padding. */}
       {!isLoading && obligations.length > 0 ? (
-        <div className="flex items-center border-b border-divider-subtle px-4 py-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+        <div className="flex items-center border-b border-divider-regular py-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
           <div className="flex-1 px-3">
             <Trans>Form</Trans>
           </div>
@@ -1907,10 +1883,9 @@ function ClientWorkPlanPanel({
           <div className="w-[110px] px-3 text-right">
             <Trans>Est. tax</Trans>
           </div>
-          <div className="w-[140px] px-3" aria-hidden />
         </div>
       ) : null}
-      <div className="px-4 py-3">
+      <div>
         {isLoading ? (
           <div className="grid gap-2">
             <Skeleton className="h-12 w-full" />
@@ -2061,109 +2036,24 @@ function FilingPlanYearSection({
                 <TableCell className="w-[110px] text-right tabular-nums text-text-tertiary">
                   {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
                 </TableCell>
-                {/* D-6a: hover-revealed forward action. Same labels +
-                    target-status logic as the obligations queue, so a
-                    CPA who's used to "Mark filed" from the queue gets
-                    the identical affordance here. Hidden until row
-                    hover so the row reads clean by default. */}
-                <TableCell className="w-[140px] text-right">
-                  <FilingPlanRowQuickAction
-                    obligation={obligation}
-                    disabled={isStatusChangePending}
-                    onChangeStatus={onChangeStatus}
-                  />
-                </TableCell>
+                {/* 2026-05-23: dropped the per-row hover-revealed
+                    `FilingPlanRowQuickAction` (D-6a, "Start prep" /
+                    "Docs received" / "Mark filed" depending on
+                    status). It duplicated work the drawer's stage
+                    actions already do — clicking a row to open the
+                    drawer, then having the SAME "Start prep" button
+                    on the row AND in the drawer, was the source of
+                    "very confusing as there is no clarity" feedback.
+                    Single source of truth now: row click → drawer →
+                    stage action there. Status chip on the row stays
+                    interactive for quick status flips that don't
+                    need the full drawer context. */}
               </TableRow>
             )
           })}
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-/**
- * Per-row hover-revealed quick action on filing-plan rows. Matches
- * the obligations queue's forward-action vocabulary so the CPA gets
- * the same affordance regardless of which surface they're on.
- *
- * Hidden by default (opacity 0); fades in on row hover or when the
- * button itself receives focus (keyboard-only users can still get
- * to it via Tab). Always uses `event.stopPropagation()` so clicking
- * the button doesn't also trigger the row's in-page-drawer open.
- *
- * Renders nothing for terminal statuses (`done` / `paid` /
- * `completed` / `not_applicable`) — there's no forward target.
- */
-function FilingPlanRowQuickAction({
-  obligation,
-  disabled,
-  onChangeStatus,
-}: {
-  obligation: ObligationInstancePublic
-  disabled: boolean
-  onChangeStatus: (id: string, status: ObligationStatus) => void
-}) {
-  // Switch lives inline so Lingui's `t` macro statically extracts the
-  // label / tooltip strings (a helper taking `t` as a parameter would
-  // be skipped by the AST walker, leaving the strings untranslated).
-  const { t } = useLingui()
-  let forward: { label: string; tooltip: string; nextStatus: ObligationStatus } | null = null
-  switch (obligation.status) {
-    case 'pending':
-      forward = {
-        label: t`Start prep`,
-        tooltip: t`Move to In review — preparation work has begun.`,
-        nextStatus: 'review',
-      }
-      break
-    case 'waiting_on_client':
-      forward = {
-        label: t`Docs received`,
-        tooltip: t`Client docs are in — move to In review.`,
-        nextStatus: 'review',
-      }
-      break
-    case 'blocked':
-      forward = {
-        label: t`Mark unblocked`,
-        tooltip: t`External blocker resolved — move to In review.`,
-        nextStatus: 'review',
-      }
-      break
-    case 'in_progress':
-    case 'review':
-    case 'extended':
-      forward = {
-        label: t`Mark filed`,
-        tooltip: t`Return submitted to the tax authority.`,
-        nextStatus: 'done',
-      }
-      break
-    case 'done':
-    case 'paid':
-    case 'completed':
-    case 'not_applicable':
-    default:
-      forward = null
-  }
-  if (!forward) return null
-  const nextStatus = forward.nextStatus
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      disabled={disabled}
-      onClick={(event) => {
-        event.stopPropagation()
-        onChangeStatus(obligation.id, nextStatus)
-      }}
-      className="opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100"
-      title={forward.tooltip}
-    >
-      {forward.label}
-    </Button>
   )
 }
 

@@ -2085,10 +2085,6 @@ msgstr "Client detail"
 msgid "Client docs are in — move to In review so preparation can continue."
 msgstr "Client docs are in — move to In review so preparation can continue."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Client docs are in — move to In review."
-msgstr "Client docs are in — move to In review."
-
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "Client email draft copied"
@@ -3248,10 +3244,6 @@ msgstr "Do not use Client > Backup for this import; backups and IDATA/DBF/MDX fi
 msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Docs received"
-msgstr "Docs received"
-
 #: src/routes/obligations.tsx
 msgid "Document audit trail captured {receivedCount} of {checklistCount} items as received."
 msgstr "Document audit trail captured {receivedCount} of {checklistCount} items as received."
@@ -3861,7 +3853,6 @@ msgstr "Extension plan saved"
 msgid "Extension source"
 msgstr "Extension source"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "External blocker resolved — move to In review."
 msgstr "External blocker resolved — move to In review."
@@ -4983,7 +4974,6 @@ msgstr "Mark document received"
 msgid "Mark extended"
 msgstr "Mark extended"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark filed"
 msgstr "Mark filed"
@@ -5012,7 +5002,6 @@ msgstr "Mark reviewed"
 msgid "Mark selected extended"
 msgstr "Mark selected extended"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Mark unblocked"
 msgstr "Mark unblocked"
@@ -5243,10 +5232,6 @@ msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 #: src/routes/obligations.tsx
 msgid "Move this row to In review — preparation work has begun."
 msgstr "Move this row to In review — preparation work has begun."
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Move to In review — preparation work has begun."
-msgstr "Move to In review — preparation work has begun."
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7762,10 +7747,6 @@ msgstr "Return has been submitted to the tax authority — awaiting acceptance."
 msgid "Return home"
 msgstr "Return home"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Return submitted to the tax authority."
-msgstr "Return submitted to the tax authority."
-
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/migration.new.tsx
 msgid "Return to Today"
@@ -9040,10 +9021,6 @@ msgstr "SSO and custom coverage"
 #: src/routes/obligations.tsx
 msgid "Stale"
 msgstr "Stale"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Start prep"
-msgstr "Start prep"
 
 #: src/routes/obligations.tsx
 msgid "Start preparation"
