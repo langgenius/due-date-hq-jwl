@@ -87,6 +87,8 @@ export const router = os.router({
     updateStatus: obligationsHandlers.updateStatus,
     markFiledRejected: obligationsHandlers.markFiledRejected,
     updateBlockedBy: obligationsHandlers.updateBlockedBy,
+    updatePrepStage: obligationsHandlers.updatePrepStage,
+    updateReviewStage: obligationsHandlers.updateReviewStage,
     bulkUpdateStatus: obligationsHandlers.bulkUpdateStatus,
     decideExtension: obligationsHandlers.decideExtension,
     listByClient: obligationsHandlers.listByClient,

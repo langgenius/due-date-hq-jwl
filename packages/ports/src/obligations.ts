@@ -242,6 +242,15 @@ export interface ObligationsRepo {
     patch: { blockedBy: string | null; nextStatus: ObligationStatus },
   ): Promise<void>
   /**
+   * In Review sub-status mutations — set `prep_stage` /
+   * `review_stage` directly. The pipeline strip in the obligation
+   * drawer treats these as a slider: any value→any value is legal,
+   * forward or backward, no transition guards at the port layer.
+   * Service-layer caller adds firm scope + audit write.
+   */
+  setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void>
+  setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void>
+  /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row
    * that was `blocked_by` it AND in `blocked` state flips back to

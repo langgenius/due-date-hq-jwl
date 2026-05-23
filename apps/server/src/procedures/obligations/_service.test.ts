@@ -7,6 +7,8 @@ import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
   toObligationPublic,
+  updateObligationPrepStage,
+  updateObligationReviewStage,
   updateObligationStatus,
 } from './_service'
 
@@ -129,6 +131,16 @@ function buildScoped(firmId: string, rows: Row[]) {
         readiness: deriveObligationReadiness({ status: patch.nextStatus }),
         updatedAt: new Date(),
       })
+    },
+    async setPrepStage(id: string, prepStage: Row['prepStage']) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, prepStage, updatedAt: new Date() })
+    },
+    async setReviewStage(id: string, reviewStage: Row['reviewStage']) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, reviewStage, updatedAt: new Date() })
     },
     async unblockChildrenOf() {
       return []
@@ -905,5 +917,157 @@ describe('updateObligationStatus', () => {
     })
 
     expect(audits[0]).not.toHaveProperty('reason')
+  })
+})
+
+describe('updateObligationPrepStage', () => {
+  it('updates prepStage and writes one audit row with before/after', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ prepStage: 'ready_for_prep' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'in_prep',
+      reason: 'started drafting',
+    })
+
+    expect(result.obligation.prepStage).toBe('in_prep')
+    expect(result.auditId).toBe('audit-1')
+    expect(map.get(ROW_ID)?.prepStage).toBe('in_prep')
+
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.prep_stage.updated',
+      actorId: 'user_1',
+      entityType: 'obligation_instance',
+      entityId: ROW_ID,
+      before: { prepStage: 'ready_for_prep' },
+      after: { prepStage: 'in_prep' },
+      reason: 'started drafting',
+    })
+  })
+
+  it('permits backward transitions — slider model has no guards', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ prepStage: 'prepared' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'ready_for_prep',
+    })
+
+    expect(result.obligation.prepStage).toBe('ready_for_prep')
+    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
+    expect(audits[0]).toMatchObject({
+      before: { prepStage: 'prepared' },
+      after: { prepStage: 'ready_for_prep' },
+    })
+  })
+
+  it('is a no-op when before === after (no audit row)', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ prepStage: 'in_prep' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'in_prep',
+    })
+
+    expect(result.auditId).toBe('00000000-0000-0000-0000-000000000000')
+    expect(audits).toHaveLength(0)
+  })
+
+  it('throws NOT_FOUND when the obligation is not in this firm', async () => {
+    const { repo, audits } = buildScoped(FIRM, [])
+
+    await expect(
+      updateObligationPrepStage(repo, 'user_1', {
+        id: ROW_ID,
+        prepStage: 'in_prep',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' })
+
+    expect(audits).toHaveLength(0)
+  })
+
+  it('omits reason from audit when not provided', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ prepStage: 'ready_for_prep' })])
+
+    await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'prepared',
+    })
+
+    expect(audits[0]).not.toHaveProperty('reason')
+  })
+})
+
+describe('updateObligationReviewStage', () => {
+  it('updates reviewStage and writes one audit row with before/after', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ reviewStage: 'ready_for_review' })])
+
+    const result = await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+      reason: 'reviewer picked it up',
+    })
+
+    expect(result.obligation.reviewStage).toBe('in_review')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
+
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.review_stage.updated',
+      actorId: 'user_1',
+      entityType: 'obligation_instance',
+      entityId: ROW_ID,
+      before: { reviewStage: 'ready_for_review' },
+      after: { reviewStage: 'in_review' },
+      reason: 'reviewer picked it up',
+    })
+  })
+
+  it('permits the notes_open ↔ in_review round-trip', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ reviewStage: 'in_review' })])
+
+    await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'notes_open',
+    })
+    await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+    })
+
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
+    expect(audits).toHaveLength(2)
+    expect(audits[0]).toMatchObject({
+      before: { reviewStage: 'in_review' },
+      after: { reviewStage: 'notes_open' },
+    })
+    expect(audits[1]).toMatchObject({
+      before: { reviewStage: 'notes_open' },
+      after: { reviewStage: 'in_review' },
+    })
+  })
+
+  it('is a no-op when before === after', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ reviewStage: 'in_review' })])
+
+    const result = await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+    })
+
+    expect(result.auditId).toBe('00000000-0000-0000-0000-000000000000')
+    expect(audits).toHaveLength(0)
+  })
+
+  it('throws NOT_FOUND when the obligation is not in this firm', async () => {
+    const { repo } = buildScoped(FIRM, [])
+
+    await expect(
+      updateObligationReviewStage(repo, 'user_1', {
+        id: ROW_ID,
+        reviewStage: 'approved',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' })
   })
 })

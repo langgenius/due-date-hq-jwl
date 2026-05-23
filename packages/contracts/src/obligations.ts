@@ -205,6 +205,34 @@ export const ObligationUpdateBlockedByInputSchema = z.object({
 })
 export type ObligationUpdateBlockedByInput = z.infer<typeof ObligationUpdateBlockedByInputSchema>
 
+// In Review sub-status mutations — the prep ↔ review pipeline strip in
+// the obligation drawer becomes a real action surface. Each click moves
+// the row to that step (forward or backward — slider model, no
+// transition guards). See
+// docs/Design/in-review-substatus-mutations-2026-05-23.md for the full
+// brief. Server writes a `prep_stage_changed` / `review_stage_changed`
+// audit row mirroring `obligation.status.updated` shape.
+//
+// `notes_open` is the only `reviewStage` value that isn't a step in
+// the strip — it overlays the `in_review` step via the same mutation
+// (caller flips between `in_review` ↔ `notes_open` from the "Leave
+// note" / "Notes addressed" affordances).
+export const ObligationUpdatePrepStageInputSchema = z.object({
+  id: EntityIdSchema,
+  prepStage: ObligationPrepStageSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdatePrepStageInput = z.infer<typeof ObligationUpdatePrepStageInputSchema>
+
+export const ObligationUpdateReviewStageInputSchema = z.object({
+  id: EntityIdSchema,
+  reviewStage: ObligationReviewStageSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdateReviewStageInput = z.infer<
+  typeof ObligationUpdateReviewStageInputSchema
+>
+
 export const ObligationExtensionDecisionInputSchema = z.object({
   id: EntityIdSchema,
   memo: z.string().trim().max(1000).optional(),
@@ -338,6 +366,20 @@ export const obligationsContract = oc.router({
     .output(ObligationStatusUpdateOutputSchema),
   updateBlockedBy: oc
     .input(ObligationUpdateBlockedByInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  /**
+   * In Review sub-status mutations. Each click on a pipeline step
+   * fires one of these. Server validates the row exists in the
+   * current firm, writes the column, appends a
+   * `prep_stage_changed` / `review_stage_changed` audit row, and
+   * returns the updated row + audit id. No transition guards — the
+   * slider model permits any value→any value, forward or backward.
+   */
+  updatePrepStage: oc
+    .input(ObligationUpdatePrepStageInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  updateReviewStage: oc
+    .input(ObligationUpdateReviewStageInputSchema)
     .output(ObligationStatusUpdateOutputSchema),
   bulkUpdateStatus: oc
     .input(ObligationBulkStatusUpdateInputSchema)

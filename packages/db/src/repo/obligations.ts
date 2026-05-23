@@ -562,6 +562,24 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // In Review sub-status mutations. Set the prep_stage or
+    // review_stage column directly — no transition guards at the repo
+    // level. The service layer reads `before`, writes the audit row,
+    // and re-reads `after`.
+    async setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ prepStage })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    async setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ reviewStage })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {

@@ -19,6 +19,8 @@ import {
   markObligationFiledRejected,
   toObligationPublic,
   updateObligationBlockedBy,
+  updateObligationPrepStage,
+  updateObligationReviewStage,
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
@@ -382,6 +384,25 @@ const updateBlockedBy = os.obligations.updateBlockedBy.handler(async ({ input, c
   return result
 })
 
+// In Review sub-status mutations — fire when the CPA clicks a step in
+// the obligation drawer's prep ↔ review pipeline strip. Reuses
+// `OBLIGATION_STATUS_WRITE_ROLES`: anyone who can flip status can
+// also flip the sub-stage (same workflow authority). Sub-status
+// changes don't affect the dashboard summary tiles or deadline tip,
+// so we skip the dashboard / AI refresh enqueues — the row's status
+// is unchanged.
+const updatePrepStage = os.obligations.updatePrepStage.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationPrepStage(scoped, userId, input)
+})
+
+const updateReviewStage = os.obligations.updateReviewStage.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationReviewStage(scoped, userId, input)
+})
+
 const bulkUpdateStatus = os.obligations.bulkUpdateStatus.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -657,6 +678,8 @@ export const obligationsHandlers = {
   updateStatus,
   markFiledRejected,
   updateBlockedBy,
+  updatePrepStage,
+  updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
   getDeadlineTip,

@@ -282,6 +282,8 @@ export type {
   ObligationTaxYearProfileUpdateInput,
   ObligationTaxYearProfileUpdateOutput,
   ObligationUpdateBlockedByInput,
+  ObligationUpdatePrepStageInput,
+  ObligationUpdateReviewStageInput,
   ObligationsContract,
   PenaltyBreakdownItem,
 } from './obligations'
@@ -308,6 +310,8 @@ export {
   ObligationTaxYearProfileUpdateInputSchema,
   ObligationTaxYearProfileUpdateOutputSchema,
   ObligationUpdateBlockedByInputSchema,
+  ObligationUpdatePrepStageInputSchema,
+  ObligationUpdateReviewStageInputSchema,
   obligationsContract,
   PenaltyBreakdownItemSchema,
 } from './obligations'

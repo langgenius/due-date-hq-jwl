@@ -9,6 +9,8 @@ import type {
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
   ObligationUpdateBlockedByInput,
+  ObligationUpdatePrepStageInput,
+  ObligationUpdateReviewStageInput,
 } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -508,6 +510,130 @@ export async function updateObligationBlockedBy(
     action: nextParentId !== null ? 'obligation.blocked_by.set' : 'obligation.blocked_by.cleared',
     before: { status: before.status, blockedBy: before.blockedByObligationInstanceId ?? null },
     after: { status: after.status, blockedBy: nextParentId },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * In Review sub-status mutations — `prep_stage` and `review_stage`.
+ *
+ * Each click on a pipeline step in the obligation drawer fires one of
+ * these. Slider model: any value→any value is legal, forward or
+ * backward; the strip permits jumping non-adjacent steps too (e.g.
+ * from `ready_for_prep` direct to `prepared` if the CPA wants to
+ * skip ahead).
+ *
+ * Same NOT_FOUND / no-op / re-read pattern as `updateObligationStatus`.
+ * Audit row mirrors the `status_changed` shape with the relevant
+ * column in `before` / `after`. Action strings (`obligation.prep_stage.
+ * updated` / `obligation.review_stage.updated`) follow the existing
+ * `obligation.*` namespace used by `obligation.status.updated`,
+ * `obligation.efile.rejected`, etc.
+ *
+ * See docs/Design/in-review-substatus-mutations-2026-05-23.md.
+ */
+export async function updateObligationPrepStage(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdatePrepStageInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Obligation ${input.id} not found in current firm.`,
+    })
+  }
+
+  if (before.prepStage === input.prepStage) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+
+  await scoped.obligations.setPrepStage(input.id, input.prepStage)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated obligation could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { prepStage: string }
+    after: { prepStage: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.prep_stage.updated',
+    before: { prepStage: before.prepStage },
+    after: { prepStage: after.prepStage },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+export async function updateObligationReviewStage(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdateReviewStageInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Obligation ${input.id} not found in current firm.`,
+    })
+  }
+
+  if (before.reviewStage === input.reviewStage) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+
+  await scoped.obligations.setReviewStage(input.id, input.reviewStage)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated obligation could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { reviewStage: string }
+    after: { reviewStage: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.review_stage.updated',
+    before: { reviewStage: before.reviewStage },
+    after: { reviewStage: after.reviewStage },
   }
   if (input.reason !== undefined) auditPayload.reason = input.reason
 

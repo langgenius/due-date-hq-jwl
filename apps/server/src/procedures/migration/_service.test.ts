@@ -210,6 +210,8 @@ function buildScopedRepo(firmId: string) {
     async updateStatusMany() {},
     async setEfileRejected() {},
     async setBlockedBy() {},
+    async setPrepStage() {},
+    async setReviewStage() {},
     async unblockChildrenOf() {
       return []
     },
