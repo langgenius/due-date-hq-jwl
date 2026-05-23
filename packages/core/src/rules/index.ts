@@ -2599,12 +2599,24 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'AR',
     id: 'ar.income_tax_deadlines',
-    title: 'Arkansas DFA Income Tax Deadlines and Extensions',
-    url: 'https://www.dfa.arkansas.gov/office/taxes/income-tax-administration/individual-income-tax/deadlines-extensions/',
-    sourceType: 'due_dates',
-    acquisitionMethod: 'manual_review',
-    domains: ['individual_estimated_tax', 'fiduciary_income_return'],
-    entityApplicability: ['individual', 'sole_prop', 'trust'],
+    title: 'Arkansas DFA Individual Estimated Tax Vouchers',
+    url: 'https://www.dfa.arkansas.gov/wp-content/uploads/2025_Final_AR1000ES.pdf',
+    sourceType: 'instructions',
+    acquisitionMethod: 'pdf_watch',
+    domains: ['individual_estimated_tax'],
+    entityApplicability: ['individual', 'sole_prop'],
+    priority: 'critical',
+    healthStatus: 'healthy',
+  },
+  {
+    jurisdiction: 'AR',
+    id: 'ar.fiduciary_income_tax',
+    title: 'Arkansas DFA Fiduciary Income Tax Instructions',
+    url: 'https://www.dfa.arkansas.gov/wp-content/uploads/FiduciaryTaxInstructions_2025.pdf',
+    sourceType: 'instructions',
+    acquisitionMethod: 'pdf_watch',
+    domains: ['fiduciary_income_return'],
+    entityApplicability: ['trust'],
     priority: 'critical',
     healthStatus: 'healthy',
   },
@@ -2612,9 +2624,9 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'AR',
     id: 'ar.corporation_income_tax',
     title: 'Arkansas DFA Corporation Income Tax Instructions',
-    url: 'https://www.dfa.arkansas.gov/wp-content/uploads/CorporationIncomeTaxInstructions_2024.pdf',
+    url: 'https://www.dfa.arkansas.gov/wp-content/uploads/CorporationIncomeTaxInstructions_2025.pdf',
     sourceType: 'instructions',
-    acquisitionMethod: 'manual_review',
+    acquisitionMethod: 'pdf_watch',
     domains: ['business_income_return', 'business_estimated_tax'],
     entityApplicability: ['c_corp'],
     priority: 'critical',
@@ -2647,9 +2659,9 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'AR',
     id: 'ar.sales_use_tax',
-    title: 'Arkansas DFA Sales and Use Tax FAQs',
-    url: 'https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/sales-and-use-tax-faqs/',
-    sourceType: 'instructions',
+    title: 'Arkansas DFA Sales and Use Tax Due Dates',
+    url: 'https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/due-dates/',
+    sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
     domains: ['sales_use_tax'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
@@ -2659,10 +2671,10 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'AR',
     id: 'ar.withholding_tax',
-    title: 'Arkansas DFA Withholding Pass-Through Tax',
-    url: 'https://www.dfa.arkansas.gov/office/taxes/income-tax-administration/corporation-income-tax/withholding-pass-through-tax/',
+    title: 'Arkansas DFA Withholding Tax Instructions for Employers',
+    url: 'https://www.dfa.arkansas.gov/wp-content/uploads/withholdInstructions_2026.pdf',
     sourceType: 'instructions',
-    acquisitionMethod: 'manual_review',
+    acquisitionMethod: 'pdf_watch',
     domains: ['withholding'],
     entityApplicability: ['sole_prop', 'llc', 'partnership', 's_corp', 'c_corp'],
     priority: 'high',
@@ -5153,23 +5165,23 @@ const SOURCE_EXCERPTS: Record<string, string> = {
   'ny.article_9a':
     'Article 9-A franchise tax on general business corporations; calendar-year due date is April 15.',
   'ny.nyc_yonkers_income_tax':
-    'New York Tax Department says NYC or Yonkers resident income tax is reported on the New York State personal income tax return when the taxpayer is required to file a New York State income tax return.',
+    'New York Tax Department says NYC or Yonkers resident income tax is reported on the New York State personal income tax return when the taxpayer is required to file a New York State income tax return. New York personal income tax filing guidance lists April 15, 2026 as the filing due date for calendar-year 2025 personal income tax returns.',
   'in.local_county_income_tax':
-    'Indiana DOR states that all counties have a Local Income Tax rate and that county tax is based on residence or employment county facts.',
+    'Indiana DOR states that all counties have a Local Income Tax rate and that county tax is based on residence or employment county facts. Indiana individual income tax filing guidance lists April 15, 2026 as the due date for calendar-year 2025 individual income tax returns.',
   'md.local_income_tax':
-    'Comptroller of Maryland guidance says local income tax is collected on the state income tax form as a convenience for local governments.',
+    'Comptroller of Maryland guidance says local income tax is collected on the state income tax form as a convenience for local governments. Maryland individual income tax filing guidance lists April 15, 2026 as the calendar-year 2025 individual income tax return due date.',
   'pa.local_eit_lit_psd':
-    'Pennsylvania DCED states that PSD codes identify municipalities for local Earned Income Tax and help employers and tax collectors remit to the correct taxing jurisdictions.',
+    'Pennsylvania DCED states that PSD codes identify municipalities for local Earned Income Tax and help employers and tax collectors remit to the correct taxing jurisdictions. The taxpayer Annual Local Earned Income Tax Return is an annual local earned income tax filing. For the 2025 calendar tax year, the concrete annual local earned income tax return due date is April 15, 2026, pending local collector confirmation.',
   'pa.local_eit_act32_employer_withholding':
-    'Pennsylvania DCED Act 32 guidance says employers with worksites in Pennsylvania must withhold local earned income tax using employee residence and workplace facts.',
+    'Pennsylvania DCED Act 32 guidance says employers with worksites in Pennsylvania must withhold local earned income tax using employee residence and workplace facts. Act 32 employer withholding guidance requires quarterly local earned income tax returns within 30 days after the end of each calendar quarter.',
   'pa.local_services_tax':
-    'Pennsylvania DCED Local Services Tax guidance states that employers with worksites in taxing jurisdictions must withhold and remit LST when the tax is listed in the Official Tax Register.',
+    'Pennsylvania DCED Local Services Tax guidance states that employers with worksites in taxing jurisdictions must withhold and remit LST when the tax is listed in the Official Tax Register. DCED local services tax guidance requires employer remittance on the same quarterly cadence used for local withholding, within 30 days after the end of each calendar quarter.',
   'oh.municipal_income_tax_finder':
     'Ohio The Finder provides municipal income tax lookup by address and notes JEDD/JEDZ income tax may require a separate lookup.',
   'oh.municipal_income_tax_annual_return':
-    'Ohio Revised Code section 718.05 governs annual municipal income tax return filing and extension treatment for municipal corporations.',
+    'Ohio Revised Code section 718.05 governs annual municipal income tax return filing and extension treatment for municipal corporations. Section 718.05 ties an individual annual municipal income tax return to the state individual income tax return due date; for calendar-year 2025, use April 15, 2026 pending municipality review.',
   'oh.municipal_net_profit_filing':
-    'Ohio Revised Code section 718.051 covers municipal filings by business or profession, including net profit returns, estimated returns, and extensions.',
+    'Ohio Revised Code section 718.051 covers municipal filings by business or profession, including net profit returns, estimated returns, and extensions. Municipal net profit annual returns for a calendar-year taxpayer are due on the fifteenth day of the fourth month after the end of the taxable year; for tax year 2025, that date is April 15, 2026.',
   'tx.franchise_overview':
     'Franchise tax reports are due on May 15 each year. If May 15 falls on a Saturday, Sunday or legal holiday, the next business day becomes the due date.',
   'tx.franchise_home':
@@ -5511,6 +5523,51 @@ const STATE_CANDIDATE_SOURCE_EXCERPTS: Partial<
     'Arizona unemployment tax and wage reports are due quarterly; if a due date falls on a weekend or state holiday, the due date moves to the next business day.',
     'Reports for wages paid January through March are due April 30, April through June are due July 31, July through September are due October 31, and October through December are due January 31.',
     'Arizona employers must file a quarterly unemployment tax and wage report for each quarter whether or not wages were paid.',
+  ].join('\n'),
+  'AR:individual_income_return': [
+    'Arkansas individual income tax returns are due April 15; if April 15 is a weekend or holiday, the return is due the next business day.',
+    'Arkansas honors accepted federal extensions and sets the typical extension due date one month after the federal extended due date, usually November 15 for annual individual filers.',
+    'Interest and applicable failure-to-pay penalties run from the original due date on tax due returns.',
+  ].join('\n'),
+  'AR:individual_estimated_tax': [
+    'Arkansas AR1000ES is required when the taxpayer can reasonably expect estimated tax to be more than $1,000.',
+    'For tax year 2025, AR1000ES Voucher 1 is due April 15, 2025; Voucher 2 is due June 15, 2025; Voucher 3 is due September 15, 2025; Voucher 4 is due January 15, 2026.',
+    'If an AR1000ES voucher due date falls on a Saturday, Sunday, or legal holiday, it is timely if postmarked on the next business day.',
+  ].join('\n'),
+  'AR:fiduciary_income_return': [
+    'Arkansas Form AR1002F and AR1002NR fiduciary returns are due April 15 for calendar-year filers.',
+    'Fiscal-year fiduciary filers file on or before the 15th day of the fourth month after the close of the fiscal year.',
+    'A federal Form 7004 fiduciary extension gives the Arkansas fiduciary return the same extension plus one month; without a federal extension, Form AR1055-FE can request a 210-day Arkansas extension by April 15.',
+    'Interest is charged on taxes not paid by the due date even when a filing extension is granted.',
+  ].join('\n'),
+  'AR:business_income_return': [
+    'Arkansas corporate income tax returns are due the 15th day of the fourth month following the end of the tax year.',
+    'Arkansas Form AR1100CT extensions extend the time to file, but tax must be paid in full by the original return due date.',
+  ].join('\n'),
+  'AR:business_estimated_tax': [
+    'Arkansas corporations expecting to owe income tax over $1,000 must make a declaration and timely pay estimated tax in equal installments.',
+    'Non-farm corporate estimated tax installments are due on the 15th day of the 4th, 6th, 9th, and 12th months of the tax year.',
+  ].join('\n'),
+  'AR:pass_through_entity_return': [
+    'Arkansas elective pass-through entity tax applies to eligible partnerships, Sub-S corporations, and LLCs and is not available to C corporations, trusts, sole proprietorships, or LLCs taxed as C corporations.',
+    'The Arkansas PET due date is April 15 for calendar-year filers.',
+  ].join('\n'),
+  'AR:franchise_or_entity_tax': [
+    'Arkansas Secretary of State franchise tax and annual reports apply to corporations, LLCs, banks, and insurance companies registered in Arkansas.',
+    'Arkansas franchise tax filing is due on or before May 1 to avoid penalties.',
+  ].join('\n'),
+  'AR:sales_use_tax': [
+    'Arkansas DFA 2026 Sales and Use Tax due dates list monthly reports for the previous month on January 20, February 20, March 20, April 20, May 20, June 22, July 20, August 20, September 21, October 20, November 20, and December 21.',
+    'The 2026 due-date page also lists first and second sales and use tax prepayment dates by month.',
+  ].join('\n'),
+  'AR:withholding': [
+    'Arkansas withholding instructions require employers to furnish Forms W-2 and 1099 by January 31.',
+    'Form AR3MAR, Employer Annual Reconciliation of Income Tax Withheld, is due February 28 with any tax due for the prior calendar year.',
+    'If a withholding due date falls on a Saturday, Sunday, or legal holiday, the return is timely if postmarked on the next business day.',
+  ].join('\n'),
+  'AR:ui_wage_report': [
+    'Arkansas employers report total wages paid to all employees in the quarter unless specifically excluded by law.',
+    'Arkansas unemployment tax payments are remitted with the quarterly report and are delinquent if not postmarked or received by the last day of the month following the close of the calendar quarter.',
   ].join('\n'),
   'DC:individual_income_return': [
     'For DC 2026 Tax Year 2025 individual income tax forms, D-40 Individual Income Tax Return is due on or before April 15, 2026.',

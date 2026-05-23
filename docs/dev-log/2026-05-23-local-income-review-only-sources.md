@@ -19,6 +19,11 @@ author: 'Codex'
 - Generated only review-only local candidate rules from those sources. They use
   `source_defined_calendar`, `applicability_review`, and local source evidence, so they cannot
   become reminder-ready without concrete practice review.
+- Added a local concrete-draft backfill script that calls the real AI Gateway path and writes
+  successful global `ai_output(kind='rule_concrete_draft')` rows into local D1. It does not return
+  synthetic drafts from `rules.listConcreteDrafts`.
+- Backfilled the selected local candidates in local D1. The latest successful rows for all eight
+  local context refs use `model='google/gemini-2.5-flash-lite'` and `guard_result='ok'`.
 - Accepted local concrete rules also stay reminder-blocked when required local facts are missing;
   preview marks `local_fact_requirements_missing` and lists the missing structured facts.
 - Kept UI scope unchanged: no new Local Coverage surface, Client local-facts panel, or local-only
@@ -33,6 +38,8 @@ license regimes.
 ## Validation
 
 - `pnpm check`
+- `AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-2.5-flash-lite pnpm exec tsx scripts/generate-local-concrete-drafts.ts`
+- `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts src/procedures/rules/review-audit.test.ts src/procedures/rules/_obligation-generation.test.ts src/procedures/rules/onboarding-activation.test.ts`
 - `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
 - `pnpm --filter @duedatehq/contracts test -- contracts.test.ts`
 - `pnpm --filter @duedatehq/server test -- src/procedures/rules/_obligation-generation.test.ts src/procedures/rules/onboarding-activation.test.ts src/procedures/rules/review-audit.test.ts`

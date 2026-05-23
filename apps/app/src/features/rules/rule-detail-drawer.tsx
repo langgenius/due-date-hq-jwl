@@ -296,9 +296,11 @@ function CandidateReviewForm({
   function scheduleAcceptCompletion() {
     clearAcceptTooltipTimeout()
     acceptTooltipTimeoutRef.current = window.setTimeout(() => {
-      setAcceptTooltipState(null)
-      invalidateAcceptedRuleOutputs()
       onActionComplete?.()
+      window.requestAnimationFrame(() => {
+        setAcceptTooltipState(null)
+        invalidateAcceptedRuleOutputs()
+      })
       acceptTooltipTimeoutRef.current = null
     }, ACCEPT_RULE_TOOLTIP_MS)
   }
@@ -808,7 +810,7 @@ function EvidenceCard({
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => openEvidenceSource(event, source.url)}
         className={cn(sharedClassName, interactiveClassName)}
       >
         {inner}
@@ -817,6 +819,13 @@ function EvidenceCard({
   }
 
   return <div className={sharedClassName}>{inner}</div>
+}
+
+function openEvidenceSource(event: React.MouseEvent<HTMLAnchorElement>, url: string) {
+  event.preventDefault()
+  event.stopPropagation()
+  const opened = window.open(url, '_blank', 'noopener,noreferrer')
+  if (!opened) window.location.assign(url)
 }
 
 function evidenceKey(evidence: RuleEvidence): string {

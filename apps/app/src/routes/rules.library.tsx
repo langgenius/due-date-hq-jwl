@@ -562,10 +562,13 @@ export function RulesLibraryRoute() {
   const [entityFilter, setEntityFilter] = useQueryState('entity', parseAsString)
   const isSearching = (search ?? '').trim().length > 0
   // Batch-review state. `selectedRuleIds` tracks which needs-review
-  // rules the user has checked off. `batchReviewIndex` is the
-  // currently-shown card in the review modal; `null` means the modal
-  // is closed.
+  // rules the user has checked off. `batchReviewRuleIds` snapshots the
+  // queue when the modal opens so progress stays anchored to the
+  // original session even as accepted/rejected rules leave the live
+  // pending set. `batchReviewIndex` is the currently-shown card in the
+  // review modal; `null` means the modal is closed.
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
+  const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
   const [batchReviewIndex, setBatchReviewIndex] = useState<number | null>(null)
   // New-rule modal. `null` = closed. Setting to an object opens the
   // modal with the given seed (used to pre-fill jurisdiction + entity
@@ -586,6 +589,7 @@ export function RulesLibraryRoute() {
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
 
   const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data])
+  const rulesById = useMemo(() => new Map(rules.map((rule) => [rule.id, rule])), [rules])
   const coverageRows = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
   // Apply entity filter — when a By-Entity chip is active, restrict
   // the rules feeding the table to just those that apply to that
@@ -798,10 +802,12 @@ export function RulesLibraryRoute() {
 
   const openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
+    setBatchReviewRuleIds(selectedReviewRules.map((rule) => rule.id))
     setBatchReviewIndex(0)
-  }, [selectedReviewRules.length])
+  }, [selectedReviewRules])
 
   const closeBatchReview = useCallback(() => {
+    setBatchReviewRuleIds(null)
     setBatchReviewIndex(null)
   }, [])
 
@@ -812,10 +818,10 @@ export function RulesLibraryRoute() {
     setBatchReviewIndex((current) => {
       if (current === null) return null
       const next = current + 1
-      if (next >= selectedReviewRules.length) return null
+      if (next >= (batchReviewRuleIds?.length ?? 0)) return null
       return next
     })
-  }, [selectedReviewRules.length])
+  }, [batchReviewRuleIds])
 
   const goBackBatchReview = useCallback(() => {
     setBatchReviewIndex((current) => {
@@ -853,6 +859,7 @@ export function RulesLibraryRoute() {
   const startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
     setSelectedRuleIds(new Set(allReviewableRuleIds))
+    setBatchReviewRuleIds(allReviewableRuleIds)
     setBatchReviewIndex(0)
   }, [allReviewableRuleIds])
 
@@ -865,6 +872,11 @@ export function RulesLibraryRoute() {
   // row (which left a ~48px dead zone between the title and the next
   // content block).
   const reviewCount = allReviewableRuleIds.length
+  const currentBatchReviewRuleId =
+    batchReviewIndex === null ? null : (batchReviewRuleIds?.[batchReviewIndex] ?? null)
+  const currentBatchReviewRule = currentBatchReviewRuleId
+    ? (rulesById.get(currentBatchReviewRuleId) ?? null)
+    : null
   const headerActions = (
     <>
       {reviewCount > 0 ? (
@@ -1010,9 +1022,10 @@ export function RulesLibraryRoute() {
       {/* Batch-review modal — opens on `Review N rules` click and
           walks the user through each selected rule one card at a
           time, dating-app style. */}
-      {batchReviewIndex !== null && selectedReviewRules[batchReviewIndex] ? (
+      {batchReviewIndex !== null && currentBatchReviewRule ? (
         <BatchReviewModal
-          rules={selectedReviewRules}
+          rule={currentBatchReviewRule}
+          totalCount={batchReviewRuleIds?.length ?? 0}
           currentIndex={batchReviewIndex}
           concreteDraftByTarget={concreteDraftByTarget}
           onPrev={goBackBatchReview}
@@ -2139,7 +2152,8 @@ function BulkReviewBar({
 // ---------------------------------------------------------------------------
 
 function BatchReviewModal({
-  rules,
+  rule,
+  totalCount,
   currentIndex,
   concreteDraftByTarget,
   onPrev,
@@ -2147,7 +2161,8 @@ function BatchReviewModal({
   onActionComplete,
   onClose,
 }: {
-  rules: ObligationRule[]
+  rule: ObligationRule
+  totalCount: number
   currentIndex: number
   concreteDraftByTarget: ReadonlyMap<string, RuleConcreteDraftCacheEntry>
   onPrev: () => void
@@ -2156,9 +2171,9 @@ function BatchReviewModal({
   onClose: () => void
 }) {
   const { t } = useLingui()
-  const current = rules[currentIndex]
+  const current = rule
   const bodyRef = useRef<HTMLDivElement | null>(null)
-  const total = rules.length
+  const total = totalCount
   const isFirst = currentIndex === 0
   const isLast = currentIndex === total - 1
   const concreteDraftTarget = current ? concreteDraftTargetForRule(current) : null
@@ -2219,7 +2234,6 @@ function BatchReviewModal({
       window.removeEventListener('keydown', handler)
     }
   }, [isFirst, onPrev, onSkip])
-  if (!current) return null
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent

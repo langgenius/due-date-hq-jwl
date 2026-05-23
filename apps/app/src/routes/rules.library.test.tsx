@@ -4,7 +4,12 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ObligationRule, RuleConcreteDraft, RuleCoverageRow } from '@duedatehq/contracts'
+import type {
+  ObligationRule,
+  RuleConcreteDraft,
+  RuleCoverageRow,
+  RuleSource,
+} from '@duedatehq/contracts'
 
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
@@ -206,6 +211,27 @@ function concreteDraft(overrides: Partial<RuleConcreteDraft> = {}): RuleConcrete
   }
 }
 
+function ruleSource(overrides: Partial<RuleSource> = {}): RuleSource {
+  return {
+    id: 'az.income_tax',
+    jurisdiction: 'AZ',
+    title: 'Arizona DOR Income Tax',
+    url: 'https://azdor.gov/forms/individual-income-tax-highlights',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'manual_review',
+    cadence: 'pre_season',
+    priority: 'critical',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    domains: ['individual_income_return'],
+    entityApplicability: ['individual'],
+    authorityRole: 'basis',
+    notificationChannels: ['practice_rule_review'],
+    lastReviewedOn: '2026-05-22',
+    ...overrides,
+  }
+}
+
 async function render(children: ReactNode) {
   container = document.createElement('div')
   document.body.append(container)
@@ -236,6 +262,16 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
     return waitForText(text, attempts - 1)
   }
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
+}
+
+async function clickButton(name: string) {
+  const button = Array.from(document.querySelectorAll('button')).find(
+    (candidate) => candidate.textContent?.trim() === name,
+  )
+  expect(button).toBeDefined()
+  await act(async () => {
+    button?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
 }
 
 const coverageRows: RuleCoverageRow[] = []
@@ -461,6 +497,29 @@ describe('RulesLibraryRoute', () => {
     expect(rpcMocks.listConcreteDraftsQueryFn).toHaveBeenCalled()
   })
 
+  it('opens official sources from evidence cards with an explicit click handler', async () => {
+    const rule = obligationRule({})
+    const source = ruleSource()
+    const open = vi.spyOn(window, 'open').mockReturnValue(window)
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+    rpcMocks.listSourcesQueryFn.mockResolvedValue([source])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText(source.title)
+
+    const link = document.querySelector<HTMLAnchorElement>(
+      `a[aria-label="Open official source: ${source.title}"]`,
+    )
+    expect(link).toBeDefined()
+
+    await act(async () => {
+      link?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    })
+
+    expect(open).toHaveBeenCalledWith(source.url, '_blank', 'noopener,noreferrer')
+  })
+
   it('does not show seed review placeholders as practice review metadata', async () => {
     const rule = obligationRule({
       status: 'pending_review',
@@ -522,5 +581,48 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).toContain('2026-05-23 10:08:09')
     expect(document.body.textContent).not.toContain('Next review')
     expect(document.body.textContent).not.toContain('Next source review')
+  })
+
+  it('keeps batch review progress tied to the opened queue after a rule leaves pending review', async () => {
+    const firstRule = obligationRule({
+      id: 'az.individual_income_return.candidate.2026',
+      title: 'Arizona individual income tax return',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    const secondRule = obligationRule({
+      id: 'ca.individual_income_return.candidate.2026',
+      title: 'California individual income tax return',
+      jurisdiction: 'CA',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    const rejectedFirstRule = { ...firstRule, status: 'rejected' as const }
+    rpcMocks.listRulesQueryFn
+      .mockResolvedValueOnce([firstRule, secondRule])
+      .mockResolvedValue([rejectedFirstRule, secondRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Start review (2)')
+
+    await clickButton('Start review (2)')
+    await waitForText('1 / 2')
+    await waitForText(firstRule.title)
+
+    await clickButton('Reject')
+    await waitForText('2 / 2')
+    await waitForText(secondRule.title)
+
+    expect(document.body.textContent).not.toContain('2 / 1')
   })
 })

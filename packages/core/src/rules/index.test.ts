@@ -633,6 +633,46 @@ describe('@duedatehq/core/rules', () => {
     ])
   })
 
+  it('uses focused Arkansas source-backed excerpts for concrete draft candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    const expectedCandidateSources = [
+      ['ar.individual_income_return.candidate.2026', 'ar.income_tax', 'April 15'],
+      ['ar.individual_estimated_tax.candidate.2026', 'ar.income_tax_deadlines', 'AR1000ES'],
+      ['ar.fiduciary_income_return.candidate.2026', 'ar.fiduciary_income_tax', 'AR1002F'],
+      ['ar.business_income_return.candidate.2026', 'ar.corporation_income_tax', 'AR1100CT'],
+      ['ar.business_estimated_tax.candidate.2026', 'ar.corporation_income_tax', 'over $1,000'],
+      ['ar.pass_through_entity_return.candidate.2026', 'ar.pass_through_entity_tax', 'PET'],
+      ['ar.franchise_or_entity_tax.candidate.2026', 'ar.franchise_tax', 'May 1'],
+      ['ar.sales_use_tax.candidate.2026', 'ar.sales_use_tax', '2026 Sales and Use Tax'],
+      ['ar.withholding.candidate.2026', 'ar.withholding_tax', 'AR3MAR'],
+      ['ar.ui_wage_report.candidate.2026', 'ar.ui_wage_report', 'quarterly report'],
+    ] as const
+
+    expect(sourcesById.get('ar.income_tax_deadlines')).toMatchObject({
+      url: 'https://www.dfa.arkansas.gov/wp-content/uploads/2025_Final_AR1000ES.pdf',
+      domains: ['individual_estimated_tax'],
+      acquisitionMethod: 'pdf_watch',
+    })
+    expect(sourcesById.get('ar.fiduciary_income_tax')).toMatchObject({
+      url: 'https://www.dfa.arkansas.gov/wp-content/uploads/FiduciaryTaxInstructions_2025.pdf',
+      domains: ['fiduciary_income_return'],
+      acquisitionMethod: 'pdf_watch',
+    })
+    expect(sourcesById.get('ar.sales_use_tax')).toMatchObject({
+      url: 'https://www.dfa.arkansas.gov/office/taxes/excise-tax-administration/sales-use-tax/due-dates/',
+      sourceType: 'due_dates',
+    })
+
+    for (const [ruleId, sourceId, excerptMarker] of expectedCandidateSources) {
+      const rule = findRuleById(ruleId)
+      expect(rule?.sourceIds).toEqual([sourceId])
+      expect(rule?.evidence[0]?.sourceExcerpt).toContain(excerptMarker)
+      expect(rule?.evidence[0]?.sourceExcerpt).not.toMatch(
+        /official source registered|templates require practice owner or manager acceptance/i,
+      )
+    }
+  })
+
   it('uses source-backed excerpts for DC candidate rules whose index pages are sparse', () => {
     const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
     const filingDeadlinesSource = sourcesById.get('dc.tax_filing_deadlines')
