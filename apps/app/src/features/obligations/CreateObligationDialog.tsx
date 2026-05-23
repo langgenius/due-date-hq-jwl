@@ -273,10 +273,7 @@ export function CreateObligationDialog({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         toast.success(t`Deadline added`, {
-          // The toast headline matches the CPA's workflow voice
-          // ("I added a deadline"); the detail line uses the system
-          // word so it's clear what got created in the data model.
-          description: t`${result.obligations.length} obligation created.`,
+          description: t`${result.obligations.length} deadline created.`,
         })
         if (internalNotes.trim().length > 0) {
           // Notes capture is intentionally local until the
@@ -284,7 +281,7 @@ export function CreateObligationDialog({
           // that expectation so the user knows the textarea
           // content didn't silently drop.
           toast.info(t`Internal notes drafted`, {
-            description: t`Open the obligation drawer to save your notes; the create endpoint doesn't accept notes yet.`,
+            description: t`Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet.`,
           })
         }
         form.reset({ ...defaultFormValues, clientId: defaultClientId ?? '' })
@@ -292,7 +289,7 @@ export function CreateObligationDialog({
         if (obligation) onCreated?.(obligation.id)
       },
       onError: (error) => {
-        toast.error(t`Couldn't add obligation`, {
+        toast.error(t`Couldn't add deadline`, {
           description: rpcErrorMessage(error) ?? t`Check the fields and try again.`,
         })
       },
@@ -346,13 +343,12 @@ export function CreateObligationDialog({
         <DialogContent className="w-[36rem] max-w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>
-              <Trans>Add obligation</Trans>
+              <Trans>Add deadline</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                You're adding a deadline; the form below captures it as an obligation row the queue
-                tracks. Use this for K-1 dependencies and other rows the rule library doesn't
-                generate automatically.
+                Capture a deadline the queue should track. Use this for K-1 dependencies and other
+                rows the rule library doesn't generate automatically.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -479,7 +475,7 @@ export function CreateObligationDialog({
               <div className="grid gap-4 md:grid-cols-2">
                 <Field>
                   <FieldLabel htmlFor="obligation-type">
-                    <Trans>Obligation type</Trans>
+                    <Trans>Deadline type</Trans>
                   </FieldLabel>
                   <Select
                     value={obligationType}
@@ -578,7 +574,7 @@ export function CreateObligationDialog({
                 <Trans>Cancel</Trans>
               </Button>
               <Button type="submit" disabled={createMutation.isPending || clientId.length === 0}>
-                {createMutation.isPending ? t`Adding…` : t`Add obligation`}
+                {createMutation.isPending ? t`Adding…` : t`Add deadline`}
               </Button>
             </DialogFooter>
           </form>

@@ -541,7 +541,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           },
           {
             href: '/obligations',
-            label: t`Obligations`,
+            label: t`Deadlines`,
             icon: CalendarClockIcon,
             end: false,
             ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),
@@ -591,7 +591,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
         {
           href: '/obligations',
-          label: t`Obligations`,
+          label: t`Deadlines`,
           icon: CalendarClockIcon,
           end: false,
           ...(obligationsBadge !== undefined ? { badge: obligationsBadge } : {}),

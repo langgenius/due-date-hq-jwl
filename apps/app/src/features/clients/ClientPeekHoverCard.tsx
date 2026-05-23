@@ -154,10 +154,10 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
         <span className="text-xs text-text-secondary">
           {entityLabels[client.entityType]} ·{' '}
           {openCount === 0
-            ? t`No open obligations`
+            ? t`No open deadlines`
             : openCount === 1
-              ? t`1 open obligation`
-              : t`${openCount} open obligations`}
+              ? t`1 open deadline`
+              : t`${openCount} open deadlines`}
         </span>
       </div>
 
@@ -207,7 +207,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
           size="sm"
           render={<Link to={`/obligations?client=${client.id}`} />}
         >
-          <Trans>All obligations</Trans>
+          <Trans>All deadlines</Trans>
         </Button>
       </div>
     </div>
@@ -219,7 +219,7 @@ function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
   if (!nextDue) {
     return (
       <p className="text-xs text-text-tertiary">
-        <Trans>No open obligations right now.</Trans>
+        <Trans>No open deadlines right now.</Trans>
       </p>
     )
   }

@@ -739,7 +739,7 @@ export function ClientFactsWorkspace({
               to={`/obligations?client=${row.original.id}`}
               onClick={(event) => event.stopPropagation()}
               className="block text-right tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
-              aria-label={t`View ${count} open obligations for this client`}
+              aria-label={t`View ${count} open deadlines for this client`}
             >
               {count}
             </Link>
@@ -1580,7 +1580,7 @@ export function ClientDetailWorkspace({
               <TabsContent value="discover" className="flex flex-col gap-4 pt-4">
                 <DetailSection
                   title={t`Suggested forms`}
-                  summary={t`Forms the rule library can add without a new obligation`}
+                  summary={t`Forms the rule library can add without a new deadline`}
                   defaultOpen
                 >
                   <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
@@ -1829,7 +1829,7 @@ function ClientWorkPlanPanel({
         ) : obligations.length === 0 ? (
           <EmptyState
             icon={ClipboardListIcon}
-            title={<Trans>No obligations yet</Trans>}
+            title={<Trans>No deadlines yet</Trans>}
             description={
               <Trans>Run migration or generate rules before this client has due-date work.</Trans>
             }
@@ -2679,7 +2679,7 @@ function ClientFactChecklist({
       <FactCheckRow
         isComplete={Boolean(client.assigneeName)}
         label={<Trans>Owner</Trans>}
-        detail={<Trans>Keeps obligation follow-up accountable.</Trans>}
+        detail={<Trans>Keeps deadline follow-up accountable.</Trans>}
       />
     </div>
   )
@@ -2973,7 +2973,7 @@ function SuggestedFormsCatalogPanel({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         toast.success(t`Deadline added`, {
-          description: t`${result.obligations.length} obligation created from the rule catalog.`,
+          description: t`${result.obligations.length} deadline created from the rule catalog.`,
         })
         setPendingRuleId(null)
       },

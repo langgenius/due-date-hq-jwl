@@ -149,7 +149,7 @@ export function ClientSummaryStrip({
     nextDueLabel = <Trans>Next due</Trans>
     nextDueTone = days <= 0 ? 'warning' : days <= 7 ? 'neutral' : 'neutral'
     nextDueOnClick = () => openObligationDrawer(nextDue.id)
-    nextDueAria = t`Open next-due obligation`
+    nextDueAria = t`Open next-due deadline`
   }
 
   // Two tiles (Next due / At risk). The earlier 3-tile shape had a
@@ -176,7 +176,7 @@ export function ClientSummaryStrip({
             ? () => void navigate(`/obligations?client=${clientId}&status=blocked`)
             : undefined
         }
-        ariaLabel={t`View at-risk obligations`}
+        ariaLabel={t`View at-risk deadlines`}
       />
     </section>
   )

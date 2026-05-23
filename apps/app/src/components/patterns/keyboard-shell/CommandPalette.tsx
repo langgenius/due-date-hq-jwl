@@ -77,8 +77,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'obligations',
-        label: t`Obligations`,
-        description: t`Open Obligations.`,
+        label: t`Deadlines`,
+        description: t`Open Deadlines.`,
         group: 'navigate',
         icon: CalendarClockIcon,
         onSelect: () => navigate('/obligations'),

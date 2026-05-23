@@ -193,7 +193,7 @@ function ActionRow({
           type="button"
           id={detailId}
           onClick={onOpenObligation}
-          aria-label={t`Review ${row.clientName} in obligation drawer`}
+          aria-label={t`Review ${row.clientName} in deadline drawer`}
           // Panel sits flush against the row above — top corners
           // squared, bottom rounded. Same bg as the row when
           // expanded so the two read as a single block. Hover state
@@ -347,7 +347,7 @@ function DashboardActionsList({
             </>
           ) : canRunMigration ? (
             <>
-              <Trans>No obligations yet. Import clients to get started.</Trans>{' '}
+              <Trans>No deadlines yet. Import clients to get started.</Trans>{' '}
               <Button
                 variant="link"
                 size="sm"
@@ -411,7 +411,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
         }}
         className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
       >
-        <Trans>All obligations</Trans>
+        <Trans>All deadlines</Trans>
         <ArrowUpRightIcon className="size-3.5" aria-hidden />
       </Link>
     </div>

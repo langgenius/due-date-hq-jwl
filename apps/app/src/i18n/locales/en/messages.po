@@ -195,6 +195,16 @@ msgstr "{0} clients imported"
 msgid "{0} clients, {1} obligations created"
 msgstr "{0} clients, {1} obligations created"
 
+#. placeholder {0}: result.obligations.length
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{0} deadline created from the rule catalog."
+msgstr "{0} deadline created from the rule catalog."
+
+#. placeholder {0}: result.obligations.length
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "{0} deadline created."
+msgstr "{0} deadline created."
+
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} extended"
@@ -230,16 +240,6 @@ msgstr "{0} items recorded"
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{0} need review"
 msgstr "{0} need review"
-
-#. placeholder {0}: result.obligations.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0} obligation created from the rule catalog."
-msgstr "{0} obligation created from the rule catalog."
-
-#. placeholder {0}: result.obligations.length
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "{0} obligation created."
-msgstr "{0} obligation created."
 
 #. placeholder {0}: result.summary.createdCount
 #: src/features/rules/generation-preview-tab.tsx
@@ -473,8 +473,8 @@ msgstr "{offsetDays} days before"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
-msgid "{openCount} open obligations"
-msgstr "{openCount} open obligations"
+msgid "{openCount} open deadlines"
+msgstr "{openCount} open deadlines"
 
 #: src/routes/obligations.tsx
 msgid "{outstanding} of {checklistCount} document items are still missing."
@@ -641,8 +641,8 @@ msgstr "1 item linked. The original panel has the full editor."
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
-msgid "1 open obligation"
-msgstr "1 open obligation"
+msgid "1 open deadline"
+msgstr "1 open deadline"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -982,10 +982,6 @@ msgstr "Add item"
 msgid "Add item manually"
 msgstr "Add item manually"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Add obligation"
-msgstr "Add obligation"
-
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Add practice"
 msgstr "Add practice"
@@ -1175,6 +1171,11 @@ msgstr "All clear. We're watching official federal and state sources ({count, pl
 msgid "All clients"
 msgstr "All clients"
 
+#: src/features/clients/ClientPeekHoverCard.tsx
+#: src/features/dashboard/actions-list.tsx
+msgid "All deadlines"
+msgstr "All deadlines"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "All entity types"
 msgstr "All entity types"
@@ -1186,11 +1187,6 @@ msgstr "All ignored"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "All impact"
 msgstr "All impact"
-
-#: src/features/clients/ClientPeekHoverCard.tsx
-#: src/features/dashboard/actions-list.tsx
-msgid "All obligations"
-msgstr "All obligations"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "All required facts present"
@@ -1586,8 +1582,8 @@ msgid "Back to clients"
 msgstr "Back to clients"
 
 #: src/features/calendar/calendar-page.tsx
-msgid "Back to Obligations"
-msgstr "Back to Obligations"
+msgid "Back to Deadlines"
+msgstr "Back to Deadlines"
 
 #: src/routes/account.security.tsx
 msgid "Backup codes copied"
@@ -1818,6 +1814,10 @@ msgstr "Canceled"
 #: src/features/workload/workload-page.tsx
 msgid "Capacity pressure"
 msgstr "Capacity pressure"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Capture a deadline the queue should track. Use this for K-1 dependencies and other rows the rule library doesn't generate automatically."
+msgstr "Capture a deadline the queue should track. Use this for K-1 dependencies and other rows the rule library doesn't generate automatically."
 
 #: src/routes/billing.tsx
 msgid "Card numbers and invoice payment details never enter the app database."
@@ -2433,16 +2433,13 @@ msgid "Couldn't accept selected rules"
 msgstr "Couldn't accept selected rules"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Couldn't add deadline"
 msgstr "Couldn't add deadline"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't add document item"
 msgstr "Couldn't add document item"
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Couldn't add obligation"
-msgstr "Couldn't add obligation"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't apply Pulse"
@@ -3077,6 +3074,10 @@ msgstr "Deadline Tip"
 msgid "Deadline tip refresh started"
 msgstr "Deadline tip refresh started"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Deadline type"
+msgstr "Deadline type"
+
 #: src/routes/practice.tsx
 msgid "Deadline urgency"
 msgstr "Deadline urgency"
@@ -3085,7 +3086,10 @@ msgstr "Deadline urgency"
 msgid "deadlines"
 msgstr "deadlines"
 
+#: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
 msgid "Deadlines"
 msgstr "Deadlines"
 
@@ -3776,8 +3780,8 @@ msgid "Exporting…"
 msgstr "Exporting…"
 
 #: src/routes/obligations.tsx
-msgid "Exports all obligations for one client."
-msgstr "Exports all obligations for one client."
+msgid "Exports all deadlines for one client."
+msgstr "Exports all deadlines for one client."
 
 #: src/routes/obligations.tsx
 msgid "Exports obligations due within the selected date window."
@@ -4119,8 +4123,8 @@ msgid "Forms catalog"
 msgstr "Forms catalog"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Forms the rule library can add without a new obligation"
-msgstr "Forms the rule library can add without a new obligation"
+msgid "Forms the rule library can add without a new deadline"
+msgstr "Forms the rule library can add without a new deadline"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -4622,8 +4626,8 @@ msgid "Keeps"
 msgstr "Keeps"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Keeps obligation follow-up accountable."
-msgstr "Keeps obligation follow-up accountable."
+msgid "Keeps deadline follow-up accountable."
+msgstr "Keeps deadline follow-up accountable."
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "Keyboard shortcuts"
@@ -5510,6 +5514,14 @@ msgstr "No closed source-year obligations matched this rollover preview."
 msgid "No commands found."
 msgstr "No commands found."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No deadlines yet"
+msgstr "No deadlines yet"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "No deadlines yet. Import clients to get started."
+msgstr "No deadlines yet. Import clients to get started."
+
 #: src/routes/obligations.tsx
 msgid "No document checklist was attached to this filing."
 msgstr "No document checklist was attached to this filing."
@@ -5595,22 +5607,19 @@ msgstr "No notifications yet."
 msgid "No obligations match these filters."
 msgstr "No obligations match these filters."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No obligations yet"
-msgstr "No obligations yet"
-
 #: src/routes/obligations.tsx
 msgid "No obligations yet."
 msgstr "No obligations yet."
 
-#: src/features/dashboard/actions-list.tsx
-msgid "No obligations yet. Import clients to get started."
-msgstr "No obligations yet. Import clients to get started."
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "No open deadlines"
+msgstr "No open deadlines"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
-msgid "No open obligations"
-msgstr "No open obligations"
+msgid "No open deadlines right now."
+msgstr "No open deadlines right now."
 
 #: src/routes/practice.tsx
 msgid "No open obligations available for preview."
@@ -5619,11 +5628,6 @@ msgstr "No open obligations available for preview."
 #: src/features/workload/workload-page.tsx
 msgid "No open obligations match the workload window."
 msgstr "No open obligations match the workload window."
-
-#: src/features/clients/ClientDetailDrawer.tsx
-#: src/features/clients/ClientPeekHoverCard.tsx
-msgid "No open obligations right now."
-msgstr "No open obligations right now."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No open review task."
@@ -5947,19 +5951,12 @@ msgstr "Obligation Preview"
 msgid "Obligation status updates and client imports will appear here when they write audit rows."
 msgstr "Obligation status updates and client imports will appear here when they write audit rows."
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Obligation type"
-msgstr "Obligation type"
-
 #: src/routes/obligations.tsx
 msgid "Obligation workflow detail panel."
 msgstr "Obligation workflow detail panel."
 
-#: src/components/patterns/app-shell-nav.tsx
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/rules/generation-preview-tab.tsx
-#: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Obligations"
 msgstr "Obligations"
@@ -6179,6 +6176,10 @@ msgstr "Open Client Manager, run Quick Search with filters set to All, then choo
 msgid "Open Contacts, then use the cloud / export-import icon."
 msgstr "Open Contacts, then use the cloud / export-import icon."
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Open Deadlines."
+msgstr "Open Deadlines."
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Open first created obligation"
 msgstr "Open first created obligation"
@@ -6205,8 +6206,8 @@ msgid "Open member actions"
 msgstr "Open member actions"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "Open next-due obligation"
-msgstr "Open next-due obligation"
+msgid "Open next-due deadline"
+msgstr "Open next-due deadline"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/members/members-page.tsx
@@ -6214,10 +6215,6 @@ msgstr "Open next-due obligation"
 #: src/routes/billing.tsx
 msgid "Open Obligations"
 msgstr "Open Obligations"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Open Obligations."
-msgstr "Open Obligations."
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open official source"
@@ -6256,13 +6253,13 @@ msgstr "Open the Apple Calendar link"
 msgid "Open the client to review facts before deciding whether to follow up."
 msgstr "Open the client to review facts before deciding whether to follow up."
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
+msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Open the obligation drawer to save your notes; the create endpoint doesn't accept notes yet."
-msgstr "Open the obligation drawer to save your notes; the create endpoint doesn't accept notes yet."
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the upstream obligation that's blocking this row."
@@ -7805,8 +7802,8 @@ msgstr "review — needs CPA confirmation"
 
 #. placeholder {0}: row.clientName
 #: src/features/dashboard/actions-list.tsx
-msgid "Review {0} in obligation drawer"
-msgstr "Review {0} in obligation drawer"
+msgid "Review {0} in deadline drawer"
+msgstr "Review {0} in deadline drawer"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Review and confirm column mapping"
@@ -10088,28 +10085,28 @@ msgid "View {0}"
 msgstr "View {0}"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "View {count} open obligations for this client"
-msgstr "View {count} open obligations for this client"
+msgid "View {count} open deadlines for this client"
+msgstr "View {count} open deadlines for this client"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "View all"
 msgstr "View all"
 
+#: src/features/clients/ClientDetailDrawer.tsx
+msgid "View all deadlines"
+msgstr "View all deadlines"
+
 #: src/components/patterns/pulse-notifications-bell.tsx
 msgid "View all in Inbox"
 msgstr "View all in Inbox"
-
-#: src/features/clients/ClientDetailDrawer.tsx
-msgid "View all obligations"
-msgstr "View all obligations"
 
 #: src/features/opportunities/client-opportunities-card.tsx
 msgid "View all opportunities"
 msgstr "View all opportunities"
 
 #: src/features/clients/ClientSummaryStrip.tsx
-msgid "View at-risk obligations"
-msgstr "View at-risk obligations"
+msgid "View at-risk deadlines"
+msgstr "View at-risk deadlines"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "View audit detail"
@@ -10367,10 +10364,6 @@ msgstr "You need to sign in to continue."
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create"
 msgstr "You're about to create"
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "You're adding a deadline; the form below captures it as an obligation row the queue tracks. Use this for K-1 dependencies and other rows the rule library doesn't generate automatically."
-msgstr "You're adding a deadline; the form below captures it as an obligation row the queue tracks. Use this for K-1 dependencies and other rows the rule library doesn't generate automatically."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "You're caught up. Next deadline appears here when one's within a week."

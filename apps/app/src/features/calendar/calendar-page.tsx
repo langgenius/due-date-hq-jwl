@@ -144,7 +144,7 @@ export function CalendarPage() {
         actions={
           <Button variant="outline" size="sm" render={<Link to="/obligations" />}>
             <ArrowLeftIcon data-icon="inline-start" />
-            <Trans>Back to Obligations</Trans>
+            <Trans>Back to Deadlines</Trans>
           </Button>
         }
       />

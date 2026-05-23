@@ -2022,7 +2022,7 @@ export function ObligationQueueRoute() {
       <PageHeader
         title={
           <ConceptLabel concept="obligation">
-            <Trans>Obligations</Trans>
+            <Trans>Deadlines</Trans>
           </ConceptLabel>
         }
         actions={
@@ -2714,7 +2714,7 @@ export function ObligationQueueRoute() {
                   selected={exportScope === 'client'}
                   disabled={clientOptions.length === 0}
                   title={<Trans>Specific client</Trans>}
-                  description={<Trans>Exports all obligations for one client.</Trans>}
+                  description={<Trans>Exports all deadlines for one client.</Trans>}
                   onSelect={() => setExportScope('client')}
                 />
                 {exportScope === 'client' ? (
