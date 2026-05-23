@@ -6488,7 +6488,18 @@ function ActiveStageDetailCard({
   //   C — Merge: drop sub-status text, panel becomes the only
   //              context surface, full button stack stays.
   const [waitingVariant, setWaitingVariant] = useState<'A' | 'B' | 'C'>('A')
-  const isWaitingDocs = stageKey === 'waiting_on_client' && row.prepStage === 'waiting_on_client'
+  // The picker is visible on every Waiting row so it's easy to find
+  // during design review (2026-05-23: widened from the original
+  // prep_stage-gated condition because the user couldn't locate it
+  // on rows where prep_stage was null / non-docs). The variant
+  // *effects* (sub-status suppression, task list overrides) only
+  // apply when prep_stage === 'waiting_on_client' — that's the case
+  // with the actual docs-from-client overlap. On other Waiting
+  // sub-stages (third-party / bookkeeping / null) the picker is
+  // visible but flipping it doesn't change much, and the label
+  // below the chip says so.
+  const isWaitingStage = stageKey === 'waiting_on_client'
+  const isWaitingDocsCase = isWaitingStage && row.prepStage === 'waiting_on_client'
   // Sub-status descriptor — read inline (NOT from
   // `subStatusForActiveStage(row, t)` because that helper takes `t`
   // as a parameter, which the Lingui macro doesn't transform → label
@@ -7167,8 +7178,8 @@ function ActiveStageDetailCard({
           Waiting card body so Yuqi can flip A/B/C and scan the
           difference without re-mounting the drawer. Removed once a
           winner is picked. */}
-      {isWaitingDocs ? (
-        <div className="mt-3 flex items-center gap-1.5">
+      {isWaitingStage ? (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
             <Trans>IA preview</Trans>
           </span>
@@ -7209,10 +7220,18 @@ function ActiveStageDetailCard({
               )
             })}
           </div>
+          {!isWaitingDocsCase ? (
+            <span className="text-[10px] italic text-text-tertiary">
+              <Trans>
+                Variants only differ when prep_stage = waiting_on_client. Open Bright Studio
+                S-Corp's 1120S to see them.
+              </Trans>
+            </span>
+          ) : null}
         </div>
       ) : null}
       {stageKey === 'waiting_on_client' ? (
-        <div className={isWaitingDocs && waitingVariant === 'C' ? 'mt-2' : 'mt-3'}>
+        <div className={isWaitingDocsCase && waitingVariant === 'C' ? 'mt-2' : 'mt-3'}>
           <WaitingOutstandingDocs
             items={readinessChecklist}
             onOpenReadiness={() => onChangeTab('readiness')}

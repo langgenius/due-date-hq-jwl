@@ -10116,6 +10116,10 @@ msgstr "UTC 时间"
 msgid "Variables use double braces, for example client_name, tax_type, due_date, offset_days, obligation_url, or unsubscribe_url."
 msgstr "变量使用双花括号，例如 client_name、tax_type、due_date、offset_days、obligation_url 或 unsubscribe_url。"
 
+#: src/routes/obligations.tsx
+msgid "Variants only differ when prep_stage = waiting_on_client. Open Bright Studio S-Corp's 1120S to see them."
+msgstr "仅当 prep_stage = waiting_on_client 时各方案才有差异。打开 Bright Studio S-Corp 的 1120S 行查看。"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account-security-two-factor-setup.tsx
 #: src/routes/two-factor.tsx
