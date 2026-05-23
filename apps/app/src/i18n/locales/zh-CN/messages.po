@@ -4983,6 +4983,10 @@ msgstr "标记准备工作完成"
 msgid "Mark read"
 msgstr "标记已读"
 
+#: src/routes/obligations.tsx
+msgid "Mark received"
+msgstr "标记已收到"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Mark reviewed"
 msgstr "标记为已审核"

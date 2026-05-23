@@ -4983,6 +4983,10 @@ msgstr "Mark preparation complete"
 msgid "Mark read"
 msgstr "Mark read"
 
+#: src/routes/obligations.tsx
+msgid "Mark received"
+msgstr "Mark received"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Mark reviewed"
 msgstr "Mark reviewed"

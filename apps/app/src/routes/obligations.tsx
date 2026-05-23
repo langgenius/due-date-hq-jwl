@@ -41,6 +41,7 @@ import {
   EyeIcon,
   FileArchiveIcon,
   FileSearchIcon,
+  InfoIcon,
   LinkIcon,
   RefreshCwIcon,
   SendIcon,
@@ -80,7 +81,7 @@ import {
   type ClientReadinessResponsePublic,
   type ReadinessDocumentChecklistItemPublic,
 } from '@duedatehq/contracts'
-import { Badge, BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
+import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
@@ -5226,16 +5227,17 @@ function ReadinessOverview({
     }
     return t`No document list generated yet. Generate or add items below.`
   })()
-  // Terminal rows: the headline is a quiet closure label, no big
-  // checkmark — the colored status pill in the header already carries
-  // the "Filed" badge in green. Non-terminal rows keep the binary
-  // ready / not-ready treatment.
+  // 2026-05-23: tightened spacing per critique. Outer `py-2` dropped
+  // (parent grid already supplies vertical rhythm), icon shrunk
+  // size-6 → size-5, gap-3 → gap-2, removed the icon's mt-1 nudge.
+  // Headline is the only thing carrying section weight here; the
+  // overview shouldn't take a third of the drawer's first screen.
   return (
-    <div className="flex items-start gap-3 py-2">
+    <div className="flex items-start gap-2">
       <span
         aria-hidden
         className={cn(
-          'mt-1 grid size-6 shrink-0 place-items-center rounded-full',
+          'grid size-5 shrink-0 place-items-center rounded-full',
           isTerminal
             ? 'bg-state-success-hover'
             : isReady
@@ -5245,17 +5247,17 @@ function ReadinessOverview({
       >
         {isTerminal || isReady ? (
           <CheckCircle2Icon
-            className={cn('size-3.5', isTerminal ? 'text-text-success' : 'text-text-inverted')}
+            className={cn('size-3', isTerminal ? 'text-text-success' : 'text-text-inverted')}
             aria-hidden
           />
         ) : (
-          <ClipboardListIcon className="size-3.5 text-text-secondary" aria-hidden />
+          <ClipboardListIcon className="size-3 text-text-secondary" aria-hidden />
         )}
       </span>
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            'text-base font-semibold tracking-tight',
+            'text-sm font-semibold leading-tight tracking-tight',
             isTerminal
               ? 'text-text-secondary'
               : isReady
@@ -5267,7 +5269,7 @@ function ReadinessOverview({
         </p>
         <p className="text-xs leading-snug text-text-secondary">{subline}</p>
         {responseCount > 0 && !isTerminal ? (
-          <p className="mt-1 text-[11px] tabular-nums text-text-tertiary">
+          <p className="mt-0.5 text-[11px] tabular-nums text-text-tertiary">
             <Trans>
               {readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total
               responses
@@ -5308,12 +5310,6 @@ function ChecklistItemRow({
   const [note, setNote] = useState(item.note ?? '')
   const received = item.status === 'received'
   const needsReview = item.status === 'needs_review'
-  const statusBadge =
-    item.status === 'received'
-      ? { variant: 'success' as const, label: t`Received` }
-      : item.status === 'needs_review'
-        ? { variant: 'destructive' as const, label: t`Needs review` }
-        : { variant: 'outline' as const, label: t`Missing` }
   const responseBadge = response
     ? (() => {
         switch (response.status) {
@@ -5329,7 +5325,11 @@ function ChecklistItemRow({
     : null
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
-      <div className="flex items-center gap-2 px-3 py-2">
+      {/* Inner row padding tightened from py-2 → py-1.5 per critique
+          ("waste of space on top and bottom"). The chevron Button +
+          Input height already define the row's vertical metric;
+          extra py wasn't doing structural work. */}
+      <div className="flex items-center gap-2 px-3 py-1.5">
         <Checkbox
           aria-label={received ? t`Mark document missing` : t`Mark document received`}
           checked={received}
@@ -5349,31 +5349,40 @@ function ChecklistItemRow({
           onChange={(event) => setLabel(event.target.value)}
           className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         />
-        {/* Status badge is now a click target — same toggle the
-            checkbox does (received ↔ missing), but as a secondary
-            affordance. Some users reach for the visible chip first;
-            asking them to backtrack to the checkbox felt forced. The
-            `needs_review` state clears back to `received` on click,
-            matching the explicit "Needs review" button below for the
-            inverse direction. */}
-        <button
-          type="button"
-          aria-label={
-            received
-              ? t`Mark document missing`
-              : needsReview
-                ? t`Mark document received`
-                : t`Mark document received`
-          }
-          disabled={pending}
-          onClick={() => onStatusChange(received ? 'missing' : 'received')}
-          className={cn(
-            badgeVariants({ variant: statusBadge.variant }),
-            'cursor-pointer text-[10px] uppercase tracking-wide outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-          )}
-        >
-          {statusBadge.label}
-        </button>
+        {/* 2026-05-23: split the dual-affordance pattern (checkbox +
+            interactive chip) into explicit action button vs. passive
+            status label per critique ("wish it is more obvious").
+            - Missing  → primary "Mark received" outline Button with
+                         a check icon. Real-looking button.
+            - Received → success Badge "Received" (passive label).
+            - Needs review → destructive Badge (passive label).
+            Checkbox stays as the keyboard quick-toggle and as a
+            visual indicator at the row's leading edge; the button
+            on the right is the explicit pointer-friendly affordance
+            the CPA was scanning for. */}
+        {received ? (
+          <Badge variant="success" className="text-[10px] uppercase tracking-wide">
+            <CheckCircle2Icon className="size-3" aria-hidden />
+            <Trans>Received</Trans>
+          </Badge>
+        ) : needsReview ? (
+          <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">
+            <AlertTriangleIcon className="size-3" aria-hidden />
+            <Trans>Needs review</Trans>
+          </Badge>
+        ) : (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={pending}
+            onClick={() => onStatusChange('received')}
+            aria-label={t`Mark document received`}
+          >
+            <CheckCircle2Icon data-icon="inline-start" aria-hidden />
+            <Trans>Mark received</Trans>
+          </Button>
+        )}
         {responseBadge ? (
           <Badge variant={responseBadge.variant} className="text-[10px] uppercase tracking-wide">
             {responseBadge.label}
@@ -5395,9 +5404,16 @@ function ChecklistItemRow({
           />
         </Button>
       </div>
+      {/* Description line: italic + a small Info icon prefix so
+          users read it as "what this document IS" (helper context),
+          not as a separate row of content / note. Critique was
+          direct: "is this note?" — disambiguating the visual
+          treatment so it can't be confused with the internal Note
+          (which only shows in the expanded body, never here). */}
       {item.description && !expanded ? (
-        <p className="border-t border-divider-subtle px-3 py-1.5 text-[11px] leading-snug text-text-tertiary">
-          {item.description}
+        <p className="flex items-start gap-1.5 border-t border-divider-subtle px-3 py-1.5 text-[11px] leading-snug text-text-tertiary italic">
+          <InfoIcon className="mt-px size-3 shrink-0" aria-hidden />
+          <span>{item.description}</span>
         </p>
       ) : null}
       {expanded ? (
