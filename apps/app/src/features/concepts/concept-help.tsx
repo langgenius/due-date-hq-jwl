@@ -231,10 +231,17 @@ export function ConceptHelp({
       >
         <CircleHelpIcon className="size-3.5" aria-hidden />
       </PopoverTrigger>
-      <PopoverContent side={side} align={align} className="w-72 gap-2 p-3">
+      {/* 2026-05-25 (Yuqi rule library #18): concept-help popovers
+          were rendering at text-xs (12px) which Yuqi flagged as too
+          small to read comfortably. Bumped to text-sm (14px) for the
+          description and widened to w-80 so longer concept blurbs
+          don't wrap to 4+ lines. The title primitive already
+          ships at a readable size; only the description body
+          needed the bump. */}
+      <PopoverContent side={side} align={align} className="w-80 gap-2 p-3">
         <PopoverHeader>
           <PopoverTitle>{copy.title}</PopoverTitle>
-          <PopoverDescription className="text-xs leading-relaxed text-text-secondary">
+          <PopoverDescription className="text-sm leading-relaxed text-text-secondary">
             {copy.description}
           </PopoverDescription>
         </PopoverHeader>

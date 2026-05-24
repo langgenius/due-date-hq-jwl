@@ -7,7 +7,10 @@ import {
   AlertTriangleIcon,
   CheckCircle2Icon,
   ChevronRightIcon,
+  CircleCheck,
+  CircleSlash,
   DownloadIcon,
+  MessageSquareText,
   PlusIcon,
   SearchIcon,
   XIcon,
@@ -2207,22 +2210,95 @@ function RuleDetailPanel({
 }) {
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
-      {/* Same shape as `BatchReviewModal`: max-width capped at 640px,
-          85vh tall, vertical flex column with sticky-ish header and
-          a scrollable body so long rule details stay inside the
-          modal instead of expanding the page. */}
+      {/* 2026-05-25 (Yuqi rule library #13, #14, #24, #26): dialog
+          chrome rebuilt.
+          - DialogTitle is now the RULE TITLE itself (proper title,
+            text-base font-semibold) instead of an eyebrow caps
+            label "Rule details" (Yuqi: never use ALL CAPS or
+            eyebrow text for a section/page title).
+          - Header carries a kicker line above with the rule's
+            jurisdiction badge, form name, tax year, and status —
+            identity reads top-down: badge cluster → title → body.
+          - Body padding tightened. The kicker carries the identity
+            shape the audit ID line used to spell out, so the body
+            no longer needs to repeat it. */}
       <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 p-0">
-        <DialogHeader className="border-b border-divider-subtle px-5 py-3">
-          <DialogTitle className="text-sm font-semibold uppercase tracking-wide text-text-tertiary">
-            <Trans>Rule details</Trans>
+        <DialogHeader className="flex flex-col gap-1 border-b border-divider-subtle px-5 py-4">
+          <RuleDetailKicker rule={rule} />
+          <DialogTitle className="text-base font-semibold text-text-primary">
+            {rule.title}
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <h3 className="mb-3 text-base font-semibold text-text-primary">{rule.title}</h3>
           <RuleDetailInline rule={rule} concreteDraft={concreteDraft} />
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// 2026-05-25 (Yuqi rule library #15, #16, #17): identity kicker
+// above the rule title. Replaces the dot-separated mono ID line
+// in RuleDetailInline (`fed.7004.extension.1065.2025`) that read
+// as a developer string — CPAs don't parse that vocabulary. The
+// kicker reads "FED · Form 7004 · TY 2025-2026 · Active" — human
+// shape with the same audit reference info, organized by what a
+// CPA scans for first. The full mono ID is kept at the end as a
+// quiet reference for audit / engineer use.
+function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
+      <Badge
+        variant="secondary"
+        className="h-5 rounded px-1.5 font-mono text-caption-xs uppercase tracking-wider"
+      >
+        {rule.jurisdiction}
+      </Badge>
+      <span className="font-medium text-text-secondary">{rule.formName}</span>
+      <span aria-hidden>·</span>
+      <span className="font-mono tabular-nums">
+        <Trans>TY {rule.taxYear}</Trans>
+        {rule.taxYear !== rule.applicableYear ? `–${rule.applicableYear}` : ''}
+      </span>
+      <span aria-hidden>·</span>
+      <RuleStatusKicker status={rule.status} />
+    </div>
+  )
+}
+
+// 2026-05-25 (Yuqi rule library #17): replace the green-dot + "Active"
+// treatment with an icon-led chip so rule status doesn't visually
+// collide with the obligation status icons we just iconified
+// app-wide. Active = CircleCheck (green), Needs review =
+// MessageSquareText (blue), Inactive/Rejected = CircleSlash (gray).
+function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
+  if (status === 'candidate' || status === 'pending_review') {
+    return (
+      <span className="inline-flex items-center gap-1 text-text-accent">
+        <MessageSquareText className="size-3.5" aria-hidden />
+        <span className="font-medium">
+          <Trans>Needs review</Trans>
+        </span>
+      </span>
+    )
+  }
+  if (status === 'deprecated' || status === 'archived' || status === 'rejected') {
+    return (
+      <span className="inline-flex items-center gap-1 text-text-tertiary">
+        <CircleSlash className="size-3.5" aria-hidden />
+        <span className="font-medium">
+          {status === 'rejected' ? <Trans>Rejected</Trans> : <Trans>Inactive</Trans>}
+        </span>
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-text-success">
+      <CircleCheck className="size-3.5" aria-hidden />
+      <span className="font-medium">
+        <Trans>Active</Trans>
+      </span>
+    </span>
   )
 }
 
