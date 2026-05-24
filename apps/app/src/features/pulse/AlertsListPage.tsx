@@ -393,7 +393,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by impact`}>
                 <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
               </SelectTrigger>
-              <SelectContent align="start">
+              <SelectContent align="start" alignItemWithTrigger={false}>
                 {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {impactFilterLabel(option)}
@@ -412,7 +412,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by change type`}>
                 <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
               </SelectTrigger>
-              <SelectContent align="start">
+              <SelectContent align="start" alignItemWithTrigger={false}>
                 {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {changeKindFilterLabel(option)}
@@ -430,7 +430,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by alert status`}>
                 <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
               </SelectTrigger>
-              <SelectContent align="start">
+              <SelectContent align="start" alignItemWithTrigger={false}>
                 {STATUS_FILTER_OPTIONS.map((option) => (
                   <SelectItem key={option} value={option}>
                     {statusFilterLabel(option)}
@@ -450,7 +450,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                   {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent align="start">
+              <SelectContent align="start" alignItemWithTrigger={false}>
                 <SelectItem value="all">
                   <Trans>All sources</Trans>
                 </SelectItem>
