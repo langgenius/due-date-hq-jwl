@@ -121,9 +121,16 @@ function WizardFrame({
   )
 
   return (
+    // 2026-05-25 (Yuqi Wizard #37): converged the outer frame's
+    // border radius + border token onto the canonical Dialog
+    // primitive (`rounded-lg`, `border-components-panel-border`).
+    // The wizard still bypasses Dialog's `p-6` body padding because
+    // it owns its own header / stepper / body / footer layout — the
+    // p-3 here is just the outer chrome, so each region can pad
+    // independently. Same family, different layout role.
     <div
       className={cn(
-        'flex w-full flex-col gap-0 overflow-hidden rounded-xl border border-divider-regular bg-components-panel-bg p-3 shadow-overlay',
+        'flex w-full flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-3 shadow-overlay',
         layout === 'route' ? 'min-h-0 flex-none' : 'max-h-[calc(100vh-4rem)]',
       )}
     >
