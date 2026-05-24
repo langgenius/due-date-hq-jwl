@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { formatDatePretty } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
 
 /**
  * ClientSummaryStrip — three-tile horizontal strip on the Client detail
@@ -172,10 +173,11 @@ export function ClientSummaryStrip({
     return d.getTime()
   }, [])
 
-  const atRiskCount = useMemo(
-    () => obligations.filter((o) => isAtRisk(o, todayTs)).length,
+  const atRiskList = useMemo(
+    () => obligations.filter((o) => isAtRisk(o, todayTs)),
     [obligations, todayTs],
   )
+  const atRiskCount = atRiskList.length
 
   // Open filing count (2026-05-23). All non-terminal obligations on
   // this client — the third tile slot's number. "Open filing" matches
@@ -255,13 +257,27 @@ export function ClientSummaryStrip({
     nextDueSublineTone = 'tertiary'
   }
 
-  // At-risk subline — explains *why* the tile is non-zero in one
-  // phrase. Empty state shows nothing under "0" so the tile reads as
-  // calm. Non-zero pulls "Blocked or overdue" as the canonical
-  // shorthand for the isAtRisk() predicate above (which OR's
-  // status='blocked', a rejected efile, or past-due non-terminal).
-  const atRiskSubline =
-    atRiskCount > 0 ? (atRiskCount === 1 ? t`Blocked or overdue` : t`Blocked or overdue`) : null
+  // At-risk subline — surfaces the actual form codes so the CPA can
+  // see *which* filings are blocked / overdue without having to drill
+  // into the filtered queue first. Previously read just "Blocked or
+  // overdue", which was a tease — the page already has the data in
+  // memory, so the tile may as well name names.
+  //
+  // 1 form  → "1120-S blocked"
+  // 2 forms → "1120-S, 1065 blocked"
+  // 3+      → "1120-S, 1065 + 1 more"
+  const atRiskSubline = useMemo(() => {
+    if (atRiskList.length === 0) return null
+    const codes = atRiskList.slice(0, 2).map((o) => formatTaxCode(o.taxType))
+    const overflow = atRiskList.length - codes.length
+    if (overflow > 0) {
+      return t`${codes.join(', ')} + ${overflow} more`
+    }
+    if (codes.length === 1) {
+      return t`${codes[0]} blocked or overdue`
+    }
+    return t`${codes.join(', ')} blocked or overdue`
+  }, [atRiskList, t])
 
   // Open-filing subline — count of forms in the filing plan that are
   // still doing work. Singular vs plural phrasing.

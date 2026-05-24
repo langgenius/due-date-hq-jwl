@@ -231,8 +231,14 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
           the outer h3 retired in favour of TabSection. */}
         <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
+            {/* 2026-05-24 (clarify — critique): "Activity scope" was
+                coined jargon — first-timer CPAs read the chips below
+                (Payroll / 1099 / K-1 etc) faster than the section
+                label. "Filing activity" is the verbal form they
+                actually use ("does this client have payroll filing
+                activity?"). */}
             <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-              <Trans>Activity scope</Trans>
+              <Trans>Filing activity</Trans>
             </span>
             <span className="text-xs text-text-tertiary">
               <Trans>{activeCount} of 5 active</Trans>

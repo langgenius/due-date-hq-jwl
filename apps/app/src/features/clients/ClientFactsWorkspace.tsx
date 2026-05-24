@@ -347,21 +347,32 @@ function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   if (states.length === 0) return null
   const visible = states.slice(0, 3)
   const overflow = states.length - visible.length
+  // 2026-05-24 (clarify — critique P1): these used to render as
+  // `Badge variant="secondary"` next to the LIVE owner pill in the
+  // H1 chip cluster. Same visual treatment, but the owner pill is
+  // interactive and these chips are not — that's a UI lie. First-
+  // timer CPAs waste ~30s trying to click them.
+  //
+  // Demoted to plain monospace tokens with a hairline border. They
+  // still scan as filing-state codes (font-mono + uppercase + tabular)
+  // but the badge frame is gone so they read as labels, not affordances.
+  // Live chips in the cluster (owner, readiness, add-state) keep their
+  // badge treatment so the live-vs-dead distinction reads instantly.
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {visible.map((state) => (
-        <Badge
-          key={state}
-          variant="secondary"
-          className="rounded-sm font-mono uppercase tabular-nums"
-        >
-          {state}
-        </Badge>
+    <div
+      className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs leading-4 text-text-tertiary"
+      title={
+        states.length === 1 ? `Filing state: ${states[0]}` : `Filing states: ${states.join(', ')}`
+      }
+    >
+      {visible.map((state, index) => (
+        <span key={state} className="inline-flex items-center gap-1">
+          {index > 0 ? <span aria-hidden>·</span> : null}
+          <span className="font-mono uppercase tabular-nums text-text-secondary">{state}</span>
+        </span>
       ))}
       {overflow > 0 ? (
-        <Badge variant="outline" className="rounded-sm font-mono tabular-nums">
-          +{overflow}
-        </Badge>
+        <span className="font-mono tabular-nums text-text-tertiary">+{overflow}</span>
       ) : null}
     </div>
   )
@@ -2328,6 +2339,7 @@ function FilingPlanYearSection({
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
 }) {
+  const { t } = useLingui()
   const statusPickerLabels = useLifecycleV2StatusLabels()
   // 2026-05-24 (Figma replica pass): year section snapped to the
   // pixel-exact frame from the Figma Make export.
@@ -2379,16 +2391,27 @@ function FilingPlanYearSection({
       </div>
       {/* Column header bar — sits flush against the rows so the
           header looks like the table's legend, not a separate
-          frame inside the year section. */}
+          frame inside the year section.
+
+          2026-05-24 (clarify — critique): added `title` tooltips to
+          Internal vs Official so first-timer CPAs don't have to guess
+          which is which. (Many firms use both terms but with different
+          meanings — explicit tooltip > assumed convention.) */}
       <div className="flex items-center gap-2 border-y border-divider-subtle px-3 py-2 text-xs font-medium leading-4 text-text-tertiary">
         <span className="w-5 shrink-0" aria-hidden />
         <span className="flex-1">
           <Trans>FORM</Trans>
         </span>
-        <span className="w-[120px]">
+        <span
+          className="w-[120px]"
+          title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
+        >
           <Trans>Internal Deadline</Trans>
         </span>
-        <span className="w-[120px]">
+        <span
+          className="w-[120px]"
+          title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
+        >
           <Trans>Official Deadline</Trans>
         </span>
         <span className="w-[120px]">
