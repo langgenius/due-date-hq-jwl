@@ -217,6 +217,7 @@ describe('client detail model', () => {
         [
           obligation({
             id: 'overdue',
+            baseDueDate: '2026-05-01',
             currentDueDate: '2026-05-01',
             estimatedExposureCents: 15000,
             estimatedTaxDueCents: 50000,
@@ -224,6 +225,7 @@ describe('client detail model', () => {
           }),
           obligation({
             id: 'review',
+            baseDueDate: '2026-05-20',
             currentDueDate: '2026-05-20',
             status: 'review',
             readiness: 'needs_review',
@@ -237,11 +239,80 @@ describe('client detail model', () => {
     ).toMatchObject({
       openCount: 2,
       overdueOpenCount: 1,
+      statutoryLateUnextendedCount: 1,
+      extensionPaymentDueCount: 0,
+      extensionFiledOpenCount: 0,
       needsReviewCount: 1,
       estimatedTaxDueCents: 50000,
       paymentTrackCount: 1,
       nextDueDate: '2026-05-01',
     })
+  })
+
+  it('flags statutory-late rows even after currentDueDate shifts past asOf', () => {
+    // The Lakeview scenario: filing extension paperwork hasn't been
+    // sent yet, currentDueDate is unchanged from baseDueDate, but the
+    // page is rendered after the statutory date. Pill must NOT go
+    // green; statutoryLateUnextendedCount catches it.
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'unextended_late',
+          baseDueDate: '2026-04-15',
+          currentDueDate: '2026-04-15',
+          status: 'review',
+          extensionState: 'not_started',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.statutoryLateUnextendedCount).toBe(1)
+    expect(summary.extensionFiledOpenCount).toBe(0)
+    expect(summary.extensionPaymentDueCount).toBe(0)
+    expect(summary.overdueOpenCount).toBe(1)
+  })
+
+  it('does not count statutory-late when an extension is on the wire', () => {
+    // Real Lakeview seed: extension filed, currentDueDate pushed to
+    // 2026-11-15. Pill must surface "Extended" (or extension-payment
+    // warning) rather than red "statutory late".
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'extended',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-11-15',
+          status: 'extended',
+          extensionState: 'filed',
+          paymentState: 'not_applicable',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.statutoryLateUnextendedCount).toBe(0)
+    expect(summary.extensionFiledOpenCount).toBe(1)
+    expect(summary.extensionPaymentDueCount).toBe(0)
+    // currentDueDate is in the future post-extension, so "X late" is silent.
+    expect(summary.overdueOpenCount).toBe(0)
+  })
+
+  it('flags extension-with-unsettled-payment per anti-pattern #1', () => {
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'extension_payment_due',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-09-15',
+          status: 'extended',
+          extensionState: 'accepted',
+          paymentState: 'estimate_needed',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.extensionPaymentDueCount).toBe(1)
+    expect(summary.extensionFiledOpenCount).toBe(1)
+    expect(summary.statutoryLateUnextendedCount).toBe(0)
   })
 
   it('keeps Pulse matches scoped to the selected client', () => {

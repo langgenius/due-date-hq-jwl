@@ -432,13 +432,67 @@ function renderClientHeaderSubLine({
       node: <span>next due {formatDatePretty(workPlan.nextDueDate)}</span>,
     })
   }
-  if (workPlan.overdueOpenCount > 0) {
+  // 2026-05-24 (critique P0 — clarify): the pill used to bottom-out at
+  // "All on track" whenever `overdueOpenCount` (currentDueDate-based)
+  // was zero. That hid two real product states from the CPA:
+  //
+  //   1. Statutory date missed but no extension on the wire (the row
+  //      that quietly looked fine because `currentDueDate` still equals
+  //      `baseDueDate` and we were rendered before re-render)
+  //   2. Extension filed but payment not yet settled — the canonical
+  //      anti-pattern #1 ("extension does NOT mean payment is extended")
+  //
+  // Priority order, most severe first, so the CPA always sees the
+  // truest negative state and "Extended" / "All on track" stop being
+  // lazy fall-throughs.
+  if (workPlan.statutoryLateUnextendedCount > 0) {
+    parts.push({
+      id: 'statutory-late',
+      node: (
+        <Badge variant="destructive" className="text-xs">
+          <AlertTriangleIcon className="size-3" aria-hidden />
+          <span>
+            {workPlan.statutoryLateUnextendedCount === 1
+              ? '1 statutory late'
+              : `${workPlan.statutoryLateUnextendedCount} statutory late`}
+          </span>
+        </Badge>
+      ),
+    })
+  } else if (workPlan.extensionPaymentDueCount > 0) {
+    parts.push({
+      id: 'extension-payment-due',
+      node: (
+        <Badge variant="warning" className="text-xs">
+          <AlertTriangleIcon className="size-3" aria-hidden />
+          <span>
+            {workPlan.extensionPaymentDueCount === 1
+              ? 'Extension filed — payment still due'
+              : `${workPlan.extensionPaymentDueCount} extensions — payments still due`}
+          </span>
+        </Badge>
+      ),
+    })
+  } else if (workPlan.overdueOpenCount > 0) {
     parts.push({
       id: 'late',
       node: (
         <span className="font-medium text-text-destructive">
           {workPlan.overdueOpenCount === 1 ? '1 late' : `${workPlan.overdueOpenCount} late`}
         </span>
+      ),
+    })
+  } else if (workPlan.extensionFiledOpenCount > 0) {
+    // Informational blue, not green: a client on an extension is on a
+    // different track than "All on track" — the work shifted, not
+    // disappeared. Says "Extended" rather than the count because
+    // the per-row state lives in the filing-plan table below.
+    parts.push({
+      id: 'extended',
+      node: (
+        <Badge variant="info" className="text-xs">
+          <span>Extended</span>
+        </Badge>
       ),
     })
   } else if (workPlan.openCount > 0) {

@@ -430,9 +430,16 @@ WHERE id = '20000000-0000-4000-8000-000000000008';
 -- Federal 1065 (oblig 0009) flipped to extended with the new internal
 -- due date 6 months out. Sets extension_filed_at so the extension
 -- timeline + sub-status both render meaningfully.
+--
+-- 2026-05-24 (critique P0): also set extension_state='filed' so the
+-- client-detail "All on track" pill doesn't read this as a statutory
+-- late row. The schema default is 'not_started'; without an explicit
+-- update, extension_filed_at and extension_state told two different
+-- stories about the same row.
 UPDATE obligation_instance
 SET status = 'extended',
     extension_filed_at = CAST(unixepoch('2026-04-25 11:00:00') * 1000 AS INTEGER),
+    extension_state = 'filed',
     current_due_date = CAST(unixepoch('2026-11-15 00:00:00') * 1000 AS INTEGER),
     prep_stage = 'not_started',
     review_stage = 'not_required',

@@ -42,6 +42,25 @@ export function findExtensionWithoutPaymentObligations(
 export type ClientWorkPlanSummary = {
   openCount: number
   overdueOpenCount: number
+  // 2026-05-24 (critique P0): "All on track" was showing on clients
+  // whose statutory date was missed but `currentDueDate` had shifted
+  // forward (post-extension). `overdueOpenCount` only checks the
+  // current/effective date so post-extension rows looked fine — even
+  // when no extension was actually on the wire. These three counts
+  // expose the truthful picture:
+  //   - statutoryLateUnextendedCount: red — past statutory, no
+  //     extension filed or accepted (real lateness, anti-pattern #3
+  //     "Filed ≠ Done" should never lie green)
+  //   - extensionPaymentDueCount: amber — extension filed but payment
+  //     not yet settled (anti-pattern #1: extension ≠ payment extended)
+  //   - extensionFiledOpenCount: informational — at least one row is
+  //     on an extension, so the header can say "Extended" instead of
+  //     leaning on the absence of red
+  // The header pill consumes these in priority order; see
+  // renderClientHeaderSubLine in ClientFactsWorkspace.
+  statutoryLateUnextendedCount: number
+  extensionPaymentDueCount: number
+  extensionFiledOpenCount: number
   needsReviewCount: number
   estimatedTaxDueCents: number
   paymentTrackCount: number
@@ -78,9 +97,26 @@ export function buildClientWorkPlanSummary(
       .map((obligation) => obligation.currentDueDate)
       .toSorted((left, right) => left.localeCompare(right))[0] ?? null
 
+  // Open rows whose statutory (base) date is in the past — independent
+  // of any extension shift of currentDueDate. Splitting this out from
+  // overdueOpenCount lets the header pill detect "missed statutory but
+  // post-extension date is still future" — the case where the old
+  // truthful-but-incomplete pill quietly went green.
+  const statutoryLateOpen = open.filter((obligation) => obligation.baseDueDate < asOfDate)
+  const statutoryLateUnextendedCount = statutoryLateOpen.filter(
+    (obligation) => !EXTENSION_FILED_STATES.has(obligation.extensionState),
+  ).length
+  const extensionFiledOpenCount = open.filter((obligation) =>
+    EXTENSION_FILED_STATES.has(obligation.extensionState),
+  ).length
+  const extensionPaymentDueCount = findExtensionWithoutPaymentObligations(open).length
+
   return {
     openCount: open.length,
     overdueOpenCount: open.filter((obligation) => obligation.currentDueDate < asOfDate).length,
+    statutoryLateUnextendedCount,
+    extensionPaymentDueCount,
+    extensionFiledOpenCount,
     needsReviewCount: open.filter(
       (obligation) => obligation.status === 'review' || obligation.readiness === 'needs_review',
     ).length,
