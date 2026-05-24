@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
@@ -55,7 +55,6 @@ import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detai
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { orpc } from '@/lib/rpc'
 
 /**
@@ -921,11 +920,20 @@ export function RulesLibraryRoute() {
   const headerActions = (
     <>
       {reviewCount > 0 ? (
-        // Promote "Start review" — for any CPA arriving with a backlog
-        // of pending rules, this is the primary action. Counts in the
-        // label tell them how much work the click implies before they
-        // commit. Hidden when there's nothing to review.
-        <Button size="sm" onClick={startReviewAll}>
+        // 2026-05-25 (Yuqi rule library #1): Start review is the
+        // CPA's "do the actual work" affordance — distinct from
+        // navigation actions like Export / New rule. Was the
+        // default primary blue, which made it visually identical
+        // to every other primary action in the header rail. Now
+        // an amber-tinted action button (text + warning-success
+        // bg) so it reads as "you have N items waiting" not just
+        // "save / submit." The count in the label cues the
+        // magnitude of work before the click.
+        <Button
+          size="sm"
+          onClick={startReviewAll}
+          className="border-state-warning-border bg-state-warning-hover text-text-warning hover:bg-state-warning-active hover:text-text-warning focus-visible:bg-state-warning-active focus-visible:text-text-warning"
+        >
           <Trans>Start review ({reviewCount})</Trans>
         </Button>
       ) : null}
@@ -969,14 +977,9 @@ export function RulesLibraryRoute() {
           activeEntity={activeEntity}
           onSelectEntity={(entity) => void setEntityFilter(entity)}
           onClearEntity={() => void setEntityFilter(null)}
+          search={search ?? ''}
+          onSearchChange={(next) => void setSearch(next || null)}
         />
-        {/* Search bar (left-aligned, constrained width). Collapse-all
-            moved out of this row to the table's column-header line
-            below — it's a table utility, doesn't belong in the
-            global filter band. */}
-        <div className="max-w-md">
-          <SearchBar search={search ?? ''} onChange={(next) => void setSearch(next || null)} />
-        </div>
 
         {/* Active-filter banner — when an entity chip is active, make
             it crystal-clear that the table below has been narrowed.
@@ -1102,6 +1105,8 @@ function StatsBar({
   activeEntity,
   onSelectEntity,
   onClearEntity,
+  search,
+  onSearchChange,
 }: {
   totalRules: number
   totalActive: number
@@ -1113,6 +1118,14 @@ function StatsBar({
   activeEntity: EntityKey | null
   onSelectEntity: (entity: EntityKey) => void
   onClearEntity: () => void
+  // 2026-05-25 (Yuqi rule library #8): search relocated from a lone
+  // row below the stats into the filter band — it lives next to
+  // the entity-filter chip strip as one coherent "narrow the
+  // table" surface. StatsBar accepts the search state + setter
+  // and renders the input inline so search reads as a sibling
+  // filter, not chrome that floated in between stats and table.
+  search: string
+  onSearchChange: (next: string) => void
 }) {
   const { t } = useLingui()
   // Stats scoreboard (redesign 2026-05-21 per /critique).
@@ -1130,100 +1143,155 @@ function StatsBar({
   // pretended to be interactive.
   const totalReviewed = totalActive + totalPendingReview
   const activePct = totalReviewed > 0 ? (totalActive / totalReviewed) * 100 : 0
+  // 2026-05-25 (Yuqi rule library #3): label fits inside the bar only
+  // when the segment has at least ~80px to render the text. Below
+  // that we fall back to showing the count only (still visible
+  // inside the bar), and the full label lives in the title tooltip
+  // for hover access. Hairline threshold so 5-vs-451 splits don't
+  // try to fit "5 active" in a 12px gap.
+  const ACTIVE_LABEL_FITS = activePct >= 18
+  const REVIEW_LABEL_FITS = 100 - activePct >= 18
   return (
     <div className="flex flex-col gap-5 border-b border-divider-subtle pb-5">
-      {/* Catalog progress bar — single horizontal bar shows the
-          split between Active (green, filled from left) and Needs
-          review (background fill on the right). The two labels sit
-          BELOW the bar, each anchored to the start of its own segment
-          (active at 0%, needs-review at activePct%) so the number's
-          position on the page tells you where the split is without
-          you having to mentally project the bar's proportions onto
-          the corner-floating numbers. Smaller number text — these
-          aren't hero KPIs, they're a quick read on review backlog. */}
-      <div className="flex flex-col gap-2">
+      {/* 2026-05-25 (Yuqi rule library #3, #7): progress bar rebuilt.
+          Was a 2px hairline with separate labels below — the bar read
+          as decoration, not data. Now a 28px bar with the live counts
+          INSIDE each segment. Green left = "Active N", track right =
+          "N needs review". Hover gives the full breakdown. Counts
+          live in the bar so the eye reads "split" + "magnitude" in
+          one pass; no second row of corner-floating numbers. */}
+      <div className="flex flex-col gap-3">
         <div
-          className="h-2 w-full overflow-hidden rounded-full bg-background-subtle"
+          className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
           role="img"
           aria-label={`${totalActive} active out of ${totalReviewed} reviewed`}
           title={`${totalActive} active · ${totalPendingReview} need review`}
         >
           <div
-            className="h-full bg-state-success-solid transition-[width] duration-300"
+            className="flex items-center overflow-hidden bg-state-success-hover px-2 transition-[width] duration-300"
             style={{ width: `${activePct}%` }}
+          >
+            {ACTIVE_LABEL_FITS ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-success">
+                <Trans>{totalActive} active</Trans>
+              </span>
+            ) : activePct > 0 ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-success">
+                {totalActive}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex flex-1 items-center justify-end overflow-hidden px-2">
+            {REVIEW_LABEL_FITS ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-secondary">
+                <Trans>{totalPendingReview} needs review</Trans>
+              </span>
+            ) : totalPendingReview > 0 ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-secondary">
+                {totalPendingReview}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        {/* 2026-05-25 (Yuqi rule library #7): three cards (Total /
+            Missing / Watched). Was a single `SurfaceSummaryStrip`
+            with dot-separated counts that read like a sentence
+            fragment ("476 total · 6 missing · 12 watched · View
+            sources →"). Now each metric gets its own surface so the
+            eye finds them as distinct items, not as run-on prose.
+            "View sources" is promoted to a dedicated outline link
+            with an explicit chevron — was a quiet inline link
+            previously (Yuqi #5: too hidden). */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <StatTile label={t`Total`} value={totalRules} />
+          <StatTile
+            label={t`Missing`}
+            value={totalGaps}
+            tone={totalGaps > 0 ? 'destructive' : 'muted'}
+          />
+          <StatTile
+            label={t`Watched`}
+            value={sourcesHealthy}
+            href="/rules/sources"
+            {...(sourcesPaused > 0
+              ? {
+                  sublabel: t`${sourcesPaused} paused`,
+                  sublabelTone: 'warning' as const,
+                }
+              : {})}
           />
         </div>
-        {/* Two-column grid: needs-review label sits at the start of
-            the needs-review portion of the bar. Each column has a
-            `max-content` floor so neither label can be squeezed
-            narrower than its own text — without that floor, the
-            edge case where one side is tiny (e.g., 3 active vs 241
-            needs review → activePct = 1.2%) collapses the active
-            column to ~1% width and the text overflows into the
-            next column. With the floor: at low activePct the
-            needs-review label is pushed to "just past 3 active"
-            instead of overlapping; at high activePct it slides
-            back to the actual segment boundary. The label never
-            misaligns into illegible mush. */}
-        <div
-          className="grid gap-x-3 text-xs"
-          style={{ gridTemplateColumns: `minmax(max-content, ${activePct}%) 1fr` }}
-        >
-          <div className="flex items-baseline gap-1 whitespace-nowrap">
-            <span className="text-base font-semibold tabular-nums text-text-primary">
-              {totalActive}
-            </span>
-            <span className="text-text-tertiary">
-              <Trans>active</Trans>
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1 whitespace-nowrap">
-            <span className="text-base font-semibold tabular-nums text-text-primary">
-              {totalPendingReview}
-            </span>
-            <span className="text-text-tertiary">
-              <Trans>needs review</Trans>
-            </span>
-          </div>
-        </div>
-        {/* Catalog-level counts caption — now sourced from the shared
-            `SurfaceSummaryStrip` primitive (2026-05-22) so the chrome
-            stays aligned with /clients and /deadlines as those
-            migrate. The progress bar above is kept rule-library-
-            specific because the "active vs review backlog" framing is
-            unique to the rule catalog. */}
-        <SurfaceSummaryStrip
-          label={t`Coverage`}
-          items={[
-            { key: 'total', value: totalRules, label: t`total` },
-            {
-              key: 'missing',
-              value: totalGaps,
-              label: t`missing`,
-              tone: totalGaps > 0 ? 'destructive' : 'muted',
-            },
-            { key: 'watched', value: sourcesHealthy, label: t`watched`, href: '/rules/sources' },
-            {
-              key: 'paused',
-              value: sourcesPaused,
-              label: t`paused`,
-              tone: sourcesPaused > 0 ? 'warning' : 'muted',
-              ...(sourcesPaused > 0 ? { href: '/rules/sources' } : {}),
-            },
-          ]}
-          detailHref="/rules/sources"
-          detailLabel={t`View sources`}
-        />
       </div>
-      {/* By Entity — clickable chip row that doubles as the entity
-          filter for the rules table. Click a chip to filter; click
-          the same chip (or "Clear") to unset. */}
-      <EntityChipRow
-        entityStats={entityStats}
-        activeEntity={activeEntity}
-        onSelect={onSelectEntity}
-        onClear={onClearEntity}
-      />
+      {/* Filter band: entity chip row (left) + search (right). Same
+          horizontal level so the eye reads them as siblings —
+          "narrow by entity OR narrow by text", not as two
+          unrelated controls stacked vertically. Stacks at narrow
+          viewports. */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-6">
+        <div className="min-w-0 flex-1">
+          <EntityChipRow
+            entityStats={entityStats}
+            activeEntity={activeEntity}
+            onSelect={onSelectEntity}
+            onClear={onClearEntity}
+          />
+        </div>
+        <div className="w-full max-w-sm shrink-0">
+          <SearchBar search={search} onChange={onSearchChange} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// 2026-05-25 (Yuqi rule library #7): replaces the inline
+// SurfaceSummaryStrip dots with a discrete card. Total / Missing /
+// Watched each get a tile; Watched is a link target (clickable
+// tile). Tones map destructive (red number) when missing > 0 and
+// warning (amber sublabel) when sources are paused — quiet by
+// default, raised only when there's something to look at.
+function StatTile({
+  label,
+  value,
+  tone = 'muted',
+  href,
+  sublabel,
+  sublabelTone = 'muted',
+}: {
+  label: string
+  value: number
+  tone?: 'muted' | 'destructive'
+  href?: string
+  sublabel?: string
+  sublabelTone?: 'muted' | 'warning'
+}) {
+  const valueColor =
+    tone === 'destructive' && value > 0 ? 'text-text-destructive' : 'text-text-primary'
+  const sublabelColor = sublabelTone === 'warning' ? 'text-text-warning' : 'text-text-tertiary'
+  const inner = (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {label}
+      </span>
+      <div className="flex items-baseline gap-2">
+        <span className={cn('text-xl font-semibold tabular-nums', valueColor)}>{value}</span>
+        {sublabel ? <span className={cn('text-xs', sublabelColor)}>{sublabel}</span> : null}
+      </div>
+    </div>
+  )
+  if (href) {
+    return (
+      <Link
+        to={href}
+        className="group/tile inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2 transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+      {inner}
     </div>
   )
 }
@@ -1462,9 +1530,15 @@ function GroupedRulesTable({
             sits beside the "Rule" label (per user feedback — was on
             its own mini-toolbar line, which read as a second header),
             and Expand/Collapse-all anchors the right edge of the
-            header row. Background is overridden to transparent so
-            the head row is just typography, not a gray band. */}
-        <TableHeader className="!bg-transparent [&_tr]:!bg-transparent">
+            header row.
+            2026-05-25 (Yuqi rule library #29): header sticky to the
+            page scroll container so the entity column labels stay
+            visible while scrolling a long catalog — the column dots
+            below stay paired with their headers. Background flipped
+            from transparent to default + a subtle bottom border so
+            the sticky header doesn't show row content bleeding
+            through during scroll. */}
+        <TableHeader className="sticky top-0 z-10 !bg-background-default [&_tr]:!bg-background-default">
           <TableRow className="border-b-divider-subtle hover:bg-transparent">
             <TableHead className="w-[34%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <span className="inline-flex items-baseline gap-2">
@@ -1649,7 +1723,15 @@ function GroupHeaderRow({
           + full name (bigger semibold) + rule count. Promoted weight
           per /critique — was previously the same text-sm font-medium
           as rule titles, so the state row didn't anchor the eye. */}
-      <TableCell colSpan={2} className="py-2">
+      <TableCell
+        colSpan={2}
+        className="py-2"
+        // 2026-05-25 (Yuqi rule library #9): hover hint explains
+        // what the row aggregates. CPAs new to the catalog were
+        // unsure if the dots in the row showed jurisdiction-level
+        // coverage or just the open rules — the title clarifies.
+        title={`${group.label} — ${group.ruleCount} rule${group.ruleCount === 1 ? '' : 's'} across all entities. Expand to see the breakdown.`}
+      >
         <div className="flex flex-wrap items-center gap-2">
           <ChevronRightIcon
             className={cn(
@@ -1658,9 +1740,14 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
+          {/* 2026-05-25 (Yuqi rule library #2): badge has a fixed
+              width so every jurisdiction badge (FED, CA, NY, TX, …)
+              renders at the same size. Before, the badge auto-sized
+              to its content — FED (3 chars) was wider than CA
+              (2 chars), so the column read as a ragged left edge. */}
           <Badge
             variant="secondary"
-            className="h-5 rounded px-1.5 font-mono text-caption-xs uppercase tracking-wider"
+            className="h-5 w-12 justify-center rounded px-0 font-mono text-caption-xs uppercase tracking-wider"
           >
             {group.jurisdiction}
           </Badge>
@@ -1692,20 +1779,32 @@ function GroupHeaderRow({
           gives a vertical "where the work is" scan: jurisdictions
           with active badges line up down the right edge. */}
       <TableCell className="py-2">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-3">
+          {/* 2026-05-25 (Yuqi rule library #30): "N needs review"
+              demoted from an outline badge to a colored inline count
+              with a leading dot. The badge chrome stacked with the
+              actual status-distribution bar to its right + the
+              section-header badges below, making the row read as a
+              "wall of badges." Inline text + dot does the same job
+              with less visual claim. Same treatment for "N missing"
+              (red dot + red text). */}
           {group.pendingReviewCount > 0 ? (
-            <Badge variant="outline" className="border-accent-default text-text-accent">
-              <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
-            </Badge>
-          ) : null}
-          {group.gapEntities.length > 0 ? (
-            <Badge variant="outline" className="gap-1 border-divider-regular text-text-secondary">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-accent">
               <span
                 aria-hidden
-                className="inline-block size-1.5 shrink-0 rounded-full border border-state-destructive-solid"
+                className="inline-block size-1.5 shrink-0 rounded-full bg-state-accent-solid"
+              />
+              <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
+            </span>
+          ) : null}
+          {group.gapEntities.length > 0 ? (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-destructive">
+              <span
+                aria-hidden
+                className="inline-block size-1.5 shrink-0 rounded-full bg-state-destructive-solid"
               />
               <Plural value={group.gapEntities.length} one="# missing" other="# missing" />
-            </Badge>
+            </span>
           ) : null}
           <RuleStatusBar rules={group.rules} />
         </div>
@@ -1920,21 +2019,27 @@ function StatusSectionHeaderRow({
   // reads as one tinted line, not a label + colored badge.
   return (
     <TableRow className="hover:bg-transparent">
-      {/* When the checkbox is present, align it with the state badge
-          above (`!pl-[34px]`). The section label then becomes the
-          anchor for rule-row checkboxes below. Without checkbox, the
-          same indent aligns the label with the badge column above. */}
+      {/* 2026-05-25 (Yuqi rule library #10, #11): the checkbox used
+          to push the NEEDS REVIEW label rightward, so it didn't
+          align with the ACTIVE label below (which has no checkbox).
+          Now the section row reserves a FIXED checkbox slot
+          (`w-4`) whether or not the checkbox renders. The label
+          starts at the same x position in every section header —
+          NEEDS REVIEW and ACTIVE line up vertically. The checkbox
+          slot sits at the chevron column above (chevron has the
+          same `size-3.5` width). */}
       <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="!pl-[34px] pb-1 pt-3">
         <div className="flex items-center gap-2">
-          {hasSelectAll ? (
-            <Checkbox
-              className="mt-px"
-              checked={selectAllState === 'all'}
-              indeterminate={selectAllState === 'some'}
-              onCheckedChange={() => onToggleSelectAll()}
-              aria-label={`Select all ${count} rules in ${label}`}
-            />
-          ) : null}
+          <span className="inline-flex w-4 shrink-0 items-center justify-center" aria-hidden>
+            {hasSelectAll ? (
+              <Checkbox
+                checked={selectAllState === 'all'}
+                indeterminate={selectAllState === 'some'}
+                onCheckedChange={() => onToggleSelectAll()}
+                aria-label={`Select all ${count} rules in ${label}`}
+              />
+            ) : null}
+          </span>
           <span
             className={cn(
               'text-xs font-semibold uppercase tracking-wider',
