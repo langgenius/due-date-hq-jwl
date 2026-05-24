@@ -6,7 +6,7 @@ import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
   BookOpenIcon,
-  Calendar1Icon,
+  CalendarIcon,
   CheckIcon,
   ChevronsUpDownIcon,
   MapIcon,
@@ -558,8 +558,10 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         // Inbox at /notifications. Surfacing Inbox in the sidebar
         // too created two top-level destinations for the same thing.
         // 2026-05-25 (Yuqi Today follow-up — sidebar icon set):
-        //   Today        → Calendar1 (the day-marker; reads as "what's
-        //                   on today")
+        //   Today        → Calendar (plain calendar grid; Yuqi
+        //                   walked back the Calendar1 day-marker
+        //                   variant — the open grid reads cleaner
+        //                   at sidebar scale)
         //   Alerts       → Megaphone (a literal announcement vector,
         //                   matches the Pulse concept of "the system
         //                   is broadcasting at you")
@@ -569,7 +571,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         //   Rule library → BookOpen (literal "reference manual",
         //                   replaces the more abstract Library icon)
         primary: [
-          { href: '/', label: t`Today`, icon: Calendar1Icon, end: true },
+          { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
           {
             href: '/rules/pulse',
             label: t`Alerts`,
@@ -633,7 +635,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       // four-icon swap as the navV2 branch above. Legacy nav stays in
       // sync so the iconography reads identically regardless of flag.
       operations: [
-        { href: '/', label: t`Today`, icon: Calendar1Icon, end: true },
+        { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
         {
           href: '/deadlines',
           label: t`Deadlines`,
