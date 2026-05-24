@@ -2436,7 +2436,16 @@ export function ObligationQueueRoute() {
                 - Rows: h-9, py-2, text-xs.
                 Long client names + tax codes still wrap so the queue
                 fits inside the page cap without horizontal scroll. */}
-              <Table className="[&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
+              {/* 2026-05-25 (Yuqi Deadlines #3, #4, #5): table
+                  size + chrome bumped. Wrapper picks up
+                  `rounded-md border` so the table reads as a
+                  framed surface (was edge-to-edge). Body rows
+                  go py-2.5 (was py-2) and pick up text-sm
+                  (was text-xs) at the cell level so client +
+                  deadline content reads at body type instead of
+                  caption-tier. Per-column `headerClassName` is
+                  preserved by the `meta` plumbing below. */}
+              <Table className="overflow-hidden rounded-md border border-divider-regular [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -2466,7 +2475,7 @@ export function ObligationQueueRoute() {
                   within-group rows below welds same-client rows into
                   one visual block — group boundary lines stay so the
                   eye can find them. */}
-                <TableBody className="[&_td]:py-2 [&_td]:text-xs">
+                <TableBody className="[&_td]:py-2.5 [&_td]:text-sm">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -3932,7 +3941,12 @@ export function ObligationQueueDetailDrawer({
             line 3: TY year · jurisdiction (compact secondary meta)
           Internal/statutory deadlines moved into a dedicated 3-col
           strip below the header (was: duplicated in dates panel). */}
-      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-5 py-4">
+      {/* 2026-05-25 (Yuqi Deadlines #17): drawer header had py-4
+          (16px top + bottom), which made the title sit lower than
+          the page top — wasted real estate at the top of the
+          drawer. Reduced to py-3 (12px) so the form-code h2 reads
+          right at the top edge. */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-5 py-3">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -6447,9 +6461,15 @@ function PathToFilingSummary({
                   )}
                 />
               </div>
+              {/* 2026-05-25 (Yuqi Deadlines #22): stage label
+                  dropped from text-caption (11px) to text-caption-xs
+                  (10px) to match the date below — the two sat at
+                  different scales and made the column feel
+                  unbalanced. Active state keeps font-medium for
+                  weight contrast. */}
               <span
                 className={cn(
-                  'mt-0.5 text-center text-caption leading-tight',
+                  'mt-0.5 text-center text-caption-xs leading-tight',
                   state === 'active'
                     ? 'font-medium text-text-primary'
                     : state === 'done'
@@ -6487,7 +6507,12 @@ function PathToFilingSummary({
                       is past internal due) and "Expected" (tertiary,
                       when projecting the Filed milestone forward)
                       still render. */}
-              <div className="mt-1.5 flex w-full flex-col items-center gap-0.5">
+              {/* 2026-05-25 (Yuqi Deadlines #26): mt-1.5 (6px) gap
+                  between the stage label and the date block read
+                  as too loose — the date felt unrelated to the
+                  stage above it. Tightened to mt-1 (4px) so the
+                  pair reads as one unit. */}
+              <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
                   className={cn(
                     'text-center text-caption-xs tabular-nums leading-tight',
