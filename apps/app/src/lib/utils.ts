@@ -107,3 +107,47 @@ export function formatDateTimeWithTimezone(value: string, timeZone: string): str
   const zoneName = readPart(parts, 'timeZoneName') || timeZone
   return `${readPart(parts, 'year')}-${readPart(parts, 'month')}-${readPart(parts, 'day')} ${readPart(parts, 'hour')}:${readPart(parts, 'minute')}:${readPart(parts, 'second')} ${zoneName}`
 }
+
+// 2026-05-24 (critique P2 — clarify): the ISO `2026-05-01 02:50:00
+// PDT` shape `formatDateTimeWithTimezone` returns is the right
+// answer for audit-log rows (where precision is the value) but the
+// wrong answer for inbox + members LAST_ACTIVE surfaces (where a
+// CPA scans for recency, not exact second). This helper returns a
+// scannable "2 days ago" / "3h ago" / "just now" string. Callers
+// pair it with the absolute string on hover via the `title` attr so
+// no precision is lost — see `<RelativeTime>` below for the
+// canonical pattern.
+//
+// Buckets, in order of dominance:
+//   < 45s            → "just now"
+//   < 60min          → "Nm ago" / "in Nm"
+//   < 24h            → "Nh ago" / "in Nh"
+//   < 7d             → "Nd ago" / "in Nd"
+//   < 30d            → "Nw ago" / "in Nw"
+//   < 365d           → "Nmo ago" / "in Nmo"
+//   otherwise        → "Ny ago" / "in Ny"
+const MS_PER_MINUTE = 60_000
+const MS_PER_HOUR = 60 * MS_PER_MINUTE
+const MS_PER_DAY = 24 * MS_PER_HOUR
+const MS_PER_WEEK = 7 * MS_PER_DAY
+const MS_PER_MONTH = 30 * MS_PER_DAY
+const MS_PER_YEAR = 365 * MS_PER_DAY
+
+export function formatRelativeTime(value: string, now: Date = new Date()): string {
+  const date = new Date(value)
+  if (!Number.isFinite(date.getTime())) return ''
+  const diffMs = now.getTime() - date.getTime()
+  const past = diffMs >= 0
+  const abs = Math.abs(diffMs)
+
+  if (abs < 45_000) return 'just now'
+
+  const ago = (n: number, unit: string): string => (past ? `${n}${unit} ago` : `in ${n}${unit}`)
+
+  if (abs < MS_PER_HOUR) return ago(Math.round(abs / MS_PER_MINUTE), 'm')
+  if (abs < MS_PER_DAY) return ago(Math.round(abs / MS_PER_HOUR), 'h')
+  if (abs < MS_PER_WEEK) return ago(Math.round(abs / MS_PER_DAY), 'd')
+  if (abs < MS_PER_MONTH) return ago(Math.round(abs / MS_PER_WEEK), 'w')
+  if (abs < MS_PER_YEAR) return ago(Math.round(abs / MS_PER_MONTH), 'mo')
+  return ago(Math.round(abs / MS_PER_YEAR), 'y')
+}

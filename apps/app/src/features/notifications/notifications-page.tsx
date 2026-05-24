@@ -13,7 +13,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { RelativeTime } from '@/components/primitives/relative-time'
 
 function notificationTypeLabel(type: NotificationType): React.ReactNode {
   if (type === 'deadline_reminder') return <Trans>Deadline reminder</Trans>
@@ -106,9 +106,15 @@ export function NotificationsPage() {
                   <h2 className="truncate text-sm font-semibold text-text-primary">{item.title}</h2>
                   <p className="text-sm text-text-secondary">{item.body}</p>
                 </div>
-                <span className="shrink-0 text-xs tabular-nums text-text-tertiary">
-                  {formatDateTimeWithTimezone(item.createdAt, practiceTimezone)}
-                </span>
+                {/* 2026-05-24 (critique P2 — clarify): scannable
+                    relative time ("2d ago") so the CPA can sweep the
+                    list without parsing ISO. Absolute timestamp
+                    `2026-05-01 02:50:00 PDT` lives on the tooltip. */}
+                <RelativeTime
+                  value={item.createdAt}
+                  timeZone={practiceTimezone}
+                  className="shrink-0 text-xs text-text-tertiary"
+                />
               </div>
               <div className="flex items-center justify-between gap-2">
                 {/* 2026-05-24 (critique P2 — typeset): notification

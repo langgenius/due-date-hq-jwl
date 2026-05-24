@@ -71,10 +71,10 @@ import {
 } from '@/components/patterns/keyboard-shell/hooks'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
+import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
 import {
   formatInvitationDate,
-  formatMemberDate,
   invitationDescription,
   inviterName,
   isManagedRole,
@@ -531,10 +531,16 @@ function ActiveMembersTable({
                 <TableCell className="py-1.5">
                   <MemberStatusPill status={member.status} />
                 </TableCell>
-                <TableCell className="py-1.5 font-mono text-xs whitespace-nowrap text-text-muted">
-                  {formatMemberDate(member.createdAt, firmTimezone)}
+                {/* 2026-05-24 (critique P2 — clarify): JOINED used
+                    to read `2026-05-01 01:10:00 PDT` — engineering-
+                    precise but unparseable at a glance. Use relative
+                    time ("3 weeks ago"); exact value lives on the
+                    tooltip via <RelativeTime>. Drop font-mono — this
+                    column reads as recency, not as data. */}
+                <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-muted">
+                  <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
                 </TableCell>
-                <TableCell className="py-1.5 font-mono text-xs text-text-muted">
+                <TableCell className="py-1.5 text-xs text-text-muted">
                   <Trans>Not recorded</Trans>
                 </TableCell>
                 <TableCell className="py-1.5 pr-2">
