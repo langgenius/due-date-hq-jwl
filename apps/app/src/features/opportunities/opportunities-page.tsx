@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner'
 
 import type { OpportunityDismissalRow, OpportunityPublic } from '@duedatehq/contracts'
+import { formatDatePretty } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -248,10 +249,14 @@ function humanizeOpportunityKey(key: string): string {
   return rest.length === 0 ? lead : `${lead} ${rest.join('-')}`
 }
 
+// 2026-05-24 (re-critique): the previous shape rendered a sterile
+// `2026-06-07` ISO date, which read out of place next to the rest
+// of the app's pretty-printed dates. `formatDatePretty` already
+// scopes by the user's locale and drops the year when it matches
+// the current one — "Jun 7" / "Jun 7, 2027" reads faster than
+// the raw ISO did.
 function formatDismissalDate(iso: string): string {
-  const date = new Date(iso)
-  if (!Number.isFinite(date.getTime())) return iso
-  return date.toISOString().slice(0, 10)
+  return formatDatePretty(iso)
 }
 
 function SummaryCard({ label, value }: { label: ReactNode; value: number | undefined }) {

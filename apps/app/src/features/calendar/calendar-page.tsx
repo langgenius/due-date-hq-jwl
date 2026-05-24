@@ -449,11 +449,21 @@ function CalendarSubscriptionCard({
               </div>
             ) : null}
 
+            {/* 2026-05-24 (re-critique): the metadata strip used to
+                always show "Privacy mode: Redacted client names" even
+                when no subscription existed, which implied a privacy
+                mode WAS set on a feed that didn't yet exist. Now the
+                privacy row only renders when a subscription is on
+                file. Created / Last accessed stay always-visible —
+                "Not enabled" / "Never" carry the right signal for
+                them. */}
             <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
-              <MetadataRow
-                label={t`Privacy mode`}
-                value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
-              />
+              {subscription ? (
+                <MetadataRow
+                  label={t`Privacy mode`}
+                  value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
+                />
+              ) : null}
               <MetadataRow
                 label={t`Created`}
                 value={

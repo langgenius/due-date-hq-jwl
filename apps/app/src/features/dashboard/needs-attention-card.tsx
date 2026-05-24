@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, ArrowRightIcon, ChevronRightIcon } from 'lucide-react'
 
@@ -136,12 +137,23 @@ function NeedsAttentionCard({
 // copy with an arrow. Still tappable, still keyboard-focusable,
 // but visually signals "navigation" not "content."
 function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: () => void }) {
-  const { t } = useLingui()
+  const { i18n } = useLingui()
+  // 2026-05-24 (re-critique): the aria-label used to concat
+  // `${count === 1 ? '' : 's'}` inline, which doesn't survive non-
+  // English plurals (many locales need wholly different forms,
+  // not just an `s` suffix). Route through `i18n._(plural(...))` so
+  // Lingui's extractor catches every plural variant.
+  const ariaLabel = i18n._(
+    plural(count, {
+      one: 'View # more Pulse alert',
+      other: 'View # more Pulse alerts',
+    }),
+  )
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={t`View ${count} more Pulse alert${count === 1 ? '' : 's'}`}
+      aria-label={ariaLabel}
       className="flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md border border-divider-subtle px-4 text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
     >
       <span className="inline-flex items-center gap-1 text-sm font-medium">

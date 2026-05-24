@@ -148,7 +148,7 @@ export function MembersPageRoute() {
 }
 
 function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTimezone: string }) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const [inviteOpen, setInviteOpen] = useState(false)
   const [pendingRemoval, setPendingRemoval] = useState<MemberActionTarget | null>(null)
@@ -172,6 +172,12 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     invitationId: string
     inviteeLabel: string
   } | null>(null)
+  // 2026-05-24 (re-critique): suspend is reversible (Reactivate is
+  // right next to it in the menu) but the suspended member is
+  // silently locked out until they hit the login screen and see an
+  // error — wrong-person suspends turn into Saturday-morning panic
+  // calls. Reactivate stays direct (additive, no harm).
+  const [pendingSuspend, setPendingSuspend] = useState<MemberPublic | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   const inviteShortcutLabel = formatShortcutForDisplay(INVITE_MEMBER_HOTKEY)
   const activeMembers = data.members.filter((member) => member.status === 'active')
@@ -337,7 +343,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             }
             updateRoleMutation.mutate({ memberId, role })
           }}
-          onSuspend={(member) => suspendMutation.mutate({ memberId: member.id })}
+          onSuspend={(member) => setPendingSuspend(member)}
           onReactivate={(member) => reactivateMutation.mutate({ memberId: member.id })}
           onRemove={setPendingRemoval}
           busy={
@@ -454,25 +460,32 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {pendingRoleChange ? (
-            <DestructiveChangePreview
-              title={<Trans>This downgrade commits the following changes</Trans>}
-              lines={[
-                {
-                  tone: 'remove',
-                  label: <Trans>Removes</Trans>,
-                  detail: roleDowngradeImpact(pendingRoleChange.fromRole, pendingRoleChange.toRole)
-                    .removes,
-                },
-                {
-                  tone: 'keep',
-                  label: <Trans>Keeps</Trans>,
-                  detail: roleDowngradeImpact(pendingRoleChange.fromRole, pendingRoleChange.toRole)
-                    .keeps,
-                },
-              ]}
-            />
-          ) : null}
+          {pendingRoleChange
+            ? (() => {
+                const impact = roleDowngradeImpact(
+                  pendingRoleChange.fromRole,
+                  pendingRoleChange.toRole,
+                  i18n,
+                )
+                return (
+                  <DestructiveChangePreview
+                    title={<Trans>This downgrade commits the following changes</Trans>}
+                    lines={[
+                      {
+                        tone: 'remove',
+                        label: <Trans>Removes</Trans>,
+                        detail: impact.removes,
+                      },
+                      {
+                        tone: 'keep',
+                        label: <Trans>Keeps</Trans>,
+                        detail: impact.keeps,
+                      },
+                    ]}
+                  />
+                )
+              })()
+            : null}
           <AlertDialogFooter>
             <AlertDialogCancel>
               <Trans>Cancel</Trans>
@@ -490,6 +503,52 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               }}
             >
               <Trans>Downgrade role</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (re-critique): suspend-access confirm. Reactivate
+          is right next to it in the dropdown so the action is fully
+          reversible, but the suspended member learns about it from
+          a confusing login error — naming them in the dialog forces
+          the admin to check the right row. */}
+      <AlertDialog
+        open={pendingSuspend !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingSuspend(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Suspend access?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingSuspend
+                ? t`${pendingSuspend.name} will lose login access immediately. Their assignments and audit history stay intact — Reactivate access from this menu brings them back.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={suspendMutation.isPending || !pendingSuspend}
+              onClick={() => {
+                if (pendingSuspend) {
+                  suspendMutation.mutate(
+                    { memberId: pendingSuspend.id },
+                    {
+                      onSettled: () => setPendingSuspend(null),
+                    },
+                  )
+                }
+              }}
+            >
+              <Trans>Suspend access</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

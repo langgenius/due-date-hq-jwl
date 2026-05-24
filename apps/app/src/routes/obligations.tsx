@@ -3027,6 +3027,14 @@ const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'completed',
 ])
 
+// 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
+// ring should be suppressed in the milestone timeline. Lateness on
+// a Filed/Completed row is a quality stat, not an active urgency —
+// the dates panel shows the red Internal due value, that's the
+// surface for "was this filed on time?". Hoisted from inside
+// `PathToFilingSummary` so we don't allocate the Set every render.
+const TIMELINE_TERMINAL_STAGE_KEYS: ReadonlySet<string> = new Set(['done', 'completed'])
+
 function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
   if (DUE_DAYS_TERMINAL_STATUSES.has(status)) {
     // Quality stat, not active urgency. Skip the dot, drop the
@@ -6187,14 +6195,7 @@ function PathToFilingSummary({
     [t],
   )
   const currentIndex = timelineIndexForStatus(row.status)
-  const stamps = useMemo(
-    () =>
-      mineTimelineTimestamps(
-        auditEvents,
-        stages.map((s) => s.key),
-      ),
-    [auditEvents, stages],
-  )
+  const stamps = useMemo(() => mineTimelineTimestamps(auditEvents), [auditEvents])
   const isPastInternalDue = row.daysUntilDue < 0
   // Filed-stage index — used to project an expected date when Filed
   // is still upcoming (the row's internal deadline IS the expected
@@ -6207,7 +6208,11 @@ function PathToFilingSummary({
   // red ring on the same lifecycle moment). Lateness is still
   // visible in the dates panel via the red `Internal due` value;
   // that's the right surface for "was this filed on time?"
-  const TERMINAL_STAGE_KEYS: ReadonlySet<string> = new Set(['done', 'completed'])
+  //
+  // 2026-05-24 (re-critique): hoisted `TIMELINE_TERMINAL_STAGE_KEYS`
+  // to module scope (alongside DUE_DAYS_TERMINAL_STATUSES) — the
+  // previous shape allocated a fresh Set on every render of this
+  // component without need.
   // Sub-status annotation for the ACTIVE stage. Derived from existing
   // schema fields — no migration needed:
   //   waiting_on_client → row.prepStage (waiting_on_client /
@@ -6272,7 +6277,7 @@ function PathToFilingSummary({
             isExpected = true
           }
           const overdueActive =
-            state === 'active' && isPastInternalDue && !TERMINAL_STAGE_KEYS.has(stage.key)
+            state === 'active' && isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stage.key)
           return (
             <div key={stage.key} className="flex flex-col items-center gap-0.5">
               {/* 2026-05-24 (Figma replica pass): milestone strip
@@ -8052,16 +8057,25 @@ function timelineIndexForStatus(status: string): number {
   }
 }
 
+// Number of distinct stages in the milestone timeline — pending,
+// waiting_on_client, blocked, review, done, completed. Used to size
+// the result array of `mineTimelineTimestamps` so the indices line up
+// with `timelineIndexForStatus`.
+const TIMELINE_STAGE_COUNT = 6
+
 // Earliest audit-event timestamp per timeline stage. The lifecycle is
 // not strictly linear (a row can ping-pong between waiting_on_client
 // and blocked, or come back to in_review after a rejection), so we
 // stamp each stage at its FIRST entry rather than the latest.
-function mineTimelineTimestamps(
-  auditEvents: readonly AuditEventPublic[],
-  stageKeys: readonly ObligationStatus[],
-): (string | null)[] {
+//
+// 2026-05-24 (re-critique): the previous shape took a `stageKeys`
+// param that looked like it controlled matching, but actually only
+// sized the array — matching was driven by `timelineIndexForStatus`.
+// Dropped the misleading argument; the array length is now an
+// explicit module constant aligned with the index function above.
+function mineTimelineTimestamps(auditEvents: readonly AuditEventPublic[]): (string | null)[] {
   const sorted = [...auditEvents].toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
-  const stamps: (string | null)[] = stageKeys.map(() => null)
+  const stamps: (string | null)[] = Array.from({ length: TIMELINE_STAGE_COUNT }, () => null)
   for (const event of sorted) {
     if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
     const afterStatus = (event.afterJson as { status?: unknown }).status

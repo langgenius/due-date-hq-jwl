@@ -1,3 +1,6 @@
+import type { I18n } from '@lingui/core'
+import { msg } from '@lingui/core/macro'
+
 import type { MemberInvitationPublic, MemberManagedRole, MemberPublic } from '@duedatehq/contracts'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 
@@ -44,40 +47,51 @@ export function isRoleDowngrade(from: MemberPublic['role'], to: MemberManagedRol
 // Per-target downgrade explainer. Caller pairs this with a
 // DestructiveChangePreview so the confirm dialog reads as concrete
 // "X loses Y" rather than a generic "are you sure".
+//
+// 2026-05-24 (re-critique): the previous shape returned hardcoded
+// English strings, bypassing Lingui — the dialog headline + cancel
+// CTA translated, the impact lines didn't. The function now takes
+// an `i18n` instance and uses `msg` macros so the catalog extractor
+// finds every variant. Caller is `members-page.tsx` which gets
+// `i18n` via `useLingui()`.
 export function roleDowngradeImpact(
   from: MemberPublic['role'],
   to: MemberManagedRole,
+  i18n: I18n,
 ): { removes: string; keeps: string } {
   const losesSignOff = ROLE_PRIVILEGE_RANK[from] >= 60 && ROLE_PRIVILEGE_RANK[to] < 60
   const losesMemberAdmin = ROLE_PRIVILEGE_RANK[from] >= 80 && ROLE_PRIVILEGE_RANK[to] < 80
   const losesPartial = !losesSignOff && !losesMemberAdmin
   if (losesMemberAdmin && losesSignOff) {
     return {
-      removes: 'Member admin, billing access, and review sign-off',
-      keeps: 'Client assignments and existing work',
+      removes: i18n._(msg`Member admin, billing access, and review sign-off`),
+      keeps: i18n._(msg`Client assignments and existing work`),
     }
   }
   if (losesMemberAdmin) {
     return {
-      removes: 'Member admin and billing access',
-      keeps: 'Review sign-off and client assignments',
+      removes: i18n._(msg`Member admin and billing access`),
+      keeps: i18n._(msg`Review sign-off and client assignments`),
     }
   }
   if (losesSignOff) {
     return {
-      removes: 'Review sign-off authority',
-      keeps: 'Client assignments and existing work',
+      removes: i18n._(msg`Review sign-off authority`),
+      keeps: i18n._(msg`Client assignments and existing work`),
     }
   }
   if (losesPartial) {
     return {
-      removes: 'Access to elevated workflow scopes',
-      keeps: 'Day-to-day client work',
+      removes: i18n._(msg`Access to elevated workflow scopes`),
+      keeps: i18n._(msg`Day-to-day client work`),
     }
   }
   // Defensive fallback — never expected to render since callers
   // only invoke this when `isRoleDowngrade` returned true.
-  return { removes: 'Elevated access', keeps: 'Existing client work' }
+  return {
+    removes: i18n._(msg`Elevated access`),
+    keeps: i18n._(msg`Existing client work`),
+  }
 }
 
 export function invitationDescription(invitation: MemberInvitationPublic): string {
