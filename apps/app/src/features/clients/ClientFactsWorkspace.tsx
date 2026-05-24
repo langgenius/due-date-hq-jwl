@@ -2818,11 +2818,20 @@ function FilingPlanYearSection({
           </span>
         ) : null}
         {group.openCount > 0 ? (
+          // 2026-05-24 (design-system audit): the current-year pill used
+          // a raw `bg-[var(--color-util-colors-blue-100,#dbeafe)]` arbitrary
+          // value with a hex fallback — bypassing the design tokens. The
+          // `components-badge-bg-blue-soft` + `text-text-accent` pair is
+          // the same color treatment the Badge `info` variant uses;
+          // routing through it means a theme-level blue change updates
+          // here too. Square-corner shape preserved (Badge defaults to
+          // fully rounded, this stays a soft-corner tag for visual
+          // distinction from the filing-plan row pills above).
           <span
             className={cn(
               'inline-flex items-center rounded px-2 py-0.5 text-xs leading-4',
               group.isCurrent
-                ? 'bg-[var(--color-util-colors-blue-100,#dbeafe)] text-[var(--color-util-colors-blue-700,#1447e6)]'
+                ? 'bg-components-badge-bg-blue-soft text-text-accent'
                 : 'bg-background-default text-text-tertiary',
             )}
           >

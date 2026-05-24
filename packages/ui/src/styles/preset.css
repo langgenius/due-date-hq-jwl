@@ -27,6 +27,25 @@
  * automatically.
  * -------------------------------------------------------------------------- */
 @theme inline {
+  /* -----------------------------------------------------------------
+   * Page content width caps. 2026-05-24 (design-system audit): these
+   * used to be inlined as `max-w-[1100px]` / `max-w-[920px]` /
+   * `max-w-[880px]` across 14 route + page components. Centralizing
+   * them here means a single change updates every page container at
+   * once; the call sites read `max-w-page-wide` / `max-w-page-medium`
+   * / `max-w-page-narrow` instead of magic pixel values.
+   *
+   *   wide   → content-heavy lists & detail pages (Today, Clients,
+   *            Obligations, Opportunities, Audit, Settings, Dashboard,
+   *            Pulse alerts list).
+   *   medium → form-density pages with side metadata (Account →
+   *            Security).
+   *   narrow → focused single-column settings (Practice profile).
+   * ----------------------------------------------------------------- */
+  --container-page-wide: 1100px;
+  --container-page-medium: 920px;
+  --container-page-narrow: 880px;
+
   /* Text */
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);

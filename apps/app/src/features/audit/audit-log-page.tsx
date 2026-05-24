@@ -555,7 +555,7 @@ export function AuditLogPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-60 w-full rounded-lg" />
       </div>
@@ -581,7 +581,7 @@ export function AuditLogPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
       <PageHeader
         // 2026-05-24 (critique P2 — clarify): dropped the "Settings"
         // breadcrumb. Audit log is a top-level sidebar destination

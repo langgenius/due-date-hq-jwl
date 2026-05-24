@@ -179,7 +179,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       className={
         embedded
           ? 'flex flex-col gap-5'
-          : 'mx-auto flex w-full max-w-[1100px] flex-col gap-5 p-4 md:p-6'
+          : 'mx-auto flex w-full max-w-page-wide flex-col gap-5 p-4 md:p-6'
       }
     >
       {!embedded ? (

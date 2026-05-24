@@ -125,7 +125,7 @@ export function DashboardRoute() {
   const facets = data?.facets
 
   return (
-    <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-8 p-4 md:p-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 p-4 md:p-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
           <Trans>Today</Trans>{' '}

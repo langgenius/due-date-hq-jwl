@@ -178,7 +178,7 @@ export function AccountSecurityRoute() {
 
   if (statusQuery.isLoading) {
     return (
-      <div className="mx-auto grid w-full max-w-[920px] gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto grid w-full max-w-page-medium gap-4 px-4 py-6 md:px-6">
         <Skeleton className="h-24" />
         <Skeleton className="h-64" />
       </div>
@@ -187,7 +187,7 @@ export function AccountSecurityRoute() {
 
   if (statusQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -203,7 +203,7 @@ export function AccountSecurityRoute() {
   if (!status) return null
 
   return (
-    <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
       <Breadcrumb items={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]} />
       <section className="flex flex-wrap items-start justify-between gap-3">
         <div>
