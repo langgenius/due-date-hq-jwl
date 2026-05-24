@@ -38,6 +38,8 @@ const {
   dashboardAliasLoader,
   guestLoader,
   importsAliasLoader,
+  legacyObligationsAliasLoader,
+  legacyObligationsCalendarAliasLoader,
   migrationActivationLoader,
   onboardingLoader,
   protectedLoader,
@@ -132,7 +134,7 @@ describe('pickSafeRedirect', () => {
 
   it('accepts in-app paths only (must start with single /)', () => {
     expect(pickSafeRedirect('/dashboard')).toBe('/dashboard')
-    expect(pickSafeRedirect('/obligations?scope=me')).toBe('/obligations?scope=me')
+    expect(pickSafeRedirect('/deadlines?scope=me')).toBe('/deadlines?scope=me')
   })
 
   it('honours a custom fallback', () => {
@@ -175,10 +177,32 @@ describe('importsAliasLoader', () => {
 })
 
 describe('calendarAliasLoader', () => {
-  it('redirects /calendar to the Obligations calendar sync page', async () => {
+  it('redirects /calendar to the Deadlines calendar sync page', async () => {
     await expectRedirectTo(
-      Promise.resolve().then(() => calendarAliasLoader()),
-      '/obligations/calendar',
+      Promise.resolve().then(() => calendarAliasLoader(makeArgs('http://localhost/calendar'))),
+      '/deadlines/calendar',
+    )
+  })
+})
+
+describe('legacy obligations alias loaders', () => {
+  it('redirects /obligations to the Deadlines page while preserving query', async () => {
+    await expectRedirectTo(
+      Promise.resolve().then(() =>
+        legacyObligationsAliasLoader(makeArgs('http://localhost/obligations?status=review')),
+      ),
+      '/deadlines?status=review',
+    )
+  })
+
+  it('redirects /obligations/calendar to the Deadlines calendar sync page', async () => {
+    await expectRedirectTo(
+      Promise.resolve().then(() =>
+        legacyObligationsCalendarAliasLoader(
+          makeArgs('http://localhost/obligations/calendar?scope=mine'),
+        ),
+      ),
+      '/deadlines/calendar?scope=mine',
     )
   })
 })
@@ -212,16 +236,16 @@ describe('protectedLoader', () => {
   it('redirects to /login with redirectTo when no session', async () => {
     getSession.mockResolvedValueOnce({ data: null })
     await expectRedirectTo(
-      protectedLoader(makeArgs('http://localhost/obligations?scope=me')),
-      '/login?redirectTo=%2Fobligations%3Fscope%3Dme',
+      protectedLoader(makeArgs('http://localhost/deadlines?scope=me')),
+      '/login?redirectTo=%2Fdeadlines%3Fscope%3Dme',
     )
   })
 
   it('consumes and drops a valid locale handoff when redirecting unauthenticated users', async () => {
     getSession.mockResolvedValueOnce({ data: null })
     await expectRedirectTo(
-      protectedLoader(makeArgs('http://localhost/obligations?scope=me&lng=zh-CN')),
-      '/login?redirectTo=%2Fobligations%3Fscope%3Dme',
+      protectedLoader(makeArgs('http://localhost/deadlines?scope=me&lng=zh-CN')),
+      '/login?redirectTo=%2Fdeadlines%3Fscope%3Dme',
     )
     expect(window.localStorage.getItem('lng')).toBe('zh-CN')
     expect(currentLocale()).toBe('zh-CN')
@@ -258,8 +282,8 @@ describe('protectedLoader', () => {
       data: makeSession('firm_1', { twoFactorEnabled: true, twoFactorVerified: false }),
     })
     await expectRedirectTo(
-      protectedLoader(makeArgs('http://localhost/obligations?scope=me')),
-      '/two-factor?redirectTo=%2Fobligations%3Fscope%3Dme',
+      protectedLoader(makeArgs('http://localhost/deadlines?scope=me')),
+      '/two-factor?redirectTo=%2Fdeadlines%3Fscope%3Dme',
     )
   })
 
@@ -315,8 +339,8 @@ describe('onboardingLoader', () => {
   it('redirects to redirectTo (or /) when an active practice already exists', async () => {
     getSession.mockResolvedValueOnce({ data: makeSession('firm_1') })
     await expectRedirectTo(
-      onboardingLoader(makeArgs('http://localhost/onboarding?redirectTo=/obligations')),
-      '/obligations',
+      onboardingLoader(makeArgs('http://localhost/onboarding?redirectTo=/deadlines')),
+      '/deadlines',
     )
 
     getSession.mockResolvedValueOnce({ data: makeSession('firm_1') })
@@ -381,8 +405,8 @@ describe('twoFactorLoader', () => {
       data: makeSession('firm_1', { twoFactorEnabled: true, twoFactorVerified: true }),
     })
     await expectRedirectTo(
-      twoFactorLoader(makeArgs('http://localhost/two-factor?redirectTo=/obligations')),
-      '/obligations',
+      twoFactorLoader(makeArgs('http://localhost/two-factor?redirectTo=/deadlines')),
+      '/deadlines',
     )
   })
 
@@ -558,8 +582,8 @@ describe('guestLoader', () => {
       data: makeSession('firm_1', { twoFactorEnabled: true, twoFactorVerified: false }),
     })
     await expectRedirectTo(
-      guestLoader(makeArgs('http://localhost/login?redirectTo=/obligations')),
-      '/two-factor?redirectTo=%2Fobligations',
+      guestLoader(makeArgs('http://localhost/login?redirectTo=/deadlines')),
+      '/two-factor?redirectTo=%2Fdeadlines',
     )
   })
 

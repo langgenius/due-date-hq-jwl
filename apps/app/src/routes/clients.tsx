@@ -12,6 +12,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
+import { clientDetailPath } from '@/features/clients/client-url'
 import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitButton'
 import {
   buildClientObligationListSummaries,
@@ -194,7 +195,7 @@ export function ClientsRoute() {
       onSuccess: (client) => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         toast.success(t`Client created`, { description: client.name })
-        void navigate(`/clients/${client.id}`)
+        void navigate(clientDetailPath(client))
       },
       onError: (err) => {
         toast.error(t`Couldn't create client`, {
@@ -281,10 +282,11 @@ export function ClientsRoute() {
 
   const handleViewImportedClient = useCallback(
     (clientId: string) => {
+      const client = clients.find((candidate) => candidate.id === clientId)
       void setClientsQuery({ importHistory: null })
-      void navigate(`/clients/${clientId}`)
+      void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
     },
-    [navigate, setClientsQuery],
+    [clients, navigate, setClientsQuery],
   )
 
   const handleCreateClient = useCallback(

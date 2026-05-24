@@ -24,14 +24,14 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
  * **The panel is always rendered in-route, never as a floating Sheet.**
  * Two route categories exist:
  *
- * 1. **Workspaces** (`/obligations`, `/clients/...`) — these own a
+ * 1. **Workspaces** (`/deadlines`, `/clients/...`) — these own a
  *    panel mount inline in their layout. `openDrawer(id)` sets local
  *    state; the route reads `obligationId` + `activeTab` from this
  *    context and renders `<ObligationQueueDetailDrawer mode="panel" />`
  *    in its own column.
  * 2. **Pickers** (dashboard, anywhere else) — these surface
  *    obligations to triage but aren't the place to act on them.
- *    `openDrawer(id)` navigates to `/obligations?id=…&drawer=obligation`
+ *    `openDrawer(id)` navigates to `/deadlines?id=…&drawer=obligation`
  *    so the obligation opens in the canonical queue workspace with
  *    the right panel showing.
  *
@@ -44,7 +44,7 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
  * `/clients/[id]`, the K-1 blocked-by picker has no
  * `blockerCandidates` and the `onNeedsInput` penalty dialog is a
  * no-op (the dialog lives on the queue route). Users hitting those
- * features can navigate to `/obligations` via the panel's own UI.
+ * features can navigate to `/deadlines` via the panel's own UI.
  */
 export function ObligationDrawerProvider({ children }: { children: ReactNode }) {
   const location = useLocation()
@@ -62,10 +62,10 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
   // obligations* (the queue, a client's filing plan) own the panel
   // inline. Routes that are *pickers* (the dashboard — surface what
   // to act on, then send the user to the workspace) navigate to
-  // `/obligations?id=…` instead. The destination for obligation
-  // viewing is always `/obligations` with the right panel showing;
+  // `/deadlines?id=…` instead. The destination for obligation
+  // viewing is always `/deadlines` with the right panel showing;
   // the queue is the canonical workspace.
-  const isQueueRoute = location.pathname === '/obligations'
+  const isQueueRoute = location.pathname === '/deadlines'
   const isClientDetailRoute = location.pathname.startsWith('/clients/')
   const routeOwnsPanel = isQueueRoute || isClientDetailRoute
 
@@ -78,7 +78,7 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
           id: obligationId,
           drawer: 'obligation',
         })
-        void navigate(`/obligations?${params.toString()}`)
+        void navigate(`/deadlines?${params.toString()}`)
         return
       }
       if (routeOwnsPanel) {
@@ -97,7 +97,7 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
         id: obligationId,
         drawer: 'obligation',
       })
-      void navigate(`/obligations?${params.toString()}`)
+      void navigate(`/deadlines?${params.toString()}`)
     },
     [isQueueRoute, navigate, routeOwnsPanel],
   )
@@ -119,7 +119,7 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
 
   // No Sheet fallback. Every consumer either renders its own panel
   // inline (queue, client detail, dashboard) or — for off-route
-  // openers — gets navigated to `/obligations`. The provider is now
+  // openers — gets navigated to `/deadlines`. The provider is now
   // a pure state holder + navigator. Removing the Sheet kills the
   // last "obligation appears as a modal overlay" code path.
   return (

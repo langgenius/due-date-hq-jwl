@@ -10,7 +10,7 @@
 
 Yuqi flagged it directly: _"Current client design is far from [Obligations and Rule Library]. Don't be lazy. Please condense the Obligation and Rule Library design styles, unify them and ensure consistency, and then make client view in their style as well."_
 
-Obligations queue (`/obligations`) and Rule Library V3 (`/rules/library`) were built within ~10 days of each other and share most patterns — but not all. Clients list (`/clients`) and Client detail (`/clients/:id`) were the FIRST big surfaces built in this app and are visibly an older generation. The work below has two phases:
+Deadlines queue (`/deadlines`) and Rule Library V3 (`/rules/library`) were built within ~10 days of each other and share most patterns — but not all. Clients list (`/clients`) and Client detail (`/clients/:id`) were the FIRST big surfaces built in this app and are visibly an older generation. The work below has two phases:
 
 1. **Condense** the agreed patterns from Obligations + Rules into a single named vocabulary.
 2. **Apply** that vocabulary to Clients list + Client detail, with explicit deviations only where a different IA need (detail vs. queue) requires them.
@@ -48,7 +48,7 @@ Three of the four surfaces already render something here; the shapes diverged. T
 
 | Surface          | Strip contents                                                                                                                                                                   |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/obligations`   | `Queue · N due this week · N waiting on client · N blocked · N filed this month` — replaces the current scope-tab row, OR sits ABOVE the scope tabs (TBD by paint test).         |
+| `/deadlines`     | `Queue · N due this week · N waiting on client · N blocked · N filed this month` — replaces the current scope-tab row, OR sits ABOVE the scope tabs (TBD by paint test).         |
 | `/rules/library` | `Coverage · N active · N needs review · N jurisdictions with gaps` (this is already there from V3 — keep, just rename component to the shared one).                              |
 | `/clients`       | `Clients · N at risk · N waiting on client · N with Pulse hits · N missing facts` — replaces `ClientsActionStrip` tile grid.                                                     |
 | `/clients/:id`   | Still uses `ClientSummaryStrip` (a different shape, per-obligation) for the in-detail roll-up — that one is the right design for detail mode. Confirm by visual review tomorrow. |
@@ -69,19 +69,19 @@ Three of the four surfaces already render something here; the shapes diverged. T
 
 ### V6. Table style
 
-| Property               | Rule                                                                                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Wrapper                | No `<Card>`. Naked `<Table>` directly in the page flex column.                                                                            |
-| Header background      | `bg-background-subtle`                                                                                                                    |
-| Header typography      | `text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary`                                                                      |
-| Header cell padding    | `!px-2` (overrides default to tighten)                                                                                                    |
-| Header sort affordance | `aria-sort` + a small chevron when active                                                                                                 |
-| Row height             | `h-9` (compact) by default. Density toggle on `/obligations` lets users opt into `h-12` (comfortable). The other two surfaces stay `h-9`. |
-| Row cell padding       | `!px-2 !py-2 !align-middle`                                                                                                               |
-| Row hover              | `hover:bg-state-base-hover`                                                                                                               |
-| Row click              | Whole row clickable when an obligation/rule/client opens a detail. Stop propagation on interactive cells (buttons, checkboxes, links).    |
-| Borders                | Bottom border between rows only. No outer table border.                                                                                   |
-| Long content           | `whitespace-normal` + `break-words` so client names and form codes can wrap rather than horizontal-scroll.                                |
+| Property               | Rule                                                                                                                                    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrapper                | No `<Card>`. Naked `<Table>` directly in the page flex column.                                                                          |
+| Header background      | `bg-background-subtle`                                                                                                                  |
+| Header typography      | `text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary`                                                                    |
+| Header cell padding    | `!px-2` (overrides default to tighten)                                                                                                  |
+| Header sort affordance | `aria-sort` + a small chevron when active                                                                                               |
+| Row height             | `h-9` (compact) by default. Density toggle on `/deadlines` lets users opt into `h-12` (comfortable). The other two surfaces stay `h-9`. |
+| Row cell padding       | `!px-2 !py-2 !align-middle`                                                                                                             |
+| Row hover              | `hover:bg-state-base-hover`                                                                                                             |
+| Row click              | Whole row clickable when an obligation/rule/client opens a detail. Stop propagation on interactive cells (buttons, checkboxes, links).  |
+| Borders                | Bottom border between rows only. No outer table border.                                                                                 |
+| Long content           | `whitespace-normal` + `break-words` so client names and form codes can wrap rather than horizontal-scroll.                              |
 
 ### V7. Status indicator
 
@@ -94,11 +94,11 @@ Three of the four surfaces already render something here; the shapes diverged. T
 - **Floating bottom-anchored** when ≥1 row selected. `fixed bottom-10 left-1/2 -translate-x-1/2 z-40`. Same shape on Obligations and Rules.
 - **One primary CTA** (e.g. "Review N obligations →") + secondary actions behind a `…` kebab (assign, status, export, clear).
 - **Already specced separately** in the Panel V2 plan — this section just enforces the visual.
-- **Surfaces this applies to:** `/obligations` (already done), `/rules/library` (already done). Not on `/clients` (read-only list).
+- **Surfaces this applies to:** `/deadlines` (already done), `/rules/library` (already done). Not on `/clients` (read-only list).
 
 ### V9. Detail panel mount
 
-- **Right-side inline panel** (`xl:w-[480px] xl:shrink-0`) when the route OWNS the panel context. `/obligations` and `/clients/:id` own. Off-route callers (dashboard, client peek) route through `ObligationDrawerProvider` which navigates to the canonical owner.
+- **Right-side inline panel** (`xl:w-[480px] xl:shrink-0`) when the route OWNS the panel context. `/deadlines` and `/clients/:id` own. Off-route callers (dashboard, client peek) route through `ObligationDrawerProvider` which navigates to the canonical owner.
 - **Centered Dialog modal** only for _reference content_ — Rule library's rule-detail modal stays a modal because the user is reading, not working. Workspaces use right-panel; references use modal.
 - **Below `xl` breakpoint:** right-panel collapses to a Sheet (already implemented).
 
@@ -229,7 +229,7 @@ Estimated ~5 hrs spread across the day after the Panel V2 + Alerts day.
 - Visual sweep for `tabular-nums` on count cells (V10)
 - Confirm peek-icon timing matches Obligations (V13)
 
-### Step 4 — Apply to `/obligations` (~45 min)
+### Step 4 — Apply to `/deadlines` (~45 min)
 
 **Decision (2026-05-22): deferred to a follow-up.**
 
@@ -272,7 +272,7 @@ truth on this surface.
 
 ## Part 6 — Open questions / risks
 
-1. **Summary strip vs. scope tabs on `/obligations`** — stacked or replace? Defer to paint-test tomorrow.
+1. **Summary strip vs. scope tabs on `/deadlines`** — stacked or replace? Defer to paint-test tomorrow.
 2. **Where does the Needs-facts banner go on `/clients`?** If we drop the always-on tile, but the banner is only conditional, the user might miss "5 clients are missing facts" until they happen to hit a row. Counterargument: the summary strip already shows `N missing facts` as a clickable filter. That's the discoverability path.
 3. **Client detail Tabs → Sections might break deep-linking.** Audit which `?tab=` URLs exist (in dev-logs, comments, etc.) and add a normalize-and-redirect helper similar to `normalizeRulesLibrarySearch`.
 4. **`_surface-vocabulary/` folder name** — underscore-prefixed says "shared, not feature-owned." Alternative: `features/shared/surface/`. Decision: `_surface-vocabulary` because it's unmistakable in the file tree. Open to renaming.

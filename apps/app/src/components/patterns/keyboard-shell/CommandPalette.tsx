@@ -81,7 +81,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         description: t`Open Deadlines.`,
         group: 'navigate',
         icon: CalendarClockIcon,
-        onSelect: () => navigate('/obligations'),
+        onSelect: () => navigate('/deadlines'),
       },
       {
         id: 'notifications',
@@ -219,7 +219,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         description: t`Manage external deadline calendar feeds.`,
         group: 'actions',
         icon: CalendarDaysIcon,
-        onSelect: () => navigate('/obligations/calendar'),
+        onSelect: () => navigate('/deadlines/calendar'),
       },
       {
         id: 'migration',

@@ -210,8 +210,9 @@ As of 2026-05-20, completed source packs enforced by
 
 The Coverage map itself is read-oriented. In `/rules/library`, opening
 `Review pending rules` turns the same surface into the pending review
-workspace; single-rule accept/reject and selected bulk accept write through
-the existing rules review procedures.
+workspace; single-rule review exposes Accept or Skip only. Accept and
+selected bulk accept write through the existing rules review procedures;
+skipped rules remain inactive and can be reviewed later.
 
 Dependent data:
 

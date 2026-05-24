@@ -16,9 +16,11 @@ const CALENDAR_WEEKDAY_COUNT = 7
 const CALENDAR_WEEKDAY_ANCHOR_UTC = Date.UTC(2026, 0, 4)
 
 interface IsoDatePickerProps {
+  id?: string
   value: string
   invalid?: boolean
   disabled?: boolean
+  className?: string
   displayValue?: string
   ariaLabel?: string
   maxIsoDate?: string
@@ -85,9 +87,11 @@ function appIntlLocale(): string {
 }
 
 export function IsoDatePicker({
+  id,
   value,
   invalid = false,
   disabled = false,
+  className,
   displayValue,
   ariaLabel,
   maxIsoDate,
@@ -158,6 +162,7 @@ export function IsoDatePicker({
       <PopoverTrigger
         render={
           <button
+            id={id}
             type="button"
             aria-label={ariaLabel ?? t`Select date`}
             aria-expanded={open}
@@ -169,6 +174,7 @@ export function IsoDatePicker({
               'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-components-input-bg-normal',
+              className,
             )}
           >
             <span

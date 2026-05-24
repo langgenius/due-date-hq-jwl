@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
+  extractPdfSourceText,
   isUsableConcreteDraftOfficialSourceText,
   normalizeRuleConcreteDraftAiOutput,
   sourceTextContainsExcerpt,
@@ -25,6 +27,25 @@ const ALABAMA_BPT_SOURCE_TEXT = [
 ].join('\n')
 
 describe('rule concrete draft normalization', () => {
+  it('extracts text from PDF source responses', async () => {
+    const pdf = await PDFDocument.create()
+    const page = pdf.addPage([420, 180])
+    const font = await pdf.embedFont(StandardFonts.Helvetica)
+    page.drawText('Connecticut estimated tax payments are due April 15, 2026.', {
+      x: 32,
+      y: 110,
+      size: 12,
+      font,
+    })
+
+    const bytes = await pdf.save()
+    const buffer = new ArrayBuffer(bytes.byteLength)
+    new Uint8Array(buffer).set(bytes)
+    const text = await extractPdfSourceText(buffer)
+
+    expect(text).toContain('Connecticut estimated tax payments are due April 15, 2026.')
+  })
+
   it('keys cached drafts by current rule semantic version', () => {
     expect(
       ruleConcreteDraftContextRef({

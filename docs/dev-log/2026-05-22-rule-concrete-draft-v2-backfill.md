@@ -868,3 +868,64 @@ Result:
 - Missing successful drafts: 0
 - Targets with no attempt: 0
 - Failure buckets: none
+
+## 2026-05-24 CST - Local all-source concrete draft completion
+
+Repaired the local operational backfill path after the Rule Library still showed some
+`AI concrete draft is not ready` rows:
+
+- Extended `scripts/generate-local-concrete-drafts.ts --all` beyond the local-income allowlist so it
+  can target every source-defined rule and skip rules that already have a successful non-retired
+  global concrete draft.
+- Added script-only official source fetch fallback for HTML, text, JSON, and PDF URLs. PDF text uses
+  local `pdfjs-dist` when available, so PDF-only state calendars and instruction booklets can still
+  produce source-backed drafts in the local D1 backfill.
+- Added three repair attempts to the script fallback prompt and tightened JSON instructions for
+  `date`, `monthOffset`, `day`, and period-table output.
+- Completed the local D1 backfill for the 439 source-defined targets. The final missing-only scan
+  returned an empty result set.
+
+Validation:
+
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=3`
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=1`
+- `AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-2.5-flash-lite pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=1`
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=1`
+
+Result:
+
+- Source-defined targets scanned: 439
+- Missing successful drafts after final scan: 0
+- Final scan result payload: `results: []`
+
+## 2026-05-24 CST - Runtime PDF source text extraction
+
+Moved the PDF extraction capability from the local backfill workaround into the server concrete draft
+source builder:
+
+- Added `pdfjs-dist` to the workspace catalog and `@duedatehq/server` dependencies.
+- `buildConcreteDraftSourceText` now requests `application/pdf`, reads PDF responses as
+  `ArrayBuffer`, and extracts page text with the `pdfjs-dist` legacy ESM build before passing source
+  text into AI concrete draft generation.
+- `scripts/generate-local-concrete-drafts.ts` now reuses the same server PDF extraction function so
+  local backfills and runtime generation share behavior.
+
+Validation:
+
+- `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts`
+- `pnpm --filter @duedatehq/server build`
+
+## 2026-05-24 CST - Worker-safe PDF.js startup
+
+Wrangler local dev exposed that the `pdfjs-dist` legacy ESM bundle evaluates `DOMMatrix` during
+module load, while the Cloudflare Workers runtime does not provide that browser API.
+
+- Replaced the top-level `pdfjs-dist` import in the concrete-draft source builder with a lazy loader
+  so normal Worker startup does not evaluate PDF.js.
+- Added a minimal `DOMMatrix` shim only inside the PDF extraction load path. This keeps PDF source
+  extraction available for concrete draft generation without adding a Worker-wide browser runtime
+  dependency.
+
+Validation:
+
+- Not run; change was made directly from the Wrangler startup failure.

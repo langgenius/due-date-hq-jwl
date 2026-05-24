@@ -17,6 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 
+import { clientDetailPath } from './client-url'
+
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
 
@@ -49,13 +51,13 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
     [clients],
   )
 
-  function goToClient(clientId: string) {
-    if (clientId === client.id) {
+  function goToClient(nextClient: Pick<ClientPublic, 'id' | 'name'>) {
+    if (nextClient.id === client.id) {
       setOpen(false)
       return
     }
     setOpen(false)
-    void navigate(`/clients/${clientId}`)
+    void navigate(clientDetailPath(nextClient))
   }
 
   return (
@@ -93,7 +95,7 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
                     <CommandItem
                       key={entry.id}
                       value={[entry.name, entry.state ?? '', entry.ein ?? ''].join(' ')}
-                      onSelect={() => goToClient(entry.id)}
+                      onSelect={() => goToClient(entry)}
                       aria-current={entry.id === client.id ? 'page' : undefined}
                     >
                       {/* Force a flex row so `min-w-0` + `flex-1` propagate to

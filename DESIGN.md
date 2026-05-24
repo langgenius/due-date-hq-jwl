@@ -547,7 +547,7 @@ Token pixel values are set in `packages/ui/src/styles/tokens/primitives.css`. Th
 
 | Token                      | Tailwind                                                 | Pixels | Use                                                                                                                                                |
 | -------------------------- | -------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | 28px   | The page's anchor word — "Today", "Obligations", "Clients"                                                                                         |
+| **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | 28px   | The page's anchor word — "Today", "Deadlines", "Clients"                                                                                           |
 | **H2 section**             | `text-xl font-semibold tracking-tight`                   | 18px   | "Pulse alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`.  |
 | **KPI numeral**            | `text-xl font-semibold tabular-nums tracking-tight`      | 18px   | The number on an exposure tile. Label below at `text-base text-text-secondary`. Matches H2 scale so KPIs read as section labels, not page anchors. |
 | **Row primary**            | `text-md font-medium text-text-primary`                  | 14px   | The thing the user is scanning for — client name in action rows, alert title on cards.                                                             |
@@ -566,9 +566,9 @@ Default to Inter `tabular-nums`. Drop `font-mono` unless the number is part of a
 
 ## Layout
 
-The spacing scale is based on 4px. Dashboard and Obligations views are full-width work surfaces. Settings form pages stay around 880px max width, while Settings data surfaces such as Members and Billing use the 1172-1180px workbench width from Figma. The sidebar is 220px on desktop. Default right drawers are 400px; workflow drawers that contain tables, batch review, or evidence-heavy content may scale from 720px to 880px while remaining full-width on mobile. Modals are capped at 640px.
+The spacing scale is based on 4px. Dashboard and Deadlines views are full-width work surfaces. Settings form pages stay around 880px max width, while Settings data surfaces such as Members and Billing use the 1172-1180px workbench width from Figma. The sidebar is 220px on desktop. Default right drawers are 400px; workflow drawers that contain tables, batch review, or evidence-heavy content may scale from 720px to 880px while remaining full-width on mobile. Modals are capped at 640px.
 
-First screens must show useful work, not marketing chrome. Dashboard should reveal Pulse, the dollar risk hero, and at least eight customer rows. Obligations should reveal at least twelve rows.
+First screens must show useful work, not marketing chrome. Dashboard should reveal Pulse, the dollar risk hero, and at least eight customer rows. Deadlines should reveal at least twelve rows.
 
 ## Elevation & Depth
 

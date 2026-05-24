@@ -1,13 +1,22 @@
-import { type ReactElement, useMemo, useState } from 'react'
+import { Fragment, type ReactElement, useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { PlusIcon } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
-import type { ClientCreateInput, ObligationCreateInput } from '@duedatehq/contracts'
+import type { ClientCreateInput, ClientPublic, ObligationCreateInput } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@duedatehq/ui/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -28,14 +37,25 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { cn } from '@duedatehq/ui/lib/utils'
 
+import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { ClientCombobox } from '@/features/clients/ClientCombobox'
 import { type ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
+import {
+  buildDeadlineCategorySuggestions,
+  COMMON_FORM_VOUCHER_SUGGESTIONS,
+  type DeadlineCategorySuggestion,
+} from '@/features/obligations/deadline-category-suggestions'
+import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const CLIENTS_LIST_INPUT = { limit: 500 } as const
+const EMPTY_CLIENTS: readonly ClientPublic[] = []
 
 // The 6 canonical obligation types — picked up from
 // `hanxujiang`'s 535e2c8 because they're real fields the server
@@ -51,6 +71,17 @@ const OBLIGATION_TYPES = [
   'internal_review',
 ] as const satisfies readonly NonNullable<ObligationCreateInput['obligationType']>[]
 type ObligationTypeValue = (typeof OBLIGATION_TYPES)[number]
+
+type SuggestionOption = {
+  value: string
+  label: string
+  description?: string
+}
+
+type SuggestionGroup<TOption extends SuggestionOption> = {
+  heading: string
+  options: readonly TOption[]
+}
 
 function isObligationTypeValue(value: string | null): value is ObligationTypeValue {
   return OBLIGATION_TYPES.some((type) => type === value)
@@ -108,8 +139,8 @@ function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
     taxType: z
       .string()
       .trim()
-      .min(1, t`Tax type is required`)
-      .max(80, t`Tax type must be 80 characters or fewer`),
+      .min(1, t`Deadline category is required`)
+      .max(80, t`Deadline category must be 80 characters or fewer`),
     baseDueDate: z
       .string()
       .trim()
@@ -121,7 +152,7 @@ function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
     formName: z
       .string()
       .trim()
-      .max(80, t`Form must be 80 characters or fewer`),
+      .max(80, t`Form / voucher must be 80 characters or fewer`),
     obligationType: z.enum(OBLIGATION_TYPES),
     status: z.enum(CREATE_STATUS_VALUES),
     internalNotes: z
@@ -198,6 +229,159 @@ function useEntityLabels(): Record<ClientEntityType, string> {
   )
 }
 
+function suggestionMatchesValue(option: SuggestionOption, value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  return option.label.toLowerCase() === normalized
+}
+
+function SuggestionCombobox<TOption extends SuggestionOption>({
+  id,
+  value,
+  placeholder,
+  searchPlaceholder,
+  emptyLabel,
+  groups,
+  fallbackLabel,
+  invalid,
+  onValueChange,
+  onOptionSelect,
+}: {
+  id: string
+  value: string
+  placeholder: string
+  searchPlaceholder: string
+  emptyLabel: string
+  groups: readonly SuggestionGroup<TOption>[]
+  fallbackLabel?: (value: string) => string
+  invalid?: boolean
+  onValueChange: (value: string) => void
+  onOptionSelect?: (option: TOption) => void
+}) {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const options = useMemo(() => groups.flatMap((group) => group.options), [groups])
+  const selectedOption = options.find((option) => option.value === value)
+  const triggerLabel = selectedOption?.label ?? (value ? (fallbackLabel?.(value) ?? value) : '')
+  const trimmedQuery = query.trim()
+  const hasExactMatch = options.some((option) => suggestionMatchesValue(option, trimmedQuery))
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen)
+    setQuery(nextOpen ? triggerLabel : '')
+  }
+
+  function selectOption(option: TOption) {
+    onValueChange(option.value)
+    onOptionSelect?.(option)
+    changeOpen(false)
+  }
+
+  function selectCustom(nextValue: string) {
+    onValueChange(nextValue)
+    changeOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={changeOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            id={id}
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            aria-invalid={invalid || undefined}
+            className={cn(
+              'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
+              'hover:bg-components-input-bg-hover',
+              'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+              'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',
+            )}
+          >
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate text-left',
+                triggerLabel
+                  ? 'text-components-input-text-filled'
+                  : 'text-components-input-text-placeholder',
+              )}
+            >
+              {triggerLabel || placeholder}
+            </span>
+            <ChevronDownIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+          </button>
+        }
+      />
+      <PopoverContent
+        align="start"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-[calc(100vw-2rem)] overflow-hidden p-0"
+      >
+        <Command loop>
+          <CommandInput
+            autoFocus
+            value={query}
+            onValueChange={setQuery}
+            placeholder={searchPlaceholder}
+          />
+          <CommandList className="max-h-[320px]">
+            <CommandEmpty>{emptyLabel}</CommandEmpty>
+            {groups.map((group, index) =>
+              group.options.length > 0 ? (
+                <Fragment key={group.heading}>
+                  {index > 0 ? <CommandSeparator /> : null}
+                  <CommandGroup heading={group.heading}>
+                    {group.options.map((option) => (
+                      <CommandItem
+                        key={option.value}
+                        value={[option.label, option.description ?? ''].join(' ')}
+                        onSelect={() => selectOption(option)}
+                        className="grid-cols-[minmax(0,1fr)_auto]"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-text-primary">
+                            {option.label}
+                          </span>
+                          {option.description ? (
+                            <span className="block truncate text-xs text-text-tertiary">
+                              {option.description}
+                            </span>
+                          ) : null}
+                        </span>
+                        <CheckIcon
+                          className={cn(
+                            'size-4 text-text-accent',
+                            option.value === value ? 'opacity-100' : 'opacity-0',
+                          )}
+                          aria-hidden
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Fragment>
+              ) : null,
+            )}
+            {trimmedQuery.length > 0 && !hasExactMatch ? (
+              <>
+                <CommandSeparator />
+                <CommandItem
+                  value={trimmedQuery}
+                  onSelect={() => selectCustom(trimmedQuery)}
+                  className="grid-cols-[minmax(0,1fr)]"
+                >
+                  <span className="truncate text-sm text-text-primary">
+                    {t`Use "${trimmedQuery}"`}
+                  </span>
+                </CommandItem>
+              </>
+            ) : null}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 /**
  * "+ Add deadline" entry-point dialog. Used by the Today page
  * (no `defaultClientId`) and the Client detail page
@@ -260,6 +444,39 @@ export function CreateObligationDialog({
   const status = useStore(form.store, (state) => state.values.status)
   const obligationType = useStore(form.store, (state) => state.values.obligationType)
   const internalNotes = useStore(form.store, (state) => state.values.internalNotes)
+
+  const clientsQuery = useQuery({
+    ...orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }),
+    enabled: open || clientId.trim().length > 0,
+  })
+  const clients = clientsQuery.data ?? EMPTY_CLIENTS
+  const selectedClient = useMemo(
+    () => clients.find((client) => client.id === clientId) ?? null,
+    [clients, clientId],
+  )
+  const deadlineCategorySuggestionGroups = useMemo(() => {
+    const suggestions = buildDeadlineCategorySuggestions(selectedClient)
+    return [
+      {
+        heading: t`Recommended for this client`,
+        options: suggestions.recommended,
+      },
+      {
+        heading: t`Other common deadlines`,
+        options: suggestions.other,
+      },
+    ] satisfies readonly SuggestionGroup<DeadlineCategorySuggestion>[]
+  }, [selectedClient, t])
+  const formVoucherSuggestionGroups = useMemo(
+    () =>
+      [
+        {
+          heading: t`Suggested forms and vouchers`,
+          options: COMMON_FORM_VOUCHER_SUGGESTIONS,
+        },
+      ] satisfies readonly SuggestionGroup<SuggestionOption>[],
+    [t],
+  )
 
   const createMutation = useMutation(
     orpc.obligations.createBatch.mutationOptions({
@@ -399,16 +616,29 @@ export function CreateObligationDialog({
                   {(field) => (
                     <Field>
                       <FieldLabel htmlFor="obligation-tax-type">
-                        <Trans>Tax type</Trans>
+                        <Trans>Deadline category</Trans>
                       </FieldLabel>
-                      <Input
+                      <SuggestionCombobox
                         id="obligation-tax-type"
-                        name={field.name}
                         value={field.state.value}
-                        placeholder={t`1040, 1120-S, payroll…`}
-                        aria-invalid={!field.state.meta.isValid}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        placeholder={t`Select category…`}
+                        searchPlaceholder={t`Search deadline categories…`}
+                        emptyLabel={t`No deadline categories match.`}
+                        groups={deadlineCategorySuggestionGroups}
+                        fallbackLabel={formatTaxCode}
+                        invalid={!field.state.meta.isValid}
+                        onValueChange={field.handleChange}
+                        onOptionSelect={(option) => {
+                          if (option.formName) {
+                            form.setFieldValue('formName', option.formName)
+                          }
+                          if (option.jurisdiction) {
+                            form.setFieldValue('jurisdiction', option.jurisdiction)
+                          }
+                          if (option.obligationType) {
+                            form.setFieldValue('obligationType', option.obligationType)
+                          }
+                        }}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
@@ -420,14 +650,14 @@ export function CreateObligationDialog({
                       <FieldLabel htmlFor="obligation-due-date">
                         <Trans>Base due date</Trans>
                       </FieldLabel>
-                      <Input
+                      <IsoDatePicker
                         id="obligation-due-date"
-                        type="date"
-                        name={field.name}
                         value={field.state.value}
-                        aria-invalid={!field.state.meta.isValid}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        invalid={!field.state.meta.isValid}
+                        placeholder="YYYY-MM-DD"
+                        ariaLabel={t`Select base due date`}
+                        className="rounded-md border-divider-regular"
+                        onValueChange={field.handleChange}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
@@ -440,15 +670,16 @@ export function CreateObligationDialog({
                   {(field) => (
                     <Field>
                       <FieldLabel htmlFor="obligation-form-name">
-                        <Trans>Form</Trans>
+                        <Trans>Form / voucher</Trans>
                       </FieldLabel>
-                      <Input
+                      <SuggestionCombobox
                         id="obligation-form-name"
-                        name={field.name}
                         value={field.state.value}
                         placeholder={t`Optional`}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        searchPlaceholder={t`Search forms and vouchers…`}
+                        emptyLabel={t`No forms or vouchers match.`}
+                        groups={formVoucherSuggestionGroups}
+                        onValueChange={field.handleChange}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>

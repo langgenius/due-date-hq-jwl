@@ -37,6 +37,13 @@ const nuqsMocks = vi.hoisted(() => ({
   setEntity: vi.fn(),
 }))
 
+const toastMocks = vi.hoisted(() => ({
+  loading: vi.fn(() => 'accept-rule-toast'),
+  success: vi.fn(),
+  error: vi.fn(),
+  dismiss: vi.fn(),
+}))
+
 vi.mock('@/lib/rpc', () => ({
   orpc: {
     audit: { key: () => ['audit'] },
@@ -61,10 +68,17 @@ vi.mock('@/lib/rpc', () => ({
         }),
       },
       listRules: {
+        key: () => ['rules', 'listRules'],
         queryOptions: () => ({
           queryKey: ['rules', 'listRules'],
           queryFn: rpcMocks.listRulesQueryFn,
         }),
+      },
+      listReviewTasks: {
+        key: () => ['rules', 'listReviewTasks'],
+      },
+      listReviewDecisions: {
+        key: () => ['rules', 'listReviewDecisions'],
       },
       listConcreteDrafts: {
         queryOptions: ({ input }: { input: unknown }) => ({
@@ -98,6 +112,10 @@ vi.mock('@/lib/rpc', () => ({
       },
     },
   },
+}))
+
+vi.mock('sonner', () => ({
+  toast: toastMocks,
 }))
 
 vi.mock('nuqs', async (importOriginal) => {
@@ -264,14 +282,42 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
+async function waitForAssertion(assertion: () => void, attempts = 100): Promise<void> {
+  try {
+    assertion()
+  } catch (error) {
+    if (attempts > 0) {
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
+      return waitForAssertion(assertion, attempts - 1)
+    }
+    throw error
+  }
+}
+
 async function clickButton(name: string) {
-  const button = Array.from(document.querySelectorAll('button')).find(
-    (candidate) => candidate.textContent?.trim() === name,
-  )
+  const button = findButton(name)
   expect(button).toBeDefined()
   await act(async () => {
     button?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+  return { promise, resolve, reject }
+}
+
+function findButton(name: string): HTMLButtonElement | undefined {
+  return Array.from(document.querySelectorAll('button')).find(
+    (candidate): candidate is HTMLButtonElement => candidate.textContent?.trim() === name,
+  )
 }
 
 const coverageRows: RuleCoverageRow[] = []
@@ -332,6 +378,11 @@ beforeEach(() => {
   rpcMocks.rejectTemplateMutationFn.mockResolvedValue({})
   rpcMocks.createCustomRuleMutationFn.mockReset()
   rpcMocks.createCustomRuleMutationFn.mockResolvedValue({})
+  toastMocks.loading.mockReset()
+  toastMocks.loading.mockReturnValue('accept-rule-toast')
+  toastMocks.success.mockReset()
+  toastMocks.error.mockReset()
+  toastMocks.dismiss.mockReset()
   nuqsMocks.search = ''
   nuqsMocks.rule = null
   nuqsMocks.entity = null
@@ -607,7 +658,7 @@ describe('RulesLibraryRoute', () => {
     expect(document.body.textContent).not.toContain('Next source review')
   })
 
-  it('keeps batch review progress tied to the opened queue after a rule leaves pending review', async () => {
+  it('keeps batch review progress tied to the opened queue after accepting a rule', async () => {
     const firstRule = obligationRule({
       id: 'az.individual_income_return.candidate.2026',
       title: 'Arizona individual income tax return',
@@ -631,10 +682,10 @@ describe('RulesLibraryRoute', () => {
       sourceIds: [],
       evidence: [],
     })
-    const rejectedFirstRule = { ...firstRule, status: 'rejected' as const }
+    const activeFirstRule = { ...firstRule, status: 'active' as const }
     rpcMocks.listRulesQueryFn
       .mockResolvedValueOnce([firstRule, secondRule])
-      .mockResolvedValue([rejectedFirstRule, secondRule])
+      .mockResolvedValue([activeFirstRule, secondRule])
 
     await render(<RulesLibraryRoute />)
     await waitForText('Start review (2)')
@@ -643,10 +694,113 @@ describe('RulesLibraryRoute', () => {
     await waitForText('1 / 2')
     await waitForText(firstRule.title)
 
-    await clickButton('Reject')
-    await waitForText('2 / 2')
+    expect(findButton('Reject')).toBeUndefined()
+
+    await clickButton('Accept rule')
+    await waitForText('2 / 2', 250)
     await waitForText(secondRule.title)
 
     expect(document.body.textContent).not.toContain('2 / 1')
+  })
+
+  it('uses the global toast surface for accept progress instead of an inline accept tooltip', async () => {
+    const rule = obligationRule({
+      id: 'az.individual_income_return.candidate.2026',
+      title: 'Arizona individual income tax return',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    const acceptRequest = deferred<Record<string, never>>()
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+    rpcMocks.acceptTemplateMutationFn.mockReturnValueOnce(acceptRequest.promise)
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Start review (1)')
+
+    await clickButton('Start review (1)')
+    await waitForText(rule.title)
+
+    await clickButton('Accept rule')
+
+    await waitForAssertion(() => {
+      expect(toastMocks.loading).toHaveBeenCalledWith(
+        'Accepting rule…',
+        expect.objectContaining({
+          style: expect.objectContaining({
+            background: 'var(--state-accent-hover)',
+            borderColor: 'var(--state-accent-hover-alt)',
+          }),
+        }),
+      )
+    })
+    expect(document.body.textContent).not.toContain('Accepting rule…')
+
+    await act(async () => {
+      acceptRequest.resolve({})
+      await acceptRequest.promise
+    })
+
+    await waitForAssertion(() => {
+      expect(toastMocks.success).toHaveBeenCalledWith(
+        'Rule accepted',
+        expect.objectContaining({
+          id: 'accept-rule-toast',
+          style: expect.objectContaining({
+            background: 'var(--state-success-hover)',
+            borderColor: 'var(--state-success-hover-alt)',
+          }),
+        }),
+      )
+    })
+    expect(document.body.textContent).not.toContain('Rule accepted')
+  })
+
+  it('refreshes the rule list after finishing a skipped batch review session', async () => {
+    const firstRule = obligationRule({
+      id: 'az.individual_income_return.candidate.2026',
+      title: 'Arizona individual income tax return',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    const secondRule = obligationRule({
+      id: 'ca.individual_income_return.candidate.2026',
+      title: 'California individual income tax return',
+      jurisdiction: 'CA',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([firstRule, secondRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Start review (2)')
+
+    await clickButton('Start review (2)')
+    await waitForText('1 / 2')
+
+    await clickButton('Skip')
+    await waitForText('2 / 2')
+
+    const callsBeforeFinish = rpcMocks.listRulesQueryFn.mock.calls.length
+    await clickButton('Finish')
+
+    await waitForAssertion(() => {
+      expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(callsBeforeFinish)
+    })
+    expect(findButton('Finish')).toBeUndefined()
   })
 })

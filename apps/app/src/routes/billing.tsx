@@ -123,7 +123,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       features: [
         t`1 production practice`,
         t`3 seats included`,
-        t`Pulse and Obligations access`,
+        t`Pulse and Deadlines access`,
         t`Shared deadline operations`,
       ],
       cta: t`Upgrade to Pro`,
@@ -259,7 +259,7 @@ export function BillingRoute() {
             need plan or invoice access.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
       >
         <div />
       </PermissionGate>

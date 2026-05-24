@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { TriangleAlertIcon } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast, type ExternalToast } from 'sonner'
 
 import type {
   ObligationRule,
@@ -15,7 +15,6 @@ import type {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -33,7 +32,21 @@ import {
 import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
-const ACCEPT_RULE_TOOLTIP_MS = 1_200
+const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-accent-hover)',
+  borderColor: 'var(--state-accent-hover-alt)',
+  color: 'var(--text-accent)',
+}
+const ACCEPT_RULE_SUCCESS_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-success-hover)',
+  borderColor: 'var(--state-success-hover-alt)',
+  color: 'var(--text-success)',
+}
+const ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-destructive-hover)',
+  borderColor: 'var(--state-destructive-hover-alt)',
+  color: 'var(--text-destructive)',
+}
 const ENTITY_APPLICABILITY_LABELS: Record<string, string> = {
   any_business: 'business clients',
   c_corp: 'C corporations',
@@ -62,7 +75,7 @@ function formatEntityApplicability(values: readonly string[]): string {
  *
  * Includes its own compact header with `id · v{version} · status` so
  * the audit footprint is still visible inline, and the
- * `CandidateReviewSection` (Accept / Reject) so the inline view can
+ * `CandidateReviewSection` (Accept) so the inline view can
  * complete the daily-triage flow.
  */
 export function RuleDetailInline({
@@ -95,7 +108,7 @@ export function RuleDetailInline({
 
 /**
  * Compact inline detail — what a CPA actually needs at a glance to
- * Accept or Reject a pending rule, with everything else trimmed.
+ * Accept a pending rule, with everything else trimmed.
  * Designed for cases where the detail expands inside another list
  * (e.g. a Coverage row with 7+ pending rules) and the full footprint
  * would dominate the page.
@@ -106,7 +119,7 @@ export function RuleDetailInline({
  *   - Standalone "Needs review" callout (redundant with the status
  *     pill in the header)
  *   - Practice review footer (Reviewed by / Reviewed at — audit
- *     history, not relevant to Accept/Reject).
+ *     history, not relevant to the accept decision).
  *   - Multi-row applicability grid (collapsed into a single line)
  *
  * Kept:
@@ -115,7 +128,7 @@ export function RuleDetailInline({
  *   - Due-date logic
  *   - Extension policy (compressed)
  *   - Evidence card(s) — the audit trail the decision rests on
- *   - Accept / Reject buttons
+ *   - Accept button
  */
 export function RuleDetailCompact({
   rule,
@@ -283,10 +296,8 @@ function CandidateReviewForm({
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const [acceptTooltipState, setAcceptTooltipState] = useState<'accepting' | 'accepted' | null>(
-    null,
-  )
-  const acceptTooltipTimeoutRef = useRef<number | null>(null)
+  const [acceptCompleting, setAcceptCompleting] = useState(false)
+  const acceptToastIdRef = useRef<string | number | null>(null)
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
   const draft = concreteDraft?.draft ?? null
@@ -306,41 +317,40 @@ function CandidateReviewForm({
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
   }
 
-  function clearAcceptTooltipTimeout() {
-    if (acceptTooltipTimeoutRef.current === null) return
-    window.clearTimeout(acceptTooltipTimeoutRef.current)
-    acceptTooltipTimeoutRef.current = null
+  function acceptToastOptions(options: Omit<ExternalToast, 'id'> = {}): ExternalToast {
+    const id = acceptToastIdRef.current
+    return id === null ? options : { ...options, id }
   }
 
-  function scheduleAcceptCompletion() {
-    clearAcceptTooltipTimeout()
-    acceptTooltipTimeoutRef.current = window.setTimeout(() => {
-      void (async () => {
-        try {
-          await onActionComplete?.()
-        } finally {
-          window.requestAnimationFrame(() => {
-            setAcceptTooltipState(null)
-            if (!deferQueryInvalidation) invalidateAcceptedRuleOutputs()
-          })
-          acceptTooltipTimeoutRef.current = null
-        }
-      })()
-    }, ACCEPT_RULE_TOOLTIP_MS)
+  function finishAcceptAction() {
+    void (async () => {
+      try {
+        await onActionComplete?.()
+      } finally {
+        window.requestAnimationFrame(() => {
+          setAcceptCompleting(false)
+          acceptToastIdRef.current = null
+          if (!deferQueryInvalidation) invalidateAcceptedRuleOutputs()
+        })
+      }
+    })()
   }
 
   function handleAcceptSuccess() {
-    setAcceptTooltipState('accepted')
-    toast.success(t`Rule accepted`)
-    scheduleAcceptCompletion()
+    toast.success(t`Rule accepted`, acceptToastOptions({ style: ACCEPT_RULE_SUCCESS_TOAST_STYLE }))
+    finishAcceptAction()
   }
 
   function handleAcceptError(error: unknown) {
-    clearAcceptTooltipTimeout()
-    setAcceptTooltipState(null)
-    toast.error(t`Couldn't accept rule`, {
-      description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-    })
+    setAcceptCompleting(false)
+    toast.error(
+      t`Couldn't accept rule`,
+      acceptToastOptions({
+        description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
+        style: ACCEPT_RULE_ERROR_TOAST_STYLE,
+      }),
+    )
+    acceptToastIdRef.current = null
   }
 
   const acceptMutation = useMutation(
@@ -355,33 +365,18 @@ function CandidateReviewForm({
       onError: handleAcceptError,
     }),
   )
-  const rejectMutation = useMutation(
-    orpc.rules.rejectTemplate.mutationOptions({
-      onSuccess: () => {
-        toast.success(t`Rule rejected`)
-        void (async () => {
-          try {
-            await onActionComplete?.()
-          } finally {
-            if (!deferQueryInvalidation) invalidateRules()
-          }
-        })()
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't reject rule`, {
-          description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-        })
-      },
-    }),
-  )
-
   function submitAccept() {
-    if (acceptTooltipState === 'accepted') return
-    clearAcceptTooltipTimeout()
-    setAcceptTooltipState('accepting')
+    if (acceptCompleting || isPending) return
+    setAcceptCompleting(true)
+    acceptToastIdRef.current = toast.loading(
+      t`Accepting rule…`,
+      acceptToastOptions({ style: ACCEPT_RULE_LOADING_TOAST_STYLE }),
+    )
     if (sourceDefined) {
       if (!draft || reviewSourceId.length === 0) {
-        setAcceptTooltipState(null)
+        setAcceptCompleting(false)
+        toast.dismiss(acceptToastIdRef.current)
+        acceptToastIdRef.current = null
         return
       }
       verifyMutation.mutate({
@@ -400,16 +395,8 @@ function CandidateReviewForm({
     })
   }
 
-  function submitReject() {
-    rejectMutation.mutate({
-      ruleId: rule.id,
-      expectedVersion: rule.version,
-      reason: t`Rejected from rule detail review.`,
-    })
-  }
-
-  const isPending = acceptMutation.isPending || verifyMutation.isPending || rejectMutation.isPending
-  const reviewDisabled = isPending || acceptTooltipState === 'accepted'
+  const isPending = acceptMutation.isPending || verifyMutation.isPending
+  const reviewDisabled = isPending || acceptCompleting
   const draftUnavailableMessage =
     sourceDefined && reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
@@ -452,8 +439,8 @@ function CandidateReviewForm({
         ) : (
           <Trans>
             Accepting activates this rule for client filings in {rule.jurisdiction} for{' '}
-            {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension
-            handling should not become active.
+            {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension
+            handling needs more review.
           </Trans>
         )}
       </p>
@@ -466,43 +453,15 @@ function CandidateReviewForm({
       ) : null}
 
       <div className="flex justify-end gap-2">
-        {/* `data-rule-action` lets parent surfaces (e.g. the batch-
-            review modal) bind keyboard shortcuts to these buttons
-            without lifting the mutation state out of this form. */}
         <Button
           type="button"
-          variant="secondary"
           size="sm"
-          onClick={submitReject}
-          disabled={reviewDisabled}
-          data-rule-action="reject"
+          onClick={submitAccept}
+          disabled={acceptDisabled}
+          data-rule-action="accept"
         >
-          <Trans>Reject</Trans>
+          <Trans>Accept rule</Trans>
         </Button>
-        <Tooltip open={acceptTooltipState !== null}>
-          <TooltipTrigger
-            render={
-              <span className="inline-flex">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={submitAccept}
-                  disabled={acceptDisabled}
-                  data-rule-action="accept"
-                >
-                  <Trans>Accept rule</Trans>
-                </Button>
-              </span>
-            }
-          />
-          <TooltipContent>
-            {acceptTooltipState === 'accepting' ? (
-              <Trans>Accepting rule…</Trans>
-            ) : (
-              <Trans>Rule accepted</Trans>
-            )}
-          </TooltipContent>
-        </Tooltip>
       </div>
     </section>
   )

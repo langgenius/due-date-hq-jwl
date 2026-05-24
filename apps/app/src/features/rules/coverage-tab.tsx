@@ -1305,7 +1305,7 @@ function CoverageRow({
  * the actual active + pending rules first (each with a Source ↗ link
  * to the citing document), then watched sources. No "Open in Catalog"
  * CTA — the main-row Pending count already drills there for users who
- * need the full catalog view, and once the inline Accept/Reject is
+ * need the full catalog view, and once inline Accept is
  * wired the expanded panel becomes the action surface itself.
  *
  * Sits inside the same `<TableBody>` as a sibling `<TableRow>` with

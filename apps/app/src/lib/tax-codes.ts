@@ -84,6 +84,11 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     jurisdiction: 'Federal',
     description: 'Business return extension',
   },
+  schedule_k1_dependency: {
+    label: 'Schedule K-1 Dependency',
+    jurisdiction: 'Federal',
+    description: 'Partner, shareholder, or beneficiary K-1 dependency',
+  },
   federal_8868: {
     label: 'Form 8868',
     jurisdiction: 'Federal',
@@ -94,12 +99,22 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     jurisdiction: 'Federal',
     description: 'Employer quarterly payroll tax',
   },
+  federal_payroll_deposit_monthly: {
+    label: 'Payroll Tax Deposit',
+    jurisdiction: 'Federal',
+    description: 'Monthly payroll deposit schedule',
+  },
   federal_990: {
     label: 'Form 990',
     jurisdiction: 'Federal',
     description: 'Exempt organization return',
   },
   federal_1099: { label: 'Form 1099', jurisdiction: 'Federal', description: 'Information return' },
+  federal_1099_nec: {
+    label: 'Form 1099-NEC',
+    jurisdiction: 'Federal',
+    description: 'Nonemployee compensation information return',
+  },
   federal_fbar: {
     label: 'FBAR',
     jurisdiction: 'Federal',
@@ -144,6 +159,11 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     description: 'Partnership return',
   },
   ca_568: { label: 'CA Form 568', jurisdiction: 'California', description: 'LLC return of income' },
+  ca_llc_568: {
+    label: 'CA Form 568',
+    jurisdiction: 'California',
+    description: 'LLC return of income',
+  },
   ca_llc_annual_tax: {
     label: 'CA LLC Tax',
     jurisdiction: 'California',
@@ -182,7 +202,7 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     description: 'C-corporation franchise tax return',
   },
   ny_ct3s: {
-    label: 'NY CT-3S',
+    label: 'NY CT-3-S',
     jurisdiction: 'New York',
     description: 'S-corporation franchise tax return',
   },
@@ -249,6 +269,11 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     label: 'WA B&O',
     jurisdiction: 'Washington',
     description: 'Washington business and occupation tax',
+  },
+  wa_combined_excise_quarterly: {
+    label: 'WA Combined Excise',
+    jurisdiction: 'Washington',
+    description: 'Quarterly combined excise tax return',
   },
 
   // Illinois

@@ -21,9 +21,9 @@ export const NAVIGATION_SHORTCUTS = [
   {
     id: 'nav.obligations',
     sequence: ['G', 'W'],
-    path: '/obligations',
-    name: 'Go to Obligations',
-    description: 'Navigate to Obligations.',
+    path: '/deadlines',
+    name: 'Go to Deadlines',
+    description: 'Navigate to Deadlines.',
     displayKeys: 'G then W',
   },
   {

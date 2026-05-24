@@ -566,8 +566,8 @@ export function RulesLibraryRoute() {
   // Batch-review state. `selectedRuleIds` tracks which needs-review
   // rules the user has checked off. `batchReviewRuleIds` snapshots the
   // queue when the modal opens so progress stays anchored to the
-  // original session even as accepted/rejected rules leave the live
-  // pending set. `batchReviewIndex` is the currently-shown card in the
+  // original session even as accepted rules leave the live pending
+  // set. `batchReviewIndex` is the currently-shown card in the
   // review modal; `null` means the modal is closed.
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(() => new Set())
   const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
@@ -796,7 +796,7 @@ export function RulesLibraryRoute() {
   // status. Order matches the order rules appear in `rules` (which is
   // the catalog order — jurisdiction-grouped, then by title) so the
   // user reviews them in a predictable sequence inside the modal.
-  // Filters to needs-review only — if a rule got accepted/rejected
+  // Filters to needs-review only — if a rule leaves needs-review
   // elsewhere in another tab, it falls out of the review queue.
   const selectedReviewRules = useMemo(() => {
     if (selectedRuleIds.size === 0) return []
@@ -824,39 +824,44 @@ export function RulesLibraryRoute() {
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
   }, [queryClient])
 
-  const closeBatchReview = useCallback(() => {
-    if (batchReviewDirty) refreshAfterBatchReview()
-    setBatchReviewRuleIds(null)
-    setBatchReviewIndex(null)
-    setBatchReviewDirty(false)
-  }, [batchReviewDirty, refreshAfterBatchReview])
+  const finishBatchReview = useCallback(
+    (shouldRefresh: boolean) => {
+      if (shouldRefresh) refreshAfterBatchReview()
+      setBatchReviewRuleIds(null)
+      setBatchReviewIndex(null)
+      setBatchReviewDirty(false)
+    },
+    [refreshAfterBatchReview],
+  )
 
-  // Called when the user accepts/rejects/skips inside the modal —
-  // advance to the next selected rule. If we're on the last one,
-  // close the modal (queue empty).
+  const closeBatchReview = useCallback(() => {
+    finishBatchReview(batchReviewDirty)
+  }, [batchReviewDirty, finishBatchReview])
+
+  // Called when the user skips or finishes inside the modal. Finish
+  // still refreshes the live Rule Library list so the user returns to
+  // current data even when no accept mutation ran during the session.
   const advanceBatchReview = useCallback(() => {
-    setBatchReviewIndex((current) => {
-      if (current === null) return null
-      const next = current + 1
-      if (next >= (batchReviewRuleIds?.length ?? 0)) return null
-      return next
-    })
-  }, [batchReviewRuleIds])
+    if (batchReviewIndex === null) return
+    const next = batchReviewIndex + 1
+    if (next >= (batchReviewRuleIds?.length ?? 0)) {
+      finishBatchReview(true)
+      return
+    }
+    setBatchReviewIndex(next)
+  }, [batchReviewIndex, batchReviewRuleIds, finishBatchReview])
 
   const completeBatchReviewAction = useCallback(() => {
     if (batchReviewIndex === null) return
     const total = batchReviewRuleIds?.length ?? 0
     const next = batchReviewIndex + 1
     if (next >= total) {
-      setBatchReviewRuleIds(null)
-      setBatchReviewIndex(null)
-      setBatchReviewDirty(false)
-      refreshAfterBatchReview()
+      finishBatchReview(true)
       return
     }
     setBatchReviewDirty(true)
     setBatchReviewIndex(next)
-  }, [batchReviewIndex, batchReviewRuleIds, refreshAfterBatchReview])
+  }, [batchReviewIndex, batchReviewRuleIds, finishBatchReview])
 
   const goBackBatchReview = useCallback(() => {
     setBatchReviewIndex((current) => {
@@ -1183,7 +1188,7 @@ function StatsBar({
         </div>
         {/* Catalog-level counts caption — now sourced from the shared
             `SurfaceSummaryStrip` primitive (2026-05-22) so the chrome
-            stays aligned with /clients and /obligations as those
+            stays aligned with /clients and /deadlines as those
             migrate. The progress bar above is kept rule-library-
             specific because the "active vs review backlog" framing is
             unique to the rule catalog. */}
@@ -1754,16 +1759,16 @@ function RuleTableRow({
       {/* Rule title.
           - `whitespace-normal` overrides the primitive's `whitespace-
             nowrap` so long titles can wrap to 2 lines.
-          - `!pl-[10px]` when the row has a checkbox, since the checkbox
-            itself stands in for the visual indent. Otherwise `!pl-[34px]`
-            aligns the title with the state badge's LEFT edge.
+          - `!pl-[58px]` when the row has a checkbox, so the rule
+            checkbox aligns with the section label above. Otherwise
+            `!pl-[34px]` aligns the title with the state badge's LEFT edge.
           - `min-h-10` keeps row height consistent with gap rows.
           - `group-hover:underline` on the title text signals the
             link target on hover. */}
       <TableCell
         className={cn(
           'min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary',
-          selectable ? '!pl-[10px]' : '!pl-[34px]',
+          selectable ? '!pl-[58px]' : '!pl-[34px]',
         )}
       >
         <div className="flex min-w-0 items-start gap-2">
@@ -1915,16 +1920,11 @@ function StatusSectionHeaderRow({
   // reads as one tinted line, not a label + colored badge.
   return (
     <TableRow className="hover:bg-transparent">
-      {/* When the checkbox is present, indent shrinks (`!pl-[10px]`)
-          so the checkbox sits in the same column as the rule-row
-          checkboxes below; the label then aligns with the rule
-          titles below. Without checkbox, the `!pl-[34px]` indent
-          aligns the label with the badge column above (same
-          ladder rule rows use). */}
-      <TableCell
-        colSpan={RULES_TABLE_COLUMN_COUNT}
-        className={cn('pb-1 pt-3', hasSelectAll ? '!pl-[10px]' : '!pl-[34px]')}
-      >
+      {/* When the checkbox is present, align it with the state badge
+          above (`!pl-[34px]`). The section label then becomes the
+          anchor for rule-row checkboxes below. Without checkbox, the
+          same indent aligns the label with the badge column above. */}
+      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="!pl-[34px] pb-1 pt-3">
         <div className="flex items-center gap-2">
           {hasSelectAll ? (
             <Checkbox
@@ -2183,9 +2183,9 @@ function BulkReviewBar({
 // ---------------------------------------------------------------------------
 // Batch-review modal — centered Dialog that walks the user through
 // every selected rule, dating-app style. One rule per "card";
-// Prev / Skip / Next at the bottom; Accept / Reject buttons live
-// inside the rule body via `RuleDetailCompact`. Progress shown as
-// "1 / 5" at the header. Closes when the queue is exhausted.
+// Prev / Skip / Next at the bottom; Accept lives inside the rule body
+// via `RuleDetailCompact`. Progress shown as "1 / 5" at the header.
+// Closes when the queue is exhausted.
 // ---------------------------------------------------------------------------
 
 function BatchReviewModal({
@@ -2219,24 +2219,19 @@ function BatchReviewModal({
   const concreteDraft = concreteDraftTarget
     ? (concreteDraftByTarget.get(concreteDraftTargetKey(concreteDraftTarget)) ?? null)
     : null
-  // Keyboard shortcuts. With 459 cards in a queue, a mouse-only flow
-  // is brutal — Tinder/Linear/Superhuman idiom is left/right for nav,
-  // letter keys for primary actions. Esc is handled by the Dialog
-  // primitive itself.
+  // Keyboard shortcuts. With large review queues, a mouse-only flow
+  // is brutal — Tinder/Linear/Superhuman idiom is left/right for
+  // nav, `A` for accept. Esc is handled by the Dialog primitive.
   //   ←      Previous
   //   →      Skip
   //   A      Accept (clicks the form's Accept button via data hook)
-  //   R      Reject
   //
-  // A/R use a DOM query rather than lifting state out of the form —
-  // the Accept/Reject mutations live deep in `CandidateReviewForm`
-  // (rule-detail-drawer.tsx) and the form tags its buttons with
-  // `data-rule-action="accept|reject"` so the modal can dispatch a
-  // synthetic click without duplicating the mutation logic.
-  // 2026-05-24 (useEffect audit): the hand-rolled window listener
-  // is replaced with four useAppHotkey registrations. The wrapper
-  // already skips editable-target events and ignores modifier
-  // combos, so the inline guards are no longer needed.
+  // 2026-05-24 (merge): teammates intentionally dropped the R-reject
+  // hotkey — rejection stays a mouse click to prevent accidental
+  // destructive triggers on a single keystroke. My useAppHotkey
+  // conversion stays for the three remaining keys so they continue
+  // to appear in the keyboard-shortcuts help overlay and route
+  // through the standard editable-target filter.
   const clickReviewButton = useCallback(
     (action: 'accept' | 'reject') => {
       const selector = `[data-rule-action="${action}"]`
@@ -2297,22 +2292,6 @@ function BatchReviewModal({
       },
     },
   )
-  useAppHotkey(
-    'R',
-    (event) => {
-      event.preventDefault()
-      clickReviewButton('reject')
-    },
-    {
-      meta: {
-        id: 'rules.review-modal.reject',
-        name: 'Reject pending rule',
-        description: 'Trigger the Reject button inside the review modal.',
-        category: 'rules',
-        scope: 'overlay',
-      },
-    },
-  )
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
@@ -2340,13 +2319,12 @@ function BatchReviewModal({
         {/* Scrollable body — each rule gets its own scroll position
             via the `key` on the inner wrapper, so moving Prev/Next
             resets scroll to the top of the new rule. `bodyRef` is
-            used by the keyboard handler to find Accept/Reject. */}
+            used by the keyboard handler to find Accept. */}
         <div ref={bodyRef} key={current.id} className="flex-1 overflow-y-auto px-5 py-4">
           <h3 className="mb-3 text-base font-semibold text-text-primary">{current.title}</h3>
-          {/* RuleDetailCompact already houses the Accept/Reject
-              buttons via its CandidateReviewSection. Wire
-              `onActionComplete` so accepting or rejecting advances
-              the queue to the next card. */}
+          {/* RuleDetailCompact already houses Accept via its
+              CandidateReviewSection. Wire `onActionComplete` so
+              accepting advances the queue to the next card. */}
           <RuleDetailCompact
             rule={current}
             concreteDraft={concreteDraft}
@@ -2378,14 +2356,12 @@ function BatchReviewModal({
 
 // Compact keyboard-shortcut hint strip for the batch-review footer.
 // Each chip renders the key in a small bordered pill + a tiny verb
-// next to it, so the user can scan "A = accept, R = reject" without
-// reading a sentence. Hidden on narrow screens to avoid wrapping the
-// footer onto two lines.
+// next to it. Hidden on narrow screens to avoid wrapping the footer
+// onto two lines.
 function KeyboardHints() {
   return (
     <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary sm:flex">
       <KbdHint k="A" label="accept" />
-      <KbdHint k="R" label="reject" />
       <span aria-hidden className="text-text-tertiary/50">
         ·
       </span>

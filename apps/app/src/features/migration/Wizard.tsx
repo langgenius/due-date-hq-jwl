@@ -524,7 +524,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             description: t`${pendingRevert.clientCount} clients · ${pendingRevert.obligationCount} obligations removed`,
           })
           setPendingRevert(null)
-          void navigate('/obligations')
+          void navigate('/deadlines')
         },
       },
     )

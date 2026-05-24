@@ -129,7 +129,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'obligations':
       return {
-        title: t`Obligations`,
+        title: t`Deadlines`,
         description: t`The operating surface for obligation work: filter, sort, assign owners, update status, and open evidence for each obligation.`,
       }
     case 'triageQueue':

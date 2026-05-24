@@ -575,7 +575,7 @@ export function AuditLogPage() {
             practice owner if you need audit access.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
       >
         <div />
       </PermissionGate>

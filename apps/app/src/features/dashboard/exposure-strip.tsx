@@ -78,7 +78,7 @@ function ExposureStrip({
     segments.push({
       value: String(needDecisionCount),
       label: t`Need your decision`,
-      href: '/obligations?status=review',
+      href: '/deadlines?status=review',
       tone: 'neutral',
     })
   }
@@ -86,7 +86,7 @@ function ExposureStrip({
     segments.push({
       value: String(blockedCount),
       label: t`Blocked`,
-      href: '/obligations?status=blocked',
+      href: '/deadlines?status=blocked',
       tone: 'critical',
     })
   }
@@ -94,7 +94,7 @@ function ExposureStrip({
     segments.push({
       value: String(waitingOnClientCount),
       label: t`Waiting on client`,
-      href: '/obligations?status=waiting_on_client',
+      href: '/deadlines?status=waiting_on_client',
       tone: 'neutral',
     })
   }

@@ -45,7 +45,7 @@ the default tab.
 
 权限裁定：
 
-- Owner/manager 可以 accept/reject/bulk accept/create/edit/archive rules。
+- Owner/manager 可以 accept、skip、bulk accept、create、edit、archive rules。
 - Preparer/coordinator 只能读取和预览，不能让规则进入生产状态。
 - 公开页面 `/rules` / `/watch` 不进入本轮实现，只保留文案和增长位。
 
@@ -53,12 +53,12 @@ the default tab.
 
 页面使用核心 tab：
 
-| Tab                | 目的                                                                           | 核心动作                                                   |
-| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Coverage           | 看 `FED + 50 states + DC` 的 source-backed 覆盖和 review/active 状态           | Drill into jurisdiction                                    |
-| Sources            | 看 source registry 健康度和最近变化                                            | Check now, view snapshot                                   |
-| Rules              | 查看 practice rules + templates；审核 pending templates 和 source-change tasks | Smart view, select, bulk preview, accept/reject, open rule |
-| Obligation Preview | 预览规则对客户 obligations 的影响                                              | Run preview / annual rollover preview                      |
+| Tab                | 目的                                                                           | 核心动作                                                 |
+| ------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| Coverage           | 看 `FED + 50 states + DC` 的 source-backed 覆盖和 review/active 状态           | Drill into jurisdiction                                  |
+| Sources            | 看 source registry 健康度和最近变化                                            | Check now, view snapshot                                 |
+| Rules              | 查看 practice rules + templates；审核 pending templates 和 source-change tasks | Smart view, select, bulk preview, accept/skip, open rule |
+| Obligation Preview | 预览规则对客户 obligations 的影响                                              | Run preview / annual rollover preview                    |
 
 ## 4. Coverage Tab
 
@@ -191,9 +191,9 @@ Needs review · Active · All · Rejected · Archived · Applicability review ·
   active v1 台账行和 pending v2 `Update available` 行；v2 行来自 `source_changed`
   review task，不进入 Pulse Changes。
 - `Update available` / `source_changed` 行不能 bulk accept，且不显示 row checkbox，必须进入单条
-  Rule Detail drawer 审阅证据和当前规则字段，然后原样 Accept update 或 Reject。
+  Rule Detail drawer 审阅证据和当前规则字段，然后原样 Accept update 或 Skip。
 - Active / rejected / archived 行不参与批量接受，只保留详情查看、编辑/归档和审计入口。
-- 点击任意行都打开 Rule Detail drawer；pending 行可以单条 accept/reject，active 行展示证据、版本、review metadata。
+- 点击任意行都打开 Rule Detail drawer；pending 行可以单条 accept 或 skip，active 行展示证据、版本、review metadata。
 
 ### 6.1 Needs review row
 
@@ -237,7 +237,7 @@ selected pending templates
   -> active practice rules
 ```
 
-批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept/Reject。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review，应 reject 或进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。source-defined 批量确认只接受 `rules.listConcreteDrafts` 返回的全局 AI draft `aiOutputId`，并保留 current-firm legacy draft fallback。后端只信任 selected IDs + expected template versions / AI output IDs，单次最多 100 条，冲突项跳过并返回 skipped list。
+批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept 或 Skip。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review；用户应 Skip，让规则保持 inactive，并进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。source-defined 批量确认只接受 `rules.listConcreteDrafts` 返回的全局 AI draft `aiOutputId`，并保留 current-firm legacy draft fallback。后端只信任 selected IDs + expected template versions / AI output IDs，单次最多 100 条，冲突项跳过并返回 skipped list。
 
 ## 7. Rule table ledger
 

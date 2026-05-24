@@ -135,13 +135,18 @@ export function WorkloadPage() {
           </CardTitle>
           <CardDescription>
             <Trans>
-              Aggregated from open obligations and client owner labels. Open any row in Obligations
-              to triage the underlying deadlines.
+              Aggregated from open obligations and client owner labels. Open any row in Deadlines to
+              triage the underlying deadlines.
             </Trans>
           </CardDescription>
           <CardAction>
-            <Button variant="outline" size="sm" render={<Link to="/obligations" />}>
-              <Trans>Open obligations</Trans>
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="sm"
+              render={<Link to="/deadlines" />}
+            >
+              <Trans>Open deadlines</Trans>
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </CardAction>
@@ -182,7 +187,7 @@ function WorkloadUpgradePanel() {
             <Trans>
               Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline
               operations: owner-level workload, unassigned risk, waiting and review pressure, and
-              Obligations jump links for weekly triage.
+              Deadlines jump links for weekly triage.
             </Trans>
           </CardDescription>
           <CardAction>
@@ -192,11 +197,11 @@ function WorkloadUpgradePanel() {
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button render={<Link to="/billing" />}>
+          <Button nativeButton={false} render={<Link to="/billing" />}>
             <Trans>Upgrade plan</Trans>
           </Button>
-          <Button variant="outline" render={<Link to="/obligations" />}>
-            <Trans>Open obligations</Trans>
+          <Button nativeButton={false} variant="outline" render={<Link to="/deadlines" />}>
+            <Trans>Open deadlines</Trans>
           </Button>
         </CardContent>
       </Card>
@@ -361,6 +366,7 @@ function WorkloadTable({
             </TableCell>
             <TableCell className="text-right">
               <Button
+                nativeButton={false}
                 variant="outline"
                 size="sm"
                 className="text-xs"

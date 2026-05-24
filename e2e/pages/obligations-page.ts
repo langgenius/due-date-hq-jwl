@@ -7,14 +7,14 @@ export class ObligationQueuePage {
   readonly dueSortButton: Locator
   readonly statusFilterTrigger: Locator
   readonly savedViewsButton: Locator
-  // Calendar sync is now an in-place popover button on the Obligations page
-  // (it used to be a link to /obligations/calendar). The dedicated route
+  // Calendar sync is now an in-place popover button on the Deadlines page
+  // (it used to be a link to /deadlines/calendar). The dedicated route
   // still exists and is reachable via ⌘K → "Calendar sync".
   readonly calendarSyncButton: Locator
   readonly columnsButton: Locator
 
   constructor(readonly page: Page) {
-    this.heading = page.getByRole('heading', { name: 'Obligations' })
+    this.heading = page.getByRole('heading', { name: 'Deadlines' })
     this.searchInput = page.getByLabel('Search obligations')
     this.resetButton = page.getByRole('button', { name: 'Reset' })
     this.dueSortButton = page.getByRole('button', { name: 'Sort Due' })
@@ -24,7 +24,7 @@ export class ObligationQueuePage {
     this.columnsButton = page.getByRole('button', { name: 'Columns' })
   }
 
-  async goto(path = '/obligations') {
+  async goto(path = '/deadlines') {
     await this.page.goto(path)
   }
 

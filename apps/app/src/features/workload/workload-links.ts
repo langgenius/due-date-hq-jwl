@@ -3,7 +3,7 @@ import type { WorkloadOwnerRow } from '@duedatehq/contracts'
 export function obligationQueueHref(
   params: Record<string, string | number | null | undefined>,
 ): string {
-  const url = new URL('/obligations', 'https://duedatehq.local')
+  const url = new URL('/deadlines', 'https://duedatehq.local')
   for (const [key, value] of Object.entries(params)) {
     if (value === null || value === undefined || value === '') continue
     url.searchParams.set(key, String(value))

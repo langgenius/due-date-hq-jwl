@@ -23,6 +23,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
 import { useEntityLabels } from '@/routes/clients'
+import { clientDetailPath } from './client-url'
 
 // Statuses that mean "the obligation is done" — exclude these when
 // hunting for the next-due. Mirrors the set used by ClientSummaryStrip
@@ -173,18 +174,20 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                 drill-in. */}
             <div className="flex flex-wrap items-center gap-2">
               <Button
+                nativeButton={false}
                 variant="primary"
                 size="sm"
-                render={<Link to={`/clients/${client.id}`} />}
+                render={<Link to={clientDetailPath(client)} />}
                 onClick={onClose}
               >
                 <Trans>Open full page</Trans>
                 <ArrowUpRightIcon data-icon="inline-end" />
               </Button>
               <Button
+                nativeButton={false}
                 variant="outline"
                 size="sm"
-                render={<Link to={`/obligations?client=${client.id}`} />}
+                render={<Link to={`/deadlines?client=${client.id}`} />}
                 onClick={onClose}
               >
                 <Trans>View all deadlines</Trans>

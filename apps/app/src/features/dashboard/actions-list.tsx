@@ -213,12 +213,21 @@ function ActionRow({
         the row into the expansion panel. The whole panel is a click
         target that opens the obligation drawer — same action as the
         Review button on the right, but with a much bigger hit area
-        once the row is already open. */}
+        once the row is already open. Use a role-backed div rather
+        than a real button so tooltip triggers inside the panel cannot
+        create invalid button-in-button markup. */}
       {expanded ? (
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           id={detailId}
           onClick={onOpenObligation}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              onOpenObligation()
+            }
+          }}
           aria-label={t`Review ${row.clientName} in deadline drawer`}
           // Panel sits flush against the row above — top corners
           // squared, bottom rounded. Same bg as the row when
@@ -251,7 +260,7 @@ function ActionRow({
               <Trans>Form</Trans>
             </dt>
             <dd className="text-text-primary">
-              <TaxCodeLabel code={row.taxType} />
+              <TaxCodeLabel code={row.taxType} asChild />
             </dd>
 
             <dt className="text-text-tertiary">
@@ -289,7 +298,7 @@ function ActionRow({
               </>
             ) : null}
           </dl>
-        </button>
+        </div>
       ) : null}
     </div>
   )
@@ -344,7 +353,7 @@ function DashboardActionsList({
   if (visible.length === 0) {
     // Three empty states, in order of how they should be tested:
     //   1. The practice has obligations beyond this week — show the
-    //      count and route to /obligations. Avoids the "import again"
+    //      count and route to /deadlines. Avoids the "import again"
     //      misread when the user already has data.
     //   2. The practice has zero obligations AND no clients yet — keep
     //      the import CTA.
@@ -430,7 +439,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
         ) : null}
       </h2>
       <Link
-        to="/obligations"
+        to="/deadlines"
         onClick={(event) => {
           event.preventDefault()
           onOpenAll()

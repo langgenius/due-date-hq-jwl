@@ -171,8 +171,6 @@ describe('activateOrCreateOnboardingFirm', () => {
   })
 
   it('preserves the original redirect when onboarding reused an existing practice', () => {
-    expect(postOnboardingTarget({ kind: 'reused', firm: firm() }, '/obligations')).toBe(
-      '/obligations',
-    )
+    expect(postOnboardingTarget({ kind: 'reused', firm: firm() }, '/deadlines')).toBe('/deadlines')
   })
 })

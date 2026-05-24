@@ -115,4 +115,57 @@ test.describe('seeded client facts', () => {
     await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
+
+  test('AC: E2E-CLIENTS-ADD-DEADLINE shows readable category and form pickers', async ({
+    authenticatedPage,
+    clientsPage,
+  }) => {
+    await clientsPage.goto()
+
+    await clientsPage.rowFor('Unassigned Foundry LLC').click()
+    await expect(clientsPage.clientDetailHeading('Unassigned Foundry LLC')).toBeVisible()
+
+    await authenticatedPage.getByRole('button', { name: 'Add deadline' }).first().click()
+
+    const dialog = authenticatedPage.getByRole('dialog', { name: 'Add deadline' })
+    await expect(dialog).toBeVisible()
+
+    const dueDatePicker = dialog.locator('#obligation-due-date')
+    await expect(dueDatePicker).toContainText('YYYY-MM-DD')
+    await expect(dueDatePicker).not.toContainText(/年|月|日/)
+
+    const categoryPicker = dialog.locator('#obligation-tax-type')
+    await expect(categoryPicker).toHaveAttribute('role', 'combobox')
+    await categoryPicker.click()
+    await expect(authenticatedPage.getByText('Recommended for this client')).toBeVisible()
+    await expect(authenticatedPage.getByText('Other common deadlines')).toBeVisible()
+    await expect(
+      authenticatedPage.getByText('California LLC annual tax', { exact: true }),
+    ).toBeVisible()
+    await expect(
+      authenticatedPage.getByText('California LLC return', { exact: true }),
+    ).toBeVisible()
+    await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('ca_llc_annual_tax')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('taxType')).toHaveCount(0)
+    await authenticatedPage.getByPlaceholder('Search deadline categories…').fill('S corporation')
+    await authenticatedPage.getByText('S corporation income tax return').click()
+    await expect(categoryPicker).toContainText('S corporation income tax return')
+    await categoryPicker.click()
+    await expect(authenticatedPage.getByPlaceholder('Search deadline categories…')).toHaveValue(
+      'S corporation income tax return',
+    )
+    await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
+    await authenticatedPage.keyboard.press('Escape')
+
+    const formPicker = dialog.locator('#obligation-form-name')
+    await expect(formPicker).toHaveAttribute('role', 'combobox')
+    await expect(formPicker).toContainText('Form 1120-S')
+    await formPicker.click()
+    const suggestedForms = authenticatedPage.getByLabel('Suggested forms and vouchers')
+    await expect(suggestedForms).toBeVisible()
+    await expect(suggestedForms.getByText('Form 1120-S')).toBeVisible()
+    await authenticatedPage.getByPlaceholder('Search forms and vouchers…').fill('Schedule')
+    await expect(suggestedForms.getByText('Schedule K-1')).toBeVisible()
+  })
 })

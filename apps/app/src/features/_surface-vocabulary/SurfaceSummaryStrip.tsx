@@ -74,8 +74,8 @@ export function SurfaceSummaryStrip({
         ) : items.length === 0 ? (
           <span className="text-xs text-text-muted">All caught up</span>
         ) : (
-          items.map((item, idx) => (
-            <span key={item.key} className="inline-flex items-baseline gap-1">
+          items.map(({ key, ...item }, idx) => (
+            <span key={key} className="inline-flex items-baseline gap-1">
               <SurfaceSummaryNumber {...item} />
               {idx < items.length - 1 ? <Separator /> : null}
             </span>
@@ -102,7 +102,7 @@ function SurfaceSummaryNumber({
   onClick,
   href,
   active = false,
-}: SurfaceSummaryItem) {
+}: Omit<SurfaceSummaryItem, 'key'>) {
   const toneClass = toneToClass(tone, value)
   const inner = (
     <>

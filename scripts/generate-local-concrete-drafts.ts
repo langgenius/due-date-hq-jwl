@@ -7,11 +7,20 @@ import { join } from 'node:path'
 import { generateText } from '../packages/ai/node_modules/ai/dist/index.mjs'
 import { createAiGateway } from '../packages/ai/node_modules/ai-gateway-provider/dist/index.mjs'
 import { createOpenRouter } from '../packages/ai/node_modules/ai-gateway-provider/dist/providers/openrouter.mjs'
-import { SOURCE_WATCH_PLACEHOLDER_RE } from '../apps/server/src/procedures/rules/source-text'
-import { findRuleById, listRuleSources } from '../packages/core/src/rules/index'
+import {
+  extractOfficialSourceText,
+  SOURCE_WATCH_PLACEHOLDER_RE,
+} from '../apps/server/src/procedures/rules/source-text'
+import {
+  findRuleById,
+  listObligationRules,
+  listRuleSources,
+} from '../packages/core/src/rules/index'
 import type { AiOutputRow } from '../packages/ports/src/ai'
 import {
   concreteDraftAiInput,
+  cachedConcreteDraftKey,
+  extractPdfSourceText,
   generateConcreteDraft,
   hashAiInput,
   normalizeRuleConcreteDraftAiOutput,
@@ -24,6 +33,7 @@ import type { Env } from '../apps/server/src/env'
 
 type GenerateAiRepo = Parameters<typeof generateConcreteDraft>[0]['aiRepo']
 type RecordRunInput = Parameters<GenerateAiRepo['recordGlobalRun']>[0]
+type GenerateTextResult = Awaited<ReturnType<typeof generateText>>
 
 const LOCAL_DRAFT_TARGETS = [
   ['md.local_individual_income.candidate.2026', 'md.local_income_tax'],
@@ -35,9 +45,102 @@ const LOCAL_DRAFT_TARGETS = [
   ['oh.local_individual_income.candidate.2026', 'oh.municipal_income_tax_annual_return'],
   ['oh.local_business_income.candidate.2026', 'oh.municipal_net_profit_filing'],
 ] as const
+const SCRIPT_SOURCE_TEXT_MAX_CHARS = 24_000
+const SCRIPT_SOURCE_FETCH_TIMEOUT_MS = 20_000
+const SCRIPT_SOURCE_FETCH_HEADERS = {
+  accept: 'text/html,application/pdf,application/json,text/plain;q=0.9,*/*;q=0.1',
+  'accept-language': 'en-US,en;q=0.9',
+  'cache-control': 'no-cache',
+  'user-agent': 'Mozilla/5.0 (compatible; DueDateHQConcreteDraftBackfill/1.0)',
+}
 
-type DraftTarget = readonly [ruleId: string, sourceId: string]
+type DraftTarget = { ruleId: string; sourceId: string; ruleVersion: number }
 type DraftResult = { ruleId: string; sourceId: string; aiOutputId?: string; error?: string }
+
+function isSourceDefinedRule(rule: { dueDateLogic: { kind: string } }): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+function primarySourceIdForRule(rule: {
+  sourceIds: readonly string[]
+  evidence: readonly { sourceId?: string | null }[]
+}): string | null {
+  return rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? null
+}
+
+function listLocalConfiguredTargets(sourceFilter: string | null): DraftTarget[] {
+  const rawTargets: readonly (readonly [string, string])[] =
+    sourceFilter === null
+      ? LOCAL_DRAFT_TARGETS
+      : LOCAL_DRAFT_TARGETS.filter(([, sourceId]) => sourceId === sourceFilter)
+
+  return rawTargets
+    .map(([ruleId, sourceId]) => {
+      const base = findRuleById(ruleId)
+      return base ? ({ ruleId, sourceId, ruleVersion: base.version } satisfies DraftTarget) : null
+    })
+    .filter((target): target is DraftTarget => target !== null)
+}
+
+function listSourceDefinedTargets(sourceFilter: string | null): DraftTarget[] {
+  const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
+  return listObligationRules({ includeCandidates: true })
+    .filter((rule) => rule.status !== 'deprecated')
+    .filter(isSourceDefinedRule)
+    .flatMap((rule) => {
+      const sourceId = primarySourceIdForRule(rule)
+      if (!sourceId || !sourceById.has(sourceId)) return []
+      if (sourceFilter !== null && sourceFilter !== sourceId) return []
+      return [{ ruleId: rule.id, sourceId, ruleVersion: rule.version }]
+    })
+}
+
+function chunked<T>(values: readonly T[], size: number): T[][] {
+  const result: T[][] = []
+  for (let i = 0; i < values.length; i += size) {
+    result.push(values.slice(i, i + size))
+  }
+  return result
+}
+
+function cachedContextRefs(dbPath: string, targets: readonly DraftTarget[]): Set<string> {
+  const promptVersion = RULE_CONCRETE_DRAFT_PROMPT
+  const contextRefs = Array.from(
+    new Set(
+      targets.map((target) =>
+        cachedConcreteDraftKey({
+          ruleId: target.ruleId,
+          ruleVersion: target.ruleVersion,
+          sourceId: target.sourceId,
+        }),
+      ),
+    ),
+  )
+  if (contextRefs.length === 0) return new Set()
+
+  const cached = new Set<string>()
+  for (const chunk of chunked(contextRefs, 220)) {
+    const rows = sqliteQueryJson(
+      dbPath,
+      [
+        'select distinct input_context_ref',
+        'from ai_output',
+        `where kind = ${sqlString('rule_concrete_draft')}`,
+        `and prompt_version = ${sqlString(promptVersion)}`,
+        "and guard_result = 'ok'",
+        'and output_text is not null',
+        "and model is not null and model <> 'deterministic-source-text'",
+        `and input_context_ref in (${chunk.map(sqlString).join(', ')})`,
+      ].join(' '),
+    ) as { input_context_ref?: unknown }[]
+
+    for (const row of rows) {
+      if (typeof row.input_context_ref === 'string') cached.add(row.input_context_ref)
+    }
+  }
+
+  return cached
+}
 
 function parseDevVars(path: string): Record<string, string> {
   if (!existsSync(path)) return {}
@@ -121,7 +224,10 @@ function deterministicLatestTargets(dbPath: string): DraftTarget[] {
     const contextRef = row.input_context_ref
     if (typeof contextRef !== 'string') return []
     const match = /^rule:(.+):v\d+:(.+)$/.exec(contextRef)
-    return match?.[1] && match[2] ? [[match[1], match[2]]] : []
+    if (!match?.[1] || !match[2]) return []
+    const base = findRuleById(match[1])
+    if (!base) return []
+    return [{ ruleId: match[1], sourceId: match[2], ruleVersion: base.version }]
   })
 }
 
@@ -255,6 +361,43 @@ function extractJsonObject(text: string): unknown {
   return JSON.parse(raw.slice(start, end + 1))
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'unknown_error'
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function fetchSourceTextForScript(url: string): Promise<string | null> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), SCRIPT_SOURCE_FETCH_TIMEOUT_MS)
+  try {
+    const response = await fetch(url, {
+      headers: SCRIPT_SOURCE_FETCH_HEADERS,
+      signal: controller.signal,
+    })
+    if (!response.ok) return null
+
+    const contentType = response.headers.get('content-type') ?? ''
+    if (contentType.includes('application/pdf') || url.toLowerCase().includes('.pdf')) {
+      return extractPdfSourceText(await response.arrayBuffer())
+    }
+
+    const raw = await response.text()
+    const text =
+      contentType.includes('text/html') || /<[a-z][\s\S]*>/i.test(raw)
+        ? extractOfficialSourceText(raw)
+        : raw.replace(/\s+/g, ' ').trim()
+    const trimmed = text.slice(0, SCRIPT_SOURCE_TEXT_MAX_CHARS).trim()
+    return trimmed.length > 0 ? trimmed : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function generateStructuredLocalDraftWithText(input: {
   env: Env
   aiRepo: GenerateAiRepo
@@ -262,24 +405,31 @@ async function generateStructuredLocalDraftWithText(input: {
   base: NonNullable<ReturnType<typeof findRuleById>>
   source: ReturnType<typeof listRuleSources>[number]
 }): Promise<string> {
+  const officialSourceText = await fetchSourceTextForScript(input.source.url)
   const sourceText = [
     input.source.title,
     input.source.url,
+    officialSourceText,
     ...input.base.evidence
       .filter((evidence) => evidence.sourceId === input.source.id)
       .filter((evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt))
       .map((evidence) => evidence.sourceExcerpt),
-  ].join('\n')
+  ]
+    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    .join('\n')
+    .slice(0, SCRIPT_SOURCE_TEXT_MAX_CHARS)
   const aiInput = concreteDraftAiInput({
     base: input.base,
     source: input.source,
     sourceSignal: null,
     sourceText,
   })
-  const prompt = [
+  const basePrompt = [
     'Return only valid JSON for a DueDateHQ RuleConcreteDraftPayload.',
     'Use only concrete due-date logic kinds allowed by the schema: fixed_date, nth_day_after_tax_year_end, nth_day_after_tax_year_begin, or period_table.',
     'Do not return source_defined_calendar or prose aliases.',
+    'Do not use null for dueDateLogic.date, monthOffset, day, periods, dueDate, or frequency.',
+    'If a required dueDateLogic field is unknown, infer it from exact dates in sourceText or return a period_table with exact YYYY-MM-DD dates.',
     'Copy sourceExcerpt exactly from sourceText.',
     'If the source text gives an exact calendar-year due date, use fixed_date.',
     'If the source text gives a due date relative to tax-year end or beginning, use the matching relative due-date kind.',
@@ -288,9 +438,7 @@ async function generateStructuredLocalDraftWithText(input: {
     'Use coverageStatus as full, skeleton, or manual.',
     'Use frequency as semiweekly, monthly, quarterly, or annual.',
     'The JSON object must include dueDateLogic, extensionPolicy, coverageStatus, requiresApplicabilityReview, quality, sourceHeading, sourceExcerpt, confidence, and reasoning.',
-    JSON.stringify(aiInput),
-  ].join('\n\n')
-  const startedAt = Date.now()
+  ]
   const gateway = createAiGateway({
     accountId: input.env.AI_GATEWAY_ACCOUNT_ID,
     gateway: input.env.AI_GATEWAY_SLUG,
@@ -301,68 +449,90 @@ async function generateStructuredLocalDraftWithText(input: {
     input.env.AI_GATEWAY_PROVIDER === 'openrouter'
       ? createOpenRouter({ apiKey: input.env.AI_GATEWAY_PROVIDER_API_KEY }).chat(modelName)
       : modelName
-  const result = await generateText({
-    model: gateway(model),
-    prompt,
-    temperature: 0,
-  })
-  const aiOutput = RuleConcreteDraftAiOutputSchema.parse(extractJsonObject(result.text))
-  const normalized = normalizeRuleConcreteDraftAiOutput({
-    output: aiOutput,
-    applicableYear: input.base.applicableYear,
-    sourceTitle: input.source.title,
-    sourceText,
-  })
-  const parsed = normalized.draft
-  if (!parsed) {
-    throw new Error(normalized.error ?? 'AI concrete draft output could not be normalized.')
+  let lastError: unknown = null
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const startedAt = Date.now()
+    const prompt = [
+      ...basePrompt,
+      lastError
+        ? `Previous attempt failed validation: ${errorMessage(lastError)}. Return corrected JSON only.`
+        : null,
+      JSON.stringify(aiInput),
+    ]
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
+      .join('\n\n')
+
+    try {
+      const result: GenerateTextResult = await generateText({
+        model: gateway(model),
+        prompt,
+        temperature: 0,
+      })
+      const aiOutput = RuleConcreteDraftAiOutputSchema.parse(extractJsonObject(result.text))
+      const normalized = normalizeRuleConcreteDraftAiOutput({
+        output: aiOutput,
+        applicableYear: input.base.applicableYear,
+        sourceTitle: input.source.title,
+        sourceText,
+      })
+      const parsed = normalized.draft
+      if (!parsed) {
+        throw new Error(normalized.error ?? 'AI concrete draft output could not be normalized.')
+      }
+      const validationError = validateConcreteRuleDraft({
+        rule: input.base,
+        dueDateLogic: parsed.dueDateLogic,
+        sourceText,
+        sourceExcerpt: parsed.sourceExcerpt,
+        coverageStatus: parsed.coverageStatus,
+        requiresApplicabilityReview: parsed.requiresApplicabilityReview,
+      })
+      if (validationError) throw new Error(validationError)
+      const aiPayload = concreteDraftAiInput({
+        base: input.base,
+        source: input.source,
+        sourceSignal: null,
+        sourceText,
+      })
+      const inputHash = await hashAiInput(aiPayload)
+      const tokens: { input?: number; output?: number } = {}
+      if (result.usage.inputTokens !== undefined) tokens.input = result.usage.inputTokens
+      if (result.usage.outputTokens !== undefined) tokens.output = result.usage.outputTokens
+      const contextRef = ruleConcreteDraftContextRef({
+        ruleId: input.base.id,
+        ruleVersion: input.base.version,
+        sourceId: input.source.id,
+      })
+      const recorded = await input.aiRepo.recordGlobalRun({
+        userId: null,
+        kind: 'rule_concrete_draft',
+        inputContextRef: contextRef,
+        trace: {
+          promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+          model: modelName,
+          latencyMs: Date.now() - startedAt,
+          guardResult: 'ok',
+          inputHash,
+          ...(Object.keys(tokens).length > 0 ? { tokens } : {}),
+        },
+        outputText: JSON.stringify(parsed),
+        citations: {
+          sourceId: input.source.id,
+          sourceUrl: input.source.url,
+          sourceSignalId: null,
+          sourceExcerpt: parsed.sourceExcerpt,
+          sourceText,
+        },
+      })
+      return recorded.aiOutputId
+    } catch (error) {
+      lastError = error
+      if (attempt < 3) await delay(750 * attempt)
+    }
   }
-  const validationError = validateConcreteRuleDraft({
-    rule: input.base,
-    dueDateLogic: parsed.dueDateLogic,
-    sourceText,
-    sourceExcerpt: parsed.sourceExcerpt,
-    coverageStatus: parsed.coverageStatus,
-    requiresApplicabilityReview: parsed.requiresApplicabilityReview,
-  })
-  if (validationError) throw new Error(validationError)
-  const aiPayload = concreteDraftAiInput({
-    base: input.base,
-    source: input.source,
-    sourceSignal: null,
-    sourceText,
-  })
-  const inputHash = await hashAiInput(aiPayload)
-  const tokens: { input?: number; output?: number } = {}
-  if (result.usage.inputTokens !== undefined) tokens.input = result.usage.inputTokens
-  if (result.usage.outputTokens !== undefined) tokens.output = result.usage.outputTokens
-  const contextRef = ruleConcreteDraftContextRef({
-    ruleId: input.base.id,
-    ruleVersion: input.base.version,
-    sourceId: input.source.id,
-  })
-  const recorded = await input.aiRepo.recordGlobalRun({
-    userId: null,
-    kind: 'rule_concrete_draft',
-    inputContextRef: contextRef,
-    trace: {
-      promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
-      model: modelName,
-      latencyMs: Date.now() - startedAt,
-      guardResult: 'ok',
-      inputHash,
-      ...(Object.keys(tokens).length > 0 ? { tokens } : {}),
-    },
-    outputText: JSON.stringify(parsed),
-    citations: {
-      sourceId: input.source.id,
-      sourceUrl: input.source.url,
-      sourceSignalId: null,
-      sourceExcerpt: parsed.sourceExcerpt,
-      sourceText,
-    },
-  })
-  return recorded.aiOutputId
+
+  throw new Error(errorMessage(lastError))
 }
 
 const devVars = parseDevVars('apps/server/.dev.vars')
@@ -409,7 +579,11 @@ if (!env.AI_GATEWAY_ACCOUNT_ID || !env.AI_GATEWAY_PROVIDER_API_KEY) {
 }
 
 const dbPath = localD1Path()
+const sourceFilterArg = process.argv.find((arg) => arg.startsWith('--source='))
+const sourceFilter = sourceFilterArg ? sourceFilterArg.slice('--source='.length) : null
 const replaceAllDeterministic = process.argv.includes('--all-deterministic')
+const includeExisting = process.argv.includes('--include-existing')
+const runAllTargets = process.argv.includes('--all') || process.argv.includes('--all-rules')
 const concurrencyArg = process.argv
   .find((arg) => arg.startsWith('--concurrency='))
   ?.slice('--concurrency='.length)
@@ -418,12 +592,29 @@ const aiRepo = makeSqliteAiRepo(dbPath, {
   ignoreSuccessfulCache: replaceAllDeterministic,
 })
 const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
-const results: DraftResult[] = []
-const targets: readonly DraftTarget[] = replaceAllDeterministic
+const targetSets: DraftTarget[] = replaceAllDeterministic
   ? deterministicLatestTargets(dbPath)
-  : LOCAL_DRAFT_TARGETS
+  : runAllTargets
+    ? listSourceDefinedTargets(sourceFilter)
+    : listLocalConfiguredTargets(sourceFilter)
+const cachedRefs = replaceAllDeterministic
+  ? new Set<string>()
+  : cachedContextRefs(dbPath, targetSets)
+const targets =
+  !replaceAllDeterministic && !includeExisting
+    ? targetSets.filter((target) => {
+        const contextRef = cachedConcreteDraftKey({
+          ruleId: target.ruleId,
+          ruleVersion: target.ruleVersion,
+          sourceId: target.sourceId,
+        })
+        return !cachedRefs.has(contextRef)
+      })
+    : targetSets
+const results: DraftResult[] = []
 
-async function processTarget([ruleId, sourceId]: DraftTarget): Promise<DraftResult> {
+async function processTarget(target: DraftTarget): Promise<DraftResult> {
+  const { ruleId, sourceId } = target
   const base = findRuleById(ruleId)
   const source = sourcesById.get(sourceId)
   if (!base || !source) {

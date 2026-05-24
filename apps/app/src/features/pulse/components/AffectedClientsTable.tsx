@@ -163,7 +163,7 @@ export function AffectedClientsTable({
                     the only way to inspect the obligation in context
                     is to memorise the client name and search. */}
                 <Link
-                  to={`/obligations?id=${row.obligationId}&drawer=obligation`}
+                  to={`/deadlines?id=${row.obligationId}&drawer=obligation`}
                   aria-label={t`Open ${row.clientName} ${row.taxType} in the obligation queue`}
                   className="inline-flex items-center gap-0.5 text-xs text-text-tertiary outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
                 >

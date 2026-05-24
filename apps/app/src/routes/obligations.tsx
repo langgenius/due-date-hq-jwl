@@ -714,7 +714,7 @@ export function ObligationQueueRoute() {
   // ?sort= param, default the queue to internal deadline ascending instead of
   // Smart Priority. Smart Priority remains in the sort dropdown — it's
   // just no longer the implicit ranking. Reinforces "Dashboard
-  // curates, Obligations sorts" per the design brief.
+  // curates, Deadlines sorts" per the design brief.
   const sort: ObligationQueueSort = useMemo(() => {
     if (!lifecycleV2) return urlSort
     const hasExplicitSort =
@@ -1786,7 +1786,7 @@ export function ObligationQueueRoute() {
       meta: {
         id: 'obligations.focus-search',
         name: 'Focus search',
-        description: 'Focus the Obligations search input.',
+        description: 'Focus the Deadlines search input.',
         category: 'obligations',
         scope: 'route',
       },
@@ -1799,7 +1799,7 @@ export function ObligationQueueRoute() {
     meta: {
       id: 'obligations.next-row',
       name: 'Next row',
-      description: 'Move the active Obligations row down.',
+      description: 'Move the active Deadlines row down.',
       category: 'obligations',
       scope: 'route',
     },
@@ -1811,7 +1811,7 @@ export function ObligationQueueRoute() {
     meta: {
       id: 'obligations.previous-row',
       name: 'Previous row',
-      description: 'Move the active Obligations row up.',
+      description: 'Move the active Deadlines row up.',
       category: 'obligations',
       scope: 'route',
     },
@@ -3196,7 +3196,7 @@ export function ObligationQueueDetailDrawer({
   // compile; underscore-prefixed to silence eslint until we land the
   // new blocker UX.
   blockerCandidates: _blockerCandidates,
-  // 2026-05-21: dual-mode. The /obligations route renders the detail
+  // 2026-05-21: dual-mode. The /deadlines route renders the detail
   // as a persistent right-side panel ('panel'). The ObligationDrawer-
   // Provider (dashboard / clients / pulse) still uses the modal-style
   // Sheet ('sheet'). Default 'sheet' preserves back-compat for any
@@ -3447,6 +3447,7 @@ export function ObligationQueueDetailDrawer({
   function invalidateDetail() {
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
@@ -4925,7 +4926,7 @@ export function ObligationQueueDetailDrawer({
   )
 
   // Two render modes:
-  //   - 'panel' (new — used by /obligations): a persistent right-rail
+  //   - 'panel' (new — used by /deadlines): a persistent right-rail
   //     aside that lives inside the route layout. No backdrop, no focus
   //     trap, no scroll lock — the queue stays interactive next to it.
   //     The component owns its own X close button (above) since there's
