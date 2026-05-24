@@ -4024,7 +4024,12 @@ export function ObligationQueueDetailDrawer({
                 vocabulary the rest of the app uses, so the drawer
                 heading matches the obligation row label the user
                 clicked on. */}
-            <h2 className="text-lg font-semibold leading-tight text-text-primary">
+            {/* 2026-05-25 (Yuqi Deadlines #14): form-code h2 bumped
+                from text-lg (18px) → text-xl (20px). The drawer
+                header was sitting at the same size as section
+                headings inside the body — the h2 needs to be
+                visibly the heaviest text on the surface. */}
+            <h2 className="text-xl font-semibold leading-tight text-text-primary">
               <TaxCodeLabel code={row.taxType} />
             </h2>
             {/* Status pill — interactive in the drawer. Re-uses the
@@ -4053,7 +4058,12 @@ export function ObligationQueueDetailDrawer({
           // CPA reading the drawer header had to open the dates panel
           // to know which period was being filed. Spelling it out
           // here makes the drawer self-contained as a header.
-          <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-text-tertiary">
+          //
+          // 2026-05-25 (Yuqi Deadlines #15): meta line was text-xs
+          // (12px) — too quiet next to the now-text-xl form code
+          // title. Bumped to text-sm (14px) so the context reads
+          // as a real subtitle, not buried metadata.
+          <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-tertiary">
             {row.jurisdiction ? (
               <>
                 <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-[0.06em] text-text-secondary">
@@ -6111,19 +6121,34 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
               idx > 0 && 'border-l border-divider-subtle',
             )}
           >
-            <span className="text-caption font-medium leading-tight text-text-tertiary">
+            {/* 2026-05-25 (Yuqi Deadlines #18, #19, #21): the
+                deadline strip's title (Internal / Filing / Payment)
+                was text-caption (11px) — too small for a section
+                heading inside the drawer. Promoted to text-xs uppercase
+                tracked so it reads as a real column header. The
+                date value bumped from text-sm to text-base so it
+                anchors the column. */}
+            <span className="text-xs font-medium uppercase tracking-wide leading-tight text-text-tertiary">
               {col.label}
             </span>
             <span
               className={cn(
-                'text-sm font-semibold tabular-nums leading-tight',
+                'text-base font-semibold tabular-nums leading-tight',
                 tintValueRed ? 'text-text-destructive' : 'text-text-primary',
               )}
             >
               {col.value}
             </span>
+            {/* 2026-05-25 (Yuqi Deadlines #20): "Missed" was
+                rendered all-caps via `uppercase tracking-[0.06em]`,
+                so the underlying t`Missed` literal showed as
+                "MISSED" — Yuqi questioned whether the all-caps
+                shouting was intentional. Dropped uppercase +
+                tracking; "Missed" reads naturally in sentence case
+                while keeping the red destructive color as the
+                semantic carrier. */}
             {showMissedTag ? (
-              <span className="text-caption-xs font-medium uppercase tracking-[0.06em] text-text-destructive">
+              <span className="text-caption-xs font-medium text-text-destructive">
                 <Trans>Missed</Trans>
               </span>
             ) : null}
@@ -8380,7 +8405,11 @@ function ObligationQueueScopeTab({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-2 py-2 text-sm whitespace-nowrap transition-colors ${
+      // 2026-05-25 (Yuqi Deadlines #1): scope tab padding bumped
+      // from px-2 py-2 → px-3 py-2.5 so the filters breathe. The
+      // active underline + count sat 8px apart with the old gap;
+      // 12px gives the eye room without sacrificing density.
+      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm whitespace-nowrap transition-colors ${
         active
           ? 'border-accent-default font-medium text-text-primary'
           : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
