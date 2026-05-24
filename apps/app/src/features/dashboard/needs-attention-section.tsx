@@ -36,7 +36,16 @@ function NeedsAttentionSection() {
   if (alerts.length === 0) return null
 
   return (
-    <section aria-label={t`Alerts`} className="flex flex-col gap-3">
+    // 2026-05-25 (Yuqi review #4): Alerts is the most important
+    // section on Today, but the previous flat layout made it sit at
+    // the same visual weight as the work tiles below. Frame it with
+    // a soft destructive tint + 12px padding so the eye lands on it
+    // first. The frame also lets the section breathe inside its own
+    // container instead of leaning on the page's outer gap.
+    <section
+      aria-label={t`Alerts`}
+      className="flex flex-col gap-3 rounded-md border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-3"
+    >
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
@@ -46,12 +55,21 @@ function NeedsAttentionSection() {
             </span>
           ) : null}
         </h2>
+        {/* 2026-05-25 (Yuqi #3): copy clarified — was "View all"
+            which was ambiguous next to the overflow card "View N
+            more" (same destination, no obvious relation). Both
+            now anchor on the same noun ("alerts"). #7: the icon
+            rotates 45° on hover so the up-right arrow points
+            straight right — a tactile "follow me" cue. */}
         <Link
           to="/rules/pulse"
-          className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+          className="group/all inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
         >
-          <Trans>View all</Trans>
-          <ArrowUpRightIcon className="size-3.5" aria-hidden />
+          <Trans>View all alerts</Trans>
+          <ArrowUpRightIcon
+            className="size-3.5 transition-transform duration-200 group-hover/all:rotate-45"
+            aria-hidden
+          />
         </Link>
       </div>
 

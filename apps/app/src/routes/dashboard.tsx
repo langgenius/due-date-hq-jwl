@@ -16,7 +16,6 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
-import { ExposureStrip } from '@/features/dashboard/exposure-strip'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
@@ -164,15 +163,11 @@ export function DashboardRoute() {
 
       <NeedsAttentionSection />
 
-      <ExposureStrip
-        isLoading={dashboardQuery.isLoading}
-        needDecisionCount={data?.summary?.needsReviewCount ?? 0}
-        blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
-        waitingOnClientCount={
-          facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
-        }
-      />
-
+      {/* 2026-05-25 (Yuqi #5): the standalone <ExposureStrip>
+          section was merged into <DashboardActionsList> as its
+          summary header. Both rendered "this week" scope, so two
+          sections one after the other split the same concept
+          across redundant chrome. Counts now pass through as props. */}
       <section>
         <DashboardActionsList
           isLoading={dashboardQuery.isLoading}
@@ -181,6 +176,11 @@ export function DashboardRoute() {
           rows={triageTabs.find((tab) => tab.key === 'this_week')?.rows ?? []}
           totalThisWeek={triageTabs.find((tab) => tab.key === 'this_week')?.count ?? 0}
           totalOpen={data?.summary?.openObligationCount ?? 0}
+          needDecisionCount={data?.summary?.needsReviewCount ?? 0}
+          blockedCount={facets?.statuses.find((s) => s.value === 'blocked')?.count ?? 0}
+          waitingOnClientCount={
+            facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
+          }
           canRunMigration={canRunMigration}
           onOpenWizard={openWizard}
           // Clicking an action navigates to the obligations queue with

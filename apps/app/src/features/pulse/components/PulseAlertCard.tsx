@@ -146,22 +146,28 @@ export function PulseAlertCard({
   )
 }
 
+// 2026-05-25 (Yuqi Alerts #8): the chip labels were single nouns
+// ("Scope", "Form", "Deadline") that don't tell the CPA what
+// ACTUALLY changed. Renamed to verb-phrase or noun-phrase forms
+// that name the thing AND say it shifted: "Deadline shifted",
+// "Scope narrowed", "Form updated", etc. Reads as a sentence
+// fragment from a hover sweep.
 function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
   switch (kind) {
     case 'deadline_shift':
-      return <Trans>Deadline</Trans>
+      return <Trans>Deadline shifted</Trans>
     case 'filing_requirement':
-      return <Trans>Filing</Trans>
+      return <Trans>Filing rule changed</Trans>
     case 'applicability_scope':
-      return <Trans>Scope</Trans>
+      return <Trans>Who it applies to</Trans>
     case 'form_instruction':
-      return <Trans>Form</Trans>
+      return <Trans>Form updated</Trans>
     case 'source_status':
-      return <Trans>Source</Trans>
+      return <Trans>Source status</Trans>
     case 'new_obligation':
-      return <Trans>New rule</Trans>
+      return <Trans>New rule added</Trans>
     case 'other':
-      return <Trans>Other</Trans>
+      return <Trans>Other change</Trans>
   }
   return kind
 }

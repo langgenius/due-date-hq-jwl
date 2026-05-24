@@ -33,36 +33,40 @@ Same design language as the rest of the app (chips, hairline borders, no glow), 
 
 ## 4. Layout strategy
 
-Single-column stack, no tables, no tabs:
+Single-column stack, no tables, no tabs.
+
+**2026-05-25 update (Yuqi review #4, #5):** "This week's exposure"
+section was merged INTO "Actions this week" as its summary header
+because both rendered the same week scope. The Alerts (Needs
+attention) section gained a soft destructive-tint frame +
+12px padding to anchor it as the highest-priority surface.
 
 ```
 Today · May 19                                              [Import clients]
 ─────────────────────────────────────────────────────────────────────────
-NEEDS ATTENTION
-[source-needs-attention banner — when relevant]
-[Radar alert card]  [Radar alert card]  [+N tile]
+┌─ ALERTS  (boxed, soft destructive tint, 12px padding) ─┐
+│ [Radar alert card]  [Radar alert card]  [+N tile]      │
+│                                            View all alerts ↗ │
+└─────────────────────────────────────────────────────────┘
 
-THIS WEEK'S EXPOSURE                                          (aggregate row)
-  5 need your decision · $14,200 at risk · 2 blocked · 3 waiting on client
-  └ each segment is a deep-link chip into Obligations with the right filter
-
-ACTIONS THIS WEEK                                              (verb-led list)
+ACTIONS THIS WEEK                                            All deadlines ↗
+  [3 In review]  [2 Blocked]  [4 Waiting on client]   ← summary tiles
+                                                         (was exposure strip)
   › Confirm filing for Lakeview Medical Partners · 18d late · $4.3k
   › Follow up on Copperline Studios materials · 14d late · $1.85k
   › Complete CPA review for Bright Studio S-Corp · 4d late · $3.1k
   › … 5 more
-
-  Open full queue →                                             (footer link)
 ```
 
-**Visual hierarchy** (top → bottom by ink weight):
+**Visual hierarchy** (top → bottom by ink weight, 2026-05-25):
 
 1. Today + date (largest text on page; muted date)
-2. NEEDS ATTENTION eyebrow (red, small)
-3. Alert cards (medium, distinct cards)
-4. Exposure strip (small mono, hairline border)
-5. Actions list (medium, single-line items)
-6. Footer link (small, muted)
+2. Alerts (boxed soft-destructive frame — the heaviest visual on
+   the page because it's the only thing that demands an
+   immediate decision)
+3. Actions this week heading + per-status summary tiles
+4. Actions list (medium, single-line items, hover-to-expand)
+5. Footer link (small, muted)
 
 No card containers around the actions list. No tab strip. No filters. No sort controls. The list is system-ordered (by Smart Priority, descending) and that's the only ordering.
 

@@ -248,7 +248,15 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
         <EmptyState sources={sourceHealth} />
       ) : (
         <>
-          <div className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 md:flex-row md:items-center md:justify-between">
+          {/* 2026-05-25 (Yuqi Alerts #3): dropped the framed
+              container around the filter row. The cards below
+              already sit on the page surface without a frame —
+              wrapping just the filters in a `border + bg + p-3`
+              container made them look heavier than the actual
+              alert content. Now the filters live inline with the
+              page's outer padding, same rhythm as the header
+              above and the list below. */}
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div className="grid gap-2 md:grid-cols-[180px_180px_180px_minmax(220px,320px)]">
               <Select
                 value={impactFilter}

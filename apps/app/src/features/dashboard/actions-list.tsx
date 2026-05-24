@@ -304,6 +304,41 @@ function ActionRow({
   )
 }
 
+// Compact summary tile that sits inside the Actions this week header.
+// Moved here from the standalone ExposureStrip (Yuqi #5) — same
+// week scope, same data set, so the three counts now read as the
+// section's summary header rather than a sibling row above it.
+function ActionsSummaryTile({
+  value,
+  label,
+  href,
+  tone,
+}: {
+  value: string
+  label: string
+  href: string
+  tone: 'neutral' | 'critical'
+}) {
+  return (
+    <Link
+      to={href}
+      className={cn(
+        'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
+      )}
+    >
+      <span
+        className={cn(
+          'text-xl font-semibold leading-tight tabular-nums tracking-tight',
+          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-base text-text-secondary">{label}</span>
+    </Link>
+  )
+}
+
 function DashboardActionsList({
   rows,
   asOfDate,
@@ -314,6 +349,13 @@ function DashboardActionsList({
   onOpenWizard,
   onOpenObligation,
   onOpenAllObligations,
+  // 2026-05-25 (Yuqi #5): the standalone ExposureStrip ("Need
+  // your decision / Blocked / Waiting on client") merged into
+  // this section. Both shared the "this week" scope so they're
+  // now one section with the tile strip as its summary header.
+  needDecisionCount,
+  blockedCount,
+  waitingOnClientCount,
 }: {
   rows: DashboardTopRow[]
   asOfDate: string | null
@@ -328,6 +370,9 @@ function DashboardActionsList({
   onOpenWizard: () => void
   onOpenObligation: (row: DashboardTopRow) => void
   onOpenAllObligations: () => void
+  needDecisionCount: number
+  blockedCount: number
+  waitingOnClientCount: number
 }) {
   const { t } = useLingui()
   const VISIBLE_CAP = 10
@@ -337,10 +382,56 @@ function DashboardActionsList({
   // can only physically be over one row.
   const [hoveredId, setHoveredId] = useState<string | null>(null)
 
+  // Build summary segments — drop zero-count entries. Only `blocked`
+  // uses destructive — it's the one genuinely-stuck signal.
+  const summaryTiles: Array<{
+    value: string
+    label: string
+    href: string
+    tone: 'neutral' | 'critical'
+  }> = []
+  if (needDecisionCount > 0) {
+    summaryTiles.push({
+      value: String(needDecisionCount),
+      label: t`In review`,
+      href: '/deadlines?status=review',
+      tone: 'neutral',
+    })
+  }
+  if (blockedCount > 0) {
+    summaryTiles.push({
+      value: String(blockedCount),
+      label: t`Blocked`,
+      href: '/deadlines?status=blocked',
+      tone: 'critical',
+    })
+  }
+  if (waitingOnClientCount > 0) {
+    summaryTiles.push({
+      value: String(waitingOnClientCount),
+      label: t`Waiting on client`,
+      href: '/deadlines?status=waiting_on_client',
+      tone: 'neutral',
+    })
+  }
+  const summaryStrip =
+    summaryTiles.length > 0 ? (
+      <div className="flex flex-wrap gap-3">
+        {summaryTiles.map((tile) => (
+          <ActionsSummaryTile key={tile.href} {...tile} />
+        ))}
+      </div>
+    ) : null
+
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={null} onOpenAll={onOpenAllObligations} />
+        <div className="flex flex-wrap gap-3">
+          <Skeleton className="h-16 w-40" />
+          <Skeleton className="h-16 w-40" />
+          <Skeleton className="h-16 w-40" />
+        </div>
         <div className="flex flex-col gap-2">
           <Skeleton className="h-14 w-full" />
           <Skeleton className="h-14 w-full" />
@@ -404,6 +495,7 @@ function DashboardActionsList({
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
       <SectionHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
+      {summaryStrip}
       <ul className="flex flex-col gap-0.5">
         {visible.map((row) => (
           <li key={row.obligationId} className="border-b border-divider-subtle last:border-b-0">
@@ -438,16 +530,23 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
         ) : null}
       </h2>
+      {/* 2026-05-25 (Yuqi #7): icon rotates 45° on hover so the
+          up-right arrow points straight right — a tactile "follow
+          this link" cue. Same pattern as the Alerts "View all"
+          link on Today. */}
       <Link
         to="/deadlines"
         onClick={(event) => {
           event.preventDefault()
           onOpenAll()
         }}
-        className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+        className="group/all-deadlines inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
       >
         <Trans>All deadlines</Trans>
-        <ArrowUpRightIcon className="size-3.5" aria-hidden />
+        <ArrowUpRightIcon
+          className="size-3.5 transition-transform duration-200 group-hover/all-deadlines:rotate-45"
+          aria-hidden
+        />
       </Link>
     </div>
   )

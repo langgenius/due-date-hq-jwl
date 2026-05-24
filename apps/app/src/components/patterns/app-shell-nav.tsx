@@ -766,8 +766,14 @@ function NavGroupSection({
   muted?: boolean
   children: ReactNode
 }) {
+  // 2026-05-25 (Yuqi #31): `muted` groups (today: Audit log +
+  // Settings) get pushed to the bottom of the sidebar via
+  // `mt-auto`. They're secondary nav — the eye expects to find
+  // them at the bottom of the rail, not directly under the primary
+  // groups. Without this they sit immediately under Clients with no
+  // separation.
   return (
-    <SidebarGroup className={muted ? 'opacity-55' : undefined}>
+    <SidebarGroup className={cn(muted && 'mt-auto opacity-55')}>
       {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
