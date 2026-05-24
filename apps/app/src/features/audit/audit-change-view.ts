@@ -183,6 +183,8 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'onboarding.agent.preview_card.clicked': genericPresenter,
   'onboarding.agent.state.advanced': genericPresenter,
   'onboarding.agent.turn.opened': genericPresenter,
+  'opportunity.dismissed': genericPresenter,
+  'opportunity.snoozed': genericPresenter,
   'penalty.override': penaltyPresenter,
   'pulse.apply': pulseDueDatePresenter,
   'pulse.approve': pulseAlertPresenter,

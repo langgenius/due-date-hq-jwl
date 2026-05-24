@@ -316,6 +316,18 @@ const dismiss = os.opportunities.dismiss.handler(async ({ input, context }) => {
     reason: input.reason ?? null,
     createdByUserId: userId,
   })
+  // 2026-05-24 (critique /polish): keep complete audit trail
+  // (canonical product responsibility #6). A dismissed opportunity
+  // is a user-driven mutation that hides product output from the
+  // queue — has to be reviewable later.
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'opportunity',
+    entityId: row.opportunityKey,
+    action: 'opportunity.dismissed',
+    ...(input.reason ? { reason: input.reason } : {}),
+    after: { kind: row.kind, snoozeUntil: null },
+  })
   return {
     opportunityKey: row.opportunityKey,
     kind: row.kind,
@@ -335,6 +347,14 @@ const snooze = os.opportunities.snooze.handler(async ({ input, context }) => {
     snoozeUntil,
     reason: input.reason ?? null,
     createdByUserId: userId,
+  })
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'opportunity',
+    entityId: row.opportunityKey,
+    action: 'opportunity.snoozed',
+    ...(input.reason ? { reason: input.reason } : {}),
+    after: { kind: row.kind, snoozeUntil: snoozeUntil.toISOString() },
   })
   return {
     opportunityKey: row.opportunityKey,

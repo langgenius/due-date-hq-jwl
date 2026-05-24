@@ -342,6 +342,7 @@ describe('audit-log-model', () => {
       ruleSource: 'Rule source',
       obligationQueueExport: 'Obligations export',
       obligationQueueSavedView: 'Saved obligation view',
+      opportunity: 'Opportunity',
     } satisfies AuditEntityTypeLabels
 
     expect(formatAuditEntityTypeLabel('obligation_saved_view', labels)).toBe(

@@ -65,6 +65,8 @@ export function useAuditActionLabels(): AuditActionLabels {
       onboardingAgentPreviewCardClicked: t`Onboarding preview opened`,
       onboardingAgentStateAdvanced: t`Onboarding state advanced`,
       onboardingAgentTurnOpened: t`Onboarding turn opened`,
+      opportunityDismissed: t`Opportunity dismissed`,
+      opportunitySnoozed: t`Opportunity snoozed`,
       penaltyOverride: t`Penalty inputs changed`,
       pulseApply: t`Pulse applied`,
       pulseApprove: t`Pulse approved`,
@@ -124,6 +126,7 @@ export function useAuditEntityTypeLabels(): AuditEntityTypeLabels {
       ruleSource: t`Rule source`,
       obligationQueueExport: t`Obligations export`,
       obligationQueueSavedView: t`Saved obligation view`,
+      opportunity: t`Opportunity`,
     }),
     [t],
   )

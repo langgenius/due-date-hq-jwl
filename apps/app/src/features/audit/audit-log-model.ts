@@ -123,6 +123,8 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'onboarding.agent.preview_card.clicked': 'onboardingAgentPreviewCardClicked',
   'onboarding.agent.state.advanced': 'onboardingAgentStateAdvanced',
   'onboarding.agent.turn.opened': 'onboardingAgentTurnOpened',
+  'opportunity.dismissed': 'opportunityDismissed',
+  'opportunity.snoozed': 'opportunitySnoozed',
   'penalty.override': 'penaltyOverride',
   'pulse.apply': 'pulseApply',
   'pulse.approve': 'pulseApprove',
@@ -210,6 +212,7 @@ export type AuditEntityTypeLabels = {
   ruleSource: string
   obligationQueueExport: string
   obligationQueueSavedView: string
+  opportunity: string
 }
 
 const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
@@ -231,6 +234,7 @@ const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
   rule_source: 'ruleSource',
   obligations_export: 'obligationQueueExport',
   obligation_saved_view: 'obligationQueueSavedView',
+  opportunity: 'opportunity',
 } as const satisfies Record<string, keyof AuditEntityTypeLabels>
 
 type KnownAuditEntityType = keyof typeof AUDIT_ENTITY_TYPE_LABEL_KEYS
