@@ -1,11 +1,19 @@
 import { Link } from 'react-router'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon, ClockIcon, SparklesIcon, XIcon } from 'lucide-react'
+import {
+  ArrowUpRightIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  RotateCcwIcon,
+  SparklesIcon,
+  XIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
-import type { OpportunityPublic } from '@duedatehq/contracts'
+import type { OpportunityDismissalRow, OpportunityPublic } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -100,8 +108,143 @@ export function OpportunitiesPage() {
           )}
         </CardContent>
       </Card>
+
+      <DismissedOpportunitiesSection />
     </div>
   )
+}
+
+// 2026-05-24 (critique /polish — un-dismiss): bottom-of-page
+// disclosure listing the user's active dismissals + snoozes with
+// per-row Restore buttons. Collapsed by default so it doesn't
+// compete with the live queue above. Hidden entirely when there
+// are no dismissals.
+function DismissedOpportunitiesSection() {
+  const { t } = useLingui()
+  const [expanded, setExpanded] = useState(false)
+  const queryClient = useQueryClient()
+  const dismissedQuery = useQuery(
+    orpc.opportunities.listDismissed.queryOptions({ input: undefined }),
+  )
+  const dismissals = dismissedQuery.data?.dismissals ?? []
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.opportunities.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+  }
+  const restoreMutation = useMutation(
+    orpc.opportunities.restore.mutationOptions({
+      onSuccess: (output) => {
+        invalidate()
+        if (output.restored) {
+          toast.success(t`Opportunity restored.`)
+        } else {
+          toast.message(t`Already restored.`)
+        }
+      },
+      onError: (error) => {
+        toast.error(rpcErrorMessage(error) ?? t`Couldn't restore this opportunity.`)
+      },
+    }),
+  )
+
+  if (dismissedQuery.isLoading || dismissals.length === 0) return null
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="flex w-full items-center justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          aria-expanded={expanded}
+        >
+          <div className="flex items-center gap-2">
+            {expanded ? (
+              <ChevronDownIcon className="size-4 text-text-tertiary" aria-hidden />
+            ) : (
+              <ChevronRightIcon className="size-4 text-text-tertiary" aria-hidden />
+            )}
+            <CardTitle className="text-base">
+              <Trans>Recently dismissed</Trans>{' '}
+              <span className="text-sm font-normal text-text-tertiary">({dismissals.length})</span>
+            </CardTitle>
+          </div>
+          <span className="text-xs text-text-tertiary">
+            <Trans>Restore brings the row back to the queue</Trans>
+          </span>
+        </button>
+      </CardHeader>
+      {expanded ? (
+        <CardContent className="grid gap-2 pt-0">
+          {dismissals.map((dismissal) => (
+            <DismissedRow
+              key={dismissal.opportunityKey}
+              dismissal={dismissal}
+              onRestore={() => restoreMutation.mutate({ opportunityKey: dismissal.opportunityKey })}
+              pending={restoreMutation.isPending}
+            />
+          ))}
+        </CardContent>
+      ) : null}
+    </Card>
+  )
+}
+
+function DismissedRow({
+  dismissal,
+  onRestore,
+  pending,
+}: {
+  dismissal: OpportunityDismissalRow
+  onRestore: () => void
+  pending: boolean
+}) {
+  const { t } = useLingui()
+  const label = humanizeOpportunityKey(dismissal.opportunityKey)
+  const snoozeNote =
+    dismissal.kind === 'snoozed' && dismissal.snoozeUntil
+      ? t`Snoozed until ${formatDismissalDate(dismissal.snoozeUntil)}`
+      : t`Dismissed`
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-divider-subtle px-3 py-2">
+      <div className="min-w-0">
+        <p className="truncate text-sm text-text-primary">{label}</p>
+        <p className="truncate text-xs text-text-tertiary">
+          {snoozeNote}
+          {dismissal.createdByName ? <> · {dismissal.createdByName}</> : null}
+        </p>
+      </div>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={onRestore}
+        disabled={pending}
+        aria-label={t`Restore ${label}`}
+      >
+        <RotateCcwIcon data-icon="inline-start" />
+        <Trans>Restore</Trans>
+      </Button>
+    </div>
+  )
+}
+
+// `retention_check_in:client:10000000-...` → "Retention check-in"
+// for the small dismissed-list row label. The client name lives in
+// the audit row + the future un-restored opportunity itself; this
+// just needs to read as "what was the kind of cue I dismissed".
+function humanizeOpportunityKey(key: string): string {
+  const [head] = key.split(':')
+  if (!head) return key
+  return head
+    .split('_')
+    .map((part) => (part.length > 0 ? part[0]!.toUpperCase() + part.slice(1) : part))
+    .join(' ')
+}
+
+function formatDismissalDate(iso: string): string {
+  const date = new Date(iso)
+  if (!Number.isFinite(date.getTime())) return iso
+  return date.toISOString().slice(0, 10)
 }
 
 function SummaryCard({ label, value }: { label: ReactNode; value: number | undefined }) {

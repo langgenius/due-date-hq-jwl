@@ -1803,7 +1803,15 @@ describe('@duedatehq/contracts', () => {
   it('freezes opportunities.list lightweight business guidance shape', () => {
     // 2026-05-24 (critique P2): added dismiss + snooze mutations for
     // user-driven hide. See `opportunity_dismissal` schema + handler.
-    expect(Object.keys(opportunitiesContract)).toEqual(['list', 'dismiss', 'snooze'])
+    // /polish follow-up grew restore + listDismissed for the un-dismiss
+    // path on /opportunities.
+    expect(Object.keys(opportunitiesContract)).toEqual([
+      'list',
+      'dismiss',
+      'snooze',
+      'restore',
+      'listDismissed',
+    ])
     expect(OpportunityKindSchema.options).toEqual([
       'advisory_conversation',
       'scope_review',

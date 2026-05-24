@@ -363,4 +363,47 @@ const snooze = os.opportunities.snooze.handler(async ({ input, context }) => {
   }
 })
 
-export const opportunitiesHandlers = { list, dismiss, snooze }
+// 2026-05-24 (critique /polish — un-dismiss): undo a prior
+// dismiss/snooze. The dismissal row deletion is the mutation; the
+// audit log keeps the historical record (so dismiss + restore both
+// land on /audit and reviewers can trace the round trip).
+//
+// Idempotent: restore-on-already-restored returns `restored: false`
+// rather than an error — the UI can treat both outcomes as
+// "operation complete."
+const restore = os.opportunities.restore.handler(async ({ input, context }) => {
+  const { scoped, userId } = requireTenant(context)
+  if (!scoped.opportunityDismissals) {
+    throw new Error('Opportunity dismissals repo not wired into this tenant context.')
+  }
+  const removed = await scoped.opportunityDismissals.delete(input.opportunityKey)
+  if (removed) {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'opportunity',
+      entityId: input.opportunityKey,
+      action: 'opportunity.restored',
+      after: { kind: null, snoozeUntil: null },
+    })
+  }
+  return { opportunityKey: input.opportunityKey, restored: removed }
+})
+
+const listDismissed = os.opportunities.listDismissed.handler(async ({ context }) => {
+  const { scoped } = requireTenant(context)
+  if (!scoped.opportunityDismissals) return { dismissals: [] }
+  const rows = await scoped.opportunityDismissals.listActiveDetailed(new Date())
+  return {
+    dismissals: rows.map((row) => ({
+      opportunityKey: row.opportunityKey,
+      kind: row.kind,
+      snoozeUntil: row.snoozeUntil ? row.snoozeUntil.toISOString() : null,
+      reason: row.reason,
+      createdAt: row.createdAt.toISOString(),
+      createdByUserId: row.createdByUserId,
+      createdByName: row.createdByName,
+    })),
+  }
+})
+
+export const opportunitiesHandlers = { list, dismiss, snooze, restore, listDismissed }

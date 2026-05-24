@@ -66,6 +66,7 @@ export function useAuditActionLabels(): AuditActionLabels {
       onboardingAgentStateAdvanced: t`Onboarding state advanced`,
       onboardingAgentTurnOpened: t`Onboarding turn opened`,
       opportunityDismissed: t`Opportunity dismissed`,
+      opportunityRestored: t`Opportunity restored`,
       opportunitySnoozed: t`Opportunity snoozed`,
       penaltyOverride: t`Penalty inputs changed`,
       pulseApply: t`Pulse applied`,

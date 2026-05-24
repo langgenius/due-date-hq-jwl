@@ -124,6 +124,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'onboarding.agent.state.advanced': 'onboardingAgentStateAdvanced',
   'onboarding.agent.turn.opened': 'onboardingAgentTurnOpened',
   'opportunity.dismissed': 'opportunityDismissed',
+  'opportunity.restored': 'opportunityRestored',
   'opportunity.snoozed': 'opportunitySnoozed',
   'penalty.override': 'penaltyOverride',
   'pulse.apply': 'pulseApply',
