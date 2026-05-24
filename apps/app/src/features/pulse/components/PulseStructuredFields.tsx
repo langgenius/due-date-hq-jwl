@@ -132,29 +132,26 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
   // first (most CPAs filter by state first), then counties, forms,
   // entity types, base rules.
   const scopeFacts: Array<{ key: string; label: ReactNode; value: ReactNode }> = []
-  // 2026-05-25 (Yuqi Today #14): show full state name beside the code.
-  // The bare two-letter chip ("FL") relied on the reader knowing
-  // USPS codes — fine for CPAs working their home state, less clear
-  // when an out-of-state Pulse arrives (e.g. "ND" on a Florida-only
-  // practice's screen). Code stays as the primary token (matches the
-  // sort key everywhere else); full name follows in tertiary text so
-  // the recognition cost drops to zero.
-  // 2026-05-25 (Yuqi Alerts follow-up): leading StateBadge SVG.
-  // The flag/seal motif gives the fact a visual anchor — Yuqi can
-  // recognise California by its bear before reading "CA".
+  // 2026-05-25 (Yuqi Today #14 + Alerts second pass #10): the
+  // jurisdiction fact is now a single integrated chip — leading
+  // StateBadge motif, mono code, full state name — all inside one
+  // bordered pill so it reads as one unit. Yuqi flagged the earlier
+  // "StateBadge + outline Badge + tertiary text" treatment as three
+  // separate visual elements ("要看做一个整体, 不要三个分开的个体").
+  // The chip uses the canonical badge typography but expands
+  // horizontally to hold the full label, so all three pieces sit on
+  // the same baseline with consistent vertical padding.
   const jurisdictionFull = RULE_JURISDICTION_LABELS[detail.jurisdiction] ?? null
   scopeFacts.push({
     key: 'jurisdiction',
     label: <Trans>Jurisdiction</Trans>,
     value: (
-      <span className="inline-flex items-center gap-2">
-        <StateBadge code={detail.jurisdiction} size="sm" aria-hidden />
-        <Badge variant="outline" className="font-mono tabular-nums">
+      <span className="inline-flex h-7 items-center gap-2 rounded-full border border-divider-regular bg-background-default pl-1 pr-3 text-sm">
+        <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
+        <span className="font-mono tabular-nums font-medium text-text-primary">
           {detail.jurisdiction}
-        </Badge>
-        {jurisdictionFull ? (
-          <span className="text-sm text-text-tertiary">{jurisdictionFull}</span>
-        ) : null}
+        </span>
+        {jurisdictionFull ? <span className="text-text-secondary">{jurisdictionFull}</span> : null}
       </span>
     ),
   })
@@ -334,6 +331,12 @@ function formatStructuredChange(value: unknown, fallback: string): string {
 //     their content at the exact same vertical position — the
 //     previous variable padding produced misaligned section starts
 //     when the actions row had a button vs. an icon-only button.
+// 2026-05-25 (Yuqi Alerts second pass #11): radius dropped from
+// `rounded-md` (6px) to `rounded-xs` (2px) and body padding bumped
+// from `p-4` to `px-6 py-5`. The smaller radius makes the FactCard
+// read as document-style structural surface (not a UI chip); the
+// generous padding gives the dense fact grid breathing room
+// without competing with the surrounding drawer chrome.
 function FactCard({
   title,
   action,
@@ -344,12 +347,12 @@ function FactCard({
   children: ReactNode
 }) {
   return (
-    <section className="rounded-md border border-divider-subtle bg-background-default">
-      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-4 py-2">
+    <section className="rounded-[2px] border border-divider-subtle bg-background-default">
+      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-6 py-2">
         <h3 className="text-base font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}
       </header>
-      <div className="p-4">{children}</div>
+      <div className="px-6 py-5">{children}</div>
     </section>
   )
 }

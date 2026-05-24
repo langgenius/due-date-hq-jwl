@@ -513,15 +513,25 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
               })
               const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
               return (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start gap-3">
-                    <PulsingDot
-                      tone={drawerDotTone}
-                      active
-                      label={pulseAlertToneLabel(drawerDotTone)}
-                      className="mt-2 size-2.5 shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
+                // 2026-05-25 (Yuqi Alerts second pass #7): the badges
+                // row now sits INSIDE the title column (same
+                // `min-w-0 flex-1` div as title + description), not
+                // as a sibling of the dot+title cluster. Before, the
+                // badges started at the SheetHeader's left padding
+                // edge while the title text started after the
+                // PulsingDot + gap-3 — so the badges were ~20px to
+                // the left of where the title text actually began.
+                // Now everything in the title column shares one
+                // left edge.
+                <div className="flex items-start gap-3">
+                  <PulsingDot
+                    tone={drawerDotTone}
+                    active
+                    label={pulseAlertToneLabel(drawerDotTone)}
+                    className="mt-2 size-2.5 shrink-0"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col gap-3">
+                    <div className="flex flex-col">
                       <SheetTitle className="text-xl font-semibold leading-tight text-text-primary">
                         {detail.alert.title}
                       </SheetTitle>
@@ -546,21 +556,21 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                         </SheetDescription>
                       )}
                     </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <PulseSourceBadge
-                      source={detail.alert.source}
-                      sourceUrl={detail.alert.sourceUrl}
-                    />
-                    <PulseStatusBadge status={detail.alert.status} />
-                    <PulseSourceStatusBadge status={detail.alert.sourceStatus} />
-                    {/* Confidence chip stays here only when the AI
-                        is confident — low confidence is signalled
-                        via the explicit alert block below so the
-                        signal isn't shown twice. */}
-                    {!lowConfidence ? (
-                      <PulseConfidenceBadge confidence={detail.alert.confidence} />
-                    ) : null}
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <PulseSourceBadge
+                        source={detail.alert.source}
+                        sourceUrl={detail.alert.sourceUrl}
+                      />
+                      <PulseStatusBadge status={detail.alert.status} />
+                      <PulseSourceStatusBadge status={detail.alert.sourceStatus} />
+                      {/* Confidence chip stays here only when the AI
+                          is confident — low confidence is signalled
+                          via the explicit alert block below so the
+                          signal isn't shown twice. */}
+                      {!lowConfidence ? (
+                        <PulseConfidenceBadge confidence={detail.alert.confidence} />
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               )
@@ -643,6 +653,31 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                   )}
                 </section>
               ) : null}
+
+              {/* 2026-05-25 (Yuqi Alerts second pass #8): the
+                  SuggestedActionsPanel moved UP from below
+                  PulseStructuredFields to immediately under the
+                  affected-clients table. The CPA's primary action
+                  ("Apply to N obligations") is now visible without
+                  scrolling past three other surfaces (AI alert,
+                  Source + Scope cards, Source excerpt). The
+                  detail-deep reading sections (structured fields,
+                  manager review, safety checklist) all live below
+                  the action panel for the CPA who wants to verify
+                  before clicking. */}
+              <SuggestedActionsPanel
+                selectionCount={stats?.selectedCount ?? 0}
+                canApply={canApply}
+                sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
+                isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
+                isMutating={isMutating}
+                actionMode={detail.alert.actionMode}
+                onApply={handleApply}
+                onMarkReviewed={() => {
+                  setReasonAction('reviewed')
+                  setReasonText('')
+                }}
+              />
 
               {/* AI confidence: combined the small "AI 46%" badge
                   with the "Low AI confidence" alert into one block
@@ -727,26 +762,18 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                 />
               ) : null}
 
-              <SuggestedActionsPanel
-                selectionCount={stats?.selectedCount ?? 0}
-                canApply={canApply}
-                sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
-                isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
-                isMutating={isMutating}
-                actionMode={detail.alert.actionMode}
-                onApply={handleApply}
-                onMarkReviewed={() => {
-                  setReasonAction('reviewed')
-                  setReasonText('')
-                }}
-              />
-
               {detail.alert.actionMode === 'due_date_overlay' ? <ApplySafetyChecklist /> : null}
             </>
           ) : null}
         </div>
 
-        <SheetFooter className="border-t border-divider-subtle">
+        {/* 2026-05-25 (Yuqi Alerts second pass #12): action bar
+            promoted from a hairline-bordered footer to a real
+            committed surface — stronger top border, panel-section bg,
+            and the primary Apply button bumped to default size (was
+            sm). Reads as "this is where the decision happens" rather
+            than as continuation chrome. */}
+        <SheetFooter className="border-t border-divider-regular bg-background-section">
           {detail ? (
             <DrawerActions
               alertStatus={detail.alert.status}
@@ -1019,8 +1046,10 @@ function DrawerActions({
       >
         <Trans>Snooze 24h</Trans>
       </Button>
+      {/* 2026-05-25 (Yuqi Alerts second pass #12): primary action
+          bumped from size="sm" to default. The other footer buttons
+          stay sm so this one reads as the dominant call-to-action. */}
       <Button
-        size="sm"
         variant={canRequestReview ? 'outline' : undefined}
         disabled={!canApply || isMutating || isClosed || (!reviewOnly && selectionCount === 0)}
         onClick={reviewOnly ? onMarkReviewed : onApply}
