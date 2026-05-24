@@ -92,6 +92,35 @@ function offsetLabel(offsetDays: number) {
   return <Trans>{offsetDays} days before</Trans>
 }
 
+// 2026-05-24 (critique P1 — clarify): a CPA reading the Reminders
+// templates table doesn't want to see `{{client_name}}: {{tax_type}}
+// due {{due_date}}` — they want to see what the recipient will
+// receive. Render the subject against a stable, recognizable sample
+// so the value of the row is "is this readable copy?" not "can I
+// parse this template grammar?".
+//
+// Authors still see the raw mustache in the Edit dialog where it
+// belongs.
+//
+// Keep this in sync with the server-side variable list — currently
+// `client_name`, `tax_type`, `due_date`, `offset_days`,
+// `obligation_url`, `unsubscribe_url`.
+const REMINDER_TEMPLATE_SAMPLE: Record<string, string> = {
+  client_name: 'Acme LLC',
+  tax_type: 'Form 1065',
+  due_date: 'May 15, 2026',
+  offset_days: '7',
+  obligation_url: 'duedatehq.com/o/sample',
+  unsubscribe_url: 'duedatehq.com/u/sample',
+}
+
+function renderReminderTemplatePreview(template: string): string {
+  return template.replace(/\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}/gi, (match, name) => {
+    const replacement = REMINDER_TEMPLATE_SAMPLE[String(name).toLowerCase()]
+    return replacement ?? match
+  })
+}
+
 function StatTile({
   icon: Icon,
   label,
@@ -268,7 +297,17 @@ function TemplatesPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <span className="font-medium text-text-primary">{template.name}</span>
-                      <span className="text-xs text-text-tertiary">{template.subject}</span>
+                      {/* 2026-05-24 (critique P1 — clarify): render
+                          the subject against sample data so a CPA
+                          sees what their client will receive
+                          ("Acme LLC: Form 1065 due May 15, 2026"),
+                          not the raw mustache syntax
+                          ("{{client_name}}: {{tax_type}} due
+                          {{due_date}}"). The raw syntax still shows
+                          in the Edit dialog where authors need it. */}
+                      <span className="text-xs text-text-tertiary">
+                        {renderReminderTemplatePreview(template.subject)}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
