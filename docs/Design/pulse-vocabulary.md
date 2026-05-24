@@ -128,6 +128,70 @@ match the doc: **low confidence demotes urgent to informational**,
 not the other way around. The accompanying "AI 46%" badge already
 flags AI quality; the dot's job is alert urgency.
 
+## PulseDetailDrawer layout
+
+> File: `apps/app/src/features/pulse/PulseDetailDrawer.tsx`
+
+The drawer is the one place the CPA spends real reading time on a
+Pulse alert (1–3 minutes per alert). Its layout is the source of
+truth for what we surface and what order.
+
+### Why a right-slide panel, not a full route
+
+Pulse review is **list-driven**: the CPA sweeps through a list,
+drills into each card, decides, moves on. A right-slide drawer
+keeps the list visible during the decision, matching the
+obligation drawer and client drawer patterns. A dedicated route
+would interrupt the sweep. If alerts ever grow a multi-tab editor
+or a long timeline we'll re-evaluate.
+
+### Information order (top → bottom)
+
+1. **Header** — pulsing dot (tone via `pulseAlertTone()`) + h1
+   title at `text-xl`. The summary line is rendered only when it
+   adds information beyond the title; otherwise dropped. Badge row
+   sits BELOW the title at `text-sm`: source · status · source
+   status · confidence (only when confidence is healthy — see #2).
+2. **Affected clients** — moved to the FIRST body section. This
+   is the question CPAs bring to the drawer ("does this hit my
+   clients?"). When the list is empty, render an explicit message
+   ("No clients matched this alert's scope. You can dismiss it or
+   wait…") instead of silently hiding the section.
+3. **AI confidence alert** (only when confidence < LOW_THRESHOLD)
+   — single block that names the confidence percent AND explains
+   what to do. The small `PulseConfidenceBadge` in the header is
+   suppressed when this alert is showing so the same concept isn't
+   shown twice.
+4. **Structured fields** — `<PulseStructuredFields>` renders two
+   `FactCard`s ("Source", "Scope") + a source-excerpt card. Each
+   FactCard has a real `text-sm font-semibold` heading; facts inside
+   live in a 3-column grid with labels stacked above values so the
+   eye scans top-to-bottom within a column.
+5. **Permission / source alerts** — Read-only view + Source
+   revoked (when applicable).
+6. **Suggested next step** — single contextual card whose copy
+   tracks selection state. Used to show two cards (Apply + Copy
+   draft); the Copy + Request review actions live in the persistent
+   footer so we don't render them twice.
+7. **Apply safety checklist** — only for `due_date_overlay` alerts.
+
+### Footer — always-available actions
+
+The persistent action bar carries: Copy email draft · Request
+review · Undo (24h) · Reactivate · Dismiss · Snooze · Apply.
+Selection-dependent actions (Apply) sit on the right; reversible
+verbs (Snooze / Dismiss) sit middle; the persistent communication
+helper (Copy email draft) sits left.
+
+### History
+
+This layout shipped as Phase 2 of Yuqi's 2026-05-25 89-item
+review. The previous shape buried Affected clients under structured
+fields, duplicated AI-confidence signals, used invisible section
+labels (`text-xs uppercase` against same-sized body copy), and
+rendered Copy / Request review actions in two places at once. Bug
+inventory at the top of the dev-log entry for that commit.
+
 ## The action verbs
 
 | verb              | meaning                                    | side effect                              | reversible?        | requires reason?                |
