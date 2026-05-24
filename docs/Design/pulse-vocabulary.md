@@ -77,11 +77,11 @@ successful regulatory changes belong in Pulse review.
 
 **Three levels. Map all conditional rendering to these.**
 
-| level           | display tone | source-of-truth predicate                                                   | example                                                                        |
-| --------------- | ------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `urgent`        | warning      | `open && matchedCount + needsReviewCount > 0 && confidence ≥ LOW_THRESHOLD` | "Texas raised the franchise tax filing threshold; 12 clients may be affected." |
-| `informational` | info / muted | `open && (impacted === 0 OR confidence < LOW_THRESHOLD)`                    | "California announced new e-file mandate; 0 clients impacted."                 |
-| `resolved`      | success      | dismissed, snoozed-and-not-yet-due, or applied                              | "Applied to 12 clients · undo within 24h"                                      |
+| level           | display tone  | source-of-truth predicate                                                   | example                                                                        |
+| --------------- | ------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `urgent`        | warning       | `open && matchedCount + needsReviewCount > 0 && confidence ≥ LOW_THRESHOLD` | "Texas raised the franchise tax filing threshold; 12 clients may be affected." |
+| `informational` | normal / info | `open && (impacted === 0 OR confidence < LOW_THRESHOLD)`                    | "California announced new e-file mandate; 0 clients impacted."                 |
+| `resolved`      | success       | dismissed, snoozed-and-not-yet-due, or applied                              | "Applied to 12 clients · undo within 24h"                                      |
 
 **Do not invent a fourth level** ("critical," "high," "medium"). The
 predicate above captures what matters.
@@ -89,6 +89,44 @@ predicate above captures what matters.
 Confidence label ("Low AI confidence · Review before applying") is a
 **sub-label** on the card body, not a severity. It can appear on either
 `urgent` or `informational` alerts.
+
+### Canonical implementation: `pulseAlertTone()`
+
+> File: `apps/app/src/features/pulse/pulse-alert-tone.ts`
+
+Every site that renders a `<PulsingDot>` for a Pulse alert MUST go
+through this helper so the same alert produces the same colour
+across surfaces. The function takes the alert (only `confidence`,
+`matchedCount`, `needsReviewCount`, and `firmStatus` are read) and
+returns one of the `PulsingDotTone` literals.
+
+It maps the table above onto the `PulsingDot` tone palette:
+
+- `urgent` → `warning`
+- `informational` → `normal`
+- `resolved` → `success`
+- (parse failures / malformed → caller passes `error` directly)
+
+A companion `pulseAlertToneLabel(tone)` returns the one-sentence
+explanation rendered as both the dot's `title` (hover tooltip) and
+`aria-label` (screen reader). Pair the two so colour and copy
+always agree.
+
+#### History
+
+`pulseAlertTone()` was introduced 2026-05-25 (Phase 1 of Yuqi's
+89-item review) after the FL DOR alert showed a green dot on the
+dashboard's `NeedsAttentionCard` but a red dot in the
+`PulseDetailDrawer` for the **same alert**. Three render sites had
+each computed their own tone from slightly different signals. The
+helper now collapses them onto one formula and one label.
+
+The first revision of this helper escalated low-confidence alerts
+to `error` (red) — that preserved a bug in the old `drawerTone()`
+that contradicted this severity scale. Corrected the same day to
+match the doc: **low confidence demotes urgent to informational**,
+not the other way around. The accompanying "AI 46%" badge already
+flags AI quality; the dot's job is alert urgency.
 
 ## The action verbs
 
