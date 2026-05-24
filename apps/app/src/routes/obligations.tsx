@@ -2103,17 +2103,20 @@ export function ObligationQueueRoute() {
   }
 
   return (
-    // Layout switches to a fixed-viewport-height two-column grid when
-    // the detail panel is open at xl+. That lets the queue (left) and
-    // the panel (right) scroll INDEPENDENTLY — a long checklist in the
-    // panel doesn't drag the queue along, and scrolling the queue
-    // doesn't lose the user's place in the panel. When the panel is
-    // closed (or below xl), the route reverts to natural page-level
-    // scrolling.
+    // Layout is a fixed-viewport-height column ALWAYS (was previously
+    // only when the detail panel was open). The queue scrolls
+    // independently inside its column so the sticky-bottom
+    // pagination footer pins to the VIEWPORT bottom rather than the
+    // table's natural bottom (which fell below the fold when the
+    // table was long, "Deadlines的pagination去哪儿了"). When the detail
+    // panel opens, the column becomes the left half of a 2-col row;
+    // when it closes, the column expands to full width — both states
+    // share the same height-constrained / overflow-y-auto scroll
+    // model.
     <div
       className={cn(
         'flex flex-col gap-6 p-4 md:p-6',
-        activeDetailId && 'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
+        'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
       )}
     >
       <PageHeader
@@ -2147,13 +2150,21 @@ export function ObligationQueueRoute() {
       <div
         className={cn(
           'flex min-w-0 flex-col gap-4 xl:flex-row',
-          activeDetailId && 'xl:min-h-0 xl:flex-1 xl:items-stretch',
+          // Always constrain the row height at xl+ so the inner
+          // queue column can scroll independently and the sticky
+          // pagination footer pins to the viewport.
+          'xl:min-h-0 xl:flex-1 xl:items-stretch',
         )}
       >
         <div
           className={cn(
             'flex min-w-0 flex-1 flex-col gap-3',
-            activeDetailId ? 'xl:overflow-y-auto xl:pr-1' : 'overflow-x-auto',
+            // Always overflow-y-auto at xl+. The `xl:pr-1` only when
+            // a detail panel is open (gives the queue column a small
+            // gutter from the panel); otherwise it expands fully.
+            'xl:overflow-y-auto',
+            activeDetailId && 'xl:pr-1',
+            !activeDetailId && 'overflow-x-auto',
           )}
         >
           {/* Filter bar — two rows now:

@@ -73,13 +73,22 @@ const LIFECYCLE_V2_STATUSES = [
 //
 // `waiting_on_client` uses outline + info dot (uncolored pill +
 // violet dot) which is already distinct from every filled pill.
+// 2026-05-25 (Yuqi review tone audit): `review` flipped from
+// `warning` (amber) → `info` (blue). Lifecycle v2 reads `review` as
+// "In review" — i.e. work IS happening, someone is actively
+// reviewing the prepared return. That's the same family as
+// `in_progress` (blue), not the "needs attention" family that
+// warning/amber implies. The icon was already `text-text-accent`,
+// so the pill was internally inconsistent — amber bg + amber text
+// + blue icon. Now: blue bg + blue text + blue icon, matching
+// in_progress.
 const STATUS_VARIANT: Record<
   ObligationStatus,
   'destructive' | 'info' | 'secondary' | 'outline' | 'success' | 'warning'
 > = {
   pending: 'secondary',
   in_progress: 'info',
-  review: 'warning',
+  review: 'info',
   waiting_on_client: 'outline',
   done: 'success',
   extended: 'secondary',
@@ -105,7 +114,9 @@ const STATUS_DOT: Record<
 > = {
   pending: 'disabled',
   in_progress: 'normal',
-  review: 'warning',
+  // `review` aligns with `in_progress` per the tone audit above —
+  // both are active-work states, not needs-attention states.
+  review: 'normal',
   waiting_on_client: 'info',
   done: 'success',
   extended: 'normal',
