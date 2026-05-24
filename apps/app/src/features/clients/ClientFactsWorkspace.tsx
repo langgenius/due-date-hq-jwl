@@ -148,6 +148,7 @@ import {
   type ClientReadinessStatus,
   type ClientSourceType,
 } from './client-readiness'
+import { writeClientCycleList } from './client-cycle'
 import {
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
@@ -1179,9 +1180,18 @@ export function ClientFactsWorkspace({
   })
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
+      // 2026-05-24 (useEffect audit): persist the currently-visible
+      // client order to sessionStorage at navigation time so the
+      // detail page can offer prev/next cycling across the same
+      // filter subset. The previous shape ran this inside a route-
+      // level useEffect that fired on every filteredClients change;
+      // moving it here means we only pay the sessionStorage write
+      // on actual navigation intent, AND it removes one of the
+      // app's useEffect violations per the AGENTS.md rule.
+      writeClientCycleList(filteredClients.map((client) => client.id))
       void navigate(`/clients/${clientId}`)
     },
-    [navigate],
+    [filteredClients, navigate],
   )
 
   // L-2: Fix-now banner now opens an inline batch sheet

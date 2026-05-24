@@ -1,7 +1,6 @@
 import {
   Fragment,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -3284,12 +3283,18 @@ export function ObligationQueueDetailDrawer({
   // If the URL pins a tab that this obligation type doesn't expose
   // (e.g. ?tab=extension on a payment row), bounce to the first tab
   // this type actually has. Otherwise the drawer body renders empty.
-  useEffect(() => {
-    if (row && !isTabVisibleForType(activeTab, row.obligationType)) {
-      const fallback = visibleTabsList[0]
-      if (fallback) onTabChange(fallback)
-    }
-  }, [row, activeTab, visibleTabsList, onTabChange])
+  //
+  // 2026-05-24 (useEffect audit): the previous shape ran this as a
+  // useEffect that ran post-render. Replaced with the React-
+  // recommended render-time adjustment pattern. `onTabChange` is
+  // idempotent (it just updates URL state), so calling it during
+  // render is safe — React bails out of the re-render when the URL
+  // already matches the requested value.
+  const tabFallback =
+    row && !isTabVisibleForType(activeTab, row.obligationType) ? (visibleTabsList[0] ?? null) : null
+  if (tabFallback && tabFallback !== activeTab) {
+    onTabChange(tabFallback)
+  }
   const deadlineTipInsight = deadlineTipQuery.data ?? null
   const deadlineTipGeneratedAtMs = deadlineTipInsight?.generatedAt
     ? Date.parse(deadlineTipInsight.generatedAt)
@@ -8157,9 +8162,9 @@ function parseOwnerCount(value: string): number | null {
 //
 // Collapsible search control — magnifier icon at rest, expands into
 // an inline Input when clicked OR when the user presses `/` (the
-// global hotkey focuses `inputRef`, which auto-opens via
-// useEffect below). Stays open while a query value is present so the
-// user always sees what they're filtering by.
+// global hotkey focuses `inputRef`, which auto-opens via the
+// Input's own onFocus). Stays open while a query value is present
+// so the user always sees what they're filtering by.
 function ObligationQueueSearchControl({
   inputRef,
   value,
@@ -8172,16 +8177,10 @@ function ObligationQueueSearchControl({
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
   const isOpen = open || value.length > 0
-  // `/` hotkey focuses the input — open the box so focus has a place
-  // to land. The handler in the route still calls .focus()+.select()
-  // on inputRef; we just react to the focus.
-  useEffect(() => {
-    const el = inputRef.current
-    if (!el) return undefined
-    const onFocus = () => setOpen(true)
-    el.addEventListener('focus', onFocus)
-    return () => el.removeEventListener('focus', onFocus)
-  }, [inputRef])
+  // 2026-05-24 (useEffect audit): the previous shape attached a
+  // window-style focus listener to the input ref via useEffect. The
+  // Input component already exposes an `onFocus` prop — moved the
+  // open-on-focus signal there, removing one useEffect violation.
   if (!isOpen) {
     return (
       <Button
@@ -8209,6 +8208,7 @@ function ObligationQueueSearchControl({
         placeholder={t`Search clients`}
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        onFocus={() => setOpen(true)}
         onBlur={() => {
           if (value.length === 0) setOpen(false)
         }}

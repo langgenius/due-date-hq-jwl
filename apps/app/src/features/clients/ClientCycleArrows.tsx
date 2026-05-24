@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -8,10 +8,7 @@ import type { ClientPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
-import {
-  isEditableEventTarget,
-  useKeyboardShortcutsBlocked,
-} from '@/components/patterns/keyboard-shell'
+import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 
 import { neighborsInClientCycle, readClientCycleList } from './client-cycle'
 
@@ -43,18 +40,16 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
   const navigate = useNavigate()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
 
-  // sessionStorage doesn't notify React on writes; we snapshot on
-  // mount and on every currentClientId change (i.e. after a
-  // successful cycle hop). That's enough — the list itself doesn't
-  // change while the user sits on a detail page.
-  const [cycle, setCycle] = useState<string[]>(() => readClientCycleList())
-  useEffect(() => {
-    setCycle(readClientCycleList())
-  }, [currentClientId])
-
+  // 2026-05-24 (useEffect audit): the previous shape kept a
+  // useState seeded from sessionStorage and a useEffect that
+  // re-read on every currentClientId change. Both were redundant —
+  // `readClientCycleList()` is a cheap sessionStorage read, and
+  // the useMemo below is keyed on `currentClientId` already, so
+  // re-evaluating inline gives the same result without the state +
+  // effect ping-pong (and matches the project's no-useEffect rule).
   const neighbors = useMemo(
-    () => neighborsInClientCycle(cycle, currentClientId),
-    [cycle, currentClientId],
+    () => neighborsInClientCycle(readClientCycleList(), currentClientId),
+    [currentClientId],
   )
 
   const clientsQuery = useQuery({
@@ -77,31 +72,44 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
     if (neighbors.next) void navigate(`/clients/${neighbors.next}`)
   }, [navigate, neighbors.next])
 
-  // Keyboard cycling — mirrors the obligations queue's J/K contract.
-  // The effect always attaches when shortcuts aren't blocked; when
-  // blocked we skip the listener AND return `undefined` consistently
-  // so the cleanup contract stays the same shape.
-  useEffect(() => {
-    if (shortcutsBlocked) return undefined
-    function onKey(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      // Don't fire while the user is typing into an input / textarea /
-      // contentEditable — the shared helper handles all editable
-      // surfaces consistently.
-      if (isEditableEventTarget(event.target)) return
-      if (event.key === 'j' && neighbors.next) {
-        event.preventDefault()
-        goNext()
-      } else if (event.key === 'k' && neighbors.prev) {
-        event.preventDefault()
-        goPrev()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('keydown', onKey)
-    }
-  }, [goNext, goPrev, neighbors.next, neighbors.prev, shortcutsBlocked])
+  // 2026-05-24 (useEffect audit): the previous shape hand-rolled a
+  // window-level keydown listener via useEffect. useAppHotkey is
+  // the project's canonical primitive — it threads through the
+  // shortcuts-blocked context, ignores editable targets, and
+  // wires cleanup automatically. Mirrors the obligations queue's
+  // J/K contract.
+  useAppHotkey(
+    'J',
+    () => {
+      if (neighbors.next) goNext()
+    },
+    {
+      enabled: !shortcutsBlocked && neighbors.next !== null,
+      meta: {
+        id: 'clients.cycle.next',
+        name: 'Next client in cycle',
+        description: 'Advance to the next client in the saved /clients filter cycle.',
+        category: 'navigate',
+        scope: 'route',
+      },
+    },
+  )
+  useAppHotkey(
+    'K',
+    () => {
+      if (neighbors.prev) goPrev()
+    },
+    {
+      enabled: !shortcutsBlocked && neighbors.prev !== null,
+      meta: {
+        id: 'clients.cycle.prev',
+        name: 'Previous client in cycle',
+        description: 'Step to the previous client in the saved /clients filter cycle.',
+        category: 'navigate',
+        scope: 'route',
+      },
+    },
+  )
 
   if (neighbors.total <= 1) return null
   if (neighbors.prev === null && neighbors.next === null) return null

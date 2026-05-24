@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -50,6 +50,7 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import { useAppHotkey } from '@/components/patterns/keyboard-shell'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -2232,46 +2233,86 @@ function BatchReviewModal({
   // (rule-detail-drawer.tsx) and the form tags its buttons with
   // `data-rule-action="accept|reject"` so the modal can dispatch a
   // synthetic click without duplicating the mutation logic.
-  useEffect(() => {
-    function handler(event: KeyboardEvent) {
-      // Don't hijack typing inside inputs/textareas/contenteditable
-      // (e.g., the rejection reason field inside the review form).
-      const target = event.target instanceof HTMLElement ? event.target : null
-      const tag = target?.tagName
-      const editable =
-        tag === 'INPUT' ||
-        tag === 'TEXTAREA' ||
-        tag === 'SELECT' ||
-        target?.isContentEditable === true
-      if (editable) return
-      if (event.metaKey || event.ctrlKey || event.altKey) return
-      if (event.key === 'ArrowLeft') {
-        if (!isFirst) {
-          event.preventDefault()
-          onPrev()
-        }
-        return
+  // 2026-05-24 (useEffect audit): the hand-rolled window listener
+  // is replaced with four useAppHotkey registrations. The wrapper
+  // already skips editable-target events and ignores modifier
+  // combos, so the inline guards are no longer needed.
+  const clickReviewButton = useCallback(
+    (action: 'accept' | 'reject') => {
+      const selector = `[data-rule-action="${action}"]`
+      const button = bodyRef.current?.querySelector<HTMLButtonElement>(selector)
+      if (button && !button.disabled) {
+        button.click()
       }
-      if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        onSkip()
-        return
-      }
-      const key = event.key.toLowerCase()
-      if (key === 'a' || key === 'r') {
-        const selector = `[data-rule-action="${key === 'a' ? 'accept' : 'reject'}"]`
-        const button = bodyRef.current?.querySelector<HTMLButtonElement>(selector)
-        if (button && !button.disabled) {
-          event.preventDefault()
-          button.click()
-        }
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => {
-      window.removeEventListener('keydown', handler)
-    }
-  }, [isFirst, onPrev, onSkip])
+    },
+    [bodyRef],
+  )
+  useAppHotkey(
+    'ArrowLeft',
+    (event) => {
+      if (isFirst) return
+      event.preventDefault()
+      onPrev()
+    },
+    {
+      enabled: !isFirst,
+      meta: {
+        id: 'rules.review-modal.prev',
+        name: 'Previous pending rule',
+        description: 'Step backward inside the review modal.',
+        category: 'rules',
+        scope: 'overlay',
+      },
+    },
+  )
+  useAppHotkey(
+    'ArrowRight',
+    (event) => {
+      event.preventDefault()
+      onSkip()
+    },
+    {
+      meta: {
+        id: 'rules.review-modal.skip',
+        name: 'Skip pending rule',
+        description: 'Step forward inside the review modal without acting.',
+        category: 'rules',
+        scope: 'overlay',
+      },
+    },
+  )
+  useAppHotkey(
+    'A',
+    (event) => {
+      event.preventDefault()
+      clickReviewButton('accept')
+    },
+    {
+      meta: {
+        id: 'rules.review-modal.accept',
+        name: 'Accept pending rule',
+        description: 'Trigger the Accept button inside the review modal.',
+        category: 'rules',
+        scope: 'overlay',
+      },
+    },
+  )
+  useAppHotkey(
+    'R',
+    (event) => {
+      event.preventDefault()
+      clickReviewButton('reject')
+    },
+    {
+      meta: {
+        id: 'rules.review-modal.reject',
+        name: 'Reject pending rule',
+        description: 'Trigger the Reject button inside the review modal.',
+        category: 'rules',
+        scope: 'overlay',
+      },
+    },
+  )
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
