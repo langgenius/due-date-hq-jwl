@@ -400,18 +400,19 @@ function renderClientHeaderSubLine({
   // Daily-driver signal line under the client name. Tone-coded so a
   // CPA scanning the page in <1 second can spot "anything overdue?"
   // without reading prose. Order mirrors the four canonical questions
-  // (what kind of client → workload → urgency → tone).
+  // (what kind of client → urgency → tone).
+  //
+  // 2026-05-24 (distill — critique P0): dropped the "N open filings"
+  // segment. The Open Filing summary tile (now at 20px after the
+  // typeset pass) is the canonical surface for that number; repeating
+  // it in the subtitle, the tile, AND the year-section badge gave
+  // CPAs three nearly-identical counts with three different scopes —
+  // they had to compute the relationship instead of just reading.
+  // Subtitle now carries only the qualitative tail: classification,
+  // next-due date, and the late / on-track tone marker.
   const parts: Array<{ id: string; node: ReactNode }> = []
   const taxLabel = entityType === 'llc' ? taxClassificationLabel(taxClassification) : null
   if (taxLabel) parts.push({ id: 'tax', node: <span>{taxLabel}</span> })
-  parts.push({
-    id: 'open',
-    node: (
-      <span>
-        {workPlan.openCount === 1 ? '1 open filing' : `${workPlan.openCount} open filings`}
-      </span>
-    ),
-  })
   if (workPlan.nextDueDate) {
     parts.push({
       id: 'due',
