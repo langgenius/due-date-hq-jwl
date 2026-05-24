@@ -97,6 +97,10 @@ function AppRoot() {
   )
 }
 
+function RedirectOnlyRoute() {
+  return null
+}
+
 function notFoundLoader() {
   throw new Response('Page not found', { status: 404, statusText: 'Not Found' })
 }
@@ -109,8 +113,21 @@ function importsAliasLoader() {
   throw redirect('/clients?importHistory=open')
 }
 
-function calendarAliasLoader() {
-  throw redirect('/obligations/calendar')
+function redirectToPathPreservingRequest(request: Request, pathname: string): never {
+  const url = new URL(request.url)
+  throw redirect(`${pathname}${url.search}${url.hash}`)
+}
+
+function legacyObligationsAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines')
+}
+
+function legacyObligationsCalendarAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines/calendar')
+}
+
+function calendarAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines/calendar')
 }
 
 // /rules/coverage → /rules/library, preserving ?rule=… and any other
@@ -368,10 +385,11 @@ export function createAppRouter() {
             {
               path: 'dashboard',
               loader: dashboardAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
             },
             {
-              path: 'obligations',
+              path: 'deadlines',
               handle: routeHandle(routeSummaries.obligations),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
@@ -381,7 +399,7 @@ export function createAppRouter() {
               },
             },
             {
-              path: 'obligations/calendar',
+              path: 'deadlines/calendar',
               handle: routeHandle(routeSummaries.calendarSync),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
@@ -391,8 +409,21 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'obligations',
+              loader: legacyObligationsAliasLoader,
+              Component: RedirectOnlyRoute,
+              HydrateFallback: RouteHydrateFallback,
+            },
+            {
+              path: 'obligations/calendar',
+              loader: legacyObligationsCalendarAliasLoader,
+              Component: RedirectOnlyRoute,
+              HydrateFallback: RouteHydrateFallback,
+            },
+            {
               path: 'calendar',
               loader: calendarAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
             },
             {
@@ -447,7 +478,7 @@ export function createAppRouter() {
               },
             },
             {
-              path: 'clients/:clientId',
+              path: 'clients/:clientKey',
               handle: routeHandle(routeSummaries.clientDetail),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
@@ -470,6 +501,7 @@ export function createAppRouter() {
               path: 'imports',
               HydrateFallback: RouteHydrateFallback,
               loader: importsAliasLoader,
+              Component: RedirectOnlyRoute,
             },
             {
               path: 'audit',
@@ -498,6 +530,7 @@ export function createAppRouter() {
               // pass through untouched.
               path: 'rules/coverage',
               loader: rulesCoverageAliasLoader,
+              Component: RedirectOnlyRoute,
             },
             {
               path: 'rules/sources',
@@ -655,6 +688,8 @@ export {
   calendarAliasLoader,
   guestLoader,
   importsAliasLoader,
+  legacyObligationsAliasLoader,
+  legacyObligationsCalendarAliasLoader,
   migrationActivationLoader,
   onboardingLoader,
   protectedLoader,

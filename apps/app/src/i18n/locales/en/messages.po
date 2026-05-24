@@ -717,10 +717,6 @@ msgstr "10 seats included"
 msgid "10+ seats"
 msgstr "10+ seats"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "1040, 1120-S, payroll…"
-msgstr "1040, 1120-S, payroll…"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "1099 vendors"
 msgstr "1099 vendors"
@@ -1058,8 +1054,8 @@ msgid "Affected clients"
 msgstr "Affected clients"
 
 #: src/features/workload/workload-page.tsx
-msgid "Aggregated from open obligations and client owner labels. Open any row in Obligations to triage the underlying deadlines."
-msgstr "Aggregated from open obligations and client owner labels. Open any row in Obligations to triage the underlying deadlines."
+msgid "Aggregated from open obligations and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
+msgstr "Aggregated from open obligations and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
 
 #: src/features/audit/audit-log-page.tsx
 msgid "AI"
@@ -3190,9 +3186,16 @@ msgstr "deadlines"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/concepts/concept-help.tsx
+#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/obligations.tsx
+#: src/routes/route-summary.ts
 msgid "Deadlines"
 msgstr "Deadlines"
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
+msgstr "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadlines created"
@@ -5758,6 +5761,10 @@ msgstr "No export packages yet."
 msgid "No filing state"
 msgstr "No filing state"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No form matches."
+msgstr "No form matches."
+
 #: src/routes/obligations.tsx
 msgid "No forms"
 msgstr "No forms"
@@ -5956,6 +5963,10 @@ msgstr "No subscription changes were made. You can restart checkout when ready."
 msgid "No summary yet"
 msgstr "No summary yet"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No tax type matches."
+msgstr "No tax type matches."
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
 msgstr "No tax types selected."
@@ -6150,16 +6161,6 @@ msgstr "Obligation status updates and client imports will appear here when they 
 #: src/routes/obligations.tsx
 msgid "Obligation workflow detail panel."
 msgstr "Obligation workflow detail panel."
-
-#: src/features/concepts/concept-help.tsx
-#: src/features/rules/generation-preview-tab.tsx
-#: src/routes/route-summary.ts
-msgid "Obligations"
-msgstr "Obligations"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Obligations actually created after Generate runs. Preview results show zero here until generation succeeds."
-msgstr "Obligations actually created after Generate runs. Preview results show zero here until generation succeeds."
 
 #: src/routes/obligations.tsx
 msgid "Obligations bulk owner change"
@@ -6392,6 +6393,13 @@ msgstr "Open client to fix entity"
 msgid "Open Contacts and select the cloud export icon; Admin access may be required."
 msgstr "Open Contacts and select the cloud export icon; Admin access may be required."
 
+#: src/features/audit/audit-log-page.tsx
+#: src/features/members/members-page.tsx
+#: src/features/workload/workload-page.tsx
+#: src/routes/billing.tsx
+msgid "Open Deadlines"
+msgstr "Open Deadlines"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open Deadlines."
 msgstr "Open Deadlines."
@@ -6428,13 +6436,6 @@ msgstr "Open member actions"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Open next-due deadline"
 msgstr "Open next-due deadline"
-
-#: src/features/audit/audit-log-page.tsx
-#: src/features/members/members-page.tsx
-#: src/features/workload/workload-page.tsx
-#: src/routes/billing.tsx
-msgid "Open Obligations"
-msgstr "Open Obligations"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open official source"
@@ -6514,8 +6515,8 @@ msgid "Opening…"
 msgstr "Opening…"
 
 #: src/features/rules/generation-preview-tab.tsx
-msgid "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
-msgstr "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
+msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
+msgstr "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -7418,8 +7419,8 @@ msgid "Pulse alerts"
 msgstr "Pulse alerts"
 
 #: src/routes/billing.tsx
-msgid "Pulse and Obligations access"
-msgstr "Pulse and Obligations access"
+msgid "Pulse and Deadlines access"
+msgstr "Pulse and Deadlines access"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pulse application"
@@ -8557,6 +8558,10 @@ msgstr "Search clients  ·  press / to focus"
 msgid "Search clients…"
 msgstr "Search clients…"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Search forms…"
+msgstr "Search forms…"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Search jurisdictions or rules"
 msgstr "Search jurisdictions or rules"
@@ -8576,6 +8581,10 @@ msgstr "Search owners"
 #: src/routes/rules.library.tsx
 msgid "Search rules…"
 msgstr "Search rules…"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Search tax types…"
+msgstr "Search tax types…"
 
 #: src/features/firm/timezone-select.tsx
 msgid "Search timezone..."
@@ -8662,6 +8671,10 @@ msgstr "Select at least one pending rule."
 msgid "Select at least one template rule to preview."
 msgstr "Select at least one template rule to preview."
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Select base due date"
+msgstr "Select base due date"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Select batch-ready"
 msgstr "Select batch-ready"
@@ -8711,6 +8724,10 @@ msgstr "Select rows to use this scope."
 #: src/features/rules/coverage-tab.tsx
 msgid "Select rule {0}"
 msgstr "Select rule {0}"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Select tax type…"
+msgstr "Select tax type…"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Select tax year {value}"
@@ -9049,8 +9066,8 @@ msgid "Solo"
 msgstr "Solo"
 
 #: src/features/workload/workload-page.tsx
-msgid "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Obligations jump links for weekly triage."
-msgstr "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Obligations jump links for weekly triage."
+msgid "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Deadlines jump links for weekly triage."
+msgstr "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Deadlines jump links for weekly triage."
 
 #: src/routes/billing.checkout.tsx
 msgid "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
@@ -9380,8 +9397,13 @@ msgid "Suggested actions"
 msgstr "Suggested actions"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms"
 msgstr "Suggested forms"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Suggested tax types"
+msgstr "Suggested tax types"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Suggested tax types (from entity × state matrix)"
@@ -10182,6 +10204,10 @@ msgstr "Urgent"
 #: src/features/reminders/reminders-page.tsx
 msgid "Usage"
 msgstr "Usage"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Use \"{trimmedQuery}\""
+msgstr "Use \"{trimmedQuery}\""
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Use 2-letter state codes"

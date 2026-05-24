@@ -351,7 +351,7 @@ function UpcomingPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <Link
-                        to={`/obligations?obligation=${item.obligationId}`}
+                        to={`/deadlines?obligation=${item.obligationId}`}
                         className="font-medium text-text-primary hover:underline"
                       >
                         {item.clientName}

@@ -19,6 +19,7 @@ import { getClientReadiness } from '@/features/clients/client-readiness'
 import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
+import { clientDetailPath } from './client-url'
 
 /**
  * `ClientPeekHoverCard` — the *hover* form of a client peek.
@@ -202,7 +203,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
           nativeButton={false}
           variant="primary"
           size="sm"
-          render={<Link to={`/clients/${client.id}`} />}
+          render={<Link to={clientDetailPath(client)} />}
         >
           <Trans>Open full page</Trans>
           <ArrowUpRightIcon data-icon="inline-end" />
@@ -211,7 +212,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
           nativeButton={false}
           variant="outline"
           size="sm"
-          render={<Link to={`/obligations?client=${client.id}`} />}
+          render={<Link to={`/deadlines?client=${client.id}`} />}
         >
           <Trans>All deadlines</Trans>
         </Button>

@@ -1,7 +1,7 @@
 import { expect, test } from '../fixtures/test'
 
-// Feature: Obligations list
-// PRD: S1 protected Obligations entry
+// Feature: Deadlines list
+// PRD: S1 protected Deadlines entry
 // AC: E2E-OBLIGATIONS-FILTERS, E2E-OBLIGATIONS-STATUS
 
 test.skip(
@@ -22,8 +22,8 @@ test.describe('seeded obligations', () => {
     await expect(actions.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(actions.getByText('Northstar Dental Group')).toBeVisible()
 
-    await actions.getByRole('link', { name: 'All obligations' }).click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+    await actions.getByRole('link', { name: 'All deadlines' }).click()
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
   test('AC: E2E-DASHBOARD-FILTERS opens action rows in the obligation drawer', async ({
@@ -52,31 +52,31 @@ test.describe('seeded obligations', () => {
 
     await expect(obligationQueuePage.heading).toBeVisible()
     // Calendar sync is now a popover button (not a route link) — verify the
-    // trigger is visible; the /obligations/calendar destination is exercised
+    // trigger is visible; the /deadlines/calendar destination is exercised
     // separately by the command-palette test in authenticated-shell.spec.ts.
     await expect(obligationQueuePage.calendarSyncButton).toBeVisible()
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
 
     await obligationQueuePage.searchInput.fill('Arbor')
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?q=Arbor$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?q=Arbor$/)
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
 
     await obligationQueuePage.resetButton.click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.openStatusFilter()
     await obligationQueuePage.statusFilterOption('In review').click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?status=review$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeHidden()
     await expect(obligationQueuePage.statusFilterOption('In review')).toBeVisible()
     await authenticatedPage.keyboard.press('Escape')
 
     await obligationQueuePage.resetButton.click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.dueSortButton.click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?sort=due_desc$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?sort=due_desc$/)
   })
 
   test('AC: E2E-OBLIGATIONS-DETAIL opens the obligation drawer from a row click', async ({
@@ -149,7 +149,7 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage.getByText('Saved view created')).toBeVisible()
 
     await obligationQueuePage.resetButton.click()
-    await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.savedViewsButton.click()
     await obligationQueuePage.savedViewMenuItem('Apply view').click()
     await expect(authenticatedPage).toHaveURL(/q=Arbor/)

@@ -14,6 +14,7 @@ import {
 } from '@/components/patterns/keyboard-shell'
 
 import { neighborsInClientCycle, readClientCycleList } from './client-cycle'
+import { clientDetailPath } from './client-url'
 
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
@@ -61,21 +62,25 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
     ...orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }),
     enabled: neighbors.prev !== null || neighbors.next !== null,
   })
-  const nameById = useMemo(() => {
-    const map = new Map<string, string>()
+  const clientById = useMemo(() => {
+    const map = new Map<string, ClientPublic>()
     for (const client of clientsQuery.data ?? EMPTY_CLIENTS) {
-      map.set(client.id, client.name)
+      map.set(client.id, client)
     }
     return map
   }, [clientsQuery.data])
 
   const goPrev = useCallback(() => {
-    if (neighbors.prev) void navigate(`/clients/${neighbors.prev}`)
-  }, [navigate, neighbors.prev])
+    if (!neighbors.prev) return
+    const client = clientById.get(neighbors.prev)
+    void navigate(client ? clientDetailPath(client) : `/clients/${neighbors.prev}`)
+  }, [clientById, navigate, neighbors.prev])
 
   const goNext = useCallback(() => {
-    if (neighbors.next) void navigate(`/clients/${neighbors.next}`)
-  }, [navigate, neighbors.next])
+    if (!neighbors.next) return
+    const client = clientById.get(neighbors.next)
+    void navigate(client ? clientDetailPath(client) : `/clients/${neighbors.next}`)
+  }, [clientById, navigate, neighbors.next])
 
   // Keyboard cycling — mirrors the obligations queue's J/K contract.
   // The effect always attaches when shortcuts aren't blocked; when
@@ -106,8 +111,8 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
   if (neighbors.total <= 1) return null
   if (neighbors.prev === null && neighbors.next === null) return null
 
-  const prevName = neighbors.prev ? nameById.get(neighbors.prev) : null
-  const nextName = neighbors.next ? nameById.get(neighbors.next) : null
+  const prevName = neighbors.prev ? clientById.get(neighbors.prev)?.name : null
+  const nextName = neighbors.next ? clientById.get(neighbors.next)?.name : null
 
   return (
     <div

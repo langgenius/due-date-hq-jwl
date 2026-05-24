@@ -498,7 +498,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
   const ruleReviewCount = useRuleLibraryPendingCount()
   const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
-  // D-2: sidebar counts. Clients = total active clients; Obligations =
+  // D-2: sidebar counts. Clients = total active clients; Deadlines =
   // open-obligation count from FirmPublic.openObligationCount (already
   // aggregated server-side, no extra query). Counts render only when
   // > 0 to avoid `Clients (0)` ghost text on a fresh workspace.
@@ -519,7 +519,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       return {
         // 2026-05-20 layout: three standalone items above the RULE
         // group — no "Operations" label. Order reads as the CPA's
-        // morning routine: glance Today → triage Obligations. The
+        // morning routine: glance Today → triage Deadlines. The
         // Inbox lives behind the bell icon in the top-right utility
         // strip (PulseNotificationsBell) — clicking it opens a
         // popover; the expand icon there promotes to the full-page
@@ -529,7 +529,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
           // Alerts promoted to first-class sidebar destination — the
           // morning routine becomes: glance Today → scan Alerts →
-          // triage Obligations.
+          // triage Deadlines.
           //
           // TODO(alerts-vocab 2026-05-22): the badge currently counts
           // the unified inbox via `useInboxUnreadCount` and will
@@ -547,7 +547,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
           },
           {
-            href: '/obligations',
+            href: '/deadlines',
             label: t`Deadlines`,
             icon: CalendarClockIcon,
             end: false,
@@ -601,7 +601,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       operations: [
         { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
         {
-          href: '/obligations',
+          href: '/deadlines',
           label: t`Deadlines`,
           icon: CalendarClockIcon,
           end: false,

@@ -31,12 +31,12 @@ test('AC: E2E-SMOKE-I18N consumes locale before protected-route redirects', asyn
   loginPage,
   page,
 }) => {
-  await loginPage.goto('/obligations?lng=zh-CN&status=review')
+  await loginPage.goto('/deadlines?lng=zh-CN&status=review')
 
   await expect(loginPage.googleButton).toHaveText(/使用 Google 继续/)
 
   const url = new URL(page.url())
   expect(url.pathname).toBe('/login')
-  expect(url.searchParams.get('redirectTo')).toBe('/obligations?status=review')
+  expect(url.searchParams.get('redirectTo')).toBe('/deadlines?status=review')
   await expect(page.evaluate(() => window.localStorage.getItem('lng'))).resolves.toBe('zh-CN')
 })

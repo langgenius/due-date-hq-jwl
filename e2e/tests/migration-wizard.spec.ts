@@ -78,7 +78,7 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
   await expect(migrationWizardPage.undoImportDialog).toBeVisible()
   await migrationWizardPage.confirmUndoImport()
 
-  await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+  await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   await expect(obligationQueuePage.heading).toBeVisible()
   await expect(authenticatedPage.getByText('Import undone')).toBeVisible()
   await expect(obligationQueuePage.rowFor(importedClient)).toBeHidden()

@@ -717,10 +717,6 @@ msgstr "包含 10 个席位"
 msgid "10+ seats"
 msgstr "10+ 个席位"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "1040, 1120-S, payroll…"
-msgstr "1040、1120-S、工资税…"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "1099 vendors"
 msgstr "1099 供应商"
@@ -1058,8 +1054,8 @@ msgid "Affected clients"
 msgstr "受影响客户"
 
 #: src/features/workload/workload-page.tsx
-msgid "Aggregated from open obligations and client owner labels. Open any row in Obligations to triage the underlying deadlines."
-msgstr "基于未关闭义务和客户负责人标签汇总。打开“义务”中的任意行即可分诊对应截止日。"
+msgid "Aggregated from open obligations and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
+msgstr "基于未关闭义务和客户负责人标签汇总。打开“截止日”中的任意行即可分诊对应截止日。"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "AI"
@@ -3190,9 +3186,16 @@ msgstr "截止日"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/concepts/concept-help.tsx
+#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/obligations.tsx
+#: src/routes/route-summary.ts
 msgid "Deadlines"
 msgstr "截止日"
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
+msgstr "Generate 运行后实际创建的截止日期。预览结果在生成成功前这里显示为 0。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadlines created"
@@ -5758,6 +5761,10 @@ msgstr "暂无导出包。"
 msgid "No filing state"
 msgstr "无申报州信息"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No form matches."
+msgstr "没有匹配的表单。"
+
 #: src/routes/obligations.tsx
 msgid "No forms"
 msgstr "没有表单"
@@ -5956,6 +5963,10 @@ msgstr "订阅没有发生变化。准备好后可以重新开始支付。"
 msgid "No summary yet"
 msgstr "No summary yet"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No tax type matches."
+msgstr "没有匹配的税种。"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
 msgstr "未选择税种。"
@@ -6150,16 +6161,6 @@ msgstr "义务状态更新和客户导入在写入审计记录后会显示在这
 #: src/routes/obligations.tsx
 msgid "Obligation workflow detail panel."
 msgstr "义务工作流详情面板。"
-
-#: src/features/concepts/concept-help.tsx
-#: src/features/rules/generation-preview-tab.tsx
-#: src/routes/route-summary.ts
-msgid "Obligations"
-msgstr "义务"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Obligations actually created after Generate runs. Preview results show zero here until generation succeeds."
-msgstr "点击 Generate 后实际创建的义务数量。在生成成功前，Preview 结果这里显示为 0。"
 
 #: src/routes/obligations.tsx
 msgid "Obligations bulk owner change"
@@ -6392,6 +6393,13 @@ msgstr "打开客户以补充实体类型"
 msgid "Open Contacts and select the cloud export icon; Admin access may be required."
 msgstr "打开 Contacts 并选择云朵导出图标；可能需要 Admin 权限。"
 
+#: src/features/audit/audit-log-page.tsx
+#: src/features/members/members-page.tsx
+#: src/features/workload/workload-page.tsx
+#: src/routes/billing.tsx
+msgid "Open Deadlines"
+msgstr "打开截止日"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open Deadlines."
 msgstr "打开截止日期。"
@@ -6428,13 +6436,6 @@ msgstr "打开成员操作"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Open next-due deadline"
 msgstr "打开下一个到期的截止日期"
-
-#: src/features/audit/audit-log-page.tsx
-#: src/features/members/members-page.tsx
-#: src/features/workload/workload-page.tsx
-#: src/routes/billing.tsx
-msgid "Open Obligations"
-msgstr "打开义务"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open official source"
@@ -6514,8 +6515,8 @@ msgid "Opening…"
 msgstr "正在打开…"
 
 #: src/features/rules/generation-preview-tab.tsx
-msgid "Opens the existing duplicate obligation or the newly created obligation after Generate succeeds."
-msgstr "打开已存在的重复义务，或在 Generate 成功后打开新创建的义务。"
+msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
+msgstr "生成成功后打开现有的重复截止日期或新创建的截止日期。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -7418,8 +7419,8 @@ msgid "Pulse alerts"
 msgstr "Pulse alerts"
 
 #: src/routes/billing.tsx
-msgid "Pulse and Obligations access"
-msgstr "Pulse 与义务访问权限"
+msgid "Pulse and Deadlines access"
+msgstr "Pulse 与截止日访问权限"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pulse application"
@@ -8557,6 +8558,10 @@ msgstr "搜索客户  ·  按 / 聚焦"
 msgid "Search clients…"
 msgstr "搜索客户…"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Search forms…"
+msgstr "搜索表单…"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Search jurisdictions or rules"
 msgstr "Search jurisdictions or rules"
@@ -8576,6 +8581,10 @@ msgstr "搜索负责人"
 #: src/routes/rules.library.tsx
 msgid "Search rules…"
 msgstr "搜索规则…"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Search tax types…"
+msgstr "搜索税种…"
 
 #: src/features/firm/timezone-select.tsx
 msgid "Search timezone..."
@@ -8662,6 +8671,10 @@ msgstr "请至少选择一条待审核规则。"
 msgid "Select at least one template rule to preview."
 msgstr "请至少选择一条模板规则进行预览。"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Select base due date"
+msgstr "选择基础截止日"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Select batch-ready"
 msgstr "选择可批量"
@@ -8711,6 +8724,10 @@ msgstr "Select rows to use this scope."
 #: src/features/rules/coverage-tab.tsx
 msgid "Select rule {0}"
 msgstr "选择规则 {0}"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Select tax type…"
+msgstr "选择税种…"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Select tax year {value}"
@@ -9049,8 +9066,8 @@ msgid "Solo"
 msgstr "Solo"
 
 #: src/features/workload/workload-page.tsx
-msgid "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Obligations jump links for weekly triage."
-msgstr "Solo 是个人截止日工作台。Pro、Team 和 Enterprise 增加共享截止日运营：负责人级工作负载、未分配风险、等待与复核压力，以及用于每周分诊的义务跳转链接。"
+msgid "Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline operations: owner-level workload, unassigned risk, waiting and review pressure, and Deadlines jump links for weekly triage."
+msgstr "Solo 是个人截止日工作台。Pro、Team 和 Enterprise 增加共享截止日运营：负责人级工作负载、未分配风险、等待与复核压力，以及用于每周分诊的截止日跳转链接。"
 
 #: src/routes/billing.checkout.tsx
 msgid "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
@@ -9380,8 +9397,13 @@ msgid "Suggested actions"
 msgstr "建议动作"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms"
 msgstr "建议表格"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Suggested tax types"
+msgstr "建议税种"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Suggested tax types (from entity × state matrix)"
@@ -10182,6 +10204,10 @@ msgstr "紧急"
 #: src/features/reminders/reminders-page.tsx
 msgid "Usage"
 msgstr "使用次数"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Use \"{trimmedQuery}\""
+msgstr "使用 \"{trimmedQuery}\""
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Use 2-letter state codes"

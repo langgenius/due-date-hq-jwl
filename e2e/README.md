@@ -51,13 +51,13 @@ Current specs intentionally cover shipped behavior only:
 - marketing-to-app locale handoff
 - entry-page locale switching
 - SPA 404 rendering
-- protected Dashboard / Clients / Obligations / Team Workload / Rules / Members / Billing /
+- protected Dashboard / Clients / Deadlines / Team Workload / Rules / Members / Billing /
   Practice Profile / Audit Log / Migration Step 1 surfaces with local seeded auth
 - Clients facts manual creation, seeded readiness metrics, entity/state/search URL filters, filtered
   empty state, and Fact Profile sheet inspection from seeded client rows
-- Team Workload paid-plan gating, server-computed owner metrics, unassigned risk, and Obligations
+- Team Workload paid-plan gating, server-computed owner metrics, unassigned risk, and Deadlines
   deep links
-- Obligations and Members write actions appearing in the Audit Log detail drawer
+- Deadlines and Members write actions appearing in the Audit Log detail drawer
 - pricing-to-billing handoff, protected billing checkout payloads, owner-only checkout, cancel recovery,
   webhook-backed success state, and Stripe Billing Portal request contracts
 

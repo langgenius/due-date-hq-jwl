@@ -110,7 +110,7 @@ export function MembersPageRoute() {
             teammates or change roles.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open Obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open Deadlines</Trans>, to: '/deadlines' }}
       >
         <MembersSkeleton />
       </PermissionGate>

@@ -27,6 +27,7 @@ import {
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { getClientReadiness } from './client-readiness'
+import { clientDetailPath } from './client-url'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -272,7 +273,7 @@ function FixNeedsFactsRow({
             type="button"
             variant="outline"
             size="sm"
-            render={<Link to={`/clients/${client.id}?tab=info`} />}
+            render={<Link to={`${clientDetailPath(client)}?tab=info`} />}
             onClick={() => closeSheet()}
           >
             <Trans>Open client to fix entity</Trans>

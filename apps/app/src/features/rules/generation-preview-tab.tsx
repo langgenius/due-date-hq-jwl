@@ -653,7 +653,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         <RolloverMetric
           label={t`Created`}
           value={result.summary.createdCount}
-          description={t`Obligations actually created after Generate runs. Preview results show zero here until generation succeeds.`}
+          description={t`Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds.`}
         />
       </div>
       <div className="max-h-[420px] overflow-y-auto">
@@ -683,8 +683,8 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
             description={t`The matched active practice rule and period, or the reason this row is duplicate or skipped.`}
           />
           <RolloverColumnHeader
-            label={t`Obligations`}
-            description={t`Opens the existing duplicate obligation or the newly created obligation after Generate succeeds.`}
+            label={t`Deadlines`}
+            description={t`Opens the existing duplicate deadline or the newly created deadline after Generate succeeds.`}
             align="right"
           />
         </div>
@@ -858,7 +858,7 @@ function boundedYear(raw: string, fallback: number, min: number, max: number): n
 }
 
 function obligationQueueHref(obligationId: string): string {
-  return `/obligations?${new URLSearchParams({ obligation: obligationId }).toString()}`
+  return `/deadlines?${new URLSearchParams({ obligation: obligationId }).toString()}`
 }
 
 function rolloverCreatedIds(result: AnnualRolloverOutput | undefined): string[] {

@@ -162,8 +162,9 @@ weights, different audiences, and different action paths.
 - Includes: button labels, page titles, empty states, toasts,
   digest emails
 - **Excludes:** code identifiers, contract types, audit log action
-  strings, sidebar route slug (`/obligations` stays — URL change is
-  out of scope)
+  strings
+- **Updated 2026-05-24:** the route slug is now `/deadlines`; legacy
+  `/obligations` URLs redirect for compatibility.
 - **Why P0:** "Obligation" is the single piece of jargon that betrays
   the product as internal-tool aesthetic. One pass kills it everywhere.
 

@@ -2,12 +2,21 @@ import { type ReactElement, useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { PlusIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
 import type { ClientCreateInput, ObligationCreateInput } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@duedatehq/ui/components/ui/command'
 import {
   Dialog,
   DialogContent,
@@ -28,7 +37,10 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { cn } from '@duedatehq/ui/lib/utils'
 
+import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { ClientCombobox } from '@/features/clients/ClientCombobox'
 import { type ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
@@ -51,6 +63,198 @@ const OBLIGATION_TYPES = [
   'internal_review',
 ] as const satisfies readonly NonNullable<ObligationCreateInput['obligationType']>[]
 type ObligationTypeValue = (typeof OBLIGATION_TYPES)[number]
+
+type SuggestionOption = {
+  value: string
+  label: string
+  description?: string
+}
+
+type TaxTypeSuggestion = SuggestionOption & {
+  formName?: string
+  jurisdiction?: string
+  obligationType?: ObligationTypeValue
+}
+
+const COMMON_TAX_TYPE_SUGGESTIONS: readonly TaxTypeSuggestion[] = [
+  {
+    value: 'federal_1040',
+    label: 'Form 1040',
+    description: 'Federal individual income tax return',
+    formName: 'Form 1040',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_1040_estimated_tax',
+    label: 'Form 1040-ES',
+    description: 'Federal individual estimated tax',
+    formName: 'Form 1040-ES',
+    jurisdiction: 'FED',
+    obligationType: 'payment',
+  },
+  {
+    value: 'federal_1041',
+    label: 'Form 1041',
+    description: 'Federal fiduciary income tax return',
+    formName: 'Form 1041',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_1065',
+    label: 'Form 1065',
+    description: 'Federal partnership return',
+    formName: 'Form 1065',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_1120s',
+    label: 'Form 1120-S',
+    description: 'Federal S corporation return',
+    formName: 'Form 1120-S',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_1120',
+    label: 'Form 1120',
+    description: 'Federal C corporation return',
+    formName: 'Form 1120',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_941',
+    label: 'Form 941',
+    description: 'Federal quarterly payroll tax return',
+    formName: 'Form 941',
+    jurisdiction: 'FED',
+  },
+  {
+    value: 'federal_payroll_deposit_monthly',
+    label: 'Payroll tax deposit',
+    description: 'Federal monthly payroll deposit schedule',
+    formName: 'Payroll tax deposit',
+    jurisdiction: 'FED',
+    obligationType: 'deposit',
+  },
+  {
+    value: 'federal_1099_nec',
+    label: 'Form 1099-NEC',
+    description: 'Federal information return',
+    formName: 'Form 1099-NEC',
+    jurisdiction: 'FED',
+    obligationType: 'information',
+  },
+  {
+    value: 'federal_fbar',
+    label: 'FBAR / FinCEN 114',
+    description: 'Foreign bank account report',
+    formName: 'FinCEN Form 114',
+    jurisdiction: 'FED',
+    obligationType: 'information',
+  },
+  {
+    value: 'ca_llc_568',
+    label: 'CA Form 568',
+    description: 'California LLC return of income',
+    formName: 'Form 568',
+    jurisdiction: 'CA',
+  },
+  {
+    value: 'ca_llc_annual_tax',
+    label: 'CA LLC annual tax',
+    description: 'California LLC $800 annual tax',
+    formName: 'FTB 3522',
+    jurisdiction: 'CA',
+    obligationType: 'payment',
+  },
+  {
+    value: 'ca_100s',
+    label: 'CA Form 100S',
+    description: 'California S corporation franchise tax return',
+    formName: 'Form 100S',
+    jurisdiction: 'CA',
+  },
+  {
+    value: 'ca_100',
+    label: 'CA Form 100',
+    description: 'California C corporation franchise tax return',
+    formName: 'Form 100',
+    jurisdiction: 'CA',
+  },
+  {
+    value: 'ny_it204',
+    label: 'NY IT-204',
+    description: 'New York partnership return',
+    formName: 'Form IT-204',
+    jurisdiction: 'NY',
+  },
+  {
+    value: 'ny_it204ll',
+    label: 'NY IT-204-LL',
+    description: 'New York LLC filing fee',
+    formName: 'Form IT-204-LL',
+    jurisdiction: 'NY',
+    obligationType: 'payment',
+  },
+  {
+    value: 'ny_ct3',
+    label: 'NY CT-3',
+    description: 'New York C corporation franchise tax return',
+    formName: 'Form CT-3',
+    jurisdiction: 'NY',
+  },
+  {
+    value: 'ny_ct3s',
+    label: 'NY CT-3-S',
+    description: 'New York S corporation franchise tax return',
+    formName: 'Form CT-3-S',
+    jurisdiction: 'NY',
+  },
+  {
+    value: 'tx_franchise_report',
+    label: 'TX franchise report',
+    description: 'Texas annual franchise tax report',
+    formName: 'Texas franchise tax report',
+    jurisdiction: 'TX',
+  },
+  {
+    value: 'wa_combined_excise_quarterly',
+    label: 'WA combined excise',
+    description: 'Washington combined excise tax return',
+    formName: 'Combined Excise Tax Return',
+    jurisdiction: 'WA',
+  },
+] as const
+
+const COMMON_FORM_SUGGESTIONS: readonly SuggestionOption[] = [
+  ...Array.from(
+    new Map(
+      COMMON_TAX_TYPE_SUGGESTIONS.flatMap((option) => {
+        if (!option.formName) return []
+        const suggestion: SuggestionOption = {
+          value: option.formName,
+          label: option.formName,
+        }
+        if (option.description) suggestion.description = option.description
+        return [[option.formName, suggestion] as const]
+      }),
+    ).values(),
+  ),
+  {
+    value: 'Schedule K-1',
+    label: 'Schedule K-1',
+    description: 'Partner, shareholder, or beneficiary K-1 dependency',
+  },
+  {
+    value: 'Form 7004',
+    label: 'Form 7004',
+    description: 'Business return extension request',
+  },
+  {
+    value: 'Form 4868',
+    label: 'Form 4868',
+    description: 'Individual return extension request',
+  },
+]
 
 function isObligationTypeValue(value: string | null): value is ObligationTypeValue {
   return OBLIGATION_TYPES.some((type) => type === value)
@@ -198,6 +402,149 @@ function useEntityLabels(): Record<ClientEntityType, string> {
   )
 }
 
+function suggestionMatchesValue(option: SuggestionOption, value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  return option.value.toLowerCase() === normalized || option.label.toLowerCase() === normalized
+}
+
+function SuggestionCombobox<TOption extends SuggestionOption>({
+  id,
+  value,
+  placeholder,
+  searchPlaceholder,
+  emptyLabel,
+  groupHeading,
+  options,
+  invalid,
+  onValueChange,
+  onOptionSelect,
+}: {
+  id: string
+  value: string
+  placeholder: string
+  searchPlaceholder: string
+  emptyLabel: string
+  groupHeading: string
+  options: readonly TOption[]
+  invalid?: boolean
+  onValueChange: (value: string) => void
+  onOptionSelect?: (option: TOption) => void
+}) {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const selectedOption = options.find((option) => option.value === value)
+  const triggerLabel = selectedOption?.label ?? value
+  const trimmedQuery = query.trim()
+  const hasExactMatch = options.some((option) => suggestionMatchesValue(option, trimmedQuery))
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen)
+    setQuery(nextOpen ? value : '')
+  }
+
+  function selectOption(option: TOption) {
+    onValueChange(option.value)
+    onOptionSelect?.(option)
+    changeOpen(false)
+  }
+
+  function selectCustom(nextValue: string) {
+    onValueChange(nextValue)
+    changeOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={changeOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            id={id}
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            aria-invalid={invalid || undefined}
+            className={cn(
+              'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
+              'hover:bg-components-input-bg-hover',
+              'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+              'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',
+            )}
+          >
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate text-left',
+                triggerLabel
+                  ? 'text-components-input-text-filled'
+                  : 'text-components-input-text-placeholder',
+              )}
+            >
+              {triggerLabel || placeholder}
+            </span>
+            <ChevronDownIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+          </button>
+        }
+      />
+      <PopoverContent
+        align="start"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-[calc(100vw-2rem)] overflow-hidden p-0"
+      >
+        <Command loop>
+          <CommandInput
+            autoFocus
+            value={query}
+            onValueChange={setQuery}
+            placeholder={searchPlaceholder}
+          />
+          <CommandList className="max-h-[320px]">
+            <CommandEmpty>{emptyLabel}</CommandEmpty>
+            <CommandGroup heading={groupHeading}>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={[option.label, option.value, option.description ?? ''].join(' ')}
+                  onSelect={() => selectOption(option)}
+                  className="grid-cols-[minmax(0,1fr)_auto]"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-text-primary">
+                      {option.label}
+                    </span>
+                    <span className="block truncate text-xs text-text-tertiary">
+                      {option.description ?? option.value}
+                    </span>
+                  </span>
+                  <CheckIcon
+                    className={cn(
+                      'size-4 text-text-accent',
+                      option.value === value ? 'opacity-100' : 'opacity-0',
+                    )}
+                    aria-hidden
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {trimmedQuery.length > 0 && !hasExactMatch ? (
+              <>
+                <CommandSeparator />
+                <CommandItem
+                  value={trimmedQuery}
+                  onSelect={() => selectCustom(trimmedQuery)}
+                  className="grid-cols-[minmax(0,1fr)]"
+                >
+                  <span className="truncate text-sm text-text-primary">
+                    {t`Use "${trimmedQuery}"`}
+                  </span>
+                </CommandItem>
+              </>
+            ) : null}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 /**
  * "+ Add deadline" entry-point dialog. Used by the Today page
  * (no `defaultClientId`) and the Client detail page
@@ -260,6 +607,8 @@ export function CreateObligationDialog({
   const status = useStore(form.store, (state) => state.values.status)
   const obligationType = useStore(form.store, (state) => state.values.obligationType)
   const internalNotes = useStore(form.store, (state) => state.values.internalNotes)
+  const formName = useStore(form.store, (state) => state.values.formName)
+  const jurisdiction = useStore(form.store, (state) => state.values.jurisdiction)
 
   const createMutation = useMutation(
     orpc.obligations.createBatch.mutationOptions({
@@ -399,14 +748,27 @@ export function CreateObligationDialog({
                       <FieldLabel htmlFor="obligation-tax-type">
                         <Trans>Tax type</Trans>
                       </FieldLabel>
-                      <Input
+                      <SuggestionCombobox
                         id="obligation-tax-type"
-                        name={field.name}
                         value={field.state.value}
-                        placeholder={t`1040, 1120-S, payroll…`}
-                        aria-invalid={!field.state.meta.isValid}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        placeholder={t`Select tax type…`}
+                        searchPlaceholder={t`Search tax types…`}
+                        emptyLabel={t`No tax type matches.`}
+                        groupHeading={t`Suggested tax types`}
+                        options={COMMON_TAX_TYPE_SUGGESTIONS}
+                        invalid={!field.state.meta.isValid}
+                        onValueChange={field.handleChange}
+                        onOptionSelect={(option) => {
+                          if (option.formName && formName.trim().length === 0) {
+                            form.setFieldValue('formName', option.formName)
+                          }
+                          if (option.jurisdiction && jurisdiction.trim().length === 0) {
+                            form.setFieldValue('jurisdiction', option.jurisdiction)
+                          }
+                          if (option.obligationType) {
+                            form.setFieldValue('obligationType', option.obligationType)
+                          }
+                        }}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
@@ -418,14 +780,14 @@ export function CreateObligationDialog({
                       <FieldLabel htmlFor="obligation-due-date">
                         <Trans>Base due date</Trans>
                       </FieldLabel>
-                      <Input
+                      <IsoDatePicker
                         id="obligation-due-date"
-                        type="date"
-                        name={field.name}
                         value={field.state.value}
-                        aria-invalid={!field.state.meta.isValid}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        invalid={!field.state.meta.isValid}
+                        placeholder="YYYY-MM-DD"
+                        ariaLabel={t`Select base due date`}
+                        className="rounded-md border-divider-regular"
+                        onValueChange={field.handleChange}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
@@ -440,13 +802,15 @@ export function CreateObligationDialog({
                       <FieldLabel htmlFor="obligation-form-name">
                         <Trans>Form</Trans>
                       </FieldLabel>
-                      <Input
+                      <SuggestionCombobox
                         id="obligation-form-name"
-                        name={field.name}
                         value={field.state.value}
                         placeholder={t`Optional`}
-                        onBlur={field.handleBlur}
-                        onChange={(event) => field.handleChange(event.target.value)}
+                        searchPlaceholder={t`Search forms…`}
+                        emptyLabel={t`No form matches.`}
+                        groupHeading={t`Suggested forms`}
+                        options={COMMON_FORM_SUGGESTIONS}
+                        onValueChange={field.handleChange}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>

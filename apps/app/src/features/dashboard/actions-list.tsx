@@ -328,7 +328,7 @@ function DashboardActionsList({
   if (visible.length === 0) {
     // Three empty states, in order of how they should be tested:
     //   1. The practice has obligations beyond this week — show the
-    //      count and route to /obligations. Avoids the "import again"
+    //      count and route to /deadlines. Avoids the "import again"
     //      misread when the user already has data.
     //   2. The practice has zero obligations AND no clients yet — keep
     //      the import CTA.
@@ -414,7 +414,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
         ) : null}
       </h2>
       <Link
-        to="/obligations"
+        to="/deadlines"
         onClick={(event) => {
           event.preventDefault()
           onOpenAll()

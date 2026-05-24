@@ -48,3 +48,23 @@ Additional verification:
 - `pnpm --filter @duedatehq/app test -- src/features/clients/ClientPeekHoverCard.test.tsx src/routes/rules.library.test.tsx`
 - `pnpm check`
 - `pnpm exec vp check --fix <staged-files>`
+
+## CI follow-up
+
+GitHub Actions run `26354098413` failed in `vp run ci` on
+`ClientPeekHoverCard.test.tsx` because the test asserted against
+`document.body.textContent` after a single timer tick. The peek body initially
+renders textless skeletons while TanStack Query resolves, so the assertion was
+racy and observed an empty body.
+
+The test now waits for the expected client name to appear before asserting the
+Link-backed anchors and the absence of the Base UI native-button warning. No
+DESIGN.md update was needed because this is a test-only timing fix.
+
+Additional verification:
+
+- `pnpm --filter @duedatehq/app test -- src/features/clients/ClientPeekHoverCard.test.tsx`
+- `pnpm test`
+- `pnpm build` (exit 0; Wrangler dry-run still printed the known local
+  `~/Library/Preferences/.wrangler/logs` EPERM log-write warning)
+- `pnpm check`

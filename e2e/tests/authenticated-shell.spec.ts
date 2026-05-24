@@ -13,9 +13,9 @@ test('AC: E2E-AUTH-GUEST-REDIRECT sends signed-in guests to their target', async
   authenticatedPage,
   obligationQueuePage,
 }) => {
-  await authenticatedPage.goto('/login?redirectTo=/obligations')
+  await authenticatedPage.goto('/login?redirectTo=/deadlines')
 
-  await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+  await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   await expect(obligationQueuePage.heading).toBeVisible()
 })
 
@@ -51,7 +51,7 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   await Promise.all(
     [
       'Today',
-      'Obligations',
+      'Deadlines',
       'Reminders',
       'Calendar sync',
       'Notifications',
@@ -73,11 +73,12 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   await expect(appShellPage.commandDialog.getByText('Calendar', { exact: true })).toHaveCount(0)
   await appShellPage.commandItem('Calendar sync').click()
 
-  await expect(authenticatedPage).toHaveURL(/\/obligations\/calendar$/)
+  await expect(authenticatedPage).toHaveURL(/\/deadlines\/calendar$/)
   await expect(authenticatedPage.getByText('Subscription notes')).toBeVisible()
-  await expect(
-    authenticatedPage.getByRole('link', { name: 'Back to Obligations' }),
-  ).toHaveAttribute('href', '/obligations')
+  await expect(authenticatedPage.getByRole('link', { name: 'Back to Deadlines' })).toHaveAttribute(
+    'href',
+    '/deadlines',
+  )
 
   await appShellPage.openCommandPalette()
   await appShellPage.commandItem('Rule library').click()

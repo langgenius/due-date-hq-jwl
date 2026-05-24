@@ -280,12 +280,12 @@ describe('AnnualRolloverPanel', () => {
     const helpButtons = Array.from(document.querySelectorAll('button[aria-label^="About "]'))
 
     expect(helpButtons.map((button) => button.getAttribute('aria-label'))).toEqual(
-      expect.arrayContaining(['About Source deadlines', 'About Status', 'About Obligations']),
+      expect.arrayContaining(['About Source deadlines', 'About Status', 'About Deadlines']),
     )
     expect(helpButtons).toHaveLength(14)
   })
 
-  it('generates rollover obligations and shows the Obligations link state', async () => {
+  it('generates rollover obligations and shows the Deadlines link state', async () => {
     await renderPanel()
     await waitForText('CA Form 100 annual filing')
 

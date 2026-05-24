@@ -115,4 +115,41 @@ test.describe('seeded client facts', () => {
     await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
+
+  test('AC: E2E-CLIENTS-ADD-DEADLINE shows date, tax type, and form pickers', async ({
+    authenticatedPage,
+    clientsPage,
+  }) => {
+    await clientsPage.goto()
+
+    await clientsPage.rowFor('Unassigned Foundry LLC').click()
+    await expect(clientsPage.clientDetailHeading('Unassigned Foundry LLC')).toBeVisible()
+
+    await authenticatedPage.getByRole('button', { name: 'Add deadline' }).first().click()
+
+    const dialog = authenticatedPage.getByRole('dialog', { name: 'Add deadline' })
+    await expect(dialog).toBeVisible()
+
+    const dueDatePicker = dialog.locator('#obligation-due-date')
+    await expect(dueDatePicker).toContainText('YYYY-MM-DD')
+    await expect(dueDatePicker).not.toContainText(/年|月|日/)
+
+    const taxTypePicker = dialog.locator('#obligation-tax-type')
+    await expect(taxTypePicker).toHaveAttribute('role', 'combobox')
+    await taxTypePicker.click()
+    await expect(authenticatedPage.getByText('Suggested tax types')).toBeVisible()
+    await expect(authenticatedPage.getByText('Form 1120-S')).toBeVisible()
+    await authenticatedPage.getByText('Form 1120-S').click()
+    await expect(taxTypePicker).toContainText('Form 1120-S')
+
+    const formPicker = dialog.locator('#obligation-form-name')
+    await expect(formPicker).toHaveAttribute('role', 'combobox')
+    await expect(formPicker).toContainText('Form 1120-S')
+    await formPicker.click()
+    const suggestedForms = authenticatedPage.getByLabel('Suggested forms')
+    await expect(suggestedForms).toBeVisible()
+    await expect(suggestedForms.getByText('Form 1120-S')).toBeVisible()
+    await authenticatedPage.getByPlaceholder('Search forms…').fill('Schedule')
+    await expect(suggestedForms.getByText('Schedule K-1')).toBeVisible()
+  })
 })

@@ -20,7 +20,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * Workspace settings hub. Replaces the previous "Practice" sidebar group —
  * the routes underneath still exist at their original paths (`/practice`,
  * `/members`, `/workload`, `/billing`, `/audit`, `/reminders`,
- * `/notifications`, `/obligations/calendar`), they're just no longer
+ * `/notifications`, `/deadlines/calendar`), they're just no longer
  * surfaced in the primary nav. This page is the discovery surface for
  * those config destinations.
  *
@@ -105,7 +105,7 @@ export function SettingsRoute() {
           icon: BellIcon,
         },
         {
-          href: '/obligations/calendar',
+          href: '/deadlines/calendar',
           label: t`Calendar sync`,
           description: t`Subscribe to deadlines from Apple / Google calendars.`,
           icon: CalendarDaysIcon,

@@ -11,16 +11,16 @@ describe('app shell demo account switcher helpers', () => {
   it('preserves the current path, search, and hash when building the redirect target', () => {
     expect(
       currentPathForDemoSwitch({
-        pathname: '/obligations',
+        pathname: '/deadlines',
         search: '?owner=unassigned',
         hash: '#row-1',
       }),
-    ).toBe('/obligations?owner=unassigned#row-1')
+    ).toBe('/deadlines?owner=unassigned#row-1')
   })
 
   it('builds demo account switch hrefs with role and redirectTo params', () => {
-    expect(demoAccountSwitchHref('manager', '/obligations?owner=unassigned#row-1')).toBe(
-      '/api/e2e/demo-login?role=manager&redirectTo=%2Fobligations%3Fowner%3Dunassigned%23row-1',
+    expect(demoAccountSwitchHref('manager', '/deadlines?owner=unassigned#row-1')).toBe(
+      '/api/e2e/demo-login?role=manager&redirectTo=%2Fdeadlines%3Fowner%3Dunassigned%23row-1',
     )
   })
 

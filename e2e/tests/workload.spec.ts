@@ -32,7 +32,7 @@ test.describe('seeded team workload', () => {
     await expect(authenticatedPage).toHaveURL(/\/workload$/)
     await expect(workloadPage.upgradeHeading).toBeVisible()
     await expect(workloadPage.upgradePlanLink).toHaveAttribute('href', '/billing')
-    await expect(workloadPage.openObligationQueueLink).toHaveAttribute('href', '/obligations')
+    await expect(workloadPage.openObligationQueueLink).toHaveAttribute('href', '/deadlines')
   })
 
   test('AC: E2E-WORKLOAD-FIRM-METRICS reads paid-plan workload from real queue rows', async ({
@@ -65,7 +65,7 @@ test.describe('seeded team workload', () => {
     ])
   })
 
-  test('AC: E2E-WORKLOAD-OBLIGATIONS-LINKS deep-links workload triage into Obligations', async ({
+  test('AC: E2E-WORKLOAD-OBLIGATIONS-LINKS deep-links workload triage into Deadlines', async ({
     authSession,
     authenticatedPage,
     request,
@@ -77,8 +77,8 @@ test.describe('seeded team workload', () => {
     await workloadPage.goto()
     await workloadPage.rowFor('M. Chen').locator('td').nth(3).getByRole('link').click()
 
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?.*assignee=M\.(?:\+|%20)Chen/)
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?.*due=overdue/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?.*assignee=M\.(?:\+|%20)Chen/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?.*due=overdue/)
     await expect(obligationQueuePage.heading).toBeVisible()
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
@@ -86,7 +86,7 @@ test.describe('seeded team workload', () => {
     await workloadPage.goto()
     await workloadPage.rowFor('Unassigned').getByRole('link', { name: 'Open' }).click()
 
-    await expect(authenticatedPage).toHaveURL(/\/obligations\?owner=unassigned$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\?owner=unassigned$/)
     await expect(authenticatedPage.getByText('Unassigned Foundry LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Copperline Studios')).toBeHidden()
   })

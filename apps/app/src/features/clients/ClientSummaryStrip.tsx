@@ -310,7 +310,7 @@ export function ClientSummaryStrip({
         sublineTone={atRiskCount > 0 ? 'destructive' : 'tertiary'}
         onClick={
           atRiskCount > 0
-            ? () => void navigate(`/obligations?client=${clientId}&status=blocked`)
+            ? () => void navigate(`/deadlines?client=${clientId}&status=blocked`)
             : undefined
         }
         ariaLabel={t`View at-risk deadlines`}
@@ -320,7 +320,7 @@ export function ClientSummaryStrip({
         value={openCount}
         label={<Trans>Open filing</Trans>}
         subline={openFilingSubline}
-        onClick={openCount > 0 ? () => void navigate(`/obligations?client=${clientId}`) : undefined}
+        onClick={openCount > 0 ? () => void navigate(`/deadlines?client=${clientId}`) : undefined}
         ariaLabel={t`View open filings for this client`}
       />
     </section>

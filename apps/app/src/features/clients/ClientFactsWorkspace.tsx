@@ -136,6 +136,7 @@ import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientPeekHoverCard } from './ClientPeekHoverCard'
 import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
+import { clientDetailPath } from './client-url'
 
 import {
   CLIENT_UNASSIGNED_OWNER_FILTER,
@@ -928,7 +929,7 @@ export function ClientFactsWorkspace({
           // handler doesn't swallow the navigation.
           return (
             <Link
-              to={`/obligations?client=${row.original.id}`}
+              to={`/deadlines?client=${row.original.id}`}
               onClick={(event) => event.stopPropagation()}
               className="block text-right tabular-nums text-text-primary outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
               aria-label={t`View ${count} open deadlines for this client`}
@@ -1125,9 +1126,10 @@ export function ClientFactsWorkspace({
   })
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
-      void navigate(`/clients/${clientId}`)
+      const client = clients.find((candidate) => candidate.id === clientId)
+      void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
     },
-    [navigate],
+    [clients, navigate],
   )
 
   // L-2: Fix-now banner now opens an inline batch sheet
@@ -1311,10 +1313,10 @@ function handleClientRowKeyDown(
  *
  * Tiles render only when their count is > 0:
  *   - **At risk** — clients with ≥1 overdue obligation (destructive
- *     tone). Click → `/obligations?status=blocked` so the CPA lands
+ *     tone). Click -> `/deadlines?status=blocked` so the CPA lands
  *     on the actionable queue, not a filtered client list.
  *   - **Waiting on client** — clients with ≥1 `waiting_on_client`
- *     obligation (warning tone). Click → `/obligations?status=waiting_on_client`.
+ *     obligation (warning tone). Click -> `/deadlines?status=waiting_on_client`.
  *   - **Pulse hits** — clients matched by a recent Pulse alert
  *     (review tone). Click → applies the `pulse=affected` filter on
  *     the current list so the CPA can triage which of *their*
@@ -2147,7 +2149,7 @@ export function ClientDetailWorkspace({
               onTabChange={setObligationTab}
               onClose={closeObligationPanel}
               onNeedsInput={() => {
-                // Penalty-input dialog is route-local to /obligations;
+                // Penalty-input dialog is route-local to /deadlines;
                 // not wired here. CPAs can deep-link to the queue
                 // for that flow.
               }}

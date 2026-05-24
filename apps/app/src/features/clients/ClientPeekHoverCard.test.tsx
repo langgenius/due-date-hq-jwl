@@ -12,6 +12,7 @@ import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
 
 import { ClientPeekBody } from './ClientPeekHoverCard'
+import { clientDetailPath } from './client-url'
 
 const rpcMocks = vi.hoisted(() => ({
   clientGetQueryFn: vi.fn(),
@@ -193,10 +194,25 @@ function render(children: ReactNode) {
   })
 }
 
-async function flushQueries() {
+async function waitForPeekContent({
+  clientHref,
+  obligationsHref,
+  attempts = 25,
+}: {
+  clientHref: string
+  obligationsHref: string
+  attempts?: number
+}): Promise<void> {
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
   })
+  const hasClientName = document.body.textContent?.includes('Bright Studio S-Corp')
+  const hasClientLink = document.querySelector(`a[href="${clientHref}"]`)
+  const hasObligationsLink = document.querySelector(`a[href="${obligationsHref}"]`)
+  if ((hasClientName && hasClientLink && hasObligationsLink) || attempts <= 1) {
+    return
+  }
+  return waitForPeekContent({ clientHref, obligationsHref, attempts: attempts - 1 })
 }
 
 beforeEach(() => {
@@ -226,15 +242,13 @@ describe('ClientPeekHoverCard', () => {
   it('renders Link-backed buttons without Base UI native-button warnings', async () => {
     render(<ClientPeekBody clientId={parsedClient.id} />)
 
-    await flushQueries()
+    const clientHref = clientDetailPath(parsedClient)
+    const obligationsHref = `/deadlines?client=${parsedClient.id}`
+    await waitForPeekContent({ clientHref, obligationsHref })
 
     expect(document.body.textContent).toContain('Bright Studio S-Corp')
-    expect(
-      document.querySelector('a[href="/clients/24000000-0000-4000-8000-000000000001"]'),
-    ).toBeInstanceOf(HTMLAnchorElement)
-    expect(
-      document.querySelector('a[href="/obligations?client=24000000-0000-4000-8000-000000000001"]'),
-    ).toBeInstanceOf(HTMLAnchorElement)
+    expect(document.querySelector(`a[href="${clientHref}"]`)).toBeInstanceOf(HTMLAnchorElement)
+    expect(document.querySelector(`a[href="${obligationsHref}"]`)).toBeInstanceOf(HTMLAnchorElement)
     expect(consoleErrorSpy).not.toHaveBeenCalledWith(
       expect.stringContaining('expected a native <button>'),
     )

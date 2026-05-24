@@ -1187,7 +1187,7 @@ function StatsBar({
         </div>
         {/* Catalog-level counts caption — now sourced from the shared
             `SurfaceSummaryStrip` primitive (2026-05-22) so the chrome
-            stays aligned with /clients and /obligations as those
+            stays aligned with /clients and /deadlines as those
             migrate. The progress bar above is kept rule-library-
             specific because the "active vs review backlog" framing is
             unique to the rule catalog. */}
@@ -1758,16 +1758,16 @@ function RuleTableRow({
       {/* Rule title.
           - `whitespace-normal` overrides the primitive's `whitespace-
             nowrap` so long titles can wrap to 2 lines.
-          - `!pl-[10px]` when the row has a checkbox, since the checkbox
-            itself stands in for the visual indent. Otherwise `!pl-[34px]`
-            aligns the title with the state badge's LEFT edge.
+          - `!pl-[58px]` when the row has a checkbox, so the rule
+            checkbox aligns with the section label above. Otherwise
+            `!pl-[34px]` aligns the title with the state badge's LEFT edge.
           - `min-h-10` keeps row height consistent with gap rows.
           - `group-hover:underline` on the title text signals the
             link target on hover. */}
       <TableCell
         className={cn(
           'min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary',
-          selectable ? '!pl-[10px]' : '!pl-[34px]',
+          selectable ? '!pl-[58px]' : '!pl-[34px]',
         )}
       >
         <div className="flex min-w-0 items-start gap-2">
@@ -1919,16 +1919,11 @@ function StatusSectionHeaderRow({
   // reads as one tinted line, not a label + colored badge.
   return (
     <TableRow className="hover:bg-transparent">
-      {/* When the checkbox is present, indent shrinks (`!pl-[10px]`)
-          so the checkbox sits in the same column as the rule-row
-          checkboxes below; the label then aligns with the rule
-          titles below. Without checkbox, the `!pl-[34px]` indent
-          aligns the label with the badge column above (same
-          ladder rule rows use). */}
-      <TableCell
-        colSpan={RULES_TABLE_COLUMN_COUNT}
-        className={cn('pb-1 pt-3', hasSelectAll ? '!pl-[10px]' : '!pl-[34px]')}
-      >
+      {/* When the checkbox is present, align it with the state badge
+          above (`!pl-[34px]`). The section label then becomes the
+          anchor for rule-row checkboxes below. Without checkbox, the
+          same indent aligns the label with the badge column above. */}
+      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="!pl-[34px] pb-1 pt-3">
         <div className="flex items-center gap-2">
           {hasSelectAll ? (
             <Checkbox
