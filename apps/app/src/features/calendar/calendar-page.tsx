@@ -259,30 +259,41 @@ function CalendarSubscriptionCard({
           </PermissionObscuredContent>
         ) : (
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <span className="text-sm font-medium text-text-primary">
-                <Trans>Privacy</Trans>
-              </span>
-              <Select
-                value={privacyMode}
-                onValueChange={(value) => {
-                  if (isCalendarPrivacyMode(value)) onEnable(value)
-                }}
-                disabled={pending}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="redacted">
-                    <Trans>Redacted client names</Trans>
-                  </SelectItem>
-                  <SelectItem value="full">
-                    <Trans>Full client names</Trans>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 2026-05-24 (critique /polish): privacy-mode dropdown
+                used to render even when there was no active feed.
+                Combined with the "Enable redacted feed / Enable full
+                feed" pair below, the user saw a dropdown AND two
+                buttons that did effectively the same thing — three
+                ways to pick the same value. Show the dropdown only
+                when a subscription is already active (where it's
+                the swap-mode control). Pre-subscription the buttons
+                are the sole choice. */}
+            {activeSubscription ? (
+              <div className="grid gap-2">
+                <span className="text-sm font-medium text-text-primary">
+                  <Trans>Privacy</Trans>
+                </span>
+                <Select
+                  value={privacyMode}
+                  onValueChange={(value) => {
+                    if (isCalendarPrivacyMode(value)) onEnable(value)
+                  }}
+                  disabled={pending}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="redacted">
+                      <Trans>Redacted client names</Trans>
+                    </SelectItem>
+                    <SelectItem value="full">
+                      <Trans>Full client names</Trans>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
 
             <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
               <MetadataRow

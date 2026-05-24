@@ -506,7 +506,14 @@ function ActiveMembersTable({
             <TableHead className="w-44">Role</TableHead>
             <TableHead className="w-32">Status</TableHead>
             <TableHead className="w-44">Joined</TableHead>
-            <TableHead className="w-28">Last active</TableHead>
+            {/* 2026-05-24 (critique /polish): "Last active" column
+                used to render "Not recorded" on every row because
+                the server isn't tracking last-active yet. A column
+                of "Not recorded" eats horizontal real estate to
+                tell the user nothing. Hide it until real data lands;
+                restore the <TableHead className="w-28">Last active
+                </TableHead> + matching cell when the backend grows
+                a `lastActiveAt` field. */}
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
@@ -539,9 +546,6 @@ function ActiveMembersTable({
                     column reads as recency, not as data. */}
                 <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-muted">
                   <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
-                </TableCell>
-                <TableCell className="py-1.5 text-xs text-text-muted">
-                  <Trans>Not recorded</Trans>
                 </TableCell>
                 <TableCell className="py-1.5 pr-2">
                   <MemberActionsMenu
