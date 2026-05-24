@@ -273,6 +273,21 @@ function ActionRow({
             className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
+              {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
+                  FIRST item in the expansion panel. The action prompt
+                  also sits inline on the collapsed row's heading line,
+                  but Yuqi flagged that when a row is expanded the
+                  prompt feels missing — the eye lands on the dl items
+                  (Status / Form / Sources / Why now) and the
+                  "what should I do" line gets lost in the cluster
+                  above. Repeating it here, prominently, as the first
+                  item with a distinct accent treatment, makes the
+                  CTA unmissable when the user has opened the row. */}
+              <dt className="text-text-tertiary">
+                <Trans>Action</Trans>
+              </dt>
+              <dd className="font-medium text-text-primary">{prompt}</dd>
+
               <dt className="text-text-tertiary">
                 <Trans>Status</Trans>
               </dt>
