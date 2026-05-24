@@ -182,3 +182,146 @@ test('AC: E2E-CONFIRM-DIALOG-SHAPE account.security per-session "Revoke" gates t
   await expect(dialog).toBeHidden()
   await expect(revokeButtons.first()).toBeVisible()
 })
+
+// 2026-05-24 (C4 follow-up): tests below cover the four confirm
+// dialogs deferred from the original C3 batch — they need richer
+// seed fixtures (MFA-verified session + a second managed member +
+// a client with ≥2 obligations). The fixtures landed alongside this
+// commit (see e2e/fixtures/test.ts AuthSeedMode + the matching
+// seedTeamMember/seedFilingPlan helpers in apps/server/src/routes/e2e.ts).
+
+test.describe('with MFA enabled and verified', () => {
+  test.use({ authSeed: 'mfaVerified' })
+
+  test('AC: E2E-CONFIRM-DIALOG-SHAPE account.security "Disable MFA" gates the destructive click', async ({
+    authenticatedPage,
+  }) => {
+    const page = authenticatedPage
+    await page.goto('/account/security')
+    await expect(page.getByRole('heading', { name: 'Security', level: 1 })).toBeVisible()
+
+    // 'mfaVerified' seed = twoFactorEnabled + twoFactorVerified, so
+    // we land on /account/security (not the challenge route) with
+    // Disable MFA reachable.
+    await page.getByRole('button', { name: 'Disable MFA' }).click()
+    const dialog = page.getByRole('alertdialog', { name: 'Disable two-factor authentication?' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText('Sign-in will only require your password')
+    await expect(dialog.getByRole('button', { name: 'Keep enabled' })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Disable MFA' })).toBeVisible()
+
+    // Cancel path: dialog dismisses, MFA stays enabled.
+    await dialog.getByRole('button', { name: 'Keep enabled' }).click()
+    await expect(dialog).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Disable MFA' })).toBeVisible()
+  })
+})
+
+test.describe('with a second managed teammate', () => {
+  test.use({ authSeed: 'team' })
+
+  test('AC: E2E-CONFIRM-DIALOG-SHAPE members "Suspend access" gates the destructive click and names the teammate', async ({
+    authSession,
+    membersPage,
+  }) => {
+    const teammate = authSession.seeded.teamMember
+    expect(teammate).not.toBeNull()
+    if (!teammate) return
+
+    await membersPage.goto()
+    await expect(membersPage.heading).toBeVisible()
+    await expect(membersPage.memberRowFor(teammate.email)).toBeVisible()
+
+    await membersPage.openMemberActions(teammate.email)
+    await membersPage.page.getByRole('menuitem', { name: 'Suspend access' }).click()
+
+    const dialog = membersPage.suspendMemberDialog()
+    await expect(dialog).toBeVisible()
+    // Naming the teammate in the body is the value-add over a generic
+    // confirm — the admin reads the name before pulling the trigger.
+    await expect(dialog).toContainText(teammate.name)
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Suspend access' })).toBeVisible()
+
+    // Cancel path: dialog dismisses, teammate row stays.
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(dialog).toBeHidden()
+    await expect(membersPage.memberRowFor(teammate.email)).toBeVisible()
+  })
+
+  test('AC: E2E-CONFIRM-DIALOG-SHAPE members "Downgrade role" gates the destructive click and shows the impact preview', async ({
+    authSession,
+    membersPage,
+  }) => {
+    const teammate = authSession.seeded.teamMember
+    expect(teammate).not.toBeNull()
+    if (!teammate) return
+
+    await membersPage.goto()
+    await membersPage.openMemberActions(teammate.email)
+    await membersPage.page.getByRole('menuitem', { name: 'Change role' }).click()
+    // Seeded teammate is a Preparer. Downgrading to Coordinator is
+    // the one available downgrade and triggers the confirm gate.
+    await membersPage.page.getByRole('menuitem', { name: 'Coordinator' }).click()
+
+    const dialog = membersPage.downgradeRoleDialog()
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText(teammate.name)
+    await expect(dialog).toContainText('Preparer')
+    await expect(dialog).toContainText('Coordinator')
+    // The DestructiveChangePreview Removes/Keeps strip is the unique
+    // value-add of a downgrade confirm — without it the admin can't
+    // see what permissions the teammate is about to lose.
+    await expect(dialog).toContainText('Removes')
+    await expect(dialog).toContainText('Keeps')
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Downgrade role' })).toBeVisible()
+
+    // Cancel path: dialog dismisses, no role change applied.
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(dialog).toBeHidden()
+  })
+})
+
+test.describe('with a multi-obligation filing plan', () => {
+  test.use({ authSeed: 'filingPlan' })
+
+  test('AC: E2E-CONFIRM-DIALOG-SHAPE filing-plan "Move N deadlines" gates the bulk-status click', async ({
+    authSession,
+    authenticatedPage,
+  }) => {
+    const filingPlanClient = authSession.seeded.filingPlanClient
+    expect(filingPlanClient).not.toBeNull()
+    if (!filingPlanClient) return
+
+    const page = authenticatedPage
+    await page.goto(`/clients/${filingPlanClient.id}`)
+    await expect(page.getByRole('heading', { name: filingPlanClient.name })).toBeVisible()
+
+    // Year-level "Select all" picks up all 3 seeded obligations at once.
+    await page.getByRole('checkbox', { name: 'Select all deadlines in this year' }).first().check()
+
+    const bulkBar = page.getByRole('region', { name: 'Bulk actions' })
+    await expect(bulkBar).toBeVisible()
+    await expect(bulkBar).toContainText('3 selected')
+
+    await bulkBar.getByRole('button', { name: 'Move to status' }).click()
+    await page.getByRole('menuitem', { name: 'Waiting on client' }).click()
+
+    const dialog = page.getByRole('alertdialog', {
+      name: /^Move \d+ deadlines to Waiting on client\?/,
+    })
+    await expect(dialog).toBeVisible()
+    // The "Move N deadlines" count is the unique value-add over a
+    // generic confirm — without it the admin can't tell how many
+    // rows they're about to mutate.
+    await expect(dialog).toContainText('Move 3 deadlines')
+    await expect(dialog).toContainText('Each row will receive a status-change audit entry')
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible()
+    await expect(dialog.getByRole('button', { name: 'Move deadlines' })).toBeVisible()
+
+    // Cancel path: dialog dismisses, no status change applied.
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(dialog).toBeHidden()
+  })
+})

@@ -19,7 +19,14 @@ import { ObligationQueuePage } from '../pages/obligations-page'
 import { OpportunitiesPage } from '../pages/opportunities-page'
 import { WorkloadPage } from '../pages/workload-page'
 
-type AuthSeedMode = 'empty' | 'obligations' | 'pulse' | 'mfa'
+type AuthSeedMode =
+  | 'empty'
+  | 'obligations'
+  | 'pulse'
+  | 'mfa'
+  | 'mfaVerified'
+  | 'team'
+  | 'filingPlan'
 type AuthRole = 'owner' | 'manager' | 'preparer' | 'coordinator'
 
 type E2EAuthSession = {
@@ -40,6 +47,16 @@ type E2EAuthSession = {
       alertId: string
       pulseId: string
     }>
+    teamMember: {
+      userId: string
+      name: string
+      email: string
+      role: 'preparer'
+    } | null
+    filingPlanClient: {
+      id: string
+      name: string
+    } | null
   }
 }
 
@@ -181,8 +198,28 @@ function parseAuthSession(value: unknown): E2EAuthSession {
       pulseAlerts: Array.isArray(seeded.pulseAlerts)
         ? seeded.pulseAlerts.filter(isPulseSeedAlert)
         : [],
+      teamMember: isTeamMemberSeed(seeded.teamMember) ? seeded.teamMember : null,
+      filingPlanClient: isFilingPlanClientSeed(seeded.filingPlanClient)
+        ? seeded.filingPlanClient
+        : null,
     },
   }
+}
+
+function isTeamMemberSeed(
+  value: unknown,
+): value is { userId: string; name: string; email: string; role: 'preparer' } {
+  return (
+    isRecord(value) &&
+    typeof value.userId === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.email === 'string' &&
+    value.role === 'preparer'
+  )
+}
+
+function isFilingPlanClientSeed(value: unknown): value is { id: string; name: string } {
+  return isRecord(value) && typeof value.id === 'string' && typeof value.name === 'string'
 }
 
 async function createAuthSession(

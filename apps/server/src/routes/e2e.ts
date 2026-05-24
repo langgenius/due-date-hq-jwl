@@ -5,7 +5,7 @@ import { authSchema, createDb, firmSchema, scoped } from '@duedatehq/db'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ContextVars, Env } from '../env'
 
-type SeedMode = 'empty' | 'obligations' | 'pulse' | 'mfa'
+type SeedMode = 'empty' | 'obligations' | 'pulse' | 'mfa' | 'mfaVerified' | 'team' | 'filingPlan'
 type DemoRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
 type DemoPlan = 'solo' | 'pro' | 'team'
 type SeedRole = DemoRole
@@ -126,6 +126,18 @@ function hasE2ESeedAccess(c: { env: Env; req: { header(name: string): string | u
   return header === `Bearer ${token}` || c.req.header('x-e2e-seed-token') === token
 }
 
+function isSeedMode(value: unknown): value is SeedMode {
+  return (
+    value === 'empty' ||
+    value === 'obligations' ||
+    value === 'pulse' ||
+    value === 'mfa' ||
+    value === 'mfaVerified' ||
+    value === 'team' ||
+    value === 'filingPlan'
+  )
+}
+
 export function isDemoRole(value: unknown): value is DemoRole {
   return (
     value === 'owner' ||
@@ -212,7 +224,10 @@ export const e2eRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
       name: userName,
       email: userEmail,
       emailVerified: true,
-      twoFactorEnabled: seed === 'mfa',
+      // 'mfa' = enabled-but-unverified (forces the challenge route)
+      // 'mfaVerified' = enabled AND verified (lands on /account/security
+      // with the Disable MFA control reachable).
+      twoFactorEnabled: seed === 'mfa' || seed === 'mfaVerified',
       image: null,
       createdAt: now,
       updatedAt: now,
@@ -291,7 +306,11 @@ export const e2eRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
         ? await seedPulse(db, firmId, userId)
         : seed === 'obligations'
           ? await seedObligationQueue(db, firmId)
-          : { obligationQueueRows: [] }
+          : seed === 'team'
+            ? await seedTeamMember(db, firmId, suffix, now)
+            : seed === 'filingPlan'
+              ? await seedFilingPlan(db, firmId)
+              : { obligationQueueRows: [] }
     const signedToken = `${token}.${await makeSignature(token, c.env.AUTH_SECRET)}`
     const requestUrl = new URL(c.req.url)
     const cookie = {
@@ -630,7 +649,7 @@ async function readSeedRequest(request: Request): Promise<E2ESeedRequest> {
     const role = (raw as { role?: unknown }).role
     const testId = (raw as { testId?: unknown }).testId
     return {
-      seed: seed === 'pulse' || seed === 'obligations' || seed === 'mfa' ? seed : 'empty',
+      seed: isSeedMode(seed) ? seed : 'empty',
       role: isDemoRole(role) ? role : 'owner',
       ...(typeof testId === 'string' ? { testId } : {}),
     }
@@ -974,6 +993,115 @@ async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId
       alertId: pulseSeed.alertId,
       pulseId: pulseSeed.pulseId,
     })),
+  }
+}
+
+/**
+ * Seeds the firm with a second managed (non-owner) member so the
+ * owner has someone to remove / suspend / downgrade.
+ *
+ * Surfaces the seeded member's email back to the test fixture via
+ * `seeded.teamMember` so specs can target the row without hard-coding.
+ */
+async function seedTeamMember(
+  db: ReturnType<typeof createDb>,
+  firmId: string,
+  suffix: string,
+  now: Date,
+) {
+  const memberUserId = `e2e_team_member_${suffix}`
+  const memberName = 'E2E Teammate'
+  const memberEmail = `teammate-${suffix}@e2e.duedatehq.test`
+  await db.insert(authSchema.user).values({
+    id: memberUserId,
+    name: memberName,
+    email: memberEmail,
+    emailVerified: true,
+    image: null,
+    createdAt: now,
+    updatedAt: now,
+  })
+  await db.insert(authSchema.member).values({
+    id: `e2e_team_member_row_${suffix}`,
+    organizationId: firmId,
+    userId: memberUserId,
+    role: 'preparer',
+    createdAt: now,
+    status: 'active',
+  })
+  return {
+    obligationQueueRows: [],
+    teamMember: {
+      userId: memberUserId,
+      name: memberName,
+      email: memberEmail,
+      role: 'preparer' as const,
+    },
+  }
+}
+
+/**
+ * Seeds a single client with ≥2 obligations so the filing-plan
+ * bulk-move dialog ("Move N deadlines to {status}?") is reachable.
+ *
+ * Surfaces the seeded client id+name back to the test fixture via
+ * `seeded.filingPlanClient` so the test can navigate to
+ * `/clients/{id}` directly.
+ */
+async function seedFilingPlan(db: ReturnType<typeof createDb>, firmId: string) {
+  const repo = scoped(db, firmId)
+  const client = {
+    id: crypto.randomUUID(),
+    name: 'Lakeview Manufacturing',
+    ein: '55-1234567',
+    state: 'NY',
+    county: 'Erie',
+    entityType: 'c_corp' as const,
+    assigneeName: 'M. Chen',
+    importanceWeight: 2,
+  }
+  await repo.clients.createBatch([client])
+  const federalDueDate = new Date('2026-03-15T00:00:00.000Z')
+  const stateDueDate = new Date('2026-04-15T00:00:00.000Z')
+  const quarterlyDueDate = new Date('2026-07-31T00:00:00.000Z')
+  await repo.obligations.createBatch([
+    {
+      id: crypto.randomUUID(),
+      clientId: client.id,
+      taxType: 'federal_1120',
+      taxYear: 2026,
+      baseDueDate: federalDueDate,
+      currentDueDate: demoInternalDeadline(federalDueDate),
+      status: 'pending',
+      migrationBatchId: null,
+    },
+    {
+      id: crypto.randomUUID(),
+      clientId: client.id,
+      taxType: 'ny_ct3',
+      taxYear: 2026,
+      baseDueDate: stateDueDate,
+      currentDueDate: demoInternalDeadline(stateDueDate),
+      status: 'pending',
+      migrationBatchId: null,
+    },
+    {
+      id: crypto.randomUUID(),
+      clientId: client.id,
+      taxType: 'federal_1120_estimated_tax',
+      taxYear: 2026,
+      baseDueDate: quarterlyDueDate,
+      currentDueDate: demoInternalDeadline(quarterlyDueDate),
+      status: 'pending',
+      migrationBatchId: null,
+    },
+  ])
+  return {
+    obligationQueueRows: [],
+    filingPlanClient: {
+      id: client.id,
+      name: client.name,
+    },
   }
 }
 

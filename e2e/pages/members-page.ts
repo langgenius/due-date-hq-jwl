@@ -23,6 +23,24 @@ export class MembersPage {
     return this.page.getByRole('row').filter({ hasText: email }).first()
   }
 
+  /**
+   * Active member rows (non-invitation). Same selector shape as
+   * `invitationRowFor` — the table is two stacked groups, and email
+   * is the unique key — but kept as a separate accessor so the intent
+   * is explicit in tests that target an active member's kebab menu.
+   */
+  memberRowFor(email: string) {
+    return this.page.getByRole('row').filter({ hasText: email }).first()
+  }
+
+  /**
+   * Opens the kebab/⋯ "Open member actions" menu on the row with
+   * `email`. Only present for non-owner, non-self members.
+   */
+  async openMemberActions(email: string) {
+    await this.memberRowFor(email).getByRole('button', { name: 'Open member actions' }).click()
+  }
+
   async invite(input: { email: string; role?: 'Manager' | 'Preparer' | 'Coordinator' }) {
     await this.inviteButton.click()
     await this.inviteDialog.getByLabel('Work email').fill(input.email)
