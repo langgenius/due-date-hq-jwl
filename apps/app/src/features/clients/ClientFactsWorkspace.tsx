@@ -1782,6 +1782,7 @@ export function ClientDetailWorkspace({
                       + the literal word; assigned state shows a tiny
                       stable-hashed avatar + the name. */}
                   <ClientOwnerHeaderPill
+                    assigneeId={client.assigneeId ?? null}
                     name={client.assigneeName ?? null}
                     currentUserName={currentUserName}
                     assignableMembers={assignableMembers}
@@ -3176,12 +3177,14 @@ function ClientAssigneeAvatar({
 // LOOKED tappable but did nothing — pure UI lie. Now every
 // affordance does what the user expects.
 function ClientOwnerHeaderPill({
+  assigneeId,
   name,
   currentUserName,
   assignableMembers,
   disabled,
   onChange,
 }: {
+  assigneeId: string | null
   name: string | null
   currentUserName: string | null
   assignableMembers: readonly MemberAssigneeOption[]
@@ -3201,15 +3204,23 @@ function ClientOwnerHeaderPill({
       : isMine
         ? t`Change owner — currently you (${name})`
         : t`Change owner — currently ${name}`
-  // The currently-assigned member id (so the radio-group reflects
-  // the active selection in the menu). Resolve from name → id by
-  // looking up the assignableMembers list.
-  const currentAssigneeId =
-    name === null
-      ? null
-      : (assignableMembers.find(
-          (member) => member.name.trim().toLowerCase() === name.trim().toLowerCase(),
-        )?.assigneeId ?? null)
+  // 2026-05-24: use the client's `assigneeId` directly instead of
+  // reverse-looking up by name. The H1 pill renders an abbreviated
+  // name ("A. Rivera") while assignableMembers returns full names
+  // ("Avery Patel"), so the previous name-based match always failed
+  // and the radio group fell back to "Unassigned" — making the
+  // trigger and the checked item disagree. Looking up by id is the
+  // source of truth.
+  //
+  // If the current assigneeId isn't in the assignable list (e.g.,
+  // the member left the firm but the row still references them),
+  // the radio group's `value` still tracks the id correctly — the
+  // user just sees no in-list highlight, which matches reality.
+  const currentAssigneeId = assigneeId
+  const currentAssigneeInList = currentAssigneeId
+    ? assignableMembers.some((member) => member.assigneeId === currentAssigneeId)
+    : true
+  const showStaleAssigneeRow = currentAssigneeId !== null && !currentAssigneeInList
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -3258,13 +3269,46 @@ function ClientOwnerHeaderPill({
           }}
         >
           <DropdownMenuRadioItem value="__unassigned__">
-            <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
+            {/* Avatar slot — kept at the same size-5 the member rows
+                use so all rows share a single visual rhythm. Previously
+                the Unassigned circle was size-4 while members were
+                size-5, which made the first row sit visually lower
+                than the rest. */}
+            <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
               <UserRoundIcon className="size-3" aria-hidden />
             </span>
             <span>
               <Trans>Unassigned</Trans>
             </span>
           </DropdownMenuRadioItem>
+          {/* Stale-assignee row: the client references a member who
+              is no longer in the assignable list (e.g., they left the
+              firm). Surface it explicitly so the picker doesn't lie
+              about who's currently assigned. Selecting it is a no-op
+              (already current); the user picks Unassigned or someone
+              else to change it. */}
+          {showStaleAssigneeRow && currentAssigneeId !== null ? (
+            <DropdownMenuRadioItem
+              value={currentAssigneeId}
+              disabled
+              title={t`This member is no longer on the team`}
+            >
+              <span
+                className={cn(
+                  'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                  tint ?? 'bg-background-subtle text-text-tertiary',
+                )}
+              >
+                {name ? initialsFromName(name) : '?'}
+              </span>
+              <span className="truncate text-text-tertiary">
+                {name ?? <Trans>Former teammate</Trans>}
+                <span className="ml-1 text-xs italic">
+                  <Trans>(no longer on team)</Trans>
+                </span>
+              </span>
+            </DropdownMenuRadioItem>
+          ) : null}
           {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
           {assignableMembers.length === 0 ? (
             // Empty-state row. Disabled + muted so it doesn't read as
