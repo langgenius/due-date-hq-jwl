@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { FieldLabel } from '@/components/primitives/field-label'
 
 interface PulseStructuredFieldsProps {
   detail: PulseDetail
@@ -370,9 +371,7 @@ function FactGrid({
     <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 md:grid-cols-3">
       {facts.map((fact) => (
         <div key={fact.key} className="flex flex-col gap-1 min-w-0">
-          <dt className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
-            {fact.label}
-          </dt>
+          <FieldLabel as="dt">{fact.label}</FieldLabel>
           <dd className="text-sm text-text-primary min-w-0">{fact.value}</dd>
         </div>
       ))}

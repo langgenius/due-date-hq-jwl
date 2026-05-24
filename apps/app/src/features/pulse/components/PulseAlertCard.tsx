@@ -129,7 +129,13 @@ export function PulseAlertCard({
       ) : null}
 
       {/* Impact line — count + need-review tail in a single sentence.
-          Plain text, no mono, neutral tones. */}
+          2026-05-25 (Yuqi follow-up — completing #5): when matched
+          clients exist, the impact line now renders at tertiary
+          baseline (was secondary, same as the AI summary above
+          which made the two paragraphs blend). The count itself
+          stays text-primary font-medium so the eye still lands on
+          the number — but the surrounding prose is tertiary, marking
+          it as structural metadata rather than narrative content. */}
       {alert.actionMode === 'review_only' ? (
         <p className="text-sm italic text-text-tertiary">
           <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
@@ -139,7 +145,7 @@ export function PulseAlertCard({
           <Trans>No matching clients in this practice.</Trans>
         </p>
       ) : (
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-text-tertiary">
           <span className="font-medium tabular-nums text-text-primary">
             <Plural value={impacted} one="# client" other="# clients" />
           </span>{' '}
@@ -147,7 +153,7 @@ export function PulseAlertCard({
           {alert.needsReviewCount > 0 ? (
             <>
               <span aria-hidden> · </span>
-              <span className="tabular-nums text-text-tertiary">
+              <span className="tabular-nums">
                 <Trans>{alert.needsReviewCount} need review</Trans>
               </span>
             </>
