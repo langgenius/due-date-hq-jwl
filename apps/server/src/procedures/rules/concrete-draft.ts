@@ -1,6 +1,7 @@
 import * as z from 'zod'
 import { createAI } from '@duedatehq/ai'
 import { expandDueDateLogic } from '@duedatehq/core/date-logic'
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {
   RuleConcreteDraftSchema,
   type ObligationRule,
@@ -24,19 +25,22 @@ const MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS = 24_000
 const OFFICIAL_SOURCE_FETCH_TIMEOUT_MS = 20_000
 const OFFICIAL_SOURCE_FETCH_HEADERS: HeadersInit[] = [
   {
-    accept: 'text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.1',
+    accept:
+      'text/html,application/xhtml+xml,application/pdf,application/json,text/plain;q=0.9,*/*;q=0.1',
     'accept-language': 'en-US,en;q=0.9',
     'cache-control': 'no-cache',
     'user-agent': 'Mozilla/5.0 (compatible; DueDateHQSourceReview/1.0; +https://duedatehq.com)',
   },
   {
-    accept: 'text/html,application/xhtml+xml,application/json,text/plain;q=0.9,*/*;q=0.1',
+    accept:
+      'text/html,application/xhtml+xml,application/pdf,application/json,text/plain;q=0.9,*/*;q=0.1',
     'accept-language': 'en-US,en;q=0.9',
     'cache-control': 'no-cache',
     'user-agent': 'curl/8.7.1',
   },
 ]
 const MIN_USABLE_OFFICIAL_SOURCE_TEXT_CHARS = 120
+const MAX_CONCRETE_DRAFT_PDF_PAGES = 80
 const UNUSABLE_OFFICIAL_SOURCE_TEXT_RE =
   /\b(access denied|forbidden|enable javascript|request blocked|not authorized|temporarily unavailable|page not found|not found)\b|(?:^|\b)(?:error|http|status)\s*(?:404|403)\b|page we don['’]t have/i
 
@@ -529,6 +533,12 @@ async function fetchOfficialSourceTextOnce(
 
   if (!response.ok) return null
   const contentType = response.headers.get('content-type') ?? ''
+  if (isPdfSourceResponse(contentType, url)) {
+    const buffer = await response.arrayBuffer().catch(() => null)
+    const text = buffer ? await extractPdfSourceText(buffer).catch(() => null) : null
+    return text ? text.slice(0, MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS) : null
+  }
+
   const raw = await response.text().catch(() => null)
   if (!raw) return null
 
@@ -542,6 +552,49 @@ async function fetchOfficialSourceTextOnce(
         ? extractOfficialSourceText(raw)
         : null
   return text ? text.slice(0, MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS) : null
+}
+
+function isPdfSourceResponse(contentType: string, url: string): boolean {
+  return contentType.includes('application/pdf') || /\.pdf(?:[?#]|$)/i.test(url)
+}
+
+export async function extractPdfSourceText(buffer: ArrayBuffer): Promise<string | null> {
+  const loadingTask = getDocument({
+    data: new Uint8Array(buffer),
+    useSystemFonts: true,
+  })
+  const pdf = await loadingTask.promise
+
+  try {
+    const pageTexts = await Promise.all(
+      Array.from(
+        { length: Math.min(pdf.numPages, MAX_CONCRETE_DRAFT_PDF_PAGES) },
+        async (_, index) => {
+          const page = await pdf.getPage(index + 1)
+          const content = await page.getTextContent()
+          return content.items
+            .map((item) => {
+              if (typeof item !== 'object' || item === null || !('str' in item)) return ''
+              const text = item.str
+              return typeof text === 'string' ? text : ''
+            })
+            .filter(Boolean)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+        },
+      ),
+    )
+
+    const text = pageTexts
+      .filter(Boolean)
+      .join('\n')
+      .slice(0, MAX_CONCRETE_DRAFT_SOURCE_TEXT_CHARS)
+      .trim()
+    return text.length > 0 ? text : null
+  } finally {
+    await pdf.destroy()
+  }
 }
 
 function extractJsonSourceText(raw: string): string | null {

@@ -32,6 +32,7 @@
     "fflate": "catalog:",
     "hono": "catalog:",
     "pdf-lib": "catalog:",
+    "pdfjs-dist": "catalog:",
     "resend": "catalog:",
     "zod": "catalog:"
   },
