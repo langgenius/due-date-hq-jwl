@@ -60,10 +60,14 @@ function NeedsAttentionSection() {
           in the optical center while preserving the right-side
           "View all alerts" link in the rightmost slot. The leftmost
           slot is an invisible spacer so the title slot stays at
-          true mid-page. */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+          true mid-page.
+          2026-05-25 (Yuqi Today follow-up): switched the title-row
+          alignment from baseline to center for the same reason as
+          Actions this week — the tertiary count was sitting a touch
+          off the visual middle of the larger "Alerts" word. */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <span aria-hidden />
-        <h2 className="flex items-baseline justify-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
+        <h2 className="flex items-center justify-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             <span className="text-base font-normal tabular-nums text-text-tertiary">

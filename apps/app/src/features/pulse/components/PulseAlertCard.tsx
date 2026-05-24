@@ -1,19 +1,16 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ArrowRightIcon } from 'lucide-react'
+import { ArrowRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { ConceptLabel } from '@/features/concepts/concept-help'
+import { StateBadge } from '@/components/primitives/state-badge'
 
-import { pulseAlertTone, pulseAlertToneLabel } from '../pulse-alert-tone'
-
-import { isVeryLowPulseConfidence, PulseConfidenceBadge } from './PulseConfidenceBadge'
+import { PulseConfidenceBadge } from './PulseConfidenceBadge'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
-import { PulsingDot } from './PulsingDot'
 
 interface PulseAlertCardProps {
   alert: PulseAlertPublic
@@ -26,10 +23,31 @@ interface PulseAlertCardProps {
   compact?: boolean
 }
 
-// Single Pulse alert row used by Rules > Pulse Changes. Keeps the same
-// hairline / monospace metadata language as the dashboard strip — flat row
-// with a pulsing dot, mono source label, body title, mono impact count, and
-// a thin action set on the right.
+// Single Pulse alert row used by /rules/pulse (Alerts).
+//
+// 2026-05-25 (Yuqi Alerts #4, #5, #6, #11):
+//   • Dropped the leading PulsingDot. Yuqi flagged repeatedly that
+//     the coloured dots don't communicate meaning to a CPA — the
+//     status badge ("New"/"Applied"/"Snoozed"), confidence badge
+//     ("AI 46%" with destructive tone for very-low), and the change-
+//     kind label already carry every signal the dot was trying to
+//     encode.
+//   • Leading StateBadge so the jurisdiction (CA / TX / FL) reads
+//     at a glance — same recognition the chip strip above uses.
+//   • Added `alert.summary` as a body line under the title. The
+//     model's one-sentence explanation of the source change ("AI
+//     explains what is happening" per Yuqi #6) lets the CPA decide
+//     whether to open the drawer without reading the title back to
+//     themselves.
+//   • PulseSourceBadge promoted from the footer to the header next
+//     to the source name. It's already a real link to the official
+//     source — promoting it lets the CPA jump out to the source
+//     without opening the drawer (Yuqi #6).
+//   • Dropped the separate "Low AI confidence" warning line. The
+//     PulseConfidenceBadge already renders in the destructive tone
+//     when confidence < 0.7; doubling the cue was redundant (Yuqi
+//     #11). The drawer still surfaces the explicit one-paragraph
+//     warning + reason copy.
 export function PulseAlertCard({
   alert,
   onReview,
@@ -40,10 +58,6 @@ export function PulseAlertCard({
 }: PulseAlertCardProps) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
-  const veryLowConfidence = isVeryLowPulseConfidence(alert.confidence)
-  // 2026-05-25 (Yuqi critique B): tone via shared helper so the same
-  // alert reads the same colour across dashboard / list / drawer.
-  const tone = pulseAlertTone(alert)
 
   return (
     <article
@@ -57,16 +71,15 @@ export function PulseAlertCard({
         breathing && 'pulse-strip-breathing',
         compact && 'p-2.5',
       )}
-      data-tone={tone}
       data-breathing={breathing || undefined}
     >
-      <header className="flex items-center gap-2">
-        <PulsingDot tone={tone} active label={pulseAlertToneLabel(tone)} />
-        {/* 2026-05-24 (critique P2 — typeset): source name is a
-            sentence-case label (e.g. "IRS Disaster Relief"), not a
-            token or a numeric column — drop `font-mono` so it reads
-            as readable copy rather than developer chrome. */}
-        <span className="text-sm text-text-secondary">{alert.source}</span>
+      <header className="flex flex-wrap items-center gap-2">
+        <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
+        {/* Source name + direct external link as one unit. The badge
+            wraps an `<a target="_blank">` so the CPA can open the
+            official source from this row without touching the
+            drawer. */}
+        <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
         <span aria-hidden className="text-text-tertiary">
           ·
         </span>
@@ -76,8 +89,6 @@ export function PulseAlertCard({
         >
           {alert.title}
         </h3>
-        {/* Sentence-case change-kind label — was `font-mono`, reads
-            as English ("Deadline", "Source change"), not code. */}
         <Badge variant="outline" className="hidden shrink-0 text-caption sm:inline-flex">
           {changeKindLabel(alert.changeKind)}
         </Badge>
@@ -85,7 +96,15 @@ export function PulseAlertCard({
         <PulseSourceStatusBadge status={alert.sourceStatus} />
       </header>
 
-      <p className="pl-4 text-sm text-text-secondary">
+      {/* AI summary — only render when meaningfully different from
+          the title (many alerts have a summary that just rewords
+          their title). Same logic the drawer uses for the
+          SheetDescription. */}
+      {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
+        <p className="line-clamp-2 text-sm text-text-secondary">{alert.summary}</p>
+      ) : null}
+
+      <p className="text-sm text-text-secondary">
         {alert.actionMode === 'review_only' ? (
           <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
         ) : impacted === 0 ? (
@@ -108,38 +127,41 @@ export function PulseAlertCard({
         )}
       </p>
 
-      {veryLowConfidence ? (
-        <p className="flex items-center gap-1.5 pl-4 text-sm font-medium text-text-destructive">
-          <AlertTriangleIcon className="size-4 shrink-0" aria-hidden />
-          <ConceptLabel concept="aiConfidence">
-            <Trans>Low AI confidence. Review source details before applying.</Trans>
-          </ConceptLabel>
-        </p>
-      ) : null}
-
       {compact ? null : (
-        <footer className="flex items-center justify-between gap-2 pl-4">
-          <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
-          <span className="flex items-center gap-1">
-            {/* Canonical action order per docs/Design/pulse-vocabulary.md:
-              Snooze (softer secondary) → Dismiss (destructive-ish secondary)
-              → Review (primary, rightmost). Both Snooze and Dismiss are
-              audit-logged and require a reason — the parent owns the prompt. */}
-            {onSnooze ? (
-              <Button variant="ghost" size="sm" onClick={onSnooze}>
-                <Trans>Snooze</Trans>
-              </Button>
-            ) : null}
-            {onDismiss ? (
-              <Button variant="ghost" size="sm" onClick={onDismiss}>
-                <Trans>Dismiss</Trans>
-              </Button>
-            ) : null}
-            <Button size="sm" onClick={onReview}>
-              <Trans>Review</Trans>
-              <ArrowRightIcon data-icon="inline-end" />
+        <footer className="flex items-center justify-end gap-1">
+          {/* Canonical action order per docs/Design/pulse-vocabulary.md:
+            Snooze (softer secondary) → Dismiss (destructive-ish secondary)
+            → Review (primary, rightmost). Both Snooze and Dismiss are
+            audit-logged and require a reason — the parent owns the prompt.
+            Snooze/Dismiss only render for `status === 'matched'` (open
+            alerts); on terminal states (applied/dismissed/reverted/
+            snoozed) the parent omits the handlers — the visual
+            asymmetry Yuqi flagged in #7 is the canonical signal that
+            "this alert is closed; only Review is meaningful."
+            Reinforced by the `title` attribute on Review describing
+            the terminal-state case. */}
+          {onSnooze ? (
+            <Button variant="ghost" size="sm" onClick={onSnooze}>
+              <Trans>Snooze</Trans>
             </Button>
-          </span>
+          ) : null}
+          {onDismiss ? (
+            <Button variant="ghost" size="sm" onClick={onDismiss}>
+              <Trans>Dismiss</Trans>
+            </Button>
+          ) : null}
+          <Button
+            size="sm"
+            onClick={onReview}
+            title={
+              onSnooze || onDismiss
+                ? t`Open the alert drawer`
+                : t`Open the closed-alert drawer (read-only)`
+            }
+          >
+            <Trans>Review</Trans>
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
         </footer>
       )}
     </article>

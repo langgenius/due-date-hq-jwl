@@ -25,6 +25,7 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { StateBadge } from '@/components/primitives/state-badge'
 
 import { usePulseDrawer } from './DrawerProvider'
 import {
@@ -204,11 +205,15 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
     // (Today/Clients/Opportunities/Audit/Settings). Skipped in the
     // `embedded` case because the embedding surface (the Rule
     // library's Pulse tab) already constrains width.
+    // 2026-05-25 (Yuqi Alerts #14): compactness pass — gap-5 → gap-4
+    // on both the embedded and standalone wrappers. The standalone
+    // padding also drops one step (p-3 base / md:p-4) so the page
+    // doesn't read as "loose" inside the app shell's existing padding.
     <div
       className={
         embedded
-          ? 'flex flex-col gap-5'
-          : 'mx-auto flex w-full max-w-page-wide flex-col gap-5 p-4 md:p-6'
+          ? 'flex flex-col gap-4'
+          : 'mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-4'
       }
     >
       {!embedded ? (
@@ -324,6 +329,16 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               clears the filter. A full SVG US map could replace this
               chip strip as a follow-on polish — the data shape
               (state + count) is the same, only the visual changes. */}
+          {/* 2026-05-25 (Yuqi Alerts follow-up — state badges export):
+              the state chip strip now leads each chip with the
+              designed StateBadge SVG (flag/seal motif) instead of the
+              bare two-letter code. The visual makes the strip scan
+              like a row of flags — you spot "your state" by motif at
+              a glance, the way a CPA recognises a Florida licence
+              plate before reading "FL". Code text follows so the
+              filter remains keyboard-typable and the chip is
+              accessible without the SVG. The count chip on the right
+              stays — same affordance as before. */}
           {jurisdictionCounts.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
@@ -338,12 +353,13 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     onClick={() => setJurisdictionFilter(active ? null : state)}
                     aria-pressed={active}
                     className={cn(
-                      'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums transition-colors',
+                      'inline-flex items-center gap-1.5 rounded-md border py-0.5 pl-1 pr-2 text-xs font-medium tabular-nums transition-colors',
                       active
                         ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
                         : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
                     )}
                   >
+                    <StateBadge code={state} size="xs" aria-hidden />
                     <span>{state}</span>
                     <span
                       className={cn(
@@ -361,89 +377,93 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div className="grid gap-2 md:grid-cols-[180px_180px_180px_minmax(220px,320px)]">
-              <Select
-                value={impactFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && isPulseImpactFilter(value))
-                    setImpactFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by impact`}>
-                  <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {impactFilterLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={changeKindFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && isChangeKindFilter(value))
-                    setChangeKindFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by change type`}>
-                  <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {changeKindFilterLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by alert status`}>
-                  <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  {STATUS_FILTER_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {statusFilterLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={sourceFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string') setSourceFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by source`}>
-                  <SelectValue>
-                    {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  <SelectItem value="all">
-                    <Trans>All sources</Trans>
+          {/* 2026-05-25 (Yuqi Alerts #10): Reset moved into the same
+              row as the filter dropdowns and demoted to ghost — was a
+              full outline button on the right side of its own flex row.
+              Inline ghost reads as a tertiary affordance ("clear what
+              you've set") instead of a primary action competing with
+              the filters themselves. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={impactFilter}
+              onValueChange={(value) => {
+                if (typeof value === 'string' && isPulseImpactFilter(value)) setImpactFilter(value)
+              }}
+            >
+              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by impact`}>
+                <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {impactFilterLabel(option)}
                   </SelectItem>
-                  {sourceOptions.map((source) => (
-                    <SelectItem key={source} value={source}>
-                      {source}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={changeKindFilter}
+              onValueChange={(value) => {
+                if (typeof value === 'string' && isChangeKindFilter(value))
+                  setChangeKindFilter(value)
+              }}
+            >
+              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by change type`}>
+                <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {changeKindFilterLabel(option)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
+              }}
+            >
+              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by alert status`}>
+                <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {STATUS_FILTER_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {statusFilterLabel(option)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={sourceFilter}
+              onValueChange={(value) => {
+                if (typeof value === 'string') setSourceFilter(value)
+              }}
+            >
+              <SelectTrigger className="w-[220px]" size="sm" aria-label={t`Filter by source`}>
+                <SelectValue>
+                  {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectItem value="all">
+                  <Trans>All sources</Trans>
+                </SelectItem>
+                {sourceOptions.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               disabled={!filtersActive}
               onClick={() => {

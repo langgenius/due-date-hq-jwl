@@ -652,12 +652,15 @@ function DashboardActionsList({
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
   const { t } = useLingui()
   return (
-    // 2026-05-25 (Yuqi Today #34): centered h2. Same grid pattern as
-    // NeedsAttentionSection — invisible 1fr spacer on the left, h2 in
-    // the auto center column, "All deadlines" link justify-self-end
-    // in the right 1fr slot. Optical centering of the section title
-    // lines up with the centered Alerts header above.
-    <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+    // 2026-05-25 (Yuqi Today #34): horizontally centered h2 via grid
+    // (invisible 1fr spacer ↔ auto title ↔ 1fr link slot).
+    // 2026-05-25 (Yuqi Today follow-up — clarification): vertical
+    // alignment is `items-center`, NOT `items-baseline`. Baseline
+    // alignment was making the "10 · sorted by priority" caption
+    // hang off the bottom of the title's x-height because its
+    // smaller font has a higher baseline. Centering aligns the
+    // visual middles so the whole header reads as one row.
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
       <span aria-hidden />
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
@@ -668,8 +671,8 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           explanation; the full breakdown lives in the obligation's
           Smart Priority panel). Quiet caption so it doesn't compete
           with the h2. */}
-      <h2 className="flex items-baseline flex-wrap justify-center gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
-        <span className="inline-flex items-baseline gap-2">
+      <h2 className="flex items-center flex-wrap justify-center gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
+        <span className="inline-flex items-center gap-2">
           <Trans>Actions this week</Trans>
           {count !== null && count > 0 ? (
             <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>

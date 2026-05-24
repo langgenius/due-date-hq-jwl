@@ -5,17 +5,17 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
-  ActivityIcon,
-  CalendarClockIcon,
+  BookOpenIcon,
+  Calendar1Icon,
   CheckIcon,
   ChevronsUpDownIcon,
-  LayoutDashboardIcon,
-  LibraryIcon,
   MapIcon,
+  MegaphoneIcon,
   PlusIcon,
   ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
+  SquareChartGanttIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -557,27 +557,30 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         // popover; the expand icon there promotes to the full-page
         // Inbox at /notifications. Surfacing Inbox in the sidebar
         // too created two top-level destinations for the same thing.
+        // 2026-05-25 (Yuqi Today follow-up — sidebar icon set):
+        //   Today        → Calendar1 (the day-marker; reads as "what's
+        //                   on today")
+        //   Alerts       → Megaphone (a literal announcement vector,
+        //                   matches the Pulse concept of "the system
+        //                   is broadcasting at you")
+        //   Deadlines    → SquareChartGantt (Gantt = scheduling /
+        //                   timeline view, matches the Deadlines
+        //                   table's row-per-deadline cadence)
+        //   Rule library → BookOpen (literal "reference manual",
+        //                   replaces the more abstract Library icon)
         primary: [
-          { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
-          // Alerts promoted to first-class sidebar destination — the
-          // morning routine becomes: glance Today → scan Alerts →
-          // triage Deadlines. Badge counts active Pulse alerts via the
-          // dedicated `pulse.activeCount` endpoint (true COUNT(*), no
-          // upper bound — see useActivePulseAlertCount). The earlier
-          // TODO about an alerts-vocab fix (switch from
-          // notifications.unreadCount to a Pulse-scoped query) is
-          // resolved by B2 in the design-system audit batch.
+          { href: '/', label: t`Today`, icon: Calendar1Icon, end: true },
           {
             href: '/rules/pulse',
             label: t`Alerts`,
-            icon: ActivityIcon,
+            icon: MegaphoneIcon,
             end: false,
             ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
           },
           {
             href: '/deadlines',
             label: t`Deadlines`,
-            icon: CalendarClockIcon,
+            icon: SquareChartGanttIcon,
             end: false,
             ...(obligationsBadge !== undefined
               ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
@@ -590,7 +593,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           {
             href: '/rules/library',
             label: t`Rule library`,
-            icon: LibraryIcon,
+            icon: BookOpenIcon,
             end: false,
             ...(ruleReviewBadge !== undefined ? { badge: ruleReviewBadge } : {}),
           },
@@ -626,28 +629,24 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     // Legacy (default) sidebar.
     return {
       primary: [],
+      // 2026-05-25 (Yuqi Today follow-up — sidebar icon set): same
+      // four-icon swap as the navV2 branch above. Legacy nav stays in
+      // sync so the iconography reads identically regardless of flag.
       operations: [
-        { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
+        { href: '/', label: t`Today`, icon: Calendar1Icon, end: true },
         {
           href: '/deadlines',
           label: t`Deadlines`,
-          icon: CalendarClockIcon,
+          icon: SquareChartGanttIcon,
           end: false,
           ...(obligationsBadge !== undefined
             ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
             : {}),
         },
-        // Radar is the spine of the product (per the canonical product
-        // spec — "you won't be the last CPA in your state to find out about
-        // a filing extension"). Direct entry, not buried under Rules: it's
-        // operational/real-time work, not governance. The sidebar badge
-        // counts incoming alerts only. Internal product name "Pulse" is
-        // preserved in code (component names, database tables, ORPC
-        // routes); only the user-facing label is "Radar".
         {
           href: '/rules/pulse',
           label: t`Pulse`,
-          icon: ActivityIcon,
+          icon: MegaphoneIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
         },
@@ -679,7 +678,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         {
           href: '/rules/library',
           label: t`Rule library`,
-          icon: LibraryIcon,
+          icon: BookOpenIcon,
           end: false,
         },
       ],

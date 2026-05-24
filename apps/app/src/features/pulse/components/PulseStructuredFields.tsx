@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
+import { StateBadge } from '@/components/primitives/state-badge'
 
 interface PulseStructuredFieldsProps {
   detail: PulseDetail
@@ -138,12 +139,16 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
   // practice's screen). Code stays as the primary token (matches the
   // sort key everywhere else); full name follows in tertiary text so
   // the recognition cost drops to zero.
+  // 2026-05-25 (Yuqi Alerts follow-up): leading StateBadge SVG.
+  // The flag/seal motif gives the fact a visual anchor — Yuqi can
+  // recognise California by its bear before reading "CA".
   const jurisdictionFull = RULE_JURISDICTION_LABELS[detail.jurisdiction] ?? null
   scopeFacts.push({
     key: 'jurisdiction',
     label: <Trans>Jurisdiction</Trans>,
     value: (
-      <span className="inline-flex items-baseline gap-2">
+      <span className="inline-flex items-center gap-2">
+        <StateBadge code={detail.jurisdiction} size="sm" aria-hidden />
         <Badge variant="outline" className="font-mono tabular-nums">
           {detail.jurisdiction}
         </Badge>
