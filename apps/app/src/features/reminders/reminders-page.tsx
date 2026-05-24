@@ -47,7 +47,8 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { RelativeTime } from '@/components/primitives/relative-time'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 function statusBadge(status: ReminderDeliveryStatus) {
@@ -478,8 +479,15 @@ function RecentSendsPanel({
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                  <TableCell className="tabular-nums">
-                    {formatDateTimeWithTimezone(item.createdAt, timezone)}
+                  {/* 2026-05-24 (critique /polish): same RelativeTime
+                      treatment as the suppression card and the Inbox
+                      / Members table. */}
+                  <TableCell>
+                    <RelativeTime
+                      value={item.createdAt}
+                      timeZone={timezone}
+                      className="text-text-secondary"
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -528,9 +536,14 @@ function SuppressionsPanel({
                 </span>
                 <Badge variant="secondary">{item.reason}</Badge>
               </div>
-              <span className="text-xs tabular-nums text-text-tertiary">
-                {formatDateTimeWithTimezone(item.createdAt, timezone)}
-              </span>
+              {/* 2026-05-24 (critique /polish): suppression timestamp
+                  becomes RelativeTime, consistent with Inbox + Members.
+                  Hover still surfaces the precise ISO. */}
+              <RelativeTime
+                value={item.createdAt}
+                timeZone={timezone}
+                className="text-xs text-text-tertiary"
+              />
             </article>
           ))
         )}
