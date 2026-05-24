@@ -274,6 +274,85 @@ describe('generateObligationsForAcceptedRules', () => {
     )
   })
 
+  it('creates state fiduciary obligations from accepted concrete trust rules', async () => {
+    const client = makeClient({
+      entityType: 'trust',
+      taxClassification: 'trust',
+      state: 'CA',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      state: 'CA',
+      taxTypes: ['ca_541'],
+      migrationBatchId: null,
+    })
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [mustRule('ca.541.return.2025')],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({ candidateCount: 1, createdCount: 1, duplicateCount: 0 })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientFilingProfileId: PROFILE_ID,
+        taxType: 'ca_541',
+        formName: 'Form 541',
+        jurisdiction: 'CA',
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        status: 'pending',
+      }),
+    ])
+  })
+
+  it('creates Form 7004 extension obligations from accepted concrete extension rules', async () => {
+    const client = makeClient({
+      entityType: 's_corp',
+      taxClassification: 's_corp',
+      state: 'NY',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      state: 'NY',
+      taxTypes: ['federal_7004'],
+      migrationBatchId: null,
+    })
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [mustRule('fed.7004.extension.1120s.2025')],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({ candidateCount: 1, createdCount: 1, duplicateCount: 0 })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientFilingProfileId: null,
+        taxType: 'federal_7004',
+        obligationType: 'client_action',
+        formName: 'Form 7004',
+        authority: 'IRS',
+        filingDueDate: new Date('2026-03-16T00:00:00.000Z'),
+        paymentDueDate: null,
+        extensionState: 'ready_to_file',
+        extensionFormName: 'Form 7004',
+      }),
+    ])
+  })
+
   it('does not inherit fiscal-year S corporation periods from the client profile', async () => {
     const client = makeClient({
       entityType: 's_corp',

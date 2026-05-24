@@ -38,6 +38,8 @@ import {
   AnnualRolloverOutputSchema,
   ObligationBulkStatusUpdateInputSchema,
   ObligationBulkStatusUpdateOutputSchema,
+  ObligationCreateFromRuleInputSchema,
+  ObligationCreateFromRuleOutputSchema,
   ObligationExtensionDecisionInputSchema,
   ObligationTaxYearProfileUpdateInputSchema,
   ObligationTaxYearProfileUpdateOutputSchema,
@@ -506,6 +508,7 @@ describe('@duedatehq/contracts', () => {
     expect(Object.keys(obligationsContract)).toEqual(
       expect.arrayContaining([
         'createBatch',
+        'createFromRule',
         'previewAnnualRollover',
         'createAnnualRollover',
         'updateDueDate',
@@ -1869,5 +1872,29 @@ describe('@duedatehq/contracts', () => {
         'rules',
       ]),
     )
+  })
+
+  it('validates rule-backed manual creation input and output', () => {
+    expect(
+      ObligationCreateFromRuleInputSchema.parse({
+        clientId: '33333333-3333-4333-8333-333333333333',
+        ruleId: 'fed.7004.extension.1120s.2025',
+        taxYear: 2026,
+      }),
+    ).toEqual({
+      clientId: '33333333-3333-4333-8333-333333333333',
+      ruleId: 'fed.7004.extension.1120s.2025',
+      taxYear: 2026,
+    })
+
+    expect(
+      ObligationCreateFromRuleOutputSchema.parse({
+        obligations: [],
+        duplicateCount: 1,
+      }),
+    ).toEqual({
+      obligations: [],
+      duplicateCount: 1,
+    })
   })
 })

@@ -89,6 +89,19 @@ export const ObligationCreateInputSchema = z.object({
   exposureCalculatedAt: z.iso.datetime().nullable().optional(),
 })
 
+export const ObligationCreateFromRuleInputSchema = z.object({
+  clientId: EntityIdSchema,
+  ruleId: z.string().trim().min(1),
+  taxYear: z.number().int().min(2000).max(2100).optional(),
+})
+export type ObligationCreateFromRuleInput = z.infer<typeof ObligationCreateFromRuleInputSchema>
+
+export const ObligationCreateFromRuleOutputSchema = z.object({
+  obligations: z.array(ObligationInstancePublicSchema),
+  duplicateCount: z.number().int().min(0),
+})
+export type ObligationCreateFromRuleOutput = z.infer<typeof ObligationCreateFromRuleOutputSchema>
+
 export const ObligationDependencyTypeSchema = z.enum(['k1', 'source_document', 'payment', 'review'])
 export const ObligationDependencyStatusSchema = z.enum(['blocking', 'satisfied', 'waived'])
 export const ObligationDependencyPublicSchema = z.object({
@@ -346,6 +359,9 @@ export const obligationsContract = oc.router({
   createBatch: oc
     .input(z.object({ obligations: z.array(ObligationCreateInputSchema).min(1).max(1000) }))
     .output(z.object({ obligations: z.array(ObligationInstancePublicSchema) })),
+  createFromRule: oc
+    .input(ObligationCreateFromRuleInputSchema)
+    .output(ObligationCreateFromRuleOutputSchema),
   previewAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   createAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),

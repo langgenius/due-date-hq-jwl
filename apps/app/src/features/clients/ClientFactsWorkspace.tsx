@@ -4137,37 +4137,11 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
 // entityType and whose jurisdiction matches federal-or-client-state, and
 // subtract anything the client already has a generated obligation for
 // (matched by ruleId). The "+ Add deadline" button calls
-// `obligations.createBatch` with the rule's identifiers; the server
-// resolves the dueDateLogic into a concrete baseDueDate.
+// `obligations.createFromRule`; the server resolves the selected rule into
+// concrete due dates and rejects review-only rules instead of accepting
+// client-side placeholder dates.
 type SuggestedRule = {
   rule: ObligationRule
-  // Computed default date for the Add-deadline form. Heuristic — see
-  // computeDefaultDueDateFromRule.
-  defaultBaseDueDate: string
-}
-
-function computeDefaultDueDateFromRule(rule: ObligationRule): string {
-  // Best-effort: handle the simple kinds. For period_table and
-  // source_defined_calendar, fall back to today + 30 days as a
-  // placeholder — the user can adjust before saving.
-  const logic = rule.dueDateLogic
-  if (logic.kind === 'fixed_date') return logic.date
-  if (logic.kind === 'nth_day_after_tax_year_end') {
-    // Assume calendar year — tax year ends Dec 31 of (applicableYear - 1)
-    const year = rule.applicableYear
-    const month = String(logic.monthOffset).padStart(2, '0')
-    const day = String(logic.day).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-  if (logic.kind === 'nth_day_after_tax_year_begin') {
-    const year = rule.applicableYear
-    const month = String(logic.monthOffset).padStart(2, '0')
-    const day = String(logic.day).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
-  const fallback = new Date()
-  fallback.setDate(fallback.getDate() + 30)
-  return fallback.toISOString().slice(0, 10)
 }
 
 // Map our client.entityType to the rule's EntityApplicability vocabulary.
@@ -4199,7 +4173,7 @@ function suggestedRulesForClient(
     .filter((rule) => !scheduledRuleIds.has(rule.id))
     .filter((rule) => ruleAppliesToJurisdiction(rule, clientStates))
     .filter((rule) => ruleAppliesToEntity(rule, client.entityType))
-    .map((rule) => ({ rule, defaultBaseDueDate: computeDefaultDueDateFromRule(rule) }))
+    .map((rule) => ({ rule }))
 }
 
 function SuggestedFormsCatalogPanel({
@@ -4216,10 +4190,9 @@ function SuggestedFormsCatalogPanel({
 
   const rulesQuery = useQuery(orpc.rules.listRules.queryOptions({ input: { status: 'active' } }))
   const createMutation = useMutation(
-    orpc.obligations.createBatch.mutationOptions({
+    orpc.obligations.createFromRule.mutationOptions({
       onMutate: (variables) => {
-        const first = variables.obligations[0]
-        if (first?.ruleId) setPendingRuleId(first.ruleId)
+        setPendingRuleId(variables.ruleId)
       },
       onSuccess: (result) => {
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
@@ -4267,20 +4240,8 @@ function SuggestedFormsCatalogPanel({
 
   function addDeadline(suggestion: SuggestedRule) {
     createMutation.mutate({
-      obligations: [
-        {
-          clientId: client.id,
-          taxType: suggestion.rule.taxType,
-          taxYear: suggestion.rule.applicableYear,
-          ruleId: suggestion.rule.id,
-          ruleVersion: suggestion.rule.version,
-          generationSource: 'manual',
-          jurisdiction: suggestion.rule.jurisdiction,
-          formName: suggestion.rule.formName,
-          obligationType: suggestion.rule.obligationType,
-          baseDueDate: suggestion.defaultBaseDueDate,
-        },
-      ],
+      clientId: client.id,
+      ruleId: suggestion.rule.id,
     })
   }
 
@@ -4371,6 +4332,8 @@ function SuggestedFormsCatalogPanel({
           <div className="grid divide-y divide-divider-subtle">
             {suggested.map((suggestion) => {
               const isPending = pendingRuleId === suggestion.rule.id && createMutation.isPending
+              const needsRuleReview =
+                suggestion.rule.dueDateLogic.kind === 'source_defined_calendar'
               return (
                 <div
                   key={suggestion.rule.id}
@@ -4386,22 +4349,33 @@ function SuggestedFormsCatalogPanel({
                       </span>
                     </div>
                     <p className="text-xs leading-snug text-text-tertiary">
-                      {suggestion.rule.title} ·{' '}
-                      <Trans>default due {formatDatePretty(suggestion.defaultBaseDueDate)}</Trans>
+                      {suggestion.rule.title}
+                      {needsRuleReview ? (
+                        <>
+                          {' · '}
+                          <Trans>Rule review required before this can create a deadline.</Trans>
+                        </>
+                      ) : null}
                     </p>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => addDeadline(suggestion)}
-                    disabled={createMutation.isPending}
+                    disabled={createMutation.isPending || needsRuleReview}
                   >
-                    {isPending ? (
+                    {needsRuleReview ? (
+                      <AlertTriangleIcon data-icon="inline-start" />
+                    ) : isPending ? (
                       <RefreshCwIcon data-icon="inline-start" className="animate-spin" />
                     ) : (
                       <PlusIcon data-icon="inline-start" />
                     )}
-                    <Trans>Add deadline</Trans>
+                    {needsRuleReview ? (
+                      <Trans>Rule review required</Trans>
+                    ) : (
+                      <Trans>Add deadline</Trans>
+                    )}
                   </Button>
                 </div>
               )

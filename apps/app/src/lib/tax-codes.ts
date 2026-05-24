@@ -84,11 +84,6 @@ const TAX_CODES: Record<string, TaxCodeMeta> = {
     jurisdiction: 'Federal',
     description: 'Business return extension',
   },
-  schedule_k1_dependency: {
-    label: 'Schedule K-1 Dependency',
-    jurisdiction: 'Federal',
-    description: 'Partner, shareholder, or beneficiary K-1 dependency',
-  },
   federal_8868: {
     label: 'Form 8868',
     jurisdiction: 'Federal',

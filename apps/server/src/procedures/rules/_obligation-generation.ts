@@ -39,7 +39,7 @@ function toDateOrNull(value: string | null): Date | null {
   return value ? new Date(`${value}T00:00:00.000Z`) : null
 }
 
-function keyForGenerated(input: {
+export function keyForGenerated(input: {
   clientId: string
   jurisdiction: string | null
   ruleId: string
@@ -55,7 +55,7 @@ function keyForGenerated(input: {
   ].join('::')
 }
 
-function sourceUrlForPreview(
+export function sourceUrlForPreview(
   preview: ObligationGenerationPreview,
   sourceById: ReadonlyMap<string, ReturnType<typeof listRuleSources>[number]>,
 ): string | null {
@@ -106,13 +106,14 @@ function paymentDueDateForPreview(
   return null
 }
 
-function buildCreateInput(input: {
+export function buildRuleBackedCreateInput(input: {
   client: ClientRow
-  profile: ClientFilingProfileRow
+  profile: Pick<ClientFilingProfileRow, 'id'> | null
   rule: ObligationRule
   preview: ObligationGenerationPreview
   internalDeadlineOffsetDays: number
   now: Date
+  generationSource?: ObligationCreateInput['generationSource']
 }): ObligationCreateInput & { preview: ObligationGenerationPreview } {
   const dueDate = new Date(`${input.preview.dueDate}T00:00:00.000Z`)
   const internalDueDate = internalDeadlineFromBaseDueDate(dueDate, input.internalDeadlineOffsetDays)
@@ -125,7 +126,8 @@ function buildCreateInput(input: {
 
   return {
     clientId: input.client.id,
-    clientFilingProfileId: input.preview.jurisdiction === 'FED' ? null : input.profile.id,
+    clientFilingProfileId:
+      input.preview.jurisdiction === 'FED' ? null : (input.profile?.id ?? null),
     taxType: input.preview.taxType,
     taxYear: input.rule.taxYear,
     ruleId: input.rule.id,
@@ -136,7 +138,8 @@ function buildCreateInput(input: {
     taxPeriodKind: input.preview.taxPeriodKind,
     taxPeriodSource: input.preview.taxPeriodSource,
     taxPeriodReviewReason: input.preview.taxPeriodReviewReason,
-    generationSource: input.client.migrationBatchId ? 'migration' : 'manual',
+    generationSource:
+      input.generationSource ?? (input.client.migrationBatchId ? 'migration' : 'manual'),
     jurisdiction: input.preview.jurisdiction,
     obligationType: obligationTypeForPreview(input.preview),
     formName: input.preview.formName,
@@ -250,7 +253,7 @@ export async function generateObligationsForAcceptedRules(
 
         seenGeneratedKeys.add(key)
         createInputs.push(
-          buildCreateInput({
+          buildRuleBackedCreateInput({
             client,
             profile,
             rule,

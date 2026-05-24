@@ -6,7 +6,7 @@ import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
-import type { ClientCreateInput, ClientPublic, ObligationCreateInput } from '@duedatehq/contracts'
+import type { ClientCreateInput, ClientPublic, ObligationRule } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Command,
@@ -40,37 +40,23 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { ClientCombobox } from '@/features/clients/ClientCombobox'
 import { type ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import {
-  buildDeadlineCategorySuggestions,
   COMMON_FORM_VOUCHER_SUGGESTIONS,
+  listDeadlineCategorySuggestions,
+  resolveDeadlineCategoryForInput,
   type DeadlineCategorySuggestion,
 } from '@/features/obligations/deadline-category-suggestions'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
-
-// The 6 canonical obligation types — picked up from
-// `hanxujiang`'s 535e2c8 because they're real fields the server
-// reads to route payment-vs-filing deadlines + populate the
-// queue's tax-type filter. Type drives the conditional
-// `paymentDueDate` vs `filingDueDate` assignment below.
-const OBLIGATION_TYPES = [
-  'filing',
-  'payment',
-  'deposit',
-  'information',
-  'client_action',
-  'internal_review',
-] as const satisfies readonly NonNullable<ObligationCreateInput['obligationType']>[]
-type ObligationTypeValue = (typeof OBLIGATION_TYPES)[number]
+const EMPTY_RULES: readonly ObligationRule[] = []
+const TAX_YEAR_OPTION_COUNT = 5
 
 type SuggestionOption = {
   value: string
@@ -79,58 +65,32 @@ type SuggestionOption = {
 }
 
 type SuggestionGroup<TOption extends SuggestionOption> = {
-  heading: string
+  heading?: string
   options: readonly TOption[]
 }
-
-function isObligationTypeValue(value: string | null): value is ObligationTypeValue {
-  return OBLIGATION_TYPES.some((type) => type === value)
-}
-
-function useObligationTypeLabels(): Record<ObligationTypeValue, string> {
-  const { t } = useLingui()
-  return useMemo(
-    () => ({
-      filing: t`Filing`,
-      payment: t`Payment`,
-      deposit: t`Deposit`,
-      information: t`Information return`,
-      client_action: t`Client action`,
-      internal_review: t`Internal review`,
-    }),
-    [t],
-  )
-}
-
-// Starting status — restricted to v2 lifecycle states that make
-// sense for a brand-new manual row. The schema still accepts the
-// legacy 10-state enum; this dialog narrows to the three honest
-// "where do you start" options. Other states are reached via
-// lifecycle transitions, not creation. See
-// docs/Design/obligation-lifecycle-design-brief.md.
-const CREATE_STATUS_VALUES = ['pending', 'waiting_on_client', 'blocked'] as const
-type CreateStatusValue = (typeof CREATE_STATUS_VALUES)[number]
 
 type FormValues = {
   clientId: string
   taxType: string
-  baseDueDate: string
+  taxYear: string
   jurisdiction: string
   formName: string
-  obligationType: ObligationTypeValue
-  status: CreateStatusValue
   internalNotes: string
 }
 
-const defaultFormValues: FormValues = {
-  clientId: '',
-  taxType: '',
-  baseDueDate: '',
-  jurisdiction: '',
-  formName: '',
-  obligationType: 'filing',
-  status: 'pending',
-  internalNotes: '',
+function defaultTaxYear(): string {
+  return String(new Date().getFullYear())
+}
+
+function defaultFormValues(defaultClientId?: string): FormValues {
+  return {
+    clientId: defaultClientId ?? '',
+    taxType: '',
+    taxYear: defaultTaxYear(),
+    jurisdiction: '',
+    formName: '',
+    internalNotes: '',
+  }
 }
 
 function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
@@ -141,61 +101,24 @@ function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
       .trim()
       .min(1, t`Deadline category is required`)
       .max(80, t`Deadline category must be 80 characters or fewer`),
-    baseDueDate: z
+    taxYear: z
       .string()
       .trim()
-      .refine((value) => ISO_DATE_RE.test(value), { message: t`Pick a base due date` }),
+      .regex(/^\d{4}$/, t`Tax year is required`),
     jurisdiction: z
       .string()
       .trim()
+      .min(1, t`Jurisdiction is required`)
       .max(80, t`Jurisdiction must be 80 characters or fewer`),
     formName: z
       .string()
       .trim()
       .max(80, t`Form / voucher must be 80 characters or fewer`),
-    obligationType: z.enum(OBLIGATION_TYPES),
-    status: z.enum(CREATE_STATUS_VALUES),
     internalNotes: z
       .string()
       .trim()
       .max(5000, t`Notes must be 5000 characters or fewer`),
   })
-}
-
-function nullableText(value: string): string | null {
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
-}
-
-/**
- * Build the wire-shaped `ObligationCreateInput`. Crucially, the
- * `paymentDueDate` vs `filingDueDate` assignment branches on
- * `obligationType` — payment / deposit rows route to
- * paymentDueDate, everything else to filingDueDate. This matches
- * how the server's exposure + reminder pipelines read the row
- * (see hanxujiang's 535e2c8 for the original routing logic).
- *
- * `recurrence: 'once'` and `riskLevel: 'low'` are sensible
- * defaults for a manual row — annual rollover / risk inputs are
- * separate flows the CPA can graduate to after creation.
- */
-function formValuesToInput(values: FormValues): ObligationCreateInput {
-  const dueDate = values.baseDueDate
-  const isPaymentDeadline =
-    values.obligationType === 'payment' || values.obligationType === 'deposit'
-  return {
-    clientId: values.clientId,
-    taxType: values.taxType.trim(),
-    generationSource: 'manual',
-    jurisdiction: nullableText(values.jurisdiction),
-    formName: nullableText(values.formName),
-    obligationType: values.obligationType,
-    baseDueDate: dueDate,
-    recurrence: 'once',
-    riskLevel: 'low',
-    status: values.status,
-    ...(isPaymentDeadline ? { paymentDueDate: dueDate } : { filingDueDate: dueDate }),
-  }
 }
 
 type FormFieldError = { message?: string }
@@ -227,6 +150,84 @@ function useEntityLabels(): Record<ClientEntityType, string> {
     }),
     [t],
   )
+}
+
+function buildTaxYearOptions(): readonly string[] {
+  const startYear = new Date().getFullYear()
+  return Array.from({ length: TAX_YEAR_OPTION_COUNT }, (_, index) => String(startYear + index))
+}
+
+function normalizeJurisdictionForRuleSearch(value: string): string {
+  const normalized = value.trim().toUpperCase()
+  if (
+    normalized === 'FEDERAL' ||
+    normalized === 'IRS' ||
+    normalized === 'US' ||
+    normalized === 'USA'
+  ) {
+    return 'FED'
+  }
+  return normalized
+}
+
+function ruleAppliesToSelectedClient(rule: ObligationRule, client: ClientPublic): boolean {
+  if (client.entityType !== 'other' && rule.entityApplicability.includes(client.entityType)) {
+    return true
+  }
+  if (
+    rule.entityApplicability.includes('any_business') &&
+    client.entityType !== 'individual' &&
+    client.entityType !== 'trust'
+  ) {
+    return true
+  }
+
+  if (!client.taxClassification || client.taxClassification === 'unknown') return false
+  if (client.taxClassification === 'partnership') {
+    return rule.entityApplicability.includes('partnership')
+  }
+  if (client.taxClassification === 's_corp') {
+    return rule.entityApplicability.includes('s_corp')
+  }
+  if (client.taxClassification === 'c_corp') {
+    return rule.entityApplicability.includes('c_corp')
+  }
+  if (client.taxClassification === 'trust' || client.taxClassification === 'estate') {
+    return rule.entityApplicability.includes('trust')
+  }
+  if (client.taxClassification === 'individual') {
+    return rule.entityApplicability.includes('individual')
+  }
+  if (client.taxClassification === 'disregarded_entity') {
+    return (
+      rule.entityApplicability.includes('sole_prop') ||
+      rule.entityApplicability.includes('individual') ||
+      rule.entityApplicability.includes('any_business')
+    )
+  }
+  return false
+}
+
+function findCreateRuleForSelection(input: {
+  rules: readonly ObligationRule[]
+  client: ClientPublic
+  taxType: string
+  jurisdiction: string
+  formName: string | null
+  taxYear: number
+}): ObligationRule | null {
+  const jurisdiction = normalizeJurisdictionForRuleSearch(input.jurisdiction)
+  const formName = input.formName?.trim().toLowerCase() ?? ''
+  const candidates = input.rules
+    .filter((rule) => rule.status === 'active')
+    .filter((rule) => rule.dueDateLogic.kind !== 'source_defined_calendar')
+    .filter((rule) => rule.taxType === input.taxType)
+    .filter((rule) => rule.jurisdiction === jurisdiction)
+    .filter((rule) => ruleAppliesToSelectedClient(rule, input.client))
+    .filter((rule) => !formName || rule.formName.trim().toLowerCase() === formName)
+    .toSorted((a, b) => b.taxYear - a.taxYear)
+
+  return candidates.find((rule) => rule.taxYear === input.taxYear) ?? candidates[0] ?? null
 }
 
 function suggestionMatchesValue(option: SuggestionOption, value: string): boolean {
@@ -328,7 +329,7 @@ function SuggestionCombobox<TOption extends SuggestionOption>({
             <CommandEmpty>{emptyLabel}</CommandEmpty>
             {groups.map((group, index) =>
               group.options.length > 0 ? (
-                <Fragment key={group.heading}>
+                <Fragment key={group.heading ?? index}>
                   {index > 0 ? <CommandSeparator /> : null}
                   <CommandGroup heading={group.heading}>
                     {group.options.map((option) => (
@@ -397,20 +398,9 @@ function SuggestionCombobox<TOption extends SuggestionOption>({
  *  - The description bridges them in one sentence so the
  *    mapping is honest.
  *
- * This is the merged shape of two parallel implementations:
- *  - Yuqi's 083c860 contributed the searchable `ClientCombobox`,
- *    the inline "Create new client" link, the internal-notes
- *    textarea (the K-1 → notes decision from the 2026-05-21
- *    meeting), and the Zod + react-form validation pattern.
- *  - Hanxujiang's 535e2c8 contributed the jurisdiction + form
- *    name + obligation-type fields, the payment-vs-filing date
- *    routing in `formValuesToInput`, and the broader query-key
- *    invalidation set on success.
- *
- * Together: the dialog produces a complete obligation row (server
- * reads obligationType + jurisdiction for routing and filtering)
- * with the human-friendly creation UX (search + create-new +
- * notes for partner context).
+ * The dialog deliberately does not ask for a due date. Category,
+ * jurisdiction, and tax year identify an active rule; the server
+ * expands that rule into the concrete obligation row.
  */
 export function CreateObligationDialog({
   trigger,
@@ -424,25 +414,20 @@ export function CreateObligationDialog({
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const entityLabels = useEntityLabels()
-  const obligationTypeLabels = useObligationTypeLabels()
   const [open, setOpen] = useState(false)
   const [createClientOpen, setCreateClientOpen] = useState(false)
+  const taxYearOptions = useMemo(buildTaxYearOptions, [])
 
   const formSchema = useMemo(() => createFormSchema(t), [t])
   const form = useForm({
-    defaultValues: {
-      ...defaultFormValues,
-      clientId: defaultClientId ?? '',
-    },
+    defaultValues: defaultFormValues(defaultClientId),
     validators: { onSubmit: formSchema },
     onSubmit: ({ value }) => {
-      createMutation.mutate({ obligations: [formValuesToInput(value)] })
+      submitRuleBackedDeadline(value)
     },
   })
 
   const clientId = useStore(form.store, (state) => state.values.clientId)
-  const status = useStore(form.store, (state) => state.values.status)
-  const obligationType = useStore(form.store, (state) => state.values.obligationType)
   const internalNotes = useStore(form.store, (state) => state.values.internalNotes)
 
   const clientsQuery = useQuery({
@@ -454,19 +439,20 @@ export function CreateObligationDialog({
     () => clients.find((client) => client.id === clientId) ?? null,
     [clients, clientId],
   )
-  const deadlineCategorySuggestionGroups = useMemo(() => {
-    const suggestions = buildDeadlineCategorySuggestions(selectedClient)
-    return [
-      {
-        heading: t`Recommended for this client`,
-        options: suggestions.recommended,
-      },
-      {
-        heading: t`Other common deadlines`,
-        options: suggestions.other,
-      },
-    ] satisfies readonly SuggestionGroup<DeadlineCategorySuggestion>[]
-  }, [selectedClient, t])
+  const rulesQuery = useQuery({
+    ...orpc.rules.listRules.queryOptions({ input: { status: 'active' } }),
+    enabled: open,
+  })
+  const allRules = rulesQuery.data ?? EMPTY_RULES
+  const deadlineCategorySuggestionGroups = useMemo(
+    () =>
+      [
+        {
+          options: listDeadlineCategorySuggestions(),
+        },
+      ] satisfies readonly SuggestionGroup<DeadlineCategorySuggestion>[],
+    [],
+  )
   const formVoucherSuggestionGroups = useMemo(
     () =>
       [
@@ -479,7 +465,7 @@ export function CreateObligationDialog({
   )
 
   const createMutation = useMutation(
-    orpc.obligations.createBatch.mutationOptions({
+    orpc.obligations.createFromRule.mutationOptions({
       onSuccess: (result) => {
         const obligation = result.obligations[0]
         // Invalidate every consumer that surfaces obligation data
@@ -490,7 +476,10 @@ export function CreateObligationDialog({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         toast.success(t`Deadline added`, {
-          description: t`${result.obligations.length} deadline created.`,
+          description:
+            result.obligations.length > 0
+              ? t`${result.obligations.length} deadline created from the rule library.`
+              : t`That deadline already exists for this client and tax year.`,
         })
         if (internalNotes.trim().length > 0) {
           // Notes capture is intentionally local until the
@@ -501,7 +490,7 @@ export function CreateObligationDialog({
             description: t`Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet.`,
           })
         }
-        form.reset({ ...defaultFormValues, clientId: defaultClientId ?? '' })
+        form.reset(defaultFormValues(defaultClientId))
         setOpen(false)
         if (obligation) onCreated?.(obligation.id)
       },
@@ -512,6 +501,41 @@ export function CreateObligationDialog({
       },
     }),
   )
+
+  function submitRuleBackedDeadline(value: FormValues) {
+    if (!selectedClient) {
+      toast.error(t`Couldn't add deadline`, { description: t`Pick a client first.` })
+      return
+    }
+
+    const taxYear = Number(value.taxYear)
+    const resolvedCategory = resolveDeadlineCategoryForInput({
+      value: value.taxType,
+      jurisdiction: value.jurisdiction,
+      formName: value.formName,
+    })
+    const rule = findCreateRuleForSelection({
+      rules: allRules,
+      client: selectedClient,
+      taxType: resolvedCategory.taxType,
+      jurisdiction: value.jurisdiction,
+      formName: resolvedCategory.formName,
+      taxYear,
+    })
+
+    if (!rule) {
+      toast.error(t`Couldn't add deadline`, {
+        description: t`No rule-backed deadline is available for this category, jurisdiction, and tax year yet.`,
+      })
+      return
+    }
+
+    createMutation.mutate({
+      clientId: value.clientId,
+      ruleId: rule.id,
+      taxYear,
+    })
+  }
 
   const createClientMutation = useMutation(
     orpc.clients.create.mutationOptions({
@@ -566,8 +590,8 @@ export function CreateObligationDialog({
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Capture a deadline the queue should track. Use this for K-1 dependencies and other
-                rows the rule library doesn't generate automatically.
+                Select the tax year, deadline category, and jurisdiction. DueDateHQ calculates the
+                due date from the rule library.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -635,30 +659,43 @@ export function CreateObligationDialog({
                           if (option.jurisdiction) {
                             form.setFieldValue('jurisdiction', option.jurisdiction)
                           }
-                          if (option.obligationType) {
-                            form.setFieldValue('obligationType', option.obligationType)
-                          }
                         }}
                       />
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
                   )}
                 </form.Field>
-                <form.Field name="baseDueDate">
+                <form.Field name="taxYear">
                   {(field) => (
                     <Field>
-                      <FieldLabel htmlFor="obligation-due-date">
-                        <Trans>Base due date</Trans>
+                      <FieldLabel htmlFor="obligation-tax-year">
+                        <Trans>Tax year</Trans>
                       </FieldLabel>
-                      <IsoDatePicker
-                        id="obligation-due-date"
+                      <Select
                         value={field.state.value}
-                        invalid={!field.state.meta.isValid}
-                        placeholder="YYYY-MM-DD"
-                        ariaLabel={t`Select base due date`}
-                        className="rounded-md border-divider-regular"
-                        onValueChange={field.handleChange}
-                      />
+                        onValueChange={(value) => {
+                          if (value !== null) {
+                            field.handleChange(value)
+                          }
+                        }}
+                      >
+                        <SelectTrigger
+                          id="obligation-tax-year"
+                          aria-invalid={!field.state.meta.isValid || undefined}
+                          className="w-full"
+                        >
+                          <SelectValue placeholder={t`Select tax year`} />
+                        </SelectTrigger>
+                        <SelectContent align="start">
+                          <SelectGroup>
+                            {taxYearOptions.map((year, index) => (
+                              <SelectItem key={year} value={year}>
+                                {index === 0 ? t`${year} (current year)` : year}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                       <FieldError errors={fieldErrors(field.state.meta.errors)} />
                     </Field>
                   )}
@@ -705,76 +742,6 @@ export function CreateObligationDialog({
                 </form.Field>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="obligation-type">
-                    <Trans>Deadline type</Trans>
-                  </FieldLabel>
-                  <Select
-                    value={obligationType}
-                    onValueChange={(value) => {
-                      if (isObligationTypeValue(value)) {
-                        form.setFieldValue('obligationType', value)
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="obligation-type" className="w-full">
-                      <SelectValue>{obligationTypeLabels[obligationType]}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent align="start">
-                      <SelectGroup>
-                        {OBLIGATION_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {obligationTypeLabels[type]}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="obligation-status">
-                    <Trans>Starting status</Trans>
-                  </FieldLabel>
-                  <Select
-                    value={status}
-                    onValueChange={(value) => {
-                      if (
-                        value === 'pending' ||
-                        value === 'waiting_on_client' ||
-                        value === 'blocked'
-                      ) {
-                        form.setFieldValue('status', value)
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="obligation-status" className="w-full">
-                      <SelectValue>
-                        {status === 'waiting_on_client'
-                          ? t`Waiting on client`
-                          : status === 'blocked'
-                            ? t`Blocked`
-                            : t`Not started`}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="pending">
-                          <Trans>Not started</Trans>
-                        </SelectItem>
-                        <SelectItem value="waiting_on_client">
-                          <Trans>Waiting on client</Trans>
-                        </SelectItem>
-                        <SelectItem value="blocked">
-                          <Trans>Blocked (waiting on K-1 or another upstream)</Trans>
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-
               <form.Field name="internalNotes">
                 {(field) => (
                   <Field>
@@ -786,14 +753,13 @@ export function CreateObligationDialog({
                       name={field.name}
                       value={field.state.value}
                       rows={3}
-                      placeholder={t`Partner name, K-1 source, or other context that doesn't fit the structured fields.`}
+                      placeholder={t`Partner, filing profile, or other context for this deadline.`}
                       onBlur={field.handleBlur}
                       onChange={(event) => field.handleChange(event.target.value)}
                     />
                     <span className="text-caption text-text-tertiary">
                       <Trans>
-                        Replaces the old K-1 dropdown — capture partner info or any free-form
-                        context here.
+                        Optional context; save it from the deadline drawer after creation.
                       </Trans>
                     </span>
                     <FieldError errors={fieldErrors(field.state.meta.errors)} />
@@ -806,8 +772,15 @@ export function CreateObligationDialog({
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 <Trans>Cancel</Trans>
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || clientId.length === 0}>
-                {createMutation.isPending ? t`Adding…` : t`Add deadline`}
+              <Button
+                type="submit"
+                disabled={createMutation.isPending || rulesQuery.isLoading || clientId.length === 0}
+              >
+                {createMutation.isPending
+                  ? t`Adding…`
+                  : rulesQuery.isLoading
+                    ? t`Loading rules…`
+                    : t`Add deadline`}
               </Button>
             </DialogFooter>
           </form>

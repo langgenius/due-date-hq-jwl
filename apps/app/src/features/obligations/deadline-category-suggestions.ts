@@ -3,40 +3,24 @@ import type { ClientPublic, ObligationCreateInput } from '@duedatehq/contracts'
 type ObligationTypeValue = NonNullable<ObligationCreateInput['obligationType']>
 type ClientEntityType = ClientPublic['entityType']
 
-type FilingProfileContext = Pick<ClientPublic['filingProfiles'][number], 'state' | 'taxTypes'>
-
-export type DeadlineCategoryClientContext = Pick<
-  ClientPublic,
-  | 'entityType'
-  | 'state'
-  | 'taxClassification'
-  | 'hasPayroll'
-  | 'has1099Vendors'
-  | 'hasForeignAccounts'
-  | 'hasK1Activity'
-> & {
-  filingProfiles: readonly FilingProfileContext[]
-}
-
-type ClientFlag = 'hasPayroll' | 'has1099Vendors' | 'hasForeignAccounts' | 'hasK1Activity'
+type ClientFlag = 'hasPayroll' | 'hasSalesTax' | 'has1099Vendors' | 'hasForeignAccounts'
+export type DeadlineCategoryGenerationStatus = 'rule_backed' | 'rule_review_required'
 
 export type DeadlineCategorySuggestion = {
   value: string
   label: string
   description: string
+  generationStatus: DeadlineCategoryGenerationStatus
   formName?: string
+  formNamesByJurisdiction?: Readonly<Record<string, string>>
   jurisdiction?: string
+  taxTypesByJurisdiction?: Readonly<Record<string, string>>
   obligationType?: ObligationTypeValue
   entityTypes?: readonly ClientEntityType[]
   states?: readonly string[]
   flags?: readonly ClientFlag[]
   priority: number
   isSpecialty?: boolean
-}
-
-export type DeadlineCategorySuggestionGroups = {
-  recommended: readonly DeadlineCategorySuggestion[]
-  other: readonly DeadlineCategorySuggestion[]
 }
 
 export type FormVoucherSuggestion = {
@@ -47,246 +31,174 @@ export type FormVoucherSuggestion = {
 
 export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[] = [
   {
-    value: 'federal_1040',
+    value: 'individual_income_tax_return',
     label: 'Individual income tax return',
-    description: 'Federal return for individual clients',
+    description: 'Income return for individual clients; use Jurisdiction for the tax agency',
+    generationStatus: 'rule_backed',
     formName: 'Form 1040',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1040' },
+    formNamesByJurisdiction: { FED: 'Form 1040' },
     entityTypes: ['individual', 'sole_prop'],
     priority: 10,
   },
   {
-    value: 'federal_1040_estimated_tax',
+    value: 'individual_estimated_tax_payment',
     label: 'Individual estimated tax payment',
-    description: 'Federal estimated tax payment for individuals',
+    description: 'Estimated income tax payment for individuals',
+    generationStatus: 'rule_backed',
     formName: 'Form 1040-ES',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1040_estimated_tax' },
+    formNamesByJurisdiction: { FED: 'Form 1040-ES' },
     obligationType: 'payment',
     entityTypes: ['individual', 'sole_prop'],
     priority: 20,
   },
   {
-    value: 'federal_1041',
+    value: 'trust_estate_income_tax_return',
     label: 'Trust and estate income tax return',
-    description: 'Federal return for trusts and estates',
+    description: 'Income return for trusts and estates; use Jurisdiction for the tax agency',
+    generationStatus: 'rule_backed',
     formName: 'Form 1041',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1041', CA: 'ca_541', NY: 'ny_it205' },
+    formNamesByJurisdiction: { FED: 'Form 1041', CA: 'Form 541', NY: 'Form IT-205' },
     entityTypes: ['trust'],
     priority: 10,
   },
   {
-    value: 'federal_1065',
+    value: 'partnership_income_tax_return',
     label: 'Partnership income tax return',
-    description: 'Federal return for partnerships and multi-member LLCs',
+    description: 'Income return for partnerships and multi-member LLCs',
+    generationStatus: 'rule_backed',
     formName: 'Form 1065',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1065', NY: 'ny_it204' },
+    formNamesByJurisdiction: { FED: 'Form 1065', NY: 'Form IT-204' },
     entityTypes: ['partnership', 'llc'],
     priority: 10,
   },
   {
-    value: 'federal_1120s',
+    value: 's_corporation_income_tax_return',
     label: 'S corporation income tax return',
-    description: 'Federal return for S corporations',
+    description: 'Income return for S corporations; use Jurisdiction for the tax agency',
+    generationStatus: 'rule_backed',
     formName: 'Form 1120-S',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1120s', CA: 'ca_100s', NY: 'ny_ct3s' },
+    formNamesByJurisdiction: { FED: 'Form 1120-S', CA: 'Form 100S', NY: 'Form CT-3-S' },
     entityTypes: ['s_corp'],
     priority: 10,
   },
   {
-    value: 'federal_1120',
+    value: 'c_corporation_income_tax_return',
     label: 'C corporation income tax return',
-    description: 'Federal return for C corporations',
+    description: 'Income return for C corporations; use Jurisdiction for the tax agency',
+    generationStatus: 'rule_backed',
     formName: 'Form 1120',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1120', CA: 'ca_100', NY: 'ny_ct3' },
+    formNamesByJurisdiction: { FED: 'Form 1120', CA: 'Form 100', NY: 'Form CT-3' },
     entityTypes: ['c_corp'],
     priority: 10,
   },
   {
-    value: 'federal_7004',
+    value: 'business_return_extension',
     label: 'Business return extension',
-    description: 'Extension request for business, trust, and estate returns',
+    description: 'Extension request for business, trust, or estate income returns',
+    generationStatus: 'rule_backed',
     formName: 'Form 7004',
     jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_7004' },
+    formNamesByJurisdiction: { FED: 'Form 7004' },
     entityTypes: ['llc', 's_corp', 'partnership', 'c_corp', 'trust'],
     priority: 20,
   },
   {
-    value: 'schedule_k1_dependency',
-    label: 'Schedule K-1 dependency',
-    description: 'Track a partner, shareholder, or beneficiary K-1 dependency',
-    formName: 'Schedule K-1',
-    jurisdiction: 'FED',
-    obligationType: 'client_action',
-    entityTypes: ['llc', 's_corp', 'partnership', 'trust'],
-    flags: ['hasK1Activity'],
-    priority: 21,
-  },
-  {
-    value: 'federal_4868',
+    value: 'individual_return_extension',
     label: 'Individual return extension',
-    description: 'Extension request for individual returns',
+    description: 'Extension request for individual income tax returns',
+    generationStatus: 'rule_backed',
     formName: 'Form 4868',
     jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1040_extension' },
+    formNamesByJurisdiction: { FED: 'Form 4868' },
     entityTypes: ['individual', 'sole_prop'],
     priority: 30,
   },
   {
-    value: 'federal_941',
+    value: 'employer_payroll_tax_return',
     label: 'Employer quarterly payroll return',
-    description: 'Federal quarterly payroll tax return for employers',
+    description: 'Quarterly payroll tax return for employers',
+    generationStatus: 'rule_backed',
     formName: 'Form 941',
     jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_941' },
+    formNamesByJurisdiction: { FED: 'Form 941' },
     flags: ['hasPayroll'],
     priority: 40,
   },
   {
-    value: 'federal_payroll_deposit_monthly',
+    value: 'payroll_tax_deposit',
     label: 'Payroll tax deposit',
-    description: 'Federal payroll tax deposit schedule',
+    description: 'Employer payroll tax deposit; rule review required for deposit schedule',
+    generationStatus: 'rule_review_required',
     formName: 'Payroll deposit',
-    jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_payroll_deposit_monthly' },
+    formNamesByJurisdiction: { FED: 'Payroll deposit' },
     obligationType: 'deposit',
     flags: ['hasPayroll'],
     priority: 45,
   },
   {
-    value: 'federal_1099_nec',
-    label: 'Nonemployee compensation forms',
-    description: 'Annual contractor reporting for nonemployee compensation',
+    value: 'information_returns',
+    label: 'Information returns',
+    description: 'Annual contractor, vendor, and other information reporting',
+    generationStatus: 'rule_backed',
     formName: 'Form 1099-NEC',
     jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_1099_nec' },
+    formNamesByJurisdiction: { FED: 'Form 1099-NEC' },
     obligationType: 'information',
     flags: ['has1099Vendors'],
     priority: 50,
   },
   {
-    value: 'ca_llc_annual_tax',
-    label: 'California LLC annual tax',
-    description: 'California LLC annual tax voucher',
-    formName: 'FTB 3522',
-    jurisdiction: 'CA',
+    value: 'franchise_annual_tax_payment',
+    label: 'Franchise or annual tax payment',
+    description: 'State business franchise, annual, or filing-fee payment',
+    generationStatus: 'rule_backed',
+    formName: 'Annual tax voucher',
+    taxTypesByJurisdiction: {
+      CA: 'ca_llc_annual_tax',
+      NY: 'ny_it204ll',
+      TX: 'tx_franchise_report',
+    },
+    formNamesByJurisdiction: {
+      CA: 'FTB 3522',
+      NY: 'Form IT-204-LL',
+      TX: 'Texas franchise tax report',
+    },
     obligationType: 'payment',
-    entityTypes: ['llc'],
-    states: ['CA'],
-    priority: 10,
-  },
-  {
-    value: 'ca_llc_568',
-    label: 'California LLC return',
-    description: 'California LLC return of income',
-    formName: 'Form 568',
-    jurisdiction: 'CA',
-    entityTypes: ['llc'],
-    states: ['CA'],
-    priority: 20,
-  },
-  {
-    value: 'ca_541',
-    label: 'California fiduciary income tax return',
-    description: 'California return for trusts and estates',
-    formName: 'Form 541',
-    jurisdiction: 'CA',
-    entityTypes: ['trust'],
-    states: ['CA'],
-    priority: 25,
-  },
-  {
-    value: 'ca_100s',
-    label: 'California S corporation franchise tax return',
-    description: 'California return for S corporations',
-    formName: 'Form 100S',
-    jurisdiction: 'CA',
-    entityTypes: ['s_corp'],
-    states: ['CA'],
-    priority: 20,
-  },
-  {
-    value: 'ca_100',
-    label: 'California corporation franchise tax return',
-    description: 'California return for C corporations',
-    formName: 'Form 100',
-    jurisdiction: 'CA',
-    entityTypes: ['c_corp'],
-    states: ['CA'],
-    priority: 20,
-  },
-  {
-    value: 'ny_it204',
-    label: 'New York partnership return',
-    description: 'New York income return for partnerships',
-    formName: 'Form IT-204',
-    jurisdiction: 'NY',
-    entityTypes: ['partnership', 'llc'],
-    states: ['NY'],
-    priority: 20,
-  },
-  {
-    value: 'ny_it204ll',
-    label: 'New York LLC filing fee',
-    description: 'New York annual filing fee for LLCs and partnerships',
-    formName: 'Form IT-204-LL',
-    jurisdiction: 'NY',
-    obligationType: 'payment',
-    entityTypes: ['llc', 'partnership'],
-    states: ['NY'],
-    priority: 10,
-  },
-  {
-    value: 'ny_it205',
-    label: 'New York fiduciary income tax return',
-    description: 'New York return for estates and trusts',
-    formName: 'Form IT-205',
-    jurisdiction: 'NY',
-    entityTypes: ['trust'],
-    states: ['NY'],
-    priority: 20,
-  },
-  {
-    value: 'ny_ct3',
-    label: 'New York corporation franchise tax return',
-    description: 'New York return for C corporations',
-    formName: 'Form CT-3',
-    jurisdiction: 'NY',
-    entityTypes: ['c_corp'],
-    states: ['NY'],
-    priority: 20,
-  },
-  {
-    value: 'ny_ct3s',
-    label: 'New York S corporation franchise tax return',
-    description: 'New York return for S corporations',
-    formName: 'Form CT-3-S',
-    jurisdiction: 'NY',
-    entityTypes: ['s_corp'],
-    states: ['NY'],
-    priority: 20,
-  },
-  {
-    value: 'tx_franchise_report',
-    label: 'Texas franchise tax report',
-    description: 'Texas annual franchise tax report',
-    formName: 'Texas franchise tax report',
-    jurisdiction: 'TX',
     entityTypes: ['llc', 's_corp', 'partnership', 'c_corp'],
-    states: ['TX'],
-    priority: 20,
+    priority: 60,
   },
   {
-    value: 'wa_combined_excise_quarterly',
-    label: 'Washington excise tax return',
-    description: 'Washington combined excise tax return',
+    value: 'sales_excise_tax_return',
+    label: 'Sales or excise tax return',
+    description: 'Sales, use, gross receipts, or excise tax return',
+    generationStatus: 'rule_backed',
     formName: 'Combined Excise Tax Return',
-    jurisdiction: 'WA',
+    taxTypesByJurisdiction: { WA: 'wa_combined_excise_quarterly' },
+    formNamesByJurisdiction: { WA: 'Combined Excise Tax Return' },
     entityTypes: ['llc', 's_corp', 'partnership', 'c_corp', 'sole_prop'],
-    states: ['WA'],
-    priority: 20,
+    flags: ['hasSalesTax'],
+    priority: 70,
   },
   {
-    value: 'federal_fbar',
+    value: 'foreign_bank_account_report',
     label: 'Foreign bank account report',
-    description: 'Specialty FBAR filing through FinCEN',
+    description: 'Specialty foreign account reporting',
+    generationStatus: 'rule_backed',
     formName: 'FinCEN Form 114',
     jurisdiction: 'FED',
+    taxTypesByJurisdiction: { FED: 'federal_fbar' },
+    formNamesByJurisdiction: { FED: 'FinCEN Form 114' },
     obligationType: 'information',
     flags: ['hasForeignAccounts'],
     priority: 90,
@@ -297,78 +209,72 @@ export const DEADLINE_CATEGORY_SUGGESTIONS: readonly DeadlineCategorySuggestion[
 export const COMMON_FORM_VOUCHER_SUGGESTIONS: readonly FormVoucherSuggestion[] = Array.from(
   new Map(
     DEADLINE_CATEGORY_SUGGESTIONS.flatMap((option) => {
-      if (!option.formName) return []
-      const suggestion: FormVoucherSuggestion = {
-        value: option.formName,
-        label: option.formName,
-        description: option.description,
-      }
-      return [[option.formName, suggestion] as const]
+      const names = new Set([
+        ...(option.formName ? [option.formName] : []),
+        ...Object.values(option.formNamesByJurisdiction ?? {}),
+      ])
+      return Array.from(names).map(
+        (formName) =>
+          [
+            formName,
+            {
+              value: formName,
+              label: formName,
+              description: option.label,
+            } satisfies FormVoucherSuggestion,
+          ] as const,
+      )
     }),
   ).values(),
 )
-
-function clientStates(client: DeadlineCategoryClientContext): Set<string> {
-  return new Set(
-    [client.state, ...client.filingProfiles.map((profile) => profile.state)]
-      .filter((state): state is string => Boolean(state))
-      .map((state) => state.toUpperCase()),
-  )
-}
-
-function clientTaxTypes(client: DeadlineCategoryClientContext): Set<string> {
-  return new Set(client.filingProfiles.flatMap((profile) => profile.taxTypes))
-}
-
-function matchesClientFlag(
-  option: DeadlineCategorySuggestion,
-  client: DeadlineCategoryClientContext,
-) {
-  return Boolean(option.flags?.some((flag) => client[flag]))
-}
-
-function matchesClient(option: DeadlineCategorySuggestion, client: DeadlineCategoryClientContext) {
-  if (option.isSpecialty) return false
-
-  const states = clientStates(client)
-  if (option.states && !option.states.some((state) => states.has(state))) return false
-
-  const taxTypes = clientTaxTypes(client)
-  if (taxTypes.has(option.value)) return true
-
-  if (matchesClientFlag(option, client)) return true
-
-  return Boolean(option.entityTypes?.includes(client.entityType))
-}
 
 function compareSuggestions(a: DeadlineCategorySuggestion, b: DeadlineCategorySuggestion) {
   return a.priority - b.priority || a.label.localeCompare(b.label)
 }
 
-export function buildDeadlineCategorySuggestions(
-  client: DeadlineCategoryClientContext | null,
-): DeadlineCategorySuggestionGroups {
-  if (!client) {
-    const common = DEADLINE_CATEGORY_SUGGESTIONS.filter((option) => !option.isSpecialty)
-      .toSorted(compareSuggestions)
-      .slice(0, 12)
-    const commonValues = new Set(common.map((option) => option.value))
+export function listDeadlineCategorySuggestions(): readonly DeadlineCategorySuggestion[] {
+  return DEADLINE_CATEGORY_SUGGESTIONS.toSorted(compareSuggestions)
+}
+
+function normalizeJurisdictionForMapping(value: string): string {
+  const normalized = value.trim().toUpperCase()
+  if (
+    normalized === 'FEDERAL' ||
+    normalized === 'IRS' ||
+    normalized === 'US' ||
+    normalized === 'USA'
+  ) {
+    return 'FED'
+  }
+  return normalized
+}
+
+export function resolveDeadlineCategoryForInput(input: {
+  value: string
+  jurisdiction: string
+  formName: string
+}): { taxType: string; formName: string | null } {
+  const option = DEADLINE_CATEGORY_SUGGESTIONS.find((candidate) => candidate.value === input.value)
+  if (!option) {
     return {
-      recommended: common,
-      other: DEADLINE_CATEGORY_SUGGESTIONS.filter(
-        (option) => !commonValues.has(option.value),
-      ).toSorted(compareSuggestions),
+      taxType: input.value.trim(),
+      formName: input.formName.trim() || null,
     }
   }
 
-  const recommended = DEADLINE_CATEGORY_SUGGESTIONS.filter((option) =>
-    matchesClient(option, client),
-  ).toSorted(compareSuggestions)
-  const recommendedValues = new Set(recommended.map((option) => option.value))
-  return {
-    recommended,
-    other: DEADLINE_CATEGORY_SUGGESTIONS.filter(
-      (option) => !recommendedValues.has(option.value),
-    ).toSorted(compareSuggestions),
+  const jurisdiction = normalizeJurisdictionForMapping(input.jurisdiction)
+  const taxType =
+    option.taxTypesByJurisdiction?.[jurisdiction] ??
+    option.taxTypesByJurisdiction?.FED ??
+    option.value
+  const mappedFormName =
+    option.formNamesByJurisdiction?.[jurisdiction] ?? option.formNamesByJurisdiction?.FED
+  const trimmedFormName = input.formName.trim()
+  const shouldUseMappedForm = trimmedFormName.length === 0 || trimmedFormName === option.formName
+  if (!shouldUseMappedForm) {
+    return { taxType, formName: trimmedFormName }
   }
+
+  const formName = mappedFormName ?? trimmedFormName
+  return { taxType, formName: formName.length > 0 ? formName : null }
 }

@@ -1770,6 +1770,108 @@ describe('@duedatehq/core/rules', () => {
     })
   })
 
+  it('generates concrete state fiduciary return previews for California and New York trusts', () => {
+    const californiaPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_ca_trust',
+        entityType: 'trust',
+        state: 'CA',
+        taxTypes: ['ca_541'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      californiaPreviews.find((preview) => preview.ruleId === 'ca.541.return.2025'),
+    ).toMatchObject({
+      taxType: 'ca_541',
+      formName: 'Form 541',
+      dueDate: '2026-04-15',
+      reminderReady: true,
+    })
+
+    const newYorkPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_ny_trust',
+        entityType: 'trust',
+        state: 'NY',
+        taxTypes: ['ny_it205'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      newYorkPreviews.find((preview) => preview.ruleId === 'ny.it205.return.2025'),
+    ).toMatchObject({
+      taxType: 'ny_it205',
+      formName: 'Form IT-205',
+      dueDate: '2026-04-15',
+      reminderReady: true,
+    })
+  })
+
+  it('generates Form 7004 extension previews from the matched entity return family', () => {
+    const partnershipPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_partnership_extension',
+        entityType: 'partnership',
+        state: 'CA',
+        taxTypes: ['federal_7004'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      partnershipPreviews.find((preview) => preview.ruleId === 'fed.7004.extension.1065.2025'),
+    ).toMatchObject({
+      taxType: 'federal_7004',
+      formName: 'Form 7004',
+      dueDate: '2026-03-16',
+    })
+
+    const sCorpPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_scorp_extension',
+        entityType: 's_corp',
+        state: 'NY',
+        taxTypes: ['federal_7004'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      sCorpPreviews.find((preview) => preview.ruleId === 'fed.7004.extension.1120s.2025'),
+    ).toMatchObject({
+      dueDate: '2026-03-16',
+    })
+
+    const trustPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_trust_extension',
+        entityType: 'trust',
+        state: 'CA',
+        taxTypes: ['federal_7004'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      trustPreviews.find((preview) => preview.ruleId === 'fed.7004.extension.1041.2025'),
+    ).toMatchObject({
+      dueDate: '2026-04-15',
+    })
+
+    const cCorpPreviews = previewObligationsFromRules({
+      client: {
+        id: 'client_c_corp_extension',
+        entityType: 'c_corp',
+        state: 'CA',
+        taxTypes: ['federal_7004'],
+        taxYearType: 'calendar',
+      },
+    })
+    expect(
+      cCorpPreviews.find((preview) => preview.ruleId === 'fed.7004.extension.1120.2025'),
+    ).toMatchObject({
+      dueDate: '2026-04-15',
+    })
+  })
+
   it('blocks fiscal-year deadlines when the fiscal year end is missing', () => {
     const previews = previewObligationsFromRules({
       client: {
