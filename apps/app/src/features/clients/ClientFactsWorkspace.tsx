@@ -2661,7 +2661,9 @@ function ClientWorkPlanPanel({
                 }
               }}
             >
-              {pendingBulkStatus && pendingBulkStatus.ids.length === 1 ? (
+              {bulkStatusMutation.isPending ? (
+                <Trans>Moving…</Trans>
+              ) : pendingBulkStatus && pendingBulkStatus.ids.length === 1 ? (
                 <Trans>Move deadline</Trans>
               ) : (
                 <Trans>Move deadlines</Trans>
@@ -2951,7 +2953,15 @@ function FilingPlanYearSection({
               <span
                 className="w-5 shrink-0"
                 onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => event.stopPropagation()}
+                // 2026-05-24 (interaction audit): Escape MUST bubble to
+                // the parent Dialog/Sheet close handler. The previous
+                // shape stopped every key including Escape, so users
+                // hitting Esc inside a checkbox-focused row couldn't
+                // close the drawer above it.
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') return
+                  event.stopPropagation()
+                }}
               >
                 <Checkbox
                   checked={isSelected}

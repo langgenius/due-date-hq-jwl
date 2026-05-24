@@ -3135,7 +3135,14 @@ function RangeHeaderFilterDropdown({
               placeholder={minPlaceholder}
               value={draftMin}
               onChange={(event) => setDraftMin(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
+              // 2026-05-24 (interaction audit): let Escape bubble so
+              // the parent dropdown closes on Esc. Other keys stay
+              // swallowed so typing digits doesn't trigger global
+              // J/K/etc. shortcuts.
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') return
+                event.stopPropagation()
+              }}
             />
           </label>
           <label className="grid gap-1 text-xs font-medium text-text-secondary">
@@ -3148,7 +3155,14 @@ function RangeHeaderFilterDropdown({
               placeholder={maxPlaceholder}
               value={draftMax}
               onChange={(event) => setDraftMax(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
+              // 2026-05-24 (interaction audit): let Escape bubble so
+              // the parent dropdown closes on Esc. Other keys stay
+              // swallowed so typing digits doesn't trigger global
+              // J/K/etc. shortcuts.
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') return
+                event.stopPropagation()
+              }}
             />
           </label>
         </div>

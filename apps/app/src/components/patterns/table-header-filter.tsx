@@ -122,7 +122,15 @@ function TableHeaderMultiFilter({
                 placeholder={searchPlaceholder ?? label}
                 value={optionSearch}
                 onChange={(event) => setOptionSearch(event.target.value)}
-                onKeyDown={(event) => event.stopPropagation()}
+                // 2026-05-24 (interaction audit): let Escape bubble so
+                // the parent dropdown closes on Esc instead of trapping
+                // the user inside the search box. Letter-key typing is
+                // still swallowed so global J/K-style shortcuts don't
+                // fire while filtering.
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') return
+                  event.stopPropagation()
+                }}
               />
             </div>
             <DropdownMenuSeparator />

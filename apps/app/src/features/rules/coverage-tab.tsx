@@ -1559,7 +1559,13 @@ function RuleSelectionCheckbox({
       aria-label={selection.label}
       checked={selection.checked}
       onClick={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}
+      // 2026-05-24 (interaction audit): let Escape bubble so it can
+      // close a parent drawer or dialog. Stopping every key (including
+      // Escape) trapped users inside the checkbox column.
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') return
+        event.stopPropagation()
+      }}
       onChange={(event) => selection.onChange(event.target.checked)}
       className="size-4 shrink-0"
     />
@@ -2398,10 +2404,13 @@ function RulePanel({
       </header>
       {/* keyed by rule.id so React mounts a fresh subtree per rule;
         the `animate-in fade-in` (Tailwind animate) plays a quick
-        fade as the user advances through the queue. */}
+        fade as the user advances through the queue.
+        2026-05-24 (interaction audit): `motion-reduce:animate-none`
+        suppresses the fade for users with `prefers-reduced-motion:
+        reduce`. */}
       <div
         key={rule.id}
-        className="flex-1 overflow-y-auto px-4 py-3 animate-in fade-in duration-150 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex-1 overflow-y-auto px-4 py-3 animate-in fade-in duration-150 motion-reduce:animate-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <RuleDetailCompact
           rule={rule}

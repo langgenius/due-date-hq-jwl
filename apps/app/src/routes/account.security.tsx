@@ -370,7 +370,7 @@ export function AccountSecurityRoute() {
               disabled={disableMutation.isPending}
               onClick={() => disableMutation.mutate(undefined)}
             >
-              <Trans>Disable MFA</Trans>
+              {disableMutation.isPending ? <Trans>Disabling…</Trans> : <Trans>Disable MFA</Trans>}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -403,7 +403,11 @@ export function AccountSecurityRoute() {
               disabled={revokeOtherSessionsMutation.isPending}
               onClick={() => revokeOtherSessionsMutation.mutate(undefined)}
             >
-              <Trans>Sign out other sessions</Trans>
+              {revokeOtherSessionsMutation.isPending ? (
+                <Trans>Signing out…</Trans>
+              ) : (
+                <Trans>Sign out other sessions</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -462,7 +466,11 @@ export function AccountSecurityRoute() {
                 }
               }}
             >
-              <Trans>Revoke session</Trans>
+              {revokeSessionMutation.isPending ? (
+                <Trans>Revoking…</Trans>
+              ) : (
+                <Trans>Revoke session</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

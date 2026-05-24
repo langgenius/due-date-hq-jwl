@@ -433,7 +433,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 if (pendingRemoval) removeMutation.mutate({ memberId: pendingRemoval.id })
               }}
             >
-              <Trans>Remove from practice (1)</Trans>
+              {removeMutation.isPending ? (
+                <Trans>Removing…</Trans>
+              ) : (
+                <Trans>Remove from practice (1)</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -502,7 +506,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 }
               }}
             >
-              <Trans>Downgrade role</Trans>
+              {updateRoleMutation.isPending ? (
+                <Trans>Downgrading…</Trans>
+              ) : (
+                <Trans>Downgrade role</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -548,7 +556,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 }
               }}
             >
-              <Trans>Suspend access</Trans>
+              {suspendMutation.isPending ? (
+                <Trans>Suspending…</Trans>
+              ) : (
+                <Trans>Suspend access</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -594,7 +606,11 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 }
               }}
             >
-              <Trans>Cancel invitation</Trans>
+              {cancelMutation.isPending ? (
+                <Trans>Cancelling…</Trans>
+              ) : (
+                <Trans>Cancel invitation</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

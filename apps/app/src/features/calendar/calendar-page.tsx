@@ -257,7 +257,11 @@ export function CalendarPage() {
                 }
               }}
             >
-              <Trans>Regenerate URL</Trans>
+              {regenerateMutation.isPending ? (
+                <Trans>Regenerating…</Trans>
+              ) : (
+                <Trans>Regenerate URL</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -320,7 +324,7 @@ export function CalendarPage() {
                 }
               }}
             >
-              <Trans>Disable feed</Trans>
+              {disableMutation.isPending ? <Trans>Disabling…</Trans> : <Trans>Disable feed</Trans>}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
