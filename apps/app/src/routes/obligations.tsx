@@ -3069,10 +3069,27 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     )
   }
   const tone = dueDaysTone(days)
+  // 2026-05-25 (Yuqi Deadlines #7, #8): Internal-due always renders
+  // as `outline` regardless of urgency. The previous filled
+  // `destructive` / `warning` variants made this badge LOOK exactly
+  // like the Status pill ("In review", "Blocked") next to it —
+  // two filled badges, same row, different meanings, no visual
+  // separation. Now: dot carries the urgency signal (red for very
+  // late, amber for soon, neutral for future), and the outline
+  // chip itself stays calm so the eye reads Status pill (filled,
+  // workflow state) and Internal due (outline, deadline anchor)
+  // as different visual classes. Reduces the red overload on
+  // late+blocked+rejected rows at the same time.
+  const tintedTextClass =
+    tone.dot === 'error'
+      ? 'text-text-destructive'
+      : tone.dot === 'warning'
+        ? 'text-text-warning'
+        : 'text-text-primary'
   return (
     <Badge
-      variant={tone.variant}
-      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tone.badgeClassName ?? ''}`}
+      variant="outline"
+      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tintedTextClass} ${tone.badgeClassName ?? ''}`}
     >
       <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
       {days === 0 ? (
@@ -8346,9 +8363,14 @@ function ObligationQueueSearchControl({
   // Input component already exposes an `onFocus` prop — moved the
   // open-on-focus signal there, removing one useEffect violation.
   if (!isOpen) {
+    // 2026-05-25 (Yuqi Deadlines #2): ghost-variant search icon
+    // disappeared into the page chrome — CPAs reading the
+    // toolbar couldn't tell it was a tappable affordance.
+    // Promoted to `outline` variant so the icon button has a
+    // visible bordered chip on the toolbar.
     return (
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon-sm"
         aria-label={t`Search clients`}
         title={t`Search clients  ·  press / to focus`}
