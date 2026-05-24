@@ -43,14 +43,24 @@ function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): 
   return Math.round((due - as) / (1000 * 60 * 60 * 24))
 }
 
-function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string {
+// 2026-05-25 (Yuqi #26): the previous prompts read like developer
+// prose — "close the row" is engineering-speak the CPA never uses,
+// "Complete CPA review and close the row" stacked two verbs from
+// different frames. Rewritten as imperative tasks a CPA would put
+// in their own to-do list. Also moved to `t` macro so the strings
+// pick up i18n extraction.
+function actionPromptFor(
+  row: DashboardTopRow,
+  asOfDate: string | null,
+  t: (template: TemplateStringsArray) => string,
+): string {
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  if (row.status === 'waiting_on_client') return 'Follow up for client materials'
-  if (row.evidenceCount === 0) return 'Attach a source before review'
-  if (row.status === 'review') return 'Complete CPA review and close the row'
-  if (days <= 0) return 'Confirm filing or payment status today'
-  if (days <= 2) return 'Verify owner, source, and filing cutoff'
-  return 'Open evidence and confirm the source still matches'
+  if (row.status === 'waiting_on_client') return t`Follow up with the client for documents`
+  if (row.evidenceCount === 0) return t`Attach the source document`
+  if (row.status === 'review') return t`Review the prepared return and sign off`
+  if (days <= 0) return t`Confirm filing or payment status — due today`
+  if (days <= 2) return t`Final-check owner, source, and cutoff date`
+  return t`Re-verify the source still applies to this return`
 }
 
 // 2026-05-24 (critique P0): terminal-state rows render lateness as a
@@ -111,7 +121,7 @@ function ActionRow({
   const { t } = useLingui()
   const statusLabels = useLifecycleV2StatusLabels()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  const prompt = actionPromptFor(row, asOfDate)
+  const prompt = actionPromptFor(row, asOfDate, t)
   const factors = topPriorityFactors(row)
   const detailId = `action-detail-${row.obligationId}`
 
@@ -225,91 +235,110 @@ function ActionRow({
         Review button on the right, but with a much bigger hit area
         once the row is already open. Use a role-backed div rather
         than a real button so tooltip triggers inside the panel cannot
-        create invalid button-in-button markup. */}
-      {expanded ? (
-        <div
-          role="button"
-          tabIndex={0}
-          id={detailId}
-          onClick={onOpenObligation}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault()
-              onOpenObligation()
-            }
-          }}
-          aria-label={t`Review ${row.clientName} in deadline drawer`}
-          // Panel sits flush against the row above — top corners
-          // squared, bottom rounded. Same bg as the row when
-          // expanded so the two read as a single block. Hover state
-          // darkens slightly to signal "this is the click target."
-          className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
-            <dt className="text-text-tertiary">
-              <Trans>Status</Trans>
-            </dt>
-            <dd>
-              {/* Mirror the obligation queue's status pill — same
+        create invalid button-in-button markup.
+
+        2026-05-25 (Yuqi #46): the expansion was a hard mount/unmount,
+        which read as a jarring jump on hover. Wrapped in a
+        grid-template-rows animation: collapsed = 0fr, expanded = 1fr.
+        The inner content stays mounted so the transition has a target
+        to animate to, and `overflow-hidden` on the rows track clips
+        the content while it's collapsing. 200ms ease-out feels
+        deliberate but not slow. `motion-reduce` falls back to no
+        animation (instant) so users with reduced-motion preferences
+        aren't forced into transitions. */}
+      <div
+        className={cn(
+          'grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none',
+          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        )}
+        aria-hidden={!expanded}
+      >
+        <div className="overflow-hidden">
+          <div
+            role="button"
+            tabIndex={expanded ? 0 : -1}
+            id={detailId}
+            onClick={expanded ? onOpenObligation : undefined}
+            onKeyDown={(event) => {
+              if (!expanded) return
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                onOpenObligation()
+              }
+            }}
+            aria-label={t`Review ${row.clientName} in deadline drawer`}
+            // Panel sits flush against the row above — top corners
+            // squared, bottom rounded. Same bg as the row when
+            // expanded so the two read as a single block. Hover state
+            // darkens slightly to signal "this is the click target."
+            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
+              <dt className="text-text-tertiary">
+                <Trans>Status</Trans>
+              </dt>
+              <dd>
+                {/* Mirror the obligation queue's status pill — same
                   badge variant + dot tone via the canonical maps. The
                   expanded panel is itself a click target, so this
                   renders as a non-interactive span (a nested button
                   would break the parent click semantics). */}
-              <span
-                className={cn(
-                  badgeVariants({ variant: STATUS_VARIANT[row.status] }),
-                  'h-6 text-xs',
-                )}
-              >
-                <BadgeStatusDot tone={STATUS_DOT[row.status]} />
-                {statusLabels[row.status]}
-              </span>
-            </dd>
-
-            <dt className="text-text-tertiary">
-              <Trans>Form</Trans>
-            </dt>
-            <dd className="text-text-primary">
-              <TaxCodeLabel code={row.taxType} asChild />
-            </dd>
-
-            <dt className="text-text-tertiary">
-              <Trans>Sources</Trans>
-            </dt>
-            <dd className="text-text-primary tabular-nums">
-              {row.evidenceCount > 0 ? (
-                <Plural
-                  value={row.evidenceCount}
-                  one="# source attached"
-                  other="# sources attached"
-                />
-              ) : (
-                <span className="text-text-warning">
-                  <Trans>None attached</Trans>
+                <span
+                  className={cn(
+                    badgeVariants({ variant: STATUS_VARIANT[row.status] }),
+                    'h-6 text-xs',
+                  )}
+                >
+                  <BadgeStatusDot tone={STATUS_DOT[row.status]} />
+                  {statusLabels[row.status]}
                 </span>
-              )}
-            </dd>
+              </dd>
 
-            {row.penaltyFormulaLabel ? (
-              <>
-                <dt className="text-text-tertiary">
-                  <Trans>Penalty</Trans>
-                </dt>
-                <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
-              </>
-            ) : null}
+              <dt className="text-text-tertiary">
+                <Trans>Form</Trans>
+              </dt>
+              <dd className="text-text-primary">
+                <TaxCodeLabel code={row.taxType} asChild />
+              </dd>
 
-            {factors.length > 0 ? (
-              <>
-                <dt className="text-text-tertiary">
-                  <Trans>Why now</Trans>
-                </dt>
-                <dd className="text-text-primary">{factors.join(' · ')}</dd>
-              </>
-            ) : null}
-          </dl>
+              <dt className="text-text-tertiary">
+                <Trans>Sources</Trans>
+              </dt>
+              <dd className="text-text-primary tabular-nums">
+                {row.evidenceCount > 0 ? (
+                  <Plural
+                    value={row.evidenceCount}
+                    one="# source attached"
+                    other="# sources attached"
+                  />
+                ) : (
+                  <span className="text-text-warning">
+                    <Trans>None attached</Trans>
+                  </span>
+                )}
+              </dd>
+
+              {row.penaltyFormulaLabel ? (
+                <>
+                  <dt className="text-text-tertiary">
+                    <Trans>Penalty</Trans>
+                  </dt>
+                  <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
+                </>
+              ) : null}
+
+              {factors.length > 0 ? (
+                <>
+                  <dt className="text-text-tertiary">
+                    <Trans>Why now</Trans>
+                  </dt>
+                  <dd className="text-text-primary">{factors.join(' · ')}</dd>
+                </>
+              ) : null}
+            </dl>
+          </div>
         </div>
-      ) : null}
+      </div>
     </div>
   )
 }
@@ -534,11 +563,20 @@ function DashboardActionsList({
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <h2 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight text-text-primary">
-        <Trans>Actions this week</Trans>
-        {count !== null && count > 0 ? (
-          <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
-        ) : null}
+      {/* 2026-05-25 (Yuqi #27): sort order was implicit ("list is
+          ordered by Smart Priority desc"). Surfaced inline as
+          "Sorted by priority" so the CPA knows why row 3 is below
+          row 2. Quiet caption so it doesn't compete with the h2. */}
+      <h2 className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
+        <span className="inline-flex items-baseline gap-2">
+          <Trans>Actions this week</Trans>
+          {count !== null && count > 0 ? (
+            <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
+          ) : null}
+        </span>
+        <span className="text-caption font-normal text-text-tertiary">
+          <Trans>· sorted by priority</Trans>
+        </span>
       </h2>
       {/* 2026-05-25 (Yuqi #7): icon rotates 45° on hover so the
           up-right arrow points straight right — a tactile "follow

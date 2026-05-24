@@ -64,11 +64,24 @@ function NeedsAttentionCard({
   const lowConfidence = alert.confidence < LOW_CONFIDENCE_THRESHOLD
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
+  // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
+  // in-place on the dashboard (via `usePulseDrawer().openDrawer`) —
+  // not a navigation to /rules/pulse. This is intentional:
+  //   • Pulse review is list-driven and quick (1-3 min per alert).
+  //     Keeping the user on Today lets them sweep through the 2-3
+  //     cards without losing place.
+  //   • Same pattern the obligation drawer + client drawer use —
+  //     consistency across surfaces beats per-page novelty.
+  //   • The overflow tile ("View N more") DOES navigate to
+  //     /rules/pulse — that's the right behaviour when the user is
+  //     asking for the full list, not one specific alert.
+  // If alerts grow into long-form investigation work later we'll
+  // revisit and promote to a route.
   return (
     <button
       type="button"
       onClick={onReview}
-      aria-label={t`Review Pulse alert: ${alert.title}`}
+      aria-label={t`Open Pulse alert details: ${alert.title}`}
       className="group flex h-full min-w-0 cursor-pointer flex-col gap-2.5 rounded-md border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
@@ -84,8 +97,11 @@ function NeedsAttentionCard({
               <Trans>Low confidence</Trans>
             </span>
           ) : null}
+          {/* Chevron telegraphs "click opens" — translates further on
+              hover (1px → 4px) so the click affordance feels real
+              instead of static chrome. */}
           <ChevronRightIcon
-            className="size-4 text-text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:text-text-primary"
+            className="size-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-1 group-hover:text-text-primary"
             aria-hidden
           />
         </div>
