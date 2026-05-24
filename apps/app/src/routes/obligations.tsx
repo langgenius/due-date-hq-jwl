@@ -61,6 +61,7 @@ import {
   type inferParserType,
 } from 'nuqs'
 import { toast } from 'sonner'
+import { Link } from 'react-router'
 
 import {
   OBLIGATION_QUEUE_SEARCH_MAX_LENGTH,
@@ -1269,7 +1270,12 @@ export function ObligationQueueRoute() {
                   // the shift-click range gesture.
                   if (event.shiftKey) event.preventDefault()
                 }}
-                className="line-clamp-2 min-w-0 flex-1 text-xs font-medium text-text-primary"
+                // 2026-05-25 (Yuqi Deadlines #3): client name bumped
+                // from text-xs (12px) to text-sm (14px). Yuqi flagged
+                // it as still too small to read at scan distance even
+                // after font-medium — the client column is the row's
+                // anchor, not meta caption.
+                className="line-clamp-2 min-w-0 flex-1 text-sm font-medium text-text-primary"
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
                 {tableRow.original.clientName}
@@ -1398,7 +1404,7 @@ export function ObligationQueueRoute() {
             />
           )
         },
-        meta: { cellClassName: 'w-[44px]' },
+        meta: { cellClassName: 'w-[52px]' },
       },
       {
         accessorKey: 'clientState',
@@ -3187,12 +3193,18 @@ function ObligationQueueSortableHeader({
 // (tooltip) so the column stays compact.
 function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean; title: string }) {
   const initials = initialsFromName(name)
+  // 2026-05-25 (Yuqi Deadlines #1): bumped from size-6 (24px) to
+  // size-7 (28px) and text bumped to text-xs. The initials inside
+  // the 24px circle were reading as cramped at scan distance — Yuqi
+  // flagged "avatar 有点太挤了". The marginal size bump gives the
+  // glyphs room without inflating the Owner column footprint
+  // unreasonably.
   return (
     <span
       aria-label={title}
       title={title}
       className={cn(
-        'inline-flex size-6 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+        'inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold uppercase tracking-tight',
         isMine
           ? 'bg-state-accent-hover-alt text-text-accent'
           : 'bg-background-subtle text-text-secondary',
@@ -4408,12 +4420,25 @@ export function ObligationQueueDetailDrawer({
                 rule above it made the tabs feel like the bottom of
                 the snapshot block above instead of the top of the tab
                 content below. */}
-            <div className="pt-1">
-              <TabsList className="flex">
+            {/* 2026-05-25 (Yuqi Deadlines #9, #12, #16): wrapper
+                top padding (pt-1) dropped — Yuqi flagged "上面的
+                padding 去掉" / "上面是一点空的，去掉". The tablist
+                now sits flush against the sticky snapshot block
+                above with consistent padding on both edges of its
+                own container. */}
+            <div>
+              <TabsList className="flex h-10 text-sm">
                 {/* Summary tab (2026-05-25 Yuqi Deadlines #30):
                     default-first tab for filing / payment / deposit /
                     information rows. Hosts the milestone chevron +
-                    active-stage card (the milestone story). */}
+                    active-stage card (the milestone story).
+                    2026-05-25 (Yuqi Deadlines #7, #8): TabsList
+                    bumped from default h-8 to h-10 and text-sm
+                    explicit. Yuqi flagged the toggle as "太小了，
+                    很不明显" + "好难读" — the larger track and
+                    explicit body-text size give the segmented
+                    control real presence as the drawer's primary
+                    navigation. */}
                 {visibleTabs.has('summary') ? (
                   <TabsTrigger value="summary">
                     <Trans>Summary</Trans>
@@ -4999,9 +5024,26 @@ export function ObligationQueueDetailDrawer({
                       <Trans>Authority citation</Trans>
                     </span>
                     {detail.matchedRule ? (
+                      // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
+                      // is now a real Link into /rules/library — Yuqi
+                      // asked "这个能点出去吗？". Clicking the chip
+                      // opens the library scoped to this rule via the
+                      // `?rule=` query param (the library page treats
+                      // unknown params gracefully when not yet
+                      // implemented; even then the user lands in the
+                      // right vicinity). stopPropagation on click so
+                      // the surrounding <summary> doesn't toggle the
+                      // <details> open/closed at the same time.
                       <Badge
                         variant="outline"
-                        className="text-caption-xs normal-case tracking-normal"
+                        className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
+                        render={
+                          <Link
+                            to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                            onClick={(event) => event.stopPropagation()}
+                            title={t`Open ${detail.matchedRule.id} in the rule library`}
+                          />
+                        }
                       >
                         {detail.matchedRule.id}
                         {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
@@ -8097,7 +8139,7 @@ function ActiveStageDetailCard({
                       options become ghost text-links; manual
                       reminders collapse to one tertiary text line. */}
                   {state === 'current' && tasks.length > 0 ? (
-                    <div className="ml-6 mt-2 mb-2">
+                    <div className="ml-3 mt-2 mb-2">
                       <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
                     </div>
                   ) : null}
@@ -8201,7 +8243,7 @@ function ActiveStageDetailCard({
                         - notes ARE open → "Notes addressed" flips
                           back to 'in_review'. */}
                   {state === 'current' && key === 'in_review' ? (
-                    <div className="ml-6 mt-1 mb-1">
+                    <div className="ml-3 mt-1 mb-1">
                       {notesOpen ? (
                         <Button
                           variant="ghost"
@@ -8224,7 +8266,7 @@ function ActiveStageDetailCard({
                     </div>
                   ) : null}
                   {state === 'current' && tasks.length > 0 ? (
-                    <div className="ml-6 mt-2 mb-2">
+                    <div className="ml-3 mt-2 mb-2">
                       <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
                     </div>
                   ) : null}
@@ -8733,19 +8775,24 @@ function ObligationQueueActionChip({
   onClick: () => void
   children: ReactNode
 }) {
+  // 2026-05-25 (Yuqi Deadlines #2): click target was 22px tall
+  // (px-2.5 py-0.5 text-xs) — too small for filter chips that are
+  // primary triage affordances. Bumped to ~30px (px-3 py-1 text-sm)
+  // so the hit zone matches a real button and the label reads as
+  // body text instead of meta caption.
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
         active
           ? 'border-accent-default bg-accent-tint font-medium text-text-accent'
           : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-deep hover:text-text-primary'
       }`}
     >
       <span>{children}</span>
-      {active ? <XIcon aria-hidden className="size-3" /> : null}
+      {active ? <XIcon aria-hidden className="size-3.5" /> : null}
     </button>
   )
 }

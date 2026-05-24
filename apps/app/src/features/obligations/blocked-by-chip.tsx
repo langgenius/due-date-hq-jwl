@@ -36,6 +36,15 @@ function BlockedByChip({
   const title = parentLabel
     ? t`Blocked by ${label} — click to open.`
     : t`Open the upstream obligation that's blocking this row.`
+  // 2026-05-25 (Yuqi Deadlines #4): chip palette shifted from full-
+  // amber to neutral chip + red-icon. Yuqi's call: "这个不能就 icon
+  // 是红色，字体是 secondary，背景是浅灰色背景吗" — let the icon
+  // carry the urgency cue while the chip body sits in body-text
+  // neutrals so a row full of these doesn't read as "everything is
+  // on fire." The destructive-red on the icon is still distinct
+  // from RejectionChip (where the WHOLE chip goes red) so the
+  // urgency-tier separation from ux-audit-2026-05-21 §P0 #6 stays
+  // intact — only the visual weight inside this chip changed.
   if (compact) {
     return (
       <button
@@ -46,7 +55,7 @@ function BlockedByChip({
         }}
         title={title}
         aria-label={title}
-        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-state-warning-active bg-state-warning-hover text-text-warning hover:bg-state-warning-hover-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-warning-active"
+        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-destructive hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <LinkIcon className="size-3" aria-hidden />
       </button>
@@ -60,15 +69,9 @@ function BlockedByChip({
         onOpen(parentObligationId)
       }}
       title={title}
-      // Amber, NOT red. Per docs/Design/ux-audit-2026-05-21.md P0 #6: a
-      // blocked row is waiting on a dependency — actionable but
-      // informational. The destructive red palette is reserved for
-      // RejectionChip (IRS sent the filing back), which is a real
-      // recovery moment. Sharing red between the two erased the
-      // urgency distinction.
-      className="inline-flex max-w-[220px] items-center gap-1 rounded-sm border border-state-warning-active bg-state-warning-hover px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-text-warning hover:bg-state-warning-hover-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-warning-active"
+      className="inline-flex max-w-[220px] items-center gap-1 rounded-sm border border-divider-subtle bg-background-subtle px-1.5 py-0.5 text-caption-xs font-medium text-text-secondary hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      <LinkIcon className="size-3 shrink-0" aria-hidden />
+      <LinkIcon className="size-3 shrink-0 text-text-destructive" aria-hidden />
       <span className="truncate">
         <Trans>by {label}</Trans>
       </span>
