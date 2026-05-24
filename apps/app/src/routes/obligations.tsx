@@ -6192,12 +6192,38 @@ function PathToFilingSummary({
     >
       <div className="grid grid-cols-6 gap-0">
         {stages.map((stage, i) => {
-          const state: 'done' | 'active' | 'upcoming' =
-            i < currentIndex ? 'done' : i === currentIndex ? 'active' : 'upcoming'
+          // 2026-05-24 (critique P1 — shape): the timeline used to
+          // render every stage before currentIndex as "done" (green
+          // tick), even ones the row never sat in. A row that goes
+          // Not started → In review directly would show Waiting and
+          // Blocked as ✓ completed — telling a history that didn't
+          // happen.
+          //
+          // Now the state map consults the audit-event stamps:
+          //   - `done`     past stage WITH a stamp → genuinely entered
+          //   - `skipped`  past stage WITHOUT a stamp → bypassed
+          //   - `active`   the row's current stage
+          //   - `upcoming` stage the row hasn't reached yet
+          // `skipped` renders as a smaller muted dot — visually
+          // distinct from both filled-success "done" and the empty
+          // ring of "upcoming."
+          //
+          // Stage 0 is special: every row is born at "Not started" so
+          // an empty stamp there still counts as entered. The row's
+          // createdAt is the implicit stamp.
+          const state: 'done' | 'skipped' | 'active' | 'upcoming' =
+            i === currentIndex
+              ? 'active'
+              : i < currentIndex
+                ? stamps[i] !== null || i === 0
+                  ? 'done'
+                  : 'skipped'
+                : 'upcoming'
           // Date resolution (milestone-timeline-prd.md §3):
           //   Done/Active : audit-event stamp (first entry into stage)
           //   Stage 0 fallback : row.createdAt (the row was born here)
           //   Filed upcoming : row.currentDueDate (expected file date)
+          //   Skipped : no stamp, no projection (the stage didn't happen)
           //   Other upcoming : null → em-dash placeholder
           let stamp = stamps[i] ?? null
           let isExpected = false
@@ -6227,11 +6253,22 @@ function PathToFilingSummary({
                   aria-hidden
                   className={cn(
                     'h-0 flex-1 border-t border-dotted',
-                    i === 0
-                      ? 'opacity-0'
-                      : state === 'upcoming'
-                        ? 'border-divider-regular'
-                        : 'border-state-success-solid/60',
+                    // 2026-05-24 (critique P1 — shape): the left-side
+                    // connector represents the edge into THIS stage.
+                    // Green only when both this stage and the prior
+                    // one were genuinely entered (or active) — so
+                    // skipped stages keep the edge muted on both sides.
+                    (() => {
+                      if (i === 0) return 'opacity-0'
+                      const thisEntered = state === 'done' || state === 'active'
+                      const prevIdx = i - 1
+                      const prevEntered =
+                        prevIdx === currentIndex ||
+                        (prevIdx < currentIndex && (prevIdx === 0 || stamps[prevIdx] !== null))
+                      return thisEntered && prevEntered
+                        ? 'border-state-success-solid/60'
+                        : 'border-divider-regular'
+                    })(),
                   )}
                 />
                 <span
@@ -6240,26 +6277,47 @@ function PathToFilingSummary({
                     'grid size-5 shrink-0 place-items-center rounded-full border',
                     state === 'done'
                       ? 'border-state-success-solid bg-state-success-hover'
-                      : overdueActive
-                        ? 'border-state-destructive-solid bg-background-default ring-1 ring-state-destructive-solid'
-                        : state === 'active'
-                          ? 'border-accent-default bg-background-default ring-1 ring-accent-default'
-                          : 'border-divider-regular bg-background-default',
+                      : state === 'skipped'
+                        ? // 2026-05-24 (critique P1 — shape): smaller
+                          // inner dot, dashed border, muted — distinct
+                          // from both "done" (filled tick) and "upcoming"
+                          // (empty ring). Reads as "the row didn't go
+                          // through this stage."
+                          'border-dashed border-divider-regular bg-background-default'
+                        : overdueActive
+                          ? 'border-state-destructive-solid bg-background-default ring-1 ring-state-destructive-solid'
+                          : state === 'active'
+                            ? 'border-accent-default bg-background-default ring-1 ring-accent-default'
+                            : 'border-divider-regular bg-background-default',
                   )}
                 >
                   {state === 'done' ? (
                     <CheckIcon className="size-3 text-text-success" aria-hidden />
+                  ) : state === 'skipped' ? (
+                    <span className="size-1 rounded-full bg-divider-regular" aria-hidden />
                   ) : null}
                 </span>
                 <span
                   aria-hidden
                   className={cn(
                     'h-0 flex-1 border-t border-dotted',
-                    i === stages.length - 1
-                      ? 'opacity-0'
-                      : i < currentIndex
+                    // 2026-05-24 (critique P1 — shape): the right-side
+                    // connector represents the edge into stage i+1.
+                    // Green only when BOTH stage i was entered (or
+                    // active) AND stage i+1 was entered (or active) —
+                    // i.e. the row actually crossed this edge. Skipped
+                    // stages on either end keep the edge muted.
+                    (() => {
+                      if (i === stages.length - 1) return 'opacity-0'
+                      const thisEntered = state === 'done' || state === 'active'
+                      const nextIdx = i + 1
+                      const nextEntered =
+                        nextIdx === currentIndex ||
+                        (nextIdx < currentIndex && stamps[nextIdx] !== null)
+                      return thisEntered && nextEntered
                         ? 'border-state-success-solid/60'
-                        : 'border-divider-regular',
+                        : 'border-divider-regular'
+                    })(),
                   )}
                 />
               </div>
