@@ -209,7 +209,12 @@ function DismissedRow({
   pending: boolean
 }) {
   const { t } = useLingui()
-  const label = humanizeOpportunityKey(dismissal.opportunityKey)
+  const kindLabel = humanizeOpportunityKey(dismissal.opportunityKey)
+  // D1: the top line now reads "Retention check-in · Lakeview
+  // Manufacturing" when the server resolved a client. Falls back to
+  // just the kind label for keys without a client (defensive — no
+  // such opportunity kinds today, but future-safe).
+  const label = dismissal.clientName ? `${kindLabel} · ${dismissal.clientName}` : kindLabel
   const snoozeNote =
     dismissal.kind === 'snoozed' && dismissal.snoozeUntil
       ? t`Snoozed until ${formatDismissalDate(dismissal.snoozeUntil)}`

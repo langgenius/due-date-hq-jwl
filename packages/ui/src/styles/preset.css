@@ -477,4 +477,24 @@
     background-color: var(--bg-canvas);
     color: var(--text-primary);
   }
+
+  /* 2026-05-24 (B1): respect `prefers-reduced-motion: reduce` on
+   * loading spinners. Per WCAG 2.3.3, spinners are functional
+   * process indicators (not "animation from interactions"), so we
+   * keep them VISIBLE — slowing the rotation from ~1s to ~3s
+   * instead of hiding them with `animation: none`. Users who want
+   * less motion still see "something is happening"; the rotation
+   * just doesn't strobe.
+   *
+   * Done as a single preset rule instead of editing 19 individual
+   * call sites that use `animate-spin` (Loader2Icon / LoaderCircleIcon
+   * / RefreshCwIcon during pending). Loader2Icon's animation is from
+   * Tailwind's built-in `.animate-spin` utility — overriding the
+   * duration here covers every consumer.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin {
+      animation-duration: 3s;
+    }
+  }
 }

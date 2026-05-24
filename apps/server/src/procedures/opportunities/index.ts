@@ -389,20 +389,50 @@ const restore = os.opportunities.restore.handler(async ({ input, context }) => {
   return { opportunityKey: input.opportunityKey, restored: removed }
 })
 
+/**
+ * Pull the client id out of a client-scoped opportunity key. Keys are
+ * formatted `<kind>:client:<clientId>` (e.g. `retention_check_in:client:
+ * 10000000-0000-...`). Returns null for any key that doesn't match that
+ * shape — defensive against future non-client-scoped opportunity kinds.
+ */
+function clientIdFromOpportunityKey(opportunityKey: string): string | null {
+  const parts = opportunityKey.split(':')
+  if (parts.length !== 3) return null
+  if (parts[1] !== 'client') return null
+  const id = parts[2]
+  return id && id.length > 0 ? id : null
+}
+
 const listDismissed = os.opportunities.listDismissed.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
   if (!scoped.opportunityDismissals) return { dismissals: [] }
   const rows = await scoped.opportunityDismissals.listActiveDetailed(new Date())
+  // D1: hydrate each row with its client name so the UI reads as
+  // "Retention check-in · Lakeview Manufacturing" instead of just
+  // "Retention check-in". Batch one client lookup per render.
+  const clientIds = [
+    ...new Set(
+      rows
+        .map((row) => clientIdFromOpportunityKey(row.opportunityKey))
+        .filter((id): id is string => id !== null),
+    ),
+  ]
+  const clients = clientIds.length > 0 ? await scoped.clients.findManyByIds(clientIds) : []
+  const nameById = new Map(clients.map((client) => [client.id, client.name]))
   return {
-    dismissals: rows.map((row) => ({
-      opportunityKey: row.opportunityKey,
-      kind: row.kind,
-      snoozeUntil: row.snoozeUntil ? row.snoozeUntil.toISOString() : null,
-      reason: row.reason,
-      createdAt: row.createdAt.toISOString(),
-      createdByUserId: row.createdByUserId,
-      createdByName: row.createdByName,
-    })),
+    dismissals: rows.map((row) => {
+      const clientId = clientIdFromOpportunityKey(row.opportunityKey)
+      return {
+        opportunityKey: row.opportunityKey,
+        kind: row.kind,
+        snoozeUntil: row.snoozeUntil ? row.snoozeUntil.toISOString() : null,
+        reason: row.reason,
+        createdAt: row.createdAt.toISOString(),
+        createdByUserId: row.createdByUserId,
+        createdByName: row.createdByName,
+        clientName: clientId ? (nameById.get(clientId) ?? null) : null,
+      }
+    }),
   }
 })
 

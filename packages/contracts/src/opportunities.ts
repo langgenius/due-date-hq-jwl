@@ -126,6 +126,15 @@ export const OpportunityDismissalRowSchema = z.object({
   createdAt: z.iso.datetime(),
   createdByUserId: z.string().min(1),
   createdByName: z.string().nullable(),
+  /**
+   * Friendly client name resolved from the `opportunityKey`. Opportunity
+   * keys are formatted `<kind>:client:<clientId>`; the server splits the
+   * key, batch-fetches the client rows, and surfaces the name so the UI
+   * can render "Retention check-in · Lakeview Manufacturing" instead of
+   * just "Retention check-in". `null` when the client was deleted or
+   * the key isn't a client-scoped opportunity.
+   */
+  clientName: z.string().nullable(),
 })
 export type OpportunityDismissalRow = z.infer<typeof OpportunityDismissalRowSchema>
 
