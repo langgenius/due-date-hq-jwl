@@ -2174,75 +2174,90 @@ export function ObligationQueueRoute() {
               `bg-background-default` + a backdrop-blur fallback so
               row content scrolling underneath doesn't show through.
               z-10 keeps it above table content but below modals. */}
-          <div className="sticky top-0 z-10 flex flex-wrap items-end gap-3 border-b border-divider-regular bg-background-default/95 backdrop-blur-sm">
-            <nav
-              aria-label={t`Status scopes`}
-              // No horizontal scroll — the user found it disorienting.
-              // Tabs sit on one line; if the viewport is genuinely too
-              // narrow, they wrap. With the collapsible search icon
-              // (below), there's enough room on every reasonable
-              // viewport for the 5–6 visible tabs.
-              className="-mb-px flex flex-1 flex-wrap items-center gap-1"
-            >
-              <ObligationQueueScopeTab
-                label={t`All`}
-                count={scopeTotal}
-                active={activeScope === 'all'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    status: null,
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              />
-              {visibleScopeStatuses.map((status) => (
+          <div className="sticky top-0 z-10 flex flex-col gap-1.5 border-b border-divider-regular bg-background-default/95 backdrop-blur-sm">
+            {/* 2026-05-25 (Yuqi rule library #6 / cross-surface):
+                eyebrow label above the scope tabs matches the
+                "FILTER BY ENTITY" pattern from /rules/library. Every
+                filter-band surface across the product now ledes
+                with a small caps eyebrow that names the filter
+                dimension — keeps the visual grammar consistent
+                between Deadlines, Rules library, and any future
+                surface that hangs filter chips above a table. */}
+            <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+              <Trans>Filter by status</Trans>
+            </span>
+            <div className="flex flex-wrap items-end gap-3">
+              <nav
+                aria-label={t`Status scopes`}
+                // No horizontal scroll — the user found it disorienting.
+                // Tabs sit on one line; if the viewport is genuinely too
+                // narrow, they wrap. With the collapsible search icon
+                // (below), there's enough room on every reasonable
+                // viewport for the 5–6 visible tabs.
+                className="-mb-px flex flex-1 flex-wrap items-center gap-1"
+              >
                 <ObligationQueueScopeTab
-                  key={status}
-                  label={statusLabels[status]}
-                  count={statusFacetCounts.get(status) ?? 0}
-                  active={activeScope === status}
-                  // 2026-05-25 (Yuqi status icon pass): scope tabs lead
-                  // with the same lucide icon used on row pills — same
-                  // glyph in the same color across the cell + the tab,
-                  // so the user can match "this filter brings up the
-                  // rows with this mark". `dotTone` stays as a
-                  // fallback for legacy consumers.
-                  icon={STATUS_ICON[status]}
-                  iconColor={STATUS_ICON_COLOR[status]}
-                  dotTone={STATUS_DOT[status]}
+                  label={t`All`}
+                  count={scopeTotal}
+                  active={activeScope === 'all'}
                   onClick={() =>
                     void setObligationQueueQuery({
-                      status: [status],
+                      status: null,
                       obligation: null,
                       row: null,
                     })
                   }
                 />
-              ))}
-            </nav>
-            {/* Collapsible search — icon button at rest, expands into an
+                {visibleScopeStatuses.map((status) => (
+                  <ObligationQueueScopeTab
+                    key={status}
+                    label={statusLabels[status]}
+                    count={statusFacetCounts.get(status) ?? 0}
+                    active={activeScope === status}
+                    // 2026-05-25 (Yuqi status icon pass): scope tabs lead
+                    // with the same lucide icon used on row pills — same
+                    // glyph in the same color across the cell + the tab,
+                    // so the user can match "this filter brings up the
+                    // rows with this mark". `dotTone` stays as a
+                    // fallback for legacy consumers.
+                    icon={STATUS_ICON[status]}
+                    iconColor={STATUS_ICON_COLOR[status]}
+                    dotTone={STATUS_DOT[status]}
+                    onClick={() =>
+                      void setObligationQueueQuery({
+                        status: [status],
+                        obligation: null,
+                        row: null,
+                      })
+                    }
+                  />
+                ))}
+              </nav>
+              {/* Collapsible search — icon button at rest, expands into an
               inline input on click (or stays open while a query is
               active). Saves ~190px of horizontal real estate so the
               scope tabs never wrap onto a second line. The `/`
               keyboard shortcut still focuses the input (it auto-
               expands the search when triggered). */}
-            <ObligationQueueSearchControl
-              inputRef={searchInputRef}
-              value={searchInput}
-              open={searchOpen}
-              onOpenChange={setSearchOpen}
-              onChange={(nextSearch) =>
-                void setObligationQueueQuery(
-                  {
-                    q: nextSearch || null,
-                    obligation: null,
-                    row: null,
-                  },
-                  nextSearch === '' ? undefined : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
-                )
-              }
-            />
+              <ObligationQueueSearchControl
+                inputRef={searchInputRef}
+                value={searchInput}
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+                onChange={(nextSearch) =>
+                  void setObligationQueueQuery(
+                    {
+                      q: nextSearch || null,
+                      obligation: null,
+                      row: null,
+                    },
+                    nextSearch === ''
+                      ? undefined
+                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+                  )
+                }
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

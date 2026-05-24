@@ -1561,7 +1561,13 @@ function GroupedRulesTable({
               <TableHead
                 key={entity}
                 title={ENTITY_LABELS[entity]}
-                className="w-12 text-center text-caption-xs font-medium uppercase tracking-wider text-text-tertiary"
+                // 2026-05-25 (Yuqi rule library #12): per-entity
+                // columns now left-aligned (was text-center) so the
+                // dots in the rule rows below sit next to the same
+                // x-coordinate as their column label. Better for
+                // scanning down a single column — eye doesn't have to
+                // sweep across centered content to compare values.
+                className="w-12 text-left text-caption-xs font-medium uppercase tracking-wider text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
@@ -1771,7 +1777,7 @@ function GroupHeaderRow({
             ? 'not_applicable'
             : (group.coverage?.[entity] ?? 'none')
         return (
-          <TableCell key={entity} className="py-2 text-center">
+          <TableCell key={entity} className="py-2 text-left">
             <EntityStateCell count={group.entityCounts[entity]} state={state} />
           </TableCell>
         )
@@ -1908,9 +1914,13 @@ function RuleTableRow({
         <FormCell formName={rule.formName} taxType={rule.taxType} />
       </TableCell>
       {/* Per-entity applicability dots. Status column dropped —
-          status is implied by the section header above. */}
+          status is implied by the section header above.
+          2026-05-25 (Yuqi #12): left-aligned (was text-center) so
+          the dot sits at the same x-coordinate as the column
+          header above. Eye scans down a single column without
+          sweeping across centered content. */}
       {ENTITY_KEYS.map((entity) => (
-        <TableCell key={entity} className="py-2 text-center">
+        <TableCell key={entity} className="py-2 text-left">
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
@@ -2118,7 +2128,7 @@ function SearchResultsTable({
               <TableHead
                 key={entity}
                 title={ENTITY_LABELS[entity]}
-                className="w-12 text-center text-xs font-medium uppercase tracking-wider text-text-tertiary"
+                className="w-12 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
@@ -2160,7 +2170,7 @@ function SearchResultsTable({
                     <FormCell formName={rule.formName} taxType={rule.taxType} />
                   </TableCell>
                   {ENTITY_KEYS.map((entity) => (
-                    <TableCell key={entity} className="py-2 text-center">
+                    <TableCell key={entity} className="py-2 text-left">
                       <EntityApplicabilityCell
                         applies={applicabilitySet.has(entity)}
                         status={rule.status}
