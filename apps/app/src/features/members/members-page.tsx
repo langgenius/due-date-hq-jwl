@@ -78,7 +78,9 @@ import {
   invitationDescription,
   inviterName,
   isManagedRole,
+  isRoleDowngrade,
   MANAGED_ROLES,
+  roleDowngradeImpact,
   roleLabel,
 } from './member-model'
 
@@ -150,6 +152,17 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   const queryClient = useQueryClient()
   const [inviteOpen, setInviteOpen] = useState(false)
   const [pendingRemoval, setPendingRemoval] = useState<MemberActionTarget | null>(null)
+  // 2026-05-24 (critique /polish): role-change used to apply
+  // instantly on dropdown pick — a misclick could drop a partner
+  // down to coordinator with no recovery (downgrades silently strip
+  // sign-off, member admin, billing access). Gate downgrades behind
+  // an AlertDialog confirm following the existing pendingRemoval
+  // pattern. Upgrades and sideways moves apply directly.
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    member: MemberActionTarget
+    fromRole: MemberPublic['role']
+    toRole: MemberManagedRole
+  } | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   const inviteShortcutLabel = formatShortcutForDisplay(INVITE_MEMBER_HOTKEY)
   const activeMembers = data.members.filter((member) => member.status === 'active')
@@ -168,6 +181,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   const updateRoleMutation = useMutation(
     orpc.members.updateRole.mutationOptions({
       onSuccess: (next) => {
+        setPendingRoleChange(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
       },
     }),
@@ -299,7 +313,21 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <ActiveMembersTable
           members={data.members}
           firmTimezone={firmTimezone}
-          onRoleChange={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
+          onRoleChange={(memberId, role) => {
+            // 2026-05-24 (critique /polish): downgrades go through a
+            // confirm dialog; upgrades + sideways apply directly.
+            const member = data.members.find((candidate) => candidate.id === memberId)
+            if (!member) return
+            if (isRoleDowngrade(member.role, role)) {
+              setPendingRoleChange({
+                member: { id: member.id, name: member.name },
+                fromRole: member.role,
+                toRole: role,
+              })
+              return
+            }
+            updateRoleMutation.mutate({ memberId, role })
+          }}
           onSuspend={(member) => suspendMutation.mutate({ memberId: member.id })}
           onReactivate={(member) => reactivateMutation.mutate({ memberId: member.id })}
           onRemove={setPendingRemoval}
@@ -386,6 +414,68 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               }}
             >
               <Trans>Remove from practice (1)</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (critique /polish): downgrade confirm. Mirrors
+          the Remove dialog above — same DestructiveChangePreview,
+          same destructive-primary CTA. Upgrades skip this gate
+          entirely (instant apply via the dropdown). */}
+      <AlertDialog
+        open={pendingRoleChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRoleChange(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Downgrade member?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRoleChange
+                ? t`${pendingRoleChange.member.name} will drop from ${roleLabel(pendingRoleChange.fromRole)} to ${roleLabel(pendingRoleChange.toRole)}.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingRoleChange ? (
+            <DestructiveChangePreview
+              title={<Trans>This downgrade commits the following changes</Trans>}
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Removes</Trans>,
+                  detail: roleDowngradeImpact(pendingRoleChange.fromRole, pendingRoleChange.toRole)
+                    .removes,
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: roleDowngradeImpact(pendingRoleChange.fromRole, pendingRoleChange.toRole)
+                    .keeps,
+                },
+              ]}
+            />
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={updateRoleMutation.isPending || !pendingRoleChange}
+              onClick={() => {
+                if (pendingRoleChange) {
+                  updateRoleMutation.mutate({
+                    memberId: pendingRoleChange.member.id,
+                    role: pendingRoleChange.toRole,
+                  })
+                }
+              }}
+            >
+              <Trans>Downgrade role</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
