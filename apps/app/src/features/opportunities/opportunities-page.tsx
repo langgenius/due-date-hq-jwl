@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
@@ -137,13 +138,18 @@ function DismissedOpportunitiesSection() {
       onSuccess: (output) => {
         invalidate()
         if (output.restored) {
-          toast.success(t`Opportunity restored.`)
+          toast.success(t`Opportunity restored`)
         } else {
-          toast.message(t`Already restored.`)
+          toast.message(t`Already restored`)
         }
       },
       onError: (error) => {
-        toast.error(rpcErrorMessage(error) ?? t`Couldn't restore this opportunity.`)
+        // 2026-05-24 (style consistency): error title stays human;
+        // raw RPC error goes in the description slot, matching every
+        // other page's toast.error shape.
+        toast.error(t`Couldn't restore this opportunity`, {
+          description: rpcErrorMessage(error) ?? undefined,
+        })
       },
     }),
   )
@@ -284,7 +290,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   const Icon = opportunityIcon(opportunity.kind)
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.opportunities.list.key() })
@@ -293,10 +299,12 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
     orpc.opportunities.dismiss.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Opportunity dismissed.`)
+        toast.success(t`Opportunity dismissed`)
       },
       onError: (error) => {
-        toast.error(rpcErrorMessage(error) ?? t`Couldn't dismiss this opportunity.`)
+        toast.error(t`Couldn't dismiss this opportunity`, {
+          description: rpcErrorMessage(error) ?? undefined,
+        })
       },
     }),
   )
@@ -304,10 +312,12 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
     orpc.opportunities.snooze.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days.`)
+        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days`)
       },
       onError: (error) => {
-        toast.error(rpcErrorMessage(error) ?? t`Couldn't snooze this opportunity.`)
+        toast.error(t`Couldn't snooze this opportunity`, {
+          description: rpcErrorMessage(error) ?? undefined,
+        })
       },
     }),
   )
@@ -356,7 +366,17 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
               until: new Date(Date.now() + DEFAULT_SNOOZE_DAYS * MS_PER_DAY).toISOString(),
             })
           }
-          aria-label={t`Snooze ${opportunity.title} for ${DEFAULT_SNOOZE_DAYS} days`}
+          // 2026-05-24 (style consistency): the previous inline
+          // template string baked the plural form ("days") into
+          // English, which doesn't survive non-English locales.
+          // `plural()` from @lingui/core/macro gives translators
+          // every form they need.
+          aria-label={i18n._(
+            plural(DEFAULT_SNOOZE_DAYS, {
+              one: `Snooze ${opportunity.title} for # day`,
+              other: `Snooze ${opportunity.title} for # days`,
+            }),
+          )}
         >
           <ClockIcon data-icon="inline-start" />
           <Trans>Snooze</Trans>
