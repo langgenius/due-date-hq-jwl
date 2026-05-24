@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon, Info } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
@@ -200,31 +200,30 @@ function ActionRow({
           ·
         </span>
         <span className="min-w-0 flex-1 truncate text-base text-text-secondary">{prompt}</span>
-        {/* Review button — always rendered, opacity-animated based on
-          `expanded`. Keeps the row layout stable on hover (no reflow
-          from a button mounting/unmounting) and lets the time signal
-          sit flush right whether or not the row is expanded.
-          `tabIndex` + `aria-hidden` gate keyboard / screen-reader
-          access on the expanded state so users only land on it when
-          they meant to. Per hanxujiang's 30f29dc element-order pass,
-          merged with Yuqi's 3084d44 whole-row click target above. */}
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            'transition-opacity',
-            expanded ? 'opacity-100' : 'pointer-events-none opacity-0',
-          )}
-          tabIndex={expanded ? 0 : -1}
-          aria-hidden={!expanded}
-          onClick={(event) => {
-            event.stopPropagation()
-            onOpenObligation()
-          }}
-        >
-          <Trans>Review</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+        {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
+          to render unconditionally with `opacity-0` when collapsed —
+          which kept the button taking ~100px of flex space, squeezing
+          the prompt `<span>` (`flex-1 truncate`) down to nothing on
+          longer client names. Yuqi reported "actions row only shows
+          the client name" — root cause was this invisible-but-still-
+          claimed layout space. Now we conditionally render: button
+          only mounts when expanded. The minor reflow on hover (button
+          appears) is a cleaner UX than the prompt being permanently
+          truncated. RowMeta stays always-visible because the
+          time-to-due signal is needed at rest, not just on hover. */}
+        {expanded ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(event) => {
+              event.stopPropagation()
+              onOpenObligation()
+            }}
+          >
+            <Trans>Review</Trans>
+            <ArrowRightIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
         <RowMeta days={days} status={row.status} />
       </div>
 
@@ -561,12 +560,18 @@ function DashboardActionsList({
 }
 
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+  const { t } = useLingui()
   return (
     <div className="flex items-baseline justify-between gap-3">
-      {/* 2026-05-25 (Yuqi #27): sort order was implicit ("list is
-          ordered by Smart Priority desc"). Surfaced inline as
-          "Sorted by priority" so the CPA knows why row 3 is below
-          row 2. Quiet caption so it doesn't compete with the h2. */}
+      {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
+          implicit ("list is ordered by Smart Priority desc"). Surfaced
+          inline as "Sorted by priority" so the CPA knows why row 3 is
+          below row 2. The Info icon next to the sort caption tells the
+          reader the sort isn't arbitrary — there's documented logic
+          behind it (the title attribute carries the short
+          explanation; the full breakdown lives in the obligation's
+          Smart Priority panel). Quiet caption so it doesn't compete
+          with the h2. */}
       <h2 className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
         <span className="inline-flex items-baseline gap-2">
           <Trans>Actions this week</Trans>
@@ -574,8 +579,12 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
             <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
           ) : null}
         </span>
-        <span className="text-caption font-normal text-text-tertiary">
+        <span
+          className="inline-flex items-center gap-1 text-caption font-normal text-text-tertiary"
+          title={t`Sorted by Smart Priority — urgency × penalty × dependency. Open a row to see its factors.`}
+        >
           <Trans>· sorted by priority</Trans>
+          <Info className="size-3" aria-hidden />
         </span>
       </h2>
       {/* 2026-05-25 (Yuqi #7): icon rotates 45° on hover so the

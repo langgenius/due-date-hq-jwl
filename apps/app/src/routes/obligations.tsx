@@ -43,6 +43,7 @@ import {
   EyeIcon,
   FileArchiveIcon,
   FileSearchIcon,
+  Info,
   LinkIcon,
   RefreshCwIcon,
   SendIcon,
@@ -3103,15 +3104,30 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
       : tone.dot === 'warning'
         ? 'text-text-warning'
         : 'text-text-primary'
+  // 2026-05-25 (Yuqi Deadlines follow-up): the days-late badge used a
+  // colored BadgeStatusDot (red/amber/neutral). The dot did double
+  // duty as both the urgency tone signal AND a generic "this is a
+  // status" mark — which collided visually with the Status pill in
+  // the next column (also dot-led). Swapped to a lucide Info icon for
+  // the days-late case ("you'll want to read this") and kept the dot
+  // for non-late states (future / today) where the tone is the only
+  // signal worth carrying. The Info icon inherits the tinted text
+  // color so red text + red icon read as a single urgency cluster
+  // without claiming "status pill" semantics.
+  const isLate = days < 0
   return (
     <Badge
       variant="outline"
       className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tintedTextClass} ${tone.badgeClassName ?? ''}`}
     >
-      <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
+      {isLate ? (
+        <Info className="size-3" aria-hidden />
+      ) : (
+        <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
+      )}
       {days === 0 ? (
         <Trans>Today</Trans>
-      ) : days < 0 ? (
+      ) : isLate ? (
         <Plural value={Math.abs(days)} one="# day late" other="# days late" />
       ) : (
         <Plural value={days} one="# day" other="# days" />

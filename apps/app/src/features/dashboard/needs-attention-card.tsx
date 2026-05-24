@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ArrowRightIcon, ChevronRightIcon } from 'lucide-react'
+import { Astroid, Atom, ChevronRightIcon, Plus } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
-import { PulsingDot } from '@/features/pulse/components/PulsingDot'
 import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
 
 // Dashboard variant of the Pulse alert card. Tuned for the dashboard's
@@ -87,13 +86,28 @@ function NeedsAttentionCard({
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <PulsingDot tone={tone} active label={pulseAlertToneLabel(tone)} />
+          {/* 2026-05-25 (Yuqi Today follow-up): the Pulse identity
+              mark on the dashboard card is now an Atom icon in
+              accent-blue instead of the generic PulsingDot. The dot
+              read as "any status indicator"; the Atom reads
+              specifically as "Pulse / AI signal" — a single icon
+              the user can learn to recognize across surfaces. Tone
+              ladder (red/amber/green) still surfaces via the
+              lowConfidence chip + the card's data-tone attribute
+              for any consumers that key off it. */}
+          <Atom className="size-4 text-state-accent-solid" aria-label={pulseAlertToneLabel(tone)} />
           <span className="text-base text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {lowConfidence ? (
+            // 2026-05-25 (Yuqi Today follow-up): confidence chip icon
+            // swapped from AlertTriangle → Astroid. The triangle read
+            // as "warning, something's wrong"; the Astroid reads as
+            // "AI / cosmic uncertainty" — matches the Atom mark above
+            // (same astro family) and doesn't pretend that low
+            // confidence is an error state.
             <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning">
-              <AlertTriangleIcon className="size-3" aria-hidden />
+              <Astroid className="size-3" aria-hidden />
               <Trans>Low confidence</Trans>
             </span>
           ) : null}
@@ -179,9 +193,14 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       aria-label={ariaLabel}
       className="flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md border border-divider-subtle px-4 text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
     >
+      {/* 2026-05-25 (Yuqi Today follow-up): "View N more →" replaced
+          with "+ N more" using a leading lucide-plus. The arrow read
+          like "go somewhere"; the plus reads like "show more here" —
+          honest about the click target (it opens the Pulse drawer
+          in place, not a navigation). */}
       <span className="inline-flex items-center gap-1 text-sm font-medium">
-        <Trans>View {count} more</Trans>
-        <ArrowRightIcon className="size-3.5" aria-hidden />
+        <Plus className="size-3.5" aria-hidden />
+        <Trans>{count} more</Trans>
       </span>
     </button>
   )
