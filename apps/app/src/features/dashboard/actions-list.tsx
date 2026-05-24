@@ -652,16 +652,13 @@ function DashboardActionsList({
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
   const { t } = useLingui()
   return (
-    // 2026-05-25 (Yuqi Today #34): horizontally centered h2 via grid
-    // (invisible 1fr spacer ↔ auto title ↔ 1fr link slot).
-    // 2026-05-25 (Yuqi Today follow-up — clarification): vertical
-    // alignment is `items-center`, NOT `items-baseline`. Baseline
-    // alignment was making the "10 · sorted by priority" caption
-    // hang off the bottom of the title's x-height because its
-    // smaller font has a higher baseline. Centering aligns the
-    // visual middles so the whole header reads as one row.
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-      <span aria-hidden />
+    // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
+    // LEFT-aligned with the "All deadlines" link justify-between on
+    // the right. Earlier centring attempt (grid 1fr/auto/1fr) was
+    // misreading Yuqi's note — she meant the row should sit on the
+    // left, with the title/count/caption sharing one visual midline
+    // (`items-center`, not `items-baseline`).
+    <div className="flex items-center justify-between gap-3">
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
           inline as "Sorted by priority" so the CPA knows why row 3 is
@@ -671,7 +668,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           explanation; the full breakdown lives in the obligation's
           Smart Priority panel). Quiet caption so it doesn't compete
           with the h2. */}
-      <h2 className="flex items-center flex-wrap justify-center gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
+      <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
         <span className="inline-flex items-center gap-2">
           <Trans>Actions this week</Trans>
           {count !== null && count > 0 ? (
@@ -696,7 +693,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           event.preventDefault()
           onOpenAll()
         }}
-        className="group/all-deadlines inline-flex items-center justify-self-end gap-1 text-base text-text-secondary hover:text-text-primary"
+        className="group/all-deadlines inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
       >
         <Trans>All deadlines</Trans>
         <ArrowUpRightIcon

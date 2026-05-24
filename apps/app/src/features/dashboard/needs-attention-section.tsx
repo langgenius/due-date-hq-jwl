@@ -53,21 +53,15 @@ function NeedsAttentionSection() {
       aria-label={t`Alerts`}
       className="flex flex-col gap-3 rounded-2xl border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-4"
     >
-      {/* 2026-05-25 (Yuqi Today #35): h2 visually centered. Yuqi
-          flagged the previous left/right justify-between as
-          asymmetric — the eye lands on "Alerts" off-axis from the
-          centered Today page below. Grid 1fr/auto/1fr keeps the title
-          in the optical center while preserving the right-side
-          "View all alerts" link in the rightmost slot. The leftmost
-          slot is an invisible spacer so the title slot stays at
-          true mid-page.
-          2026-05-25 (Yuqi Today follow-up): switched the title-row
-          alignment from baseline to center for the same reason as
-          Actions this week — the tertiary count was sitting a touch
-          off the visual middle of the larger "Alerts" word. */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <span aria-hidden />
-        <h2 className="flex items-center justify-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
+      {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
+          LEFT-aligned with "View all alerts" justify-between on the
+          right. Earlier centring attempt (grid 1fr/auto/1fr) was
+          misreading Yuqi's note — she meant the row should sit on
+          the left, with the title + count sharing one visual midline
+          (`items-center`). Matches the same correction made to the
+          "Actions this week" h2 below. */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             <span className="text-base font-normal tabular-nums text-text-tertiary">
@@ -83,7 +77,7 @@ function NeedsAttentionSection() {
             straight right — a tactile "follow me" cue. */}
         <Link
           to="/rules/pulse"
-          className="group/all inline-flex items-center justify-self-end gap-1 text-base text-text-secondary hover:text-text-primary"
+          className="group/all inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
         >
           <Trans>View all alerts</Trans>
           <ArrowUpRightIcon
