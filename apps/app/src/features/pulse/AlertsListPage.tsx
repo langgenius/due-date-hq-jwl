@@ -31,6 +31,7 @@ import {
   usePulseSourceHealthQueryOptions,
 } from './api'
 import { PulseAlertCard } from './components/PulseAlertCard'
+import { PulseReasonDialog, type PulseReasonAction } from './components/PulseReasonDialog'
 import { PulsingDot } from './components/PulsingDot'
 import { enabledPulseSourceCount, summarizePulseSources } from './lib/source-health-labels'
 import {
@@ -80,6 +81,23 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
   const invalidatePulse = usePulseInvalidation()
+  // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
+  // to grab the reason via `window.prompt()` — system-styled, no
+  // textarea, no character counter, no app context. The drawer
+  // already had a proper `PulseReasonDialog` for the same flow;
+  // extracted it to a shared component (see
+  // `./components/PulseReasonDialog.tsx`) and wired both surfaces
+  // through it so the dismiss / snooze experience is consistent
+  // whether the user is in the drawer or running through the list.
+  const [reasonState, setReasonState] = useState<{
+    action: PulseReasonAction
+    alertId: string
+  } | null>(null)
+  const [reasonText, setReasonText] = useState('')
+  const closeReasonDialog = () => {
+    setReasonState(null)
+    setReasonText('')
+  }
   // Dismiss alerts directly from the Radar list (Rules › Radar). Mirrors
   // the dashboard banner's dismiss flow — same orpc.pulse.dismiss
   // mutation, same toast + invalidation on success. The optional
@@ -92,6 +110,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       onSuccess: () => {
         toast.success(t`Alert dismissed`)
         invalidatePulse()
+        closeReasonDialog()
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
@@ -110,6 +129,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       onSuccess: () => {
         toast.success(t`Alert snoozed for 24h`)
         invalidatePulse()
+        closeReasonDialog()
       },
       onError: (err) => {
         toast.error(t`Couldn't snooze alert`, {
@@ -338,24 +358,16 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     {...(canSnooze
                       ? {
                           onSnooze: () => {
-                            const reason = window
-                              .prompt(t`Why is this alert not urgent right now?`)
-                              ?.trim()
-                            if (!reason) return
-                            snoozeAlertMutation.mutate({
-                              alertId: alert.id,
-                              until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                              reason,
-                            })
+                            setReasonState({ action: 'snooze', alertId: alert.id })
+                            setReasonText('')
                           },
                         }
                       : {})}
                     {...(canDismiss
                       ? {
                           onDismiss: () => {
-                            const reason = window.prompt(t`Why is this alert not relevant?`)?.trim()
-                            if (!reason) return
-                            dismissAlertMutation.mutate({ alertId: alert.id, reason })
+                            setReasonState({ action: 'dismiss', alertId: alert.id })
+                            setReasonText('')
                           },
                         }
                       : {})}
@@ -366,6 +378,32 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
           )}
         </>
       )}
+
+      <PulseReasonDialog
+        action={reasonState?.action ?? null}
+        reason={reasonText}
+        pending={dismissAlertMutation.isPending || snoozeAlertMutation.isPending}
+        onChangeReason={setReasonText}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) closeReasonDialog()
+        }}
+        onSubmit={() => {
+          const trimmed = reasonText.trim()
+          if (!trimmed || !reasonState) return
+          if (reasonState.action === 'dismiss') {
+            dismissAlertMutation.mutate({ alertId: reasonState.alertId, reason: trimmed })
+          } else if (reasonState.action === 'snooze') {
+            snoozeAlertMutation.mutate({
+              alertId: reasonState.alertId,
+              until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              reason: trimmed,
+            })
+          }
+          // The list-page surface doesn't expose `reviewed` — that's
+          // a drawer-only flow (it depends on the affected-client
+          // selection state the drawer holds).
+        }}
+      />
     </div>
   )
 }

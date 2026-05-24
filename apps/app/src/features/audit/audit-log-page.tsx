@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
 import { AUDIT_FILTER_MAX_LENGTH } from '@duedatehq/contracts'
@@ -318,7 +319,13 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
       },
       onError: (error) => {
-        window.alert(rpcErrorMessage(error) ?? t`Couldn't request export`)
+        // 2026-05-24 (re-critique): replaced `window.alert()` with
+        // the app's `toast.error` so the failure message lands in
+        // the same surface the rest of the app uses, not a system-
+        // styled blocking dialog.
+        toast.error(t`Couldn't request export`, {
+          description: rpcErrorMessage(error) ?? undefined,
+        })
       },
     }),
   )

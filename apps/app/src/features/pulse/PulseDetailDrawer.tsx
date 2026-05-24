@@ -44,6 +44,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 import { isVeryLowPulseConfidence, PulseConfidenceBadge } from './components/PulseConfidenceBadge'
+import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
@@ -703,102 +704,6 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
         />
       ) : null}
     </Sheet>
-  )
-}
-
-function PulseReasonDialog({
-  action,
-  reason,
-  pending,
-  onChangeReason,
-  onOpenChange,
-  onSubmit,
-}: {
-  action: 'dismiss' | 'snooze' | 'reviewed' | null
-  reason: string
-  pending: boolean
-  onChangeReason: (next: string) => void
-  onOpenChange: (open: boolean) => void
-  onSubmit: () => void
-}) {
-  const { t } = useLingui()
-  const open = action !== null
-  const isDismiss = action === 'dismiss'
-  const isReviewed = action === 'reviewed'
-  const trimmed = reason.trim()
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
-        <form
-          className="grid gap-4"
-          onSubmit={(event) => {
-            event.preventDefault()
-            onSubmit()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {isReviewed ? (
-                <Trans>Mark reviewed</Trans>
-              ) : isDismiss ? (
-                <Trans>Dismiss alert</Trans>
-              ) : (
-                <Trans>Snooze alert 24h</Trans>
-              )}
-            </DialogTitle>
-            <DialogDescription>
-              <Trans>
-                Audit trail requires a reason for this action. Owners can see why and by whom.
-              </Trans>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2">
-            <Label htmlFor="pulse-reason-text">
-              <Trans>Reason</Trans>
-            </Label>
-            <Textarea
-              id="pulse-reason-text"
-              value={reason}
-              maxLength={500}
-              disabled={pending}
-              placeholder={
-                isReviewed
-                  ? t`What did you review?`
-                  : isDismiss
-                    ? t`Why is this alert not relevant?`
-                    : t`Why snooze — what unblocks it tomorrow?`
-              }
-              onChange={(event) => onChangeReason(event.target.value)}
-              autoFocus
-            />
-            <p className="text-xs text-text-tertiary">
-              <Trans>{reason.length}/500 characters</Trans>
-            </p>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={pending}
-              onClick={() => onOpenChange(false)}
-            >
-              <Trans>Cancel</Trans>
-            </Button>
-            <Button type="submit" disabled={pending || trimmed.length === 0}>
-              {pending ? (
-                <Trans>Saving…</Trans>
-              ) : isReviewed ? (
-                <Trans>Mark reviewed</Trans>
-              ) : isDismiss ? (
-                <Trans>Dismiss</Trans>
-              ) : (
-                <Trans>Snooze</Trans>
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }
 
