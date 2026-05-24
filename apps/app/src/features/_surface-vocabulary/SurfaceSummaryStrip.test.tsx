@@ -33,6 +33,8 @@ afterEach(() => {
 })
 
 describe('SurfaceSummaryStrip', () => {
+  const reactKeySpreadWarning = 'A props object containing a "key" prop is being spread into JSX'
+
   it('renders the label and each item', () => {
     mount(
       <SurfaceSummaryStrip
@@ -48,6 +50,27 @@ describe('SurfaceSummaryStrip', () => {
     expect(container?.textContent).toContain('active')
     expect(container?.textContent).toContain('12')
     expect(container?.textContent).toContain('needs review')
+  })
+
+  it('passes React keys directly instead of through child prop spreads', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    try {
+      mount(
+        <SurfaceSummaryStrip
+          label="Coverage"
+          items={[{ key: 'total', value: 10, label: 'total' }]}
+        />,
+      )
+
+      expect(
+        consoleError.mock.calls.some(([message]) =>
+          String(message).includes(reactKeySpreadWarning),
+        ),
+      ).toBe(false)
+    } finally {
+      consoleError.mockRestore()
+    }
   })
 
   it('shows the "All caught up" zero-state when items is empty', () => {
