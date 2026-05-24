@@ -191,7 +191,13 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
-                <PulsingDot tone={isEmpty ? 'success' : 'warning'} active />
+                <PulsingDot
+                  tone={isEmpty ? 'success' : 'warning'}
+                  active
+                  label={
+                    isEmpty ? t`No active alerts right now` : t`Active alerts waiting for review`
+                  }
+                />
                 <Trans>Alerts</Trans>
               </h1>
               <p className="max-w-[640px] text-md text-text-secondary">

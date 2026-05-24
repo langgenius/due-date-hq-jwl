@@ -8,6 +8,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
+import { pulseAlertTone, pulseAlertToneLabel } from '../pulse-alert-tone'
+
 import { isVeryLowPulseConfidence, PulseConfidenceBadge } from './PulseConfidenceBadge'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
@@ -39,7 +41,9 @@ export function PulseAlertCard({
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
   const veryLowConfidence = isVeryLowPulseConfidence(alert.confidence)
-  const tone = veryLowConfidence ? 'error' : impacted === 0 ? 'success' : 'warning'
+  // 2026-05-25 (Yuqi critique B): tone via shared helper so the same
+  // alert reads the same colour across dashboard / list / drawer.
+  const tone = pulseAlertTone(alert)
 
   return (
     <article
@@ -57,7 +61,7 @@ export function PulseAlertCard({
       data-breathing={breathing || undefined}
     >
       <header className="flex items-center gap-2">
-        <PulsingDot tone={tone} active />
+        <PulsingDot tone={tone} active label={pulseAlertToneLabel(tone)} />
         {/* 2026-05-24 (critique P2 — typeset): source name is a
             sentence-case label (e.g. "IRS Disaster Relief"), not a
             token or a numeric column — drop `font-mono` so it reads

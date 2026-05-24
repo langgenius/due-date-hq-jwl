@@ -402,6 +402,13 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             {copy.steps.map((step, index) => {
               const complete = index < activeIndex
               const active = index === activeIndex
+              // 2026-05-25 (Yuqi critique #32, #39): the stepper bullet
+              // was a bare green dot with no aria-label. Hovering told
+              // the user nothing about why it was green. Now each step
+              // marker carries an explicit accessibility label so the
+              // tooltip + screen reader read "Step N — completed /
+              // in progress / pending".
+              const stateLabel = complete ? 'Completed' : active ? 'In progress' : 'Pending'
               return (
                 <li
                   key={step.key}
@@ -415,6 +422,9 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
                   )}
                 >
                   <span
+                    role="img"
+                    aria-label={stateLabel}
+                    title={stateLabel}
                     className={cn(
                       'grid size-5 shrink-0 place-items-center rounded-sm border',
                       active

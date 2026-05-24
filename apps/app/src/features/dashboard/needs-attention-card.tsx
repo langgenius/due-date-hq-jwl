@@ -8,6 +8,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { PulsingDot } from '@/features/pulse/components/PulsingDot'
+import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
 
 // Dashboard variant of the Pulse alert card. Tuned for the dashboard's
 // "scan-and-act" mode:
@@ -53,7 +54,13 @@ function NeedsAttentionCard({
 }) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
-  const tone = impacted === 0 ? 'success' : 'warning'
+  // 2026-05-25 (Yuqi critique B): dot tone now comes from the
+  // canonical helper so the dashboard card + drawer + alerts list
+  // all agree on the same alert's tone. Previously the dashboard
+  // showed green/yellow based on impacted-count alone, while the
+  // drawer used confidence-first logic — so the SAME alert read
+  // green outside and red inside.
+  const tone = pulseAlertTone(alert)
   const lowConfidence = alert.confidence < LOW_CONFIDENCE_THRESHOLD
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
@@ -67,7 +74,7 @@ function NeedsAttentionCard({
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <PulsingDot tone={tone} active />
+          <PulsingDot tone={tone} active label={pulseAlertToneLabel(tone)} />
           <span className="text-base text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">

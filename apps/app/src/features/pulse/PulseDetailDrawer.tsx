@@ -49,7 +49,8 @@ import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
 import { PulseStructuredFields } from './components/PulseStructuredFields'
-import { PulsingDot, type PulsingDotTone } from './components/PulsingDot'
+import { pulseAlertTone, pulseAlertToneLabel } from './pulse-alert-tone'
+import { PulsingDot } from './components/PulsingDot'
 import {
   usePulseInvalidation,
   usePulseDetailQueryOptions,
@@ -80,12 +81,11 @@ const REVIEW_UNAVAILABLE_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
 ])
 const SHOW_PRIORITY_REVIEW_UI = false
 
-function drawerTone(status: PulseFirmAlertStatus, confidence: number): PulsingDotTone {
-  if (isVeryLowPulseConfidence(confidence)) return 'error'
-  if (status === 'applied' || status === 'partially_applied') return 'success'
-  if (status === 'matched') return 'warning'
-  return 'disabled'
-}
+// 2026-05-25 (Yuqi critique B): the drawer used to compute its own
+// tone via `drawerTone(status, confidence)` while the dashboard
+// `NeedsAttentionCard` used a different per-impact formula — so the
+// same alert showed green outside and red inside. Both sites now
+// call `pulseAlertTone(alert)` so they always agree.
 
 export function canRequestPulseReview(input: {
   role: FirmRole | null | undefined
@@ -461,10 +461,21 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
           ) : (
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <PulsingDot
-                  tone={drawerTone(detail.alert.status, detail.alert.confidence)}
-                  active
-                />
+                {(() => {
+                  const drawerDotTone = pulseAlertTone({
+                    confidence: detail.alert.confidence,
+                    matchedCount: detail.alert.matchedCount,
+                    needsReviewCount: detail.alert.needsReviewCount,
+                    firmStatus: detail.alert.status,
+                  })
+                  return (
+                    <PulsingDot
+                      tone={drawerDotTone}
+                      active
+                      label={pulseAlertToneLabel(drawerDotTone)}
+                    />
+                  )
+                })()}
                 <PulseSourceBadge source={detail.alert.source} sourceUrl={detail.alert.sourceUrl} />
                 <PulseConfidenceBadge confidence={detail.alert.confidence} />
                 <PulseStatusBadge status={detail.alert.status} />
