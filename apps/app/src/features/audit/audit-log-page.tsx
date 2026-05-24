@@ -575,7 +575,13 @@ export function AuditLogPage() {
   return (
     <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 p-4 md:p-6">
       <PageHeader
-        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Audit log` }]}
+        // 2026-05-24 (critique P2 — clarify): dropped the "Settings"
+        // breadcrumb. Audit log is a top-level sidebar destination
+        // (and shows up that way in the demo screen); the crumb
+        // claimed a parent that the route doesn't actually have. The
+        // Settings landing page still links to /audit under
+        // Compliance, so users can navigate inbound from there — but
+        // that's a link, not a breadcrumb relationship.
         title={
           <ConceptLabel concept="auditTrail">
             <Trans>Audit log</Trans>

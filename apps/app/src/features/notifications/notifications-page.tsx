@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import type { NotificationType } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -76,12 +76,11 @@ export function NotificationsPage() {
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>
-            <Trans>Inbox</Trans>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3">
+        {/* 2026-05-24 (critique P2 — clarify): dropped the duplicate
+            "Inbox" CardTitle. The PageHeader above already names the
+            page; repeating it inside the only Card on the page just
+            tells the user the same word twice. */}
+        <CardContent className="grid gap-3 pt-6">
           {notificationsQuery.isError ? (
             <Alert variant="destructive">
               <AlertTitle>

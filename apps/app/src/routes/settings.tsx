@@ -123,9 +123,17 @@ export function SettingsRoute() {
               <Trans>Settings</Trans>
             </h1>
             <p className="max-w-[680px] text-[13px] leading-5 text-text-secondary">
+              {/* 2026-05-24 (critique P2 — clarify): dropped the
+                  trailing "Personal account settings live in the user
+                  menu in the sidebar footer" line. It pointed first-
+                  timers at a second settings home before they'd
+                  explored the first one; the user menu is already a
+                  discoverable surface on its own. The page subtitle
+                  should describe what's on this page, not where
+                  other settings live. */}
               <Trans>
                 Workspace configuration for this practice — identity, team, billing, compliance, and
-                automation. Personal account settings live in the user menu in the sidebar footer.
+                automation.
               </Trans>
             </p>
           </header>

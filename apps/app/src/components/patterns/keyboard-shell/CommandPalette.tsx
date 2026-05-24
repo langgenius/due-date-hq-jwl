@@ -258,10 +258,17 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={t`Command palette`}
-      description={t`Search, ask, or navigate.`}
+      // 2026-05-24 (critique P2 — clarify): dropped "ask" from both
+      // the dialog description and the input placeholder. The "ask"
+      // group was removed earlier when the assistant didn't ship;
+      // the copy hadn't been updated. Typing "what's overdue?" today
+      // returns "No commands found." — a quiet discoverability lie
+      // that erodes trust in the rest of the palette. Restore once
+      // an assistant lands.
+      description={t`Search or navigate.`}
     >
       <Command loop disablePointerSelection>
-        <CommandInput autoFocus placeholder={t`Search, ask, or navigate...`} />
+        <CommandInput autoFocus placeholder={t`Search or navigate...`} />
         <CommandList>
           <CommandEmpty>
             <Trans>No commands found.</Trans>
