@@ -60,7 +60,20 @@ export function AppShell(props: AppShellProps) {
       <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-body text-text-primary">
         <PendingBar />
         <Sidebar>
-          <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+          {/* 2026-05-25 (Yuqi Today #28): notifications bell moved
+              from the sidebar BOTTOM to the firm-switcher row at the
+              top. Yuqi flagged that bottom-left was unintuitive —
+              users expect alerts to be near the top of the chrome
+              (Gmail / Linear / Notion pattern). The user-menu stays
+              at the bottom alongside Settings (account-level
+              controls). The firm switcher row gets a flex layout so
+              the bell sits to its right. */}
+          <div className="flex items-center gap-2 px-2 py-2">
+            <div className="min-w-0 flex-1">
+              <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+            </div>
+            <PulseNotificationsBell />
+          </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route
             header (see SidebarInset), so both ribs sit at exactly y =
@@ -70,12 +83,11 @@ export function AppShell(props: AppShellProps) {
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>
-          {/* Account controls relocated from the removed route header
-            strip — notifications bell + user menu (account, sign out)
-            sit at the sidebar bottom alongside Settings, which is
-            where personal-account controls belong. */}
-          <div className="flex items-center gap-3 border-t border-divider-regular px-2 py-2">
-            <PulseNotificationsBell />
+          {/* User menu stays at sidebar bottom — that's where
+              account-level controls (Settings, account, sign out)
+              belong per the Linear/Notion pattern. The bell moved
+              up; this row simplifies to just the user menu now. */}
+          <div className="flex items-center border-t border-divider-regular px-2 py-2">
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}

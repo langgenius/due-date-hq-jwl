@@ -48,6 +48,23 @@ const LIFECYCLE_V2_STATUSES = [
   'completed',
 ] as const satisfies readonly ObligationStatus[]
 
+// 2026-05-25 (Yuqi Deadlines #10 status color audit): two collisions
+// surfaced — `extended` used the same blue (`info` variant + `normal`
+// dot) as `in_progress`, and `done`/`paid`/`completed` all shared
+// green. The `extended` collision was a real bug — in_progress means
+// "we're actively working", extended means "deadline got pushed
+// forward via an extension filing." Different intent, same color.
+// Fixed: extended now renders as `secondary` (gray pill) with a blue
+// dot — distinct from in_progress (blue pill + blue dot) and from
+// pending (gray pill + gray dot).
+//
+// The done/paid/completed cluster is intentionally green-shared:
+// they're all "settled" lifecycle states and the eye doesn't need to
+// distinguish them at scan time. The label text ("Filed" / "Paid" /
+// "Completed") carries the granular meaning when the row is read.
+//
+// `waiting_on_client` uses outline + info dot (uncolored pill +
+// violet dot) which is already distinct from every filled pill.
 const STATUS_VARIANT: Record<
   ObligationStatus,
   'destructive' | 'info' | 'secondary' | 'outline' | 'success' | 'warning'
@@ -57,15 +74,13 @@ const STATUS_VARIANT: Record<
   review: 'warning',
   waiting_on_client: 'outline',
   done: 'success',
-  extended: 'info',
+  extended: 'secondary',
   paid: 'success',
   not_applicable: 'outline',
   blocked: 'destructive',
   completed: 'success',
 }
 
-// 2026-05-21: split waiting_on_client off into its own violet ('info')
-// tone so it stops colliding with review (amber) and blocked (red).
 // Lifecycle vocab:
 //   - pending          → gray   (not started)
 //   - in_progress      → blue   (we're working on it)
@@ -73,6 +88,9 @@ const STATUS_VARIANT: Record<
 //   - review           → amber  (needs attention — ours or partner's)
 //   - blocked          → red    (hard stop, can't proceed)
 //   - done / completed → green  (closed)
+//   - extended         → gray pill + blue dot (deadline pushed forward,
+//                         still active work; reads as quieter than
+//                         in_progress)
 const STATUS_DOT: Record<
   ObligationStatus,
   'error' | 'normal' | 'disabled' | 'warning' | 'success' | 'info'

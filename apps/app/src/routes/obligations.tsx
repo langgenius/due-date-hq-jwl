@@ -311,18 +311,27 @@ const DEFAULT_HIDDEN_COLUMN_IDS = [
   'daysUntilDue',
   'evidenceCount',
 ] as const
-// Columns that auto-collapse when the detail panel is open. With the
-// panel at 520px on a 1280px page, the queue gets ~700px — only the
-// five essentials fit: select / Priority / Client / Internal Due /
-// Status. State / County / Tax type are redundant with the panel
-// header. Assignee + Evidence are useful but not navigation-critical
-// while the user is focused on one obligation in the panel.
+// Columns that auto-collapse when the detail panel is open.
+// 2026-05-25 (Yuqi Deadlines #11): widened the auto-hide set to
+// keep only Client + Internal Due in the queue while the drawer is
+// open. Status / Priority / Days-until-due all repeat information
+// the drawer header / body already surfaces for the focused
+// obligation, and the queue here only needs to support row-to-row
+// navigation — name + when-it's-due. State / County / Tax type /
+// Assignee / Evidence were already in the auto-hide set from the
+// earlier 2026-05-21 panel-fit pass for the same reason (panel
+// header carries them). On close, the user's saved column choices
+// come back because we strip the auto-hidden set from the saved
+// `hidden` URL state before persisting (see onColumnVisibilityChange).
 const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'clientState',
   'clientCounty',
   'taxType',
   'assigneeName',
   'evidenceCount',
+  'smartPriority',
+  'daysUntilDue',
+  'status',
 ] as const
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
@@ -2117,7 +2126,15 @@ export function ObligationQueueRoute() {
               Zero-count scopes are auto-hidden so the bar respects the
               cognitive-load cap and doesn't render `Blocked 0` decoration
               when there's nothing there to triage. */}
-          <div className="flex flex-wrap items-end gap-3 border-b border-divider-regular">
+          {/* 2026-05-25 (Yuqi Deadlines #9): filter row is now
+              sticky to the top of the scroll container so the
+              status tabs stay accessible when scrolling a long
+              list. `top-0` anchors to the page's main scroll
+              container (set in app-shell.tsx); the row picks up
+              `bg-background-default` + a backdrop-blur fallback so
+              row content scrolling underneath doesn't show through.
+              z-10 keeps it above table content but below modals. */}
+          <div className="sticky top-0 z-10 flex flex-wrap items-end gap-3 border-b border-divider-regular bg-background-default/95 backdrop-blur-sm">
             <nav
               aria-label={t`Status scopes`}
               // No horizontal scroll — the user found it disorienting.
