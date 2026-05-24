@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, FilterXIcon } from 'lucide-react'
+import { AlertCircleIcon, ArrowUpRightIcon, FilterXIcon, HistoryIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -209,19 +210,54 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 </ConceptLabel>
               </p>
             </div>
-            {!alertsQuery.isLoading ? (
-              <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
-                {alerts.length === 0 ? (
-                  <Trans>0 active</Trans>
-                ) : filtersActive ? (
-                  <Trans>
-                    {filteredAlerts.length} shown · {alerts.length} total
-                  </Trans>
-                ) : (
-                  <Plural value={alerts.length} one="# active" other="# active" />
-                )}
-              </span>
-            ) : null}
+            <div className="flex shrink-0 items-end gap-3">
+              {!alertsQuery.isLoading ? (
+                <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
+                  {alerts.length === 0 ? (
+                    <Trans>0 active</Trans>
+                  ) : filtersActive ? (
+                    <Trans>
+                      {filteredAlerts.length} shown · {alerts.length} total
+                    </Trans>
+                  ) : (
+                    <Plural value={alerts.length} one="# active" other="# active" />
+                  )}
+                </span>
+              ) : null}
+              {/* 2026-05-25 (Yuqi Alerts #2, #12): cross-surface
+                  links so the CPA can jump out of the alert review
+                  loop. "View sources" goes to the canonical rules
+                  surface where the source list lives. "View
+                  history" pre-sets the status filter to "applied"
+                  (most common closed state) — a starting point
+                  into the closed-alert archive without inventing
+                  a new route. The full closed-state set is still
+                  reachable via the filter dropdown. */}
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  to="/rules/library"
+                  className="group/sources inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+                >
+                  <Trans>View sources</Trans>
+                  <ArrowUpRightIcon
+                    className="size-3.5 transition-transform duration-200 group-hover/sources:rotate-45"
+                    aria-hidden
+                  />
+                </Link>
+                {statusFilter !== 'applied' &&
+                statusFilter !== 'dismissed' &&
+                statusFilter !== 'reverted' ? (
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter('applied')}
+                    className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+                  >
+                    <HistoryIcon className="size-3.5" aria-hidden />
+                    <Trans>View history</Trans>
+                  </button>
+                ) : null}
+              </div>
+            </div>
           </div>
         </header>
       ) : null}
