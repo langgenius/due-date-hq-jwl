@@ -21,6 +21,7 @@ import {
   ArrowUpDownIcon,
   ArrowUpIcon,
   CheckCircle2Icon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
@@ -49,6 +50,7 @@ import type {
   AuditEventPublic,
   ClientFilingProfilesReplaceInput,
   ClientPublic,
+  MemberAssigneeOption,
   ObligationInstancePublic,
   ObligationRule,
 } from '@duedatehq/contracts'
@@ -69,6 +71,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
@@ -1587,12 +1591,57 @@ export function ClientDetailWorkspace({
       },
     }),
   )
+  // Owner reassignment (2026-05-24). Powers the H1 owner-pill
+  // dropdown so clicking "Unassigned" / "M. Chen" opens a real
+  // picker — previously the pill looked tappable but was a dead
+  // <span>. Reuses the same `clients.bulkUpdateAssignee` procedure
+  // the /clients list bulk-bar uses, with a single-id payload so
+  // the audit-log breadcrumb stays consistent.
+  const assignableMembersQuery = useQuery(
+    orpc.members.listAssignable.queryOptions({ input: undefined }),
+  )
+  const assignableMembers = useMemo(
+    () => assignableMembersQuery.data ?? [],
+    [assignableMembersQuery.data],
+  )
+  const bulkAssigneeMutation = useMutation(
+    orpc.clients.bulkUpdateAssignee.mutationOptions({
+      onSuccess: (result, vars) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        toast.success(vars.assigneeId === null ? t`Owner cleared` : t`Owner updated`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update owner`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const changeOwner = useCallback(
+    (assigneeId: string | null) => {
+      bulkAssigneeMutation.mutate({ clientIds: [client.id], assigneeId })
+    },
+    [bulkAssigneeMutation, client.id],
+  )
   const missingFilingState = Boolean(readiness?.missingRequiredFacts.includes('state'))
+  // "Add filing state" chip + jurisdiction-deep-link callback.
+  // 2026-05-24: the chip lives on the Work tab header but the
+  // jurisdiction form lives on the Client info tab. Scrolling
+  // alone left the user on Work with nothing visibly changed.
+  // Now switches the tab first, then RAFs the scroll so the
+  // section is in the DOM before we try to align it.
   const openFilingJurisdictions = useCallback(() => {
-    document
-      .getElementById('client-filing-jurisdictions')
-      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
+    void setActiveTab('info')
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById('client-filing-jurisdictions')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [setActiveTab])
   const openMissingFacts = useCallback(() => {
     openFilingJurisdictions()
   }, [openFilingJurisdictions])
@@ -1738,6 +1787,9 @@ export function ClientDetailWorkspace({
                   <ClientOwnerHeaderPill
                     name={client.assigneeName ?? null}
                     currentUserName={currentUserName}
+                    assignableMembers={assignableMembers}
+                    disabled={bulkAssigneeMutation.isPending}
+                    onChange={changeOwner}
                   />
                   <ClientFilingStateChips client={client} />
                   {readiness?.status === 'needs_facts' ? (
@@ -3135,56 +3187,139 @@ function ClientAssigneeAvatar({
   )
 }
 
-// ClientOwnerHeaderPill (2026-05-23). Inline chip variant of the
-// assignee avatar — paired with the assignee's name so the H1 chip
-// cluster can answer "whose client?" without a separate Team tile in
-// the summary strip. Unassigned state uses a person silhouette + the
-// literal word; assigned state shows a tiny stable-hashed avatar +
-// the name. Tone-matched to the entity Badge variant=outline next to
-// it so the chip cluster reads as a single horizontal scan of
-// identity facts.
+// ClientOwnerHeaderPill (2026-05-23, rewired 2026-05-24).
+// Inline chip variant of the assignee avatar — paired with the
+// assignee's name so the H1 chip cluster can answer "whose client?"
+// without a separate Team tile in the summary strip.
+//
+// 2026-05-24 (Yuqi caught a dead affordance): the pill is now a
+// real DropdownMenu trigger that picks an assignee from the firm's
+// assignable members + an "Unassigned" option. Clicking the pill
+// opens the list; selecting fires `clients.bulkUpdateAssignee` with
+// `[client.id]` and an `assigneeId` (or `null` for unassigned).
+// Previously the pill rendered as a non-interactive `<span>` that
+// LOOKED tappable but did nothing — pure UI lie. Now every
+// affordance does what the user expects.
 function ClientOwnerHeaderPill({
   name,
   currentUserName,
+  assignableMembers,
+  disabled,
+  onChange,
 }: {
   name: string | null
   currentUserName: string | null
+  assignableMembers: readonly MemberAssigneeOption[]
+  disabled: boolean
+  onChange: (assigneeId: string | null) => void
 }) {
   const { t } = useLingui()
-  if (!name) {
-    return (
-      <span
-        aria-label={t`Owner: unassigned`}
-        title={t`Owner: unassigned`}
-        className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs text-text-secondary"
-      >
-        <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-          <UserRoundIcon className="size-3" aria-hidden />
-        </span>
-        <Trans>Unassigned</Trans>
-      </span>
-    )
-  }
   const isMine =
-    currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
-  const tint = ASSIGNEE_TINTS[hashStringToBucket(name, ASSIGNEE_TINTS.length)]
-  const title = isMine ? t`Assigned to you (${name})` : t`Owner: ${name}`
+    name !== null &&
+    currentUserName !== null &&
+    name.trim().toLowerCase() === currentUserName.toLowerCase()
+  const tint =
+    name === null ? null : ASSIGNEE_TINTS[hashStringToBucket(name, ASSIGNEE_TINTS.length)]
+  const triggerLabel =
+    name === null
+      ? t`Change owner — currently unassigned`
+      : isMine
+        ? t`Change owner — currently you (${name})`
+        : t`Change owner — currently ${name}`
+  // The currently-assigned member id (so the radio-group reflects
+  // the active selection in the menu). Resolve from name → id by
+  // looking up the assignableMembers list.
+  const currentAssigneeId =
+    name === null
+      ? null
+      : (assignableMembers.find(
+          (member) => member.name.trim().toLowerCase() === name.trim().toLowerCase(),
+        )?.assigneeId ?? null)
   return (
-    <span
-      aria-label={title}
-      title={title}
-      className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs text-text-primary"
-    >
-      <span
-        className={cn(
-          'inline-flex size-4 items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-tight',
-          isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
-        )}
-      >
-        {initialsFromName(name)}
-      </span>
-      <span className="truncate">{name}</span>
-    </span>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            aria-label={triggerLabel}
+            title={triggerLabel}
+            disabled={disabled}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              name === null ? 'text-text-secondary' : 'text-text-primary',
+            )}
+          >
+            {name === null ? (
+              <>
+                <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
+                  <UserRoundIcon className="size-3" aria-hidden />
+                </span>
+                <Trans>Unassigned</Trans>
+              </>
+            ) : (
+              <>
+                <span
+                  className={cn(
+                    'inline-flex size-4 items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-tight',
+                    isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
+                  )}
+                >
+                  {initialsFromName(name)}
+                </span>
+                <span className="truncate">{name}</span>
+              </>
+            )}
+            <ChevronDownIcon className="size-3 text-text-tertiary" aria-hidden />
+          </button>
+        }
+      />
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuRadioGroup
+          value={currentAssigneeId ?? '__unassigned__'}
+          onValueChange={(value) => {
+            const next = value === '__unassigned__' ? null : value
+            if (next === currentAssigneeId) return
+            onChange(next)
+          }}
+        >
+          <DropdownMenuRadioItem value="__unassigned__">
+            <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
+              <UserRoundIcon className="size-3" aria-hidden />
+            </span>
+            <span>
+              <Trans>Unassigned</Trans>
+            </span>
+          </DropdownMenuRadioItem>
+          {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
+          {assignableMembers.length === 0 ? (
+            <DropdownMenuItem disabled>
+              <Trans>No assignable members</Trans>
+            </DropdownMenuItem>
+          ) : (
+            assignableMembers.map((member) => {
+              const memberTint =
+                ASSIGNEE_TINTS[hashStringToBucket(member.name, ASSIGNEE_TINTS.length)]
+              const isCurrentUser =
+                currentUserName !== null &&
+                member.name.trim().toLowerCase() === currentUserName.toLowerCase()
+              return (
+                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                  <span
+                    className={cn(
+                      'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                      isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
+                    )}
+                  >
+                    {initialsFromName(member.name)}
+                  </span>
+                  <span className="truncate">{member.name}</span>
+                </DropdownMenuRadioItem>
+              )
+            })
+          )}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
