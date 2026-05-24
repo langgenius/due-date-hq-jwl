@@ -4,6 +4,7 @@ import * as calendarSchema from './schema/calendar'
 import * as dashboardSchema from './schema/dashboard'
 import * as firmSchema from './schema/firm'
 import * as notificationSchema from './schema/notifications'
+import * as opportunitiesSchema from './schema/opportunities'
 import * as readinessSchema from './schema/readiness'
 import * as rulesSchema from './schema/rules'
 import * as obligationSavedViewSchema from './schema/obligation-saved-view'
@@ -34,6 +35,7 @@ export { dashboardSchema }
 // middleware, never read by procedures.
 export { firmSchema }
 export { notificationSchema }
+export { opportunitiesSchema }
 export { readinessSchema }
 export { rulesSchema }
 export { obligationSavedViewSchema }

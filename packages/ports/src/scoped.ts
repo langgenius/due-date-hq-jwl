@@ -9,6 +9,7 @@ import type { EvidenceRepo } from './evidence'
 import type { MigrationRepo } from './migration'
 import type { NotificationsRepo } from './notifications'
 import type { ObligationsRepo } from './obligations'
+import type { OpportunityDismissalsRepo } from './opportunities'
 import type { PulseRepo } from './pulse'
 import type { ReadinessRepo } from './readiness'
 import type { RemindersRepo } from './reminders'
@@ -26,6 +27,11 @@ export interface ScopedRepo {
   readonly dashboard: DashboardRepo
   readonly obligations: ObligationsRepo
   readonly obligationQueue: ObligationQueueRepo
+  // 2026-05-24 (critique P2): user-driven dismiss/snooze on
+  // computed opportunities. Optional because legacy procedure paths
+  // and some tests skip this — handlers default to "no dismissals"
+  // when the repo isn't wired.
+  readonly opportunityDismissals?: OpportunityDismissalsRepo
   readonly workload: WorkloadRepo
   readonly pulse: PulseRepo
   readonly readiness: ReadinessRepo

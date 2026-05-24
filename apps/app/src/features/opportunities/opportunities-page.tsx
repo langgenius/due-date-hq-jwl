@@ -1,8 +1,9 @@
 import { Link } from 'react-router'
 import type { ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Trans } from '@lingui/react/macro'
-import { ArrowUpRightIcon, SparklesIcon } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { ArrowUpRightIcon, ClockIcon, SparklesIcon, XIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { OpportunityPublic } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -118,8 +119,44 @@ function SummaryCard({ label, value }: { label: ReactNode; value: number | undef
   )
 }
 
+// 2026-05-24 (critique P2): default snooze window when the user
+// picks the Snooze action. 14 days is the canonical "talk to me
+// next bi-weekly cycle" interval — long enough for client circumstances
+// to actually shift, short enough to keep the queue alive. Server
+// clamps to a 90-day ceiling regardless.
+const DEFAULT_SNOOZE_DAYS = 14
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
 function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   const Icon = opportunityIcon(opportunity.kind)
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: orpc.opportunities.list.key() })
+  }
+  const dismissMutation = useMutation(
+    orpc.opportunities.dismiss.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        toast.success(t`Opportunity dismissed.`)
+      },
+      onError: (error) => {
+        toast.error(rpcErrorMessage(error) ?? t`Couldn't dismiss this opportunity.`)
+      },
+    }),
+  )
+  const snoozeMutation = useMutation(
+    orpc.opportunities.snooze.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days.`)
+      },
+      onError: (error) => {
+        toast.error(rpcErrorMessage(error) ?? t`Couldn't snooze this opportunity.`)
+      },
+    }),
+  )
+  const pending = dismissMutation.isPending || snoozeMutation.isPending
   return (
     <article className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
       <div className="flex min-w-0 gap-3">
@@ -150,6 +187,35 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
         >
           {opportunity.client.name}
         </Link>
+        {/* 2026-05-24 (critique P2): user-driven hide. Snooze parks
+            the row for DEFAULT_SNOOZE_DAYS; Dismiss is forever. Both
+            go through `opportunity_dismissal` server-side, so the
+            row reliably stays gone across devices and sessions. */}
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={() =>
+            snoozeMutation.mutate({
+              opportunityKey: opportunity.id,
+              until: new Date(Date.now() + DEFAULT_SNOOZE_DAYS * MS_PER_DAY).toISOString(),
+            })
+          }
+          aria-label={t`Snooze ${opportunity.title} for ${DEFAULT_SNOOZE_DAYS} days`}
+        >
+          <ClockIcon data-icon="inline-start" />
+          <Trans>Snooze</Trans>
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => dismissMutation.mutate({ opportunityKey: opportunity.id })}
+          aria-label={t`Dismiss ${opportunity.title}`}
+        >
+          <XIcon data-icon="inline-start" />
+          <Trans>Dismiss</Trans>
+        </Button>
         <Button size="sm" variant="outline" render={<Link to={opportunity.primaryAction.href} />}>
           <ArrowUpRightIcon data-icon="inline-start" />
           <Trans>Open client</Trans>

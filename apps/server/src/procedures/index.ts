@@ -97,6 +97,8 @@ export const router = os.router({
   },
   opportunities: {
     list: opportunitiesHandlers.list,
+    dismiss: opportunitiesHandlers.dismiss,
+    snooze: opportunitiesHandlers.snooze,
   },
   dashboard: {
     load: dashboardHandlers.load,

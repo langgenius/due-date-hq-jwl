@@ -257,6 +257,18 @@ const list = os.opportunities.list.handler(async ({ input, context }) => {
   )
   const kindFilter = new Set(input?.kinds ?? [])
 
+  // 2026-05-24 (critique P2): pull the user's active dismissal +
+  // snooze set and drop matching opportunities post-compute. The
+  // computed opportunity's `id` is the key we shadow against. Done
+  // post-compute (instead of pre-filtering clients) so the summary
+  // counts agree with the visible queue.
+  const dismissalsRepo = scoped.opportunityDismissals
+  const activeDismissalKeys = new Set(
+    dismissalsRepo
+      ? (await dismissalsRepo.listActive(new Date())).map((row) => row.opportunityKey)
+      : [],
+  )
+
   const filteredOpportunities = clients
     .flatMap((client) =>
       buildClientOpportunities({
@@ -265,6 +277,7 @@ const list = os.opportunities.list.handler(async ({ input, context }) => {
       }),
     )
     .filter((opportunity) => kindFilter.size === 0 || kindFilter.has(opportunity.kind))
+    .filter((opportunity) => !activeDismissalKeys.has(opportunity.id))
     .toSorted(sortOpportunities)
 
   return {
@@ -273,4 +286,61 @@ const list = os.opportunities.list.handler(async ({ input, context }) => {
   } satisfies OpportunityListOutput
 })
 
-export const opportunitiesHandlers = { list }
+// 2026-05-24 (critique P2): server clamps snooze ceiling to 90 days
+// out so a typo can't park an opportunity in 2199. Repository UPSERT
+// handles repeated calls — calling dismiss after snooze just
+// overwrites the row.
+const MAX_SNOOZE_MS = 90 * 24 * 60 * 60 * 1000
+
+function clampSnoozeUntil(input: string, now: Date): Date {
+  const requested = new Date(input)
+  if (Number.isNaN(requested.getTime())) {
+    // Defensive — the Zod schema rejects non-datetime strings, but
+    // be explicit if someone bypasses it.
+    return new Date(now.getTime() + MAX_SNOOZE_MS)
+  }
+  const minMs = now.getTime() + 60_000 // 1 minute floor
+  const maxMs = now.getTime() + MAX_SNOOZE_MS
+  return new Date(Math.min(Math.max(requested.getTime(), minMs), maxMs))
+}
+
+const dismiss = os.opportunities.dismiss.handler(async ({ input, context }) => {
+  const { scoped, userId } = requireTenant(context)
+  if (!scoped.opportunityDismissals) {
+    throw new Error('Opportunity dismissals repo not wired into this tenant context.')
+  }
+  const row = await scoped.opportunityDismissals.upsert({
+    opportunityKey: input.opportunityKey,
+    kind: 'dismissed',
+    snoozeUntil: null,
+    reason: input.reason ?? null,
+    createdByUserId: userId,
+  })
+  return {
+    opportunityKey: row.opportunityKey,
+    kind: row.kind,
+    snoozeUntil: row.snoozeUntil ? row.snoozeUntil.toISOString() : null,
+  }
+})
+
+const snooze = os.opportunities.snooze.handler(async ({ input, context }) => {
+  const { scoped, userId } = requireTenant(context)
+  if (!scoped.opportunityDismissals) {
+    throw new Error('Opportunity dismissals repo not wired into this tenant context.')
+  }
+  const snoozeUntil = clampSnoozeUntil(input.until, new Date())
+  const row = await scoped.opportunityDismissals.upsert({
+    opportunityKey: input.opportunityKey,
+    kind: 'snoozed',
+    snoozeUntil,
+    reason: input.reason ?? null,
+    createdByUserId: userId,
+  })
+  return {
+    opportunityKey: row.opportunityKey,
+    kind: row.kind,
+    snoozeUntil: row.snoozeUntil ? row.snoozeUntil.toISOString() : null,
+  }
+})
+
+export const opportunitiesHandlers = { list, dismiss, snooze }

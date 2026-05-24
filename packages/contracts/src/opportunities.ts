@@ -70,7 +70,36 @@ export const OpportunityListOutputSchema = z.object({
 })
 export type OpportunityListOutput = z.infer<typeof OpportunityListOutputSchema>
 
+// 2026-05-24 (critique P2 — dismiss/snooze): user-driven hide for
+// computed opportunities. The opportunityKey is the row's deterministic
+// `id` from buildClientOpportunities (e.g. `retention_check_in:client:
+// <id>`); a single dismissal row per (firmId, opportunityKey) shadows
+// the computed result on subsequent list calls. Snooze carries a TTL —
+// the row reappears when `now >= snoozeUntil`; Dismiss is forever.
+export const OpportunityDismissInputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  reason: z.string().max(500).optional(),
+})
+export type OpportunityDismissInput = z.infer<typeof OpportunityDismissInputSchema>
+
+export const OpportunitySnoozeInputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  // ISO datetime; server clamps to a sensible window.
+  until: z.iso.datetime(),
+  reason: z.string().max(500).optional(),
+})
+export type OpportunitySnoozeInput = z.infer<typeof OpportunitySnoozeInputSchema>
+
+export const OpportunityMutationOutputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  kind: z.enum(['dismissed', 'snoozed']),
+  snoozeUntil: z.iso.datetime().nullable(),
+})
+export type OpportunityMutationOutput = z.infer<typeof OpportunityMutationOutputSchema>
+
 export const opportunitiesContract = oc.router({
   list: oc.input(OpportunityListInputSchema).output(OpportunityListOutputSchema),
+  dismiss: oc.input(OpportunityDismissInputSchema).output(OpportunityMutationOutputSchema),
+  snooze: oc.input(OpportunitySnoozeInputSchema).output(OpportunityMutationOutputSchema),
 })
 export type OpportunitiesContract = typeof opportunitiesContract

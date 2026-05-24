@@ -1801,7 +1801,9 @@ describe('@duedatehq/contracts', () => {
   })
 
   it('freezes opportunities.list lightweight business guidance shape', () => {
-    expect(Object.keys(opportunitiesContract)).toEqual(['list'])
+    // 2026-05-24 (critique P2): added dismiss + snooze mutations for
+    // user-driven hide. See `opportunity_dismissal` schema + handler.
+    expect(Object.keys(opportunitiesContract)).toEqual(['list', 'dismiss', 'snooze'])
     expect(OpportunityKindSchema.options).toEqual([
       'advisory_conversation',
       'scope_review',
