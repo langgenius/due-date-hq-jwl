@@ -1141,12 +1141,26 @@ export function ObligationQueueRoute() {
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
           if (isContinuation) {
-            // Same-client continuation: leave the cell blank. The
-            // client name reads as a sticky label visually owning the
-            // rows beneath it — the empty cell *is* the grouping cue
-            // (cleaner than a ┗ connector, per 2026-05-21 wireframe).
-            // The `sr-only` span keeps row-level screen-reader context.
-            return <span className="sr-only">{tableRow.original.clientName}</span>
+            // Same-client continuation: client name lives on the
+            // first row of the group. We used to render an entirely
+            // empty cell which read as "this row has no client" to
+            // first-time users (critique flagged Magnolia Family
+            // Trust → FL Corporate Income).
+            //
+            // 2026-05-24 (critique /polish): show a quiet `↳` glyph
+            // so the cell is visibly empty-by-design. The 2px left
+            // rail on the row + the welded bottom border still carry
+            // the grouping; this is a small belt-and-suspenders cue
+            // for the eye. Full client name stays in `sr-only` for
+            // screen readers — every row still announces its client.
+            return (
+              <div className="flex items-center gap-1.5 text-text-quaternary">
+                <span aria-hidden className="text-xs leading-none">
+                  ↳
+                </span>
+                <span className="sr-only">{tableRow.original.clientName}</span>
+              </div>
+            )
           }
           // Shift+click the client name → range-select every row
           // sharing this clientId (2026-05-21). Matches the hybrid
