@@ -251,6 +251,12 @@ export interface PulseRepo {
   readonly firmId: string
   createSeedAlert(input: PulseSeedInput): Promise<{ pulseId: string; alertId: string }>
   listAlerts(opts?: { limit?: number }): Promise<PulseAlertRow[]>
+  /**
+   * Count-only variant of `listAlerts` — same WHERE clause, no row
+   * fetch. Backs the sidebar nav badge so it can show the true count
+   * (not a 50-row-cap slice).
+   */
+  countActiveAlerts(): Promise<number>
   listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   listSourceSignals(opts?: {

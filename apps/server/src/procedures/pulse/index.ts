@@ -328,6 +328,12 @@ const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   return { alerts: alerts.map(toAlertPublic) }
 })
 
+const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
+  const { scoped } = requireTenant(context)
+  const count = await scoped.pulse.countActiveAlerts()
+  return { count }
+})
+
 const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   const alerts = await scoped.pulse.listHistory({
@@ -748,6 +754,7 @@ const requestReview = os.pulse.requestReview.handler(async ({ input, context }) 
 
 export const pulseHandlers = {
   listAlerts,
+  activeCount,
   listHistory,
   listSourceHealth,
   listSourceSignals,

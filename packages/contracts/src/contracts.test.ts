@@ -1104,6 +1104,7 @@ describe('@duedatehq/contracts', () => {
   it('freezes Pulse demo backend contracts', () => {
     expect(Object.keys(pulseContract)).toEqual([
       'listAlerts',
+      'activeCount',
       'listHistory',
       'listSourceHealth',
       'listSourceSignals',

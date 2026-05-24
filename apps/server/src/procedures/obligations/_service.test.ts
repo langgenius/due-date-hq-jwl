@@ -351,6 +351,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listAlerts() {
       return unused('pulse.listAlerts')
     },
+    async countActiveAlerts() {
+      return unused('pulse.countActiveAlerts')
+    },
     async listHistory() {
       return unused('pulse.listHistory')
     },

@@ -61,7 +61,6 @@ import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
@@ -473,14 +472,16 @@ function AddFirmDialog({
 // surfaces claiming the same word counted three different things
 // (2 sidebar, 3 Today, 4 Pulse-page history).
 //
-// This hook pulls from the same `pulse.listAlerts` query Today uses,
-// so the sidebar and Today share a single cache entry and report the
-// same count. The Pulse page intentionally shows a broader history
-// view and is unaffected. The bell popover still hits
-// `notifications.unreadCount` directly — different concept.
+// 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
+// endpoint — a true `COUNT(*)` against the same WHERE clause
+// `listAlerts` uses. The previous shape fetched up to 50 rows just to
+// call `.length` on the array, so any firm with more than 50 active
+// alerts saw "50" in the badge (silent truncation). The count endpoint
+// has no upper bound; Today's section still uses `listAlerts(50)`
+// because it needs the row contents to render the alert cards.
 function useActivePulseAlertCount(): number {
-  const query = useQuery(usePulseListAlertsQueryOptions(SIDEBAR_PULSE_LIMIT))
-  return query.data?.alerts?.length ?? 0
+  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
+  return query.data?.count ?? 0
 }
 
 function useRuleLibraryPendingCount(): number {
@@ -502,13 +503,11 @@ function useRuleLibraryPendingCount(): number {
 // downstream surfaces hit warm cache after that.
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 
-// 2026-05-24 (critique P0): high limit so the sidebar Alerts badge
-// counts the true number of active Pulse alerts, not a truncated
-// "first N" slice. `pulse.listAlerts` clamps to its own max (50 in
-// the api helper). The Today page passes the same value, so both
-// surfaces share a single React Query cache entry and report the
-// same count.
-const SIDEBAR_PULSE_LIMIT = 50
+// 2026-05-24 (B2): retired `SIDEBAR_PULSE_LIMIT = 50`. The sidebar
+// badge now goes through `pulse.activeCount` (true COUNT(*) with no
+// upper bound) instead of slicing `pulse.listAlerts`. See the comment
+// on `useActivePulseAlertCount` above for the full history.
+
 function useClientsCount(): number {
   const query = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
   return query.data?.length ?? 0

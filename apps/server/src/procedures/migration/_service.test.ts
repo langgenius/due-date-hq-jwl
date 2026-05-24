@@ -520,6 +520,9 @@ function buildScopedRepo(firmId: string) {
     async listAlerts() {
       return unexpectedRepoCall('pulse.listAlerts')
     },
+    async countActiveAlerts() {
+      return unexpectedRepoCall('pulse.countActiveAlerts')
+    },
     async listHistory() {
       return unexpectedRepoCall('pulse.listHistory')
     },

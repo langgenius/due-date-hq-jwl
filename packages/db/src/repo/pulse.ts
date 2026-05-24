@@ -1,4 +1,16 @@
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, or } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count as sqlCount,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+} from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import type { Db } from '../client'
 import { auditEvent, evidenceLink, type NewAuditEvent, type NewEvidenceLink } from '../schema/audit'
@@ -1485,6 +1497,39 @@ export function makePulseRepo(db: Db, firmId: string) {
         .limit(limit)
 
       return rows.map((row) => toAlert(row))
+    },
+
+    /**
+     * Count of currently-active (matched / partially_applied / expired-
+     * snooze) Pulse alerts for this firm. Used by the sidebar nav badge
+     * — the badge only needs a number, not the alert rows themselves, so
+     * a dedicated COUNT(*) query avoids fetching N rows just to call
+     * `.length` on the array.
+     *
+     * Matches the WHERE clause of `listAlerts()` exactly so the sidebar
+     * count never disagrees with what `listAlerts()` would return.
+     *
+     * Returns the true count with no upper bound — the old `listAlerts`
+     * clamp of 50 meant a firm with 73 active alerts showed "50" in the
+     * sidebar. Now the badge always reads the real number.
+     */
+    async countActiveAlerts(): Promise<number> {
+      const now = new Date()
+      const [row] = await db
+        .select({ value: sqlCount() })
+        .from(pulseFirmAlert)
+        .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
+        .where(
+          and(
+            eq(pulseFirmAlert.firmId, firmId),
+            eq(pulse.status, 'approved'),
+            or(
+              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
+            ),
+          ),
+        )
+      return row?.value ?? 0
     },
 
     async listHistory(
