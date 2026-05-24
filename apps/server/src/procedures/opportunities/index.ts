@@ -80,8 +80,13 @@ export function buildClientOpportunities(input: {
       kind: 'retention_check_in',
       client: clientShell(client),
       title: 'Relationship check-in candidate',
-      summary:
-        'Repeated waiting or late-filing signals make this client worth a partner-level service conversation before the next cycle.',
+      // 2026-05-24 (critique P2 — clarify): every row used to print
+      // the same string regardless of whether waiting=0 or lateFilings=3.
+      // Two different clients showed verbatim identical text and the
+      // CPA had to read the evidence chips to tell why each was on the
+      // list. Build the summary from the dominant signal so the row
+      // earns its trust.
+      summary: retentionCheckInSummary(waitingCount, client.lateFilingCountLast12mo),
       timing: waitingCount >= 2 ? 'now' : 'next_30_days',
       severity: waitingCount >= 3 || client.lateFilingCountLast12mo >= 3 ? 'high' : 'medium',
       evidence: [
@@ -98,8 +103,7 @@ export function buildClientOpportunities(input: {
       kind: 'scope_review',
       client: clientShell(client),
       title: 'Review engagement scope before renewal',
-      summary:
-        'The current workload footprint suggests a scope, staffing, or service-package review. This is a conversation cue, not a pricing benchmark.',
+      summary: scopeReviewSummary(openObligations.length, jurisdictionCount),
       timing: 'next_quarter',
       severity: openObligations.length >= 6 || jurisdictionCount >= 3 ? 'high' : 'medium',
       evidence: [
@@ -120,8 +124,11 @@ export function buildClientOpportunities(input: {
       kind: 'advisory_conversation',
       client: clientShell(client),
       title: 'Consider an advisory conversation',
-      summary:
-        'This client has enough planning context to justify a human-led advisory discussion. DueDateHQ does not generate tax strategies or avoidance advice here.',
+      summary: advisoryConversationSummary({
+        importanceWeight: client.importanceWeight,
+        estimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
+        equityOwnerCount: client.equityOwnerCount,
+      }),
       timing: 'next_quarter',
       severity: client.importanceWeight >= 3 ? 'medium' : 'low',
       evidence: [
@@ -136,6 +143,76 @@ export function buildClientOpportunities(input: {
   }
 
   return opportunities
+}
+
+// 2026-05-24 (critique P2 — clarify): facts-driven summary builders.
+// Each picks the dominant signal that triggered the opportunity so
+// the row's prose matches the evidence below it.
+function retentionCheckInSummary(waitingCount: number, lateFilingCount: number): string {
+  if (waitingCount >= 3) {
+    return `${waitingCount} obligations are currently waiting on this client — a partner-level conversation will move things forward faster than another nudge.`
+  }
+  if (waitingCount >= 2) {
+    return `${waitingCount} obligations are waiting on this client. Worth a check-in before the next cycle to surface what's blocking them.`
+  }
+  if (lateFilingCount >= 3) {
+    return `${lateFilingCount} late filings in the last 12 months. A scope or service conversation is more useful than another reminder.`
+  }
+  // lateFilingCount === 2 by the trigger condition above
+  return `${lateFilingCount} late filings in the last 12 months. Surface the pattern before the next cycle.`
+}
+
+function scopeReviewSummary(openObligationCount: number, jurisdictionCount: number): string {
+  if (openObligationCount >= 6 && jurisdictionCount >= 3) {
+    return `${openObligationCount} open obligations across ${jurisdictionCount} jurisdictions. A scope, staffing, or service-package review is worth scheduling.`
+  }
+  if (jurisdictionCount >= 3) {
+    return `Workload spans ${jurisdictionCount} jurisdictions. A scope review is the right conversation before renewal — not a pricing benchmark.`
+  }
+  if (openObligationCount >= 6) {
+    return `${openObligationCount} open obligations on this client. Scope, staffing, or service-package review is the next conversation.`
+  }
+  // openObligationCount >= 4 or jurisdictionCount >= 2 by trigger
+  if (jurisdictionCount >= 2) {
+    return `Workload spans ${jurisdictionCount} jurisdictions and ${openObligationCount} open obligations. Worth a scope check before renewal.`
+  }
+  return `${openObligationCount} open obligations on this client. Worth a scope check before renewal.`
+}
+
+// `ADVISORY_GUARDRAIL_TAIL` is appended to every advisory_conversation
+// summary regardless of which factors triggered it. The guardrail is
+// compliance copy — DueDateHQ must not appear to be generating tax
+// strategy or avoidance advice. Tested via the
+// "does not generate tax strategies" assertion in index.test.ts.
+const ADVISORY_GUARDRAIL_TAIL =
+  ' DueDateHQ does not generate tax strategies or avoidance advice here.'
+
+function advisoryConversationSummary(input: {
+  importanceWeight: number
+  estimatedTaxLiabilityCents: number | null
+  equityOwnerCount: number | null
+}): string {
+  const hasLiability =
+    input.estimatedTaxLiabilityCents !== null && input.estimatedTaxLiabilityCents > 0
+  const hasOwners = input.equityOwnerCount !== null && input.equityOwnerCount >= 2
+  const isImportant = input.importanceWeight >= 3
+  let lead: string
+  if (isImportant && hasLiability && hasOwners) {
+    lead = `High importance, meaningful tax liability, and ${input.equityOwnerCount} owners — plenty of planning context.`
+  } else if (isImportant && hasOwners) {
+    lead = `High importance with ${input.equityOwnerCount} owners on file — enough planning context to justify a human-led advisory discussion.`
+  } else if (hasLiability && hasOwners) {
+    lead = `Meaningful tax liability and ${input.equityOwnerCount} owners — enough planning context to justify a human-led advisory discussion.`
+  } else if (isImportant) {
+    lead = 'Importance-weighted as a top client — worth a human-led advisory discussion.'
+  } else if (hasLiability) {
+    lead = 'Meaningful tax liability on the books — worth a human-led advisory discussion.'
+  } else if (hasOwners) {
+    lead = `${input.equityOwnerCount} owners on the equity sheet — enough complexity to justify a human-led advisory discussion.`
+  } else {
+    lead = 'This client has enough planning context to justify a human-led advisory discussion.'
+  }
+  return lead + ADVISORY_GUARDRAIL_TAIL
 }
 
 export function summarizeOpportunities(
