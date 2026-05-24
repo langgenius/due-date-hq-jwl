@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import { ArrowRightIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseDetail } from '@duedatehq/contracts'
@@ -9,6 +9,8 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { formatDate } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 
 interface PulseStructuredFieldsProps {
   detail: PulseDetail
@@ -94,10 +96,20 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       key: 'shift',
       label: <Trans>Deadline shift</Trans>,
       value: (
-        <span className="font-mono tabular-nums text-text-primary">
-          {detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`}
-          {' → '}
-          <span className="font-semibold">
+        // 2026-05-25 (Yuqi Today #12 + #21): swapped the inline ' → '
+        // glyph for a real ArrowRightIcon framed in warning amber.
+        // Yuqi flagged that the most CONSEQUENTIAL fact in the
+        // drawer — the date change — was visually identical to every
+        // other key/value row. Now: the new date sits in
+        // text-text-warning + font-semibold so the eye lands on it
+        // first, and the arrow icon between makes "from → to"
+        // unmistakable as a delta (not just two dates side by side).
+        <span className="inline-flex items-center gap-2 font-mono tabular-nums">
+          <span className="text-text-tertiary">
+            {detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`}
+          </span>
+          <ArrowRightIcon className="size-3.5 text-text-warning" aria-hidden />
+          <span className="font-semibold text-text-warning">
             {detail.newDueDate ? formatDate(detail.newDueDate) : t`Unknown`}
           </span>
         </span>
@@ -119,13 +131,26 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
   // first (most CPAs filter by state first), then counties, forms,
   // entity types, base rules.
   const scopeFacts: Array<{ key: string; label: ReactNode; value: ReactNode }> = []
+  // 2026-05-25 (Yuqi Today #14): show full state name beside the code.
+  // The bare two-letter chip ("FL") relied on the reader knowing
+  // USPS codes — fine for CPAs working their home state, less clear
+  // when an out-of-state Pulse arrives (e.g. "ND" on a Florida-only
+  // practice's screen). Code stays as the primary token (matches the
+  // sort key everywhere else); full name follows in tertiary text so
+  // the recognition cost drops to zero.
+  const jurisdictionFull = RULE_JURISDICTION_LABELS[detail.jurisdiction] ?? null
   scopeFacts.push({
     key: 'jurisdiction',
     label: <Trans>Jurisdiction</Trans>,
     value: (
-      <Badge variant="outline" className="font-mono tabular-nums">
-        {detail.jurisdiction}
-      </Badge>
+      <span className="inline-flex items-baseline gap-2">
+        <Badge variant="outline" className="font-mono tabular-nums">
+          {detail.jurisdiction}
+        </Badge>
+        {jurisdictionFull ? (
+          <span className="text-sm text-text-tertiary">{jurisdictionFull}</span>
+        ) : null}
+      </span>
     ),
   })
   if (detail.counties.length > 0) {
@@ -143,6 +168,14 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       ),
     })
   }
+  // 2026-05-25 (Yuqi Today #15): show the human-readable form label
+  // ("FL Corporate Income"), not the snake_case tax code
+  // ("fl_corp_income"). CPAs don't think in DB-key names; the alert
+  // refers to a specific form they file with the state, and the
+  // canonical name should appear here. `formatTaxCode` falls back to
+  // a prettified version of the snake_case if the code isn't in the
+  // central registry, so unknown forms still render readably instead
+  // of as raw identifiers.
   scopeFacts.push({
     key: 'forms',
     label: <Trans>Forms</Trans>,
@@ -150,8 +183,8 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       detail.forms.length > 0 ? (
         <div className="flex flex-wrap gap-1">
           {detail.forms.map((form) => (
-            <Badge key={form} variant="outline" className="font-mono tabular-nums">
-              {form}
+            <Badge key={form} variant="outline" title={form}>
+              {formatTaxCode(form)}
             </Badge>
           ))}
         </div>
@@ -200,14 +233,26 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       <FactCard
         title={<Trans>Source</Trans>}
         action={
+          // 2026-05-25 (Yuqi Today #17): "Open official source" used
+          // to be a generic outline-button labeled with that generic
+          // phrase. Yuqi flagged: "be a better button. maybe just a
+          // link. also the name of the official source". Now: rendered
+          // as a `link` variant with the actual source name (e.g.
+          // "FL DOR Bulletin ↗"), which is the same string the CPA
+          // sees on the source badge upstream and on the alert title.
+          // The trailing arrow icon makes it read as "this opens an
+          // external link" without needing the redundant label. Same
+          // size token as the icon-only Copy button below so the
+          // section header heights agree (#16).
           <Button
             type="button"
-            variant="outline"
+            variant="link"
             size="sm"
+            className="h-7"
             render={<a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />}
           >
-            <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Open official source</Trans>
+            {detail.alert.source}
+            <ExternalLinkIcon data-icon="inline-end" />
           </Button>
         }
       >
@@ -228,33 +273,37 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
         ) : null}
       </FactCard>
 
-      <FactCard
-        title={<Trans>Source excerpt</Trans>}
-        action={
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t`Copy source excerpt`}
-                  onClick={copySourceExcerpt}
-                >
-                  <CopyIcon className="size-3.5" aria-hidden />
-                </Button>
-              }
-            />
-            <TooltipContent>
-              <Trans>Copy source excerpt</Trans>
-            </TooltipContent>
-          </Tooltip>
-        }
-      >
-        <blockquote className="break-words text-sm italic leading-relaxed text-text-secondary">
+      {/* 2026-05-25 (Yuqi Today #20): source excerpt no longer wrapped
+          in a labeled FactCard. Yuqi flagged that "Source excerpt"
+          doesn't need to be a section like Source — it's just a quote.
+          Rendered as a flush bordered blockquote with the copy
+          affordance pinned to the top-right corner. Sits directly
+          under the Scope card as a quiet supporting paragraph, not
+          a third heavy section. */}
+      <div className="group/excerpt relative rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+        <blockquote className="break-words pr-8 text-sm italic leading-relaxed text-text-secondary">
           “{detail.sourceExcerpt}”
         </blockquote>
-      </FactCard>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t`Copy source excerpt`}
+                onClick={copySourceExcerpt}
+                className="absolute right-2 top-2 opacity-0 transition-opacity group-hover/excerpt:opacity-100 focus-visible:opacity-100"
+              >
+                <CopyIcon aria-hidden />
+              </Button>
+            }
+          />
+          <TooltipContent>
+            <Trans>Copy source excerpt</Trans>
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   )
 }
@@ -269,6 +318,17 @@ function formatStructuredChange(value: unknown, fallback: string): string {
 // `text-sm font-semibold` so it actually reads as a heading — the
 // old `text-xs uppercase tracking-wider` blended with content at the
 // same size + color (Yuqi #22).
+//
+// 2026-05-25 (Yuqi Today #13 + #16):
+//   - Title bumped from `text-sm` → `text-base` font-semibold. At
+//     text-sm the heading sat at the same scale as the fact labels
+//     below it, blurring the section/content separation Yuqi
+//     specifically asked the original FactCard refactor to fix.
+//   - Header height locked to `h-11` via `min-h-11 items-center` so
+//     all three FactCards (Source, Scope, Source excerpt) start
+//     their content at the exact same vertical position — the
+//     previous variable padding produced misaligned section starts
+//     when the actions row had a button vs. an icon-only button.
 function FactCard({
   title,
   action,
@@ -280,8 +340,8 @@ function FactCard({
 }) {
   return (
     <section className="rounded-md border border-divider-subtle bg-background-default">
-      <header className="flex items-center justify-between gap-3 border-b border-divider-subtle px-4 py-2.5">
-        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-4 py-2">
+        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}
       </header>
       <div className="p-4">{children}</div>

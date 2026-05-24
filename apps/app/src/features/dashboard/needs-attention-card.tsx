@@ -77,11 +77,17 @@ function NeedsAttentionCard({
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
   return (
+    // 2026-05-25 (Yuqi Today #5): added `hover:bg-background-default-hover`.
+    // The previous hover only changed `border-color`, which on a card
+    // surrounded by a tinted section bg was nearly invisible — Yuqi
+    // flagged that hovering the card "didn't feel like anything was
+    // happening." The fill change makes the click affordance read
+    // immediately. Border still escalates as a secondary cue.
     <button
       type="button"
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2.5 rounded-md border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2.5 rounded-md border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
@@ -173,6 +179,15 @@ function NeedsAttentionCard({
 // link-tile: smaller width, no big "+N" headline, single line of
 // copy with an arrow. Still tappable, still keyboard-focusable,
 // but visually signals "navigation" not "content."
+//
+// 2026-05-25 (Yuqi Today #6): stripped the card chrome (border,
+// fill) entirely. Yuqi flagged that even after the 2026-05-24
+// compression, the "+ N more" still read as a card sibling to the
+// alert tiles. Now it's a plain text-link tile — no border, no
+// background, just the action label with a chevron. Hover lifts
+// it to text-primary so the affordance is still discoverable. The
+// flex sibling still claims its column so the grid keeps three
+// columns of equal width (alert / alert / link).
 function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: () => void }) {
   const { i18n } = useLingui()
   // 2026-05-24 (re-critique): the aria-label used to concat
@@ -191,15 +206,13 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       type="button"
       onClick={onOpen}
       aria-label={ariaLabel}
-      className="flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md border border-divider-subtle px-4 text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
+      className="group/overflow flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md px-4 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      {/* 2026-05-25 (Yuqi Today follow-up): "View N more →" replaced
-          with "+ N more" using a leading lucide-plus. The arrow read
-          like "go somewhere"; the plus reads like "show more here" —
-          honest about the click target (it opens the Pulse drawer
-          in place, not a navigation). */}
       <span className="inline-flex items-center gap-1 text-sm font-medium">
-        <Plus className="size-3.5" aria-hidden />
+        <Plus
+          className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"
+          aria-hidden
+        />
         <Trans>{count} more</Trans>
       </span>
     </button>

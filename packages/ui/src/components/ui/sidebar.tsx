@@ -23,6 +23,15 @@ import {
  * variants are all dead code for us. See
  * `docs/dev-log/2026-04-27-app-shell-sidebar.md` for the full decision matrix.
  *
+ * 2026-05-25 (Yuqi Today #3 — DEFERRED): Yuqi asked for a desktop
+ * collapse state. That overturns DESIGN.md §5.4 and needs a real
+ * design decision before implementation:
+ *   - Collapsed width? (Spec it: icon-only 56px? popout-on-hover?)
+ *   - Persistence layer (localStorage vs. user setting in DB)?
+ *   - How do badge counts render in collapsed mode (Alerts 3, etc.)?
+ *   - Trigger location (top-of-rail rail handle? topbar button?)?
+ * Not a one-off CSS fix — handled as its own design-track task.
+ *
  * Surface:
  *  - <Sidebar>                         — desktop <aside> (220px) / mobile <Sheet>
  *  - <SidebarHeader / Content / Footer>— three semantic slots
@@ -154,9 +163,16 @@ export function SidebarHeader({ className, ...props }: React.ComponentProps<'div
 
 export function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
+    // 2026-05-25 (Yuqi Today #2): pt-4 (16px) instead of py-2 (8px)
+    // for the top edge. The previous 8px gap between the firm
+    // switcher header and the first nav group felt cramped — the
+    // switcher and the first item read as one block when they're
+    // semantically separate (workspace identity vs. navigation).
+    // Extra breathing room above lets the eye land on "Today" as
+    // the real start of the nav rail.
     <div
       data-slot="sidebar-content"
-      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 py-2', className)}
+      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2', className)}
       {...props}
     />
   )
@@ -307,12 +323,20 @@ export function SidebarMenuButton({
  *  - `urgent` (default for back-compat): saturated warning pill — use
  *    for counts that mean "look at this" (Alerts, Rule library
  *    review backlog).
- *  - `inventory`: slim tertiary number, no pill, no border — use for
- *    counts that are reference facts (Clients, Deadlines). CPA
- *    shouldn't read these as "do something."
+ *  - `inventory`: framed neutral pill — use for counts that are
+ *    reference facts (Clients, Deadlines). CPA shouldn't read these
+ *    as "do something."
  *
- * Both occupy the same right-edge slot so layout stays stable when a
- * count's tone changes (e.g. Pulse alert tier escalates).
+ * 2026-05-25 (Yuqi Today #18): both tones now share the SAME pill
+ * shape (height, radius, border) so the right edge of the sidebar
+ * reads as one consistent column. Yuqi flagged that "the number in
+ * Deadlines isn't aligned with Alerts. it is not framed" — the
+ * inventory tone used to render as a bare mono number with no
+ * border, sitting visually higher and at a different x-position
+ * than the framed urgent pill above. Now: same chip outline,
+ * different fills (warning-hover for urgent, subtle for inventory).
+ * Semantics still distinguish ("look here" vs "reference fact") via
+ * fill saturation, not via wildly different shapes.
  */
 export function SidebarMenuBadge({
   className,
@@ -325,7 +349,10 @@ export function SidebarMenuBadge({
         data-slot="sidebar-menu-badge"
         data-tone="inventory"
         className={cn(
-          'pointer-events-none ml-auto inline-flex shrink-0 font-mono text-xs tabular-nums text-text-tertiary',
+          // Same height/radius/padding as urgent so the right edge of
+          // the rail lines up. Neutral fill + tertiary text keeps the
+          // semantic difference: "this is a number, not a call to act."
+          'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1 font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
           className,
         )}

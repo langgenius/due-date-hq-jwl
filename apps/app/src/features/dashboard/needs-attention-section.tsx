@@ -42,12 +42,28 @@ function NeedsAttentionSection() {
     // a soft destructive tint + 12px padding so the eye lands on it
     // first. The frame also lets the section breathe inside its own
     // container instead of leaning on the page's outer gap.
+    //
+    // 2026-05-25 (Yuqi Today #4): bumped from `rounded-md` (6px) to
+    // `rounded-2xl` (16px). On a section this large (full content
+    // width × ~140px tall) the smaller radius read as a button
+    // frame, not a card. 16px reads as a content surface — the same
+    // family as the Pulse drawer's outer corners and the dashboard's
+    // own NeedsAttentionCard tiles.
     <section
       aria-label={t`Alerts`}
-      className="flex flex-col gap-3 rounded-md border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-3"
+      className="flex flex-col gap-3 rounded-2xl border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-4"
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="flex items-baseline gap-2 text-xl font-semibold tracking-tight text-text-primary">
+      {/* 2026-05-25 (Yuqi Today #35): h2 visually centered. Yuqi
+          flagged the previous left/right justify-between as
+          asymmetric — the eye lands on "Alerts" off-axis from the
+          centered Today page below. Grid 1fr/auto/1fr keeps the title
+          in the optical center while preserving the right-side
+          "View all alerts" link in the rightmost slot. The leftmost
+          slot is an invisible spacer so the title slot stays at
+          true mid-page. */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+        <span aria-hidden />
+        <h2 className="flex items-baseline justify-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             <span className="text-base font-normal tabular-nums text-text-tertiary">
@@ -63,7 +79,7 @@ function NeedsAttentionSection() {
             straight right — a tactile "follow me" cue. */}
         <Link
           to="/rules/pulse"
-          className="group/all inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+          className="group/all inline-flex items-center justify-self-end gap-1 text-base text-text-secondary hover:text-text-primary"
         >
           <Trans>View all alerts</Trans>
           <ArrowUpRightIcon

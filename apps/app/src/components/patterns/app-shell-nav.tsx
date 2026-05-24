@@ -210,9 +210,16 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
             />
           }
         >
+          {/* 2026-05-25 (Yuqi Today #1): avatar bumped from size-6 (24px)
+              to size-8 (32px). The original was too small for a brand
+              mark at h-14 — read as a UI dot, not a workspace
+              identity. 32px is the canonical avatar size used in the
+              dropdown's own list (matched to the chip mark Yuqi
+              expects elsewhere). Text bumps too (text-sm) so the
+              initials don't look squeezed inside the larger tile. */}
           <span
             aria-hidden
-            className="grid size-6 shrink-0 place-items-center rounded-md bg-brand-primary text-xs font-semibold text-text-inverted"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted"
             translate="no"
           >
             {currentMonogram}

@@ -12,9 +12,16 @@ interface PulseSourceBadgeProps {
 // English ("IRS Disaster Relief"), not a code token. Dropped
 // `font-mono tabular-nums` so the chip reads as a label, not a dev
 // breadcrumb. Matches the in-card header treatment in PulseAlertCard.
+//
+// 2026-05-25 (Yuqi Today #8): bumped from `text-xs` (12px) to `text-sm`
+// (14px) + `h-6` so the source name reads as a primary header chip
+// instead of meta chrome. The source is the most-scanned fact in the
+// drawer header (it tells the CPA *who* is making the regulatory
+// claim) — it shouldn't render at the same size as a footer
+// attribution.
 export function PulseSourceBadge({ source, sourceUrl }: PulseSourceBadgeProps) {
   return (
-    <Badge variant="outline" className="text-xs">
+    <Badge variant="outline" className="h-6 text-sm">
       <a
         href={sourceUrl}
         target="_blank"
@@ -22,7 +29,7 @@ export function PulseSourceBadge({ source, sourceUrl }: PulseSourceBadgeProps) {
         className="inline-flex items-center gap-1 text-text-secondary hover:text-text-primary"
       >
         {source}
-        <ExternalLinkIcon className="size-3" aria-hidden />
+        <ExternalLinkIcon aria-hidden />
       </a>
     </Badge>
   )

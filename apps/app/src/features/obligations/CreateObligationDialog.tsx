@@ -622,10 +622,19 @@ export function CreateObligationDialog({
                         <Trans>Locked to this client because you opened from their page.</Trans>
                       </span>
                     ) : (
+                      // 2026-05-25 (Yuqi Today #29): `self-start` pins
+                      // this affordance to the left edge of the field
+                      // column. Without it, the Field's flex layout
+                      // was placing the chip centered relative to
+                      // its content row (or filling width by default
+                      // in some browsers) — Yuqi flagged it sitting
+                      // off to the right of the input above. Sits
+                      // flush under the combobox now, as a quiet
+                      // secondary affordance.
                       <button
                         type="button"
                         onClick={() => setCreateClientOpen(true)}
-                        className="w-fit rounded-sm text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="w-fit self-start rounded-sm text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <Trans>Don't see your client? Create one</Trans>
                       </button>

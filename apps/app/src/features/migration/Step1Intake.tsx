@@ -352,11 +352,20 @@ export function Step1Intake({
             with awkward "your call" filler. Final version leads
             with the action ("Paste or upload"), drops the filler,
             and lists the high-value columns as a short example
-            (the AI mapper handles the rest regardless). */}
+            (the AI mapper handles the rest regardless).
+            2026-05-25 (Yuqi Today #25): the column-name examples
+            now italicize — they're literal strings the CPA should
+            look for in their export ("see if a column matches one
+            of these"), not narrative prose. Italics typeset them as
+            quoted data tokens without resorting to code-font, which
+            would over-state them as identifiers. */}
         <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
           <Trans>
-            Paste or upload — we&apos;ll figure out the shape. Columns like Estimated tax due, Owner
-            count, or Owners give us a head start on payment and penalty context.
+            Paste or upload — we&apos;ll figure out the shape. Columns like{' '}
+            <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
+            <em className="font-medium not-italic text-text-primary">Owner count</em>, or{' '}
+            <em className="font-medium not-italic text-text-primary">Owners</em> give us a head
+            start on payment and penalty context.
           </Trans>
         </p>
       </div>
@@ -399,15 +408,19 @@ export function Step1Intake({
           </div>
         </div>
 
-        {/* Vertical "or" divider at comfortable density; hidden at
-            compact (the column stack already implies the choice). */}
+        {/* 2026-05-25 (Yuqi Today #26): "or" stays, the divider
+            lines go. Yuqi flagged that the vertical hairlines above
+            and below "or" felt like over-decorated chrome between
+            two already-distinct columns (each has its own bordered
+            tile). Just the lowercase eyebrow now, vertically
+            centered between paste and upload — the word alone
+            communicates "either path is fine." Hidden at compact
+            density (column stack already implies the choice). */}
         {!compact ? (
-          <div className="flex flex-col items-center gap-3 self-stretch pt-7">
-            <span aria-hidden className="w-px flex-1 bg-divider-regular" />
+          <div className="flex flex-col items-center justify-center self-stretch pt-7">
             <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
               <Trans>or</Trans>
             </span>
-            <span aria-hidden className="w-px flex-1 bg-divider-regular" />
           </div>
         ) : null}
 
@@ -617,14 +630,31 @@ interface PresetChipProps {
 
 function PresetChip({ id, label, selected, compact = false, onToggle }: PresetChipProps) {
   const logo = PRESET_LOGOS[id]
+  // 2026-05-25 (Yuqi Today #27): heights and typography now snap to
+  // the canonical Button tokens (h-8 default / h-7 compact, text-sm
+  // body, font-medium). The previous h-9 + text-md was an off-scale
+  // size unique to this chip, which made the chip row read taller
+  // than the inputs above and below. Aligning to Button means these
+  // chips visually live in the same "click target" family as the
+  // rest of the dialog's primary buttons.
+  // 2026-05-25 (Yuqi Today #24): logo tile drops the hardcoded
+  // `bg-white ring-black/10`. White-on-white was specifically
+  // jarring against PNG logos with non-white backgrounds — the
+  // bright square framed each brand mark with a hard rectangle
+  // that fought the brand color. Now: subtle bg + divider ring, so
+  // transparent/SVG logos integrate, and logos that ship with their
+  // own background look intentional rather than awkwardly clipped.
+  // Per-brand tile colors can still be overridden via
+  // `logo.tileClassName` for marks that need a specific brand
+  // surface.
   const chip = (
     <button
       type="button"
       onClick={onToggle}
       aria-pressed={selected}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-2 rounded-md border font-medium transition-colors',
-        compact ? 'h-8 px-2 pr-2.5 pl-1.5 text-sm' : 'h-9 px-3 pl-2 text-md',
+        'inline-flex cursor-pointer items-center gap-2 rounded-md border text-sm font-medium transition-colors',
+        compact ? 'h-7 px-2 pl-1.5' : 'h-8 px-3 pl-1.5',
         selected
           ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
           : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
@@ -633,11 +663,7 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       <span
         aria-hidden
         className={cn(
-          // 2026-05-24 (design-system audit): was `rounded-[4px]`,
-          // off-scale. `rounded-sm` is the same physical radius
-          // (4px in Tailwind v4) and lines up with the rest of the
-          // app's "small logo tile" treatment elsewhere.
-          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-white ring-1 ring-black/10 transition-transform',
+          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle transition-transform',
           compact ? 'size-5' : 'size-5.5',
           logo.tileClassName,
           selected && 'scale-105',
@@ -694,8 +720,12 @@ function PresetExportGuideCard({ id, label, guide, compact = false }: PresetExpo
         {/* 2026-05-24 (design-system audit): was `rounded-[5px]`, an
             off-scale value with no Tailwind equivalent. `rounded-sm`
             matches the chip variant above and aligns with the app's
-            small-logo-tile treatment elsewhere. */}
-        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-white ring-1 ring-black/10">
+            small-logo-tile treatment elsewhere.
+            2026-05-25 (Yuqi Today #24): same tile-bg shift as the
+            chip variant above — replaced bg-white ring-black/10 with
+            subtle bg + divider ring so logos with their own brand
+            colour stop fighting a hard white square. */}
+        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle">
           <img
             src={logo.src}
             alt=""

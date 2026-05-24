@@ -1,4 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
+import { SparklesIcon } from 'lucide-react'
 
 import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -18,6 +19,14 @@ interface PulseStatusBadgeProps {
 // the upstream PulsingDot carries the colour. "New" also gets a soft
 // warning fill so it stands out instead of reading as one more
 // neutral chip in the row (#17).
+//
+// 2026-05-25 (Yuqi Today #7): "New" reskin — was warning-amber, which
+// Yuqi read as "red" in context (warning amber sits next to the
+// destructive PulsingDot in the alert header and the two saturated
+// hues fight). Switched to the `info` variant (soft blue + accent
+// text — teal in this palette) and added a Sparkles icon. The icon
+// carries the "new arrival" meaning so the label can stay short.
+// Other states stay as quiet outline chips.
 export function PulseStatusBadge({ status }: PulseStatusBadgeProps) {
   const { t } = useLingui()
   const config: Record<PulseFirmAlertStatus, { label: string; emphasis: boolean }> = {
@@ -30,14 +39,12 @@ export function PulseStatusBadge({ status }: PulseStatusBadgeProps) {
     reviewed: { label: t`Reviewed`, emphasis: false },
   }
   const entry = config[status]
-  // "New" reads as the call-to-action state — give it a soft warning
-  // fill so the eye picks it out of the badge row. Other states
-  // render as quiet outline chips.
   return (
     <Badge
-      variant={entry.emphasis ? 'warning' : 'outline'}
+      variant={entry.emphasis ? 'info' : 'outline'}
       className={cn(!entry.emphasis && 'text-text-secondary')}
     >
+      {entry.emphasis ? <SparklesIcon aria-hidden /> : null}
       {entry.label}
     </Badge>
   )

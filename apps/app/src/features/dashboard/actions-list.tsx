@@ -10,6 +10,8 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { useCurrentFirm } from '@/features/billing/use-billing-data'
+import { formatDatePretty } from '@/lib/utils'
 import {
   STATUS_DOT,
   STATUS_VARIANT,
@@ -41,6 +43,24 @@ function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): 
   const due = new Date(currentDueDate).getTime()
   const as = new Date(asOfDate).getTime()
   return Math.round((due - as) / (1000 * 60 * 60 * 24))
+}
+
+// 2026-05-25 (Yuqi Today #33): Yuqi asked to see both the firm's
+// INTERNAL deadline ("when you actually need to file by") and the
+// OFFICIAL statutory deadline on the dashboard's expanded row.
+// `currentDueDate` on DashboardTopRow is the official date; the
+// internal date is computed by subtracting the firm's configured
+// `internalDeadlineOffsetDays` (default 14). The contract doesn't
+// surface the internal date as a separate field today — it's a
+// view-time derivation everywhere it appears. Computing it here
+// avoids a contract migration just for this UI tweak.
+function internalDueDateFromOfficial(
+  officialDueDate: string,
+  internalDeadlineOffsetDays: number,
+): string {
+  const date = new Date(`${officialDueDate}T00:00:00`)
+  date.setDate(date.getDate() - internalDeadlineOffsetDays)
+  return date.toISOString().slice(0, 10)
 }
 
 // 2026-05-25 (Yuqi #26): the previous prompts read like developer
@@ -108,12 +128,14 @@ function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
 function ActionRow({
   row,
   asOfDate,
+  internalDeadlineOffsetDays,
   expanded,
   onHoverChange,
   onOpenObligation,
 }: {
   row: DashboardTopRow
   asOfDate: string | null
+  internalDeadlineOffsetDays: number
   expanded: boolean
   onHoverChange: (hovered: boolean) => void
   onOpenObligation: () => void
@@ -124,6 +146,13 @@ function ActionRow({
   const prompt = actionPromptFor(row, asOfDate, t)
   const factors = topPriorityFactors(row)
   const detailId = `action-detail-${row.obligationId}`
+  // Internal date = official deadline − firm offset. Derived in JS so
+  // no contract change is needed for this surface (see comment on
+  // `internalDueDateFromOfficial`).
+  const internalDueDate = internalDueDateFromOfficial(
+    row.currentDueDate,
+    internalDeadlineOffsetDays,
+  )
 
   return (
     <div
@@ -270,7 +299,15 @@ function ActionRow({
             // squared, bottom rounded. Same bg as the row when
             // expanded so the two read as a single block. Hover state
             // darkens slightly to signal "this is the click target."
-            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            //
+            // 2026-05-25 (Yuqi Today #32): top padding tightened from
+            // `py-4` to `pt-3 pb-4`. The previous 16px top padding
+            // pushed the dl content visibly down from the row above,
+            // and the bg-continuity trick stopped working — they read
+            // as two stacked blocks with a gap. 12px top + 16px
+            // bottom keeps the dl breathing room while the top
+            // sits flush against the row's baseline.
+            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
               {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
@@ -287,6 +324,36 @@ function ActionRow({
                 <Trans>Action</Trans>
               </dt>
               <dd className="font-medium text-text-primary">{prompt}</dd>
+
+              {/* 2026-05-25 (Yuqi Today #33): show INTERNAL and
+                  OFFICIAL deadlines on one line in the expansion
+                  panel. The collapsed row's RowMeta shows "in 3d"
+                  / "5d late" which answers "how soon" — but the
+                  CPA opening this panel wants the absolute dates to
+                  plan the week. Internal first (it's the date the
+                  CPA actually works against); official second as
+                  the statutory reality. Both shown as prose
+                  ("May 6, 2026") via formatDatePretty. */}
+              <dt className="text-text-tertiary">
+                <Trans>Deadlines</Trans>
+              </dt>
+              <dd className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-text-primary tabular-nums">
+                <span>
+                  <Trans>
+                    Internal{' '}
+                    <span className="font-medium">{formatDatePretty(internalDueDate)}</span>
+                  </Trans>
+                </span>
+                <span aria-hidden className="text-text-tertiary">
+                  ·
+                </span>
+                <span>
+                  <Trans>
+                    Official{' '}
+                    <span className="font-medium">{formatDatePretty(row.currentDueDate)}</span>
+                  </Trans>
+                </span>
+              </dd>
 
               <dt className="text-text-tertiary">
                 <Trans>Status</Trans>
@@ -434,6 +501,13 @@ function DashboardActionsList({
   // Single-row hover state. Only one row expanded at a time — mouse
   // can only physically be over one row.
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  // Firm's configured offset between internal and official deadlines.
+  // Used by the expansion panel to compute the internal-deadline date
+  // for display (#33). Default of 14 matches the DB default so we
+  // render a reasonable date during the first paint before the firms
+  // cache hydrates.
+  const { currentFirm } = useCurrentFirm()
+  const internalDeadlineOffsetDays = currentFirm?.internalDeadlineOffsetDays ?? 14
 
   // Build summary segments — drop zero-count entries. Only `blocked`
   // uses destructive — it's the one genuinely-stuck signal.
@@ -555,6 +629,7 @@ function DashboardActionsList({
             <ActionRow
               row={row}
               asOfDate={asOfDate}
+              internalDeadlineOffsetDays={internalDeadlineOffsetDays}
               expanded={hoveredId === row.obligationId}
               onHoverChange={(hovered) => {
                 if (hovered) setHoveredId(row.obligationId)
@@ -577,7 +652,13 @@ function DashboardActionsList({
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
   const { t } = useLingui()
   return (
-    <div className="flex items-baseline justify-between gap-3">
+    // 2026-05-25 (Yuqi Today #34): centered h2. Same grid pattern as
+    // NeedsAttentionSection — invisible 1fr spacer on the left, h2 in
+    // the auto center column, "All deadlines" link justify-self-end
+    // in the right 1fr slot. Optical centering of the section title
+    // lines up with the centered Alerts header above.
+    <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+      <span aria-hidden />
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
           inline as "Sorted by priority" so the CPA knows why row 3 is
@@ -587,7 +668,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           explanation; the full breakdown lives in the obligation's
           Smart Priority panel). Quiet caption so it doesn't compete
           with the h2. */}
-      <h2 className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
+      <h2 className="flex items-baseline flex-wrap justify-center gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
         <span className="inline-flex items-baseline gap-2">
           <Trans>Actions this week</Trans>
           {count !== null && count > 0 ? (
@@ -612,7 +693,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           event.preventDefault()
           onOpenAll()
         }}
-        className="group/all-deadlines inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+        className="group/all-deadlines inline-flex items-center justify-self-end gap-1 text-base text-text-secondary hover:text-text-primary"
       >
         <Trans>All deadlines</Trans>
         <ArrowUpRightIcon

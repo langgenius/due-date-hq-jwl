@@ -93,13 +93,23 @@ export function ClientCombobox({
           </button>
         }
       />
+      {/* 2026-05-25 (Yuqi Today #30): the popover trigger anchors at
+          the input's width, but the dropdown body now caps at
+          `max-h-[280px]` (was 320px) with single-line list rows
+          (see ClientCommandItem below). Yuqi flagged "the search
+          dropdown can be more unified and compact" — the previous
+          two-line rows + 320px max-height made even a 6-client
+          practice push the popover taller than the parent dialog's
+          body, forcing scroll inside scroll. Single-line + tighter
+          max-height keeps the dropdown inside the dialog visual
+          frame at every realistic list length. */}
       <PopoverContent
         align="start"
         className="w-(--anchor-width) min-w-(--anchor-width) max-w-[calc(100vw-2rem)] overflow-hidden p-0"
       >
         <Command loop>
           <CommandInput autoFocus placeholder={t`Search clients…`} />
-          <CommandList className="max-h-[320px]">
+          <CommandList className="max-h-[280px]">
             <CommandEmpty>
               {clientsQuery.isLoading ? (
                 <Trans>Loading clients…</Trans>
@@ -138,16 +148,27 @@ function ClientCommandItem({
   // The CommandItem `value` includes the EIN + state so partial typing
   // ("CA", "12-3456789") still surfaces the client.
   const itemValue = [client.name, client.state ?? '', client.ein ?? ''].join(' ')
+  // 2026-05-25 (Yuqi Today #30): collapsed from two-line rows
+  // (name above, state · entity below) to a single line: name on
+  // the left, state / entity meta as small tertiary text on the
+  // right, check icon trailing. Reads as a denser list — Cmd+K /
+  // combobox vocabulary the rest of the app uses for picker
+  // popovers.
+  const meta = [client.state, client.entityType]
+    .filter((value): value is string => Boolean(value))
+    .join(' · ')
   return (
-    <CommandItem value={itemValue} onSelect={onSelect} className="grid-cols-[minmax(0,1fr)_auto]">
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-medium text-text-primary">{client.name}</span>
-        <span className="block truncate text-xs text-text-tertiary">
-          {[client.state, client.entityType]
-            .filter((value): value is string => Boolean(value))
-            .join(' · ')}
-        </span>
-      </span>
+    <CommandItem
+      value={itemValue}
+      onSelect={onSelect}
+      className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
+    >
+      <span className="min-w-0 truncate text-sm font-medium text-text-primary">{client.name}</span>
+      {meta ? (
+        <span className="shrink-0 text-xs text-text-tertiary tabular-nums">{meta}</span>
+      ) : (
+        <span aria-hidden />
+      )}
       <CheckIcon
         className={cn('size-4 text-text-accent', selected ? 'opacity-100' : 'opacity-0')}
         aria-hidden

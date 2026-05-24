@@ -451,9 +451,21 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
 
   return (
     <Sheet open={open} onOpenChange={(next) => (next ? null : onClose())}>
+      {/* 2026-05-25 (Yuqi Today #23): right panel now floats with a
+          20px gap on top / bottom / right edges instead of being
+          flush to the viewport. The panel reads as a discrete object
+          on the page (a "card slid in from the right") rather than
+          a wall that fully replaces the right side of the screen.
+          Gap implemented via `top-5 bottom-5 right-5` overrides on
+          the popup's positioning; the SheetContent primitive's
+          default `inset-y-0 right-0 h-full` still applies via
+          data-[side=right] cascade but our explicit `top-5 bottom-5
+          right-5 h-auto` overrides the inset to create the gap.
+          `rounded-lg` on all corners (not just the inner edge) so
+          the floating panel looks like a card from every side. */}
       <SheetContent
         side="right"
-        className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
+        className="data-[side=right]:top-5 data-[side=right]:right-5 data-[side=right]:bottom-5 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] data-[side=right]:rounded-lg sm:data-[side=right]:w-[calc(100vw-2.5rem)] sm:data-[side=right]:max-w-[calc(100vw-2.5rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2.5rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2.5rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2.5rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2.5rem))]"
       >
         {/*
           2026-05-25 (Yuqi review Phase 2):
@@ -556,7 +568,13 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
           )}
         </SheetHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
+        {/* 2026-05-25 (Yuqi Today #19): body gap reduced from gap-5
+            (20px) to gap-4 (16px) and vertical padding from py-5
+            to py-4 — denser scan rhythm so the drawer reads as
+            information-dense, not as a series of cards with air
+            between them. The CPA wants to see source → scope →
+            action without paging the whole drawer. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
           {detailQuery.isError ? (
             <Alert variant="destructive">
               <AlertCircleIcon />
@@ -630,9 +648,16 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                   with the "Low AI confidence" alert into one block
                   so the same concept isn't shown twice (#15, #19).
                   The alert is the canonical surface — it names the
-                  exact confidence number AND explains what to do. */}
+                  exact confidence number AND explains what to do.
+                  2026-05-25 (Yuqi Today #11): variant flipped from
+                  `destructive` → `warning`. Low AI confidence is a
+                  "double-check this" cue, not a "this thing broke"
+                  cue. Red text reads as error and pushes the CPA
+                  toward the wrong mental model (data is wrong vs.
+                  data needs verification). Amber matches the
+                  semantics. */}
               {isVeryLowPulseConfidence(detail.alert.confidence) ? (
-                <Alert variant="destructive">
+                <Alert variant="warning">
                   <AlertCircleIcon />
                   <AlertTitle>
                     <ConceptLabel concept="aiConfidence">

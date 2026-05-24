@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -195,6 +195,16 @@ function WizardFrame({
         </div>
       )}
 
+      {/* 2026-05-25 (Yuqi Today #28): Back button drops its
+          ArrowLeftIcon. Yuqi flagged "back button does not need an
+          icon" — the label "Back" already says where the click
+          goes; the icon was redundant chrome that made the back/
+          continue buttons read as a pair of weighted arrows, not as
+          a primary/secondary action pair. Continue keeps its
+          forward arrow because there it functions as a "this is the
+          next step" cue (and rotates on hover toward Step+1).
+          Both buttons now route through the canonical Button size
+          tokens (variant default for Continue, outline for Back). */}
       <footer className="flex h-12 shrink-0 items-center justify-end gap-4 border-divider-subtle px-4">
         <Button
           variant="outline"
@@ -202,7 +212,6 @@ function WizardFrame({
           onClick={onBack}
           disabled={busy || backDisabled || step === 1 || !onBack}
         >
-          <ArrowLeftIcon data-icon="inline-start" />
           <Trans>Back</Trans>
         </Button>
         <Button
