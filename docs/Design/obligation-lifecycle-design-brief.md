@@ -8,6 +8,7 @@
 - Product model (memory): `~/.claude/projects/-Users-yuqi-dev-due-date-hq-jwl/memory/project_product_model.md`
 - Canonical schema today: [packages/contracts/src/shared/enums.ts:55-64](../../packages/contracts/src/shared/enums.ts)
 - Canonical PDF: `/Users/yuqi/Desktop/desktop/DueDateHQ_dashboard/files/美国小型会计事务所报税种类、流程与规则产品指南.pdf`
+- Status icon vocabulary (2026-05-25): [obligation-status-icon-vocabulary.md](./obligation-status-icon-vocabulary.md)
 
 ## 1. Feature summary
 
