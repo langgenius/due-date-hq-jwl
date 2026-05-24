@@ -26,15 +26,12 @@ import {
   ChevronRightIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
-  DownloadIcon,
   EyeIcon,
   FileSearchIcon,
   MailIcon,
   MegaphoneIcon,
   MoreHorizontalIcon,
-  PencilIcon,
   PhoneIcon,
-  PinIcon,
   PlusIcon,
   RefreshCwIcon,
   ScrollTextIcon,
@@ -2566,18 +2563,17 @@ function ClientActiveAlertsExtensionCard({
 
 /**
  * Overflow menu (`···`) in the header action cluster. Hosts the
- * lower-priority actions that don't belong on the primary button row:
+ * lower-priority actions that don't belong on the primary button row.
  *
- *  - **Pin to sidebar** (planned — TODO note for follow-up commit)
- *  - **Download client PDF** (planned — TODO)
- *  - **Edit client info** (planned — TODO)
- *  - **View audit log** (real — routes to /audit with this client
- *    pre-filtered)
+ * Today there's one real action: **View audit log** (routes to
+ * `/audit` filtered by this client). Previously the menu also listed
+ * **Pin to sidebar**, **Download client PDF**, and **Edit client
+ * info** as "coming soon" toasts — Yuqi flagged those as dead
+ * affordances on 2026-05-24 ("don't put nonworking things"). They've
+ * been removed until the real implementations land.
  *
- * The three pre-implementation items render a toast when clicked so
- * the affordance feels live during the design pass; replace each
- * `onClick` handler when the underlying feature lands. See sequencing
- * doc P2 backlog entries D-extra-* for the implementation order.
+ * If the user can't read audit logs the whole dropdown collapses
+ * (returns `null`) so we don't render an empty `···` button.
  */
 function ClientHeaderOverflowMenu({
   clientId,
@@ -2588,11 +2584,7 @@ function ClientHeaderOverflowMenu({
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const announceComingSoon = (label: string) => {
-    toast(t`${label} is coming soon`, {
-      description: t`Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md`,
-    })
-  }
+  if (!canReadAudit) return null
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -2603,29 +2595,12 @@ function ClientHeaderOverflowMenu({
         }
       />
       <DropdownMenuContent align="end" className="min-w-[220px]">
-        <DropdownMenuItem onClick={() => announceComingSoon(t`Pin to sidebar`)}>
-          <PinIcon className="size-4" aria-hidden />
-          <Trans>Pin to sidebar</Trans>
+        <DropdownMenuItem
+          onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+        >
+          <ScrollTextIcon className="size-4" aria-hidden />
+          <Trans>View audit log</Trans>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => announceComingSoon(t`Download client PDF`)}>
-          <DownloadIcon className="size-4" aria-hidden />
-          <Trans>Download client PDF</Trans>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => announceComingSoon(t`Edit client info`)}>
-          <PencilIcon className="size-4" aria-hidden />
-          <Trans>Edit client info</Trans>
-        </DropdownMenuItem>
-        {canReadAudit ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
-            >
-              <ScrollTextIcon className="size-4" aria-hidden />
-              <Trans>View audit log</Trans>
-            </DropdownMenuItem>
-          </>
-        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
@@ -3292,8 +3267,18 @@ function ClientOwnerHeaderPill({
           </DropdownMenuRadioItem>
           {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
           {assignableMembers.length === 0 ? (
-            <DropdownMenuItem disabled>
-              <Trans>No assignable members</Trans>
+            // Empty-state row. Disabled + muted so it doesn't read as
+            // a tappable option, but with enough context that the user
+            // knows why the list is empty + where to fix it. Without
+            // the hint the row reads as "0 results" with no path
+            // forward.
+            <DropdownMenuItem
+              disabled
+              title={t`Invite teammates from Settings → Members to assign work`}
+            >
+              <span className="text-text-tertiary">
+                <Trans>No teammates yet — invite from Settings</Trans>
+              </span>
             </DropdownMenuItem>
           ) : (
             assignableMembers.map((member) => {
