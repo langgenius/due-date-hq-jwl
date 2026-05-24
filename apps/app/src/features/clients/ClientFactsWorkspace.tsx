@@ -2838,7 +2838,7 @@ function FilingPlanYearSection({
                 aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
                 className="min-w-0 flex-1 truncate rounded-sm text-left text-xs font-medium leading-4 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
-                <TaxCodeLabel code={obligation.taxType} />
+                <TaxCodeLabel code={obligation.taxType} asChild />
               </button>
               <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.currentDueDate)}

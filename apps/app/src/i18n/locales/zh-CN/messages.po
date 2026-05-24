@@ -21,6 +21,10 @@ msgstr "· 本年度"
 msgid "· firm-set deadline for this materials request"
 msgstr "· 事务所为此材料请求设定的截止日期"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "(no longer on team)"
+msgstr "（已不在团队中）"
+
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {1}: cell.entityType.toUpperCase()
 #. placeholder {2}: cell.state
@@ -171,6 +175,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · 按住 Shift 点击可选中该客户的所有行"
 
+#. placeholder {0}: codes.join(', ')
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} + {overflow} more"
+msgstr "{0} + 另外 {overflow} 项"
+
 #. placeholder {0}: templateResult.accepted.length + concreteDraftResult.verified.length
 #. placeholder {1}: templateResult.skipped.length + concreteDraftResult.skipped.length
 #: src/features/rules/coverage-tab.tsx
@@ -186,6 +195,12 @@ msgstr "{0} and its imported deadlines"
 #: src/features/members/members-page.tsx
 msgid "{0} available seats"
 msgstr "{0} 个可用席位"
+
+#. placeholder {0}: codes.join(', ')
+#. placeholder {0}: codes[0]
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} blocked or overdue"
+msgstr "{0} 项已阻塞或逾期"
 
 #. placeholder {0}: pendingRevert.clientCount
 #. placeholder {1}: pendingRevert.obligationCount
@@ -213,6 +228,12 @@ msgstr "已根据规则目录创建 {0} 个截止日期。"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{0} deadline created."
 msgstr "已创建 {0} 个截止日期。"
+
+#. placeholder {0}: result.updatedCount
+#. placeholder {1}: v2StatusLabels[vars.status]
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{0} deadlines moved to {1}"
+msgstr "{0} 个截止日期已移至 {1}"
 
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -358,6 +379,10 @@ msgstr "{clientCount, plural, other {# 个客户}}"
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
 msgstr "{count, plural, other {已选择 # 条规则}}"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{count, plural, one {# selected} other {# selected}}"
+msgstr "{count, plural, other {已选择 # 项}}"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{count} {noun} updated"
 msgstr "已更新 {count} 个{noun}"
@@ -442,10 +467,6 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, other {# 个客户}}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{label} is coming soon"
-msgstr "{label} 功能即将推出"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "{label}, selected"
@@ -808,8 +829,8 @@ msgstr "已接受的事务所规则，用于核对来源和截止日。"
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
-msgstr "接受后，这条规则会应用于 {0} 中适用于 {entitySummary} 的客户申报。若证据、适用范围、截止日逻辑或延期处理不应生效，请拒绝。"
+msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension handling needs more review."
+msgstr "接受后，此规则会针对 {0} 的 {entitySummary} 客户申报启用。若证据、适用范围、截止日逻辑或延期处理仍需复核，请跳过。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting rule…"
@@ -871,7 +892,6 @@ msgstr "已生效"
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/temporary-rules-tab.tsx
-#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Active"
 msgstr "活跃"
@@ -942,10 +962,6 @@ msgstr "活动"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Activity log"
 msgstr "活动日志"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Activity scope"
-msgstr "活动范围"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -1755,10 +1771,6 @@ msgstr "被上游申报阻塞 — 已收到 {checklistCount} 项材料。"
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "被上游申报阻塞，同时也在等待客户材料。"
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Blocked or overdue"
-msgstr "受阻或已逾期"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "正文"
@@ -1767,6 +1779,7 @@ msgstr "正文"
 msgid "Building the import preview"
 msgstr "正在生成导入预览"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Bulk actions"
 msgstr "Bulk actions"
@@ -1906,6 +1919,18 @@ msgstr "卡号和发票支付详情不会进入应用数据库。"
 msgid "Change"
 msgstr "变更"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently {name}"
+msgstr "更改负责人 — 当前为 {name}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently unassigned"
+msgstr "更改负责人 — 当前未分配"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently you ({name})"
+msgstr "更改负责人 — 当前为你（{name}）"
+
 #: src/features/members/members-page.tsx
 msgid "Change role"
 msgstr "更改角色"
@@ -2043,6 +2068,7 @@ msgid "Cleaning up client's books"
 msgstr "正在整理客户账目"
 
 #: src/components/primitives/iso-date-picker.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
@@ -2749,10 +2775,6 @@ msgstr "无法重新激活提醒"
 msgid "Couldn't regenerate calendar URL"
 msgstr "无法重新生成日历 URL"
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Couldn't reject rule"
-msgstr "无法拒绝规则"
-
 #: src/routes/obligations.tsx
 msgid "Couldn't remove document item"
 msgstr "无法移除文件项"
@@ -2879,6 +2901,10 @@ msgstr "无法更新日历订阅"
 msgid "Couldn't update document item"
 msgstr "无法更新文件项"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't update owner"
+msgstr "无法更新负责人"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't update owners"
 msgstr "无法更新负责人"
@@ -2899,6 +2925,7 @@ msgstr "无法更新所选行"
 msgid "Couldn't update Smart Priority"
 msgstr "无法更新 Smart Priority"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't update status"
 msgstr "状态更新失败"
@@ -3353,10 +3380,6 @@ msgstr "Dot order"
 msgid "Download"
 msgstr "Download"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Download client PDF"
-msgstr "下载客户 PDF"
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
 msgstr "下载最新包"
@@ -3511,10 +3534,6 @@ msgstr "早期提醒"
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "编辑"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Edit client info"
-msgstr "编辑客户信息"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Effective"
@@ -3959,10 +3978,6 @@ msgstr "兜底文件清单已就绪"
 msgid "FBAR / FinCEN 114 + Form 8938 may apply"
 msgstr "可能适用 FBAR / FinCEN 114 + Form 8938"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
-msgstr "该功能在路线图中 — 详见 docs/Design/clients-list-and-detail-critique-2026-05-22.md"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Federal EIN"
 msgstr "联邦 EIN"
@@ -4029,6 +4044,10 @@ msgstr "文件"
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Filing"
 msgstr "申报"
+
+#: src/features/clients/ClientCompliancePosturePanel.tsx
+msgid "Filing activity"
+msgstr "申报活动"
 
 #: src/routes/obligations.tsx
 msgid "Filing deadline"
@@ -4239,6 +4258,10 @@ msgstr "表格名称"
 msgid "Format"
 msgstr "格式"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Former teammate"
+msgstr "前团队成员"
+
 #: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
@@ -4275,7 +4298,6 @@ msgid "Full practice AI workflows"
 msgstr "完整事务所 AI 工作流"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/opportunities/client-opportunities-card.tsx
 msgid "Future business cues"
 msgstr "未来业务提示"
 
@@ -4679,6 +4701,10 @@ msgstr "邀请成员"
 #: src/routes/settings.tsx
 msgid "Invite teammates and manage roles."
 msgstr "邀请团队成员并管理角色。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Invite teammates from Settings → Members to assign work"
+msgstr "请从设置 → 成员邀请团队成员后再分配工作"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "IP hash"
@@ -5374,6 +5400,10 @@ msgstr "准备好开始工作时可推进到下一阶段。"
 msgid "Move to In review when ready to draft."
 msgstr "准备好起草时可推进到「审核中」。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Move to status"
+msgstr "移动到状态"
+
 #: src/routes/obligations.tsx
 msgid "Move to: {label}"
 msgstr "切换到：{label}"
@@ -5934,6 +5964,10 @@ msgstr "未选择税种。"
 msgid "No tax year"
 msgstr "没有税年"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No teammates yet — invite from Settings"
+msgstr "暂无团队成员 — 请从设置中邀请"
+
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "No temporary rules yet"
 msgstr "暂无临时规则"
@@ -6289,6 +6323,12 @@ msgstr "打开 {0}"
 msgid "Open {0} {1} in the obligation queue"
 msgstr "在义务队列中打开 {0} {1}"
 
+#. placeholder {0}: formatTaxCode(obligation.taxType)
+#. placeholder {1}: formatDate(obligation.currentDueDate)
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Open {0} due {1}"
+msgstr "打开 {0}，截止日 {1}"
+
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {active} active rules for {0}"
@@ -6598,6 +6638,10 @@ msgstr "需要 Owner 授权"
 msgid "Owner approved"
 msgstr "Owner 授权"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Owner cleared"
+msgstr "负责人已清除"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -6622,17 +6666,13 @@ msgstr "Owner 只读 · 本人只读"
 msgid "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
 msgstr "Owner 保持只读。Manager 可以复核工作；Preparer 和 Coordinator 具有限定范围的访问权限。"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Owner updated"
+msgstr "负责人已更新"
+
 #: src/features/workload/workload-page.tsx
 msgid "Owner workload"
 msgstr "负责人负载"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owner: {name}"
-msgstr "负责人：{name}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owner: unassigned"
-msgstr "负责人：未分配"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/routes/obligations.tsx
@@ -6936,10 +6976,6 @@ msgstr "选择一个客户…"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
 msgstr "选择州"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pin to sidebar"
-msgstr "钉到侧边栏"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pinned"
@@ -7700,10 +7736,6 @@ msgstr "重新生成 URL"
 msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 msgstr "匹配你事务所客户的监管 Pulse 信号。复核、批量应用截止日变更、暂缓，或重新查看已关闭变更。"
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Reject"
-msgstr "拒绝"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
@@ -7713,10 +7745,6 @@ msgstr "拒绝"
 #: src/routes/rules.library.tsx
 msgid "Rejected"
 msgstr "已拒绝"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Rejected from rule detail review."
-msgstr "已从规则详情审核中拒绝。"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Relief notice"
@@ -8265,7 +8293,6 @@ msgid "Rule queue"
 msgstr "规则队列"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
 msgstr "规则已拒绝"
 
@@ -8589,8 +8616,10 @@ msgstr "安全"
 msgid "Security settings couldn't load"
 msgstr "无法加载安全设置"
 
+#. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/routes/obligations.tsx
 msgid "Select {0}"
@@ -8608,6 +8637,10 @@ msgstr "全选"
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
 msgstr "全选 {totalPending} 项"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Select all deadlines in this year"
+msgstr "选择本年度全部截止日期"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Select all eligible obligations"
@@ -9613,6 +9646,10 @@ msgstr "由目标年度已生效事务所规则计算出的具体截止日。短
 msgid "The Evidence tab is where the 8879 packet lives"
 msgstr "Evidence 标签页存放 8879 文件包"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The firm-side soft target — when this filing should be ready internally for the deadline window"
+msgstr "事务所内部软目标 — 此申报应在截止窗口前完成内部准备的时间"
+
 #: src/features/concepts/concept-help.tsx
 msgid "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
 msgstr "事务所对客户为特定截止日期提供的文件、签名和确认的实时记录。按截止日期单独跟踪。独立于事务所的工作流状态 — 材料可以在状态仍为「等待中」时已齐全，也可以在开始起草后仍不完整。"
@@ -9620,6 +9657,10 @@ msgstr "事务所对客户为特定截止日期提供的文件、签名和确认
 #: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open obligations for the chosen window — work these first."
 msgstr "所选时段内风险最高的未完成义务 — 优先处理这些。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
+msgstr "IRS / 州法定截止日 — 此申报必须提交的硬性期限"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The jurisdictions, entity types, and tax types currently backed by watched sources and active practice rules."
@@ -9764,6 +9805,10 @@ msgstr "本次导入可在 24 小时内撤销，并会保留审计记录"
 #: src/routes/onboarding.tsx
 msgid "This is what your team and clients will see."
 msgstr "你的团队和客户都会看到这个名字。"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "This member is no longer on the team"
+msgstr "此成员已不在团队中"
 
 #: src/features/concepts/concept-help.tsx
 msgid "This obligation comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule."

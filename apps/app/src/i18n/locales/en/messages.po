@@ -21,6 +21,10 @@ msgstr "· current year"
 msgid "· firm-set deadline for this materials request"
 msgstr "· firm-set deadline for this materials request"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "(no longer on team)"
+msgstr "(no longer on team)"
+
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {1}: cell.entityType.toUpperCase()
 #. placeholder {2}: cell.state
@@ -171,6 +175,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · Shift+click to select all of this client's rows"
 
+#. placeholder {0}: codes.join(', ')
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} + {overflow} more"
+msgstr "{0} + {overflow} more"
+
 #. placeholder {0}: templateResult.accepted.length + concreteDraftResult.verified.length
 #. placeholder {1}: templateResult.skipped.length + concreteDraftResult.skipped.length
 #: src/features/rules/coverage-tab.tsx
@@ -186,6 +195,12 @@ msgstr "{0} and its imported deadlines"
 #: src/features/members/members-page.tsx
 msgid "{0} available seats"
 msgstr "{0} available seats"
+
+#. placeholder {0}: codes.join(', ')
+#. placeholder {0}: codes[0]
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} blocked or overdue"
+msgstr "{0} blocked or overdue"
 
 #. placeholder {0}: pendingRevert.clientCount
 #. placeholder {1}: pendingRevert.obligationCount
@@ -213,6 +228,12 @@ msgstr "{0} deadline created from the rule catalog."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{0} deadline created."
 msgstr "{0} deadline created."
+
+#. placeholder {0}: result.updatedCount
+#. placeholder {1}: v2StatusLabels[vars.status]
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{0} deadlines moved to {1}"
+msgstr "{0} deadlines moved to {1}"
 
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -358,6 +379,10 @@ msgstr "{clientCount, plural, one {# client} other {# clients}}"
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
 msgstr "{count, plural, one {# rule selected} other {# rules selected}}"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{count, plural, one {# selected} other {# selected}}"
+msgstr "{count, plural, one {# selected} other {# selected}}"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{count} {noun} updated"
 msgstr "{count} {noun} updated"
@@ -442,10 +467,6 @@ msgstr "{impacted, plural, one {# client may be affected} other {# clients may b
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "{impacted, plural, one {# client} other {# clients}}"
 msgstr "{impacted, plural, one {# client} other {# clients}}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{label} is coming soon"
-msgstr "{label} is coming soon"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "{label}, selected"
@@ -808,8 +829,8 @@ msgstr "Accepted practice rules for source and deadline review."
 
 #. placeholder {0}: rule.jurisdiction
 #: src/features/rules/rule-detail-drawer.tsx
-msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
-msgstr "Accepting activates this rule for client filings in {0} for {entitySummary}. Reject it if the evidence, applicability, due-date logic, or extension handling should not become active."
+msgid "Accepting activates this rule for client filings in {0} for {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension handling needs more review."
+msgstr "Accepting activates this rule for client filings in {0} for {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension handling needs more review."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accepting rule…"
@@ -871,7 +892,6 @@ msgstr "active"
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/temporary-rules-tab.tsx
-#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Active"
 msgstr "Active"
@@ -942,10 +962,6 @@ msgstr "Activity"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Activity log"
 msgstr "Activity log"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Activity scope"
-msgstr "Activity scope"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -1755,10 +1771,6 @@ msgstr "Blocked by upstream return — {checklistCount} items in hand."
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "Blocked by upstream return AND awaiting client materials."
 
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "Blocked or overdue"
-msgstr "Blocked or overdue"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "Body"
@@ -1767,6 +1779,7 @@ msgstr "Body"
 msgid "Building the import preview"
 msgstr "Building the import preview"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Bulk actions"
 msgstr "Bulk actions"
@@ -1906,6 +1919,18 @@ msgstr "Card numbers and invoice payment details never enter the app database."
 msgid "Change"
 msgstr "Change"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently {name}"
+msgstr "Change owner — currently {name}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently unassigned"
+msgstr "Change owner — currently unassigned"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Change owner — currently you ({name})"
+msgstr "Change owner — currently you ({name})"
+
 #: src/features/members/members-page.tsx
 msgid "Change role"
 msgstr "Change role"
@@ -2043,6 +2068,7 @@ msgid "Cleaning up client's books"
 msgstr "Cleaning up client's books"
 
 #: src/components/primitives/iso-date-picker.tsx
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
@@ -2749,10 +2775,6 @@ msgstr "Couldn't reactivate alert"
 msgid "Couldn't regenerate calendar URL"
 msgstr "Couldn't regenerate calendar URL"
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Couldn't reject rule"
-msgstr "Couldn't reject rule"
-
 #: src/routes/obligations.tsx
 msgid "Couldn't remove document item"
 msgstr "Couldn't remove document item"
@@ -2879,6 +2901,10 @@ msgstr "Couldn't update calendar subscription"
 msgid "Couldn't update document item"
 msgstr "Couldn't update document item"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Couldn't update owner"
+msgstr "Couldn't update owner"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't update owners"
 msgstr "Couldn't update owners"
@@ -2899,6 +2925,7 @@ msgstr "Couldn't update selected rows"
 msgid "Couldn't update Smart Priority"
 msgstr "Couldn't update Smart Priority"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't update status"
 msgstr "Couldn't update status"
@@ -3353,10 +3380,6 @@ msgstr "Dot order"
 msgid "Download"
 msgstr "Download"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Download client PDF"
-msgstr "Download client PDF"
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
 msgstr "Download latest"
@@ -3511,10 +3534,6 @@ msgstr "Early alert"
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "Edit"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Edit client info"
-msgstr "Edit client info"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Effective"
@@ -3959,10 +3978,6 @@ msgstr "Fallback document list ready"
 msgid "FBAR / FinCEN 114 + Form 8938 may apply"
 msgstr "FBAR / FinCEN 114 + Form 8938 may apply"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
-msgstr "Feature is on the roadmap — track in docs/Design/clients-list-and-detail-critique-2026-05-22.md"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Federal EIN"
 msgstr "Federal EIN"
@@ -4029,6 +4044,10 @@ msgstr "Files"
 #: src/features/pulse/components/PulseAlertCard.tsx
 msgid "Filing"
 msgstr "Filing"
+
+#: src/features/clients/ClientCompliancePosturePanel.tsx
+msgid "Filing activity"
+msgstr "Filing activity"
 
 #: src/routes/obligations.tsx
 msgid "Filing deadline"
@@ -4239,6 +4258,10 @@ msgstr "Form name"
 msgid "Format"
 msgstr "Format"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Former teammate"
+msgstr "Former teammate"
+
 #: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
@@ -4275,7 +4298,6 @@ msgid "Full practice AI workflows"
 msgstr "Full practice AI workflows"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/opportunities/client-opportunities-card.tsx
 msgid "Future business cues"
 msgstr "Future business cues"
 
@@ -4679,6 +4701,10 @@ msgstr "Invite member"
 #: src/routes/settings.tsx
 msgid "Invite teammates and manage roles."
 msgstr "Invite teammates and manage roles."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Invite teammates from Settings → Members to assign work"
+msgstr "Invite teammates from Settings → Members to assign work"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "IP hash"
@@ -5374,6 +5400,10 @@ msgstr "Move forward when ready to start work."
 msgid "Move to In review when ready to draft."
 msgstr "Move to In review when ready to draft."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Move to status"
+msgstr "Move to status"
+
 #: src/routes/obligations.tsx
 msgid "Move to: {label}"
 msgstr "Move to: {label}"
@@ -5934,6 +5964,10 @@ msgstr "No tax types selected."
 msgid "No tax year"
 msgstr "No tax year"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No teammates yet — invite from Settings"
+msgstr "No teammates yet — invite from Settings"
+
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "No temporary rules yet"
 msgstr "No temporary rules yet"
@@ -6289,6 +6323,12 @@ msgstr "Open {0}"
 msgid "Open {0} {1} in the obligation queue"
 msgstr "Open {0} {1} in the obligation queue"
 
+#. placeholder {0}: formatTaxCode(obligation.taxType)
+#. placeholder {1}: formatDate(obligation.currentDueDate)
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Open {0} due {1}"
+msgstr "Open {0} due {1}"
+
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {active} active rules for {0}"
@@ -6598,6 +6638,10 @@ msgstr "Owner approval required"
 msgid "Owner approved"
 msgstr "Owner approved"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Owner cleared"
+msgstr "Owner cleared"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -6622,17 +6666,13 @@ msgstr "owner read-only · self read-only"
 msgid "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
 msgstr "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Owner updated"
+msgstr "Owner updated"
+
 #: src/features/workload/workload-page.tsx
 msgid "Owner workload"
 msgstr "Owner workload"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owner: {name}"
-msgstr "Owner: {name}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owner: unassigned"
-msgstr "Owner: unassigned"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 #: src/routes/obligations.tsx
@@ -6936,10 +6976,6 @@ msgstr "Pick a client…"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
 msgstr "Pick state"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Pin to sidebar"
-msgstr "Pin to sidebar"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Pinned"
@@ -7700,10 +7736,6 @@ msgstr "Regenerate URL"
 msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Reject"
-msgstr "Reject"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
@@ -7713,10 +7745,6 @@ msgstr "Reject"
 #: src/routes/rules.library.tsx
 msgid "Rejected"
 msgstr "Rejected"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "Rejected from rule detail review."
-msgstr "Rejected from rule detail review."
 
 #: src/features/rules/sources-tab.tsx
 msgid "Relief notice"
@@ -8265,7 +8293,6 @@ msgid "Rule queue"
 msgstr "Rule queue"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/rules/rule-detail-drawer.tsx
 msgid "Rule rejected"
 msgstr "Rule rejected"
 
@@ -8589,8 +8616,10 @@ msgstr "Security"
 msgid "Security settings couldn't load"
 msgstr "Security settings couldn't load"
 
+#. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/routes/obligations.tsx
 msgid "Select {0}"
@@ -8608,6 +8637,10 @@ msgstr "Select all"
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
 msgstr "Select all {totalPending}"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Select all deadlines in this year"
+msgstr "Select all deadlines in this year"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Select all eligible obligations"
@@ -9613,6 +9646,10 @@ msgstr "The concrete due date calculated from the active target-year practice ru
 msgid "The Evidence tab is where the 8879 packet lives"
 msgstr "The Evidence tab is where the 8879 packet lives"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The firm-side soft target — when this filing should be ready internally for the deadline window"
+msgstr "The firm-side soft target — when this filing should be ready internally for the deadline window"
+
 #: src/features/concepts/concept-help.tsx
 msgid "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
 msgstr "The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun."
@@ -9620,6 +9657,10 @@ msgstr "The firm's running tally of client-provided documents, signatures, and c
 #: src/features/concepts/concept-help.tsx
 msgid "The highest-risk open obligations for the chosen window — work these first."
 msgstr "The highest-risk open obligations for the chosen window — work these first."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
+msgstr "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The jurisdictions, entity types, and tax types currently backed by watched sources and active practice rules."
@@ -9764,6 +9805,10 @@ msgstr "This import can be undone for 24 hours and keeps an audit record"
 #: src/routes/onboarding.tsx
 msgid "This is what your team and clients will see."
 msgstr "This is what your team and clients will see."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "This member is no longer on the team"
+msgstr "This member is no longer on the team"
 
 #: src/features/concepts/concept-help.tsx
 msgid "This obligation comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule."

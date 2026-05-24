@@ -3344,6 +3344,7 @@ export function ObligationQueueDetailDrawer({
   function invalidateDetail() {
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })

@@ -93,12 +93,12 @@ sync. Next/previous navigation stays inside the selected queue.
 
 ### Rule detail clickables
 
-| Element                                      | Type                   | Action                     | Destination                  | Back-path                     |
-| -------------------------------------------- | ---------------------- | -------------------------- | ---------------------------- | ----------------------------- |
-| **Accept button**                            | Button                 | Mutate (orpc.rules.accept) | Drawer closes, rules refetch | Failure → toast, drawer stays |
-| **Reject button**                            | Button                 | Mutate (orpc.rules.reject) | Drawer closes, rules refetch | Failure → toast, drawer stays |
-| **Evidence card → source link**              | External `<a>`         | Open official document     | External URL (new tab)       | Browser back in new tab       |
-| **Close button (X)** ／ Esc ／ outside click | Button / key / overlay | Close drawer               | Back to filtered Library     | Re-click row to reopen        |
+| Element                                      | Type                   | Action                     | Destination                                                             | Back-path                     |
+| -------------------------------------------- | ---------------------- | -------------------------- | ----------------------------------------------------------------------- | ----------------------------- |
+| **Accept button**                            | Button                 | Mutate (orpc.rules.accept) | Progress/success → global bottom-right toast; drawer advances/refetches | Failure → toast, drawer stays |
+| **Reject button**                            | Button                 | Mutate (orpc.rules.reject) | Drawer closes, rules refetch                                            | Failure → toast, drawer stays |
+| **Evidence card → source link**              | External `<a>`         | Open official document     | External URL (new tab)                                                  | Browser back in new tab       |
+| **Close button (X)** ／ Esc ／ outside click | Button / key / overlay | Close drawer               | Back to filtered Library                                                | Re-click row to reopen        |
 
 ---
 
@@ -197,7 +197,7 @@ URL parameters shared across pages:
 5. **Verify source** for an unfamiliar rule → click `SOURCE Alabama DOR Individual Income Tax Return Filing FAQ ↗` (opens official doc in new tab).
 6. **Switch tab back** → queue stays in the same scroll position.
 7. **Click row** → right-side rule detail opens with full evidence.
-8. **Decide** → Accept ／ Reject in detail.
+8. **Decide** → Accept in detail, or Skip to leave the rule inactive for later review.
 9. **Repeat** for bulk: select visible queue rows → Review selected → BulkReviewDrawer → Preview → Accept selected.
 
 **Back-paths**: Esc exits rule detail. Queue row remains scroll-stable across detail open/close.

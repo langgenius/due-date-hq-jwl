@@ -198,11 +198,17 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
       {/* Escape hatches */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="primary" size="sm" render={<Link to={`/clients/${client.id}`} />}>
+        <Button
+          nativeButton={false}
+          variant="primary"
+          size="sm"
+          render={<Link to={`/clients/${client.id}`} />}
+        >
           <Trans>Open full page</Trans>
           <ArrowUpRightIcon data-icon="inline-end" />
         </Button>
         <Button
+          nativeButton={false}
           variant="outline"
           size="sm"
           render={<Link to={`/obligations?client=${client.id}`} />}
@@ -213,6 +219,8 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
     </div>
   )
 }
+
+export { ClientPeekBody }
 
 function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
   const { t } = useLingui()
