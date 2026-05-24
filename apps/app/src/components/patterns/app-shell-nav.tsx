@@ -61,6 +61,7 @@ import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
+import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
@@ -462,11 +463,22 @@ function AddFirmDialog({
   )
 }
 
-function useInboxUnreadCount(): number {
-  // Surface the unified Inbox unread count next to the sidebar entry.
-  // Shares the cache with the bell popover.
-  const query = useQuery(orpc.notifications.unreadCount.queryOptions({ input: undefined }))
-  return query.data?.count ?? 0
+// 2026-05-24 (critique P0): the sidebar Alerts badge previously read
+// from `notifications.unreadCount`. That bucket covers @-mentions,
+// status changes, system events — anything that lands in the unified
+// Inbox — while the Alerts sidebar entry and the Today "Alerts" strip
+// both scope to *Pulse* (statutory-source changes). Result: three
+// surfaces claiming the same word counted three different things
+// (2 sidebar, 3 Today, 4 Pulse-page history).
+//
+// This hook pulls from the same `pulse.listAlerts` query Today uses,
+// so the sidebar and Today share a single cache entry and report the
+// same count. The Pulse page intentionally shows a broader history
+// view and is unaffected. The bell popover still hits
+// `notifications.unreadCount` directly — different concept.
+function useActivePulseAlertCount(): number {
+  const query = useQuery(usePulseListAlertsQueryOptions(SIDEBAR_PULSE_LIMIT))
+  return query.data?.alerts?.length ?? 0
 }
 
 function useRuleLibraryPendingCount(): number {
@@ -487,6 +499,14 @@ function useRuleLibraryPendingCount(): number {
 // surfaces. On a cold load the sidebar triggers the first fetch; the
 // downstream surfaces hit warm cache after that.
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
+
+// 2026-05-24 (critique P0): high limit so the sidebar Alerts badge
+// counts the true number of active Pulse alerts, not a truncated
+// "first N" slice. `pulse.listAlerts` clamps to its own max (50 in
+// the api helper). The Today page passes the same value, so both
+// surfaces share a single React Query cache entry and report the
+// same count.
+const SIDEBAR_PULSE_LIMIT = 50
 function useClientsCount(): number {
   const query = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
   return query.data?.length ?? 0
@@ -494,7 +514,11 @@ function useClientsCount(): number {
 
 function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
-  const pulseCount = useInboxUnreadCount()
+  // 2026-05-24 (critique P0): switched from notifications.unreadCount
+  // (which mixed @-mentions and system notifications into the count)
+  // to useActivePulseAlertCount (Pulse-only). Sidebar and Today now
+  // share one cache entry and report the same number.
+  const pulseCount = useActivePulseAlertCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
   const ruleReviewCount = useRuleLibraryPendingCount()
   const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
@@ -529,16 +553,10 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           { href: '/', label: t`Today`, icon: LayoutDashboardIcon, end: true },
           // Alerts promoted to first-class sidebar destination — the
           // morning routine becomes: glance Today → scan Alerts →
-          // triage Obligations.
-          //
-          // TODO(alerts-vocab 2026-05-22): the badge currently counts
-          // the unified inbox via `useInboxUnreadCount` and will
-          // overcount once @-mentions / status notifications start
-          // landing. Switch to a Pulse-scoped query
-          // (`orpc.pulse.unreadCount` or a `category: 'pulse'` filter
-          // on `notifications.unreadCount`). Tracked in
-          // `docs/Design/obligation-panel-v2-and-alerts-vocabulary.md`
-          // Thread 1, item 2.
+          // triage Obligations. Badge counts active Pulse alerts
+          // (see useActivePulseAlertCount); shares its React Query
+          // cache with the Today "Alerts" section so the two surfaces
+          // always agree.
           {
             href: '/rules/pulse',
             label: t`Alerts`,

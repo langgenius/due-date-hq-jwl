@@ -15,12 +15,19 @@ import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attentio
 
 const VISIBLE_ALERTS = 2
 
+// 2026-05-24 (critique P0): aligned with the sidebar's
+// `SIDEBAR_PULSE_LIMIT` so this page and the sidebar Alerts badge
+// share a single React Query cache entry. Previously this section
+// fetched 5 and the sidebar fetched the unified-inbox count from a
+// different endpoint — three surfaces, three numbers.
+const TODAY_ALERTS_LIMIT = 50
+
 function NeedsAttentionSection() {
   const { t } = useLingui()
   const navigate = useNavigate()
   const { openDrawer: openAlert } = usePulseDrawer()
 
-  const alertsQuery = useQuery(usePulseListAlertsQueryOptions(5))
+  const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TODAY_ALERTS_LIMIT))
   const alerts = alertsQuery.data?.alerts ?? []
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
