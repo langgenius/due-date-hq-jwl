@@ -3130,6 +3130,10 @@ msgstr "截止日已添加"
 msgid "Deadline batch"
 msgstr "截止日期批次"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Deadline category"
+msgstr "截止日类别"
+
 #: src/routes/migration.new.tsx
 msgid "Deadline list"
 msgstr "截止日清单"
@@ -4239,7 +4243,6 @@ msgid "Foreign accounts"
 msgstr "海外账户"
 
 #: src/features/dashboard/actions-list.tsx
-#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -4251,6 +4254,10 @@ msgstr "表单"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "FORM"
 msgstr "表单"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Form / voucher"
+msgstr "表单 / 缴款凭证"
 
 #: src/routes/rules.library.tsx
 msgid "Form name"
@@ -5717,6 +5724,10 @@ msgstr "没有已关闭的来源年度义务匹配本次滚转预览。"
 msgid "No commands found."
 msgstr "未找到命令。"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No deadline categories match."
+msgstr "没有匹配的截止日类别。"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No deadlines yet"
 msgstr "暂无截止日期"
@@ -5761,13 +5772,13 @@ msgstr "暂无导出包。"
 msgid "No filing state"
 msgstr "无申报州信息"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "No form matches."
-msgstr "没有匹配的表单。"
-
 #: src/routes/obligations.tsx
 msgid "No forms"
 msgstr "没有表单"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "No forms or vouchers match."
+msgstr "没有匹配的表单或缴款凭证。"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No import batches yet"
@@ -5962,10 +5973,6 @@ msgstr "订阅没有发生变化。准备好后可以重新开始支付。"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No summary yet"
 msgstr "No summary yet"
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "No tax type matches."
-msgstr "没有匹配的税种。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
@@ -6582,6 +6589,10 @@ msgstr "其他日历 -> 通过 URL 添加"
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Other changes"
 msgstr "其他变更"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Other common deadlines"
+msgstr "其他常见截止日"
 
 #: src/routes/account.security.tsx
 msgid "Other sessions revoked"
@@ -7657,6 +7668,10 @@ msgstr "收件人"
 msgid "Recommended"
 msgstr "推荐"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Recommended for this client"
+msgstr "为此客户推荐"
+
 #: src/features/migration/WizardShell.tsx
 msgid "Record audit trail"
 msgstr "记录审计轨迹"
@@ -8559,8 +8574,12 @@ msgid "Search clients…"
 msgstr "搜索客户…"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Search forms…"
-msgstr "搜索表单…"
+msgid "Search deadline categories…"
+msgstr "搜索截止日类别…"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Search forms and vouchers…"
+msgstr "搜索表单或缴款凭证…"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Search jurisdictions or rules"
@@ -8581,10 +8600,6 @@ msgstr "搜索负责人"
 #: src/routes/rules.library.tsx
 msgid "Search rules…"
 msgstr "搜索规则…"
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Search tax types…"
-msgstr "搜索税种…"
 
 #: src/features/firm/timezone-select.tsx
 msgid "Search timezone..."
@@ -8679,6 +8694,10 @@ msgstr "选择基础截止日"
 msgid "Select batch-ready"
 msgstr "选择可批量"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Select category…"
+msgstr "选择类别…"
+
 #: src/routes/obligations.tsx
 msgid "Select client"
 msgstr "Select client"
@@ -8724,10 +8743,6 @@ msgstr "Select rows to use this scope."
 #: src/features/rules/coverage-tab.tsx
 msgid "Select rule {0}"
 msgstr "选择规则 {0}"
-
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "Select tax type…"
-msgstr "选择税种…"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Select tax year {value}"
@@ -9397,13 +9412,12 @@ msgid "Suggested actions"
 msgstr "建议动作"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms"
 msgstr "建议表格"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Suggested tax types"
-msgstr "建议税种"
+msgid "Suggested forms and vouchers"
+msgstr "建议的表单和缴款凭证"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Suggested tax types (from entity × state matrix)"
@@ -9485,7 +9499,6 @@ msgid "Tax period"
 msgstr "税务期间"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
