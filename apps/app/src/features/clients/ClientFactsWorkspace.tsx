@@ -2894,8 +2894,25 @@ function FilingPlanYearSection({
               >
                 <TaxCodeLabel code={obligation.taxType} />
               </button>
-              <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
+              <span className="flex w-[120px] items-baseline gap-1.5 text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.currentDueDate)}
+                {/* 2026-05-24 (critique /polish — clarify): when an
+                    extension is on file, the row's Internal/Current
+                    deadline legitimately lands AFTER the Official one
+                    (the row was extended). Add a tiny "ext." chip so
+                    a CPA scanning the column understands the date
+                    ordering without having to read the section-level
+                    "N extended" badge and infer which row it points
+                    at. Tooltip carries the verbose explanation. */}
+                {obligation.extensionState === 'filed' ||
+                obligation.extensionState === 'accepted' ? (
+                  <span
+                    title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
+                    className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-[10px] font-medium leading-4 text-text-accent"
+                  >
+                    ext.
+                  </span>
+                ) : null}
               </span>
               <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
