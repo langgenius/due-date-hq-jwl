@@ -13,6 +13,7 @@ import type {
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Select,
   SelectContent,
@@ -81,6 +82,13 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
+  // 2026-05-25 (Yuqi Alerts #9): state filter. v1 ships as a chip
+  // strip (one chip per state with active alerts, count badge,
+  // click-to-filter). The full SVG US map is a follow-on polish
+  // round on top of this; the chip strip delivers the same filter
+  // function with much less surface area. `null` = no filter
+  // active.
+  const [jurisdictionFilter, setJurisdictionFilter] = useState<string | null>(null)
   const invalidatePulse = usePulseInvalidation()
   // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
   // to grab the reason via `window.prompt()` — system-styled, no
@@ -155,6 +163,20 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
         .toSorted(),
     [alerts],
   )
+  // Counts per jurisdiction (state) across the unfiltered alerts —
+  // backs the chip strip below. Sorted by count desc then state code
+  // asc so the highest-impact states float to the front; zero-count
+  // states never appear (alerts.filter excludes them implicitly).
+  const jurisdictionCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const alert of alerts) {
+      map.set(alert.jurisdiction, (map.get(alert.jurisdiction) ?? 0) + 1)
+    }
+    return [...map.entries()].toSorted(([aCode, aCount], [bCode, bCount]) => {
+      if (aCount !== bCount) return bCount - aCount
+      return aCode.localeCompare(bCode)
+    })
+  }, [alerts])
   const filteredAlerts = useMemo(
     () =>
       alerts.filter(
@@ -162,9 +184,10 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
           matchesPulseImpactFilter(alert, impactFilter) &&
           matchesStatusFilter(alert.status, statusFilter) &&
           (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
-          (sourceFilter === 'all' || alert.source === sourceFilter),
+          (sourceFilter === 'all' || alert.source === sourceFilter) &&
+          (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter),
       ),
-    [alerts, changeKindFilter, impactFilter, sourceFilter, statusFilter],
+    [alerts, changeKindFilter, impactFilter, jurisdictionFilter, sourceFilter, statusFilter],
   )
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
@@ -173,7 +196,8 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
-    sourceFilter !== 'all'
+    sourceFilter !== 'all' ||
+    jurisdictionFilter !== null
 
   return (
     // Match the 1100px cap applied across narrow content pages
@@ -292,6 +316,51 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               alert content. Now the filters live inline with the
               page's outer padding, same rhythm as the header
               above and the list below. */}
+          {/* State filter chip strip (Yuqi Alerts #9, 2026-05-25):
+              one chip per state with active alerts. Counts come from
+              the unfiltered alert set so the chip stays clickable
+              even after other filters narrow the list. Clicking
+              toggles single-state focus; clicking the active chip
+              clears the filter. A full SVG US map could replace this
+              chip strip as a follow-on polish — the data shape
+              (state + count) is the same, only the visual changes. */}
+          {jurisdictionCounts.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
+                <Trans>States</Trans>
+              </span>
+              {jurisdictionCounts.map(([state, count]) => {
+                const active = jurisdictionFilter === state
+                return (
+                  <button
+                    key={state}
+                    type="button"
+                    onClick={() => setJurisdictionFilter(active ? null : state)}
+                    aria-pressed={active}
+                    className={cn(
+                      'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums transition-colors',
+                      active
+                        ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
+                        : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
+                    )}
+                  >
+                    <span>{state}</span>
+                    <span
+                      className={cn(
+                        'inline-flex h-4 min-w-4 items-center justify-center rounded-sm px-1 text-xs',
+                        active
+                          ? 'bg-state-accent-solid/15 text-text-accent'
+                          : 'bg-background-soft text-text-tertiary',
+                      )}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div className="grid gap-2 md:grid-cols-[180px_180px_180px_minmax(220px,320px)]">
               <Select
@@ -382,6 +451,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 setStatusFilter('all')
                 setChangeKindFilter('all')
                 setSourceFilter('all')
+                setJurisdictionFilter(null)
               }}
             >
               <FilterXIcon data-icon="inline-start" />

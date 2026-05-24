@@ -177,6 +177,7 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       needsReviewCount: 0,
       confidence: 0.92,
       isSample: false,
+      jurisdiction: 'CA',
     },
     jurisdiction: 'CA',
     counties: ['Alameda'],

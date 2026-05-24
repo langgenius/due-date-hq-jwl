@@ -89,6 +89,14 @@ export const PulseAlertPublicSchema = z.object({
   needsReviewCount: z.number().int().min(0),
   confidence: z.number().min(0).max(1),
   isSample: z.boolean(),
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code) now
+  // travels with each list-item alert so the alerts list page can
+  // filter / group / map by state without an N+1 detail fetch. The
+  // value mirrors `PulseDetail.jurisdiction` — same underlying
+  // `pulse.parsedJurisdiction` column in the DB. Marked as required
+  // because every pulse alert has a parsed jurisdiction at insertion
+  // time (the ingest pipeline rejects rows without one).
+  jurisdiction: StateCodeSchema,
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 

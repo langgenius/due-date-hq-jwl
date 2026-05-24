@@ -155,6 +155,7 @@ const MATCHED_ALERT: PulseAlertPublic = {
   needsReviewCount: 1,
   confidence: 0.96,
   isSample: true,
+  jurisdiction: 'CA',
 }
 
 const MATCHED_DETAIL: PulseDetail = {
@@ -225,6 +226,7 @@ const APPLIED_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.82,
   isSample: true,
+  jurisdiction: 'CA',
 }
 
 const APPLIED_DETAIL: PulseDetail = {
@@ -264,6 +266,7 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.58,
   isSample: true,
+  jurisdiction: 'NY',
 }
 
 const DISMISSED_DETAIL: PulseDetail = {
@@ -305,6 +308,7 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.46,
   isSample: true,
+  jurisdiction: 'FL',
 }
 
 const VERY_LOW_DETAIL: PulseDetail = {

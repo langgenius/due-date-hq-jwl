@@ -21,6 +21,7 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     needsReviewCount: 0,
     confidence: 0.94,
     isSample: true,
+    jurisdiction: 'CA',
   }
 }
 

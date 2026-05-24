@@ -19,6 +19,7 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     needsReviewCount: 0,
     confidence: 0.92,
     isSample: false,
+    jurisdiction: 'CA',
     ...overrides,
   }
 }
