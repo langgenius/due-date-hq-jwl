@@ -12,7 +12,14 @@ import type { ObligationQueueDetailTab } from '@duedatehq/contracts/obligation-q
 //
 // Order matters — the array is the visible tab order, and the first
 // entry is the default-on tab when the URL doesn't pin one.
+//
+// 2026-05-25 (Yuqi Deadlines #30): `summary` is now the default-
+// first tab for every type that has a meaningful milestone story
+// (filing / payment / deposit / information). Internal-review +
+// client-action rows skip Summary because their milestone chevron
+// is trivial (1-2 stages).
 const DEFAULT_TABS = [
+  'summary',
   'readiness',
   'extension',
   'risk',
@@ -21,19 +28,21 @@ const DEFAULT_TABS = [
 ] as const satisfies readonly ObligationQueueDetailTab[]
 
 const TABS_BY_TYPE: Record<ObligationType, readonly ObligationQueueDetailTab[]> = {
-  // Filing returns drive the full workflow: client readiness, extension
-  // decision, deadline readiness, evidence trail, full audit log.
+  // Filing returns drive the full workflow: summary milestone strip,
+  // client readiness, extension decision, deadline readiness, evidence
+  // trail, full audit log.
   filing: DEFAULT_TABS,
   // Payment obligations skip readiness (no client doc collection) and
   // extension (Form 4868/7004 extends filing only — anti-pattern #1).
-  payment: ['risk', 'evidence', 'audit'],
+  payment: ['summary', 'risk', 'evidence', 'audit'],
   // Payroll deposits have no client checklist, no extension, no
-  // penalty-calc surface today; just an audit trail of the deposit.
-  deposit: ['evidence', 'audit'],
+  // penalty-calc surface today; just summary + an audit trail.
+  deposit: ['summary', 'evidence', 'audit'],
   // Information returns (W-2, 1099, K-1) need readiness (third-party
   // data) and evidence/audit; no extension, no payment penalty.
-  information: ['readiness', 'evidence', 'audit'],
-  // Firm-set client-action items: readiness checklist + audit only.
+  information: ['summary', 'readiness', 'evidence', 'audit'],
+  // Firm-set client-action items: readiness checklist + audit only —
+  // milestone story too thin for a Summary tab.
   client_action: ['readiness', 'audit'],
   // Internal review items: just the audit trail.
   internal_review: ['audit'],

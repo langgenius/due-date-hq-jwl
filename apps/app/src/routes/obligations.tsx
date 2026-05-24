@@ -216,7 +216,7 @@ const OWNER_FILTERS = ['unassigned'] as const
 const DUE_FILTERS = ['overdue'] as const
 const EVIDENCE_FILTERS = ['needs'] as const
 const DETAIL_DRAWERS = ['obligation'] as const
-const DETAIL_TABS = ['readiness', 'extension', 'risk', 'evidence', 'audit'] as const
+const DETAIL_TABS = ['summary', 'readiness', 'extension', 'risk', 'evidence', 'audit'] as const
 const DENSITY_OPTIONS = [
   'comfortable',
   'compact',
@@ -4191,20 +4191,22 @@ export function ObligationQueueDetailDrawer({
               if (isObligationQueueDetailTab(value)) onTabChange(value)
             }}
           >
-            {/* Snapshot — Phase 2 distillation (2026-05-21):
-                - Path-to-Filing chevron collapsed to a one-line stage
-                  summary. Full chevron lives on the Timeline tab now.
-                  At 440px panel width, 5 milestones × 4 elements each
-                  was unreadable.
-                - Dates panel compressed to 2-column grid (was 4-col).
-                - Dropped the bg-background-section card wrapper — the
-                  snapshot doesn't need to be visually elevated.
-                - Snapshot + TabsList pinned via `sticky top-0` in
-                  panel mode so milestones, dates and tab nav stay
-                  visible while Readiness / Evidence rows scroll
-                  underneath. Negative `-mx-5 -mt-4` lets the sticky
-                  bg occlude content scrolling past on the gutters.
-                See docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
+            {/* 2026-05-25 (Yuqi Deadlines #30): the sticky block used
+                to host the full snapshot trio (PrimaryDeadlineStrip +
+                PathToFilingSummary + ActiveStageDetailCard). Yuqi's
+                #30 asked for a Summary tab that owns the milestone
+                story. Split the sticky block into two:
+                  • Sticky: PrimaryDeadlineStrip only — three anchor
+                    dates that CPAs check at every interaction. Always
+                    visible across every tab.
+                  • Summary tab (below): PathToFilingSummary +
+                    ActiveStageDetailCard — the deep-dive milestone
+                    + stage-context view. Has a labeled home now.
+
+                Net effect: the always-visible chrome is tighter
+                (just the dates), the milestone story has its own tab
+                that doesn't compete with Materials / Extension /
+                Evidence, and the URL ?tab=summary is shareable. */}
             <div
               className={cn(
                 'flex flex-col gap-3',
@@ -4220,54 +4222,12 @@ export function ObligationQueueDetailDrawer({
                   column carries a one-word label + the date + a small
                   state tag ("MISSED" if past, blank otherwise).
                   Reading order: identity (header) → key dates (this
-                  strip) → milestone overview → stage card → tabs. The
-                  remaining secondary dates (Statutory, Tax period,
+                  strip) → tabs → tab content (Summary's milestone
+                  chevron + stage card lives one tab over).
+                  The remaining secondary dates (Statutory, Tax period,
                   Created, Last touched, e-file timestamps) still live
                   in the bottom FlatDateList under "Reference dates". */}
               <PrimaryDeadlineStrip row={row} />
-              {/* PathToFilingSummary now renders for ALL rows. Terminal
-                  rows benefit from seeing the dated history of each
-                  milestone (when did we hit Collecting, Preparing,
-                  Signature, Filed) — that's the audit-defense story.
-                  The closed summary handles the terminal case by
-                  switching to a "Milestones complete" label so it
-                  doesn't read as a duplicate of the header status
-                  pill. */}
-              <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-              {/* ActiveStageDetailCard (2026-05-21 prototype): zoom on
-                  the row's current stage — sub-status + canonical
-                  "what's next" task list + audit-derived "done this
-                  stage" trail. Sits between the milestone overview
-                  and the dates list so the CPA reads
-                  visual-overview → stage-context → calendar-context. */}
-              <ActiveStageDetailCard
-                row={row}
-                auditEvents={detail.auditEvents}
-                readinessChecklist={detail.readinessChecklist}
-                onChangeTab={(nextTab) => onTabChange(nextTab)}
-                onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
-                onConfirmAcceptance={() =>
-                  markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                }
-                onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
-                onChangePrepStage={(nextPrepStage) => {
-                  // Capture the previous value so the success toast can
-                  // offer an Undo that fires the reverse mutation. No-op
-                  // clicks (same value) still let the request through —
-                  // the server short-circuits and emits a zero-uuid
-                  // auditId, but the toast logic uses the captured
-                  // previous to decide whether to show Undo.
-                  prepStagePreviousRef.current = row.prepStage
-                  updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
-                }}
-                onChangeReviewStage={(nextReviewStage) => {
-                  reviewStagePreviousRef.current = row.reviewStage
-                  updateReviewStageMutation.mutate({
-                    id: row.id,
-                    reviewStage: nextReviewStage,
-                  })
-                }}
-              />
               {/* 2026-05-23: StatutoryDatesPanel moved OUT of this
                   sticky snapshot block — relocated to AFTER the
                   TabsContent so the tabs sit immediately under the
@@ -4302,6 +4262,15 @@ export function ObligationQueueDetailDrawer({
                 content below. */}
             <div className="pt-1">
               <TabsList className="flex">
+                {/* Summary tab (2026-05-25 Yuqi Deadlines #30):
+                    default-first tab for filing / payment / deposit /
+                    information rows. Hosts the milestone chevron +
+                    active-stage card (the milestone story). */}
+                {visibleTabs.has('summary') ? (
+                  <TabsTrigger value="summary">
+                    <Trans>Summary</Trans>
+                  </TabsTrigger>
+                ) : null}
                 {visibleTabs.has('readiness') ? (
                   <TabsTrigger value="readiness">
                     <Trans>Materials</Trans>
@@ -4323,13 +4292,57 @@ export function ObligationQueueDetailDrawer({
                   </TabsTrigger>
                 ) : null}
                 {/* Timeline/Audit tab removed 2026-05-21 — the
-                  path-to-filing milestones live inside the snapshot
-                  block's PathToFilingSummary disclosure; the prior
-                  Audit feed was rarely the user's current job. Bring
-                  it back via a header overflow menu if a CPA asks
-                  for the raw event stream again. */}
+                  path-to-filing milestones live inside the Summary
+                  tab's content now; the prior Audit feed was rarely
+                  the user's current job. Bring it back via a header
+                  overflow menu if a CPA asks for the raw event stream
+                  again. */}
               </TabsList>
             </div>
+            <TabsContent value="summary">
+              {/* Summary tab — milestone chevron + active-stage zoom.
+                  These were previously pinned in the sticky snapshot
+                  block (always-visible across every tab). Yuqi #30
+                  moved them into a dedicated tab so:
+                    - The drawer chrome is tighter (just the deadline
+                      strip stays sticky).
+                    - The milestone story has a labeled home that
+                      shares URL state with the rest of the surface
+                      (?tab=summary is shareable).
+                    - Materials / Extension / Evidence don't get the
+                      stage card pushing them below the fold. */}
+              <div className="grid gap-3">
+                <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                <ActiveStageDetailCard
+                  row={row}
+                  auditEvents={detail.auditEvents}
+                  readinessChecklist={detail.readinessChecklist}
+                  onChangeTab={(nextTab) => onTabChange(nextTab)}
+                  onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
+                  onConfirmAcceptance={() =>
+                    markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                  }
+                  onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
+                  onChangePrepStage={(nextPrepStage) => {
+                    // Capture the previous value so the success toast can
+                    // offer an Undo that fires the reverse mutation. No-op
+                    // clicks (same value) still let the request through —
+                    // the server short-circuits and emits a zero-uuid
+                    // auditId, but the toast logic uses the captured
+                    // previous to decide whether to show Undo.
+                    prepStagePreviousRef.current = row.prepStage
+                    updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                  }}
+                  onChangeReviewStage={(nextReviewStage) => {
+                    reviewStagePreviousRef.current = row.reviewStage
+                    updateReviewStageMutation.mutate({
+                      id: row.id,
+                      reviewStage: nextReviewStage,
+                    })
+                  }}
+                />
+              </div>
+            </TabsContent>
             <TabsContent value="readiness">
               <div className="grid gap-3">
                 {/* Top-of-tab summary — explains what readiness IS

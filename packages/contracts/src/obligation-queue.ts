@@ -236,6 +236,13 @@ export type ObligationQueueExportSelectedOutput = z.infer<
 >
 
 export const ObligationQueueDetailTabSchema = z.enum([
+  // 2026-05-25 (Yuqi Deadlines #30): added `summary` as the new
+  // default-first tab. Hosts the milestone chevron + active-stage
+  // card (previously pinned in the sticky block) so the milestone
+  // story has a labeled tab home. The PrimaryDeadlineStrip (3
+  // anchor dates) stays sticky above the tabs — those numbers are
+  // always-visible context, not summary content.
+  'summary',
   'readiness',
   'extension',
   'risk',
