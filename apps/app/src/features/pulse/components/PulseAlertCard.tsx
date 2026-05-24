@@ -58,7 +58,11 @@ export function PulseAlertCard({
     >
       <header className="flex items-center gap-2">
         <PulsingDot tone={tone} active />
-        <span className="font-mono text-sm tabular-nums text-text-secondary">{alert.source}</span>
+        {/* 2026-05-24 (critique P2 — typeset): source name is a
+            sentence-case label (e.g. "IRS Disaster Relief"), not a
+            token or a numeric column — drop `font-mono` so it reads
+            as readable copy rather than developer chrome. */}
+        <span className="text-sm text-text-secondary">{alert.source}</span>
         <span aria-hidden className="text-text-tertiary">
           ·
         </span>
@@ -68,7 +72,9 @@ export function PulseAlertCard({
         >
           {alert.title}
         </h3>
-        <Badge variant="outline" className="hidden shrink-0 font-mono text-[11px] sm:inline-flex">
+        {/* Sentence-case change-kind label — was `font-mono`, reads
+            as English ("Deadline", "Source change"), not code. */}
+        <Badge variant="outline" className="hidden shrink-0 text-[11px] sm:inline-flex">
           {changeKindLabel(alert.changeKind)}
         </Badge>
         <PulseConfidenceBadge confidence={alert.confidence} />

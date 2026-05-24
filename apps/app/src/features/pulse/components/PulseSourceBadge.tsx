@@ -8,9 +8,13 @@ interface PulseSourceBadgeProps {
 }
 
 // Compact "source · open ↗" chip used inside the banner card and detail header.
+// 2026-05-24 (critique P2 — typeset): source label is sentence-case
+// English ("IRS Disaster Relief"), not a code token. Dropped
+// `font-mono tabular-nums` so the chip reads as a label, not a dev
+// breadcrumb. Matches the in-card header treatment in PulseAlertCard.
 export function PulseSourceBadge({ source, sourceUrl }: PulseSourceBadgeProps) {
   return (
-    <Badge variant="outline" className="font-mono tabular-nums text-xs">
+    <Badge variant="outline" className="text-xs">
       <a
         href={sourceUrl}
         target="_blank"

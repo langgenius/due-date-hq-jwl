@@ -111,7 +111,11 @@ export function NotificationsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs text-text-tertiary">
+                {/* 2026-05-24 (critique P2 — typeset): notification
+                    type label ("Deadline reminder", "Overdue",
+                    "Audit package") is readable English copy, not a
+                    code token. Drop `font-mono`. */}
+                <span className="text-xs text-text-tertiary">
                   {notificationTypeLabel(item.type)}
                 </span>
                 <span className="flex items-center gap-1">
