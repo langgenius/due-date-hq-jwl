@@ -67,13 +67,21 @@ function internalDueDateFromOfficial(
 // prose — "close the row" is engineering-speak the CPA never uses,
 // "Complete CPA review and close the row" stacked two verbs from
 // different frames. Rewritten as imperative tasks a CPA would put
-// in their own to-do list. Also moved to `t` macro so the strings
-// pick up i18n extraction.
-function actionPromptFor(
-  row: DashboardTopRow,
-  asOfDate: string | null,
-  t: (template: TemplateStringsArray) => string,
-): string {
+// in their own to-do list.
+//
+// 2026-05-25 (Yuqi follow-up — "still missing the title"): this
+// function used to take `t` as a parameter. That broke Lingui 5's
+// macro transform — the `t` macro only fires when `t` is referenced
+// directly in the source position (imported from `@lingui/react/
+// macro` or destructured from `useLingui()` at the call site). When
+// `t` is passed as a function arg, every `t\`source\`` in the body
+// becomes a raw tagged-template call on a function that doesn't
+// know how to handle one, and returns `undefined` — the empty
+// "Action" row + bare `·` separator next to the client name Yuqi
+// screenshotted. Refactored as a hook so `useLingui()` lives in
+// scope right next to every `t\`…\`` macro use.
+function useActionPrompt(row: DashboardTopRow, asOfDate: string | null): string {
+  const { t } = useLingui()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   if (row.status === 'waiting_on_client') return t`Follow up with the client for documents`
   if (row.evidenceCount === 0) return t`Attach the source document`
@@ -143,7 +151,7 @@ function ActionRow({
   const { t } = useLingui()
   const statusLabels = useLifecycleV2StatusLabels()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  const prompt = actionPromptFor(row, asOfDate, t)
+  const prompt = useActionPrompt(row, asOfDate)
   const factors = topPriorityFactors(row)
   const detailId = `action-detail-${row.obligationId}`
   // Internal date = official deadline − firm offset. Derived in JS so
