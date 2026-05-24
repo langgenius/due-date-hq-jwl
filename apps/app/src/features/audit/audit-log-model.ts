@@ -17,6 +17,7 @@ export const AUDIT_CATEGORY_OPTIONS = [
   'auth',
   'team',
   'pulse',
+  'opportunity',
   'export',
   'ai',
   'system',

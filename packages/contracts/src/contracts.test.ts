@@ -154,6 +154,7 @@ describe('@duedatehq/contracts', () => {
       'auth',
       'team',
       'pulse',
+      'opportunity',
       'export',
       'ai',
       'system',

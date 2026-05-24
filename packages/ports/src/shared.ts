@@ -168,6 +168,7 @@ export type AuditActionCategory =
   | 'auth'
   | 'team'
   | 'pulse'
+  | 'opportunity'
   | 'export'
   | 'ai'
   | 'system'

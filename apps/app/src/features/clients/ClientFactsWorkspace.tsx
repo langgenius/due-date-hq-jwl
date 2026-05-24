@@ -2527,12 +2527,22 @@ function ClientWorkPlanPanel({
       },
     }),
   )
+  // 2026-05-24 (re-critique): the filing-plan bulk bar used to fire
+  // the status mutation directly on dropdown pick — so a stray year-
+  // level checkbox + status click could move dozens of deadlines with
+  // zero pre-action signal. Stage the change behind a confirm with
+  // the actual count + target status. Reversible, but the click is
+  // cheap insurance against accidental cascades.
+  const [pendingBulkStatus, setPendingBulkStatus] = useState<{
+    status: ObligationStatus
+    ids: string[]
+  } | null>(null)
   const bulkApplyStatus = useCallback(
     (status: ObligationStatus) => {
       if (selectedIds.size === 0) return
-      bulkStatusMutation.mutate({ ids: [...selectedIds], status })
+      setPendingBulkStatus({ status, ids: [...selectedIds] })
     },
-    [bulkStatusMutation, selectedIds],
+    [selectedIds],
   )
   // 2026-05-24: the Filing plan heading went through TabSection so it
   // sits on the same h2 / subtitle baseline as every other section
@@ -2608,6 +2618,58 @@ function ClientWorkPlanPanel({
           ) : null}
         </>
       )}
+
+      <AlertDialog
+        open={pendingBulkStatus !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingBulkStatus(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingBulkStatus && pendingBulkStatus.ids.length === 1 ? (
+                <Trans>Move this deadline to {v2StatusLabels[pendingBulkStatus.status]}?</Trans>
+              ) : pendingBulkStatus ? (
+                <Trans>
+                  Move {pendingBulkStatus.ids.length} deadlines to{' '}
+                  {v2StatusLabels[pendingBulkStatus.status]}?
+                </Trans>
+              ) : null}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                Each row will receive a status-change audit entry. You can move them back through
+                the same control if this wasn't intended.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={bulkStatusMutation.isPending || !pendingBulkStatus}
+              onClick={() => {
+                if (pendingBulkStatus) {
+                  bulkStatusMutation.mutate(
+                    { ids: pendingBulkStatus.ids, status: pendingBulkStatus.status },
+                    {
+                      onSettled: () => setPendingBulkStatus(null),
+                    },
+                  )
+                }
+              }}
+            >
+              {pendingBulkStatus && pendingBulkStatus.ids.length === 1 ? (
+                <Trans>Move deadline</Trans>
+              ) : (
+                <Trans>Move deadlines</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </TabSection>
   )
 }

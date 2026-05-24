@@ -232,13 +232,20 @@ function DismissedRow({
 // for the small dismissed-list row label. The client name lives in
 // the audit row + the future un-restored opportunity itself; this
 // just needs to read as "what was the kind of cue I dismissed".
+//
+// 2026-05-24 (re-critique): the previous shape title-cased every
+// underscore-segment ("Retention Check In") which read as a
+// product name, not as the editorial label the comment specifies.
+// Now: capitalize the FIRST segment only, and join the remainder
+// with hyphens — matching "check-in" as the canonical English form.
 function humanizeOpportunityKey(key: string): string {
   const [head] = key.split(':')
   if (!head) return key
-  return head
-    .split('_')
-    .map((part) => (part.length > 0 ? part[0]!.toUpperCase() + part.slice(1) : part))
-    .join(' ')
+  const segments = head.split('_').filter((part) => part.length > 0)
+  if (segments.length === 0) return head
+  const [first, ...rest] = segments
+  const lead = first![0]!.toUpperCase() + first!.slice(1)
+  return rest.length === 0 ? lead : `${lead} ${rest.join('-')}`
 }
 
 function formatDismissalDate(iso: string): string {

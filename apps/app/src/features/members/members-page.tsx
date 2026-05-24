@@ -163,6 +163,15 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
     fromRole: MemberPublic['role']
     toRole: MemberManagedRole
   } | null>(null)
+  // 2026-05-24 (re-critique): cancel-invitation used to fire on
+  // a single text-button click — no confirm, no preview, no undo.
+  // The recipient may be checking their inbox right now. Gate
+  // behind a small confirm so an accidental click on the
+  // table-cell-sized link doesn't pull the rug out from under them.
+  const [pendingInvitationCancel, setPendingInvitationCancel] = useState<{
+    invitationId: string
+    inviteeLabel: string
+  } | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   const inviteShortcutLabel = formatShortcutForDisplay(INVITE_MEMBER_HOTKEY)
   const activeMembers = data.members.filter((member) => member.status === 'active')
@@ -351,7 +360,12 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           members={data.members}
           firmTimezone={firmTimezone}
           onResend={(invitation) => resendMutation.mutate({ invitationId: invitation.id })}
-          onCancel={(invitation) => cancelMutation.mutate({ invitationId: invitation.id })}
+          onCancel={(invitation) =>
+            setPendingInvitationCancel({
+              invitationId: invitation.id,
+              inviteeLabel: invitation.email,
+            })
+          }
           busy={resendMutation.isPending || cancelMutation.isPending}
         />
       </section>
@@ -476,6 +490,52 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
               }}
             >
               <Trans>Downgrade role</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (re-critique): small confirm before cancelling an
+          invitation. Uses a plain description instead of the heavy
+          DestructiveChangePreview — cancel-invite isn't on the same
+          severity tier as Remove / Downgrade, but a confirm prevents
+          accidental misclicks on the inline text-button. */}
+      <AlertDialog
+        open={pendingInvitationCancel !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingInvitationCancel(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Cancel this invitation?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingInvitationCancel
+                ? t`The magic link sent to ${pendingInvitationCancel.inviteeLabel} will stop working. You can re-invite them later, but the original link can't be revived.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Keep invitation</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={cancelMutation.isPending || !pendingInvitationCancel}
+              onClick={() => {
+                if (pendingInvitationCancel) {
+                  cancelMutation.mutate(
+                    { invitationId: pendingInvitationCancel.invitationId },
+                    {
+                      onSettled: () => setPendingInvitationCancel(null),
+                    },
+                  )
+                }
+              }}
+            >
+              <Trans>Cancel invitation</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -725,6 +725,12 @@ export function ObligationQueueRoute() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [pageIndex, setPageIndex] = useState(0)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
+  // 2026-05-24 (re-critique): lifted from `ObligationQueueSearchControl`
+  // so the `/` hotkey can imperatively expand the collapsed search
+  // box before deferring focus. The control's own click-to-expand
+  // path also goes through this setter, so the two entry points
+  // share the same expansion mechanism.
+  const [searchOpen, setSearchOpen] = useState(false)
   // Anchor for shift-click range selection — last id the user clicked.
   const lastSelectedIdRef = useRef<string | null>(null)
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
@@ -1748,11 +1754,23 @@ export function ObligationQueueRoute() {
 
   // `/` focuses search — Linear/Slack convention. The kbd hint in the
   // input's right gutter advertises it; this wires the actual binding.
+  //
+  // 2026-05-24 (re-critique): the search control is COLLAPSED to a
+  // magnifier button when neither `searchOpen` nor `value.length > 0`
+  // is true, so on a fresh load with no `?q=` in the URL the
+  // `<Input>` isn't rendered and `searchInputRef.current` is null —
+  // pressing `/` was a silent no-op. Now the hotkey opens the
+  // control first (if needed) and RAF-defers focus until the input
+  // mounts. `searchOpen` was lifted from the search control into
+  // this parent for exactly this reason.
   useAppHotkey(
     '/',
     () => {
-      searchInputRef.current?.focus()
-      searchInputRef.current?.select()
+      setSearchOpen(true)
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus()
+        searchInputRef.current?.select()
+      })
     },
     {
       enabled: !shortcutsBlocked,
@@ -2143,6 +2161,8 @@ export function ObligationQueueRoute() {
             <ObligationQueueSearchControl
               inputRef={searchInputRef}
               value={searchInput}
+              open={searchOpen}
+              onOpenChange={setSearchOpen}
               onChange={(nextSearch) =>
                 void setObligationQueueQuery(
                   {
@@ -8168,15 +8188,23 @@ function parseOwnerCount(value: string): number | null {
 function ObligationQueueSearchControl({
   inputRef,
   value,
+  open,
+  onOpenChange,
   onChange,
 }: {
   inputRef: React.RefObject<HTMLInputElement | null>
   value: string
+  // 2026-05-24 (re-critique): lifted from local state to a controlled
+  // prop so the route's `/` hotkey can expand the collapsed control
+  // before deferring focus. The button-click expand path and the
+  // hotkey path now share the same setter.
+  open: boolean
+  onOpenChange: (next: boolean) => void
   onChange: (next: string) => void
 }) {
   const { t } = useLingui()
-  const [open, setOpen] = useState(false)
   const isOpen = open || value.length > 0
+  const setOpen = onOpenChange
   // 2026-05-24 (useEffect audit): the previous shape attached a
   // window-style focus listener to the input ref via useEffect. The
   // Input component already exposes an `onFocus` prop — moved the
