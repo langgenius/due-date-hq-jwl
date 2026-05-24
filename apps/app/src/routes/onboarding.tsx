@@ -110,7 +110,7 @@ export function OnboardingRoute() {
 
   return (
     <div className="flex w-full max-w-[400px] flex-col">
-      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-[11px] tracking-[0.16em] text-accent-text">
+      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
         <Trans>PRACTICE PROFILE</Trans>
       </span>
@@ -130,7 +130,7 @@ export function OnboardingRoute() {
         <div className="mt-8 flex flex-col gap-1.5">
           <label
             htmlFor="practice-name"
-            className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
           >
             <Trans>Practice name</Trans>
           </label>
@@ -170,7 +170,7 @@ export function OnboardingRoute() {
         <div className="mt-5 flex flex-col gap-1.5">
           <label
             htmlFor="internal-deadline-offset"
-            className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
           >
             <Trans>Internal deadline</Trans>
           </label>
@@ -219,7 +219,7 @@ export function OnboardingRoute() {
         </Button>
       </form>
 
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-[11px] text-text-muted">
+      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
         <Trans>Encrypted · Auto-saves · Renamable later</Trans>
       </p>

@@ -219,7 +219,7 @@ export function SourcesTab() {
                 />
               </TableHead>
               <TableHead className="w-[112px] px-2">WATCH</TableHead>
-              <TableHead className="w-[92px] px-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text-tertiary">
+              <TableHead className="w-[92px] px-2 font-mono text-caption-xs uppercase tracking-[0.06em] text-text-tertiary">
                 LAST CHECKED
               </TableHead>
               <TableHead className="w-[42px] px-0" />

@@ -326,7 +326,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
                     <SelectItem key={client.id} value={client.id}>
                       <span className="flex min-w-0 flex-col leading-tight">
                         <span className="truncate">{client.name}</span>
-                        <span className="font-mono text-[11px] text-text-tertiary">
+                        <span className="font-mono text-caption text-text-tertiary">
                           {client.state ?? t`No filing state`}
                         </span>
                       </span>
@@ -469,7 +469,7 @@ function GenerationPreviewForm({
                       >
                         <span className="flex min-w-0 flex-col leading-tight">
                           <span className="truncate">{client.name}</span>
-                          <span className="font-mono text-[11px] text-text-tertiary">
+                          <span className="font-mono text-caption text-text-tertiary">
                             {client.state ?? t`Needs filing state`} ·{' '}
                             {previewEntityLabel(client.entityType)}
                           </span>
@@ -561,7 +561,7 @@ function GenerationPreviewForm({
                 taxTypeChips.map((taxType) => (
                   <span
                     key={taxType}
-                    className="inline-flex h-6 items-center rounded border border-divider-regular bg-background-default px-2 font-mono text-[11px] text-text-secondary"
+                    className="inline-flex h-6 items-center rounded border border-divider-regular bg-background-default px-2 font-mono text-caption text-text-secondary"
                   >
                     {taxType}
                   </span>
@@ -657,7 +657,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         />
       </div>
       <div className="max-h-[420px] overflow-y-auto">
-        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
           <RolloverColumnHeader
             label={t`Status`}
             description={t`The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date.`}
@@ -704,10 +704,10 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                   <RolloverDispositionBadge disposition={row.disposition} />
                 </span>
                 <span className="min-w-0 truncate text-text-primary">{row.clientName}</span>
-                <span className="min-w-0 truncate text-[11px] text-text-secondary">
+                <span className="min-w-0 truncate text-caption text-text-secondary">
                   <TaxCodeLabel code={row.taxType} />
                 </span>
-                <span className="min-w-0 truncate font-mono text-[11px] tabular-nums text-text-secondary">
+                <span className="min-w-0 truncate font-mono text-caption tabular-nums text-text-secondary">
                   {row.preview?.dueDate ?? '—'}
                 </span>
                 <span className="min-w-0 truncate text-text-secondary">
@@ -752,7 +752,7 @@ function RolloverMetric({
 }) {
   return (
     <div className="min-w-0 border-r border-divider-subtle px-3 py-2 last:border-r-0">
-      <div className="flex min-w-0 items-center gap-1 text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="flex min-w-0 items-center gap-1 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         <span className="truncate">{label}</span>
         <RolloverHelpTooltip label={label} description={description} />
       </div>
@@ -817,7 +817,7 @@ function RolloverDispositionBadge({ disposition }: { disposition: AnnualRollover
   return (
     <span
       className={cn(
-        'inline-flex h-6 max-w-full items-center rounded border px-2 text-[11px] font-medium',
+        'inline-flex h-6 max-w-full items-center rounded border px-2 text-caption font-medium',
         disposition === 'will_create' && 'border-status-done/20 bg-status-done/10 text-status-done',
         disposition === 'review' &&
           'border-status-review/20 bg-status-review/10 text-status-review',
@@ -991,10 +991,10 @@ function TaxYearCalendarSelect({
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-md bg-background-subtle px-2 py-1.5">
-      <div className="truncate text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="truncate text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         {label}
       </div>
-      <div className="truncate font-mono text-[11px] text-text-secondary">{value}</div>
+      <div className="truncate font-mono text-caption text-text-secondary">{value}</div>
     </div>
   )
 }
@@ -1012,7 +1012,7 @@ function PreviewField({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={htmlFor}
-        className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted"
+        className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted"
       >
         {label}
       </label>
@@ -1107,7 +1107,7 @@ function PreviewGroupHeader({ tone, label }: { tone: 'success' | 'review'; label
       <ToneDot tone={tone} />
       <span
         className={cn(
-          'text-[11px] font-medium uppercase tracking-[0.08em]',
+          'text-caption font-medium uppercase tracking-[0.08em]',
           tone === 'success' ? 'text-status-done' : 'text-status-review',
         )}
       >
@@ -1141,7 +1141,7 @@ function PreviewResultRow({
         </span>
         <span
           className={cn(
-            'text-[11px] font-medium',
+            'text-caption font-medium',
             row.reminderReady ? 'text-text-tertiary' : 'text-severity-medium',
           )}
         >
@@ -1152,7 +1152,7 @@ function PreviewResultRow({
         <span className="truncate text-[13px] font-medium text-text-primary">
           {row.ruleTitle} · {row.formName}
         </span>
-        <span className="truncate font-mono text-[11px] text-text-tertiary">
+        <span className="truncate font-mono text-caption text-text-tertiary">
           {row.ruleId} v{row.ruleVersion} · {row.matchedTaxType} → {row.taxType}
         </span>
         {row.reviewReasons.length > 0 ? (
@@ -1160,7 +1160,7 @@ function PreviewResultRow({
             {row.reviewReasons.map((reason) => (
               <span
                 key={reason}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-[10px] text-severity-medium"
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-caption-xs text-severity-medium"
               >
                 {reason}
               </span>
@@ -1172,7 +1172,7 @@ function PreviewResultRow({
             {row.missingClientFacts.map((fact) => (
               <span
                 key={fact}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium"
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium"
               >
                 {fact === 'fiscalYearEnd' ? t`Needs fiscal year end` : fact}
               </span>
@@ -1185,7 +1185,7 @@ function PreviewResultRow({
           source={evidenceSource}
           ariaLabel={evidenceSource ? t`Open official source: ${evidenceSource.title}` : undefined}
           showIcon={false}
-          className="max-w-full truncate text-right text-[11px] text-text-accent"
+          className="max-w-full truncate text-right text-caption text-text-accent"
         >
           <span className="truncate">{linkLabel}</span>
           <span aria-hidden className="ml-1 shrink-0">

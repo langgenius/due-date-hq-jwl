@@ -74,7 +74,7 @@ export function PulseAlertCard({
         </h3>
         {/* Sentence-case change-kind label — was `font-mono`, reads
             as English ("Deadline", "Source change"), not code. */}
-        <Badge variant="outline" className="hidden shrink-0 text-[11px] sm:inline-flex">
+        <Badge variant="outline" className="hidden shrink-0 text-caption sm:inline-flex">
           {changeKindLabel(alert.changeKind)}
         </Badge>
         <PulseConfidenceBadge confidence={alert.confidence} />

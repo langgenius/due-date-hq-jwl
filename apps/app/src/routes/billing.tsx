@@ -629,7 +629,7 @@ function BillingIntervalToggle({
         <Badge
           variant="success"
           className={cn(
-            'font-mono text-[10px]',
+            'font-mono text-caption-xs',
             value === 'yearly' && 'bg-white/20 text-primary-foreground',
           )}
         >
@@ -716,7 +716,7 @@ function PlanOption({
             <div className="flex flex-wrap items-center gap-2">
               <span>{plan.cadence}</span>
               {plan.savings ? (
-                <Badge variant="success" className="font-mono text-[10px]">
+                <Badge variant="success" className="font-mono text-caption-xs">
                   {plan.savings}
                 </Badge>
               ) : null}
@@ -744,7 +744,7 @@ function PlanOption({
               </TooltipText>
             </div>
           </div>
-          <ul className="flex flex-wrap gap-1.5 text-[11px] leading-4 text-text-secondary">
+          <ul className="flex flex-wrap gap-1.5 text-caption leading-4 text-text-secondary">
             {plan.aiFeatures.map((feature) => (
               <li
                 key={feature}
@@ -805,7 +805,7 @@ function TooltipText({ children, className }: { children: ReactNode; className?:
 function CurrentPlanRibbon() {
   return (
     <div className="pointer-events-none absolute -top-2 -right-2 z-10 h-28 w-28" aria-hidden="true">
-      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-[10px] leading-none font-bold text-primary-foreground uppercase shadow-sm">
+      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-caption-xs leading-none font-bold text-primary-foreground uppercase shadow-sm">
         <Trans>current</Trans>
       </span>
     </div>

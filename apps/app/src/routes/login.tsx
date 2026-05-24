@@ -202,7 +202,7 @@ export function LoginRoute() {
         <>
           <div className="my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <span className="h-px bg-divider-subtle" aria-hidden />
-            <span className="font-mono text-[10px] leading-none text-text-muted uppercase">
+            <span className="font-mono text-caption-xs leading-none text-text-muted uppercase">
               <Trans>or</Trans>
             </span>
             <span className="h-px bg-divider-subtle" aria-hidden />
@@ -216,7 +216,7 @@ export function LoginRoute() {
         </>
       ) : null}
 
-      <p className="mt-3 inline-flex items-center gap-2 font-mono text-[11px] text-text-muted">
+      <p className="mt-3 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
         <Trans>Encrypted · 7-day session · SSO-ready</Trans>
       </p>

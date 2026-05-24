@@ -42,7 +42,7 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
   return (
     <span
       title={title}
-      className="inline-flex items-center gap-1 rounded-sm border border-state-destructive-border bg-state-destructive-hover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-destructive"
+      className="inline-flex items-center gap-1 rounded-sm border border-state-destructive-border bg-state-destructive-hover px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-text-destructive"
     >
       <AlertTriangleIcon className="size-3" aria-hidden />
       <Trans>Rejected</Trans>

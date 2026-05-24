@@ -66,7 +66,7 @@ function BlockedByChip({
       // RejectionChip (IRS sent the filing back), which is a real
       // recovery moment. Sharing red between the two erased the
       // urgency distinction.
-      className="inline-flex max-w-[220px] items-center gap-1 rounded-sm border border-state-warning-active bg-state-warning-hover px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-warning hover:bg-state-warning-hover-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-warning-active"
+      className="inline-flex max-w-[220px] items-center gap-1 rounded-sm border border-state-warning-active bg-state-warning-hover px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-text-warning hover:bg-state-warning-hover-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-warning-active"
     >
       <LinkIcon className="size-3 shrink-0" aria-hidden />
       <span className="truncate">

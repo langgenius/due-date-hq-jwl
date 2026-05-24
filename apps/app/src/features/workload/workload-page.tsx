@@ -83,7 +83,7 @@ export function WorkloadPage() {
                 read as machine output, not prose. Pretty-printed
                 date + drop the `font-mono` so it sits naturally
                 under the description sentence. */}
-            <span className="mt-1 block text-[11px] text-text-muted">
+            <span className="mt-1 block text-caption text-text-muted">
               <Trans>
                 As of {formatDatePretty(asOfDate)} · next {windowDays} days
               </Trans>

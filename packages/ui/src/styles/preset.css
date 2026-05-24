@@ -46,6 +46,30 @@
   --container-page-medium: 920px;
   --container-page-narrow: 880px;
 
+  /* -----------------------------------------------------------------
+   * Caption type scale. 2026-05-24 (B5): the app had ~146 inline
+   * `text-[10px]` / `text-[11px]` uses across 60+ files (badge
+   * labels, table micro-meta, eyebrow tracking, tabular gutters).
+   * They sit BELOW Tailwind's `text-xs` (12px) — the "smallest
+   * readable" tier in the system above wasn't small enough for
+   * these contexts. Centralizing as two tokens means a single
+   * change here updates every caption at once.
+   *
+   *   text-caption    → 11px (60 sites — inline metadata, tabular gutters)
+   *   text-caption-xs → 10px (86 sites — eyebrow labels, dense badges)
+   *
+   * Both default line-height is set per Tailwind v4's
+   * `--text-*--line-height` convention so common pairings (uppercase
+   * eyebrow + tracking) read tightly without needing an explicit
+   * `leading-N` on every site. Sites that explicitly set
+   * `leading-3` / `leading-4` continue to win — the explicit class
+   * overrides the implicit per-size line-height.
+   * ----------------------------------------------------------------- */
+  --text-caption: 11px;
+  --text-caption--line-height: 16px;
+  --text-caption-xs: 10px;
+  --text-caption-xs--line-height: 14px;
+
   /* Text */
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);

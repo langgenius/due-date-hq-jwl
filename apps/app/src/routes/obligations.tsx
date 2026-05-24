@@ -1304,7 +1304,7 @@ export function ObligationQueueRoute() {
             >
               <span className={cn('text-xs leading-tight', tierClassName)}>{tierLabel}</span>
               {rank ? (
-                <span className="text-[10px] tabular-nums leading-tight text-text-tertiary">
+                <span className="text-caption-xs tabular-nums leading-tight text-text-tertiary">
                   #{rank}
                 </span>
               ) : null}
@@ -1332,7 +1332,7 @@ export function ObligationQueueRoute() {
               <span
                 aria-label={t`Unassigned`}
                 title={t`Unassigned`}
-                className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-divider-regular text-[10px] text-text-tertiary"
+                className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-divider-regular text-caption-xs text-text-tertiary"
               >
                 ?
               </span>
@@ -2249,7 +2249,7 @@ export function ObligationQueueRoute() {
                       className="gap-1.5"
                     >
                       <Columns3Icon className="size-4" aria-hidden />
-                      <span className="text-[11px] tabular-nums text-text-secondary">
+                      <span className="text-caption tabular-nums text-text-secondary">
                         {visibleHideableCount}/{totalHideableCount}
                       </span>
                     </Button>
@@ -2599,22 +2599,22 @@ export function ObligationQueueRoute() {
                     className="hidden h-3 border-l border-divider-subtle md:inline-block"
                   />
                   <span className="hidden items-center gap-1.5 md:inline-flex">
-                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
                       J
                     </kbd>
-                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                    <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
                       K
                     </kbd>
                     <span>
                       <Trans>navigate</Trans>
                     </span>
-                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
                       Enter
                     </kbd>
                     <span>
                       <Trans>open</Trans>
                     </span>
-                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-[10px] tabular-nums text-text-tertiary">
+                    <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
                       ?
                     </kbd>
                     <span>
@@ -3009,7 +3009,7 @@ function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean
       aria-label={title}
       title={title}
       className={cn(
-        'inline-flex size-6 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+        'inline-flex size-6 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
         isMine
           ? 'bg-state-accent-hover-alt text-text-accent'
           : 'bg-background-subtle text-text-secondary',
@@ -4055,7 +4055,7 @@ export function ObligationQueueDetailDrawer({
           <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-text-tertiary">
             {row.jurisdiction ? (
               <>
-                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em] text-text-secondary">
+                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-[0.06em] text-text-secondary">
                   {row.jurisdiction}
                 </span>
                 <span aria-hidden>·</span>
@@ -4462,7 +4462,7 @@ export function ObligationQueueDetailDrawer({
                         one block at the bottom of the checklist. */}
                 {latestRequest ? (
                   <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-divider-subtle bg-background-section p-3">
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                    <Badge variant="outline" className="text-caption-xs uppercase tracking-wide">
                       {latestRequest.status}
                     </Badge>
                     <span className="text-xs text-text-secondary">
@@ -4522,7 +4522,10 @@ export function ObligationQueueDetailDrawer({
                       <span>
                         <Trans>Tax year profile</Trans>
                       </span>
-                      <Badge variant="outline" className="text-[10px] normal-case tracking-normal">
+                      <Badge
+                        variant="outline"
+                        className="text-caption-xs normal-case tracking-normal"
+                      >
                         {taxYearProfileSummary}
                       </Badge>
                     </summary>
@@ -4752,14 +4755,17 @@ export function ObligationQueueDetailDrawer({
                       <Trans>Authority citation</Trans>
                     </span>
                     {detail.matchedRule ? (
-                      <Badge variant="outline" className="text-[10px] normal-case tracking-normal">
+                      <Badge
+                        variant="outline"
+                        className="text-caption-xs normal-case tracking-normal"
+                      >
                         {detail.matchedRule.id}
                         {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-state-warning-border text-[10px] normal-case tracking-normal text-text-warning"
+                        className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
                       >
                         <Trans>No rule bound</Trans>
                       </Badge>
@@ -4796,7 +4802,7 @@ export function ObligationQueueDetailDrawer({
                               </p>
                               <Badge
                                 variant="outline"
-                                className="text-[10px] uppercase tracking-wide"
+                                className="text-caption-xs uppercase tracking-wide"
                               >
                                 {item.authorityRole}
                               </Badge>
@@ -4804,7 +4810,7 @@ export function ObligationQueueDetailDrawer({
                             <p className="text-xs leading-snug text-text-secondary">
                               "{item.sourceExcerpt}"
                             </p>
-                            <p className="text-[11px] text-text-tertiary">
+                            <p className="text-caption text-text-tertiary">
                               <Trans>
                                 Source #{item.sourceId} · retrieved {item.retrievedAt}
                               </Trans>
@@ -4828,7 +4834,7 @@ export function ObligationQueueDetailDrawer({
             needing a full divider. */}
         {row ? (
           <div className="mt-4 flex flex-col gap-2">
-            <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <p className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
               <Trans>Reference dates</Trans>
             </p>
             <StatutoryDatesPanel row={row} />
@@ -4983,7 +4989,7 @@ function _PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBrea
       </div>
       <span className="text-xs text-text-tertiary">{formatPenaltyFormula(item.formula)}</span>
       {inputs.length > 0 ? (
-        <div className="grid gap-1 text-[11px] text-text-tertiary">
+        <div className="grid gap-1 text-caption text-text-tertiary">
           {inputs.map(([key, value]) => (
             <div key={key} className="flex justify-between gap-3">
               <span>{penaltyInputLabel(key)}</span>
@@ -5025,7 +5031,7 @@ function PenaltySourceList({
         >
           <span>{source.label}</span>
           {!compact ? (
-            <span className="text-[11px] text-text-tertiary">{source.sourceExcerpt}</span>
+            <span className="text-caption text-text-tertiary">{source.sourceExcerpt}</span>
           ) : null}
         </a>
       ))}
@@ -5833,7 +5839,7 @@ function ReadinessOverview({
         </p>
         <p className="text-xs leading-snug text-text-secondary">{subline}</p>
         {responseCount > 0 && !isTerminal ? (
-          <p className="mt-0.5 text-[11px] tabular-nums text-text-tertiary">
+          <p className="mt-0.5 text-caption tabular-nums text-text-tertiary">
             <Trans>
               {readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total
               responses
@@ -5946,12 +5952,12 @@ function ChecklistItemRow({
                 glance without a per-row action button. Default
                 (missing) shows nothing; the absence is the signal. */}
             {received ? (
-              <Badge variant="success" className="text-[10px] uppercase tracking-wide">
+              <Badge variant="success" className="text-caption-xs uppercase tracking-wide">
                 <CheckCircle2Icon className="size-3" aria-hidden />
                 <Trans>Received</Trans>
               </Badge>
             ) : needsReview ? (
-              <Badge variant="destructive" className="text-[10px] uppercase tracking-wide">
+              <Badge variant="destructive" className="text-caption-xs uppercase tracking-wide">
                 <AlertTriangleIcon className="size-3" aria-hidden />
                 <Trans>Needs review</Trans>
               </Badge>
@@ -5959,7 +5965,7 @@ function ChecklistItemRow({
             {responseBadge ? (
               <Badge
                 variant={responseBadge.variant}
-                className="text-[10px] uppercase tracking-wide"
+                className="text-caption-xs uppercase tracking-wide"
               >
                 {responseBadge.label}
               </Badge>
@@ -6104,7 +6110,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
               idx > 0 && 'border-l border-divider-subtle',
             )}
           >
-            <span className="text-[11px] font-medium leading-tight text-text-tertiary">
+            <span className="text-caption font-medium leading-tight text-text-tertiary">
               {col.label}
             </span>
             <span
@@ -6116,7 +6122,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
               {col.value}
             </span>
             {showMissedTag ? (
-              <span className="text-[10px] font-medium uppercase tracking-[0.06em] text-text-destructive">
+              <span className="text-caption-xs font-medium uppercase tracking-[0.06em] text-text-destructive">
                 <Trans>Missed</Trans>
               </span>
             ) : null}
@@ -6417,7 +6423,7 @@ function PathToFilingSummary({
               </div>
               <span
                 className={cn(
-                  'mt-0.5 text-center text-[11px] leading-tight',
+                  'mt-0.5 text-center text-caption leading-tight',
                   state === 'active'
                     ? 'font-medium text-text-primary'
                     : state === 'done'
@@ -6458,7 +6464,7 @@ function PathToFilingSummary({
               <div className="mt-1.5 flex w-full flex-col items-center gap-0.5">
                 <span
                   className={cn(
-                    'text-center text-[10px] tabular-nums leading-tight',
+                    'text-center text-caption-xs tabular-nums leading-tight',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
                 >
@@ -6467,11 +6473,11 @@ function PathToFilingSummary({
                     : ' '}
                 </span>
                 {overdueActive ? (
-                  <span className="text-center text-[10px] font-medium uppercase tracking-wide leading-tight text-text-destructive">
+                  <span className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-destructive">
                     <Trans>Overdue</Trans>
                   </span>
                 ) : isExpected ? (
-                  <span className="text-center text-[10px] font-medium uppercase tracking-wide leading-tight text-text-tertiary">
+                  <span className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-tertiary">
                     <Trans>Expected</Trans>
                   </span>
                 ) : null}
@@ -6484,7 +6490,7 @@ function PathToFilingSummary({
                       above. */}
                 {state === 'active' && activeSubStatus ? (
                   <span
-                    className="text-center text-[10px] leading-tight text-text-secondary"
+                    className="text-center text-caption-xs leading-tight text-text-secondary"
                     title={activeSubStatus}
                   >
                     {activeSubStatus}
@@ -6778,7 +6784,7 @@ function StageActions({
         </ul>
       ) : null}
       {reminders.length > 0 ? (
-        <p className="text-[11px] leading-snug text-text-tertiary">
+        <p className="text-caption leading-snug text-text-tertiary">
           {reminders.map((task) => task.label).join(' · ')}
         </p>
       ) : null}
@@ -6834,7 +6840,7 @@ function BlockerContextCard({
       aria-label={t`Open blocking obligation: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
           <Trans>Blocked by</Trans>
         </span>
         <ArrowUpRightIcon
@@ -6849,7 +6855,7 @@ function BlockerContextCard({
         <span className="text-xs text-text-secondary">{blocker.clientName}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-        <Badge variant={STATUS_VARIANT[blocker.status]} className="text-[10px]">
+        <Badge variant={STATUS_VARIANT[blocker.status]} className="text-caption-xs">
           {labels[blocker.status]}
         </Badge>
         <span className="tabular-nums">
@@ -6917,7 +6923,7 @@ function CompletedKeyDates({
   if (completedAt) rows.push({ label: t`Completed`, value: formatDate(completedAt.slice(0, 10)) })
   return (
     <div className="rounded-md border border-divider-regular bg-background-subtle p-3">
-      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">
+      <p className="mb-2 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         <Trans>Key dates</Trans>
       </p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
@@ -7699,7 +7705,7 @@ function ActiveStageDetailCard({
           "what step am I on?" — pipeline reads as engineering jargon. */}
       {showEfilePipeline || showPaymentPipeline ? (
         <div className="mt-3 flex flex-col gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
           <ul className="flex flex-col gap-1">
@@ -7800,7 +7806,7 @@ function ActiveStageDetailCard({
            picks up a "Notes open" annotation plus a "Notes addressed"
            affordance; otherwise step 5 surfaces a "Leave note" button. */
         <div className="mt-3 flex flex-col gap-2">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
           <ul className="flex flex-col gap-1">
@@ -7869,7 +7875,7 @@ function ActiveStageDetailCard({
                     >
                       {label}
                       {showNotesOpen ? (
-                        <span className="ml-1.5 text-[10px] font-medium uppercase tracking-wide text-text-warning">
+                        <span className="ml-1.5 text-caption-xs font-medium uppercase tracking-wide text-text-warning">
                           · <Trans>Notes open</Trans>
                         </span>
                       ) : null}
@@ -7930,7 +7936,7 @@ function ActiveStageDetailCard({
           see HOW the row landed here without leaving the panel. */}
       {stageEvents.length > 0 ? (
         <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Done this stage</Trans>
           </p>
           <ul className="flex flex-col gap-1.5">
@@ -7963,7 +7969,7 @@ function ActiveStageDetailCard({
           about what's happening now. */}
       {pastEntries.length > 0 ? (
         <div className="mt-3 flex flex-col gap-2 border-t border-divider-subtle pt-3">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Previous stages</Trans> · {pastEntries.length}
           </p>
           <ul className="flex flex-col gap-0.5">
@@ -8329,7 +8335,7 @@ function ObligationQueueSearchControl({
       ) : (
         <kbd
           aria-hidden
-          className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-[10px] tabular-nums text-text-tertiary"
+          className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-caption-xs tabular-nums text-text-tertiary"
         >
           /
         </kbd>

@@ -138,7 +138,7 @@ export function RuleDetailCompact({
         Sits between the title (in panel header above) and the
         section list below. Sized smaller than section labels so it
         reads as a sub-caption, not a competing header. */}
-      <header className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-text-muted">
+      <header className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-caption text-text-muted">
         <span className="font-mono break-all">{rule.id}</span>
         <span aria-hidden>·</span>
         <span className="font-mono">v{rule.version}</span>
@@ -209,7 +209,9 @@ export function RuleDetailCompact({
 function DetailSection({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-1.5">
-      <p className="text-[11px] font-medium tracking-[0.08em] text-text-muted uppercase">{label}</p>
+      <p className="text-caption font-medium tracking-[0.08em] text-text-muted uppercase">
+        {label}
+      </p>
       {children}
     </section>
   )
@@ -606,7 +608,7 @@ function RuleStatusInline({ status }: { status: ObligationRule['status'] }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
       {children}
     </p>
   )
@@ -869,7 +871,7 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
   return (
     <Badge
       className={cn(
-        'h-[18px] shrink-0 rounded-sm border-transparent px-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.04em]',
+        'h-[18px] shrink-0 rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.04em]',
         className,
       )}
     >
@@ -890,7 +892,7 @@ function EvidenceLocator({ evidence }: { evidence: RuleEvidence }) {
 
 function EvidenceMeta({ evidence }: { evidence: RuleEvidence }) {
   return (
-    <div className="flex items-center gap-2 font-mono text-[10px] text-text-muted">
+    <div className="flex items-center gap-2 font-mono text-caption-xs text-text-muted">
       <span>retrieved {evidence.retrievedAt}</span>
       {evidence.sourceUpdatedOn ? (
         <>

@@ -188,7 +188,7 @@ function tableHeaderFilterTrigger({
     >
       <span className="truncate">{label}</span>
       {activeCount > 0 ? (
-        <Badge variant="outline" className="h-4 px-1.5 font-mono text-[10px] tabular-nums">
+        <Badge variant="outline" className="h-4 px-1.5 font-mono text-caption-xs tabular-nums">
           {activeCount}
         </Badge>
       ) : null}

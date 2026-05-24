@@ -279,7 +279,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             >
               <PlusIcon className="size-3.5" aria-hidden />
               <Trans>Invite member</Trans>
-              <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
+              <span className="ml-1 font-mono text-caption-xs opacity-70">
+                {inviteShortcutLabel}
+              </span>
             </Button>
           </>
         }
@@ -919,7 +921,7 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
         {member.name}
       </span>
       {member.isCurrentUser ? (
-        <Badge variant="secondary" className="h-4 rounded-sm px-1.5 font-mono text-[10px]">
+        <Badge variant="secondary" className="h-4 rounded-sm px-1.5 font-mono text-caption-xs">
           <Trans>You</Trans>
         </Badge>
       ) : null}

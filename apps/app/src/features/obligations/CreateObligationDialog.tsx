@@ -377,7 +377,7 @@ export function CreateObligationDialog({
                       placeholder={t`Pick a client…`}
                     />
                     {defaultClientId ? (
-                      <span className="text-[11px] text-text-tertiary">
+                      <span className="text-caption text-text-tertiary">
                         <Trans>Locked to this client because you opened from their page.</Trans>
                       </span>
                     ) : (
@@ -559,7 +559,7 @@ export function CreateObligationDialog({
                       onBlur={field.handleBlur}
                       onChange={(event) => field.handleChange(event.target.value)}
                     />
-                    <span className="text-[11px] text-text-tertiary">
+                    <span className="text-caption text-text-tertiary">
                       <Trans>
                         Replaces the old K-1 dropdown — capture partner info or any free-form
                         context here.

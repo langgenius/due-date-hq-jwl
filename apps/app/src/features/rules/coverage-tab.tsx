@@ -1574,7 +1574,7 @@ function RuleSelectionCheckbox({
 
 function RuleSelectionUnavailableChip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-background-subtle px-1.5 text-[10px] font-medium text-text-tertiary">
+    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-background-subtle px-1.5 text-caption-xs font-medium text-text-tertiary">
       {children}
     </span>
   )
@@ -1592,13 +1592,13 @@ function RuleStatusChip({
   if (sourceDefined) {
     if (sourceDefinedDraftReady) {
       return (
-        <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-[10px] font-medium text-status-review">
+        <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-caption-xs font-medium text-status-review">
           <Trans>AI draft ready</Trans>
         </span>
       )
     }
     return (
-      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-[10px] font-medium text-severity-medium">
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium">
         <Trans>AI draft needed</Trans>
       </span>
     )
@@ -1606,14 +1606,14 @@ function RuleStatusChip({
 
   if (rule.status === 'active' || rule.status === 'verified') {
     return (
-      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-done/10 px-1.5 text-[10px] font-medium text-status-done">
+      <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-done/10 px-1.5 text-caption-xs font-medium text-status-done">
         <Trans>Active</Trans>
       </span>
     )
   }
 
   return (
-    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-[10px] font-medium text-status-review">
+    <span className="inline-flex h-[18px] shrink-0 items-center rounded-sm bg-status-review/10 px-1.5 text-caption-xs font-medium text-status-review">
       <Trans>Needs review</Trans>
     </span>
   )
@@ -1694,7 +1694,7 @@ function PendingRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[10px] font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
             <Trans>Pending review queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -1861,7 +1861,7 @@ function ActiveRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[10px] font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
             <Trans>Active rule queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -1952,7 +1952,7 @@ function RuleQueueModeToggle({
         )}
       >
         <Trans>Pending</Trans>
-        <span className="font-mono text-[11px] text-text-tertiary">{pendingCount}</span>
+        <span className="font-mono text-caption text-text-tertiary">{pendingCount}</span>
       </button>
       <button
         type="button"
@@ -1968,7 +1968,7 @@ function RuleQueueModeToggle({
         )}
       >
         <Trans>Active</Trans>
-        <span className="font-mono text-[11px] text-text-tertiary">{activeCount}</span>
+        <span className="font-mono text-caption text-text-tertiary">{activeCount}</span>
       </button>
     </div>
   )
@@ -2078,7 +2078,7 @@ function BulkReviewDrawer({
                         <span className="block truncate text-xs font-medium text-text-primary">
                           {rule.title}
                         </span>
-                        <span className="block truncate font-mono text-[11px] text-text-tertiary">
+                        <span className="block truncate font-mono text-caption text-text-tertiary">
                           {rule.id}
                         </span>
                       </div>
@@ -2299,7 +2299,7 @@ function PreviewList({
 
 function BulkSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
       {children}
     </p>
   )
@@ -2340,7 +2340,7 @@ function RulePanel({
             knows where they are in the burndown. "Reviewing 1 of 7"
             beats a static "Reviewing rule" — answers progress + mode
             in one phrase. */}
-          <p className="text-[10px] font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
             {queuePosition && queuePosition.index >= 0 ? (
               mode === 'active' ? (
                 <Trans>
@@ -2504,7 +2504,7 @@ function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
       >
         <span
           aria-hidden
-          className="inline-flex size-4 items-center justify-center rounded-full border border-text-muted text-[10px] font-semibold text-text-muted"
+          className="inline-flex size-4 items-center justify-center rounded-full border border-text-muted text-caption-xs font-semibold text-text-muted"
         >
           S
         </span>

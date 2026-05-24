@@ -83,7 +83,7 @@ function EntryShellHeader() {
 
 function EntryShellFooter() {
   return (
-    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border-default px-6 font-mono text-[11px] text-text-muted lg:px-10">
+    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border-default px-6 font-mono text-caption text-text-muted lg:px-10">
       <span className="tabular-nums">
         <Trans>© {new Date().getFullYear()} DueDateHQ Inc.</Trans>
       </span>

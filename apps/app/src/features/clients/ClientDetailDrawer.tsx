@@ -131,11 +131,11 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                   but the badge form gives a faster visual read on
                   state + readiness color. */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <Badge variant="outline" className="text-[11px]">
+                <Badge variant="outline" className="text-caption">
                   {entityLabels[client.entityType]}
                 </Badge>
                 {client.state ? (
-                  <Badge variant="outline" className="text-[11px]">
+                  <Badge variant="outline" className="text-caption">
                     {client.state}
                   </Badge>
                 ) : null}
@@ -148,7 +148,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                           ? 'warning'
                           : 'outline'
                     }
-                    className="text-[11px]"
+                    className="text-caption"
                   >
                     {readiness.status === 'ready' ? (
                       <Trans>Ready for rules</Trans>
@@ -240,7 +240,7 @@ function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
   return (
     <div className="flex flex-col gap-1 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         <Trans>Next due</Trans>
       </span>
       <span className="flex flex-wrap items-baseline gap-x-2 text-sm">

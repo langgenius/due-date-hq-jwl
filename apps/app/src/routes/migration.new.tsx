@@ -128,7 +128,7 @@ function MigrationActivationIntro({
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-[11px] tracking-[0.16em] text-accent-text">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
             <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
             <Trans>PRACTICE ACTIVATION</Trans>
           </span>

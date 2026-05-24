@@ -112,7 +112,7 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
                           </span>
                         </div>
                         {entry.id === client.id ? (
-                          <span className="shrink-0 text-[10px] font-medium uppercase text-text-tertiary">
+                          <span className="shrink-0 text-caption-xs font-medium uppercase text-text-tertiary">
                             <Trans>Current</Trans>
                           </span>
                         ) : null}

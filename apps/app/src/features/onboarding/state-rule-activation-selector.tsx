@@ -103,7 +103,7 @@ export function StateRuleActivationSelector({
     <div className="mt-5 flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium tracking-[0.08em] text-text-secondary uppercase">
+          <p className="text-caption font-medium tracking-[0.08em] text-text-secondary uppercase">
             <Trans>State rule coverage</Trans>
           </p>
           <p className="mt-1 text-[12px] leading-relaxed text-text-muted">
@@ -118,12 +118,12 @@ export function StateRuleActivationSelector({
             onClick={toggleAllStates}
             aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
             aria-pressed={allStatesSelected}
-            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <CheckIcon className="size-3.5" aria-hidden />
             <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
           </button>
-          <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-[11px] text-text-secondary tabular-nums">
+          <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-caption text-text-secondary tabular-nums">
             {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
           </span>
         </div>
@@ -153,7 +153,7 @@ export function StateRuleActivationSelector({
                         aria-pressed={selectedState}
                         style={{ gridRow: row, gridColumn: column }}
                         className={cn(
-                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-semibold transition-colors outline-none',
+                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-caption-xs font-semibold transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
                           selectedState
                             ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'
@@ -178,7 +178,7 @@ export function StateRuleActivationSelector({
         </TooltipProvider>
       </div>
 
-      <p className="min-h-[18px] text-[11px] leading-[18px] text-text-muted">
+      <p className="min-h-[18px] text-caption leading-[18px] text-text-muted">
         {hoverCode && hoveredLabel ? (
           <>
             <span className="font-mono font-medium text-text-secondary">{hoverCode}</span>

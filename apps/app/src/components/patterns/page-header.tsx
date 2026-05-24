@@ -73,7 +73,7 @@ export function PageHeader({
             only applies to plain-text descendants; the
             navAside content provides its own visual treatment. */}
         {hasEyebrowLeft || eyebrowAside ? (
-          <div className="flex min-w-0 items-center justify-between gap-3 text-[11px] font-medium tracking-[0.08em] text-text-tertiary uppercase">
+          <div className="flex min-w-0 items-center justify-between gap-3 text-caption font-medium tracking-[0.08em] text-text-tertiary uppercase">
             <div className="min-w-0 flex-1">
               {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
               {eyebrow && !hasBreadcrumbs ? eyebrow : null}

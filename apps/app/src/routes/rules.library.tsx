@@ -988,7 +988,7 @@ export function RulesLibraryRoute() {
             </span>
             <Badge
               variant="secondary"
-              className="h-5 rounded px-1.5 text-[11px] font-medium uppercase tracking-wider"
+              className="h-5 rounded px-1.5 text-caption font-medium uppercase tracking-wider"
             >
               {ENTITY_LABELS[activeEntity]}
             </Badge>
@@ -1257,14 +1257,14 @@ function EntityChipRow({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline gap-2">
-        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
           <Trans>Filter by entity</Trans>
         </span>
         {activeEntity ? (
           <button
             type="button"
             onClick={onClear}
-            className="text-[10px] text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="text-caption-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>Clear</Trans>
           </button>
@@ -1336,7 +1336,7 @@ function EntityChipRow({
                     className={cn(
                       'inline-flex items-center gap-1 tabular-nums',
                       isActive
-                        ? 'rounded-full bg-state-destructive-subtle px-1.5 text-[11px] font-semibold leading-4 text-text-destructive'
+                        ? 'rounded-full bg-state-destructive-subtle px-1.5 text-caption font-semibold leading-4 text-text-destructive'
                         : 'font-medium text-text-destructive',
                     )}
                   >
@@ -1461,7 +1461,7 @@ function GroupedRulesTable({
             the head row is just typography, not a gray band. */}
         <TableHeader className="!bg-transparent [&_tr]:!bg-transparent">
           <TableRow className="border-b-divider-subtle hover:bg-transparent">
-            <TableHead className="w-[34%] text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <TableHead className="w-[34%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <span className="inline-flex items-baseline gap-2">
                 <Trans>Rule</Trans>
                 <span aria-hidden className="text-text-tertiary/60">
@@ -1472,19 +1472,19 @@ function GroupedRulesTable({
                 </span>
               </span>
             </TableHead>
-            <TableHead className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <TableHead className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <Trans>Form</Trans>
             </TableHead>
             {ENTITY_KEYS.map((entity) => (
               <TableHead
                 key={entity}
                 title={ENTITY_LABELS[entity]}
-                className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                className="w-12 text-center text-caption-xs font-medium uppercase tracking-wider text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
             ))}
-            <TableHead className="text-right text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+            <TableHead className="text-right text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <span className="inline-flex items-baseline gap-3">
                 <Trans>Tier</Trans>
                 <button
@@ -1655,7 +1655,7 @@ function GroupHeaderRow({
           />
           <Badge
             variant="secondary"
-            className="h-5 rounded px-1.5 font-mono text-[10px] uppercase tracking-wider"
+            className="h-5 rounded px-1.5 font-mono text-caption-xs uppercase tracking-wider"
           >
             {group.jurisdiction}
           </Badge>
@@ -2383,7 +2383,7 @@ function BatchReviewModal({
 // footer onto two lines.
 function KeyboardHints() {
   return (
-    <div className="hidden flex-wrap items-center gap-2 text-[11px] text-text-tertiary sm:flex">
+    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary sm:flex">
       <KbdHint k="A" label="accept" />
       <KbdHint k="R" label="reject" />
       <span aria-hidden className="text-text-tertiary/50">
@@ -2398,7 +2398,7 @@ function KeyboardHints() {
 function KbdHint({ k, label }: { k: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1">
-      <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded-sm border border-divider-regular bg-background-default px-1 font-mono text-[10px] font-medium text-text-secondary">
+      <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded-sm border border-divider-regular bg-background-default px-1 font-mono text-caption-xs font-medium text-text-secondary">
         {k}
       </kbd>
       <span>{label}</span>
@@ -2615,7 +2615,7 @@ function NewRuleModal({
                     rows={3}
                     required
                   />
-                  <p className="text-[11px] text-text-tertiary">
+                  <p className="text-caption text-text-tertiary">
                     <Trans>
                       The rule starts with a source-defined calendar. Refine to a specific date or
                       schedule after creation.

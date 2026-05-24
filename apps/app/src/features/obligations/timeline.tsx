@@ -144,7 +144,7 @@ function MilestoneNode({
             {label}
           </span>
           {isCurrent ? (
-            <span className="rounded-sm border border-state-accent-active px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-state-accent-active">
+            <span className="rounded-sm border border-state-accent-active px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-state-accent-active">
               {t`Current`}
             </span>
           ) : null}
@@ -160,7 +160,7 @@ function MilestoneNode({
                   <span className="text-xs font-medium text-text-secondary">
                     {event.actorLabel ?? t`System`}
                   </span>
-                  <span className="text-[10px] text-text-tertiary">
+                  <span className="text-caption-xs text-text-tertiary">
                     {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
                   </span>
                 </div>
@@ -204,7 +204,7 @@ function OtherActivity({
               <span className="text-xs font-medium text-text-secondary">
                 {formatAuditActionLabel(event.action, actionLabels)}
               </span>
-              <span className="text-[10px] text-text-tertiary">
+              <span className="text-caption-xs text-text-tertiary">
                 {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
               </span>
             </div>

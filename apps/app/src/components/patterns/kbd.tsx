@@ -17,7 +17,7 @@ export function Kbd({ children, className }: { children: ReactNode; className?: 
     <kbd
       translate="no"
       className={cn(
-        'inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-divider-regular bg-background-subtle px-1 font-mono text-[10px] font-medium tabular-nums text-text-secondary',
+        'inline-flex h-[18px] min-w-[18px] items-center justify-center rounded border border-divider-regular bg-background-subtle px-1 font-mono text-caption-xs font-medium tabular-nums text-text-secondary',
         className,
       )}
     >
@@ -44,7 +44,7 @@ export function KbdHint({
   return (
     <span
       className={cn(
-        'inline-flex flex-wrap items-center gap-1 text-[11px] text-text-tertiary',
+        'inline-flex flex-wrap items-center gap-1 text-caption text-text-tertiary',
         className,
       )}
     >

@@ -244,7 +244,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
                   <span className="flex min-w-0 items-center gap-2">
                     <span
                       aria-hidden
-                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-[10px] font-semibold text-text-inverted"
+                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-caption-xs font-semibold text-text-inverted"
                       translate="no"
                     >
                       {firmMonogram(item.name)}

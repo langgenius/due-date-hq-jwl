@@ -210,7 +210,7 @@ export function IsoDatePicker({
           </Button>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-medium text-text-tertiary uppercase">
+        <div className="grid grid-cols-7 gap-1 text-center text-caption-xs font-medium text-text-tertiary uppercase">
           {weekdays.map((weekday) => (
             <div key={weekday}>{weekday}</div>
           ))}

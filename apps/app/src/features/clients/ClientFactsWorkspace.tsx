@@ -817,7 +817,7 @@ export function ClientFactsWorkspace({
               ))}
               {overflow > 0 ? (
                 <span
-                  className="font-mono text-[11px] tabular-nums text-text-tertiary"
+                  className="font-mono text-caption tabular-nums text-text-tertiary"
                   title={others.slice(2).join(', ')}
                 >
                   +{overflow}
@@ -910,13 +910,13 @@ export function ClientFactsWorkspace({
             <div className="flex min-w-0 flex-col gap-0.5">
               <NextDueRelativeLabel iso={summary.nextDueDate} />
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="font-mono text-[11px] tabular-nums text-text-tertiary">
+                <span className="font-mono text-caption tabular-nums text-text-tertiary">
                   {summary.nextDueDate}
                 </span>
                 {summary.nextDueStatus ? (
                   <ObligationStatusReadBadge
                     status={summary.nextDueStatus}
-                    className="px-1.5 py-0 text-[10px] font-normal"
+                    className="px-1.5 py-0 text-caption-xs font-normal"
                   />
                 ) : null}
               </div>
@@ -3022,7 +3022,7 @@ function FilingPlanYearSection({
                 obligation.extensionState === 'accepted' ? (
                   <span
                     title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
-                    className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-[10px] font-medium leading-4 text-text-accent"
+                    className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-caption-xs font-medium leading-4 text-text-accent"
                   >
                     ext.
                   </span>
@@ -3747,7 +3747,7 @@ function ClientAssigneeAvatar({
       aria-label={title}
       title={title}
       className={cn(
-        'inline-flex size-6 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+        'inline-flex size-6 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
         isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
       )}
     >
@@ -3888,7 +3888,7 @@ function ClientOwnerHeaderPill({
             >
               <span
                 className={cn(
-                  'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                  'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
                   tint ?? 'bg-background-subtle text-text-tertiary',
                 )}
               >
@@ -3928,7 +3928,7 @@ function ClientOwnerHeaderPill({
                 <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
                   <span
                     className={cn(
-                      'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                      'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
                       isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
                     )}
                   >
@@ -4300,7 +4300,7 @@ function SuggestedFormsCatalogPanel({
                   render={
                     <Badge
                       variant="warning"
-                      className="cursor-default rounded-sm text-[10px] uppercase tracking-wide"
+                      className="cursor-default rounded-sm text-caption-xs uppercase tracking-wide"
                     >
                       <Plural value={suggested.length} one="# gap" other="# gap" />
                     </Badge>
@@ -4308,7 +4308,7 @@ function SuggestedFormsCatalogPanel({
                 />
                 <TooltipContent className="max-w-sm whitespace-normal text-left">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
+                    <span className="text-caption-xs font-medium uppercase tracking-wide opacity-70">
                       <Trans>Missing from this client</Trans>
                     </span>
                     <ul className="flex flex-col gap-0.5">
@@ -4357,7 +4357,7 @@ function SuggestedFormsCatalogPanel({
               {' · '}
               <Plural value={suggested.length} one="# rule" other="# rules" />
             </p>
-            <p className="mt-0.5 text-[11px] font-normal tracking-normal text-text-secondary normal-case">
+            <p className="mt-0.5 text-caption font-normal tracking-normal text-text-secondary normal-case">
               <Trans>Applicable rules with no deadline scheduled yet.</Trans>
             </p>
           </div>
