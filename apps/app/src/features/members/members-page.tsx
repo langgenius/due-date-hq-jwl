@@ -664,7 +664,17 @@ function PendingInvitationsTable({
 function MemberIdentity({ member }: { member: MemberPublic }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-background-subtle font-semibold text-text-secondary">
+      {/* 2026-05-24 (critique P2 — audit): the member's full name
+          renders in the sibling block, so the avatar is decorative
+          for screen readers — `aria-hidden` on the wrapper makes
+          that explicit and stops the single-letter initial from
+          being announced as a separate sentence ("S, Sarah
+          Martinez"). Empty alt on the image variant stays correct
+          for the same reason. */}
+      <span
+        aria-hidden
+        className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-background-subtle font-semibold text-text-secondary"
+      >
         {member.image ? (
           <img src={member.image} alt="" className="size-full object-cover" />
         ) : (

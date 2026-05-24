@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ChevronRightIcon } from 'lucide-react'
+import { AlertTriangleIcon, ArrowRightIcon, ChevronRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -127,18 +127,26 @@ function NeedsAttentionCard({
   )
 }
 
+// 2026-05-24 (critique P2 — clarify): this used to read as a third
+// "tile" sized identically to the alert cards next to it — same
+// border, same fill area — even though it's just an expand
+// affordance. CPAs were trying to click into it as if it were
+// another alert card. Compress to a quieter "View N more"
+// link-tile: smaller width, no big "+N" headline, single line of
+// copy with an arrow. Still tappable, still keyboard-focusable,
+// but visually signals "navigation" not "content."
 function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: () => void }) {
   const { t } = useLingui()
   return (
     <button
       type="button"
       onClick={onOpen}
-      aria-label={t`Open ${count} more Pulse alert${count === 1 ? '' : 's'}`}
-      className="flex h-full w-full shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-divider-subtle text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
+      aria-label={t`View ${count} more Pulse alert${count === 1 ? '' : 's'}`}
+      className="flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md border border-divider-subtle px-4 text-text-secondary transition-colors hover:border-divider-regular hover:bg-background-default-hover hover:text-text-primary"
     >
-      <span className="text-2xl font-semibold tabular-nums tracking-tight">+{count}</span>
-      <span className="text-sm uppercase tracking-[0.08em] text-text-tertiary">
-        <Trans>alerts</Trans>
+      <span className="inline-flex items-center gap-1 text-sm font-medium">
+        <Trans>View {count} more</Trans>
+        <ArrowRightIcon className="size-3.5" aria-hidden />
       </span>
     </button>
   )

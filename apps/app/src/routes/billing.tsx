@@ -192,8 +192,16 @@ export function BillingRoute() {
   const activeFirmCount = ownedActiveFirms(firms).length
   const activeFirmLimit = activeFirmEntitlementLimit(firms)
   const activeFirmLimitLabel = activeFirmLimit === null ? t`contract` : String(activeFirmLimit)
+  // 2026-05-24 (critique P2 — clarify): when the owner has more
+  // active practices than their plan permits (e.g. seed has 2 owned
+  // firms on a 1-practice Pro plan), the previous string read "2 of
+  // 1 active practices" — math that reads as a bug. Flag the
+  // over-limit case explicitly so the user sees what's going on.
+  const activeFirmOverLimit = activeFirmLimit !== null && activeFirmCount > activeFirmLimit
   const activeFirmUsage = currentFirm
-    ? t`${activeFirmCount} of ${activeFirmLimitLabel} active practices`
+    ? activeFirmOverLimit
+      ? t`${activeFirmCount} active · ${activeFirmLimitLabel} on this plan`
+      : t`${activeFirmCount} of ${activeFirmLimitLabel} active practices`
     : '—'
   const subscriptionsQuery = useBillingSubscriptions(currentFirm, false, canReadBilling)
   const activeSubscription = subscriptionsQuery.data?.find((subscription) =>
