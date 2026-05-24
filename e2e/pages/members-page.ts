@@ -32,4 +32,38 @@ export class MembersPage {
     }
     await this.sendInviteButton.click()
   }
+
+  // Confirm dialog locators. 2026-05-24: every destructive action on
+  // this page is gated through an AlertDialog (Cancel invitation,
+  // Remove member, Suspend access, Downgrade role). These accessors
+  // expose the dialog by its title so specs can assert + interact
+  // without coupling to test ids.
+
+  cancelInvitationDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Cancel this invitation?' })
+  }
+
+  /**
+   * Two-step cancel: click the inline "Cancel" link on the invitation
+   * row, then confirm "Cancel invitation" in the AlertDialog. The
+   * legacy single-click no longer works — the confirm gate landed in
+   * commit 26591ad6 of design/preview-integration.
+   */
+  async cancelInvitation(email: string) {
+    await this.invitationRowFor(email).getByRole('button', { name: 'Cancel' }).click()
+    const dialog = this.cancelInvitationDialog()
+    await dialog.getByRole('button', { name: 'Cancel invitation' }).click()
+  }
+
+  removeMemberDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Remove member?' })
+  }
+
+  suspendMemberDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Suspend access?' })
+  }
+
+  downgradeRoleDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Downgrade member?' })
+  }
 }

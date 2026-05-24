@@ -31,7 +31,10 @@ test('AC: E2E-MEMBERS-INVITE-CANCEL-AUDIT invites, cancels, and exposes audit hi
   await expect(membersPage.invitationRowFor(email)).toContainText('Pending')
   await expect(membersPage.invitationRowFor(email)).toContainText('Preparer')
 
-  await membersPage.invitationRowFor(email).getByRole('button', { name: 'Cancel' }).click()
+  // 2026-05-24: cancel-invitation is now gated through an AlertDialog
+  // confirm. The page-object helper handles the two-step click (inline
+  // Cancel link → AlertDialog "Cancel invitation" button).
+  await membersPage.cancelInvitation(email)
 
   await expect(membersPage.invitationRowFor(email)).toBeHidden()
 
