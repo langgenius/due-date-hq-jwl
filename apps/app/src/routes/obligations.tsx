@@ -1021,6 +1021,43 @@ export function ObligationQueueRoute() {
     }
     return set
   }, [rows, continuationRowIds])
+  // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
+  // rows share a clientId, the FIRST row's id is keyed in this map
+  // with the cluster's metadata (count + earliest internal due). The
+  // table body uses this to render a one-line "X · N deadlines ·
+  // earliest YYYY-MM-DD" section header above the first row in the
+  // cluster. Single-row clients are NOT keyed — they don't need a
+  // header; the row's own Client cell speaks for itself.
+  //
+  // Computed from `rows` (not `pagedRows`) so the cluster count
+  // reflects the full result set, not just the visible page. Same
+  // pattern as continuationRowIds / withinGroupRowIds above.
+  const groupHeadersByFirstRowId = useMemo(() => {
+    const map = new Map<
+      string,
+      { clientId: string; clientName: string; count: number; earliestDueDate: string }
+    >()
+    let i = 0
+    while (i < rows.length) {
+      const start = rows[i]!
+      let j = i + 1
+      while (j < rows.length && rows[j]!.clientId === start.clientId) j++
+      if (j - i > 1) {
+        let earliest = start.currentDueDate
+        for (let k = i + 1; k < j; k++) {
+          if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
+        }
+        map.set(start.id, {
+          clientId: start.clientId,
+          clientName: start.clientName,
+          count: j - i,
+          earliestDueDate: earliest,
+        })
+      }
+      i = j
+    }
+    return map
+  }, [rows])
   const rowsById = useMemo(
     () => new Map(rows.map((obligationQueueRow) => [obligationQueueRow.id, obligationQueueRow])),
     [rows],
@@ -2521,90 +2558,139 @@ export function ObligationQueueRoute() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    tableRows.map((tableRow) => (
-                      <TableRow
-                        key={tableRow.id}
-                        // Treat rows as buttons for a11y: keyboard
-                        // users can Tab to a row and press Enter to
-                        // open the drawer, matching the J/K shortcut
-                        // for power users. Without tabindex, the only
-                        // way to drive the queue without a mouse was
-                        // the global J/K hotkeys.
-                        role="button"
-                        tabIndex={0}
-                        aria-selected={tableRow.original.id === explicitActiveRowId}
-                        data-row-id={tableRow.original.id}
-                        data-state={tableRow.getIsSelected() ? 'selected' : undefined}
-                        className={cn(
-                          // Reserve a 2px left rail slot on every row
-                          // (transparent by default) so single-row
-                          // clients and grouped-cluster rows stay
-                          // horizontally aligned. Cluster rows
-                          // override the color below.
-                          // `group` lets per-cell affordances (e.g. the
-                          // client peek icon) fade in on row hover.
-                          'group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-                          tableRow.original.id === explicitActiveRowId && 'bg-state-base-hover',
-                          // Within-group rows lose their bottom border so
-                          // same-client filings weld into a single block.
-                          // The last row of each group keeps the divider,
-                          // making group boundaries scannable.
-                          withinGroupRowIds.has(tableRow.original.id) && 'border-b-0',
-                          // Continuous 2px left rail across every row
-                          // in a multi-row client cluster (group's
-                          // first row + every continuation). Reads as
-                          // a single vertical mark spanning the
-                          // grouped block — stronger grouping cue
-                          // than the blank-continuation-cell trick
-                          // alone. Single-row clients keep the
-                          // transparent rail, so alignment doesn't
-                          // shift.
-                          (continuationRowIds.has(tableRow.original.id) ||
-                            withinGroupRowIds.has(tableRow.original.id)) &&
-                            'border-l-divider-regular',
-                        )}
-                        onClick={(event) => {
-                          if (isObligationQueueRowControlClick(event.target, event.currentTarget)) {
-                            void setObligationQueueQuery({ row: tableRow.original.id })
-                            return
-                          }
-                          void setObligationQueueQuery({
-                            row: tableRow.original.id,
-                            drawer: 'obligation',
-                            id: tableRow.original.id,
-                            tab: detailTab,
-                          })
-                        }}
-                        onKeyDown={(event) => {
-                          // Match native button semantics: Enter and
-                          // Space both activate; ignore when focus is
-                          // inside a control cell so spacebar-toggling
-                          // a checkbox doesn't also open the drawer.
-                          if (event.key !== 'Enter' && event.key !== ' ') return
-                          if (isObligationQueueRowControlClick(event.target, event.currentTarget))
-                            return
-                          event.preventDefault()
-                          void setObligationQueueQuery({
-                            row: tableRow.original.id,
-                            drawer: 'obligation',
-                            id: tableRow.original.id,
-                            tab: detailTab,
-                          })
-                        }}
-                      >
-                        {tableRow.getVisibleCells().map((cell) => {
-                          const meta = cell.column.columnDef.meta
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={`${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
+                    tableRows.map((tableRow) => {
+                      // 2026-05-25 (Yuqi Deadlines #6): when this row
+                      // is the first of a multi-row client cluster,
+                      // render a section header above it labeling the
+                      // group (client name + N deadlines + earliest
+                      // due). The header is non-interactive (no
+                      // checkbox, no click handler) — selection and
+                      // navigation still happen on the leaf rows. Rail
+                      // color extends through the header for visual
+                      // continuity with the welded cluster below.
+                      const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
+                      return (
+                        <Fragment key={tableRow.id}>
+                          {groupHeader ? (
+                            <TableRow
+                              aria-hidden="true"
+                              className="border-b-0 border-l-2 border-l-divider-regular hover:bg-transparent"
                             >
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    ))
+                              <TableCell
+                                colSpan={visibleColumnCount}
+                                className="py-1 pl-3 pr-4 text-xs text-text-tertiary"
+                              >
+                                <span className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                  <span className="font-semibold text-text-secondary">
+                                    {groupHeader.clientName}
+                                  </span>
+                                  <span aria-hidden>·</span>
+                                  <span className="tabular-nums">
+                                    <Plural
+                                      value={groupHeader.count}
+                                      one="# deadline"
+                                      other="# deadlines"
+                                    />
+                                  </span>
+                                  <span aria-hidden>·</span>
+                                  <span className="tabular-nums">
+                                    <Trans>
+                                      earliest{' '}
+                                      {formatDate(groupHeader.earliestDueDate.slice(0, 10))}
+                                    </Trans>
+                                  </span>
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          ) : null}
+                          <TableRow
+                            // Treat rows as buttons for a11y: keyboard
+                            // users can Tab to a row and press Enter to
+                            // open the drawer, matching the J/K shortcut
+                            // for power users. Without tabindex, the only
+                            // way to drive the queue without a mouse was
+                            // the global J/K hotkeys.
+                            role="button"
+                            tabIndex={0}
+                            aria-selected={tableRow.original.id === explicitActiveRowId}
+                            data-row-id={tableRow.original.id}
+                            data-state={tableRow.getIsSelected() ? 'selected' : undefined}
+                            className={cn(
+                              // Reserve a 2px left rail slot on every row
+                              // (transparent by default) so single-row
+                              // clients and grouped-cluster rows stay
+                              // horizontally aligned. Cluster rows
+                              // override the color below.
+                              // `group` lets per-cell affordances (e.g. the
+                              // client peek icon) fade in on row hover.
+                              'group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+                              tableRow.original.id === explicitActiveRowId && 'bg-state-base-hover',
+                              // Within-group rows lose their bottom border so
+                              // same-client filings weld into a single block.
+                              // The last row of each group keeps the divider,
+                              // making group boundaries scannable.
+                              withinGroupRowIds.has(tableRow.original.id) && 'border-b-0',
+                              // Continuous 2px left rail across every row
+                              // in a multi-row client cluster (group's
+                              // first row + every continuation). Reads as
+                              // a single vertical mark spanning the
+                              // grouped block — stronger grouping cue
+                              // than the blank-continuation-cell trick
+                              // alone. Single-row clients keep the
+                              // transparent rail, so alignment doesn't
+                              // shift.
+                              (continuationRowIds.has(tableRow.original.id) ||
+                                withinGroupRowIds.has(tableRow.original.id)) &&
+                                'border-l-divider-regular',
+                            )}
+                            onClick={(event) => {
+                              if (
+                                isObligationQueueRowControlClick(event.target, event.currentTarget)
+                              ) {
+                                void setObligationQueueQuery({ row: tableRow.original.id })
+                                return
+                              }
+                              void setObligationQueueQuery({
+                                row: tableRow.original.id,
+                                drawer: 'obligation',
+                                id: tableRow.original.id,
+                                tab: detailTab,
+                              })
+                            }}
+                            onKeyDown={(event) => {
+                              // Match native button semantics: Enter and
+                              // Space both activate; ignore when focus is
+                              // inside a control cell so spacebar-toggling
+                              // a checkbox doesn't also open the drawer.
+                              if (event.key !== 'Enter' && event.key !== ' ') return
+                              if (
+                                isObligationQueueRowControlClick(event.target, event.currentTarget)
+                              )
+                                return
+                              event.preventDefault()
+                              void setObligationQueueQuery({
+                                row: tableRow.original.id,
+                                drawer: 'obligation',
+                                id: tableRow.original.id,
+                                tab: detailTab,
+                              })
+                            }}
+                          >
+                            {tableRow.getVisibleCells().map((cell) => {
+                              const meta = cell.column.columnDef.meta
+                              return (
+                                <TableCell
+                                  key={cell.id}
+                                  className={`${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
+                                >
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              )
+                            })}
+                          </TableRow>
+                        </Fragment>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>
