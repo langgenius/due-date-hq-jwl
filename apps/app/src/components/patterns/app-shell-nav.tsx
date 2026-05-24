@@ -169,7 +169,9 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
       },
       onError: (err) => {
         toast.error(t`Couldn't switch practice`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

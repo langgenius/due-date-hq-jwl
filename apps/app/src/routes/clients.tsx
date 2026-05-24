@@ -198,7 +198,9 @@ export function ClientsRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't create client`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -339,7 +341,8 @@ export function ClientsRoute() {
             <Trans>Couldn't load clients</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(clientsQuery.error) ?? t`Please try again.`}{' '}
+            {rpcErrorMessage(clientsQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
             <button type="button" className="underline" onClick={() => void clientsQuery.refetch()}>
               <Trans>Retry</Trans>
             </button>

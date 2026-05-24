@@ -90,7 +90,9 @@ export function NotificationPreferencesPage() {
       },
       onError: (error) => {
         toast.error(t`Couldn't queue morning digest preview`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

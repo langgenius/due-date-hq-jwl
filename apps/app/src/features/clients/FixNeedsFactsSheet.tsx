@@ -202,7 +202,9 @@ function FixNeedsFactsRow({
       },
       onError: (err) => {
         toast.error(t`Couldn't save`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

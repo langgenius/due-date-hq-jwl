@@ -125,7 +125,7 @@ export function MembersPageRoute() {
 
   if (membersQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 py-6 md:px-6">
         <Alert variant="destructive">
           <AlertTriangleIcon />
           <AlertTitle>
@@ -261,7 +261,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   })
 
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Members` }]}
         title={<Trans>Members</Trans>}
@@ -1171,7 +1171,7 @@ function InviteMemberDialog({
 
 function MembersSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
       <div className="flex min-h-20 justify-between gap-4">
         <div className="grid gap-2">
           <Skeleton className="h-4 w-20" />

@@ -110,7 +110,8 @@ export function WorkloadPage() {
               <Trans>Couldn't load team workload</Trans>
             </CardTitle>
             <CardDescription>
-              {rpcErrorMessage(workloadQuery.error) ?? t`Please try again.`}
+              {rpcErrorMessage(workloadQuery.error) ??
+                t`Check your network and try again. If this keeps happening, contact support.`}
             </CardDescription>
           </CardHeader>
         </Card>

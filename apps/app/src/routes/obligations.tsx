@@ -911,7 +911,9 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update status`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -929,7 +931,9 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update selected rows`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -947,7 +951,9 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update owners`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -963,7 +969,9 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't export selected rows`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3286,7 +3294,9 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         setDeadlineTipRefresh(null)
         toast.error(t`Couldn't start deadline tip refresh`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3452,7 +3462,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't generate document list`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3501,7 +3513,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't send materials request`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3514,7 +3528,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't add document item`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3526,7 +3542,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't update document item`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3539,7 +3557,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't remove document item`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3552,7 +3572,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't revoke request`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3567,7 +3589,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't save tax year profile`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3590,7 +3614,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't save extension plan`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3617,7 +3643,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't mark accepted`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3636,7 +3664,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3664,7 +3694,9 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3734,7 +3766,9 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         prepStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -3763,7 +3797,9 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         reviewStagePreviousRef.current = null
         toast.error(t`Couldn't update step`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -8125,7 +8161,9 @@ function PenaltyInputDialog({
       },
       onError: (err) => {
         toast.error(t`Couldn't save penalty inputs`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -8454,7 +8492,9 @@ function CalendarSyncPopover() {
       },
       onError: (err) => {
         toast.error(t`Couldn't enable calendar subscription`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -8467,7 +8507,9 @@ function CalendarSyncPopover() {
       },
       onError: (err) => {
         toast.error(t`Couldn't regenerate calendar URL`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

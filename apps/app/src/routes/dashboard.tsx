@@ -149,7 +149,8 @@ export function DashboardRoute() {
             <Trans>Couldn't load dashboard</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(dashboardQuery.error) ?? t`Please try again.`}{' '}
+            {rpcErrorMessage(dashboardQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
             <button
               type="button"
               className="underline"

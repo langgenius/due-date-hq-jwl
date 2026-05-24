@@ -47,7 +47,8 @@ export function ClientDetailRoute() {
             <Trans>Couldn't load this client</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(clientQuery.error) ?? t`Please try again.`}
+            {rpcErrorMessage(clientQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}
           </AlertDescription>
         </Alert>
       ) : !client ? (

@@ -148,7 +148,9 @@ function DismissedOpportunitiesSection() {
         // raw RPC error goes in the description slot, matching every
         // other page's toast.error shape.
         toast.error(t`Couldn't restore this opportunity`, {
-          description: rpcErrorMessage(error) ?? undefined,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -303,7 +305,9 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
       onError: (error) => {
         toast.error(t`Couldn't dismiss this opportunity`, {
-          description: rpcErrorMessage(error) ?? undefined,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -316,7 +320,9 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
       onError: (error) => {
         toast.error(t`Couldn't snooze this opportunity`, {
-          description: rpcErrorMessage(error) ?? undefined,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

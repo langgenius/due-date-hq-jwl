@@ -96,7 +96,9 @@ export function ImportHistoryDrawer({
       },
       onError: (error) => {
         toast.error(t`Couldn't revert import`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -110,7 +112,9 @@ export function ImportHistoryDrawer({
       },
       onError: (error) => {
         toast.error(t`Couldn't undo client`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -124,7 +128,9 @@ export function ImportHistoryDrawer({
       },
       onError: (error) => {
         toast.error(t`Couldn't discard draft import`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -178,7 +184,8 @@ export function ImportHistoryDrawer({
                   <Trans>Couldn't load import history</Trans>
                 </AlertTitle>
                 <AlertDescription>
-                  {rpcErrorMessage(batchesQuery.error) ?? t`Please try again.`}
+                  {rpcErrorMessage(batchesQuery.error) ??
+                    t`Check your network and try again. If this keeps happening, contact support.`}
                 </AlertDescription>
               </Alert>
             ) : null}

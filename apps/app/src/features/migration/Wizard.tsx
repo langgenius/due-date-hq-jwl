@@ -190,7 +190,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
     dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: null })
     const handleError = (err: unknown) => {
-      const description = rpcErrorMessage(err) ?? t`Please try again.`
+      const description =
+        rpcErrorMessage(err) ??
+        t`Check your network and try again. If this keeps happening, contact support.`
       dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: description })
       toast.error(t`Couldn't start the import`, { description })
     }
@@ -268,7 +270,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't save mapping`, {
-        description: rpcErrorMessage(err) ?? t`Please try again.`,
+        description:
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`,
       })
     }
 
@@ -339,7 +343,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't apply tax type suggestions`, {
-        description: rpcErrorMessage(err) ?? t`Please try again.`,
+        description:
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`,
       })
     }
 
@@ -388,7 +394,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       {
         onError: (err) => {
           toast.error(t`Couldn't import clients`, {
-            description: rpcErrorMessage(err) ?? t`Please try again.`,
+            description:
+              rpcErrorMessage(err) ??
+              t`Check your network and try again. If this keeps happening, contact support.`,
           })
         },
         onSuccess: (result) => {
@@ -506,7 +514,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       {
         onError: (err) => {
           toast.error(t`Couldn't undo import`, {
-            description: rpcErrorMessage(err) ?? t`Please try again.`,
+            description:
+              rpcErrorMessage(err) ??
+              t`Check your network and try again. If this keeps happening, contact support.`,
           })
         },
         onSuccess: () => {

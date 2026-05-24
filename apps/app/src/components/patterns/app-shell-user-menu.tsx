@@ -179,7 +179,10 @@ function UserMenuTrigger({
         await navigate('/login', { replace: true })
       } catch (err) {
         toast.error(t`Sign out failed`, {
-          description: err instanceof Error ? err.message : t`Please try again.`,
+          description:
+            err instanceof Error
+              ? err.message
+              : t`Check your network and try again. If this keeps happening, contact support.`,
         })
       }
     })

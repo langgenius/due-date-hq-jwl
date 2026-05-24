@@ -324,7 +324,9 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         // the same surface the rest of the app uses, not a system-
         // styled blocking dialog.
         toast.error(t`Couldn't request export`, {
-          description: rpcErrorMessage(error) ?? undefined,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -725,7 +727,8 @@ export function AuditLogPage() {
                 <Trans>Couldn't load audit events</Trans>
               </AlertTitle>
               <AlertDescription>
-                {rpcErrorMessage(auditQuery.error) ?? t`Please try again.`}
+                {rpcErrorMessage(auditQuery.error) ??
+                  t`Check your network and try again. If this keeps happening, contact support.`}
               </AlertDescription>
             </Alert>
           ) : null}

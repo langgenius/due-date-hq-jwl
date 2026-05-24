@@ -241,7 +241,7 @@ export function BillingRoute() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-72 w-full" />
       </div>
@@ -267,13 +267,13 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
       {/* 2026-05-24 (design-system audit): migrated from ad-hoc
           Breadcrumb + custom header to the shared `<PageHeader>`.
           Breadcrumb routes through the eyebrow slot; current plan
-          Badge sits in the actions cluster. Outer page width
-          (max-w-[1180px]) preserved — that's the deferred design
-          call from the earlier page-width tokens batch. */}
+          Badge sits in the actions cluster.
+          2026-05-24 (A7): outer page width standardized to
+          `max-w-page-wide` (was an outlier 1180px). */}
       <PageHeader
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Billing` }]}
         title={<Trans>Billing</Trans>}

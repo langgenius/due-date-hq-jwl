@@ -98,7 +98,10 @@ export function OnboardingRoute() {
         await navigate(postOnboardingTarget(result, redirectTo), { replace: true })
       })
       .catch((err: unknown) => {
-        const message = readErrorMessage(err, t`Please try again.`)
+        const message = readErrorMessage(
+          err,
+          t`Check your network and try again. If this keeps happening, contact support.`,
+        )
         setError(message)
         toast.error(t`Couldn't create your practice`, { description: message })
       })

@@ -114,7 +114,9 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
-          description: rpcErrorMessage(err) ?? undefined,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -133,7 +135,9 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       },
       onError: (err) => {
         toast.error(t`Couldn't snooze alert`, {
-          description: rpcErrorMessage(err) ?? undefined,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -223,7 +227,8 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             <Trans>Couldn't load alerts</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(alertsQuery.error) ?? t`Please try again.`}{' '}
+            {rpcErrorMessage(alertsQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
             <button type="button" className="underline" onClick={() => void alertsQuery.refetch()}>
               <Trans>Retry</Trans>
             </button>

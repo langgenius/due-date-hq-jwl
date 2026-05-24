@@ -1629,7 +1629,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't save risk profile`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -1648,7 +1650,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't save filing jurisdictions`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -1661,7 +1665,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't queue risk summary`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -1691,7 +1697,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't update owner`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -1760,7 +1768,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't change status`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -1792,7 +1802,9 @@ export function ClientDetailWorkspace({
       },
       onError: (err) => {
         toast.error(t`Couldn't archive client`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -2522,7 +2534,9 @@ function ClientWorkPlanPanel({
       },
       onError: (err) => {
         toast.error(t`Couldn't update status`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -4210,7 +4224,9 @@ function SuggestedFormsCatalogPanel({
       },
       onError: (err) => {
         toast.error(t`Couldn't add deadline`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
         setPendingRuleId(null)
       },

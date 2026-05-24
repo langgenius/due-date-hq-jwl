@@ -103,7 +103,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update calendar subscription`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -116,7 +118,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't regenerate calendar URL`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -129,7 +133,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't disable calendar subscription`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

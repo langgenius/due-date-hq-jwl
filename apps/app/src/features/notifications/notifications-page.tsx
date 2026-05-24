@@ -38,7 +38,9 @@ export function NotificationsPage() {
       },
       onError: (error) => {
         toast.error(t`Couldn't mark notification read`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -87,7 +89,8 @@ export function NotificationsPage() {
                 <Trans>Couldn't load notifications</Trans>
               </AlertTitle>
               <AlertDescription>
-                {rpcErrorMessage(notificationsQuery.error) ?? t`Please try again.`}
+                {rpcErrorMessage(notificationsQuery.error) ??
+                  t`Check your network and try again. If this keeps happening, contact support.`}
               </AlertDescription>
             </Alert>
           ) : null}

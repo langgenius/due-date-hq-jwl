@@ -200,7 +200,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         })
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         setError(message)
         toast.error(t`Couldn't update practice`, {
           description: message,
@@ -225,7 +227,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         })
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         setError(message)
         toast.error(t`Couldn't update Smart Priority`, {
           description: message,
@@ -240,7 +244,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         setPriorityPreview(result)
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         toast.error(t`Couldn't calculate preview`, {
           description: message,
         })

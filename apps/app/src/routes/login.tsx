@@ -114,7 +114,10 @@ export function LoginRoute() {
       // better-auth performs the browser redirect itself; this promise typically does not resolve.
       await signInWithGoogle(redirectTo)
     } catch (err) {
-      const message = err instanceof Error ? err.message : t`Please try again.`
+      const message =
+        err instanceof Error
+          ? err.message
+          : t`Check your network and try again. If this keeps happening, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Google sign-in`, { description: message })
       }
@@ -127,7 +130,10 @@ export function LoginRoute() {
     try {
       await signInWithMicrosoft(redirectTo)
     } catch (err) {
-      const message = err instanceof Error ? err.message : t`Please try again.`
+      const message =
+        err instanceof Error
+          ? err.message
+          : t`Check your network and try again. If this keeps happening, contact support.`
       if (!USER_CANCELED.test(message)) {
         toast.error(t`Unable to start Microsoft sign-in`, { description: message })
       }
