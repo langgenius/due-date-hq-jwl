@@ -1,7 +1,6 @@
 import * as z from 'zod'
 import { createAI } from '@duedatehq/ai'
 import { expandDueDateLogic } from '@duedatehq/core/date-logic'
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import {
   RuleConcreteDraftSchema,
   type ObligationRule,
@@ -82,6 +81,101 @@ const RELATIVE_DUE_DATE_RE =
   /\b(\d{1,2}(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\s+day\s+of\s+the\s+([a-z0-9 -]+?)\s+month\b[^.\n]*(beginning|start|end|close)/i
 const RELATIVE_INSTALLMENT_MONTHS_RE =
   /\b(\d{1,2}(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|thirtieth)\s+day\s+of\s+the\s+([a-z0-9,\s-]+?)\s+months?\b[^.\n]*(?:taxable|tax|fiscal|calendar)?\s*year/i
+type PdfJsGetDocument = (typeof import('pdfjs-dist/legacy/build/pdf.mjs'))['getDocument']
+
+let pdfJsGetDocumentPromise: Promise<PdfJsGetDocument> | null = null
+
+class MinimalPdfJsDOMMatrix {
+  a = 1
+  b = 0
+  c = 0
+  d = 1
+  e = 0
+  f = 0
+
+  constructor(init?: unknown) {
+    if (Array.isArray(init)) {
+      this.setFromArray(init)
+      return
+    }
+
+    if (ArrayBuffer.isView(init) && !(init instanceof DataView) && 'length' in init) {
+      this.setFromArrayLike(init)
+      return
+    }
+
+    if (!isRecord(init)) return
+
+    this.a = readMatrixNumber(init.a, this.a)
+    this.b = readMatrixNumber(init.b, this.b)
+    this.c = readMatrixNumber(init.c, this.c)
+    this.d = readMatrixNumber(init.d, this.d)
+    this.e = readMatrixNumber(init.e, this.e)
+    this.f = readMatrixNumber(init.f, this.f)
+  }
+
+  translate(): MinimalPdfJsDOMMatrix {
+    return this
+  }
+
+  scale(): MinimalPdfJsDOMMatrix {
+    return this
+  }
+
+  multiplySelf(): MinimalPdfJsDOMMatrix {
+    return this
+  }
+
+  preMultiplySelf(): MinimalPdfJsDOMMatrix {
+    return this
+  }
+
+  invertSelf(): MinimalPdfJsDOMMatrix {
+    return this
+  }
+
+  private setFromArray(values: readonly number[]): void {
+    if (values.length < 6) return
+
+    this.a = readMatrixNumber(values[0], this.a)
+    this.b = readMatrixNumber(values[1], this.b)
+    this.c = readMatrixNumber(values[2], this.c)
+    this.d = readMatrixNumber(values[3], this.d)
+    this.e = readMatrixNumber(values[4], this.e)
+    this.f = readMatrixNumber(values[5], this.f)
+  }
+
+  private setFromArrayLike(values: ArrayBufferView & { length: unknown }): void {
+    if (typeof values.length !== 'number' || values.length < 6) return
+
+    this.a = readMatrixNumber(Reflect.get(values, '0'), this.a)
+    this.b = readMatrixNumber(Reflect.get(values, '1'), this.b)
+    this.c = readMatrixNumber(Reflect.get(values, '2'), this.c)
+    this.d = readMatrixNumber(Reflect.get(values, '3'), this.d)
+    this.e = readMatrixNumber(Reflect.get(values, '4'), this.e)
+    this.f = readMatrixNumber(Reflect.get(values, '5'), this.f)
+  }
+}
+
+function readMatrixNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function ensurePdfJsDOMMatrix(): void {
+  if (typeof Reflect.get(globalThis, 'DOMMatrix') === 'function') return
+
+  // PDF.js evaluates `new DOMMatrix()` at module load even when callers only extract text.
+  // Cloudflare Workers do not provide DOMMatrix, so keep the shim local to the lazy PDF path.
+  Reflect.set(globalThis, 'DOMMatrix', MinimalPdfJsDOMMatrix)
+}
+
+function loadPdfJsGetDocument(): Promise<PdfJsGetDocument> {
+  ensurePdfJsDOMMatrix()
+  pdfJsGetDocumentPromise ??= import('pdfjs-dist/legacy/build/pdf.mjs').then(
+    ({ getDocument }) => getDocument,
+  )
+  return pdfJsGetDocumentPromise
+}
 
 const AiPeriodSchema = z.object({
   period: nullableString,
@@ -559,7 +653,8 @@ function isPdfSourceResponse(contentType: string, url: string): boolean {
 }
 
 export async function extractPdfSourceText(buffer: ArrayBuffer): Promise<string | null> {
-  const loadingTask = getDocument({
+  const getPdfDocument = await loadPdfJsGetDocument()
+  const loadingTask = getPdfDocument({
     data: new Uint8Array(buffer),
     useSystemFonts: true,
   })

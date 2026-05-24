@@ -914,3 +914,18 @@ Validation:
 
 - `pnpm --filter @duedatehq/server test -- src/procedures/rules/concrete-draft.test.ts`
 - `pnpm --filter @duedatehq/server build`
+
+## 2026-05-24 CST - Worker-safe PDF.js startup
+
+Wrangler local dev exposed that the `pdfjs-dist` legacy ESM bundle evaluates `DOMMatrix` during
+module load, while the Cloudflare Workers runtime does not provide that browser API.
+
+- Replaced the top-level `pdfjs-dist` import in the concrete-draft source builder with a lazy loader
+  so normal Worker startup does not evaluate PDF.js.
+- Added a minimal `DOMMatrix` shim only inside the PDF extraction load path. This keeps PDF source
+  extraction available for concrete draft generation without adding a Worker-wide browser runtime
+  dependency.
+
+Validation:
+
+- Not run; change was made directly from the Wrangler startup failure.
