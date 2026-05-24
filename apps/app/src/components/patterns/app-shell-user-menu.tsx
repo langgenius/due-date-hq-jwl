@@ -199,19 +199,28 @@ function UserMenuTrigger({
 
   return (
     <DropdownMenu>
+      {/* 2026-05-25 (Yuqi Today #29): the trigger was a bare
+          avatar — initials only, no name. Hard to know who the
+          current account belongs to without opening the menu.
+          Promoted to "avatar + name" so the trigger reads as a
+          legible account chip. Name is truncated so a long display
+          name doesn't overflow the sidebar footer. */}
       <DropdownMenuTrigger
         render={
           <button
             type="button"
             aria-label={accountLabel}
             className={cn(
-              'inline-flex size-7 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full outline-none transition-opacity',
-              'hover:opacity-85 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-colors',
+              'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
           />
         }
       >
         <UserAvatar user={user} />
+        <span className="min-w-0 flex-1 truncate text-left text-sm font-medium text-text-primary">
+          {displayName}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
         <DropdownMenuGroup>
