@@ -41,7 +41,7 @@ import {
 } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
-import { Breadcrumb } from '@/components/patterns/breadcrumb'
+import { PageHeader } from '@/components/patterns/page-header'
 import { PermissionGate } from '@/features/permissions/permission-gate'
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant']
@@ -268,30 +268,32 @@ export function BillingRoute() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
-      <Breadcrumb items={[{ label: t`Settings`, to: '/settings' }, { label: t`Billing` }]} />
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-text-primary">
-              <Trans>Billing</Trans>
-            </h1>
-            <p className="mt-1 max-w-[680px] text-sm leading-6 text-text-secondary">
-              <Trans>
-                Review the active practice plan, open billing controls, and choose the right
-                workspace tier.
-              </Trans>
-            </p>
-          </div>
-        </div>
-        {currentFirm ? (
-          <Badge
-            variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
-            className="font-mono tabular-nums"
-          >
-            {currentPlanName}
-          </Badge>
-        ) : null}
-      </header>
+      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
+          Breadcrumb + custom header to the shared `<PageHeader>`.
+          Breadcrumb routes through the eyebrow slot; current plan
+          Badge sits in the actions cluster. Outer page width
+          (max-w-[1180px]) preserved — that's the deferred design
+          call from the earlier page-width tokens batch. */}
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Billing` }]}
+        title={<Trans>Billing</Trans>}
+        description={
+          <Trans>
+            Review the active practice plan, open billing controls, and choose the right workspace
+            tier.
+          </Trans>
+        }
+        actions={
+          currentFirm ? (
+            <Badge
+              variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
+              className="font-mono tabular-nums"
+            >
+              {currentPlanName}
+            </Badge>
+          ) : null
+        }
+      />
 
       {portalMutation.isError ? (
         <Alert variant="destructive">

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { Breadcrumb } from '@/components/patterns/breadcrumb'
+import { PageHeader } from '@/components/patterns/page-header'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -204,17 +204,20 @@ export function AccountSecurityRoute() {
 
   return (
     <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
-      <Breadcrumb items={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]} />
-      <section className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">
-            <Trans>Security</Trans>
-          </h1>
-        </div>
-        <Badge variant={status.twoFactorEnabled ? 'success' : 'outline'}>
-          {status.twoFactorEnabled ? <Trans>MFA enabled</Trans> : <Trans>MFA not enabled</Trans>}
-        </Badge>
-      </section>
+      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
+          Breadcrumb + h1 + Badge layout to the shared `<PageHeader>`
+          primitive. Breadcrumb routes through the eyebrow slot; MFA
+          status Badge sits in the actions slot. Same visual outcome,
+          one less custom header to maintain. */}
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]}
+        title={<Trans>Security</Trans>}
+        actions={
+          <Badge variant={status.twoFactorEnabled ? 'success' : 'outline'}>
+            {status.twoFactorEnabled ? <Trans>MFA enabled</Trans> : <Trans>MFA not enabled</Trans>}
+          </Badge>
+        }
+      />
 
       <Card>
         <CardHeader>

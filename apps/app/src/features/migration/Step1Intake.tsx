@@ -604,7 +604,11 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       <span
         aria-hidden
         className={cn(
-          'grid shrink-0 place-items-center overflow-hidden rounded-[4px] bg-white ring-1 ring-black/10 transition-transform',
+          // 2026-05-24 (design-system audit): was `rounded-[4px]`,
+          // off-scale. `rounded-sm` is the same physical radius
+          // (4px in Tailwind v4) and lines up with the rest of the
+          // app's "small logo tile" treatment elsewhere.
+          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-white ring-1 ring-black/10 transition-transform',
           compact ? 'size-5' : 'size-5.5',
           logo.tileClassName,
           selected && 'scale-105',
@@ -658,7 +662,11 @@ function PresetExportGuideCard({ id, label, guide, compact = false }: PresetExpo
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-[5px] bg-white ring-1 ring-black/10">
+        {/* 2026-05-24 (design-system audit): was `rounded-[5px]`, an
+            off-scale value with no Tailwind equivalent. `rounded-sm`
+            matches the chip variant above and aligns with the app's
+            small-logo-tile treatment elsewhere. */}
+        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-white ring-1 ring-black/10">
           <img
             src={logo.src}
             alt=""
