@@ -3,7 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import type { DashboardTopRow } from '@duedatehq/contracts'
+import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
 import { BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -53,7 +53,32 @@ function actionPromptFor(row: DashboardTopRow, asOfDate: string | null): string 
   return 'Open evidence and confirm the source still matches'
 }
 
-function RowMeta({ days }: { days: number }) {
+// 2026-05-24 (critique P0): terminal-state rows render lateness as a
+// muted quality stat ("filed #d late"), not red live urgency. The
+// dashboard top-rows query typically filters terminal states out, so
+// this branch is defensive — guards against an optimistic update or
+// a future server expansion landing a completed row in the list.
+const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
+  'done',
+  'paid',
+  'completed',
+])
+
+function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
+  if (DASHBOARD_TERMINAL_STATUSES.has(status)) {
+    if (days === 0) return null
+    return (
+      <span className="flex shrink-0 items-baseline whitespace-nowrap text-base tabular-nums">
+        <span className="text-text-tertiary">
+          {days < 0 ? (
+            <Plural value={-days} one="filed #d late" other="filed #d late" />
+          ) : (
+            <Plural value={days} one="filed #d early" other="filed #d early" />
+          )}
+        </span>
+      </span>
+    )
+  }
   const past = days < 0
   return (
     <span className="flex shrink-0 items-baseline whitespace-nowrap text-base tabular-nums">
@@ -180,7 +205,7 @@ function ActionRow({
           <Trans>Review</Trans>
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
-        <RowMeta days={days} />
+        <RowMeta days={days} status={row.status} />
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,

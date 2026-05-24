@@ -1414,7 +1414,9 @@ export function ObligationQueueRoute() {
         // hide-by-default column ('dueDateExact' below) — most
         // triage decisions only need the relative urgency, and the
         // date row is signal-to-noise tax.
-        cell: ({ row: tableRow }) => <DueDaysPill days={tableRow.original.daysUntilDue} />,
+        cell: ({ row: tableRow }) => (
+          <DueDaysPill days={tableRow.original.daysUntilDue} status={tableRow.original.status} />
+        ),
         meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
       {
@@ -2977,7 +2979,37 @@ function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean
   )
 }
 
-function DueDaysPill({ days }: { days: number }) {
+// 2026-05-24 (critique P0): terminal-state rows shouldn't surface
+// lateness as live debt. Once a row is `done` ("Filed"), `paid`
+// ("Filed" on payment-track rows), or `completed`, the row is
+// closed — "18 days late" alongside a "Filed" / "Completed" pill
+// reads as if there's still work to do. We render a muted
+// "Filed N days late" / "Filed N days early" stat instead —
+// quality signal, not active red. Mirrors the same three statuses
+// that `features/obligations/status-control.tsx` displays as
+// "Filed" / "Completed".
+const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
+  'done',
+  'paid',
+  'completed',
+])
+
+function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
+  if (DUE_DAYS_TERMINAL_STATUSES.has(status)) {
+    // Quality stat, not active urgency. Skip the dot, drop the
+    // urgency tone, render as a muted line. Drop entirely when the
+    // row landed exactly on its deadline — no signal there.
+    if (days === 0) return <span className="text-xs text-text-tertiary tabular-nums">—</span>
+    return (
+      <span className="text-xs text-text-tertiary tabular-nums">
+        {days < 0 ? (
+          <Plural value={Math.abs(days)} one="Filed # day late" other="Filed # days late" />
+        ) : (
+          <Plural value={days} one="Filed # day early" other="Filed # days early" />
+        )}
+      </span>
+    )
+  }
   const tone = dueDaysTone(days)
   return (
     <Badge
