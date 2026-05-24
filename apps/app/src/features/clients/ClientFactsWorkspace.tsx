@@ -24,6 +24,7 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronUpIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
   EyeIcon,
@@ -64,6 +65,7 @@ import {
 } from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1651,9 +1653,28 @@ export function ClientDetailWorkspace({
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }, [setActiveTab])
+
+  // 2026-05-24 (shape — critique P1): the H1 "Add filing state" /
+  // "Needs facts" chip opens the same inline batch sheet the
+  // /clients list page uses, so the fix-state journey matches across
+  // surfaces. Previously the detail-page chip just switched to the
+  // Client info tab + scrolled to the jurisdiction form, which was
+  // ~6 clicks vs the list page's 2.
+  //
+  // When `entityType` is missing (rare), the sheet's existing
+  // fallback is a "Open client to fix" link — useless here because
+  // we're already on the client detail page. For that case we keep
+  // the old tab+scroll fallback. Detection: readiness.missing
+  // includes 'entityType'.
+  const [fixSheetOpen, setFixSheetOpen] = useState(false)
+  const missingEntityType = Boolean(readiness?.missingRequiredFacts.includes('entityType'))
   const openMissingFacts = useCallback(() => {
-    openFilingJurisdictions()
-  }, [openFilingJurisdictions])
+    if (missingEntityType) {
+      openFilingJurisdictions()
+      return
+    }
+    setFixSheetOpen(true)
+  }, [missingEntityType, openFilingJurisdictions])
 
   // Obligation status change — wired from the filing-plan rows
   // (D-6a/b). Same RPC the queue uses, same invalidation set, so
@@ -2171,6 +2192,14 @@ export function ClientDetailWorkspace({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Inline batch flow for the "Needs facts" / "Add filing
+          state" chip — same sheet the /clients list page mounts,
+          scoped to this client only. Opens when the H1 chip is
+          clicked and the missing fact is `state` (the 90% case).
+          When `entityType` is missing, openMissingFacts falls back
+          to tab+scroll instead because the sheet's entityType
+          fallback is a link button that would loop back here. */}
+      <FixNeedsFactsSheet open={fixSheetOpen} onOpenChange={setFixSheetOpen} clients={[client]} />
     </>
   )
 }
@@ -2235,6 +2264,115 @@ const OPEN_FILING_PLAN_STATUSES = new Set([
   'done',
 ])
 
+// 2026-05-24 (shape — critique P2): filing-plan column sort state.
+// `null` field means "natural order" — each year section's obligations
+// stay in whatever order the API returned. `internal` and `official`
+// are the most common sort axes (per CPA Sarah's testing). `form` is a
+// stable secondary key. `status` orders by the lifecycle enum.
+type FilingPlanSortField = 'form' | 'internal' | 'official' | 'status' | 'estimate' | null
+type FilingPlanSortDir = 'asc' | 'desc'
+type FilingPlanSort = { field: FilingPlanSortField; dir: FilingPlanSortDir }
+
+// Canonical status ordering — matches the V2 lifecycle. We sort by
+// index so "Not started" sorts before "Filed" rather than alphabetic.
+const STATUS_SORT_INDEX: Record<string, number> = {
+  not_started: 0,
+  in_progress: 1,
+  waiting_on_client: 2,
+  review: 3,
+  blocked: 4,
+  done: 5,
+  filed: 6,
+  paid: 7,
+  completed: 8,
+  extended: 9,
+  not_applicable: 10,
+}
+
+// Inline sort-header button. Renders the label + a sort indicator
+// chevron when active. Click cycles asc → desc → null (handled by
+// the panel's `cycleSort`). When inactive, label is uppercase
+// tertiary; when active, label promotes to primary text with the
+// chevron next to it. Keeps the rest of the header row visually
+// quiet so it doesn't compete with the rows below.
+function FilingPlanSortHeader({
+  className,
+  active,
+  dir,
+  alignRight,
+  title,
+  onClick,
+  children,
+}: {
+  className?: string
+  active: boolean
+  dir: FilingPlanSortDir
+  alignRight?: boolean
+  title?: string
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        'inline-flex items-center gap-1 text-xs font-medium leading-4 uppercase outline-none focus-visible:text-text-primary',
+        alignRight ? 'justify-end' : 'text-left',
+        active ? 'text-text-primary' : 'text-text-tertiary hover:text-text-secondary',
+        className,
+      )}
+    >
+      <span>{children}</span>
+      {active ? (
+        dir === 'asc' ? (
+          <ChevronUpIcon className="size-3" aria-hidden />
+        ) : (
+          <ChevronDownIcon className="size-3" aria-hidden />
+        )
+      ) : null}
+    </button>
+  )
+}
+
+function sortObligations(
+  list: readonly ObligationInstancePublic[],
+  sort: FilingPlanSort,
+): readonly ObligationInstancePublic[] {
+  if (sort.field === null) return list
+  const sign = sort.dir === 'asc' ? 1 : -1
+  const cmp = (a: ObligationInstancePublic, b: ObligationInstancePublic): number => {
+    switch (sort.field) {
+      case 'form':
+        return a.taxType.localeCompare(b.taxType) * sign
+      case 'internal': {
+        const av = Date.parse(a.currentDueDate)
+        const bv = Date.parse(b.currentDueDate)
+        return ((av || 0) - (bv || 0)) * sign
+      }
+      case 'official': {
+        const av = Date.parse(a.filingDueDate ?? a.currentDueDate)
+        const bv = Date.parse(b.filingDueDate ?? b.currentDueDate)
+        return ((av || 0) - (bv || 0)) * sign
+      }
+      case 'status': {
+        const av = STATUS_SORT_INDEX[a.status] ?? 99
+        const bv = STATUS_SORT_INDEX[b.status] ?? 99
+        return (av - bv) * sign
+      }
+      case 'estimate': {
+        const av = a.estimatedTaxDueCents ?? -1
+        const bv = b.estimatedTaxDueCents ?? -1
+        return (av - bv) * sign
+      }
+      default:
+        return 0
+    }
+  }
+  return list.toSorted(cmp)
+}
+
 function ClientWorkPlanPanel({
   obligations,
   isLoading,
@@ -2261,7 +2399,77 @@ function ClientWorkPlanPanel({
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
+
+  // 2026-05-24 (shape — critique P2 power-user pass): sort state
+  // lives at the panel level so all year sections share the same
+  // sort. Click a header → toggle (asc → desc → null). Default
+  // (`field === null`) keeps the API order.
+  const [sort, setSort] = useState<FilingPlanSort>({ field: null, dir: 'asc' })
+  const cycleSort = useCallback((field: Exclude<FilingPlanSortField, null>) => {
+    setSort((prev) => {
+      if (prev.field !== field) return { field, dir: 'asc' }
+      if (prev.dir === 'asc') return { field, dir: 'desc' }
+      return { field: null, dir: 'asc' }
+    })
+  }, [])
+
+  // Multi-select state — a Set of obligation ids selected across all
+  // year sections. The floating bulk action bar appears when
+  // `selectedIds.size > 0`. `selectAllInYear` / `clearSelection`
+  // helpers keep year-level controls clean.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set())
+  const toggleRow = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+  const setYearSelection = useCallback((ids: readonly string[], on: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (on) for (const id of ids) next.add(id)
+      else for (const id of ids) next.delete(id)
+      return next
+    })
+  }, [])
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), [])
+
+  // Bulk status mutation — same RPC the queue's bulk bar uses, same
+  // invalidation set so changes propagate to the queue, dashboard,
+  // and this client's filing plan rows.
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const bulkStatusMutation = useMutation(
+    orpc.obligations.bulkUpdateStatus.mutationOptions({
+      onSuccess: (result, vars) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        toast.success(
+          vars.ids.length === 1
+            ? t`Status changed to ${v2StatusLabels[vars.status]}`
+            : t`${result.updatedCount} deadlines moved to ${v2StatusLabels[vars.status]}`,
+        )
+        clearSelection()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update status`, {
+          description: rpcErrorMessage(err) ?? t`Please try again.`,
+        })
+      },
+    }),
+  )
+  const bulkApplyStatus = useCallback(
+    (status: ObligationStatus) => {
+      if (selectedIds.size === 0) return
+      bulkStatusMutation.mutate({ ids: [...selectedIds], status })
+    },
+    [bulkStatusMutation, selectedIds],
+  )
   // 2026-05-24: the Filing plan heading went through TabSection so it
   // sits on the same h2 / subtitle baseline as every other section
   // header on this client detail page. Subtitle stays factual
@@ -2301,20 +2509,103 @@ function ClientWorkPlanPanel({
           }
         />
       ) : (
-        <div className="flex flex-col gap-3">
-          {yearGroups.map((group) => (
-            <FilingPlanYearSection
-              key={group.year}
-              group={group}
-              clientName={clientName}
-              onOpen={(obligationId) => openObligationDrawer(obligationId)}
-              onChangeStatus={onChangeStatus}
-              isStatusChangePending={isStatusChangePending}
+        <>
+          <div className="flex flex-col gap-3">
+            {yearGroups.map((group) => (
+              <FilingPlanYearSection
+                key={group.year}
+                group={group}
+                clientName={clientName}
+                sort={sort}
+                onCycleSort={cycleSort}
+                selectedIds={selectedIds}
+                onToggleRow={toggleRow}
+                onSetYearSelection={setYearSelection}
+                onOpen={(obligationId) => openObligationDrawer(obligationId)}
+                onChangeStatus={onChangeStatus}
+                isStatusChangePending={isStatusChangePending}
+              />
+            ))}
+          </div>
+          {/* Floating bulk-status bar — appears when ≥1 row is selected
+              across any year section. Same pattern the queue uses:
+              count badge, status picker, clear button. Mounts at the
+              bottom of the viewport via fixed positioning so it
+              doesn't push the filing plan around when it appears. */}
+          {selectedIds.size > 0 ? (
+            <FilingPlanBulkBar
+              count={selectedIds.size}
+              statuses={LIFECYCLE_V2_STATUSES}
+              statusLabels={v2StatusLabels}
+              isPending={bulkStatusMutation.isPending}
+              onApplyStatus={bulkApplyStatus}
+              onClear={clearSelection}
             />
-          ))}
-        </div>
+          ) : null}
+        </>
       )}
     </TabSection>
+  )
+}
+
+/**
+ * Floating bulk-action bar shown when ≥1 filing-plan row is selected.
+ *
+ * Modelled after the obligations queue's bulk bar — fixed-position at
+ * the bottom centre of the viewport, count badge on the left, status
+ * picker in the middle, clear button on the right. Renders nothing
+ * when count === 0 (caller gates).
+ */
+function FilingPlanBulkBar({
+  count,
+  statuses,
+  statusLabels,
+  isPending,
+  onApplyStatus,
+  onClear,
+}: {
+  count: number
+  statuses: readonly ObligationStatus[]
+  statusLabels: Record<ObligationStatus, string>
+  isPending: boolean
+  onApplyStatus: (status: ObligationStatus) => void
+  onClear: () => void
+}) {
+  const { t } = useLingui()
+  return (
+    <div
+      role="region"
+      aria-label={t`Bulk actions`}
+      className="pointer-events-none fixed inset-x-0 bottom-10 z-30 flex justify-center px-4"
+    >
+      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-divider-regular bg-background-default px-3 py-1.5 shadow-lg">
+        <span className="text-xs font-medium tabular-nums text-text-primary">
+          <Plural value={count} one="# selected" other="# selected" />
+        </span>
+        <span className="h-4 w-px bg-divider-regular" aria-hidden />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="sm" disabled={isPending}>
+                <Trans>Move to status</Trans>
+                <ChevronDownIcon className="size-3.5" aria-hidden />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="center" className="min-w-[200px]">
+            {statuses.map((status) => (
+              <DropdownMenuItem key={status} onClick={() => onApplyStatus(status)}>
+                {statusLabels[status]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="h-4 w-px bg-divider-regular" aria-hidden />
+        <Button variant="ghost" size="sm" onClick={onClear}>
+          <Trans>Clear</Trans>
+        </Button>
+      </div>
+    </div>
   )
 }
 
@@ -2329,18 +2620,47 @@ function ClientWorkPlanPanel({
 function FilingPlanYearSection({
   group,
   clientName,
+  sort,
+  onCycleSort,
+  selectedIds,
+  onToggleRow,
+  onSetYearSelection,
   onOpen,
   onChangeStatus,
   isStatusChangePending,
 }: {
   group: FilingPlanYearGroup
   clientName: string
+  sort: FilingPlanSort
+  onCycleSort: (field: Exclude<FilingPlanSortField, null>) => void
+  selectedIds: Set<string>
+  onToggleRow: (id: string) => void
+  onSetYearSelection: (ids: readonly string[], on: boolean) => void
   onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
 }) {
   const { t } = useLingui()
   const statusPickerLabels = useLifecycleV2StatusLabels()
+  // Apply panel-level sort to this year's obligations. When sort is
+  // null (default), order matches whatever the API returned.
+  const sortedObligations = useMemo(
+    () => sortObligations(group.obligations, sort),
+    [group.obligations, sort],
+  )
+  // Year-level selection state — derives directly from the panel's
+  // Set so check / partial / unchecked stays in sync. `partial` means
+  // some but not all rows in this year are selected.
+  const yearIds = useMemo(() => group.obligations.map((o) => o.id), [group.obligations])
+  const yearSelectedCount = useMemo(
+    () => yearIds.filter((id) => selectedIds.has(id)).length,
+    [yearIds, selectedIds],
+  )
+  const yearAllSelected = yearSelectedCount === yearIds.length && yearIds.length > 0
+  const yearSomeSelected = yearSelectedCount > 0 && !yearAllSelected
+  const toggleYear = useCallback(() => {
+    onSetYearSelection(yearIds, !yearAllSelected)
+  }, [onSetYearSelection, yearIds, yearAllSelected])
   // 2026-05-24 (Figma replica pass): year section snapped to the
   // pixel-exact frame from the Figma Make export.
   //   - Outer frame: `bg-background-soft` (#f9fafb) + `rounded-xl`
@@ -2396,37 +2716,78 @@ function FilingPlanYearSection({
           2026-05-24 (clarify — critique): added `title` tooltips to
           Internal vs Official so first-timer CPAs don't have to guess
           which is which. (Many firms use both terms but with different
-          meanings — explicit tooltip > assumed convention.) */}
+          meanings — explicit tooltip > assumed convention.)
+
+          2026-05-24 (shape — critique): header cells are now real
+          sort buttons. Click cycles asc → desc → no sort. Active
+          sort surfaces a small chevron. The leading slot is now a
+          year-level select-all checkbox. */}
       <div className="flex items-center gap-2 border-y border-divider-subtle px-3 py-2 text-xs font-medium leading-4 text-text-tertiary">
-        <span className="w-5 shrink-0" aria-hidden />
-        <span className="flex-1">
-          <Trans>FORM</Trans>
+        <span className="w-5 shrink-0">
+          <Checkbox
+            checked={yearAllSelected}
+            indeterminate={yearSomeSelected}
+            onCheckedChange={toggleYear}
+            aria-label={t`Select all deadlines in this year`}
+            className="size-4"
+          />
         </span>
-        <span
+        <FilingPlanSortHeader
+          className="flex-1"
+          active={sort.field === 'form'}
+          dir={sort.dir}
+          onClick={() => onCycleSort('form')}
+        >
+          <Trans>FORM</Trans>
+        </FilingPlanSortHeader>
+        <FilingPlanSortHeader
           className="w-[120px]"
+          active={sort.field === 'internal'}
+          dir={sort.dir}
           title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
+          onClick={() => onCycleSort('internal')}
         >
           <Trans>Internal Deadline</Trans>
-        </span>
-        <span
+        </FilingPlanSortHeader>
+        <FilingPlanSortHeader
           className="w-[120px]"
+          active={sort.field === 'official'}
+          dir={sort.dir}
           title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
+          onClick={() => onCycleSort('official')}
         >
           <Trans>Official Deadline</Trans>
-        </span>
-        <span className="w-[120px]">
+        </FilingPlanSortHeader>
+        <FilingPlanSortHeader
+          className="w-[120px]"
+          active={sort.field === 'status'}
+          dir={sort.dir}
+          onClick={() => onCycleSort('status')}
+        >
           <Trans>Status</Trans>
-        </span>
-        <span className="w-[120px] text-right">
+        </FilingPlanSortHeader>
+        <FilingPlanSortHeader
+          className="w-[120px] justify-end"
+          active={sort.field === 'estimate'}
+          dir={sort.dir}
+          onClick={() => onCycleSort('estimate')}
+          alignRight
+        >
           <Trans>Estimated tax</Trans>
-        </span>
+        </FilingPlanSortHeader>
       </div>
       {/* Rows — flat list against the section frame, each separated
-          by a `#f3f4f6` hairline. Last row has no border-b. */}
+          by a `#f3f4f6` hairline. Last row has no border-b.
+
+          2026-05-24 (shape — critique): rows now use `sortedObligations`
+          (panel-level sort applied). The leading "N" badge was
+          replaced with a per-row selection checkbox so the same slot
+          carries the multi-select affordance the bulk bar reads from. */}
       <div className="bg-background-default">
-        {group.obligations.map((obligation, rowIndex) => {
+        {sortedObligations.map((obligation, rowIndex) => {
           const hasEstimate = obligation.estimatedTaxDueCents !== null
-          const isLast = rowIndex === group.obligations.length - 1
+          const isLast = rowIndex === sortedObligations.length - 1
+          const isSelected = selectedIds.has(obligation.id)
           return (
             <div
               key={obligation.id}
@@ -2435,6 +2796,7 @@ function FilingPlanYearSection({
               aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
               className={cn(
                 'group/row flex cursor-pointer items-center gap-2 px-3 py-2 outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover',
+                isSelected && 'bg-state-accent-hover-alt',
                 !isLast && 'border-b border-divider-subtle',
               )}
               onClick={() => onOpen(obligation.id)}
@@ -2445,13 +2807,23 @@ function FilingPlanYearSection({
                 }
               }}
             >
-              {/* Leading "N" badge — small gray circle, scoped per
-                  year so each year resets to 1. */}
+              {/* Per-row selection checkbox. Click stops propagation
+                  so toggling selection doesn't also open the drawer.
+                  The leading "N" row index was retired here — its
+                  visual weight read like a priority signal it didn't
+                  actually carry, and the row already has the form
+                  code as its anchor. */}
               <span
-                aria-hidden
-                className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-background-soft text-xs font-medium leading-4 tabular-nums text-text-secondary"
+                className="w-5 shrink-0"
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => event.stopPropagation()}
               >
-                {rowIndex + 1}
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onToggleRow(obligation.id)}
+                  aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
+                  className="size-4"
+                />
               </span>
               <span className="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-text-primary">
                 <TaxCodeLabel code={obligation.taxType} />
