@@ -30,6 +30,7 @@ import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDatePretty } from '@/lib/utils'
 import { workloadRowDueSoonHref, workloadRowHref, workloadRowOverdueHref } from './workload-links'
 
 function todayDateOnly(): string {
@@ -77,9 +78,14 @@ export function WorkloadPage() {
         description={
           <>
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
-            <span className="mt-1 block font-mono text-[11px] tabular-nums text-text-muted">
+            {/* 2026-05-24 (re-critique): the previous shape rendered
+                `As of 2026-05-24 · next 60 days` in monospace —
+                read as machine output, not prose. Pretty-printed
+                date + drop the `font-mono` so it sits naturally
+                under the description sentence. */}
+            <span className="mt-1 block text-[11px] text-text-muted">
               <Trans>
-                As of {asOfDate} · next {windowDays} days
+                As of {formatDatePretty(asOfDate)} · next {windowDays} days
               </Trans>
             </span>
           </>
