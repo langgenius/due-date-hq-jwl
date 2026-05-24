@@ -55,17 +55,22 @@ function TileShell({
   //   - Fill `bg-util-colors-gray-25` (#fcfcfd) — off-white, NOT pure
   //     white. The fill itself does the section-anchoring; no border.
   //   - `rounded-xl` = 12px (was rounded-md / 8px).
-  //   - Value is `text-sm font-semibold` (14px / leading-20) — much
-  //     smaller than the prior `text-xl` (20px) "big number" tile.
-  //     The Figma trades visual loudness for type-rhythm consistency
-  //     with everything else on the page.
   //   - Label opacity dropped to ~30% (Figma uses `rgba(16,24,40,0.3)`)
   //     so the eyebrow whispers instead of competing with the value.
   //   - Inner padding split into a label row (`pt-3 pb-1 px-3`) +
   //     a value row (`pt-1 pb-3 px-3`) to match the two-frame Figma
   //     structure. Subline sits inline with the value at 13px.
+  //
+  // 2026-05-24 (typeset pass — critique P0): value scaled from 14px →
+  // 20px (`text-xl font-semibold leading-7`). The Figma export had it
+  // at 14px which made the tile WHISPER — visually equivalent to the
+  // filing-plan row form names below, so the strip stopped anchoring
+  // the eye. 20px is the Ramp / Linear "headline number" sweet spot:
+  // big enough to read first, small enough not to feel like an AI-slop
+  // dashboard hero metric. Subline stays at 13px so the value gets
+  // genuine primacy.
   const valueClass = cn(
-    'text-sm font-semibold leading-5 tabular-nums tracking-tight',
+    'text-xl font-semibold leading-7 tabular-nums tracking-tight',
     tone === 'critical' && 'text-text-destructive',
     tone === 'warning' && 'text-text-warning',
     tone === 'neutral' && 'text-text-primary',
