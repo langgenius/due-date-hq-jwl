@@ -274,6 +274,32 @@
 
 > **铁律**：`text-section-title` / `text-display-large` / `text-display-hero` 仅限 marketing landing（`apps/app/src/routes/landing.*` 之类）使用，**禁止**进入 dashboard / obligations / drawer / modal 等 workbench 表面。
 
+#### 角色 → token 映射（2026-05-25 增补）
+
+When picking a size, anchor on the **role** the text plays in the
+component, not the visual eyeball test. Role-to-token table for
+recurring patterns we ship across drawers / cards / list rows:
+
+| Role                                                       | Token                   | Weight   | Example                                                              |
+| ---------------------------------------------------------- | ----------------------- | -------- | -------------------------------------------------------------------- |
+| **h1** — page title                                        | `text-2xl`              | semibold | "Today", client name on `/clients/[id]`                              |
+| **h2** — section header (TabSection, page sub-area)        | `text-xl`               | semibold | "Alerts", "Filing plan", "Actions this week"                         |
+| **h3** — card title (drawer body, stage card)              | `text-base` / `text-lg` | semibold | Stage card stageLabel; PulseDetailDrawer title (`text-xl` exception) |
+| **Body** — list-row primary text                           | `text-base`             | regular  | Action prompt in dashboard ActionRow                                 |
+| **Body strong** — list-row anchor (client name, form code) | `text-base`             | semibold | ActionRow client name (2026-05-25 #25); filing-plan form code        |
+| **Body secondary** — list-row supporting copy              | `text-sm`               | regular  | Stage stepper items, drawer description, tile sublines               |
+| **Tile value**                                             | `text-xl`               | semibold | Summary tiles on dashboard + client detail                           |
+| **Eyebrow** (uppercase tracking)                           | `text-caption`          | medium   | "Steps", "Filing activity", section labels above fact grids          |
+| **Caption-xs**                                             | `text-caption-xs`       | medium   | Keyboard chips, dense badges, tabular gutters                        |
+
+**The body / body-strong / body-secondary trio must always read as
+three distinct tiers in the same row.** If the difference between a
+heading and its supporting copy is just `font-medium` vs
+`font-regular` at the same size, the hierarchy reads as flat — that's
+what Yuqi flagged across multiple surfaces (e.g. Today #25, drawer
+#22, drawer #28/#29). The fix is to **change the token AND the
+weight**, not just the weight.
+
 ### 3.3 字母间距
 
 - UPPERCASE 短语（`AT RISK · NEXT 7 DAYS`）：`letter-spacing: 0.08em`

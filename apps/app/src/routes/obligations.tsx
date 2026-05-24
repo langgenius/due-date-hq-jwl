@@ -7619,8 +7619,14 @@ function ActiveStageDetailCard({
           "Blocked" / "In review" read as honest noun phrases, matching
           the milestone strip labels above. Sub-status follows on the
           same line with a thin dot separator. */}
+      {/* 2026-05-25 (Yuqi #27): stage label promoted from text-sm
+          (14px) to text-base (16px) — it's the h3 of this card and
+          was reading as inline chrome at the same size as the rest
+          of the body. The sub-status that follows stays at the
+          larger size too so the whole line reads as one heading.
+          The "Entered DATE" subline stays at text-xs as quiet meta. */}
       <header className="flex flex-col gap-0.5">
-        <h3 className="flex flex-wrap items-baseline gap-x-1.5 text-sm leading-tight">
+        <h3 className="flex flex-wrap items-baseline gap-x-1.5 text-base leading-tight">
           <span className="font-semibold text-text-primary">{stageLabel}</span>
           {subStatus ? (
             <>
@@ -7704,12 +7710,19 @@ function ActiveStageDetailCard({
           list indented beneath, and upcoming steps render as quiet
           empty circles. "Steps" (not "Pipeline") because CPAs say
           "what step am I on?" — pipeline reads as engineering jargon. */}
+      {/* 2026-05-25 (Yuqi #28, #29): Steps eyebrow was
+          text-caption-xs (10px) — sub-visible against the rest of
+          the card. Promoted to text-caption (11px) matching the
+          "Entered DATE" subline, so the eyebrow + the entered-date
+          line read at the same scale. Step list items inside ride
+          on text-sm so they're a clear tier below the stage h3
+          but legibly above the eyebrow. */}
       {showEfilePipeline || showPaymentPipeline ? (
         <div className="mt-3 flex flex-col gap-2">
-          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {(showEfilePipeline ? EFILE_PIPELINE_KEYS : PAYMENT_PIPELINE_KEYS).map((key) => {
               // The 4 casts in this block (key + row state, repeated for
               // efile/payment branches) are runtime-correlated with
@@ -7748,7 +7761,7 @@ function ActiveStageDetailCard({
                   paymentPipelineLabels[key as (typeof PAYMENT_PIPELINE_KEYS)[number]]
               return (
                 <li key={key} className="flex flex-col">
-                  <div className="flex items-start gap-2 text-xs">
+                  <div className="flex items-start gap-2 text-sm">
                     {state === 'done' ? (
                       <CheckCircle2Icon
                         className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"

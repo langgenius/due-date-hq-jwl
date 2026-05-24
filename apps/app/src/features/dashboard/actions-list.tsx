@@ -176,10 +176,20 @@ function ActionRow({
           )}
           aria-hidden
         />
-        <span className="inline-flex shrink-0 items-center rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-sm text-text-secondary">
+        {/* 2026-05-25 (Yuqi #25): client name was wrapped in a
+            badge-styled span (bordered + bg-subtle) that read like
+            a status label, not a client. Promoted to plain
+            font-semibold body text — same scale as the prompt next
+            to it but heavier weight. Reads as "subject" with the
+            prompt as the supporting detail, like an email
+            list-item. */}
+        <span className="shrink-0 truncate text-base font-semibold text-text-primary">
           {row.clientName}
         </span>
-        <span className="min-w-0 flex-1 truncate text-base text-text-primary">{prompt}</span>
+        <span aria-hidden className="text-text-tertiary">
+          ·
+        </span>
+        <span className="min-w-0 flex-1 truncate text-base text-text-secondary">{prompt}</span>
         {/* Review button — always rendered, opacity-animated based on
           `expanded`. Keeps the row layout stable on hover (no reflow
           from a button mounting/unmounting) and lets the time signal
