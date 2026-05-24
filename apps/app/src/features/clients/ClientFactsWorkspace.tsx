@@ -2789,23 +2789,23 @@ function FilingPlanYearSection({
           const isLast = rowIndex === sortedObligations.length - 1
           const isSelected = selectedIds.has(obligation.id)
           return (
+            // 2026-05-24 (audit — critique P2 a11y): row dropped
+            // `role="link"` + `tabIndex={0}` + `onKeyDown`. The
+            // previous shape made the row a focusable link AND
+            // nested two real buttons inside it (checkbox + status
+            // pill) — a nested-interactive violation that screen
+            // readers can't render sensibly. The keyboard-activation
+            // path moved to the form-code cell (now a real <button>)
+            // so SRs get one unambiguous "Open 1120-S" target
+            // without removing the mouse click-anywhere ergonomic.
             <div
               key={obligation.id}
-              role="link"
-              tabIndex={0}
-              aria-label={`${formatTaxCode(obligation.taxType)} — ${formatDate(obligation.currentDueDate)}`}
               className={cn(
-                'group/row flex cursor-pointer items-center gap-2 px-3 py-2 outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover',
+                'group/row flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-state-base-hover',
                 isSelected && 'bg-state-accent-hover-alt',
                 !isLast && 'border-b border-divider-subtle',
               )}
               onClick={() => onOpen(obligation.id)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  onOpen(obligation.id)
-                }
-              }}
             >
               {/* Per-row selection checkbox. Click stops propagation
                   so toggling selection doesn't also open the drawer.
@@ -2825,9 +2825,21 @@ function FilingPlanYearSection({
                   className="size-4"
                 />
               </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-text-primary">
+              {/* Form code cell is the row's keyboard-focusable
+                  open-row target. Tab brings the user here; Enter /
+                  Space opens the drawer. Mouse users still click
+                  anywhere on the row (the parent div's onClick). */}
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onOpen(obligation.id)
+                }}
+                aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
+                className="min-w-0 flex-1 truncate rounded-sm text-left text-xs font-medium leading-4 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
                 <TaxCodeLabel code={obligation.taxType} />
-              </span>
+              </button>
               <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.currentDueDate)}
               </span>
