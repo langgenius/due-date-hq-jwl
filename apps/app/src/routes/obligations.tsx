@@ -2695,7 +2695,15 @@ export function ObligationQueueRoute() {
           Only mounts when a row is selected; otherwise the queue gets
           the full page width. */}
         {activeDetailId ? (
-          <div className="min-w-0 w-full xl:w-[600px] xl:shrink-0 xl:min-h-0">
+          // 2026-05-25 (Yuqi Deadlines #16): added explicit `xl:h-full`
+          // so the panel wrapper fills the parent row's stretched
+          // height even when the inner ObligationQueueDetailDrawer's
+          // <aside> initial render is shorter than the row (loading
+          // state, empty data). Previously the wrapper relied on
+          // `items-stretch` alone, which created a transient gap at
+          // the panel's bottom edge during load / row-switch — the
+          // "drawer not aligned to top" Yuqi flagged.
+          <div className="min-w-0 w-full xl:h-full xl:w-[600px] xl:shrink-0 xl:min-h-0">
             <ObligationPanelDispatcher
               obligationId={activeDetailId}
               activeTab={detailTab}
@@ -6409,12 +6417,24 @@ function PathToFilingSummary({
                   ? 'done'
                   : 'skipped'
                 : 'upcoming'
-          // Date resolution (milestone-timeline-prd.md §3):
-          //   Done/Active : audit-event stamp (first entry into stage)
-          //   Stage 0 fallback : row.createdAt (the row was born here)
-          //   Filed upcoming : row.currentDueDate (expected file date)
-          //   Skipped : no stamp, no projection (the stage didn't happen)
-          //   Other upcoming : null → em-dash placeholder
+          // Date resolution (milestone-timeline-prd.md §3, 2026-05-25
+          // Deadlines #23/#24/#25 doc-gap fix):
+          //   Done/Active     : audit-event stamp (first entry into stage)
+          //   Stage 0 fallback: row.createdAt (the row was born here)
+          //   Filed upcoming  : row.currentDueDate (the FIRM's deadline
+          //                     IS the projected file date — only stage
+          //                     we can reliably project)
+          //   Skipped         : no stamp, no projection (the stage didn't
+          //                     happen — projecting a date there would
+          //                     fabricate history)
+          //   Other upcoming  : blank (we can't project Completed et al.
+          //                     without firm-specific cadence data, and
+          //                     showing a guess would mislead audit defense)
+          //
+          // The empty cells are intentional: misleading projections are
+          // worse than honest absences for an audit-defense workflow.
+          // The `title` attribute on the date span (further down) tells
+          // hover users what the blank means.
           let stamp = stamps[i] ?? null
           let isExpected = false
           if (!stamp && i === 0) stamp = row.createdAt
@@ -6422,6 +6442,18 @@ function PathToFilingSummary({
             stamp = row.currentDueDate
             isExpected = true
           }
+          // Hover hint that explains why the date cell may be blank.
+          // Mirrors the resolution table above in plain language so
+          // CPAs scanning the strip understand the absence is a
+          // choice, not a missing-data bug.
+          const emptyDateHint =
+            state === 'skipped'
+              ? t`This stage was skipped — no date applies.`
+              : state === 'upcoming'
+                ? i === filedStageIndex
+                  ? undefined
+                  : t`This stage hasn't been reached yet. We only project the Filed date (using the internal due date).`
+                : undefined
           const overdueActive =
             state === 'active' && isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stage.key)
           return (
@@ -6568,6 +6600,12 @@ function PathToFilingSummary({
                     'text-center text-caption-xs tabular-nums leading-tight',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
+                  // 2026-05-25 (Yuqi Deadlines #23/#24/#25): hover hint
+                  // surfaces the date-resolution policy in plain
+                  // language for blank cells (skipped / non-Filed
+                  // upcoming). Stops the empty space reading as a
+                  // missing-data bug.
+                  title={emptyDateHint}
                 >
                   {(state === 'done' || state === 'active' || isExpected) && stamp
                     ? formatDate(stamp.slice(0, 10))

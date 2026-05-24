@@ -57,9 +57,18 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
+          // 2026-05-25 (Yuqi #45): close button moved from top-6
+          // right-6 (24px from each edge — inside the padded area)
+          // to top-3 right-3 (12px). At top-6/right-6 the X was
+          // visually clustered with the title (both at the same y),
+          // which read as "title chrome" rather than a window
+          // close. At top-3/right-3 the X sits in the corner where
+          // close affordances live by convention (Notion / Linear /
+          // shadcn dialogs all park it at the corner edge). The
+          // title now owns the top-left content slot cleanly.
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            render={<Button variant="ghost" className="absolute top-6 right-6" size="icon-sm" />}
+            render={<Button variant="ghost" className="absolute top-3 right-3" size="icon-sm" />}
           >
             <XIcon />
             <span className="sr-only">Close</span>

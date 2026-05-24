@@ -347,22 +347,35 @@ export function Step1Intake({
         <h2 className={cn('font-semibold text-text-primary', compact ? 'text-md' : 'text-lg')}>
           <Trans>Where is your data coming from?</Trans>
         </h2>
-        {/* 2026-05-25 (Yuqi #38): "We'll figure out the shape" and
-            "Columns named Estimated tax due…" were two separate
-            paragraphs saying related things — split forced the
-            reader to make the connection. Joined into one
-            paragraph with the column-hint as the second sentence. */}
+        {/* 2026-05-25 (Yuqi #38 + Wizard #40 copy audit): tightened
+            the body. Original ran to 30 words across two clauses
+            with awkward "your call" filler. Final version leads
+            with the action ("Paste or upload"), drops the filler,
+            and lists the high-value columns as a short example
+            (the AI mapper handles the rest regardless). */}
         <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
           <Trans>
-            We&apos;ll figure out the shape — paste or upload, your call. Columns named Estimated
-            tax due, Estimated tax liability, Owner count, or Owners help prepare payment and
-            penalty context.
+            Paste or upload — we&apos;ll figure out the shape. Columns like Estimated tax due, Owner
+            count, or Owners give us a head start on payment and penalty context.
           </Trans>
         </p>
       </div>
 
-      <div className={cn(compact ? 'flex min-h-0 flex-col gap-3' : 'contents')}>
-        <div className="flex flex-col gap-2">
+      {/* 2026-05-25 (Yuqi Wizard #41): paste + upload now sit
+          SIDE-BY-SIDE at comfortable density with a vertical "or"
+          divider between them. They were previously stacked
+          vertically with a horizontal "or" rule — which made the
+          step feel taller than it needed to and pushed the preset
+          chips below the fold on shorter viewports. Side-by-side
+          reads as "two equal entry paths" (the dialog headline
+          says "paste or upload, your call"). Compact density still
+          stacks (single column, no divider) because the wizard's
+          compact viewport is narrow enough that two halves don't
+          fit. */}
+      <div
+        className={cn('flex', compact ? 'min-h-0 flex-col gap-3' : 'flex-row items-stretch gap-3')}
+      >
+        <div className="flex flex-1 flex-col gap-2">
           <label
             htmlFor={pasteId}
             className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
@@ -386,20 +399,28 @@ export function Step1Intake({
           </div>
         </div>
 
-        <div className={cn('flex items-center gap-3', compact ? 'hidden' : '')}>
-          <span aria-hidden className="h-px flex-1 bg-divider-regular" />
-          <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-            <Trans>or</Trans>
-          </span>
-          <span aria-hidden className="h-px flex-1 bg-divider-regular" />
-        </div>
+        {/* Vertical "or" divider at comfortable density; hidden at
+            compact (the column stack already implies the choice). */}
+        {!compact ? (
+          <div className="flex flex-col items-center gap-3 self-stretch pt-7">
+            <span aria-hidden className="w-px flex-1 bg-divider-regular" />
+            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+              <Trans>or</Trans>
+            </span>
+            <span aria-hidden className="w-px flex-1 bg-divider-regular" />
+          </div>
+        ) : null}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
           {compact ? (
             <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
               <Trans>Upload file</Trans>
             </span>
-          ) : null}
+          ) : (
+            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+              <Trans>Upload file</Trans>
+            </span>
+          )}
           <div
             role="button"
             tabIndex={0}
@@ -416,8 +437,8 @@ export function Step1Intake({
               }
             }}
             className={cn(
-              'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-              compact ? 'h-[104px] text-sm' : 'h-[120px] text-md',
+              'flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+              compact ? 'h-[104px] text-sm' : 'min-h-[142px] text-md',
               isFileDragActive || isReadingFile
                 ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
                 : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
@@ -458,38 +479,43 @@ export function Step1Intake({
             />
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-            <Trans>I&apos;m coming from… (optional)</Trans>
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {SOURCE_PRESET_IDS.map((id) => (
-              <PresetChip
-                key={id}
-                id={id}
-                label={PRESET_LABELS[id]}
-                selected={intake.preset === id}
-                compact={compact}
-                onToggle={() => onPreset(intake.preset === id ? null : id)}
-              />
-            ))}
-          </div>
-          {selectedExportGuide && selectedPreset ? (
-            <PresetExportGuideCard
-              id={selectedPreset}
-              label={PRESET_LABELS[selectedPreset]}
-              guide={selectedExportGuide}
+      {/* Preset chips live BELOW the paste/upload row — they're a
+          separate "tell us more about your data source" affordance,
+          not a third entry method. Was previously a sibling INSIDE
+          the column stack at line 462; pulled out when paste +
+          upload were promoted to a side-by-side row (#41). */}
+      <div className="flex flex-col gap-2">
+        <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+          <Trans>I&apos;m coming from… (optional)</Trans>
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {SOURCE_PRESET_IDS.map((id) => (
+            <PresetChip
+              key={id}
+              id={id}
+              label={PRESET_LABELS[id]}
+              selected={intake.preset === id}
               compact={compact}
+              onToggle={() => onPreset(intake.preset === id ? null : id)}
             />
-          ) : null}
-          <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
-            <Trans>
-              The AI mapper runs first. Selecting an import template adds source context and
-              provides default suggestions if AI is unavailable.
-            </Trans>
-          </p>
+          ))}
         </div>
+        {selectedExportGuide && selectedPreset ? (
+          <PresetExportGuideCard
+            id={selectedPreset}
+            label={PRESET_LABELS[selectedPreset]}
+            guide={selectedExportGuide}
+            compact={compact}
+          />
+        ) : null}
+        <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
+          <Trans>
+            The AI mapper runs first. Selecting an import template adds source context and provides
+            default suggestions if AI is unavailable.
+          </Trans>
+        </p>
       </div>
 
       <p
