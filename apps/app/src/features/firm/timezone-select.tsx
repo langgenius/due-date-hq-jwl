@@ -84,7 +84,7 @@ export function FirmTimezoneSelect({
         className="w-(--anchor-width) min-w-(--anchor-width) max-w-[calc(100vw-2rem)] overflow-hidden p-0"
       >
         <Command loop>
-          <CommandInput autoFocus placeholder={t`Search timezone...`} />
+          <CommandInput autoFocus placeholder={t`Search timezone…`} />
           <CommandList className="max-h-[320px]">
             <CommandEmpty>
               <Trans>No timezone found.</Trans>

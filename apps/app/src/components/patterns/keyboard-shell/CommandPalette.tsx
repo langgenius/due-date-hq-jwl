@@ -268,7 +268,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       description={t`Search or navigate.`}
     >
       <Command loop disablePointerSelection>
-        <CommandInput autoFocus placeholder={t`Search or navigate...`} />
+        <CommandInput autoFocus placeholder={t`Search or navigate…`} />
         <CommandList>
           <CommandEmpty>
             <Trans>No commands found.</Trans>

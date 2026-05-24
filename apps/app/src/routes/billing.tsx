@@ -259,7 +259,7 @@ export function BillingRoute() {
             need plan or invoice access.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open Obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open obligations</Trans>, to: '/obligations' }}
       >
         <div />
       </PermissionGate>

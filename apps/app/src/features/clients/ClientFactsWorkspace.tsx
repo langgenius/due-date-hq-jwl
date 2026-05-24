@@ -2875,7 +2875,7 @@ function FilingPlanYearSection({
           dir={sort.dir}
           onClick={() => onCycleSort('form')}
         >
-          <Trans>FORM</Trans>
+          <Trans>Form</Trans>
         </FilingPlanSortHeader>
         <FilingPlanSortHeader
           className="w-[120px]"
@@ -2884,7 +2884,7 @@ function FilingPlanYearSection({
           title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
           onClick={() => onCycleSort('internal')}
         >
-          <Trans>Internal Deadline</Trans>
+          <Trans>Internal deadline</Trans>
         </FilingPlanSortHeader>
         <FilingPlanSortHeader
           className="w-[120px]"
@@ -2893,7 +2893,7 @@ function FilingPlanYearSection({
           title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
           onClick={() => onCycleSort('official')}
         >
-          <Trans>Official Deadline</Trans>
+          <Trans>Official deadline</Trans>
         </FilingPlanSortHeader>
         <FilingPlanSortHeader
           className="w-[120px]"
@@ -3376,7 +3376,7 @@ function ClientJurisdictionPanel({
             })
           }}
         >
-          {isSaving ? t`Saving...` : t`Save`}
+          {isSaving ? t`Saving…` : t`Save`}
         </Button>
         <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
           <Trans>Cancel</Trans>
@@ -3467,7 +3467,7 @@ function ClientRiskInputsPanel({
           })
         }
       >
-        {isSaving ? t`Saving...` : t`Save risk profile`}
+        {isSaving ? t`Saving…` : t`Save risk profile`}
       </Button>
     </div>
   )

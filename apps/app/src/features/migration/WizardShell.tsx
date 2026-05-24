@@ -502,7 +502,7 @@ function transitionCopy(phase: WizardTransitionPhase): {
       }
     case 'import':
       return {
-        title: <Trans>Generating your deadline list</Trans>,
+        title: <Trans>Generating your deadline list…</Trans>,
         description: <Trans>Creating clients, deadlines, evidence links, and audit records.</Trans>,
         steps: [
           { key: 'create-clients', label: <Trans>Create clients</Trans> },

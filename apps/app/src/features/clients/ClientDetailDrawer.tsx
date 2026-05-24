@@ -204,7 +204,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           // Loading skeleton sized for the slim peek.
           <div className="flex flex-col gap-3">
             <SheetTitle className="sr-only">
-              <Trans>Loading client</Trans>
+              <Trans>Loading client…</Trans>
             </SheetTitle>
             <SheetDescription className="sr-only">
               <Trans>Fetching client detail.</Trans>

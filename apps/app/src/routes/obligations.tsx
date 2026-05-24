@@ -4550,7 +4550,7 @@ export function ObligationQueueDetailDrawer({
                           }
                         >
                           {updateTaxYearProfileMutation.isPending ? (
-                            <Trans>Saving...</Trans>
+                            <Trans>Saving…</Trans>
                           ) : (
                             <Trans>Save</Trans>
                           )}
@@ -4639,7 +4639,7 @@ export function ObligationQueueDetailDrawer({
                             onClick={saveExtensionDecision}
                             disabled={saveExtensionPlanDisabled}
                           >
-                            <Trans>Save Extension</Trans>
+                            <Trans>Save extension</Trans>
                           </Button>
                         </span>
                       }
@@ -5093,7 +5093,7 @@ function _DeadlineTipPanel({
           <FileSearchIcon className="size-4 text-text-secondary" aria-hidden />
           <span className="text-sm font-medium text-text-primary">
             <ConceptLabel concept="deadlineTip">
-              <Trans>Deadline Tip</Trans>
+              <Trans>Deadline tip</Trans>
             </ConceptLabel>
           </span>
           {isPreparing ? (
@@ -7644,7 +7644,7 @@ function ActiveStageDetailCard({
           </span>
           <span className="text-text-tertiary">·</span>
           <span className="text-text-tertiary">
-            <Trans>Check Materials</Trans>
+            <Trans>Check materials</Trans>
           </span>
           <ArrowUpRightIcon className="size-3 text-text-tertiary" aria-hidden />
         </button>

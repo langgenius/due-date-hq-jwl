@@ -506,7 +506,7 @@ export function CreateClientDialog({
               <Trans>Cancel</Trans>
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? t`Creating...` : t`Create client`}
+              {isPending ? t`Creating…` : t`Create client`}
             </Button>
           </DialogFooter>
         </form>

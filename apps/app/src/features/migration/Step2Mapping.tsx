@@ -172,7 +172,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
       {mapping.errorBanner ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
-            <Trans>Something went wrong</Trans>
+            <Trans>Couldn't map columns</Trans>
           </AlertTitle>
           <AlertDescription>{mapping.errorBanner}</AlertDescription>
         </Alert>
