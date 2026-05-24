@@ -281,8 +281,11 @@ function ObligationQueueStatusControl({
           >
             {/* 2026-05-25 (Yuqi status icon pass): icon-led status
                 chip — TriggerIcon carries the color via
-                STATUS_ICON_COLOR, the variant carries the fill. */}
-            <TriggerIcon className={cn('size-3.5', STATUS_ICON_COLOR[row.status])} aria-hidden />
+                STATUS_ICON_COLOR, the variant carries the fill.
+                Size is enforced by badgeVariants' `[&>svg]:size-3!`
+                rule (see docs/Design/icon-sizing.md) — passing a
+                size class here would be ignored, so we don't. */}
+            <TriggerIcon className={STATUS_ICON_COLOR[row.status]} aria-hidden />
             {labels[row.status]}
           </button>
         }
@@ -350,9 +353,12 @@ function ObligationStatusReadBadge({
   const legacyLabels = useStatusLabels()
   const labels = useV2Labels ? v2Labels : legacyLabels
   const Icon = STATUS_ICON[status]
+  // Size enforced by Badge primitive's `[&>svg]:size-3!` rule
+  // (see docs/Design/icon-sizing.md). Only the color class is
+  // passed here — a size class would be silently overridden.
   return (
     <Badge variant={STATUS_VARIANT[status]} className={className}>
-      <Icon className={cn('size-3.5', STATUS_ICON_COLOR[status])} aria-hidden />
+      <Icon className={STATUS_ICON_COLOR[status]} aria-hidden />
       {labels[status]}
     </Badge>
   )
