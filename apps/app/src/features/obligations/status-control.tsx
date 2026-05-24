@@ -1,9 +1,17 @@
-import { useMemo } from 'react'
+import { useMemo, type ComponentType, type SVGProps } from 'react'
 import { useLingui } from '@lingui/react/macro'
+import {
+  CircleCheck,
+  Construction,
+  FileCheck,
+  Hourglass,
+  Loader,
+  MessageSquareText,
+} from 'lucide-react'
 
 import type { ObligationInstancePublic, ObligationQueueRow } from '@duedatehq/contracts'
 import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
-import { Badge, BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
+import { Badge, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +113,53 @@ const STATUS_DOT: Record<
   not_applicable: 'disabled',
   blocked: 'error',
   completed: 'success',
+}
+
+// 2026-05-25 (Yuqi status icon pass): every status now ships a
+// lucide icon + a tinted color class so the chrome reads as
+// recognizable glyphs ("hourglass = waiting on client", "barrier
+// = blocked") rather than tone-dot abstractions. The icon set
+// mirrors the lifecycle v2 collapse (see useLifecycleV2StatusLabels):
+//   pending / not_applicable           → Loader            (gray)
+//   waiting_on_client                  → Hourglass         (amber)
+//   blocked                            → Construction      (red)
+//   in_progress / review / extended    → MessageSquareText (blue)
+//   done / paid                        → FileCheck         (green)
+//   completed                          → CircleCheck       (green)
+// Used by ObligationStatusReadBadge, ObligationQueueStatusControl,
+// the obligations-page filter tabs, and any other surface that
+// renders a status label — single source of truth for the
+// "status as glyph" vocabulary across the product.
+type LucideIcon = ComponentType<SVGProps<SVGSVGElement>>
+
+const STATUS_ICON: Record<ObligationStatus, LucideIcon> = {
+  pending: Loader,
+  not_applicable: Loader,
+  waiting_on_client: Hourglass,
+  blocked: Construction,
+  in_progress: MessageSquareText,
+  review: MessageSquareText,
+  extended: MessageSquareText,
+  done: FileCheck,
+  paid: FileCheck,
+  completed: CircleCheck,
+}
+
+// Tinted text-color class that pairs with the icon. Applied to
+// the icon's `className` (and inherits to label text when the
+// caller wants the whole chip tinted). Stays in `text-*` token
+// space so dark/light themes pick up the right hue.
+const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
+  pending: 'text-text-tertiary',
+  not_applicable: 'text-text-tertiary',
+  waiting_on_client: 'text-text-warning',
+  blocked: 'text-text-destructive',
+  in_progress: 'text-text-accent',
+  review: 'text-text-accent',
+  extended: 'text-text-accent',
+  done: 'text-text-success',
+  paid: 'text-text-success',
+  completed: 'text-text-success',
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {
@@ -209,6 +264,7 @@ function ObligationQueueStatusControl({
   onChange: (id: string, status: ObligationStatus) => void
 }) {
   const { t } = useLingui()
+  const TriggerIcon = STATUS_ICON[row.status]
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -223,7 +279,10 @@ function ObligationQueueStatusControl({
             )}
             onClick={(event) => event.stopPropagation()}
           >
-            <BadgeStatusDot tone={STATUS_DOT[row.status]} />
+            {/* 2026-05-25 (Yuqi status icon pass): icon-led status
+                chip — TriggerIcon carries the color via
+                STATUS_ICON_COLOR, the variant carries the fill. */}
+            <TriggerIcon className={cn('size-3.5', STATUS_ICON_COLOR[row.status])} aria-hidden />
             {labels[row.status]}
           </button>
         }
@@ -243,6 +302,7 @@ function ObligationQueueStatusControl({
             // seeing which targets aren't reachable, with the cell
             // tooltip explaining when relevant. Server rejects too.
             const illegal = !isLegalObligationTransition(row.status, status)
+            const ItemIcon = STATUS_ICON[status]
             return (
               <DropdownMenuRadioItem
                 key={status}
@@ -252,7 +312,7 @@ function ObligationQueueStatusControl({
                 onClick={(event) => event.stopPropagation()}
                 title={illegal ? t`Not reachable from ${labels[row.status]}.` : undefined}
               >
-                <BadgeStatusDot tone={STATUS_DOT[status]} />
+                <ItemIcon className={cn('size-3.5', STATUS_ICON_COLOR[status])} aria-hidden />
                 <span>{labels[status]}</span>
               </DropdownMenuRadioItem>
             )
@@ -289,9 +349,10 @@ function ObligationStatusReadBadge({
   const v2Labels = useLifecycleV2StatusLabels()
   const legacyLabels = useStatusLabels()
   const labels = useV2Labels ? v2Labels : legacyLabels
+  const Icon = STATUS_ICON[status]
   return (
     <Badge variant={STATUS_VARIANT[status]} className={className}>
-      <BadgeStatusDot tone={STATUS_DOT[status]} />
+      <Icon className={cn('size-3.5', STATUS_ICON_COLOR[status])} aria-hidden />
       {labels[status]}
     </Badge>
   )
@@ -303,6 +364,8 @@ export {
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
   STATUS_DOT,
+  STATUS_ICON,
+  STATUS_ICON_COLOR,
   STATUS_VARIANT,
   isObligationStatus,
   useLifecycleV2StatusLabels,

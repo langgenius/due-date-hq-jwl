@@ -24,8 +24,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
-  ArrowUpDownIcon,
-  ArrowUpIcon,
+  ChevronUp,
+  ChevronDown,
   ArrowUpRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
@@ -175,6 +175,8 @@ import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   STATUS_DOT,
+  STATUS_ICON,
+  STATUS_ICON_COLOR,
   STATUS_VARIANT,
   useLifecycleV2StatusLabels,
   useStatusLabels,
@@ -2200,10 +2202,14 @@ export function ObligationQueueRoute() {
                   label={statusLabels[status]}
                   count={statusFacetCounts.get(status) ?? 0}
                   active={activeScope === status}
-                  // Mirror the row badge tone — `Filed` reads green here
-                  // because the row pill is green; `Waiting on client` /
-                  // `In review` read amber, `Blocked` reads red. Visual
-                  // continuity between the tab and the cells beneath it.
+                  // 2026-05-25 (Yuqi status icon pass): scope tabs lead
+                  // with the same lucide icon used on row pills — same
+                  // glyph in the same color across the cell + the tab,
+                  // so the user can match "this filter brings up the
+                  // rows with this mark". `dotTone` stays as a
+                  // fallback for legacy consumers.
+                  icon={STATUS_ICON[status]}
+                  iconColor={STATUS_ICON_COLOR[status]}
                   dotTone={STATUS_DOT[status]}
                   onClick={() =>
                     void setObligationQueueQuery({
@@ -2738,28 +2744,41 @@ export function ObligationQueueRoute() {
               ) : null}
             </div>
             {totalLoadedPages > 1 || listQuery.hasNextPage ? (
-              <div className="flex items-center gap-1 text-xs text-text-tertiary">
+              // 2026-05-25 (Yuqi pagination pass): pagination now reads
+              // as a bordered group "← 2 / N →" so the three controls
+              // cluster visually — matches the screenshot's compact
+              // pattern. Buttons inside the group have no border of
+              // their own; the wrapper carries the chrome.
+              <div
+                className="inline-flex items-center gap-0.5 rounded-md border border-divider-regular bg-background-default px-1 py-0.5 text-xs text-text-secondary"
+                role="group"
+                aria-label={t`Pagination`}
+              >
                 <Button
                   variant="ghost"
                   size="icon-sm"
+                  className="h-6 w-6"
                   aria-label={t`Previous page`}
                   disabled={safePageIndex === 0}
                   onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
                 >
-                  <ChevronLeftIcon className="size-4" aria-hidden />
+                  <ChevronLeftIcon className="size-3.5" aria-hidden />
                 </Button>
-                <span className="px-2 tabular-nums">
+                <span className="min-w-12 px-1 text-center tabular-nums">
                   {listQuery.hasNextPage ? (
-                    <Trans>Page {safePageIndex + 1}</Trans>
+                    <Trans>
+                      {safePageIndex + 1} / {totalLoadedPages}+
+                    </Trans>
                   ) : (
                     <Trans>
-                      Page {safePageIndex + 1} of {totalLoadedPages}
+                      {safePageIndex + 1} / {totalLoadedPages}
                     </Trans>
                   )}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon-sm"
+                  className="h-6 w-6"
                   aria-label={t`Next page`}
                   disabled={safePageIndex + 1 >= totalLoadedPages && !listQuery.hasNextPage}
                   onClick={() => {
@@ -2769,7 +2788,7 @@ export function ObligationQueueRoute() {
                     setPageIndex((p) => p + 1)
                   }}
                 >
-                  <ChevronRightIcon className="size-4" aria-hidden />
+                  <ChevronRightIcon className="size-3.5" aria-hidden />
                 </Button>
               </div>
             ) : null}
@@ -3093,27 +3112,44 @@ function ObligationQueueSortableHeader({
   onSortChange: (sort: ObligationQueueSort) => void
 }) {
   const direction = sort === ascSort ? 'asc' : sort === descSort ? 'desc' : false
-  const SortIcon =
-    direction === 'asc' ? ArrowUpIcon : direction === 'desc' ? ArrowDownIcon : ArrowUpDownIcon
+
+  // 2026-05-25 (Yuqi sort-arrow audit): the old sort indicator was a
+  // ghost Button with `ArrowUpDown` / `ArrowUp` / `ArrowDown` icons —
+  // bold arrow glyphs that read as navigation controls, not subtle
+  // sort hints. Yuqi flagged the chrome as "出戏" — too prominent for
+  // every column header.
+  //
+  // New shape:
+  //   - Header label + chevron are now ONE clickable region (the
+  //     whole pill, not a separate icon button).
+  //   - Unsorted columns render no icon. The hover affordance is
+  //     just the label changing color. Drops the "every column
+  //     looks like a button" visual noise from before.
+  //   - Sorted columns render a small ChevronUp / ChevronDown
+  //     inline in the accent color — quieter than the bold arrows
+  //     and matches the chevron vocabulary used elsewhere
+  //     (dropdowns, breadcrumbs, drawer triggers).
+  const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
 
   return (
-    <div className="flex min-w-0 items-center gap-1">
+    <button
+      type="button"
+      aria-label={sortLabel}
+      aria-pressed={direction !== false}
+      data-active={direction !== false ? true : undefined}
+      onClick={() =>
+        onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
+      }
+      className={cn(
+        'inline-flex min-w-0 items-center gap-0.5 -mx-1 px-1 py-0.5 rounded text-left',
+        'text-text-tertiary hover:text-text-primary',
+        'data-[active=true]:text-text-primary',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+      )}
+    >
       {children}
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-xs"
-        aria-label={sortLabel}
-        aria-pressed={direction !== false}
-        data-active={direction !== false ? true : undefined}
-        className="size-7 text-text-tertiary hover:text-text-primary data-[active=true]:text-text-accent"
-        onClick={() =>
-          onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
-        }
-      >
-        <SortIcon className="size-3.5" aria-hidden />
-      </Button>
-    </div>
+      {SortIcon ? <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden /> : null}
+    </button>
   )
 }
 
@@ -8610,12 +8646,22 @@ function ObligationQueueScopeTab({
   active,
   onClick,
   dotTone,
+  icon: Icon,
+  iconColor,
 }: {
   label: string
   count: number
   active: boolean
   onClick: () => void
   dotTone?: React.ComponentProps<typeof BadgeStatusDot>['tone']
+  // 2026-05-25 (Yuqi status icon pass): scope tabs now lead with a
+  // lucide status icon when the tab maps to a lifecycle status (the
+  // 6 v2 scope tabs). `icon` is the lucide component, `iconColor`
+  // is the tailwind text-color class. Falls back to `dotTone` (the
+  // pre-icon-pass affordance) when neither is provided — used by
+  // the "All" tab which doesn't represent a single status.
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  iconColor?: string
 }) {
   return (
     <button
@@ -8632,7 +8678,11 @@ function ObligationQueueScopeTab({
           : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
       }`}
     >
-      {dotTone ? <BadgeStatusDot tone={dotTone} /> : null}
+      {Icon ? (
+        <Icon className={cn('size-3.5', iconColor)} aria-hidden />
+      ) : dotTone ? (
+        <BadgeStatusDot tone={dotTone} />
+      ) : null}
       <span>{label}</span>
       <span className="tabular-nums text-text-tertiary">{count}</span>
     </button>
