@@ -5,17 +5,22 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import type { StepIndex } from './state'
 
 /**
- * 4-step horizontal Stepper per [02-ux §2.2] + DESIGN.md `stepper-*` tokens.
+ * 4-step horizontal Stepper per [02-ux §2.2].
  *
- * Display-only — clicking does NOT jump steps (avoids data pollution). Mono
- * step numbers + uppercase labels mirror the workbench aesthetic established
- * by the marketing HeroSurface.
+ * Display-only — clicking does NOT jump steps (avoids data pollution).
+ *
+ * 2026-05-25 (Yuqi #35, #36): dropped `font-mono` + `uppercase` from
+ * step labels — those read as code, not as wizard navigation. Now
+ * sentence-case `text-sm`, matching the body type elsewhere in the
+ * app. Centered the row inside its track (was left-aligned), so
+ * the visual rhythm matches the wizard's centered content area
+ * below. "Dry-Run" → "Dry run" to match the sentence-case treatment.
  */
 const STEP_LABELS: ReadonlyArray<{ index: StepIndex; key: string; label: ReactNode }> = [
   { index: 1, key: 'intake', label: <Trans>Intake</Trans> },
   { index: 2, key: 'mapping', label: <Trans>Mapping</Trans> },
   { index: 3, key: 'normalize', label: <Trans>Normalize</Trans> },
-  { index: 4, key: 'dry_run', label: <Trans>Dry-Run</Trans> },
+  { index: 4, key: 'dry_run', label: <Trans>Dry run</Trans> },
 ]
 
 export function Stepper({ current }: { current: StepIndex }) {
@@ -23,7 +28,7 @@ export function Stepper({ current }: { current: StepIndex }) {
     <ol
       role="list"
       aria-label="Wizard steps"
-      className="flex h-12 items-center gap-2 border-b border-divider-subtle px-4"
+      className="flex h-12 items-center justify-center gap-2 border-b border-divider-subtle px-4"
     >
       {STEP_LABELS.map((step, idx) => {
         const isDone = step.index < current
@@ -42,7 +47,8 @@ export function Stepper({ current }: { current: StepIndex }) {
           >
             <div
               className={cn(
-                'flex h-8 items-center gap-1.5 rounded-md border px-2.5 font-mono text-xs tracking-[0.08em] uppercase transition-colors',
+                'flex h-8 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors',
+                isActive && 'font-medium',
                 tone,
               )}
             >

@@ -347,13 +347,16 @@ export function Step1Intake({
         <h2 className={cn('font-semibold text-text-primary', compact ? 'text-md' : 'text-lg')}>
           <Trans>Where is your data coming from?</Trans>
         </h2>
+        {/* 2026-05-25 (Yuqi #38): "We'll figure out the shape" and
+            "Columns named Estimated tax due…" were two separate
+            paragraphs saying related things — split forced the
+            reader to make the connection. Joined into one
+            paragraph with the column-hint as the second sentence. */}
         <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
-          <Trans>We&apos;ll figure out the shape — paste or upload, your call.</Trans>
-        </p>
-        <p className={cn('text-sm text-text-tertiary', compact ? 'hidden lg:block' : '')}>
           <Trans>
-            Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can
-            help prepare payment and penalty context.
+            We&apos;ll figure out the shape — paste or upload, your call. Columns named Estimated
+            tax due, Estimated tax liability, Owner count, or Owners help prepare payment and
+            penalty context.
           </Trans>
         </p>
       </div>

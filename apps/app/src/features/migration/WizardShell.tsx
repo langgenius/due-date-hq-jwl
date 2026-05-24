@@ -135,24 +135,24 @@ function WizardFrame({
         </Trans>
       </div>
 
-      <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-mono text-sm text-text-tertiary">
-            <span
-              className="block size-2.5 rounded-sm bg-components-badge-status-light-success-bg"
-              aria-hidden
-            />
-            <span>
-              <ConceptLabel concept="migrationCopilot">
-                <Trans>Import</Trans>
-              </ConceptLabel>
-            </span>
-            <span aria-hidden>/</span>
-            <span className="text-text-secondary">
-              <Trans>Step {step} / 4</Trans>
-            </span>
-          </div>
-        </div>
+      {/* 2026-05-25 (Yuqi #32, #33, #34, #39): header was a
+          monospace breadcrumb "Import / Step N / 4" with a mystery
+          green dot. Three problems:
+          - The green dot had no meaning (Yuqi #32, #39).
+          - `font-mono` made "Import" read as a code path, not as
+            the wizard's actual title (#33).
+          - The "Step N / 4" breadcrumb duplicated the Stepper
+            below — same info, two surfaces (#34, #36).
+          Fixed: dropped the dot, drop the breadcrumb, set
+          "Import" as a real `text-base font-semibold` title in
+          regular case. Step progress lives in the Stepper below
+          as the single source of truth. */}
+      <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-4">
+        <h2 className="text-base font-semibold text-text-primary">
+          <ConceptLabel concept="migrationCopilot">
+            <Trans>Import clients</Trans>
+          </ConceptLabel>
+        </h2>
         {showCloseControl ? (
           <div className="flex items-center gap-2">
             <span className="hidden items-center gap-1 font-mono text-xs text-text-tertiary sm:inline-flex">
