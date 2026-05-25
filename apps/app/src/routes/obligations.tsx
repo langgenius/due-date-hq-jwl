@@ -5216,8 +5216,26 @@ export function ObligationQueueDetailDrawer({
                   )
                 ) : (
                   <>
-                    <div className="grid gap-2">
-                      {checklist.map((item) => {
+                    {/* 2026-05-26 (Yuqi fifty-second pass — Materials
+                        Outstanding/Received split from
+                        design/deadlines-drawer-rework): checklist now
+                        renders as two labeled sections — Outstanding
+                        first (the work the CPA still owes the client),
+                        Received second (acknowledgement that the work
+                        is done). Empty "Outstanding" collapses to a
+                        quiet "All items received" line; empty
+                        "Received" hides the section entirely so the
+                        early-state checklist reads cleanly as one
+                        list. Section headings use the canonical
+                        body-section pattern (text-sm font-semibold).
+                        ChecklistItemRow handles its own
+                        received-style chrome based on item.status —
+                        the split is purely organizational, no new
+                        renderer needed. */}
+                    {(() => {
+                      const outstandingItems = checklist.filter((i) => i.status !== 'received')
+                      const receivedItems = checklist.filter((i) => i.status === 'received')
+                      function renderRow(item: (typeof checklist)[number]) {
                         const response =
                           latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
                         const isSelected = materialsSelection.itemIds.has(item.id)
@@ -5246,8 +5264,42 @@ export function ObligationQueueDetailDrawer({
                             onRemove={() => removeChecklistItem(item.id)}
                           />
                         )
-                      })}
-                    </div>
+                      }
+                      return (
+                        <div className="flex flex-col gap-4">
+                          <section className="flex flex-col gap-2">
+                            <header className="flex items-baseline gap-2">
+                              <h3 className="text-sm font-semibold text-text-primary">
+                                <Trans>Outstanding</Trans>
+                              </h3>
+                              <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                                {outstandingItems.length}
+                              </span>
+                            </header>
+                            {outstandingItems.length === 0 ? (
+                              <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                <Trans>All items received.</Trans>
+                              </p>
+                            ) : (
+                              <div className="grid gap-2">{outstandingItems.map(renderRow)}</div>
+                            )}
+                          </section>
+                          {receivedItems.length > 0 ? (
+                            <section className="flex flex-col gap-2">
+                              <header className="flex items-baseline gap-2">
+                                <h3 className="text-sm font-semibold text-text-secondary">
+                                  <Trans>Received</Trans>
+                                </h3>
+                                <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                                  {receivedItems.length}
+                                </span>
+                              </header>
+                              <div className="grid gap-2">{receivedItems.map(renderRow)}</div>
+                            </section>
+                          ) : null}
+                        </div>
+                      )
+                    })()}
                     {/* Primary CTA below the checklist — the actual
                         workflow terminal action. Promoted from the
                         cluster at the top so the user's eye lands on
