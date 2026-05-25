@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 import { HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -12,7 +12,6 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 const TOP_ALERTS_LIMIT = 50
 
 export function RulesPulseRoute() {
-  const { t } = useLingui()
   // 2026-05-26 (Yuqi /rules/pulse #9): fetch the alert count here
   // so the page header can show "Alerts (N)" — same query options
   // the embedded list uses, so React Query dedupes (one network
@@ -37,15 +36,32 @@ export function RulesPulseRoute() {
   // history — clearer label for a CPA who's never used the
   // surface. "Archive" is the action verb / cold-storage noun;
   // "Alert history" is the destination's actual name.
-  // 2026-05-26 (Yuqi /rules/pulse #9): title now includes the
-  // count when >0. Empty case keeps the bare "Alerts" label to
-  // avoid "(0)" reading as a noise.
-  const titleString = alertCount > 0 ? `${t`Alerts`} (${alertCount})` : t`Alerts`
+  // 2026-05-26 (Yuqi /rules/pulse follow-up #2): title format
+  // changed from "Alerts (N)" parentheses to "Alerts · N" with a
+  // separate font-mono span — matches the pattern used on
+  // /clients, /rules/library, /deadlines (title + count chip).
+  // The parentheses style was a one-off here.
+  // 2026-05-26 (Yuqi /rules/pulse follow-up #3): "Alert history"
+  // action button variant outline → ghost. Same reasoning as the
+  // /deadlines Columns button — header actions that are
+  // navigations (not destructive / not primary) should read
+  // quieter than the title.
+  const titleNode =
+    alertCount > 0 ? (
+      <span className="inline-flex items-baseline gap-2">
+        <Trans>Alerts</Trans>
+        <span className="font-mono text-base font-normal tabular-nums text-text-tertiary">
+          {alertCount}
+        </span>
+      </span>
+    ) : (
+      <Trans>Alerts</Trans>
+    )
   return (
     <RulesPageShell
-      title={titleString}
+      title={titleNode}
       actions={
-        <Button variant="outline" size="sm" render={<Link to="/rules/pulse/history" />}>
+        <Button variant="ghost" size="sm" render={<Link to="/rules/pulse/history" />}>
           <HistoryIcon data-icon="inline-start" />
           <Trans>Alert history</Trans>
         </Button>

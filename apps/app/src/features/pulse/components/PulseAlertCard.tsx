@@ -11,10 +11,10 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { StateBadge } from '@/components/primitives/state-badge'
 
 import { usePulseDetailQueryOptions } from '../api'
-import { isVeryLowPulseConfidence, PulseConfidenceBadge } from './PulseConfidenceBadge'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
 import { PulseStatusBadge } from './PulseStatusBadge'
@@ -95,7 +95,16 @@ export function PulseAlertCard({
   }
   const visibleNames = uniqueNames.slice(0, VISIBLE_CLIENT_NAMES)
   const overflowNames = Math.max(uniqueNames.length - visibleNames.length, 0)
-  const lowConfidence = isVeryLowPulseConfidence(alert.confidence)
+  // 2026-05-26 (Yuqi /rules/pulse follow-up #10): 3-tier qualitative
+  // confidence (LOW / MEDIUM / HIGH) instead of numeric AI XX%.
+  // Card background tone follows the level: LOW gets the destructive
+  // tint (review urgency), MEDIUM gets a faint warning tint, HIGH
+  // stays clean. Thresholds match the existing PulseConfidenceBadge
+  // tone breaks: < 0.5 LOW, 0.5–0.85 MEDIUM, ≥ 0.85 HIGH.
+  const confidenceLevel: 'low' | 'medium' | 'high' =
+    alert.confidence < 0.5 ? 'low' : alert.confidence < 0.85 ? 'medium' : 'high'
+  const lowConfidence = confidenceLevel === 'low'
+  const mediumConfidence = confidenceLevel === 'medium'
 
   // 2026-05-25 (Yuqi /rules/pulse fourth pass — #3, #4, #8):
   //   • #3: Review button moves from a bottom-of-action-column slot
@@ -144,7 +153,9 @@ export function PulseAlertCard({
           ? 'border-l-2 border-state-accent-solid bg-state-accent-hover-alt pl-[10px]'
           : lowConfidence
             ? 'bg-state-destructive-hover/30 hover:bg-state-destructive-hover/40'
-            : 'bg-background-subtle hover:bg-state-base-hover',
+            : mediumConfidence
+              ? 'bg-state-warning-hover/20 hover:bg-state-warning-hover/30'
+              : 'bg-background-subtle hover:bg-state-base-hover',
         compact && 'p-2.5',
       )}
     >
@@ -170,15 +181,28 @@ export function PulseAlertCard({
             list had no way to differentiate untouched alerts
             from ones that were already actioned. */}
         <header className="flex items-center gap-2">
-          <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
-          <span
-            aria-hidden
-            className="font-mono text-xs font-semibold tabular-nums uppercase tracking-wide text-text-secondary"
-          >
-            {alert.jurisdiction}
+          {/* 2026-05-26 (Yuqi /rules/pulse #1 follow-up): state badge
+              + abbreviation now read as ONE visual unit (framed pill
+              with SVG flag + uppercase code), matching the
+              AffectedClientsTable jurisdiction chip pattern.
+              Previously they sat as two separate elements with `gap-2`
+              between them, which read as "icon … text" instead of
+              "[CA chip]". */}
+          <span className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-1.5">
+            <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
+            <span
+              aria-hidden
+              className="font-semibold uppercase tracking-wide text-xs text-text-primary"
+            >
+              {alert.jurisdiction}
+            </span>
           </span>
+          {/* 2026-05-26 (Yuqi /rules/pulse #6 follow-up): h3 stepped
+              up text-lg → text-xl. Title is the row's anchor; the
+              previous size felt timid against the surrounding
+              metadata chips. */}
           <h3
-            className="min-w-0 flex-1 truncate text-lg font-semibold leading-tight text-text-primary"
+            className="min-w-0 flex-1 truncate text-xl font-semibold leading-tight text-text-primary"
             title={alert.title}
           >
             {alert.title}
@@ -202,12 +226,38 @@ export function PulseAlertCard({
             (red) below 0.7, so "AI 45%" in red carries the same
             "don't trust this without a human look" signal more
             precisely than "LOW CONFIDENCE" did. */}
-        <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-          <span className="font-medium uppercase tracking-wide">
+        {/* 2026-05-26 (Yuqi /rules/pulse #12 follow-up): Yuqi
+            re-reviewed the unified-numeric decision and asked to go
+            back to the qualitative LowConfidenceBadge when
+            confidence < 0.5, consistent with the dashboard's Today
+            card. Reasoning: AI XX% in destructive tone reads as a
+            data point ("the model is 45% confident"); LOW
+            CONFIDENCE reads as a verdict ("do not trust this
+            without a human look") — the latter is what we want
+            CPAs to absorb at scan distance. Card bg picks up the
+            faint destructive tint at the same threshold so the row
+            stands out even before the badge is read. */}
+        {/* 2026-05-26 (Yuqi /rules/pulse follow-up #6, #10):
+            meta line restructured. Confidence (LOW/MEDIUM/HIGH
+            qualitative badge) takes the leading position next to
+            the title; change-kind moves to the trailing position
+            as a small framed pill so it reads as metadata not as
+            label-prefixing-the-confidence. */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
+          {lowConfidence ? (
+            <LowConfidenceBadge />
+          ) : mediumConfidence ? (
+            <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover/40 px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning">
+              <Trans>Medium confidence</Trans>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-sm bg-state-success-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-success">
+              <Trans>High confidence</Trans>
+            </span>
+          )}
+          <span className="inline-flex items-center rounded-sm border border-divider-regular bg-background-default px-1.5 py-0.5 font-medium uppercase tracking-wide text-text-secondary">
             {changeKindLabel(alert.changeKind)}
           </span>
-          <span aria-hidden>·</span>
-          <PulseConfidenceBadge confidence={alert.confidence} />
         </div>
 
         {/* AI summary — only render when meaningfully different from
@@ -229,19 +279,20 @@ export function PulseAlertCard({
             rendering for terminal/review-only alerts where the
             client list isn't useful. */}
         {alert.actionMode === 'review_only' ? (
-          // 2026-05-26 (Yuqi /rules/pulse #13): briefcase icon
-          // prefix so the CPA reads this line as "the action you
-          // need to take" — not just descriptive prose. Italic
-          // tone preserved so the line still reads quieter than
-          // the title above.
-          <p className="flex items-center gap-1.5 text-sm italic text-text-tertiary">
+          // 2026-05-26 (Yuqi /rules/pulse follow-up #11, #12):
+          // dropped italic — italic + small caption read as a
+          // "footnote disclaimer" and visually conflicted with the
+          // briefcase icon's "action you take" message. Added a
+          // top border + pt-2 so the action sentence reads as a
+          // separate unit from the impact line above it.
+          <p className="mt-1 flex items-center gap-1.5 border-t border-divider-subtle pt-2 text-sm text-text-secondary">
             <BriefcaseIcon className="size-3.5 shrink-0" aria-hidden />
             <span>
               <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
             </span>
           </p>
         ) : impacted === 0 ? (
-          <p className="text-sm italic text-text-tertiary">
+          <p className="text-sm text-text-tertiary">
             <Trans>No matching clients in this practice.</Trans>
           </p>
         ) : (
@@ -252,28 +303,48 @@ export function PulseAlertCard({
           // two-row layout. Reads as a sentence the CPA can scan
           // top-to-bottom without a visual jump. Needs-review count
           // (when present) tacked on as a trailing meta clause.
-          <p className="text-sm text-text-tertiary">
-            {impacted === 1 ? (
-              <Trans>1 client may be affected</Trans>
-            ) : (
-              <Trans>{impacted} clients may be affected</Trans>
-            )}
-            {visibleNames.length > 0 ? (
-              <>
-                :{' '}
-                <span className="text-text-secondary">
-                  {visibleNames.join(', ')}
-                  {overflowNames > 0 ? `, +${overflowNames} more` : ''}
-                </span>
-              </>
-            ) : (
-              '.'
-            )}
+          // 2026-05-26 (Yuqi /rules/pulse follow-up #7): client names
+          // now render as 2px-rounded framed pills (white bg, faint
+          // border) instead of a comma-joined run-on string. Reads
+          // as "5 clients may be affected: [Acme] [Beta] [Gamma]
+          // +N more" — the pill shape signals these are entities
+          // not free-form text, matching the AffectedClientsTable
+          // chip pattern in the drawer.
+          <p className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-text-tertiary">
+            <span>
+              {impacted === 1 ? (
+                <Trans>1 client may be affected</Trans>
+              ) : (
+                <Trans>{impacted} clients may be affected</Trans>
+              )}
+              {visibleNames.length > 0 ? ':' : '.'}
+            </span>
+            {visibleNames.map((name) => (
+              <span
+                key={name}
+                className="inline-flex items-center rounded-sm border border-divider-subtle bg-background-default px-1.5 py-0.5 text-xs text-text-secondary"
+              >
+                {name}
+              </span>
+            ))}
+            {overflowNames > 0 ? (
+              <span className="text-text-tertiary">+{overflowNames} more</span>
+            ) : null}
             {alert.needsReviewCount > 0 ? (
               <>
-                <span aria-hidden> · </span>
+                <span aria-hidden>·</span>
+                {/* 2026-05-26 (Yuqi /rules/pulse follow-up #8):
+                    rephrased "N need review" → "N flagged for
+                    review" — the verb form pairs with the
+                    "may be affected" parent clause and avoids
+                    the agreement-pluralization ambiguity ("1
+                    need review" reads broken). */}
                 <span className="tabular-nums">
-                  <Trans>{alert.needsReviewCount} need review</Trans>
+                  {alert.needsReviewCount === 1 ? (
+                    <Trans>1 flagged for review</Trans>
+                  ) : (
+                    <Trans>{alert.needsReviewCount} flagged for review</Trans>
+                  )}
                 </span>
               </>
             ) : null}

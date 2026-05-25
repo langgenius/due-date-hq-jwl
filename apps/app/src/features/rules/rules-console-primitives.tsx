@@ -33,7 +33,7 @@ export function RulesPageHeader({
   breadcrumbs,
   actions,
 }: {
-  title: string
+  title: ReactNode
   description?: string
   breadcrumbs?: BreadcrumbItem[]
   actions?: ReactNode
@@ -70,7 +70,7 @@ export function RulesPageShell({
   contentClassName,
   children,
 }: {
-  title: string
+  title: ReactNode
   description?: string
   breadcrumbs?: BreadcrumbItem[]
   actions?: ReactNode
