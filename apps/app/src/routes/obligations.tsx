@@ -291,7 +291,10 @@ const CLIENT_ROW_HEIGHT_PX = 48
 // footer + page bottom padding ≈ 320-360px. We pick 360 to leave
 // a small buffer so the last row is never clipped under the
 // footer. If the chrome grows or shrinks materially, tune here.
-const PAGE_CHROME_PX = 360
+// PAGE_CHROME_PX retired 2026-05-26 — responsive page size now
+// measures the scroll container's clientHeight directly, see
+// useResponsivePageSize. INSIDE_CHROME_PX replaces this constant
+// (defined near the hook).
 const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
@@ -321,33 +324,41 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-// 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): responsive
-// page size — derive rows-per-page from viewport height so the
-// table fills the screen and the user doesn't have to scroll just
-// to see the data already loaded. SSR-safe (returns the min while
-// rendering server-side, then hydrates to the measured value on
-// mount). Subscribes to window resize so the page size adjusts
-// when the user resizes the browser or rotates a tablet.
-function computeResponsivePageSize(height: number): number {
-  const usable = Math.max(0, height - PAGE_CHROME_PX)
+// 2026-05-26 (Yuqi feedback — responsive page size pivot): page size
+// now derived from the ACTUAL scroll container height, not window
+// height. The window-height heuristic overshot when the page chrome
+// was tall (e.g. filter bar wrapping two lines) and undershot when
+// the panel was open eating side space but not vertical. Measuring
+// the container with ResizeObserver gives the true "how much room
+// do I have for rows" answer.
+//
+// Chrome subtracted from the container height:
+//   - filter bar rows above the table  ≈ 100-130px (varies w/ wrap)
+//   - table header                     ≈ 36px
+//   - pagination footer                ≈ 36px
+//   We absorb all this in INSIDE_CHROME_PX as a single estimate.
+const INSIDE_CHROME_PX = 180
+
+function computeResponsivePageSize(containerHeight: number): number {
+  const usable = Math.max(0, containerHeight - INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
   return Math.max(CLIENT_PAGE_SIZE_MIN, Math.min(CLIENT_PAGE_SIZE_MAX, fit || CLIENT_PAGE_SIZE_MIN))
 }
 
-function useResponsivePageSize(): number {
-  const [pageSize, setPageSize] = useState<number>(() => {
-    if (typeof window === 'undefined') return CLIENT_PAGE_SIZE_MIN
-    return computeResponsivePageSize(window.innerHeight)
-  })
+function useResponsivePageSize<T extends HTMLElement>(ref: React.RefObject<T | null>): number {
+  const [pageSize, setPageSize] = useState<number>(CLIENT_PAGE_SIZE_MIN)
   useEffect(() => {
-    // SSR guard: bail without registering. The state initializer above
-    // already returned CLIENT_PAGE_SIZE_MIN at that path. Effect only
-    // runs client-side anyway, so the guard is belt-and-suspenders.
     if (typeof window === 'undefined') return () => {}
-    const onResize = (): void => setPageSize(computeResponsivePageSize(window.innerHeight))
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+    const element = ref.current
+    if (!element) return () => {}
+    const measure = (): void => {
+      setPageSize(computeResponsivePageSize(element.clientHeight))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [ref])
   return pageSize
 }
 
@@ -882,12 +893,12 @@ export function ObligationQueueRoute() {
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [pageIndex, setPageIndex] = useState(0)
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): responsive
-  // rows-per-page based on viewport height. Replaces the previous
-  // hardcoded CLIENT_PAGE_SIZE = 25 — on a 992px viewport we now
-  // show ~11 rows (one screenful) instead of 25 (half offscreen);
-  // on a 1400px viewport we show ~18.
-  const responsivePageSize = useResponsivePageSize()
+  // 2026-05-26 (Yuqi feedback pivot): responsive rows-per-page now
+  // derived from the scroll container's clientHeight via
+  // ResizeObserver, not the window. See the hook for details. Ref
+  // attached to the queue's scroll container below.
+  const queueScrollRef = useRef<HTMLDivElement | null>(null)
+  const responsivePageSize = useResponsivePageSize(queueScrollRef)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   // 2026-05-24 (re-critique): lifted from `ObligationQueueSearchControl`
   // so the `/` hotkey can imperatively expand the collapsed search
@@ -2067,49 +2078,12 @@ export function ObligationQueueRoute() {
   const tableRows = table.getRowModel().rows
   const totalShown = tableRows.length
   const visibleColumnCount = table.getVisibleLeafColumns().length
-  // 2026-05-26 (Yuqi /deadlines #4 follow-up): page subtitle metrics.
-  // `lateCount` = past-internal-due rows excluding terminal statuses
-  // (Filed / Reverted — they shouldn't read as "late" any more, that
-  // ship has sailed). `dueThisWeekCount` = next 7 days, not yet late.
-  // `uniqueClientCount` = distinct clients across the loaded set,
-  // surfaced in the footer aggregate.
-  const lateCount = useMemo(
-    () =>
-      tableRows.reduce((sum, r) => {
-        // Skip terminal "filed" rows — past-due is no longer
-        // actionable once the deadline is filed. `done` is the
-        // status taxonomy's filed-state per the project's status
-        // taxonomy. Reverted is also terminal, but the row union
-        // type doesn't include it on this filter context — extend
-        // here if the row type grows to include it later.
-        if (r.original.status === 'done') return sum
-        return sum + (r.original.daysUntilDue < 0 ? 1 : 0)
-      }, 0),
-    [tableRows],
-  )
-  const dueThisWeekCount = useMemo(
-    () =>
-      tableRows.reduce((sum, r) => {
-        const days = r.original.daysUntilDue
-        return sum + (days >= 0 && days <= 7 ? 1 : 0)
-      }, 0),
-    [tableRows],
-  )
-  // 2026-05-26 (Yuqi sixtieth pass — richer subtitle): the
-  // subtitle had collapsed to just "13 late" when nothing was due
-  // this week, which felt too sparse to justify the slot. Adding
-  // two more signals — blocked count + waiting on client count —
-  // so the page header always carries 2-4 metrics worth knowing
-  // when ANY of them are non-zero.
-  const blockedCount = useMemo(
-    () => tableRows.reduce((sum, r) => sum + (r.original.status === 'blocked' ? 1 : 0), 0),
-    [tableRows],
-  )
-  const waitingOnClientCount = useMemo(
-    () =>
-      tableRows.reduce((sum, r) => sum + (r.original.status === 'waiting_on_client' ? 1 : 0), 0),
-    [tableRows],
-  )
+  // 2026-05-26 (Yuqi feedback #2): lateCount / dueThisWeekCount /
+  // blockedCount / waitingOnClientCount were the inputs for the
+  // page subtitle metrics ("13 late · 4 due this week · ..."). The
+  // subtitle was dropped per feedback #2, so the computations are
+  // now dead. Removed entirely; restore from git history if a
+  // subtitle is revived.
   const uniqueClientCount = useMemo(
     () => new Set(tableRows.map((r) => r.original.clientId)).size,
     [tableRows],
@@ -2565,68 +2539,13 @@ export function ObligationQueueRoute() {
         // pipeline scan: "13 late · 4 due this week · 2 blocked ·
         // 5 waiting on client". Dots separate; metrics with zero
         // count drop out entirely so the line stays scannable.
-        description={(() => {
-          const segments: Array<{ key: string; node: ReactNode }> = []
-          if (lateCount > 0) {
-            segments.push({
-              key: 'late',
-              node: (
-                <span className="font-medium text-text-destructive">
-                  <Plural value={lateCount} one="# late" other="# late" />
-                </span>
-              ),
-            })
-          }
-          if (dueThisWeekCount > 0) {
-            segments.push({
-              key: 'due-this-week',
-              node: (
-                <span className="text-text-secondary">
-                  <Plural value={dueThisWeekCount} one="# due this week" other="# due this week" />
-                </span>
-              ),
-            })
-          }
-          if (blockedCount > 0) {
-            segments.push({
-              key: 'blocked',
-              node: (
-                <span className="text-text-secondary">
-                  <Plural value={blockedCount} one="# blocked" other="# blocked" />
-                </span>
-              ),
-            })
-          }
-          if (waitingOnClientCount > 0) {
-            segments.push({
-              key: 'waiting',
-              node: (
-                <span className="text-text-secondary">
-                  <Plural
-                    value={waitingOnClientCount}
-                    one="# waiting on client"
-                    other="# waiting on client"
-                  />
-                </span>
-              ),
-            })
-          }
-          if (segments.length === 0) return undefined
-          return (
-            <span className="inline-flex flex-wrap items-center gap-x-2 text-sm">
-              {segments.map((segment, idx) => (
-                <Fragment key={segment.key}>
-                  {idx > 0 ? (
-                    <span aria-hidden className="text-text-tertiary">
-                      ·
-                    </span>
-                  ) : null}
-                  {segment.node}
-                </Fragment>
-              ))}
-            </span>
-          )
-        })()}
+        // 2026-05-26 (Yuqi feedback #2): subtitle hidden. The
+        // "10 late · 2 blocked · ..." pipeline scan duplicates info
+        // already carried by each scope tab below (which renders its
+        // own count). Page header is now minimal — title + count
+        // chip only. Restore via git history if a sparser version
+        // is needed later.
+        description={undefined}
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
@@ -2659,18 +2578,12 @@ export function ObligationQueueRoute() {
         )}
       >
         <div
+          ref={queueScrollRef}
           className={cn(
             'flex min-w-0 flex-1 flex-col gap-3',
             // Always overflow-y-auto at xl+ with `scrollbar-gutter:
             // stable` so the layout doesn't shift when the
             // scrollbar appears.
-            // 2026-05-26 (Yuqi scrollbar audit): dropped the
-            // `xl:pr-1` inset that ran when a detail panel was
-            // open. It pushed the scrollbar 4px inside the queue
-            // column — same "inset / floating inside" issue Yuqi
-            // flagged on Alerts. With the gutter stable, the
-            // scrollbar hugs the column's right edge and the
-            // layout doesn't jump.
             'xl:overflow-y-auto xl:[scrollbar-gutter:stable]',
             !activeDetailId && 'overflow-x-auto',
           )}
@@ -5252,7 +5165,15 @@ export function ObligationQueueDetailDrawer({
           // needed), px-12 → px-8 to match the tightened header.
           // pb-24 retained (sticky-footer overlap buffer).
           'flex flex-col gap-4 px-8 pt-0 pb-24',
-          mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto',
+          // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
+          // on the panel-mode body. Different tabs render different
+          // content heights (Summary is short, Materials is long).
+          // Without gutter:stable, the scrollbar appears/disappears
+          // on tab switch and shifts the content ~15px horizontally —
+          // reads as "panel width flickers." Reserving the scrollbar
+          // space holds the content steady regardless of which tab
+          // is active.
+          mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]',
         )}
       >
         {detailQuery.isLoading ? (
@@ -5434,7 +5355,14 @@ export function ObligationQueueDetailDrawer({
                         {outstandingMaterials > 0 ? (
                           <span
                             aria-label={t`${outstandingMaterials} outstanding`}
-                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-destructive-solid px-1 text-caption-xs font-medium leading-none tabular-nums text-text-inverted"
+                            // 2026-05-26 (Yuqi feedback #3): badge subtler.
+                            // Was solid destructive red with white text —
+                            // that loudness made every Materials tab with
+                            // outstanding items shout "danger." Now: light
+                            // accent tint (state-accent-hover-alt) with
+                            // accent-tinted text. Communicates "13 items
+                            // here" without alarm chrome.
+                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent"
                           >
                             {outstandingMaterials}
                           </span>
