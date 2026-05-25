@@ -929,3 +929,35 @@ module load, while the Cloudflare Workers runtime does not provide that browser 
 Validation:
 
 - Not run; change was made directly from the Wrangler startup failure.
+
+## 2026-05-25 CST - CA fiduciary concrete draft gap refill
+
+The missing-only local scan found one remaining source-defined rule without a successful current
+global AI concrete draft:
+
+- `ca.fiduciary_income_return.candidate.2026`
+- `ca.ftb_541_booklet_2025`
+
+The main generation path used the focused core evidence text but hit an AI gateway error. The script
+fallback succeeded, but its source text placed the fetched FTB HTML before the focused evidence, so
+the 24k source-text cap pushed the precise deadline excerpt out of the prompt. The first successful
+draft was therefore source-backed in a narrow technical sense but showed an overly broad booklet
+excerpt.
+
+Updated `scripts/generate-local-concrete-drafts.ts` so the fallback prompt orders source text as
+source title, source URL, focused rule evidence, then fetched official source text. A targeted rerun
+for `ca.ftb_541_booklet_2025` produced latest successful AI output
+`d2cb3a0f-0251-43c8-ba74-da6116c1ccdb`, with the source excerpt pinned to the Form 541 calendar-year
+and fiscal-year deadline sentence.
+
+Validation:
+
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=1`
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --source=ca.ftb_541_booklet_2025 --include-existing --concurrency=1`
+- `sqlite3 ... "select json_extract(output_text, '$.sourceExcerpt'), json_extract(citations_json, '$.sourceExcerpt') from ai_output where id = 'd2cb3a0f-0251-43c8-ba74-da6116c1ccdb';"`
+- `pnpm exec tsx scripts/generate-local-concrete-drafts.ts --all --concurrency=1`
+
+Result:
+
+- Missing successful drafts after final scan: 0
+- Final scan result payload: `results: []`

@@ -224,9 +224,14 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               48px-square trigger (32px would push past the 40px
               available inside the 56px rail). Label + chevron hide
               entirely via the group-data selector. */}
+          {/* 2026-05-25 (Yuqi rail alignment fix): collapsed avatar
+              bumped size-6 (24px) → size-7 (28px). The 32×32
+              button with a 24px tile read as too much padding;
+              28px gives the brand mark proper weight inside the
+              rail while leaving a 2px halo for hover state. */}
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-6 group-data-[collapsed=true]/sidebar:text-xs"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
             translate="no"
           >
             {currentMonogram}
@@ -255,13 +260,20 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
                 <DropdownMenuItem
                   key={item.id}
                   aria-checked={selected}
-                  className="flex items-center justify-between"
+                  // 2026-05-25 (Yuqi caps fix follow-up): bumped
+                  // row height (h-12) + padding (px-2 py-2) +
+                  // avatar (size-7) so the dropdown row matches
+                  // the trigger's brand-mark presence. Item row
+                  // was h-8 / size-5 (20px) — the avatar read as
+                  // a UI dot rather than the workspace identity
+                  // it pairs with on the trigger (32px).
+                  className="flex h-12 items-center justify-between gap-2 px-2 py-2"
                   onClick={() => handleSwitch(item.id)}
                 >
-                  <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2.5">
                     <span
                       aria-hidden
-                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-caption-xs font-semibold text-text-inverted"
+                      className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-primary text-caption-xs font-semibold text-text-inverted"
                       translate="no"
                     >
                       {firmMonogram(item.name)}

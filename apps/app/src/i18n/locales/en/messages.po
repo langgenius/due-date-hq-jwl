@@ -34,15 +34,6 @@ msgstr "(also handles {0})"
 msgid "(no longer on team)"
 msgstr "(no longer on team)"
 
-#. placeholder {0}: cell.appliedClientCount
-#. placeholder {1}: cell.entityType.toUpperCase()
-#. placeholder {2}: cell.state
-#. placeholder {3}: cell.entityType.toUpperCase()
-#. placeholder {4}: cell.state
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# {1} × {2} client} other {# {3} × {4} clients}}"
-msgstr "{0, plural, one {# {1} × {2} client} other {# {3} × {4} clients}}"
-
 #. placeholder {0}: alerts.length
 #: src/features/pulse/AlertsListPage.tsx
 msgid "{0, plural, one {# active} other {# active}}"
@@ -58,10 +49,11 @@ msgstr "{0, plural, one {# applicable} other {# applicable}}"
 msgid "{0, plural, one {# client imported} other {# clients imported}}"
 msgstr "{0, plural, one {# client imported} other {# clients imported}}"
 
+#. placeholder {0}: cell.appliedClientCount
 #. placeholder {0}: pendingRevert.clientCount
 #. placeholder {0}: result.clientCount
-#. placeholder {0}: table.getFilteredRowModel().rows.length
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/Step3Normalize.tsx
 #: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {# client} other {# clients}}"
@@ -128,11 +120,14 @@ msgid "{0, plural, one {# open filing} other {# open filings}}"
 msgstr "{0, plural, one {# open filing} other {# open filings}}"
 
 #. placeholder {0}: errors.length
-#. placeholder {0}: summary.errors.length
 #: src/features/migration/Step2Mapping.tsx
-#: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# row needs attention} other {# rows need attention}}"
 msgstr "{0, plural, one {# row needs attention} other {# rows need attention}}"
+
+#. placeholder {0}: summary.errors.length
+#: src/features/migration/Step4Preview.tsx
+msgid "{0, plural, one {# row needs review} other {# rows need review}}"
+msgstr "{0, plural, one {# row needs review} other {# rows need review}}"
 
 #. placeholder {0}: intake.rowCount
 #: src/features/migration/Step1Intake.tsx
@@ -166,6 +161,11 @@ msgstr "{0, plural, one {# selected deadline} other {# selected deadlines}}"
 msgid "{0, plural, one {# source attached} other {# sources attached}}"
 msgstr "{0, plural, one {# source attached} other {# sources attached}}"
 
+#. placeholder {0}: stateSummary.taxTypeCount
+#: src/features/migration/Step4Preview.tsx
+msgid "{0, plural, one {# state rule type} other {# state rule types}}"
+msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
+
 #. placeholder {0}: yearGroups.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# tax year} other {# tax years}}"
@@ -198,8 +198,8 @@ msgstr "{0, plural, one {We imported the first 1000 of # row. Split your file to
 
 #. placeholder {0}: normalize.rows.length
 #: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {We organized # value — review if needed} other {We organized # values — review if needed}}"
-msgstr "{0, plural, one {We organized # value — review if needed} other {We organized # values — review if needed}}"
+msgid "{0, plural, one {We organized # value} other {We organized # values}}"
+msgstr "{0, plural, one {We organized # value} other {We organized # values}}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
@@ -419,8 +419,8 @@ msgid "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgstr "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "{affectedReviewClients, plural, one {# client has state tax types that need active practice rules before those state deadlines can be generated.} other {# clients have state tax types that need active practice rules before those state deadlines can be generated.}}"
-msgstr "{affectedReviewClients, plural, one {# client has state tax types that need active practice rules before those state deadlines can be generated.} other {# clients have state tax types that need active practice rules before those state deadlines can be generated.}}"
+msgid "{affectedReviewClients, plural, one {# client has state deadlines that need reviewed practice rules first.} other {# clients have state deadlines that need reviewed practice rules first.}}"
+msgstr "{affectedReviewClients, plural, one {# client has state deadlines that need reviewed practice rules first.} other {# clients have state deadlines that need reviewed practice rules first.}}"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{availableCount} available"
@@ -530,6 +530,10 @@ msgstr "{equity} equity owners"
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} expired needs resend"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "{fallbackCount, plural, one {# value could not be matched confidently; it will use a safe fallback.} other {# values could not be matched confidently; they will use safe fallbacks.}}"
+msgstr "{fallbackCount, plural, one {# value could not be matched confidently; it will use a safe fallback.} other {# values could not be matched confidently; they will use safe fallbacks.}}"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{field} changed from {previous} to {next}"
 msgstr "{field} changed from {previous} to {next}"
@@ -571,8 +575,8 @@ msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 1
 msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
-msgstr "{lowConfCount, plural, one {# column needs your review} other {# columns need your review}}"
+msgid "{lowConfCount, plural, one {# column needs review} other {# columns need review}}"
+msgstr "{lowConfCount, plural, one {# column needs review} other {# columns need review}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
@@ -581,10 +585,6 @@ msgstr "{missingSourceCount} source gaps"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "{needsReviewCount, plural, one {# value needs human review} other {# values need human review}}"
-msgstr "{needsReviewCount, plural, one {# value needs human review} other {# values need human review}}"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
@@ -782,6 +782,11 @@ msgstr "+ {0} more"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#. placeholder {0}: einDetected ? ' · EIN found' : null
+#: src/features/migration/Step2Mapping.tsx
+msgid "<0>{avgConfidence}%</0> average confidence{0}"
+msgstr "<0>{avgConfidence}%</0> average confidence{0}"
 
 #: src/routes/obligations.tsx
 msgid "${rate} per owner x {owners} owners x {months} months"
@@ -1245,6 +1250,10 @@ msgstr "AI Mapper"
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI Mapper means AI suggested the fields."
 msgstr "AI Mapper means AI suggested the fields."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "AI mapping unavailable"
+msgstr "AI mapping unavailable"
 
 #: src/routes/obligations.tsx
 msgid "AI materials checklist"
@@ -1757,18 +1766,9 @@ msgstr "Authority confirmed payment cleared"
 msgid "Authority rejected the e-file"
 msgstr "Authority rejected the e-file"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Automatic field matching is unavailable — using default suggestions"
-msgstr "Automatic field matching is unavailable — using default suggestions"
-
 #: src/routes/settings.tsx
 msgid "Automation"
 msgstr "Automation"
-
-#. placeholder {0}: einDetected ? '100%' : '0%'
-#: src/features/migration/Step2Mapping.tsx
-msgid "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
-msgstr "Average confidence <0>{avgConfidence}%</0> · EIN detected <1>{0}</1>"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
@@ -1837,6 +1837,10 @@ msgstr "BATCH REVIEW NOTE"
 #: src/features/rules/coverage-tab.tsx
 msgid "Batch review note is required."
 msgstr "Batch review note is required."
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Best match"
+msgstr "Best match"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2947,9 +2951,9 @@ msgstr "Couldn't mark notification read"
 msgid "Couldn't mark Pulse reviewed"
 msgstr "Couldn't mark Pulse reviewed"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Couldn't parse the input"
-msgstr "Couldn't parse the input"
+#: src/features/migration/Step3Normalize.tsx
+msgid "Couldn't organize some values"
+msgstr "Couldn't organize some values"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't prepare the latest tip. Showing the previous version when available."
@@ -2970,6 +2974,10 @@ msgstr "Couldn't queue risk summary"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Couldn't reactivate alert"
 msgstr "Couldn't reactivate alert"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Couldn't read your data"
+msgstr "Couldn't read your data"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
@@ -3315,10 +3323,6 @@ msgstr "Cycle time"
 msgid "Dark"
 msgstr "Dark"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Data cleanup warning"
-msgstr "Data cleanup warning"
-
 #: src/routes/obligations.tsx
 msgid "Dates"
 msgstr "Dates"
@@ -3480,10 +3484,6 @@ msgstr "Decision memo (required)"
 #: src/routes/obligations.tsx
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default tax type suggestions fill missing tax types and add state context when imported rows only name a federal return type."
-msgstr "Default tax type suggestions fill missing tax types and add state context when imported rows only name a federal return type."
 
 #: src/routes/practice.tsx
 msgid "Delete practice"
@@ -3707,8 +3707,8 @@ msgid "Drafting started without all client materials in hand."
 msgstr "Drafting started without all client materials in hand."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
-msgstr "Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB"
+msgid "Drop a CSV, Excel, ZIP, TXT, or IIF file"
+msgstr "Drop a CSV, Excel, ZIP, TXT, or IIF file"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -4302,6 +4302,10 @@ msgstr "Fallback document list ready"
 msgid "FBAR / FinCEN 114 + Form 8938 may apply"
 msgstr "FBAR / FinCEN 114 + Form 8938 may apply"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Federal deadlines and state deadlines with active rules will still be generated."
+msgstr "Federal deadlines and state deadlines with active rules will still be generated."
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Federal EIN"
 msgstr "Federal EIN"
@@ -4680,8 +4684,8 @@ msgid "Generate your first deadline list."
 msgstr "Generate your first deadline list."
 
 #: src/features/migration/WizardShell.tsx
-msgid "Generating your deadline list…"
-msgstr "Generating your deadline list…"
+msgid "Generating deadlines…"
+msgstr "Generating deadlines…"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Generating…"
@@ -4770,6 +4774,10 @@ msgstr "Ignore this column"
 #: src/features/migration/Wizard.tsx
 msgid "Import & Generate"
 msgstr "Import & Generate"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Import & Generate creates the clients, deadlines, evidence, and audit records listed above."
+msgstr "Import & Generate creates the clients, deadlines, evidence, and audit records listed above."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Import a CSV or create the first manual client record."
@@ -6350,6 +6358,10 @@ msgstr "No sources match these filters. Clear filters above to see all watched s
 msgid "No sources registered yet. Source watchers feed the rule catalog — once configured, they appear here with watch status and cadence."
 msgstr "No sources registered yet. Source watchers feed the rule catalog — once configured, they appear here with watch status and cadence."
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "No state deadlines"
+msgstr "No state deadlines"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "No states"
@@ -6412,11 +6424,6 @@ msgstr "None attached"
 msgid "Normalize"
 msgstr "Normalize"
 
-#. placeholder {0}: row.rawValue
-#: src/features/migration/Step3Normalize.tsx
-msgid "Normalized value for {0}"
-msgstr "Normalized value for {0}"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Not allowed."
 msgstr "Not allowed."
@@ -6467,6 +6474,10 @@ msgstr "Not specified"
 #: src/routes/obligations.tsx
 msgid "Not started"
 msgstr "Not started"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Not used"
+msgstr "Not used"
 
 #: src/routes/obligations.tsx
 #: src/routes/readiness.tsx
@@ -7165,8 +7176,12 @@ msgid "Paste here — any shape, we'll figure it out. Include the header row if 
 msgstr "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste or upload — we'll figure out the shape. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> give us a head start on payment and penalty context."
-msgstr "Paste or upload — we'll figure out the shape. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> give us a head start on payment and penalty context."
+msgid "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
+msgstr "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Paste or upload to continue."
+msgstr "Paste or upload to continue."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste rows"
@@ -7284,10 +7299,6 @@ msgstr "Penalty inputs recorded"
 msgid "Penalty inputs saved"
 msgstr "Penalty inputs saved"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Penalty readiness is computed from the confirmed tax type plus any estimated tax due and owner count columns mapped in Step 2."
-msgstr "Penalty readiness is computed from the confirmed tax type plus any estimated tax due and owner count columns mapped in Step 2."
-
 #: src/routes/obligations.tsx
 msgid "Penalty sources"
 msgstr "Penalty sources"
@@ -7361,6 +7372,10 @@ msgstr "Pick a client first."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client…"
 msgstr "Pick a client…"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
+msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -7987,8 +8002,8 @@ msgid "Ready to e-file with authority"
 msgstr "Ready to e-file with authority"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "Ready to generate your deadline list"
-msgstr "Ready to generate your deadline list"
+msgid "Ready to generate deadlines"
+msgstr "Ready to generate deadlines"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Ready to import"
@@ -8397,10 +8412,6 @@ msgstr "review — needs CPA confirmation"
 msgid "Review {0} in deadline drawer"
 msgstr "Review {0} in deadline drawer"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Review and confirm column mapping"
-msgstr "Review and confirm column mapping"
-
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied Pulse exceptions changing due dates."
 msgstr "Review applied Pulse exceptions changing due dates."
@@ -8445,14 +8456,9 @@ msgstr "Review requested"
 msgid "Review risk and operating pressure."
 msgstr "Review risk and operating pressure."
 
-#: src/features/migration/Step4Preview.tsx
 #: src/routes/migration.new.tsx
 msgid "Review rules"
 msgstr "Review rules"
-
-#: src/features/migration/Step4Preview.tsx
-msgid "Review rules before some state deadlines can be generated"
-msgstr "Review rules before some state deadlines can be generated"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Review selected"
@@ -8498,6 +8504,10 @@ msgstr "Review the active plan and billing controls."
 msgid "Review the active practice plan, open billing controls, and choose the right workspace tier."
 msgstr "Review the active practice plan, open billing controls, and choose the right workspace tier."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Review the column mapping"
+msgstr "Review the column mapping"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Review the official source and mark this Pulse reviewed when complete."
 msgstr "Review the official source and mark this Pulse reviewed when complete."
@@ -8509,6 +8519,10 @@ msgstr "Review the practice subscription before opening secure checkout."
 #: src/features/dashboard/actions-list.tsx
 msgid "Review the prepared return and sign off"
 msgstr "Review the prepared return and sign off"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Review these states in Rule Library to unlock the remaining deadlines."
+msgstr "Review these states in Rule Library to unlock the remaining deadlines."
 
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"
@@ -8620,6 +8634,11 @@ msgstr "Route failed"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Row"
 msgstr "Row"
+
+#. placeholder {0}: err.rowIndex + 1
+#: src/features/migration/Step4Preview.tsx
+msgid "Row {0}"
+msgstr "Row {0}"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Row limit hit"
@@ -9534,6 +9553,10 @@ msgstr "Some deadlines have changed since you opened this alert. Refresh to load
 msgid "Some selected states publish deadlines through official calendars that need practice review. After entering the product, open Rule Library and review the pending rules before those due dates can be generated."
 msgstr "Some selected states publish deadlines through official calendars that need practice review. After entering the product, open Rule Library and review the pending rules before those due dates can be generated."
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Some state deadlines need rule review"
+msgstr "Some state deadlines need rule review"
+
 #: src/lib/i18n-error.ts
 msgid "Something went wrong on our side. Please try again shortly."
 msgstr "Something went wrong on our side. Please try again shortly."
@@ -10065,8 +10088,8 @@ msgid "That deadline already exists for this client and tax year."
 msgstr "That deadline already exists for this client and tax year."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "That file doesn't contain any rows. Upload a CSV, TSV, or XLSX with a header and at least one data row."
-msgstr "That file doesn't contain any rows. Upload a CSV, TSV, or XLSX with a header and at least one data row."
+msgid "That file has no data rows. Add a header and at least one row, then re-upload."
+msgstr "That file has no data rows. Add a header and at least one row, then re-upload."
 
 #: src/lib/i18n-error.ts
 msgid "That resource belongs to a different practice."
@@ -10092,10 +10115,6 @@ msgstr "The accepted source-backed rule matched the client facts for this deadli
 #: src/features/concepts/concept-help.tsx
 msgid "The active CPA practice workspace. Settings, clients, deadlines, members, billing, and audit logs are scoped to the selected practice."
 msgstr "The active CPA practice workspace. Settings, clients, deadlines, members, billing, and audit logs are scoped to the selected practice."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "The AI mapper runs first. Selecting an import template adds source context and provides default suggestions if AI is unavailable."
-msgstr "The AI mapper runs first. Selecting an import template adds source context and provides default suggestions if AI is unavailable."
 
 #: src/routes/billing.tsx
 msgid "The billing portal opens with the payment provider for invoices, payment methods, and cancellation."
@@ -10182,10 +10201,6 @@ msgstr "The model extracted these fields with low confidence. Compare against th
 msgid "The number of days before a deadline where urgency reaches its maximum Smart Priority contribution."
 msgstr "The number of days before a deadline where urgency reaches its maximum Smart Priority contribution."
 
-#: src/features/migration/Step4Preview.tsx
-msgid "The numbers above are computed from your confirmed mappings, tax type suggestions, and active practice rules. Import & Generate will create clients, deadlines, evidence, and audit records."
-msgstr "The numbers above are computed from your confirmed mappings, tax type suggestions, and active practice rules. Import & Generate will create clients, deadlines, evidence, and audit records."
-
 #: src/features/concepts/concept-help.tsx
 msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
 msgstr "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
@@ -10269,6 +10284,10 @@ msgstr "Theme"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "then"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "These defaults apply only to rows without tax types."
+msgstr "These defaults apply only to rows without tax types."
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "These flags drive what deadlines get generated for this client. Active flags need a maintainer's edit flow — see the audit doc for follow-up."
@@ -10668,6 +10687,10 @@ msgstr "Unknown browser"
 msgid "Unknown reviewer"
 msgstr "Unknown reviewer"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Up to 1,000 rows · 5 MB"
+msgstr "Up to 1,000 rows · 5 MB"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -10809,6 +10832,10 @@ msgstr "User agent hash"
 #: src/features/migration/Step1Intake.tsx
 msgid "Using {sourceProductLabel} data from {0}."
 msgstr "Using {sourceProductLabel} data from {0}."
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Using Other"
+msgstr "Using Other"
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
@@ -10963,6 +10990,10 @@ msgstr "We blocked SSN-like patterns to protect your clients. Those columns won'
 msgid "We cannot import {0}. Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "We cannot import {0}. Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 
+#: src/features/migration/Step1Intake.tsx
+msgid "We couldn't find a header row. Make sure the first line lists your column names."
+msgstr "We couldn't find a header row. Make sure the first line lists your column names."
+
 #: src/lib/i18n-error.ts
 #: src/routes/error.tsx
 msgid "We couldn't find what you were looking for."
@@ -11101,6 +11132,10 @@ msgid "XLSX"
 msgstr "XLSX"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "XLSX couldn't be parsed. Export as CSV and re-upload."
+msgstr "XLSX couldn't be parsed. Export as CSV and re-upload."
+
+#: src/features/migration/Step1Intake.tsx
 msgid "XLSX or CSV"
 msgstr "XLSX or CSV"
 
@@ -11134,8 +11169,8 @@ msgid "You need to sign in to continue."
 msgstr "You need to sign in to continue."
 
 #: src/features/migration/Step4Preview.tsx
-msgid "You're about to create"
-msgstr "You're about to create"
+msgid "You're about to create:"
+msgstr "You're about to create:"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "You're caught up. Next deadline appears here when one's within a week."

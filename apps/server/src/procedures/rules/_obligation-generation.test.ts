@@ -17,6 +17,14 @@ function mustRule(id: string): ObligationRule {
   return rule
 }
 
+function withPrimaryEvidenceAiOutput(rule: ObligationRule, aiOutputId: string): ObligationRule {
+  const primaryEvidence = rule.evidence[0]
+  if (!primaryEvidence) throw new Error(`Rule ${rule.id} has no primary evidence`)
+  const evidence = [...rule.evidence]
+  evidence[0] = Object.assign({}, primaryEvidence, { aiOutputId })
+  return { ...rule, evidence }
+}
+
 function makeClient(overrides: Partial<ClientRow> = {}): ClientRow {
   const now = new Date('2026-05-06T00:00:00.000Z')
   return {
@@ -308,6 +316,46 @@ describe('generateObligationsForAcceptedRules', () => {
         jurisdiction: 'CA',
         filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
         status: 'pending',
+      }),
+    ])
+  })
+
+  it('keeps concrete draft AI ids in source evidence without putting them on obligation evidence rows', async () => {
+    const aiOutputId = '44444444-4444-4444-8444-444444444444'
+    const rule = withPrimaryEvidenceAiOutput(mustRule('ca.541.return.2025'), aiOutputId)
+    const client = makeClient({
+      entityType: 'trust',
+      taxClassification: 'trust',
+      state: 'CA',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      state: 'CA',
+      taxTypes: ['ca_541'],
+      migrationBatchId: null,
+    })
+    const { scoped, createdInputs, writeEvidenceBatch } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [rule],
+      internalDeadlineOffsetDays: 14,
+      now: new Date('2026-05-06T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({ candidateCount: 1, createdCount: 1, duplicateCount: 0 })
+    expect(createdInputs[0]?.sourceEvidenceJson).toEqual(
+      expect.arrayContaining([expect.objectContaining({ aiOutputId })]),
+    )
+    expect(writeEvidenceBatch).toHaveBeenCalledWith([
+      expect.objectContaining({
+        obligationInstanceId: 'obligation_1',
+        aiOutputId: null,
+        sourceType: 'verified_rule',
       }),
     ])
   })

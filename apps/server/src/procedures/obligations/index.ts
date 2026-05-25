@@ -448,7 +448,7 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
   await scoped.evidence.writeBatch(
     createInputs.map((created, index) => ({
       obligationInstanceId: ids[index] ?? null,
-      aiOutputId: created.preview.evidence[0]?.aiOutputId ?? null,
+      aiOutputId: null,
       sourceType: 'verified_rule',
       sourceId: created.preview.ruleId,
       sourceUrl: sourceUrlForPreview(created.preview, sourceById),

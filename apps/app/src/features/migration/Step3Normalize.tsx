@@ -17,7 +17,6 @@ import type { MatrixApplicationView } from './matrix-view'
 interface Step3Props {
   normalize: NormalizeState
   matrix: MatrixApplicationView[]
-  onUserEdit: (rows: NormalizationRow[]) => void
   onToggleApplyToAll: (key: string, value: boolean) => void
 }
 
@@ -33,7 +32,7 @@ interface Step3Props {
  * conflict candidates in real time; Day 4 commit handles "matches existing
  * client ID" as it lands.
  */
-export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToAll }: Step3Props) {
+export function Step3Normalize({ normalize, matrix, onToggleApplyToAll }: Step3Props) {
   const { t } = useLingui()
 
   const entityRows = useMemo(
@@ -45,35 +44,24 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
     [normalize.rows],
   )
 
-  const needsReviewCount = normalize.rows.filter(
-    (r) => typeof r.confidence === 'number' && r.confidence < 0.5,
-  ).length
+  const fallbackCount = normalize.rows.filter(usesFallbackHandling).length
 
   return (
     <div className="flex flex-col gap-5 py-5">
       <div className="flex flex-col gap-1">
-        {/* 2026-05-25 (Wizard #40 — plural fix): "values" was
-            baked into the English template so n=1 read "1
-            values". Wrapped in <Plural> so n=1 renders
-            "We organized 1 value — review if needed". */}
         <h2 className="text-lg font-semibold text-text-primary">
           <Plural
             value={normalize.rows.length}
-            one="We organized # value — review if needed"
-            other="We organized # values — review if needed"
+            one="We organized # value"
+            other="We organized # values"
           />
         </h2>
-        {needsReviewCount > 0 ? (
+        {fallbackCount > 0 ? (
           <p className="text-sm text-text-secondary">
-            {/* 2026-05-25 (Wizard #40 cross-step polish): dropped
-                "human" — the audit found 4 different phrasings for
-                "needs review" across steps; canonical phrase is
-                bare "needs review" so Step 3 + Step 2 + Step 4 all
-                read the same way. */}
             <Plural
-              value={needsReviewCount}
-              one="# value needs review"
-              other="# values need review"
+              value={fallbackCount}
+              one="# value could not be matched confidently; it will use a safe fallback."
+              other="# values could not be matched confidently; they will use safe fallbacks."
             />
           </p>
         ) : null}
@@ -100,18 +88,8 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
         </div>
       ) : (
         <>
-          <Section
-            title={t`Entity types`}
-            rows={entityRows}
-            onUserEdit={onUserEdit}
-            all={normalize.rows}
-          />
-          <Section
-            title={t`States`}
-            rows={stateRows}
-            onUserEdit={onUserEdit}
-            all={normalize.rows}
-          />
+          <Section title={t`Entity types`} rows={entityRows} />
+          <Section title={t`States`} rows={stateRows} />
           <MatrixSection
             matrix={matrix}
             applyToAll={normalize.applyToAll}
@@ -126,20 +104,10 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
 interface SectionProps {
   title: string
   rows: NormalizationRow[]
-  all: NormalizationRow[]
-  onUserEdit: (rows: NormalizationRow[]) => void
 }
 
-function Section({ title, rows, all, onUserEdit }: SectionProps) {
-  const { t } = useLingui()
+function Section({ title, rows }: SectionProps) {
   if (rows.length === 0) return null
-
-  function updateRow(targetRow: NormalizationRow, value: string) {
-    const next = all.map((r) =>
-      r.id === targetRow.id ? { ...r, normalizedValue: value, userOverridden: true } : r,
-    )
-    onUserEdit(next)
-  }
 
   return (
     <section
@@ -152,15 +120,13 @@ function Section({ title, rows, all, onUserEdit }: SectionProps) {
       </h3>
       <ul className="flex flex-col divide-y divide-divider-regular text-sm">
         {rows.map((row) => {
-          const needsReview =
-            row.normalizedValue === null ||
-            (typeof row.confidence === 'number' && row.confidence < 0.5)
+          const fallback = usesFallbackHandling(row)
           return (
             <li
               key={row.id}
               className={cn(
                 'flex items-center gap-3 py-2',
-                needsReview && 'bg-components-badge-bg-warning-soft -mx-3 px-3',
+                fallback && 'bg-components-badge-bg-warning-soft -mx-3 px-3',
               )}
             >
               <span className="font-mono text-xs tabular-nums text-text-primary">
@@ -169,26 +135,21 @@ function Section({ title, rows, all, onUserEdit }: SectionProps) {
               <span aria-hidden className="text-text-tertiary">
                 →
               </span>
-              <input
-                type="text"
-                value={row.normalizedValue ?? ''}
-                onChange={(e) => updateRow(row, e.target.value)}
-                className="flex h-7 max-w-[160px] rounded-md border border-divider-regular bg-background-body px-2 font-mono text-xs tabular-nums text-text-primary focus-visible:border-state-accent-solid focus-visible:outline-none"
-                placeholder="—"
-                aria-label={t`Normalized value for ${row.rawValue}`}
-              />
+              <span className="inline-flex min-h-7 min-w-[120px] max-w-[180px] items-center rounded-md border border-divider-regular bg-background-body px-2 text-xs text-text-primary">
+                {formatNormalizedValue(row)}
+              </span>
               <EvidenceChip
                 model={row.model}
                 confidence={row.confidence}
                 promptVersion={row.promptVersion}
               />
-              {needsReview ? (
+              {fallback ? (
                 <span
                   className="ml-auto inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
                   role="status"
                 >
                   <AlertTriangleIcon className="size-3" aria-hidden />
-                  <Trans>Needs review</Trans>
+                  <FallbackStatus row={row} />
                 </span>
               ) : null}
             </li>
@@ -197,6 +158,54 @@ function Section({ title, rows, all, onUserEdit }: SectionProps) {
       </ul>
     </section>
   )
+}
+
+function usesFallbackHandling(row: NormalizationRow): boolean {
+  return (
+    row.normalizedValue === null || (typeof row.confidence === 'number' && row.confidence < 0.5)
+  )
+}
+
+function formatNormalizedValue(row: NormalizationRow): string {
+  if (!row.normalizedValue) return row.field === 'state' ? 'No state match' : 'Not recognized'
+  if (row.field === 'entity_type') return formatEntityTypeLabel(row.normalizedValue)
+  return row.normalizedValue
+}
+
+function FallbackStatus({ row }: { row: NormalizationRow }) {
+  if (row.normalizedValue === null && row.field === 'state') {
+    return <Trans>No state deadlines</Trans>
+  }
+  if (row.normalizedValue === null) {
+    return <Trans>Not used</Trans>
+  }
+  if (row.field === 'entity_type' && row.normalizedValue === 'other') {
+    return <Trans>Using Other</Trans>
+  }
+  return <Trans>Best match</Trans>
+}
+
+function formatEntityTypeLabel(entityType: string): string {
+  switch (entityType) {
+    case 'c_corp':
+      return 'C corp'
+    case 's_corp':
+      return 'S corp'
+    case 'partnership':
+      return 'Partnership'
+    case 'llc':
+      return 'LLC'
+    case 'individual':
+      return 'Individual'
+    case 'trust':
+      return 'Trust'
+    case 'sole_prop':
+      return 'Sole prop'
+    case 'other':
+      return 'Other'
+    default:
+      return entityType
+  }
 }
 
 interface MatrixSectionProps {

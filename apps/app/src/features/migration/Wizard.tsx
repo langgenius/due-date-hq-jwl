@@ -606,9 +606,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           <Step3Normalize
             normalize={state.normalize}
             matrix={matrixPreview}
-            onUserEdit={(rows: NormalizationRow[]) =>
-              dispatch({ type: 'NORMALIZE_USER_EDIT', rows })
-            }
             onToggleApplyToAll={(key, value) =>
               dispatch({ type: 'NORMALIZE_TOGGLE_APPLY_TO_ALL', key, value })
             }
@@ -706,7 +703,7 @@ function computeCanContinue(state: WizardState): boolean {
     return state.mapping.rows.some((r) => r.targetField !== 'IGNORE')
   }
   if (state.step === 3) {
-    return canContinueNormalization(state.normalize.rows)
+    return canContinueNormalization()
   }
   if (state.step === 4) {
     return state.dryRun.summary !== null && state.dryRun.summary.clientsToCreate > 0

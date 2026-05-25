@@ -1,10 +1,8 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
-import { Link } from 'react-router'
 
 import type { DryRunSummary } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
@@ -25,12 +23,11 @@ export function Step4Preview({ summary }: Step4Props) {
   const obligationCount = summary?.obligationsToCreate ?? 0
   const skipped = summary?.skippedRows ?? 0
   const ruleReviewWarnings = summary?.ruleReviewWarnings ?? []
-  const ruleReviewStates = uniqueStrings(ruleReviewWarnings.map((warning) => warning.state))
-  const affectedReviewClients = ruleReviewWarnings.reduce(
-    (sum, warning) => sum + warning.affectedClientCount,
+  const ruleReviewStateSummaries = buildRuleReviewStateSummaries(ruleReviewWarnings)
+  const affectedReviewClients = ruleReviewStateSummaries.reduce(
+    (sum, stateSummary) => sum + stateSummary.affectedClientCount,
     0,
   )
-  const ruleReviewHref = buildRuleReviewHref(ruleReviewStates)
 
   return (
     <div className="flex flex-col gap-5 py-5">
@@ -125,37 +122,59 @@ export function Step4Preview({ summary }: Step4Props) {
         <Alert role="status" aria-live="polite">
           <AlertTitle className="flex items-center gap-2">
             <AlertTriangleIcon className="size-4" aria-hidden />
-            <Trans>Review rules before some state deadlines can be generated</Trans>
+            <Trans>Some state deadlines need rule review</Trans>
           </AlertTitle>
           <AlertDescription>
             <div className="flex flex-col gap-3">
-              <p>
+              <p className="text-sm text-text-secondary">
                 <Plural
                   value={affectedReviewClients}
-                  one="# client has state tax types that need active practice rules before those state deadlines can be generated."
-                  other="# clients have state tax types that need active practice rules before those state deadlines can be generated."
+                  one="# client has state deadlines that need reviewed practice rules first."
+                  other="# clients have state deadlines that need reviewed practice rules first."
                 />
               </p>
-              <ul className="flex flex-col gap-1 text-sm text-text-primary">
-                {ruleReviewWarnings.map((warning) => (
-                  <li key={`${warning.state}:${warning.entityType}:${warning.reason}`}>
-                    <span className="font-mono text-xs tabular-nums">{warning.state}</span>
-                    <span> · {warning.entityType}</span>
-                    <span> · </span>
-                    <Plural value={warning.affectedClientCount} one="# client" other="# clients" />
-                    <span> · {warning.taxTypes.join(', ')}</span>
+              <p className="text-sm text-text-tertiary">
+                <Trans>
+                  Federal deadlines and state deadlines with active rules will still be generated.
+                </Trans>
+              </p>
+              <ul className="divide-y divide-divider-subtle rounded-md border border-divider-regular text-sm text-text-primary">
+                {ruleReviewStateSummaries.map((stateSummary) => (
+                  <li
+                    key={stateSummary.state}
+                    className="grid gap-1 px-2 py-2 sm:grid-cols-[auto_1fr]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-medium tabular-nums">
+                        {stateSummary.state}
+                      </span>
+                      <span className="text-text-secondary">
+                        <Plural
+                          value={stateSummary.affectedClientCount}
+                          one="# client"
+                          other="# clients"
+                        />
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-text-secondary">
+                      <span>{stateSummary.entityLabels.join(', ')}</span>
+                      <span aria-hidden>·</span>
+                      <span>
+                        <Plural
+                          value={stateSummary.taxTypeCount}
+                          one="# state rule type"
+                          other="# state rule types"
+                        />
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>
-              <Button
-                nativeButton={false}
-                variant="outline"
-                size="sm"
-                className="w-fit"
-                render={<Link to={ruleReviewHref} />}
-              >
-                <Trans>Review rules</Trans>
-              </Button>
+              <p className="text-sm text-text-tertiary">
+                <Trans>
+                  Review these states in Rule Library to unlock the remaining deadlines.
+                </Trans>
+              </p>
             </div>
           </AlertDescription>
         </Alert>
@@ -204,12 +223,72 @@ export function Step4Preview({ summary }: Step4Props) {
   )
 }
 
-function uniqueStrings(values: readonly string[]): string[] {
-  return Array.from(new Set(values.filter(Boolean)))
+interface RuleReviewStateSummary {
+  state: string
+  affectedClientCount: number
+  entityLabels: string[]
+  taxTypeCount: number
 }
 
-function buildRuleReviewHref(states: readonly string[]): string {
-  const params = new URLSearchParams({ view: 'rules', library: 'pending_review' })
-  if (states.length === 1) params.set('jur', states[0]!)
-  return `/rules/library?${params.toString()}`
+function buildRuleReviewStateSummaries(
+  warnings: NonNullable<DryRunSummary['ruleReviewWarnings']>,
+): RuleReviewStateSummary[] {
+  const byState = new Map<
+    string,
+    {
+      entityCounts: Map<string, number>
+      taxTypes: Set<string>
+    }
+  >()
+
+  for (const warning of warnings) {
+    const stateSummary = byState.get(warning.state) ?? {
+      entityCounts: new Map<string, number>(),
+      taxTypes: new Set<string>(),
+    }
+    const currentEntityCount = stateSummary.entityCounts.get(warning.entityType) ?? 0
+    stateSummary.entityCounts.set(
+      warning.entityType,
+      Math.max(currentEntityCount, warning.affectedClientCount),
+    )
+    for (const taxType of warning.taxTypes) stateSummary.taxTypes.add(taxType)
+    byState.set(warning.state, stateSummary)
+  }
+
+  return Array.from(byState.entries())
+    .map(([state, summary]) => ({
+      state,
+      affectedClientCount: Array.from(summary.entityCounts.values()).reduce(
+        (sum, count) => sum + count,
+        0,
+      ),
+      entityLabels: Array.from(summary.entityCounts.keys())
+        .map(formatEntityTypeLabel)
+        .toSorted((a, b) => a.localeCompare(b)),
+      taxTypeCount: summary.taxTypes.size,
+    }))
+    .toSorted((a, b) => a.state.localeCompare(b.state))
+}
+
+function formatEntityTypeLabel(entityType: string): string {
+  switch (entityType) {
+    case 'c_corp':
+      return 'C corp'
+    case 's_corp':
+      return 'S corp'
+    case 'partnership':
+      return 'Partnership'
+    case 'llc':
+      return 'LLC'
+    case 'individual':
+      return 'Individual'
+    case 'trust':
+      return 'Trust'
+    case 'sole_prop':
+      return 'Sole prop'
+    case 'nonprofit':
+      return 'Nonprofit'
+    default:
+      return entityType
+  }
 }

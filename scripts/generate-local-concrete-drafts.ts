@@ -406,14 +406,23 @@ async function generateStructuredLocalDraftWithText(input: {
   source: ReturnType<typeof listRuleSources>[number]
 }): Promise<string> {
   const officialSourceText = await fetchSourceTextForScript(input.source.url)
+  const evidenceSourceText = input.base.evidence
+    .filter((evidence) => evidence.sourceId === input.source.id)
+    .filter((evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt))
+    .map((evidence) =>
+      [
+        evidence.locator.heading ?? input.source.title,
+        evidence.sourceUpdatedOn ? `Updated ${evidence.sourceUpdatedOn}` : null,
+        evidence.sourceExcerpt,
+      ]
+        .filter((value): value is string => Boolean(value))
+        .join('\n'),
+    )
   const sourceText = [
     input.source.title,
     input.source.url,
+    ...evidenceSourceText,
     officialSourceText,
-    ...input.base.evidence
-      .filter((evidence) => evidence.sourceId === input.source.id)
-      .filter((evidence) => !SOURCE_WATCH_PLACEHOLDER_RE.test(evidence.sourceExcerpt))
-      .map((evidence) => evidence.sourceExcerpt),
   ]
     .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
     .join('\n')

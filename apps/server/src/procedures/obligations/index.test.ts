@@ -1,5 +1,6 @@
 import { call } from '@orpc/server'
 import { describe, expect, it, vi } from 'vitest'
+import { ObligationRuleSchema, type ObligationRule } from '@duedatehq/contracts'
 import { findRuleById } from '@duedatehq/core/rules'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ClientRow } from '@duedatehq/ports/clients'
@@ -105,6 +106,14 @@ function makePracticeRule(ruleId: string): PracticeRuleRow {
     createdAt: now,
     updatedAt: now,
   }
+}
+
+function withPrimaryEvidenceAiOutput(rule: ObligationRule, aiOutputId: string): ObligationRule {
+  const primaryEvidence = rule.evidence[0]
+  if (!primaryEvidence) throw new Error(`Rule ${rule.id} has no primary evidence`)
+  const evidence = [...rule.evidence]
+  evidence[0] = Object.assign({}, primaryEvidence, { aiOutputId })
+  return { ...rule, evidence }
 }
 
 function rowFromInput(input: ObligationCreateInput, id: string): ObligationInstanceRow {
@@ -430,6 +439,31 @@ describe('obligations.createFromRule', () => {
         }),
       }),
     )
+  })
+
+  it('does not put concrete draft AI ids on manually created obligation evidence rows', async () => {
+    const aiOutputId = '44444444-4444-4444-8444-444444444444'
+    const practiceRule = makePracticeRule('fed.7004.extension.1120s.2025')
+    const ruleJson = ObligationRuleSchema.parse(practiceRule.ruleJson)
+    practiceRule.ruleJson = withPrimaryEvidenceAiOutput(ruleJson, aiOutputId)
+    const { context, createdInputs, writeEvidenceBatch } = makeContext({ practiceRule })
+
+    await call(
+      obligationsHandlers.createFromRule,
+      { clientId: CLIENT_ID, ruleId: 'fed.7004.extension.1120s.2025' },
+      { context },
+    )
+
+    expect(createdInputs[0]?.sourceEvidenceJson).toEqual(
+      expect.arrayContaining([expect.objectContaining({ aiOutputId })]),
+    )
+    expect(writeEvidenceBatch).toHaveBeenCalledWith([
+      expect.objectContaining({
+        obligationInstanceId: CREATED_OBLIGATION_IDS[0],
+        aiOutputId: null,
+        sourceType: 'verified_rule',
+      }),
+    ])
   })
 
   it('skips duplicate selected-rule periods', async () => {

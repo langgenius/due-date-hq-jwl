@@ -530,8 +530,12 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
       aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       aria-expanded={!collapsed}
       title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      // 2026-05-25 (Yuqi rail alignment fix): size-6 → size-8
+      // so the toggle matches the firm-switcher trigger and bell
+      // button hit-box. All three top-row buttons now render
+      // as 32×32 squares centered in the 56px rail.
       className={cn(
-        'hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
+        'hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'md:inline-flex',

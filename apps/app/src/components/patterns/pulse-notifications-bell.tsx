@@ -105,8 +105,14 @@ function PulseNotificationsBell() {
           <button
             type="button"
             aria-label={unreadCount > 0 ? t`Inbox, ${unreadCount} unread` : t`Inbox`}
+            // 2026-05-25 (Yuqi rail alignment fix): bumped size-7
+            // (28px) → size-8 (32px) so the bell sits at the
+            // same hit-box size as the firm-switcher trigger and
+            // sidebar collapse toggle. In the 56px collapsed
+            // rail the three top buttons telescoped from 32 →
+            // 28 → 24px which broke the column rhythm.
             className={cn(
-              'relative inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
+              'relative inline-flex size-8 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
               'hover:bg-background-default-hover hover:text-text-primary',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             )}
