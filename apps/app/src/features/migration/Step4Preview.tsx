@@ -38,8 +38,11 @@ export function Step4Preview({ summary }: Step4Props) {
         <h2 className="text-lg font-semibold text-text-primary">
           <Trans>Ready to import</Trans>
         </h2>
+        {/* 2026-05-25 (Wizard #40 copy polish): added terminal
+            colon — sentence was trailing off into the list below
+            with no punctuation. */}
         <p className="text-sm text-text-secondary">
-          <Trans>You&apos;re about to create</Trans>
+          <Trans>You&apos;re about to create:</Trans>
         </p>
       </div>
 
@@ -95,16 +98,25 @@ export function Step4Preview({ summary }: Step4Props) {
         </ul>
       </section>
 
+      {/* 2026-05-25 (Wizard #40 length fix): two trims here.
+          Title: "your deadline list" → "deadlines" (the CTA right
+          below this alert already says "Import & Generate", so
+          "your deadline list" is two redundant words).
+          Body: the original alert ran 38 words across two
+          sentences threading mappings, suggestions, rules, AND
+          listing every output type. Cut to one sentence naming
+          what `Import & Generate` produces — the user already
+          confirmed the inputs in Steps 2-3, restating them here
+          is noise. */}
       <Alert role="status" aria-live="polite">
         <AlertTitle className="flex items-center gap-2">
           <ShieldCheckIcon className="size-4" aria-hidden />
-          <Trans>Ready to generate your deadline list</Trans>
+          <Trans>Ready to generate deadlines</Trans>
         </AlertTitle>
         <AlertDescription>
           <Trans>
-            The numbers above are computed from your confirmed mappings, tax type suggestions, and
-            active practice rules. Import &amp; Generate will create clients, deadlines, evidence,
-            and audit records.
+            Import &amp; Generate creates the clients, deadlines, evidence, and audit records listed
+            above.
           </Trans>
         </AlertDescription>
       </Alert>
@@ -155,10 +167,15 @@ export function Step4Preview({ summary }: Step4Props) {
           data-slot="step4-bad-rows"
         >
           <h3 className="text-xs font-medium tracking-[0.08em] text-text-destructive uppercase">
+            {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
+                with the canonical "needs review" phrase used in
+                Step 2 + Step 3. "Needs attention" was the lone
+                outlier across 4 steps that all describe the same
+                concept. */}
             <Plural
               value={summary.errors.length}
-              one="# row needs attention"
-              other="# rows need attention"
+              one="# row needs review"
+              other="# rows need review"
             />
           </h3>
           {/*
@@ -166,11 +183,16 @@ export function Step4Preview({ summary }: Step4Props) {
             audit "good rows still flow through" without leaving the wizard.
             Cap with max-height + scroll so 1000-row imports stay usable.
           */}
+          {/* 2026-05-25 (Wizard #40 i18n bug): row marker was a
+              bare English `row N` <span> that never went through
+              Trans. Step 2's BadRowsPanel renders `Row`
+              (capitalised, Trans-wrapped) — aligning here so
+              both surfaces match. */}
           <ul className="flex max-h-[320px] flex-col gap-1 overflow-y-auto pr-1 text-md text-text-primary">
             {summary.errors.map((err) => (
               <li key={err.id} className="flex items-center gap-2">
                 <span className="font-mono text-xs tabular-nums text-text-secondary">
-                  row {err.rowIndex + 1}
+                  <Trans>Row {err.rowIndex + 1}</Trans>
                 </span>
                 <span className="text-sm">{formatMigrationErrorMessage(err, targetLabels)}</span>
               </li>

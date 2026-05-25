@@ -528,7 +528,9 @@ function transitionCopy(phase: WizardTransitionPhase): {
       }
     case 'import':
       return {
-        title: <Trans>Generating your deadline list…</Trans>,
+        // 2026-05-25 (Wizard #40 copy polish): same trim as
+        // Step 4 alert — "your deadline list" → "deadlines".
+        title: <Trans>Generating deadlines…</Trans>,
         description: <Trans>Creating clients, deadlines, evidence links, and audit records.</Trans>,
         steps: [
           { key: 'create-clients', label: <Trans>Create clients</Trans> },

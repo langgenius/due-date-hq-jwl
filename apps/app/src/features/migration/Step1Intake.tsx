@@ -8,6 +8,7 @@ import {
   type DragEvent,
 } from 'react'
 import { msg } from '@lingui/core/macro'
+import { type MessageDescriptor } from '@lingui/core'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
 import type { MigrationSourceManifest } from '@duedatehq/contracts'
@@ -206,7 +207,11 @@ export function Step1Intake({
       resetParsedRows()
       onParseError(
         fileName
-          ? t`That file doesn't contain any rows. Upload a CSV, TSV, or XLSX with a header and at least one data row.`
+          ? // 2026-05-25 (Wizard #40 copy polish): action-led.
+            // Original led with what's wrong ("that file doesn't
+            // contain rows") and made the user infer the fix.
+            // New: tell them what to do to recover.
+            t`That file has no data rows. Add a header and at least one row, then re-upload.`
           : null,
       )
       return
@@ -231,7 +236,7 @@ export function Step1Intake({
     } catch (err) {
       const message =
         err instanceof TabularParseError
-          ? friendlyParseError(err)
+          ? i18n._(friendlyParseErrorDescriptor(err))
           : t`We couldn't read that file. Try exporting as CSV.`
       resetParsedRows()
       onParseError(message)
@@ -425,13 +430,19 @@ export function Step1Intake({
             of these"), not narrative prose. Italics typeset them as
             quoted data tokens without resorting to code-font, which
             would over-state them as identifiers. */}
+        {/* 2026-05-25 (Wizard #40 length fix): trimmed "give us
+            a head start on payment and penalty context" (wordy +
+            abstract) to "help us flag penalty risk" (concrete +
+            shorter). "Any shape works" replaces "we'll figure out
+            the shape" — both promise the same thing; the
+            imperative is tighter. */}
         <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
           <Trans>
-            Paste or upload — we&apos;ll figure out the shape. Columns like{' '}
+            Paste or upload — any shape works. Columns like{' '}
             <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
             <em className="font-medium not-italic text-text-primary">Owner count</em>, or{' '}
-            <em className="font-medium not-italic text-text-primary">Owners</em> give us a head
-            start on payment and penalty context.
+            <em className="font-medium not-italic text-text-primary">Owners</em> help us flag
+            penalty risk.
           </Trans>
         </p>
       </div>
@@ -503,10 +514,18 @@ export function Step1Intake({
                 aria-hidden
               />
             )}
-            <span id={uploadHintId}>
-              <Trans>
-                Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB
-              </Trans>
+            {/* 2026-05-25 (Wizard #40 copy polish): mixed three
+                concerns (file types, action, limits) into one
+                run-on line. Split: primary line names the file
+                types; secondary line carries the limits with a
+                comma-separated 1,000 (readable count notation). */}
+            <span id={uploadHintId} className="flex flex-col items-center gap-0.5">
+              <span>
+                <Trans>Drop a CSV, Excel, ZIP, TXT, or IIF file</Trans>
+              </span>
+              <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                <Trans>Up to 1,000 rows · 5 MB</Trans>
+              </span>
             </span>
             {isReadingFile ? (
               <span role="status" aria-live="polite" className="font-mono text-md text-text-accent">
@@ -557,10 +576,19 @@ export function Step1Intake({
             compact={compact}
           />
         ) : null}
+        {/* 2026-05-25 (Wizard #40 copy polish): verb-led, ~30%
+            shorter. The original led with "the AI mapper runs
+            first" and trailed off with "provides default
+            suggestions if AI is unavailable" — three concepts in
+            one sentence. New version names the AI path up front
+            and clarifies templates as the fallback. Also unifies
+            on lowercase "AI mapper" (Step 2 badge uses title-case
+            "AI Mapper" as a proper-noun label; here in body
+            prose the lowercase form is correct). */}
         <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
           <Trans>
-            The AI mapper runs first. Selecting an import template adds source context and provides
-            default suggestions if AI is unavailable.
+            Pick a source to add context. The AI mapper runs either way; templates also fill
+            defaults if AI is unavailable.
           </Trans>
         </p>
       </div>
@@ -651,7 +679,11 @@ export function Step1Intake({
       {intake.parseError ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
-            <Trans>Couldn&apos;t parse the input</Trans>
+            {/* 2026-05-25 (Wizard #40 copy polish): "the input"
+                is developer prose; "your data" matches the
+                user's mental model and the rest of the wizard
+                ("Couldn't read that file…", "We couldn't…"). */}
+            <Trans>Couldn&apos;t read your data</Trans>
           </AlertTitle>
           <AlertDescription>{intake.parseError}</AlertDescription>
         </Alert>
@@ -1210,15 +1242,24 @@ function toPlainRecord(value: unknown): Record<string, unknown> | null {
   return out
 }
 
-function friendlyParseError(error: TabularParseError): string {
+/**
+ * 2026-05-25 (Wizard #40 — i18n bug fix): `friendlyParseError`
+ * used to return bare English strings, which then rendered
+ * untranslated into the parse-error `<Alert>` at L597. Now
+ * returns a Lingui `MessageDescriptor` produced via the `msg`
+ * macro so callers can render through `i18n._()` at React
+ * render time. Same shape as `unsupportedUploadMessageDescriptor`
+ * in `intake-files.ts`.
+ */
+function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescriptor {
   switch (error.code) {
     case 'empty_input':
-      return 'Paste or upload to continue.'
+      return msg`Paste or upload to continue.`
     case 'no_data_rows':
-      return "We couldn't find a header row. Make sure the first line lists your column names."
+      return msg`We couldn't find a header row. Make sure the first line lists your column names.`
     case 'xlsx_not_supported':
-      return "XLSX couldn't be parsed. Export as CSV and re-upload."
+      return msg`XLSX couldn't be parsed. Export as CSV and re-upload.`
     default:
-      return "We couldn't read that file. Try exporting as CSV."
+      return msg`We couldn't read that file. Try exporting as CSV.`
   }
 }

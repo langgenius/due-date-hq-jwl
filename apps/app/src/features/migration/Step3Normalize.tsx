@@ -65,10 +65,15 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
         </h2>
         {needsReviewCount > 0 ? (
           <p className="text-sm text-text-secondary">
+            {/* 2026-05-25 (Wizard #40 cross-step polish): dropped
+                "human" — the audit found 4 different phrasings for
+                "needs review" across steps; canonical phrase is
+                bare "needs review" so Step 3 + Step 2 + Step 4 all
+                read the same way. */}
             <Plural
               value={needsReviewCount}
-              one="# value needs human review"
-              other="# values need human review"
+              one="# value needs review"
+              other="# values need review"
             />
           </p>
         ) : null}
@@ -76,8 +81,13 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
 
       {normalize.errorBanner ? (
         <Alert role="alert" aria-live="assertive">
+          {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
+              with the rest of the wizard's "Couldn't…" error
+              voice (Step 1 L595/L604, Step 2 L175, Wizard
+              toasts). Was the lone "warning" tone in a wizard
+              that's otherwise consistently "we couldn't do X". */}
           <AlertTitle>
-            <Trans>Data cleanup warning</Trans>
+            <Trans>Couldn&apos;t organize some values</Trans>
           </AlertTitle>
           <AlertDescription>{normalize.errorBanner}</AlertDescription>
         </Alert>
@@ -232,17 +242,20 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
           <Trans>Suggested tax types (from entity × state matrix)</Trans>
         </ConceptLabel>
       </h3>
+      {/* 2026-05-25 (Wizard #40 length fix): explainer paragraphs
+          trimmed per audit. The default-tax-type sentence dropped
+          half its length ("suggestions apply only where imported
+          rows do not already include tax types" → "apply only to
+          rows without tax types"). The 30-word penalty-readiness
+          paragraph was removed entirely from this surface — it
+          threaded three concepts (penalty readiness, estimated
+          tax due, owner count) into a step body where users are
+          deciding tax-type defaults, not reading penalty
+          architecture. Penalty readiness already has its own
+          concept popover and Step 4 surface; it doesn't belong
+          here. */}
       <p className="text-sm text-text-secondary">
-        <Trans>
-          Default tax type suggestions fill missing tax types and add state context when imported
-          rows only name a federal return type.
-        </Trans>
-      </p>
-      <p className="text-sm text-text-tertiary">
-        <Trans>
-          Penalty readiness is computed from the confirmed tax type plus any estimated tax due and
-          owner count columns mapped in Step 2.
-        </Trans>
+        <Trans>These defaults apply only to rows without tax types.</Trans>
       </p>
       <ul className="flex flex-col divide-y divide-divider-regular">
         {matrix.map((cell) => {
@@ -251,12 +264,30 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
           return (
             <li key={key} className="flex flex-col gap-2 py-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-md text-text-primary">
-                  <Plural
-                    value={cell.appliedClientCount}
-                    one={`# ${cell.entityType.toUpperCase()} × ${cell.state} client`}
-                    other={`# ${cell.entityType.toUpperCase()} × ${cell.state} clients`}
-                  />
+                {/* 2026-05-25 (Wizard #40 plural-form split): the
+                    original baked the entity × state code INTO
+                    the Plural one/other template strings via JS
+                    template interpolation. Lingui extracts the
+                    `<Plural>` one/other strings literally — the
+                    interpolated entity/state expressions
+                    (`cell.entityType.toUpperCase()` etc.) aren't
+                    simple identifiers, so the catalog couldn't
+                    represent them as named ICU placeholders.
+                    Translators would have received a different
+                    message per entity × state combination.
+
+                    Split: the entity × state kicker renders as
+                    data outside Plural; Plural carries only the
+                    count + "client(s)" noun. Catalog message is
+                    now a clean `{count, plural, one {# client}
+                    other {# clients}}`. The visual reads:
+                    "LLC × CA · 5 clients". */}
+                <span className="flex items-center gap-2 text-md text-text-primary">
+                  <span className="font-mono text-xs uppercase tracking-wider text-text-tertiary">
+                    {cell.entityType} × {cell.state}
+                  </span>
+                  <span className="text-text-tertiary">·</span>
+                  <Plural value={cell.appliedClientCount} one="# client" other="# clients" />
                 </span>
                 <label
                   className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
