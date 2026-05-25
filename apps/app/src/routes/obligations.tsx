@@ -1999,7 +1999,14 @@ export function ObligationQueueRoute() {
         const autoHidden = new Set<string>(PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS)
         nextHidden = nextHidden.filter((id) => !autoHidden.has(id))
       }
-      void setObligationQueueQuery({ hide: nextHidden.length > 0 ? nextHidden : null })
+      // 2026-05-26 (Yuqi sixty-fifth pass follow-up): pass `[]` instead
+      // of `null` when no columns are hidden. The `hide` parser has a
+      // non-empty default (DEFAULT_HIDDEN_COLUMN_IDS), so `null`
+      // resolves back to that default — meaning unhiding everything
+      // would silently re-hide the default-hidden columns on the next
+      // URL read. Passing `[]` (with `clearOnDefault: false` on the
+      // parser) preserves the explicit "nothing is hidden" state.
+      void setObligationQueueQuery({ hide: nextHidden })
     },
     onRowSelectionChange,
   })
@@ -2809,22 +2816,27 @@ export function ObligationQueueRoute() {
                     so all dropdowns across the product read as one
                     family. Width h-8 + gap-1.5 stays — matches the
                     Alerts panel-aware filter pattern. */}
-                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #13 +
-                    follow-up): "Group by" → "Sort by" rename and chrome
-                    matched to the canonical Pulse filter trigger
-                    (rounded-md border-divider-strong bg-default px-2
-                    text-sm whitespace-nowrap, hover:bg-state-base-hover).
-                    Yuqi's screenshot diff showed our trigger reading at
-                    text-xs with a fixed w-[164px] while every Pulse
-                    filter ("All impact ▼", "All sources ▼") was text-sm
-                    natural-width — so this single dropdown looked like
-                    a different family. Width now hugs content, label
-                    bumped to text-sm. */}
+                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — Sort
+                    trigger format match Pulse): trigger now renders a
+                    SINGLE phrase ("Sort by date" / "Sort by client" /
+                    "Sort by status") in one uniform color, matching
+                    the Pulse triggers ("All impact ▼", "All sources ▼")
+                    which all read as a single label. The previous
+                    "Sort by [tertiary]  | due [primary]" split with a
+                    gap made our dropdown look like a different family
+                    even after the chrome matched. SelectValue stays
+                    hidden behind a manual display since we want full
+                    control over the prefix-glues-to-value rendering. */}
                 <SelectTrigger className="inline-flex h-8 items-center gap-1.5 rounded-md border border-divider-strong bg-background-default px-2 text-sm whitespace-nowrap text-text-primary hover:bg-state-base-hover">
-                  <span className="text-text-tertiary">
-                    <Trans>Sort by</Trans>
+                  <span>
+                    {group === 'client' ? (
+                      <Trans>Sort by client</Trans>
+                    ) : group === 'status' ? (
+                      <Trans>Sort by status</Trans>
+                    ) : (
+                      <Trans>Sort by date</Trans>
+                    )}
                   </span>
-                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent align="end">
                   <SelectItem value="due">
