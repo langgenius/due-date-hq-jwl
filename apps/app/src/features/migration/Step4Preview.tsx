@@ -207,7 +207,16 @@ export function Step4Preview({ summary }: Step4Props) {
               Trans. Step 2's BadRowsPanel renders `Row`
               (capitalised, Trans-wrapped) — aligning here so
               both surfaces match. */}
-          <ul className="flex max-h-[320px] flex-col gap-1 overflow-y-auto pr-1 text-md text-text-primary">
+          {/* 2026-05-26 (Yuqi scrollbar audit): dropped
+              `max-h-[320px] overflow-y-auto pr-1`. Nested
+              inside the WizardShell body scroll — the inner
+              cap forced a second scrollbar with a 4px right
+              inset. Letting the ul flow into the wizard
+              body's scroll means one scroll wheel for the
+              whole step. The list is still inside a section
+              the user has to scroll to reach, so it's not in
+              the way at the top of the step. */}
+          <ul className="flex flex-col gap-1 text-md text-text-primary">
             {summary.errors.map((err) => (
               <li key={err.id} className="flex items-center gap-2">
                 <span className="font-mono text-xs tabular-nums text-text-secondary">

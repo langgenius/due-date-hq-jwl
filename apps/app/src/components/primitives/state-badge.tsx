@@ -1180,3 +1180,18 @@ StateBadge.displayName = 'StateBadge'
 export function hasDesignedBadge(code: string): boolean {
   return code.toUpperCase() in DESIGNED_BADGES
 }
+
+/**
+ * Resolve a two-letter code (CA, TX, …), "FED", or "IRS" to its full
+ * jurisdiction name ("California", "Texas", "Federal"). Returns the
+ * uppercased code itself when no name is registered, so layout never
+ * collapses to an empty string.
+ *
+ * 2026-05-26 (Yuqi /rules/pulse follow-up): exported so the alerts
+ * table's jurisdiction chip can render `[SVG] CA · California` without
+ * each call site hand-rolling its own state-name map.
+ */
+export function getJurisdictionName(code: string): string {
+  const upper = code.toUpperCase()
+  return NAMES[upper] ?? upper
+}

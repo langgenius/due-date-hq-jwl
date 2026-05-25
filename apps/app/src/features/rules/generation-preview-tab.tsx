@@ -660,7 +660,14 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           description={t`Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds.`}
         />
       </div>
-      <div className="max-h-[420px] overflow-y-auto">
+      {/* 2026-05-26 (Yuqi scrollbar audit): dropped
+          `max-h-[420px] overflow-y-auto`. The rollover preview
+          rows were nested inside the app-shell's main scroll
+          container — the inner cap forced a second scrollbar
+          INSIDE the page when the preview returned more than
+          ~10 rows. Letting the rows flow naturally lets the
+          page scroll handle the overflow. */}
+      <div>
         <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
           <RolloverColumnHeader
             label={t`Status`}

@@ -1506,9 +1506,30 @@ function EntityChipRowSkeleton() {
 // Escape-to-clear behavior the prior local impl had — call sites
 // migrated below now share the exact same control with the
 // /deadlines queue (and any future surfaces that adopt it).
+// 2026-05-26 (Yuqi cross-product search audit, Phase 1): placeholder
+// changed from "Search rules…" to "Filter rules…". The mental model
+// is: this input narrows the rule list visible on THIS page, it
+// doesn't search globally. Aligning the verb with the verb removes
+// the conceptual overlap with cmd+k (which will become real entity
+// search in Phase 2). `hotkey="/"` opts into the primitive's
+// page-search hotkey + kbd hint convention.
 function SearchBar({ search, onChange }: { search: string; onChange: (next: string) => void }) {
   const { t } = useLingui()
-  return <SearchInput value={search} onChange={onChange} placeholder={t`Search rules…`} />
+  return (
+    <SearchInput
+      value={search}
+      onChange={onChange}
+      placeholder={t`Filter rules…`}
+      hotkey="/"
+      hotkeyMeta={{
+        id: 'rules.library.focus-search',
+        name: 'Filter rules',
+        description: 'Focus the Rule library filter input.',
+        category: 'rules',
+        scope: 'route',
+      }}
+    />
+  )
 }
 
 // ---------------------------------------------------------------------------

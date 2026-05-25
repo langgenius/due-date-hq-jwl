@@ -8,7 +8,6 @@ import {
   ChevronRightIcon,
   EyeIcon,
   ExternalLinkIcon,
-  SearchIcon,
   XIcon,
 } from 'lucide-react'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -26,7 +25,6 @@ import type {
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Input } from '@duedatehq/ui/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -51,6 +49,7 @@ import {
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
 import { KbdHint } from '@/components/patterns/kbd'
+import { SearchInput as SharedSearchInput } from '@/components/primitives/search-input'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -960,6 +959,18 @@ export function CoverageTab({
 // level CoverageSummaryStrip + SourcesSummaryStrip (rules.library.tsx).
 // See docs/Design/ux-audit-2026-05-21.md P0 #5.
 
+// 2026-05-26 (Yuqi cross-product search audit): the previous local
+// SearchInput implementation shadowed the canonical primitive name
+// and drifted in 4 dimensions: size-3.5 icon (vs canonical size-4),
+// pl-8 (vs pl-9), `type="search"` which stacks the browser's
+// native clear button on top of our chrome, and no inline X clear
+// button + no Escape-to-clear. Now a thin wrapper around the
+// shared primitive so the rule-library coverage tab + batch-review
+// modal cards match every other search across the product.
+// 2026-05-26 (Yuqi cross-product search audit, Phase 1): placeholder
+// changed "Search jurisdictions or rules…" → "Filter jurisdictions
+// or rules…". Page-level filter, not entity search. `hotkey="/"`
+// activates the primitive's page-search hotkey convention.
 function SearchInput({
   value,
   onChange,
@@ -971,20 +982,21 @@ function SearchInput({
 }) {
   const { t } = useLingui()
   return (
-    <div className={cn('relative inline-flex items-center', fullWidth ? 'w-full' : 'w-[260px]')}>
-      <SearchIcon
-        aria-hidden
-        className="pointer-events-none absolute left-2.5 size-3.5 text-text-tertiary"
-      />
-      <Input
-        type="search"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={t`Search jurisdictions or rules…`}
-        aria-label={t`Search jurisdictions or rules`}
-        className="h-9 pl-8 text-sm"
-      />
-    </div>
+    <SharedSearchInput
+      value={value}
+      onChange={onChange}
+      placeholder={t`Filter jurisdictions or rules…`}
+      ariaLabel={t`Filter jurisdictions or rules`}
+      hotkey="/"
+      hotkeyMeta={{
+        id: 'rules.coverage.focus-search',
+        name: 'Filter coverage',
+        description: 'Focus the rule coverage filter input.',
+        category: 'rules',
+        scope: 'route',
+      }}
+      className={fullWidth ? 'w-full' : 'w-[260px]'}
+    />
   )
 }
 

@@ -184,7 +184,16 @@ function tableHeaderFilterTrigger({
       type="button"
       disabled={disabled}
       data-active={activeCount > 0 ? true : undefined}
-      className="-mx-2 inline-flex h-7 max-w-40 cursor-pointer items-center gap-1 rounded-md px-2 text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
+      // 2026-05-26 (Yuqi /deadlines #5): dropped explicit
+      // `text-xs font-medium tracking-wider uppercase text-text-tertiary`
+      // — those should INHERIT from the parent <th>'s Table primitive
+      // styles (which set `text-xs font-medium tracking-[0.08em]
+      // uppercase text-text-tertiary`). Setting them locally with
+      // `tracking-wider` (=0.05em) made the Client column header
+      // render at a slightly different letter-spacing than the
+      // sibling SortableHeader columns. Now the trigger inherits,
+      // every column header reads at the same typographic spec.
+      className="-mx-2 inline-flex h-7 max-w-40 cursor-pointer items-center gap-1 rounded-md px-2 whitespace-nowrap outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:pointer-events-none disabled:opacity-50 data-[active=true]:text-text-accent"
     >
       <span className="truncate">{label}</span>
       {activeCount > 0 ? (

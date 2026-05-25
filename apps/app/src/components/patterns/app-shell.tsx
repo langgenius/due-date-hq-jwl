@@ -3,7 +3,6 @@ import { Outlet, useNavigation } from 'react-router'
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
-  SidebarCollapseToggle,
   SidebarContent,
   SidebarInset,
   SidebarProvider,
@@ -12,7 +11,7 @@ import {
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
-import { formatCompactShortcutForDisplay, SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
+import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
 import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
@@ -65,33 +64,25 @@ export function AppShell(props: AppShellProps) {
       <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-body text-text-primary">
         <PendingBar />
         <Sidebar>
-          {/* 2026-05-25 (Yuqi Today #28): notifications bell moved
-              from the sidebar BOTTOM to the firm-switcher row at the
-              top.
-              2026-05-25 (Yuqi sidebar collapse): when the sidebar
-              is collapsed (data-collapsed=true on the aside),
-              the firm switcher + bell stack vertically so the
-              bell remains reachable inside the 56px rail. Firm
-              switcher trigger itself hides its label + chevron
-              via its own data-aware styling — only the avatar
-              tile renders.
-              2026-05-25 (Yuqi sidebar collapse v2): collapse
-              toggle moved here from the lonely centered row above
-              the user menu. Lives at the right edge of the header
-              row when expanded; stacks below the bell when
-              collapsed. Top-of-sidebar placement matches the
-              VSCode / Notion / Linear convention. */}
+          {/* 2026-05-26 (Yuqi sidebar reorg — bell moves out):
+              the notifications bell has been lifted out of the
+              sidebar entirely and now floats at the top-right
+              corner of `SidebarInset` (see below). The benefit:
+              the sidebar's top section is identical in both
+              expanded and collapsed modes — JUST the firm
+              switcher. No more vertical-stacking in collapsed
+              mode, no more "where did my bell go" cognitive
+              load when toggling. The rail now reads as one
+              clean column top-to-bottom regardless of width.
+              Reference: Linear / Notion / Vercel all keep
+              notifications in the topbar area, never inside
+              the nav rail. */}
           {/* 2026-05-25 (Yuqi rail alignment fix): collapsed mode
-              centers every 32px control against the 56px rail,
-              matching the nav item and footer icon centerline. */}
-          <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0">
-            <div className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:flex-none">
-              <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
-            </div>
-            <PulseNotificationsBell />
-            <SidebarCollapseToggle
-              shortcutLabel={formatCompactShortcutForDisplay(SIDEBAR_TOGGLE_HOTKEY)}
-            />
+              centers the 32×32 firm-switcher avatar in the 56px
+              rail; expanded mode lets it take its natural width
+              starting from the left edge of the px-2 padding. */}
+          <div className="flex px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0">
+            <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
           </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route
@@ -102,17 +93,39 @@ export function AppShell(props: AppShellProps) {
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>
-          {/* User menu stays at sidebar bottom — that's where
-              account-level controls (Settings, account, sign out)
-              belong per the Linear/Notion pattern. The bell moved
-              up; this row simplifies to just the user menu now.
-              2026-05-25 (Yuqi sidebar collapse v2): collapse
-              toggle moved out of this row — it was rendering
-              as a lonely centered chevron orphaned between the
-              footer nav divider and the user. Now lives in the
-              top firm-switcher row (right side). */}
+          {/* 2026-05-26 (Yuqi sidebar reorg — screenshot match):
+              the footer is now TWO rows.
+                • Row 1: collapse toggle. Sits above the avatar so
+                  the toggle's "panel" affordance reads next to
+                  the rail's bottom edge — the spot the user
+                  associates with rail-handle interactions
+                  (Figma sidebars, Linear, the reference
+                  screenshot all put the toggle here).
+                • Row 2: user avatar — identity anchor at the
+                  very bottom of the rail.
+              Both rows share the same border-top divider as a
+              footer group so the visual separation between nav
+              and footer reads as one block, not two stacked
+              sections. */}
           {/* 2026-05-25 (Yuqi rail alignment fix): footer trigger
               shares the same rail centerline as header and nav. */}
+          {/* 2026-05-26 (Yuqi sidebar reference-screenshot match):
+              collapse toggle removed from the visible UI per the
+              Frame 137 / Frame 134 reference. Rationale:
+                • Hover-expand handles the "let me peek at the
+                  labels" case — no explicit click needed.
+                • Keyboard shortcut (SIDEBAR_TOGGLE_HOTKEY in
+                  SidebarKeyboardBindings, currently `Cmd+B`-ish)
+                  handles the "I want it permanently collapsed"
+                  case for power users.
+                • The visible toggle button was clutter — one more
+                  icon in a rail that should read as identity →
+                  nav → footer-actions → avatar, end of story.
+              Footer simplified to a single row: just the user
+              avatar / menu, anchored at the bottom of the rail.
+              The Audit log + Settings items live inside
+              SidebarContent's footer group (see NavGroups), NOT
+              here — they're nav destinations, not chrome. */}
           <div className="flex border-t border-divider-regular px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0">
             <UserMenuTrigger
               user={props.user}
@@ -122,11 +135,34 @@ export function AppShell(props: AppShellProps) {
             />
           </div>
         </Sidebar>
-        <SidebarInset className="bg-background-default">
+        {/* 2026-05-26 (Yuqi twenty-first pass): SidebarInset bg
+            wired to the canonical `--background-inset` token
+            (#f4f4f4 in light mode). Change the token in
+            packages/ui/src/styles/tokens/semantic-light.css to
+            retone the entire product's work surface — no need to
+            touch consumer code. */}
+        <SidebarInset className="relative bg-background-inset">
+          {/* 2026-05-26 (Yuqi sidebar reorg — bell moves out):
+              notifications bell now floats at the top-right
+              corner of the work surface, absolutely positioned
+              against `SidebarInset` (which is `relative`). z-30
+              keeps it above route content; `pointer-events-none`
+              on the wrapper + `pointer-events-auto` on the
+              inner div is unnecessary since the bell is small
+              (32×32) and pages route around it via their own
+              top-right padding. Page headers with their own
+              top-right actions (e.g. /rules/pulse "Alert
+              history" button) sit BELOW this bell in the page
+              layout's natural padding, not collision-positioned
+              against it. */}
+          <div className="absolute right-3 top-3 z-30 md:right-4 md:top-4">
+            <PulseNotificationsBell />
+          </div>
           {/* Route header strip removed — page title was redundant
-            with the sidebar selection state, and notifications + user
-            menu now live in the sidebar footer (alongside Settings)
-            where account-level controls belong.
+            with the sidebar selection state, and the user menu
+            lives in the sidebar footer where account-level
+            controls belong. The notifications bell floats at
+            the top-right corner of this inset (above).
             bg-background-default makes the inset white (Notion/Linear
             pattern: gray rail, white work surface). */}
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">

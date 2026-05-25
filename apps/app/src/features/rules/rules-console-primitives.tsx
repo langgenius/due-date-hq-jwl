@@ -33,7 +33,7 @@ export function RulesPageHeader({
   breadcrumbs,
   actions,
 }: {
-  title: string
+  title: ReactNode
   description?: string
   breadcrumbs?: BreadcrumbItem[]
   actions?: ReactNode
@@ -70,7 +70,7 @@ export function RulesPageShell({
   contentClassName,
   children,
 }: {
-  title: string
+  title: ReactNode
   description?: string
   breadcrumbs?: BreadcrumbItem[]
   actions?: ReactNode
@@ -88,9 +88,16 @@ export function RulesPageShell({
         which felt "stuck" at the boundary. Drawer + settings shells
         still trap (different intent). */}
       <div className={cn('min-h-0 flex-1', lockViewport ? 'overflow-hidden' : 'overflow-y-auto')}>
+        {/* 2026-05-26 (Yuqi /rules/pulse fifth pass — B#1): page chrome
+            now mirrors `/today` exactly — `mx-auto max-w-page-wide`
+            cap + responsive padding (`px-4 md:px-6 pt-6 md:pt-8 pb-4
+            md:pb-6`). Previously the shell used fixed `px-6 py-6`
+            with no width cap, which read denser than every other
+            page in the app. Yuqi asked for the same minimal feel
+            as /today; this is that one-line change. */}
         <div
           className={cn(
-            'flex w-full flex-col gap-6 px-6 py-6',
+            'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6',
             lockViewport && 'h-full min-h-0',
             contentClassName,
           )}

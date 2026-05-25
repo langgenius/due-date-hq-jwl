@@ -14,14 +14,22 @@ html {
   background: color-mix(in srgb, var(--text-primary) 24%, transparent);
 }
 
+/*
+ * 2026-05-26 (Yuqi global): hide scrollbar chrome everywhere on the
+ * product. Scrolling still works (wheel / touch / keyboard), but
+ * the visible track/thumb disappears so dense scroll regions
+ * (lists, panels, drawer bodies) read as clean unframed surfaces
+ * instead of "this card has its own scrollbar". Applies to every
+ * scroll container globally — Firefox via `scrollbar-width: none`,
+ * Chromium/Safari via `::-webkit-scrollbar { display: none }`.
+ */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--text-tertiary) 32%, transparent) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
 *::-webkit-scrollbar-track {

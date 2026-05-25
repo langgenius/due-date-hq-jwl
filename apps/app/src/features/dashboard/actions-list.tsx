@@ -200,7 +200,12 @@ function ActionRow({
           }
         }}
         className={cn(
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          // 2026-05-26 (Yuqi forty-third pass — spacing unification):
+          // py-2.5 (10px) → py-2 (8px). Canonical row padding is
+          // `px-3 py-2`; the 2.5 was a half-step that doesn't exist
+          // in the canonical scale. Affects Today's action rows so
+          // they match the row density used on Deadlines.
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
@@ -352,20 +357,14 @@ function ActionRow({
                 every direct child so each pair becomes a stable
                 28px row. */}
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-1 [&>dd]:flex [&>dd]:min-h-7 [&>dd]:items-center [&>dt]:flex [&>dt]:min-h-7 [&>dt]:items-center">
-              {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
-                  FIRST item in the expansion panel. The action prompt
-                  also sits inline on the collapsed row's heading line,
-                  but Yuqi flagged that when a row is expanded the
-                  prompt feels missing — the eye lands on the dl items
-                  (Status / Form / Sources / Why now) and the
-                  "what should I do" line gets lost in the cluster
-                  above. Repeating it here, prominently, as the first
-                  item with a distinct accent treatment, makes the
-                  CTA unmissable when the user has opened the row. */}
-              <dt className="text-text-tertiary">
-                <Trans>Action</Trans>
-              </dt>
-              <dd className="font-medium text-text-primary">{prompt}</dd>
+              {/* 2026-05-26 (Yuqi Today #1 follow-up): the "Action" row
+                  was previously rendered FIRST here to repeat the
+                  prompt prominently. That was redundant once the
+                  collapsed row swapped weights so the prompt itself
+                  renders at font-medium (anchor of the row), so the
+                  expansion now jumps straight to deadlines + status
+                  + form + sources + why-now. The prompt continues
+                  to live on the collapsed row's heading line. */}
 
               {/* 2026-05-25 (Yuqi Today #33): show INTERNAL and
                   OFFICIAL deadlines on one line in the expansion
@@ -630,7 +629,7 @@ function DashboardActionsList({
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
-          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
+          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>Nothing due this week.</Trans>{' '}
             <Button
               variant="link"
@@ -652,7 +651,7 @@ function DashboardActionsList({
             }
           />
         ) : (
-          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
+          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>You're caught up. Next deadline appears here when one's within a week.</Trans>
           </p>
         )}
@@ -682,7 +681,13 @@ function DashboardActionsList({
         ))}
       </ul>
       {overflow > 0 ? (
-        <p className="text-base text-text-tertiary">
+        // 2026-05-26 (Yuqi forty-second pass — caption unification):
+        // "… N more in the queue" is a caption (a footer-meta line
+        // anchoring the list), not body copy. Dropped from text-base
+        // → text-xs to match the caption scale used for counts /
+        // timestamps / attributions everywhere else on Today / Alerts
+        // / Deadlines.
+        <p className="text-xs text-text-tertiary">
           <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
         </p>
       ) : null}

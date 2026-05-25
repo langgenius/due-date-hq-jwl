@@ -109,21 +109,20 @@ function PulseNotificationsBell() {
             // (28px) → size-8 (32px) so the bell sits at the
             // same hit-box size as the firm-switcher trigger and
             // sidebar collapse toggle.
-            // 2026-05-25 (Yuqi rail alignment v2): drop the
-            // border + chip background in collapsed mode so the
-            // bell reads as part of the icon-button family
-            // (toggle, nav items, history/audit/settings at the
-            // bottom). Border chip stays in expanded mode where
-            // it acts as a "notification widget" affordance next
-            // to the firm-switcher label. In collapsed rail it
-            // was the only outlined element and looked like an
-            // alien chip.
+            // 2026-05-26 (Yuqi sidebar reorg — bell moves out):
+            // bell now floats at the top-right corner of
+            // `SidebarInset`, never inside the sidebar. The
+            // collapsed-mode style overrides
+            // (`group-data-[collapsed=true]/sidebar:` selectors)
+            // are dropped — they were a layout hack for when
+            // the bell stacked into the 56px rail and looked
+            // alien there. As a free-floating top-right widget
+            // it just renders as the canonical outlined icon
+            // button in all states.
             className={cn(
               'relative inline-flex size-8 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-[background-color,border-color,color] duration-150 ease',
               'hover:bg-background-default-hover hover:text-text-primary',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-              'group-data-[collapsed=true]/sidebar:border-transparent group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',
-              'group-data-[collapsed=true]/sidebar:hover:bg-background-default-hover',
             )}
           >
             <BellIcon className="size-4" aria-hidden />

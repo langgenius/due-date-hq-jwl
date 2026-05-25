@@ -27,12 +27,17 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
+  ChevronsUpDown,
   ChevronUp,
   ChevronDown,
+  CircleDashed,
+  Clock,
+  Eye,
+  FileCheck2,
+  Lock,
   ArrowUpRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -93,6 +98,13 @@ import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@duedatehq/ui/components/ui/select'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
   DropdownMenu,
@@ -121,13 +133,6 @@ import {
 } from '@duedatehq/ui/components/ui/popover'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@duedatehq/ui/components/ui/select'
 import {
   Table,
   TableBody,
@@ -161,6 +166,7 @@ import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-stat
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
+import { SearchInput } from '@/components/primitives/search-input'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
@@ -237,6 +243,14 @@ const DENSITY_OPTIONS = [
 ] as const satisfies readonly ObligationQueueDensity[]
 const DEFAULT_SORT: ObligationQueueSort = 'smart_priority'
 const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
+// 2026-05-26 (Yuqi /deadlines #2): explicit "Group by" mode. Default
+// `due` keeps the chronological flat list the current product
+// optimises for. `client` clusters rows under client section
+// headers (with aggregate metadata). `status` clusters by status
+// (Blocked / Waiting on client / In review / Filed / Not started).
+const GROUP_OPTIONS = ['due', 'client', 'status'] as const
+type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
+const DEFAULT_GROUP: ObligationQueueGroup = 'due'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
 const EXTENSION_SAVE_SUCCESS_TOOLTIP_MS = 1_800
@@ -472,6 +486,9 @@ export const obligationQueueSearchParamsParsers = {
     .withOptions(REPLACE_HISTORY_OPTIONS),
   density: parseAsStringLiteral(DENSITY_OPTIONS)
     .withDefault(DEFAULT_DENSITY)
+    .withOptions(REPLACE_HISTORY_OPTIONS),
+  group: parseAsStringLiteral(GROUP_OPTIONS)
+    .withDefault(DEFAULT_GROUP)
     .withOptions(REPLACE_HISTORY_OPTIONS),
   // Default-hidden columns are seeded into the `hide` param so they
   // stay off until the user opts them in via the Columns dropdown.
@@ -791,6 +808,7 @@ export function ObligationQueueRoute() {
       asOf,
       sort: urlSort,
       density,
+      group,
       hide: hiddenColumns,
       row,
     },
@@ -1402,7 +1420,16 @@ export function ObligationQueueRoute() {
                 // it as still too small to read at scan distance even
                 // after font-medium — the client column is the row's
                 // anchor, not meta caption.
-                className="line-clamp-2 min-w-0 flex-1 text-sm font-medium text-text-primary"
+                // 2026-05-26 (Yuqi forty-second pass — content title
+                // unification): rolled back from text-base → text-sm.
+                // Every other content title on Today / Alerts /
+                // Deadlines uses text-sm font-medium; the
+                // client-name column was a one-off bump that broke
+                // the rule. The row anchor still reads weighty
+                // because of font-medium + text-text-primary while
+                // the meta values around it use text-text-tertiary
+                // — weight + color carry the prominence, not size.
+                className="line-clamp-2 min-w-0 flex-1 text-sm font-medium leading-tight text-text-primary"
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
                 {tableRow.original.clientName}
@@ -1852,6 +1879,38 @@ export function ObligationQueueRoute() {
   const tableRows = table.getRowModel().rows
   const totalShown = tableRows.length
   const visibleColumnCount = table.getVisibleLeafColumns().length
+  // 2026-05-26 (Yuqi /deadlines #4 follow-up): page subtitle metrics.
+  // `lateCount` = past-internal-due rows excluding terminal statuses
+  // (Filed / Reverted — they shouldn't read as "late" any more, that
+  // ship has sailed). `dueThisWeekCount` = next 7 days, not yet late.
+  // `uniqueClientCount` = distinct clients across the loaded set,
+  // surfaced in the footer aggregate.
+  const lateCount = useMemo(
+    () =>
+      tableRows.reduce((sum, r) => {
+        // Skip terminal "filed" rows — past-due is no longer
+        // actionable once the deadline is filed. `done` is the
+        // status taxonomy's filed-state per the project's status
+        // taxonomy. Reverted is also terminal, but the row union
+        // type doesn't include it on this filter context — extend
+        // here if the row type grows to include it later.
+        if (r.original.status === 'done') return sum
+        return sum + (r.original.daysUntilDue < 0 ? 1 : 0)
+      }, 0),
+    [tableRows],
+  )
+  const dueThisWeekCount = useMemo(
+    () =>
+      tableRows.reduce((sum, r) => {
+        const days = r.original.daysUntilDue
+        return sum + (days >= 0 && days <= 7 ? 1 : 0)
+      }, 0),
+    [tableRows],
+  )
+  const uniqueClientCount = useMemo(
+    () => new Set(tableRows.map((r) => r.original.clientId)).size,
+    [tableRows],
+  )
   const selectedRows = table.getSelectedRowModel().rows.map((selectedRow) => selectedRow.original)
   const selectedIds = selectedRows.map((selectedRow) => selectedRow.id)
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
@@ -2262,11 +2321,50 @@ export function ObligationQueueRoute() {
         'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
       )}
     >
+      {/* 2026-05-26 (Yuqi /deadlines #4): title now carries the
+          scope total alongside it ("Deadlines · 247"), matching
+          /clients and /rules/library which both show their counts
+          in the title. Uses scopeTotal (the unfiltered count of the
+          active status scope) so the number is stable as the user
+          types in the search/filter chips — what the count
+          represents shouldn't change mid-typing. */}
       <PageHeader
         title={
-          <ConceptLabel concept="obligation">
-            <Trans>Deadlines</Trans>
-          </ConceptLabel>
+          <span className="inline-flex items-baseline gap-2">
+            <ConceptLabel concept="obligation">
+              <Trans>Deadlines</Trans>
+            </ConceptLabel>
+            <span className="font-mono text-base font-normal tabular-nums text-text-tertiary">
+              {scopeTotal}
+            </span>
+          </span>
+        }
+        // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
+        // the two metrics CPAs care about first — what's late + what
+        // needs attention this week. Both computed from the loaded
+        // rows; degrades to nothing when there are zero of either.
+        description={
+          lateCount > 0 || dueThisWeekCount > 0 ? (
+            <span className="inline-flex items-center gap-1 text-sm">
+              {lateCount > 0 ? (
+                <>
+                  <span className="font-medium text-text-destructive">
+                    <Plural value={lateCount} one="# late" other="# late" />
+                  </span>
+                </>
+              ) : null}
+              {lateCount > 0 && dueThisWeekCount > 0 ? (
+                <span aria-hidden className="text-text-tertiary">
+                  ·
+                </span>
+              ) : null}
+              {dueThisWeekCount > 0 ? (
+                <span className="text-text-secondary">
+                  <Plural value={dueThisWeekCount} one="# due this week" other="# due this week" />
+                </span>
+              ) : null}
+            </span>
+          ) : undefined
         }
         actions={
           <>
@@ -2302,11 +2400,17 @@ export function ObligationQueueRoute() {
         <div
           className={cn(
             'flex min-w-0 flex-1 flex-col gap-3',
-            // Always overflow-y-auto at xl+. The `xl:pr-1` only when
-            // a detail panel is open (gives the queue column a small
-            // gutter from the panel); otherwise it expands fully.
-            'xl:overflow-y-auto',
-            activeDetailId && 'xl:pr-1',
+            // Always overflow-y-auto at xl+ with `scrollbar-gutter:
+            // stable` so the layout doesn't shift when the
+            // scrollbar appears.
+            // 2026-05-26 (Yuqi scrollbar audit): dropped the
+            // `xl:pr-1` inset that ran when a detail panel was
+            // open. It pushed the scrollbar 4px inside the queue
+            // column — same "inset / floating inside" issue Yuqi
+            // flagged on Alerts. With the gutter stable, the
+            // scrollbar hugs the column's right edge and the
+            // layout doesn't jump.
+            'xl:overflow-y-auto xl:[scrollbar-gutter:stable]',
             !activeDetailId && 'overflow-x-auto',
           )}
         >
@@ -2460,20 +2564,57 @@ export function ObligationQueueRoute() {
                 authoritative active-filter display, and each carries
                 its own × to dismiss. The breadcrumb was reading the
                 same state twice. */}
+              {/* 2026-05-26 (Yuqi /deadlines redesign): Group by
+                  switcher. Three modes — Due date (default flat
+                  chronological), Client (clusters by client),
+                  Status (clusters by status). The selected mode
+                  drives the row sort key so groupings cluster
+                  visually even before the full section-header
+                  rendering lands. The full grouped UI with sticky
+                  collapsible section headers + aggregate pills is
+                  in a separate spawned task per PRD. */}
+              <Select
+                value={group}
+                onValueChange={(next) => {
+                  if (next === 'due' || next === 'client' || next === 'status') {
+                    void setObligationQueueQuery({ group: next })
+                  }
+                }}
+              >
+                <SelectTrigger className="h-8 w-[164px] gap-1.5 text-xs">
+                  <span className="text-text-tertiary">
+                    <Trans>Group by</Trans>
+                  </span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  <SelectItem value="due">
+                    <Trans>Due date</Trans>
+                  </SelectItem>
+                  <SelectItem value="client">
+                    <Trans>Client</Trans>
+                  </SelectItem>
+                  <SelectItem value="status">
+                    <Trans>Status</Trans>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <span className="tabular-nums text-xs text-text-tertiary">
                 <Plural value={totalShown} one="# row" other="# rows" />
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
+                    /* 2026-05-26 (Yuqi /deadlines #8): variant outline →
+                       ghost. The toolbar's right cluster has the
+                       row-count + columns trigger; the column trigger
+                       was reading as a primary affordance via its
+                       outline border. Ghost matches the row-count's
+                       quietness — both are "info / control" rather
+                       than "do something." */
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      // Icon + "visible/total" ratio. The "Columns" label
-                      // text was dropped 2026-05-21 per design call —
-                      // the icon already conveys the affordance, the
-                      // ratio carries the state. aria-label spells it
-                      // out for screen readers.
                       aria-label={t`Columns — ${visibleHideableCount} of ${totalHideableCount} visible`}
                       title={t`${visibleHideableCount} of ${totalHideableCount} columns visible`}
                       className="gap-1.5"
@@ -2621,6 +2762,25 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              {/* 2026-05-26 (Yuqi /deadlines redesign): Snooze
+                  surfaced as a peer of Assign / Set status / Export.
+                  Backend mutation (bulk reschedule internal due
+                  date) hasn't shipped yet — for now the affordance
+                  is visually present but disabled with a "Coming
+                  soon" tooltip, matching the CommandPalette's
+                  honest-coming-soon pattern. When the backend
+                  lands, this gets wired to `orpc.obligations.
+                  bulkSnooze` and the disabled state drops. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                title={t`Snooze (coming soon)`}
+                aria-label={t`Snooze selected deadlines (coming soon)`}
+              >
+                <Clock data-icon="inline-start" />
+                <Trans>Snooze</Trans>
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
                 <DownloadIcon data-icon="inline-start" />
                 <Trans>Export</Trans>
@@ -2919,8 +3079,19 @@ export function ObligationQueueRoute() {
               short. */}
           <div className="mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
+              {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
+                  carries "N deadlines · M clients" so the aggregate
+                  scope is visible at the bottom of the table. The
+                  client count comes from distinct clientIds across
+                  the loaded rows. */}
               <span>
                 <Plural value={rows.length} one="# deadline" other="# deadlines" />
+                {uniqueClientCount > 0 ? (
+                  <>
+                    <span aria-hidden> · </span>
+                    <Plural value={uniqueClientCount} one="# client" other="# clients" />
+                  </>
+                ) : null}
               </span>
               {rows.length > 0 ? (
                 <>
@@ -2954,12 +3125,15 @@ export function ObligationQueueRoute() {
                 </>
               ) : null}
             </div>
-            {totalLoadedPages > 1 || listQuery.hasNextPage ? (
-              // 2026-05-25 (Yuqi pagination pass): pagination now reads
-              // as a bordered group "← 2 / N →" so the three controls
-              // cluster visually — matches the screenshot's compact
-              // pattern. Buttons inside the group have no border of
-              // their own; the wrapper carries the chrome.
+            {/* 2026-05-26 (Yuqi /deadlines #7): pagination always
+                visible. Was previously hidden when `totalLoadedPages
+                === 1 && !hasNextPage` — small queues looked like
+                they had no pagination at all, which Yuqi flagged as
+                "where's pagination?". Now the bordered group always
+                renders; single-page state shows "1 / 1" with both
+                arrows disabled. Affordance is permanently
+                discoverable even before the queue grows. */}
+            {rows.length > 0 ? (
               <div
                 className="inline-flex items-center gap-0.5 rounded-md border border-divider-regular bg-background-default px-1 py-0.5 text-xs text-text-secondary"
                 role="group"
@@ -3344,9 +3518,15 @@ function ObligationQueueSortableHeader({
   //   - The range filter trigger stays a sibling icon button. Keeping
   //     sort and filter as siblings avoids invalid nested button
   //     markup when this header renders inside a dropdown trigger.
-  //   - Unsorted columns render no icon. The hover affordance is
-  //     just the label changing color. Drops the "every column
-  //     looks like a button" visual noise from before.
+  //   - Unsorted columns render a faint ChevronsUpDown so the
+  //     "this is sortable" affordance is always visible —
+  //     previously the column looked inert until you clicked,
+  //     which Yuqi flagged: "column sort is honest — chevrons
+  //     are faint until you sort, then show direction" (Yuqi
+  //     /deadlines redesign). The faint icon sits at
+  //     `text-text-tertiary/40` so it disappears against busy
+  //     content but resolves into a "click me to sort" hint on
+  //     scan.
   //   - Sorted columns render a small ChevronUp / ChevronDown
   //     inline in the accent color — quieter than the bold arrows
   //     and matches the chevron vocabulary used elsewhere
@@ -3371,7 +3551,14 @@ function ObligationQueueSortableHeader({
         )}
       >
         <span className="truncate">{label}</span>
-        {SortIcon ? <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden /> : null}
+        {SortIcon ? (
+          <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+        ) : (
+          <ChevronsUpDown
+            className="size-3 shrink-0 text-text-tertiary/40 transition-colors group-hover:text-text-tertiary"
+            aria-hidden
+          />
+        )}
       </button>
       {children}
     </span>
@@ -4468,7 +4655,15 @@ export function ObligationQueueDetailDrawer({
                 header was sitting at the same size as section
                 headings inside the body — the h2 needs to be
                 visibly the heaviest text on the surface. */}
-            <h2 className="text-xl font-semibold leading-tight text-text-primary">
+            {/* 2026-05-26 (Yuqi forty-first pass — typography
+                unification): rolled back to text-lg (18px). The
+                canonical scale across Today / Alerts / Deadlines
+                uses text-lg for ALL h2-equivalent headings; the
+                text-xl was a one-off here that broke the rhythm.
+                Visual prominence over the body now comes from
+                `font-semibold` + leading-tight (the body uses
+                text-sm font-normal), not from a +2px bump. */}
+            <h2 className="text-lg font-semibold leading-tight text-text-primary">
               <TaxCodeLabel code={row.taxType} />
             </h2>
             {/* Status pill — interactive in the drawer. Re-uses the
@@ -4539,7 +4734,14 @@ export function ObligationQueueDetailDrawer({
           underneath. Sheet mode (mobile) keeps a single document
           scroll: SheetContent has overflow-y-auto, so we don't
           double-scroll here. */}
-      <div className={cn('px-5 pb-5 pt-4', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
+      {/* 2026-05-26 (Yuqi /deadlines drawer): body top padding dropped
+          from pt-4 to 0. The sticky strip below used a `-mt-4` to
+          cancel the body padding — chrome cancelling chrome made
+          the layout hard to reason about. With pt-0, the strip
+          starts flush at the body top, and the area below the strip
+          gets its own real `pt-4` so it's visually a separate
+          unit (containing TabsList + tab content). */}
+      <div className={cn('px-5 pb-5', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
         {detailQuery.isLoading ? (
           <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
             <Trans>Loading deadline detail…</Trans>
@@ -4574,11 +4776,27 @@ export function ObligationQueueDetailDrawer({
                 (just the dates), the milestone story has its own tab
                 that doesn't compete with Materials / Extension /
                 Evidence, and the URL ?tab=summary is shareable. */}
+            {/* 2026-05-26 (Yuqi obligation drawer): tightened the
+                sticky block's vertical padding so the band of
+                bg-background-subtle above the deadline cards isn't
+                a visible "gap" between the header and the strip.
+                Was pt-4 pb-3 (28px combined). Now pt-2 pb-2 (16px)
+                — strip still has breathing room from header edge
+                and from scrolling content below, just half the
+                visual weight. The negative -mt-4 still negates the
+                body container's pt-4, so the sticky block starts
+                flush at the body's top edge. */}
+            {/* 2026-05-26 (Yuqi /deadlines drawer): sticky strip now
+                starts flush at the body's top edge (body lost its
+                pt-4). Dropped the `-mt-4` negative margin that was
+                cancelling that padding. The bottom of the strip
+                gets a `border-b border-divider-subtle` so the
+                tabs/content area below reads as a distinct unit. */}
             <div
               className={cn(
                 'flex flex-col gap-3',
                 mode === 'panel'
-                  ? 'sticky top-0 z-10 -mx-5 -mt-4 bg-background-subtle px-5 pb-3 pt-4'
+                  ? 'sticky top-0 z-10 -mx-5 border-b border-divider-subtle bg-background-subtle px-5 py-3'
                   : 'mb-4',
               )}
             >
@@ -4634,7 +4852,11 @@ export function ObligationQueueDetailDrawer({
                 selected tab/focus ring does not visually tuck under
                 the date cards while the tab group still belongs to
                 the content below. */}
-            <div className={cn('relative z-0', mode === 'panel' && 'pt-3')}>
+            {/* 2026-05-26 (Yuqi /deadlines drawer): pt-3 → pt-4 so
+                TabsList + content area sit at a clean 16px gap
+                below the sticky strip's bottom border, reading as
+                a separate visual unit. */}
+            <div className={cn('relative z-0', mode === 'panel' && 'pt-4')}>
               <TabsList className="flex h-10 text-sm">
                 {/* Summary tab (2026-05-25 Yuqi Deadlines #30):
                     default-first tab for filing / payment / deposit /
@@ -6928,31 +7150,57 @@ function PathToFilingSummary({
                     })(),
                   )}
                 />
+                {/* 2026-05-26 (Yuqi /deadlines drawer #1, #2, #3):
+                    stage indicator now uses STAGE-SPECIFIC lucide
+                    icons so the milestone strip tells the story by
+                    icon identity, not just a generic check/dot.
+                      - Not started: CircleDashed
+                      - Waiting: Clock
+                      - Blocked: Lock
+                      - In review: Eye
+                      - Filed: FileCheck2
+                      - Completed: CheckCircle2
+                    State (done/active/skipped/upcoming) maps to
+                    tone instead:
+                      - done   = bg success-hover + text success-solid
+                      - active = bg accent-hover + text accent-solid + ring
+                      - skipped = dashed border + text tertiary
+                      - upcoming = empty bg + text tertiary
+                    This fixes #1 ("why no stage-specific icons"),
+                    #2 (Filed now has a visible icon + tone), and #3
+                    (Filed-active visually distinct from Completed-
+                    upcoming by both icon identity AND tone). */}
                 <span
                   aria-hidden
                   className={cn(
-                    'grid size-5 shrink-0 place-items-center rounded-full border',
+                    'grid size-6 shrink-0 place-items-center rounded-full border',
                     state === 'done'
-                      ? 'border-state-success-solid bg-state-success-hover'
+                      ? 'border-state-success-solid bg-state-success-hover text-state-success-solid'
                       : state === 'skipped'
-                        ? // 2026-05-24 (critique P1 — shape): smaller
-                          // inner dot, dashed border, muted — distinct
-                          // from both "done" (filled tick) and "upcoming"
-                          // (empty ring). Reads as "the row didn't go
-                          // through this stage."
-                          'border-dashed border-divider-regular bg-background-default'
+                        ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
                         : overdueActive
-                          ? 'border-state-destructive-solid bg-background-default ring-1 ring-state-destructive-solid'
+                          ? 'border-state-destructive-solid bg-state-destructive-hover text-text-destructive ring-1 ring-state-destructive-solid'
                           : state === 'active'
-                            ? 'border-accent-default bg-background-default ring-1 ring-accent-default'
-                            : 'border-divider-regular bg-background-default',
+                            ? 'border-accent-default bg-state-accent-hover text-text-accent ring-1 ring-accent-default'
+                            : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
-                  {state === 'done' ? (
-                    <CheckIcon className="size-3 text-text-success" aria-hidden />
-                  ) : state === 'skipped' ? (
-                    <span className="size-1 rounded-full bg-divider-regular" aria-hidden />
-                  ) : null}
+                  {(() => {
+                    const StageIcon = (
+                      stage.key === 'pending'
+                        ? CircleDashed
+                        : stage.key === 'waiting_on_client'
+                          ? Clock
+                          : stage.key === 'blocked'
+                            ? Lock
+                            : stage.key === 'review'
+                              ? Eye
+                              : stage.key === 'done'
+                                ? FileCheck2
+                                : CheckCircle2Icon
+                    ) as React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
+                    return <StageIcon className="size-3.5" aria-hidden />
+                  })()}
                 </span>
                 <span
                   aria-hidden
@@ -8878,8 +9126,8 @@ function ObligationQueueSearchControl({
       <Button
         variant="outline"
         size="icon-sm"
-        aria-label={t`Search clients`}
-        title={t`Search clients  ·  press / to focus`}
+        aria-label={t`Filter clients`}
+        title={t`Filter clients  ·  press / to focus`}
         onClick={() => {
           setOpen(true)
           requestAnimationFrame(() => inputRef.current?.focus())
@@ -8890,48 +9138,27 @@ function ObligationQueueSearchControl({
       </Button>
     )
   }
+  // 2026-05-26 (Yuqi cross-product search audit): expanded state now
+  // delegates to the canonical SearchInput primitive. Previously the
+  // expanded state hand-rolled an h-8 Input with bespoke clear button
+  // + Escape logic — which drifted from /rules/library's h-9
+  // SearchInput. Now both surfaces share the exact same chrome when
+  // expanded; deadlines keeps the toolbar-density collapse pattern
+  // because Yuqi #2 specifically designed for it (densest table
+  // surface needs room).
   return (
     <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
-      <Input
+      <SearchInput
         ref={inputRef}
-        aria-label={t`Search deadlines`}
-        className="h-8 pl-8 pr-8"
-        placeholder={t`Search clients`}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={onChange}
+        placeholder={t`Filter clients`}
+        ariaLabel={t`Filter deadlines`}
         onFocus={() => setOpen(true)}
         onBlur={() => {
           if (value.length === 0) setOpen(false)
         }}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            onChange('')
-            setOpen(false)
-            inputRef.current?.blur()
-          }
-        }}
       />
-      {value.length > 0 ? (
-        <button
-          type="button"
-          aria-label={t`Clear search`}
-          onClick={() => {
-            onChange('')
-            inputRef.current?.focus()
-          }}
-          className="absolute top-1/2 right-1.5 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <XIcon className="size-3.5" aria-hidden />
-        </button>
-      ) : (
-        <kbd
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 rounded border border-divider-regular bg-background-subtle px-1.5 font-sans text-caption-xs tabular-nums text-text-tertiary"
-        >
-          /
-        </kbd>
-      )}
     </div>
   )
 }

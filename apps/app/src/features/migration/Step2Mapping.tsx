@@ -527,7 +527,16 @@ function BadRowsPanel({
           <Trans>Open</Trans>
         </span>
       </summary>
-      <div className="max-h-[280px] overflow-y-auto border-t border-divider-subtle">
+      {/* 2026-05-26 (Yuqi scrollbar audit): dropped
+          `max-h-[280px] overflow-y-auto`. The bad-rows table
+          was nested inside the WizardShell body's own
+          overflow-y-auto, so capping it forced a second
+          scrollbar 280px tall whenever the list was longer.
+          The whole point of opening the `<details>` is to
+          scan errors — letting them flow into the wizard
+          body's scroll lets the user use one scroll wheel
+          for the whole step. */}
+      <div className="border-t border-divider-subtle">
         <Table>
           <TableHeader>
             <TableRow>

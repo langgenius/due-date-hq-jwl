@@ -147,12 +147,19 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
     key: 'jurisdiction',
     label: <Trans>Jurisdiction</Trans>,
     value: (
-      <span className="inline-flex h-7 items-center gap-2 rounded-full border border-divider-regular bg-background-default pl-1 pr-3 text-sm">
+      // 2026-05-26 (Yuqi thirty-second pass): state pill unified.
+      // Was a `rounded-full` capsule with `font-mono` code; now
+      // matches the drawer header kicker + card state pill — same
+      // `rounded-sm` framed shape, no monospace on the 2-letter
+      // code. Three different surfaces, one chip pattern.
+      <span className="inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-2">
         <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
-        <span className="font-mono tabular-nums font-medium text-text-primary">
+        <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
           {detail.jurisdiction}
         </span>
-        {jurisdictionFull ? <span className="text-text-secondary">{jurisdictionFull}</span> : null}
+        {jurisdictionFull ? (
+          <span className="text-xs text-text-secondary">{jurisdictionFull}</span>
+        ) : null}
       </span>
     ),
   })
@@ -163,7 +170,11 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       value: (
         <div className="flex flex-wrap gap-1">
           {detail.counties.map((county) => (
-            <Badge key={county} variant="secondary" className="font-mono">
+            // 2026-05-26 (Yuqi seventeenth pass #4): counties are
+            // proper nouns ("Los Angeles", "Cook"), not codes —
+            // dropped `font-mono`. Entity types below stay mono
+            // because they ARE codes ("1041", "1120-S", "1065").
+            <Badge key={county} variant="secondary" className="h-7 text-sm">
               {county}
             </Badge>
           ))}
@@ -186,7 +197,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       detail.forms.length > 0 ? (
         <div className="flex flex-wrap gap-1">
           {detail.forms.map((form) => (
-            <Badge key={form} variant="outline" title={form}>
+            <Badge key={form} variant="outline" title={form} className="h-7 text-sm">
               {formatTaxCode(form)}
             </Badge>
           ))}
@@ -204,7 +215,12 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       detail.entityTypes.length > 0 ? (
         <div className="flex flex-wrap gap-1">
           {detail.entityTypes.map((entity) => (
-            <Badge key={entity} variant="secondary" className="font-mono uppercase">
+            // 2026-05-26 (Yuqi thirty-second pass): entity-type
+            // badges drop `font-mono` + `uppercase`. These are
+            // normalized labels (individual / llc / s_corp /
+            // trust / sole_prop) — regular text reads more
+            // naturally than mono caps for short noun chips.
+            <Badge key={entity} variant="secondary" className="h-7 text-sm">
               {entity}
             </Badge>
           ))}
@@ -269,7 +285,16 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
             <span className="block text-xs font-semibold uppercase tracking-wide text-text-tertiary">
               <Trans>Structured change</Trans>
             </span>
-            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs">
+            {/* 2026-05-26 (Yuqi scrollbar audit): dropped `max-h-40
+                overflow-auto`. The pre was inside the drawer
+                body's `overflow-y-auto` container — capping the
+                pre's height forced a nested vertical scrollbar
+                INSIDE the drawer's own scrollbar. Now the pre
+                expands to fit and the drawer body scroll handles
+                the overflow naturally. `whitespace-pre-wrap`
+                still wraps long lines so the pre doesn't push
+                horizontal scroll either. */}
+            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs">
               {formatStructuredChange(detail.structuredChange, t`No structured fields.`)}
             </pre>
           </div>
@@ -347,8 +372,14 @@ function FactCard({
   action?: ReactNode
   children: ReactNode
 }) {
+  // 2026-05-26 (Yuqi twenty-sixth pass): radius unified at
+  // rounded-md (6px). Previously `rounded-[2px]` — too sharp
+  // compared to the sibling Source excerpt frame and the
+  // structured-change container which were both rounded-md.
+  // All section frames in the drawer body now share the same
+  // 6px radius.
   return (
-    <section className="rounded-[2px] border border-divider-subtle bg-background-default">
+    <section className="rounded-md border border-divider-subtle bg-background-default">
       <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-6 py-2">
         <h3 className="text-base font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}
@@ -358,21 +389,28 @@ function FactCard({
   )
 }
 
-// 3-column fact grid. Each cell stacks the label above the value so
+// 2-column fact grid. Each cell stacks the label above the value so
 // the eye scans top-to-bottom within a column, not left-right across
-// the full drawer width (Yuqi #20, #21). Collapses to 2-column on
-// narrow widths and 1-column on mobile so values never get cramped.
+// the full drawer width.
+//
+// 2026-05-26 (Yuqi /rules/pulse third pass #12, #13): grid-cols-3
+// → grid-cols-2. At the drawer panel's 520–680px width the 3-column
+// arrangement made each value column ~150px wide — too narrow for
+// the "Authority" + "Source" content. 2 columns gives the values
+// room to breathe and reads as a tidy 2x2 (or 2x3) layout. The
+// section's horizontal real estate is wider per column, vertical
+// space is paid for in extra rows.
 function FactGrid({
   facts,
 }: {
   facts: ReadonlyArray<{ key: string; label: ReactNode; value: ReactNode }>
 }) {
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 md:grid-cols-3">
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
       {facts.map((fact) => (
-        <div key={fact.key} className="flex flex-col gap-1 min-w-0">
+        <div key={fact.key} className="flex min-w-0 flex-col gap-1">
           <FieldLabel as="dt">{fact.label}</FieldLabel>
-          <dd className="text-sm text-text-primary min-w-0">{fact.value}</dd>
+          <dd className="min-w-0 text-sm text-text-primary">{fact.value}</dd>
         </div>
       ))}
     </dl>

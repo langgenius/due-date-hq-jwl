@@ -2,7 +2,15 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowUpRightIcon, ChevronDownIcon, HistoryIcon } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import {
+  AlertCircleIcon,
+  ArrowUpRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  HistoryIcon,
+  type LucideIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -13,7 +21,16 @@ import type {
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import {
   Select,
   SelectContent,
@@ -37,6 +54,7 @@ import {
   usePulseSourceHealthQueryOptions,
 } from './api'
 import { PulseAlertCard } from './components/PulseAlertCard'
+import { PULSE_STATUS_ICON } from './components/PulseStatusBadge'
 import { PulseReasonDialog, type PulseReasonAction } from './components/PulseReasonDialog'
 import { PulsingDot } from './components/PulsingDot'
 import { enabledPulseSourceCount, summarizePulseSources } from './lib/source-health-labels'
@@ -47,15 +65,24 @@ import {
   type PulseImpactFilter,
 } from './lib/impact-filter'
 
+// 2026-05-26 (Yuqi /rules/pulse thirteenth pass): status filter
+// reordered from alphabetical → workflow lifecycle stages:
+//   active → snoozed → applied → partially_applied → reviewed
+//   → reverted → dismissed
+// Reads top-to-bottom as the alert's possible journey: starts
+// active, can be parked (snoozed), resolved (applied / partial /
+// reviewed), or undone (reverted / dismissed). Filter dropdown
+// now mirrors that mental model instead of an A-Z sort that
+// drops "reverted" next to "snoozed".
 const STATUS_FILTER_OPTIONS = [
   'all',
   'active',
+  'snoozed',
   'applied',
   'partially_applied',
-  'dismissed',
-  'reverted',
-  'snoozed',
   'reviewed',
+  'reverted',
+  'dismissed',
 ] as const
 type PulseStatusFilter = (typeof STATUS_FILTER_OPTIONS)[number]
 const CHANGE_KIND_FILTER_OPTIONS = [
@@ -94,6 +121,17 @@ interface PulseChangesTabProps {
 export function PulseChangesTab({ embedded = false, historyMode = false }: PulseChangesTabProps) {
   const { t } = useLingui()
   const { openDrawer, alertId: openAlertId, closeDrawer } = usePulseDrawer()
+  // 2026-05-26 (Yuqi thirtieth pass — responsiveness): auto-collapse
+  // the sidebar to icons-only when the user opens an alert. Frees
+  // ~200px of horizontal room for the panel layout on smaller
+  // desktops (1280–1440px viewports especially benefit). Does NOT
+  // auto-expand when the alert closes — user keeps control of the
+  // sidebar's persistent state.
+  const { collapsed: sidebarCollapsed, toggleCollapsed: toggleSidebarCollapsed } = useSidebar()
+  const openDrawerAndCollapseSidebar = (alertId: string) => {
+    if (!sidebarCollapsed) toggleSidebarCollapsed()
+    openDrawer(alertId)
+  }
   const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
     historyMode ? 'applied' : 'all',
   )
@@ -181,6 +219,17 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
         .toSorted(),
     [alerts],
   )
+  // 2026-05-26 (Yuqi /rules/pulse follow-up): per-source alert count
+  // — feeds the searchable source-filter popover so each row reads
+  // as "IRS · 12" and the active-source trigger label can say
+  // "IRS · 12 alerts" instead of just the bare source name.
+  const sourceCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const alert of alerts) {
+      map.set(alert.source, (map.get(alert.source) ?? 0) + 1)
+    }
+    return map
+  }, [alerts])
   // Counts per jurisdiction (state) across the unfiltered alerts —
   // backs the chip strip below. Sorted by count desc then state code
   // asc so the highest-impact states float to the front; zero-count
@@ -236,7 +285,15 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
     <div
       className={
         embedded
-          ? 'flex flex-col gap-4'
+          ? // 2026-05-26 (Yuqi /rules/pulse third pass #6): embedded
+            // mount now propagates `h-full min-h-0` so the right
+            // panel (mode="panel" PulseDetailDrawer) can stretch
+            // to fill the parent route shell's height and the
+            // panel handles its own internal scroll. Without this
+            // the embedded shell collapsed to content-height and
+            // the panel only occupied the height of the tallest
+            // alert card.
+            'flex h-full min-h-0 flex-col gap-4'
           : panelOpen
             ? 'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-4 p-3 md:p-4'
             : 'mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-4'
@@ -343,15 +400,39 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           contains the alert cards so long lists don't push the
           page down. Outer page is fixed-height (see root), so
           the panel column's own scroll-management on the right
-          stays independent. No more double-scroll. */}
-      <div className={panelOpen ? 'flex min-h-0 flex-1 gap-4' : 'contents'}>
-        <div
-          className={
-            panelOpen
-              ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto pr-1'
-              : 'flex flex-col gap-4'
-          }
-        >
+          stays independent. No more double-scroll.
+          2026-05-26 (Yuqi /rules/pulse follow-up #2): dropped the
+          `pr-1` gutter — it inset the scrollbar 4px from the
+          column edge, which made the scrollbar look like it was
+          floating "inside" the page chrome instead of hugging
+          the column boundary. With `scrollbar-gutter: stable`
+          the layout still doesn't jump on scroll appearance. */}
+      {/* 2026-05-26 (Yuqi /rules/pulse seventh pass — independent
+          column scroll): the split-column wrapper is ALWAYS a
+          row-flex with min-h-0/flex-1, and the list column ALWAYS
+          carries its own overflow-y-auto. Previously the layout
+          collapsed to `contents` when the panel was closed, which
+          deferred scrolling to the route shell — Yuqi flagged that
+          the two columns shouldn't scroll together as one block.
+          With the shell now lockViewport'd at the route level, the
+          list scrolls inside its column whether or not the panel
+          is open, and the panel column manages its own internal
+          scroll via the PulseDetailDrawer aside. */}
+      {/* 2026-05-26 (Yuqi thirty-third pass): list/panel gap bumped
+          gap-4 → gap-6 (16px → 24px). With the NEW chip pinned to
+          the card's top-right corner and the panel pulled flush
+          against its left edge, the previous 16px gap read as
+          "stuff cropped at the seam." 24px gives both columns
+          breathing room from the boundary. */}
+      {/* 2026-05-26 (Yuqi forty-third pass — spacing unification):
+          list column inter-card gap dropped from gap-4 (16px) →
+          gap-3 (12px). Per canonical: "gap between cards = gap-3"
+          (sibling cards in a list, not page-section spacing).
+          The outer two-column gap-6 stays — that's the boundary
+          between major page columns (list vs panel) and gap-6 is
+          the canonical for major-section separation. */}
+      <div className="flex min-h-0 flex-1 gap-6">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
@@ -417,10 +498,25 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   each filter at its natural width inside the
                   scroller. When no panel is open, the row still
                   flex-wraps as before. */}
+              {/* 2026-05-26 (Yuqi /rules/pulse third pass #5): when
+                  the panel is open, the filter row now WRAPS to a
+                  second line instead of scrolling horizontally.
+                  Horizontal scroll on a filter strip is a poor
+                  affordance — filters that scroll out of view are
+                  filters the CPA forgets exist. `flex-wrap` lets
+                  the row reflow naturally; the source filter is
+                  the narrowest one now (#4) so 3-4 chips usually
+                  fit on a single line at 520px+ panel widths. */}
+              {/* 2026-05-26 (Yuqi twentieth pass #2): when panel is
+                  open the filter row stays on ONE line — `flex-nowrap`
+                  + each filter trigger hugs its content (drop the
+                  fixed `w-[130px]` widths, fall back to natural
+                  width). When panel is closed, return to `flex-wrap`
+                  so the row can reflow on narrow viewports. */}
               <div
                 className={
                   panelOpen
-                    ? 'flex flex-nowrap items-center gap-2 overflow-x-auto pb-1'
+                    ? 'flex flex-nowrap items-center gap-2'
                     : 'flex flex-wrap items-center gap-2'
                 }
               >
@@ -432,7 +528,21 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   }}
                 >
                   <SelectTrigger
-                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    className={cn(
+                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
+                      // shrink filter triggers when the panel is
+                      // open so all 4-5 chips fit on one line in
+                      // the narrower list column. 180 → 130 still
+                      // leaves room for the longest label
+                      // ("Partially applied").
+                      // 2026-05-26 (Yuqi twentieth pass #2): when
+                      // panel is open the trigger hugs its content
+                      // (no fixed width) so the row fits one line
+                      // and each button is exactly as wide as its
+                      // active label.
+                      panelOpen ? 'w-auto' : 'w-[180px]',
+                    )}
                     size="sm"
                     aria-label={t`Filter by impact`}
                   >
@@ -455,7 +565,21 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   }}
                 >
                   <SelectTrigger
-                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    className={cn(
+                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
+                      // shrink filter triggers when the panel is
+                      // open so all 4-5 chips fit on one line in
+                      // the narrower list column. 180 → 130 still
+                      // leaves room for the longest label
+                      // ("Partially applied").
+                      // 2026-05-26 (Yuqi twentieth pass #2): when
+                      // panel is open the trigger hugs its content
+                      // (no fixed width) so the row fits one line
+                      // and each button is exactly as wide as its
+                      // active label.
+                      panelOpen ? 'w-auto' : 'w-[180px]',
+                    )}
                     size="sm"
                     aria-label={t`Filter by change type`}
                   >
@@ -477,7 +601,21 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   }}
                 >
                   <SelectTrigger
-                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    className={cn(
+                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
+                      // shrink filter triggers when the panel is
+                      // open so all 4-5 chips fit on one line in
+                      // the narrower list column. 180 → 130 still
+                      // leaves room for the longest label
+                      // ("Partially applied").
+                      // 2026-05-26 (Yuqi twentieth pass #2): when
+                      // panel is open the trigger hugs its content
+                      // (no fixed width) so the row fits one line
+                      // and each button is exactly as wide as its
+                      // active label.
+                      panelOpen ? 'w-auto' : 'w-[180px]',
+                    )}
                     size="sm"
                     aria-label={t`Filter by alert status`}
                   >
@@ -492,32 +630,19 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={sourceFilter}
-                  onValueChange={(value) => {
-                    if (typeof value === 'string') setSourceFilter(value)
-                  }}
-                >
-                  <SelectTrigger
-                    className="w-[220px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
-                    size="sm"
-                    aria-label={t`Filter by source`}
-                  >
-                    <SelectValue>
-                      {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    <SelectItem value="all">
-                      <Trans>All sources</Trans>
-                    </SelectItem>
-                    {sourceOptions.map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {source}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* 2026-05-26 (Yuqi /rules/pulse follow-up): source
+                    filter converted from a flat Select to a searchable
+                    Popover + Command combobox. Practices with 30+
+                    sources (IRS, NY DTF, CA FTB, TX Comptroller, FL DOR,
+                    …) made the plain Select scroll list slow to navigate.
+                    CommandInput pattern lets the CPA type "ny" and
+                    narrow to NY-prefixed sources instantly. */}
+                <SourceFilterPopover
+                  sourceOptions={sourceOptions}
+                  sourceCounts={sourceCounts}
+                  activeSource={sourceFilter}
+                  onSelect={(value) => setSourceFilter(value)}
+                />
 
                 {/* 2026-05-25 (Yuqi /rules/pulse fifth pass — map
                     in dropdown): state-filter map lives behind a
@@ -579,7 +704,9 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                       <PulseAlertCard
                         key={alert.id}
                         alert={alert}
-                        onReview={() => openDrawer(alert.id)}
+                        active={alert.id === openAlertId}
+                        compactClients={panelOpen}
+                        onReview={() => openDrawerAndCollapseSidebar(alert.id)}
                         {...(canSnooze
                           ? {
                               onSnooze: () => {
@@ -596,6 +723,17 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                               },
                             }
                           : {})}
+                        // 2026-05-26 (Yuqi /rules/pulse sixth pass #1):
+                        // Archive is ALWAYS available so the kebab
+                        // renders on every row, including terminal-state
+                        // alerts. Archive maps to dismiss with no
+                        // reason captured (the alert is already past
+                        // the active-workflow point; the user is just
+                        // tidying their list).
+                        onArchive={() => {
+                          setReasonState({ action: 'dismiss', alertId: alert.id })
+                          setReasonText('')
+                        }}
                       />
                     )
                   })}
@@ -608,11 +746,107 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             panel mode. Splits the page when an alert is open;
             closing the panel collapses the wrapper back to a
             single column. */}
-        {panelOpen ? (
-          <div className="flex min-h-0 w-[440px] shrink-0 self-stretch lg:w-[480px] xl:w-[520px]">
-            <PulseDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
-          </div>
-        ) : null}
+        {/* 2026-05-26 (Yuqi thirty-fourth pass): panel column wrapped
+            in `AnimatePresence` + `motion.div` from the `motion`
+            library (already a project dep, no new install). On
+            click, the panel slides in from the right (translate-x
+            + opacity + width) at 220ms ease-out. On close, it
+            slides back out. List column auto-flexes since this
+            is a flex sibling. */}
+        {/* 2026-05-26 (Yuqi thirty-fifth pass): motion redesigned
+            as "paper printing from the bottom." Two layered motion
+            divs:
+              • Outer: animates the flex slot's width (0 → 60%)
+                fast (180ms) so the column reflows quickly and
+                the empty slot is ready for the paper.
+                `overflow-hidden` clips anything translated
+                outside the slot, so the inner panel is invisible
+                while it sits below.
+              • Inner: starts at `y: '100%'` (fully below the
+                slot, clipped by parent overflow) and translates
+                up to `y: 0`. The full panel height of travel
+                makes it read as paper being extruded from below
+                the desk, not a small UI nudge. No opacity fade
+                — paper is opaque from the first frame, only its
+                position moves. 480ms with `[0.22, 1, 0.36, 1]`
+                (easeOutExpo-soft) so the paper decelerates as
+                it settles into the slot. 80ms delay so the slot
+                visibly opens before the paper arrives.
+            Net effect: list shrinks → empty slot opens → paper
+            rises into the slot from below. The CPA-paper-on-desk
+            aesthetic, executed literally. */}
+        {/* 2026-05-26 (Yuqi thirty-eighth pass — reverse-exit
+            choreography + softer easing): the enter/exit
+            choreography is now properly reversed.
+              ENTER (paper rises into open slot):
+                t=0       outer width opens (slot reveals empty)
+                t=140ms   inner paper starts rising from y:100%
+                t=300ms   slot fully open at 60%
+                t=780ms   paper settles at y:0
+              EXIT (paper falls back, then slot closes):
+                t=0       inner paper starts falling to y:100%
+                t=550ms   paper fully below the desk (clipped)
+                t=520ms   outer width starts closing (small overlap)
+                t=820ms   slot fully closed
+            Per-property transitions on `animate` vs `exit` make
+            this possible — motion's default `transition` prop
+            uses one curve for both, which is why exit looked
+            wrong before (width was racing the inner instead
+            of waiting for it).
+            Curve: cubic-bezier(0.32, 0.72, 0, 1) — Apple's
+            "swiftOut" — heavy deceleration so the paper
+            decelerates as it settles, never feels mechanical.
+            Durations bumped (slot 180→300ms, paper 480→640ms)
+            so the whole motion feels deliberate rather than
+            snappy. */}
+        {/* 2026-05-26 (Yuqi forty-fifth pass — close as dissolve,
+            not slide-down):
+              OPEN: paper rises from below into the open slot
+              (~780ms, the "feels deliberate" arrival).
+              CLOSE: paper just FADES (opacity 1→0, no y-translation)
+              while the slot closes underneath. Quick and quiet —
+              reads as the panel "dissolving" rather than mirroring
+              the slide-up reverse.
+              Close timeline:
+                t=0     paper fades out (220ms) AND slot closes
+                        (280ms) simultaneously
+                t=280ms slot fully closed, alert rows reflow to
+                        full width
+              No delay, no choreography — both motions run together
+              and finish in ~280ms. The user-perceived event is
+              "panel disappears, rows go back to normal." */}
+        <AnimatePresence initial={false}>
+          {panelOpen ? (
+            <motion.div
+              key="pulse-detail-panel"
+              initial={{ width: 0 }}
+              animate={{
+                width: '60%',
+                transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
+              }}
+              exit={{
+                width: 0,
+                transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+              }}
+              className="flex min-h-0 shrink-0 self-stretch overflow-hidden"
+            >
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{
+                  y: 0,
+                  transition: { duration: 0.64, ease: [0.32, 0.72, 0, 1], delay: 0.14 },
+                }}
+                exit={{
+                  opacity: 0,
+                  transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
+                }}
+                className="flex h-full w-full min-w-0"
+              >
+                <PulseDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
 
       <PulseReasonDialog
@@ -735,9 +969,128 @@ function StateFilterPopover({
   )
 }
 
+// 2026-05-26 (Yuqi /rules/pulse follow-up): searchable source-filter
+// combobox. Built on Popover + Command (cmdk under the hood) so it
+// matches the picker pattern used in ClientCombobox / the Cmd+K
+// palette — type to filter, ↑/↓ to navigate, Enter to apply, Esc
+// to dismiss. Each row carries its per-source alert count on the
+// right, and the active source's count is also surfaced on the
+// trigger (e.g. "IRS · 12 alerts") so the filter row still reads
+// at a glance without opening the popover.
+function SourceFilterPopover({
+  sourceOptions,
+  sourceCounts,
+  activeSource,
+  onSelect,
+}: {
+  sourceOptions: readonly string[]
+  sourceCounts: ReadonlyMap<string, number>
+  activeSource: string
+  onSelect: (value: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const { t } = useLingui()
+  const isFiltered = activeSource !== 'all'
+  const activeCount = isFiltered ? (sourceCounts.get(activeSource) ?? 0) : 0
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className={cn(
+          // 2026-05-26 (Yuqi twentieth pass #2): drop the
+          // `min-w-[160px]` floor so the trigger hugs its content —
+          // "All sources" / "IRS · 12 alerts" sits at natural width
+          // and the one-line filter row stays tight when panel is
+          // open. Chevron + label fit without enforcing a minimum.
+          'inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm whitespace-nowrap transition-colors outline-none',
+          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2',
+          isFiltered
+            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
+            : 'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+        )}
+        aria-label={t`Filter by source`}
+      >
+        <span className="min-w-0 flex-1 truncate text-left">
+          {isFiltered ? (
+            <>
+              <span className="font-medium">{activeSource}</span>
+              <span className="ml-1.5 tabular-nums text-text-accent/70">
+                <Plural value={activeCount} one="# alert" other="# alerts" />
+              </span>
+            </>
+          ) : (
+            <Trans>All sources</Trans>
+          )}
+        </span>
+        <ChevronDownIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={4}
+        className="w-(--anchor-width) min-w-[240px] overflow-hidden p-0"
+      >
+        <Command loop>
+          <CommandInput autoFocus placeholder={t`Search sources…`} />
+          <CommandList className="max-h-[280px]">
+            <CommandEmpty>
+              <Trans>No sources match your search.</Trans>
+            </CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="all"
+                onSelect={() => {
+                  onSelect('all')
+                  setOpen(false)
+                }}
+                className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
+              >
+                <span className="min-w-0 truncate text-sm text-text-primary">
+                  <Trans>All sources</Trans>
+                </span>
+                <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
+                  {sourceOptions.length}
+                </span>
+                {!isFiltered ? (
+                  <CheckIcon className="size-4 text-text-accent" aria-hidden />
+                ) : (
+                  <span aria-hidden className="size-4" />
+                )}
+              </CommandItem>
+              {sourceOptions.map((source) => {
+                const count = sourceCounts.get(source) ?? 0
+                const selected = source === activeSource
+                return (
+                  <CommandItem
+                    key={source}
+                    value={source}
+                    onSelect={() => {
+                      onSelect(source)
+                      setOpen(false)
+                    }}
+                    className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
+                  >
+                    <span className="min-w-0 truncate text-sm text-text-primary">{source}</span>
+                    <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
+                      {count}
+                    </span>
+                    {selected ? (
+                      <CheckIcon className="size-4 text-text-accent" aria-hidden />
+                    ) : (
+                      <span aria-hidden className="size-4" />
+                    )}
+                  </CommandItem>
+                )
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 function FilteredEmptyState() {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default px-4 py-5 text-md text-text-secondary">
+    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">
       <PulsingDot tone="disabled" />
       <span className="flex-1">
         <Trans>No alerts match these filters.</Trans>
@@ -768,7 +1121,24 @@ function impactFilterLabel(filter: PulseImpactFilter): React.ReactNode {
   return <Trans>Closed</Trans>
 }
 
-function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
+// 2026-05-26 (Yuqi /rules/pulse thirteenth pass): each non-`all`
+// filter renders a leading lucide icon — the canonical pulse-status
+// vocabulary (CircleCheckBig / AlarmClock / Undo2 / FileCheck) is
+// duplicated here so the dropdown rows read as "[icon] Label" and
+// the active trigger label gets the icon too. Filter values map to
+// the real PulseFirmAlertStatus 1:1 except for `active` → `matched`.
+const STATUS_FILTER_ICON: Record<PulseStatusFilter, LucideIcon | null> = {
+  all: null,
+  active: PULSE_STATUS_ICON.matched,
+  snoozed: PULSE_STATUS_ICON.snoozed,
+  applied: PULSE_STATUS_ICON.applied,
+  partially_applied: PULSE_STATUS_ICON.partially_applied,
+  reviewed: PULSE_STATUS_ICON.reviewed,
+  reverted: PULSE_STATUS_ICON.reverted,
+  dismissed: PULSE_STATUS_ICON.dismissed,
+}
+
+function statusFilterText(filter: PulseStatusFilter): React.ReactNode {
   if (filter === 'all') return <Trans>All statuses</Trans>
   if (filter === 'active') return <Trans>Active</Trans>
   if (filter === 'partially_applied') return <Trans>Partially applied</Trans>
@@ -777,6 +1147,16 @@ function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
   if (filter === 'reverted') return <Trans>Reverted</Trans>
   if (filter === 'reviewed') return <Trans>Reviewed</Trans>
   return <Trans>Snoozed</Trans>
+}
+
+function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
+  const Icon = STATUS_FILTER_ICON[filter]
+  return (
+    <span className="inline-flex items-center gap-2">
+      {Icon ? <Icon className="size-3.5 text-text-tertiary" aria-hidden /> : null}
+      {statusFilterText(filter)}
+    </span>
+  )
 }
 
 function changeKindFilterLabel(filter: PulseChangeKindFilter): React.ReactNode {
@@ -851,7 +1231,7 @@ function SkeletonRow({
 function EmptyState({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const count = enabledSourceCount(sources)
   return (
-    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default px-4 py-5 text-md text-text-secondary">
+    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">
       <PulsingDot tone="success" active />
       <span className="flex-1">
         {count > 0 ? (
