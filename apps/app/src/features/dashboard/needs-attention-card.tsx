@@ -208,7 +208,10 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       aria-label={ariaLabel}
       className="group/overflow flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md px-4 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      <span className="inline-flex items-center gap-1 text-sm font-medium">
+      {/* 2026-05-25 (Yuqi typography rebalance): "+ N more" drops
+          from font-medium to regular — it's a navigation hint, not
+          a labeled affordance, so it should read at body weight. */}
+      <span className="inline-flex items-center gap-1 text-sm">
         <Plus
           className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"
           aria-hidden

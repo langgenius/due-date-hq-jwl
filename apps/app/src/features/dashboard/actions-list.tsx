@@ -230,7 +230,12 @@ function ActionRow({
             to it but heavier weight. Reads as "subject" with the
             prompt as the supporting detail, like an email
             list-item. */}
-        <span className="shrink-0 truncate text-base font-semibold text-text-primary">
+        {/* 2026-05-25 (Yuqi typography rebalance): client name
+            stepped down from font-semibold to font-medium.
+            Semibold made the row's leading word compete with the
+            section h2 above; medium keeps it as the row's anchor
+            without shouting next to a softer prompt. */}
+        <span className="shrink-0 truncate text-base font-medium text-text-primary">
           {row.clientName}
         </span>
         <span aria-hidden className="text-text-tertiary">
@@ -695,13 +700,17 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           up-right arrow points straight right — a tactile "follow
           this link" cue. Same pattern as the Alerts "View all"
           link on Today. */}
+      {/* 2026-05-25 (Yuqi typography rebalance): link demoted to
+          text-sm tertiary, same treatment as the Alerts "View all"
+          link. "All deadlines" is a navigation hint, not a primary
+          action. */}
       <Link
         to="/deadlines"
         onClick={(event) => {
           event.preventDefault()
           onOpenAll()
         }}
-        className="group/all-deadlines inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+        className="group/all-deadlines inline-flex items-center gap-1 text-sm text-text-tertiary hover:text-text-secondary"
       >
         <Trans>All deadlines</Trans>
         <ArrowUpRightIcon

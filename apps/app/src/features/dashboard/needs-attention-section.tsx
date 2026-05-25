@@ -75,9 +75,15 @@ function NeedsAttentionSection() {
             now anchor on the same noun ("alerts"). #7: the icon
             rotates 45° on hover so the up-right arrow points
             straight right — a tactile "follow me" cue. */}
+        {/* 2026-05-25 (Yuqi typography rebalance): link demoted from
+            text-base text-secondary (hover → primary) to text-sm
+            text-tertiary (hover → secondary). Yuqi flagged the page
+            as "too much bold and medium" — "view all" is a quiet
+            secondary affordance, not a primary CTA, so it should
+            sit at meta-text weight. */}
         <Link
           to="/rules/pulse"
-          className="group/all inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+          className="group/all inline-flex items-center gap-1 text-sm text-text-tertiary hover:text-text-secondary"
         >
           <Trans>View all alerts</Trans>
           <ArrowUpRightIcon
