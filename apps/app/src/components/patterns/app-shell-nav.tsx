@@ -9,6 +9,7 @@ import {
   CalendarIcon,
   CheckIcon,
   ChevronsUpDownIcon,
+  HistoryIcon,
   MapIcon,
   MegaphoneIcon,
   PlusIcon,
@@ -623,6 +624,18 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           },
         ],
         footer: [
+          // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): "Alerts
+          // archive" sits in the footer next to Audit log. Both
+          // are retrospective surfaces (review what already
+          // happened), not daily-driver destinations — same IA
+          // tier. HistoryIcon distinguishes from the live Alerts
+          // entry above without crowding the primary nav.
+          {
+            href: '/rules/pulse/history',
+            label: t`Alerts archive`,
+            icon: HistoryIcon,
+            end: false,
+          },
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
           { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
         ],

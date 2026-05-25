@@ -71,15 +71,29 @@ const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 
 interface PulseChangesTabProps {
   embedded?: boolean
+  /**
+   * 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): when true, the
+   * page renders the closed-alerts archive — initial status filter
+   * locked to `applied` (the most common terminal state), the
+   * "View history" cross-link in the header is hidden (we're
+   * already on it), and the impact/source filters still work as
+   * normal. The dedicated `/rules/pulse/history` route mounts
+   * this with `historyMode={true}` so the archive has its own
+   * URL + sidebar entry instead of being a soft-filter on the
+   * live page.
+   */
+  historyMode?: boolean
 }
 
 // Pulse Changes — source-backed rule-change timeline used inside Rules.
 // Uses the same hairline / mono language as the dashboard strip; no oversized
 // cards, no chrome shadows.
-export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
+export function PulseChangesTab({ embedded = false, historyMode = false }: PulseChangesTabProps) {
   const { t } = useLingui()
   const { openDrawer } = usePulseDrawer()
-  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>('all')
+  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
+    historyMode ? 'applied' : 'all',
+  )
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
@@ -252,15 +266,16 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                   )}
                 </span>
               ) : null}
-              {/* 2026-05-25 (Yuqi Alerts #2, #12): cross-surface
-                  links so the CPA can jump out of the alert review
-                  loop. "View sources" goes to the canonical rules
-                  surface where the source list lives. "View
-                  history" pre-sets the status filter to "applied"
-                  (most common closed state) — a starting point
-                  into the closed-alert archive without inventing
-                  a new route. The full closed-state set is still
-                  reachable via the filter dropdown. */}
+              {/* 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): the
+                  "View history" button now navigates to
+                  `/rules/pulse/history` instead of pre-setting the
+                  status filter inline. History earns its own
+                  route + sidebar entry so the CPA can deep-link
+                  the archive, bookmark it, and find it via global
+                  search — none of which worked when history was
+                  a soft-filter on the live page. Hidden when this
+                  component is mounted in history-mode (we're
+                  already on the archive). */}
               <div className="flex shrink-0 items-center gap-2">
                 <Link
                   to="/rules/library"
@@ -272,17 +287,14 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     aria-hidden
                   />
                 </Link>
-                {statusFilter !== 'applied' &&
-                statusFilter !== 'dismissed' &&
-                statusFilter !== 'reverted' ? (
-                  <button
-                    type="button"
-                    onClick={() => setStatusFilter('applied')}
+                {!historyMode ? (
+                  <Link
+                    to="/rules/pulse/history"
                     className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
                   >
                     <HistoryIcon className="size-3.5" aria-hidden />
                     <Trans>View history</Trans>
-                  </button>
+                  </Link>
                 ) : null}
               </div>
             </div>

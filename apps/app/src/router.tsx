@@ -563,6 +563,22 @@ export function createAppRouter() {
               },
             },
             {
+              // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): closed-
+              // alerts archive promoted from a soft-filter on
+              // /rules/pulse to a dedicated route. Mounts the same
+              // PulseChangesTab with `historyMode={true}` so the
+              // archive is deep-linkable + bookmarkable +
+              // sidebar-reachable.
+              path: 'rules/pulse/history',
+              handle: routeHandle(routeSummaries.rulesPulseHistory),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesPulseHistoryRoute } = await import('@/routes/rules.pulse-history')
+
+                return { Component: RulesPulseHistoryRoute }
+              },
+            },
+            {
               path: 'rules/temporary',
               handle: routeHandle(routeSummaries.rulesTemporary),
               HydrateFallback: RouteHydrateFallback,
