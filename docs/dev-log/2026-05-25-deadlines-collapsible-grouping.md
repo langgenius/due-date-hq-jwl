@@ -83,3 +83,10 @@ adjacency-of-clientId (the existing cluster-detection logic).
   don't need it)
 - Pagination / sort — work unchanged with collapse state
   preserved across page flips
+
+## 2026-05-25 follow-up — grouped-row indentation
+
+- Matched the Rule Library stepped hierarchy in expanded client groups:
+  grouped child-row checkboxes now align under the client-group header
+  label, and the visible client/continuation marker starts one step
+  deeper.

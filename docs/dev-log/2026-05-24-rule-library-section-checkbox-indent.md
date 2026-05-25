@@ -8,3 +8,9 @@ hierarchy clearer.
   level under the section header.
 - `DESIGN.md` stays aligned; this is a local spacing adjustment within the existing 4px spacing
   scale and does not introduce a new pattern or token.
+
+2026-05-25 follow-up:
+
+- Restored the intended stepped hierarchy after the section/header alignment pass: child rule rows
+  now begin one level deeper than `NEEDS REVIEW` / `ACTIVE`, with selectable row checkboxes aligned
+  under the section label and active-row titles using the same reserved slot.

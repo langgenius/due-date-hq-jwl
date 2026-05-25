@@ -1927,18 +1927,12 @@ function RuleTableRow({
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
     >
-      {/* 2026-05-25 (Yuqi rule library #11, #12, second-pass #1):
-          rule rows now use a single canonical pl-9 (36px) for the
-          title cell regardless of checkbox presence. A leading `w-4`
-          slot reserves space whether the row is selectable or not,
-          so checkbox and non-checkbox rows render their titles at
-          the EXACT same x-position. The slot's x-position sits flush
-          with the state row's chevron above, so every interactive
-          column of the table — chevron → checkbox → title — anchors
-          to one left edge. Drops the prior `!pl-[58px]` /
-          `!pl-[34px]` cascade that left selectable / non-selectable
-          rule titles ~24px apart. */}
-      <TableCell className="!pl-3 min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary">
+      {/* Rule rows sit one level deeper than the NEEDS REVIEW / ACTIVE
+          section headers: the row checkbox starts under the section
+          label, then the title sits after the checkbox slot. The same
+          slot is reserved for non-selectable active rows so titles
+          stay aligned across sections. */}
+      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary">
         <div className="flex min-w-0 items-start gap-2">
           <span className="inline-flex w-4 shrink-0 items-start pt-0.5">
             {selectable ? (

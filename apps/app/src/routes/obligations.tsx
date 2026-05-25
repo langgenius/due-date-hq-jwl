@@ -1267,34 +1267,41 @@ export function ObligationQueueRoute() {
             />
           )
         },
-        cell: ({ row: tableRow, table }) => (
-          <Checkbox
-            aria-label={t`Select ${tableRow.original.clientName}`}
-            checked={tableRow.getIsSelected()}
-            onClick={(event) => {
-              event.stopPropagation()
-              if (event.shiftKey && lastSelectedIdRef.current) {
-                event.preventDefault()
-                const nextChecked = !tableRow.getIsSelected()
-                const orderedIds = table.getRowModel().rows.map((r) => r.original.id)
-                table.setRowSelection((current) =>
-                  rangeSelectionUpdate({
-                    current,
-                    orderedIds,
-                    anchorId: lastSelectedIdRef.current,
-                    targetId: tableRow.original.id,
-                    nextChecked,
-                  }),
-                )
-                lastSelectedIdRef.current = tableRow.original.id
-              }
-            }}
-            onCheckedChange={(checked) => {
-              tableRow.toggleSelected(checked)
-              lastSelectedIdRef.current = tableRow.original.id
-            }}
-          />
-        ),
+        cell: ({ row: tableRow, table }) => {
+          const isGroupedClientRow =
+            continuationRowIds.has(tableRow.original.id) ||
+            withinGroupRowIds.has(tableRow.original.id)
+          return (
+            <div className={cn(isGroupedClientRow && 'translate-x-[26px]')}>
+              <Checkbox
+                aria-label={t`Select ${tableRow.original.clientName}`}
+                checked={tableRow.getIsSelected()}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  if (event.shiftKey && lastSelectedIdRef.current) {
+                    event.preventDefault()
+                    const nextChecked = !tableRow.getIsSelected()
+                    const orderedIds = table.getRowModel().rows.map((r) => r.original.id)
+                    table.setRowSelection((current) =>
+                      rangeSelectionUpdate({
+                        current,
+                        orderedIds,
+                        anchorId: lastSelectedIdRef.current,
+                        targetId: tableRow.original.id,
+                        nextChecked,
+                      }),
+                    )
+                    lastSelectedIdRef.current = tableRow.original.id
+                  }
+                }}
+                onCheckedChange={(checked) => {
+                  tableRow.toggleSelected(checked)
+                  lastSelectedIdRef.current = tableRow.original.id
+                }}
+              />
+            </div>
+          )
+        },
         meta: { headerClassName: 'w-10', cellClassName: 'w-10' },
       },
       {
@@ -1322,6 +1329,7 @@ export function ObligationQueueRoute() {
         ),
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
+          const isGroupedClientRow = isContinuation || withinGroupRowIds.has(tableRow.original.id)
           if (isContinuation) {
             // Same-client continuation: client name lives on the
             // first row of the group. We used to render an entirely
@@ -1336,7 +1344,7 @@ export function ObligationQueueRoute() {
             // for the eye. Full client name stays in `sr-only` for
             // screen readers — every row still announces its client.
             return (
-              <div className="flex items-center gap-1.5 text-text-quaternary">
+              <div className="flex items-center gap-1.5 pl-3 text-text-quaternary">
                 <span aria-hidden className="text-xs leading-none">
                   ↳
                 </span>
@@ -1381,7 +1389,7 @@ export function ObligationQueueRoute() {
           // `isObligationQueueRowControlClick` treat it as a control
           // and the row would only focus, not open.
           return (
-            <div className="flex min-w-0 items-center gap-1.5">
+            <div className={cn('flex min-w-0 items-center gap-1.5', isGroupedClientRow && 'pl-3')}>
               <span
                 onClick={handleClientNameClick}
                 onMouseDown={(event) => {
@@ -1796,6 +1804,7 @@ export function ObligationQueueRoute() {
       taxTypeOptions,
       taxTypeQuery,
       updateStatus,
+      withinGroupRowIds,
     ],
   )
 
