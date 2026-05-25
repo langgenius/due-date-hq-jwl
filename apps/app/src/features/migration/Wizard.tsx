@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useReducer, useState, type ReactNode } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { plural } from '@lingui/core/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
@@ -65,7 +66,7 @@ const OBLIGATION_QUEUE_PREFETCH_LIMIT = 50
  * from a clean Step 1 instead of resuming a half-finished draft.
  */
 export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps) {
-  const { t } = useLingui()
+  const { i18n, t } = useLingui()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [state, dispatch] = useReducer(wizardReducer, INITIAL_STATE)
@@ -400,8 +401,21 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           })
         },
         onSuccess: (result) => {
+          // 2026-05-25 (Wizard #40 — plural fix): "clients" and
+          // "obligations" were baked into the English template
+          // and never pluralised. `plural()` macro extracts both
+          // forms so n=1 renders "1 client" / "1 obligation".
+          const clientPart = i18n._(
+            plural(result.clientCount, { one: '# client', other: '# clients' }),
+          )
+          const obligationPart = i18n._(
+            plural(result.obligationCount, {
+              one: '# obligation',
+              other: '# obligations',
+            }),
+          )
           toast.success(t`Import complete`, {
-            description: t`${result.clientCount} clients, ${result.obligationCount} obligations created`,
+            description: t`${clientPart}, ${obligationPart} created`,
             action: {
               label: t`Undo import`,
               onClick: () =>
@@ -438,7 +452,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         },
       },
     )
-  }, [applyMutation, navigate, resetAndClose, state.batchId, t])
+  }, [applyMutation, i18n, navigate, resetAndClose, state.batchId, t])
 
   const sampleByHeader = useMemo(() => {
     if (!state.intake.rawText) return {}
@@ -520,15 +534,27 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           })
         },
         onSuccess: () => {
+          // 2026-05-25 (Wizard #40 — plural fix): same shape as
+          // the "Import complete" toast above — pluralise both
+          // sides so n=1 reads "1 client · 1 obligation".
+          const undoClientPart = i18n._(
+            plural(pendingRevert.clientCount, { one: '# client', other: '# clients' }),
+          )
+          const undoObligationPart = i18n._(
+            plural(pendingRevert.obligationCount, {
+              one: '# obligation',
+              other: '# obligations',
+            }),
+          )
           toast.success(t`Import undone`, {
-            description: t`${pendingRevert.clientCount} clients · ${pendingRevert.obligationCount} obligations removed`,
+            description: t`${undoClientPart} · ${undoObligationPart} removed`,
           })
           setPendingRevert(null)
           void navigate('/deadlines')
         },
       },
     )
-  }, [navigate, pendingRevert, revertMutation, t])
+  }, [i18n, navigate, pendingRevert, revertMutation, t])
 
   const shellProps = {
     step: state.step,
@@ -641,11 +667,19 @@ function LiveGenesisOverlay({
         <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
           {genesis.obligationCount}
         </div>
+        {/* 2026-05-25 (Wizard #40 — plural fix): "obligations
+            created" baked plural in English; the value above is
+            the count, so pluralise the label too. Same fix on
+            the "clients imported" line below. */}
         <div className="text-sm text-text-secondary">
-          <Trans>obligations created</Trans>
+          <Plural
+            value={genesis.obligationCount}
+            one="obligation created"
+            other="obligations created"
+          />
         </div>
         <div className="text-xs text-text-tertiary">
-          <Trans>{genesis.clientCount} clients imported</Trans>
+          <Plural value={genesis.clientCount} one="# client imported" other="# clients imported" />
         </div>
       </div>
     </div>

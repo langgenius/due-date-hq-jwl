@@ -52,8 +52,16 @@ export function Step3Normalize({ normalize, matrix, onUserEdit, onToggleApplyToA
   return (
     <div className="flex flex-col gap-5 py-5">
       <div className="flex flex-col gap-1">
+        {/* 2026-05-25 (Wizard #40 — plural fix): "values" was
+            baked into the English template so n=1 read "1
+            values". Wrapped in <Plural> so n=1 renders
+            "We organized 1 value — review if needed". */}
         <h2 className="text-lg font-semibold text-text-primary">
-          <Trans>We organized {normalize.rows.length} values — review if needed</Trans>
+          <Plural
+            value={normalize.rows.length}
+            one="We organized # value — review if needed"
+            other="We organized # values — review if needed"
+          />
         </h2>
         {needsReviewCount > 0 ? (
           <p className="text-sm text-text-secondary">
