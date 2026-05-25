@@ -9,7 +9,6 @@ import {
   CalendarIcon,
   CheckIcon,
   ChevronsUpDownIcon,
-  HistoryIcon,
   MapIcon,
   MegaphoneIcon,
   PlusIcon,
@@ -645,18 +644,12 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           },
         ],
         footer: [
-          // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): "Alerts
-          // archive" sits in the footer next to Audit log. Both
-          // are retrospective surfaces (review what already
-          // happened), not daily-driver destinations — same IA
-          // tier. HistoryIcon distinguishes from the live Alerts
-          // entry above without crowding the primary nav.
-          {
-            href: '/rules/pulse/history',
-            label: t`Alerts archive`,
-            icon: HistoryIcon,
-            end: false,
-          },
+          // 2026-05-25 (Yuqi sidebar polish): "Alerts archive" was
+          // promoted out of the sidebar footer — it's a sub-page
+          // of /alerts (review what already happened on the same
+          // surface), not a peer of Audit log / Settings.
+          // Now lives as an "Archive" button inside the /alerts
+          // page header instead. See features/pulse/AlertsListPage.tsx.
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
           { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
         ],
@@ -814,9 +807,25 @@ function NavGroupSection({
   // them at the bottom of the rail, not directly under the primary
   // groups. Without this they sit immediately under Clients with no
   // separation.
+  // 2026-05-25 (Yuqi sidebar collapse v3): in collapsed mode each
+  // labeled group's SidebarGroupLabel now renders as a 1px divider
+  // (see sidebar.tsx). For the unlabeled muted footer group we
+  // still want that divider above it — render a hidden-in-expanded
+  // separator so collapsed-mode keeps consistent group separation
+  // top-to-bottom. The muted-footer's `mt-auto` already supplies the
+  // spatial gap in expanded mode, so no extra divider is needed
+  // there.
   return (
     <SidebarGroup className={cn(muted && 'mt-auto opacity-55')}>
-      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
+      {label ? (
+        <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      ) : muted ? (
+        <div
+          aria-hidden
+          role="separator"
+          className="mx-1.5 my-1.5 hidden h-px shrink-0 bg-divider-subtle group-data-[collapsed=true]/sidebar:block"
+        />
+      ) : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>

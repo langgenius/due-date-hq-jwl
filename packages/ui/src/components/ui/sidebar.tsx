@@ -277,12 +277,23 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
   // 2026-05-25 (Yuqi sidebar collapse): group labels (e.g. "Operations",
   // "Practice") hide entirely in collapsed mode — the icons themselves
   // are the grouping affordance at 56px width.
+  // 2026-05-25 (Yuqi sidebar collapse v3): "hide entirely" left all
+  // icons running together in one column with no visual grouping at
+  // all — looked weird without the labels carrying the separator
+  // role. In collapsed mode the label slot now renders as a 1px
+  // hairline divider (same `bg-divider-subtle` tone as the top rib
+  // under the firm switcher). Text content + padding are hidden via
+  // an aria-hidden inner wrapper so screen readers don't announce
+  // empty group labels.
   return (
     <div
       data-slot="sidebar-group-label"
+      role="separator"
+      aria-orientation="horizontal"
       className={cn(
         'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
-        'group-data-[collapsed=true]/sidebar:hidden',
+        'group-data-[collapsed=true]/sidebar:my-1.5 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:bg-divider-subtle',
+        'group-data-[collapsed=true]/sidebar:[&>*]:hidden',
         className,
       )}
       {...props}
@@ -340,7 +351,15 @@ const sidebarMenuButtonVariants = cva(
     // center the icon at 56px width, drop the horizontal padding,
     // and hide the label span. The consumer's NavLink passes a
     // `title` attribute as the native hover tooltip.
-    'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
+    // 2026-05-25 (Yuqi rail alignment v2): in collapsed mode the
+    // button shrinks to a centered 32×32 square (size-8 mx-auto).
+    // Previously it kept w-full + h-8, so the bg-accent-tint
+    // active state stretched the full 44px row width while
+    // sibling icons (bell, toggle, footer items) were 32×32 —
+    // the active row read as a stretched pill out of family
+    // with everything else. Now active + hover both render as
+    // a 32×32 tinted tile, matching the rest of the rail.
+    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
     'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:hidden',
   ),
   {
