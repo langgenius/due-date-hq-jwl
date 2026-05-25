@@ -341,7 +341,25 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
       aria-orientation="horizontal"
       className={cn(
         'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
-        'group-data-[collapsed=true]/sidebar:my-1.5 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:bg-divider-subtle',
+        // 2026-05-26 (Yuqi collapsed-rail overflow fix): in collapsed
+        // mode the row was `h-px` + `overflow: visible` + text content
+        // ("RULE", "CLIENTS") still inside. The 11px uppercase glyphs
+        // ignored the 1px container and spilled above the hairline,
+        // making the group labels visible in the icons-only rail.
+        // `overflow-hidden` clips the text to the 1px row so only the
+        // `bg-divider-subtle` strip reads; `text-transparent` belt-
+        // and-suspenders the case where sub-pixel rendering leaves
+        // half-pixel slivers. `[&>*]:hidden` still catches element
+        // children (kept for symmetry; current call sites pass text
+        // nodes only).
+        // 2026-05-26 (Yuqi Figma collapsed-rail pass): hairline gets
+        // `mx-auto` + fixed `w-7` (28px) instead of spanning the full
+        // 43px row width. Matches the Figma reference where the
+        // group separator is a short centered stroke under the
+        // icon column, not a divider that touches the panel edges.
+        // `divider-subtle` → `divider-deep` so the 28px line still
+        // reads at 1px tall.
+        'group-data-[collapsed=true]/sidebar:my-2 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:w-7 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:bg-divider-deep group-data-[collapsed=true]/sidebar:text-transparent',
         'group-data-[collapsed=true]/sidebar:[&>*]:hidden',
         className,
       )}
@@ -426,7 +444,16 @@ const sidebarMenuButtonVariants = cva(
     // the active row read as a stretched pill out of family
     // with everything else. Now active + hover both render as
     // a 32×32 tinted tile, matching the rest of the rail.
-    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
+    // 2026-05-26 (Yuqi vertical-center fix): added `gap-0` in
+    // collapsed mode. The base button has `gap-2.5` (10px) between
+    // its flex children (icon + label span). In collapsed mode the
+    // label shrinks to max-w-0 / opacity-0 but is still a flex
+    // child, so the 10px gap stayed reserved between icon and
+    // (zero-width) label. With `justify-center`, the 16px icon
+    // ended up at x=3 instead of x=8 inside the 32px tile —
+    // visibly off-center to the left. `gap-0` collapses the
+    // reserved spacer so the icon centers properly.
+    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0',
     // 2026-05-26 (Yuqi sidebar smoothness pass): collapsed-mode
     // label hide swapped from `hidden` → opacity-0 + max-w-0 +
     // overflow-hidden so the label animates out (per the
@@ -529,6 +556,21 @@ export function SidebarMenuBadge({
   // as Linear / Notion sidebar counts.
   // Collapsed-mode dot indicator preserved unchanged (item still
   // visible at icon scale).
+  // 2026-05-26 (Yuqi collapsed-rail overflow fix): both tones lock to
+  // a fixed `size-1.5` (6×6) circle in collapsed mode. The previous
+  // `min-w-1.5` only set the minimum, so multi-digit counts like
+  // "456" (rule library pending review) ballooned the dot to ~20px
+  // wide because `text-transparent` colors glyphs but doesn't drop
+  // them from layout. `w-1.5 overflow-hidden` clamps the dot to 6px
+  // and clips any character width the text contributes.
+  // 2026-05-26 (Yuqi: clients don't need alert dot): inventory-tone
+  // badges (Deadlines "10", Clients "9") hide entirely in collapsed
+  // mode. They're reference counts ("here's how many you have"),
+  // not actionable signals — putting a gray dot in the rail next
+  // to those icons looked like an alert but wasn't one. Urgent-tone
+  // badges (Alerts "3", Rule library "456") keep their red dot in
+  // collapsed because they actually warrant attention. Expanded
+  // mode still shows the inline gray count text.
   if (tone === 'inventory') {
     return (
       <span
@@ -537,7 +579,7 @@ export function SidebarMenuBadge({
         className={cn(
           'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
-          'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-1.5 group-data-[collapsed=true]/sidebar:min-w-1.5 group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:bg-text-tertiary group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
+          'group-data-[collapsed=true]/sidebar:hidden',
           className,
         )}
         {...props}
@@ -550,7 +592,7 @@ export function SidebarMenuBadge({
       data-tone="urgent"
       className={cn(
         'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-warning',
-        'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-1.5 group-data-[collapsed=true]/sidebar:min-w-1.5 group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:bg-state-warning-solid group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
+        'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:size-1.5 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:bg-state-warning-solid group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
         className,
       )}
       {...props}

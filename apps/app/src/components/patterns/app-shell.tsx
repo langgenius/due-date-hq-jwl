@@ -80,8 +80,17 @@ export function AppShell(props: AppShellProps) {
           {/* 2026-05-25 (Yuqi rail alignment fix): collapsed mode
               centers the 32×32 firm-switcher avatar in the 56px
               rail; expanded mode lets it take its natural width
-              starting from the left edge of the px-2 padding. */}
-          <div className="flex px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0">
+              starting from the left edge of the px-2 padding.
+              2026-05-26 (Yuqi collapsed section height): expanded
+              section is 72px tall (8px py + 56px button + 8px
+              py). Without an override, collapsed shrank to 48px
+              (8 + 32 + 8) and the rib separator pulled up by
+              24px, making the workspace identity feel smaller
+              when collapsed. `min-h-[72px]` + `items-center`
+              keeps the 32×32 tile centered inside a 72px section
+              so the rib lands at the same y position in both
+              modes. */}
+          <div className="flex px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:min-h-[72px] group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:py-0">
             <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
           </div>
           {/*
