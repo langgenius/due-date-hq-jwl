@@ -264,6 +264,16 @@ function normalizeRulesLibrarySearch(search: string): string | null {
 //
 // Reading down a column: aggregate at top, individual applicability
 // dots below.
+//
+// 2026-05-25 (status-pill audit §4 #2): the audit flagged this
+// cell's `review` color as amber and asked it to flip to blue
+// so it matches the app's "review = work in progress" reading
+// (see audit §2.1). The codebase already uses `text-text-accent`
+// here, which resolves to `--color-util-colors-primary-600`
+// (#155aef, blue) — the same blue `EntityApplicabilityCell`
+// gets via `bg-accent-default`. So the recommendation is met;
+// this comment exists so future readers don't try to re-flip
+// the token thinking the audit item is still open.
 function EntityStateCell({ count, state }: { count: number; state: CoverageState }) {
   return (
     <span className="inline-flex items-center justify-center gap-1">

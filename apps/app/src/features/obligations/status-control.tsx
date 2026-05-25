@@ -98,34 +98,16 @@ const STATUS_VARIANT: Record<
   completed: 'success',
 }
 
-// Lifecycle vocab:
-//   - pending          → gray   (not started)
-//   - in_progress      → blue   (we're working on it)
-//   - waiting_on_client → violet (externally blocked, paused on us)
-//   - review           → amber  (needs attention — ours or partner's)
-//   - blocked          → red    (hard stop, can't proceed)
-//   - done / completed → green  (closed)
-//   - extended         → gray pill + blue dot (deadline pushed forward,
-//                         still active work; reads as quieter than
-//                         in_progress)
-const STATUS_DOT: Record<
-  ObligationStatus,
-  'error' | 'normal' | 'disabled' | 'warning' | 'success' | 'info'
-> = {
-  pending: 'disabled',
-  in_progress: 'normal',
-  // `review` aligns with `in_progress` per the tone audit above —
-  // both are active-work states, not needs-attention states.
-  review: 'normal',
-  waiting_on_client: 'info',
-  done: 'success',
-  extended: 'normal',
-  paid: 'success',
-  not_applicable: 'disabled',
-  blocked: 'error',
-  completed: 'success',
-}
-
+// 2026-05-25 (status-pill audit §4 #8): `STATUS_DOT` (a
+// `Record<ObligationStatus, BadgeStatusDot tone>` mapping)
+// lived here as the pre-icon-pass affordance. It was retired
+// once the canonical badge + queue control switched to
+// icon-led (`STATUS_ICON` + `STATUS_ICON_COLOR`); the only
+// remaining consumer was the obligations-page filter tab as a
+// fallback that was already unreachable (every status-mapped
+// tab passes `icon`). Removed from the export surface so
+// future surfaces can't regress onto the legacy treatment.
+//
 // 2026-05-25 (Yuqi status icon pass): every status now ships a
 // lucide icon + a tinted color class so the chrome reads as
 // recognizable glyphs ("hourglass = waiting on client", "barrier
@@ -380,7 +362,6 @@ export {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   ObligationStatusReadBadge,
-  STATUS_DOT,
   STATUS_ICON,
   STATUS_ICON_COLOR,
   STATUS_VARIANT,

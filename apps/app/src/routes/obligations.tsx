@@ -178,7 +178,6 @@ import {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
-  STATUS_DOT,
   STATUS_ICON,
   STATUS_ICON_COLOR,
   STATUS_VARIANT,
@@ -2358,11 +2357,15 @@ export function ObligationQueueRoute() {
                     // with the same lucide icon used on row pills — same
                     // glyph in the same color across the cell + the tab,
                     // so the user can match "this filter brings up the
-                    // rows with this mark". `dotTone` stays as a
-                    // fallback for legacy consumers.
+                    // rows with this mark".
+                    // 2026-05-25 (status-pill audit §4 #8): dropped the
+                    // `dotTone={STATUS_DOT[status]}` fallback. Every
+                    // status-mapped tab provides an `icon` so the dot
+                    // path was already dead, and STATUS_DOT is being
+                    // retired from the export surface (icon-led badges
+                    // are canonical per audit §3.3).
                     icon={STATUS_ICON[status]}
                     iconColor={STATUS_ICON_COLOR[status]}
-                    dotTone={STATUS_DOT[status]}
                     onClick={() =>
                       void setObligationQueueQuery({
                         status: [status],
@@ -8931,7 +8934,6 @@ function ObligationQueueScopeTab({
   count,
   active,
   onClick,
-  dotTone,
   icon: Icon,
   iconColor,
 }: {
@@ -8939,13 +8941,15 @@ function ObligationQueueScopeTab({
   count: number
   active: boolean
   onClick: () => void
-  dotTone?: React.ComponentProps<typeof BadgeStatusDot>['tone']
   // 2026-05-25 (Yuqi status icon pass): scope tabs now lead with a
   // lucide status icon when the tab maps to a lifecycle status (the
   // 6 v2 scope tabs). `icon` is the lucide component, `iconColor`
-  // is the tailwind text-color class. Falls back to `dotTone` (the
-  // pre-icon-pass affordance) when neither is provided — used by
-  // the "All" tab which doesn't represent a single status.
+  // is the tailwind text-color class. The "All" tab passes neither
+  // and renders without a leading mark.
+  // 2026-05-25 (status-pill audit §4 #8): the prior `dotTone`
+  // fallback (BadgeStatusDot) was removed — icon-led badges are
+  // canonical per audit §3.3, and every status-mapped tab already
+  // provides an icon.
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
   iconColor?: string
 }) {
@@ -8964,11 +8968,7 @@ function ObligationQueueScopeTab({
           : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
       }`}
     >
-      {Icon ? (
-        <Icon className={cn('size-3.5', iconColor)} aria-hidden />
-      ) : dotTone ? (
-        <BadgeStatusDot tone={dotTone} />
-      ) : null}
+      {Icon ? <Icon className={cn('size-3.5', iconColor)} aria-hidden /> : null}
       <span>{label}</span>
       <span className="tabular-nums text-text-tertiary">{count}</span>
     </button>
