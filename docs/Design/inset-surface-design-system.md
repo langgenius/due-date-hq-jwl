@@ -12,7 +12,7 @@ in `semantic-dark.css`), exposed as Tailwind utilities via `preset.css`.
 
 | Token                  | Value (light) | Class                   | When to use                                                                                                                     |
 | ---------------------- | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `--background-inset`   | `#fafafa`     | `bg-background-inset`   | **SidebarInset work surface.** Every route renders on top of this gray. Change in one place to retone the whole product.        |
+| `--background-inset`   | `#f4f4f4`     | `bg-background-inset`   | **SidebarInset work surface.** Every route renders on top of this gray. Change in one place to retone the whole product.        |
 | `--background-default` | `#ffffff`     | `bg-background-default` | **Card surfaces.** Cards/panels/sections that should "pop" off the inset gray.                                                  |
 | `--background-section` | gray-50       | `bg-background-section` | Inline framed callouts that need a quiet step-down from white. Avoid on large card surfaces — blends with `--background-inset`. |
 | `--background-subtle`  | gray-100      | `bg-background-subtle`  | Small chips (kbd, status pill backgrounds). Borders carry the frame; safe even on the new inset.                                |
@@ -21,7 +21,7 @@ Change the inset tone:
 
 ```css
 /* packages/ui/src/styles/tokens/semantic-light.css */
---background-inset: #fafafa; /* ← change here, propagates everywhere */
+--background-inset: #f4f4f4; /* ← change here, propagates everywhere */
 ```
 
 ---
@@ -29,7 +29,7 @@ Change the inset tone:
 ## Surface hierarchy
 
 ```
-SidebarInset (#fafafa)
+SidebarInset (#f4f4f4)
 ├─ Page header (transparent, sits on inset)
 └─ Cards (bg-background-default white, border-divider-subtle, rounded-md)
    └─ Section frames inside cards (bg-background-default, rounded-md)
@@ -90,7 +90,34 @@ className={cn(
 
 ---
 
-## Drawer / right panel
+## Drawer canonical (PulseDetailDrawer + ObligationDrawer)
+
+**Both drawers** in the product follow the same chrome. The list at the top
+of this section is the source of truth — if a drawer disagrees, fix the
+drawer.
+
+### Padding
+
+| Region                     | Class               | Pixel                            |
+| -------------------------- | ------------------- | -------------------------------- |
+| Header                     | `px-12 py-10`       | 48 × 40                          |
+| Body (scrolling)           | `px-12 pt-10 pb-24` | 48 × (40 top / 96 bottom)        |
+| Sticky footer              | `px-12 py-4`        | 48 × 16                          |
+| Body inter-section gap     | `gap-4`             | 16                               |
+| Inner section internal gap | `gap-3`             | 12                               |
+| Sticky inner heading bleed | `-mx-12 px-12 py-3` | full-width with 48px inner inset |
+
+**Why asymmetric body padding?** The sticky footer (`min-h-16` + `py-4` ≈
+64-80px) overlays the body's bottom edge when scrolled. `pb-24` (96px) gives
+~footer-height + 32px breathing room, so the last content row never hides
+behind the action bar. Top stays `pt-10` (40px) — the header-to-content
+rhythm is unchanged.
+
+The `px-12 py-10` body padding makes the drawer read as a roomy paper document.
+`px-12` repeats edge-to-edge on header/body/footer so the left margin is one
+continuous line.
+
+### Outer chrome
 
 ```tsx
 <aside
@@ -98,17 +125,62 @@ className={cn(
              border-l border-divider-subtle bg-background-default
              shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
 >
-  {/* sticky header */}
-  {/* scrolling body (px-6 py-5, gap-4) */}
-  {/* sticky footer (min-h-16, border-t-2, bg-background-default, px-6 py-4) */}
+  {/* sticky header (px-12 py-10, border-b border-divider-subtle) */}
+  {/* scrolling body (flex-1 overflow-y-auto, px-12 py-10, gap-4) */}
+  {/* sticky footer (min-h-16, border-t-2, bg-background-default, px-12 py-4) */}
 </aside>
 ```
 
-- **Width:** `60%` of container when open, with `min-w-[1440px]` on the route
-  shell so the panel/list split lands at 864/560 minimum.
-- **Shadow:** soft left-edge shadow — gestural "paper lifted off the desk."
-- **Footer:** taller + harder top border + white bg so the decision surface
-  reads as decision-grade.
+### Header structure
+
+Stacked vertically:
+
+1. **Kicker** — framed state pill (e.g. `[CA flag] CA California`) at
+   `text-xs`, `rounded-sm` framed
+2. **h1 title** — `text-2xl font-semibold leading-tight`
+3. **Description** (optional) — `text-sm text-text-secondary`, `mt-2`
+4. **Chip row** — `flex flex-wrap items-center gap-2 text-sm`: change-kind
+   chip leads, then source / status / confidence pills
+
+### Body structure
+
+- Scrolling container: `flex-1 min-h-0 overflow-y-auto px-12 py-10 gap-4 flex flex-col`
+- Each section: `flex flex-col gap-3`
+- Section heading inside body: `text-sm font-medium text-text-secondary` (NOT a
+  page-level h2 — body sections are quieter than the drawer's own h1)
+
+### Footer two-cluster layout
+
+```tsx
+<div className="flex flex-wrap items-center justify-between gap-2">
+  <div className="flex flex-wrap items-center gap-2">
+    {/* LEFT: reversal / secondary (Undo, Reactivate) */}
+  </div>
+  <div className="flex flex-wrap items-center gap-2">
+    {/* RIGHT: forward / primary (Apply, Save, Confirm) */}
+  </div>
+</div>
+```
+
+LEFT cluster holds reversal / destructive actions. RIGHT cluster holds the
+primary forward CTA. `justify-between` pins them apart. The right cluster's
+last button is the **primary** (default size + variant); siblings stay
+`size="sm"`.
+
+### Width
+
+- PulseDetailDrawer (panel mode): `60%` of container when open. Route shell
+  sets `min-w-[1440px]` so list/panel split lands at 560/864 minimum.
+- ObligationDrawer (sheet mode): `min(720, 100vw - 16px)` at sm,
+  `min(840, 100vw - 24px)` at md, `min(920, 100vw - 32px)` at xl.
+
+### Visual gestures
+
+- **Shadow** (panel mode): `shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]`
+  on the left edge — gestural "paper lifted off the desk."
+- **Footer divider**: `border-t-2` (heavier than the typical `border-t`) +
+  white bg so the decision surface reads as decision-grade against the
+  body's content.
 
 ---
 
@@ -183,6 +255,31 @@ across Today / Alerts / Deadlines.
 - DL grids (`<dl>` with key/value columns) may use `gap-x-8` for column separation; this is reading-list spacing, not card padding.
 
 ---
+
+## Table chrome canonical
+
+The /deadlines queue is the reference. Same rules apply to every data table across the product.
+
+| Element            | Background                          | Notes                                                                                                           |
+| ------------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `<Table>` (outer)  | **transparent**                     | Sits on the page's inset surface; no white card                                                                 |
+| `<TableHeader>`    | `bg-background-default-dimmed`      | Light blue-tinted gray; header band one step above white                                                        |
+| `<TableBody>`      | `bg-background-default`             | White; this is where row content lives                                                                          |
+| Row default        | inherits white from `<TableBody>`   | No per-row bg                                                                                                   |
+| Row hover          | `bg-state-accent-hover` (`#eff4ff`) | Same accent tint the right detail panel uses when a row is selected — hover previews where the panel will paint |
+| Row selected       | `bg-state-accent-hover`             | (default `<TableRow>` primitive behavior)                                                                       |
+| Outer table border | **none**                            | Scroll column already provides framing; outer border was painting a card-within-card                            |
+| Pagination footer  | transparent, top hairline only      | `mt-auto` to pin at column bottom; `border-t border-divider-subtle`                                             |
+
+Header column text:
+
+- `text-sm font-medium normal-case tracking-normal text-text-secondary`
+- NOT the kicker-tier `text-xs uppercase tracking-[0.08em] text-text-tertiary` small-caps style. That reads as a meta label, not a header.
+
+Body cells:
+
+- `text-sm` default; row anchor (primary identity) at `text-base font-medium`.
+- `py-3` for comfortable rhythm. Drop to `py-2` only for density modes.
 
 ## Typography rules
 

@@ -202,7 +202,18 @@ export function PulseAlertCard({
         'group/alert-card relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-[opacity,background-color,border-color]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
-          ? 'border-state-accent-hover-alt bg-state-accent-hover/40'
+          ? // 2026-05-26 (Yuqi forty-fifth pass — active state stronger):
+            // dropped the `/40` opacity on bg-state-accent-hover. The
+            // /40 made the active card read as just-barely-tinted —
+            // the CPA couldn't always tell which row was open in the
+            // panel. Full bg-state-accent-hover plus the
+            // border-state-accent-active-alt (one step stronger than
+            // hover-alt) gives the active row a real signal-blue
+            // chrome so it pops as "this is open" against the dimmed
+            // white siblings. Still using the accent-hover tone, not
+            // saturated solid blue, so the row reads as
+            // wayfinding-quiet, not alert-loud.
+            'border-state-accent-active-alt bg-state-accent-hover'
           : cn(
               // 2026-05-26 (Yuqi twenty-ninth pass): hover quieted.
               // Was `hover:bg-state-base-hover` which painted a

@@ -243,6 +243,7 @@ function ObligationQueueStatusControl({
   statuses = ALL_STATUSES,
   disabled,
   onChange,
+  displayStatus,
 }: {
   row: StatusControlRow
   labels: StatusLabels
@@ -255,9 +256,23 @@ function ObligationQueueStatusControl({
   statuses?: readonly ObligationStatus[]
   disabled: boolean
   onChange: (id: string, status: ObligationStatus) => void
+  // 2026-05-26 (Yuqi fifty-third pass — pill-display dedup): when
+  // an augmenting flag chip beside this control names the specific
+  // sub-state (e.g. "Waiting on client", "Blocked"), the consumer
+  // can pass `displayStatus="in_progress"` so the pill renders the
+  // generic verb-of-motion ("In progress") and the chip carries the
+  // specific noun. Without this prop, the pill shows the actual
+  // `row.status` label which can repeat the chip text verbatim.
+  // The DROPDOWN still operates on the real `row.status` — this
+  // prop only affects the trigger's rendered label/icon/variant.
+  // Explicit `| undefined` is required by exactOptionalPropertyTypes
+  // (consumers compute this conditionally and pass undefined when
+  // no chip is present).
+  displayStatus?: ObligationStatus | undefined
 }) {
   const { t } = useLingui()
-  const TriggerIcon = STATUS_ICON[row.status]
+  const triggerStatus = displayStatus ?? row.status
+  const TriggerIcon = STATUS_ICON[triggerStatus]
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -267,7 +282,7 @@ function ObligationQueueStatusControl({
             aria-label={t`Change status for ${row.clientName}`}
             disabled={disabled}
             className={cn(
-              badgeVariants({ variant: STATUS_VARIANT[row.status] }),
+              badgeVariants({ variant: STATUS_VARIANT[triggerStatus] }),
               'h-6 cursor-pointer text-xs outline-none hover:ring-2 hover:ring-state-accent-active-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
             )}
             onClick={(event) => event.stopPropagation()}
@@ -278,8 +293,8 @@ function ObligationQueueStatusControl({
                 Size is enforced by badgeVariants' `[&>svg]:size-3!`
                 rule (see docs/Design/icon-sizing.md) — passing a
                 size class here would be ignored, so we don't. */}
-            <TriggerIcon className={STATUS_ICON_COLOR[row.status]} aria-hidden />
-            {labels[row.status]}
+            <TriggerIcon className={STATUS_ICON_COLOR[triggerStatus]} aria-hidden />
+            {labels[triggerStatus]}
           </button>
         }
       />
