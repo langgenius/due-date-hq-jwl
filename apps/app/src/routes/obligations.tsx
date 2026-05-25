@@ -1155,32 +1155,79 @@ export function ObligationQueueRoute() {
   // Computed from `rows` (not `pagedRows`) so the cluster count
   // reflects the full result set, not just the visible page. Same
   // pattern as continuationRowIds / withinGroupRowIds above.
+  // 2026-05-26 (Yuqi sixty-second pass — full group-by section
+  // headers): keep the original adjacent-same-client cluster
+  // detection for the DEFAULT group=due mode (only fires when 2+
+  // adjacent rows share a client), AND add a parallel path that
+  // ALWAYS emits a section header at every group boundary when
+  // group !== 'due'. group=client: header per client (even
+  // single-row). group=status: header per status bucket.
+  // Reuses the same collapsedClientGroups Set keyed by groupKey
+  // string ('clientId' for client mode, 'status' for status mode).
   const groupHeadersByFirstRowId = useMemo(() => {
     const map = new Map<
       string,
-      { clientId: string; clientName: string; count: number; earliestDueDate: string }
+      {
+        groupKey: string
+        clientId: string
+        clientName: string
+        count: number
+        earliestDueDate: string
+      }
     >()
+    if (group === 'due') {
+      // Original behavior — cluster headers only when 2+ adjacent
+      // rows share a client. This is the default and pre-existing
+      // "multi-deadline-per-client" pattern.
+      let i = 0
+      while (i < rows.length) {
+        const start = rows[i]!
+        let j = i + 1
+        while (j < rows.length && rows[j]!.clientId === start.clientId) j++
+        if (j - i > 1) {
+          let earliest = start.currentDueDate
+          for (let k = i + 1; k < j; k++) {
+            if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
+          }
+          map.set(start.id, {
+            groupKey: start.clientId,
+            clientId: start.clientId,
+            clientName: start.clientName,
+            count: j - i,
+            earliestDueDate: earliest,
+          })
+        }
+        i = j
+      }
+      return map
+    }
+    // group=client / group=status — emit a header at EVERY group
+    // boundary, including single-row groups. The rows are already
+    // sorted with the group key as primary sort (see `sorting`
+    // useMemo earlier), so adjacent rows in the same group cluster
+    // naturally.
+    const groupKeyOf = (r: ObligationQueueRow) => (group === 'client' ? r.clientId : r.status)
     let i = 0
     while (i < rows.length) {
       const start = rows[i]!
+      const startKey = groupKeyOf(start)
       let j = i + 1
-      while (j < rows.length && rows[j]!.clientId === start.clientId) j++
-      if (j - i > 1) {
-        let earliest = start.currentDueDate
-        for (let k = i + 1; k < j; k++) {
-          if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
-        }
-        map.set(start.id, {
-          clientId: start.clientId,
-          clientName: start.clientName,
-          count: j - i,
-          earliestDueDate: earliest,
-        })
+      while (j < rows.length && groupKeyOf(rows[j]!) === startKey) j++
+      let earliest = start.currentDueDate
+      for (let k = i + 1; k < j; k++) {
+        if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
       }
+      map.set(start.id, {
+        groupKey: startKey,
+        clientId: start.clientId,
+        clientName: start.clientName,
+        count: j - i,
+        earliestDueDate: earliest,
+      })
       i = j
     }
     return map
-  }, [rows])
+  }, [rows, group])
   // 2026-05-25 (Yuqi /deadlines fourth pass #6): collapsible
   // client-deadline grouping. State is local + transient — not
   // URL-bound — because expand/collapse is a per-view scroll-state
@@ -3033,20 +3080,29 @@ export function ObligationQueueRoute() {
                       // header row stays visible either way so the
                       // cluster is still findable when collapsed.
                       const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
+                      // 2026-05-26 (Yuqi sixty-second pass — generalized
+                      // collapse): collapse Set is keyed by `groupKey`
+                      // (clientId in group=client mode, status in
+                      // group=status mode, clientId in default
+                      // multi-deadline mode). Same Set powers all
+                      // three modes since collapsedClientGroups is
+                      // already a Set<string>.
+                      const rowGroupKey =
+                        group === 'status' ? tableRow.original.status : tableRow.original.clientId
                       const headerCollapsed = groupHeader
-                        ? collapsedClientGroups.has(groupHeader.clientId)
+                        ? collapsedClientGroups.has(groupHeader.groupKey)
                         : false
-                      // When a client cluster is collapsed, hide
-                      // the continuation rows (rows 2..N) entirely.
-                      // The FIRST row of the cluster is also hidden
-                      // — only the header remains, which is what
-                      // "collapsed" should mean semantically. The
-                      // header is rendered inside the Fragment
-                      // below; when the leaf row is suppressed, we
-                      // still emit the header.
+                      // Continuation rows in group=due (multi-deadline
+                      // clusters): same as before — hide when their
+                      // client cluster is collapsed. In group=client /
+                      // group=status: the continuationRowIds set still
+                      // applies (adjacent rows share clientId after
+                      // the group sort), so this logic naturally
+                      // generalizes — collapsing a group hides every
+                      // continuation row in it.
                       const isHiddenContinuation =
                         continuationRowIds.has(tableRow.original.id) &&
-                        collapsedClientGroups.has(tableRow.original.clientId)
+                        collapsedClientGroups.has(rowGroupKey)
                       if (isHiddenContinuation) return null
                       const suppressLeafRow = groupHeader && headerCollapsed
                       return (
@@ -3059,14 +3115,23 @@ export function ObligationQueueRoute() {
                               >
                                 <button
                                   type="button"
-                                  onClick={() => toggleClientGroupCollapse(groupHeader.clientId)}
+                                  onClick={() => toggleClientGroupCollapse(groupHeader.groupKey)}
                                   aria-expanded={!headerCollapsed}
-                                  aria-controls={`client-group-${groupHeader.clientId}`}
-                                  aria-label={
-                                    headerCollapsed
-                                      ? t`Expand ${groupHeader.clientName}`
-                                      : t`Collapse ${groupHeader.clientName}`
-                                  }
+                                  aria-controls={`group-${groupHeader.groupKey}`}
+                                  aria-label={(() => {
+                                    // 2026-05-26 (Yuqi sixty-second
+                                    // pass — generalized aria label):
+                                    // pick the right human label per
+                                    // group mode.
+                                    const label =
+                                      group === 'status'
+                                        ? (statusLabels[groupHeader.groupKey as ObligationStatus] ??
+                                          groupHeader.groupKey)
+                                        : groupHeader.clientName
+                                    return headerCollapsed
+                                      ? t`Expand ${label}`
+                                      : t`Collapse ${label}`
+                                  })()}
                                   className="inline-flex w-full items-baseline gap-x-2 gap-y-0.5 rounded-sm py-0.5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                 >
                                   <ChevronRightIcon
@@ -3077,7 +3142,10 @@ export function ObligationQueueRoute() {
                                     aria-hidden
                                   />
                                   <span className="font-semibold text-text-secondary">
-                                    {groupHeader.clientName}
+                                    {group === 'status'
+                                      ? (statusLabels[groupHeader.groupKey as ObligationStatus] ??
+                                        groupHeader.groupKey)
+                                      : groupHeader.clientName}
                                   </span>
                                   <span aria-hidden>·</span>
                                   <span className="tabular-nums">
