@@ -27,7 +27,14 @@ import type {
 import { inferTaxTypes } from '@duedatehq/core/default-matrix'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -36,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -754,7 +760,7 @@ function RolloverMetric({
     <div className="min-w-0 border-r border-divider-subtle px-3 py-2 last:border-r-0">
       <div className="flex min-w-0 items-center gap-1 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         <span className="truncate">{label}</span>
-        <RolloverHelpTooltip label={label} description={description} />
+        <RolloverHelpPopover label={label} description={description} />
       </div>
       <div className="font-mono text-lg font-semibold tabular-nums text-text-primary">{value}</div>
     </div>
@@ -778,30 +784,47 @@ function RolloverColumnHeader({
       )}
     >
       <span className="truncate">{label}</span>
-      <RolloverHelpTooltip label={label} description={description} />
+      <RolloverHelpPopover label={label} description={description} />
     </span>
   )
 }
 
-function RolloverHelpTooltip({ label, description }: { label: string; description: string }) {
+// 2026-05-25 (info-icon audit): the rollover preview's per-metric
+// and per-column help blurbs are glossary-grade (60-100+ chars)
+// which is too long for a Tooltip. Swapped to a Popover matching
+// the ConceptHelp shape (size-6 hit area, w-80 surface, title +
+// description body) so the affordance reads consistently with
+// every other "what does this term mean" explainer in the app.
+// Concept dictionary entries weren't added because the labels
+// here are highly localised to the rollover preview and would
+// pollute the cross-surface concept namespace.
+function RolloverHelpPopover({ label, description }: { label: string; description: string }) {
   const { t } = useLingui()
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <Popover>
+      <PopoverTrigger
+        openOnHover
+        delay={150}
+        closeDelay={80}
         render={
           <button
             type="button"
-            aria-label={t`About ${label}`}
-            className="inline-flex size-4 shrink-0 items-center justify-center rounded-full text-text-tertiary transition hover:bg-background-muted hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-state-accent-solid"
-          >
-            <CircleHelpIcon className="size-3.5" aria-hidden />
-          </button>
+            aria-label={t`Explain ${label}`}
+            className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          />
         }
-      />
-      <TooltipContent className="max-w-[280px] whitespace-normal text-left leading-5">
-        {description}
-      </TooltipContent>
-    </Tooltip>
+      >
+        <CircleHelpIcon className="size-3.5" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent side="top" align="center" className="w-80 gap-2 p-3">
+        <PopoverHeader>
+          <PopoverTitle>{label}</PopoverTitle>
+          <PopoverDescription className="text-sm leading-relaxed text-text-secondary">
+            {description}
+          </PopoverDescription>
+        </PopoverHeader>
+      </PopoverContent>
+    </Popover>
   )
 }
 
