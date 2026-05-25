@@ -118,6 +118,8 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
@@ -1669,13 +1671,18 @@ export function ObligationQueueRoute() {
           if (!assigneeName) {
             // Unassigned = dashed-outline empty avatar, no text.
             // Reads as "slot exists but nobody's filled it."
-            // 2026-05-26 (Yuqi sixty-fifth pass follow-up #1): hover
-            // state + cursor-pointer added so the avatar advertises
-            // its clickability. Clicking propagates to the row
-            // handler → opens the obligation drawer where the
-            // assignee picker lives. No standalone popover yet (would
-            // need its own AssigneePicker component); the drawer
-            // covers the use case for now.
+            // 2026-05-26 (Yuqi sixty-fifth pass follow-up #1 +
+            // inset-followups E): hover state + cursor-pointer
+            // advertises clickability. Click bubbles to the row
+            // handler → opens the obligation drawer.
+            //
+            // TODO(assignee-picker): build a standalone Popover-based
+            // picker once `orpc.obligations.assign` (or equivalent
+            // mutation) lands server-side. Today the codebase has
+            // `orpc.members.listAssignable` for the member list, but
+            // no mutation for setting an obligation's assignee from
+            // the queue. Until that ships, the drawer is the only
+            // assignment surface.
             return (
               <span
                 aria-label={t`Unassigned — click row to assign`}
@@ -2780,11 +2787,24 @@ export function ObligationQueueRoute() {
                   `obligation: null, row: null` clears so action-chip
                   toggles no longer auto-close the detail panel and
                   trigger its width-collapse animation. */}
+              {/* 2026-05-26 (Yuqi inset-followups B): Past due + Due
+                  this week are now MUTUALLY EXCLUSIVE. Clicking one
+                  clears the other. They're conceptually overlapping
+                  views of the same date axis (Past due = days < 0,
+                  Due this week = 0 ≤ days ≤ 7) so combining them is
+                  meaningless. Needs evidence stays orthogonal — it's
+                  a different axis (audit completeness, not date) so
+                  the user can still combine "Past due AND needs
+                  evidence" to find overdue rows still missing
+                  documents. */}
               <ObligationQueueActionChip
                 active={due === 'overdue'}
                 onClick={() =>
                   void setObligationQueueQuery({
                     due: due === 'overdue' ? null : 'overdue',
+                    // Clearing Due this week if it was active — same axis
+                    daysMin: null,
+                    daysMax: null,
                   })
                 }
               >
@@ -2793,7 +2813,11 @@ export function ObligationQueueRoute() {
               <ObligationQueueActionChip
                 active={thisWeekFilterActive}
                 onClick={() =>
-                  void setObligationQueueQuery(nextThisWeekFilterPatch(daysMin, daysMax))
+                  void setObligationQueueQuery({
+                    ...nextThisWeekFilterPatch(daysMin, daysMax),
+                    // Clearing Past due if it was active — same axis
+                    due: null,
+                  })
                 }
               >
                 <Trans>Due this week</Trans>
@@ -2829,58 +2853,60 @@ export function ObligationQueueRoute() {
                   rendering lands. The full grouped UI with sticky
                   collapsible section headers + aggregate pills is
                   in a separate spawned task per PRD. */}
-              <Select
-                value={group}
-                onValueChange={(next) => {
-                  if (next === 'due' || next === 'client' || next === 'status') {
-                    void setObligationQueueQuery({ group: next })
+              {/* 2026-05-26 (Yuqi inset-followups D): Sort by converted
+                  from Base UI Select → DropdownMenu w/ RadioGroup.
+                  Base UI Select had different click + keyboard
+                  behavior than every other dropdown in the product
+                  (which all use Base UI Menu / DropdownMenu). User
+                  flagged "incorrect dropdown interaction" — converting
+                  to DropdownMenu puts Sort-by in the same interaction
+                  family as the Columns dropdown right next to it.
+                  Trigger chrome unchanged (single "Sort by X" label,
+                  matches Pulse). */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <button
+                      type="button"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-divider-strong bg-background-default px-2 text-sm whitespace-nowrap text-text-primary hover:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                    >
+                      <span>
+                        {group === 'client' ? (
+                          <Trans>Sort by client</Trans>
+                        ) : group === 'status' ? (
+                          <Trans>Sort by status</Trans>
+                        ) : (
+                          <Trans>Sort by date</Trans>
+                        )}
+                      </span>
+                      <ChevronDownIcon
+                        className="size-3.5 shrink-0 text-text-tertiary"
+                        aria-hidden
+                      />
+                    </button>
                   }
-                }}
-              >
-                {/* 2026-05-26 (Yuqi fifty-fourth pass — dropdown
-                    style match Alerts page): trigger now uses the
-                    canonical filter-trigger chrome from
-                    docs/Design/inset-surface-design-system.md
-                    (border-divider-strong + bg-background-default
-                    + hover:bg-state-base-hover). Same shape as the
-                    /rules/pulse source / status / impact filters
-                    so all dropdowns across the product read as one
-                    family. Width h-8 + gap-1.5 stays — matches the
-                    Alerts panel-aware filter pattern. */}
-                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — Sort
-                    trigger format match Pulse): trigger now renders a
-                    SINGLE phrase ("Sort by date" / "Sort by client" /
-                    "Sort by status") in one uniform color, matching
-                    the Pulse triggers ("All impact ▼", "All sources ▼")
-                    which all read as a single label. The previous
-                    "Sort by [tertiary]  | due [primary]" split with a
-                    gap made our dropdown look like a different family
-                    even after the chrome matched. SelectValue stays
-                    hidden behind a manual display since we want full
-                    control over the prefix-glues-to-value rendering. */}
-                <SelectTrigger className="inline-flex h-8 items-center gap-1.5 rounded-md border border-divider-strong bg-background-default px-2 text-sm whitespace-nowrap text-text-primary hover:bg-state-base-hover">
-                  <span>
-                    {group === 'client' ? (
-                      <Trans>Sort by client</Trans>
-                    ) : group === 'status' ? (
-                      <Trans>Sort by status</Trans>
-                    ) : (
-                      <Trans>Sort by date</Trans>
-                    )}
-                  </span>
-                </SelectTrigger>
-                <SelectContent align="end">
-                  <SelectItem value="due">
-                    <Trans>Due date</Trans>
-                  </SelectItem>
-                  <SelectItem value="client">
-                    <Trans>Client</Trans>
-                  </SelectItem>
-                  <SelectItem value="status">
-                    <Trans>Status</Trans>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                />
+                <DropdownMenuContent align="end" className="min-w-[180px]">
+                  <DropdownMenuRadioGroup
+                    value={group}
+                    onValueChange={(next) => {
+                      if (next === 'due' || next === 'client' || next === 'status') {
+                        void setObligationQueueQuery({ group: next })
+                      }
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="due">
+                      <Trans>Due date</Trans>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="client">
+                      <Trans>Client</Trans>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="status">
+                      <Trans>Status</Trans>
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <span className="tabular-nums text-xs text-text-tertiary">
                 <Plural value={totalShown} one="# row" other="# rows" />
               </span>
@@ -4924,7 +4950,13 @@ export function ObligationQueueDetailDrawer({
           py-10 because its header has a state kicker + bigger h1
           + chip row + description — more content earning more
           vertical space. */}
-      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 py-6">
+      {/* 2026-05-26 (Yuqi inset-followups A): header padding tightened
+          px-12 → px-8, py-6 → py-5. The 48×48 was reading as too-roomy
+          for the obligation drawer (it's a "data panel" not a "paper
+          document" like the Pulse drawer). 32×40 keeps the header
+          comfortable while reclaiming ~32px of vertical above the
+          hero strip. */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-8 py-5">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -5169,7 +5201,12 @@ export function ObligationQueueDetailDrawer({
           // py-10 will be tightened separately to py-6 — together
           // they collapse the dead space to a reasonable 24+24 = 48px
           // total header-to-body gap.
-          'flex flex-col gap-4 px-12 pt-6 pb-24',
+          // 2026-05-26 (Yuqi inset-followups A): body padding now
+          // `px-8 pt-0 pb-24` — pt-6 → pt-0 (header already provides
+          // bottom padding via `border-b py-5`; no extra top buffer
+          // needed), px-12 → px-8 to match the tightened header.
+          // pb-24 retained (sticky-footer overlap buffer).
+          'flex flex-col gap-4 px-8 pt-0 pb-24',
           mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto',
         )}
       >
@@ -5223,12 +5260,19 @@ export function ObligationQueueDetailDrawer({
                 cancelling that padding. The bottom of the strip
                 gets a `border-b border-divider-subtle` so the
                 tabs/content area below reads as a distinct unit. */}
+            {/* 2026-05-26 (Yuqi inset-followups A): sticky-section
+                heading dropped its `border-b border-divider-subtle
+                bg-background-subtle`. The gray bg + bottom border were
+                framing the deadline strip as a separate "card" inside
+                the drawer body — fighting the flat surface treatment.
+                Now: just the sticky position + tight padding, no
+                visual weight beyond the content itself. Also bled
+                changed `-mx-12 px-12` → `-mx-8 px-8` to match the new
+                tightened body padding. */}
             <div
               className={cn(
                 'flex flex-col gap-3',
-                mode === 'panel'
-                  ? 'sticky top-0 z-10 -mx-12 border-b border-divider-subtle bg-background-subtle px-12 py-3'
-                  : 'mb-4',
+                mode === 'panel' ? 'sticky top-0 z-10 -mx-8 px-8 py-3' : 'mb-4',
               )}
             >
               {/* PrimaryDeadlineStrip (2026-05-23): the three dates the
@@ -6187,12 +6231,13 @@ export function ObligationQueueDetailDrawer({
         </div>
       ) : null}
       {row ? (
-        // 2026-05-26 (Yuqi drawer canonical): sticky footer aligned to
-        // `px-12 py-4` per the canonical. Border bumped to border-t-2
-        // (heavier) + bg-background-default + h-min so the footer reads
-        // as decision-grade against the body content. Matches
-        // PulseDetailDrawer SheetFooter chrome.
-        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 py-4">
+        /* 2026-05-26 (Yuqi drawer canonical + inset-followups A):
+           sticky footer aligned to the canonical chrome (border-t-2,
+           bg-background-default, h-min). Reads as decision-grade
+           against the body content; matches PulseDetailDrawer's
+           SheetFooter shape. Padding tightened to px-8 (was px-12)
+           to follow the drawer header/body tightening. py-4 unchanged. */
+        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-8 py-4">
           <span className="text-xs text-text-tertiary">
             {/* Compact provenance line: when was the row last touched
                   and by what action. Reuses formatDateTimeWithTimezone
@@ -7488,21 +7533,19 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     internalIso === filingIso &&
     (paymentIso === null || paymentIso === filingIso)
   if (allTerminalDatesMatch) {
+    // 2026-05-26 (Yuqi inset-followups #0): dropped the "Filed" word
+    // from the hero strip. The header pill next to the title already
+    // carries the textual "Filed" label; the green CheckCircle2 + green
+    // chip tone here is the visual state cue. Hero strip is now JUST
+    // the date data — "✓ 2026-03-16 · 70 days ago" — so the panel has
+    // ONE textual "Filed" mention (header pill) instead of two.
     return (
       <div
-        aria-label={t`Filed`}
+        aria-label={t`Filed on ${formatDate(filingIso)}`}
         className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-state-success-border bg-state-success-hover px-4 py-2.5"
       >
-        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
-          <span className="inline-flex items-center gap-1.5 text-text-success">
-            <CheckCircle2Icon className="size-4" aria-hidden />
-            <span className="font-semibold">
-              <Trans>Filed</Trans>
-            </span>
-          </span>
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
+          <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
           <span className="font-mono tabular-nums text-text-primary">{formatDate(filingIso)}</span>
           {filingDays !== null && filingDays !== 0 ? (
             <>
@@ -9950,27 +9993,36 @@ function ObligationQueueScopeTab({
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
   iconColor?: string
 }) {
+  // 2026-05-26 (Yuqi inset-followups G — smooth slide transition):
+  // dropped the per-tab `border-b-2` and replaced it with a single
+  // shared underline rendered via `layoutId="scope-tab-underline"`.
+  // Framer Motion smoothly slides the underline between tabs when a
+  // new one becomes active — no more jumpy "underline disappears
+  // here, reappears there" feel. Inactive tabs render a transparent
+  // 2px bottom border for hover state symmetry.
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      // 2026-05-26 (Yuqi sixty-fifth pass follow-up — scope tabs bigger
-      // + tighter): text-sm → text-base for the label so the scope
-      // names (All / Not started / Filed) read at body-tier alongside
-      // the table content below. py-2.5 → py-1.5 to compensate — the
-      // bigger text already gives the tab vertical weight, the old
-      // padding was making the tabs feel oversized when the label
-      // grew. Icon size and count weight unchanged.
-      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-1.5 text-base whitespace-nowrap transition-colors ${
+      className={cn(
+        'relative -mb-px flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-base whitespace-nowrap transition-colors',
         active
-          ? 'border-accent-default font-medium text-text-primary'
-          : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
-      }`}
+          ? 'font-medium text-text-primary'
+          : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
+      )}
     >
       {Icon ? <Icon className={cn('size-4', iconColor)} aria-hidden /> : null}
       <span>{label}</span>
       <span className="text-sm tabular-nums text-text-tertiary">{count}</span>
+      {active ? (
+        <motion.span
+          layoutId="scope-tab-underline"
+          aria-hidden
+          className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-accent-default"
+          transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+        />
+      ) : null}
     </button>
   )
 }

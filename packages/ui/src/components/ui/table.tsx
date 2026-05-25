@@ -74,11 +74,19 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
       data-slot="table-head"
-      // 0.08em tracking matches DESIGN.md `typography.label` (11px / 500
-      // / 0.08em). Size stays at 12px (`text-xs`) so column headers
-      // don't compete visually with single-digit numeric cells.
+      // 2026-05-26 (Yuqi inset-followups H — table header canonical):
+      // dropped the small-caps caption style (`text-xs uppercase
+      // tracking-[0.08em] text-text-tertiary`) in favor of the
+      // /deadlines canonical (`text-sm font-medium normal-case
+      // text-text-secondary`). The uppercase + kicker tracking read
+      // as a meta label, not a column header — especially next to
+      // text-sm body content below. Documented in
+      // docs/Design/inset-surface-design-system.md (Table chrome
+      // canonical). Every table inherits this default; any consumer
+      // that still wants the old style can override via the
+      // `className` prop.
       className={cn(
-        'h-9 px-3 text-left align-middle text-xs font-medium tracking-[0.08em] whitespace-nowrap text-text-tertiary uppercase [&:has([role=checkbox])]:pr-0',
+        'h-9 px-3 text-left align-middle text-sm font-medium whitespace-nowrap text-text-secondary [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}
