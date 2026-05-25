@@ -666,7 +666,16 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               • padding-block:  calc(var(--spacing) * 10)  → py-10 (40px)
             Same margin as the header so the entire panel reads as
             one continuous paper surface from edge to edge. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-12 py-10">
+      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
+            body bottom padding bumped `py-10` → `pt-10 pb-24` (96px).
+            The sticky footer (min-h-16 + py-4 ≈ 64-80px) overlays
+            the body's bottom edge when scrolled — without extra
+            buffer the last content row gets hidden behind the
+            action bar. 96px = ~footer height + 32px breathing
+            room, so the CPA always sees both the last content and
+            the action bar with a clean gap between them. Top stays
+            py-10 (40px) — header → content rhythm doesn't change. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-12 pt-10 pb-24">
         {detailQuery.isError ? (
           // 2026-05-26 (Yuqi twenty-ninth pass): icon removed from
           // remaining drawer Alerts so the alert chrome is

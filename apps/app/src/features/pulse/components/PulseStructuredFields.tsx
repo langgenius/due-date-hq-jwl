@@ -388,9 +388,16 @@ function FactCard({
   // section title row stays compact and the visual weight sits
   // in the body. Section title bumped text-base → text-sm
   // font-semibold per canonical body-section heading.
+  // 2026-05-26 (Yuqi forty-fifth pass — header bg):
+  // header gets `bg-background-subtle` so the section title row
+  // reads as a labeled cap on the card, like a manila folder tab.
+  // Without the bg, the header looked like an unframed first row
+  // of the body. The rounded-tl/tr-md keeps the bg flush with the
+  // card's top corner radius. The body stays `bg-background-default`
+  // (white) for the data content.
   return (
-    <section className="rounded-md border border-divider-subtle bg-background-default">
-      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-divider-subtle px-4 py-2">
+    <section className="overflow-hidden rounded-md border border-divider-subtle bg-background-default">
+      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-divider-subtle bg-background-subtle px-4 py-2">
         <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}
       </header>
@@ -416,7 +423,13 @@ function FactGrid({
   facts: ReadonlyArray<{ key: string; label: ReactNode; value: ReactNode }>
 }) {
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-4">
+    // 2026-05-26 (Yuqi forty-fifth pass — tighten fact grid):
+    // gap-y-4 (16px) between rows felt loose at the new drawer
+    // width — dropped to gap-y-3 (12px). The label-on-top stack
+    // (label text-xs + value text-sm) already has ~24px row
+    // height; gap-3 keeps the rows readable without yawning
+    // whitespace between them.
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
       {facts.map((fact) => (
         <div key={fact.key} className="flex min-w-0 flex-col gap-1">
           <FieldLabel as="dt">{fact.label}</FieldLabel>

@@ -4753,7 +4753,15 @@ export function ObligationQueueDetailDrawer({
           → `px-12 py-10` per the drawer canonical. Same paper-document
           padding as PulseDetailDrawer body — left margin runs as one
           line from header through body. */}
-      <div className={cn('px-12 py-10', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
+      {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
+          body bottom padding bumped `py-10` → `pt-10 pb-24` to match
+          PulseDetailDrawer. Sticky footer (min-h-16 + py-4) was
+          covering the last content row when scrolled — 96px buffer
+          guarantees clean separation between bottom content and
+          action bar. */}
+      <div
+        className={cn('px-12 pt-10 pb-24', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}
+      >
         {detailQuery.isLoading ? (
           <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
             <Trans>Loading deadline detail…</Trans>
