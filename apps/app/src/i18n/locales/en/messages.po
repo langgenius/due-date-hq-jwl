@@ -1344,7 +1344,6 @@ msgstr "Alert status"
 msgid "Alerts"
 msgstr "Alerts"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.pulse-history.tsx
 msgid "Alerts archive"
@@ -1596,6 +1595,10 @@ msgstr "Apply reviewed set"
 #: src/features/migration/WizardShell.tsx
 msgid "Apply tax type suggestions"
 msgstr "Apply tax type suggestions"
+
+#: src/routes/rules.pulse.tsx
+msgid "Archive"
+msgstr "Archive"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -5456,7 +5459,7 @@ msgstr "Logged to audit trail"
 msgid "Low"
 msgstr "Low"
 
-#: src/features/dashboard/needs-attention-card.tsx
+#: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
 
@@ -5616,6 +5619,7 @@ msgstr "Marked accepted"
 msgid "Marked e-file rejected"
 msgstr "Marked e-file rejected"
 
+#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Match"
 msgstr "Match"
@@ -6159,6 +6163,7 @@ msgstr "No active alerts right now"
 msgid "No active practice is selected."
 msgstr "No active practice is selected."
 
+#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "No active rules for this jurisdiction."
@@ -8869,6 +8874,7 @@ msgstr "Rule review needed before some due dates can be generated"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Rule review required"
 msgstr "Rule review required"
 

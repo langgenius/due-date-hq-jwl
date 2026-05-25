@@ -150,13 +150,10 @@ test.describe('seeded client facts', () => {
     await expect(authenticatedPage.getByText('ca_llc_annual_tax')).toHaveCount(0)
     await expect(authenticatedPage.getByText('California LLC annual tax')).toHaveCount(0)
     await expect(authenticatedPage.getByText('taxType')).toHaveCount(0)
-    await authenticatedPage.getByPlaceholder('Search deadline categories…').fill('S corporation')
     await authenticatedPage.getByText('S corporation income tax return').click()
     await expect(categoryPicker).toContainText('S corporation income tax return')
     await categoryPicker.click()
-    await expect(authenticatedPage.getByPlaceholder('Search deadline categories…')).toHaveValue(
-      'S corporation income tax return',
-    )
+    await expect(authenticatedPage.getByPlaceholder('Search deadline categories…')).toHaveCount(0)
     await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
     await authenticatedPage.keyboard.press('Escape')
 

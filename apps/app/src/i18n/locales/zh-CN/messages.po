@@ -1344,7 +1344,6 @@ msgstr "提醒状态"
 msgid "Alerts"
 msgstr "提醒"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.pulse-history.tsx
 msgid "Alerts archive"
@@ -1596,6 +1595,10 @@ msgstr "应用已审核集合"
 #: src/features/migration/WizardShell.tsx
 msgid "Apply tax type suggestions"
 msgstr "应用税种建议"
+
+#: src/routes/rules.pulse.tsx
+msgid "Archive"
+msgstr "归档"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -5456,7 +5459,7 @@ msgstr "已写入审计日志"
 msgid "Low"
 msgstr "低"
 
-#: src/features/dashboard/needs-attention-card.tsx
+#: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
 
@@ -5616,6 +5619,7 @@ msgstr "Marked accepted"
 msgid "Marked e-file rejected"
 msgstr "已标记电子申报被拒"
 
+#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Match"
 msgstr "匹配"
@@ -6159,6 +6163,7 @@ msgstr ""
 msgid "No active practice is selected."
 msgstr "未选择当前事务所。"
 
+#: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "该辖区暂无已激活规则。"
@@ -8869,6 +8874,7 @@ msgstr "部分截止日期生成前需要先审核规则"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/obligations/CreateObligationDialog.tsx
 msgid "Rule review required"
 msgstr "规则需要审阅"
 
