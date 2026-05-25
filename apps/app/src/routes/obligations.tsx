@@ -4746,12 +4746,18 @@ export function ObligationQueueDetailDrawer({
       {/* 2026-05-26 (Yuqi drawer canonical — cross-drawer match):
           header padding `px-5 py-3` → `px-12 py-10` per the drawer
           canonical (see docs/Design/inset-surface-design-system.md
-          "Drawer canonical"). PulseDetailDrawer + ObligationDrawer
-          now share identical chrome: roomy paper-document padding
-          on header + body, compact action-bar padding on footer.
-          The previous tight `py-3` was a one-off Deadlines callout
-          (Yuqi #17) — superseded by the cross-drawer unification. */}
-      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 py-10">
+          "Drawer canonical"). */}
+      {/* 2026-05-26 (Yuqi sixty-first pass — header tighter):
+          py-10 → py-6 (40px → 24px vertical). On the obligation
+          drawer the header carries the form-code h2 + flag chips +
+          meta line — about 80-100px of content. py-10 (40+40)
+          added 80px of dead chrome around it. py-6 (24+24) gives
+          enough breathing room without the panel reading as half-
+          empty before the body even starts. Pulse drawer keeps
+          py-10 because its header has a state kicker + bigger h1
+          + chip row + description — more content earning more
+          vertical space. */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 py-6">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -4989,7 +4995,14 @@ export function ObligationQueueDetailDrawer({
           read with identical rhythm. */}
       <div
         className={cn(
-          'flex flex-col gap-4 px-12 pt-10 pb-24',
+          // 2026-05-26 (Yuqi sixty-first pass — kill the dead top
+          // space): pt-10 + header py-10 = 80px of nothing between
+          // the form-code title and the first body content. The
+          // sticky-footer-buffer pb-24 stays. The HEADER's own
+          // py-10 will be tightened separately to py-6 — together
+          // they collapse the dead space to a reasonable 24+24 = 48px
+          // total header-to-body gap.
+          'flex flex-col gap-4 px-12 pt-6 pb-24',
           mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto',
         )}
       >
@@ -6858,9 +6871,27 @@ function ReadinessOverview({
           subline: t`No document checklist was attached to this filing.`,
         }
       }
+      // 2026-05-26 (Yuqi sixty-first pass — better terminal copy):
+      // "Audit trail captured 0 of 13 items as received" on a filed
+      // row read as either (a) we filed without any receipts (alarming)
+      // or (b) the audit trail is broken (also alarming). Reframe by
+      // ratio: complete archive vs partial vs untracked, with copy
+      // that matches each case honestly.
+      if (receivedCount === 0) {
+        return {
+          headline: t`Filed`,
+          subline: t`${checklistCount} checklist items weren't individually ticked during filing.`,
+        }
+      }
+      if (receivedCount < checklistCount) {
+        return {
+          headline: t`Filed`,
+          subline: t`${receivedCount} of ${checklistCount} items recorded as received before filing.`,
+        }
+      }
       return {
-        headline: t`Filed with ${checklistCount} documents archived`,
-        subline: t`Audit trail captured ${receivedCount} of ${checklistCount} items as received.`,
+        headline: t`Filed`,
+        subline: t`All ${checklistCount} items recorded as received.`,
       }
     }
     // 2. Non-terminal — no checklist yet, regardless of stage.
@@ -7267,6 +7298,54 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     return Math.round(ms / DAY_MS)
   }
   const filingDays = dayDiff(filingIso)
+  // 2026-05-26 (Yuqi sixty-first pass — compact terminal strip):
+  // when the row is filed AND internal + payment dates match the
+  // filing date (the common case for a clean filing), the original
+  // 3-card strip was 100+ px of dates that all said the same thing.
+  // Render a single compact one-liner instead — "Filed on
+  // 2026-03-16 · 70 days ago" — and skip the redundant Internal /
+  // Payment cards. Non-terminal rows + terminal rows with mixed
+  // dates keep the full strip.
+  const allTerminalDatesMatch =
+    isTerminal &&
+    filingIso !== null &&
+    internalIso === filingIso &&
+    (paymentIso === null || paymentIso === filingIso)
+  if (allTerminalDatesMatch) {
+    return (
+      <div
+        aria-label={t`Filed`}
+        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-state-success-border bg-state-success-hover px-4 py-2.5"
+      >
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
+          <span className="inline-flex items-center gap-1.5 text-text-success">
+            <CheckCircle2Icon className="size-4" aria-hidden />
+            <span className="font-semibold">
+              <Trans>Filed</Trans>
+            </span>
+          </span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="font-mono tabular-nums text-text-primary">{formatDate(filingIso)}</span>
+          {filingDays !== null && filingDays !== 0 ? (
+            <>
+              <span aria-hidden className="text-text-tertiary">
+                ·
+              </span>
+              <span className="text-text-secondary">
+                {filingDays < 0 ? (
+                  <Plural value={Math.abs(filingDays)} one="# day ago" other="# days ago" />
+                ) : (
+                  <Plural value={filingDays} one="in # day" other="in # days" />
+                )}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
   return (
     <div aria-label={t`Key deadlines`} className="flex flex-col gap-2">
       {/* Hero — Filing deadline. Three states:
