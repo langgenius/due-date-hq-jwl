@@ -854,7 +854,31 @@ export function ObligationQueueRoute() {
   const debouncedSearch = useDebouncedQueryInput(searchInput, {
     maxLength: OBLIGATION_QUEUE_SEARCH_MAX_LENGTH,
   })
-  const sorting = useMemo(() => getSortingState(sort), [sort])
+  // 2026-05-26 (Yuqi fifty-seventh pass — group-by wired):
+  // previously `group` URL state was set by the Group-by dropdown
+  // but NEVER consumed in the sorting/rendering pipeline, so the
+  // dropdown was a UI lie (the table didn't visually change when
+  // you picked "Client" or "Status"). Yuqi flagged it twice:
+  // "the selection does not work, the table does not change".
+  //
+  // Minimum-viable fix: layer the group key as the PRIMARY sort,
+  // with the user's chosen sort as secondary. TanStack table
+  // honors multi-column sorting natively, so rows of the same
+  // group (same client / same status) are now adjacent. The user
+  // can still pick a secondary sort (e.g. group=client + sort by
+  // currentDueDate asc → grouped by client, within each client
+  // sorted by due date).
+  //
+  // This stops short of full section-headers + collapse (the
+  // ~200-line port from design/deadlines-drawer-rework). What it
+  // delivers: the dropdown is no longer a lie — picking Client
+  // or Status visibly regroups the rows.
+  const sorting = useMemo<SortingState>(() => {
+    const baseSort = getSortingState(sort)
+    if (group === 'client') return [{ id: 'clientName', desc: false }, ...baseSort]
+    if (group === 'status') return [{ id: 'status', desc: false }, ...baseSort]
+    return baseSort
+  }, [sort, group])
   // When the user intends to open the detail panel (short route ref,
   // or legacy drawer=obligation + id), the table loses ~440px to make room. Auto-
   // collapse State / County / Tax type — they're already in the panel
@@ -2321,8 +2345,16 @@ export function ObligationQueueRoute() {
     // (kept the tight horizontal + bottom from the density pass).
     <div
       className={cn(
+        // 2026-05-26 (Yuqi fifty-sixth pass — panel-aware bottom):
+        // when a deadline is open in the inline panel, strip the
+        // page-chrome bottom padding so the drawer's left edge runs
+        // edge-to-edge to the viewport bottom. Mirrors the
+        // `!pb-0 md:!pb-0` pattern used on /rules/pulse when the
+        // alert panel is open — the panel reads as a true column,
+        // not a card floating inside page chrome.
         'flex flex-col gap-4 px-4 pt-6 pb-4 md:px-5 md:pt-8 md:pb-5',
         'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
+        activeDetailId && 'md:!pb-0 xl:!pb-0',
       )}
     >
       {/* 2026-05-26 (Yuqi /deadlines #4): title now carries the
