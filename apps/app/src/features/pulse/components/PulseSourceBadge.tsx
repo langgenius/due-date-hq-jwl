@@ -20,6 +20,12 @@ interface PulseSourceBadgeProps {
 // claim) — it shouldn't render at the same size as a footer
 // attribution.
 export function PulseSourceBadge({ source, sourceUrl }: PulseSourceBadgeProps) {
+  // 2026-05-25 (Yuqi Alerts third pass #13): ExternalLinkIcon
+  // explicitly clamped to size-3 (12px). The Badge primitive's
+  // `[&>svg]:size-3!` rule only catches DIRECT svg children, but
+  // this icon sits inside an `<a>` so it was inheriting the lucide
+  // default (24px) — too big against the source-name text. Manual
+  // size-3 brings it back to badge scale.
   return (
     <Badge variant="outline" className="h-6 text-sm">
       <a
@@ -29,7 +35,7 @@ export function PulseSourceBadge({ source, sourceUrl }: PulseSourceBadgeProps) {
         className="inline-flex items-center gap-1 text-text-secondary hover:text-text-primary"
       >
         {source}
-        <ExternalLinkIcon aria-hidden />
+        <ExternalLinkIcon aria-hidden className="size-3" />
       </a>
     </Badge>
   )

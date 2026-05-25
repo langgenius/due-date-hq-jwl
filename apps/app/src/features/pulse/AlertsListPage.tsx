@@ -192,7 +192,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
   )
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
-  const breathingAlertId = filteredAlerts.find(isBreathingAlertRow)?.id
   const filtersActive =
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
@@ -339,6 +338,13 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               filter remains keyboard-typable and the chip is
               accessible without the SVG. The count chip on the right
               stays — same affordance as before. */}
+          {/* 2026-05-25 (Yuqi Alerts third pass — second-batch #3):
+              state-filter chips bumped from text-xs / size-xs badge
+              / h-4 count to text-sm / size-sm badge / h-5 count. The
+              chip strip is the primary state-narrower for the page
+              — at the old size the chips read as caption-tier meta,
+              not as a real filter row. Bigger touch target + bigger
+              motif also makes the StateBadge artwork legible. */}
           {jurisdictionCounts.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
@@ -353,17 +359,17 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     onClick={() => setJurisdictionFilter(active ? null : state)}
                     aria-pressed={active}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-md border py-0.5 pl-1 pr-2 text-xs font-medium tabular-nums transition-colors',
+                      'inline-flex items-center gap-2 rounded-md border py-1 pl-1.5 pr-2.5 text-sm font-medium tabular-nums transition-colors',
                       active
                         ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
                         : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
                     )}
                   >
-                    <StateBadge code={state} size="xs" aria-hidden />
+                    <StateBadge code={state} size="sm" aria-hidden />
                     <span>{state}</span>
                     <span
                       className={cn(
-                        'inline-flex h-4 min-w-4 items-center justify-center rounded-sm px-1 text-xs',
+                        'inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 text-xs',
                         active
                           ? 'bg-state-accent-solid/15 text-text-accent'
                           : 'bg-background-soft text-text-tertiary',
@@ -498,7 +504,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                   <PulseAlertCard
                     key={alert.id}
                     alert={alert}
-                    breathing={alert.id === breathingAlertId}
                     onReview={() => openDrawer(alert.id)}
                     {...(canSnooze
                       ? {
@@ -551,10 +556,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
       />
     </div>
   )
-}
-
-function isBreathingAlertRow(alert: PulseAlertPublic): boolean {
-  return alert.status === 'matched' && alert.matchedCount + alert.needsReviewCount > 0
 }
 
 // Loading shimmer that matches the heartbeat language: warning-tone pulsing
