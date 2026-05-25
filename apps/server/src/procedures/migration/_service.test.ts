@@ -46,6 +46,55 @@ function activePracticeRuleRows(
     }))
 }
 
+type CoreRuleForTest = ReturnType<typeof listObligationRules>[number]
+type ActivePracticeRuleRowForTest = ReturnType<typeof activePracticeRuleRows>[number]
+
+function activePracticeRuleRowFromRule(
+  firmId: string,
+  rule: CoreRuleForTest,
+): ActivePracticeRuleRowForTest {
+  return {
+    id: `practice_${rule.id}`,
+    firmId,
+    ruleId: rule.id,
+    templateId: rule.id,
+    templateVersion: rule.version,
+    status: 'active',
+    ruleJson: { ...toContractRule(rule), status: 'active' },
+    reviewNote: null,
+    reviewedBy: USER,
+    reviewedAt: RULE_REVIEWED_AT,
+    createdAt: RULE_REVIEWED_AT,
+    updatedAt: RULE_REVIEWED_AT,
+  }
+}
+
+function concreteStatePracticeRuleRow(input: {
+  firmId: string
+  ruleId: string
+  taxType: string
+  dueDate: string
+}): ActivePracticeRuleRowForTest {
+  const rule = listObligationRules({ includeCandidates: true }).find(
+    (item) => item.id === input.ruleId,
+  )
+  if (!rule) throw new Error(`Rule ${input.ruleId} was not found in the test catalog.`)
+  const concreteRule: CoreRuleForTest = {
+    ...rule,
+    taxType: input.taxType,
+    status: 'verified',
+    ruleTier: 'basic',
+    coverageStatus: 'full',
+    requiresApplicabilityReview: false,
+    dueDateLogic: {
+      kind: 'fixed_date',
+      date: input.dueDate,
+      holidayRollover: 'next_business_day',
+    },
+  }
+  return activePracticeRuleRowFromRule(input.firmId, concreteRule)
+}
+
 interface MigrationBatchRow {
   id: string
   firmId: string
@@ -2089,6 +2138,52 @@ California LLC,CA,LLC,Form 1065`
     expect(state.importedObligations.some((item) => item.jurisdiction === 'CA')).toBe(false)
   })
 
+  it('does not create a federal fallback when the state return counterpart is pending review', async () => {
+    const federalOnlyRules = activePracticeRuleRows(
+      FIRM,
+      (rule) => rule.status === 'verified' && rule.jurisdiction === 'FED',
+    )
+    const { repo, state } = buildScopedRepo(FIRM, { activeRuleRows: federalOnlyRules })
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California S Corp,CA,S-Corp,Form 1120-S`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    expect(summary.obligationsToCreate).toBe(0)
+    expect(summary.ruleReviewWarnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          state: 'CA',
+          entityType: 's_corp',
+          taxTypes: expect.arrayContaining(['ca_100s_franchise']),
+          reason: 'rules_pending_review',
+        }),
+      ]),
+    )
+    expect(result.clientCount).toBe(1)
+    expect(result.obligationCount).toBe(0)
+    expect(state.importedClients).toHaveLength(1)
+    expect(state.importedObligations).toHaveLength(0)
+  })
+
   it('warns about state rule review even when the firm has no active rules yet', async () => {
     const { repo } = buildScopedRepo(FIRM, { activeRuleRows: [] })
     const ai = buildAi()
@@ -2162,6 +2257,110 @@ California LLC,CA,LLC,Form 1065`
           profile.state === 'CA' && profile.taxTypesJson?.includes('ca_llc_franchise_min_800'),
       ),
     ).toBe(true)
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'FED' && item.taxType === 'federal_1065',
+      ),
+    ).toBe(true)
+  })
+
+  it('prefers an active NY individual state return rule over the federal counterpart', async () => {
+    const activeRuleRows = [
+      ...activePracticeRuleRows(FIRM),
+      concreteStatePracticeRuleRow({
+        firmId: FIRM,
+        ruleId: 'ny.individual_income_return.candidate.2026',
+        taxType: 'ny_it201',
+        dueDate: '2026-04-15',
+      }),
+    ]
+    const { repo, state } = buildScopedRepo(FIRM, { activeRuleRows })
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+NY Individual,NY,Individual,Form 1040`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    const client = state.importedClients.find((item) => item.name === 'NY Individual')
+    expect(summary.obligationsToCreate).toBe(5)
+    expect(result.obligationCount).toBe(5)
+    expect(
+      state.importedObligations.some(
+        (item) =>
+          item.clientId === client?.id && item.jurisdiction === 'NY' && item.taxType === 'ny_it201',
+      ),
+    ).toBe(true)
+    expect(
+      state.importedObligations.some(
+        (item) =>
+          item.clientId === client?.id &&
+          item.jurisdiction === 'FED' &&
+          item.taxType === 'federal_1040',
+      ),
+    ).toBe(false)
+  })
+
+  it('prefers an active CA S corporation state return over Form 1120-S', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California S Corp,CA,S-Corp,Form 1120-S`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    const client = state.importedClients.find((item) => item.name === 'California S Corp')
+    expect(
+      summary.ruleReviewWarnings.some((warning) => warning.taxTypes.includes('ca_100s_franchise')),
+    ).toBe(false)
+    expect(result.obligationCount).toBe(1)
+    expect(
+      state.importedObligations.some(
+        (item) =>
+          item.clientId === client?.id && item.jurisdiction === 'CA' && item.taxType === 'ca_100s',
+      ),
+    ).toBe(true)
+    expect(
+      state.importedObligations.some(
+        (item) =>
+          item.clientId === client?.id &&
+          item.jurisdiction === 'FED' &&
+          item.taxType === 'federal_1120s',
+      ),
+    ).toBe(false)
   })
 
   it('honors disabled matrix selections in dryRun and apply', async () => {
@@ -2197,6 +2396,47 @@ California LLC,CA,LLC,Form 1065`
         .filter((e) => e.sourceType === 'ai_normalizer')
         .some((e) => e.aiOutputId?.startsWith('ai-output-')),
     ).toBe(true)
+  })
+
+  it('keeps explicit federal deadlines when the matching state matrix cell is disabled', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Tax Types
+California S Corp,CA,S-Corp,federal_1120s`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id, [
+      { entityType: 's_corp', state: 'CA', enabled: false },
+    ])
+    const result = await service.apply(batch.id)
+
+    expect(summary.obligationsToCreate).toBe(1)
+    expect(result.obligationCount).toBe(1)
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'FED' && item.taxType === 'federal_1120s',
+      ),
+    ).toBe(true)
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'CA' && item.taxType === 'ca_100s',
+      ),
+    ).toBe(false)
   })
 })
 
@@ -2279,19 +2519,20 @@ Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
 
     const calendarObligation = state.importedObligations.find(
       (obligation) =>
-        obligation.clientId === calendarClient?.id && obligation.taxType === 'federal_1120s',
+        obligation.clientId === calendarClient?.id && obligation.taxType === 'ca_100s',
     )
     const fiscalObligation = state.importedObligations.find(
-      (obligation) =>
-        obligation.clientId === fiscalClient?.id && obligation.taxType === 'federal_1120s',
+      (obligation) => obligation.clientId === fiscalClient?.id && obligation.taxType === 'ca_100s',
     )
     expect(calendarObligation).toMatchObject({
+      jurisdiction: 'CA',
       baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
       taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
       taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
       status: 'pending',
     })
     expect(fiscalObligation).toMatchObject({
+      jurisdiction: 'CA',
       baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
       taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
       taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
