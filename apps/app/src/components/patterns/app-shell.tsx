@@ -12,7 +12,7 @@ import {
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
-import { formatCompactShortcutForDisplay, SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
+import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
 import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
@@ -89,9 +89,7 @@ export function AppShell(props: AppShellProps) {
               <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
             </div>
             <PulseNotificationsBell />
-            <SidebarCollapseToggle
-              shortcutLabel={formatCompactShortcutForDisplay(SIDEBAR_TOGGLE_HOTKEY)}
-            />
+            <SidebarCollapseToggle />
           </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route

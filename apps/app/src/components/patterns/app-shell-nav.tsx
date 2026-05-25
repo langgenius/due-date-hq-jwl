@@ -53,7 +53,6 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
-  SidebarMenuBadgeDot,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -909,13 +908,14 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
 }
 
 function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavItem['badgeTone']> }) {
+  // 2026-05-26 (rebase reconciliation): origin/main's sidebar primitive
+  // doesn't export SidebarMenuBadgeDot. The badge alone carries the
+  // value + tone — the collapsed-mode dot can be reintroduced as a
+  // follow-up if needed.
   return (
-    <>
-      <SidebarMenuBadge aria-hidden="true" tone={tone}>
-        {value}
-      </SidebarMenuBadge>
-      <SidebarMenuBadgeDot tone={tone} />
-    </>
+    <SidebarMenuBadge aria-hidden="true" tone={tone}>
+      {value}
+    </SidebarMenuBadge>
   )
 }
 
