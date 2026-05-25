@@ -458,15 +458,19 @@ const DEFAULT_HIDDEN_COLUMN_IDS = [
 // header carries them). On close, the user's saved column choices
 // come back because we strip the auto-hidden set from the saved
 // `hidden` URL state before persisting (see onColumnVisibilityChange).
+// 2026-05-26 (Yuqi feedback #8): the auto-hide set when the right
+// panel is open shrunk significantly. Yuqi's call: task/deadline
+// (taxType + daysUntilDue) and status should stay visible alongside
+// the client name so the table still tells the row's primary story
+// even with a 600px panel claiming half the width. Now only the
+// secondary / state-cluster columns auto-hide; the row anchor
+// (Client + Form + Due + Status) survives the panel-open layout.
 const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'clientState',
   'clientCounty',
-  'taxType',
   'assigneeName',
   'evidenceCount',
   'smartPriority',
-  'daysUntilDue',
-  'status',
 ] as const
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
@@ -1563,7 +1567,17 @@ export function ObligationQueueRoute() {
                 // the same. text-base font-medium gives the client
                 // name proper anchor weight against text-sm meta in
                 // the same row (tax code, due-days, status pill).
-                className="line-clamp-2 min-w-0 flex-1 text-base font-medium leading-tight text-text-primary"
+                // 2026-05-26 (Yuqi feedback #6): client name regular
+                // weight by default, font-medium only when the row is
+                // the active (selected) one. Was always font-medium →
+                // every row felt equally "anchored" and the eye had
+                // nothing to track to the active selection. Now the
+                // selected row's client name reads bolder, giving the
+                // table a clear "you are here" signal.
+                className={cn(
+                  'line-clamp-2 min-w-0 flex-1 text-base leading-tight text-text-primary',
+                  tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
+                )}
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
                 {tableRow.original.clientName}
@@ -1974,6 +1988,7 @@ export function ObligationQueueRoute() {
       clientQuery,
       continuationRowIds,
       currentUserName,
+      explicitActiveRowId,
       filtersDisabled,
       openHeaderFilter,
       openEvidence,
@@ -2505,16 +2520,13 @@ export function ObligationQueueRoute() {
     // (kept the tight horizontal + bottom from the density pass).
     <div
       className={cn(
-        // 2026-05-26 (Yuqi fifty-sixth pass — panel-aware bottom):
-        // when a deadline is open in the inline panel, strip the
-        // page-chrome bottom padding so the drawer's left edge runs
-        // edge-to-edge to the viewport bottom. Mirrors the
-        // `!pb-0 md:!pb-0` pattern used on /rules/pulse when the
-        // alert panel is open — the panel reads as a true column,
-        // not a card floating inside page chrome.
-        'flex flex-col gap-4 px-4 pt-6 pb-4 md:px-5 md:pt-8 md:pb-5',
-        'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
-        activeDetailId && 'md:!pb-0 xl:!pb-0',
+        // 2026-05-26 (Yuqi feedback #12): bottom padding zeroed out
+        // across all sizes. The table's pagination row owns the
+        // bottom edge of the page now; an additional `pb-4 / md:pb-5
+        // / xl:pb-2` was adding 8-20px of dead space below the
+        // pagination strip. Bottom is flush against the viewport.
+        'flex flex-col gap-4 px-4 pt-6 pb-0 md:px-5 md:pt-8 md:pb-0',
+        'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-0',
       )}
     >
       {/* 2026-05-26 (Yuqi /deadlines #4): title now carries the
@@ -2870,14 +2882,16 @@ export function ObligationQueueRoute() {
                       type="button"
                       className="inline-flex h-8 items-center gap-1.5 rounded-md border border-divider-strong bg-background-default px-2 text-sm whitespace-nowrap text-text-primary hover:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                     >
+                      {/* 2026-05-26 (Yuqi feedback #9): label simplified
+                          from "Sort by date" → "Date" etc. The trigger's
+                          dropdown chevron + position in the toolbar
+                          already implies "this is a sort selector." The
+                          "Sort by" prefix was redundant verbosity. */}
+                      <span className="text-text-tertiary">
+                        <Trans>Sort:</Trans>
+                      </span>
                       <span>
-                        {group === 'client' ? (
-                          <Trans>Sort by client</Trans>
-                        ) : group === 'status' ? (
-                          <Trans>Sort by status</Trans>
-                        ) : (
-                          <Trans>Sort by date</Trans>
-                        )}
+                        {group === 'status' ? <Trans>Status</Trans> : <Trans>Date</Trans>}
                       </span>
                       <ChevronDownIcon
                         className="size-3.5 shrink-0 text-text-tertiary"
@@ -2896,11 +2910,15 @@ export function ObligationQueueRoute() {
                     }}
                   >
                     <DropdownMenuRadioItem value="due">
-                      <Trans>Due date</Trans>
+                      <Trans>Date</Trans>
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="client">
-                      <Trans>Client</Trans>
-                    </DropdownMenuRadioItem>
+                    {/* 2026-05-26 (Yuqi feedback #7): dropped the
+                        "Sort by client" option entirely. The categorization
+                        + section-header chrome was adding visual weight
+                        that the user found unhelpful. The /clients page
+                        is the proper surface to see a client's full set
+                        of deadlines together. Sort options simplified
+                        to: Date (default) + Status. */}
                     <DropdownMenuRadioItem value="status">
                       <Trans>Status</Trans>
                     </DropdownMenuRadioItem>
@@ -3163,7 +3181,13 @@ export function ObligationQueueRoute() {
                     tint the right detail panel uses when a row is
                     selected) so hovering reads as "this is where the
                     panel will paint when you click." */}
-              <Table className="overflow-hidden [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
+              {/* 2026-05-26 (Yuqi feedback #10): added rounded-md so
+                  the table's top corners are visibly rounded. The
+                  overflow-hidden was clipping the corners to a square
+                  because there was no border-radius to clip to. Now
+                  the dimmed header's top-left/right corners round in
+                  with the table's chrome. */}
+              <Table className="overflow-hidden rounded-md [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
                 {/* TableHeader override: bg-background-default-dimmed
                     (= state-base-hover-alt, a light blue-tinted gray)
                     instead of the primitive's default `bg-background-
@@ -3475,7 +3499,12 @@ export function ObligationQueueRoute() {
               chrome layer. `mt-auto` re-instated so the row is
               always visible at the column bottom regardless of how
               many rows the page renders. */}
-          <div className="mt-auto flex items-center justify-between border-t border-divider-subtle px-2 py-2">
+          {/* 2026-05-26 (Yuqi feedback #11): dropped `mt-auto`. The
+              push-to-column-bottom behaviour was creating a large empty
+              gap between the last table row and the pagination on
+              pages with few rows. Now pagination sits immediately
+              under the table — no detached-footer feel. */}
+          <div className="flex items-center justify-between border-t border-divider-subtle px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
                   carries "N deadlines · M clients" so the aggregate
@@ -4219,7 +4248,12 @@ export function ObligationQueueDetailDrawer({
   // it surfaces the full legacy 10-state palette. Illegal transitions
   // are surfaced as disabled items by ObligationQueueStatusControl
   // (and re-checked server-side).
-  const statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
+  // 2026-05-26: statusDropdownOptions previously fed the drawer-header
+  // status control; that pill was removed (feedback #4) so the local
+  // computation is now dead in this scope. Kept as `_statusDropdown-
+  // Options` for the call site in case we restore the pill.
+  const _statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
+  void _statusDropdownOptions
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
     memo: '',
@@ -5021,12 +5055,19 @@ export function ObligationQueueDetailDrawer({
             onClick={() => {
               void navigate(`/clients/${encodeURIComponent(row.clientId)}`)
             }}
-            className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-xs text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            // 2026-05-26 (Yuqi feedback #14): client link bumped from
+            // text-xs / icon size-3 → text-sm / icon size-3.5, and the
+            // name from font-medium → font-semibold. The kicker was
+            // reading as quieter-than-form-title, but the client is
+            // the row's true primary identity (form is the secondary
+            // identifier). Bigger text gives the client the visual
+            // anchor it deserves.
+            className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
-            <span className="font-medium">{titleText}</span>
+            <span className="font-semibold">{titleText}</span>
             <ArrowUpRightIcon
               aria-hidden
-              className="size-3 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+              className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
             />
           </button>
         ) : row?.clientId ? (
@@ -5069,21 +5110,25 @@ export function ObligationQueueDetailDrawer({
               const showWaitingChip = row.status === 'waiting_on_client'
               const showBlockedChip = row.status === 'blocked'
               const showOverdueChip = row.daysUntilDue < 0 && !isTerminalStatus
-              const pillDisplayStatus =
-                showWaitingChip || showBlockedChip ? ('in_progress' as ObligationStatus) : undefined
+              // `pillDisplayStatus` retired with the drawer-header
+              // status control removal (feedback #4). The dedup logic
+              // it powered (showing "In progress" pill while the chip
+              // says "Waiting on client") doesn't apply when the pill
+              // doesn't exist on this surface.
               return (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
                   <h2 className="text-lg font-semibold leading-tight text-text-primary">
                     <TaxCodeLabel code={row.taxType} />
                   </h2>
-                  <ObligationQueueStatusControl
-                    row={row}
-                    labels={statusLabels}
-                    statuses={statusDropdownOptions}
-                    disabled={changeStatusMutation.isPending}
-                    onChange={(id, status) => changeStatus(id, status, row.status)}
-                    displayStatus={pillDisplayStatus}
-                  />
+                  {/* 2026-05-26 (Yuqi feedback #4): dropped the drawer
+                      header's ObligationQueueStatusControl. With the
+                      table's Status column visible (per #8) AND
+                      interactive, the same control rendered TWICE on
+                      the same screen (once in the row, once in the
+                      drawer header) — "appeared again, bad UX." The
+                      table cell's pill is the canonical interactive
+                      affordance; the drawer header now just carries
+                      the form title + meta chip cluster. */}
                   {showWaitingChip ? (
                     <Badge
                       variant="warning"
@@ -5142,7 +5187,7 @@ export function ObligationQueueDetailDrawer({
               </>
             ) : null}
             {row.taxYear ? (
-              <span className="tabular-nums">
+              <span className="tabular-nums font-semibold text-text-primary">
                 <Trans>Tax Year {row.taxYear}</Trans>
               </span>
             ) : null}
@@ -5362,7 +5407,13 @@ export function ObligationQueueDetailDrawer({
                 return (
                   <TabsList
                     variant="line"
-                    className="flex h-11 w-full gap-1 border-b border-divider-subtle text-sm"
+                    // 2026-05-26 (Yuqi feedback #2): white bg on the
+                    // TabsList. The line-variant defaulted to transparent
+                    // which let the body's white still show through, but
+                    // when the sticky deadline strip above scrolls behind
+                    // the tabs they bled together visually. Explicit
+                    // white bg gives the tab bar a clear surface.
+                    className="flex h-11 w-full gap-1 border-b border-divider-subtle bg-background-default text-sm"
                   >
                     {visibleTabs.has('summary') ? (
                       <TabsTrigger
@@ -5720,14 +5771,13 @@ export function ObligationQueueDetailDrawer({
                       const isTerminalRow = row.status === 'done' || row.status === 'completed'
                       return (
                         <div className="flex flex-col gap-4">
-                          {isTerminalRow ? (
-                            <p className="rounded-md border border-state-success-border bg-state-success-hover px-3 py-2 text-xs text-text-secondary">
-                              <Trans>
-                                This deadline has been filed. The checklist below is the historical
-                                record.
-                              </Trans>
-                            </p>
-                          ) : null}
+                          {/* 2026-05-26 (Yuqi feedback #5): dropped the
+                              "This deadline has been filed" banner. The
+                              header status pill + the section title
+                              ("Not in audit trail" / "Archived") +
+                              ReadinessOverview's italic subline already
+                              tell the historical-record story 3x over;
+                              this green banner was a 4th. Removed. */}
                           <section className="flex flex-col gap-2">
                             <header className="flex items-baseline gap-2">
                               <h3 className="text-sm font-semibold text-text-primary">
@@ -7533,16 +7583,18 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     internalIso === filingIso &&
     (paymentIso === null || paymentIso === filingIso)
   if (allTerminalDatesMatch) {
-    // 2026-05-26 (Yuqi inset-followups #0): dropped the "Filed" word
-    // from the hero strip. The header pill next to the title already
-    // carries the textual "Filed" label; the green CheckCircle2 + green
-    // chip tone here is the visual state cue. Hero strip is now JUST
-    // the date data — "✓ 2026-03-16 · 70 days ago" — so the panel has
-    // ONE textual "Filed" mention (header pill) instead of two.
+    // 2026-05-26 (Yuqi feedback #3): dropped the full green chrome
+    // (border-state-success-border + bg-state-success-hover) from the
+    // compact hero. With the header status pill ALSO carrying the
+    // green Filed tone, having the hero strip + the Filed status pill
+    // BOTH paint green was "the green status appears three times."
+    // Hero is now a quiet divider-subtle bordered strip — date data
+    // only, with a small green ✓ icon as the state cue. The header
+    // pill is the single green-tone anchor.
     return (
       <div
         aria-label={t`Filed on ${formatDate(filingIso)}`}
-        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-state-success-border bg-state-success-hover px-4 py-2.5"
+        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
