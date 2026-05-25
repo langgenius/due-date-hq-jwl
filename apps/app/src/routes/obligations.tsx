@@ -51,7 +51,11 @@ import {
   EyeIcon,
   FileArchiveIcon,
   FileSearchIcon,
+  CalendarClockIcon,
+  CheckIcon,
+  FileTextIcon,
   Info,
+  PaperclipIcon,
   LinkIcon,
   RefreshCwIcon,
   SendIcon,
@@ -4886,50 +4890,104 @@ export function ObligationQueueDetailDrawer({
                 below the sticky strip's bottom border, reading as
                 a separate visual unit. */}
             <div className={cn('relative z-0', mode === 'panel' && 'pt-4')}>
-              <TabsList className="flex h-10 text-sm">
-                {/* Summary tab (2026-05-25 Yuqi Deadlines #30):
-                    default-first tab for filing / payment / deposit /
-                    information rows. Hosts the milestone chevron +
-                    active-stage card (the milestone story).
-                    2026-05-25 (Yuqi Deadlines #7, #8): TabsList
-                    bumped from default h-8 to h-10 and text-sm
-                    explicit. Yuqi flagged the toggle as "太小了，
-                    很不明显" + "好难读" — the larger track and
-                    explicit body-text size give the segmented
-                    control real presence as the drawer's primary
-                    navigation. */}
-                {visibleTabs.has('summary') ? (
-                  <TabsTrigger value="summary">
-                    <Trans>Summary</Trans>
-                  </TabsTrigger>
-                ) : null}
-                {visibleTabs.has('readiness') ? (
-                  <TabsTrigger value="readiness">
-                    <Trans>Materials</Trans>
-                  </TabsTrigger>
-                ) : null}
-                {visibleTabs.has('extension') ? (
-                  <TabsTrigger value="extension">
-                    <Trans>Extension</Trans>
-                  </TabsTrigger>
-                ) : null}
-                {/* Risk tab removed 2026-05-21 — risk inputs live on the
-                client detail page (ClientRiskInputsPanel) rather than
-                per-obligation. Surface kept on the schema for
-                back-compat with deep-links; the trigger and content
-                are unmounted. */}
-                {visibleTabs.has('evidence') ? (
-                  <TabsTrigger value="evidence">
-                    <Trans>Evidence</Trans>
-                  </TabsTrigger>
-                ) : null}
-                {/* Timeline/Audit tab removed 2026-05-21 — the
-                  path-to-filing milestones live inside the Summary
-                  tab's content now; the prior Audit feed was rarely
-                  the user's current job. Bring it back via a header
-                  overflow menu if a CPA asks for the raw event stream
-                  again. */}
-              </TabsList>
+              {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
+                  from design/deadlines-drawer-rework): tab bar
+                  switched from default pill segmented control to the
+                  line-variant underline bar. Each trigger leads with
+                  a lucide icon + label + context badge:
+                    • Summary: no badge
+                    • Materials: outstanding count (red destructive)
+                      or all-received check (gray) when count == 0
+                    • Extension: accent check when row has a saved
+                      extension decision
+                    • Evidence: workpaper count (gray placeholder)
+                  TabsTrigger primitive already wires aria-selected +
+                  focus-visible ring per shadcn defaults; we stretch
+                  to `flex-1` so the four tabs distribute full-width
+                  across the drawer. */}
+              {(() => {
+                const outstandingMaterials = checklist.filter((i) => i.status !== 'received').length
+                const allMaterialsReceived = checklist.length > 0 && outstandingMaterials === 0
+                const extensionSaved = Boolean(row?.extensionDecidedAt)
+                const evidenceCount = detail?.evidence.length ?? 0
+                return (
+                  <TabsList
+                    variant="line"
+                    className="flex h-11 w-full gap-1 border-b border-divider-subtle text-sm"
+                  >
+                    {visibleTabs.has('summary') ? (
+                      <TabsTrigger
+                        value="summary"
+                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                      >
+                        <Info aria-hidden />
+                        <Trans>Summary</Trans>
+                      </TabsTrigger>
+                    ) : null}
+                    {visibleTabs.has('readiness') ? (
+                      <TabsTrigger
+                        value="readiness"
+                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                      >
+                        <PaperclipIcon aria-hidden />
+                        <Trans>Materials</Trans>
+                        {outstandingMaterials > 0 ? (
+                          <span
+                            aria-label={t`${outstandingMaterials} outstanding`}
+                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-state-destructive-solid px-1 text-caption-xs font-medium leading-none tabular-nums text-text-inverted"
+                          >
+                            {outstandingMaterials}
+                          </span>
+                        ) : allMaterialsReceived ? (
+                          <span
+                            aria-label={t`All received`}
+                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs text-text-tertiary"
+                          >
+                            <CheckIcon className="size-3" aria-hidden />
+                          </span>
+                        ) : null}
+                      </TabsTrigger>
+                    ) : null}
+                    {visibleTabs.has('extension') ? (
+                      <TabsTrigger
+                        value="extension"
+                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                      >
+                        <CalendarClockIcon aria-hidden />
+                        <Trans>Extension</Trans>
+                        {extensionSaved ? (
+                          <span
+                            aria-label={t`Extension saved`}
+                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-accent-default px-1 text-caption-xs leading-none text-text-inverted"
+                          >
+                            <CheckIcon className="size-3" aria-hidden />
+                          </span>
+                        ) : null}
+                      </TabsTrigger>
+                    ) : null}
+                    {/* Risk tab removed 2026-05-21 — risk inputs live on the
+                        client detail page (ClientRiskInputsPanel) rather than
+                        per-obligation. Surface kept on the schema for
+                        back-compat with deep-links; the trigger and content
+                        are unmounted. */}
+                    {visibleTabs.has('evidence') ? (
+                      <TabsTrigger
+                        value="evidence"
+                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                      >
+                        <FileTextIcon aria-hidden />
+                        <Trans>Evidence</Trans>
+                        <span
+                          aria-label={t`${evidenceCount} workpapers`}
+                          className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
+                        >
+                          {evidenceCount}
+                        </span>
+                      </TabsTrigger>
+                    ) : null}
+                  </TabsList>
+                )
+              })()}
             </div>
             <TabsContent value="summary">
               {/* Summary tab — milestone chevron + active-stage zoom.
