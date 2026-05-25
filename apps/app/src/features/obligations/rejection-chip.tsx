@@ -1,6 +1,8 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
+
 // Lifecycle v2 "Rejected" chip — sits next to a row's Status pill
 // when the obligation came back after a filed → in_review unwind.
 // Uses the existing `efileRejectedAt` field on
@@ -25,6 +27,14 @@ function isRejectionVisible(input: { status: string; efileRejectedAt: string | n
 // detail panel is open and the status column needs to fit a narrower
 // viewport — the icon's red tint + hover tooltip still carries the
 // "this came back from filing" signal.
+// 2026-05-25 (status-pill audit #6, finding 2.6): swapped the
+// bespoke `bg-state-destructive-hover` + `border-state-destructive-border`
+// chrome for the canonical `<Badge variant="destructive">`. Same
+// visual semantically — destructive red chip with warning glyph —
+// but now built from the shared primitive, so future tone-system
+// changes propagate here automatically. Compact variant stays a
+// raw <span> because it's icon-only and Badge primitive's text
+// padding makes a 20×20 icon-only chip awkward.
 function RejectionChip({ compact = false }: { compact?: boolean }) {
   const { t } = useLingui()
   const title = t`Returned from filed status — IRS/state rejected the submission.`
@@ -40,13 +50,14 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
     )
   }
   return (
-    <span
+    <Badge
+      variant="destructive"
+      className="text-caption-xs font-medium uppercase tracking-wide"
       title={title}
-      className="inline-flex items-center gap-1 rounded-sm border border-state-destructive-border bg-state-destructive-hover px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-text-destructive"
     >
       <AlertTriangleIcon className="size-3" aria-hidden />
       <Trans>Rejected</Trans>
-    </span>
+    </Badge>
   )
 }
 

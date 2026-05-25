@@ -4,7 +4,6 @@ import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon, Info } from 'lucide-r
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
-import { BadgeStatusDot, badgeVariants } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -12,11 +11,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
-import {
-  STATUS_DOT,
-  STATUS_VARIANT,
-  useLifecycleV2StatusLabels,
-} from '@/features/obligations/status-control'
+import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -149,7 +144,6 @@ function ActionRow({
   onOpenObligation: () => void
 }) {
   const { t } = useLingui()
-  const statusLabels = useLifecycleV2StatusLabels()
   const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
   const prompt = useActionPrompt(row, asOfDate)
   const factors = topPriorityFactors(row)
@@ -386,20 +380,14 @@ function ActionRow({
                 <Trans>Status</Trans>
               </dt>
               <dd>
-                {/* Mirror the obligation queue's status pill — same
-                  badge variant + dot tone via the canonical maps. The
-                  expanded panel is itself a click target, so this
-                  renders as a non-interactive span (a nested button
-                  would break the parent click semantics). */}
-                <span
-                  className={cn(
-                    badgeVariants({ variant: STATUS_VARIANT[row.status] }),
-                    'h-6 text-xs',
-                  )}
-                >
-                  <BadgeStatusDot tone={STATUS_DOT[row.status]} />
-                  {statusLabels[row.status]}
-                </span>
+                {/* 2026-05-25 (status-pill audit #1): point at the
+                    canonical `ObligationStatusReadBadge` instead of
+                    inlining `badgeVariants` + `BadgeStatusDot`. The
+                    canonical badge is icon-led (no dot), matching
+                    finding 2.3 in the status-pill audit. One
+                    component swap; semantics + label text
+                    unchanged. */}
+                <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
               </dd>
 
               <dt className="text-text-tertiary">

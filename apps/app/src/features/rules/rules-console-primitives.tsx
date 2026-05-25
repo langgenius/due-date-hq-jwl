@@ -224,14 +224,21 @@ export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'di
 
 export function CoverageCell({ state }: { state: CoverageCellState }) {
   const { t } = useLingui()
-  const tone = state === 'active' ? 'success' : state === 'review' ? 'warning' : 'disabled'
+  // 2026-05-25 (status-pill audit #3, finding 2.1): "review" now
+  // reads in blue everywhere across the app. Was `warning` here
+  // (amber via `text-severity-medium`) which collided with the
+  // queue's amber `waiting_on_client` status + the missing-facts
+  // banner. Aligned to `text-text-accent` (blue) so reviewers
+  // learn one tone = one meaning ("review = blue, do something
+  // human").
+  const tone = state === 'active' ? 'success' : state === 'review' ? 'review' : 'disabled'
   const label = state === 'active' ? t`active` : state === 'review' ? t`review` : t`no rule`
   return (
     <span
       className={cn(
         'inline-flex items-center gap-2 text-sm',
         state === 'active' && 'text-text-primary',
-        state === 'review' && 'text-severity-medium',
+        state === 'review' && 'text-text-accent',
         state === 'none' && 'text-text-disabled',
       )}
     >

@@ -4118,10 +4118,14 @@ function ClientReadinessBadge({
   readiness: ClientReadiness | undefined
   compact: boolean
 }) {
+  // 2026-05-25 (status-pill audit #4): dropped the inner
+  // `BadgeStatusDot`. Chip fill already carries the tone (warning
+  // amber / success green); the leading dot doubled the signal
+  // and broke the canonical "filled chip → no dot" rule from the
+  // status-pill audit §3.3.
   if (readiness?.status === 'needs_facts') {
     return (
       <Badge variant="warning" className="text-xs">
-        <BadgeStatusDot tone="warning" />
         {compact ? <Trans>Needs facts</Trans> : <MissingFactsLabel readiness={readiness} />}
       </Badge>
     )
@@ -4129,7 +4133,6 @@ function ClientReadinessBadge({
 
   return (
     <Badge variant="success" className="text-xs">
-      <BadgeStatusDot tone="success" />
       <Trans>Ready for rules</Trans>
     </Badge>
   )
