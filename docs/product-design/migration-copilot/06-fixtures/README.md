@@ -33,7 +33,21 @@
 practice 现场演示 Karbon 导入后的规则激活、Default Matrix、normalization、skipped row、客户事实、
 obligations、dashboard exposure 和 evidence review。
 
-### 1.1 每个 CSV 的细节
+### 1.1 真实导出模拟 fixture
+
+[`./realistic-exports/`](./realistic-exports/) 新增 11 个当前 Step 1 source chip 的真实导出形态
+fixture，以及 3 个重要 variant / negative fixture。它们由
+`scripts/generate-migration-realistic-fixtures.mjs` deterministic 生成，不替换上方 demo CSV。
+
+- Primary upload fixtures 覆盖 TaxDome ZIP、Drake CSV、Karbon XLSX、QuickBooks Online XLSX、
+  File In Time TXT/TSV、CCH Axcess CSV、CCH ProSystem fx Portal CSV、Lacerte `EXPORT.CSV`、
+  ProSeries `Contacts.csv`、UltraTax CSV、ProConnect reporting CSV。
+- Variants 覆盖 QuickBooks Desktop `.iif` accepted path、UltraTax `.dif` unsupported guidance、
+  File In Time `.fbk` backup rejection guidance。
+- 所有文件共用 24 个合成 CPA 客户组合，保留 source-specific headers / file names / formats，
+  同时包含 mixed entities、mixed states、缺 state、`C.A.` 等 review 行。
+
+### 1.2 每个 CSV 的细节
 
 #### `taxdome-30clients.csv`
 

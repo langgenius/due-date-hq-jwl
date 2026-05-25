@@ -22,6 +22,7 @@ export const MigrationSourceSchema = z.enum([
 
 export const MigrationDetectedSourceProductSchema = z.enum([
   'generic',
+  'drake',
   'file_in_time',
   'quickbooks_online',
   'quickbooks_desktop',

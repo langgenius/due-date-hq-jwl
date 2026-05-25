@@ -420,6 +420,22 @@ function detectSource(
     }
   }
 
+  if (
+    lowerName.includes('drake') ||
+    (headers.has('client id') &&
+      headers.has('ein') &&
+      headers.has('return type') &&
+      headers.has('staff'))
+  ) {
+    return {
+      product: 'drake',
+      role: 'client_list',
+      confidence: 0.9,
+      reason: 'Drake client and EF export headers detected.',
+      suggestedPreset: 'drake',
+    }
+  }
+
   if (headers.has('contactkey') || headers.has('organizationkey') || headers.has('client owner')) {
     return {
       product: 'karbon',
@@ -462,21 +478,6 @@ function detectSource(
   }
 
   if (
-    headers.has('client guid') ||
-    (headers.has('client sub-id') && headers.has('name line 1')) ||
-    (headers.has('client id') && headers.has('name line 1') && headers.has('federal id')) ||
-    (headers.has('responsible staff') && headers.has('federal id'))
-  ) {
-    return {
-      product: 'cch_axcess',
-      role: 'client_list',
-      confidence: 0.93,
-      reason: 'CCH Axcess client export headers detected.',
-      suggestedPreset: 'cch_axcess',
-    }
-  }
-
-  if (
     lowerName.includes('portalsaasclient') ||
     (headers.has('partner') &&
       headers.has('manager') &&
@@ -493,9 +494,26 @@ function detectSource(
   }
 
   if (
+    headers.has('client guid') ||
+    (headers.has('client sub-id') && headers.has('name line 1')) ||
+    (headers.has('client id') && headers.has('name line 1') && headers.has('federal id')) ||
+    (headers.has('responsible staff') && headers.has('federal id'))
+  ) {
+    return {
+      product: 'cch_axcess',
+      role: 'client_list',
+      confidence: 0.93,
+      reason: 'CCH Axcess client export headers detected.',
+      suggestedPreset: 'cch_axcess',
+    }
+  }
+
+  if (
     (lowerName.includes('lacerte') && lowerName.endsWith('.csv')) ||
     (headers.has('client number') &&
-      (headers.has('taxpayer e-mail address') || headers.has('taxpayer email address')))
+      (headers.has('taxpayer e mail address') ||
+        headers.has('taxpayer email address') ||
+        lowerName === 'export.csv'))
   ) {
     return {
       product: 'lacerte',

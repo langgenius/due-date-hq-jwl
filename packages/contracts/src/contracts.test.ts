@@ -1037,6 +1037,7 @@ describe('@duedatehq/contracts', () => {
     )
     expect(MigrationDetectedSourceProductSchema.options).toEqual(
       expect.arrayContaining([
+        'drake',
         'cch_axcess',
         'cch_prosystem_fx',
         'lacerte',

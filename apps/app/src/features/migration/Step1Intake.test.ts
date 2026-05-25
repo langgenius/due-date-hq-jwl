@@ -1,8 +1,29 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { strToU8, zipSync } from 'fflate'
 
 import { normalizePastedRowsText, SOURCE_PRESET_IDS } from './Step1Intake'
 import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
+
+const testDir = dirname(fileURLToPath(import.meta.url))
+const realisticFixtureDir = join(
+  testDir,
+  '../../../../../docs/product-design/migration-copilot/06-fixtures/realistic-exports',
+)
+
+function fixtureFile(fileName: string, type = 'text/csv') {
+  const bytes = readFileSync(join(realisticFixtureDir, fileName))
+  return new File([new Uint8Array(bytes)], fileName, { type })
+}
+
+function unsupportedSampleFile(fileName: string) {
+  if (fileName === 'file-in-time-backup.fbk' || fileName === 'ultratax-client-listing-report.dif') {
+    return fixtureFile(fileName, 'application/octet-stream')
+  }
+  return new File(['unsupported backup marker'], fileName, { type: 'application/octet-stream' })
+}
 
 describe('source preset chips', () => {
   it('lists provider chips alphabetically by displayed label', () => {
@@ -76,9 +97,19 @@ describe('client export file intake adapters', () => {
       code: 'ultratax_client_data',
       fileName: 'client.csd',
     })
+    expect(unsupportedUploadForFileName('client-listing.dif')).toEqual({
+      code: 'ultratax_dif',
+      fileName: 'client-listing.dif',
+    })
   })
 
   it.each([
+    [
+      'drake-client-ef-export.csv',
+      'Client ID,Name,EIN,Entity,State,Return Type,Staff\n100,Acme LLC,99-1000001,LLC,CA,Form 1065,Pat\n',
+      'drake',
+      'drake',
+    ],
     [
       'cch-axcess.csv',
       'Client ID,Client Sub-ID,Name Line 1,Federal ID,State\n100,00,Acme LLC,12-3456789,CA\n',
@@ -169,5 +200,139 @@ describe('client export file intake adapters', () => {
     expect(prepared.sourceManifest.selectedFileName).toContain('accounts.csv + contacts.csv')
     expect(prepared.text).toContain('Primary Contact Name\tPrimary Contact Email')
     expect(prepared.text).toContain('Jane Owner\tjane@example.com')
+  })
+
+  it.each([
+    [
+      'taxdome-client-export.zip',
+      'application/zip',
+      'taxdome',
+      'taxdome',
+      'account_list',
+      ['Account ID', 'Account name', 'Primary Contact Email'],
+    ],
+    [
+      'drake-client-ef-export.csv',
+      'text/csv',
+      'drake',
+      'drake',
+      'client_list',
+      ['Client ID', 'EIN', 'EF Status'],
+    ],
+    [
+      'karbon-all-contacts.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'karbon',
+      'karbon',
+      'contact_list',
+      ['ContactKey', 'OrganizationKey', 'Client Owner'],
+    ],
+    [
+      'quickbooks-online-customer-contact-list.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'quickbooks',
+      'quickbooks_online',
+      'customer_list',
+      ['Customer', 'Customer Type', 'Open Balance'],
+    ],
+    [
+      'file-in-time-client-information.txt',
+      'text/plain',
+      'file_in_time',
+      'file_in_time',
+      'client_list',
+      ['ClientName', 'Service', 'AssignedStaff'],
+    ],
+    [
+      'cch-axcess-client-manager-grid.csv',
+      'text/csv',
+      'cch_axcess',
+      'cch_axcess',
+      'client_list',
+      ['Client GUID', 'Name Line 1', 'Federal ID'],
+    ],
+    [
+      'PortalSaaSClient_20260525_093000.csv',
+      'text/csv',
+      'cch_prosystem_fx',
+      'cch_prosystem_fx',
+      'client_list',
+      ['Client ID', 'Partner', 'Preparer'],
+    ],
+    [
+      'EXPORT.CSV',
+      'text/csv',
+      'lacerte',
+      'lacerte',
+      'client_list',
+      ['Client Number', 'Taxpayer E-mail Address', 'SSN/EIN'],
+    ],
+    [
+      'Contacts.csv',
+      'text/csv',
+      'proseries',
+      'proseries',
+      'contact_list',
+      ['Client Status', 'Client Street and Apt Address', 'EF Status'],
+    ],
+    [
+      'ultratax-client-listing-report.csv',
+      'text/csv',
+      'ultratax_cs',
+      'ultratax_cs',
+      'client_listing_report',
+      ['Entity', 'SSN/EIN', 'Preparer'],
+    ],
+    [
+      'proconnect-return-data-2025.csv',
+      'text/csv',
+      'proconnect_tax',
+      'proconnect_tax',
+      'return_data',
+      ['Tax year', 'Taxpayer name', 'Return type'],
+    ],
+  ] as const)(
+    'detects realistic %s fixture',
+    async (fileName, contentType, preset, product, role, expectedHeaders) => {
+      const prepared = await prepareUploadFile(fixtureFile(fileName, contentType))
+      const selectedFile = prepared.sourceManifest.files.find((file) => file.selected)
+
+      expect(prepared.suggestedPreset).toBe(preset)
+      expect(prepared.sourceManifest.product).toBe(product)
+      expect(prepared.sourceManifest.selectedRole).toBe(role)
+      expect(selectedFile?.rowCount).toBeGreaterThan(0)
+      for (const header of expectedHeaders) {
+        expect(prepared.text).toContain(header)
+      }
+    },
+  )
+
+  it('detects the QuickBooks Desktop IIF realistic variant', async () => {
+    const prepared = await prepareUploadFile(
+      fixtureFile('quickbooks-desktop-customers.iif', 'text/plain'),
+    )
+
+    expect(prepared.suggestedPreset).toBe('quickbooks')
+    expect(prepared.sourceManifest).toMatchObject({
+      product: 'quickbooks_desktop',
+      selectedRole: 'quickbooks_iif_customers',
+      originalKind: 'iif',
+    })
+    expect(prepared.text).toContain('Billing State')
+    expect(prepared.text).toContain('Marin Harbor Analytics LLC (TEST)')
+  })
+
+  it.each([
+    ['file-in-time-backup.fbk', 'file_in_time_backup'],
+    ['ultratax-client-listing-report.dif', 'ultratax_dif'],
+    ['quickbooks-backup.qbb', 'quickbooks_backup'],
+    ['client-clntbkup.zip', 'cch_prosystem_fx_backup'],
+    ['client.dbf', 'lacerte_data_file'],
+    ['sample.24i', 'proseries_return_file'],
+    ['client.csd', 'ultratax_client_data'],
+  ] as const)('rejects %s with specific unsupported guidance', async (fileName, code) => {
+    await expect(prepareUploadFile(unsupportedSampleFile(fileName))).rejects.toMatchObject({
+      upload: { code, fileName },
+    })
   })
 })

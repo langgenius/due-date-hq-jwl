@@ -88,6 +88,7 @@ interface PresetExportGuide {
 
 const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
   generic: 'Generic',
+  drake: 'Drake',
   file_in_time: 'File In Time',
   quickbooks_online: 'QuickBooks Online',
   quickbooks_desktop: 'QuickBooks Desktop',
