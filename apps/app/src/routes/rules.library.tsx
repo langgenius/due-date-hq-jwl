@@ -12,7 +12,6 @@ import {
   DownloadIcon,
   MessageSquareText,
   PlusIcon,
-  SearchIcon,
   XIcon,
 } from 'lucide-react'
 import { parseAsString, useQueryState } from 'nuqs'
@@ -54,6 +53,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
+import { SearchInput } from '@/components/primitives/search-input'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -1435,37 +1435,17 @@ function EntityChipRow({
 // Search bar
 // ---------------------------------------------------------------------------
 
+// 2026-05-25 (Yuqi cross-surface "search pattern same on each
+// page" directive): the local SearchBar component was retired in
+// favour of the canonical SearchInput primitive
+// (apps/app/src/components/primitives/search-input.tsx). The
+// primitive carries the same height / icon / clear-button /
+// Escape-to-clear behavior the prior local impl had — call sites
+// migrated below now share the exact same control with the
+// /deadlines queue (and any future surfaces that adopt it).
 function SearchBar({ search, onChange }: { search: string; onChange: (next: string) => void }) {
   const { t } = useLingui()
-  return (
-    <div className="relative">
-      <SearchIcon
-        aria-hidden
-        className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-text-secondary"
-      />
-      <Input
-        type="text"
-        placeholder={t`Search rules…`}
-        value={search}
-        onChange={(event) => onChange(event.target.value)}
-        // Brighter than the default — `bg-background-default` + a
-        // visible border so the input doesn't read as disabled
-        // (which the default subtle-bg version does). Placeholder
-        // in secondary text (not tertiary) keeps it readable too.
-        className="h-9 bg-background-default pl-9 pr-9 placeholder:text-text-secondary"
-      />
-      {search ? (
-        <button
-          type="button"
-          aria-label={t`Clear search`}
-          onClick={() => onChange('')}
-          className="absolute right-2 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
-        >
-          <XIcon className="size-3.5" aria-hidden />
-        </button>
-      ) : null}
-    </div>
-  )
+  return <SearchInput value={search} onChange={onChange} placeholder={t`Search rules…`} />
 }
 
 // ---------------------------------------------------------------------------
@@ -2032,16 +2012,16 @@ function StatusSectionHeaderRow({
   // reads as one tinted line, not a label + colored badge.
   return (
     <TableRow className="hover:bg-transparent">
-      {/* 2026-05-25 (Yuqi rule library #10, #11): the checkbox used
-          to push the NEEDS REVIEW label rightward, so it didn't
-          align with the ACTIVE label below (which has no checkbox).
-          Now the section row reserves a FIXED checkbox slot
-          (`w-4`) whether or not the checkbox renders. The label
-          starts at the same x position in every section header —
-          NEEDS REVIEW and ACTIVE line up vertically. The checkbox
-          slot sits at the chevron column above (chevron has the
-          same `size-3.5` width). */}
-      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="!pl-[34px] pb-1 pt-3">
+      {/* 2026-05-25 (Yuqi rule library #10, #11 + second-pass #1):
+          the checkbox slot now sits at the SAME x-position as the
+          chevron in the state row above (i.e. the cell's natural
+          p-3 left padding). NEEDS REVIEW and ACTIVE labels share
+          one left edge with each other AND with the chevron above
+          — "everything to the left." When the checkbox is absent
+          (ACTIVE section), the w-4 placeholder reserves the slot
+          so the label x-position stays constant across section
+          headers. */}
+      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="pb-1 pt-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex w-4 shrink-0 items-center justify-center" aria-hidden>
             {hasSelectAll ? (
