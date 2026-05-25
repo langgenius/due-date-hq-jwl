@@ -1,5 +1,7 @@
 import { strFromU8, unzipSync } from 'fflate'
 import readXlsxFile, { type Sheet, type SheetData } from 'read-excel-file/browser'
+import { msg } from '@lingui/core/macro'
+import { type MessageDescriptor } from '@lingui/core'
 
 import { parseTabular, type ParsedTabular } from '@duedatehq/core/csv-parser'
 import type {
@@ -133,36 +135,65 @@ export async function prepareUploadFile(file: File): Promise<PreparedUpload> {
   })
 }
 
-export function unsupportedUploadMessage(input: UnsupportedUpload): string {
+// 2026-05-25 (Wizard #40 — MessageDescriptor refactor): the
+// upload-rejection messages are now returned as MessageDescriptors
+// so they translate at the React render boundary. Callers in
+// React land (Step1Intake) pass the descriptor through `i18n._()`;
+// non-React callers (the Error message + manifest warnings)
+// continue to receive the English fallback via the legacy
+// `unsupportedUploadMessage` wrapper below, which renders the
+// descriptor's default English. That keeps the audit/log surface
+// stable while user-facing UI strings start translating properly.
+export function unsupportedUploadMessageDescriptor(input: UnsupportedUpload): MessageDescriptor {
   switch (input.code) {
     case 'file_in_time_backup':
-      return 'This looks like a File In Time backup. Export Client Information from Tools > Export Client Information, or export Task View to Excel.'
+      return msg`This looks like a File In Time backup. Export Client Information from Tools > Export Client Information, or export Task View to Excel.`
     case 'quickbooks_backup':
-      return 'This looks like a QuickBooks Desktop company backup. Export Customer Contact List to Excel/CSV or Customers to an IIF file.'
+      return msg`This looks like a QuickBooks Desktop company backup. Export Customer Contact List to Excel/CSV or Customers to an IIF file.`
     case 'quickbooks_company':
-      return 'This looks like a QuickBooks Desktop company file. Export Customer Contact List to Excel/CSV or Customers to an IIF file.'
+      return msg`This looks like a QuickBooks Desktop company file. Export Customer Contact List to Excel/CSV or Customers to an IIF file.`
     case 'qbo_archive':
-      return 'This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead.'
+      return msg`This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead.`
     case 'cch_axcess_backup':
-      return 'This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead.'
+      return msg`This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead.`
     case 'cch_prosystem_fx_backup':
-      return 'This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead.'
+      return msg`This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead.`
     case 'lacerte_data_file':
-      return 'This looks like a Lacerte data file. Use Client > Export > Export to File and choose comma delimited CSV instead.'
+      return msg`This looks like a Lacerte data file. Use Client > Export > Export to File and choose comma delimited CSV instead.`
     case 'proseries_return_file':
-      return 'This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead.'
+      return msg`This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead.`
     case 'ultratax_client_data':
-      return 'This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX.'
+      return msg`This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX.`
     case 'ultratax_dif':
-      return 'UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX.'
+      return msg`UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX.`
     case 'pdf_report':
-      return 'PDF reports are not supported for client import. Export a spreadsheet, CSV, ZIP, TXT/TSV, or IIF file instead.'
+      return msg`PDF reports are not supported for client import. Export a spreadsheet, CSV, ZIP, TXT/TSV, or IIF file instead.`
     case 'legacy_excel':
-      return 'Legacy .xls files are not supported yet. Re-save the workbook as .xlsx or CSV and upload again.'
+      return msg`Legacy .xls files are not supported yet. Re-save the workbook as .xlsx or CSV and upload again.`
     case 'unsupported_binary':
-      return `We cannot import ${input.fileName}. Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF.`
+      return msg`We cannot import ${input.fileName}. Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF.`
   }
-  return 'Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF.'
+  return msg`Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF.`
+}
+
+// Legacy string-returning wrapper kept for non-React callers that
+// can't activate i18n (the `UnsupportedUploadError` constructor +
+// `MigrationSourceManifestWarning` records that get serialised).
+// Returns the English default of the MessageDescriptor — same
+// content as before, just sourced from one place now.
+export function unsupportedUploadMessage(input: UnsupportedUpload): string {
+  const descriptor = unsupportedUploadMessageDescriptor(input)
+  // MessageDescriptor's default `message` field is the source
+  // English template. For descriptors with placeholders like
+  // `${input.fileName}` the descriptor stores the placeholder
+  // shape; only the `unsupported_binary` branch falls through
+  // to that case here. We render the English directly with
+  // String.raw-like interpolation by hand-formatting that one
+  // case; everything else has no placeholders.
+  if (input.code === 'unsupported_binary') {
+    return `We cannot import ${input.fileName}. Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF.`
+  }
+  return descriptor.message ?? ''
 }
 
 export class UnsupportedUploadError extends Error {

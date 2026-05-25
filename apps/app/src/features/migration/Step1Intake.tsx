@@ -31,7 +31,11 @@ import quickbooksLogoUrl from './assets/source-logos/quickbooks.svg?url'
 import taxdomeLogoUrl from './assets/source-logos/taxdome.png?url'
 import ultrataxCsLogoUrl from './assets/source-logos/ultratax-cs.png?url'
 import { PRESET_IDS, TAX_SOFTWARE_PRESET_IDS, type IntakeState, type PresetId } from './state'
-import { prepareUploadFile, UnsupportedUploadError, unsupportedUploadMessage } from './intake-files'
+import {
+  prepareUploadFile,
+  UnsupportedUploadError,
+  unsupportedUploadMessageDescriptor,
+} from './intake-files'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
 
@@ -304,7 +308,12 @@ export function Step1Intake({
         if (!isCurrentFileRead(readSerial)) return
         resetParsedRows()
         if (err instanceof UnsupportedUploadError) {
-          onParseError(unsupportedUploadMessage(err.upload))
+          // 2026-05-25 (Wizard #40 — MessageDescriptor refactor):
+          // render the rejection message through `i18n._()` so it
+          // translates with the rest of the wizard. Previously
+          // returned the English-only string baked into
+          // intake-files.ts.
+          onParseError(i18n._(unsupportedUploadMessageDescriptor(err.upload)))
         } else if (err instanceof Error && err.message) {
           onParseError(err.message)
         } else {
