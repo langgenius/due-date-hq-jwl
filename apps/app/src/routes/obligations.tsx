@@ -1070,8 +1070,8 @@ export function ObligationQueueRoute() {
       sort,
     ],
   )
-  const listQuery = useInfiniteQuery(
-    orpc.obligations.list.infiniteOptions({
+  const listQuery = useInfiniteQuery({
+    ...orpc.obligations.list.infiniteOptions({
       initialPageParam: INITIAL_CURSOR,
       input: (cursor) => ({
         ...queryInputWithoutCursor,
@@ -1079,7 +1079,19 @@ export function ObligationQueueRoute() {
       }),
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }),
-  )
+    // 2026-05-26 (Yuqi sixty-fifth pass follow-up #6/#7 — kill tab/chip
+    // flicker): keep showing the previous query result while the new
+    // filter set is fetching. Without this, every tab or chip click
+    // collapsed the table to the `isInitialLoading` skeleton for a
+    // beat — which read as "page blinks and glitches around" because
+    // the table height collapsed and re-expanded as rows re-mounted.
+    // `placeholderData: (prev) => prev` tells TanStack: "while we
+    // re-fetch for the new filter, render the old rows." The old
+    // rows fade to new rows in place once the new data lands, with
+    // no skeleton in between. This is the standard React Query
+    // pattern for smooth filter transitions.
+    placeholderData: (previous) => previous,
+  })
 
   const updateStatusMutation = useMutation(
     orpc.obligations.updateStatus.mutationOptions({
@@ -1657,11 +1669,18 @@ export function ObligationQueueRoute() {
           if (!assigneeName) {
             // Unassigned = dashed-outline empty avatar, no text.
             // Reads as "slot exists but nobody's filled it."
+            // 2026-05-26 (Yuqi sixty-fifth pass follow-up #1): hover
+            // state + cursor-pointer added so the avatar advertises
+            // its clickability. Clicking propagates to the row
+            // handler → opens the obligation drawer where the
+            // assignee picker lives. No standalone popover yet (would
+            // need its own AssigneePicker component); the drawer
+            // covers the use case for now.
             return (
               <span
-                aria-label={t`Unassigned`}
-                title={t`Unassigned`}
-                className="inline-flex size-8 items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary"
+                aria-label={t`Unassigned — click row to assign`}
+                title={t`Unassigned — click row to assign`}
+                className="inline-flex size-8 cursor-pointer items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary transition-colors hover:border-divider-strong hover:text-text-secondary"
               >
                 ?
               </span>

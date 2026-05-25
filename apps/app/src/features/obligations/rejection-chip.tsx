@@ -49,24 +49,20 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
       </span>
     )
   }
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #18): louder Rejected
-  // chrome. Yuqi's call: "Rejected is much more important than any
-  // thing. please use a more obvious way. maybe red background." The
-  // previous `destructive` Badge variant rendered as red-tinted text
-  // on a faint red wash — visually identical weight to the
-  // BlockedByChip beside it, so "the IRS bounced your filing" read
-  // as just another tag. Switched to a FILLED red chip (white text
-  // on solid red via `state-destructive-solid` = red-500), with
-  // `font-semibold uppercase` so the word carries siren-tier
-  // urgency. This is now the most prominent chip in the row by
-  // design — rejection is the singular "this needs immediate
-  // hands-on work" signal across the queue.
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #18, follow-up #5):
+  // Filled red chip — white text on solid red, font-semibold uppercase.
+  // Most prominent chip in the row by design — rejection is the
+  // singular "this needs immediate hands-on work" signal.
+  // Follow-up: dropped `shadow-sm` and the AlertTriangleIcon. The
+  // shadow read as a floating element above the row, fighting the
+  // queue's flat surface; the warning icon was redundant on top of
+  // the already-red filled chip + uppercase typography. Word alone
+  // carries the siren.
   return (
     <Badge
-      className="inline-flex items-center gap-1 border-transparent bg-state-destructive-solid px-2 py-0.5 text-caption font-semibold uppercase tracking-wide text-text-inverted shadow-sm hover:bg-state-destructive-solid"
+      className="inline-flex items-center border-transparent bg-state-destructive-solid px-2 py-0.5 text-caption font-semibold uppercase tracking-wide text-text-inverted hover:bg-state-destructive-solid"
       title={title}
     >
-      <AlertTriangleIcon className="size-3.5" aria-hidden />
       <Trans>Rejected</Trans>
     </Badge>
   )
