@@ -1145,53 +1145,59 @@ function StatsBar({
   // Each chip is a real filter target instead of a passive bar that
   // pretended to be interactive.
   const totalReviewed = totalActive + totalPendingReview
-  const activePct = totalReviewed > 0 ? (totalActive / totalReviewed) * 100 : 0
-  // 2026-05-25 (Yuqi rule library #3): label fits inside the bar only
-  // when the segment has at least ~80px to render the text. Below
-  // that we fall back to showing the count only (still visible
-  // inside the bar), and the full label lives in the title tooltip
-  // for hover access. Hairline threshold so 5-vs-451 splits don't
-  // try to fit "5 active" in a 12px gap.
-  const ACTIVE_LABEL_FITS = activePct >= 18
-  const REVIEW_LABEL_FITS = 100 - activePct >= 18
+  // 2026-05-25 (Yuqi rule library #30 — flip): "needs review" now
+  // anchors the START (left) of the progress bar — the work-to-do
+  // signal reads first, the work-already-done (active) fills the
+  // remainder to the right. Was the inverse: green-active on left,
+  // neutral-needs-review on right. The flip reads better as a CPA
+  // mental model — "I have 456 to look at, 20 are done." Tones:
+  // needs-review = warning-amber (call to act), active = success-
+  // green (already through).
+  const pendingPct = totalReviewed > 0 ? (totalPendingReview / totalReviewed) * 100 : 0
+  // Label fits inside the bar only when the segment has at least
+  // ~80px to render the text. Below that we fall back to the count
+  // only; the full label lives in the title tooltip for hover.
+  const REVIEW_LABEL_FITS = pendingPct >= 18
+  const ACTIVE_LABEL_FITS = 100 - pendingPct >= 18
   return (
-    <div className="flex flex-col gap-5 border-b border-divider-subtle pb-5">
-      {/* 2026-05-25 (Yuqi rule library #3, #7): progress bar rebuilt.
-          Was a 2px hairline with separate labels below — the bar read
-          as decoration, not data. Now a 28px bar with the live counts
-          INSIDE each segment. Green left = "Active N", track right =
-          "N needs review". Hover gives the full breakdown. Counts
-          live in the bar so the eye reads "split" + "magnitude" in
-          one pass; no second row of corner-floating numbers. */}
+    <div className="flex flex-col gap-4 border-b border-divider-subtle pb-4">
+      {/* 2026-05-25 (Yuqi rule library #3, #7, #30): progress bar
+          rebuilt, then flipped so the "needs review" segment leads.
+          Warning-amber left = "N needs review", success-green right
+          = "N active". Hover gives the full breakdown. Counts live
+          inside the segments so the eye reads "split" + "magnitude"
+          in one pass; no second row of corner-floating numbers.
+          Density bumped tighter (gap-4 not gap-5) per Yuqi's
+          GitHub-rhythm direction. */}
       <div className="flex flex-col gap-3">
         <div
           className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
           role="img"
-          aria-label={`${totalActive} active out of ${totalReviewed} reviewed`}
-          title={`${totalActive} active · ${totalPendingReview} need review`}
+          aria-label={`${totalPendingReview} need review out of ${totalReviewed} reviewed`}
+          title={`${totalPendingReview} need review · ${totalActive} active`}
         >
           <div
-            className="flex items-center overflow-hidden bg-state-success-hover px-2 transition-[width] duration-300"
-            style={{ width: `${activePct}%` }}
+            className="flex items-center overflow-hidden bg-state-warning-hover px-2 transition-[width] duration-300"
+            style={{ width: `${pendingPct}%` }}
           >
+            {REVIEW_LABEL_FITS ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+                <Trans>{totalPendingReview} need review</Trans>
+              </span>
+            ) : pendingPct > 0 ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+                {totalPendingReview}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-success-hover px-2">
             {ACTIVE_LABEL_FITS ? (
               <span className="truncate text-xs font-medium tabular-nums text-text-success">
                 <Trans>{totalActive} active</Trans>
               </span>
-            ) : activePct > 0 ? (
+            ) : totalActive > 0 ? (
               <span className="truncate text-xs font-medium tabular-nums text-text-success">
                 {totalActive}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex flex-1 items-center justify-end overflow-hidden px-2">
-            {REVIEW_LABEL_FITS ? (
-              <span className="truncate text-xs font-medium tabular-nums text-text-secondary">
-                <Trans>{totalPendingReview} needs review</Trans>
-              </span>
-            ) : totalPendingReview > 0 ? (
-              <span className="truncate text-xs font-medium tabular-nums text-text-secondary">
-                {totalPendingReview}
               </span>
             ) : null}
           </div>
@@ -1225,24 +1231,20 @@ function StatsBar({
           />
         </div>
       </div>
-      {/* Filter band: entity chip row (left) + search (right). Same
-          horizontal level so the eye reads them as siblings —
-          "narrow by entity OR narrow by text", not as two
-          unrelated controls stacked vertically. Stacks at narrow
-          viewports. */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-6">
-        <div className="min-w-0 flex-1">
-          <EntityChipRow
-            entityStats={entityStats}
-            activeEntity={activeEntity}
-            onSelect={onSelectEntity}
-            onClear={onClearEntity}
-          />
-        </div>
-        <div className="w-full max-w-sm shrink-0">
-          <SearchBar search={search} onChange={onSearchChange} />
-        </div>
-      </div>
+      {/* 2026-05-25 (Yuqi rule library #8 — "absurd place to place
+          the search bar"): search lifted out of the filter band's
+          right slot to its own row above the entity chips. Reads
+          like GitHub's PR list — search is the top-of-stack filter
+          affordance, entity chips below modify the searched set.
+          Full-width on mobile, capped at max-w-md on desktop so it
+          doesn't look bloated next to dense controls. */}
+      <SearchBar search={search} onChange={onSearchChange} />
+      <EntityChipRow
+        entityStats={entityStats}
+        activeEntity={activeEntity}
+        onSelect={onSelectEntity}
+        onClear={onClearEntity}
+      />
     </div>
   )
 }
@@ -1534,7 +1536,15 @@ function GroupedRulesTable({
                 </span>
               </span>
             </TableHead>
-            <TableHead className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+            {/* 2026-05-25 (Yuqi rule library second-pass #3): Form
+                column narrowed to w-[140px]. Form codes are short
+                (e.g. "1120-S Final" / "7004 Extension") — the
+                auto-width was claiming ~220px on wide viewports,
+                pushing the entity columns left of the visual
+                center. Capping the Form column reclaims that space
+                for the entity dots which carry the actual
+                catalog-scan info. */}
+            <TableHead className="w-[140px] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <Trans>Form</Trans>
             </TableHead>
             {ENTITY_KEYS.map((entity) => (
@@ -1844,47 +1854,38 @@ function RuleTableRow({
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
     >
-      {/* Rule title.
-          - `whitespace-normal` overrides the primitive's `whitespace-
-            nowrap` so long titles can wrap to 2 lines.
-          - `!pl-[58px]` when the row has a checkbox, so the rule
-            checkbox aligns with the section label above. Otherwise
-            `!pl-[34px]` aligns the title with the state badge's LEFT edge.
-          - `min-h-10` keeps row height consistent with gap rows.
-          - `group-hover:underline` on the title text signals the
-            link target on hover. */}
-      <TableCell
-        className={cn(
-          'min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary',
-          selectable ? '!pl-[58px]' : '!pl-[34px]',
-        )}
-      >
+      {/* 2026-05-25 (Yuqi rule library #11, #12, second-pass #1):
+          rule rows now use a single canonical pl-9 (36px) for the
+          title cell regardless of checkbox presence. A leading `w-4`
+          slot reserves space whether the row is selectable or not,
+          so checkbox and non-checkbox rows render their titles at
+          the EXACT same x-position. The slot's x-position sits flush
+          with the state row's chevron above, so every interactive
+          column of the table — chevron → checkbox → title — anchors
+          to one left edge. Drops the prior `!pl-[58px]` /
+          `!pl-[34px]` cascade that left selectable / non-selectable
+          rule titles ~24px apart. */}
+      <TableCell className="!pl-3 min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary">
         <div className="flex min-w-0 items-start gap-2">
-          {selectable ? (
-            // Checkbox is its own click target — stopping propagation
-            // so the row's `onClick` (which opens the rule detail
-            // panel) doesn't fire when the user is just selecting for
-            // batch review. Wrapping in a div + stopping on BOTH
-            // `onPointerDown` (catches the early pipeline) AND
-            // `onClick` (catches the late pipeline) — Base UI's
-            // Checkbox primitive uses pointer events internally, so a
-            // single `onClick` handler on Checkbox itself doesn't
-            // reliably block the row's click from firing. The +12px
-            // extended hit area via `after:-inset-x-3` made the leak
-            // even more visible.
-            <span
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => event.stopPropagation()}
-              className="inline-flex items-center"
-            >
-              <Checkbox
-                className="mt-0.5"
-                checked={selected}
-                onCheckedChange={onSelectChange}
-                aria-label={`Select ${displayTitle} for batch review`}
-              />
-            </span>
-          ) : null}
+          <span className="inline-flex w-4 shrink-0 items-start pt-0.5">
+            {selectable ? (
+              // Checkbox is its own click target — stopping propagation
+              // so the row's `onClick` (which opens the rule detail
+              // panel) doesn't fire when the user is just selecting for
+              // batch review.
+              <span
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+                className="inline-flex items-center"
+              >
+                <Checkbox
+                  checked={selected}
+                  onCheckedChange={onSelectChange}
+                  aria-label={`Select ${displayTitle} for batch review`}
+                />
+              </span>
+            ) : null}
+          </span>
           <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular">
             {displayTitle}
           </span>
