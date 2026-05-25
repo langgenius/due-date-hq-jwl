@@ -378,13 +378,23 @@ function FactCard({
   // structured-change container which were both rounded-md.
   // All section frames in the drawer body now share the same
   // 6px radius.
+  // 2026-05-26 (Yuqi drawer canonical — nested card padding):
+  // FactCard is a NESTED card inside the drawer body. Previous
+  // `px-6 py-5` matched the OLD drawer-body padding (px-6 py-5)
+  // so they read as one rhythm. Drawer body is now `px-12 py-10`,
+  // so FactCard should drop to the canonical "standard card"
+  // padding (`p-4`) since it's a small framed surface inside the
+  // bigger paper-document drawer. Header uses `px-4 py-2` so the
+  // section title row stays compact and the visual weight sits
+  // in the body. Section title bumped text-base → text-sm
+  // font-semibold per canonical body-section heading.
   return (
     <section className="rounded-md border border-divider-subtle bg-background-default">
-      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-6 py-2">
-        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
+      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-divider-subtle px-4 py-2">
+        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}
       </header>
-      <div className="px-6 py-5">{children}</div>
+      <div className="p-4">{children}</div>
     </section>
   )
 }

@@ -90,7 +90,28 @@ className={cn(
 
 ---
 
-## Drawer / right panel
+## Drawer canonical (PulseDetailDrawer + ObligationDrawer)
+
+**Both drawers** in the product follow the same chrome. The list at the top
+of this section is the source of truth — if a drawer disagrees, fix the
+drawer.
+
+### Padding
+
+| Region                     | Class               | Pixel                            |
+| -------------------------- | ------------------- | -------------------------------- |
+| Header                     | `px-12 py-10`       | 48 × 40                          |
+| Body (scrolling)           | `px-12 py-10`       | 48 × 40                          |
+| Sticky footer              | `px-12 py-4`        | 48 × 16                          |
+| Body inter-section gap     | `gap-4`             | 16                               |
+| Inner section internal gap | `gap-3`             | 12                               |
+| Sticky inner heading bleed | `-mx-12 px-12 py-3` | full-width with 48px inner inset |
+
+The `px-12 py-10` body padding makes the drawer read as a roomy paper document.
+`px-12` repeats edge-to-edge on header/body/footer so the left margin is one
+continuous line.
+
+### Outer chrome
 
 ```tsx
 <aside
@@ -98,17 +119,62 @@ className={cn(
              border-l border-divider-subtle bg-background-default
              shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
 >
-  {/* sticky header */}
-  {/* scrolling body (px-6 py-5, gap-4) */}
-  {/* sticky footer (min-h-16, border-t-2, bg-background-default, px-6 py-4) */}
+  {/* sticky header (px-12 py-10, border-b border-divider-subtle) */}
+  {/* scrolling body (flex-1 overflow-y-auto, px-12 py-10, gap-4) */}
+  {/* sticky footer (min-h-16, border-t-2, bg-background-default, px-12 py-4) */}
 </aside>
 ```
 
-- **Width:** `60%` of container when open, with `min-w-[1440px]` on the route
-  shell so the panel/list split lands at 864/560 minimum.
-- **Shadow:** soft left-edge shadow — gestural "paper lifted off the desk."
-- **Footer:** taller + harder top border + white bg so the decision surface
-  reads as decision-grade.
+### Header structure
+
+Stacked vertically:
+
+1. **Kicker** — framed state pill (e.g. `[CA flag] CA California`) at
+   `text-xs`, `rounded-sm` framed
+2. **h1 title** — `text-2xl font-semibold leading-tight`
+3. **Description** (optional) — `text-sm text-text-secondary`, `mt-2`
+4. **Chip row** — `flex flex-wrap items-center gap-2 text-sm`: change-kind
+   chip leads, then source / status / confidence pills
+
+### Body structure
+
+- Scrolling container: `flex-1 min-h-0 overflow-y-auto px-12 py-10 gap-4 flex flex-col`
+- Each section: `flex flex-col gap-3`
+- Section heading inside body: `text-sm font-medium text-text-secondary` (NOT a
+  page-level h2 — body sections are quieter than the drawer's own h1)
+
+### Footer two-cluster layout
+
+```tsx
+<div className="flex flex-wrap items-center justify-between gap-2">
+  <div className="flex flex-wrap items-center gap-2">
+    {/* LEFT: reversal / secondary (Undo, Reactivate) */}
+  </div>
+  <div className="flex flex-wrap items-center gap-2">
+    {/* RIGHT: forward / primary (Apply, Save, Confirm) */}
+  </div>
+</div>
+```
+
+LEFT cluster holds reversal / destructive actions. RIGHT cluster holds the
+primary forward CTA. `justify-between` pins them apart. The right cluster's
+last button is the **primary** (default size + variant); siblings stay
+`size="sm"`.
+
+### Width
+
+- PulseDetailDrawer (panel mode): `60%` of container when open. Route shell
+  sets `min-w-[1440px]` so list/panel split lands at 560/864 minimum.
+- ObligationDrawer (sheet mode): `min(720, 100vw - 16px)` at sm,
+  `min(840, 100vw - 24px)` at md, `min(920, 100vw - 32px)` at xl.
+
+### Visual gestures
+
+- **Shadow** (panel mode): `shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]`
+  on the left edge — gestural "paper lifted off the desk."
+- **Footer divider**: `border-t-2` (heavier than the typical `border-t`) +
+  white bg so the decision surface reads as decision-grade against the
+  body's content.
 
 ---
 

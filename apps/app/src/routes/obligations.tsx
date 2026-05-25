@@ -4558,7 +4558,15 @@ export function ObligationQueueDetailDrawer({
           the page top — wasted real estate at the top of the
           drawer. Reduced to py-3 (12px) so the form-code h2 reads
           right at the top edge. */}
-      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-5 py-3">
+      {/* 2026-05-26 (Yuqi drawer canonical — cross-drawer match):
+          header padding `px-5 py-3` → `px-12 py-10` per the drawer
+          canonical (see docs/Design/inset-surface-design-system.md
+          "Drawer canonical"). PulseDetailDrawer + ObligationDrawer
+          now share identical chrome: roomy paper-document padding
+          on header + body, compact action-bar padding on footer.
+          The previous tight `py-3` was a one-off Deadlines callout
+          (Yuqi #17) — superseded by the cross-drawer unification. */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 py-10">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -4741,7 +4749,11 @@ export function ObligationQueueDetailDrawer({
           starts flush at the body top, and the area below the strip
           gets its own real `pt-4` so it's visually a separate
           unit (containing TabsList + tab content). */}
-      <div className={cn('px-5 pb-5', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
+      {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
+          → `px-12 py-10` per the drawer canonical. Same paper-document
+          padding as PulseDetailDrawer body — left margin runs as one
+          line from header through body. */}
+      <div className={cn('px-12 py-10', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
         {detailQuery.isLoading ? (
           <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
             <Trans>Loading deadline detail…</Trans>
@@ -4796,7 +4808,7 @@ export function ObligationQueueDetailDrawer({
               className={cn(
                 'flex flex-col gap-3',
                 mode === 'panel'
-                  ? 'sticky top-0 z-10 -mx-5 border-b border-divider-subtle bg-background-subtle px-5 py-3'
+                  ? 'sticky top-0 z-10 -mx-12 border-b border-divider-subtle bg-background-subtle px-12 py-3'
                   : 'mb-4',
               )}
             >
@@ -5561,7 +5573,10 @@ export function ObligationQueueDetailDrawer({
           the selection back to zero. Receivd items are skipped
           server-side via batchMarkReceived's filter. */}
       {row && activeTab === 'readiness' && materialsSelection.itemIds.size > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle bg-background-section px-5 py-2.5">
+        // 2026-05-26 (Yuqi drawer canonical): materials-selection
+        // bar inline-padding aligned to px-12. Vertical bumped 2.5
+        // → 4 to match the canonical drawer footer rhythm.
+        <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle bg-background-section px-12 py-4">
           <span className="text-xs font-medium text-text-primary">
             <Plural
               value={materialsSelection.itemIds.size}
@@ -5590,7 +5605,12 @@ export function ObligationQueueDetailDrawer({
         </div>
       ) : null}
       {row ? (
-        <div className="sticky bottom-0 mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-default px-5 py-3">
+        // 2026-05-26 (Yuqi drawer canonical): sticky footer aligned to
+        // `px-12 py-4` per the canonical. Border bumped to border-t-2
+        // (heavier) + bg-background-default + h-min so the footer reads
+        // as decision-grade against the body content. Matches
+        // PulseDetailDrawer SheetFooter chrome.
+        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 py-4">
           <span className="text-xs text-text-tertiary">
             {/* Compact provenance line: when was the row last touched
                   and by what action. Reuses formatDateTimeWithTimezone
