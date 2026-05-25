@@ -1,6 +1,7 @@
 export { KeyboardProvider } from './KeyboardProvider'
 export { useAppHotkey, useAppHotkeySequence, useKeyboardShortcutsBlocked } from './hooks'
 export { isEditableEventTarget, isInteractiveEventTarget } from './types'
+export type { AppHotkeyMeta, ShortcutCategory, ShortcutScope } from './types'
 export {
   COMMAND_PALETTE_HOTKEY,
   FIRM_SWITCHER_HOTKEY,

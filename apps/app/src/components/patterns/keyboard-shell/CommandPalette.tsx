@@ -258,17 +258,20 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={t`Command palette`}
-      // 2026-05-24 (critique P2 — clarify): dropped "ask" from both
-      // the dialog description and the input placeholder. The "ask"
-      // group was removed earlier when the assistant didn't ship;
-      // the copy hadn't been updated. Typing "what's overdue?" today
-      // returns "No commands found." — a quiet discoverability lie
-      // that erodes trust in the rest of the palette. Restore once
-      // an assistant lands.
-      description={t`Search or navigate.`}
+      // 2026-05-26 (Yuqi cross-product search audit, Phase 1):
+      // dropped "Search" from both the dialog description and the
+      // input placeholder. The palette today does navigation +
+      // actions only — typing "Wong & Wong" returned "No commands
+      // found." because there's no entity-search backend yet. The
+      // "Search or navigate" copy promised something we don't
+      // deliver and eroded trust in the rest of the palette. Until
+      // Phase 2 lands real entity search (clients / deadlines /
+      // rules / alerts indexed and ranked), the palette honestly
+      // calls itself a navigator.
+      description={t`Navigate.`}
     >
       <Command loop disablePointerSelection>
-        <CommandInput autoFocus placeholder={t`Search or navigate…`} />
+        <CommandInput autoFocus placeholder={t`Navigate…`} />
         <CommandList>
           <CommandEmpty>
             <Trans>No commands found.</Trans>
