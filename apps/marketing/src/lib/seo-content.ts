@@ -9,24 +9,34 @@ interface StateSpec {
   abbreviation: string
   agency: string
   sourceSurface: string
+  sourceSurfaceZh: string
   signal: string
+  signalZh: string
   taxFocus: string
+  taxFocusZh: string
 }
 
 interface ComparisonSpec {
   slug: string
   product: string
   positioning: string
+  positioningZh: string
   bestFit: string
+  bestFitZh: string
   contrast: string
+  contrastZh: string
 }
 
 interface RuleReferenceSpec {
   slug: string
   label: string
+  labelZh: string
   sourceContext: string
+  sourceContextZh: string
   operationalRisk: string
+  operationalRiskZh: string
   clientContext: string
+  clientContextZh: string
 }
 
 const stateSpecs: StateSpec[] = [
@@ -36,8 +46,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'IL',
     agency: 'Illinois Department of Revenue',
     sourceSurface: 'forms, bulletins, and taxpayer guidance',
+    sourceSurfaceZh: '表格、公告与纳税人指南',
     signal: 'income, replacement, sales-tax, and relief notices',
+    signalZh: '所得税、replacement tax、销售税与救济通知',
     taxFocus: 'entity, sales-tax, and filing-window context',
+    taxFocusZh: '实体类型、销售税与申报窗口上下文',
   },
   {
     slug: 'new-jersey',
@@ -45,8 +58,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'NJ',
     agency: 'New Jersey Division of Taxation',
     sourceSurface: 'business tax pages, notices, and filing guidance',
+    sourceSurfaceZh: '企业税页面、通知与申报指南',
     signal: 'corporation business tax, sales-tax, and relief updates',
+    signalZh: '公司营业税、销售税与救济更新',
     taxFocus: 'corporation tax, state filing, and taxpayer-class context',
+    taxFocusZh: '公司税、州申报与纳税人类别上下文',
   },
   {
     slug: 'pennsylvania',
@@ -54,8 +70,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'PA',
     agency: 'Pennsylvania Department of Revenue',
     sourceSurface: 'revenue guidance, tax forms, and public notices',
+    sourceSurfaceZh: '税务指南、税表与公开通知',
     signal: 'business tax, sales-tax, and filing-period updates',
+    signalZh: '企业税、销售税与申报期间更新',
     taxFocus: 'business filing, taxpayer type, and period context',
+    taxFocusZh: '企业申报、纳税人类型与期间上下文',
   },
   {
     slug: 'georgia',
@@ -63,8 +82,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'GA',
     agency: 'Georgia Department of Revenue',
     sourceSurface: 'tax forms, news, and public filing guidance',
+    sourceSurfaceZh: '税表、新闻与公开申报指南',
     signal: 'income tax, sales-tax, and deadline-related updates',
+    signalZh: '所得税、销售税与截止日相关更新',
     taxFocus: 'state filing, form, and relief context',
+    taxFocusZh: '州申报、表格与救济上下文',
   },
   {
     slug: 'massachusetts',
@@ -72,8 +94,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'MA',
     agency: 'Massachusetts Department of Revenue',
     sourceSurface: 'DOR guidance, forms, and taxpayer notices',
+    sourceSurfaceZh: '税务局指南、表格与纳税人通知',
     signal: 'corporate excise, sales-tax, and public filing updates',
+    signalZh: 'corporate excise、销售税与公开申报更新',
     taxFocus: 'corporate excise, filing-period, and entity context',
+    taxFocusZh: 'corporate excise、申报期间与实体上下文',
   },
   {
     slug: 'north-carolina',
@@ -81,8 +106,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'NC',
     agency: 'North Carolina Department of Revenue',
     sourceSurface: 'tax forms, notices, and filing resources',
+    sourceSurfaceZh: '税表、通知与申报资源',
     signal: 'corporate income, franchise, sales-tax, and relief updates',
+    signalZh: '公司所得税、franchise tax、销售税与救济更新',
     taxFocus: 'corporate, franchise, and due-date context',
+    taxFocusZh: '公司税、franchise tax 与截止日上下文',
   },
   {
     slug: 'arizona',
@@ -90,8 +118,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'AZ',
     agency: 'Arizona Department of Revenue',
     sourceSurface: 'forms, rulings, and taxpayer guidance',
+    sourceSurfaceZh: '表格、裁定与纳税人指南',
     signal: 'income tax, transaction privilege tax, and relief notices',
+    signalZh: '所得税、transaction privilege tax 与救济通知',
     taxFocus: 'filing, TPT, and taxpayer-class context',
+    taxFocusZh: '申报、TPT 与纳税人类别上下文',
   },
   {
     slug: 'colorado',
@@ -99,8 +130,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'CO',
     agency: 'Colorado Department of Revenue',
     sourceSurface: 'taxation guidance, forms, and notices',
+    sourceSurfaceZh: '税务指南、表格与通知',
     signal: 'income tax, sales-tax, and filing-window updates',
+    signalZh: '所得税、销售税与申报窗口更新',
     taxFocus: 'state filing, sales-tax, and period context',
+    taxFocusZh: '州申报、销售税与期间上下文',
   },
   {
     slug: 'ohio',
@@ -108,8 +142,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'OH',
     agency: 'Ohio Department of Taxation',
     sourceSurface: 'tax guidance, forms, and public updates',
+    sourceSurfaceZh: '税务指南、表格与公开更新',
     signal: 'commercial activity tax, sales-tax, and income-tax updates',
+    signalZh: 'commercial activity tax、销售税与所得税更新',
     taxFocus: 'CAT, sales-tax, and entity context',
+    taxFocusZh: 'CAT、销售税与实体上下文',
   },
   {
     slug: 'michigan',
@@ -117,8 +154,11 @@ const stateSpecs: StateSpec[] = [
     abbreviation: 'MI',
     agency: 'Michigan Department of Treasury',
     sourceSurface: 'tax forms, notices, and Treasury guidance',
+    sourceSurfaceZh: '税表、通知与财政部指南',
     signal: 'corporate income tax, sales-tax, and public deadline updates',
+    signalZh: '公司所得税、销售税与公开截止日更新',
     taxFocus: 'corporate filing, tax type, and period context',
+    taxFocusZh: '公司申报、税种与期间上下文',
   },
 ]
 
@@ -127,27 +167,39 @@ const comparisonSpecs: ComparisonSpec[] = [
     slug: 'file-in-time-alternative',
     product: 'File In Time',
     positioning: 'tax deadline tracking built around due-date lists',
+    positioningZh: '围绕截止日清单构建的税务截止日追踪工具',
     bestFit: 'firms that mainly want a narrow deadline tracker',
+    bestFitZh: '主要需要窄范围截止日跟踪器的事务所',
     contrast:
       'DueDateHQ is built around risk triage, source evidence, Pulse state changes, and migration-assisted client context.',
+    contrastZh:
+      'DueDateHQ 更关注风险分诊、来源证据、Pulse 州税变更复核，以及迁移后保留的客户上下文。',
   },
   {
     slug: 'taxdome-deadline-operations',
     product: 'TaxDome',
     positioning: 'an all-in-one practice management and client portal suite',
+    positioningZh: '一体化 practice management 与客户门户套件',
     bestFit:
       'firms standardizing client portals, organizers, documents, payments, and workflow in one platform',
+    bestFitZh: '希望把客户门户、organizer、文档、支付和工作流统一到一个平台的事务所',
     contrast:
       'DueDateHQ stays narrower: deadline risk, official-source evidence, state coverage, and weekly operations for CPA teams that do not want a full practice suite migration.',
+    contrastZh:
+      'DueDateHQ 范围更窄：截止日风险、官方来源证据、州覆盖和每周运营分诊，适合不想做完整 practice suite 迁移的 CPA 团队。',
   },
   {
     slug: 'karbon-deadline-operations',
     product: 'Karbon',
     positioning: 'collaborative accounting workflow and team work management',
+    positioningZh: '会计团队协作工作流与 work management 平台',
     bestFit:
       'teams that want broad work management, email collaboration, and operational visibility',
+    bestFitZh: '需要更广义 work management、邮件协作和团队可视化的团队',
     contrast:
       'DueDateHQ focuses on tax deadline work: source-backed rules, affected-client review, evidence drawers, and deadline-specific triage.',
+    contrastZh:
+      'DueDateHQ 聚焦税务截止日运营：带来源的规则、受影响客户复核、证据抽屉和专门面向截止日的分诊。',
   },
 ]
 
@@ -155,30 +207,43 @@ const ruleReferenceSpecs: RuleReferenceSpec[] = [
   {
     slug: 'form-7004-extension-deadline',
     label: 'Form 7004 extension deadline',
+    labelZh: 'Form 7004 延期截止日',
     sourceContext: 'IRS extension instructions and filing-period guidance',
+    sourceContextZh: 'IRS 延期说明与申报期间指南',
     operationalRisk:
       'extension work can reduce filing risk while leaving payment timing, readiness, and client communication open for review',
+    operationalRiskZh: '延期工作可以降低申报风险，但付款时点、资料准备度和客户沟通仍需要单独复核',
     clientContext:
       'entity type, tax year, filing status, payment estimate, owner, and evidence state',
+    clientContextZh: '实体类型、税年、申报状态、付款估算、负责人和证据状态',
   },
   {
     slug: 's-corp-deadline-operations',
     label: 'S-Corp deadline operations',
+    labelZh: 'S-Corp 截止日运营',
     sourceContext: 'IRS S corporation filing guidance, form instructions, and state entity signals',
+    sourceContextZh: 'IRS S corporation 申报指南、表格说明和州级实体信号',
     operationalRisk:
       'S-Corp work often combines federal filing timing, state registration, extension status, and client readiness',
+    operationalRiskZh: 'S-Corp 工作通常同时涉及联邦申报时点、州注册状态、延期状态和客户资料准备度',
     clientContext:
       'entity profile, fiscal year, state footprint, responsible owner, and source-backed obligation state',
+    clientContextZh: '实体档案、财年、州足迹、负责人和带来源的义务状态',
   },
   {
     slug: 'partnership-form-1065-deadline',
     label: 'Partnership Form 1065 deadline',
+    labelZh: 'Partnership Form 1065 截止日',
     sourceContext:
       'IRS partnership return guidance, extension instructions, and state filing references',
+    sourceContextZh: 'IRS partnership return 指南、延期说明和州申报参考',
     operationalRisk:
       'partnership deadline work can affect partner schedules, extension handling, payment context, and review ownership',
+    operationalRiskZh:
+      'partnership 截止日工作会影响 partner schedule、延期处理、付款上下文和复核负责人',
     clientContext:
       'partnership profile, filing period, state footprint, materials readiness, and evidence completeness',
+    clientContextZh: '合伙企业档案、申报期间、州足迹、资料准备度和证据完整度',
   },
 ]
 
@@ -187,68 +252,92 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
     return {
       slug: spec.slug,
       meta: {
-        title: `${spec.label} — DueDateHQ Rule Reference`,
-        description: `DueDateHQ 如何把 ${spec.label} 这类截止日规则转成带来源、客户上下文和人工复核的运营工作。`,
+        title: `${spec.labelZh} — DueDateHQ 规则参考`,
+        description: `了解 DueDateHQ 如何把 ${spec.labelZh} 转成带官方来源、客户上下文、人工复核、证据状态和审计历史的 CPA 截止日运营工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'RULE REFERENCE',
-        title: `${spec.label} as source-backed deadline work.`,
-        description: `DueDateHQ 不把 ${spec.label} 当作孤立日期，而是把 ${spec.sourceContext}、客户上下文、review state 和 audit history 放在同一条运营链路里。`,
-        note: 'Rule reference 页面解释软件建模方式，不提供税务建议。',
+        eyebrow: '规则参考',
+        title: `${spec.labelZh} 不只是一个日期。`,
+        description: `DueDateHQ 不把 ${spec.labelZh} 当作孤立日期，而是把${spec.sourceContextZh}、客户事实、复核状态和审计历史放在同一条运营链路里。`,
+        note: '规则参考页面只解释软件建模方式，不提供税务建议。',
       },
       sections: [
         {
-          eyebrow: 'SOURCE MODEL',
+          eyebrow: '来源模型',
           title: '规则先从官方来源进入复核。',
-          body: `${spec.sourceContext} 是 DueDateHQ 优先保存的来源上下文。AI 可以辅助摘要，但不能替代官方来源和 reviewer decision。`,
+          body: `${spec.sourceContextZh} 是 DueDateHQ 优先保存的来源上下文。AI 可以辅助摘要、提示缺口或整理来源摘录，但不能替代官方来源和人工复核决定。`,
           items: [
-            { title: 'Source URL', body: '规则需要保留官方来源链接，方便 reviewer 和用户回看。' },
-            { title: 'Source excerpt', body: '相关摘录靠近运营动作展示，避免黑盒结论。' },
             {
-              title: 'Verified metadata',
-              body: '复核时间和 review state 决定规则能否进入生产工作。',
+              title: '来源链接',
+              body: '规则需要保留官方页面链接，方便复核人和用户回看同一份材料。',
+            },
+            { title: '来源摘录', body: '相关摘录靠近运营动作展示，避免把结论变成黑盒建议。' },
+            {
+              title: '复核元数据',
+              body: '复核时间、复核人和规则状态决定该规则能否进入生产截止日工作。',
             },
           ],
         },
         {
-          eyebrow: 'OPERATIONS',
-          title: '规则只有结合客户上下文才成为 deadline work。',
-          body: `${spec.operationalRisk}。DueDateHQ 会把规则和 ${spec.clientContext} 放在一起复核。`,
+          eyebrow: '运营上下文',
+          title: '规则只有结合客户事实才成为截止日工作。',
+          body: `${spec.operationalRiskZh}。DueDateHQ 会把规则和${spec.clientContextZh}放在一起复核。`,
           items: [
-            { title: 'Client fit', body: 'Applicability 取决于事务所的 client facts 和专业复核。' },
             {
-              title: 'Review gate',
-              body: '低置信度或缺少来源的信号先进入 review，而不是自动改 deadline。',
+              title: '客户匹配',
+              body: '适用性取决于事务所维护的客户事实、申报档案和专业复核。',
             },
             {
-              title: 'Audit trail',
-              body: 'Apply、dismiss、undo、revert 都应该留下可检查的操作历史。',
+              title: '复核门槛',
+              body: '低置信度或缺少来源的信号先进入复核，而不是静默改变客户截止日。',
+            },
+            {
+              title: '审计历史',
+              body: 'Apply、dismiss、undo 和 revert 都要留下可检查的操作历史。',
+            },
+          ],
+        },
+        {
+          eyebrow: '产品落点',
+          title: '这条规则最终服务于队列、证据和团队分工。',
+          body: '当前 app 中，规则复核发生在 Rules Console，生成后的 deadline 进入 Dashboard 和 Deadlines 队列，证据抽屉与审计时间线解释为什么要处理这项工作。',
+          items: [
+            {
+              title: 'Rules Console',
+              body: 'Owner 或 manager 可以在 coverage、pending queue 和 source list 中复核规则来源和适用范围。',
+            },
+            {
+              title: 'Deadlines 队列',
+              body: '通过客户事实和规则生成的义务会带着状态、负责人、资料准备度、风险和证据一起进入队列。',
+            },
+            {
+              title: 'Evidence drawer',
+              body: '用户可以从 deadline、Dashboard 或 Pulse 上下文打开证据链，解释来源、更新时间和操作历史。',
             },
           ],
         },
       ],
-      faqHeader: { eyebrow: 'FAQ', title: `${spec.label} questions.` },
+      faqHeader: { eyebrow: 'FAQ', title: `${spec.labelZh} 常见问题。` },
       faq: [
         {
-          question: `DueDateHQ 会判断 ${spec.label} 是否适用吗？`,
-          answer: '不会。它保留来源证据和客户上下文，由事务所复核 applicability。',
+          question: `DueDateHQ 会判断 ${spec.labelZh} 是否适用吗？`,
+          answer: '不会。它保留来源证据和客户上下文，由事务所复核适用性。',
         },
         {
           question: 'AI 在这里做什么？',
-          answer:
-            'AI 可以摘要来源、提示缺失上下文或辅助 migration mapping，但 source 和 human review 是控制点。',
+          answer: 'AI 可以摘要来源、提示缺失上下文或辅助迁移映射，但官方来源和人工复核才是控制点。',
         },
         {
           question: '这个页面是税务建议吗？',
-          answer: '不是。它只是解释 DueDateHQ 如何把 deadline rules 建模成运营工作。',
+          answer: '不是。它只是解释 DueDateHQ 如何把截止日规则建模成事务所运营工作。',
         },
       ],
       cta: {
-        title: 'Review the public rule model.',
-        body: 'DueDateHQ keeps source evidence and review state close to deadline work.',
-        primary: 'Open rule library',
-        secondary: 'Read weekly triage',
+        title: '查看公开规则模型。',
+        body: 'DueDateHQ 把来源证据、客户上下文和复核状态放在截止日工作旁边。',
+        primary: '打开规则库',
+        secondary: '阅读每周分诊指南',
       },
     }
   }
@@ -305,6 +394,25 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
           },
         ],
       },
+      {
+        eyebrow: 'PRODUCT SURFACE',
+        title: 'The rule supports queues, evidence, and team ownership.',
+        body: 'In the current app, rule review lives in Rules Console. Generated deadlines flow into Dashboard and Deadlines, while the evidence drawer and audit timeline explain why the work exists.',
+        items: [
+          {
+            title: 'Rules Console',
+            body: 'Owners and managers can review rule source, coverage, pending queue items, and source registry context before rules become active.',
+          },
+          {
+            title: 'Deadlines queue',
+            body: 'Generated obligations carry status, owner, readiness, risk, and evidence context into the daily queue.',
+          },
+          {
+            title: 'Evidence drawer',
+            body: 'Users can inspect the source chain from deadline, Dashboard, or Pulse context instead of trusting an unexplained date.',
+          },
+        ],
+      },
     ],
     faqHeader: { eyebrow: 'FAQ', title: `${spec.label} questions.` },
     faq: [
@@ -339,7 +447,7 @@ function stateSummary(spec: StateSpec, locale: Locale): StateCard {
       name: spec.name,
       abbreviation: spec.abbreviation,
       status: 'Live',
-      body: `${spec.agency} 的公开 ${spec.sourceSurface} 可进入来源复核，用于 ${spec.taxFocus} 的截止日运营判断。`,
+      body: `${spec.agency} 的公开${spec.sourceSurfaceZh}可进入来源复核，用于${spec.taxFocusZh}的截止日运营判断。`,
       href: `/zh-CN/states/${spec.slug}`,
     }
   }
@@ -361,53 +469,53 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       name: spec.name,
       abbreviation: spec.abbreviation,
       meta: {
-        title: `${spec.name} Filing Deadline Monitoring — DueDateHQ State Coverage`,
-        description: `DueDateHQ 如何用官方来源上下文复核 ${spec.name} 的 ${spec.signal}。`,
+        title: `${spec.name} 州申报截止日监控 — DueDateHQ 州覆盖`,
+        description: `了解 DueDateHQ 如何监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，并把 ${spec.name} ${spec.signalZh} 转成带来源、客户上下文和人工复核的截止日工作。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: `STATE COVERAGE · ${spec.abbreviation}`,
-        title: `${spec.name} filing signals with source-backed review.`,
-        description: `DueDateHQ 监控 ${spec.agency} 的公开 ${spec.sourceSurface}，在 ${spec.signal} 可能影响事务所截止日运营时保留来源、摘录和复核状态。`,
-        note: `${spec.name} coverage 描述软件监控范围，不是税务建议。`,
+        eyebrow: `州覆盖 · ${spec.abbreviation}`,
+        title: `${spec.name} 申报信号先进入来源复核。`,
+        description: `DueDateHQ 监控 ${spec.agency} 的公开${spec.sourceSurfaceZh}，在 ${spec.signalZh} 可能影响事务所截止日运营时保留来源、摘录、复核状态和客户匹配上下文。`,
+        note: `${spec.name} 覆盖只描述软件监控范围，不是税务建议。`,
       },
       sourceTypes: [
         {
-          title: `${spec.agency} public material`,
-          body: `优先使用 ${spec.agency} 的官方 ${spec.sourceSurface}，避免把第三方摘要当成来源。`,
+          title: `${spec.agency} 官方材料`,
+          body: `优先使用 ${spec.agency} 的官方${spec.sourceSurfaceZh}，避免把第三方摘要当成来源。`,
         },
         {
-          title: 'Form and period context',
-          body: `表格、期间、纳税人类型和 jurisdiction 线索会保留给人工复核。`,
+          title: '表格与期间上下文',
+          body: '表格、期间、纳税人类型和辖区线索会保留给人工复核。',
         },
         {
-          title: 'Relief and notice updates',
-          body: `公开 relief、notice 或 deadline movement 会先进入候选复核，而不是自动改客户工作。`,
+          title: '救济与通知更新',
+          body: '公开救济、通知或截止日变动会先进入候选复核，而不是自动改客户工作。',
         },
       ],
       coveredSignals: [
         {
-          title: spec.signal,
-          body: `这些公开信号可以进入 Pulse 复核，并保持 source URL、excerpt、verified metadata。`,
+          title: spec.signalZh,
+          body: '这些公开信号可以进入 Pulse 复核，并保留来源链接、来源摘录和验证元数据。',
         },
         {
-          title: spec.taxFocus,
-          body: `DueDateHQ 将信号和事务所客户 filing profile、tax type、period context 放在一起审查。`,
+          title: spec.taxFocusZh,
+          body: 'DueDateHQ 将信号和事务所客户申报档案、税种、期间上下文放在一起审查。',
         },
         {
-          title: 'Operational routing',
-          body: `复核后的信号可以成为 Dashboard、Obligations 或 email workflow 的上下文。`,
+          title: '运营路由',
+          body: '复核后的信号可以成为 Dashboard、Deadlines 或邮件工作流的上下文。',
         },
       ],
       limitations: [
         `DueDateHQ 不判断某条 ${spec.name} 规则是否适用于具体客户。`,
-        'Coverage 依赖公开来源可访问性、来源清晰度和产品复核状态。',
-        '客户专属信件、私有通知和专业判断不属于公开 state coverage。',
+        '覆盖依赖公开来源可访问性、来源清晰度和产品复核状态。',
+        '客户专属信件、私有通知和专业判断不属于公开州覆盖页面的承诺范围。',
       ],
       faq: [
         {
           question: `${spec.name} 哪些信号会进入复核？`,
-          answer: `${spec.signal} 会在可能影响 deadline operations 时进入 source-backed review。`,
+          answer: `${spec.signalZh} 会在可能影响截止日运营时进入带来源的复核。`,
         },
         {
           question: `${spec.name} 信号会自动改变客户截止日吗？`,
@@ -535,6 +643,25 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             },
           ],
         },
+        {
+          eyebrow: 'PRODUCT SURFACE',
+          title: 'Triage should land in Today, Deadlines, and evidence review.',
+          body: 'The current app uses Dashboard/Today to aggregate risk and Pulse banners, while the Deadlines queue carries filters, status updates, readiness, extension, risk, evidence, and audit detail.',
+          items: [
+            {
+              title: 'Today/Dashboard',
+              body: 'The homepage answers what to inspect first: open obligations, due-this-week work, review needs, evidence gaps, and Deadline Radar.',
+            },
+            {
+              title: 'Deadlines',
+              body: 'The queue preserves URL filters, owner, status, evidence, and detail context so teams can share the same working state.',
+            },
+            {
+              title: 'Audit/Evidence',
+              body: 'The evidence drawer and audit timeline explain why the work exists and who changed what, when.',
+            },
+          ],
+        },
       ],
       faqHeader: { eyebrow: 'FAQ', title: 'Weekly deadline triage questions.' },
       faq: [
@@ -570,7 +697,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         ogImage: '/og/home.en.png',
       },
       hero: {
-        eyebrow: 'GUIDE',
+        eyebrow: '指南',
         title: 'How should a CPA firm move deadline work out of Excel?',
         description:
           'Spreadsheet migration should not just copy dates. The useful migration creates client context, filing profiles, obligation records, readiness state, source evidence, and ownership that can drive weekly deadline operations.',
@@ -612,6 +739,25 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             {
               title: 'Audit history',
               body: 'Apply, undo, and correction flows should leave operational history for later review.',
+            },
+          ],
+        },
+        {
+          eyebrow: 'PRODUCT SURFACE',
+          title: 'Migration Copilot is a four-step review flow, not a live sync engine.',
+          body: 'The current product supports Intake, Mapping, Normalize, and Preview & apply. It can handle paste/upload and common export shapes, but public pages should not promise OAuth sync, webhook mirroring, or e-file transmission.',
+          items: [
+            {
+              title: 'Intake',
+              body: 'Users paste or upload client tables; SSN-like sensitive columns or parse failures block the flow.',
+            },
+            {
+              title: 'Mapping and normalize',
+              body: 'AI can suggest field mapping and normalization, while low-confidence values remain review work.',
+            },
+            {
+              title: 'Preview & apply',
+              body: 'The firm reviews dry-run output before apply writes clients, deadlines, evidence, and audit records.',
             },
           ],
         },
@@ -695,6 +841,26 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
             },
           ],
         },
+        {
+          eyebrow: 'PRODUCT SURFACE',
+          title:
+            'Deadline detail should keep readiness, extension, risk, evidence, and audit separate.',
+          body: 'The current app separates Readiness, Extension, Risk, Evidence, and Audit in deadline detail. Public content can explain that separation, but it should not decide payment requirements for users.',
+          items: [
+            {
+              title: 'Readiness',
+              body: 'Client facts, request state, and missing materials determine whether the team can proceed.',
+            },
+            {
+              title: 'Extension',
+              body: 'Filing extension actions need separate review from payment context, client communication, and source rules.',
+            },
+            {
+              title: 'Risk / Evidence / Audit',
+              body: 'Risk explanation, source evidence, and action history support review instead of producing an unexplained reminder.',
+            },
+          ],
+        },
       ],
       faqHeader: { eyebrow: 'FAQ', title: 'Extension operations questions.' },
       faq: [
@@ -726,73 +892,90 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'weekly-cpa-deadline-triage',
       meta: {
-        title: 'CPA 每周截止日分诊 — DueDateHQ Guide',
+        title: 'CPA 每周截止日分诊 — DueDateHQ 指南',
         description:
-          'CPA 团队如何按剩余天数、罚款暴露、来源证据、客户 readiness、owner 和州变化来排序截止日风险。',
+          '了解 CPA 团队如何按剩余天数、罚款敞口、来源证据、客户资料准备度、负责人、州级变化和审计历史来排序截止日风险，而不是只看日历日期或静态表格。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'GUIDE',
-        title: 'CPA 团队每周一应该如何分诊 deadline？',
+        eyebrow: '指南',
+        title: 'CPA 团队每周一应该如何分诊截止日？',
         description:
-          '可靠的 deadline workflow 不是日历列表，而是按风险排序的工作队列。DueDateHQ 把来源证据、客户上下文、状态、owner 和州变化信号放在一起，让团队先看最该处理的工作。',
-        note: '本 guide 解释 deadline operations，不提供税务建议。',
+          '可靠的截止日工作流不是日历列表，而是按风险排序的工作队列。DueDateHQ 把来源证据、客户上下文、状态、负责人和州变化信号放在一起，让团队先看最该处理的工作。',
+        note: '本指南解释截止日运营，不提供税务建议。',
       },
       sections: [
         {
-          eyebrow: 'WEEKLY TRIAGE',
+          eyebrow: '每周分诊',
           title: '第一个问题不是哪个日期最早。',
-          body: '真正该先处理的是 deadline timing、client readiness、penalty exposure 和 evidence quality 共同形成风险的工作。',
+          body: '真正该先处理的是截止日时点、客户资料准备度、罚款敞口和证据质量共同形成风险的工作。',
           items: [
-            { title: 'Days remaining', body: '剩余天数重要，但要和 readiness、exposure 一起看。' },
-            { title: 'Penalty exposure', body: '金额影响帮助小团队先处理真正有代价的工作。' },
+            { title: '剩余天数', body: '剩余天数重要，但要和资料准备度、风险敞口一起看。' },
+            { title: '罚款敞口', body: '金额影响帮助小团队先处理真正有代价的工作。' },
             {
-              title: 'Source evidence',
-              body: '缺少 verified source 的行，不能和 reviewed obligation 一样处理。',
+              title: '来源证据',
+              body: '缺少已验证来源的行，不能和已复核义务一样处理。',
             },
           ],
         },
         {
-          eyebrow: 'OPERATING MODEL',
-          title: 'Deadline queue 应该解释每一行为什么 risky。',
-          body: 'DueDateHQ 把 client facts、filing profile、state signal、owner、status 和 evidence 放在 action 旁边，让优先级可以被解释。',
+          eyebrow: '运营模型',
+          title: '截止日队列应该解释每一行为什么有风险。',
+          body: 'DueDateHQ 把客户事实、申报档案、州级信号、负责人、状态和证据放在动作旁边，让优先级可以被解释。',
           items: [
             {
-              title: 'Client readiness',
-              body: '材料缺失会让较晚的 deadline 比较早但已 ready 的工作更紧急。',
+              title: '客户资料准备度',
+              body: '材料缺失会让较晚的截止日比较早但已准备好的工作更紧急。',
             },
             {
-              title: 'Owner assignment',
-              body: '没有 owner 的 deadline work 风险更高，因为没有人负责下一步。',
+              title: '负责人分配',
+              body: '没有负责人的截止日工作风险更高，因为没有人负责下一步。',
             },
             {
-              title: 'Pulse changes',
-              body: '州变化必须带 source context 和 affected-client 线索进入复核。',
+              title: 'Pulse 变化',
+              body: '州变化必须带来源上下文和受影响客户线索进入复核。',
+            },
+          ],
+        },
+        {
+          eyebrow: '产品落点',
+          title: '分诊结果应能落到 Today、Deadlines 和证据抽屉。',
+          body: '当前 app 的 Dashboard/Today surface 聚合风险和 Pulse banner，Deadlines 队列承载筛选、状态更新、readiness、extension、risk、evidence 和 audit 详情。',
+          items: [
+            {
+              title: 'Today/Dashboard',
+              body: '首页适合回答今天先看什么：未结义务、本周到期、待复核、证据缺口和 Deadline Radar。',
+            },
+            {
+              title: 'Deadlines',
+              body: '队列保留 URL filters、owner、status、evidence 和 detail panel，便于团队共享同一工作状态。',
+            },
+            {
+              title: 'Audit/Evidence',
+              body: '证据抽屉和审计时间线解释为什么这项工作存在，以及谁在何时做过什么动作。',
             },
           ],
         },
       ],
-      faqHeader: { eyebrow: 'FAQ', title: '每周 deadline 分诊问题。' },
+      faqHeader: { eyebrow: 'FAQ', title: '每周截止日分诊问题。' },
       faq: [
         {
           question: 'CPA 团队周一应该先看什么？',
           answer:
-            '先看综合运营风险最高的行：剩余天数、exposure、readiness gap、缺失 evidence、owner gap 和州变化影响。',
+            '先看综合运营风险最高的行：剩余天数、罚款敞口、资料缺口、缺失证据、负责人缺口和州级变化影响。',
         },
         {
           question: '为什么 calendar 不够？',
-          answer:
-            'Calendar 展示日期，但不解释 client readiness、source confidence、penalty exposure 或下一步 owner。',
+          answer: 'Calendar 展示日期，但不解释客户资料准备度、来源可信度、罚款敞口或下一步负责人。',
         },
         {
           question: 'DueDateHQ 如何让分诊可解释？',
-          answer:
-            '它把来源证据、客户上下文、owner、status 和 audit history 放在 deadline action 附近。',
+          answer: '它把来源证据、客户上下文、负责人、状态和审计历史放在截止日动作附近。',
         },
       ],
       cta: {
         title: '查看来源证据如何支持分诊。',
-        body: '公开规则模型解释 source-backed signals 如何变成 reviewed deadline work。',
+        body: '公开规则模型解释带来源的信号如何变成已复核的截止日工作。',
         primary: '打开规则库',
         secondary: '查看州覆盖',
       },
@@ -800,156 +983,190 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
     {
       slug: 'migrate-cpa-deadlines-from-excel',
       meta: {
-        title: '从 Excel 迁移 CPA Deadlines — DueDateHQ Guide',
+        title: '从 Excel 迁移 CPA 截止日 — DueDateHQ 指南',
         description:
-          'CPA 事务所如何把 spreadsheet deadline work 转成带来源、obligation、review state 和每周分诊的运营模型。',
+          '了解 CPA 事务所如何把 Excel 或旧系统里的截止日表格转成客户事实、申报档案、截止日义务、复核状态、来源证据、负责人和每周分诊队列。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'GUIDE',
-        title: 'CPA 事务所应该如何把 deadline work 从 Excel 迁出来？',
+        eyebrow: '指南',
+        title: 'CPA 事务所应该如何把截止日工作从 Excel 迁出来？',
         description:
-          '迁移不是复制日期。真正有用的迁移会创建 client context、filing profiles、obligations、readiness state、source evidence 和 ownership。',
-        note: 'Migration support 帮助组织工作，具体 filing obligations 仍需事务所复核。',
+          '迁移不是复制日期。真正有用的迁移会创建客户上下文、申报档案、截止日义务、资料准备状态、来源证据和负责人。',
+        note: 'Migration Copilot 帮助组织工作，具体申报义务仍需事务所复核。',
       },
       sections: [
         {
-          eyebrow: 'MIGRATION MODEL',
-          title: 'Spreadsheet row 需要变成 operational context。',
-          body: 'DueDateHQ 把 migration 当成 review workflow。导入事实需要 normalized、checked，并和 deadline work 关联。',
+          eyebrow: '迁移模型',
+          title: '表格行需要变成运营上下文。',
+          body: 'DueDateHQ 把迁移当成复核工作流。导入事实需要标准化、检查，并和截止日工作关联。',
           items: [
             {
-              title: 'Client facts',
-              body: 'Entity type、fiscal year、state footprint、owner 和 contact context 会影响 deadline。',
+              title: '客户事实',
+              body: '实体类型、财年、州足迹、负责人和联系人上下文会影响截止日。',
             },
             {
-              title: 'Obligation mapping',
-              body: '原始 spreadsheet label 要映射到已知 filing surface 才能被信任。',
+              title: '义务映射',
+              body: '原始表格标签要映射到已知申报面，才能被团队信任。',
             },
             {
-              title: 'Review state',
-              body: '低置信度行应该进入 review work，而不是静默创建 confident reminders。',
+              title: '复核状态',
+              body: '低置信度行应该进入复核工作，而不是静默创建看似可靠的提醒。',
             },
           ],
         },
         {
-          eyebrow: 'AFTER IMPORT',
-          title: '目标是更好的 weekly queue，不是更漂亮的表格。',
-          body: '成功迁移后，事务所可以按风险分诊、检查 evidence，并带 audit trail 更新 obligations。',
+          eyebrow: '导入后',
+          title: '目标是更好的每周队列，不是更漂亮的表格。',
+          body: '成功迁移后，事务所可以按风险分诊、检查证据，并带审计链路更新义务。',
           items: [
             {
-              title: 'Evidence attachment',
-              body: '导入后的 obligations 最终应连接到 official-source rules 和 reviewed state。',
+              title: '证据连接',
+              body: '导入后的义务最终应连接到官方来源规则和已复核状态。',
             },
             {
-              title: 'Owner handoff',
-              body: '团队要知道谁负责解决 missing data 或验证 candidate obligation。',
+              title: '负责人交接',
+              body: '团队要知道谁负责解决缺失数据或验证候选义务。',
             },
             {
-              title: 'Audit history',
-              body: 'Apply、undo 和 correction flows 应留下后续可检查的运营历史。',
+              title: '审计历史',
+              body: 'Apply、undo 和 correction flow 应留下后续可检查的运营历史。',
+            },
+          ],
+        },
+        {
+          eyebrow: '产品落点',
+          title: 'Migration Copilot 是四步复核流程，不是实时同步器。',
+          body: '当前产品支持 Intake、Mapping、Normalize、Preview & apply。它可以处理粘贴、上传和常见导出形态，但公开页面不应承诺 OAuth 双向同步、webhook 镜像或电子申报传输。',
+          items: [
+            {
+              title: 'Intake',
+              body: '用户粘贴或上传客户表格；检测到 SSN-like 敏感列或无法解析时会阻止继续。',
+            },
+            {
+              title: 'Mapping 与 Normalize',
+              body: 'AI 可以建议字段映射和归一化，但低置信度值仍需要人工复核。',
+            },
+            {
+              title: 'Preview & apply',
+              body: '正式导入前先看 dry-run 结果；apply 后写入客户、截止日、证据和审计记录。',
             },
           ],
         },
       ],
-      faqHeader: { eyebrow: 'FAQ', title: 'Excel migration 问题。' },
+      faqHeader: { eyebrow: 'FAQ', title: 'Excel 迁移问题。' },
       faq: [
         {
           question: '事务所应该导入每个 spreadsheet 字段吗？',
           answer:
-            '不应该。优先导入会影响 filing profile、deadline generation、readiness、ownership 和 review state 的字段。',
+            '不应该。优先导入会影响申报档案、截止日生成、资料准备度、负责人和复核状态的字段。',
         },
         {
           question: 'AI 可以映射 spreadsheet 字段吗？',
-          answer:
-            'AI 可以建议 mapping 并总结低置信度行，但 source evidence 和 human review 仍是信任边界。',
+          answer: 'AI 可以建议字段映射并总结低置信度行，但来源证据和人工复核仍是信任边界。',
         },
         {
           question: '迁移成功的标准是什么？',
-          answer:
-            '事务所可以从 reviewed client 和 obligation context 运行 weekly deadline triage，而不是继续手工对账 spreadsheet。',
+          answer: '事务所可以从已复核客户和义务上下文运行每周截止日分诊，而不是继续手工对账表格。',
         },
       ],
       cta: {
-        title: '查看 weekly triage model。',
-        body: 'Migration 创建让 deadline risk 可见的上下文。',
-        primary: '阅读 weekly triage',
+        title: '查看每周分诊模型。',
+        body: '迁移创建让截止日风险可见的上下文。',
+        primary: '阅读每周分诊',
         secondary: '查看价格',
       },
     },
     {
       slug: 'extension-vs-payment-deadlines',
       meta: {
-        title: 'Extension vs Payment Deadlines — CPA Operations Guide',
+        title: '延期申报 vs 付款截止日 — CPA 运营指南',
         description:
-          '为什么 CPA deadline software 需要区分 filing extension、payment timing、client readiness、source evidence 和 review state。',
+          '了解为什么 CPA 截止日软件需要区分申报延期、付款时点、客户资料准备度、来源证据、复核状态和审计历史，避免把延期申报误当成所有风险都已解决。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'GUIDE',
-        title: '为什么 extension 和 payment deadline 要分开跟踪？',
+        eyebrow: '指南',
+        title: '为什么延期申报和付款截止日要分开跟踪？',
         description:
-          '对 CPA operations 来说，filing extension 和 payment timing 会产生不同风险。Workbench 应在团队认为 deadline 安全前展示 source evidence、client facts、review state 和 next actions。',
-        note: '本 guide 是运营解释，不提供税务建议。',
+          '对 CPA 运营来说，申报延期和付款时点会产生不同风险。工作台应在团队认为截止日安全前展示来源证据、客户事实、复核状态和下一步动作。',
+        note: '本指南是运营解释，不提供税务建议。',
       },
       sections: [
         {
-          eyebrow: 'RISK SPLIT',
-          title: 'Extension 可能降低一种风险，但留下另一种风险。',
-          body: 'Deadline operations 应明确区分这些风险，避免团队以为 filing extension 解决了所有 payment 或 readiness 问题。',
+          eyebrow: '风险拆分',
+          title: '延期申报可能降低一种风险，但留下另一种风险。',
+          body: '截止日运营应明确区分这些风险，避免团队以为申报延期解决了所有付款或资料准备问题。',
           items: [
             {
-              title: 'Filing action',
-              body: '团队需要知道 extension paperwork 是否准备、复核、提交。',
+              title: '申报动作',
+              body: '团队需要知道延期申报材料是否准备、复核、提交。',
             },
             {
-              title: 'Payment context',
-              body: 'Payment timing 和 estimate context 可能需要独立于 filing extension 的复核。',
+              title: '付款上下文',
+              body: '付款时点和估算上下文可能需要独立于申报延期的复核。',
             },
             {
-              title: 'Client readiness',
-              body: '即使存在 extension，缺失 facts 仍可能阻断专业判断。',
+              title: '客户资料准备度',
+              body: '即使存在延期，缺失事实仍可能阻断专业判断。',
             },
           ],
         },
         {
-          eyebrow: 'PRODUCT MODEL',
-          title: '产品应该让 evidence 和 action split 保持可见。',
-          body: 'DueDateHQ 把 extensions 当成和 source-backed rules、client context、audit history 绑定的 reviewed operational work。',
+          eyebrow: '产品模型',
+          title: '产品应该让证据和动作拆分保持可见。',
+          body: 'DueDateHQ 把延期当成和带来源规则、客户上下文、审计历史绑定的已复核运营工作。',
           items: [
-            { title: 'Source-backed rule', body: '规则应指向官方材料和 verification state。' },
+            { title: '带来源的规则', body: '规则应指向官方材料和验证状态。' },
             {
-              title: 'Separate status',
-              body: 'Filing、payment、readiness、review status 不应该被压成一个模糊 reminder。',
+              title: '分离状态',
+              body: '申报、付款、资料准备度和复核状态不应该被压成一个模糊提醒。',
             },
             {
-              title: 'Audit trail',
-              body: '团队应用或修改 extension-related action 时，后续应可检查。',
+              title: '审计历史',
+              body: '团队应用或修改延期相关动作时，后续应可检查。',
+            },
+          ],
+        },
+        {
+          eyebrow: '产品落点',
+          title: 'Deadlines 详情页应该把资料准备、延期、风险和证据分开呈现。',
+          body: '当前 app 的截止日详情用多个标签页承载 Readiness、Extension、Risk、Evidence 和 Audit。公开内容可以解释这种分离，但不能替用户判断付款要求。',
+          items: [
+            {
+              title: 'Readiness',
+              body: '客户资料、请求状态和缺失项决定团队是否可以继续处理。',
+            },
+            {
+              title: '延期',
+              body: '延期申报动作需要和付款上下文、客户沟通和来源规则分开复核。',
+            },
+            {
+              title: 'Risk / Evidence / Audit',
+              body: '风险解释、来源证据和操作历史共同支持后续复核，而不是生成不可追溯提醒。',
             },
           ],
         },
       ],
-      faqHeader: { eyebrow: 'FAQ', title: 'Extension operations 问题。' },
+      faqHeader: { eyebrow: 'FAQ', title: '延期运营问题。' },
       faq: [
         {
           question: '为什么 spreadsheet 里 tracking extension 有风险？',
-          answer:
-            'Spreadsheet row 往往隐藏 source evidence、payment context、readiness state 和下一步 owner。',
+          answer: '表格行往往隐藏来源证据、付款上下文、资料准备状态和下一步负责人。',
         },
         {
-          question: 'DueDateHQ 会判断 payment requirements 吗？',
-          answer: '不会。它让运营上下文和来源证据可见，由 CPA firm 复核和决定。',
+          question: 'DueDateHQ 会判断付款要求吗？',
+          answer: '不会。它让运营上下文和来源证据可见，由 CPA 事务所复核和决定。',
         },
         {
-          question: 'Deadline tool 应该展示 extension work 的什么？',
-          answer:
-            '应展示 filing action、payment context、client readiness、source evidence、owner 和 audit trail。',
+          question: '截止日工具应该展示延期工作的什么？',
+          answer: '应展示申报动作、付款上下文、客户资料准备度、来源证据、负责人和审计链路。',
         },
       ],
       cta: {
-        title: '查看 DueDateHQ 如何建模 deadline risk。',
-        body: 'Weekly triage 让 extension、payment、evidence 和 readiness signals 保持可见。',
-        primary: '阅读 weekly triage',
+        title: '查看 DueDateHQ 如何建模截止日风险。',
+        body: '每周分诊让延期、付款、证据和资料准备度信号保持可见。',
+        primary: '阅读每周分诊',
         secondary: '打开规则库',
       },
     },
@@ -961,74 +1178,92 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
     return {
       slug: spec.slug,
       meta: {
-        title: `DueDateHQ vs ${spec.product} — Deadline Operations Comparison`,
-        description: `如何在 ${spec.product} 和 DueDateHQ 之间选择 CPA deadline operations 工作流。`,
+        title: `DueDateHQ vs ${spec.product} — 截止日运营对比`,
+        description: `了解 CPA 事务所如何在 ${spec.product} 和 DueDateHQ 之间比较截止日风险、官方来源证据、州级 Pulse 复核、迁移成本和每周分诊工作流。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'COMPARISON',
-        title: `DueDateHQ vs ${spec.product}: which fits deadline operations?`,
-        description: `${spec.product} 更接近 ${spec.positioning}。DueDateHQ 的选择角度更窄：CPA deadline risk、official-source evidence、state Pulse review 和每周运营分诊。`,
-        note: 'Comparison 页面基于公开定位和产品边界，不是竞品攻击。',
+        eyebrow: '对比',
+        title: `DueDateHQ vs ${spec.product}: 哪个更适合截止日运营？`,
+        description: `${spec.product} 更接近${spec.positioningZh}。DueDateHQ 的选择角度更窄：CPA 截止日风险、官方来源证据、州级 Pulse 复核和每周运营分诊。`,
+        note: '对比页面基于公开定位和产品边界，不声称竞品私有能力。',
       },
       sections: [
         {
-          eyebrow: 'WHEN TO CHOOSE',
+          eyebrow: '选择场景',
           title: `${spec.product} 更适合什么情况？`,
-          body: `${spec.product} 通常更适合 ${spec.bestFit}。如果这是主要目标，它可能比 DueDateHQ 的窄工作台更合适。`,
+          body: `${spec.product} 通常更适合${spec.bestFitZh}。如果这是主要目标，它可能比 DueDateHQ 的窄工作台更合适。`,
           items: [
             {
-              title: 'Broader platform fit',
+              title: '更广的平台需求',
               body: '当主要需求是更大范围的 practice platform，应该优先评估完整平台能力。',
             },
             {
-              title: 'Existing workflow',
+              title: '现有工作流',
               body: '如果团队已经在该平台中稳定运行，不应为了 SEO 页面而迁移。',
             },
             {
-              title: 'Procurement fit',
+              title: '采购适配',
               body: '采购应按团队真实 workflow、迁移成本和维护成本判断。',
             },
           ],
         },
         {
-          eyebrow: 'DUEDATEHQ FIT',
-          title: 'DueDateHQ 更适合 deadline risk operations。',
-          body: spec.contrast,
+          eyebrow: 'DueDateHQ 适配',
+          title: 'DueDateHQ 更适合截止日风险运营。',
+          body: spec.contrastZh,
           items: [
             {
-              title: 'Source-backed rules',
-              body: 'Deadline work 保留官方来源、摘录、复核时间和 review state。',
+              title: '带来源的规则',
+              body: '截止日工作保留官方来源、摘录、复核时间和复核状态。',
             },
-            { title: 'Weekly triage', body: '首页关注本周谁最急、为什么急、下一步检查什么。' },
+            { title: '每周分诊', body: '首页关注本周谁最急、为什么急、下一步检查什么。' },
             {
-              title: 'State Pulse review',
+              title: '州级 Pulse 复核',
               body: '州变化进入 Pulse 后先复核，再影响客户运营工作。',
             },
           ],
         },
+        {
+          eyebrow: '边界',
+          title: '这不是“替换所有 practice software”的承诺。',
+          body: 'DueDateHQ 公开定位是截止日运营工作台。它可以和现有客户门户、文档工作流或更宽的事务所平台并存，重点是把截止日风险、来源证据和受影响客户复核做深。',
+          items: [
+            {
+              title: '迁移成本',
+              body: '如果团队主要痛点是全平台迁移，应该先评估原平台和数据迁移负担。',
+            },
+            {
+              title: '产品边界',
+              body: 'DueDateHQ 不提供报税提交、客户门户替代或自动税务判断。',
+            },
+            {
+              title: '适用买点',
+              body: '当事务所需要更好的截止日队列、Pulse 复核、证据抽屉和审计链路时，DueDateHQ 才是更直接的选择。',
+            },
+          ],
+        },
       ],
-      faqHeader: { eyebrow: 'FAQ', title: `${spec.product} comparison questions.` },
+      faqHeader: { eyebrow: 'FAQ', title: `${spec.product} 对比问题。` },
       faq: [
         {
           question: `DueDateHQ 会替代 ${spec.product} 吗？`,
-          answer: `不一定。DueDateHQ 更窄，专注 CPA deadline operations；${spec.product} 的公开定位更接近 ${spec.positioning}。`,
+          answer: `不一定。DueDateHQ 更窄，专注 CPA 截止日运营；${spec.product} 的公开定位更接近${spec.positioningZh}。`,
         },
         {
           question: '什么时候选 DueDateHQ？',
-          answer:
-            '当核心问题是 weekly deadline triage、source evidence、state changes 和 migration-assisted client context。',
+          answer: '当核心问题是每周截止日分诊、来源证据、州级变化和迁移辅助的客户上下文。',
         },
         {
-          question: '这个 comparison 是否是税务建议？',
+          question: '这个对比是否是税务建议？',
           answer: '不是。它只解释软件工作流和产品边界。',
         },
       ],
       cta: {
-        title: 'Review the deadline risk workflow.',
-        body: 'DueDateHQ is designed for source-backed CPA deadline operations.',
-        primary: 'Read weekly triage',
-        secondary: 'Open pricing',
+        title: '查看截止日风险工作流。',
+        body: 'DueDateHQ 为带来源的 CPA 截止日运营设计。',
+        primary: '阅读每周分诊',
+        secondary: '查看价格',
       },
     }
   }
@@ -1082,6 +1317,25 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
           {
             title: 'State Pulse review',
             body: 'State changes enter Pulse review before they can affect client operations.',
+          },
+        ],
+      },
+      {
+        eyebrow: 'BOUNDARY',
+        title: 'This is not a promise to replace every practice software category.',
+        body: 'DueDateHQ is positioned as a deadline operations workbench. It can sit beside an existing client portal, document workflow, or broader practice platform when the firm wants deeper deadline risk, source evidence, and affected-client review.',
+        items: [
+          {
+            title: 'Migration cost',
+            body: 'If the main pain is a whole-platform migration, evaluate the incumbent platform and data migration burden first.',
+          },
+          {
+            title: 'Product boundary',
+            body: 'DueDateHQ does not provide tax filing transmission, client portal replacement, or automatic tax judgment.',
+          },
+          {
+            title: 'Best-fit buying job',
+            body: 'DueDateHQ is the more direct choice when the firm needs a better deadline queue, Pulse review, evidence drawer, and audit trail.',
           },
         ],
       },

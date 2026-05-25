@@ -27,7 +27,7 @@
 - Guides 内容页，回答“本周先处理哪个客户截止日”和“截止日变更前应具备什么证据”。
 - Trust 页面：`/about`、`/security`、`/privacy`、`/terms`、`/status`，提供公开信任面和联系入口。
 - SEO：canonical、alternate hreflang、sitemap、OG/Twitter metadata。
-- JSON-LD structured data，包括 WebPage、BreadcrumbList、FAQPage、Product/Offer 和 guide TechArticle。
+- JSON-LD structured data，包括 WebPage、BreadcrumbList、FAQPage、Product/Offer 和 guide Article。
 - CTA 连接到 app 域名，并通过 query 进行 locale handoff。
 
 ## 创新点
@@ -135,3 +135,4 @@ flowchart TB
 - 州覆盖页面应与 `packages/core/rules` 的 jurisdiction coverage 建立更自动的同步机制。
 - 指南和州覆盖页的 visible review date、官方来源链接与 JSON-LD `dateModified` 必须保持一致。
 - 需要定期核对 `PUBLIC_APP_URL` 与实际 app 域名。
+- SEO 内容扩展前应先核对当前 app 和产品文档，只写已存在或明确规划的产品能力，并在规则、州覆盖、迁移、对比内容中保留“不提供税务建议、不自动替用户判断”的边界。

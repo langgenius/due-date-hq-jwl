@@ -13,13 +13,13 @@ const { page, coverageHref, locale, officialSources } = Astro.props
 const labels =
   locale === 'zh-CN'
     ? {
-        sourceEyebrow: 'SOURCE TYPES',
+        sourceEyebrow: '来源类型',
         sourceTitle: `${page.name} 的公开来源监控范围。`,
-        officialSourcesEyebrow: 'OFFICIAL SOURCES',
+        officialSourcesEyebrow: '官方来源',
         officialSourcesTitle: '公开来源参考。',
-        signalsEyebrow: 'COVERED SIGNALS',
+        signalsEyebrow: '覆盖信号',
         signalsTitle: '哪些信号可以成为复核工作。',
-        limitsEyebrow: 'LIMITS',
+        limitsEyebrow: '覆盖边界',
         limitsTitle: '覆盖边界。',
         faqEyebrow: 'FAQ',
         faqTitle: `${page.name} 覆盖常见问题。`,

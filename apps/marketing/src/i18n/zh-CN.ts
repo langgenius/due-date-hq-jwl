@@ -4,7 +4,7 @@ const zhCN: LandingCopy = {
   meta: {
     title: 'DueDateHQ — 在罚款发生前看清截止日风险',
     description:
-      '面向美国 CPA 团队的玻璃盒截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源。',
+      '面向美国 CPA 团队的玻璃盒截止日智能工作台，把客户迁移、IRS 规则、州税变化、证据复核、负责人分工和每周分诊放在同一条可审计运营链路里。',
     ogImage: '/og/home.zh-CN.png',
   },
   nav: {
@@ -23,7 +23,7 @@ const zhCN: LandingCopy = {
     cta: '打开工作台',
   },
   hero: {
-    eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
+    eyebrow: '玻璃盒截止日智能',
     title: '在罚款发生前看清截止日风险。',
     description:
       'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
@@ -269,7 +269,7 @@ const zhCN: LandingCopy = {
     ],
   },
   workflow: {
-    eyebrow: 'THE WORKFLOW',
+    eyebrow: '工作流',
     index: '02',
     title: '分诊。迁移。校验。三个界面，一个控制台。',
     paragraph:
@@ -449,7 +449,7 @@ const zhCN: LandingCopy = {
             { label: '罚则', value: 'IRC § 6651(a)(1)' },
           ],
           source: {
-            label: 'SOURCE',
+            label: '来源',
             value: 'irs.gov / pub / 509 · §3 · v17',
             verified: '2026-04-25T08:14:03Z 由 pulse-ingest-3.2 校验',
             quoteLabel: 'SOURCE EXCERPT',
@@ -467,7 +467,7 @@ const zhCN: LandingCopy = {
     ],
   },
   proof: {
-    eyebrow: 'THE GLASS-BOX GUARANTEE',
+    eyebrow: '玻璃盒保证',
     index: '03',
     title: '仪表盘上的每个数字都能点回它的出处。',
     paragraph:
@@ -475,13 +475,13 @@ const zhCN: LandingCopy = {
     footnote: 'Glass-Box Guard · 每条 AI 主张都对照来源校验',
     stats: [
       {
-        label: 'VERIFIED CITATIONS',
+        label: '已验证引用',
         value: '100',
         unit: '%',
         body: '每一句 AI 文案、每一条规则引用都附 source_url + source_excerpt + verified_at，否则不予渲染。',
       },
       {
-        label: 'OFFICIAL SOURCES',
+        label: '官方来源',
         value: '48',
         unit: '+',
         body: 'IRS、FTB、DTF · 50 个州的申报机构，全部映射到一套规则模式。',
@@ -493,7 +493,7 @@ const zhCN: LandingCopy = {
         body: '从来源发布到仪表盘横幅 + 邮件摘要，受影响客户列表已预先计算。',
       },
       {
-        label: 'BLACK-BOX SUGGESTIONS',
+        label: '黑盒建议',
         value: '0',
         unit: '',
         body: 'AI 永远不会自动应用规则。"应用"始终是人在回路里的键盘动作。',
@@ -521,19 +521,20 @@ const zhCN: LandingCopy = {
   pricing: {
     meta: {
       title: 'DueDateHQ 价格 — 面向 CPA 团队的截止日智能',
-      description: '为美国 CPA 团队设计的简洁订阅方案：截止日风险、可追溯规则和共享运营队列。',
+      description:
+        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、Pulse 与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Solo、Pro、Team 与 Enterprise。',
       ogImage: '/og/home.zh-CN.png',
     },
     navPricingHref: '/zh-CN/pricing',
     hero: {
-      eyebrow: 'PRICING',
+      eyebrow: '价格',
       title: '只为你能看清的截止日风险付费。',
       description:
         '先用 Solo 运营一个 practice 工作区；当这个 practice 需要多人协作时升级到 Pro 或 Team；需要多个办公室或多个工作区时再与我们定制 Enterprise。',
       note: '可使用 trial/demo workspace · DueDateHQ 不保存卡号',
     },
     plansHeader: {
-      eyebrow: 'PLANS',
+      eyebrow: '套餐',
       title: '选择适合你 practice 的计划。',
       note: '美元定价 · Owner 授权升级',
     },
@@ -678,11 +679,12 @@ const zhCN: LandingCopy = {
     rules: {
       meta: {
         title: 'DueDateHQ 规则库 — 带官方来源的税务截止日覆盖',
-        description: 'DueDateHQ 如何把 IRS 与州级申报规则转化为带来源、已复核的 CPA 截止日工作流。',
+        description:
+          '了解 DueDateHQ 如何把 IRS 与州级申报规则转化为带官方来源、客户上下文、人工复核、证据抽屉和审计历史的 CPA 截止日工作流。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'RULE LIBRARY',
+        eyebrow: '规则库',
         title: '一条申报规则如何变成 CPA 团队可信的工作？',
         description:
           'DueDateHQ 把规则、来源证据、生成的截止日、Pulse 变化和人工复核放在同一条工作流里。规则只有在团队能看到官方来源、受影响客户上下文和操作历史时，才真正有用。',
@@ -690,26 +692,26 @@ const zhCN: LandingCopy = {
       },
       sections: [
         {
-          eyebrow: 'SOURCE INTAKE',
+          eyebrow: '来源接入',
           title: '优先使用官方来源。',
           body: '规则工作流从公开机构材料开始，而不是第三方摘要。DueDateHQ 优先处理 IRS publication、州税务机关页面、申报日历、表单说明、公告和灾害延期信息。',
           items: [
             {
-              title: 'Canonical source URL',
+              title: 'Canonical 来源 URL',
               body: '每条规则保留官方页面 URL，便于复核者和用户查看同一来源。',
             },
             {
-              title: 'Source excerpt',
+              title: '来源摘录',
               body: '短摘录会作为复核上下文保留；产品避免在截止日工作流中输出没有来源支撑的摘要。',
             },
             {
-              title: 'Verified timestamp',
+              title: '复核时间戳',
               body: '规则带有验证时间戳，让 CPA 团队知道来源最近一次被复核的时间。',
             },
           ],
         },
         {
-          eyebrow: 'REVIEW MODEL',
+          eyebrow: '复核模型',
           title: 'AI 可以辅助，但不能成为事实来源。',
           body: '只有当来源上下文存在时，DueDateHQ 才让 AI 辅助总结、分类和草拟运营变更。真正应用到截止日运营前，仍需要人工复核。',
           items: [
@@ -746,7 +748,7 @@ const zhCN: LandingCopy = {
         {
           question: 'DueDateHQ 如何把规则变化连接到正确客户？',
           answer:
-            '它使用事务所的客户 filing profile、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的 Pulse、Deadlines 和分诊工作流。',
+            '它使用事务所的客户申报档案、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的 Pulse、Deadlines 和分诊工作流。',
         },
       ],
       cta: {
@@ -760,18 +762,18 @@ const zhCN: LandingCopy = {
       meta: {
         title: 'DueDateHQ 州覆盖 — 50 州和 DC 申报信号',
         description:
-          'DueDateHQ 监控哪些州级申报更新，Pulse 如何把它们送入复核，以及 CPA 团队如何判断客户影响。',
+          'DueDateHQ 说明哪些州级申报更新会进入监控，Pulse 如何把公开来源信号送入人工复核，以及 CPA 团队如何结合客户事实判断影响范围。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'STATE COVERAGE',
+        eyebrow: '州覆盖',
         title: '哪些州级更新会变成事务所的截止日工作？',
         description:
           'DueDateHQ 公开覆盖已经扩展到美国 50 州和 DC。覆盖表示公开州级信号可以被监控、匹配事务所客户上下文，并在影响截止日运营前进入 Pulse 复核。',
         note: '覆盖是软件监控范围，不代表每项义务都适用于每个事务所。',
       },
       statesHeader: {
-        eyebrow: 'LIVE COVERAGE',
+        eyebrow: '已发布覆盖',
         title: '已发布的州详情页。',
       },
       states: [
@@ -817,7 +819,7 @@ const zhCN: LandingCopy = {
         },
       ],
       sourceModel: {
-        eyebrow: 'SOURCE MODEL',
+        eyebrow: '来源模型',
         title: '覆盖是一条从公开信号到客户影响复核的路径。',
         body: '覆盖从公开监控开始，然后把候选变更送入带来源的复核。只有当来源证据、客户匹配上下文、复核决定和审计历史都存在时，信号才会成为运营工作。',
         items: [
@@ -852,8 +854,7 @@ const zhCN: LandingCopy = {
         },
         {
           question: '覆盖是否代表更新适用于每个客户？',
-          answer:
-            '不是。覆盖描述监控范围。适用性取决于事务所客户 filing profile、辖区、税种和专业复核。',
+          answer: '不是。覆盖描述监控范围。适用性取决于事务所客户申报档案、辖区、税种和专业复核。',
         },
       ],
     },
@@ -865,11 +866,11 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'California 税务截止日监控 — DueDateHQ 州覆盖',
           description:
-            'DueDateHQ 如何用 source URL、摘录、时间戳和人工复核监控 California FTB 公开申报信号。',
+            '了解 DueDateHQ 如何用官方 source URL、来源摘录、验证时间戳和人工复核监控 California FTB 公开申报信号，并在影响客户队列前保留证据上下文。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'STATE COVERAGE · CA',
+          eyebrow: '州覆盖 · CA',
           title: '带来源复核的 California 申报信号。',
           description:
             'DueDateHQ 监控可能影响 CPA 截止日运营的 California 公开申报更新，并在变成运营工作之前把候选变化送入证据复核。',
@@ -927,11 +928,12 @@ const zhCN: LandingCopy = {
         abbreviation: 'NY',
         meta: {
           title: 'New York 税务截止日监控 — DueDateHQ 州覆盖',
-          description: 'DueDateHQ 如何用官方来源上下文和人工复核监控 New York 公开税务申报信号。',
+          description:
+            '了解 DueDateHQ 如何用官方来源上下文、来源摘录、客户申报档案和人工复核监控 New York 公开税务申报信号，避免把州级更新直接变成黑盒截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'STATE COVERAGE · NY',
+          eyebrow: '州覆盖 · NY',
           title: '进入证据复核的 New York 申报更新。',
           description:
             'DueDateHQ 监控 New York 税务机关公开更新，并在申报信号可能影响截止日运营时保留来源上下文。',
@@ -988,11 +990,11 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'Texas 申报截止日监控 — DueDateHQ 州覆盖',
           description:
-            'DueDateHQ 如何为 CPA 运营监控 Texas 公开申报信号和 franchise tax 截止日更新。',
+            '了解 DueDateHQ 如何为 CPA 截止日运营监控 Texas Comptroller 公开申报信号、franchise tax 截止日更新、来源证据和人工复核状态。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'STATE COVERAGE · TX',
+          eyebrow: '州覆盖 · TX',
           title: '面向 CPA 截止日运营的 Texas 申报信号。',
           description:
             'DueDateHQ 监控 Texas Comptroller 公开更新，并在信号可能影响截止日分诊时保留来源证据。',
@@ -1050,11 +1052,12 @@ const zhCN: LandingCopy = {
         abbreviation: 'FL',
         meta: {
           title: 'Florida 申报截止日监控 — DueDateHQ 州覆盖',
-          description: 'DueDateHQ 如何用证据复核监控 Florida 公开申报公告和截止日相关州级更新。',
+          description:
+            '了解 DueDateHQ 如何用证据复核、来源摘录、客户上下文和 Pulse 复核监控 Florida 公开申报公告、救济信息和截止日相关州级更新。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'STATE COVERAGE · FL',
+          eyebrow: '州覆盖 · FL',
           title: '带来源上下文的 Florida 公开申报更新。',
           description:
             'DueDateHQ 监控可能影响 CPA 截止日工作流的 Florida Department of Revenue 公开更新和救济公告。',
@@ -1085,7 +1088,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '证据抽屉工作流',
-            body: 'Source URL、摘录和验证元数据会保留给复核者查看。',
+            body: '来源 URL、摘录和验证元数据会保留给复核者查看。',
           },
         ],
         limitations: [
@@ -1112,11 +1115,11 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'Washington 申报截止日监控 — DueDateHQ 州覆盖',
           description:
-            'DueDateHQ 如何用官方来源证据工作流监控 Washington Department of Revenue 公开信号。',
+            '了解 DueDateHQ 如何用官方来源证据、验证元数据和人工复核工作流监控 Washington Department of Revenue 公开申报信号，并把可能影响客户的更新送入截止日运营。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'STATE COVERAGE · WA',
+          eyebrow: '州覆盖 · WA',
           title: '与官方来源绑定的 Washington 申报信号。',
           description:
             'DueDateHQ 监控 Washington Department of Revenue 公开材料中可能需要 CPA 来源复核的申报信号。',
@@ -1174,21 +1177,21 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'CPA 截止日风险指南 — 如何在罚款前看清风险',
           description:
-            'CPA 团队如何结合迁移数据、证据、owner、准备状态和 Pulse 变化判断本周先处理哪个客户截止日。',
+            '了解 CPA 团队如何结合迁移数据、来源证据、负责人、资料准备状态、罚款敞口、州级 Pulse 变化和审计历史判断本周先处理哪个客户截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'GUIDE',
+          eyebrow: '指南',
           title: 'CPA 团队本周应该先处理哪个截止日？',
           description:
-            'DueDateHQ 把截止日风险当作运营排序问题处理。导入的客户事实、filing profile、州级更新、证据状态、准备状态和 owner 分配，都会影响什么应该排到最前面。',
+            'DueDateHQ 把截止日风险当作运营排序问题处理。导入的客户事实、申报档案、州级更新、证据状态、准备状态和负责人分配，都会影响什么应该排到最前面。',
           note: '本指南解释运营风险模式，不构成税务建议。',
         },
         sections: [
           {
-            eyebrow: 'RISK MODEL',
+            eyebrow: '风险模型',
             title: '真正危险的截止日，是上下文缺失或不匹配的截止日。',
-            body: '日历上的日期只是截止日运营的一部分。CPA 团队还需要导入的客户事实、filing profile、义务状态、辖区覆盖、证据来源和 owner 分配。',
+            body: '日历上的日期只是截止日运营的一部分。CPA 团队还需要导入的客户事实、申报档案、义务状态、辖区覆盖、证据来源和负责人分配。',
             items: [
               {
                 title: '客户事实缺失',
@@ -1205,7 +1208,7 @@ const zhCN: LandingCopy = {
             ],
           },
           {
-            eyebrow: 'TRIAGE',
+            eyebrow: '分诊',
             title: '周一工作流应该排序风险，而不仅是排序日期。',
             body: '当团队能在一个运营视图中扫描剩余天数、证据完整度、准备状态、州级更新和工作 owner 时，截止日风险才可管理。',
             items: [
@@ -1257,11 +1260,11 @@ const zhCN: LandingCopy = {
         meta: {
           title: '带证据的税务截止日软件 — DueDateHQ 指南',
           description:
-            'CPA 团队在截止日、Pulse 变化、AI 建议或迁移动作改变客户工作前，应该能证明什么。',
+            '了解 CPA 团队在截止日、Pulse 变化、AI 建议或迁移动作改变客户工作前，应该保留哪些官方来源、摘录、验证元数据、复核状态和审计历史。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
-          eyebrow: 'GUIDE',
+          eyebrow: '指南',
           title: '截止日工作改变前，应该先有什么证据？',
           description:
             '对 CPA 运营来说，申报提醒不够。团队需要来源证据、复核状态、客户上下文、必要时的 AI trace，以及 apply、undo、revert 和导入动作的审计历史。',
@@ -1269,26 +1272,26 @@ const zhCN: LandingCopy = {
         },
         sections: [
           {
-            eyebrow: 'DEFINITION',
+            eyebrow: '定义',
             title: '带证据意味着每个运营主张都可检查。',
             body: '产品应保留足够上下文，让复核者理解规则、截止日、Pulse alert 或迁移创建的义务从哪里来、为什么进入工作流。',
             items: [
               {
-                title: 'Source URL',
+                title: '来源 URL',
                 body: '官方页面始终附着在规则或信号上。',
               },
               {
-                title: 'Source excerpt',
+                title: '来源摘录',
                 body: '相关段落在运营动作附近可见。',
               },
               {
-                title: 'Verified metadata',
+                title: '复核元数据',
                 body: '产品记录来源何时被复核，以及当前复核状态。',
               },
             ],
           },
           {
-            eyebrow: 'WORKFLOW',
+            eyebrow: '工作流',
             title: '缺少证据时，界面应该 fail closed。',
             body: '如果规则缺少来源上下文，更安全的产品行为是请求验证，而不是生成自信的截止日建议。',
             items: [
@@ -1297,11 +1300,11 @@ const zhCN: LandingCopy = {
                 body: '模糊或没有支撑的信号应该以复核工作形式可见。',
               },
               {
-                title: 'Human-in-the-loop apply',
+                title: '人工批准后应用',
                 body: '事务所中的人应该在运营变化影响客户工作前批准它。',
               },
               {
-                title: 'Audit trail',
+                title: '审计历史',
                 body: '应用、撤销和回滚动作应留下事务所之后可检查的记录。',
               },
             ],

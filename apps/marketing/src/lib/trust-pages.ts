@@ -347,11 +347,11 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       meta: {
         title: '关于 DueDateHQ — 面向 CPA 事务所的截止日运营',
         description:
-          'DueDateHQ 帮助美国 CPA 事务所用带来源的规则、州级申报信号、证据复核和可审计工作流管理截止日风险。',
+          'DueDateHQ 帮助美国 CPA 事务所用带来源的规则、州级申报信号、证据复核、客户上下文、负责人分工和可审计工作流持续管理截止日风险。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'ABOUT DUEDATEHQ',
+        eyebrow: '关于 DueDateHQ',
         title: '截止日运营应该在罚款发生前就可见。',
         description:
           'DueDateHQ 面向美国 CPA 事务所，把客户截止日迁移、带来源规则、州级变化复核和风险排序放在同一个运营工作台。',
@@ -359,7 +359,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       sections: [
         {
-          eyebrow: 'PRODUCT BOUNDARY',
+          eyebrow: '产品边界',
           title: '这是截止日运营软件，不替代 CPA 专业判断。',
           body: 'DueDateHQ 关注运营可见性：哪些客户可能有风险、哪条官方来源支撑规则、哪个州级信号发生变化，以及谁复核了动作。',
           items: [
@@ -369,7 +369,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
             {
               title: '事务所上下文',
-              body: '客户 filing profile、辖区、义务状态、owner 和证据质量会影响分诊。',
+              body: '客户申报档案、辖区、义务状态、负责人和证据质量会影响分诊。',
             },
             {
               title: '审计历史',
@@ -378,7 +378,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
         {
-          eyebrow: 'AUDIENCE',
+          eyebrow: '服务对象',
           title: '面向美国中小型 CPA 团队。',
           body: '产品围绕截止日密集型事务所设计，这些团队通常在表格、收件箱、旧 tracker 和机构网站之间协调申报工作。',
           items: [
@@ -409,11 +409,11 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       meta: {
         title: 'DueDateHQ 安全 — 带来源的截止日运营',
         description:
-          'DueDateHQ 如何通过租户隔离、可复核来源证据、审计历史和生产边界保护截止日运营。',
+          'DueDateHQ 如何通过租户隔离、认证 app 边界、可复核来源证据、人工复核流程、审计历史、操作留痕和生产安全边界保护截止日运营数据。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'SECURITY',
+        eyebrow: '安全',
         title: '截止日风险工作流需要安全边界和证据边界。',
         description:
           'DueDateHQ 区分公开 marketing 页面和认证后的 app，把客户运营留在 SaaS app 域名内，并围绕可复核来源证据设计截止日变更。',
@@ -421,7 +421,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       sections: [
         {
-          eyebrow: 'APP BOUNDARY',
+          eyebrow: 'App 边界',
           title: '公开站和 SaaS app 承担不同职责。',
           body: 'Marketing 域名用于公开发现；app 域名用于认证后的事务所工作、租户数据和运营动作。',
           items: [
@@ -440,7 +440,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
         {
-          eyebrow: 'OPERATIONAL CONTROLS',
+          eyebrow: '运营控制',
           title: '证据和审计轨迹是控制模型的一部分。',
           body: '截止日变化应该可解释。DueDateHQ 把来源上下文、复核状态和动作历史放在工作流附近。',
           items: [
@@ -470,11 +470,12 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       slug: 'privacy',
       meta: {
         title: 'DueDateHQ 隐私 — 公开隐私摘要',
-        description: 'DueDateHQ 面向公开访客和评估截止日运营软件的 CPA 事务所的隐私摘要。',
+        description:
+          'DueDateHQ 面向公开访客和正在评估截止日运营软件的 CPA 事务所说明隐私边界：公开页面不发布客户记录，认证后的 practice 数据留在 app 工作台。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'PRIVACY',
+        eyebrow: '隐私',
         title: '隐私从区分公开页面和事务所工作开始。',
         description:
           'DueDateHQ 公开页面描述产品能力。认证后的事务所数据属于 app 工作台，不属于公开 SEO surface。',
@@ -482,7 +483,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       sections: [
         {
-          eyebrow: 'DATA BOUNDARY',
+          eyebrow: '数据边界',
           title: '公开内容不需要客户记录。',
           body: 'Marketing、resource 和 state coverage 页面解释产品如何工作，但不发布事务所客户数据。',
           items: [
@@ -501,7 +502,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
         {
-          eyebrow: 'AI BOUNDARY',
+          eyebrow: 'AI 边界',
           title: 'AI 是辅助工作流层。',
           body: 'DueDateHQ 把 AI 描述为降低运营摩擦的方式，而不是税务事实来源或专业复核替代品。',
           items: [
@@ -531,11 +532,12 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       slug: 'terms',
       meta: {
         title: 'DueDateHQ 条款 — 公开条款摘要',
-        description: 'DueDateHQ 公开条款摘要，说明截止日运营软件的产品边界。',
+        description:
+          'DueDateHQ 公开条款摘要说明截止日运营软件的产品边界：产品支持来源复核、迁移、Pulse 和审计历史，但不替事务所做申报或专业判断。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'TERMS',
+        eyebrow: '条款',
         title: 'DueDateHQ 是面向专业团队的截止日运营软件。',
         description:
           '产品帮助事务所组织带来源的截止日工作、证据复核、Pulse 监控、迁移和可审计运营历史。',
@@ -543,7 +545,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       sections: [
         {
-          eyebrow: 'USE BOUNDARY',
+          eyebrow: '使用边界',
           title: '产品支持复核，不替事务所做申报决定。',
           body: 'DueDateHQ 帮助呈现风险和来源上下文。CPA 事务所仍负责专业判断、客户事实和申报决定。',
           items: [
@@ -562,7 +564,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
         {
-          eyebrow: 'PRODUCT OPERATION',
+          eyebrow: '产品运营',
           title: '截止日工作变化前，复核状态很重要。',
           body: 'DueDateHQ 工作流设计为在运营信号成为事务所工作前保留来源上下文和复核历史。',
           items: [
@@ -592,11 +594,12 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       slug: 'status',
       meta: {
         title: 'DueDateHQ 状态 — 公开服务状态',
-        description: 'DueDateHQ marketing 和 app surface 的公开服务状态摘要。',
+        description:
+          'DueDateHQ 公开服务状态摘要，说明 marketing 公开站、认证 app 工作台、Pulse 来源监控和数据运营工作流如何作为不同 surface 跟踪。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
-        eyebrow: 'STATUS',
+        eyebrow: '状态',
         title: '当前公开状态：所有系统正常。',
         description:
           'DueDateHQ 当前区分公开 marketing 站和认证 app。公开发现页面和 app 运营作为不同 surface 维护。',
@@ -604,7 +607,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       },
       sections: [
         {
-          eyebrow: 'SURFACES',
+          eyebrow: '服务面',
           title: '公开站和 app 分开跟踪。',
           body: 'Marketing 站负责公开发现；app 负责认证后的事务所工作和 API-backed 运营。',
           items: [
@@ -623,7 +626,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           ],
         },
         {
-          eyebrow: 'REPORTING',
+          eyebrow: '问题报告',
           title: '服务问题通过 support 反馈。',
           body: '支持请求应包含受影响 surface、workspace、时间戳和用户可见影响。',
           items: [
