@@ -1936,6 +1936,21 @@ export function ObligationQueueRoute() {
       }, 0),
     [tableRows],
   )
+  // 2026-05-26 (Yuqi sixtieth pass — richer subtitle): the
+  // subtitle had collapsed to just "13 late" when nothing was due
+  // this week, which felt too sparse to justify the slot. Adding
+  // two more signals — blocked count + waiting on client count —
+  // so the page header always carries 2-4 metrics worth knowing
+  // when ANY of them are non-zero.
+  const blockedCount = useMemo(
+    () => tableRows.reduce((sum, r) => sum + (r.original.status === 'blocked' ? 1 : 0), 0),
+    [tableRows],
+  )
+  const waitingOnClientCount = useMemo(
+    () =>
+      tableRows.reduce((sum, r) => sum + (r.original.status === 'waiting_on_client' ? 1 : 0), 0),
+    [tableRows],
+  )
   const uniqueClientCount = useMemo(
     () => new Set(tableRows.map((r) => r.original.clientId)).size,
     [tableRows],
@@ -2386,29 +2401,76 @@ export function ObligationQueueRoute() {
         // the two metrics CPAs care about first — what's late + what
         // needs attention this week. Both computed from the loaded
         // rows; degrades to nothing when there are zero of either.
-        description={
-          lateCount > 0 || dueThisWeekCount > 0 ? (
-            <span className="inline-flex items-center gap-1 text-sm">
-              {lateCount > 0 ? (
-                <>
-                  <span className="font-medium text-text-destructive">
-                    <Plural value={lateCount} one="# late" other="# late" />
-                  </span>
-                </>
-              ) : null}
-              {lateCount > 0 && dueThisWeekCount > 0 ? (
-                <span aria-hidden className="text-text-tertiary">
-                  ·
+        // 2026-05-26 (Yuqi sixtieth pass — richer subtitle): added
+        // blocked + waiting-on-client signals so the subtitle always
+        // carries multiple meaningful metrics. When the queue has
+        // 13 late + 0 of everything else, the bare "13 late" felt
+        // too sparse to justify the slot. Now reads as a full
+        // pipeline scan: "13 late · 4 due this week · 2 blocked ·
+        // 5 waiting on client". Dots separate; metrics with zero
+        // count drop out entirely so the line stays scannable.
+        description={(() => {
+          const segments: Array<{ key: string; node: ReactNode }> = []
+          if (lateCount > 0) {
+            segments.push({
+              key: 'late',
+              node: (
+                <span className="font-medium text-text-destructive">
+                  <Plural value={lateCount} one="# late" other="# late" />
                 </span>
-              ) : null}
-              {dueThisWeekCount > 0 ? (
+              ),
+            })
+          }
+          if (dueThisWeekCount > 0) {
+            segments.push({
+              key: 'due-this-week',
+              node: (
                 <span className="text-text-secondary">
                   <Plural value={dueThisWeekCount} one="# due this week" other="# due this week" />
                 </span>
-              ) : null}
+              ),
+            })
+          }
+          if (blockedCount > 0) {
+            segments.push({
+              key: 'blocked',
+              node: (
+                <span className="text-text-secondary">
+                  <Plural value={blockedCount} one="# blocked" other="# blocked" />
+                </span>
+              ),
+            })
+          }
+          if (waitingOnClientCount > 0) {
+            segments.push({
+              key: 'waiting',
+              node: (
+                <span className="text-text-secondary">
+                  <Plural
+                    value={waitingOnClientCount}
+                    one="# waiting on client"
+                    other="# waiting on client"
+                  />
+                </span>
+              ),
+            })
+          }
+          if (segments.length === 0) return undefined
+          return (
+            <span className="inline-flex flex-wrap items-center gap-x-2 text-sm">
+              {segments.map((segment, idx) => (
+                <Fragment key={segment.key}>
+                  {idx > 0 ? (
+                    <span aria-hidden className="text-text-tertiary">
+                      ·
+                    </span>
+                  ) : null}
+                  {segment.node}
+                </Fragment>
+              ))}
             </span>
-          ) : undefined
-        }
+          )
+        })()}
         actions={
           <>
             <Button variant="outline" size="sm" onClick={() => openExportDialog('filtered')}>
@@ -7177,30 +7239,41 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const filingDays = dayDiff(filingIso)
   return (
     <div aria-label={t`Key deadlines`} className="flex flex-col gap-2">
-      {/* Hero — Filing deadline. Full-width dark surface (or red
-          when past), text-xl date, right-side countdown chip. */}
+      {/* Hero — Filing deadline. Three states:
+            • isTerminal (done / completed / filed): quiet success-tinted
+              surface — the work is done, not an active anchor.
+            • isMissed (late + non-terminal): red destructive surface
+              + Missed badge — urgent.
+            • else (on-time, non-terminal): dark navy surface — the
+              statutory anchor the CPA is racing toward. */}
+      {/* 2026-05-26 (Yuqi sixtieth pass — terminal-state hero):
+          on Filed / Completed rows the dark navy hero read as
+          urgent ("70 days ago" + ominous black bg) when the
+          opposite is true — the work is done. Added a quieter
+          success-toned treatment for isTerminal so the hero
+          celebrates the filed state instead of shouting deadline
+          chrome at a closed row. The countdown chip becomes
+          "Filed N days ago" / "Filed on time" framing inside the
+          calmer surface. */}
       <div
         className={cn(
           'flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3',
-          isMissed
-            ? 'border-state-destructive-border bg-state-destructive-hover'
-            : 'border-text-primary bg-text-primary text-text-inverted',
+          isTerminal
+            ? 'border-state-success-border bg-state-success-hover text-text-primary'
+            : isMissed
+              ? 'border-state-destructive-border bg-state-destructive-hover'
+              : 'border-text-primary bg-text-primary text-text-inverted',
         )}
       >
-        {/* 2026-05-26 (Yuqi fifty-fifth pass — hero typography):
-            label bumped text-caption-xs (10-11px) → text-xs (12px)
-            so "FILING DEADLINE" reads cleanly against the dark hero
-            bg instead of disappearing into chrome. Date bumped
-            text-xl (20px) → text-2xl (24px) — it's the anchor of
-            the entire panel; the previous text-xl read as a card
-            value, not a hero anchor. tracking-wider (vs the
-            previous 0.08em) gives the uppercase label proper
-            letter-rhythm. */}
         <div className="flex min-w-0 flex-col gap-1">
           <span
             className={cn(
               'text-xs font-medium uppercase tracking-wider',
-              isMissed ? 'text-text-destructive' : 'text-text-inverted/70',
+              isTerminal
+                ? 'text-text-success'
+                : isMissed
+                  ? 'text-text-destructive'
+                  : 'text-text-inverted/70',
             )}
           >
             <Trans>Filing deadline</Trans>
@@ -7208,13 +7281,22 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
           <span
             className={cn(
               'text-2xl font-semibold tabular-nums leading-tight',
-              isMissed ? 'text-text-destructive' : 'text-text-inverted',
+              isTerminal
+                ? 'text-text-primary'
+                : isMissed
+                  ? 'text-text-destructive'
+                  : 'text-text-inverted',
             )}
           >
             {formatDate(filingIso)}
           </span>
         </div>
-        {isMissed ? (
+        {isTerminal ? (
+          <Badge variant="success" className="h-6 text-caption-xs uppercase tracking-wide">
+            <CheckCircle2Icon className="size-3" aria-hidden />
+            <Trans>Filed</Trans>
+          </Badge>
+        ) : isMissed ? (
           <Badge variant="destructive" className="h-6 text-caption-xs uppercase tracking-wide">
             <AlertTriangleIcon className="size-3" aria-hidden />
             <Trans>Missed</Trans>
