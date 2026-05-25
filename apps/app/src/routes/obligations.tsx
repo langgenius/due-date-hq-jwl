@@ -6437,14 +6437,21 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
 // FlatDateList — secondary dates only (2026-05-23). The three primary
 // dates the CPA reaches for first — Internal, Filing, Payment — now
 // live in the PrimaryDeadlineStrip at the top of the snapshot. This
-// list carries everything else (statutory + period + create/touched
-// timestamps + e-file pipeline timestamps) as a quiet reference
-// surface under "Reference dates" at the bottom of the drawer.
+// list carries everything else (period + create/touched timestamps +
+// e-file pipeline timestamps) as a quiet reference surface under
+// "Reference dates" at the bottom of the drawer.
+//
+// 2026-05-25 (Yuqi Deadlines #14): dropped the redundant `Statutory`
+// row. The PrimaryDeadlineStrip's `Filing deadline` resolves to
+// `row.filingDueDate ?? row.baseDueDate` — i.e. the same baseDueDate
+// when no separate filing date exists, which is most rows. Showing it
+// again under "Reference dates" was the duplication Yuqi flagged ("这
+// 个 dates 上面是不是已经显示了"). E-file pipeline timestamps and
+// tax period stay because they're not in the primary strip.
 function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const dateRows = useMemo(
     () => [
-      { key: 'statutory', label: t`Statutory`, value: formatDate(row.baseDueDate) },
       ...(row.efileSubmittedAt
         ? [
             {
