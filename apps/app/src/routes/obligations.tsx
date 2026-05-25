@@ -4655,47 +4655,77 @@ export function ObligationQueueDetailDrawer({
             </span>
           </div>
         ) : null}
-        {row ? (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pr-8">
-            {/* Form code as primary h2. TaxCodeLabel renders the
-                human label ("Form 1040", "Form 1120-S") — the same
-                vocabulary the rest of the app uses, so the drawer
-                heading matches the obligation row label the user
-                clicked on. */}
-            {/* 2026-05-25 (Yuqi Deadlines #14): form-code h2 bumped
-                from text-lg (18px) → text-xl (20px). The drawer
-                header was sitting at the same size as section
-                headings inside the body — the h2 needs to be
-                visibly the heaviest text on the surface. */}
-            {/* 2026-05-26 (Yuqi forty-first pass — typography
-                unification): rolled back to text-lg (18px). The
-                canonical scale across Today / Alerts / Deadlines
-                uses text-lg for ALL h2-equivalent headings; the
-                text-xl was a one-off here that broke the rhythm.
-                Visual prominence over the body now comes from
-                `font-semibold` + leading-tight (the body uses
-                text-sm font-normal), not from a +2px bump. */}
-            <h2 className="text-lg font-semibold leading-tight text-text-primary">
-              <TaxCodeLabel code={row.taxType} />
-            </h2>
-            {/* Status pill — interactive in the drawer. Re-uses the
-                same control that drives the queue row's status pill,
-                so the drawer + queue share one mutation path, one
-                legal-transition policy, and one keyboard a11y
-                surface. Clicking opens a dropdown of all reachable
-                statuses; illegal transitions render as disabled with
-                a tooltip explaining why. Sits inline with the h2 so
-                the obligation identity + workflow state read as a
-                single header unit. */}
-            <ObligationQueueStatusControl
-              row={row}
-              labels={statusLabels}
-              statuses={statusDropdownOptions}
-              disabled={changeStatusMutation.isPending}
-              onChange={(id, status) => changeStatus(id, status, row.status)}
-            />
-          </div>
-        ) : null}
+        {row
+          ? (() => {
+              // 2026-05-26 (Yuqi fifty-first pass — Figma-Make flag
+              // chips from design/deadlines-drawer-rework): the
+              // status pill names the workflow state ("Waiting on
+              // client") but doesn't carry overdue urgency or the
+              // exact blocked-by name. Three augmenting Badge chips
+              // appear next to the pill when relevant:
+              //   • Waiting on client — when status is
+              //     'waiting_on_client'
+              //   • Blocked — when status is 'blocked'
+              //   • N days overdue — when daysUntilDue < 0 on a
+              //     non-terminal row
+              // The pill keeps its full label (we don't yet have a
+              // `displayStatus` dedup prop on the control); the chip
+              // beside it sharpens the signal. Worst case the same
+              // word renders twice (e.g. "Waiting on client" on the
+              // pill AND on the chip), which is verbose but not
+              // wrong. Adding `displayStatus` to ObligationQueueStatusControl
+              // is a follow-up.
+              const isTerminalStatus = row.status === 'done' || row.status === 'completed'
+              const showWaitingChip = row.status === 'waiting_on_client'
+              const showBlockedChip = row.status === 'blocked'
+              const showOverdueChip = row.daysUntilDue < 0 && !isTerminalStatus
+              return (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
+                  <h2 className="text-lg font-semibold leading-tight text-text-primary">
+                    <TaxCodeLabel code={row.taxType} />
+                  </h2>
+                  <ObligationQueueStatusControl
+                    row={row}
+                    labels={statusLabels}
+                    statuses={statusDropdownOptions}
+                    disabled={changeStatusMutation.isPending}
+                    onChange={(id, status) => changeStatus(id, status, row.status)}
+                  />
+                  {showWaitingChip ? (
+                    <Badge
+                      variant="warning"
+                      className="h-6 text-caption-xs uppercase tracking-wide"
+                      title={t`Waiting on client for materials`}
+                    >
+                      <Trans>Waiting on client</Trans>
+                    </Badge>
+                  ) : null}
+                  {showBlockedChip ? (
+                    <Badge
+                      variant="warning"
+                      className="h-6 border-state-warning-border bg-state-warning-solid/15 text-caption-xs uppercase tracking-wide text-text-warning"
+                      title={t`Blocked by an upstream obligation`}
+                    >
+                      <Trans>Blocked</Trans>
+                    </Badge>
+                  ) : null}
+                  {showOverdueChip ? (
+                    <Badge
+                      variant="destructive"
+                      className="h-6 text-caption-xs uppercase tracking-wide"
+                      title={t`Past the internal deadline`}
+                    >
+                      <Plural
+                        value={Math.abs(row.daysUntilDue)}
+                        one="# day overdue"
+                        other="# days overdue"
+                      />
+                    </Badge>
+                  ) : null}
+                </div>
+              )
+            })()
+          : null}
         {row && (row.taxYear || row.jurisdiction || row.taxPeriodStart) ? (
           // 2026-05-23: expanded meta line under h2 to surface the
           // full tax-period context the Figma shows — jurisdiction,
@@ -6905,91 +6935,126 @@ function formatTaxPeriod(start: string | null | undefined, end: string | null | 
 function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const todayIso = todayIsoDate()
-  const filingDate = row.filingDueDate ?? row.baseDueDate
-  const paymentDate = row.paymentDueDate ?? row.baseDueDate
-  const columns: Array<{
-    key: 'internal' | 'filing' | 'payment'
-    label: string
-    value: string
-    iso: string | null
-  }> = [
-    {
-      key: 'internal',
-      label: t`Internal deadline`,
-      value: formatDate(row.currentDueDate),
-      iso: row.currentDueDate ?? null,
-    },
-    {
-      key: 'filing',
-      label: t`Filing deadline`,
-      value: formatDate(filingDate),
-      iso: filingDate ?? null,
-    },
-    {
-      key: 'payment',
-      label: t`Payment deadline`,
-      value: formatDate(paymentDate),
-      iso: paymentDate ?? null,
-    },
-  ]
+  // 2026-05-26 (Yuqi fiftieth pass — Figma-Make hero from
+  // design/deadlines-drawer-rework): replaced the flat 3-column
+  // strip with a HERO (filing) + 2-column secondary (internal +
+  // payment) layout.
+  //
+  // Filing deadline is the date the IRS / state actually enforces,
+  // so it gets a full-width dark hero card with the date in text-xl
+  // and a "in N days" / "N days ago" countdown on the right. When
+  // the date is past (daysUntilDue < 0 on a non-terminal row), the
+  // hero flips to a red surface and the countdown becomes a
+  // "Missed" badge.
+  //
+  // Internal target + Payment due are secondary anchors stacked
+  // below the hero in a 2-column grid with quiet bordered cards.
+  //
+  // Direction fix from the rework: Internal = the firm's earlier
+  // internal target — extensionInternalTargetDate when set; falls
+  // back to currentDueDate capped at <= filing so we never render
+  // internal LATER than the statutory anchor (the old shape could
+  // invert these).
+  const filingIso = row.filingDueDate ?? row.baseDueDate
+  const paymentIso = row.paymentDueDate ?? null
+  const internalCandidate = row.extensionInternalTargetDate ?? row.currentDueDate ?? filingIso
+  const internalIso =
+    internalCandidate && filingIso && internalCandidate > filingIso ? filingIso : internalCandidate
+  const isTerminal = row.status === 'done' || row.status === 'completed'
+  const isMissed = row.daysUntilDue < 0 && !isTerminal
+  // Compute days-to-filing for the countdown chip (don't reuse
+  // `row.daysUntilDue` since that's anchored on currentDueDate).
+  function dayDiff(targetIso: string | null): number | null {
+    if (!targetIso) return null
+    const ms = new Date(targetIso).getTime() - new Date(todayIso).getTime()
+    return Math.round(ms / DAY_MS)
+  }
+  const filingDays = dayDiff(filingIso)
   return (
-    <div
-      aria-label={t`Key deadlines`}
-      className="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-divider-subtle bg-background-default"
-    >
-      {columns.map((col, idx) => {
-        const isPast = col.iso ? col.iso < todayIso : false
-        // 2026-05-23 (pass 2): MISSED tag is selective — only on the
-        // Filing column when the statutory date is past. Internal
-        // can be past by design (firm-internal target buffer) and
-        // Payment is informational on payment-less obligations, so
-        // labelling both as MISSED over-triggered the alert
-        // vocabulary. The Internal date still tints red when past
-        // to preserve the late-deadline signal without the tag.
-        const showMissedTag = col.key === 'filing' && isPast
-        const tintValueRed = col.key === 'internal' && isPast
-        return (
-          <div
-            key={col.key}
+    <div aria-label={t`Key deadlines`} className="flex flex-col gap-2">
+      {/* Hero — Filing deadline. Full-width dark surface (or red
+          when past), text-xl date, right-side countdown chip. */}
+      <div
+        className={cn(
+          'flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3',
+          isMissed
+            ? 'border-state-destructive-border bg-state-destructive-hover'
+            : 'border-text-primary bg-text-primary text-text-inverted',
+        )}
+      >
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span
             className={cn(
-              'flex flex-col gap-1 px-3 py-2.5',
-              idx > 0 && 'border-l border-divider-subtle',
+              'text-caption-xs font-medium uppercase tracking-[0.08em]',
+              isMissed ? 'text-text-destructive' : 'text-text-inverted/70',
             )}
           >
-            {/* 2026-05-25 (Yuqi Deadlines #18, #19, #21): the
-                deadline strip's title (Internal / Filing / Payment)
-                was text-caption (11px) — too small for a section
-                heading inside the drawer. Promoted to text-xs uppercase
-                tracked so it reads as a real column header. The
-                date value bumped from text-sm to text-base so it
-                anchors the column. */}
-            <span className="text-xs font-medium uppercase tracking-wide leading-tight text-text-tertiary">
-              {col.label}
-            </span>
-            <span
-              className={cn(
-                'text-base font-semibold tabular-nums leading-tight',
-                tintValueRed ? 'text-text-destructive' : 'text-text-primary',
-              )}
-            >
-              {col.value}
-            </span>
-            {/* 2026-05-25 (Yuqi Deadlines #20): "Missed" was
-                rendered all-caps via `uppercase tracking-[0.06em]`,
-                so the underlying t`Missed` literal showed as
-                "MISSED" — Yuqi questioned whether the all-caps
-                shouting was intentional. Dropped uppercase +
-                tracking; "Missed" reads naturally in sentence case
-                while keeping the red destructive color as the
-                semantic carrier. */}
-            {showMissedTag ? (
-              <span className="text-caption-xs font-medium text-text-destructive">
-                <Trans>Missed</Trans>
-              </span>
-            ) : null}
-          </div>
-        )
-      })}
+            <Trans>Filing deadline</Trans>
+          </span>
+          <span
+            className={cn(
+              'text-xl font-semibold tabular-nums leading-tight',
+              isMissed ? 'text-text-destructive' : 'text-text-inverted',
+            )}
+          >
+            {formatDate(filingIso)}
+          </span>
+        </div>
+        {isMissed ? (
+          <Badge variant="destructive" className="h-6 text-caption-xs uppercase tracking-wide">
+            <AlertTriangleIcon className="size-3" aria-hidden />
+            <Trans>Missed</Trans>
+          </Badge>
+        ) : filingDays !== null ? (
+          <span
+            className={cn(
+              'shrink-0 rounded-md px-2 py-1 text-xs font-medium tabular-nums',
+              'bg-text-inverted/15 text-text-inverted',
+            )}
+          >
+            {filingDays === 0 ? (
+              <Trans>Due today</Trans>
+            ) : filingDays > 0 ? (
+              <Plural value={filingDays} one="in # day" other="in # days" />
+            ) : (
+              <Plural value={Math.abs(filingDays)} one="# day ago" other="# days ago" />
+            )}
+          </span>
+        ) : null}
+      </div>
+      {/* Secondary anchors — internal target + payment due. Empty
+          payment column collapses to a quiet "—" so the grid stays
+          balanced for payment-less obligations. */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-default px-3 py-2">
+          <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <Trans>Internal target</Trans>
+          </span>
+          <span
+            className={cn(
+              'text-sm font-semibold tabular-nums leading-tight',
+              internalIso && internalIso < todayIso && !isTerminal
+                ? 'text-text-destructive'
+                : 'text-text-primary',
+            )}
+          >
+            {internalIso ? formatDate(internalIso) : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5 rounded-lg border border-divider-subtle bg-background-default px-3 py-2">
+          <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <Trans>Payment due</Trans>
+          </span>
+          <span
+            className={cn(
+              'text-sm font-semibold tabular-nums leading-tight',
+              paymentIso ? 'text-text-primary' : 'text-text-tertiary',
+            )}
+          >
+            {paymentIso ? formatDate(paymentIso) : '—'}
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
