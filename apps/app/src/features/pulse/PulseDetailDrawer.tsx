@@ -706,7 +706,14 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                       re-defining "Pulse" inside a Pulse drawer
                       is noise. The list page (AlertsListPage)
                       keeps the canonical pulse explainer. */}
-                  <h3 className="text-base font-semibold text-text-primary">
+                  {/* 2026-05-26 (Yuqi drawer canonical — body section
+                      heading): dropped `text-base font-semibold` →
+                      `text-sm font-semibold`. Per the drawer canonical,
+                      body-internal section headings sit at text-sm
+                      (quieter than the drawer's h1 + the FactCard's
+                      own section title). Body sections should read as
+                      organized chunks, not as competing h2s. */}
+                  <h3 className="text-sm font-semibold text-text-primary">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
                       <span className="ml-1.5 text-text-tertiary">
