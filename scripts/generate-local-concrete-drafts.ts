@@ -17,6 +17,7 @@ import {
   listRuleSources,
 } from '../packages/core/src/rules/index'
 import type { AiOutputRow } from '../packages/ports/src/ai'
+import type { RuleConcreteDraftRepo } from '../packages/ports/src/rule-concrete-drafts'
 import {
   concreteDraftAiInput,
   cachedConcreteDraftKey,
@@ -352,6 +353,73 @@ function makeSqliteAiRepo(
   } satisfies GenerateAiRepo
 }
 
+function dateSql(value: Date | null): string {
+  return value ? sqlNumber(value.getTime()) : 'null'
+}
+
+function makeSqliteRuleConcreteDraftRepo(dbPath: string): RuleConcreteDraftRepo {
+  return {
+    async upsert(input) {
+      const now = Date.now()
+      sqliteExec(
+        dbPath,
+        [
+          `insert into rule_concrete_draft (ai_output_id, firm_id, user_id, input_context_ref, input_hash, prompt_version, model, rule_id, rule_version, source_id, source_signal_id, source_snapshot_id, source_url, source_fetched_at, source_published_at, source_excerpt, source_text, output_text, citations_json, generated_at, updated_at) values (${[
+            sqlString(input.aiOutputId),
+            sqlString(input.firmId),
+            sqlString(input.userId),
+            sqlString(input.inputContextRef),
+            sqlString(input.inputHash),
+            sqlString(input.promptVersion),
+            sqlString(input.model),
+            sqlString(input.ruleId),
+            sqlNumber(input.ruleVersion),
+            sqlString(input.sourceId),
+            sqlString(input.sourceSignalId),
+            sqlString(input.sourceSnapshotId),
+            sqlString(input.sourceUrl),
+            dateSql(input.sourceFetchedAt),
+            dateSql(input.sourcePublishedAt),
+            sqlString(input.sourceExcerpt),
+            sqlString(input.sourceText),
+            sqlString(input.outputText),
+            sqlString(input.citations === undefined ? null : JSON.stringify(input.citations)),
+            dateSql(input.generatedAt),
+            sqlNumber(now),
+          ].join(', ')})
+          on conflict(ai_output_id) do update set
+            firm_id = excluded.firm_id,
+            user_id = excluded.user_id,
+            input_context_ref = excluded.input_context_ref,
+            input_hash = excluded.input_hash,
+            prompt_version = excluded.prompt_version,
+            model = excluded.model,
+            rule_id = excluded.rule_id,
+            rule_version = excluded.rule_version,
+            source_id = excluded.source_id,
+            source_signal_id = excluded.source_signal_id,
+            source_snapshot_id = excluded.source_snapshot_id,
+            source_url = excluded.source_url,
+            source_fetched_at = excluded.source_fetched_at,
+            source_published_at = excluded.source_published_at,
+            source_excerpt = excluded.source_excerpt,
+            source_text = excluded.source_text,
+            output_text = excluded.output_text,
+            citations_json = excluded.citations_json,
+            generated_at = excluded.generated_at,
+            updated_at = excluded.updated_at;`,
+        ].join('\n'),
+      )
+    },
+    async listReadyContextRefs() {
+      return []
+    },
+    async health() {
+      return { readyContextRefs: [], missingContextRefs: [] }
+    },
+  }
+}
+
 function extractJsonObject(text: string): unknown {
   const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(text)
   const raw = fenced?.[1] ?? text
@@ -600,6 +668,7 @@ const concurrency = Math.max(1, Number(concurrencyArg ?? (replaceAllDeterministi
 const aiRepo = makeSqliteAiRepo(dbPath, {
   ignoreSuccessfulCache: replaceAllDeterministic,
 })
+const concreteDraftRepo = makeSqliteRuleConcreteDraftRepo(dbPath)
 const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
 const targetSets: DraftTarget[] = replaceAllDeterministic
   ? deterministicLatestTargets(dbPath)
@@ -635,6 +704,7 @@ async function processTarget(target: DraftTarget): Promise<DraftResult> {
       const draft = await generateConcreteDraft({
         env,
         aiRepo,
+        concreteDraftRepo,
         scope: 'global',
         userId: null,
         base,

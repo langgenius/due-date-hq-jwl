@@ -13,6 +13,7 @@ import { makeAiRepo } from './repo/ai'
 import { makeMembersRepo } from './repo/members'
 import { makePulseOpsRepo } from './repo/pulse'
 import { makeReadinessPortalRepo } from './repo/readiness'
+import { makeRuleConcreteDraftRepo } from './repo/rule-concrete-drafts'
 import {
   makeRemindersRepo,
   renderReminderTemplate,
@@ -46,6 +47,7 @@ export { makeCalendarFeedRepo }
 export { makeMembersRepo }
 export { makePulseOpsRepo }
 export { makeReadinessPortalRepo }
+export { makeRuleConcreteDraftRepo }
 export { makeRemindersRepo, renderReminderTemplate, DEFAULT_REMINDER_TEMPLATES }
 export { makeRulesRepo }
 export { makeRulesOpsRepo }

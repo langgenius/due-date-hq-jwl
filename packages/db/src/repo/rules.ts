@@ -550,6 +550,16 @@ export function makeRulesOpsRepo(db: Db) {
       }))
     },
 
+    async deprecateGlobalRuleTemplates(ids: readonly string[]): Promise<number> {
+      const uniqueIds = Array.from(new Set(ids))
+      if (uniqueIds.length === 0) return 0
+      await db
+        .update(ruleTemplate)
+        .set({ status: 'deprecated', updatedAt: new Date() })
+        .where(inArray(ruleTemplate.id, uniqueIds))
+      return uniqueIds.length
+    },
+
     async fanoutReviewTasks(input: {
       newRules: Array<{ ruleId: string; templateVersion: number }>
       changedRules: Array<{ ruleId: string; templateVersion: number }>

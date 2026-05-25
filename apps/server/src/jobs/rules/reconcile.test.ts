@@ -17,6 +17,7 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   const rules: unknown[] = []
   const opsRepo = {
     listGlobalRuleTemplates: vi.fn(),
+    deprecateGlobalRuleTemplates: vi.fn(),
     fanoutReviewTasks: vi.fn(),
   }
   const rulesRepo = { upsertGlobalTemplates: vi.fn() }
@@ -182,6 +183,7 @@ describe('rule source scan jobs', () => {
     Object.values(dbMocks.aiRepo).forEach((mock) => mock.mockReset())
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockResolvedValue([])
     dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([])
+    dbMocks.opsRepo.deprecateGlobalRuleTemplates.mockResolvedValue(0)
     dbMocks.opsRepo.fanoutReviewTasks.mockResolvedValue({
       newTaskTargets: 0,
       changedTaskTargets: 0,
@@ -485,6 +487,7 @@ describe('rule source scan jobs', () => {
       newRules: [{ ruleId: 'ca.new.rule', templateVersion: 1 }],
       changedRules: [{ ruleId: 'ca.changed.rule', templateVersion: 2 }],
     })
+    expect(dbMocks.opsRepo.deprecateGlobalRuleTemplates).toHaveBeenCalledWith([])
     expect(queueSend).toHaveBeenCalledTimes(2)
     expect(queueSend).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -494,6 +497,29 @@ describe('rule source scan jobs', () => {
         reason: 'prewarm',
       }),
     )
-    expect(result).toEqual({ newRules: 1, changedRules: 1, draftMessages: 2 })
+    expect(result).toEqual({ newRules: 1, changedRules: 1, deprecatedRules: 0, draftMessages: 2 })
+  })
+
+  it('deprecates old catalog templates that are no longer in the current core catalog', async () => {
+    const currentRule = sourceDefinedRule({ id: 'ca.current.rule', version: 1 })
+    coreMocks.rules.splice(0, coreMocks.rules.length, currentRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.current.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+      { id: 'ca.old.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+      { id: 'ca.already.old.rule', version: 1, status: 'deprecated', ruleJson: {}, sourceIds: [] },
+    ])
+    dbMocks.opsRepo.deprecateGlobalRuleTemplates.mockResolvedValue(1)
+
+    const result = await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    expect(dbMocks.opsRepo.deprecateGlobalRuleTemplates).toHaveBeenCalledWith(['ca.old.rule'])
+    expect(dbMocks.opsRepo.fanoutReviewTasks).toHaveBeenCalledWith({
+      newRules: [],
+      changedRules: [],
+    })
+    expect(result.deprecatedRules).toBe(1)
   })
 })

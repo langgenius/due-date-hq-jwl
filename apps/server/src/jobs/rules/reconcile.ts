@@ -362,13 +362,22 @@ export async function consumePulseRuleSourceScan(
 export async function consumeRuleRegistryCatalogSync(
   _message: RuleRegistryCatalogSyncMessage,
   env: Env,
-): Promise<{ newRules: number; changedRules: number; draftMessages: number }> {
+): Promise<{
+  newRules: number
+  changedRules: number
+  deprecatedRules: number
+  draftMessages: number
+}> {
   const db = createDb(env.DB)
   const rulesRepo = makeRulesRepo(db, 'global')
   const ops = makeRulesOpsRepo(db)
   const oldTemplates = new Map((await ops.listGlobalRuleTemplates()).map((row) => [row.id, row]))
   const sources = listRuleSources()
   const rules = listObligationRules({ includeCandidates: true })
+  const currentRuleIds = new Set(rules.map((rule) => rule.id))
+  const staleRuleIds = Array.from(oldTemplates.values())
+    .filter((template) => template.status !== 'deprecated' && !currentRuleIds.has(template.id))
+    .map((template) => template.id)
 
   const newRules: Array<{ ruleId: string; templateVersion: number }> = []
   const changedRules: Array<{ ruleId: string; templateVersion: number }> = []
@@ -388,11 +397,14 @@ export async function consumeRuleRegistryCatalogSync(
     sources: sources.map(sourceTemplateInput),
     rules: rules.map(ruleTemplateInput),
   })
+  const deprecatedRules = await ops.deprecateGlobalRuleTemplates(staleRuleIds)
 
   await ops.fanoutReviewTasks({ newRules, changedRules })
 
   const changedOrNewIds = new Set([...newRules, ...changedRules].map((rule) => rule.ruleId))
-  const sourceDefinedRules = rules.filter(isSourceDefinedRule)
+  const sourceDefinedRules = rules.filter(
+    (rule) => rule.status !== 'deprecated' && isSourceDefinedRule(rule),
+  )
   const contextRefByRuleId = new Map(
     sourceDefinedRules.flatMap((rule) => {
       const sourceId = primarySourceIdForRule(rule)
@@ -440,11 +452,13 @@ export async function consumeRuleRegistryCatalogSync(
   recordPulseMetric('rule.registry.catalog_sync', {
     newRules: newRules.length,
     changedRules: changedRules.length,
+    deprecatedRules,
     draftMessages: draftTargets.length,
   })
   return {
     newRules: newRules.length,
     changedRules: changedRules.length,
+    deprecatedRules,
     draftMessages: draftTargets.length,
   }
 }

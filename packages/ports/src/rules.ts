@@ -165,6 +165,7 @@ export interface RulesOpsRepo {
   listGlobalRuleTemplates(): Promise<
     Array<{ id: string; version: number; status: string; ruleJson: unknown; sourceIds: string[] }>
   >
+  deprecateGlobalRuleTemplates(ids: readonly string[]): Promise<number>
   fanoutReviewTasks(input: {
     newRules: Array<{ ruleId: string; templateVersion: number }>
     changedRules: Array<{ ruleId: string; templateVersion: number }>

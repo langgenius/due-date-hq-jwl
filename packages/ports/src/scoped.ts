@@ -13,6 +13,7 @@ import type { OpportunityDismissalsRepo } from './opportunities'
 import type { PulseRepo } from './pulse'
 import type { ReadinessRepo } from './readiness'
 import type { RemindersRepo } from './reminders'
+import type { RuleConcreteDraftRepo } from './rule-concrete-drafts'
 import type { RulesRepo } from './rules'
 import type { ObligationQueueRepo } from './obligation-queue'
 import type { WorkloadRepo } from './workload'
@@ -35,6 +36,7 @@ export interface ScopedRepo {
   readonly workload: WorkloadRepo
   readonly pulse: PulseRepo
   readonly readiness: ReadinessRepo
+  readonly ruleConcreteDrafts?: RuleConcreteDraftRepo
   readonly rules: RulesRepo
   readonly migration: MigrationRepo
   readonly notifications?: NotificationsRepo

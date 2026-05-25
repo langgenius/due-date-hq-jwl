@@ -55,7 +55,7 @@ vi.mock('@/lib/rpc', () => ({
 }))
 
 vi.mock('./DrawerProvider', () => ({
-  usePulseDrawer: () => ({ openDrawer: vi.fn() }),
+  usePulseDrawer: () => ({ alertId: null, openDrawer: vi.fn(), closeDrawer: vi.fn() }),
 }))
 
 declare global {

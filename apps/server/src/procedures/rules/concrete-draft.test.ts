@@ -1,13 +1,30 @@
-import { describe, expect, it } from 'vitest'
+/* eslint-disable typescript-eslint/no-unsafe-type-assertion --
+ * focused concrete draft service tests use a minimal Env test double.
+ */
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AiRepo } from '@duedatehq/ports/ai'
+import type { RuleConcreteDraftRepo } from '@duedatehq/ports/rule-concrete-drafts'
+import type { Env } from '../../env'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
   extractPdfSourceText,
+  generateConcreteDraft,
   isUsableConcreteDraftOfficialSourceText,
   normalizeRuleConcreteDraftAiOutput,
   sourceTextContainsExcerpt,
   ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
 } from './concrete-draft'
+
+const aiMocks = vi.hoisted(() => ({
+  runPrompt: vi.fn(),
+}))
+
+vi.mock('@duedatehq/ai', () => ({
+  createAI: vi.fn(() => ({
+    runPrompt: aiMocks.runPrompt,
+  })),
+}))
 
 const ALABAMA_ESTIMATED_SOURCE_TEXT = [
   'Estimate tax due dates for calendar year filers:',
@@ -25,6 +42,229 @@ const ALABAMA_BPT_SOURCE_TEXT = [
   "S-Corporation Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
   "Limited Liability Entities Due no later than 15th day of the 3rd month after the beginning of a taxpayer's taxable year.",
 ].join('\n')
+
+const SOURCE_TEXT = 'Return due April 15, 2026.'
+
+function fakeAiRepo(): AiRepo {
+  return {
+    firmId: 'firm-1',
+    findSuccessfulRun: vi.fn(async () => null),
+    findSuccessfulGlobalRun: vi.fn(async () => null),
+    findSuccessfulRunsByContextRefs: vi.fn(async () => []),
+    findSuccessfulGlobalRunsByContextRefs: vi.fn(async () => []),
+    recordRun: vi.fn(async () => ({
+      aiOutputId: '00000000-0000-4000-8000-000000000001',
+      llmLogId: '00000000-0000-4000-8000-000000000002',
+    })),
+    recordGlobalRun: vi.fn(async () => ({
+      aiOutputId: '00000000-0000-4000-8000-000000000001',
+      llmLogId: '00000000-0000-4000-8000-000000000002',
+    })),
+  }
+}
+
+function fakeConcreteDraftRepo(upsert = vi.fn(async () => undefined)): RuleConcreteDraftRepo {
+  return {
+    upsert,
+    listReadyContextRefs: vi.fn(async () => []),
+    health: vi.fn(async () => ({ readyContextRefs: [], missingContextRefs: [] })),
+  }
+}
+
+function fakeRule() {
+  return {
+    id: 'ca.individual_income_return.candidate.2026',
+    title: 'California individual income tax return applicability',
+    jurisdiction: 'CA',
+    version: 1,
+    status: 'candidate',
+    ruleTier: 'applicability_review',
+    entityApplicability: ['individual'],
+    taxType: 'state_income_tax',
+    formName: 'Form 540',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    taxYear: 2026,
+    applicableYear: 2026,
+    dueDateLogic: {
+      kind: 'source_defined_calendar',
+      description: 'Source-defined California filing date.',
+      holidayRollover: 'source_adjusted',
+    },
+    extensionPolicy: {
+      available: false,
+      paymentExtended: false,
+      notes: 'No extension policy in the test fixture.',
+    },
+    coverageStatus: 'manual',
+    riskLevel: 'med',
+    requiresApplicabilityReview: true,
+    quality: {
+      filingPaymentDistinguished: false,
+      extensionHandled: false,
+      calendarFiscalSpecified: false,
+      holidayRolloverHandled: false,
+      crossVerified: false,
+      exceptionChannel: false,
+    },
+    defaultTip: 'Review source.',
+    sourceIds: ['ca.ftb_due_dates'],
+    evidence: [
+      {
+        sourceId: 'ca.ftb_due_dates',
+        authorityRole: 'basis',
+        summary: 'California return due date source.',
+        sourceExcerpt: SOURCE_TEXT,
+        retrievedAt: '2026-05-25',
+        locator: { kind: 'html', heading: 'Due dates' },
+      },
+    ],
+    nextReviewOn: '2027-05-01',
+    lastReviewedOn: '2026-05-25',
+    verifiedBy: 'DueDateHQ',
+    verifiedAt: '2026-05-25',
+  } as const
+}
+
+function fakeSource() {
+  return {
+    id: 'ca.ftb_due_dates',
+    jurisdiction: 'CA',
+    title: 'California FTB due dates',
+    url: 'https://example.test/ca',
+    sourceType: 'due_dates',
+    acquisitionMethod: 'html_watch',
+    cadence: 'weekly',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    domains: ['individual_income_return'],
+    entityApplicability: ['individual'],
+    authorityRole: 'basis',
+    notificationChannels: ['practice_rule_review'],
+    lastReviewedOn: '2026-05-25',
+  } as const
+}
+
+describe('rule concrete draft generation cache', () => {
+  beforeEach(() => {
+    aiMocks.runPrompt.mockReset()
+  })
+
+  it('mirrors successful real AI concrete drafts into the cache table repo', async () => {
+    const aiRepo = fakeAiRepo()
+    const upsert = vi.fn(async () => undefined)
+    const concreteDraftRepo = fakeConcreteDraftRepo(upsert)
+    aiMocks.runPrompt.mockResolvedValue({
+      result: {
+        dueDateLogic: {
+          kind: 'fixed_date',
+          date: '2026-04-15',
+        },
+        extensionPolicy: {
+          available: false,
+          paymentExtended: false,
+          notes: 'No extension policy in source.',
+        },
+        coverageStatus: 'full',
+        requiresApplicabilityReview: true,
+        quality: {
+          filingPaymentDistinguished: true,
+        },
+        sourceHeading: 'Due dates',
+        sourceExcerpt: SOURCE_TEXT,
+        confidence: 0.9,
+        reasoning: 'The source states the due date.',
+      },
+      trace: {
+        promptVersion: 'rule-concrete-draft@v2',
+        model: 'test-model',
+        latencyMs: 10,
+        guardResult: 'ok',
+        inputHash: 'hash-1',
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const draft = await generateConcreteDraft({
+      env: {} as Env,
+      aiRepo,
+      concreteDraftRepo,
+      scope: 'global',
+      userId: null,
+      base: fakeRule(),
+      source: fakeSource(),
+      sourceSignal: null,
+    })
+
+    expect(draft.aiOutputId).toBe('00000000-0000-4000-8000-000000000001')
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aiOutputId: '00000000-0000-4000-8000-000000000001',
+        firmId: null,
+        userId: null,
+        inputContextRef: 'rule:ca.individual_income_return.candidate.2026:v1:ca.ftb_due_dates',
+        promptVersion: 'rule-concrete-draft@v2',
+        model: 'test-model',
+        ruleId: 'ca.individual_income_return.candidate.2026',
+        sourceId: 'ca.ftb_due_dates',
+        sourceExcerpt: SOURCE_TEXT,
+      }),
+    )
+  })
+
+  it('does not mirror rejected concrete draft runs', async () => {
+    const aiRepo = fakeAiRepo()
+    const upsert = vi.fn(async () => undefined)
+    const concreteDraftRepo = fakeConcreteDraftRepo(upsert)
+    aiMocks.runPrompt.mockResolvedValue({
+      result: {
+        dueDateLogic: {
+          kind: 'fixed_date',
+          date: '2026-04-15',
+        },
+        extensionPolicy: {
+          available: false,
+          paymentExtended: false,
+          notes: 'No extension policy in source.',
+        },
+        coverageStatus: 'manual',
+        requiresApplicabilityReview: true,
+        quality: {},
+        sourceHeading: 'Due dates',
+        sourceExcerpt: 'This excerpt does not exist in the source text.',
+        confidence: 0.4,
+        reasoning: 'Invalid concrete output.',
+      },
+      trace: {
+        promptVersion: 'rule-concrete-draft@v2',
+        model: 'test-model',
+        latencyMs: 10,
+        guardResult: 'ok',
+        inputHash: 'hash-1',
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    await expect(
+      generateConcreteDraft({
+        env: {} as Env,
+        aiRepo,
+        concreteDraftRepo,
+        scope: 'global',
+        userId: null,
+        base: fakeRule(),
+        source: fakeSource(),
+        sourceSignal: null,
+      }),
+    ).rejects.toThrow()
+
+    expect(upsert).not.toHaveBeenCalled()
+  })
+})
 
 describe('rule concrete draft normalization', () => {
   it('extracts text from PDF source responses', async () => {

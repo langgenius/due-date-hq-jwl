@@ -13,6 +13,7 @@ import { makeObligationsRepo } from './repo/obligations'
 import { makeOpportunityDismissalsRepo } from './repo/opportunities'
 import { makePulseRepo } from './repo/pulse'
 import { makeReadinessRepo } from './repo/readiness'
+import { makeRuleConcreteDraftRepo } from './repo/rule-concrete-drafts'
 import { makeRemindersRepo } from './repo/reminders'
 import { makeRulesRepo } from './repo/rules'
 import { makeObligationQueueRepo } from './repo/obligation-queue'
@@ -50,6 +51,7 @@ export function scoped(db: Db, firmId: string): ScopedRepo {
     workload: makeWorkloadRepo(db, firmId),
     pulse: makePulseRepo(db, firmId),
     readiness: makeReadinessRepo(db, firmId),
+    ruleConcreteDrafts: makeRuleConcreteDraftRepo(db),
     rules: makeRulesRepo(db, firmId),
     migration: makeMigrationRepo(db, firmId),
     notifications: makeNotificationsRepo(db, firmId),

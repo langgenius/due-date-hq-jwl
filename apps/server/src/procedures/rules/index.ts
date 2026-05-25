@@ -1615,6 +1615,15 @@ function toBadRequest(error: unknown) {
   })
 }
 
+function requireRuleConcreteDraftRepo(scoped: ScopedRepo) {
+  if (!scoped.ruleConcreteDrafts) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Rule concrete draft cache repo is not configured.',
+    })
+  }
+  return scoped.ruleConcreteDrafts
+}
+
 const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
@@ -1632,6 +1641,7 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
     return await generateConcreteDraft({
       env: context.env,
       aiRepo: scoped.ai,
+      concreteDraftRepo: requireRuleConcreteDraftRepo(scoped),
       scope: 'global',
       userId: null,
       base,

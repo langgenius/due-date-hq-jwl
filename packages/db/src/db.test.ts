@@ -43,6 +43,7 @@ describe('@duedatehq/db', () => {
     expect(typeof repo.pulse.listAlerts).toBe('function')
     expect(typeof repo.pulse.getDetail).toBe('function')
     expect(typeof repo.pulse.apply).toBe('function')
+    expect(typeof repo.ruleConcreteDrafts?.upsert).toBe('function')
     expect(typeof repo.migration.createBatch).toBe('function')
     expect(typeof repo.audit.write).toBe('function')
     expect(typeof repo.audit.list).toBe('function')

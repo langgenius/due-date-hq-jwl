@@ -24,6 +24,7 @@
     "./pulse": "./src/pulse.ts",
     "./readiness": "./src/readiness.ts",
     "./reminders": "./src/reminders.ts",
+    "./rule-concrete-drafts": "./src/rule-concrete-drafts.ts",
     "./rules": "./src/rules.ts",
     "./scoped": "./src/scoped.ts",
     "./shared": "./src/shared.ts",

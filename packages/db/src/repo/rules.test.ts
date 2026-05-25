@@ -3,7 +3,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Db } from '../client'
-import { practiceRule, practiceRuleReviewTask } from '../schema/rules'
+import { practiceRule, practiceRuleReviewTask, ruleTemplate } from '../schema/rules'
 import { makeRulesOpsRepo } from './rules'
 
 function selectChain(response: unknown[]) {
@@ -106,5 +106,21 @@ describe('makeRulesOpsRepo', () => {
         },
       ]),
     )
+  })
+
+  it('marks stale global rule templates deprecated without deleting audit history', async () => {
+    const fake = fakeDb([])
+    const repo = makeRulesOpsRepo(fake.db)
+
+    const count = await repo.deprecateGlobalRuleTemplates(['old-rule', 'old-rule', 'older-rule'])
+
+    expect(count).toBe(2)
+    expect(fake.updateValues).toEqual([
+      {
+        table: ruleTemplate,
+        value: expect.objectContaining({ status: 'deprecated' }),
+      },
+    ])
+    expect(fake.updateValues.every((write) => write.table !== practiceRule)).toBe(true)
   })
 })

@@ -8,6 +8,7 @@ import {
 } from '@duedatehq/contracts'
 import type { AiRepo } from '@duedatehq/ports/ai'
 import type { PulseSourceSignalRow, PulseSourceSnapshotRow } from '@duedatehq/ports/pulse'
+import type { RuleConcreteDraftRepo } from '@duedatehq/ports/rule-concrete-drafts'
 import type {
   ObligationRule as CoreObligationRule,
   RuleSource as CoreRuleSource,
@@ -1016,9 +1017,58 @@ async function recordConcreteDraftRun(input: {
     : input.aiRepo.recordRun(payload)
 }
 
+function nullableDate(value: string | null): Date | null {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+async function mirrorConcreteDraftRun(input: {
+  concreteDraftRepo: RuleConcreteDraftRepo
+  aiRepo: AiRepo
+  scope: 'firm' | 'global'
+  userId: string | null
+  aiOutputId: string
+  inputContextRef: string
+  inputHash: string
+  model: string
+  base: CoreObligationRule
+  source: CoreRuleSource
+  sourceSignal: PulseSourceSignalRow | null
+  sourceContext: ConcreteDraftSourceText
+  draft: RuleConcreteDraftPayload
+  outputText: string
+  citations: unknown
+  generatedAt: Date
+}): Promise<void> {
+  await input.concreteDraftRepo.upsert({
+    aiOutputId: input.aiOutputId,
+    firmId: input.scope === 'global' ? null : input.aiRepo.firmId,
+    userId: input.scope === 'global' ? null : input.userId,
+    inputContextRef: input.inputContextRef,
+    inputHash: input.inputHash,
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+    model: input.model,
+    ruleId: input.base.id,
+    ruleVersion: input.base.version,
+    sourceId: input.source.id,
+    sourceSignalId: input.sourceSignal?.id ?? null,
+    sourceSnapshotId: input.sourceContext.sourceSnapshotId,
+    sourceUrl: input.source.url,
+    sourceFetchedAt: nullableDate(input.sourceContext.sourceFetchedAt),
+    sourcePublishedAt: nullableDate(input.sourceContext.sourcePublishedAt),
+    sourceExcerpt: input.draft.sourceExcerpt,
+    sourceText: input.sourceContext.sourceText,
+    outputText: input.outputText,
+    citations: input.citations,
+    generatedAt: input.generatedAt,
+  })
+}
+
 export async function generateConcreteDraft(input: {
   env: Env
   aiRepo: AiRepo
+  concreteDraftRepo: RuleConcreteDraftRepo
   scope: 'firm' | 'global'
   userId: string | null
   base: CoreObligationRule
@@ -1106,6 +1156,26 @@ export async function generateConcreteDraft(input: {
       requiresApplicabilityReview: cachedDraft.requiresApplicabilityReview,
     })
     if (!cachedGuardError) {
+      if (cached.model && cached.outputText) {
+        await mirrorConcreteDraftRun({
+          concreteDraftRepo: input.concreteDraftRepo,
+          aiRepo: input.aiRepo,
+          scope: input.scope,
+          userId: input.userId,
+          aiOutputId: cached.id,
+          inputContextRef,
+          inputHash,
+          model: cached.model,
+          base: input.base,
+          source: input.source,
+          sourceSignal: input.sourceSignal,
+          sourceContext,
+          draft: cachedDraft,
+          outputText: cached.outputText,
+          citations: cached.citations,
+          generatedAt: cached.generatedAt,
+        })
+      }
       return toConcreteDraft({
         aiOutputId: cached.id,
         draft: cachedDraft,
@@ -1135,28 +1205,36 @@ export async function generateConcreteDraft(input: {
       })
     : null
 
+  const outputText = draft ? JSON.stringify(draft) : null
+  const citations = {
+    sourceId: input.source.id,
+    sourceUrl: input.source.url,
+    sourceSignalId: input.sourceSignal?.id ?? null,
+    sourceSnapshotId: sourceContext.sourceSnapshotId,
+    sourceFetchedAt: sourceContext.sourceFetchedAt,
+    sourcePublishedAt: sourceContext.sourcePublishedAt,
+    sourceExcerpt: draft?.sourceExcerpt ?? null,
+    sourceText,
+  }
+  const generatedAt = new Date()
+  const trace = {
+    ...aiResult.trace,
+    model: aiResult.model ?? aiResult.trace.model,
+    ...(normalized.error
+      ? { guardResult: 'schema_fail' as const, refusalCode: 'SCHEMA_INVALID' }
+      : {}),
+    ...(guardError
+      ? { guardResult: 'guard_rejected' as const, refusalCode: 'GUARD_REJECTED' }
+      : {}),
+  }
   const recorded = await recordConcreteDraftRun({
     aiRepo: input.aiRepo,
     scope: input.scope,
     userId: input.userId,
     inputContextRef,
-    trace: {
-      ...aiResult.trace,
-      model: aiResult.model ?? aiResult.trace.model,
-      ...(normalized.error ? { guardResult: 'schema_fail', refusalCode: 'SCHEMA_INVALID' } : {}),
-      ...(guardError ? { guardResult: 'guard_rejected', refusalCode: 'GUARD_REJECTED' } : {}),
-    },
-    outputText: draft ? JSON.stringify(draft) : null,
-    citations: {
-      sourceId: input.source.id,
-      sourceUrl: input.source.url,
-      sourceSignalId: input.sourceSignal?.id ?? null,
-      sourceSnapshotId: sourceContext.sourceSnapshotId,
-      sourceFetchedAt: sourceContext.sourceFetchedAt,
-      sourcePublishedAt: sourceContext.sourcePublishedAt,
-      sourceExcerpt: draft?.sourceExcerpt ?? null,
-      sourceText,
-    },
+    trace,
+    outputText,
+    citations,
     errorMsg: aiResult.refusal?.message ?? normalized.error ?? guardError,
   })
 
@@ -1168,6 +1246,29 @@ export async function generateConcreteDraft(input: {
   if (guardError) {
     throw new Error(guardError)
   }
+  const model = trace.model
+  if (!model || model === RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL || !outputText) {
+    throw new Error('AI concrete draft was unavailable.')
+  }
+
+  await mirrorConcreteDraftRun({
+    concreteDraftRepo: input.concreteDraftRepo,
+    aiRepo: input.aiRepo,
+    scope: input.scope,
+    userId: input.userId,
+    aiOutputId: recorded.aiOutputId,
+    inputContextRef,
+    inputHash,
+    model,
+    base: input.base,
+    source: input.source,
+    sourceSignal: input.sourceSignal,
+    sourceContext,
+    draft,
+    outputText,
+    citations,
+    generatedAt,
+  })
 
   return toConcreteDraft({
     aiOutputId: recorded.aiOutputId,

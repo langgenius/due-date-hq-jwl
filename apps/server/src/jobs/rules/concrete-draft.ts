@@ -1,4 +1,4 @@
-import { createDb, makeAiRepo, makePulseOpsRepo } from '@duedatehq/db'
+import { createDb, makeAiRepo, makePulseOpsRepo, makeRuleConcreteDraftRepo } from '@duedatehq/db'
 import {
   findRuleById,
   listObligationRules,
@@ -183,6 +183,7 @@ export async function consumeRuleConcreteDraftGenerate(
     await generateConcreteDraft({
       env,
       aiRepo: makeAiRepo(db, 'global'),
+      concreteDraftRepo: makeRuleConcreteDraftRepo(db),
       scope: 'global',
       userId: null,
       base: rule,

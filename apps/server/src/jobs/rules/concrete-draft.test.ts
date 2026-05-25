@@ -14,6 +14,11 @@ const { dbMocks, draftMocks, metricsMocks, pulseRepoMocks } = vi.hoisted(() => {
   const aiRepo = {
     findSuccessfulGlobalRunsByContextRefs: vi.fn(),
   }
+  const concreteDraftRepo = {
+    upsert: vi.fn(),
+    listReadyContextRefs: vi.fn(),
+    health: vi.fn(),
+  }
   const pulseRepo = {
     getSourceSignal: vi.fn(),
     getLatestSourceSnapshotBySourceId: vi.fn(),
@@ -21,8 +26,10 @@ const { dbMocks, draftMocks, metricsMocks, pulseRepoMocks } = vi.hoisted(() => {
   return {
     dbMocks: {
       aiRepo,
+      concreteDraftRepo,
       createDb: vi.fn(() => ({})),
       makeAiRepo: vi.fn(() => aiRepo),
+      makeRuleConcreteDraftRepo: vi.fn(() => concreteDraftRepo),
       makePulseOpsRepo: vi.fn(() => pulseRepo),
     },
     draftMocks: {
@@ -42,6 +49,7 @@ const { dbMocks, draftMocks, metricsMocks, pulseRepoMocks } = vi.hoisted(() => {
 vi.mock('@duedatehq/db', () => ({
   createDb: dbMocks.createDb,
   makeAiRepo: dbMocks.makeAiRepo,
+  makeRuleConcreteDraftRepo: dbMocks.makeRuleConcreteDraftRepo,
   makePulseOpsRepo: dbMocks.makePulseOpsRepo,
 }))
 
@@ -76,8 +84,12 @@ describe('rule concrete draft prewarm jobs', () => {
   beforeEach(() => {
     dbMocks.createDb.mockClear()
     dbMocks.makeAiRepo.mockClear()
+    dbMocks.makeRuleConcreteDraftRepo.mockClear()
     dbMocks.makePulseOpsRepo.mockClear()
     dbMocks.aiRepo.findSuccessfulGlobalRunsByContextRefs.mockReset()
+    dbMocks.concreteDraftRepo.upsert.mockReset()
+    dbMocks.concreteDraftRepo.listReadyContextRefs.mockReset()
+    dbMocks.concreteDraftRepo.health.mockReset()
     Object.values(draftMocks).forEach((mock) => mock.mockClear())
     Object.values(metricsMocks).forEach((mock) => mock.mockClear())
     Object.values(pulseRepoMocks).forEach((mock) => mock.mockReset())
@@ -132,6 +144,35 @@ describe('rule concrete draft prewarm jobs', () => {
         sourceId,
         error: 'schema mismatch',
       }),
+    )
+  })
+
+  it('passes the mirror repo into concrete draft generation', async () => {
+    const rule = sourceDefinedRule()
+    const sourceId = rule.sourceIds[0]!
+
+    await consumeRuleConcreteDraftGenerate(
+      {
+        type: RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
+        ruleId: rule.id,
+        sourceId,
+        reason: 'prewarm',
+      },
+      {
+        ...env(),
+        R2_PULSE: {} as R2Bucket,
+      } as Env,
+    )
+
+    expect(draftMocks.generateConcreteDraft).toHaveBeenCalledWith(
+      expect.objectContaining({
+        aiRepo: dbMocks.aiRepo,
+        concreteDraftRepo: dbMocks.concreteDraftRepo,
+      }),
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'rule.concrete_draft.generate_success',
+      expect.objectContaining({ ruleId: rule.id, sourceId }),
     )
   })
 })

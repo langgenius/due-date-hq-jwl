@@ -71,6 +71,53 @@ export const llmLog = sqliteTable(
   ],
 )
 
+export const ruleConcreteDraft = sqliteTable(
+  'rule_concrete_draft',
+  {
+    aiOutputId: text('ai_output_id')
+      .primaryKey()
+      .references(() => aiOutput.id, { onDelete: 'cascade' }),
+    firmId: text('firm_id').references(() => firmProfile.id, { onDelete: 'cascade' }),
+    userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    inputContextRef: text('input_context_ref').notNull(),
+    inputHash: text('input_hash').notNull(),
+    promptVersion: text('prompt_version').notNull(),
+    model: text('model'),
+    ruleId: text('rule_id').notNull(),
+    ruleVersion: integer('rule_version').notNull(),
+    sourceId: text('source_id').notNull(),
+    sourceSignalId: text('source_signal_id'),
+    sourceSnapshotId: text('source_snapshot_id'),
+    sourceUrl: text('source_url').notNull(),
+    sourceFetchedAt: integer('source_fetched_at', { mode: 'timestamp_ms' }),
+    sourcePublishedAt: integer('source_published_at', { mode: 'timestamp_ms' }),
+    sourceExcerpt: text('source_excerpt').notNull(),
+    sourceText: text('source_text'),
+    outputText: text('output_text').notNull(),
+    citationsJson: text('citations_json', { mode: 'json' }).$type<unknown>(),
+    generatedAt: integer('generated_at', { mode: 'timestamp_ms' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    index('idx_rule_concrete_draft_firm_context').on(
+      table.firmId,
+      table.inputContextRef,
+      table.generatedAt,
+    ),
+    index('idx_rule_concrete_draft_context').on(table.inputContextRef, table.generatedAt),
+    index('idx_rule_concrete_draft_rule_source').on(
+      table.ruleId,
+      table.ruleVersion,
+      table.sourceId,
+    ),
+  ],
+)
+
 export const aiOutputRelations = relations(aiOutput, ({ one }) => ({
   firm: one(firmProfile, {
     fields: [aiOutput.firmId],
@@ -93,7 +140,24 @@ export const llmLogRelations = relations(llmLog, ({ one }) => ({
   }),
 }))
 
+export const ruleConcreteDraftRelations = relations(ruleConcreteDraft, ({ one }) => ({
+  aiOutput: one(aiOutput, {
+    fields: [ruleConcreteDraft.aiOutputId],
+    references: [aiOutput.id],
+  }),
+  firm: one(firmProfile, {
+    fields: [ruleConcreteDraft.firmId],
+    references: [firmProfile.id],
+  }),
+  user: one(user, {
+    fields: [ruleConcreteDraft.userId],
+    references: [user.id],
+  }),
+}))
+
 export type AiOutput = typeof aiOutput.$inferSelect
 export type NewAiOutput = typeof aiOutput.$inferInsert
 export type LlmLog = typeof llmLog.$inferSelect
 export type NewLlmLog = typeof llmLog.$inferInsert
+export type RuleConcreteDraft = typeof ruleConcreteDraft.$inferSelect
+export type NewRuleConcreteDraft = typeof ruleConcreteDraft.$inferInsert
