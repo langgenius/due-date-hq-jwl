@@ -162,7 +162,6 @@ import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { useClientDrawer } from '@/features/clients/ClientDrawerProvider'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
 import {
@@ -3626,12 +3625,9 @@ export function ObligationQueueDetailDrawer({
   mode?: 'sheet' | 'panel'
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
-  // ClientDrawer hook lets the "Open client detail" link peek a
-  // client in place instead of navigating away. See
-  // ClientDrawerProvider.tsx.
-  const { openDrawer: openClientDrawer } = useClientDrawer()
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -4416,14 +4412,16 @@ export function ObligationQueueDetailDrawer({
         {/* Client kicker — small label above the form code so the user
             knows whose return this is without burying the form
             identity. The whole row (name + arrow) is one click target
-            that opens the client drawer in place. Title attribute
+            that navigates to the client detail page. Title attribute
             carries the verb. */}
         {row?.clientId && row.clientName ? (
           <button
             type="button"
             aria-label={t`Open ${row.clientName}`}
             title={t`Open ${row.clientName}`}
-            onClick={() => openClientDrawer(row.clientId)}
+            onClick={() => {
+              void navigate(`/clients/${encodeURIComponent(row.clientId)}`)
+            }}
             className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-xs text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <span className="font-medium">{titleText}</span>
