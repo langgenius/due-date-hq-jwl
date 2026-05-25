@@ -923,21 +923,18 @@ export function RulesLibraryRoute() {
   const headerActions = (
     <>
       {reviewCount > 0 ? (
-        // 2026-05-25 (Yuqi rule library #1): Start review is the
-        // CPA's "do the actual work" affordance — distinct from
-        // navigation actions like Export / New rule. Was the
-        // default primary blue, which made it visually identical
-        // to every other primary action in the header rail. Now
-        // an amber-tinted action button (text + warning-success
-        // bg) so it reads as "you have N items waiting" not just
-        // "save / submit." The count in the label cues the
-        // magnitude of work before the click.
-        <Button
-          size="sm"
-          onClick={startReviewAll}
-          className="border-state-warning-border bg-state-warning-hover text-text-warning hover:bg-state-warning-active hover:text-text-warning focus-visible:bg-state-warning-active focus-visible:text-text-warning"
-        >
-          <Trans>Start review ({reviewCount})</Trans>
+        // 2026-05-25 (Yuqi rule library #5 — third pass): Yuqi
+        // flagged the amber treatment as reading as "destructive."
+        // Switched to a default primary blue with the count
+        // rendered as an inset tabular chip — the count carries
+        // the "N waiting" magnitude cue, the button color reads as
+        // "primary action, not danger." Standard accent palette
+        // matches every other primary CTA in the app.
+        <Button size="sm" onClick={startReviewAll}>
+          <Trans>Start review</Trans>
+          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-state-accent-active-alt/40 px-1.5 font-mono text-xs tabular-nums">
+            {reviewCount}
+          </span>
         </Button>
       ) : null}
       <Button variant="outline" size="sm" onClick={handleExport}>
@@ -1145,59 +1142,50 @@ function StatsBar({
   // Each chip is a real filter target instead of a passive bar that
   // pretended to be interactive.
   const totalReviewed = totalActive + totalPendingReview
-  // 2026-05-25 (Yuqi rule library #30 — flip): "needs review" now
-  // anchors the START (left) of the progress bar — the work-to-do
-  // signal reads first, the work-already-done (active) fills the
-  // remainder to the right. Was the inverse: green-active on left,
-  // neutral-needs-review on right. The flip reads better as a CPA
-  // mental model — "I have 456 to look at, 20 are done." Tones:
-  // needs-review = warning-amber (call to act), active = success-
-  // green (already through).
-  const pendingPct = totalReviewed > 0 ? (totalPendingReview / totalReviewed) * 100 : 0
+  // 2026-05-25 (Yuqi rule library #4 — re-flip): Yuqi reverted the
+  // earlier flip and asked for the canonical "progress fills as you
+  // complete work" reading — active anchors the LEFT (green, work
+  // done), needs-review trails on the RIGHT (amber, work pending).
+  // Same two tones, just back to the conventional progress-bar
+  // direction so the bar reads as a completion meter rather than a
+  // backlog meter.
+  const activePct = totalReviewed > 0 ? (totalActive / totalReviewed) * 100 : 0
   // Label fits inside the bar only when the segment has at least
   // ~80px to render the text. Below that we fall back to the count
   // only; the full label lives in the title tooltip for hover.
-  const REVIEW_LABEL_FITS = pendingPct >= 18
-  const ACTIVE_LABEL_FITS = 100 - pendingPct >= 18
+  const ACTIVE_LABEL_FITS = activePct >= 18
+  const REVIEW_LABEL_FITS = 100 - activePct >= 18
   return (
     <div className="flex flex-col gap-4 border-b border-divider-subtle pb-4">
-      {/* 2026-05-25 (Yuqi rule library #3, #7, #30): progress bar
-          rebuilt, then flipped so the "needs review" segment leads.
-          Warning-amber left = "N needs review", success-green right
-          = "N active". Hover gives the full breakdown. Counts live
-          inside the segments so the eye reads "split" + "magnitude"
-          in one pass; no second row of corner-floating numbers.
-          Density bumped tighter (gap-4 not gap-5) per Yuqi's
-          GitHub-rhythm direction. */}
       <div className="flex flex-col gap-3">
         <div
           className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
           role="img"
-          aria-label={`${totalPendingReview} need review out of ${totalReviewed} reviewed`}
-          title={`${totalPendingReview} need review · ${totalActive} active`}
+          aria-label={`${totalActive} active out of ${totalReviewed} reviewed`}
+          title={`${totalActive} active · ${totalPendingReview} need review`}
         >
           <div
-            className="flex items-center overflow-hidden bg-state-warning-hover px-2 transition-[width] duration-300"
-            style={{ width: `${pendingPct}%` }}
+            className="flex items-center overflow-hidden bg-state-success-hover px-2 transition-[width] duration-300"
+            style={{ width: `${activePct}%` }}
           >
-            {REVIEW_LABEL_FITS ? (
-              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
-                <Trans>{totalPendingReview} need review</Trans>
-              </span>
-            ) : pendingPct > 0 ? (
-              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
-                {totalPendingReview}
-              </span>
-            ) : null}
-          </div>
-          <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-success-hover px-2">
             {ACTIVE_LABEL_FITS ? (
               <span className="truncate text-xs font-medium tabular-nums text-text-success">
                 <Trans>{totalActive} active</Trans>
               </span>
-            ) : totalActive > 0 ? (
+            ) : activePct > 0 ? (
               <span className="truncate text-xs font-medium tabular-nums text-text-success">
                 {totalActive}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-warning-hover px-2">
+            {REVIEW_LABEL_FITS ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+                <Trans>{totalPendingReview} need review</Trans>
+              </span>
+            ) : totalPendingReview > 0 ? (
+              <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+                {totalPendingReview}
               </span>
             ) : null}
           </div>
@@ -1525,7 +1513,11 @@ function GroupedRulesTable({
             through during scroll. */}
         <TableHeader className="sticky top-0 z-10 !bg-background-default [&_tr]:!bg-background-default">
           <TableRow className="border-b-divider-subtle hover:bg-transparent">
-            <TableHead className="w-[34%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+            {/* 2026-05-25 (Yuqi rule library #2 + #7 — wider): Rule
+                column claims more width (34% → 42%) so rule titles
+                breathe. Form + entity dots + Tier all narrow to
+                fit. */}
+            <TableHead className="w-[42%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <span className="inline-flex items-baseline gap-2">
                 <Trans>Rule</Trans>
                 <span aria-hidden className="text-text-tertiary/60">
@@ -1536,15 +1528,12 @@ function GroupedRulesTable({
                 </span>
               </span>
             </TableHead>
-            {/* 2026-05-25 (Yuqi rule library second-pass #3): Form
-                column narrowed to w-[140px]. Form codes are short
-                (e.g. "1120-S Final" / "7004 Extension") — the
-                auto-width was claiming ~220px on wide viewports,
-                pushing the entity columns left of the visual
-                center. Capping the Form column reclaims that space
-                for the entity dots which carry the actual
-                catalog-scan info. */}
-            <TableHead className="w-[140px] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+            {/* 2026-05-25 (Yuqi rule library #3 — third pass): Form
+                column further narrowed to w-[120px]. Form codes
+                like "1120-S Final" fit in 120px with truncation;
+                anything longer wraps. The freed width goes to the
+                Rule column above. */}
+            <TableHead className="w-[120px] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <Trans>Form</Trans>
             </TableHead>
             {ENTITY_KEYS.map((entity) => (
@@ -2214,9 +2203,14 @@ function RuleDetailPanel({
             shape the audit ID line used to spell out, so the body
             no longer needs to repeat it. */}
       <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 p-0">
-        <DialogHeader className="flex flex-col gap-1 border-b border-divider-subtle px-5 py-4">
+        {/* 2026-05-25 (Yuqi rule library #8, #10 — third pass):
+            title bumped text-base → text-lg ("title 应该更大"),
+            gap between kicker and title bumped 1 → 2 so the
+            sections separate visually instead of running together
+            ("文字很混乱。也没有 section。加上 section"). */}
+        <DialogHeader className="flex flex-col gap-2 border-b border-divider-subtle px-5 py-4">
           <RuleDetailKicker rule={rule} />
-          <DialogTitle className="text-base font-semibold text-text-primary">
+          <DialogTitle className="text-lg font-semibold leading-tight text-text-primary">
             {rule.title}
           </DialogTitle>
         </DialogHeader>
