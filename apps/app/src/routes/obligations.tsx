@@ -4668,17 +4668,23 @@ export function ObligationQueueDetailDrawer({
               //   • Blocked — when status is 'blocked'
               //   • N days overdue — when daysUntilDue < 0 on a
               //     non-terminal row
-              // The pill keeps its full label (we don't yet have a
-              // `displayStatus` dedup prop on the control); the chip
-              // beside it sharpens the signal. Worst case the same
-              // word renders twice (e.g. "Waiting on client" on the
-              // pill AND on the chip), which is verbose but not
-              // wrong. Adding `displayStatus` to ObligationQueueStatusControl
-              // is a follow-up.
+              // 2026-05-26 (Yuqi fifty-third pass — pill dedup wired):
+              // when a flag chip names the specific sub-state (waiting
+              // / blocked), pass `displayStatus='in_progress'` to the
+              // pill so it shows the generic verb-of-motion instead of
+              // repeating the chip's noun. Reads as:
+              //   pill: "In progress"  chip: "Waiting on client"
+              // (instead of "Waiting on client" twice). The dropdown
+              // still operates on the real `row.status` — displayStatus
+              // only affects the trigger's rendered label/icon/variant.
+              // Overdue chip doesn't trigger the dedup since "overdue"
+              // is a date concern, not a workflow state.
               const isTerminalStatus = row.status === 'done' || row.status === 'completed'
               const showWaitingChip = row.status === 'waiting_on_client'
               const showBlockedChip = row.status === 'blocked'
               const showOverdueChip = row.daysUntilDue < 0 && !isTerminalStatus
+              const pillDisplayStatus =
+                showWaitingChip || showBlockedChip ? ('in_progress' as ObligationStatus) : undefined
               return (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
                   <h2 className="text-lg font-semibold leading-tight text-text-primary">
@@ -4690,6 +4696,7 @@ export function ObligationQueueDetailDrawer({
                     statuses={statusDropdownOptions}
                     disabled={changeStatusMutation.isPending}
                     onChange={(id, status) => changeStatus(id, status, row.status)}
+                    displayStatus={pillDisplayStatus}
                   />
                   {showWaitingChip ? (
                     <Badge
