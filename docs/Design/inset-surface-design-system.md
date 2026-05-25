@@ -12,7 +12,7 @@ in `semantic-dark.css`), exposed as Tailwind utilities via `preset.css`.
 
 | Token                  | Value (light) | Class                   | When to use                                                                                                                     |
 | ---------------------- | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `--background-inset`   | `#fafafa`     | `bg-background-inset`   | **SidebarInset work surface.** Every route renders on top of this gray. Change in one place to retone the whole product.        |
+| `--background-inset`   | `#f4f4f4`     | `bg-background-inset`   | **SidebarInset work surface.** Every route renders on top of this gray. Change in one place to retone the whole product.        |
 | `--background-default` | `#ffffff`     | `bg-background-default` | **Card surfaces.** Cards/panels/sections that should "pop" off the inset gray.                                                  |
 | `--background-section` | gray-50       | `bg-background-section` | Inline framed callouts that need a quiet step-down from white. Avoid on large card surfaces — blends with `--background-inset`. |
 | `--background-subtle`  | gray-100      | `bg-background-subtle`  | Small chips (kbd, status pill backgrounds). Borders carry the frame; safe even on the new inset.                                |
@@ -21,7 +21,7 @@ Change the inset tone:
 
 ```css
 /* packages/ui/src/styles/tokens/semantic-light.css */
---background-inset: #fafafa; /* ← change here, propagates everywhere */
+--background-inset: #f4f4f4; /* ← change here, propagates everywhere */
 ```
 
 ---
@@ -29,7 +29,7 @@ Change the inset tone:
 ## Surface hierarchy
 
 ```
-SidebarInset (#fafafa)
+SidebarInset (#f4f4f4)
 ├─ Page header (transparent, sits on inset)
 └─ Cards (bg-background-default white, border-divider-subtle, rounded-md)
    └─ Section frames inside cards (bg-background-default, rounded-md)
@@ -101,11 +101,17 @@ drawer.
 | Region                     | Class               | Pixel                            |
 | -------------------------- | ------------------- | -------------------------------- |
 | Header                     | `px-12 py-10`       | 48 × 40                          |
-| Body (scrolling)           | `px-12 py-10`       | 48 × 40                          |
+| Body (scrolling)           | `px-12 pt-10 pb-24` | 48 × (40 top / 96 bottom)        |
 | Sticky footer              | `px-12 py-4`        | 48 × 16                          |
 | Body inter-section gap     | `gap-4`             | 16                               |
 | Inner section internal gap | `gap-3`             | 12                               |
 | Sticky inner heading bleed | `-mx-12 px-12 py-3` | full-width with 48px inner inset |
+
+**Why asymmetric body padding?** The sticky footer (`min-h-16` + `py-4` ≈
+64-80px) overlays the body's bottom edge when scrolled. `pb-24` (96px) gives
+~footer-height + 32px breathing room, so the last content row never hides
+behind the action bar. Top stays `pt-10` (40px) — the header-to-content
+rhythm is unchanged.
 
 The `px-12 py-10` body padding makes the drawer read as a roomy paper document.
 `px-12` repeats edge-to-edge on header/body/footer so the left margin is one

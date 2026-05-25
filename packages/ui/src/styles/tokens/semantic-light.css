@@ -44,8 +44,17 @@
    * #f4f4f4 → #fafafa so white cards pop more clearly on the
    * inset and the page reads as "paper on a desk" instead of
    * "two shades of gray sandwiched together".
+   * 2026-05-26 (Yuqi forty-sixth pass): rolled back lighter →
+   * #f4f4f4. At #fafafa the inset was almost indistinguishable
+   * from the white cards (#ffffff vs #fafafa = ~2% lightness
+   * difference) — sections on /today blended into the work
+   * surface and Yuqi flagged "看不出" (can't see them). #f4f4f4
+   * gives roughly 4% contrast against white — enough that the
+   * cards read as a separate layer "on top of" the inset, which
+   * was the whole point of the inset-surface pattern. The lighter
+   * shade was an overcorrection.
    */
-  --background-inset: #fafafa;
+  --background-inset: #f4f4f4;
   --background-default: #ffffff;
   --background-default-subtle: var(--color-util-colors-gray-25);
   --background-default-hover: var(--color-util-colors-gray-50);
