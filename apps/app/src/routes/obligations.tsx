@@ -7619,10 +7619,21 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
             {formatDate(filingIso)}
           </span>
         </div>
+        {/* 2026-05-26 (Yuqi inset-followups — Filed dedup completion):
+            dropped the word "Filed" from this badge too, matching the
+            compact hero strip's treatment (commit f3873814 cleaned up
+            the compact branch but missed the dates-differ branch).
+            The green check + green Badge tone already communicates
+            "filed/done"; the textual "Filed" was the 2nd of two
+            redundant labels on the panel. Header pill is now the
+            only textual "Filed" anchor across both rendering paths. */}
         {isTerminal ? (
-          <Badge variant="success" className="h-6 text-caption-xs uppercase tracking-wide">
+          <Badge
+            variant="success"
+            className="h-6 text-caption-xs uppercase tracking-wide"
+            aria-label={t`Filed`}
+          >
             <CheckCircle2Icon className="size-3" aria-hidden />
-            <Trans>Filed</Trans>
           </Badge>
         ) : isMissed ? (
           <Badge variant="destructive" className="h-6 text-caption-xs uppercase tracking-wide">
