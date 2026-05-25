@@ -49,9 +49,14 @@ function NeedsAttentionSection() {
     // frame, not a card. 16px reads as a content surface — the same
     // family as the Pulse drawer's outer corners and the dashboard's
     // own NeedsAttentionCard tiles.
+    // 2026-05-25 (GitHub-density pass): rounded-2xl → rounded-xl,
+    // p-4 → p-3, inner gap-3 → gap-2.5. Reads as one tighter
+    // information block rather than a generous tile. The tinted
+    // bg still anchors the section visually without claiming a
+    // large vertical share of the page.
     <section
       aria-label={t`Alerts`}
-      className="flex flex-col gap-3 rounded-2xl border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-4"
+      className="flex flex-col gap-2.5 rounded-xl border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-3"
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
           LEFT-aligned with "View all alerts" justify-between on the

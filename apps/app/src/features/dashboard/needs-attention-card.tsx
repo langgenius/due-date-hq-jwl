@@ -87,7 +87,11 @@ function NeedsAttentionCard({
       type="button"
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2.5 rounded-md border border-divider-subtle bg-background-default p-3.5 text-left transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      // 2026-05-25 (GitHub-density pass): card padding p-3.5 → p-3,
+      // inner gap-2.5 → gap-2. Card content stays scannable but the
+      // tile collapses to a more efficient footprint, matching the
+      // section's tighter outer padding.
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 text-left transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">

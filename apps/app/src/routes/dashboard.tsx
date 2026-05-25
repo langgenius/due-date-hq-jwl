@@ -124,11 +124,17 @@ export function DashboardRoute() {
   const facets = data?.facets
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 p-4 md:p-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
+    // 2026-05-25 (GitHub-density direction): page rhythm tightened
+    // gap-8 → gap-6 (header → sections), header h1 trimmed from
+    // text-2xl to text-xl. Yuqi's reference is GitHub's "useful,
+    // precise, tight" density — section anchors stay legible at
+    // scan distance without claiming a whole top-row of vertical
+    // real estate.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <h1 className="text-xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
           <Trans>Today</Trans>{' '}
-          <span className="font-medium text-text-tertiary">
+          <span className="font-normal text-text-tertiary">
             {dashboardQuery.isLoading || !data?.asOfDate ? null : formatTodayHeader(data.asOfDate)}
           </span>
         </h1>
