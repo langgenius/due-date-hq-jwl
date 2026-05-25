@@ -31,7 +31,7 @@ import {
  *  - <SidebarMenuButton>               — cva variants + `render` prop, accepts
  *                                        a NavLink (or any element) as the
  *                                        underlying tag
- *  - <SidebarMenuBadge>                — expanded mono tabular-nums counter pill
+ *  - <SidebarMenuBadge / BadgeDot>     — expanded count pill / collapsed dot
  *  - <SidebarTrigger>                  — mobile-only toggle (md:hidden)
  *  - <SidebarProvider> / useSidebar()  — mobile sheet open state
  *
@@ -378,63 +378,50 @@ export function SidebarMenuButton({
   })
 }
 
-/**
- * Two tones for sidebar count badges:
- *  - `urgent` (default for back-compat): saturated warning pill — use
- *    for counts that mean "look at this" (Alerts, Rule library
- *    review backlog).
- *  - `inventory`: framed neutral pill — use for counts that are
- *    reference facts (Clients, Deadlines). CPA shouldn't read these
- *    as "do something."
- *
- * 2026-05-25 (Yuqi Today #18): both tones now share the SAME pill
- * shape (height, radius, border) so the right edge of the sidebar
- * reads as one consistent column. Yuqi flagged that "the number in
- * Deadlines isn't aligned with Alerts. it is not framed" — the
- * inventory tone used to render as a bare mono number with no
- * border, sitting visually higher and at a different x-position
- * than the framed urgent pill above. Now: same chip outline,
- * different fills (warning-hover for urgent, subtle for inventory).
- * Semantics still distinguish ("look here" vs "reference fact") via
- * fill saturation, not via wildly different shapes.
- */
+export type SidebarMenuBadgeTone = 'urgent' | 'inventory'
+
 export function SidebarMenuBadge({
   className,
   tone = 'urgent',
   ...props
-}: React.ComponentProps<'span'> & { tone?: 'urgent' | 'inventory' }) {
-  if (tone === 'inventory') {
-    return (
-      <span
-        {...props}
-        data-slot="sidebar-menu-badge"
-        data-tone="inventory"
-        className={cn(
-          'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center overflow-hidden rounded-sm border border-divider-subtle bg-background-subtle px-1 font-mono text-xs font-medium tabular-nums text-text-tertiary transition-[background-color,border-color,color]',
-          'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
-          'group-data-[collapsed=true]/sidebar:hidden',
-          className,
-        )}
-      >
-        {props.children}
-      </span>
-    )
-  }
+}: React.ComponentProps<'span'> & { tone?: SidebarMenuBadgeTone }) {
   return (
     <span
       {...props}
       data-slot="sidebar-menu-badge"
-      data-tone="urgent"
+      data-tone={tone}
       className={cn(
-        // Saturated warning pill — readable on the panel bg AND on the
-        // accent-tint selected bg without needing an active-state override.
-        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center overflow-hidden rounded-sm border border-state-warning-border bg-state-warning-hover px-1 font-mono text-xs font-medium tabular-nums text-text-warning transition-[background-color,border-color,color]',
+        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center overflow-hidden rounded-sm border px-1 font-mono text-xs font-medium tabular-nums transition-[background-color,border-color,color]',
+        'data-[tone=inventory]:border-divider-subtle data-[tone=inventory]:bg-background-subtle data-[tone=inventory]:text-text-tertiary',
+        'data-[tone=urgent]:border-state-warning-border data-[tone=urgent]:bg-state-warning-hover data-[tone=urgent]:text-text-warning',
+        'group-data-[active=true]/menu-button:data-[tone=inventory]:text-text-secondary group-aria-[current=page]/menu-button:data-[tone=inventory]:text-text-secondary',
         'group-data-[collapsed=true]/sidebar:hidden',
         className,
       )}
     >
       {props.children}
     </span>
+  )
+}
+
+export function SidebarMenuBadgeDot({
+  className,
+  tone = 'urgent',
+  ...props
+}: React.ComponentProps<'span'> & { tone?: SidebarMenuBadgeTone }) {
+  return (
+    <span
+      aria-hidden="true"
+      {...props}
+      data-slot="sidebar-menu-badge-dot"
+      data-tone={tone}
+      className={cn(
+        'pointer-events-none absolute top-1.5 right-1.5 hidden size-1.5 rounded-full',
+        'data-[tone=inventory]:bg-text-tertiary data-[tone=urgent]:bg-state-warning-solid',
+        'group-data-[collapsed=true]/sidebar:block',
+        className,
+      )}
+    />
   )
 }
 
@@ -469,7 +456,7 @@ export function SidebarTrigger({
       'aria-label': 'Toggle navigation',
       onClick: handleClick,
       className: cn(
-        'inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
+        'inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-[background-color,border-color,color]',
         'hover:bg-background-default-hover hover:text-text-primary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'md:hidden',

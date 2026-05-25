@@ -493,7 +493,7 @@ shadcn `Sidebar`（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `
 - 全局快捷键词汇表是 `⌘K`（command palette）、`⌘⇧O`（practice switcher）、`⌘B`（sidebar rail toggle）
 - `floating` / `inset` variant 与 §6「borders before shadows · no decorative depth」相反
 
-引入 700+ 行未用 API + `bg-sidebar-*` 一整套 token alias 只会让后面看代码的人多踩坑。所以走 thin primitives：`Sidebar` / `SidebarHeader` / `SidebarContent` / `SidebarFooter` / `SidebarGroup` / `SidebarGroupLabel` / `SidebarMenu` / `SidebarMenuItem` / `SidebarMenuButton` / `SidebarMenuBadge` / `SidebarTrigger` / `SidebarCollapseToggle` + `SidebarProvider` / `useSidebar()`。Mobile 仍复用现有 `@duedatehq/ui/components/ui/sheet` 做 drawer。
+引入 700+ 行未用 API + `bg-sidebar-*` 一整套 token alias 只会让后面看代码的人多踩坑。所以走 thin primitives：`Sidebar` / `SidebarHeader` / `SidebarContent` / `SidebarFooter` / `SidebarGroup` / `SidebarGroupLabel` / `SidebarMenu` / `SidebarMenuItem` / `SidebarMenuButton` / `SidebarMenuBadge` / `SidebarMenuBadgeDot` / `SidebarTrigger` / `SidebarCollapseToggle` + `SidebarProvider` / `useSidebar()`。Mobile 仍复用现有 `@duedatehq/ui/components/ui/sheet` 做 drawer。
 
 #### 视觉规格（desktop 220px expanded / 56px collapsed）
 
@@ -508,6 +508,7 @@ shadcn `Sidebar`（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `
 - **Group label**：11px 8% letter-spacing 大写，`text: text-tertiary`，左 padding 12px、上下各 4px；折叠态隐藏，不保留 divider / group name 替代状态
 - **Group spacing**：组之间 16px gap，组内 item 之间 2px gap，**不**加 hairline 分组（保持 calm）
 - **Mono badge**（`12` / `34` 这类 pending 计数）：展开态是 18px 高圆角 sm 小药丸，`border: 1px border-default`，Numeric/Small mono `text: text-muted`。折叠态不把 pill 本体缩成 dot，而是隐藏 pill、渲染独立 6px dot，避免展开时数字 badge 从 dot 几何跳回 pill
+- **Motion**：rail 宽度、button 尺寸、padding、margin、icon 位置都不动画。只做视觉层微过渡：展开时 label / group label / badge opacity 淡入 120ms；折叠时数字立即消失，collapsed dot opacity 淡入 100ms；`prefers-reduced-motion` 下禁用
 
 #### 三段式结构（顶到底）
 

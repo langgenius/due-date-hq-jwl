@@ -53,6 +53,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuBadge,
+  SidebarMenuBadgeDot,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -887,23 +888,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
             >
               <Icon aria-hidden />
               <span data-slot="sidebar-menu-label">{item.label}</span>
-              {item.badge ? (
-                <>
-                  <SidebarMenuBadge aria-hidden="true" tone={badgeTone}>
-                    {item.badge}
-                  </SidebarMenuBadge>
-                  <span
-                    aria-hidden="true"
-                    data-slot="sidebar-menu-badge-dot"
-                    data-tone={badgeTone}
-                    className={cn(
-                      'pointer-events-none absolute top-1.5 right-1.5 hidden size-1.5 rounded-full',
-                      badgeTone === 'inventory' ? 'bg-text-tertiary' : 'bg-state-warning-solid',
-                      'group-data-[collapsed=true]/sidebar:block',
-                    )}
-                  />
-                </>
-              ) : null}
+              {item.badge ? <NavItemBadge value={item.badge} tone={badgeTone} /> : null}
               {item.tag ? (
                 <span
                   data-slot="sidebar-menu-tag"
@@ -920,6 +905,17 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
         </TooltipContent>
       </Tooltip>
     </SidebarMenuItem>
+  )
+}
+
+function NavItemBadge({ value, tone }: { value: string; tone: NonNullable<NavItem['badgeTone']> }) {
+  return (
+    <>
+      <SidebarMenuBadge aria-hidden="true" tone={tone}>
+        {value}
+      </SidebarMenuBadge>
+      <SidebarMenuBadgeDot tone={tone} />
+    </>
   )
 }
 
