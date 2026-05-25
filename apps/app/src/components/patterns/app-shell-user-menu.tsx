@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -223,12 +222,26 @@ function UserMenuTrigger({
         </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
+        {/* 2026-05-25 (Yuqi caps fix): this block was using
+            <DropdownMenuLabel>, which bakes in
+            `text-2xs font-medium tracking-wider uppercase` via
+            overlayLabelClassName (see packages/ui/src/lib/overlay.ts).
+            That's the right primitive for section kickers like
+            "PRACTICES" or "Map column to…" — short labels that
+            head a group of items. It is NOT right for the user
+            identity block, where it caused name + email +
+            "Owner at …" to all inherit text-transform: uppercase
+            ("SARAH MARTINEZ" / "SARAH.DEMO@DUEDATEHQ.TEST" /
+            "OWNER AT BRIGHTLINE DEMO CPA" — emails especially
+            should never render uppercase). Replaced with a plain
+            div wrapper inside the group so the inner spans pick
+            up their own type tokens without inherited transform. */}
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex flex-col gap-0.5 text-left">
-            <span className="text-sm font-medium text-text-primary">{displayName}</span>
+          <div className="flex flex-col gap-0.5 px-3 pt-1.5 pb-2 text-left">
+            <span className="truncate text-sm font-medium text-text-primary">{displayName}</span>
             <span className="truncate text-xs text-text-tertiary">{user.email}</span>
-            <span className="mt-1 text-xs text-text-tertiary">{roleAtFirm}</span>
-          </DropdownMenuLabel>
+            <span className="mt-1 truncate text-xs text-text-tertiary">{roleAtFirm}</span>
+          </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuSub>

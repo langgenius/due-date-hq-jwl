@@ -255,13 +255,20 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
                 <DropdownMenuItem
                   key={item.id}
                   aria-checked={selected}
-                  className="flex items-center justify-between"
+                  // 2026-05-25 (Yuqi caps fix follow-up): bumped
+                  // row height (h-12) + padding (px-2 py-2) +
+                  // avatar (size-7) so the dropdown row matches
+                  // the trigger's brand-mark presence. Item row
+                  // was h-8 / size-5 (20px) — the avatar read as
+                  // a UI dot rather than the workspace identity
+                  // it pairs with on the trigger (32px).
+                  className="flex h-12 items-center justify-between gap-2 px-2 py-2"
                   onClick={() => handleSwitch(item.id)}
                 >
-                  <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2.5">
                     <span
                       aria-hidden
-                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-caption-xs font-semibold text-text-inverted"
+                      className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-primary text-caption-xs font-semibold text-text-inverted"
                       translate="no"
                     >
                       {firmMonogram(item.name)}
