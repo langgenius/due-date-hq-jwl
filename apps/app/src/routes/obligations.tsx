@@ -1,10 +1,10 @@
 import {
   Fragment,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  type HTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from 'react'
@@ -163,8 +163,6 @@ import {
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import {
   TableHeaderMultiFilter,
-  tableHeaderFilterIconTrigger,
-  tableHeaderFilterTrigger,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
@@ -267,11 +265,30 @@ const EMPTY_CLIENT_OPTIONS: ClientFilterOption[] = []
 const INITIAL_CURSOR: ObligationQueueCursor = null
 const PAGE_SIZE = 50
 // Client-side pagination window over the cumulative useInfiniteQuery
-// buffer. With server PAGE_SIZE = 50 and client CLIENT_PAGE_SIZE = 25,
-// one server fetch fills two client pages, so paging Next never has
-// to wait for an extra request until the user crosses the 50-row
-// boundary.
-const CLIENT_PAGE_SIZE = 25
+// buffer. The page size is now derived from the viewport height
+// (2026-05-26, /deadlines sixty-fifth pass #14) so the table fills
+// the screen with as many rows as fit and the user never gets a
+// "half-full page above the pagination footer" view on short
+// monitors or a "scroll to see anything" view on tall monitors.
+// See `useResponsivePageSize` below — the floor/ceil + per-row
+// estimate live there. The constants here are clamp bounds so the
+// table never collapses to <8 rows or balloons past ~40 even on
+// huge displays (40 already taxes scan readability).
+const CLIENT_PAGE_SIZE_MIN = 8
+const CLIENT_PAGE_SIZE_MAX = 40
+// Estimated per-row height in the current rendering (text-base
+// client name + py-3 cells + size-8 avatar + status pill = ~56px).
+// Bumped from the old text-sm density. If row chrome changes,
+// re-measure with a quick `getBoundingClientRect().height` test
+// and adjust — undershooting fills the viewport partially,
+// overshooting scrolls.
+const CLIENT_ROW_HEIGHT_PX = 56
+// Page chrome above + below the rows: page header + breadcrumb +
+// filter scope-tabs + filter action-chips + table header + pagination
+// footer + page bottom padding ≈ 320-360px. We pick 360 to leave
+// a small buffer so the last row is never clipped under the
+// footer. If the chrome grows or shrinks materially, tune here.
+const PAGE_CHROME_PX = 360
 const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
@@ -299,6 +316,36 @@ async function copyTextToClipboard(value: string): Promise<void> {
       textarea.remove()
     }
   }
+}
+
+// 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): responsive
+// page size — derive rows-per-page from viewport height so the
+// table fills the screen and the user doesn't have to scroll just
+// to see the data already loaded. SSR-safe (returns the min while
+// rendering server-side, then hydrates to the measured value on
+// mount). Subscribes to window resize so the page size adjusts
+// when the user resizes the browser or rotates a tablet.
+function computeResponsivePageSize(height: number): number {
+  const usable = Math.max(0, height - PAGE_CHROME_PX)
+  const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
+  return Math.max(CLIENT_PAGE_SIZE_MIN, Math.min(CLIENT_PAGE_SIZE_MAX, fit || CLIENT_PAGE_SIZE_MIN))
+}
+
+function useResponsivePageSize(): number {
+  const [pageSize, setPageSize] = useState<number>(() => {
+    if (typeof window === 'undefined') return CLIENT_PAGE_SIZE_MIN
+    return computeResponsivePageSize(window.innerHeight)
+  })
+  useEffect(() => {
+    // SSR guard: bail without registering. The state initializer above
+    // already returned CLIENT_PAGE_SIZE_MIN at that path. Effect only
+    // runs client-side anyway, so the guard is belt-and-suspenders.
+    if (typeof window === 'undefined') return () => {}
+    const onResize = (): void => setPageSize(computeResponsivePageSize(window.innerHeight))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return pageSize
 }
 
 function openExternalUrl(value: string): void {
@@ -373,7 +420,9 @@ function fiscalYearEndParts(value: string): { month: number; day: number } | nul
 }
 
 const DAY_MS = 86_400_000
-const OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME = 'text-xs'
+// OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME retired 2026-05-26 with the
+// sixty-fifth pass #17 DueDaysPill cleanup — the Badge wrapper was
+// dropped so the shared text-xs token is no longer in use.
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
 const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'min-w-[148px]'
@@ -602,23 +651,17 @@ function hiddenFromColumnVisibility(visibility: VisibilityState): string[] {
     .map(([columnId]) => columnId)
 }
 
-function integerFromInput(value: string, min?: number): number | null {
-  const trimmed = value.trim()
-  if (trimmed.length === 0) return null
-  if (!/^-?\d+$/.test(trimmed)) return null
-  const parsed = Number(trimmed)
-  if (!Number.isSafeInteger(parsed)) return null
-  return min === undefined ? parsed : Math.max(min, parsed)
-}
+// `integerFromInput` retired 2026-05-26 with the sixty-fifth pass #5
+// RangeHeaderFilterDropdown removal — only the dropdown's onCommit
+// callback ever called this helper.
 
 function daysFilterValue(value: number | null): number | undefined {
   if (value === null || !Number.isSafeInteger(value)) return undefined
   return Math.min(DAYS_FILTER_MAX, Math.max(DAYS_FILTER_MIN, value))
 }
 
-function inputValueFromNumber(value: number | null): string {
-  return value === null ? '' : String(value)
-}
+// `inputValueFromNumber` retired 2026-05-26 with RangeHeaderFilter-
+// Dropdown removal — only the dropdown's draft-input state needed it.
 
 function columnLabel(columnId: string, labels: Record<string, string>): string {
   return labels[columnId] ?? columnId
@@ -832,6 +875,12 @@ export function ObligationQueueRoute() {
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [pageIndex, setPageIndex] = useState(0)
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): responsive
+  // rows-per-page based on viewport height. Replaces the previous
+  // hardcoded CLIENT_PAGE_SIZE = 25 — on a 992px viewport we now
+  // show ~11 rows (one screenful) instead of 25 (half offscreen);
+  // on a 1400px viewport we show ~18.
+  const responsivePageSize = useResponsivePageSize()
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   // 2026-05-24 (re-critique): lifted from `ObligationQueueSearchControl`
   // so the `/` hotkey can imperatively expand the collapsed search
@@ -1424,28 +1473,15 @@ export function ObligationQueueRoute() {
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
           const isGroupedClientRow = isContinuation || withinGroupRowIds.has(tableRow.original.id)
-          if (isContinuation) {
-            // Same-client continuation: client name lives on the
-            // first row of the group. We used to render an entirely
-            // empty cell which read as "this row has no client" to
-            // first-time users (critique flagged Magnolia Family
-            // Trust → FL Corporate Income).
-            //
-            // 2026-05-24 (critique /polish): show a quiet `↳` glyph
-            // so the cell is visibly empty-by-design. The 2px left
-            // rail on the row + the welded bottom border still carry
-            // the grouping; this is a small belt-and-suspenders cue
-            // for the eye. Full client name stays in `sr-only` for
-            // screen readers — every row still announces its client.
-            return (
-              <div className="flex items-center gap-1.5 pl-3 text-text-quaternary">
-                <span aria-hidden className="text-xs leading-none">
-                  ↳
-                </span>
-                <span className="sr-only">{tableRow.original.clientName}</span>
-              </div>
-            )
-          }
+          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #15/#16):
+          // continuation rows now render the full client name again
+          // instead of a `↳` glyph. Yuqi flagged the arrow as "this
+          // does not make sense" — even with the left rail + welded
+          // borders carrying the grouping cue, hiding the client name
+          // on rows 2+ made the column read inconsistently with the
+          // first row. Just write the name. The shift+click range-
+          // select gesture below still works on every row because
+          // the same handler is wired to every cell.
           // Shift+click the client name → range-select every row
           // sharing this clientId (2026-05-21). Matches the hybrid
           // multi-select model: filings-default, with a group-expand
@@ -1491,21 +1527,16 @@ export function ObligationQueueRoute() {
                   // the shift-click range gesture.
                   if (event.shiftKey) event.preventDefault()
                 }}
-                // 2026-05-25 (Yuqi Deadlines #3): client name bumped
-                // from text-xs (12px) to text-sm (14px). Yuqi flagged
-                // it as still too small to read at scan distance even
-                // after font-medium — the client column is the row's
-                // anchor, not meta caption.
-                // 2026-05-26 (Yuqi forty-second pass — content title
-                // unification): rolled back from text-base → text-sm.
-                // Every other content title on Today / Alerts /
-                // Deadlines uses text-sm font-medium; the
-                // client-name column was a one-off bump that broke
-                // the rule. The row anchor still reads weighty
-                // because of font-medium + text-text-primary while
-                // the meta values around it use text-text-tertiary
-                // — weight + color carry the prominence, not size.
-                className="line-clamp-2 min-w-0 flex-1 text-sm font-medium leading-tight text-text-primary"
+                // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #9):
+                // bumped back to text-base. With the table header now
+                // rendering at text-sm (post sixty-fifth pass #2),
+                // text-sm body text and text-sm headers were sitting
+                // at the same scale — the row's primary anchor needs
+                // to read LARGER than the column label above it, not
+                // the same. text-base font-medium gives the client
+                // name proper anchor weight against text-sm meta in
+                // the same row (tax code, due-days, status pill).
+                className="line-clamp-2 min-w-0 flex-1 text-base font-medium leading-tight text-text-primary"
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
                 {tableRow.original.clientName}
@@ -1617,7 +1648,7 @@ export function ObligationQueueRoute() {
               <span
                 aria-label={t`Unassigned`}
                 title={t`Unassigned`}
-                className="inline-flex size-6 items-center justify-center rounded-full border border-dashed border-divider-regular text-caption-xs text-text-tertiary"
+                className="inline-flex size-8 items-center justify-center rounded-full border border-dashed border-divider-regular text-sm text-text-tertiary"
               >
                 ?
               </span>
@@ -1682,13 +1713,34 @@ export function ObligationQueueRoute() {
             }
           />
         ),
-        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} />,
+        // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #11): tax-code
+        // cell bumped to text-base. Yuqi flagged "Form 1120-S" as
+        // "too small" — sitting next to the new text-base client name
+        // anchor, the text-sm tax label read as caption-tier. text-base
+        // reads as the row's secondary identity (form name) at the
+        // same visual weight as the primary (client name). All other
+        // meta in the row (due-days, status pill, owner) stays at
+        // text-sm so the eye still resolves "client + form" as the
+        // primary anchor cluster.
+        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} className="text-base" />,
         meta: { cellClassName: 'text-text-secondary' },
       },
       {
         accessorKey: 'currentDueDate',
         header: () => {
           const label = t`Internal Due`
+          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #5): dropped
+          // the RangeHeaderFilterDropdown icon button. Yuqi's call:
+          // "remove. Sort by is doing the same thing." The dropdown
+          // was a min/max-days range filter on the column — but the
+          // toolbar chip row above (Past Due / Due this week) already
+          // covers the common date-range filters with one click, and
+          // the column sort handle on this same header lets you find
+          // any row by ordering. The icon-button-inside-header chrome
+          // added a second affordance (range filter) that overlapped
+          // semantically with sort + the toolbar chips. Killing it
+          // also addresses #4 (no way to cancel an applied range)
+          // because there's no longer an applied range to cancel.
           return (
             <ObligationQueueSortableHeader
               label={label}
@@ -1698,29 +1750,7 @@ export function ObligationQueueRoute() {
               firstSort="due_asc"
               sortLabel={`${t`Sort`} ${label}`}
               onSortChange={changeSort}
-            >
-              <RangeHeaderFilterDropdown
-                trigger="icon"
-                label={label}
-                minLabel={t`Minimum days until due`}
-                maxLabel={t`Maximum days until due`}
-                minPlaceholder={t`Min days`}
-                maxPlaceholder={t`Max days`}
-                minValue={daysMin}
-                maxValue={daysMax}
-                inputMode="numeric"
-                min={DAYS_FILTER_MIN}
-                max={DAYS_FILTER_MAX}
-                onCommit={(nextMin, nextMax) =>
-                  void setObligationQueueQuery({
-                    daysMin: integerFromInput(nextMin),
-                    daysMax: integerFromInput(nextMax),
-                    obligation: null,
-                    row: null,
-                  })
-                }
-              />
-            </ObligationQueueSortableHeader>
+            />
           )
         },
         // Relative-time pill only ("3d late" / "in 5d"). Per
@@ -1886,8 +1916,6 @@ export function ObligationQueueRoute() {
       clientQuery,
       continuationRowIds,
       currentUserName,
-      daysMax,
-      daysMin,
       filtersDisabled,
       openHeaderFilter,
       openEvidence,
@@ -1912,14 +1940,18 @@ export function ObligationQueueRoute() {
   )
 
   // Client-side pagination window. `rows` is the cumulative buffer
-  // from useInfiniteQuery; we slice it into CLIENT_PAGE_SIZE pages
-  // and only hand the active page to TanStack. Going to the next
+  // from useInfiniteQuery; we slice it into `responsivePageSize`-sized
+  // pages and only hand the active page to TanStack. Going to the next
   // page beyond the loaded buffer triggers `fetchNextPage`.
-  const totalLoadedPages = Math.max(1, Math.ceil(rows.length / CLIENT_PAGE_SIZE))
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): pageSize now
+  // tracks viewport height instead of a fixed 25. `responsivePageSize`
+  // changes on window resize so totalLoadedPages re-derives and the
+  // user always sees a "table fills the screen" view.
+  const totalLoadedPages = Math.max(1, Math.ceil(rows.length / responsivePageSize))
   const safePageIndex = Math.min(pageIndex, totalLoadedPages - 1)
   const pagedRows = useMemo(
-    () => rows.slice(safePageIndex * CLIENT_PAGE_SIZE, (safePageIndex + 1) * CLIENT_PAGE_SIZE),
-    [rows, safePageIndex],
+    () => rows.slice(safePageIndex * responsivePageSize, (safePageIndex + 1) * responsivePageSize),
+    [rows, safePageIndex, responsivePageSize],
   )
   const table = useReactTable({
     data: pagedRows,
@@ -2754,9 +2786,21 @@ export function ObligationQueueRoute() {
                     so all dropdowns across the product read as one
                     family. Width h-8 + gap-1.5 stays — matches the
                     Alerts panel-aware filter pattern. */}
+                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #13):
+                    "Group by" → "Sort by" rename. Yuqi's call: the
+                    selector reads as the primary "order/cluster"
+                    control — calling it "Group by" implies pure
+                    visual clustering with no ordering implication,
+                    but the selected key actually drives both the
+                    sort key AND the section header cluster (when
+                    Client/Status). "Sort by" is the more honest
+                    verb: the table is now sorted by Due date / by
+                    Client / by Status, and grouping is the side
+                    effect. Trigger chrome unchanged (canonical
+                    Alerts-family filter pill). */}
                 <SelectTrigger className="h-8 w-[164px] gap-1.5 border-divider-strong bg-background-default text-xs text-text-primary hover:bg-state-base-hover">
                   <span className="text-text-tertiary">
-                    <Trans>Group by</Trans>
+                    <Trans>Sort by</Trans>
                   </span>
                   <SelectValue />
                 </SelectTrigger>
@@ -3008,7 +3052,17 @@ export function ObligationQueueRoute() {
                   deadline content reads at body type instead of
                   caption-tier. Per-column `headerClassName` is
                   preserved by the `meta` plumbing below. */}
-              <Table className="overflow-hidden rounded-md border border-divider-regular [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
+              {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #1): table
+                  chrome simplified. Dropped `border border-divider-regular
+                  rounded-md` — the outer frame was painting a second
+                  visual boundary around the queue inside an already-
+                  bordered scroll column, reading as a card-within-a-
+                  card. Added `bg-background-default` so the rows stand
+                  on a white surface against the page's inset gray.
+                  Inner row dividers + the TableHeader bg still
+                  carry the table's internal structure; no outer
+                  frame needed. */}
+              <Table className="overflow-hidden bg-background-default [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id} className="hover:bg-transparent">
@@ -3018,7 +3072,19 @@ export function ObligationQueueRoute() {
                           <TableHead
                             key={header.id}
                             className={cn(
-                              'text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
+                              // 2026-05-26 (Yuqi /deadlines sixty-fifth
+                              // pass #2/#3/#6/#7): header text moved off
+                              // the small-caps caption style. Yuqi flagged
+                              // it as "not header style" — the uppercase
+                              // + tracking + text-tertiary combo read as
+                              // a kicker label, not a column header,
+                              // especially next to the larger body text
+                              // below. New style matches the Alerts
+                              // AffectedClientsTable headers (text-sm
+                              // sentence-case font-medium text-secondary)
+                              // so column headers across the product
+                              // read as one family.
+                              'text-sm font-medium normal-case tracking-normal text-text-secondary',
                               meta?.headerClassName,
                             )}
                             colSpan={header.colSpan}
@@ -3143,7 +3209,17 @@ export function ObligationQueueRoute() {
                                       ? t`Expand ${label}`
                                       : t`Collapse ${label}`
                                   })()}
-                                  className="inline-flex w-full items-baseline gap-x-2 gap-y-0.5 rounded-sm py-0.5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                                  // 2026-05-26 (Yuqi /deadlines sixty-fifth
+                                  // pass #8): items-baseline → items-center
+                                  // on the collapse button. With the chevron
+                                  // icon as the first child, baseline-aligned
+                                  // text put the icon's bounding box sitting
+                                  // lower than its visual center vs. the
+                                  // label text — read as "off by 1-2px"
+                                  // misalignment. Center-aligning the row
+                                  // sits the chevron's center on the same
+                                  // line as the label's vertical midpoint.
+                                  className="inline-flex w-full items-center gap-x-2 gap-y-0.5 rounded-sm py-0.5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                 >
                                   <ChevronRightIcon
                                     className={cn(
@@ -3277,10 +3353,17 @@ export function ObligationQueueRoute() {
               flipping the user navigates by page rather than by
               scroll, so the sticky pin wasn't doing useful work —
               it was just making the controls feel "inside" the
-              table. `mt-auto` retained so the footer still pushes
-              to the bottom of the flex column when the table is
-              short. */}
-          <div className="mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
+              table.
+              2026-05-26 (Yuqi DevTools callout — pagination should
+              be inside scroll container): dropped `mt-auto`. With the
+              transparent filter bar above and the always-visible
+              pagination strip, the auto-margin was creating a big gap
+              between the table and the footer when the queue was
+              short — visually reading as if the pagination had
+              detached and landed outside the queue column. Without
+              mt-auto the row sits immediately below the table and
+              scrolls naturally with the rest of the column content. */}
+          <div className="flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
                   carries "N deadlines · M clients" so the aggregate
@@ -3794,16 +3877,18 @@ function ObligationQueueSortableHeader({
         }
         className={cn(
           'inline-flex min-w-0 items-center gap-0.5 rounded px-1 py-0.5 text-left',
-          // 2026-05-26 (Yuqi fifty-fourth pass — sortable header
-          // text matches TableHead canonical): button now inherits
-          // the same `text-xs font-medium uppercase tracking-[0.08em]`
-          // typography as non-sortable TableHead cells. Without
-          // these, the button's label rendered without the
-          // uppercase/tracking, so sortable columns looked
-          // visually different from sibling non-sortable columns
-          // on the same header row.
-          'text-xs font-medium uppercase tracking-[0.08em]',
-          'text-text-tertiary hover:text-text-primary',
+          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #2/#3): sortable
+          // button now matches the new TableHead canonical (text-sm
+          // sentence-case font-medium text-secondary). Previously the
+          // sortable header was rendering as a quieter `text-text-
+          // tertiary` than the row content — Yuqi flagged it as
+          // "wrong colour" because the column header read as fainter
+          // than the data it labeled. Bumping to text-secondary +
+          // dropping the uppercase/tracking caption treatment makes
+          // sortable and non-sortable headers indistinguishable in
+          // weight.
+          'text-sm font-medium normal-case tracking-normal',
+          'text-text-secondary hover:text-text-primary',
           'data-[active=true]:text-text-primary',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         )}
@@ -3837,12 +3922,19 @@ function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean
   // flagged "avatar 有点太挤了". The marginal size bump gives the
   // glyphs room without inflating the Owner column footprint
   // unreasonably.
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #10): bumped again to
+  // size-8 (32px) + text-sm. With the row's primary anchor now at
+  // text-base, the 28px circle was reading as "too small" relative
+  // to the client name beside it. 32px sits as a proper row icon
+  // (matches the Today dashboard's owner-avatar size) and the
+  // text-sm initials no longer read like caption-tier inside the
+  // disc.
   return (
     <span
       aria-label={title}
       title={title}
       className={cn(
-        'inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold uppercase tracking-tight',
+        'inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold uppercase tracking-tight',
         isMine
           ? 'bg-state-accent-hover-alt text-text-accent'
           : 'bg-background-subtle text-text-secondary',
@@ -3927,13 +4019,24 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
   // color so red text + red icon read as a single urgency cluster
   // without claiming "status pill" semantics.
   const isLate = days < 0
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #17): dropped the
+  // outline Badge wrapper. Yuqi questioned "is it necessary to put
+  // it in a badge pill?" — the row already carries the Status pill
+  // (filled, workflow state) in the next column, and a second
+  // bordered chip for due-days read as "two badges, same row,
+  // different meanings, what's a primary?" Now: dot + plain text,
+  // text-sm tabular-nums, urgency carried by text color (red /
+  // amber / neutral) and the leading dot/icon. Reads as a value
+  // ("3 days late"), not a control.
   return (
-    <Badge
-      variant="outline"
-      className={`${OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME} min-w-18 justify-start tabular-nums ${tintedTextClass} ${tone.badgeClassName ?? ''}`}
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 text-sm tabular-nums leading-tight',
+        tintedTextClass,
+      )}
     >
       {isLate ? (
-        <Info className="size-3" aria-hidden />
+        <Info className="size-3.5 shrink-0" aria-hidden />
       ) : (
         <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
       )}
@@ -3944,117 +4047,16 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
       ) : (
         <Plural value={days} one="# day" other="# days" />
       )}
-    </Badge>
+    </span>
   )
 }
 
-function RangeHeaderFilterDropdown({
-  trigger = 'header',
-  label,
-  minLabel,
-  maxLabel,
-  minPlaceholder,
-  maxPlaceholder,
-  minValue,
-  maxValue,
-  inputMode,
-  min,
-  max,
-  onCommit,
-}: {
-  trigger?: 'header' | 'icon'
-  label: string
-  minLabel: string
-  maxLabel: string
-  minPlaceholder: string
-  maxPlaceholder: string
-  minValue: number | null
-  maxValue: number | null
-  inputMode: HTMLAttributes<HTMLInputElement>['inputMode']
-  min?: number
-  max?: number
-  onCommit: (minValue: string, maxValue: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const [draftMin, setDraftMin] = useState(inputValueFromNumber(minValue))
-  const [draftMax, setDraftMax] = useState(inputValueFromNumber(maxValue))
-  const currentMin = inputValueFromNumber(minValue)
-  const currentMax = inputValueFromNumber(maxValue)
-  const activeMin = open ? draftMin : currentMin
-  const activeMax = open ? draftMax : currentMax
-  const activeCount = (activeMin.trim() ? 1 : 0) + (activeMax.trim() ? 1 : 0)
-  const triggerNode =
-    trigger === 'icon'
-      ? tableHeaderFilterIconTrigger({ label, activeCount })
-      : tableHeaderFilterTrigger({ label, activeCount })
-
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      setDraftMin(currentMin)
-      setDraftMax(currentMax)
-      setOpen(true)
-      return
-    }
-    setOpen(false)
-    if (draftMin !== currentMin || draftMax !== currentMax) {
-      onCommit(draftMin, draftMax)
-    }
-  }
-
-  return (
-    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger render={triggerNode} />
-      <DropdownMenuContent className="w-72" align="start">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>{label}</DropdownMenuLabel>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <div className="grid gap-3 p-2">
-          <label className="grid gap-1 text-xs font-medium text-text-secondary">
-            <span>{minLabel}</span>
-            <Input
-              inputMode={inputMode}
-              min={min}
-              max={max}
-              className="h-8"
-              placeholder={minPlaceholder}
-              value={draftMin}
-              onChange={(event) => setDraftMin(event.target.value)}
-              // 2026-05-24 (interaction audit): let Escape bubble so
-              // the parent dropdown closes on Esc. Other keys stay
-              // swallowed so typing digits doesn't trigger global
-              // J/K/etc. shortcuts.
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') return
-                event.stopPropagation()
-              }}
-            />
-          </label>
-          <label className="grid gap-1 text-xs font-medium text-text-secondary">
-            <span>{maxLabel}</span>
-            <Input
-              inputMode={inputMode}
-              min={min}
-              max={max}
-              className="h-8"
-              placeholder={maxPlaceholder}
-              value={draftMax}
-              onChange={(event) => setDraftMax(event.target.value)}
-              // 2026-05-24 (interaction audit): let Escape bubble so
-              // the parent dropdown closes on Esc. Other keys stay
-              // swallowed so typing digits doesn't trigger global
-              // J/K/etc. shortcuts.
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') return
-                event.stopPropagation()
-              }}
-            />
-          </label>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
+// `RangeHeaderFilterDropdown` retired 2026-05-26 with the sixty-fifth
+// pass #5. The column-header range filter overlapped semantically
+// with the sort handle on the same header AND with the toolbar
+// "Past Due" / "Due this week" chips above. If we ever need a
+// generic numeric-range column filter again, restore from git
+// history (commit before 2026-05-26-deadlines-pass-65).
 
 export function ObligationQueueDetailDrawer({
   obligationId,
