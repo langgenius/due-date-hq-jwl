@@ -5480,12 +5480,38 @@ export function ObligationQueueDetailDrawer({
                           />
                         )
                       }
+                      // 2026-05-26 (Yuqi sixtieth pass — terminal-state
+                      // Materials framing): when the row is filed /
+                      // completed the checklist becomes an ARCHIVE,
+                      // not a to-do list. "Outstanding 13" on a
+                      // Filed row read as "13 items still to do"
+                      // when the work is closed — the items just
+                      // weren't ticked in the audit trail.
+                      // Terminal headings:
+                      //   • "Outstanding" → "Not in audit trail" —
+                      //     same items, but framed as "missing from
+                      //     the archive" not "still to be done."
+                      //   • "Received" → "Archived" — same items,
+                      //     historical record framing.
+                      const isTerminalRow = row.status === 'done' || row.status === 'completed'
                       return (
                         <div className="flex flex-col gap-4">
+                          {isTerminalRow ? (
+                            <p className="rounded-md border border-state-success-border bg-state-success-hover px-3 py-2 text-xs text-text-secondary">
+                              <Trans>
+                                This deadline has been filed. The checklist below is the historical
+                                record.
+                              </Trans>
+                            </p>
+                          ) : null}
                           <section className="flex flex-col gap-2">
                             <header className="flex items-baseline gap-2">
                               <h3 className="text-sm font-semibold text-text-primary">
-                                <Trans>Outstanding</Trans>
+                                {isTerminalRow ? (
+                                  <Trans>Not in audit trail</Trans>
+                                ) : (
+                                  <Trans>Outstanding</Trans>
+                                )}
                               </h3>
                               <span className="font-mono text-xs tabular-nums text-text-tertiary">
                                 {outstandingItems.length}
@@ -5503,7 +5529,11 @@ export function ObligationQueueDetailDrawer({
                             <section className="flex flex-col gap-2">
                               <header className="flex items-baseline gap-2">
                                 <h3 className="text-sm font-semibold text-text-secondary">
-                                  <Trans>Received</Trans>
+                                  {isTerminalRow ? (
+                                    <Trans>Archived</Trans>
+                                  ) : (
+                                    <Trans>Received</Trans>
+                                  )}
                                 </h3>
                                 <span className="font-mono text-xs tabular-nums text-text-tertiary">
                                   {receivedItems.length}
