@@ -44,6 +44,7 @@ export function ClientOpportunitiesCard({ clientId }: { clientId: string }) {
             <ClientOpportunityItem key={opportunity.id} opportunity={opportunity} />
           ))}
           <Button
+            nativeButton={false}
             size="sm"
             variant="outline"
             className="w-fit"

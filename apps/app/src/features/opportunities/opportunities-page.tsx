@@ -411,7 +411,12 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
           row, matching the PulseAlertCard treatment. Snooze +
           Dismiss are softer ghost siblings below. */}
       <div className="flex shrink-0 flex-col items-stretch gap-1">
-        <Button size="sm" variant="outline" render={<Link to={opportunity.primaryAction.href} />}>
+        <Button
+          nativeButton={false}
+          size="sm"
+          variant="outline"
+          render={<Link to={opportunity.primaryAction.href} />}
+        >
           <ArrowUpRightIcon data-icon="inline-start" />
           <Trans>Open client</Trans>
         </Button>
