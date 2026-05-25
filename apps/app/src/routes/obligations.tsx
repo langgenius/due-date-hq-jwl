@@ -5453,8 +5453,20 @@ export function ObligationQueueDetailDrawer({
                 )
               })()}
             </div>
-            <TabsContent value="summary" className="mt-4">
-              {/* Summary tab — milestone chevron + active-stage zoom.
+            <TabsContent value="summary" className="mt-4" key="summary-content">
+              {/* 2026-05-26 (Yuqi animation note): each TabsContent
+                  wraps its content in a motion.div so switching tabs
+                  triggers a slide-in animation (x: 12 → 0) + fade.
+                  Base UI unmounts inactive content, so the motion.div
+                  mounts fresh on every activation — no exit anim
+                  needed since the previous content is already gone
+                  by the time the new tab fires its initial state. */}
+              <motion.div
+                initial={{ x: 12, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+              >
+                {/* Summary tab — milestone chevron + active-stage zoom.
                   These were previously pinned in the sticky snapshot
                   block (always-visible across every tab). Yuqi #30
                   moved them into a dedicated tab so:
@@ -5465,72 +5477,78 @@ export function ObligationQueueDetailDrawer({
                       (?tab=summary is shareable).
                     - Materials / Extension / Evidence don't get the
                       stage card pushing them below the fold. */}
-              <div className="grid gap-3">
-                <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
-                <ActiveStageDetailCard
-                  row={row}
-                  auditEvents={detail.auditEvents}
-                  readinessChecklist={detail.readinessChecklist}
-                  onChangeTab={(nextTab) => onTabChange(nextTab)}
-                  onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
-                  onConfirmAcceptance={() =>
-                    markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
-                  }
-                  onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
-                  onChangePrepStage={(nextPrepStage) => {
-                    // Capture the previous value so the success toast can
-                    // offer an Undo that fires the reverse mutation. No-op
-                    // clicks (same value) still let the request through —
-                    // the server short-circuits and emits a zero-uuid
-                    // auditId, but the toast logic uses the captured
-                    // previous to decide whether to show Undo.
-                    prepStagePreviousRef.current = row.prepStage
-                    updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
-                  }}
-                  onChangeReviewStage={(nextReviewStage) => {
-                    reviewStagePreviousRef.current = row.reviewStage
-                    updateReviewStageMutation.mutate({
-                      id: row.id,
-                      reviewStage: nextReviewStage,
-                    })
-                  }}
-                />
-              </div>
+                <div className="grid gap-3">
+                  <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                  <ActiveStageDetailCard
+                    row={row}
+                    auditEvents={detail.auditEvents}
+                    readinessChecklist={detail.readinessChecklist}
+                    onChangeTab={(nextTab) => onTabChange(nextTab)}
+                    onChangeStatus={(nextStatus) => changeStatus(row.id, nextStatus, row.status)}
+                    onConfirmAcceptance={() =>
+                      markAcceptedMutation.mutate({ id: row.id, status: 'completed' })
+                    }
+                    onRecordRejection={() => markFiledRejectedMutation.mutate({ id: row.id })}
+                    onChangePrepStage={(nextPrepStage) => {
+                      // Capture the previous value so the success toast can
+                      // offer an Undo that fires the reverse mutation. No-op
+                      // clicks (same value) still let the request through —
+                      // the server short-circuits and emits a zero-uuid
+                      // auditId, but the toast logic uses the captured
+                      // previous to decide whether to show Undo.
+                      prepStagePreviousRef.current = row.prepStage
+                      updatePrepStageMutation.mutate({ id: row.id, prepStage: nextPrepStage })
+                    }}
+                    onChangeReviewStage={(nextReviewStage) => {
+                      reviewStagePreviousRef.current = row.reviewStage
+                      updateReviewStageMutation.mutate({
+                        id: row.id,
+                        reviewStage: nextReviewStage,
+                      })
+                    }}
+                  />
+                </div>
+              </motion.div>
             </TabsContent>
-            <TabsContent value="readiness" className="mt-4">
-              <div className="grid gap-3">
-                {/* Top-of-tab summary — explains what readiness IS
+            <TabsContent value="readiness" className="mt-4" key="readiness-content">
+              <motion.div
+                initial={{ x: 12, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+              >
+                <div className="grid gap-3">
+                  {/* Top-of-tab summary — explains what readiness IS
                         + shows the at-a-glance state (PRD §3.2 says the
                         biggest deadline risk isn't "CPA doesn't know the
                         date," it's "CPA doesn't have enough info to
                         finish the return"). This anchor + the per-item
                         rows below replace the prior right sidebar. */}
-                <ReadinessOverview
-                  row={row}
-                  latestRequest={latestRequest ?? null}
-                  checklistCount={checklist.length}
-                  receivedCount={checklist.filter((item) => item.status === 'received').length}
-                />
-                {/* Three-class deadline display (PRD §7.2 + §3.2):
+                  <ReadinessOverview
+                    row={row}
+                    latestRequest={latestRequest ?? null}
+                    checklistCount={checklist.length}
+                    receivedCount={checklist.filter((item) => item.status === 'received').length}
+                  />
+                  {/* Three-class deadline display (PRD §7.2 + §3.2):
                         client-action chip when a readiness request is
                         outstanding. The other two classes (statutory,
                         firm-internal) live in the drawer header. */}
-                {latestRequest && latestRequest.status !== 'revoked' ? (
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <Badge
-                      variant="outline"
-                      className="border-state-warning-border bg-state-warning-hover text-text-warning"
-                    >
-                      <Trans>
-                        Client response due {formatDate(latestRequest.expiresAt.slice(0, 10))}
-                      </Trans>
-                    </Badge>
-                    <span className="text-text-tertiary">
-                      <Trans>· firm-set deadline for this materials request</Trans>
-                    </span>
-                  </div>
-                ) : null}
-                {/* K-1 / parent-obligation blocker editor removed
+                  {latestRequest && latestRequest.status !== 'revoked' ? (
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <Badge
+                        variant="outline"
+                        className="border-state-warning-border bg-state-warning-hover text-text-warning"
+                      >
+                        <Trans>
+                          Client response due {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                        </Trans>
+                      </Badge>
+                      <span className="text-text-tertiary">
+                        <Trans>· firm-set deadline for this materials request</Trans>
+                      </span>
+                    </div>
+                  ) : null}
+                  {/* K-1 / parent-obligation blocker editor removed
                     2026-05-21 — it surfaced as a full picker on every
                     drawer open, even when not blocked. The queue row's
                     <BlockedByChip> still shows when a blocker is set,
@@ -5538,7 +5556,7 @@ export function ObligationQueueDetailDrawer({
                     chip + on-demand picker, or auto-detected from
                     related-entity rows) is parked for a later pass —
                     see docs/Design/obligation-drawer-ux-audit-2026-05-21.md. */}
-                {/* Action hierarchy — 2026-05-21 redesign:
+                  {/* Action hierarchy — 2026-05-21 redesign:
                     - Empty checklist → single primary "Generate document
                       list" CTA. The other two buttons (Add item, Send to
                       client) are useless here, so they're hidden.
@@ -5549,7 +5567,7 @@ export function ObligationQueueDetailDrawer({
                     weight regardless of state, so the actual workflow
                     goal (send the request) had to fight Generate +
                     Add item for the user's eye. */}
-                {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
+                  {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
                     semantics): label was "Documents received" + count
                     of `checklist.length` (TOTAL items). Yuqi flagged
                     "Documents Received and Outstanding - what is the
@@ -5569,108 +5587,108 @@ export function ObligationQueueDetailDrawer({
                         ├ Outstanding (N items)
                         └ Received (M items, M + N = 13)
                 */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-text-primary">
-                      <Trans>Materials checklist</Trans>
-                    </span>
-                    {checklist.length > 0 ? (
-                      <span className="tabular-nums text-xs text-text-tertiary">
-                        <Plural value={checklist.length} one="# item" other="# items" />
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-text-primary">
+                        <Trans>Materials checklist</Trans>
                       </span>
+                      {checklist.length > 0 ? (
+                        <span className="tabular-nums text-xs text-text-tertiary">
+                          <Plural value={checklist.length} one="# item" other="# items" />
+                        </span>
+                      ) : null}
+                    </div>
+                    {checklist.length > 0 ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={addChecklistItem}
+                        disabled={
+                          checklistGenerating ||
+                          addChecklistItemMutation.isPending ||
+                          checklist.length >= 30
+                        }
+                      >
+                        <PlusIcon data-icon="inline-start" />
+                        <Trans>Add item</Trans>
+                      </Button>
                     ) : null}
                   </div>
-                  {checklist.length > 0 ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={addChecklistItem}
-                      disabled={
-                        checklistGenerating ||
-                        addChecklistItemMutation.isPending ||
-                        checklist.length >= 30
-                      }
-                    >
-                      <PlusIcon data-icon="inline-start" />
-                      <Trans>Add item</Trans>
-                    </Button>
-                  ) : null}
-                </div>
-                {checklist.length === 0 ? (
-                  autoGenerateChecklistQuery.isFetching ? (
-                    <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-                      <div className="flex items-center gap-2">
-                        <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
-                        <span>
-                          <Trans>Preparing</Trans>
-                        </span>
-                      </div>
-                    </div>
-                  ) : autoGenerateChecklistQuery.isError ? (
-                    <EmptyPanel>
-                      <div className="flex flex-wrap items-center justify-center gap-2">
-                        <span>
-                          <Trans>Couldn't generate document list</Trans>
-                        </span>
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          onClick={() => void autoGenerateChecklistQuery.refetch()}
-                        >
-                          <Trans>Retry</Trans>
-                        </Button>
-                      </div>
-                    </EmptyPanel>
-                  ) : (
-                    // Empty state — single primary CTA (Generate) sits
-                    // inside the empty panel as the obvious next step.
-                    // "Add item" is demoted to a small text link below
-                    // for users who want to bypass the AI generation.
-                    <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-center text-sm text-text-secondary">
-                      <p className="text-text-tertiary">
-                        <Trans>
-                          No documents listed yet. Generate an AI checklist or add items manually.
-                        </Trans>
-                      </p>
-                      <div className="flex flex-wrap items-center justify-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            generateChecklistMutation.mutate({
-                              obligationId: row.id,
-                            })
-                          }
-                          disabled={checklistGenerating}
-                        >
-                          <RefreshCwIcon
-                            data-icon="inline-start"
-                            className={cn(checklistGenerating ? 'animate-spin' : undefined)}
-                          />
-                          {checklistGenerating ? (
+                  {checklist.length === 0 ? (
+                    autoGenerateChecklistQuery.isFetching ? (
+                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
+                        <div className="flex items-center gap-2">
+                          <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
+                          <span>
                             <Trans>Preparing</Trans>
-                          ) : (
-                            <Trans>Generate document list</Trans>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={addChecklistItem}
-                          disabled={
-                            checklistGenerating ||
-                            addChecklistItemMutation.isPending ||
-                            checklist.length >= 30
-                          }
-                        >
-                          <PlusIcon data-icon="inline-start" />
-                          <Trans>Add item manually</Trans>
-                        </Button>
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )
-                ) : (
-                  <>
-                    {/* 2026-05-26 (Yuqi fifty-second pass — Materials
+                    ) : autoGenerateChecklistQuery.isError ? (
+                      <EmptyPanel>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          <span>
+                            <Trans>Couldn't generate document list</Trans>
+                          </span>
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            onClick={() => void autoGenerateChecklistQuery.refetch()}
+                          >
+                            <Trans>Retry</Trans>
+                          </Button>
+                        </div>
+                      </EmptyPanel>
+                    ) : (
+                      // Empty state — single primary CTA (Generate) sits
+                      // inside the empty panel as the obvious next step.
+                      // "Add item" is demoted to a small text link below
+                      // for users who want to bypass the AI generation.
+                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-center text-sm text-text-secondary">
+                        <p className="text-text-tertiary">
+                          <Trans>
+                            No documents listed yet. Generate an AI checklist or add items manually.
+                          </Trans>
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              generateChecklistMutation.mutate({
+                                obligationId: row.id,
+                              })
+                            }
+                            disabled={checklistGenerating}
+                          >
+                            <RefreshCwIcon
+                              data-icon="inline-start"
+                              className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                            />
+                            {checklistGenerating ? (
+                              <Trans>Preparing</Trans>
+                            ) : (
+                              <Trans>Generate document list</Trans>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={addChecklistItem}
+                            disabled={
+                              checklistGenerating ||
+                              addChecklistItemMutation.isPending ||
+                              checklist.length >= 30
+                            }
+                          >
+                            <PlusIcon data-icon="inline-start" />
+                            <Trans>Add item manually</Trans>
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <>
+                      {/* 2026-05-26 (Yuqi fifty-second pass — Materials
                         Outstanding/Received split from
                         design/deadlines-drawer-rework): checklist now
                         renders as two labeled sections — Outstanding
@@ -5686,171 +5704,171 @@ export function ObligationQueueDetailDrawer({
                         received-style chrome based on item.status —
                         the split is purely organizational, no new
                         renderer needed. */}
-                    {(() => {
-                      const outstandingItems = checklist.filter((i) => i.status !== 'received')
-                      const receivedItems = checklist.filter((i) => i.status === 'received')
-                      function renderRow(item: (typeof checklist)[number]) {
-                        const response =
-                          latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
-                        const isSelected = materialsSelection.itemIds.has(item.id)
+                      {(() => {
+                        const outstandingItems = checklist.filter((i) => i.status !== 'received')
+                        const receivedItems = checklist.filter((i) => i.status === 'received')
+                        function renderRow(item: (typeof checklist)[number]) {
+                          const response =
+                            latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
+                          const isSelected = materialsSelection.itemIds.has(item.id)
+                          return (
+                            <ChecklistItemRow
+                              key={`${item.id}:${item.updatedAt}`}
+                              item={item}
+                              response={response}
+                              pending={updateChecklistItemMutation.isPending}
+                              selected={isSelected}
+                              onToggleSelect={() => toggleMaterialsSelection(item.id)}
+                              onStatusChange={(status) =>
+                                updateDocumentChecklistItem(item.id, { status })
+                              }
+                              onLabelCommit={(label) =>
+                                updateDocumentChecklistItem(item.id, { label })
+                              }
+                              onDescriptionCommit={(description) =>
+                                updateDocumentChecklistItem(item.id, {
+                                  description: description || null,
+                                })
+                              }
+                              onNoteCommit={(note) =>
+                                updateDocumentChecklistItem(item.id, { note: note || null })
+                              }
+                              onRemove={() => removeChecklistItem(item.id)}
+                            />
+                          )
+                        }
+                        // 2026-05-26 (Yuqi sixtieth pass — terminal-state
+                        // Materials framing): when the row is filed /
+                        // completed the checklist becomes an ARCHIVE,
+                        // not a to-do list. "Outstanding 13" on a
+                        // Filed row read as "13 items still to do"
+                        // when the work is closed — the items just
+                        // weren't ticked in the audit trail.
+                        // Terminal headings:
+                        //   • "Outstanding" → "Not in audit trail" —
+                        //     same items, but framed as "missing from
+                        //     the archive" not "still to be done."
+                        //   • "Received" → "Archived" — same items,
+                        //     historical record framing.
+                        const isTerminalRow = row.status === 'done' || row.status === 'completed'
                         return (
-                          <ChecklistItemRow
-                            key={`${item.id}:${item.updatedAt}`}
-                            item={item}
-                            response={response}
-                            pending={updateChecklistItemMutation.isPending}
-                            selected={isSelected}
-                            onToggleSelect={() => toggleMaterialsSelection(item.id)}
-                            onStatusChange={(status) =>
-                              updateDocumentChecklistItem(item.id, { status })
-                            }
-                            onLabelCommit={(label) =>
-                              updateDocumentChecklistItem(item.id, { label })
-                            }
-                            onDescriptionCommit={(description) =>
-                              updateDocumentChecklistItem(item.id, {
-                                description: description || null,
-                              })
-                            }
-                            onNoteCommit={(note) =>
-                              updateDocumentChecklistItem(item.id, { note: note || null })
-                            }
-                            onRemove={() => removeChecklistItem(item.id)}
-                          />
-                        )
-                      }
-                      // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                      // Materials framing): when the row is filed /
-                      // completed the checklist becomes an ARCHIVE,
-                      // not a to-do list. "Outstanding 13" on a
-                      // Filed row read as "13 items still to do"
-                      // when the work is closed — the items just
-                      // weren't ticked in the audit trail.
-                      // Terminal headings:
-                      //   • "Outstanding" → "Not in audit trail" —
-                      //     same items, but framed as "missing from
-                      //     the archive" not "still to be done."
-                      //   • "Received" → "Archived" — same items,
-                      //     historical record framing.
-                      const isTerminalRow = row.status === 'done' || row.status === 'completed'
-                      return (
-                        <div className="flex flex-col gap-4">
-                          {/* 2026-05-26 (Yuqi feedback #5): dropped the
+                          <div className="flex flex-col gap-4">
+                            {/* 2026-05-26 (Yuqi feedback #5): dropped the
                               "This deadline has been filed" banner. The
                               header status pill + the section title
                               ("Not in audit trail" / "Archived") +
                               ReadinessOverview's italic subline already
                               tell the historical-record story 3x over;
                               this green banner was a 4th. Removed. */}
-                          <section className="flex flex-col gap-2">
-                            <header className="flex items-baseline gap-2">
-                              <h3 className="text-sm font-semibold text-text-primary">
-                                {isTerminalRow ? (
-                                  <Trans>Not in audit trail</Trans>
-                                ) : (
-                                  <Trans>Outstanding</Trans>
-                                )}
-                              </h3>
-                              <span className="font-mono text-xs tabular-nums text-text-tertiary">
-                                {outstandingItems.length}
-                              </span>
-                            </header>
-                            {outstandingItems.length === 0 ? (
-                              <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
-                                <Trans>All items received.</Trans>
-                              </p>
-                            ) : (
-                              <div className="grid gap-2">{outstandingItems.map(renderRow)}</div>
-                            )}
-                          </section>
-                          {receivedItems.length > 0 ? (
                             <section className="flex flex-col gap-2">
                               <header className="flex items-baseline gap-2">
-                                <h3 className="text-sm font-semibold text-text-secondary">
+                                <h3 className="text-sm font-semibold text-text-primary">
                                   {isTerminalRow ? (
-                                    <Trans>Archived</Trans>
+                                    <Trans>Not in audit trail</Trans>
                                   ) : (
-                                    <Trans>Received</Trans>
+                                    <Trans>Outstanding</Trans>
                                   )}
                                 </h3>
                                 <span className="font-mono text-xs tabular-nums text-text-tertiary">
-                                  {receivedItems.length}
+                                  {outstandingItems.length}
                                 </span>
                               </header>
-                              <div className="grid gap-2">{receivedItems.map(renderRow)}</div>
+                              {outstandingItems.length === 0 ? (
+                                <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                  <Trans>All items received.</Trans>
+                                </p>
+                              ) : (
+                                <div className="grid gap-2">{outstandingItems.map(renderRow)}</div>
+                              )}
                             </section>
-                          ) : null}
-                        </div>
-                      )
-                    })()}
-                    {/* Primary CTA below the checklist — the actual
+                            {receivedItems.length > 0 ? (
+                              <section className="flex flex-col gap-2">
+                                <header className="flex items-baseline gap-2">
+                                  <h3 className="text-sm font-semibold text-text-secondary">
+                                    {isTerminalRow ? (
+                                      <Trans>Archived</Trans>
+                                    ) : (
+                                      <Trans>Received</Trans>
+                                    )}
+                                  </h3>
+                                  <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                                    {receivedItems.length}
+                                  </span>
+                                </header>
+                                <div className="grid gap-2">{receivedItems.map(renderRow)}</div>
+                              </section>
+                            ) : null}
+                          </div>
+                        )
+                      })()}
+                      {/* Primary CTA below the checklist — the actual
                         workflow terminal action. Promoted from the
                         cluster at the top so the user's eye lands on
                         it after reading the list of items they're
                         requesting. Disabled if a request is already
                         pending out to the client (no implicit resend). */}
-                    {!latestRequest || latestRequest.status === 'revoked' ? (
-                      <div className="flex justify-end pt-1">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            sendRequestMutation.mutate({
-                              obligationId: row.id,
-                            })
-                          }
-                          disabled={sendRequestMutation.isPending || checklist.length === 0}
-                        >
-                          <SendIcon data-icon="inline-start" />
-                          <Trans>Send to client</Trans>
-                        </Button>
-                      </div>
-                    ) : null}
-                  </>
-                )}
-                {/* Sent request panel — visible only after a
+                      {!latestRequest || latestRequest.status === 'revoked' ? (
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              sendRequestMutation.mutate({
+                                obligationId: row.id,
+                              })
+                            }
+                            disabled={sendRequestMutation.isPending || checklist.length === 0}
+                          >
+                            <SendIcon data-icon="inline-start" />
+                            <Trans>Send to client</Trans>
+                          </Button>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+                  {/* Sent request panel — visible only after a
                         request has been sent. Combines the prior
                         sidebar's portal buttons + revoke action into
                         one block at the bottom of the checklist. */}
-                {latestRequest ? (
-                  <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-divider-subtle bg-background-section p-3">
-                    <Badge variant="outline" className="text-caption-xs uppercase tracking-wide">
-                      {latestRequest.status}
-                    </Badge>
-                    <span className="text-xs text-text-secondary">
-                      <Trans>
-                        Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
-                        {formatDate(latestRequest.expiresAt.slice(0, 10))}
-                      </Trans>
-                    </span>
-                    <div className="ml-auto flex items-center gap-1.5">
-                      {latestRequest.portalUrl ? (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => void copyLatestLink()}>
-                            <CopyIcon data-icon="inline-start" />
-                            <Trans>Copy link</Trans>
+                  {latestRequest ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-divider-subtle bg-background-section p-3">
+                      <Badge variant="outline" className="text-caption-xs uppercase tracking-wide">
+                        {latestRequest.status}
+                      </Badge>
+                      <span className="text-xs text-text-secondary">
+                        <Trans>
+                          Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
+                          {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                        </Trans>
+                      </span>
+                      <div className="ml-auto flex items-center gap-1.5">
+                        {latestRequest.portalUrl ? (
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => void copyLatestLink()}>
+                              <CopyIcon data-icon="inline-start" />
+                              <Trans>Copy link</Trans>
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={openLatestLink}>
+                              <ExternalLinkIcon data-icon="inline-start" />
+                              <Trans>Open portal</Trans>
+                            </Button>
+                          </>
+                        ) : null}
+                        {latestRequest.status !== 'revoked' ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              revokeRequestMutation.mutate({ requestId: latestRequest.id })
+                            }
+                            disabled={revokeRequestMutation.isPending}
+                          >
+                            <Trans>Revoke</Trans>
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={openLatestLink}>
-                            <ExternalLinkIcon data-icon="inline-start" />
-                            <Trans>Open portal</Trans>
-                          </Button>
-                        </>
-                      ) : null}
-                      {latestRequest.status !== 'revoked' ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            revokeRequestMutation.mutate({ requestId: latestRequest.id })
-                          }
-                          disabled={revokeRequestMutation.isPending}
-                        >
-                          <Trans>Revoke</Trans>
-                        </Button>
-                      ) : null}
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
-                {/* Tax year profile — relocated 2026-05-21 from the
+                  ) : null}
+                  {/* Tax year profile — relocated 2026-05-21 from the
                     top of the tab (where it dominated daily-driver
                     workflow) to a settings-style footer behind a
                     disclosure. Auto-opens when the profile is
@@ -5858,198 +5876,212 @@ export function ObligationQueueDetailDrawer({
                     date), so a CPA who needs to fix it sees it
                     surface naturally. Otherwise it stays collapsed —
                     one-time setup that rarely needs revisiting. */}
-                {taxYearProfileEditable ? (
-                  <details
-                    className="mt-2 rounded-lg border border-divider-subtle"
-                    open={taxYearFiscalMissing || taxYearFiscalInvalid}
-                  >
-                    <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
-                      <span>
-                        <Trans>Tax year profile</Trans>
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="text-caption-xs normal-case tracking-normal"
-                      >
-                        {taxYearProfileSummary}
-                      </Badge>
-                    </summary>
-                    <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
-                      <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
-                        <Select
-                          value={taxYearDraft.taxYearType}
-                          onValueChange={(value) => {
-                            if (value === 'calendar' || value === 'fiscal') {
-                              setTaxYearDraft((current) => ({ ...current, taxYearType: value }))
-                            }
-                          }}
+                  {taxYearProfileEditable ? (
+                    <details
+                      className="mt-2 rounded-lg border border-divider-subtle"
+                      open={taxYearFiscalMissing || taxYearFiscalInvalid}
+                    >
+                      <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                        <span>
+                          <Trans>Tax year profile</Trans>
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="text-caption-xs normal-case tracking-normal"
                         >
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="calendar">
-                              <Trans>Calendar year</Trans>
-                            </SelectItem>
-                            <SelectItem value="fiscal">
-                              <Trans>Fiscal year</Trans>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          value={taxYearDraft.fiscalYearEndDate}
-                          disabled={taxYearDraft.taxYearType === 'calendar'}
-                          aria-label={t`Fiscal year end`}
-                          aria-invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
-                          inputMode="numeric"
-                          placeholder="MM/DD"
-                          onBlur={(event) => {
-                            const nextFiscalYearEnd = fiscalYearEndParts(event.currentTarget.value)
-                            if (nextFiscalYearEnd) {
+                          {taxYearProfileSummary}
+                        </Badge>
+                      </summary>
+                      <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
+                        <div className="grid gap-2 sm:grid-cols-[180px_1fr_auto]">
+                          <Select
+                            value={taxYearDraft.taxYearType}
+                            onValueChange={(value) => {
+                              if (value === 'calendar' || value === 'fiscal') {
+                                setTaxYearDraft((current) => ({ ...current, taxYearType: value }))
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="calendar">
+                                <Trans>Calendar year</Trans>
+                              </SelectItem>
+                              <SelectItem value="fiscal">
+                                <Trans>Fiscal year</Trans>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            value={taxYearDraft.fiscalYearEndDate}
+                            disabled={taxYearDraft.taxYearType === 'calendar'}
+                            aria-label={t`Fiscal year end`}
+                            aria-invalid={taxYearFiscalMissing || taxYearFiscalInvalid}
+                            inputMode="numeric"
+                            placeholder="MM/DD"
+                            onBlur={(event) => {
+                              const nextFiscalYearEnd = fiscalYearEndParts(
+                                event.currentTarget.value,
+                              )
+                              if (nextFiscalYearEnd) {
+                                setTaxYearDraft((current) => ({
+                                  ...current,
+                                  fiscalYearEndDate: formatFiscalYearEnd(
+                                    nextFiscalYearEnd.month,
+                                    nextFiscalYearEnd.day,
+                                  ),
+                                }))
+                              }
+                            }}
+                            onChange={(event) =>
                               setTaxYearDraft((current) => ({
                                 ...current,
-                                fiscalYearEndDate: formatFiscalYearEnd(
-                                  nextFiscalYearEnd.month,
-                                  nextFiscalYearEnd.day,
-                                ),
+                                fiscalYearEndDate: event.target.value,
                               }))
                             }
-                          }}
-                          onChange={(event) =>
-                            setTaxYearDraft((current) => ({
-                              ...current,
-                              fiscalYearEndDate: event.target.value,
-                            }))
-                          }
-                        />
-                        <Button
-                          size="sm"
-                          className="w-fit"
-                          onClick={saveTaxYearProfile}
-                          disabled={
-                            !taxYearProfileChanged ||
-                            taxYearFiscalMissing ||
-                            taxYearFiscalInvalid ||
-                            updateTaxYearProfileMutation.isPending
-                          }
-                        >
-                          {updateTaxYearProfileMutation.isPending ? (
-                            <Trans>Saving…</Trans>
-                          ) : (
-                            <Trans>Save</Trans>
-                          )}
-                        </Button>
-                      </div>
-                      {taxYearFiscalMissing ? (
-                        <p className="text-xs text-text-destructive">
-                          <Trans>Fiscal-year deadlines require a year end.</Trans>
-                        </p>
-                      ) : null}
-                      {taxYearFiscalInvalid ? (
-                        <p className="text-xs text-text-destructive">
-                          <Trans>Use a valid month and day.</Trans>
-                        </p>
-                      ) : null}
-                    </div>
-                  </details>
-                ) : null}
-              </div>
-            </TabsContent>
-            <TabsContent value="extension" className="mt-4">
-              <div className="grid gap-3">
-                <AlertPanel>
-                  <Trans>
-                    This saves the firm's internal extension plan for this deadline. The internal
-                    target date must be on or before the filing deadline. It does not update the due
-                    date, change client records, or confirm an authority filing. Payment may still
-                    be due by the original date.
-                  </Trans>
-                </AlertPanel>
-                <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
-                  <h3 className="text-sm font-medium text-text-primary">
-                    <Trans>Example</Trans>
-                  </h3>
-                  <DetailRow
-                    label={<Trans>Rule extension policy</Trans>}
-                    value={
-                      detail.matchedRule?.extensionPolicy.available
-                        ? t`Rule allows extension`
-                        : t`No rule extension or unknown`
-                    }
-                  />
-                  <DetailRow
-                    label={<Trans>Official form or method</Trans>}
-                    value={detail.matchedRule?.extensionPolicy.formName ?? t`Not specified`}
-                  />
-                  <DetailRow
-                    label={<Trans>Rule notes</Trans>}
-                    value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
-                  />
-                </div>
-                <IsoDatePicker
-                  value={extensionDraft.internalTargetDate}
-                  invalid={internalTargetDateInvalid}
-                  maxIsoDate={extensionFilingDeadline}
-                  ariaLabel={t`Internal extension target date`}
-                  placeholder={t`Internal extension target date`}
-                  onValueChange={(internalTargetDate) =>
-                    setExtensionDraft((current) => ({ ...current, internalTargetDate }))
-                  }
-                />
-                <Input
-                  aria-label={t`Extension source`}
-                  placeholder={t`Source or confirmation reference`}
-                  value={extensionDraft.source}
-                  onChange={(event) =>
-                    setExtensionDraft((current) => ({ ...current, source: event.target.value }))
-                  }
-                />
-                <Textarea
-                  aria-label={t`Decision memo`}
-                  aria-required="true"
-                  placeholder={t`Decision memo (required)`}
-                  value={extensionDraft.memo}
-                  onChange={(event) =>
-                    setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
-                  }
-                />
-                <div className="flex flex-wrap items-center gap-3">
-                  <Tooltip open={extensionSaveSuccessOpen}>
-                    <TooltipTrigger
-                      render={
-                        <span className="inline-flex w-fit">
+                          />
                           <Button
+                            size="sm"
                             className="w-fit"
-                            onClick={saveExtensionDecision}
-                            disabled={saveExtensionPlanDisabled}
+                            onClick={saveTaxYearProfile}
+                            disabled={
+                              !taxYearProfileChanged ||
+                              taxYearFiscalMissing ||
+                              taxYearFiscalInvalid ||
+                              updateTaxYearProfileMutation.isPending
+                            }
                           >
-                            <Trans>Save extension</Trans>
+                            {updateTaxYearProfileMutation.isPending ? (
+                              <Trans>Saving…</Trans>
+                            ) : (
+                              <Trans>Save</Trans>
+                            )}
                           </Button>
-                        </span>
+                        </div>
+                        {taxYearFiscalMissing ? (
+                          <p className="text-xs text-text-destructive">
+                            <Trans>Fiscal-year deadlines require a year end.</Trans>
+                          </p>
+                        ) : null}
+                        {taxYearFiscalInvalid ? (
+                          <p className="text-xs text-text-destructive">
+                            <Trans>Use a valid month and day.</Trans>
+                          </p>
+                        ) : null}
+                      </div>
+                    </details>
+                  ) : null}
+                </div>
+              </motion.div>
+            </TabsContent>
+            <TabsContent value="extension" className="mt-4" key="extension-content">
+              <motion.div
+                initial={{ x: 12, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+              >
+                <div className="grid gap-3">
+                  <AlertPanel>
+                    <Trans>
+                      This saves the firm's internal extension plan for this deadline. The internal
+                      target date must be on or before the filing deadline. It does not update the
+                      due date, change client records, or confirm an authority filing. Payment may
+                      still be due by the original date.
+                    </Trans>
+                  </AlertPanel>
+                  <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
+                    <h3 className="text-sm font-medium text-text-primary">
+                      <Trans>Example</Trans>
+                    </h3>
+                    <DetailRow
+                      label={<Trans>Rule extension policy</Trans>}
+                      value={
+                        detail.matchedRule?.extensionPolicy.available
+                          ? t`Rule allows extension`
+                          : t`No rule extension or unknown`
                       }
                     />
-                    <TooltipContent>
-                      <Trans>Extension plan saved</Trans>
-                    </TooltipContent>
-                  </Tooltip>
-                  {/* Decided-at hint replaces the prior right-sidebar
+                    <DetailRow
+                      label={<Trans>Official form or method</Trans>}
+                      value={detail.matchedRule?.extensionPolicy.formName ?? t`Not specified`}
+                    />
+                    <DetailRow
+                      label={<Trans>Rule notes</Trans>}
+                      value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
+                    />
+                  </div>
+                  <IsoDatePicker
+                    value={extensionDraft.internalTargetDate}
+                    invalid={internalTargetDateInvalid}
+                    maxIsoDate={extensionFilingDeadline}
+                    ariaLabel={t`Internal extension target date`}
+                    placeholder={t`Internal extension target date`}
+                    onValueChange={(internalTargetDate) =>
+                      setExtensionDraft((current) => ({ ...current, internalTargetDate }))
+                    }
+                  />
+                  <Input
+                    aria-label={t`Extension source`}
+                    placeholder={t`Source or confirmation reference`}
+                    value={extensionDraft.source}
+                    onChange={(event) =>
+                      setExtensionDraft((current) => ({ ...current, source: event.target.value }))
+                    }
+                  />
+                  <Textarea
+                    aria-label={t`Decision memo`}
+                    aria-required="true"
+                    placeholder={t`Decision memo (required)`}
+                    value={extensionDraft.memo}
+                    onChange={(event) =>
+                      setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
+                    }
+                  />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Tooltip open={extensionSaveSuccessOpen}>
+                      <TooltipTrigger
+                        render={
+                          <span className="inline-flex w-fit">
+                            <Button
+                              className="w-fit"
+                              onClick={saveExtensionDecision}
+                              disabled={saveExtensionPlanDisabled}
+                            >
+                              <Trans>Save extension</Trans>
+                            </Button>
+                          </span>
+                        }
+                      />
+                      <TooltipContent>
+                        <Trans>Extension plan saved</Trans>
+                      </TooltipContent>
+                    </Tooltip>
+                    {/* Decided-at hint replaces the prior right-sidebar
                           status block. Current status + internal target
                           date were duplicates of the drawer header + the
                           form fields above; only "Decided at" was unique
                           info, so it lives here as a quiet footnote. */}
-                  {row.extensionDecidedAt ? (
-                    <span className="text-xs text-text-tertiary">
-                      <Trans>
-                        Last decided{' '}
-                        {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
-                      </Trans>
-                    </span>
-                  ) : null}
+                    {row.extensionDecidedAt ? (
+                      <span className="text-xs text-text-tertiary">
+                        <Trans>
+                          Last decided{' '}
+                          {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
+                        </Trans>
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </TabsContent>
-            <TabsContent value="evidence" className="mt-4">
-              {/* Evidence tab split into two visually-distinct sections
+            <TabsContent value="evidence" className="mt-4" key="evidence-content">
+              <motion.div
+                initial={{ x: 12, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
+              >
+                {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
                     - WORKPAPERS (top, default open): client-attached
                       files and submissions. This is the daily-driver
@@ -6062,128 +6094,132 @@ export function ObligationQueueDetailDrawer({
                   Previously both were under one "Evidence" heading,
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
-              <div className="grid gap-4">
-                <section aria-labelledby="evidence-workpapers-heading" className="grid gap-2 pt-2">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <h3
-                      id="evidence-workpapers-heading"
-                      className="text-xs font-medium uppercase tracking-wider text-text-tertiary"
-                    >
-                      <Trans>Workpapers</Trans>
-                    </h3>
-                    {detail.evidence.length > 0 ? (
-                      <span className="tabular-nums text-xs text-text-tertiary">
-                        <Plural value={detail.evidence.length} one="# item" other="# items" />
-                      </span>
-                    ) : null}
-                  </div>
-                  {detail.evidence.length > 0 ? (
-                    <div className="grid gap-2">
-                      {detail.evidence.map((item) => (
-                        <EvidenceInlineItem
-                          key={item.id}
-                          item={item}
-                          practiceTimezone={practiceTimezone}
-                        />
-                      ))}
+                <div className="grid gap-4">
+                  <section
+                    aria-labelledby="evidence-workpapers-heading"
+                    className="grid gap-2 pt-2"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3
+                        id="evidence-workpapers-heading"
+                        className="text-xs font-medium uppercase tracking-wider text-text-tertiary"
+                      >
+                        <Trans>Workpapers</Trans>
+                      </h3>
+                      {detail.evidence.length > 0 ? (
+                        <span className="tabular-nums text-xs text-text-tertiary">
+                          <Plural value={detail.evidence.length} one="# item" other="# items" />
+                        </span>
+                      ) : null}
                     </div>
-                  ) : (
-                    <EmptyPanel>
-                      <Trans>No workpapers attached to this deadline yet.</Trans>
-                    </EmptyPanel>
-                  )}
-                </section>
-
-                <details className="group rounded-lg border border-divider-subtle">
-                  <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
-                    <span>
-                      <Trans>Authority citation</Trans>
-                    </span>
-                    {detail.matchedRule ? (
-                      // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
-                      // is now a real Link into /rules/library — Yuqi
-                      // asked "这个能点出去吗？". Clicking the chip
-                      // opens the library scoped to this rule via the
-                      // `?rule=` query param (the library page treats
-                      // unknown params gracefully when not yet
-                      // implemented; even then the user lands in the
-                      // right vicinity). stopPropagation on click so
-                      // the surrounding <summary> doesn't toggle the
-                      // <details> open/closed at the same time.
-                      <Badge
-                        variant="outline"
-                        className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
-                        render={
-                          <Link
-                            to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
-                            onClick={(event) => event.stopPropagation()}
-                            title={t`Open ${detail.matchedRule.id} in the rule library`}
+                    {detail.evidence.length > 0 ? (
+                      <div className="grid gap-2">
+                        {detail.evidence.map((item) => (
+                          <EvidenceInlineItem
+                            key={item.id}
+                            item={item}
+                            practiceTimezone={practiceTimezone}
                           />
-                        }
-                      >
-                        {detail.matchedRule.id}
-                        {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
-                      >
-                        <Trans>No rule bound</Trans>
-                      </Badge>
-                    )}
-                  </summary>
-                  <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
-                    {detail.matchedRule ? (
-                      <div className="grid gap-1">
-                        <p className="text-sm font-medium text-text-primary">
-                          {detail.matchedRule.title}
-                        </p>
-                        <p className="text-xs leading-snug text-text-secondary">
-                          {detail.matchedRule.defaultTip}
-                        </p>
-                      </div>
-                    ) : (
-                      <p className="text-xs leading-snug text-text-tertiary">
-                        <Trans>
-                          This deadline isn't bound to a rule. Deadlines without a source citation
-                          can't be defended in audit — bind it before relying on the date.
-                        </Trans>
-                      </p>
-                    )}
-                    {detail.matchedRule?.evidence.length ? (
-                      <div className="grid gap-2 pt-1">
-                        {detail.matchedRule.evidence.map((item) => (
-                          <div
-                            key={`${item.sourceId}-${item.summary}`}
-                            className="grid gap-1 rounded-md border border-divider-subtle p-3"
-                          >
-                            <div className="flex items-baseline justify-between gap-2">
-                              <p className="text-sm font-medium text-text-primary">
-                                {item.summary}
-                              </p>
-                              <Badge
-                                variant="outline"
-                                className="text-caption-xs uppercase tracking-wide"
-                              >
-                                {item.authorityRole}
-                              </Badge>
-                            </div>
-                            <p className="text-xs leading-snug text-text-secondary">
-                              "{item.sourceExcerpt}"
-                            </p>
-                            <p className="text-caption text-text-tertiary">
-                              <Trans>
-                                Source #{item.sourceId} · retrieved {item.retrievedAt}
-                              </Trans>
-                            </p>
-                          </div>
                         ))}
                       </div>
-                    ) : null}
-                  </div>
-                </details>
-              </div>
+                    ) : (
+                      <EmptyPanel>
+                        <Trans>No workpapers attached to this deadline yet.</Trans>
+                      </EmptyPanel>
+                    )}
+                  </section>
+
+                  <details className="group rounded-lg border border-divider-subtle">
+                    <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
+                      <span>
+                        <Trans>Authority citation</Trans>
+                      </span>
+                      {detail.matchedRule ? (
+                        // 2026-05-25 (Yuqi Deadlines #13): rule-id chip
+                        // is now a real Link into /rules/library — Yuqi
+                        // asked "这个能点出去吗？". Clicking the chip
+                        // opens the library scoped to this rule via the
+                        // `?rule=` query param (the library page treats
+                        // unknown params gracefully when not yet
+                        // implemented; even then the user lands in the
+                        // right vicinity). stopPropagation on click so
+                        // the surrounding <summary> doesn't toggle the
+                        // <details> open/closed at the same time.
+                        <Badge
+                          variant="outline"
+                          className="cursor-pointer text-caption-xs normal-case tracking-normal hover:bg-state-base-hover"
+                          render={
+                            <Link
+                              to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                              onClick={(event) => event.stopPropagation()}
+                              title={t`Open ${detail.matchedRule.id} in the rule library`}
+                            />
+                          }
+                        >
+                          {detail.matchedRule.id}
+                          {row?.ruleVersion ? ` · v${row.ruleVersion}` : ''}
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="border-state-warning-border text-caption-xs normal-case tracking-normal text-text-warning"
+                        >
+                          <Trans>No rule bound</Trans>
+                        </Badge>
+                      )}
+                    </summary>
+                    <div className="grid gap-2 border-t border-divider-subtle px-3 py-3">
+                      {detail.matchedRule ? (
+                        <div className="grid gap-1">
+                          <p className="text-sm font-medium text-text-primary">
+                            {detail.matchedRule.title}
+                          </p>
+                          <p className="text-xs leading-snug text-text-secondary">
+                            {detail.matchedRule.defaultTip}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs leading-snug text-text-tertiary">
+                          <Trans>
+                            This deadline isn't bound to a rule. Deadlines without a source citation
+                            can't be defended in audit — bind it before relying on the date.
+                          </Trans>
+                        </p>
+                      )}
+                      {detail.matchedRule?.evidence.length ? (
+                        <div className="grid gap-2 pt-1">
+                          {detail.matchedRule.evidence.map((item) => (
+                            <div
+                              key={`${item.sourceId}-${item.summary}`}
+                              className="grid gap-1 rounded-md border border-divider-subtle p-3"
+                            >
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className="text-sm font-medium text-text-primary">
+                                  {item.summary}
+                                </p>
+                                <Badge
+                                  variant="outline"
+                                  className="text-caption-xs uppercase tracking-wide"
+                                >
+                                  {item.authorityRole}
+                                </Badge>
+                              </div>
+                              <p className="text-xs leading-snug text-text-secondary">
+                                "{item.sourceExcerpt}"
+                              </p>
+                              <p className="text-caption text-text-tertiary">
+                                <Trans>
+                                  Source #{item.sourceId} · retrieved {item.retrievedAt}
+                                </Trans>
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  </details>
+                </div>
+              </motion.div>
             </TabsContent>
           </Tabs>
         )}
