@@ -7162,6 +7162,22 @@ function ReadinessOverview({
         }
     }
   })()
+  // 2026-05-26 (Yuqi sixty-fifth pass follow-up — "Filed" appeared three
+  // times in the right panel): in TERMINAL state (Filed / Completed),
+  // skip the headline + icon entirely. The drawer already has two
+  // canonical "Filed" anchors above this tab — the status pill in the
+  // header AND the green hero strip with the filing date. A third
+  // "✓ Filed" with the same green checkmark + the same word read as
+  // "the design is repeating itself," not as useful context. The
+  // subline still carries the audit-completeness info ("13 items
+  // weren't individually ticked"), so we render it as a small quiet
+  // note above the checklist — no headline, no icon, just the
+  // descriptive caption.
+  if (isTerminal) {
+    return subline ? (
+      <p className="text-caption italic leading-snug text-text-tertiary">{subline}</p>
+    ) : null
+  }
   // 2026-05-23: tightened spacing per critique. Outer `py-2` dropped
   // (parent grid already supplies vertical rhythm), icon shrunk
   // size-6 → size-5, gap-3 → gap-2, removed the icon's mt-1 nudge.
@@ -7173,20 +7189,15 @@ function ReadinessOverview({
         aria-hidden
         className={cn(
           'grid size-5 shrink-0 place-items-center rounded-full',
-          isTerminal
-            ? 'bg-state-success-hover'
-            : isReady
-              ? 'bg-state-success-solid'
-              : needsCpaAction
-                ? 'bg-state-warning-solid'
-                : 'bg-background-subtle border border-divider-deep',
+          isReady
+            ? 'bg-state-success-solid'
+            : needsCpaAction
+              ? 'bg-state-warning-solid'
+              : 'bg-background-subtle border border-divider-deep',
         )}
       >
-        {isTerminal || isReady ? (
-          <CheckCircle2Icon
-            className={cn('size-3', isTerminal ? 'text-text-success' : 'text-text-inverted')}
-            aria-hidden
-          />
+        {isReady ? (
+          <CheckCircle2Icon className="size-3 text-text-inverted" aria-hidden />
         ) : needsCpaAction ? (
           <AlertTriangleIcon className="size-3 text-text-inverted" aria-hidden />
         ) : (
@@ -7197,19 +7208,17 @@ function ReadinessOverview({
         <p
           className={cn(
             'text-sm font-semibold leading-tight tracking-tight',
-            isTerminal
-              ? 'text-text-secondary'
-              : isReady
-                ? 'text-text-success'
-                : needsCpaAction
-                  ? 'text-text-warning'
-                  : 'text-text-primary',
+            isReady
+              ? 'text-text-success'
+              : needsCpaAction
+                ? 'text-text-warning'
+                : 'text-text-primary',
           )}
         >
           {headline}
         </p>
         <p className="text-xs leading-snug text-text-secondary">{subline}</p>
-        {responseCount > 0 && !isTerminal ? (
+        {responseCount > 0 ? (
           <p className="mt-0.5 text-caption tabular-nums text-text-tertiary">
             <Trans>
               {readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total
