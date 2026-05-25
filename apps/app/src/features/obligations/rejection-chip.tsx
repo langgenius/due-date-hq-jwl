@@ -49,13 +49,24 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
       </span>
     )
   }
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #18): louder Rejected
+  // chrome. Yuqi's call: "Rejected is much more important than any
+  // thing. please use a more obvious way. maybe red background." The
+  // previous `destructive` Badge variant rendered as red-tinted text
+  // on a faint red wash — visually identical weight to the
+  // BlockedByChip beside it, so "the IRS bounced your filing" read
+  // as just another tag. Switched to a FILLED red chip (white text
+  // on solid red via `state-destructive-solid` = red-500), with
+  // `font-semibold uppercase` so the word carries siren-tier
+  // urgency. This is now the most prominent chip in the row by
+  // design — rejection is the singular "this needs immediate
+  // hands-on work" signal across the queue.
   return (
     <Badge
-      variant="destructive"
-      className="text-caption-xs font-medium uppercase tracking-wide"
+      className="inline-flex items-center gap-1 border-transparent bg-state-destructive-solid px-2 py-0.5 text-caption font-semibold uppercase tracking-wide text-text-inverted shadow-sm hover:bg-state-destructive-solid"
       title={title}
     >
-      <AlertTriangleIcon className="size-3" aria-hidden />
+      <AlertTriangleIcon className="size-3.5" aria-hidden />
       <Trans>Rejected</Trans>
     </Badge>
   )
