@@ -1,4 +1,4 @@
-import { Plural, Trans } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
 
 import type { DryRunSummary } from '@duedatehq/contracts'
@@ -18,6 +18,7 @@ interface Step4Props {
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
  */
 export function Step4Preview({ summary }: Step4Props) {
+  const { t } = useLingui()
   const targetLabels = useMappingTargetLabels()
   const clientCount = summary?.clientsToCreate ?? 0
   const obligationCount = summary?.obligationsToCreate ?? 0
@@ -60,7 +61,7 @@ export function Step4Preview({ summary }: Step4Props) {
       </ul>
 
       <section
-        aria-label="Safety"
+        aria-label={t`Safety`}
         className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
       >
         <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">

@@ -113,6 +113,7 @@ interface SectionProps {
 }
 
 function Section({ title, rows, all, onUserEdit }: SectionProps) {
+  const { t } = useLingui()
   if (rows.length === 0) return null
 
   function updateRow(targetRow: NormalizationRow, value: string) {
@@ -156,7 +157,7 @@ function Section({ title, rows, all, onUserEdit }: SectionProps) {
                 onChange={(e) => updateRow(row, e.target.value)}
                 className="flex h-7 max-w-[160px] rounded-md border border-divider-regular bg-background-body px-2 font-mono text-xs tabular-nums text-text-primary focus-visible:border-state-accent-solid focus-visible:outline-none"
                 placeholder="—"
-                aria-label={`Normalized value for ${row.rawValue}`}
+                aria-label={t`Normalized value for ${row.rawValue}`}
               />
               <EvidenceChip
                 model={row.model}
@@ -187,6 +188,7 @@ interface MatrixSectionProps {
 }
 
 function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
+  const { t } = useLingui()
   useAppHotkey(
     'A',
     () => {
@@ -214,7 +216,7 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
   return (
     <section
       role="group"
-      aria-label="Suggested tax types"
+      aria-label={t`Suggested tax types`}
       className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3"
     >
       <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">

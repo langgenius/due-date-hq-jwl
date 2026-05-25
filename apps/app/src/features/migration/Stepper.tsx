@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { CheckIcon } from 'lucide-react'
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
 import type { StepIndex } from './state'
 
@@ -24,10 +24,14 @@ const STEP_LABELS: ReadonlyArray<{ index: StepIndex; key: string; label: ReactNo
 ]
 
 export function Stepper({ current }: { current: StepIndex }) {
+  const { t } = useLingui()
   return (
     <ol
       role="list"
-      aria-label="Wizard steps"
+      // 2026-05-25 (Yuqi Wizard #40 — i18n bug fix): aria-label was
+      // bare English "Wizard steps"; routed through `t\`` so it
+      // translates with the rest of the wizard.
+      aria-label={t`Wizard steps`}
       className="flex h-12 items-center justify-center gap-2 border-b border-divider-subtle px-4"
     >
       {STEP_LABELS.map((step, idx) => {
