@@ -70,12 +70,19 @@ export function AppShell(props: AppShellProps) {
               bell remains reachable inside the 56px rail. Firm
               switcher trigger itself hides its label + chevron
               via its own data-aware styling — only the avatar
-              tile renders. */}
+              tile renders.
+              2026-05-25 (Yuqi sidebar collapse v2): collapse
+              toggle moved here from the lonely centered row above
+              the user menu. Lives at the right edge of the header
+              row when expanded; stacks below the bell when
+              collapsed. Top-of-sidebar placement matches the
+              VSCode / Notion / Linear convention. */}
           <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-stretch group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-1.5">
             <div className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:justify-center">
               <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
             </div>
             <PulseNotificationsBell />
+            <SidebarCollapseToggle className="group-data-[collapsed=true]/sidebar:mx-auto" />
           </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route
@@ -90,12 +97,12 @@ export function AppShell(props: AppShellProps) {
               account-level controls (Settings, account, sign out)
               belong per the Linear/Notion pattern. The bell moved
               up; this row simplifies to just the user menu now.
-              2026-05-25 (Yuqi sidebar collapse): added the
-              <SidebarCollapseToggle> above the user menu so the
-              chevron-left/right control sits in the same row a
-              user already lands on for global controls. */}
-          <div className="flex flex-col gap-1 border-t border-divider-regular px-2 py-2">
-            <SidebarCollapseToggle />
+              2026-05-25 (Yuqi sidebar collapse v2): collapse
+              toggle moved out of this row — it was rendering
+              as a lonely centered chevron orphaned between the
+              footer nav divider and the user. Now lives in the
+              top firm-switcher row (right side). */}
+          <div className="border-t border-divider-regular px-2 py-2">
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { PanelLeftIcon, PanelRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -502,19 +503,26 @@ export function SidebarTrigger({
 
 /**
  * 2026-05-25 (Yuqi sidebar collapse): desktop-only toggle that
- * flips between full-width (220px) and icons-only (56px). Renders
- * a chevron icon that points left when expanded ("collapse me")
- * and right when collapsed ("expand me"). Hidden below `md` since
- * mobile uses the `SidebarTrigger` Sheet flow.
+ * flips between full-width (220px) and icons-only (56px). Hidden
+ * below `md` since mobile uses the `SidebarTrigger` Sheet flow.
  *
- * Place at the bottom of the sidebar (inside `<SidebarFooter>`)
- * or just above the firm-switcher footer — anywhere the user can
- * find it once and the click is reliably out of the way. Native
- * `title` attribute provides the hover tooltip without pulling in
- * the Tooltip primitive.
+ * Originally rendered as a full-width row above the user menu —
+ * Yuqi flagged that as a lonely centered chevron orphaned between
+ * the footer nav divider and the user row. Now sized as a compact
+ * 24px square icon button so it can sit inline with the firm
+ * switcher in the top header row (right side of the row when
+ * expanded; stacked vertically with switcher + bell when
+ * collapsed).
+ *
+ * Icons follow the standard "panel" metaphor: `PanelLeftIcon`
+ * when the sidebar is expanded (visual: the left panel is
+ * highlighted → click to push it back), `PanelRightIcon` when
+ * collapsed (visual: the right side is full → click to bring
+ * the left panel back).
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, toggleCollapsed } = useSidebar()
+  const Icon = collapsed ? PanelRightIcon : PanelLeftIcon
   return (
     <button
       type="button"
@@ -523,25 +531,14 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
       aria-expanded={!collapsed}
       title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       className={cn(
-        'hidden h-8 w-full cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
+        'hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-secondary',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'md:inline-flex',
         className,
       )}
     >
-      <svg
-        aria-hidden
-        viewBox="0 0 16 16"
-        className={cn('size-4 transition-transform', collapsed ? 'rotate-180' : '')}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M10 4 L6 8 L10 12" />
-      </svg>
+      <Icon className="size-4" aria-hidden />
     </button>
   )
 }
