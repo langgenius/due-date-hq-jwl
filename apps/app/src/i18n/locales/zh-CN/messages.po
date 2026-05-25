@@ -2636,10 +2636,6 @@ msgstr "正在确认订阅"
 msgid "Contact sales"
 msgstr "联系销售"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Contacts.csv"
-msgstr "Contacts.csv"
-
 #: src/features/migration/WizardShell.tsx
 #: src/routes/onboarding.tsx
 msgid "Continue"
@@ -4737,6 +4733,10 @@ msgstr "高"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "High confidence"
 msgstr "高置信度"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "HomeBase contacts CSV"
+msgstr "HomeBase 联系人 CSV"
 
 #: src/routes/settings.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
@@ -10333,8 +10333,8 @@ msgid "This looks like a Lacerte data file. Use Client > Export > Export to File
 msgstr ""
 
 #: src/features/migration/intake-files.ts
-msgid "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead."
-msgstr ""
+msgid "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload the exported contacts CSV instead."
+msgstr "这看起来像 ProSeries 申报文件。请使用 HomeBase > Export Contacts，然后上传导出的联系人 CSV。"
 
 #: src/features/migration/intake-files.ts
 msgid "This looks like a QuickBooks Desktop company backup. Export Customer Contact List to Excel/CSV or Customers to an IIF file."
@@ -10764,8 +10764,8 @@ msgid "Use Dashboard > Application Links > Utilities > Create client list for Po
 msgstr "使用 Dashboard > Application Links > Utilities > Create client list for Portal。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use HomeBase > Export Contacts, then upload Contacts.csv."
-msgstr "使用 HomeBase > Export Contacts，然后上传 Contacts.csv。"
+msgid "Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything."
+msgstr "使用 HomeBase > Export Contacts，然后上传导出的联系人 CSV；文件名可以是任意名称。"
 
 #: src/routes/obligations.tsx
 msgid "Use only when you already have all client documents. Sends the row straight to In review."

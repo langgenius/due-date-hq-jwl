@@ -76,3 +76,11 @@ variables`.
 - Kept the safety boundary server-side: AI and preset output still force SSN/ITIN-like columns to
   `IGNORE`; only a user-overridden `client.ein` mapping is allowed through, and imported values are
   still validated by the strict EIN shape check.
+
+## Follow-up: ProSeries Export Filename Copy
+
+- Reworded the ProSeries preset guide so `Contacts.csv` is not presented as a required upload file
+  name. The guide now asks for a HomeBase contacts CSV and says any exported contacts CSV filename is
+  acceptable.
+- Updated the ProSeries return-file rejection guidance for the same reason: users should upload the
+  exported contacts CSV, not a specifically named `Contacts.csv` file.

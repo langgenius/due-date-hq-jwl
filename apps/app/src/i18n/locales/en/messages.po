@@ -2636,10 +2636,6 @@ msgstr "Confirming subscription"
 msgid "Contact sales"
 msgstr "Contact sales"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Contacts.csv"
-msgstr "Contacts.csv"
-
 #: src/features/migration/WizardShell.tsx
 #: src/routes/onboarding.tsx
 msgid "Continue"
@@ -4737,6 +4733,10 @@ msgstr "High"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "High confidence"
 msgstr "High confidence"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "HomeBase contacts CSV"
+msgstr "HomeBase contacts CSV"
 
 #: src/routes/settings.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
@@ -10333,8 +10333,8 @@ msgid "This looks like a Lacerte data file. Use Client > Export > Export to File
 msgstr "This looks like a Lacerte data file. Use Client > Export > Export to File and choose comma delimited CSV instead."
 
 #: src/features/migration/intake-files.ts
-msgid "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead."
-msgstr "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead."
+msgid "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload the exported contacts CSV instead."
+msgstr "This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload the exported contacts CSV instead."
 
 #: src/features/migration/intake-files.ts
 msgid "This looks like a QuickBooks Desktop company backup. Export Customer Contact List to Excel/CSV or Customers to an IIF file."
@@ -10764,8 +10764,8 @@ msgid "Use Dashboard > Application Links > Utilities > Create client list for Po
 msgstr "Use Dashboard > Application Links > Utilities > Create client list for Portal."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Use HomeBase > Export Contacts, then upload Contacts.csv."
-msgstr "Use HomeBase > Export Contacts, then upload Contacts.csv."
+msgid "Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything."
+msgstr "Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything."
 
 #: src/routes/obligations.tsx
 msgid "Use only when you already have all client documents. Sends the row straight to In review."

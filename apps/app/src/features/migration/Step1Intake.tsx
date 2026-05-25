@@ -952,13 +952,15 @@ function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): Preset
     case 'proseries':
       return {
         title: i18n._(msg`Export ProSeries contacts`),
-        preferredFiles: i18n._(msg`Contacts.csv`),
+        preferredFiles: i18n._(msg`HomeBase contacts CSV`),
         steps: [
           i18n._(msg`Open HomeBase View and make sure you are not inside a client return.`),
           i18n._(
             msg`Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer.`,
           ),
-          i18n._(msg`Use HomeBase > Export Contacts, then upload Contacts.csv.`),
+          i18n._(
+            msg`Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything.`,
+          ),
         ],
         note: i18n._(
           msg`Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs.`,

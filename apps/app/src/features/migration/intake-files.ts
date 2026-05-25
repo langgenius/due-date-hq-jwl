@@ -161,7 +161,7 @@ export function unsupportedUploadMessageDescriptor(input: UnsupportedUpload): Me
     case 'lacerte_data_file':
       return msg`This looks like a Lacerte data file. Use Client > Export > Export to File and choose comma delimited CSV instead.`
     case 'proseries_return_file':
-      return msg`This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload Contacts.csv instead.`
+      return msg`This looks like a ProSeries return file. Use HomeBase > Export Contacts and upload the exported contacts CSV instead.`
     case 'ultratax_client_data':
       return msg`This looks like an UltraTax CS client data file. Export a Client Listing Report and re-save it as CSV or XLSX.`
     case 'ultratax_dif':
