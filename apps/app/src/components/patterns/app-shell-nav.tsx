@@ -207,7 +207,8 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               type="button"
               aria-label={t`Switch practice, current ${firm.name}`}
               aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
-              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 px-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              title={firm.name}
+              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
             />
           }
         >
@@ -217,21 +218,29 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               identity. 32px is the canonical avatar size used in the
               dropdown's own list (matched to the chip mark Yuqi
               expects elsewhere). Text bumps too (text-sm) so the
-              initials don't look squeezed inside the larger tile. */}
+              initials don't look squeezed inside the larger tile.
+              2026-05-25 (Yuqi sidebar collapse): the avatar shrinks
+              from size-8 → size-6 in collapsed mode so it fits the
+              48px-square trigger (32px would push past the 40px
+              available inside the 56px rail). Label + chevron hide
+              entirely via the group-data selector. */}
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-6 group-data-[collapsed=true]/sidebar:text-xs"
             translate="no"
           >
             {currentMonogram}
           </span>
           <span
-            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
           >
             {firm.name}
           </span>
-          <ChevronsUpDownIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+          <ChevronsUpDownIcon
+            className="size-3 shrink-0 text-text-muted group-data-[collapsed=true]/sidebar:hidden"
+            aria-hidden
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="bottom" sideOffset={6} className="w-64">
           <DropdownMenuGroup>
@@ -805,6 +814,11 @@ function NavGroupSection({
 
 function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boolean }) {
   const Icon = item.icon
+  // 2026-05-25 (Yuqi sidebar collapse): native `title` attribute
+  // doubles as the hover tooltip when the rail is collapsed and
+  // the label span is hidden. Disabled state still wins (its
+  // explanatory `disabledReason` takes priority over the label).
+  const navTitle = disabled ? item.disabledReason : item.label
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -814,11 +828,11 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
             end={item.end ?? false}
             aria-disabled={disabled || undefined}
             tabIndex={disabled ? -1 : undefined}
-            title={disabled ? item.disabledReason : undefined}
+            title={navTitle}
           />
         }
         className={cn(disabled && 'pointer-events-none')}
-        title={disabled ? item.disabledReason : undefined}
+        title={navTitle}
       >
         <Icon aria-hidden />
         <span>{item.label}</span>

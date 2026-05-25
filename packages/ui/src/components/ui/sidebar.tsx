@@ -51,13 +51,24 @@ import {
  */
 
 const SIDEBAR_WIDTH = '13.75rem' // 220px — DESIGN §Layout regions
+const SIDEBAR_WIDTH_COLLAPSED = '3.5rem' // 56px — icons-only rail
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer is slightly wider
+const SIDEBAR_COLLAPSED_KEY = 'ddhq.sidebar.collapsed'
 
 type SidebarContextValue = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   toggleSidebar: () => void
   isMobile: boolean
+  /**
+   * 2026-05-25 (Yuqi sidebar collapse): desktop collapse state.
+   * When true, the rail narrows to 56px and shows only icons +
+   * badge dots. Persisted in `localStorage[ddhq.sidebar.collapsed]`
+   * so the user's preference survives reloads. Mobile mode
+   * ignores this (the Sheet drawer is always full-width).
+   */
+  collapsed: boolean
+  toggleCollapsed: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null)
@@ -70,9 +81,19 @@ export function useSidebar(): SidebarContextValue {
   return ctx
 }
 
+function readPersistedCollapsed(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [collapsed, setCollapsed] = React.useState<boolean>(() => readPersistedCollapsed())
   const visibleOpenMobile = isMobile ? openMobile : false
 
   if (!isMobile && openMobile) {
@@ -86,18 +107,38 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setOpenMobile((prev) => !prev)
   }, [])
 
+  const toggleCollapsed = React.useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev
+      try {
+        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
+      } catch {
+        // ignore quota / disabled-storage failures; runtime state is the
+        // source of truth for the current session either way
+      }
+      return next
+    })
+  }, [])
+
   // Memoise the value so non-Provider subscribers don't re-render on every
   // tree update (advanced-init-once).
   const value = React.useMemo<SidebarContextValue>(
-    () => ({ openMobile: visibleOpenMobile, setOpenMobile, toggleSidebar, isMobile }),
-    [visibleOpenMobile, toggleSidebar, isMobile],
+    () => ({
+      openMobile: visibleOpenMobile,
+      setOpenMobile,
+      toggleSidebar,
+      isMobile,
+      collapsed,
+      toggleCollapsed,
+    }),
+    [visibleOpenMobile, toggleSidebar, isMobile, collapsed, toggleCollapsed],
   )
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
 }
 
 export function Sidebar({ className, children, ...props }: React.ComponentProps<'aside'>) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, openMobile, setOpenMobile, collapsed } = useSidebar()
 
   if (isMobile) {
     return (
@@ -125,15 +166,21 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
     )
   }
 
+  // 2026-05-25 (Yuqi sidebar collapse): `data-collapsed` flips the
+  // descendant tree to icons-only mode via CSS group selectors —
+  // labels hide, group labels hide, badges shrink to dots. The
+  // `style` width animates between 220px and 56px for a smooth
+  // transition that doesn't reflow the rest of the page.
   return (
     <aside
       data-slot="sidebar"
       data-mobile="false"
+      data-collapsed={collapsed ? 'true' : 'false'}
       className={cn(
-        'hidden h-svh shrink-0 flex-col border-r border-divider-regular bg-components-panel-bg md:flex',
+        'group/sidebar hidden h-svh shrink-0 flex-col border-r border-divider-regular bg-components-panel-bg transition-[width] duration-200 ease-out md:flex',
         className,
       )}
-      style={{ width: SIDEBAR_WIDTH }}
+      style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       {...props}
     >
       {children}
@@ -170,9 +217,16 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
     // semantically separate (workspace identity vs. navigation).
     // Extra breathing room above lets the eye land on "Today" as
     // the real start of the nav rail.
+    // 2026-05-25 (Yuqi sidebar collapse): in collapsed mode the
+    // horizontal padding tightens (px-1.5) so icons sit centered
+    // in the 56px rail.
     <div
       data-slot="sidebar-content"
-      className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2', className)}
+      className={cn(
+        'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2',
+        'group-data-[collapsed=true]/sidebar:px-1.5 group-data-[collapsed=true]/sidebar:gap-3',
+        className,
+      )}
       {...props}
     />
   )
@@ -219,11 +273,15 @@ export function SidebarGroup({ className, ...props }: React.ComponentProps<'div'
 }
 
 export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<'div'>) {
+  // 2026-05-25 (Yuqi sidebar collapse): group labels (e.g. "Operations",
+  // "Practice") hide entirely in collapsed mode — the icons themselves
+  // are the grouping affordance at 56px width.
   return (
     <div
       data-slot="sidebar-group-label"
       className={cn(
         'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
+        'group-data-[collapsed=true]/sidebar:hidden',
         className,
       )}
       {...props}
@@ -277,6 +335,12 @@ const sidebarMenuButtonVariants = cva(
     "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
     "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
+    // 2026-05-25 (Yuqi sidebar collapse): collapsed-mode tweaks —
+    // center the icon at 56px width, drop the horizontal padding,
+    // and hide the label span. The consumer's NavLink passes a
+    // `title` attribute as the native hover tooltip.
+    'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
+    'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:hidden',
   ),
   {
     variants: {
@@ -353,6 +417,15 @@ export function SidebarMenuBadge({
   // stack. 32px holds up through 3 digits with px-1 internal
   // padding; 4-digit counts (unrealistic in this app) would still
   // expand gracefully.
+  // 2026-05-25 (Yuqi sidebar collapse): in collapsed mode the full
+  // count pill doesn't fit (it would push past the 56px rail) AND
+  // the count digits are unreadable at icon scale. Switched to a
+  // 6×6 absolutely-positioned dot in the top-right corner of the
+  // menu button — same tone, no digit. Sufficient to signal "there
+  // are items here" while the user is in icons-only mode; the
+  // exact count returns when they expand the rail. The
+  // `group-data-[collapsed=true]/sidebar:` selectors flip these
+  // styles via the data attribute on the root <aside>.
   if (tone === 'inventory') {
     return (
       <span
@@ -361,6 +434,7 @@ export function SidebarMenuBadge({
         className={cn(
           'pointer-events-none ml-auto inline-flex h-[18px] min-w-[32px] shrink-0 items-center justify-end rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
+          'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-1.5 group-data-[collapsed=true]/sidebar:min-w-1.5 group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:bg-text-tertiary group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
           className,
         )}
         {...props}
@@ -375,6 +449,7 @@ export function SidebarMenuBadge({
         // Saturated warning pill — readable on the panel bg AND on the
         // accent-tint selected bg without needing an active-state override.
         'pointer-events-none ml-auto inline-flex h-[18px] min-w-[32px] shrink-0 items-center justify-end rounded-sm border border-state-warning-border bg-state-warning-hover px-1.5 font-mono text-xs font-medium tabular-nums text-text-warning',
+        'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-1.5 group-data-[collapsed=true]/sidebar:min-w-1.5 group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:border-0 group-data-[collapsed=true]/sidebar:bg-state-warning-solid group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
         className,
       )}
       {...props}
@@ -423,4 +498,50 @@ export function SidebarTrigger({
     },
     render,
   })
+}
+
+/**
+ * 2026-05-25 (Yuqi sidebar collapse): desktop-only toggle that
+ * flips between full-width (220px) and icons-only (56px). Renders
+ * a chevron icon that points left when expanded ("collapse me")
+ * and right when collapsed ("expand me"). Hidden below `md` since
+ * mobile uses the `SidebarTrigger` Sheet flow.
+ *
+ * Place at the bottom of the sidebar (inside `<SidebarFooter>`)
+ * or just above the firm-switcher footer — anywhere the user can
+ * find it once and the click is reliably out of the way. Native
+ * `title` attribute provides the hover tooltip without pulling in
+ * the Tooltip primitive.
+ */
+export function SidebarCollapseToggle({ className }: { className?: string }) {
+  const { collapsed, toggleCollapsed } = useSidebar()
+  return (
+    <button
+      type="button"
+      onClick={toggleCollapsed}
+      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      aria-expanded={!collapsed}
+      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      className={cn(
+        'hidden h-8 w-full cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
+        'hover:bg-background-default-hover hover:text-text-secondary',
+        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'md:inline-flex',
+        className,
+      )}
+    >
+      <svg
+        aria-hidden
+        viewBox="0 0 16 16"
+        className={cn('size-4 transition-transform', collapsed ? 'rotate-180' : '')}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M10 4 L6 8 L10 12" />
+      </svg>
+    </button>
+  )
 }

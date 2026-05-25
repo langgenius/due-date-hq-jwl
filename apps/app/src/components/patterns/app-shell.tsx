@@ -3,6 +3,7 @@ import { Outlet, useNavigation } from 'react-router'
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
+  SidebarCollapseToggle,
   SidebarContent,
   SidebarInset,
   SidebarProvider,
@@ -62,14 +63,16 @@ export function AppShell(props: AppShellProps) {
         <Sidebar>
           {/* 2026-05-25 (Yuqi Today #28): notifications bell moved
               from the sidebar BOTTOM to the firm-switcher row at the
-              top. Yuqi flagged that bottom-left was unintuitive —
-              users expect alerts to be near the top of the chrome
-              (Gmail / Linear / Notion pattern). The user-menu stays
-              at the bottom alongside Settings (account-level
-              controls). The firm switcher row gets a flex layout so
-              the bell sits to its right. */}
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="min-w-0 flex-1">
+              top.
+              2026-05-25 (Yuqi sidebar collapse): when the sidebar
+              is collapsed (data-collapsed=true on the aside),
+              the firm switcher + bell stack vertically so the
+              bell remains reachable inside the 56px rail. Firm
+              switcher trigger itself hides its label + chevron
+              via its own data-aware styling — only the avatar
+              tile renders. */}
+          <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-stretch group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-1.5">
+            <div className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:justify-center">
               <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
             </div>
             <PulseNotificationsBell />
@@ -86,8 +89,13 @@ export function AppShell(props: AppShellProps) {
           {/* User menu stays at sidebar bottom — that's where
               account-level controls (Settings, account, sign out)
               belong per the Linear/Notion pattern. The bell moved
-              up; this row simplifies to just the user menu now. */}
-          <div className="flex items-center border-t border-divider-regular px-2 py-2">
+              up; this row simplifies to just the user menu now.
+              2026-05-25 (Yuqi sidebar collapse): added the
+              <SidebarCollapseToggle> above the user menu so the
+              chevron-left/right control sits in the same row a
+              user already lands on for global controls. */}
+          <div className="flex flex-col gap-1 border-t border-divider-regular px-2 py-2">
+            <SidebarCollapseToggle />
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}
