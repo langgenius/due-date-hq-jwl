@@ -278,12 +278,12 @@ const PAGE_SIZE = 50
 const CLIENT_PAGE_SIZE_MIN = 8
 const CLIENT_PAGE_SIZE_MAX = 40
 // Estimated per-row height in the current rendering (text-base
-// client name + py-3 cells + size-8 avatar + status pill = ~56px).
-// Bumped from the old text-sm density. If row chrome changes,
-// re-measure with a quick `getBoundingClientRect().height` test
-// and adjust — undershooting fills the viewport partially,
-// overshooting scrolls.
-const CLIENT_ROW_HEIGHT_PX = 56
+// client name + py-2 cells + size-8 avatar + status pill ≈ 48px).
+// Dropped from 56 after sixty-fifth-pass follow-up tightened
+// cell padding to py-2. If row chrome changes again, re-measure
+// with a quick `getBoundingClientRect().height` test and adjust —
+// undershooting fills the viewport partially, overshooting scrolls.
+const CLIENT_ROW_HEIGHT_PX = 48
 // Page chrome above + below the rows: page header + breadcrumb +
 // filter scope-tabs + filter action-chips + table header + pagination
 // footer + page bottom padding ≈ 320-360px. We pick 360 to leave
@@ -1176,24 +1176,36 @@ export function ObligationQueueRoute() {
   // adjacent. Matches the 2026-05-21 wireframe: Bright Studio's two
   // back-to-back +30d-late rows group; Northstar's 3 rows at +45d /
   // +15d / +7d each stand alone with their own client name.
+  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up — kill
+  // auto-clustering): adjacent same-client rows are NO LONGER auto-
+  // grouped in default (group=due) mode. Yuqi's call: "remove the
+  // Magnolia Family Trust grouped client. The grouping by client is
+  // purely by sort by client." So continuation/within-group sets
+  // only populate when group === 'client'. In default mode, every
+  // row stands alone with its own client name + normal border, no
+  // left rail, no welded-block treatment.
   const continuationRowIds = useMemo(() => {
     const set = new Set<string>()
+    if (group !== 'client') return set
     for (let i = 1; i < rows.length; i++) {
       if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
     }
     return set
-  }, [rows])
+  }, [rows, group])
   // "Within-group" = this row is NOT the last in its client group, i.e.
   // the NEXT row is a continuation (same client). Within-group rows
   // drop their bottom border so the group reads as a single visual
   // block. Group boundaries keep the border so the eye can find them.
+  // Same gate as continuationRowIds — only populated when grouping by
+  // client. In default mode, rows render with their full border each.
   const withinGroupRowIds = useMemo(() => {
     const set = new Set<string>()
+    if (group !== 'client') return set
     for (let i = 0; i < rows.length - 1; i++) {
       if (continuationRowIds.has(rows[i + 1]!.id)) set.add(rows[i]!.id)
     }
     return set
-  }, [rows, continuationRowIds])
+  }, [rows, continuationRowIds, group])
   // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
   // rows share a clientId, the FIRST row's id is keyed in this map
   // with the cluster's metadata (count + earliest internal due). The
@@ -3173,8 +3185,15 @@ export function ObligationQueueRoute() {
                     state uses bg-state-accent-hover (light accent tint
                     = same color the right detail panel uses for a
                     selected row), so hovering previews where the
-                    panel will paint when you click. */}
-                <TableBody className="bg-background-default [&_td]:py-3 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
+                    panel will paint when you click.
+                    2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up
+                    — denser rows): cell py-3 → py-2 (12px → 8px vertical
+                    padding). Combined with text-base client name +
+                    size-8 avatar the row was reading too tall; py-2
+                    keeps the avatar comfortable and tightens the
+                    overall row rhythm so more rows fit on a 992px
+                    laptop viewport. */}
+                <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
