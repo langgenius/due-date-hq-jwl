@@ -359,6 +359,11 @@ msgstr "{0} items recorded"
 msgid "{0} need review"
 msgstr "{0} need review"
 
+#. placeholder {0}: firm.openObligationCount
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{0} open deadlines"
+msgstr "{0} open deadlines"
+
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
 #: src/features/rules/coverage-tab.tsx
@@ -490,6 +495,10 @@ msgstr "{clientCount, plural, one {# client} other {# clients}}"
 #: src/features/migration/Wizard.tsx
 msgid "{clientPart}, {obligationPart} created"
 msgstr "{clientPart}, {obligationPart} created"
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{clientsCount} active clients"
+msgstr "{clientsCount} active clients"
 
 #. placeholder {0}: count === 1 ? 'alert' : 'alerts'
 #: src/features/pulse/components/StateTilegram.tsx
@@ -692,6 +701,10 @@ msgstr "{owners} owners ({equity} equity)"
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{pulseCount} active alerts"
+msgstr "{pulseCount} active alerts"
+
 #: src/routes/obligations.tsx
 msgid "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
 msgstr "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
@@ -722,6 +735,10 @@ msgstr "{role} at {0}"
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
 msgstr "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{ruleReviewCount} rules pending review"
+msgstr "{ruleReviewCount} rules pending review"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"

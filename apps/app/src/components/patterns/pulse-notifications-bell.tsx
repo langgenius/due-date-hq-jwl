@@ -119,7 +119,7 @@ function PulseNotificationsBell() {
             // was the only outlined element and looked like an
             // alien chip.
             className={cn(
-              'relative inline-flex size-8 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
+              'relative inline-flex size-8 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-[background-color,border-color,color] duration-150 ease',
               'hover:bg-background-default-hover hover:text-text-primary',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'group-data-[collapsed=true]/sidebar:border-transparent group-data-[collapsed=true]/sidebar:bg-transparent group-data-[collapsed=true]/sidebar:text-text-tertiary',

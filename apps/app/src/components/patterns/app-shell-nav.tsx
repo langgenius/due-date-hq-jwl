@@ -55,7 +55,9 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -79,6 +81,7 @@ type NavItem = {
   icon: LucideIcon
   end?: boolean
   badge?: string
+  badgeTooltip?: string
   /**
    * Visual tone for the badge:
    *  - `urgent`   — saturated warning pill ("look at this"). Default.
@@ -138,6 +141,12 @@ const NAV_PLAN_LABELS = {
 
 function roleLabel(role: FirmPublic['role'], i18n: I18n): string {
   return i18n._(NAV_ROLE_LABELS[role])
+}
+
+function navItemTooltip(item: NavItem, disabled: boolean): string {
+  if (disabled && item.disabledReason) return `${item.label}, ${item.disabledReason}`
+  if (item.badgeTooltip) return `${item.label}, ${item.badgeTooltip}`
+  return item.label
 }
 
 function planLabel(plan: FirmPublic['plan'], i18n: I18n): string {
@@ -207,7 +216,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               aria-label={t`Switch practice, current ${firm.name}`}
               aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
               title={firm.name}
-              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
+              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left outline-none transition-[background-color,color] hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
             />
           }
         >
@@ -598,7 +607,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             label: t`Alerts`,
             icon: MegaphoneIcon,
             end: false,
-            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+            ...(pulseBadge !== undefined
+              ? { badge: pulseBadge, badgeTooltip: t`${pulseCount} active alerts` }
+              : {}),
           },
           {
             href: '/deadlines',
@@ -606,7 +617,11 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             icon: SquareChartGanttIcon,
             end: false,
             ...(obligationsBadge !== undefined
-              ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+              ? {
+                  badge: obligationsBadge,
+                  badgeTone: 'inventory' as const,
+                  badgeTooltip: t`${firm.openObligationCount} open deadlines`,
+                }
               : {}),
           },
         ],
@@ -618,7 +633,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             label: t`Rule library`,
             icon: BookOpenIcon,
             end: false,
-            ...(ruleReviewBadge !== undefined ? { badge: ruleReviewBadge } : {}),
+            ...(ruleReviewBadge !== undefined
+              ? { badge: ruleReviewBadge, badgeTooltip: t`${ruleReviewCount} rules pending review` }
+              : {}),
           },
         ],
         coverage: [],
@@ -633,7 +650,11 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             icon: UsersIcon,
             end: false,
             ...(clientsBadge !== undefined
-              ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+              ? {
+                  badge: clientsBadge,
+                  badgeTone: 'inventory' as const,
+                  badgeTooltip: t`${clientsCount} active clients`,
+                }
               : {}),
           },
           {
@@ -669,7 +690,11 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           icon: SquareChartGanttIcon,
           end: false,
           ...(obligationsBadge !== undefined
-            ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+            ? {
+                badge: obligationsBadge,
+                badgeTone: 'inventory' as const,
+                badgeTooltip: t`${firm.openObligationCount} open deadlines`,
+              }
             : {}),
         },
         {
@@ -677,7 +702,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           label: t`Pulse`,
           icon: MegaphoneIcon,
           end: false,
-          ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          ...(pulseBadge !== undefined
+            ? { badge: pulseBadge, badgeTooltip: t`${pulseCount} active alerts` }
+            : {}),
         },
       ],
       clients: [
@@ -687,7 +714,11 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           icon: UsersIcon,
           end: false,
           ...(clientsBadge !== undefined
-            ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+            ? {
+                badge: clientsBadge,
+                badgeTone: 'inventory' as const,
+                badgeTooltip: t`${clientsCount} active clients`,
+              }
             : {}),
         },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
@@ -715,7 +746,18 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
       practice: [],
       footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
     }
-  }, [t, pulseBadge, ruleReviewBadge, clientsBadge, obligationsBadge, navV2])
+  }, [
+    t,
+    pulseBadge,
+    pulseCount,
+    ruleReviewBadge,
+    ruleReviewCount,
+    clientsBadge,
+    clientsCount,
+    obligationsBadge,
+    firm.openObligationCount,
+    navV2,
+  ])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
@@ -793,10 +835,8 @@ function NavGroupSection({
   muted = false,
   children,
 }: {
-  // Labels are intentionally omitted at the call site for the current sidebar
-  // shape — at 6 entries split into 3 groups of 1–3, headers were adding
-  // visual weight without information. Kept optional so denser future
-  // structures can re-label without changing this component.
+  // Labels stay visible only in the expanded rail; the sidebar primitive
+  // hides them in icons-only mode via `data-collapsed`.
   label?: string
   muted?: boolean
   children: ReactNode
@@ -807,25 +847,9 @@ function NavGroupSection({
   // them at the bottom of the rail, not directly under the primary
   // groups. Without this they sit immediately under Clients with no
   // separation.
-  // 2026-05-25 (Yuqi sidebar collapse v3): in collapsed mode each
-  // labeled group's SidebarGroupLabel now renders as a 1px divider
-  // (see sidebar.tsx). For the unlabeled muted footer group we
-  // still want that divider above it — render a hidden-in-expanded
-  // separator so collapsed-mode keeps consistent group separation
-  // top-to-bottom. The muted-footer's `mt-auto` already supplies the
-  // spatial gap in expanded mode, so no extra divider is needed
-  // there.
   return (
     <SidebarGroup className={cn(muted && 'mt-auto opacity-55')}>
-      {label ? (
-        <SidebarGroupLabel>{label}</SidebarGroupLabel>
-      ) : muted ? (
-        <div
-          aria-hidden
-          role="separator"
-          className="mx-1.5 my-1.5 hidden h-px shrink-0 bg-divider-subtle group-data-[collapsed=true]/sidebar:block"
-        />
-      ) : null}
+      {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
       </SidebarGroupContent>
@@ -835,35 +859,66 @@ function NavGroupSection({
 
 function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boolean }) {
   const Icon = item.icon
-  // 2026-05-25 (Yuqi sidebar collapse): native `title` attribute
-  // doubles as the hover tooltip when the rail is collapsed and
-  // the label span is hidden. Disabled state still wins (its
-  // explanatory `disabledReason` takes priority over the label).
-  const navTitle = disabled ? item.disabledReason : item.label
+  const { collapsed, isMobile } = useSidebar()
+  const tooltip = navItemTooltip(item, disabled)
+  const badgeTone = item.badgeTone ?? 'urgent'
+  const tooltipDisabled = !collapsed || isMobile
+
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        render={
-          <NavLink
-            to={item.href}
-            end={item.end ?? false}
-            aria-disabled={disabled || undefined}
-            tabIndex={disabled ? -1 : undefined}
-            title={navTitle}
-          />
-        }
-        className={cn(disabled && 'pointer-events-none')}
-        title={navTitle}
-      >
-        <Icon aria-hidden />
-        <span>{item.label}</span>
-        {item.badge ? (
-          <SidebarMenuBadge tone={item.badgeTone ?? 'urgent'}>{item.badge}</SidebarMenuBadge>
-        ) : null}
-        {item.tag ? (
-          <span className="ml-auto font-mono text-xs tabular-nums text-text-muted">{item.tag}</span>
-        ) : null}
-      </SidebarMenuButton>
+    <SidebarMenuItem data-has-badge={item.badge ? 'true' : 'false'}>
+      <Tooltip disabled={tooltipDisabled}>
+        <TooltipTrigger
+          render={
+            <SidebarMenuButton
+              render={
+                <NavLink
+                  to={item.href}
+                  end={item.end ?? false}
+                  aria-disabled={disabled || undefined}
+                  aria-label={tooltip}
+                  tabIndex={disabled ? -1 : undefined}
+                  title={tooltipDisabled ? tooltip : undefined}
+                />
+              }
+              data-has-badge={item.badge ? 'true' : 'false'}
+              data-badge-tone={item.badge ? badgeTone : undefined}
+              className={cn(disabled && 'pointer-events-none')}
+              title={tooltipDisabled ? tooltip : undefined}
+            >
+              <Icon aria-hidden />
+              <span data-slot="sidebar-menu-label">{item.label}</span>
+              {item.badge ? (
+                <>
+                  <SidebarMenuBadge aria-hidden="true" tone={badgeTone}>
+                    {item.badge}
+                  </SidebarMenuBadge>
+                  <span
+                    aria-hidden="true"
+                    data-slot="sidebar-menu-badge-dot"
+                    data-tone={badgeTone}
+                    className={cn(
+                      'pointer-events-none absolute top-1.5 right-1.5 hidden size-1.5 rounded-full',
+                      badgeTone === 'inventory' ? 'bg-text-tertiary' : 'bg-state-warning-solid',
+                      'group-data-[collapsed=true]/sidebar:block',
+                    )}
+                  />
+                </>
+              ) : null}
+              {item.tag ? (
+                <span
+                  data-slot="sidebar-menu-tag"
+                  className="ml-auto font-mono text-xs tabular-nums text-text-muted"
+                >
+                  {item.tag}
+                </span>
+              ) : null}
+            </SidebarMenuButton>
+          }
+        />
+        <TooltipContent side="right" sideOffset={10} className="whitespace-nowrap">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
     </SidebarMenuItem>
   )
 }

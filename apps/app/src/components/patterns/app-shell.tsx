@@ -8,9 +8,12 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarSeparator,
+  useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
+import { formatCompactShortcutForDisplay, SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
+import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
 import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
@@ -51,6 +54,7 @@ export type AppShellProps = {
 export function AppShell(props: AppShellProps) {
   return (
     <SidebarProvider>
+      <SidebarKeyboardBindings />
       {/*
         Layout invariant: the outer flex row is exactly viewport-height and
         clips overflow, so the sidebar stays pinned while only `<main>` (the
@@ -77,21 +81,17 @@ export function AppShell(props: AppShellProps) {
               row when expanded; stacks below the bell when
               collapsed. Top-of-sidebar placement matches the
               VSCode / Notion / Linear convention. */}
-          {/* 2026-05-25 (Yuqi rail alignment fix): in collapsed
-              mode the row stacks vertically with items-center
-              (not items-stretch) so each 32×32 button is centered
-              horizontally in the 56px rail. Gap bumped from
-              gap-1 (4px, too tight — toggle bumped against bell)
-              to gap-2 (8px, matches the breathing of the rest of
-              the rail). px-1.5 stays so the 32px buttons sit
-              centered with 6px of slack on each side
-              (56 - 12 padding - 32 button = 12 / 2 = 6px). */}
-          <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-1.5">
+          {/* 2026-05-25 (Yuqi rail alignment fix): collapsed mode
+              centers every 32px control against the 56px rail,
+              matching the nav item and footer icon centerline. */}
+          <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0">
             <div className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:flex-none">
               <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
             </div>
             <PulseNotificationsBell />
-            <SidebarCollapseToggle />
+            <SidebarCollapseToggle
+              shortcutLabel={formatCompactShortcutForDisplay(SIDEBAR_TOGGLE_HOTKEY)}
+            />
           </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route
@@ -111,13 +111,9 @@ export function AppShell(props: AppShellProps) {
               as a lonely centered chevron orphaned between the
               footer nav divider and the user. Now lives in the
               top firm-switcher row (right side). */}
-          {/* 2026-05-25 (Yuqi rail alignment fix): footer container
-              becomes a flex row so the trigger button can be
-              centered in collapsed mode (justify-center). px-1.5
-              matches the rail padding so the 32×32 avatar lands
-              at the same x-position as the firm switcher + nav
-              icons above. */}
-          <div className="flex border-t border-divider-regular px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-1.5">
+          {/* 2026-05-25 (Yuqi rail alignment fix): footer trigger
+              shares the same rail centerline as header and nav. */}
+          <div className="flex border-t border-divider-regular px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0">
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}
@@ -159,6 +155,25 @@ export function AppShell(props: AppShellProps) {
       </div>
     </SidebarProvider>
   )
+}
+
+function SidebarKeyboardBindings() {
+  const { isMobile, toggleCollapsed } = useSidebar()
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+
+  useAppHotkey(SIDEBAR_TOGGLE_HOTKEY, () => toggleCollapsed(), {
+    enabled: !isMobile && !shortcutsBlocked,
+    requireReset: true,
+    meta: {
+      id: 'sidebar.toggle',
+      name: 'Toggle sidebar',
+      description: 'Collapse or expand the navigation rail.',
+      category: 'global',
+      scope: 'global',
+    },
+  })
+
+  return null
 }
 
 // -----------------------------------------------------------------------------

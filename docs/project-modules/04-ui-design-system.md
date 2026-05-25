@@ -26,7 +26,7 @@
 - Tailwind v4 语义 token preset。
 - light/dark/system 主题偏好。
 - inline no-flash script，供 app 和 marketing layout 使用。
-- hand-rolled sidebar primitives，满足 DueDateHQ 产品 shell 的固定布局。
+- hand-rolled sidebar primitives，满足 DueDateHQ 产品 shell 的 expanded / icons-only rail 布局。
 - 统一 class merge helper。
 
 ## 创新点

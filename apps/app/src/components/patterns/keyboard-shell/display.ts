@@ -2,6 +2,7 @@ import { formatForDisplay, type RegisterableHotkey } from '@tanstack/react-hotke
 
 export const COMMAND_PALETTE_HOTKEY = 'Mod+K'
 export const FIRM_SWITCHER_HOTKEY = 'Mod+Shift+O'
+export const SIDEBAR_TOGGLE_HOTKEY = 'Mod+B'
 
 export function formatShortcutForDisplay(hotkey: RegisterableHotkey | (string & {})): string {
   return formatForDisplay(hotkey)

@@ -359,6 +359,11 @@ msgstr "已记录 {0} 项"
 msgid "{0} need review"
 msgstr "{0} 个需要确认"
 
+#. placeholder {0}: firm.openObligationCount
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{0} open deadlines"
+msgstr "{0} 个未结截止事项"
+
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
 #: src/features/rules/coverage-tab.tsx
@@ -490,6 +495,10 @@ msgstr "{clientCount, plural, other {# 个客户}}"
 #: src/features/migration/Wizard.tsx
 msgid "{clientPart}, {obligationPart} created"
 msgstr ""
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{clientsCount} active clients"
+msgstr "{clientsCount} 个活跃客户"
 
 #. placeholder {0}: count === 1 ? 'alert' : 'alerts'
 #: src/features/pulse/components/StateTilegram.tsx
@@ -692,6 +701,10 @@ msgstr "{owners} 位所有人(其中 {equity} 位为权益所有人)"
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} 个待处理 · {expiredCount} 个已过期 · magic link，7 天有效"
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{pulseCount} active alerts"
+msgstr "{pulseCount} 个活跃提醒"
+
 #: src/routes/obligations.tsx
 msgid "{readyResponseCount}/{checklistCount} confirmed by client · {responseCount} total responses"
 msgstr "客户已确认 {readyResponseCount}/{checklistCount} 项 · 共 {responseCount} 条回复"
@@ -722,6 +735,10 @@ msgstr "{0} 的 {role}"
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
 msgstr ""
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{ruleReviewCount} rules pending review"
+msgstr "{ruleReviewCount} 条规则待复核"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"

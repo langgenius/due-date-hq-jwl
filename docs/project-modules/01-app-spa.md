@@ -170,7 +170,7 @@ flowchart LR
 
 应用 shell 负责：
 
-- desktop sidebar 和 mobile sheet。
+- desktop sidebar（220px expanded / 56px icons-only rail）和 mobile sheet。
 - 顶部路由标题、计划/计费入口、个人通知铃铛。
 - pending navigation indicator。
 - provider 层级，确保全局 drawer 和 keyboard shell 能跨 route 工作。

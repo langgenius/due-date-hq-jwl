@@ -216,7 +216,7 @@ function UserMenuTrigger({
             type="button"
             aria-label={accountLabel}
             className={cn(
-              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-colors',
+              'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-[background-color,color]',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:flex-none group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:p-0',
             )}
