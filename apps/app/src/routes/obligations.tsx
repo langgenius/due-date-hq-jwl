@@ -31,11 +31,13 @@ import {
   ChevronsUpDown,
   ChevronUp,
   ChevronDown,
-  CircleDashed,
+  CircleCheck,
   Clock,
-  Eye,
-  FileCheck2,
-  Lock,
+  Construction,
+  FileCheck,
+  Hourglass,
+  Loader,
+  MessageSquareText,
   ArrowUpRightIcon,
   CalendarDaysIcon,
   CheckCircle2Icon,
@@ -959,7 +961,13 @@ export function ObligationQueueRoute() {
     Boolean(routeObligationRef) || (drawer === 'obligation' && Boolean(detailId))
   const columnVisibility = useMemo(() => {
     const base = columnVisibilityFromHidden(hiddenColumns)
-    if (panelOpenIntent) {
+    // 2026-05-26 (Yuqi feedback #11 — "Show all is broken"): the
+    // panel-open auto-hide was overriding the user's explicit
+    // "Show all" choice. When the user clicks Show all (hide=[]),
+    // they want EVERYTHING visible regardless of panel state.
+    // Skip the auto-hide when hide=[] is the explicit intent.
+    const userExplicitlyShowAll = hiddenColumns.length === 0
+    if (panelOpenIntent && !userExplicitlyShowAll) {
       for (const id of PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS) {
         base[id] = false
       }
@@ -1586,7 +1594,11 @@ export function ObligationQueueRoute() {
                 // selected row's client name reads bolder, giving the
                 // table a clear "you are here" signal.
                 className={cn(
-                  'line-clamp-2 min-w-0 flex-1 text-base leading-tight text-text-primary',
+                  // 2026-05-26 (Yuqi feedback #1): text-base → text-sm.
+                  // "Too big" alongside the rest of the row's text-sm
+                  // meta. Active row still gets font-medium for the
+                  // "you are here" signal.
+                  'line-clamp-2 min-w-0 flex-1 text-sm leading-tight text-text-primary',
                   tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
                 )}
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
@@ -1805,7 +1817,9 @@ export function ObligationQueueRoute() {
         // meta in the row (due-days, status pill, owner) stays at
         // text-sm so the eye still resolves "client + form" as the
         // primary anchor cluster.
-        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} className="text-base" />,
+        // 2026-05-26 (Yuqi feedback #2): text-base override removed.
+        // Tax code cell inherits text-sm from the TableBody default.
+        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} />,
         meta: { cellClassName: 'text-text-secondary' },
       },
       {
@@ -2499,8 +2513,13 @@ export function ObligationQueueRoute() {
         // bottom edge of the page now; an additional `pb-4 / md:pb-5
         // / xl:pb-2` was adding 8-20px of dead space below the
         // pagination strip. Bottom is flush against the viewport.
+        // 2026-05-26 (Yuqi feedback #6/#15): page height bumped from
+        // `100vh-1rem` → `100vh`. The 1rem subtraction was leaving
+        // 16px of dead space below the drawer's sticky footer + the
+        // table pagination — neither the drawer nor the table footer
+        // could pin to the actual viewport bottom. Now flush.
         'flex flex-col gap-4 px-4 pt-6 pb-0 md:px-5 md:pt-8 md:pb-0',
-        'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-0',
+        'xl:h-screen xl:overflow-hidden xl:pb-0',
       )}
     >
       {/* 2026-05-26 (Yuqi /deadlines #4): title now carries the
@@ -2801,7 +2820,7 @@ export function ObligationQueueRoute() {
                           already implies "this is a sort selector." The
                           "Sort by" prefix was redundant verbosity. */}
                       <span className="text-text-tertiary">
-                        <Trans>Sort:</Trans>
+                        <Trans>Sort by</Trans>
                       </span>
                       <span>
                         {group === 'status' ? <Trans>Status</Trans> : <Trans>Date</Trans>}
@@ -3212,7 +3231,17 @@ export function ObligationQueueRoute() {
                       // `isContinuationCollapsed` check below — the
                       // header row stays visible either way so the
                       // cluster is still findable when collapsed.
-                      const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
+                      // 2026-05-26 (Yuqi feedback #4 round 2): section
+                      // headers killed entirely. Even when Sort by =
+                      // Status, the section-header row was rendering
+                      // and Yuqi wanted it gone. groupHeader hardcoded
+                      // to undefined so the conditional below never
+                      // renders. groupHeadersByFirstRowId still computes
+                      // (cheap) but the render is suppressed.
+                      const groupHeader = undefined as ReturnType<
+                        typeof groupHeadersByFirstRowId.get
+                      >
+                      void groupHeadersByFirstRowId
                       // 2026-05-26 (Yuqi sixty-second pass — generalized
                       // collapse): collapse Set is keyed by `groupKey`
                       // (clientId in group=client mode, status in
@@ -3412,12 +3441,14 @@ export function ObligationQueueRoute() {
               chrome layer. `mt-auto` re-instated so the row is
               always visible at the column bottom regardless of how
               many rows the page renders. */}
-          {/* 2026-05-26 (Yuqi feedback #11): dropped `mt-auto`. The
-              push-to-column-bottom behaviour was creating a large empty
-              gap between the last table row and the pagination on
-              pages with few rows. Now pagination sits immediately
-              under the table — no detached-footer feel. */}
-          <div className="flex items-center justify-between border-t border-divider-subtle px-2 py-2">
+          {/* 2026-05-26 (Yuqi feedback #5/#15): pagination is now
+              sticky at the scroll-column bottom (sticky bottom-0 +
+              mt-auto). Pinned to viewport bottom on long queues so
+              the controls are always reachable without scrolling all
+              the way down. bg-background-default + border-t hairline
+              so it reads as a clean footer over the scrolled rows
+              below. */}
+          <div className="sticky bottom-0 z-10 mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
                   carries "N deadlines · M clients" so the aggregate
@@ -5030,7 +5061,12 @@ export function ObligationQueueDetailDrawer({
               // doesn't exist on this surface.
               return (
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
-                  <h2 className="text-lg font-semibold leading-tight text-text-primary">
+                  {/* 2026-05-26 (Yuqi feedback #12): h1 size matched
+                      to Alert's panel title — text-2xl. Was text-lg
+                      which read as a quieter "label" than the alert
+                      drawer's authoritative h1. Both drawers now use
+                      the same anchor weight. */}
+                  <h2 className="text-2xl font-semibold leading-tight text-text-primary">
                     <TaxCodeLabel code={row.taxType} />
                   </h2>
                   {/* 2026-05-26 (Yuqi feedback #4): dropped the drawer
@@ -6216,13 +6252,17 @@ export function ObligationQueueDetailDrawer({
            SheetFooter shape. Padding tightened to px-8 (was px-12)
            to follow the drawer header/body tightening. py-4 unchanged. */
         <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-8 py-4">
-          <span className="text-xs text-text-tertiary">
-            {/* Compact provenance line: when was the row last touched
-                  and by what action. Reuses formatDateTimeWithTimezone
-                  for consistency with the rest of the drawer. */}
-            <Trans>
-              Last updated {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
-            </Trans>
+          {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
+              vertically — label on line 1, timestamp on line 2.
+              Single-line layout was getting cramped at narrower
+              panel widths with the action cluster on the right. */}
+          <span className="flex flex-col text-xs leading-tight text-text-tertiary">
+            <span>
+              <Trans>Last updated</Trans>
+            </span>
+            <span className="font-mono tabular-nums">
+              {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+            </span>
           </span>
           <div className="flex items-center gap-2">
             {/* Footer CTA used to duplicate the header's "Open client
@@ -7522,7 +7562,11 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     return (
       <div
         aria-label={t`Filed on ${formatDate(filingIso)}`}
-        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-divider-subtle bg-background-default px-4 py-2.5"
+        // 2026-05-26 (Yuqi feedback #13): dropped the rounded-lg
+        // border + bg. The compact hero is just info — date and
+        // relative time, no surface needed. Now an inline row of
+        // text with a leading green check, no frame.
+        className="flex flex-wrap items-center justify-between gap-3 py-1"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
@@ -7979,18 +8023,27 @@ function PathToFilingSummary({
                   )}
                 >
                   {(() => {
+                    // 2026-05-26 (Yuqi feedback #8): align the stage
+                    // icon set with the canonical STATUS_ICON map
+                    // (status-control.tsx). The pending stage now
+                    // uses Loader (the canonical pending icon) rather
+                    // than CircleDashed — consistent with the row
+                    // pill, the scope tabs, and the status dropdown.
+                    // Other stages were already aligned via their
+                    // status mapping; only `pending` was the
+                    // outlier here.
                     const StageIcon = (
                       stage.key === 'pending'
-                        ? CircleDashed
+                        ? Loader
                         : stage.key === 'waiting_on_client'
-                          ? Clock
+                          ? Hourglass
                           : stage.key === 'blocked'
-                            ? Lock
+                            ? Construction
                             : stage.key === 'review'
-                              ? Eye
+                              ? MessageSquareText
                               : stage.key === 'done'
-                                ? FileCheck2
-                                : CheckCircle2Icon
+                                ? FileCheck
+                                : CircleCheck
                     ) as React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
                     return <StageIcon className="size-3.5" aria-hidden />
                   })()}
@@ -8072,8 +8125,14 @@ function PathToFilingSummary({
                   pair reads as one unit. */}
               <div className="mt-1 flex w-full flex-col items-center gap-0.5">
                 <span
+                  // 2026-05-26 (Yuqi feedback #9): date smaller —
+                  // text-caption-xs (10px) → text-[9px] leading-none.
+                  // The stage label sits at caption-xs above, dates
+                  // were at the same scale making the column feel
+                  // even-weight. One step smaller gives the label
+                  // visual primacy and the date reads as meta.
                   className={cn(
-                    'text-center text-caption-xs tabular-nums leading-tight',
+                    'text-center text-[9px] tabular-nums leading-none',
                     state === 'active' ? 'text-text-primary' : 'text-text-tertiary',
                   )}
                   // 2026-05-25 (Yuqi Deadlines #23/#24/#25): hover hint
@@ -8365,7 +8424,12 @@ function StageActions({
   const reminders = tasks.filter((task) => task.flavor === 'manual')
   if (!primary && secondary.length === 0 && reminders.length === 0) return null
   return (
-    <div className="flex flex-col gap-2">
+    // 2026-05-26 (Yuqi feedback #14): tighter gap between primary
+    // button + secondary links + reminder line. gap-2 (8px) read
+    // as too loose between buttons that all share one decision
+    // context. gap-1 (4px) lets the cluster scan as one stage
+    // action group.
+    <div className="flex flex-col gap-1">
       {primary ? (
         <Button
           size="sm"
@@ -9224,7 +9288,12 @@ function ActiveStageDetailCard({
   return (
     <section
       aria-label={t`Active stage detail`}
-      className="rounded-lg border border-divider-subtle bg-background-default p-4"
+      // 2026-05-26 (Yuqi feedback #10): light tinted background
+      // (bg-background-section) instead of pure white. The card was
+      // reading as identical to the page surface; a soft tint gives
+      // it the "this is the deep-dive zone for the current stage"
+      // anchor without going full color.
+      className="rounded-lg border border-divider-subtle bg-background-section p-4"
     >
       {/* Header: stage name + sub-status + when we entered this stage.
           2026-05-23: dropped the uppercase tracking-wider treatment on
