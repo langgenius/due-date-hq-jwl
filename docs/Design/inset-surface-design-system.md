@@ -256,6 +256,31 @@ across Today / Alerts / Deadlines.
 
 ---
 
+## Table chrome canonical
+
+The /deadlines queue is the reference. Same rules apply to every data table across the product.
+
+| Element            | Background                          | Notes                                                                                                           |
+| ------------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `<Table>` (outer)  | **transparent**                     | Sits on the page's inset surface; no white card                                                                 |
+| `<TableHeader>`    | `bg-background-default-dimmed`      | Light blue-tinted gray; header band one step above white                                                        |
+| `<TableBody>`      | `bg-background-default`             | White; this is where row content lives                                                                          |
+| Row default        | inherits white from `<TableBody>`   | No per-row bg                                                                                                   |
+| Row hover          | `bg-state-accent-hover` (`#eff4ff`) | Same accent tint the right detail panel uses when a row is selected — hover previews where the panel will paint |
+| Row selected       | `bg-state-accent-hover`             | (default `<TableRow>` primitive behavior)                                                                       |
+| Outer table border | **none**                            | Scroll column already provides framing; outer border was painting a card-within-card                            |
+| Pagination footer  | transparent, top hairline only      | `mt-auto` to pin at column bottom; `border-t border-divider-subtle`                                             |
+
+Header column text:
+
+- `text-sm font-medium normal-case tracking-normal text-text-secondary`
+- NOT the kicker-tier `text-xs uppercase tracking-[0.08em] text-text-tertiary` small-caps style. That reads as a meta label, not a header.
+
+Body cells:
+
+- `text-sm` default; row anchor (primary identity) at `text-base font-medium`.
+- `py-3` for comfortable rhythm. Drop to `py-2` only for density modes.
+
 ## Typography rules
 
 - **Mono only for actual numeric codes** (e.g. ID strings, tax-form numbers
