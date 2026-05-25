@@ -29,6 +29,8 @@
 
   /* ===== Background ===================================================== */
   --background-body: #1d1d20;
+  /* SidebarInset surface tone (dark variant). See semantic-light.css. */
+  --background-inset: #1a1a1d;
   --background-default: #222225;
   --background-default-subtle: #222225;
   --background-default-hover: #27272b;

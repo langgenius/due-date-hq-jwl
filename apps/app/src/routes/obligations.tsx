@@ -1420,7 +1420,16 @@ export function ObligationQueueRoute() {
                 // it as still too small to read at scan distance even
                 // after font-medium — the client column is the row's
                 // anchor, not meta caption.
-                className="line-clamp-2 min-w-0 flex-1 text-base font-medium leading-tight text-text-primary"
+                // 2026-05-26 (Yuqi forty-second pass — content title
+                // unification): rolled back from text-base → text-sm.
+                // Every other content title on Today / Alerts /
+                // Deadlines uses text-sm font-medium; the
+                // client-name column was a one-off bump that broke
+                // the rule. The row anchor still reads weighty
+                // because of font-medium + text-text-primary while
+                // the meta values around it use text-text-tertiary
+                // — weight + color carry the prominence, not size.
+                className="line-clamp-2 min-w-0 flex-1 text-sm font-medium leading-tight text-text-primary"
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
                 {tableRow.original.clientName}
@@ -4646,7 +4655,15 @@ export function ObligationQueueDetailDrawer({
                 header was sitting at the same size as section
                 headings inside the body — the h2 needs to be
                 visibly the heaviest text on the surface. */}
-            <h2 className="text-xl font-semibold leading-tight text-text-primary">
+            {/* 2026-05-26 (Yuqi forty-first pass — typography
+                unification): rolled back to text-lg (18px). The
+                canonical scale across Today / Alerts / Deadlines
+                uses text-lg for ALL h2-equivalent headings; the
+                text-xl was a one-off here that broke the rhythm.
+                Visual prominence over the body now comes from
+                `font-semibold` + leading-tight (the body uses
+                text-sm font-normal), not from a +2px bump. */}
+            <h2 className="text-lg font-semibold leading-tight text-text-primary">
               <TaxCodeLabel code={row.taxType} />
             </h2>
             {/* Status pill — interactive in the drawer. Re-uses the

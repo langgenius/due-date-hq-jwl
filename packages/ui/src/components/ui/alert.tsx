@@ -72,6 +72,12 @@ function AlertDescription({ className, ...props }: React.ComponentProps<'div'>) 
     <div
       data-slot="alert-description"
       className={cn(
+        // 2026-05-26 (Yuqi sixteenth pass #5): description now snaps
+        // to col-start-2 when the alert has a leading svg icon, so
+        // it lines up under the title instead of slipping back to
+        // col-start-1 (which made the description sit under the
+        // icon — that was the broken layout Yuqi flagged).
+        'group-has-[>svg]/alert:col-start-2',
         'text-sm text-balance text-text-tertiary md:text-pretty [&_a]:underline [&_a]:underline-offset-3 hover:[&_a]:text-text-accent [&_p:not(:last-child)]:mb-4',
         className,
       )}

@@ -172,19 +172,68 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
   // labels hide, group labels hide, badges shrink to dots. The
   // `style` width animates between 220px and 56px for a smooth
   // transition that doesn't reflow the rest of the page.
+  // 2026-05-26 (Yuqi sidebar hover-expand): when the sidebar is
+  // collapsed AND the user hovers over it, temporarily expand to
+  // full width so they can read labels without explicitly
+  // un-collapsing. Same VSCode / Notion / Linear pattern. The
+  // hover state is local-only; the persisted `collapsed` state
+  // is untouched, so leaving the sidebar collapses it back. The
+  // CSS group selectors key off `data-collapsed`, which is set
+  // to the *effective* collapsed state (collapsed && !hovered)
+  // so labels animate in/out cleanly with the width.
+  // 2026-05-26 (Yuqi sidebar hover-expand follow-up): split
+  // FOOTPRINT (the flex-layout slot) from VISUAL (the painted
+  // chrome) so hover doesn't reflow the page.
+  //   • Outer <aside>: `position: relative`, width follows
+  //     `collapsed` only (220px / 56px) — never includes hover.
+  //     Layout is stable, page content never shifts on hover.
+  //   • Inner overlay <div>: `position: absolute; inset-y-0;
+  //     left-0`, width follows the EFFECTIVE collapsed state
+  //     (so hover widens it to 220px). When hovered while
+  //     collapsed, the extra 164px overflows the 56px aside
+  //     footprint and floats on top of the inset — the page
+  //     content stays put underneath. Adds `shadow-md` when
+  //     the overlay is wider than the footprint to read as a
+  //     floating panel above the inset.
+  //   • `data-collapsed` tracks the VISUAL state because the
+  //     descendant CSS (label hide/show, badge dot vs digits,
+  //     centered icon button, etc.) follows what the user sees,
+  //     not the persisted state.
+  const [hovered, setHovered] = React.useState(false)
+  const effectiveCollapsed = collapsed && !hovered
+  const overlayActive = collapsed && hovered
   return (
     <aside
       data-slot="sidebar"
       data-mobile="false"
-      data-collapsed={collapsed ? 'true' : 'false'}
+      data-collapsed={effectiveCollapsed ? 'true' : 'false'}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       className={cn(
-        'group/sidebar hidden h-svh shrink-0 flex-col border-r border-divider-regular bg-components-panel-bg transition-[width] duration-200 ease-out md:flex',
+        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] md:block',
         className,
       )}
       style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       {...props}
     >
-      {children}
+      {/* 2026-05-26 (Yuqi sidebar smoothness pass): both the
+          footprint <aside> and the visual overlay <div> transition
+          width at 300ms with Apple's "swiftOut" curve
+          (cubic-bezier(0.32, 0.72, 0, 1)) — slightly slower than
+          the prior 200ms ease-out and with much more pronounced
+          deceleration. The label spans (in sidebarMenuButtonVariants)
+          use the same curve + duration so icon-staying-put +
+          label-fade-out read as one coordinated motion, not as
+          two separate animations stepping on each other. */}
+      <div
+        className={cn(
+          'absolute inset-y-0 left-0 z-30 flex flex-col border-r border-divider-regular bg-components-panel-bg transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
+          overlayActive && 'shadow-[6px_0_24px_-12px_rgb(0_0_0_/_0.18)]',
+        )}
+        style={{ width: effectiveCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+      >
+        {children}
+      </div>
     </aside>
   )
 }
@@ -306,10 +355,19 @@ export function SidebarGroupContent({ className, ...props }: React.ComponentProp
 }
 
 export function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
+  // 2026-05-26 (Yuqi sidebar smoothness pass): in collapsed mode
+  // bump menu-item gap from gap-0.5 (2px) → gap-1 (4px). At 32×32
+  // icon tiles, 2px between tiles felt cramped — the rail read as
+  // one continuous strip of color. 4px gives each icon a beat of
+  // breathing room without losing the sense of grouping.
   return (
     <ul
       data-slot="sidebar-menu"
-      className={cn('flex w-full min-w-0 flex-col gap-0.5', className)}
+      className={cn(
+        'flex w-full min-w-0 flex-col gap-0.5',
+        'group-data-[collapsed=true]/sidebar:gap-1',
+        className,
+      )}
       {...props}
     />
   )
@@ -347,6 +405,15 @@ const sidebarMenuButtonVariants = cva(
     "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
     "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
+    // 2026-05-26 (Yuqi sidebar smoothness pass): label span now
+    // animates rather than hard-hides. Expanded → collapsed
+    // transitions opacity (1 → 0) and max-width (full → 0) at
+    // 240ms with the same Apple swiftOut curve the outer aside
+    // uses, so the rail-width-shrink and label-fade-out feel
+    // like one coordinated motion. (Was 150ms ease-out — too
+    // fast against the 300ms aside transition, labels popped
+    // before the rail finished moving.)
+    '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-240 [&>span:nth-child(2)]:ease-[cubic-bezier(0.32,0.72,0,1)]',
     // 2026-05-25 (Yuqi sidebar collapse): collapsed-mode tweaks —
     // center the icon at 56px width, drop the horizontal padding,
     // and hide the label span. The consumer's NavLink passes a
@@ -360,7 +427,13 @@ const sidebarMenuButtonVariants = cva(
     // with everything else. Now active + hover both render as
     // a 32×32 tinted tile, matching the rest of the rail.
     'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
-    'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:hidden',
+    // 2026-05-26 (Yuqi sidebar smoothness pass): collapsed-mode
+    // label hide swapped from `hidden` → opacity-0 + max-w-0 +
+    // overflow-hidden so the label animates out (per the
+    // `transition-[opacity,max-width]` rule above) instead of
+    // disappearing instantly. `pointer-events-none` keeps the
+    // collapsed label from intercepting clicks during the fade.
+    'group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:max-w-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:opacity-0 group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:pointer-events-none group-data-[collapsed=true]/sidebar:[&>span:nth-child(2)]:overflow-hidden',
   ),
   {
     variants: {

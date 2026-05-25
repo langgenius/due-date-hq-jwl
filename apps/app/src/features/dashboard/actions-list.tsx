@@ -200,7 +200,12 @@ function ActionRow({
           }
         }}
         className={cn(
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          // 2026-05-26 (Yuqi forty-third pass — spacing unification):
+          // py-2.5 (10px) → py-2 (8px). Canonical row padding is
+          // `px-3 py-2`; the 2.5 was a half-step that doesn't exist
+          // in the canonical scale. Affects Today's action rows so
+          // they match the row density used on Deadlines.
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
@@ -624,7 +629,7 @@ function DashboardActionsList({
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
-          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
+          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>Nothing due this week.</Trans>{' '}
             <Button
               variant="link"
@@ -646,7 +651,7 @@ function DashboardActionsList({
             }
           />
         ) : (
-          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
+          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>You're caught up. Next deadline appears here when one's within a week.</Trans>
           </p>
         )}
@@ -676,7 +681,13 @@ function DashboardActionsList({
         ))}
       </ul>
       {overflow > 0 ? (
-        <p className="text-base text-text-tertiary">
+        // 2026-05-26 (Yuqi forty-second pass — caption unification):
+        // "… N more in the queue" is a caption (a footer-meta line
+        // anchoring the list), not body copy. Dropped from text-base
+        // → text-xs to match the caption scale used for counts /
+        // timestamps / attributions everywhere else on Today / Alerts
+        // / Deadlines.
+        <p className="text-xs text-text-tertiary">
           <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
         </p>
       ) : null}

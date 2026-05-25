@@ -133,6 +133,7 @@
   --color-background-default-subtle: var(--background-default-subtle);
   --color-background-default-hover: var(--background-default-hover);
   --color-background-default-dimmed: var(--background-default-dimmed);
+  --color-background-inset: var(--background-inset);
   --color-background-section: var(--background-section);
   --color-background-section-burn: var(--background-section-burn);
   --color-background-soft: var(--background-soft);

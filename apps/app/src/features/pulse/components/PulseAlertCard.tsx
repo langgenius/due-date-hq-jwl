@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { BriefcaseIcon, MoreHorizontal } from 'lucide-react'
+import {
+  AlertCircle,
+  Astroid,
+  BriefcaseIcon,
+  Building2,
+  MoreHorizontal,
+  UserRound,
+} from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import {
@@ -9,9 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { StateBadge } from '@/components/primitives/state-badge'
 
 import { usePulseDetailQueryOptions } from '../api'
@@ -26,8 +33,23 @@ interface PulseAlertCardProps {
   onReview: () => void
   onDismiss?: (() => void) | undefined
   onSnooze?: (() => void) | undefined
+  // 2026-05-26 (Yuqi /rules/pulse sixth pass #1): "archive" action
+  // always available even on terminal-state alerts (applied /
+  // dismissed / snoozed) — the kebab should render on EVERY row so
+  // the user always has at least one menu option ("View in history",
+  // "Archive"). Archive is the no-reason move-to-history verb; when
+  // a card already lives in the history view this is a no-op.
+  onArchive?: (() => void) | undefined
   /** Inline actions are hidden when the card is rendered as a folded "more" entry. */
   compact?: boolean
+  /**
+   * 2026-05-26 (Yuqi twenty-third pass): when the right panel is
+   * open the list column is narrower (~560px). Pass `true` to
+   * truncate affected-client name chips at a fixed 140px so a
+   * long client name (e.g. "Hudson & Wells LLC") doesn't push
+   * the chip row into wrapping/overflow.
+   */
+  compactClients?: boolean
   /**
    * 2026-05-26 (Yuqi /rules/pulse #4): when this card is the one
    * currently being viewed in the right-hand panel, render a left
@@ -68,8 +90,10 @@ export function PulseAlertCard({
   onReview,
   onDismiss,
   onSnooze,
+  onArchive,
   compact = false,
   active = false,
+  compactClients = false,
 }: PulseAlertCardProps) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
@@ -85,16 +109,26 @@ export function PulseAlertCard({
   // separately).
   const affectedClientsQuery = useQuery(usePulseDetailQueryOptions(alert.id))
   const allAffectedNames = affectedClientsQuery.data?.affectedClients ?? []
-  const uniqueNames: string[] = []
+  // 2026-05-26 (Yuqi seventeenth pass #1): collect each unique
+  // client's name AND whether the alert flags them for review.
+  // Needs-review clients sort to the FRONT of the visible list so
+  // the row matching the trailing "N flagged for review" count is
+  // the first one the CPA sees. Eligible / already-applied
+  // clients trail.
+  const uniqueClients: Array<{ name: string; needsReview: boolean }> = []
   const seen = new Set<string>()
   for (const row of allAffectedNames) {
     if (!seen.has(row.clientName)) {
       seen.add(row.clientName)
-      uniqueNames.push(row.clientName)
+      uniqueClients.push({
+        name: row.clientName,
+        needsReview: row.matchStatus === 'needs_review',
+      })
     }
   }
-  const visibleNames = uniqueNames.slice(0, VISIBLE_CLIENT_NAMES)
-  const overflowNames = Math.max(uniqueNames.length - visibleNames.length, 0)
+  uniqueClients.sort((a, b) => Number(b.needsReview) - Number(a.needsReview))
+  const visibleClients = uniqueClients.slice(0, VISIBLE_CLIENT_NAMES)
+  const overflowNames = Math.max(uniqueClients.length - visibleClients.length, 0)
   // 2026-05-26 (Yuqi /rules/pulse follow-up #10): 3-tier qualitative
   // confidence (LOW / MEDIUM / HIGH) instead of numeric AI XX%.
   // Card background tone follows the level: LOW gets the destructive
@@ -147,129 +181,159 @@ export function PulseAlertCard({
       onClick={onReview}
       onKeyDown={handleCardKeyDown}
       className={cn(
-        'group/alert-card flex cursor-pointer items-start gap-6 rounded-md p-3 transition-colors',
+        // 2026-05-26 (Yuqi twenty-first pass): card chrome
+        // simplified for the new `bg-background-inset` work surface.
+        //   • All cards use the same white bg + a subtle border so
+        //     they read as clean cards floating on the gray inset.
+        //   • Active state: faint accent tint + accent border to
+        //     mark "this row is open in the right panel".
+        // 2026-05-26 (Yuqi twenty-seventh pass): when ANY row is
+        // active (panel open) the non-active rows get a slight
+        // dim (`opacity-70` + drop hover state) — pushes the eye
+        // toward the active row without yelling. Hover still
+        // brings full opacity back so the CPA can scan the dimmed
+        // list without losing readability.
+        // 2026-05-26 (Yuqi forty-third pass — spacing unification):
+        // outer card padding p-5 (20px) → p-4 (16px) and inter-column
+        // gap gap-6 (24px) → gap-3 (12px). Matches the canonical
+        // scale: "standard card padding = p-4", "card internal
+        // block gap = gap-3". Was a one-off spacing here that read
+        // looser than every other card surface on Today / Deadlines.
+        'group/alert-card relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-[opacity,background-color,border-color]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
-          ? 'border-l-2 border-state-accent-solid bg-state-accent-hover-alt pl-[10px]'
-          : lowConfidence
-            ? 'bg-state-destructive-hover/30 hover:bg-state-destructive-hover/40'
-            : mediumConfidence
-              ? 'bg-state-warning-hover/20 hover:bg-state-warning-hover/30'
-              : 'bg-background-subtle hover:bg-state-base-hover',
+          ? 'border-state-accent-hover-alt bg-state-accent-hover/40'
+          : cn(
+              // 2026-05-26 (Yuqi twenty-ninth pass): hover quieted.
+              // Was `hover:bg-state-base-hover` which painted a
+              // noticeable gray tint over the whole card — too strong
+              // for a list of cards. Now: border-only hover
+              // (`hover:border-divider-regular`, one step up from
+              // divider-subtle). White card stays white on hover;
+              // only the border darkens enough to confirm "yes this
+              // is interactive."
+              'border-divider-subtle bg-background-default hover:border-divider-regular',
+              compactClients && 'opacity-70 hover:opacity-100',
+            ),
         compact && 'p-2.5',
       )}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* Title row: state mark + abbreviation + dominant h3 +
-            (Yuqi /rules/pulse fourth pass #5) trailing source badge
-            so the jurisdiction reads first, the title sits in the
-            middle, and the source ("IRS" / "NY DTF" / …) anchors
-            the end of the headline. Confidence + change-kind meta
-            below the title now (Yuqi /rules/pulse #12).
-            2026-05-26 (Yuqi /rules/pulse #1): added the 2-letter
-            state abbreviation text next to the StateBadge so the
-            jurisdiction reads textually too — the SVG flag mark
-            alone is recognizable but not always scannable.
-            2026-05-26 (Yuqi /rules/pulse #6): h3 stepped up
-            text-md → text-lg so the title sits clearly as the
-            row's anchor. */}
-        {/* 2026-05-26 (Yuqi /rules/pulse #7): PulseStatusBadge
-            (renders "New" with the Spotlight icon for matched
-            alerts, otherwise the terminal-state label like
-            "Applied" / "Snoozed") now appears in the card header
-            row. Previously only visible in the drawer; the card
-            list had no way to differentiate untouched alerts
-            from ones that were already actioned. */}
-        <header className="flex items-center gap-2">
-          {/* 2026-05-26 (Yuqi /rules/pulse #1 follow-up): state badge
-              + abbreviation now read as ONE visual unit (framed pill
-              with SVG flag + uppercase code), matching the
-              AffectedClientsTable jurisdiction chip pattern.
-              Previously they sat as two separate elements with `gap-2`
-              between them, which read as "icon … text" instead of
-              "[CA chip]". */}
-          <span className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-1.5">
-            <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
-            <span
-              aria-hidden
-              className="font-semibold uppercase tracking-wide text-xs text-text-primary"
+      {/* 2026-05-26 (Yuqi fifteenth pass): NEW chip styling pass —
+          brand accent solid fill (`bg-state-accent-solid` +
+          text-text-inverted) so it reads as a real "fresh /
+          unread" flag, and flush-to-corner positioning (right-0
+          top-0) so it integrates with the card's top-right.
+          Top-right corner matches the card's rounded-md radius;
+          bottom-left gets a small radius so the chip reads as a
+          deliberate notch rather than a square label dropped on
+          the card. Only renders when status === 'matched'. */}
+      {alert.status === 'matched' ? (
+        // 2026-05-26 (Yuqi twenty-fourth pass): NEW chip switched
+        // to a high-contrast dark fill — `bg-text-primary`
+        // (near-black, the canonical text-primary token reused
+        // as a surface) + `text-text-inverted` (white). Matches
+        // the design-system tokens for inverted ("dark pill on
+        // light page") chrome.
+        <span className="pointer-events-none absolute right-0 top-0 z-10 inline-flex shrink-0 items-center rounded-bl-sm rounded-tr-md bg-text-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-text-inverted">
+          <Trans>New</Trans>
+        </span>
+      ) : null}
+      {/* 2026-05-26 (Yuqi /rules/pulse fifth pass — B#2): state pill
+          + content column wrapped in an inner flex with gap-2 so
+          the state pill sits as a LEFT RAIL anchor and everything
+          below the title (summary, impact, review-only) aligns
+          with the title's left edge — not the state pill's. The
+          outer article gap-6 separates this combined block from
+          the kebab on the right. */}
+      <div className="flex min-w-0 flex-1 items-start gap-2">
+        <span
+          className="inline-flex shrink-0 items-center gap-1 self-start rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-1.5"
+          aria-hidden
+        >
+          <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
+          <span className="font-semibold uppercase tracking-wide text-xs text-text-primary">
+            {alert.jurisdiction}
+          </span>
+        </span>
+        {/* 2026-05-26 (Yuqi forty-third pass — spacing unification):
+            content column gap gap-1.5 (6px) → gap-2 (8px). Per
+            canonical: stacked sibling text blocks (title row, body,
+            chips row) use gap-2. The 6px was a half-step that
+            doesn't exist in the canonical scale. */}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          {/* 2026-05-26 (Yuqi /rules/pulse eleventh pass): change-kind
+              chip moved from BEFORE the title to immediately AFTER it.
+              Yuqi flagged that with the chip leading the row, its
+              variable width pushed each card's title to a different
+              left edge — the column lost vertical alignment. With
+              chip-after-title, the title's left edge is always
+              `[state-pill width] + gap-2` so titles line up across
+              cards. Chip stays prominent (filled accent bg) and
+              still sits inside the title row, just trailing the
+              headline rather than introducing it. */}
+          <header className="flex items-center gap-2">
+            {/* 2026-05-26 (Yuqi forty-fourth pass — alert card
+                title is a "card emphasis title", not a row title):
+                title bumped back to text-base font-medium per Yuqi's
+                "这个标题要大" callout. Alert cards are the page's
+                primary unit (no h2 section above them), so the
+                title needs to anchor the card the way a row title
+                anchors a table row. text-base (16px) gives it the
+                weight the screen reads as the "thing to look at"
+                without screaming. font-medium (not semibold) keeps
+                the canonical content-title weight; size carries the
+                emphasis. Action-list rows + table client names
+                stay at text-sm font-medium since they're row
+                titles in dense lists, not card headlines. */}
+            <h3
+              className="min-w-0 truncate text-base font-medium leading-tight text-text-primary"
+              title={alert.title}
             >
-              {alert.jurisdiction}
+              {alert.title}
+            </h3>
+            <span className="inline-flex h-6 shrink-0 items-center rounded-sm bg-state-accent-hover px-1.5 text-xs font-semibold uppercase tracking-wide text-text-accent">
+              {changeKindLabel(alert.changeKind)}
             </span>
-          </span>
-          {/* 2026-05-26 (Yuqi /rules/pulse #6 follow-up): h3 stepped
-              up text-lg → text-xl. Title is the row's anchor; the
-              previous size felt timid against the surrounding
-              metadata chips. */}
-          <h3
-            className="min-w-0 flex-1 truncate text-xl font-semibold leading-tight text-text-primary"
-            title={alert.title}
-          >
-            {alert.title}
-          </h3>
-          <PulseStatusBadge status={alert.status} />
-          <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
-          <PulseSourceStatusBadge status={alert.sourceStatus} />
-        </header>
+            {/* 2026-05-26 (Yuqi fourteenth pass #3): NEW chip lifted
+                out of the header row and rendered as an
+                absolute-positioned pill at the article's top-right
+                corner — see article-level `relative` + the absolute
+                NEW chip rendered as the article's last child. */}
+            {/* 2026-05-26 (Yuqi fourteenth pass #2): PulseStatusBadge
+                moved out of the header row into the bottom footer
+                row alongside the official source. */}
+            {/* 2026-05-26 (Yuqi sixteenth pass #5): confidence pill
+                moved from the header row into the bottom footer row
+                alongside official source + status. Header now only
+                carries title + change-kind chip. */}
+            {/* Change-kind pill removed from header — promoted to the
+                leading eyebrow above the title (Yuqi sixth pass #4).
+                2026-05-26 (Yuqi /rules/pulse twelfth pass): official
+                source link + source-status badge moved out of the
+                header to a footer row at the bottom of the card —
+                after the impact line / review-only sentence — so the
+                "open the source" affordance reads as the final step
+                in the row's scan path, not as another header chip. */}
+          </header>
 
-        {/* Meta line below title: change-kind label + confidence.
-            2026-05-26 (Yuqi /rules/pulse #12): pulled out of the
-            title row so source and change-kind no longer read as
-            equal-weight pills sitting side-by-side. Change-kind
-            now renders as quieter caption-text ("Form updated"
-            sits as a label, not a chip).
-            2026-05-26 (Yuqi follow-up): always show the numeric
-            PulseConfidenceBadge — previously the row swapped to
-            the qualitative LowConfidenceBadge below 0.5, which
-            made the list mix two different shapes for the same
-            concept. The numeric badge already renders destructive
-            (red) below 0.7, so "AI 45%" in red carries the same
-            "don't trust this without a human look" signal more
-            precisely than "LOW CONFIDENCE" did. */}
-        {/* 2026-05-26 (Yuqi /rules/pulse #12 follow-up): Yuqi
-            re-reviewed the unified-numeric decision and asked to go
-            back to the qualitative LowConfidenceBadge when
-            confidence < 0.5, consistent with the dashboard's Today
-            card. Reasoning: AI XX% in destructive tone reads as a
-            data point ("the model is 45% confident"); LOW
-            CONFIDENCE reads as a verdict ("do not trust this
-            without a human look") — the latter is what we want
-            CPAs to absorb at scan distance. Card bg picks up the
-            faint destructive tint at the same threshold so the row
-            stands out even before the badge is read. */}
-        {/* 2026-05-26 (Yuqi /rules/pulse follow-up #6, #10):
-            meta line restructured. Confidence (LOW/MEDIUM/HIGH
-            qualitative badge) takes the leading position next to
-            the title; change-kind moves to the trailing position
-            as a small framed pill so it reads as metadata not as
-            label-prefixing-the-confidence. */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
-          {lowConfidence ? (
-            <LowConfidenceBadge />
-          ) : mediumConfidence ? (
-            <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover/40 px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning">
-              <Trans>Medium confidence</Trans>
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 rounded-sm bg-state-success-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-success">
-              <Trans>High confidence</Trans>
-            </span>
-          )}
-          <span className="inline-flex items-center rounded-sm border border-divider-regular bg-background-default px-1.5 py-0.5 font-medium uppercase tracking-wide text-text-secondary">
-            {changeKindLabel(alert.changeKind)}
-          </span>
-        </div>
-
-        {/* AI summary — only render when meaningfully different from
+          {/* AI summary — only render when meaningfully different from
             the title.
             2026-05-26 (Yuqi /rules/pulse #6): line-clamp-2 → line-clamp-1
             so the card stays compact and the rest of the summary
-            becomes a reason to open the detail panel. */}
-        {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
-          <p className="line-clamp-1 text-sm text-text-secondary">{alert.summary}</p>
-        ) : null}
+            becomes a reason to open the detail panel.
+            2026-05-26 (Yuqi /rules/pulse third pass #2): summary now
+            caps at 700px so it stops competing with the affected-client
+            line below. Above 700px the eye starts treating it as a
+            second h3-weight line instead of a quieter caption; the
+            cap keeps the truncation kicking in earlier and pushes
+            the CPA to open the drawer for the full text. */}
+          {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
+            <p className="line-clamp-1 max-w-[700px] text-sm text-text-secondary">
+              {alert.summary}
+            </p>
+          ) : null}
 
-        {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #2): impact
+          {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #2): impact
             line now LISTS the affected client names instead of
             collapsing them to a count. Up to 3 names render as
             chips inline; the tail folds to `+N more` so long
@@ -278,81 +342,208 @@ export function PulseAlertCard({
             meta line below. Falls back to the old count-only
             rendering for terminal/review-only alerts where the
             client list isn't useful. */}
-        {alert.actionMode === 'review_only' ? (
-          // 2026-05-26 (Yuqi /rules/pulse follow-up #11, #12):
-          // dropped italic — italic + small caption read as a
-          // "footnote disclaimer" and visually conflicted with the
-          // briefcase icon's "action you take" message. Added a
-          // top border + pt-2 so the action sentence reads as a
-          // separate unit from the impact line above it.
-          <p className="mt-1 flex items-center gap-1.5 border-t border-divider-subtle pt-2 text-sm text-text-secondary">
-            <BriefcaseIcon className="size-3.5 shrink-0" aria-hidden />
-            <span>
-              <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
-            </span>
-          </p>
-        ) : impacted === 0 ? (
-          <p className="text-sm text-text-tertiary">
-            <Trans>No matching clients in this practice.</Trans>
-          </p>
-        ) : (
-          // 2026-05-26 (Yuqi /rules/pulse #5): impact line collapsed
-          // into a single readable sentence — "5 clients may be
-          // affected: client 1, client 2, client 3, +N more" —
-          // instead of the previous count-chip-grid + summary-line
-          // two-row layout. Reads as a sentence the CPA can scan
-          // top-to-bottom without a visual jump. Needs-review count
-          // (when present) tacked on as a trailing meta clause.
-          // 2026-05-26 (Yuqi /rules/pulse follow-up #7): client names
-          // now render as 2px-rounded framed pills (white bg, faint
-          // border) instead of a comma-joined run-on string. Reads
-          // as "5 clients may be affected: [Acme] [Beta] [Gamma]
-          // +N more" — the pill shape signals these are entities
-          // not free-form text, matching the AffectedClientsTable
-          // chip pattern in the drawer.
-          <p className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-text-tertiary">
-            <span>
-              {impacted === 1 ? (
-                <Trans>1 client may be affected</Trans>
-              ) : (
-                <Trans>{impacted} clients may be affected</Trans>
-              )}
-              {visibleNames.length > 0 ? ':' : '.'}
-            </span>
-            {visibleNames.map((name) => (
-              <span
-                key={name}
-                className="inline-flex items-center rounded-sm border border-divider-subtle bg-background-default px-1.5 py-0.5 text-xs text-text-secondary"
-              >
-                {name}
+          {alert.actionMode === 'review_only' ? (
+            // 2026-05-26 (Yuqi /rules/pulse follow-up #11, #12):
+            // dropped italic — italic + small caption read as a
+            // "footnote disclaimer" and visually conflicted with the
+            // briefcase icon's "action you take" message. Added a
+            // top border + pt-2 so the action sentence reads as a
+            // separate unit from the impact line above it.
+            // 2026-05-26 (Yuqi fourteenth pass #1): dropped border-t
+            // + pt-2 on the review-only sentence — Yuqi flagged the
+            // divider as noise; the content column's `gap-1.5`
+            // already separates it from the impact line above.
+            <p className="flex items-center gap-1.5 text-sm text-text-secondary">
+              {/* 2026-05-26 (Yuqi /rules/pulse fourth pass #6):
+                briefcase size-3.5 → size-3 so the icon sits as a
+                quieter ornament next to the sentence text. */}
+              <BriefcaseIcon className="size-3 shrink-0" aria-hidden />
+              <span>
+                <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
               </span>
-            ))}
-            {overflowNames > 0 ? (
-              <span className="text-text-tertiary">+{overflowNames} more</span>
-            ) : null}
-            {alert.needsReviewCount > 0 ? (
-              <>
-                <span aria-hidden>·</span>
-                {/* 2026-05-26 (Yuqi /rules/pulse follow-up #8):
-                    rephrased "N need review" → "N flagged for
-                    review" — the verb form pairs with the
-                    "may be affected" parent clause and avoids
-                    the agreement-pluralization ambiguity ("1
-                    need review" reads broken). */}
-                <span className="tabular-nums">
-                  {alert.needsReviewCount === 1 ? (
-                    <Trans>1 flagged for review</Trans>
-                  ) : (
-                    <Trans>{alert.needsReviewCount} flagged for review</Trans>
-                  )}
-                </span>
-              </>
-            ) : null}
-          </p>
-        )}
+            </p>
+          ) : impacted === 0 ? (
+            // 2026-05-26 (Yuqi /rules/pulse fifth pass — A#4): empty-state
+            // text bumped `text-sm text-text-tertiary` → `text-base
+            // text-text-secondary`. Yuqi flagged it as too quiet — the
+            // CPA should see clearly that the alert doesn't affect any
+            // of their clients, since that's actually a meaningful
+            // resolution ("nothing to do"). Bigger + darker reads as
+            // a deliberate verdict, not a meta footnote.
+            // 2026-05-26 (Yuqi forty-second pass — body unification):
+            // size rolled back to text-sm. Empty-state prose is body
+            // text and should share the body scale across Today /
+            // Alerts / Deadlines. Prominence still comes from
+            // `text-text-secondary` (darker than the meta-tertiary
+            // surrounding text), not from a size bump.
+            <p className="text-sm text-text-secondary">
+              <Trans>No matching clients in this practice.</Trans>
+            </p>
+          ) : (
+            // 2026-05-26 (Yuqi /rules/pulse #5): impact line collapsed
+            // into a single readable sentence — "5 clients may be
+            // affected: client 1, client 2, client 3, +N more" —
+            // instead of the previous count-chip-grid + summary-line
+            // two-row layout. Reads as a sentence the CPA can scan
+            // top-to-bottom without a visual jump. Needs-review count
+            // (when present) tacked on as a trailing meta clause.
+            // 2026-05-26 (Yuqi /rules/pulse follow-up #7): client names
+            // now render as 2px-rounded framed pills (white bg, faint
+            // border) instead of a comma-joined run-on string. Reads
+            // as "5 clients may be affected: [Acme] [Beta] [Gamma]
+            // +N more" — the pill shape signals these are entities
+            // not free-form text, matching the AffectedClientsTable
+            // chip pattern in the drawer.
+            // 2026-05-26 (Yuqi /rules/pulse fourth pass #3): impact
+            // paragraph gets `mt-3` so it pulls away from the
+            // summary above. The previous tight `gap-1.5` (from the
+            // content column flex) made the impact line and the
+            // summary read as one stacked block; the bigger top
+            // margin breaks them into two distinct units.
+            <p className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-text-tertiary">
+              <span>
+                {impacted === 1 ? (
+                  <Trans>1 client may be affected</Trans>
+                ) : (
+                  <Trans>{impacted} clients may be affected</Trans>
+                )}
+                {visibleClients.length > 0 ? ':' : '.'}
+              </span>
+              {visibleClients.map((client) => {
+                // 2026-05-26 (Yuqi /rules/pulse sixth pass #2): client
+                // chip leads with an entity icon — `Building2` for
+                // business/entity clients (suffixes like LLC / Inc /
+                // Corp / Co / Ltd in the name), `UserRound` for
+                // individuals.
+                // 2026-05-26 (Yuqi seventeenth pass #1): needs-review
+                // clients get a warning-toned chip + a trailing
+                // AlertCircleIcon so the "this client needs your
+                // attention" signal sits directly on the chip
+                // instead of only in the trailing count. Combined
+                // with the sort-to-front above, the row's first
+                // visible client IS the one flagged for review.
+                const EntityIcon = isEnterpriseClientName(client.name) ? Building2 : UserRound
+                return (
+                  <span
+                    key={client.name}
+                    title={client.name}
+                    className={cn(
+                      // 2026-05-26 (Yuqi twenty-fifth pass): dropped
+                      // the per-chip warning bg/border/text color for
+                      // needs-review clients. The trailing
+                      // AlertCircle icon already signals "this one
+                      // needs attention" — tinting the chip too was
+                      // doubling up. All chips now share the same
+                      // neutral surface; the icon does the lifting.
+                      'inline-flex items-center gap-1 rounded-sm border border-divider-subtle bg-background-default px-1.5 py-0.5 text-xs text-text-secondary',
+                      // When the panel is open the list column is
+                      // narrow, so each client chip caps at a fixed
+                      // 140px and truncates. Tooltip shows the full
+                      // name on hover.
+                      compactClients && 'w-[140px]',
+                    )}
+                  >
+                    <EntityIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+                    <span className={cn('min-w-0', compactClients && 'truncate')}>
+                      {client.name}
+                    </span>
+                    {/* 2026-05-26 (Yuqi thirtieth pass): the trailing
+                        "N client(s) flagged for review" tail was
+                        dropped — the AlertCircle icon on the chip
+                        already carries that signal. Hover tooltip
+                        spells it out for a CPA who hasn't seen
+                        the convention yet. */}
+                    {client.needsReview ? (
+                      <Tooltip>
+                        <TooltipTrigger
+                          render={
+                            <span
+                              className="inline-flex shrink-0 cursor-help text-text-warning"
+                              tabIndex={0}
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            >
+                              <AlertCircle className="size-3" aria-hidden />
+                            </span>
+                          }
+                        />
+                        <TooltipContent>
+                          <Trans>This client needs review</Trans>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
+                  </span>
+                )
+              })}
+              {overflowNames > 0 ? (
+                <span className="text-text-tertiary">+{overflowNames} more</span>
+              ) : null}
+            </p>
+          )}
+
+          {/* 2026-05-26 (Yuqi /rules/pulse twelfth pass): official
+              source link + source-status badge anchor the bottom
+              of the content column. Reads as the "if you want to
+              dig further, open the source" affordance — the last
+              thing on the scan path. Quiet text-tertiary border
+              above so it visually separates from the impact /
+              review-only sentence without claiming a heavy footer
+              treatment. The PulseSourceBadge stays as an
+              <a target="_blank"> so the CPA can jump to the IRS /
+              state bulletin in a new tab. */}
+          {/* 2026-05-26 (Yuqi fourteenth pass #2): footer row now
+              carries the official source + source status PLUS the
+              workflow status pill (PulseStatusBadge). All three
+              status-class signals (workflow / source identity /
+              source health) live together at the bottom of the
+              card, instead of split between the header and footer. */}
+          <div className="mt-1 flex items-center gap-2 border-t border-divider-subtle pt-2 text-sm">
+            <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
+            <PulseSourceStatusBadge status={alert.sourceStatus} />
+            <PulseStatusBadge status={alert.status} />
+            {/* 2026-05-26 (Yuqi sixteenth pass #5 + #10): confidence
+                pill anchors the footer alongside the other status
+                signals. "Confidence" word dropped from the label
+                per #10 — just LOW / MEDIUM / HIGH (single word)
+                since the surrounding status row already implies
+                what's being qualified. Astroid icon keeps the
+                "AI signal" semantic anchor across all three tiers. */}
+            {/* 2026-05-26 (Yuqi twenty-fourth pass): retoned the
+                confidence pill ladder to break the color collisions
+                Yuqi flagged:
+                  • HIGH (was success green) → INFO BLUE — was
+                    colliding with the Applied / Reviewed status
+                    pills which are also success green.
+                  • MEDIUM (was warning amber) → NEUTRAL GRAY — was
+                    colliding with the needs-review client chip
+                    (also warning amber). Medium confidence isn't
+                    really a warning, it's just informational.
+                  • LOW (warning amber) — kept, it IS a real
+                    "don't trust this" warning. Same family as the
+                    needs-review chip is fine because they appear
+                    in different contexts (footer vs client chip
+                    row). */}
+            {lowConfidence ? (
+              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-warning-hover px-2 text-xs font-medium uppercase tracking-wide text-text-warning">
+                <Astroid className="size-3" aria-hidden />
+                <Trans>Low</Trans>
+              </span>
+            ) : mediumConfidence ? (
+              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                <Astroid className="size-3" aria-hidden />
+                <Trans>Medium</Trans>
+              </span>
+            ) : (
+              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
+                <Astroid className="size-3" aria-hidden />
+                <Trans>High</Trans>
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {compact || (!onSnooze && !onDismiss) ? null : (
+      {compact || (!onSnooze && !onDismiss && !onArchive) ? null : (
         // 2026-05-26 (Yuqi /rules/pulse follow-up): action column
         // collapsed from a stacked Review/Snooze/Dismiss button
         // trio to a single kebab DropdownMenu. Rationale:
@@ -373,7 +564,13 @@ export function PulseAlertCard({
             aria-label={t`More actions for ${alert.title}`}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => event.stopPropagation()}
-            className="inline-flex size-8 shrink-0 items-center justify-center self-start rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
+            // 2026-05-26 (Yuqi /rules/pulse fourth pass #5): kebab size
+            // 8 → 7 so its 28px box matches the state pill's height
+            // exactly. Combined with `self-start` the kebab's
+            // centerline now lands on the same horizontal axis as
+            // the state pill / title in the header row. Previously
+            // the 32px kebab sat ~2px below the centerline.
+            className="inline-flex size-7 shrink-0 items-center justify-center self-start rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
           >
             <MoreHorizontal className="size-4" aria-hidden />
           </DropdownMenuTrigger>
@@ -398,6 +595,14 @@ export function PulseAlertCard({
                 <Trans>Dismiss</Trans>
               </DropdownMenuItem>
             ) : null}
+            {onArchive ? (
+              <DropdownMenuItem
+                onSelect={() => onArchive()}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Trans>Archive</Trans>
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -411,22 +616,45 @@ export function PulseAlertCard({
 // that name the thing AND say it shifted: "Deadline shifted",
 // "Scope narrowed", "Form updated", etc. Reads as a sentence
 // fragment from a hover sweep.
+//
+// 2026-05-26 (Yuqi /rules/pulse fourth pass #1): copy switched
+// from sentence-case ("Deadline shifted") to Title Case
+// ("Deadline Shifted") so the chip reads as a label not a
+// sentence fragment. Pairs with the pill chrome dropping its
+// `uppercase` class — the previous combination forced UPPERCASE
+// rendering at CSS time even though the source string was
+// sentence-case, which made the chip louder than the title
+// next to it.
+// 2026-05-26 (Yuqi /rules/pulse sixth pass #2): until the server
+// adds `entityKind` to PulseAffectedClient, classify business vs.
+// individual by the canonical legal-suffix patterns in the name.
+// Word-boundaried matching + case-insensitive — "Hudson & Wells LLC"
+// → enterprise; "John Smith" → individual; "Acme Corp" → enterprise.
+// Punctuation tolerated for `Co.` and `P.C.`. False negatives
+// (e.g. "Beta Holdings" without a legal suffix) still read as
+// individual; that's the safer wrong answer than the inverse.
+const ENTERPRISE_NAME_RE =
+  /\b(llc|inc|corp(?:oration)?|co|ltd|llp|plc|gmbh|p\.?c|s\.?a|holdings?|industries|associates|partners|group)\b\.?/i
+function isEnterpriseClientName(name: string): boolean {
+  return ENTERPRISE_NAME_RE.test(name)
+}
+
 function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
   switch (kind) {
     case 'deadline_shift':
-      return <Trans>Deadline shifted</Trans>
+      return <Trans>Deadline Shifted</Trans>
     case 'filing_requirement':
-      return <Trans>Filing rule changed</Trans>
+      return <Trans>Filing Rule Changed</Trans>
     case 'applicability_scope':
-      return <Trans>Scope changed</Trans>
+      return <Trans>Scope Changed</Trans>
     case 'form_instruction':
-      return <Trans>Form updated</Trans>
+      return <Trans>Form Updated</Trans>
     case 'source_status':
-      return <Trans>Source status</Trans>
+      return <Trans>Source Status</Trans>
     case 'new_obligation':
-      return <Trans>New rule added</Trans>
+      return <Trans>New Rule Added</Trans>
     case 'other':
-      return <Trans>Other change</Trans>
+      return <Trans>Other Change</Trans>
   }
   return kind
 }

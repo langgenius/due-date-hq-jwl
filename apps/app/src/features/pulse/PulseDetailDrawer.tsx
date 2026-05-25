@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlertCircleIcon,
+  Astroid,
   CheckCircle2Icon,
   MailIcon,
   MessageSquareIcon,
   RotateCcwIcon,
-  ShieldAlertIcon,
   XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -42,9 +41,10 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
-import { isVeryLowPulseConfidence, PulseConfidenceBadge } from './components/PulseConfidenceBadge'
+import { isVeryLowPulseConfidence } from './components/PulseConfidenceBadge'
 import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
@@ -481,7 +481,16 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   // that need both an in-route panel + a floating fallback.
   const body = (
     <>
-      <SheetHeader className="border-b border-divider-subtle">
+      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
+            header padding bumped to Yuqi's "right panel" spec:
+              • padding-inline: calc(var(--spacing) * 12)  → px-12 (48px)
+              • padding-block:  calc(var(--spacing) * 10)  → py-10 (40px)
+            Override SheetHeader's primitive default (px-6 py-5) so the
+            Pulse panel reads as a roomy paper-document surface, not as
+            a tight Sheet drawer. Header / body / footer all share the
+            same `px-12` inline so the left edge is one continuous
+            margin top-to-bottom. */}
+      <SheetHeader className="border-b border-divider-subtle px-12 py-10">
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
@@ -503,6 +512,15 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           //    chip.
           (() => {
             const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
+            // 2026-05-26 (Yuqi /rules/pulse third pass #7): drawer now
+            // uses the same LOW/MEDIUM/HIGH qualitative confidence
+            // badges as the PulseAlertCard, so the two surfaces match.
+            // Previously the drawer header rendered the numeric
+            // `AI 96%` PulseConfidenceBadge while the list card read
+            // "HIGH CONFIDENCE" — same alert showed two different
+            // confidence shapes side-by-side. Thresholds match the
+            // card: < 0.5 LOW, 0.5–0.85 MEDIUM, ≥ 0.85 HIGH.
+            const mediumConfidence = !lowConfidence && detail.alert.confidence < 0.85
             return (
               // 2026-05-26 (Yuqi /rules/pulse #3): removed the leading
               // PulsingDot. Yuqi flagged "where does this dot come
@@ -525,27 +543,104 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                           a11y via sr-only SheetTitle +
                           SheetDescription added on the outer
                           wrapper below. */}
-                    <h2 className="text-xl font-semibold leading-tight text-text-primary">
+                    {/* 2026-05-26 (Yuqi /rules/pulse eighth pass #3):
+                          drawer h1 + summary + badge row bumped up
+                          one step. Yuqi flagged the header as too
+                          small — at the panel's 520px+ width the
+                          previous text-xl title and text-sm summary
+                          read as secondary chrome. text-2xl/text-base
+                          puts the title at proper h1 weight and the
+                          summary at body-read scale, so the header
+                          reads as the drawer's anchor. */}
+                    {/* 2026-05-26 (Yuqi sixteenth pass #4): state /
+                          jurisdiction badge added as a kicker above
+                          the title. Yuqi flagged "where is the
+                          state?" — the drawer header had no
+                          jurisdiction signal even though the list
+                          card leads with it. Same framed-pill
+                          treatment the card uses (StateBadge + 2-letter
+                          code). */}
+                    {/* 2026-05-26 (Yuqi seventeenth pass #2): include
+                          the full state name after the 2-letter code
+                          ("CA California") so the kicker reads as a
+                          complete jurisdiction tag in the drawer
+                          header where there's more room than on the
+                          card. */}
+                    <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-2">
+                      <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
+                        {detail.jurisdiction}
+                      </span>
+                      <span className="text-xs text-text-secondary">
+                        {getJurisdictionName(detail.jurisdiction)}
+                      </span>
+                    </span>
+                    <h2 className="text-2xl font-semibold leading-tight text-text-primary">
                       {detail.alert.title}
                     </h2>
                     {detail.alert.summary &&
                     detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                      <p className="mt-1.5 text-sm text-text-secondary">{detail.alert.summary}</p>
+                      // 2026-05-26 (Yuqi forty-fourth pass — body
+                      // unification): drawer summary paragraph dropped
+                      // text-base → text-sm. Canonical body across
+                      // Today / Alerts / Deadlines is text-sm; the
+                      // text-base here was a one-off bump that made
+                      // the drawer's intro paragraph loud against
+                      // an already-prominent text-2xl title.
+                      <p className="mt-2 text-sm text-text-secondary">{detail.alert.summary}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-sm">
+                    {/* 2026-05-26 (Yuqi thirty-sixth pass): change-kind
+                        chip (e.g. "Deadline Shifted", "Filing Rule
+                        Changed") lifted into the panel header row,
+                        leading position. The card surfaces this
+                        prominently next to the title — without it
+                        here, the panel header drops a critical
+                        signal that the row of pills is communicating
+                        ("what changed?"). Sits FIRST on the row so
+                        the eye reads:
+                          [what changed] · [where to verify] · [status] · [confidence]
+                        Same accent-tinted framed pill as the card
+                        (`bg-state-accent-hover text-text-accent`) so
+                        the two surfaces speak the same vocabulary. */}
+                    <span className="inline-flex h-6 shrink-0 items-center rounded-sm bg-state-accent-hover px-1.5 text-xs font-semibold uppercase tracking-wide text-text-accent">
+                      {drawerChangeKindLabel(detail.alert.changeKind)}
+                    </span>
                     <PulseSourceBadge
                       source={detail.alert.source}
                       sourceUrl={detail.alert.sourceUrl}
                     />
                     <PulseStatusBadge status={detail.alert.status} />
                     <PulseSourceStatusBadge status={detail.alert.sourceStatus} />
-                    {/* Confidence chip stays here only when the AI
-                          is confident — low confidence is signalled
-                          via the explicit alert block below so the
-                          signal isn't shown twice. */}
+                    {/* 2026-05-26 (Yuqi seventeenth pass #3): drawer
+                          confidence pill matches the card exactly —
+                          drop the "Confidence" word, add the Astroid
+                          icon, full-radius h-6 chip. Same component
+                          shape as the card so the two surfaces read
+                          as one design language. Low confidence is
+                          still signalled via the explicit Alert block
+                          below so the chip doesn't double up. */}
+                    {/* 2026-05-26 (Yuqi thirty-first pass — color
+                          parity): drawer pill now uses the exact
+                          same tone family as the card pill —
+                          MEDIUM neutral gray (broke the warning-amber
+                          collision with the needs-review client
+                          chip), HIGH info blue (broke the success-green
+                          collision with the Applied / Reviewed
+                          status pills). */}
                     {!lowConfidence ? (
-                      <PulseConfidenceBadge confidence={detail.alert.confidence} />
+                      mediumConfidence ? (
+                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
+                          <Astroid className="size-3" aria-hidden />
+                          <Trans>Medium</Trans>
+                        </span>
+                      ) : (
+                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
+                          <Astroid className="size-3" aria-hidden />
+                          <Trans>High</Trans>
+                        </span>
+                      )
                     ) : null}
                   </div>
                 </div>
@@ -561,10 +656,22 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             information-dense, not as a series of cards with air
             between them. The CPA wants to see source → scope →
             action without paging the whole drawer. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+      {/* 2026-05-26 (Yuqi thirty-second pass): body padding bumped
+          py-4 → py-5 so the drawer body matches the FactCard
+          inner padding (`px-6 py-5`). Consistent breathing room
+          across nested surfaces. */}
+      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
+            body padding bumped to the right-panel spec:
+              • padding-inline: calc(var(--spacing) * 12)  → px-12 (48px)
+              • padding-block:  calc(var(--spacing) * 10)  → py-10 (40px)
+            Same margin as the header so the entire panel reads as
+            one continuous paper surface from edge to edge. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-12 py-10">
         {detailQuery.isError ? (
+          // 2026-05-26 (Yuqi twenty-ninth pass): icon removed from
+          // remaining drawer Alerts so the alert chrome is
+          // consistent — title + body only, no leading icon.
           <Alert variant="destructive">
-            <AlertCircleIcon />
             <AlertTitle>
               <Trans>Couldn't load this alert</Trans>
             </AlertTitle>
@@ -633,30 +740,13 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               </section>
             ) : null}
 
-            {/* 2026-05-25 (Yuqi Alerts second pass #8): the
-                  SuggestedActionsPanel moved UP from below
-                  PulseStructuredFields to immediately under the
-                  affected-clients table. The CPA's primary action
-                  ("Apply to N obligations") is now visible without
-                  scrolling past three other surfaces (AI alert,
-                  Source + Scope cards, Source excerpt). The
-                  detail-deep reading sections (structured fields,
-                  manager review, safety checklist) all live below
-                  the action panel for the CPA who wants to verify
-                  before clicking. */}
-            <SuggestedActionsPanel
-              selectionCount={stats?.selectedCount ?? 0}
-              canApply={canApply}
-              sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
-              isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
-              isMutating={isMutating}
-              actionMode={detail.alert.actionMode}
-              onApply={handleApply}
-              onMarkReviewed={() => {
-                setReasonAction('reviewed')
-                setReasonText('')
-              }}
-            />
+            {/* 2026-05-26 (Yuqi sixteenth pass #6): SuggestedActionsPanel
+                removed — its Apply / Mark-reviewed buttons duplicated
+                the sticky SheetFooter (DrawerActions) at the bottom
+                of the drawer. With the footer always visible at the
+                bottom (sheet + panel modes), the inline panel just
+                doubled the action surface area. The footer is now
+                the canonical action site. */}
 
             {/* AI confidence: combined the small "AI 46%" badge
                   with the "Low AI confidence" alert into one block
@@ -671,8 +761,12 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   data needs verification). Amber matches the
                   semantics. */}
             {isVeryLowPulseConfidence(detail.alert.confidence) ? (
+              // 2026-05-26 (Yuqi eighteenth pass): icon removed from
+              // this Alert. With the icon gone the Alert primitive
+              // falls back to its non-icon layout (single column),
+              // so the title + description align on the same left
+              // edge without the column-offset behaviour.
               <Alert variant="warning">
-                <AlertCircleIcon />
                 <AlertTitle>
                   <ConceptLabel concept="aiConfidence">
                     <Trans>
@@ -694,7 +788,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
 
             {!canApply ? (
               <Alert>
-                <ShieldAlertIcon />
                 <AlertTitle>
                   <Trans>Read-only view</Trans>
                 </AlertTitle>
@@ -706,7 +799,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
 
             {detail.alert.sourceStatus === 'source_revoked' ? (
               <Alert variant="destructive">
-                <ShieldAlertIcon />
                 <AlertTitle>
                   <Trans>Source revoked</Trans>
                 </AlertTitle>
@@ -750,7 +842,19 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             and the primary Apply button bumped to default size (was
             sm). Reads as "this is where the decision happens" rather
             than as continuation chrome. */}
-      <SheetFooter className="border-t border-divider-regular bg-background-section">
+      {/* 2026-05-26 (Yuqi twentieth pass): footer made taller +
+          more prominent so the sticky action surface reads as
+          decision-grade chrome. `min-h-16` (was ~h-12 default) +
+          stronger top border + brighter `bg-background-default`
+          (white) so it visually separates from the gray
+          background-section the body content sat on. */}
+      {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
+            footer inline padding aligned with header/body (px-12, 48px)
+            so the left margin is one continuous line top-to-bottom.
+            Vertical stays compact (py-4) — the footer is a sticky
+            action bar, not a content surface, so 40px would balloon
+            it. */}
+      <SheetFooter className="min-h-16 border-t-2 border-divider-regular bg-background-default px-12 py-4">
         {detail ? (
           <DrawerActions
             alertStatus={detail.alert.status}
@@ -874,7 +978,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           // list column. `overflow-hidden` retained on the aside
           // so the sticky header/footer don't bleed into the
           // body's scroll surface.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default"
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
         >
           <button
             type="button"
@@ -929,7 +1033,14 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
  * surface now only shows the ONE contextual hint that depends on
  * selection state (apply / mark-reviewed).
  */
-function SuggestedActionsPanel({
+// 2026-05-26 (Yuqi sixteenth pass #6): retained as orphaned code
+// for reference. The original inline action panel was retired
+// because its actions duplicated the sticky SheetFooter
+// (DrawerActions); the body now relies on the footer alone.
+// Underscore prefix silences `no-unused-vars` without losing the
+// reference implementation.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _SuggestedActionsPanel({
   selectionCount,
   actionMode,
   canApply,
@@ -1049,85 +1160,99 @@ function DrawerActions({
   const isClosed = alertStatus === 'reverted' || isDismissed || sourceRevoked
   const reviewOnly = actionMode === 'review_only'
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2">
-      <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
-        <MailIcon data-icon="inline-start" />
-        <Trans>Copy client email draft</Trans>
-      </Button>
-      {canRequestReview ? (
-        <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
-          <MessageSquareIcon data-icon="inline-start" />
-          <Trans>Request review</Trans>
+    // 2026-05-26 (Yuqi forty-fourth pass — footer two-cluster
+    // layout): reversal actions (Undo / Reactivate) split out to
+    // the LEFT cluster, all forward actions (Copy email, Request
+    // review, Dismiss, Snooze, Apply) stay on the RIGHT.
+    // `justify-between` separates the two groups across the full
+    // footer width — Undo lives in the bottom-left corner, away
+    // from the primary Apply CTA on the right. Standard footer
+    // pattern: reversal/secondary on the left, primary action on
+    // the right.
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {showRevert ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!canApply || isMutating || sourceRevoked}
+            onClick={onRevert}
+          >
+            <RotateCcwIcon data-icon="inline-start" />
+            <Trans>Undo (24h)</Trans>
+          </Button>
+        ) : null}
+        {showReactivate ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!canApply || isMutating || sourceRevoked}
+            onClick={onReactivate}
+          >
+            <RotateCcwIcon data-icon="inline-start" />
+            <Trans>Reactivate / Re-apply</Trans>
+          </Button>
+        ) : null}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
+          <MailIcon data-icon="inline-start" />
+          <Trans>Copy client email draft</Trans>
         </Button>
-      ) : null}
-      {showRevert ? (
+        {canRequestReview ? (
+          <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
+            <MessageSquareIcon data-icon="inline-start" />
+            <Trans>Request review</Trans>
+          </Button>
+        ) : null}
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={!canApply || isMutating || isClosed}
+          onClick={onDismiss}
+        >
+          <Trans>Dismiss</Trans>
+        </Button>
         <Button
           variant="outline"
           size="sm"
-          disabled={!canApply || isMutating || sourceRevoked}
-          onClick={onRevert}
+          disabled={!canApply || isMutating || isClosed}
+          onClick={onSnooze}
         >
-          <RotateCcwIcon data-icon="inline-start" />
-          <Trans>Undo (24h)</Trans>
+          <Trans>Snooze 24h</Trans>
         </Button>
-      ) : null}
-      {showReactivate ? (
+        {/* 2026-05-25 (Yuqi Alerts second pass #12): primary action
+            bumped from size="sm" to default. The other footer buttons
+            stay sm so this one reads as the dominant call-to-action. */}
         <Button
-          variant="outline"
-          size="sm"
-          disabled={!canApply || isMutating || sourceRevoked}
-          onClick={onReactivate}
+          variant={canRequestReview ? 'outline' : undefined}
+          disabled={!canApply || isMutating || isClosed || (!reviewOnly && selectionCount === 0)}
+          onClick={reviewOnly ? onMarkReviewed : onApply}
+          aria-busy={isMutating || undefined}
         >
-          <RotateCcwIcon data-icon="inline-start" />
-          <Trans>Reactivate / Re-apply</Trans>
+          {reviewOnly ? (
+            <Trans>Mark reviewed</Trans>
+          ) : selectionCount === 0 ? (
+            <Trans>Select deadlines to apply</Trans>
+          ) : (
+            // 2026-05-26 (Yuqi thirty-second pass): button text
+            // simplified to "Apply Deadline Exception" — drop the
+            // trailing "to N deadline(s)" count since the selection
+            // checkbox above already shows the count. Title case
+            // reads as a deliberate decision verb.
+            <Trans>Apply Deadline Exception</Trans>
+          )}
         </Button>
-      ) : null}
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={!canApply || isMutating || isClosed}
-        onClick={onDismiss}
-      >
-        <Trans>Dismiss</Trans>
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={!canApply || isMutating || isClosed}
-        onClick={onSnooze}
-      >
-        <Trans>Snooze 24h</Trans>
-      </Button>
-      {/* 2026-05-25 (Yuqi Alerts second pass #12): primary action
-          bumped from size="sm" to default. The other footer buttons
-          stay sm so this one reads as the dominant call-to-action. */}
-      <Button
-        variant={canRequestReview ? 'outline' : undefined}
-        disabled={!canApply || isMutating || isClosed || (!reviewOnly && selectionCount === 0)}
-        onClick={reviewOnly ? onMarkReviewed : onApply}
-        aria-busy={isMutating || undefined}
-      >
-        {reviewOnly ? (
-          <Trans>Mark reviewed</Trans>
-        ) : selectionCount === 0 ? (
-          <Trans>Select deadlines to apply</Trans>
-        ) : (
-          <Plural
-            value={selectionCount}
-            one="Apply deadline exception to # deadline"
-            other="Apply deadline exception to # deadlines"
-          />
-        )}
-      </Button>
-      {canApplyReviewed && !reviewOnly ? (
-        <Button
-          size="sm"
-          disabled={isMutating || isClosed || !reviewedSetReady}
-          onClick={onApplyReviewed}
-        >
-          <Trans>Apply reviewed set</Trans>
-        </Button>
-      ) : null}
+        {canApplyReviewed && !reviewOnly ? (
+          <Button
+            size="sm"
+            disabled={isMutating || isClosed || !reviewedSetReady}
+            onClick={onApplyReviewed}
+          >
+            <Trans>Apply reviewed set</Trans>
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -1341,4 +1466,31 @@ function DetailHeaderSkeleton() {
       <Skeleton className="h-4 w-full" />
     </div>
   )
+}
+
+// 2026-05-26 (Yuqi thirty-sixth pass): mirror of `changeKindLabel`
+// from PulseAlertCard / AlertsListPage. Kept local-to-file
+// (matches the existing duplicated-label pattern in those two
+// files) so the panel header pill reads the same as the card
+// pill. If this label diverges across all three sites in the
+// future, promote to a shared util at
+// `apps/app/src/features/pulse/components/pulse-change-kind.ts`.
+function drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
+  switch (kind) {
+    case 'deadline_shift':
+      return <Trans>Deadline Shifted</Trans>
+    case 'filing_requirement':
+      return <Trans>Filing Rule Changed</Trans>
+    case 'applicability_scope':
+      return <Trans>Scope Changed</Trans>
+    case 'form_instruction':
+      return <Trans>Form Updated</Trans>
+    case 'source_status':
+      return <Trans>Source Status</Trans>
+    case 'new_obligation':
+      return <Trans>New Rule Added</Trans>
+    case 'other':
+      return <Trans>Other Change</Trans>
+  }
+  return kind
 }

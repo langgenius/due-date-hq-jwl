@@ -61,8 +61,12 @@ export function ClientOpportunitiesCard({ clientId }: { clientId: string }) {
 
 function ClientOpportunityItem({ opportunity }: { opportunity: OpportunityPublic }) {
   const Icon = opportunityIcon(opportunity.kind)
+  // 2026-05-26 (Yuqi propagation): card surface flipped to
+  // `bg-background-default` (white) so it pops on the new
+  // `bg-background-inset` gray. See
+  // docs/Design/inset-surface-design-system.md.
   return (
-    <article className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-3">
+    <article className="grid gap-2 rounded-md border border-divider-subtle bg-background-default p-3">
       <div className="flex min-w-0 items-start gap-2">
         <div className="grid size-7 shrink-0 place-items-center rounded-md bg-background-default text-text-secondary">
           <Icon className="size-3.5" aria-hidden />

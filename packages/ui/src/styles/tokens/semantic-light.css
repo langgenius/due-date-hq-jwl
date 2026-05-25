@@ -35,6 +35,17 @@
 
   /* ===== Background ===================================================== */
   --background-body: var(--color-util-colors-gray-100);
+  /*
+   * 2026-05-26 (Yuqi twenty-first pass): canonical SidebarInset
+   * surface tone. Set once here; consumed by `bg-background-inset`
+   * everywhere. Change here to retone the entire work-surface
+   * across every route.
+   * 2026-05-26 (Yuqi twenty-eighth pass): toned lighter from
+   * #f4f4f4 → #fafafa so white cards pop more clearly on the
+   * inset and the page reads as "paper on a desk" instead of
+   * "two shades of gray sandwiched together".
+   */
+  --background-inset: #fafafa;
   --background-default: #ffffff;
   --background-default-subtle: var(--color-util-colors-gray-25);
   --background-default-hover: var(--color-util-colors-gray-50);

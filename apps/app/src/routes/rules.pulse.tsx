@@ -4,14 +4,17 @@ import { HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PulseChangesTab } from '@/features/pulse/AlertsListPage'
 import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
+import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
 const TOP_ALERTS_LIMIT = 50
 
 export function RulesPulseRoute() {
+  const { open: panelOpen } = usePulseDrawer()
   // 2026-05-26 (Yuqi /rules/pulse #9): fetch the alert count here
   // so the page header can show "Alerts (N)" — same query options
   // the embedded list uses, so React Query dedupes (one network
@@ -60,6 +63,50 @@ export function RulesPulseRoute() {
   return (
     <RulesPageShell
       title={titleNode}
+      // 2026-05-26 (Yuqi /rules/pulse seventh pass — column-scroll
+      // architecture): lock the shell to viewport height so the
+      // list column and the panel column each scroll
+      // independently, instead of competing with a page-level
+      // scrollbar. Without this lock the shell's middle wrapper
+      // has its own `overflow-y-auto` and the two columns end up
+      // dragged by a single outer scrollbar.
+      lockViewport
+      // 2026-05-26 (Yuqi /rules/pulse ninth pass #1): width handling
+      // is now PANEL-AWARE.
+      //   • Panel closed: keep the default `max-w-page-wide`
+      //     (no override) so the page reads the same width as
+      //     /today — that's the empty/scan state.
+      //   • Panel open: drop the cap AND set `min-w-[1440px]` so
+      //     the inner row is guaranteed at least 1440px wide
+      //     (which equals the app-shell's outer cap).
+      // 2026-05-26 (Yuqi twentieth pass): when panel is open also
+      // strip the bottom padding (`pb-0 md:pb-0`) so the panel's
+      // sticky action footer sits flush against the bottom of the
+      // viewport — no dead gray strip between footer and inset
+      // edge.
+      // 2026-05-26 (Yuqi thirty-ninth pass — no more layout jump):
+      // contentClassName is now ALWAYS applied (not conditional)
+      // with a CSS transition for `max-width`, `min-width`, and
+      // `padding-bottom`. Previously these three properties
+      // SNAPPED on `panelOpen` flip (max-w-page-wide → max-w-none
+      // / min-w-0 → min-w-[1440px]) — the container jumped width
+      // BEFORE the motion library's panel animation started, which
+      // is what Yuqi flagged as "still jumping around." Now all
+      // three properties interpolate smoothly with the same
+      // 300ms swiftOut curve the panel motion uses.
+      //
+      // Tradeoffs:
+      //   • Open state uses `max-w-[1440px]` (not max-none) so
+      //     CSS can transition between defined endpoints
+      //     (`max-width: none` isn't animatable). 1440px matches
+      //     the app-shell's outer cap so there's no functional
+      //     difference.
+      //   • `!important` retained on pb-0 since the underlying
+      //     shell pads pb-4 md:pb-6 by default.
+      contentClassName={cn(
+        'transition-[max-width,min-width,padding-bottom] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        panelOpen ? 'max-w-[1440px] min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
+      )}
       actions={
         <Button variant="ghost" size="sm" render={<Link to="/rules/pulse/history" />}>
           <HistoryIcon data-icon="inline-start" />

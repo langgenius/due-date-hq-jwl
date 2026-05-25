@@ -26,6 +26,11 @@ export function RulesPulseHistoryRoute() {
   return (
     <RulesPageShell
       title={t`Alert history`}
+      // 2026-05-26 (Yuqi /rules/pulse seventh pass): same
+      // viewport-lock as /rules/pulse so the history list scrolls
+      // inside its own column instead of pushing a page-level
+      // scrollbar.
+      lockViewport
       breadcrumbs={[{ label: t`Alerts`, to: '/rules/pulse' }]}
     >
       <PulseChangesTab embedded historyMode />

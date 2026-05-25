@@ -220,32 +220,23 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
             />
           }
         >
-          {/* 2026-05-25 (Yuqi Today #1): avatar bumped from size-6 (24px)
-              to size-8 (32px). The original was too small for a brand
-              mark at h-14 — read as a UI dot, not a workspace
-              identity. 32px is the canonical avatar size used in the
-              dropdown's own list (matched to the chip mark Yuqi
-              expects elsewhere). Text bumps too (text-sm) so the
-              initials don't look squeezed inside the larger tile.
-              2026-05-25 (Yuqi sidebar collapse): the avatar shrinks
-              from size-8 → size-6 in collapsed mode so it fits the
-              48px-square trigger (32px would push past the 40px
-              available inside the 56px rail). Label + chevron hide
-              entirely via the group-data selector. */}
-          {/* 2026-05-25 (Yuqi rail alignment fix): collapsed avatar
-              bumped size-6 (24px) → size-7 (28px). The 32×32
-              button with a 24px tile read as too much padding;
-              28px gives the brand mark proper weight inside the
-              rail while leaving a 2px halo for hover state. */}
+          {/* 2026-05-26 (Yuqi forty-fourth pass — sidebar header
+              match Frame 137 reference): avatar bumped size-8 (32px)
+              → size-10 (40px) and firm name bumped text-sm → text-base
+              so the brand-identity row reads as a proper header,
+              not a slim row. Reference screenshot shows a clearly
+              prominent logo + name pair as the rail's top anchor.
+              Collapsed mode still uses size-7 (28px) inside the
+              56px rail. */}
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
+            className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-base font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
             translate="no"
           >
             {currentMonogram}
           </span>
           <span
-            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
+            className="min-w-0 flex-1 truncate text-base font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
           >
             {firm.name}
