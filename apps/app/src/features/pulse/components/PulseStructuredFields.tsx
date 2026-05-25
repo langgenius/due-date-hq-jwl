@@ -269,7 +269,16 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
             <span className="block text-xs font-semibold uppercase tracking-wide text-text-tertiary">
               <Trans>Structured change</Trans>
             </span>
-            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs">
+            {/* 2026-05-26 (Yuqi scrollbar audit): dropped `max-h-40
+                overflow-auto`. The pre was inside the drawer
+                body's `overflow-y-auto` container — capping the
+                pre's height forced a nested vertical scrollbar
+                INSIDE the drawer's own scrollbar. Now the pre
+                expands to fit and the drawer body scroll handles
+                the overflow naturally. `whitespace-pre-wrap`
+                still wraps long lines so the pre doesn't push
+                horizontal scroll either. */}
+            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs">
               {formatStructuredChange(detail.structuredChange, t`No structured fields.`)}
             </pre>
           </div>
@@ -360,19 +369,27 @@ function FactCard({
 
 // 3-column fact grid. Each cell stacks the label above the value so
 // the eye scans top-to-bottom within a column, not left-right across
-// the full drawer width (Yuqi #20, #21). Collapses to 2-column on
-// narrow widths and 1-column on mobile so values never get cramped.
+// the full drawer width (Yuqi #20, #21).
+//
+// 2026-05-26 (Yuqi /rules/pulse #12): always 3 columns, regardless
+// of viewport. The earlier responsive cascade (1 → 2 → 3 cols at sm
+// and md breakpoints) collapsed to a single column at typical
+// drawer panel widths (~500px), so the grid wasn't reading as a
+// grid at all. Forced `grid-cols-3` so the structured fields
+// always lay out as 3 columns and the section uses its full
+// horizontal real estate. Mobile Sheet (which IS narrow) still
+// renders the same — values just sit in slimmer columns.
 function FactGrid({
   facts,
 }: {
   facts: ReadonlyArray<{ key: string; label: ReactNode; value: ReactNode }>
 }) {
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 md:grid-cols-3">
+    <dl className="grid grid-cols-3 gap-x-6 gap-y-4">
       {facts.map((fact) => (
-        <div key={fact.key} className="flex flex-col gap-1 min-w-0">
+        <div key={fact.key} className="flex min-w-0 flex-col gap-1">
           <FieldLabel as="dt">{fact.label}</FieldLabel>
-          <dd className="text-sm text-text-primary min-w-0">{fact.value}</dd>
+          <dd className="min-w-0 text-sm text-text-primary">{fact.value}</dd>
         </div>
       ))}
     </dl>

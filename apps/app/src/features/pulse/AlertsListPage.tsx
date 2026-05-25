@@ -343,12 +343,18 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           contains the alert cards so long lists don't push the
           page down. Outer page is fixed-height (see root), so
           the panel column's own scroll-management on the right
-          stays independent. No more double-scroll. */}
+          stays independent. No more double-scroll.
+          2026-05-26 (Yuqi /rules/pulse follow-up #2): dropped the
+          `pr-1` gutter — it inset the scrollbar 4px from the
+          column edge, which made the scrollbar look like it was
+          floating "inside" the page chrome instead of hugging
+          the column boundary. With `scrollbar-gutter: stable`
+          the layout still doesn't jump on scroll appearance. */}
       <div className={panelOpen ? 'flex min-h-0 flex-1 gap-4' : 'contents'}>
         <div
           className={
             panelOpen
-              ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto pr-1'
+              ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto [scrollbar-gutter:stable]'
               : 'flex flex-col gap-4'
           }
         >
@@ -579,6 +585,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                       <PulseAlertCard
                         key={alert.id}
                         alert={alert}
+                        active={alert.id === openAlertId}
                         onReview={() => openDrawer(alert.id)}
                         {...(canSnooze
                           ? {
@@ -609,7 +616,12 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             closing the panel collapses the wrapper back to a
             single column. */}
         {panelOpen ? (
-          <div className="flex min-h-0 w-[440px] shrink-0 self-stretch lg:w-[480px] xl:w-[520px]">
+          // 2026-05-26 (Yuqi /rules/pulse follow-up #5): panel
+          // widths bumped (440/480/520 → 520/600/680) so the
+          // 3-column FactGrid + AffectedClientsTable have room
+          // to breathe. At the prior 440px floor the table was
+          // forced into horizontal overflow on every row.
+          <div className="flex min-h-0 w-[520px] shrink-0 self-stretch lg:w-[600px] xl:w-[680px]">
             <PulseDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
           </div>
         ) : null}

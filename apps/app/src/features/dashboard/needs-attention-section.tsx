@@ -1,11 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Binoculars, CircleCheckIcon, CircleSlashIcon, TriangleAlertIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
+import type { PulseSourceHealth } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
+import {
+  usePulseListAlertsQueryOptions,
+  usePulseSourceHealthQueryOptions,
+} from '@/features/pulse/api'
 
 import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
 
@@ -27,12 +32,17 @@ function NeedsAttentionSection() {
   const { openDrawer: openAlert } = usePulseDrawer()
 
   const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TODAY_ALERTS_LIMIT))
+  // 2026-05-26 (Yuqi Today #3): also pull source-health so we can
+  // surface "are we even receiving signal from the monitored
+  // jurisdictions?" alongside the alert count. Without this, an
+  // empty alerts list could mean either "all good" or "feed
+  // broken" — same UI, opposite meaning.
+  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? []
+  const sources = sourceHealthQuery.data?.sources ?? []
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
   const totalAlertCount = alerts.length
-
-  if (alerts.length === 0) return null
 
   return (
     // 2026-05-25 (Yuqi review #4): Alerts is the most important
@@ -59,9 +69,19 @@ function NeedsAttentionSection() {
     // close to the page bg to anchor the section. The new bg
     // (`/25`) reads as a clearly-tinted block without claiming
     // it's an alert in its own right.
+    // 2026-05-26 (Yuqi Today #2): in the no-alerts case the
+    // section used to unmount entirely (`return null`). That
+    // hid a meaningful signal — "we're monitoring N sources
+    // and nothing is wrong". Now the section ALWAYS renders;
+    // the content adapts (alert cards vs "all clear" panel)
+    // and the bg tone steps down to neutral when there's
+    // nothing to act on.
     <section
       aria-label={t`Alerts`}
-      className="flex flex-col gap-2.5 rounded-xl bg-state-destructive-hover/25 p-3"
+      className={cn(
+        'flex flex-col gap-2.5 rounded-xl p-3',
+        totalAlertCount > 0 ? 'bg-state-destructive-hover/25' : 'bg-background-section',
+      )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
           LEFT-aligned with "View all alerts" justify-between on the
@@ -109,27 +129,139 @@ function NeedsAttentionSection() {
         </Link>
       </div>
 
-      <div
-        className={cn(
-          'grid items-stretch gap-3',
-          alerts.length === 1 && 'grid-cols-1',
-          alerts.length === 2 && 'grid-cols-2',
-          overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
-        )}
-      >
-        {visibleAlerts.map((alert) => (
-          <div key={alert.id} className="h-full min-w-0">
-            <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
-          </div>
-        ))}
-        {overflowCount > 0 ? (
-          <NeedsAttentionOverflowCard
-            count={overflowCount}
-            onOpen={() => void navigate('/rules/pulse')}
-          />
-        ) : null}
-      </div>
+      {totalAlertCount > 0 ? (
+        <div
+          className={cn(
+            'grid items-stretch gap-3',
+            alerts.length === 1 && 'grid-cols-1',
+            alerts.length === 2 && 'grid-cols-2',
+            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
+          )}
+        >
+          {visibleAlerts.map((alert) => (
+            <div key={alert.id} className="h-full min-w-0">
+              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+            </div>
+          ))}
+          {overflowCount > 0 ? (
+            <NeedsAttentionOverflowCard
+              count={overflowCount}
+              onOpen={() => void navigate('/rules/pulse')}
+            />
+          ) : null}
+        </div>
+      ) : (
+        // 2026-05-26 (Yuqi Today #2 + #3): empty-state body. Two
+        // signals stacked:
+        //   1. "no alerts right now" — confirms the absence is
+        //      intentional, not a missing render.
+        //   2. Source health summary — tells the CPA whether the
+        //      empty list means "monitored sources reporting
+        //      clean" (good) or "feeds are degraded so absence
+        //      is not informative" (bad).
+        <AlertsEmptyState sources={sources} loading={sourceHealthQuery.isLoading} />
+      )}
     </section>
+  )
+}
+
+// 2026-05-26 (Yuqi Today #2 + #3): displayed in the Alerts section
+// when there are zero active alerts. The first line tells the user
+// nothing needs their attention; the second line gives a per-status
+// rollup of the monitored regulatory sources so the CPA can tell
+// "all quiet" from "feeds broken, we can't know."
+function AlertsEmptyState({
+  sources,
+  loading,
+}: {
+  sources: readonly PulseSourceHealth[]
+  loading: boolean
+}) {
+  const enabled = sources.filter((source) => source.enabled)
+  const enabledCount = enabled.length
+  const failingCount = enabled.filter(
+    (source) => source.healthStatus === 'failing' || source.healthStatus === 'degraded',
+  ).length
+  const pausedCount = enabled.filter((source) => source.healthStatus === 'paused').length
+  const allHealthy = enabledCount > 0 && failingCount === 0 && pausedCount === 0
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <p className="flex items-center gap-2 text-sm text-text-secondary">
+        <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
+        <Trans>No active alerts — nothing needs your review right now.</Trans>
+      </p>
+      {/* 2026-05-26 (Yuqi Today follow-up): the monitoring summary
+          icon changed from CircleCheck → Binoculars. "Monitoring"
+          is the meaningful state (watching N feeds for signal);
+          CircleCheck made the line read as a second redundant
+          "all good" confirmation when the line above already
+          says nothing needs review. Binoculars conveys "watching
+          / standing by," which is the actual semantic. CCTV was
+          the alternative Yuqi suggested — binoculars feels less
+          surveillance-y, more "regulatory feed scout." */}
+      <p className="flex items-center gap-2 text-xs text-text-tertiary">
+        {loading ? (
+          <Trans>Checking monitored sources…</Trans>
+        ) : enabledCount === 0 ? (
+          <Trans>No sources are currently being monitored.</Trans>
+        ) : allHealthy ? (
+          <>
+            <Binoculars className="size-3.5 text-text-tertiary" aria-label={'monitoring sources'} />
+            <span>
+              <Plural
+                value={enabledCount}
+                one="Monitoring # source. Receiving correctly."
+                other="Monitoring # sources. Receiving correctly."
+              />
+            </span>
+          </>
+        ) : (
+          <>
+            {failingCount > 0 ? (
+              <>
+                <TriangleAlertIcon
+                  className="size-3.5 text-text-warning"
+                  aria-label={'sources failing'}
+                />
+                <span>
+                  <Plural
+                    value={failingCount}
+                    one="# source not receiving correctly"
+                    other="# sources not receiving correctly"
+                  />
+                </span>
+              </>
+            ) : null}
+            {failingCount > 0 && pausedCount > 0 ? (
+              <span aria-hidden className="text-text-tertiary">
+                ·
+              </span>
+            ) : null}
+            {pausedCount > 0 ? (
+              <>
+                <CircleSlashIcon
+                  className="size-3.5 text-text-tertiary"
+                  aria-label={'sources paused'}
+                />
+                <span>
+                  <Plural value={pausedCount} one="# paused" other="# paused" />
+                </span>
+              </>
+            ) : null}
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <Link
+              to="/rules/pulse"
+              className="underline-offset-2 hover:text-text-secondary hover:underline"
+            >
+              <Trans>Check sources</Trans>
+            </Link>
+          </>
+        )}
+      </p>
+    </div>
   )
 }
 

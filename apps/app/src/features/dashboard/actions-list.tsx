@@ -352,20 +352,14 @@ function ActionRow({
                 every direct child so each pair becomes a stable
                 28px row. */}
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-1 [&>dd]:flex [&>dd]:min-h-7 [&>dd]:items-center [&>dt]:flex [&>dt]:min-h-7 [&>dt]:items-center">
-              {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
-                  FIRST item in the expansion panel. The action prompt
-                  also sits inline on the collapsed row's heading line,
-                  but Yuqi flagged that when a row is expanded the
-                  prompt feels missing — the eye lands on the dl items
-                  (Status / Form / Sources / Why now) and the
-                  "what should I do" line gets lost in the cluster
-                  above. Repeating it here, prominently, as the first
-                  item with a distinct accent treatment, makes the
-                  CTA unmissable when the user has opened the row. */}
-              <dt className="text-text-tertiary">
-                <Trans>Action</Trans>
-              </dt>
-              <dd className="font-medium text-text-primary">{prompt}</dd>
+              {/* 2026-05-26 (Yuqi Today #1 follow-up): the "Action" row
+                  was previously rendered FIRST here to repeat the
+                  prompt prominently. That was redundant once the
+                  collapsed row swapped weights so the prompt itself
+                  renders at font-medium (anchor of the row), so the
+                  expansion now jumps straight to deadlines + status
+                  + form + sources + why-now. The prompt continues
+                  to live on the collapsed row's heading line. */}
 
               {/* 2026-05-25 (Yuqi Today #33): show INTERNAL and
                   OFFICIAL deadlines on one line in the expansion

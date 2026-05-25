@@ -17,6 +17,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDate } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
@@ -101,12 +102,40 @@ export function AffectedClientsTable({
                   onCheckedChange={() => handleToggleRow(row)}
                 />
               </TableCell>
-              <TableCell className="font-medium text-text-primary">
-                <div className="flex flex-col leading-tight">
-                  <span>{row.clientName}</span>
-                  <span className="font-mono text-xs text-text-tertiary tabular-nums">
-                    {[row.state, row.county].filter(Boolean).join(' · ')}
-                  </span>
+              {/* 2026-05-26 (Yuqi /rules/pulse follow-up): jurisdiction
+                  pill rebuilt to mirror the pattern Yuqi sketched
+                  — SVG state badge + 2-letter code + full state
+                  name, all inside a single framed pill. The
+                  earlier "code-only" version stripped the SVG and
+                  the long-form name, which Yuqi flagged as not
+                  matching the canonical state-chip shape. County
+                  (when present) still trails as quieter caption
+                  text since it's auxiliary, not part of the
+                  primary jurisdiction tag.
+                  2026-05-26 (Yuqi /rules/pulse follow-up #8): cell
+                  forced to `whitespace-normal` + `min-w-0` so
+                  long client names wrap to a second line instead
+                  of pushing the table into horizontal overflow
+                  at the panel's 520–680px width range. */}
+              <TableCell className="min-w-0 whitespace-normal font-medium text-text-primary">
+                <div className="flex flex-col gap-1 leading-tight">
+                  <span className="break-words">{row.clientName}</span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {row.state ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-2 text-xs">
+                        <StateBadge code={row.state} size="xs" aria-hidden />
+                        <span className="font-semibold uppercase tracking-wide text-text-primary">
+                          {row.state}
+                        </span>
+                        <span className="text-text-secondary">
+                          {getJurisdictionName(row.state)}
+                        </span>
+                      </span>
+                    ) : null}
+                    {row.county ? (
+                      <span className="text-xs text-text-tertiary">{row.county}</span>
+                    ) : null}
+                  </div>
                 </div>
               </TableCell>
               <TableCell className="text-text-secondary">

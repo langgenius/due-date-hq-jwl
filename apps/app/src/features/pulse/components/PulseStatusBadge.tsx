@@ -1,5 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
-import { SparklesIcon } from 'lucide-react'
+import { Spotlight } from 'lucide-react'
 
 import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -44,7 +44,7 @@ export function PulseStatusBadge({ status }: PulseStatusBadgeProps) {
       variant={entry.emphasis ? 'info' : 'outline'}
       className={cn(!entry.emphasis && 'text-text-secondary')}
     >
-      {entry.emphasis ? <SparklesIcon aria-hidden /> : null}
+      {entry.emphasis ? <Spotlight aria-hidden /> : null}
       {entry.label}
     </Badge>
   )

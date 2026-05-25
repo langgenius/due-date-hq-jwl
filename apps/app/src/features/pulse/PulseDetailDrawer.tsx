@@ -50,8 +50,14 @@ import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
 import { PulseStructuredFields } from './components/PulseStructuredFields'
-import { pulseAlertTone, pulseAlertToneLabel } from './pulse-alert-tone'
-import { PulsingDot } from './components/PulsingDot'
+// PulsingDot + pulseAlertTone helpers retained for any future
+// usage; no current consumer in this file (drawer header dot
+// removed 2026-05-26 per Yuqi /rules/pulse #3).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {
+  pulseAlertTone as _pulseAlertTone,
+  pulseAlertToneLabel as _pulseAlertToneLabel,
+} from './pulse-alert-tone'
 import {
   usePulseInvalidation,
   usePulseDetailQueryOptions,
@@ -496,31 +502,18 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           //    healthy confidence it stays here as a quiet info
           //    chip.
           (() => {
-            const drawerDotTone = pulseAlertTone({
-              confidence: detail.alert.confidence,
-              matchedCount: detail.alert.matchedCount,
-              needsReviewCount: detail.alert.needsReviewCount,
-              firmStatus: detail.alert.status,
-            })
             const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
             return (
-              // 2026-05-25 (Yuqi Alerts second pass #7): the badges
-              // row now sits INSIDE the title column (same
-              // `min-w-0 flex-1` div as title + description), not
-              // as a sibling of the dot+title cluster. Before, the
-              // badges started at the SheetHeader's left padding
-              // edge while the title text started after the
-              // PulsingDot + gap-3 — so the badges were ~20px to
-              // the left of where the title text actually began.
-              // Now everything in the title column shares one
-              // left edge.
+              // 2026-05-26 (Yuqi /rules/pulse #3): removed the leading
+              // PulsingDot. Yuqi flagged "where does this dot come
+              // from?" — the dot was a tone indicator
+              // (critical/warning/info) that duplicated signal
+              // already carried by the PulseStatusBadge ("New"),
+              // LowConfidenceBadge (when applicable), and the
+              // PulseSourceStatusBadge below the title. Removing it
+              // declutters the header without losing any unique
+              // signal.
               <div className="flex items-start gap-3">
-                <PulsingDot
-                  tone={drawerDotTone}
-                  active
-                  label={pulseAlertToneLabel(drawerDotTone)}
-                  className="mt-2 size-2.5 shrink-0"
-                />
                 <div className="flex min-w-0 flex-1 flex-col gap-3">
                   <div className="flex flex-col">
                     {/* 2026-05-25 (Yuqi /rules/pulse #9 — drawer →
@@ -869,7 +862,19 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
       <>
         <aside
           aria-label={t`Pulse alert detail`}
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-divider-subtle bg-background-default"
+          // 2026-05-26 (Yuqi /rules/pulse follow-up #2): dropped
+          // the `rounded-lg border` panel chrome. With the frame,
+          // the inner body's vertical scrollbar appeared INSIDE
+          // the panel border — visually nested chrome that read
+          // as "a card with its own scrollbar" rather than a
+          // page column. Without the frame the panel reads as a
+          // sibling column to the alerts list, and its scrollbar
+          // sits flush with the column's right edge. A single
+          // left border keeps the visual divider against the
+          // list column. `overflow-hidden` retained on the aside
+          // so the sticky header/footer don't bleed into the
+          // body's scroll surface.
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default"
         >
           <button
             type="button"

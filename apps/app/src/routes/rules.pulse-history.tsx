@@ -11,23 +11,23 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
  * just pre-set the status filter to `applied`). Yuqi asked for it
  * to be a dedicated sub-page or sidebar entry. This route mounts
  * `PulseChangesTab` with `historyMode={true}` so the same list
- * code paths are reused — the only differences are:
- *   • Initial status filter is `applied` (most common terminal
- *     state); CPA can switch to dismissed / reverted / snoozed
- *     via the status dropdown.
- *   • Page title is "Alerts archive" (vs "Alerts" on the live
- *     page).
- *   • The "View history" cross-link is hidden in the header
- *     since we're already on it.
+ * code paths are reused.
  *
- * Sidebar nav surfaces this under `Alerts archive` in the
- * footer area (next to Audit log) — both are retrospective
- * surfaces, not daily-driver destinations.
+ * 2026-05-26 (Yuqi /rules/pulse #11): the route had no obvious
+ * back-out — clicking "Archive" / "Alert history" took the CPA
+ * here and they had to navigate via the sidebar to return. Added
+ * a breadcrumb (`Alerts › Alert history`) so the parent path is
+ * one click away in the page header.
+ * 2026-05-26 (Yuqi /rules/pulse #10): title renamed `Alerts
+ * archive` → `Alert history` to match the new button label.
  */
 export function RulesPulseHistoryRoute() {
   const { t } = useLingui()
   return (
-    <RulesPageShell title={t`Alerts archive`}>
+    <RulesPageShell
+      title={t`Alert history`}
+      breadcrumbs={[{ label: t`Alerts`, to: '/rules/pulse' }]}
+    >
       <PulseChangesTab embedded historyMode />
     </RulesPageShell>
   )
