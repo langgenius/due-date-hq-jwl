@@ -553,6 +553,7 @@ export function Step1Intake({
             id={selectedPreset}
             label={PRESET_LABELS[selectedPreset]}
             guide={selectedExportGuide}
+            uploadedFileName={intake.fileName}
             compact={compact}
           />
         ) : null}
@@ -761,11 +762,19 @@ interface PresetExportGuideCardProps {
   id: PresetId
   label: string
   guide: PresetExportGuide
+  uploadedFileName?: string | null
   compact?: boolean | undefined
 }
 
-function PresetExportGuideCard({ id, label, guide, compact = false }: PresetExportGuideCardProps) {
+function PresetExportGuideCard({
+  id,
+  label,
+  guide,
+  uploadedFileName,
+  compact = false,
+}: PresetExportGuideCardProps) {
   const logo = PRESET_LOGOS[id]
+  const fileBadgeLabel = uploadedFileName ?? guide.preferredFiles
 
   return (
     <div
@@ -794,8 +803,11 @@ function PresetExportGuideCard({ id, label, guide, compact = false }: PresetExpo
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-medium text-text-primary">{guide.title}</span>
-            <span className="rounded-sm border border-divider-subtle bg-background-body px-1.5 py-0.5 font-mono text-xs text-text-tertiary">
-              {guide.preferredFiles}
+            <span
+              className="inline-block max-w-[min(28rem,100%)] truncate rounded-sm border border-divider-subtle bg-background-body px-1.5 py-0.5 font-mono text-xs text-text-tertiary"
+              title={fileBadgeLabel}
+            >
+              {fileBadgeLabel}
             </span>
           </div>
           <span className="sr-only">{label}</span>

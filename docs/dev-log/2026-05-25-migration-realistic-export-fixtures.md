@@ -84,3 +84,5 @@ variables`.
   acceptable.
 - Updated the ProSeries return-file rejection guidance for the same reason: users should upload the
   exported contacts CSV, not a specifically named `Contacts.csv` file.
+- Updated the selected preset guide badge to show the actual uploaded filename when one is present;
+  it falls back to the expected export type only for paste-only or pre-upload states.
