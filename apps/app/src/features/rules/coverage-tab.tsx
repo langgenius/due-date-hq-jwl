@@ -2219,8 +2219,8 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
       <div className="grid gap-2 text-text-secondary">
         <span>
           <Trans>
-            {preview.acceptReadyCount} ready · {preview.estimatedObligationCount} estimated
-            obligation matches
+            {preview.acceptReadyCount} ready · {preview.estimatedObligationCount} estimated deadline
+            matches
           </Trans>
         </span>
         <span>

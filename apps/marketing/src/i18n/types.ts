@@ -119,7 +119,7 @@ export interface ProblemRow {
   date: string
   pillTone?: MarketingBadgeTone
   dotTone?: MarketingStatusDotTone
-  /** Optional row tint matching the app's Dashboard / Obligations severity rows. */
+  /** Optional row tint matching the app's Dashboard / Deadlines severity rows. */
   severity?: 'critical' | 'high' | 'medium'
 }
 

@@ -2008,7 +2008,7 @@ export function ObligationQueueRoute() {
       meta: {
         id: 'obligations.open-detail',
         name: 'Open detail',
-        description: 'Open the active obligation detail drawer.',
+        description: 'Open the active deadline detail drawer.',
         category: 'obligations',
         scope: 'route',
       },
@@ -2109,7 +2109,7 @@ export function ObligationQueueRoute() {
       meta: {
         id: 'obligations.dismiss',
         name: 'Close drawer or clear focus',
-        description: 'Close the obligation drawer or clear the focused row.',
+        description: 'Close the deadline detail drawer or clear the focused row.',
         category: 'obligations',
         scope: 'route',
       },
@@ -2167,13 +2167,13 @@ export function ObligationQueueRoute() {
       {
         clientIds: selectedClientIds,
         assigneeId,
-        reason: t`Obligations bulk owner change`,
+        reason: t`Deadlines bulk owner change`,
       },
       {
         onSuccess: () => {
           const count = selectedIds.length
           const label = assigneeName ?? t`Unassigned`
-          toast.success(t`Assigned ${count} obligations to ${label}`)
+          toast.success(t`Assigned ${count} deadlines to ${label}`)
         },
       },
     )
@@ -2630,11 +2630,11 @@ export function ObligationQueueRoute() {
 
           {isInitialLoading ? (
             <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
-              <Trans>Loading obligations…</Trans>
+              <Trans>Loading deadlines…</Trans>
             </div>
           ) : isError ? (
             <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-              <Trans>Couldn't load obligations.</Trans>{' '}
+              <Trans>Couldn't load deadlines.</Trans>{' '}
               <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
                 <Trans>Retry</Trans>
               </button>
@@ -2907,7 +2907,7 @@ export function ObligationQueueRoute() {
           <div className="mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               <span>
-                <Plural value={rows.length} one="# obligation" other="# obligations" />
+                <Plural value={rows.length} one="# deadline" other="# deadlines" />
               </span>
               {rows.length > 0 ? (
                 <>
@@ -3037,7 +3037,7 @@ export function ObligationQueueRoute() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              <Trans>Export obligations</Trans>
+              <Trans>Export deadlines</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>Choose one option in each row. Export writes an audit event.</Trans>
@@ -3053,20 +3053,20 @@ export function ObligationQueueRoute() {
               />
               <ExportAxisOption
                 selected={exportScope === 'all_active'}
-                title={<Trans>All active obligations</Trans>}
+                title={<Trans>All active deadlines</Trans>}
                 description={<Trans>Open, waiting, review, blocked, and extended work.</Trans>}
                 onSelect={() => setExportScope('all_active')}
               />
               <ExportAxisOption
                 selected={exportScope === 'selected'}
                 disabled={selectedIds.length === 0}
-                title={<Trans>Selected obligations</Trans>}
+                title={<Trans>Selected deadlines</Trans>}
                 description={
                   selectedIds.length > 0 ? (
                     <Plural
                       value={selectedIds.length}
-                      one="# selected obligation"
-                      other="# selected obligations"
+                      one="# selected deadline"
+                      other="# selected deadlines"
                     />
                   ) : (
                     <Trans>Select rows to use this scope.</Trans>
@@ -3079,7 +3079,7 @@ export function ObligationQueueRoute() {
                   selected={exportScope === 'date_range'}
                   title={<Trans>Specific date range</Trans>}
                   description={
-                    <Trans>Exports obligations due within the selected date window.</Trans>
+                    <Trans>Exports deadlines due within the selected date window.</Trans>
                   }
                   onSelect={() => setExportScope('date_range')}
                 />
@@ -3173,7 +3173,7 @@ export function ObligationQueueRoute() {
                 disabled
                 title={<Trans>Email to self</Trans>}
                 description={
-                  <Trans>Email delivery is not connected for obligation exports yet.</Trans>
+                  <Trans>Email delivery is not connected for deadline exports yet.</Trans>
                 }
                 onSelect={() => setExportRecipient('email_self')}
               />
@@ -4307,7 +4307,7 @@ export function ObligationQueueDetailDrawer({
       fiscalYearEndMonth:
         taxYearDraft.taxYearType === 'fiscal' ? (fiscalYearEnd?.month ?? null) : null,
       fiscalYearEndDay: taxYearDraft.taxYearType === 'fiscal' ? (fiscalYearEnd?.day ?? null) : null,
-      reason: 'Obligation readiness tax year profile edit',
+      reason: 'Deadline readiness tax year profile edit',
     })
   }
 
@@ -4376,8 +4376,8 @@ export function ObligationQueueDetailDrawer({
           <div className="absolute right-2 top-2 flex items-center gap-0.5">
             <button
               type="button"
-              aria-label={t`Copy link to this obligation`}
-              title={t`Copy link to this obligation`}
+              aria-label={t`Copy link to this deadline`}
+              title={t`Copy link to this deadline`}
               onClick={async () => {
                 const url = new URL(
                   deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
@@ -4396,7 +4396,7 @@ export function ObligationQueueDetailDrawer({
             </button>
             <button
               type="button"
-              aria-label={t`Close obligation detail`}
+              aria-label={t`Close deadline detail`}
               onClick={onClose}
               className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
@@ -4406,7 +4406,7 @@ export function ObligationQueueDetailDrawer({
         ) : mode === 'panel' ? (
           <button
             type="button"
-            aria-label={t`Close obligation detail`}
+            aria-label={t`Close deadline detail`}
             onClick={onClose}
             className="absolute right-3 top-3 inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
@@ -4434,10 +4434,10 @@ export function ObligationQueueDetailDrawer({
           </button>
         ) : row?.clientId ? (
           <div className="flex items-center gap-1 pr-8 text-xs text-text-tertiary">
-            <span className="font-medium">{titleText ?? <Trans>Obligation detail</Trans>}</span>
+            <span className="font-medium">{titleText ?? <Trans>Deadline detail</Trans>}</span>
             <span
               aria-label={t`Client record missing`}
-              title={t`Client record missing — obligation may be orphaned`}
+              title={t`Client record missing — deadline may be orphaned`}
               className="inline-flex items-center text-text-warning"
             >
               <AlertTriangleIcon className="size-3" aria-hidden />
@@ -4530,11 +4530,11 @@ export function ObligationQueueDetailDrawer({
       <div className={cn('px-5 pb-5 pt-4', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}>
         {detailQuery.isLoading ? (
           <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
-            <Trans>Loading obligation detail…</Trans>
+            <Trans>Loading deadline detail…</Trans>
           </div>
         ) : detailQuery.isError || !detail || !row ? (
           <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-            <Trans>Couldn't load obligation detail.</Trans>{' '}
+            <Trans>Couldn't load deadline detail.</Trans>{' '}
             <button type="button" className="underline" onClick={() => void detailQuery.refetch()}>
               <Trans>Retry</Trans>
             </button>
@@ -5056,7 +5056,7 @@ export function ObligationQueueDetailDrawer({
                       </div>
                       {taxYearFiscalMissing ? (
                         <p className="text-xs text-text-destructive">
-                          <Trans>Fiscal-year obligations require a year end.</Trans>
+                          <Trans>Fiscal-year deadlines require a year end.</Trans>
                         </p>
                       ) : null}
                       {taxYearFiscalInvalid ? (
@@ -5073,7 +5073,7 @@ export function ObligationQueueDetailDrawer({
               <div className="grid gap-3">
                 <AlertPanel>
                   <Trans>
-                    This saves the firm's internal extension plan for this obligation. The internal
+                    This saves the firm's internal extension plan for this deadline. The internal
                     target date must be on or before the filing deadline. It does not update the due
                     date, change client records, or confirm an authority filing. Payment may still
                     be due by the original date.
@@ -5203,7 +5203,7 @@ export function ObligationQueueDetailDrawer({
                     </div>
                   ) : (
                     <EmptyPanel>
-                      <Trans>No workpapers attached to this obligation yet.</Trans>
+                      <Trans>No workpapers attached to this deadline yet.</Trans>
                     </EmptyPanel>
                   )}
                 </section>
@@ -5260,7 +5260,7 @@ export function ObligationQueueDetailDrawer({
                     ) : (
                       <p className="text-xs leading-snug text-text-tertiary">
                         <Trans>
-                          This obligation isn't bound to a rule. Deadlines without a source citation
+                          This deadline isn't bound to a rule. Deadlines without a source citation
                           can't be defended in audit — bind it before relying on the date.
                         </Trans>
                       </p>
@@ -5387,7 +5387,7 @@ export function ObligationQueueDetailDrawer({
               }}
             >
               <LinkIcon data-icon="inline-start" />
-              <Trans>Copy link to this obligation</Trans>
+              <Trans>Copy link to this deadline</Trans>
             </Button>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <Trans>Close</Trans>
@@ -5412,7 +5412,7 @@ export function ObligationQueueDetailDrawer({
     if (obligationId === null) return null
     return (
       <aside
-        aria-label={titleText ?? t`Obligation detail`}
+        aria-label={titleText ?? t`Deadline detail`}
         // Subtle tinted background distinguishes the panel from the
         // table area beside it. Inner snapshot is now pinned via
         // sticky positioning (2026-05-21): the aside itself stops
@@ -5431,9 +5431,9 @@ export function ObligationQueueDetailDrawer({
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
-        <SheetTitle className="sr-only">{titleText ?? t`Obligation detail`}</SheetTitle>
+        <SheetTitle className="sr-only">{titleText ?? t`Deadline detail`}</SheetTitle>
         <SheetDescription className="sr-only">
-          <Trans>Obligation workflow detail panel.</Trans>
+          <Trans>Deadline workflow detail panel.</Trans>
         </SheetDescription>
         {body}
       </SheetContent>
@@ -7399,7 +7399,7 @@ function BlockerContextCard({
       type="button"
       onClick={() => onOpen(blockerId)}
       className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
-      aria-label={t`Open blocking obligation: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
+      aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
     >
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
@@ -7987,7 +7987,7 @@ function ActiveStageDetailCard({
               },
               {
                 id: 'complete',
-                label: t`Mark obligation complete`,
+                label: t`Mark deadline complete`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -7996,7 +7996,7 @@ function ActiveStageDetailCard({
             return [
               {
                 id: 'complete',
-                label: t`Mark obligation complete`,
+                label: t`Mark deadline complete`,
                 flavor: 'mutation',
                 primary: true,
               },
@@ -8128,7 +8128,7 @@ function ActiveStageDetailCard({
         if (row.blockedByObligationInstanceId) {
           openDrawer(row.blockedByObligationInstanceId)
         } else {
-          toast.info(t`This row isn't linked to a blocking obligation.`)
+          toast.info(t`This row isn't linked to a blocking deadline.`)
         }
         return
       }
@@ -8635,7 +8635,7 @@ function subStatusForActiveStage(
       return null
     }
     case 'blocked': {
-      if (row.blockedByObligationInstanceId) return t`Upstream obligation`
+      if (row.blockedByObligationInstanceId) return t`Upstream deadline`
       return null
     }
     case 'review':
@@ -8762,7 +8762,7 @@ function PenaltyInputDialog({
       id: row.clientId,
       ...(taxDue !== null ? { estimatedTaxLiabilityCents: taxDue } : {}),
       ...(ownerCount !== null ? { equityOwnerCount: ownerCount } : {}),
-      reason: t`Obligation needs-input update`,
+      reason: t`Deadline needs-input update`,
     })
   }
 
@@ -8883,7 +8883,7 @@ function ObligationQueueSearchControl({
       <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary" />
       <Input
         ref={inputRef}
-        aria-label={t`Search obligations`}
+        aria-label={t`Search deadlines`}
         className="h-8 pl-8 pr-8"
         placeholder={t`Search clients`}
         value={value}
@@ -9050,7 +9050,7 @@ function EmptyState({
     <SharedEmptyState
       title={
         hasActiveFilters ? (
-          <Trans>No obligations match these filters.</Trans>
+          <Trans>No deadlines match these filters.</Trans>
         ) : (
           <Trans>No deadlines yet. Import clients to get started.</Trans>
         )

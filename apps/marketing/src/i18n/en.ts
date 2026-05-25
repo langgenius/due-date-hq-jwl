@@ -605,7 +605,7 @@ const en: LandingCopy = {
           '1 production practice',
           '3 seats included',
           'Shared deadline operations',
-          'Pulse and Obligations access',
+          'Pulse and Deadlines access',
         ],
       },
       {
@@ -669,7 +669,7 @@ const en: LandingCopy = {
       {
         question: 'What does Pro add over Solo?',
         answer:
-          'Pro adds a three-seat shared workspace, Pulse monitoring, and the Obligations views a small practice needs for deadline operations.',
+          'Pro adds a three-seat shared workspace, Pulse monitoring, and the Deadlines views a small practice needs for deadline operations.',
       },
       {
         question: 'When should I choose Team?',
@@ -764,14 +764,14 @@ const en: LandingCopy = {
             'Only when the rule keeps official source context and a review state. DueDateHQ can use AI to summarize or classify, but the source and reviewer decision remain the trust boundary.',
         },
         {
-          question: 'What happens before a rule affects Obligations or Dashboard triage?',
+          question: 'What happens before a rule affects Deadlines or Dashboard triage?',
           answer:
             'The rule needs source evidence, normalized filing context, and review status before it can generate or update deadline work. The product does not silently change client work from an unsupported signal.',
         },
         {
           question: 'How does DueDateHQ connect rule changes to the right clients?',
           answer:
-            'It uses the firm’s client filing profiles, jurisdictions, tax types, and obligation records to route reviewed changes into Pulse, Obligations, and triage workflows for the clients that may be affected.',
+            'It uses the firm’s client filing profiles, jurisdictions, tax types, and deadline records to route reviewed changes into Pulse, Deadlines, and triage workflows for the clients that may be affected.',
         },
       ],
       cta: {
@@ -793,7 +793,7 @@ const en: LandingCopy = {
         title: 'Which state updates can become deadline work for my firm?',
         description:
           'DueDateHQ public coverage spans all 50 states and DC. Coverage means public state signals can be monitored, matched against firm client context, and routed through Pulse review before they affect deadline operations.',
-        note: 'Coverage is software monitoring scope; it is not a guarantee that every obligation applies to every firm.',
+        note: 'Coverage is software monitoring scope; it is not a guarantee that every deadline applies to every firm.',
       },
       statesHeader: {
         eyebrow: 'LIVE COVERAGE',
@@ -856,7 +856,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational handoff',
-            body: 'Relevant changes can surface in dashboard, Obligations, and email workflows after review.',
+            body: 'Relevant changes can surface in dashboard, Deadlines, and email workflows after review.',
           },
         ],
       },
@@ -925,7 +925,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational routing',
-            body: 'Reviewed signals can surface as dashboard or Obligations actions when firm data indicates possible impact.',
+            body: 'Reviewed signals can surface as dashboard or Deadlines actions when firm data indicates possible impact.',
           },
         ],
         limitations: [
@@ -942,7 +942,7 @@ const en: LandingCopy = {
           {
             question: 'How does a California update become operational work?',
             answer:
-              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects dashboard or Obligations work.',
+              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects dashboard or Deadlines work.',
           },
         ],
       },
@@ -1051,7 +1051,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Review handoff',
-            body: 'Reviewed signals can become Obligations actions for CPA teams managing affected clients.',
+            body: 'Reviewed signals can become Deadlines actions for CPA teams managing affected clients.',
           },
         ],
         limitations: [
@@ -1068,7 +1068,7 @@ const en: LandingCopy = {
           {
             question: 'What happens after a Texas source signal is reviewed?',
             answer:
-              'Reviewed signals can become Obligations actions or triage context for affected clients; filing decisions remain with the CPA firm.',
+              'Reviewed signals can become Deadlines actions or triage context for affected clients; filing decisions remain with the CPA firm.',
           },
         ],
       },
@@ -1169,7 +1169,7 @@ const en: LandingCopy = {
         coveredSignals: [
           {
             title: 'Deadline operations',
-            body: 'Signals are evaluated for operational impact before they become dashboard or Obligations items.',
+            body: 'Signals are evaluated for operational impact before they become dashboard or Deadlines items.',
           },
           {
             title: 'Applicability context',
@@ -1183,7 +1183,7 @@ const en: LandingCopy = {
         limitations: [
           'DueDateHQ is not a Washington tax authority.',
           'Coverage depends on public-source visibility and product review status.',
-          'Client-specific obligations require CPA review.',
+          'Client-specific deadlines require CPA review.',
         ],
         faq: [
           {
@@ -1219,7 +1219,7 @@ const en: LandingCopy = {
           {
             eyebrow: 'RISK MODEL',
             title: 'The risky deadline is the one with missing or mismatched context.',
-            body: 'A date on a calendar is only one part of deadline operations. CPA teams also need imported client facts, filing profiles, obligation status, jurisdiction coverage, evidence source, and owner assignment.',
+            body: 'A date on a calendar is only one part of deadline operations. CPA teams also need imported client facts, filing profiles, deadline status, jurisdiction coverage, evidence source, and owner assignment.',
             items: [
               {
                 title: 'Missing client facts',
@@ -1268,7 +1268,7 @@ const en: LandingCopy = {
           {
             question: 'How does imported client data affect deadline risk?',
             answer:
-              'Migration data creates the client and obligation context the team uses for triage. Entity type, filing states, tax types, owner, and liability inputs all change the risk picture.',
+              'Migration data creates the client and deadline context the team uses for triage. Entity type, filing states, tax types, owner, and liability inputs all change the risk picture.',
           },
           {
             question: 'What makes a deadline queue defensible?',
@@ -1302,7 +1302,7 @@ const en: LandingCopy = {
           {
             eyebrow: 'DEFINITION',
             title: 'Evidence-backed means every operational claim can be inspected.',
-            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, Pulse alert, or migration-created obligation came from and why it entered the workflow.',
+            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, Pulse alert, or migration-created deadline came from and why it entered the workflow.',
             items: [
               {
                 title: 'Source URL',

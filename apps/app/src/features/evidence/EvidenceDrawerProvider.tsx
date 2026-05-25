@@ -96,9 +96,7 @@ function EvidenceDrawer({
             <FileSearchIcon className="size-4 text-text-accent" aria-hidden />
             <Trans>Evidence for this deadline</Trans>
           </SheetTitle>
-          <SheetDescription>
-            {request?.label ?? <Trans>Obligation evidence</Trans>}
-          </SheetDescription>
+          <SheetDescription>{request?.label ?? <Trans>Deadline evidence</Trans>}</SheetDescription>
         </SheetHeader>
         <div className="grid gap-5 px-6 pb-6">
           <EvidenceSummary request={request} />
@@ -122,7 +120,7 @@ function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
         <Trans>Deadline</Trans>
       </span>
       <div className="text-sm font-medium text-text-primary">
-        {request?.label ?? <Trans>Selected obligation</Trans>}
+        {request?.label ?? <Trans>Selected deadline</Trans>}
       </div>
     </section>
   )
@@ -306,7 +304,7 @@ function evidenceDescription(item: EvidencePublic): ReactNode {
   }
   if (item.sourceType === 'verified_rule') {
     return (
-      <Trans>The accepted source-backed rule matched the client facts for this obligation.</Trans>
+      <Trans>The accepted source-backed rule matched the client facts for this deadline.</Trans>
     )
   }
   if (item.sourceType === 'extension_decision') {
@@ -622,7 +620,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
         <Skeleton className="h-20 w-full" />
       ) : events.length === 0 ? (
         <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No audit events recorded for this obligation.</Trans>
+          <Trans>No audit events recorded for this deadline.</Trans>
         </div>
       ) : (
         <div className="grid gap-3">

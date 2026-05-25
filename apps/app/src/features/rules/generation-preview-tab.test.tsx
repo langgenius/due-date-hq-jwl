@@ -277,10 +277,10 @@ describe('AnnualRolloverPanel', () => {
     await renderPanel()
     await waitForText('CA Form 100 annual filing')
 
-    const helpButtons = Array.from(document.querySelectorAll('button[aria-label^="About "]'))
+    const helpButtons = Array.from(document.querySelectorAll('button[aria-label^="Explain "]'))
 
     expect(helpButtons.map((button) => button.getAttribute('aria-label'))).toEqual(
-      expect.arrayContaining(['About Source deadlines', 'About Status', 'About Deadlines']),
+      expect.arrayContaining(['Explain Source deadlines', 'Explain Status', 'Explain Deadlines']),
     )
     expect(helpButtons).toHaveLength(14)
   })
@@ -292,7 +292,7 @@ describe('AnnualRolloverPanel', () => {
     await act(async () => {
       buttonByText('Generate').dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    await waitForText('Open first created obligation')
+    await waitForText('Open first created deadline')
 
     expect(rpcMocks.createAnnualRollover).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -402,16 +402,16 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         },
         onSuccess: (result) => {
           // 2026-05-25 (Wizard #40 — plural fix): "clients" and
-          // "obligations" were baked into the English template
+          // "deadlines" were baked into the English template
           // and never pluralised. `plural()` macro extracts both
-          // forms so n=1 renders "1 client" / "1 obligation".
+          // forms so n=1 renders "1 client" / "1 deadline".
           const clientPart = i18n._(
             plural(result.clientCount, { one: '# client', other: '# clients' }),
           )
           const obligationPart = i18n._(
             plural(result.obligationCount, {
-              one: '# obligation',
-              other: '# obligations',
+              one: '# deadline',
+              other: '# deadlines',
             }),
           )
           toast.success(t`Import complete`, {
@@ -536,14 +536,14 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         onSuccess: () => {
           // 2026-05-25 (Wizard #40 — plural fix): same shape as
           // the "Import complete" toast above — pluralise both
-          // sides so n=1 reads "1 client · 1 obligation".
+          // sides so n=1 reads "1 client · 1 deadline".
           const undoClientPart = i18n._(
             plural(pendingRevert.clientCount, { one: '# client', other: '# clients' }),
           )
           const undoObligationPart = i18n._(
             plural(pendingRevert.obligationCount, {
-              one: '# obligation',
-              other: '# obligations',
+              one: '# deadline',
+              other: '# deadlines',
             }),
           )
           toast.success(t`Import undone`, {
@@ -575,7 +575,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             onText={(text, fileName, options) =>
               dispatch({ type: 'INTAKE_TEXT', text, fileName, ...options })
             }
-            onPreset={(preset) => dispatch({ type: 'INTAKE_PRESET', preset })}
+            onPreset={(preset, source) =>
+              dispatch({
+                type: 'INTAKE_PRESET',
+                preset,
+                ...(source ? { source } : {}),
+              })
+            }
             onParsed={(args) => dispatch({ type: 'INTAKE_PARSED', ...args })}
             onParseError={(error) => dispatch({ type: 'INTAKE_PARSE_ERROR', error })}
           />
@@ -674,8 +680,8 @@ function LiveGenesisOverlay({
         <div className="text-sm text-text-secondary">
           <Plural
             value={genesis.obligationCount}
-            one="obligation created"
-            other="obligations created"
+            one="deadline created"
+            other="deadlines created"
           />
         </div>
         <div className="text-xs text-text-tertiary">

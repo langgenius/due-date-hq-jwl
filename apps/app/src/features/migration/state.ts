@@ -34,6 +34,8 @@ export type PresetId =
   | 'ultratax_cs'
   | 'proconnect_tax'
 
+export type PresetSelectionSource = 'manual' | 'detected'
+
 export interface IntakeState {
   /** Raw paste text or file content as utf-8 string. */
   rawText: string
@@ -44,6 +46,7 @@ export interface IntakeState {
   sizeBytes: number
   sourceManifest: MigrationSourceManifest | null
   preset: PresetId | null
+  presetSource: PresetSelectionSource | null
   /** Header indexes blocked by SSN regex on the client side. */
   ssnBlockedColumnIndexes: number[]
   rowCount: number
@@ -105,6 +108,7 @@ export const INITIAL_STATE: WizardState = {
     sizeBytes: 0,
     sourceManifest: null,
     preset: null,
+    presetSource: null,
     ssnBlockedColumnIndexes: [],
     rowCount: 0,
     truncated: false,
@@ -132,6 +136,7 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
     intake.sizeBytes !== 0 ||
     intake.sourceManifest !== null ||
     intake.preset !== null ||
+    intake.presetSource !== INITIAL_STATE.intake.presetSource ||
     intake.ssnBlockedColumnIndexes.length > 0 ||
     intake.rowCount !== 0 ||
     intake.truncated ||
@@ -175,7 +180,7 @@ export type WizardAction =
       sizeBytes?: number
       sourceManifest?: MigrationSourceManifest | null
     }
-  | { type: 'INTAKE_PRESET'; preset: PresetId | null }
+  | { type: 'INTAKE_PRESET'; preset: PresetId | null; source?: PresetSelectionSource }
   | {
       type: 'INTAKE_PARSED'
       rowCount: number
@@ -227,7 +232,14 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
         },
       }
     case 'INTAKE_PRESET':
-      return { ...state, intake: { ...state.intake, preset: action.preset } }
+      return {
+        ...state,
+        intake: {
+          ...state.intake,
+          preset: action.preset,
+          presetSource: action.preset === null ? null : (action.source ?? 'manual'),
+        },
+      }
     case 'INTAKE_PARSED':
       return {
         ...state,

@@ -111,12 +111,12 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
   const obligation = await scoped.obligations.findById(input.obligationId)
   if (!obligation) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const client = await scoped.clients.findById(obligation.clientId)
   if (!client) {
-    throw new ORPCError('NOT_FOUND', { message: 'Client not found for obligation.' })
+    throw new ORPCError('NOT_FOUND', { message: 'Client not found for deadline.' })
   }
 
   const rows = await reconcileChecklistForObligation({
@@ -140,7 +140,7 @@ const sendRequest = os.readiness.sendRequest.handler(async ({ input, context }) 
   const obligation = await scoped.obligations.findById(input.obligationId)
   if (!obligation) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const client = await scoped.clients.findById(obligation.clientId)

@@ -1539,6 +1539,43 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
     const updated = await service.getBatch(batch.id)
     expect(updated?.mappingJson).toEqual(expect.objectContaining({ ssnBlockedColumns: [1, 2] }))
   })
+
+  it('allows a user-confirmed EIN mapping for an SSN/EIN column', async () => {
+    const { repo } = buildScopedRepo(FIRM)
+    const ai = buildAi({
+      mappings: [{ source: 'Client Name', target: 'client.name', confidence: 0.99 }],
+    })
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    const csv = `Client Name,SSN/EIN,SSN\nAcme LLC,12-3456789,123-45-6789`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+
+    const mapper = await service.runMapper(batch.id)
+    const userMappings = [...mapper.mappings]
+    const ssnEinIndex = userMappings.findIndex((mapping) => mapping.sourceHeader === 'SSN/EIN')
+    const ssnIndex = userMappings.findIndex((mapping) => mapping.sourceHeader === 'SSN')
+    if (ssnEinIndex >= 0) {
+      userMappings[ssnEinIndex] = {
+        ...userMappings[ssnEinIndex]!,
+        targetField: 'client.ein',
+        userOverridden: true,
+      }
+    }
+    if (ssnIndex >= 0) {
+      userMappings[ssnIndex] = {
+        ...userMappings[ssnIndex]!,
+        targetField: 'client.notes',
+        userOverridden: true,
+      }
+    }
+    const confirmed = await service.confirmMapping(batch.id, userMappings)
+
+    expect(confirmed.mappings.find((m) => m.sourceHeader === 'SSN/EIN')?.targetField).toBe(
+      'client.ein',
+    )
+    expect(confirmed.mappings.find((m) => m.sourceHeader === 'SSN')?.targetField).toBe('IGNORE')
+  })
 })
 
 describe('MigrationService fixture golden tests', () => {

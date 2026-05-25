@@ -294,7 +294,7 @@ export async function updateObligationStatus(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -321,7 +321,7 @@ export async function updateObligationStatus(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -395,12 +395,12 @@ export async function markObligationFiledRejected(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
   if (before.status !== 'done') {
     throw new ORPCError('BAD_REQUEST', {
-      message: `Only a Filed obligation can be marked rejected. Current status: ${before.status}.`,
+      message: `Only a Filed deadline can be marked rejected. Current status: ${before.status}.`,
     })
   }
 
@@ -409,7 +409,7 @@ export async function markObligationFiledRejected(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -459,25 +459,25 @@ export async function updateObligationBlockedBy(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
   const nextParentId = input.blockedByObligationInstanceId
   if (nextParentId === input.id) {
     throw new ORPCError('BAD_REQUEST', {
-      message: 'An obligation cannot block itself.',
+      message: 'A deadline cannot block itself.',
     })
   }
   if (nextParentId !== null) {
     const parent = await scoped.obligations.findById(nextParentId)
     if (!parent) {
       throw new ORPCError('NOT_FOUND', {
-        message: `Parent obligation ${nextParentId} not found in current firm.`,
+        message: `Parent deadline ${nextParentId} not found in current firm.`,
       })
     }
     if (parent.status === 'completed') {
       throw new ORPCError('BAD_REQUEST', {
-        message: 'Cannot mark blocked by an already-completed obligation.',
+        message: 'Cannot mark blocked by an already-completed deadline.',
       })
     }
   } else if (before.status !== 'blocked') {
@@ -491,7 +491,7 @@ export async function updateObligationBlockedBy(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -547,7 +547,7 @@ export async function updateObligationPrepStage(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -562,7 +562,7 @@ export async function updateObligationPrepStage(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -600,7 +600,7 @@ export async function updateObligationReviewStage(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -615,7 +615,7 @@ export async function updateObligationReviewStage(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -654,7 +654,7 @@ export async function bulkUpdateObligationStatus(
   const beforeRows = await scoped.obligations.findManyByIds(ids)
   if (beforeRows.length !== ids.length) {
     throw new ORPCError('NOT_FOUND', {
-      message: 'One or more selected obligations were not found in the current firm.',
+      message: 'One or more selected deadlines were not found in the current firm.',
     })
   }
 
@@ -672,7 +672,7 @@ export async function bulkUpdateObligationStatus(
   )
   if (illegalRow) {
     throw new ORPCError('BAD_REQUEST', {
-      message: `Illegal status transition for obligation ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
+      message: `Illegal status transition for deadline ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
     })
   }
 
@@ -756,7 +756,7 @@ export async function decideObligationExtension(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -788,7 +788,7 @@ export async function decideObligationExtension(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 

@@ -967,12 +967,12 @@ function SuggestedActionsPanel({
             {reviewOnly ? (
               <Trans>Review the official source and mark this Pulse reviewed when complete.</Trans>
             ) : selectionCount === 0 ? (
-              <Trans>Select eligible obligations above before applying.</Trans>
+              <Trans>Select eligible deadlines above before applying.</Trans>
             ) : (
               <Plural
                 value={selectionCount}
-                one="# selected obligation will get the temporary due-date exception."
-                other="# selected obligations will get the temporary due-date exception."
+                one="# selected deadline will get the temporary due-date exception."
+                other="# selected deadlines will get the temporary due-date exception."
               />
             )}
           </p>
@@ -988,13 +988,9 @@ function SuggestedActionsPanel({
           {reviewOnly ? (
             <Trans>Mark reviewed</Trans>
           ) : selectionCount === 0 ? (
-            <Trans>Select obligations</Trans>
+            <Trans>Select deadlines</Trans>
           ) : (
-            <Plural
-              value={selectionCount}
-              one="Apply to # obligation"
-              other="Apply to # obligations"
-            />
+            <Plural value={selectionCount} one="Apply to # deadline" other="Apply to # deadlines" />
           )}
         </Button>
       </div>
@@ -1109,12 +1105,12 @@ function DrawerActions({
         {reviewOnly ? (
           <Trans>Mark reviewed</Trans>
         ) : selectionCount === 0 ? (
-          <Trans>Select obligations to apply</Trans>
+          <Trans>Select deadlines to apply</Trans>
         ) : (
           <Plural
             value={selectionCount}
-            one="Apply deadline exception to # obligation"
-            other="Apply deadline exception to # obligations"
+            one="Apply deadline exception to # deadline"
+            other="Apply deadline exception to # deadlines"
           />
         )}
       </Button>
@@ -1310,7 +1306,7 @@ function SelectionSummary({ stats }: { stats: SelectionStats }) {
 function ApplySafetyChecklist() {
   const items: Array<[string, React.ReactNode]> = [
     ['audit', <Trans key="audit">Logged to audit trail</Trans>],
-    ['evidence', <Trans key="evidence">Pulse evidence linked to each obligation</Trans>],
+    ['evidence', <Trans key="evidence">Pulse evidence linked to each deadline</Trans>],
     [
       'email',
       <Trans key="email">Owner and manager digest will be sent when email is available</Trans>,

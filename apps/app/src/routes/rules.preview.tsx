@@ -7,7 +7,7 @@ export function RulesPreviewRoute() {
   const { t } = useLingui()
   return (
     <RulesPageShell
-      title={t`Obligation preview`}
+      title={t`Deadline preview`}
       breadcrumbs={[
         { label: t`Rule library`, to: '/rules/library' },
         { label: t`Preview & approve` },

@@ -571,13 +571,9 @@ export function CreateObligationDialog({
             trigger ?? (
               <Button type="button" size="sm">
                 <PlusIcon data-icon="inline-start" />
-                {/* "Deadline" outside the dialog matches the CPA's
-                    workflow voice — that's what they're adding. The
-                    dialog title below switches to "Obligation" (the
-                    data-model word) so the form fields and submit
-                    button stay aligned with the schema + the rest of
-                    the app's vocabulary. See the description for the
-                    bridge. */}
+                {/* Keep the visible copy in the CPA-facing "deadline"
+                    vocabulary; the component name still follows the
+                    underlying domain model. */}
                 <Trans>Add deadline</Trans>
               </Button>
             )

@@ -946,7 +946,7 @@ async function seedPulse(db: ReturnType<typeof createDb>, firmId: string, userId
       publishedAt: new Date('2026-04-13T17:00:00.000Z'),
       aiSummary: 'NY DTF notice has low-confidence extraction and needs practice review.',
       verbatimQuote:
-        'Some due dates and filing obligations may vary by taxpayer circumstance and form type.',
+        'Some due dates and filing requirements may vary by taxpayer circumstance and form type.',
       parsedJurisdiction: 'NY',
       parsedCounties: ['Queens'],
       parsedForms: ['ny_it204'],

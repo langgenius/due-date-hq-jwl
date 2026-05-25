@@ -300,7 +300,7 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
   if (allRows.length !== ids.length) {
     // Defensive: re-read drift would mask a partial batch failure.
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Created obligations could not be re-read in full.',
+      message: 'Created deadlines could not be re-read in full.',
     })
   }
 
@@ -489,7 +489,7 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
   const rows = (await scoped.obligations.listByClient(client.id)).filter((row) => idSet.has(row.id))
   if (rows.length !== ids.length) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Created obligations could not be re-read in full.',
+      message: 'Created deadlines could not be re-read in full.',
     })
   }
 
@@ -551,7 +551,7 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -562,7 +562,7 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -683,7 +683,7 @@ function deadlineTipFallback(obligationId: string) {
     {
       key: 'what',
       label: 'What',
-      text: 'Cached deadline tip is pending for this obligation.',
+      text: 'Cached deadline tip is pending for this deadline.',
       citationRefs: [],
     },
     {
@@ -695,7 +695,7 @@ function deadlineTipFallback(obligationId: string) {
     {
       key: 'prepare',
       label: 'Prepare',
-      text: `Request a refresh after evidence or status changes for obligation ${obligationId}.`,
+      text: `Request a refresh after evidence or status changes for deadline ${obligationId}.`,
       citationRefs: [],
     },
   ]
@@ -708,12 +708,12 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
     const before = await scoped.obligations.findById(input.id)
     if (!before) {
       throw new ORPCError('NOT_FOUND', {
-        message: `Obligation ${input.id} not found in current firm.`,
+        message: `Deadline ${input.id} not found in current firm.`,
       })
     }
     if (before.taxYear === null) {
       throw new ORPCError('BAD_REQUEST', {
-        message: 'Only tax-year-specific obligations can update tax year profile.',
+        message: 'Only tax-year-specific deadlines can update tax year profile.',
       })
     }
     const beforeRule = before.ruleId ? findRuleById(before.ruleId) : null
@@ -726,7 +726,7 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
       })
     ) {
       throw new ORPCError('BAD_REQUEST', {
-        message: 'This obligation is not driven by a fiscal tax year.',
+        message: 'This deadline is not driven by a fiscal tax year.',
       })
     }
 
@@ -735,7 +735,7 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
     const client = await scoped.clients.findById(before.clientId)
     if (!client) {
       throw new ORPCError('NOT_FOUND', {
-        message: `Client ${before.clientId} for obligation ${input.id} was not found.`,
+        message: `Client ${before.clientId} for deadline ${input.id} was not found.`,
       })
     }
     const plan = resolveUpdatedTaxYearProfilePlan({
@@ -783,7 +783,7 @@ const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
     const after = await scoped.obligations.findById(input.id)
     if (!after) {
       throw new ORPCError('INTERNAL_SERVER_ERROR', {
-        message: 'Updated obligation could not be re-read.',
+        message: 'Updated deadline could not be re-read.',
       })
     }
 
@@ -846,7 +846,7 @@ const getDeadlineTip = os.obligations.getDeadlineTip.handler(async ({ input, con
   const obligation = await scoped.obligations.findById(input.obligationId)
   if (!obligation) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const asOfDate = dateInTimezone(tenant.timezone)
@@ -870,7 +870,7 @@ const requestDeadlineTipRefresh = os.obligations.requestDeadlineTipRefresh.handl
     const obligation = await scoped.obligations.findById(input.obligationId)
     if (!obligation) {
       throw new ORPCError('NOT_FOUND', {
-        message: `Obligation ${input.obligationId} not found in current firm.`,
+        message: `Deadline ${input.obligationId} not found in current firm.`,
       })
     }
     const asOfDate = dateInTimezone(tenant.timezone)

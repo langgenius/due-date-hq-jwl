@@ -26,7 +26,7 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
-  test('AC: E2E-DASHBOARD-FILTERS opens action rows in the obligation drawer', async ({
+  test('AC: E2E-DASHBOARD-FILTERS opens action rows in the deadline drawer', async ({
     authenticatedPage,
   }) => {
     await authenticatedPage.goto('/')
@@ -37,7 +37,7 @@ test.describe('seeded obligations', () => {
     })
     await arborAction.hover()
     await actions
-      .getByRole('button', { name: 'Review Arbor & Vale LLC in obligation drawer' })
+      .getByRole('button', { name: 'Review Arbor & Vale LLC in deadline drawer' })
       .click()
 
     await expect(authenticatedPage).toHaveURL(/\/$/)
@@ -81,7 +81,7 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?sort=due_desc$/)
   })
 
-  test('AC: E2E-OBLIGATIONS-DETAIL opens the obligation drawer from a row click', async ({
+  test('AC: E2E-OBLIGATIONS-DETAIL opens the deadline drawer from a row click', async ({
     authenticatedPage,
     obligationQueuePage,
   }) => {
@@ -183,7 +183,7 @@ test.describe('seeded obligations', () => {
     const bulkActions = authenticatedPage.getByRole('region', { name: 'Bulk actions' })
 
     await bulkActions.getByRole('button', { name: 'Export' }).click()
-    let exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export obligations' })
+    let exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
     await exportDialog.getByRole('radio', { name: /CSV/ }).click()
     const [csvDownload] = await Promise.all([
       authenticatedPage.waitForEvent('download'),
@@ -192,7 +192,7 @@ test.describe('seeded obligations', () => {
     expect(csvDownload.suggestedFilename()).toMatch(/^obligations-\d{4}-\d{2}-\d{2}\.csv$/)
 
     await bulkActions.getByRole('button', { name: 'Export' }).click()
-    exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export obligations' })
+    exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
     await exportDialog.getByRole('radio', { name: /PDF report/ }).click()
     const [zipDownload] = await Promise.all([
       authenticatedPage.waitForEvent('download'),

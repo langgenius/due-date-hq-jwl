@@ -347,7 +347,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityProfile.historyCapCount <= MAX_HISTORY_CAP_COUNT
   const priorityDirty = !samePriorityProfile(priorityProfile, savedPriorityProfile)
   const previewDisabledReason =
-    firm.openObligationCount === 0 ? t`No open obligations available for preview.` : null
+    firm.openObligationCount === 0 ? t`No open deadlines available for preview.` : null
   const currentPlan =
     firm.plan === 'firm'
       ? t`Enterprise`
@@ -464,7 +464,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               <p className="text-xs leading-5 text-text-tertiary">
                 <Trans>
                   DueDateHQ shows work as due this many days before each statutory base deadline.
-                  Changing this recalculates current obligation deadlines.
+                  Changing this recalculates current deadline dates.
                 </Trans>
               </p>
             </div>
@@ -597,7 +597,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="text-xs text-text-tertiary">
-                  <Trans>Preview recalculates open obligations without saving changes.</Trans>
+                  <Trans>Preview recalculates open deadlines without saving changes.</Trans>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button
@@ -722,7 +722,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
   if (preview.rows.length === 0) {
     return (
       <div className="rounded-md border border-divider-subtle bg-background-section px-3 py-2 text-sm text-text-secondary">
-        <Trans>No open obligations available for preview.</Trans>
+        <Trans>No open deadlines available for preview.</Trans>
       </div>
     )
   }
@@ -736,7 +736,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
         <TableHeader>
           <TableRow>
             <TableHead>
-              <Trans>Obligation</Trans>
+              <Trans>Deadline</Trans>
             </TableHead>
             <TableHead>
               <Trans>Due</Trans>

@@ -436,7 +436,7 @@ function CandidateReviewForm({
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
             This rule is active for client filings in {rule.jurisdiction} for {entitySummary}, but
-            it still needs concrete due-date logic before it can create obligations.
+            it still needs concrete due-date logic before it can create deadlines.
           </Trans>
         ) : (
           <Trans>
@@ -686,7 +686,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
       {extensionPolicy.available ? (
         <div className="flex flex-col gap-2">
           <p className="text-base text-text-primary">
-            <Trans>An extension can be filed for this obligation.</Trans>
+            <Trans>An extension can be filed for this deadline.</Trans>
           </p>
           <div className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
             {extensionPolicy.formName ? (
@@ -730,7 +730,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
       ) : (
         <div className="flex flex-col gap-1.5">
           <p className="text-base text-text-primary">
-            <Trans>This obligation cannot be extended.</Trans>
+            <Trans>This deadline cannot be extended.</Trans>
           </p>
           {extensionPolicy.notes ? (
             <p className="text-xs text-text-tertiary">{extensionPolicy.notes}</p>

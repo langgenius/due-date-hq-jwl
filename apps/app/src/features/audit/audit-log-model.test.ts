@@ -340,7 +340,7 @@ describe('audit-log-model', () => {
       pulseAlert: 'Pulse alert',
       rule: 'Rule',
       ruleSource: 'Rule source',
-      obligationQueueExport: 'Obligations export',
+      obligationQueueExport: 'Deadlines export',
       obligationQueueSavedView: 'Saved obligation view',
       opportunity: 'Opportunity',
     } satisfies AuditEntityTypeLabels

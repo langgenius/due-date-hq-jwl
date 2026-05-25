@@ -30,7 +30,13 @@ import proseriesLogoUrl from './assets/source-logos/proseries.png?url'
 import quickbooksLogoUrl from './assets/source-logos/quickbooks.svg?url'
 import taxdomeLogoUrl from './assets/source-logos/taxdome.png?url'
 import ultrataxCsLogoUrl from './assets/source-logos/ultratax-cs.png?url'
-import { PRESET_IDS, TAX_SOFTWARE_PRESET_IDS, type IntakeState, type PresetId } from './state'
+import {
+  PRESET_IDS,
+  TAX_SOFTWARE_PRESET_IDS,
+  type IntakeState,
+  type PresetId,
+  type PresetSelectionSource,
+} from './state'
 import {
   prepareUploadFile,
   UnsupportedUploadError,
@@ -106,6 +112,27 @@ function hasDraggedFiles(event: DragEvent<HTMLElement>) {
   return Array.from(event.dataTransfer.types).includes('Files')
 }
 
+type PresetSelectionState = Pick<IntakeState, 'preset' | 'presetSource'>
+
+export function shouldApplyDetectedPreset(
+  intake: PresetSelectionState,
+  suggestedPreset: PresetId | null,
+): suggestedPreset is PresetId {
+  return suggestedPreset !== null && (intake.preset === null || intake.presetSource === 'detected')
+}
+
+export function shouldOfferDetectedPresetSwitch(
+  intake: PresetSelectionState,
+  suggestedPreset: PresetId | null,
+): suggestedPreset is PresetId {
+  return (
+    suggestedPreset !== null &&
+    intake.preset !== null &&
+    intake.presetSource === 'manual' &&
+    intake.preset !== suggestedPreset
+  )
+}
+
 interface Step1Props {
   density?: 'comfortable' | 'compact' | undefined
   intake: IntakeState
@@ -120,7 +147,7 @@ interface Step1Props {
       sourceManifest?: MigrationSourceManifest | null
     },
   ) => void
-  onPreset: (preset: PresetId | null) => void
+  onPreset: (preset: PresetId | null, source?: PresetSelectionSource) => void
   onParsed: (args: {
     rowCount: number
     truncated: boolean
@@ -149,9 +176,14 @@ export function Step1Intake({
   const fileReadSerialRef = useRef(0)
   const [isFileDragActive, setIsFileDragActive] = useState(false)
   const [isReadingFile, setIsReadingFile] = useState(false)
+  const [detectedPresetSuggestion, setDetectedPresetSuggestion] = useState<PresetId | null>(null)
   const compact = density === 'compact'
   const selectedPreset = intake.preset
   const selectedExportGuide = getPresetExportGuide(selectedPreset, i18n)
+  const selectedPresetLabel = selectedPreset ? PRESET_LABELS[selectedPreset] : ''
+  const detectedPresetSuggestionLabel = detectedPresetSuggestion
+    ? PRESET_LABELS[detectedPresetSuggestion]
+    : ''
 
   function resetParsedRows() {
     onParsed({ rowCount: 0, truncated: false, ssnBlockedColumnIndexes: [] })
@@ -209,6 +241,7 @@ export function Step1Intake({
   function handleTextChange(text: string) {
     fileReadSerialRef.current += 1
     setIsReadingFile(false)
+    setDetectedPresetSuggestion(null)
     commitText(text, null, {
       fileKind: 'paste',
       rawFileBase64: null,
@@ -299,7 +332,15 @@ export function Step1Intake({
     void prepareUploadFile(file)
       .then((prepared) => {
         if (!isCurrentFileRead(readSerial)) return
-        if (prepared.suggestedPreset && intake.preset === null) onPreset(prepared.suggestedPreset)
+        const suggestedPreset = prepared.suggestedPreset
+        if (shouldApplyDetectedPreset(intake, suggestedPreset)) {
+          onPreset(suggestedPreset, 'detected')
+          setDetectedPresetSuggestion(null)
+        } else if (shouldOfferDetectedPresetSwitch(intake, suggestedPreset)) {
+          setDetectedPresetSuggestion(suggestedPreset)
+        } else {
+          setDetectedPresetSuggestion(null)
+        }
         commitText(prepared.text, prepared.fileName, {
           fileKind: prepared.fileKind,
           rawFileBase64: prepared.rawFileBase64,
@@ -310,6 +351,7 @@ export function Step1Intake({
       })
       .catch((err) => {
         if (!isCurrentFileRead(readSerial)) return
+        setDetectedPresetSuggestion(null)
         resetParsedRows()
         if (err instanceof UnsupportedUploadError) {
           // 2026-05-25 (Wizard #40 — MessageDescriptor refactor):
@@ -327,6 +369,17 @@ export function Step1Intake({
       .finally(() => {
         if (isCurrentFileRead(readSerial)) setIsReadingFile(false)
       })
+  }
+
+  function handlePresetToggle(id: PresetId) {
+    setDetectedPresetSuggestion(null)
+    onPreset(intake.preset === id ? null : id, 'manual')
+  }
+
+  function switchToDetectedPreset() {
+    if (!detectedPresetSuggestion) return
+    onPreset(detectedPresetSuggestion, 'manual')
+    setDetectedPresetSuggestion(null)
   }
 
   function startFileRead(
@@ -491,7 +544,7 @@ export function Step1Intake({
               label={PRESET_LABELS[id]}
               selected={intake.preset === id}
               compact={compact}
-              onToggle={() => onPreset(intake.preset === id ? null : id)}
+              onToggle={() => handlePresetToggle(id)}
             />
           ))}
         </div>
@@ -530,7 +583,9 @@ export function Step1Intake({
           <AlertDescription>
             <Trans>
               We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
-              to the AI. Columns flagged: {ssnBlockedHeaders.join(', ')} → forced IGNORE.
+              to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping;
+              true SSN/ITIN values should stay ignored. Columns flagged:{' '}
+              {ssnBlockedHeaders.join(', ')} → AI default IGNORE.
             </Trans>
           </AlertDescription>
         </Alert>
@@ -550,6 +605,29 @@ export function Step1Intake({
             {sourceWarnings.length > 0 ? (
               <span>{sourceWarnings.map((warning) => warning.message).join(' ')}</span>
             ) : null}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {detectedPresetSuggestion && selectedPreset ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle>
+            <Trans>Preset mismatch</Trans>
+          </AlertTitle>
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              <Trans>
+                This file looks like {detectedPresetSuggestionLabel}. Current preset is{' '}
+                {selectedPresetLabel}.
+              </Trans>
+            </span>
+            <button
+              type="button"
+              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary transition hover:bg-background-subtle"
+              onClick={switchToDetectedPreset}
+            >
+              <Trans>Switch preset</Trans>
+            </button>
           </AlertDescription>
         </Alert>
       ) : null}

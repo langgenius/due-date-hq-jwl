@@ -40,3 +40,39 @@ prep, and unsupported-file guidance.
 - Full `pnpm --filter @duedatehq/contracts test -- src/contracts.test.ts` currently fails in the
   Pulse demo backend contract fixture because `PulseAlertPublicSchema` now requires
   `jurisdiction`. The migration-specific contract test passes.
+
+## Follow-up: Preset Source Tracking
+
+- Added `presetSource` to Step 1 intake state so preset choices are tracked as either `manual` or
+  `detected`.
+- Upload detection now auto-applies the detected preset only when no preset exists or when the
+  current preset was also auto-detected from a previous upload.
+- If the user manually selected a different preset, upload detection keeps the manual choice and
+  shows an inline switch prompt instead of silently overriding it.
+- Passed: `pnpm --filter @duedatehq/app test -- src/features/migration/Step1Intake.test.ts src/features/migration/state.test.ts`
+- Passed: `pnpm exec vp check apps/app/src/features/migration/Step1Intake.tsx apps/app/src/features/migration/Step1Intake.test.ts apps/app/src/features/migration/Wizard.tsx apps/app/src/features/migration/state.ts apps/app/src/features/migration/state.test.ts apps/app/src/i18n/locales/en/messages.po apps/app/src/i18n/locales/en/messages.ts apps/app/src/i18n/locales/zh-CN/messages.po`
+- Ran: `pnpm --filter @duedatehq/app i18n:extract`
+- Ran: `pnpm --filter @duedatehq/app exec lingui compile`
+- Still blocked: `pnpm --filter @duedatehq/app i18n:compile` fails because zh-CN has 92 existing
+  missing translations after extraction. The new preset-mismatch messages are translated.
+- Passed browser spot check: manually selected TaxDome, uploaded QuickBooks Online XLSX, saw the
+  preset mismatch prompt, confirmed TaxDome remained selected, clicked Switch preset, and confirmed
+  QuickBooks became selected.
+
+## Follow-up: D1 Commit Chunking
+
+- Fixed `migration.apply` failures where D1 rejected `client` insert chunks with `too many SQL
+variables`.
+- Root cause: `commitImport` assumed migration client rows bound 25 params, but Drizzle emits
+  nullable/default `client` columns too, so 4-row inserts bound 132 params and crossed D1's local
+  100-param ceiling.
+- Updated migration commit client chunks to 2 rows and added repo coverage that locks the
+  `5 clients -> [2, 2, 1]` split.
+
+## Follow-up: SSN/EIN Mapping Copy
+
+- Clarified the Step 1 SSN-like column warning: blocked columns are not sent to AI, but a flagged
+  column that is actually an EIN can be manually selected as EIN in Mapping.
+- Kept the safety boundary server-side: AI and preset output still force SSN/ITIN-like columns to
+  `IGNORE`; only a user-overridden `client.ein` mapping is allowed through, and imported values are
+  still validated by the strict EIN shape check.

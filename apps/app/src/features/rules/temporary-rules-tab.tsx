@@ -70,7 +70,7 @@ export function TemporaryRulesTab() {
         <p className="max-w-[520px] text-sm text-text-secondary">
           <Trans>
             Temporary rules appear here after an owner or manager applies a Pulse Change to matched
-            obligations.
+            deadlines.
           </Trans>
         </p>
       </SectionFrame>

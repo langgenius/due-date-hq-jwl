@@ -1021,7 +1021,7 @@ export function ClientFactsWorkspace({
           return (
             <span
               className="block text-right tabular-nums text-text-secondary"
-              title={t`${count} filed or closed-out obligations for this client`}
+              title={t`${count} filed or closed-out deadlines for this client`}
             >
               {count}
             </span>
@@ -2259,7 +2259,7 @@ export function ClientDetailWorkspace({
                     inside; TabSection owns the section heading. */}
                 <TabSection
                   title={t`Compliance posture`}
-                  summary={t`Identity facts that drive the obligation generator`}
+                  summary={t`Identity facts that drive the deadline generator`}
                 >
                   <ClientCompliancePosturePanel client={client} />
                 </TabSection>
@@ -2438,8 +2438,8 @@ export function ClientDetailWorkspace({
             <AlertDialogDescription>
               <Trans>
                 The client will be hidden from the active list and dashboards. All audit history,
-                filings, and obligations stay retained. You can restore from the archived view if
-                you change your mind.
+                filings, and deadlines stay retained. You can restore from the archived view if you
+                change your mind.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -4498,7 +4498,7 @@ function SuggestedFormsCatalogPanel({
             description={
               <Trans>
                 Every active rule the catalog matches to this client already has a generated
-                obligation.
+                deadline.
               </Trans>
             }
           />

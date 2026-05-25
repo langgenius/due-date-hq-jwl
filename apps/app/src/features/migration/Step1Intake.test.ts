@@ -4,7 +4,12 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { strToU8, zipSync } from 'fflate'
 
-import { normalizePastedRowsText, SOURCE_PRESET_IDS } from './Step1Intake'
+import {
+  normalizePastedRowsText,
+  shouldApplyDetectedPreset,
+  shouldOfferDetectedPresetSwitch,
+  SOURCE_PRESET_IDS,
+} from './Step1Intake'
 import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
@@ -40,6 +45,32 @@ describe('source preset chips', () => {
       'taxdome',
       'ultratax_cs',
     ])
+  })
+
+  it('auto-applies detected presets only when the user has not made a manual choice', () => {
+    expect(shouldApplyDetectedPreset({ preset: null, presetSource: null }, 'taxdome')).toBe(true)
+    expect(
+      shouldApplyDetectedPreset({ preset: 'taxdome', presetSource: 'detected' }, 'drake'),
+    ).toBe(true)
+    expect(shouldApplyDetectedPreset({ preset: 'taxdome', presetSource: 'manual' }, 'drake')).toBe(
+      false,
+    )
+    expect(shouldApplyDetectedPreset({ preset: null, presetSource: null }, null)).toBe(false)
+  })
+
+  it('offers a switch when a manual preset conflicts with a detected upload', () => {
+    expect(
+      shouldOfferDetectedPresetSwitch({ preset: 'taxdome', presetSource: 'manual' }, 'quickbooks'),
+    ).toBe(true)
+    expect(
+      shouldOfferDetectedPresetSwitch({ preset: 'taxdome', presetSource: 'manual' }, 'taxdome'),
+    ).toBe(false)
+    expect(
+      shouldOfferDetectedPresetSwitch(
+        { preset: 'taxdome', presetSource: 'detected' },
+        'quickbooks',
+      ),
+    ).toBe(false)
   })
 })
 

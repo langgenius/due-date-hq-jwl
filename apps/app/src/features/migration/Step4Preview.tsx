@@ -43,8 +43,8 @@ export function Step4Preview({ summary }: Step4Props) {
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural
             value={obligationCount}
-            one="# obligation (full tax year)"
-            other="# obligations (full tax year)"
+            one="# deadline (full tax year)"
+            other="# deadlines (full tax year)"
           />
         </li>
         {skipped > 0 ? (

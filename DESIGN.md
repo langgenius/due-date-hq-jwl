@@ -733,13 +733,13 @@ Modals interrupt for input only (T7). The bar for triggering one is **damage tha
 **Confirm modal REQUIRED on:**
 
 1. Batch-adjust deadlines from a Pulse alert — preview the date diff before applying.
-2. Archive client — show active-obligation count; warn if > 0.
+2. Archive client — show active-deadline count; warn if > 0.
 3. CSV / XLSX import commit (final wizard step) — preview row counts.
 4. Remove team member — show how many client assignments revert to Owner.
 5. Dismiss / hide a Pulse alert that affects > 0 clients — explicit opt-in text.
-6. Remove a filing-jurisdiction from a client — list the pending obligations that will be removed.
+6. Remove a filing-jurisdiction from a client — list the pending deadlines that will be removed.
 7. Send batch reminder email — preview recipient list + editable body before send.
-8. Undo import (within the 7-day window) — show the N clients / M obligations that get wiped.
+8. Undo import (within the 7-day window) — show the N clients / M deadlines that get wiped.
 
 **No modal on** (reversible + activity-logged): Mark complete · Mark in progress · Mark waiting · Add note · Edit note · Toggle filters · Toggle view modes · Snooze (own affordance).
 
@@ -839,7 +839,7 @@ The dashboard has one rhythm rule: spacing doubles between scopes (4 → 8 → 1
 
 1. **Page header** (date / route name inline, single line)
 2. **Pulse alerts** — a single grouped section. Header `<h2>` plus, when sources are unhealthy, a "_N_ source needs attention" warning row that lives **inside** the section (tight gap) so it never reads as an orphan banner above the cards. Source labels are shown as inline chips. The warning's primary action is **Review** (filled button); **Hide** is a ghost button — Review is the desired path, Hide is the lesser one.
-3. **This week's exposure** — KPI mini-tiles (number on top, label below). Sans-serif tabular numerals at `text-2xl semibold`. Each tile is a deep-link into the matching Obligations filter.
+3. **This week's exposure** — KPI mini-tiles (number on top, label below). Sans-serif tabular numerals at `text-2xl semibold`. Each tile is a deep-link into the matching Deadlines filter.
 4. **Actions this week** — the daily action queue.
 
 That is the dashboard. There is no fifth section. Every section auto-hides at zero rather than rendering an "empty state" with chrome.
@@ -858,7 +858,7 @@ The row carries five signals, in this scan order:
 - **Client name** at `text-base font-medium`; task prompt below at `text-sm text-text-secondary`.
 - **Chevron** rotates 180° when expanded.
 
-Click expands a small detail panel inline: status sentence, form, attached sources, penalty rule, plus a primary "Open in Obligations" link. Click-to-expand (not hover) — hover-expanding a long list causes layout jitter and is fragile on trackpads.
+Click expands a small detail panel inline: status sentence, form, attached sources, penalty rule, plus a primary "Open in Deadlines" link. Click-to-expand (not hover) — hover-expanding a long list causes layout jitter and is fragile on trackpads.
 
 ## Information hierarchy — failure modes
 
@@ -888,10 +888,10 @@ DueDateHQ is **desktop-first**. A CPA does focused work on a 13"+ screen; mobile
 ### Page content widths
 
 - **Dashboard** caps at `max-w-[1100px]` (focused reading width).
-- **Obligations / other workbench tables** widen to `max-w-screen-2xl` so wide tables don't clip.
+- **Deadlines / other workbench tables** widen to `max-w-screen-2xl` so wide tables don't clip.
 - **Settings forms** cap at ~880px.
 - **Settings data surfaces** (Members / Billing) use ~1180px workbench width.
-- **Drawers** default 400px; workflow drawers (obligation triage, batch review) scale to 880px max.
+- **Drawers** default 400px; workflow drawers (deadline triage, batch review) scale to 880px max.
 - **Modals** cap at `max-w-md` (~448px) for confirms, `max-w-lg` (~512px) for forms, 640px for the rare wide-form case.
 
 ### Touch targets
@@ -1082,7 +1082,7 @@ Some KPI tiles double as filter affordances on their page (Clients tiles filter 
 
 When two surfaces present the same concept, the click target on the secondary surface **navigates to the primary surface** — it does NOT open a duplicate drawer/modal showing the same content.
 
-- **Obligation detail.** Obligation drawer is the primary surface (right-side sheet). Every click target on a secondary surface (dashboard action row, calendar cell, client workspace row) navigates to a URL that opens the same drawer, not a duplicate inline view.
+- **Deadline detail.** Deadline drawer is the primary surface (right-side sheet). Every click target on a secondary surface (dashboard action row, calendar cell, client workspace row) navigates to a URL that opens the same drawer, not a duplicate inline view.
 - **Client detail.** `/clients/<id>` is the single drilldown. No duplicate drawers, no inline expansions that recreate the page.
 - **Pulse alert.** Pulse drawer is the primary surface. Dashboard cards click into the same drawer.
 - **Rule detail.** Coverage's inline rule panel is the canonical surface. Library row click navigates to `/rules/coverage?rule=…`, not a duplicate drawer.
@@ -1100,9 +1100,9 @@ Any change that **adds, removes, or replaces multiple records on commit** opens 
 ```
 Changing entity from LLC → S-Corp
 
-−  Removes  3 pending obligations (LLC-specific forms)
-+  Adds     5 new obligations (S-Corp forms)
-✓  Keeps    2 overlapping obligations (federal)
+−  Removes  3 pending deadlines (LLC-specific forms)
++  Adds     5 new deadlines (S-Corp forms)
+✓  Keeps    2 overlapping deadlines (federal)
 
 [Cancel]   [Apply changes]
 ```
@@ -1115,13 +1115,13 @@ Changing entity from LLC → S-Corp
 
 Exports are decisions across three orthogonal axes. The modal renders one axis per row, radio groups inside each (no multi-select within an axis — one choice per axis).
 
-| Axis          | Choices                                                                                                                                 |
-| :------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| **What**      | Current filtered view · All active obligations · Specific date range (date picker) · Specific client (when launched from a client page) |
-| **Format**    | PDF (firm-branded client-facing report) · CSV (raw data, portability guarantee) · iCal `.ics` (subscription URL for calendar apps)      |
-| **Recipient** | Download (default) · Email to self · Email to teammate (paid tiers only)                                                                |
+| Axis          | Choices                                                                                                                               |
+| :------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
+| **What**      | Current filtered view · All active deadlines · Specific date range (date picker) · Specific client (when launched from a client page) |
+| **Format**    | PDF (firm-branded client-facing report) · CSV (raw data, portability guarantee) · iCal `.ics` (subscription URL for calendar apps)    |
+| **Recipient** | Download (default) · Email to self · Email to teammate (paid tiers only)                                                              |
 
-**Trigger locations:** any `Export` button across the product points to the same modal — Obligations page header, Client detail's overflow menu, Pulse alert detail's affected-client list, Calendar / Audit log header. Same modal everywhere keeps the user's mental model intact (one entrance, one name).
+**Trigger locations:** any `Export` button across the product points to the same modal — Deadlines page header, Client detail's overflow menu, Pulse alert detail's affected-client list, Calendar / Audit log header. Same modal everywhere keeps the user's mental model intact (one entrance, one name).
 
 **No additional axes.** No "include archived?" checkbox, no "anonymize names?" toggle — options-creep. If a future case demands a fourth axis, it earns its own dialog with its own load-bearing rationale.
 
@@ -1151,7 +1151,7 @@ DueDateHQ writes for working CPAs. Copy must be plain, precise, and quiet — a 
 - **Calm and direct.** State what is, what happened, or what to do. No exclamations, no hype, no encouragement copy.
 - **Active over passive.** "Reverted import" beats "Import was reverted." Toast titles and audit-feed entries always lead with a verb.
 - **Contractions in errors and toasts.** "Couldn't save changes" not "Could not save changes." Reserve the formal "Could not / Cannot" for legal, security, and billing surfaces where formality signals weight.
-- **CPA register, not engineer register.** Prefer the professional word a CPA would use to a partner ("filing", "obligation", "jurisdiction") over the internal data-model word ("record", "row", "entity"). Never expose vendor names (Resend, Stripe, Cloudflare) or internal state codes (`pending_review`, `quarantined`) in user-facing copy — translate them first.
+- **CPA register, not engineer register.** Prefer the professional word a CPA would use to a partner ("filing", "deadline", "jurisdiction") over the internal data-model word ("record", "row", "entity"). Never expose vendor names (Resend, Stripe, Cloudflare) or internal state codes (`pending_review`, `quarantined`) in user-facing copy — translate them first.
 - **One thought per string.** If you need two sentences, the second is doing different work (an instruction after a fact). Otherwise cut.
 
 ### Mechanical rules
@@ -1183,7 +1183,7 @@ These are decisions, not suggestions. If you need a new term, add it here before
 | The US state where a client files                                | **state** (when scope is 50 states) / **jurisdiction** (when federal, DC, or counties are also included) | filing state + jurisdiction in the same sentence         |
 | A regulatory change detected from a source                       | **Pulse change** (internal-facing) / **incoming change** (user-facing labels)                            | alert, signal, notification                              |
 | Status awaiting human review                                     | **Needs review** (long label) · `Pending` (short chip)                                                   | Pending review, Awaiting review                          |
-| The end-product work item the practice must complete             | **obligation** (nav, titles, formal copy) / **deadline** (body, onboarding, friendly copy)               | task, item, deadline + obligation in the same context    |
+| The end-product work item the practice must complete             | **deadline** (all user-facing surfaces) / `obligation` (internal data model only)                        | task, item, obligation in visible copy                   |
 | A practice member you're adding                                  | **member** (verb: **invite**)                                                                            | teammate, colleague, seat                                |
 | Time-limited rule override applied from a Pulse change           | **active override** / **relief** (IRS register)                                                          | temporary rule, exception (in nav)                       |
 

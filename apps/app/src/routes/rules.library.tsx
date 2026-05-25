@@ -974,7 +974,7 @@ export function RulesLibraryRoute() {
   return (
     <RulesPageShell
       title={t`Rule library`}
-      description={t`Every filing obligation the practice tracks. Review pending rules, fill missing coverage, and add new ones.`}
+      description={t`Every filing deadline the practice tracks. Review pending rules, fill missing coverage, and add new ones.`}
       actions={headerActions}
     >
       <div className="flex flex-col gap-4">

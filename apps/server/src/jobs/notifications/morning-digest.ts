@@ -269,7 +269,7 @@ async function buildDigestPayload(
     ),
     '',
     firmWide
-      ? `Unassigned deadline pressure: ${unassignedCount} open obligations due within 7 days`
+      ? `Unassigned deadline pressure: ${unassignedCount} open deadlines due within 7 days`
       : 'Unassigned deadline pressure is shown to owners and managers.',
     '',
     `Manage notifications: ${env.APP_URL}/notifications`,

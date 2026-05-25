@@ -37,7 +37,7 @@ export const routeSummaries = {
   rulesPulse: { eyebrow: msg`Operations`, title: msg`Pulse` },
   rulesPulseHistory: { eyebrow: msg`Operations`, title: msg`Alerts archive` },
   rulesTemporary: { eyebrow: msg`Rules`, title: msg`Temporary rules` },
-  rulesPreview: { eyebrow: msg`Rules`, title: msg`Obligation preview` },
+  rulesPreview: { eyebrow: msg`Rules`, title: msg`Deadline preview` },
   billing: { eyebrow: msg`Practice`, title: msg`Billing` },
   billingCheckout: { eyebrow: msg`Billing`, title: msg`Checkout` },
   accountSecurity: { eyebrow: msg`Account`, title: msg`Security` },

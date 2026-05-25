@@ -174,7 +174,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         icon: HourglassIcon,
         onSelect: () => navigate('/rules/temporary'),
       },
-      // Obligation preview (/rules/preview) is intentionally not listed
+      // Deadline preview (/rules/preview) is intentionally not listed
       // in the Command Palette navigate group. See app-shell-nav.tsx for
       // the rationale — it's a sandbox, not a day-to-day surface. The
       // route stays accessible by direct URL.

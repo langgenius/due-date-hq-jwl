@@ -33,6 +33,30 @@ describe('migration wizard state', () => {
     ).toBe(true)
   })
 
+  it('tracks whether a preset was manually selected or detected from upload', () => {
+    const manual = wizardReducer(INITIAL_STATE, {
+      type: 'INTAKE_PRESET',
+      preset: 'taxdome',
+    })
+    expect(manual.intake.preset).toBe('taxdome')
+    expect(manual.intake.presetSource).toBe('manual')
+
+    const detected = wizardReducer(INITIAL_STATE, {
+      type: 'INTAKE_PRESET',
+      preset: 'quickbooks',
+      source: 'detected',
+    })
+    expect(detected.intake.preset).toBe('quickbooks')
+    expect(detected.intake.presetSource).toBe('detected')
+
+    const cleared = wizardReducer(detected, {
+      type: 'INTAKE_PRESET',
+      preset: null,
+    })
+    expect(cleared.intake.preset).toBeNull()
+    expect(cleared.intake.presetSource).toBeNull()
+  })
+
   it('requires discard confirmation after the wizard advances or produces results', () => {
     expect(
       hasDiscardableWizardWork(

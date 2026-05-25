@@ -135,7 +135,7 @@ export function WorkloadPage() {
           </CardTitle>
           <CardDescription>
             <Trans>
-              Aggregated from open obligations and client owner labels. Open any row in Deadlines to
+              Aggregated from open deadlines and client owner labels. Open any row in Deadlines to
               triage the underlying deadlines.
             </Trans>
           </CardDescription>
@@ -160,7 +160,7 @@ export function WorkloadPage() {
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
             <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>No open obligations match the workload window.</Trans>
+              <Trans>No open deadlines match the workload window.</Trans>
             </div>
           )}
         </CardContent>

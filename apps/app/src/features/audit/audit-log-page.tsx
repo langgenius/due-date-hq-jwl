@@ -94,7 +94,7 @@ function useAuditCategoryLabels(): Record<AuditCategoryOption, string> {
   return {
     all: t`All categories`,
     client: t`Client`,
-    obligation: t`Obligation`,
+    obligation: t`Deadline`,
     migration: t`Migration`,
     rules: t`Rules`,
     auth: t`Auth`,
@@ -751,7 +751,7 @@ export function AuditLogPage() {
                   <Trans>Reset filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
-                    Obligation status updates and client imports will appear here when they write
+                    Deadline status updates and client imports will appear here when they write
                     audit rows.
                   </Trans>
                 )}

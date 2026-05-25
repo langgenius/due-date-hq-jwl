@@ -165,8 +165,8 @@ function MigrationActivationIntro({
                 <span>
                   <Plural
                     value={ruleReviewCount}
-                    one="# rule is queued for due-date review before it can become active and create client obligations."
-                    other="# rules are queued for due-date review before they can become active and create client obligations."
+                    one="# rule is queued for due-date review before it can become active and create client deadlines."
+                    other="# rules are queued for due-date review before they can become active and create client deadlines."
                   />
                 </span>
                 {showRuleReviewAction ? (

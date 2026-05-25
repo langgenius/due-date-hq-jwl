@@ -253,7 +253,7 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
           </ul>
           <p className="text-xs text-text-tertiary">
             <Trans>
-              These flags drive what obligations get generated for this client. Active flags need a
+              These flags drive what deadlines get generated for this client. Active flags need a
               maintainer's edit flow — see the audit doc for follow-up.
             </Trans>
           </p>

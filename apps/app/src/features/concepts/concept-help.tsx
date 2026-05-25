@@ -89,7 +89,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'obligation':
       return {
-        title: t`Obligation`,
+        title: t`Deadline`,
         description: t`A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task.`,
       }
     case 'evidence':
@@ -130,12 +130,12 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'obligations':
       return {
         title: t`Deadlines`,
-        description: t`The operating surface for obligation work: filter, sort, assign owners, update status, and open evidence for each obligation.`,
+        description: t`The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline.`,
       }
     case 'triageQueue':
       return {
-        title: t`Top obligations by risk`,
-        description: t`The highest-risk open obligations for the chosen window — work these first.`,
+        title: t`Top deadlines by risk`,
+        description: t`The highest-risk open deadlines for the chosen window — work these first.`,
       }
     case 'aiWeeklyBrief':
       return {
@@ -154,13 +154,13 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'obligationPreview':
       return {
-        title: t`Obligation Preview`,
-        description: t`A dry run that shows which obligations rules would create for a client before anything is written to the deadline list.`,
+        title: t`Deadline Preview`,
+        description: t`A dry run that shows which deadline rules would create for a client before anything is written to the deadline list.`,
       }
     case 'reminderReady':
       return {
         title: t`Reminder-ready`,
-        description: t`This obligation comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule.`,
+        description: t`This deadline comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule.`,
       }
     case 'requiresReview':
       return {

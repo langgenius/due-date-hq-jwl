@@ -15,7 +15,7 @@ export class ObligationQueuePage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
-    this.searchInput = page.getByLabel('Search obligations')
+    this.searchInput = page.getByLabel('Search deadlines')
     this.resetButton = page.getByRole('button', { name: 'Reset' })
     this.dueSortButton = page.getByRole('button', { name: 'Sort Due' })
     this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })
@@ -69,8 +69,8 @@ export class ObligationQueuePage {
     return this.page
       .getByRole('row', { name: new RegExp(escapedName) })
       .or(this.page.getByRole('button', { name: new RegExp(`^Select ${escapedName}\\b`) }))
-      .or(this.page.getByRole('button', { name: new RegExp(`Obligation detail: ${escapedName}`) }))
-      .or(this.page.getByRole('button', { name: new RegExp(`Open obligations: ${escapedName}`) }))
+      .or(this.page.getByRole('button', { name: new RegExp(`Deadline detail: ${escapedName}`) }))
+      .or(this.page.getByRole('button', { name: new RegExp(`Open deadlines: ${escapedName}`) }))
   }
 
   async openDetailFor(clientName: string) {

@@ -107,7 +107,7 @@ export function buildClientOpportunities(input: {
       timing: 'next_quarter',
       severity: openObligations.length >= 6 || jurisdictionCount >= 3 ? 'high' : 'medium',
       evidence: [
-        { label: 'Open obligations', value: String(openObligations.length) },
+        { label: 'Open deadlines', value: String(openObligations.length) },
         { label: 'Jurisdictions', value: String(jurisdictionCount) },
       ],
       primaryAction: baseAction(client.id),
@@ -150,10 +150,10 @@ export function buildClientOpportunities(input: {
 // the row's prose matches the evidence below it.
 function retentionCheckInSummary(waitingCount: number, lateFilingCount: number): string {
   if (waitingCount >= 3) {
-    return `${waitingCount} obligations are currently waiting on this client — a partner-level conversation will move things forward faster than another nudge.`
+    return `${waitingCount} deadlines are currently waiting on this client — a partner-level conversation will move things forward faster than another nudge.`
   }
   if (waitingCount >= 2) {
-    return `${waitingCount} obligations are waiting on this client. Worth a check-in before the next cycle to surface what's blocking them.`
+    return `${waitingCount} deadlines are waiting on this client. Worth a check-in before the next cycle to surface what's blocking them.`
   }
   if (lateFilingCount >= 3) {
     return `${lateFilingCount} late filings in the last 12 months. A scope or service conversation is more useful than another reminder.`
@@ -164,19 +164,19 @@ function retentionCheckInSummary(waitingCount: number, lateFilingCount: number):
 
 function scopeReviewSummary(openObligationCount: number, jurisdictionCount: number): string {
   if (openObligationCount >= 6 && jurisdictionCount >= 3) {
-    return `${openObligationCount} open obligations across ${jurisdictionCount} jurisdictions. A scope, staffing, or service-package review is worth scheduling.`
+    return `${openObligationCount} open deadlines across ${jurisdictionCount} jurisdictions. A scope, staffing, or service-package review is worth scheduling.`
   }
   if (jurisdictionCount >= 3) {
     return `Workload spans ${jurisdictionCount} jurisdictions. A scope review is the right conversation before renewal — not a pricing benchmark.`
   }
   if (openObligationCount >= 6) {
-    return `${openObligationCount} open obligations on this client. Scope, staffing, or service-package review is the next conversation.`
+    return `${openObligationCount} open deadlines on this client. Scope, staffing, or service-package review is the next conversation.`
   }
   // openObligationCount >= 4 or jurisdictionCount >= 2 by trigger
   if (jurisdictionCount >= 2) {
-    return `Workload spans ${jurisdictionCount} jurisdictions and ${openObligationCount} open obligations. Worth a scope check before renewal.`
+    return `Workload spans ${jurisdictionCount} jurisdictions and ${openObligationCount} open deadlines. Worth a scope check before renewal.`
   }
-  return `${openObligationCount} open obligations on this client. Worth a scope check before renewal.`
+  return `${openObligationCount} open deadlines on this client. Worth a scope check before renewal.`
 }
 
 // `ADVISORY_GUARDRAIL_TAIL` is appended to every advisory_conversation

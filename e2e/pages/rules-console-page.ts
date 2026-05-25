@@ -22,7 +22,7 @@ export class RulesConsolePage {
   }
 
   async gotoPreview() {
-    // Obligation preview is intentionally not surfaced in the sidebar — it's
+    // Deadline preview is intentionally not surfaced in the sidebar — it's
     // a sandbox, not a day-to-day surface. Navigate to it directly via URL.
     await this.page.goto('/rules/preview')
   }

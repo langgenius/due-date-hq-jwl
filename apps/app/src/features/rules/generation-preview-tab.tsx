@@ -122,15 +122,13 @@ export function GenerationPreviewTab() {
     null
 
   if (clients.length === 0) {
-    return (
-      <RulesPreviewEmptyState message={t`Create a client before running obligation preview.`} />
-    )
+    return <RulesPreviewEmptyState message={t`Create a client before running deadline preview.`} />
   }
 
   if (!activeClient) {
     return (
       <RulesPreviewEmptyState
-        message={t`Add a state to at least one client before running obligation preview.`}
+        message={t`Add a state to at least one client before running deadline preview.`}
       />
     )
   }
@@ -215,7 +213,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setPreviewInput(currentInput)
         toast.success(t`Annual rollover generated`, {
-          description: t`${result.summary.createdCount} obligations created.`,
+          description: t`${result.summary.createdCount} deadlines created.`,
         })
       },
       onError: (error) => {
@@ -263,8 +261,8 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
             </div>
             <p className="mt-1 text-xs text-text-secondary">
               <Trans>
-                Preview closed source-year obligations, then create next-year obligations from
-                active practice rules.
+                Preview closed source-year deadlines, then create next-year deadlines from active
+                practice rules.
               </Trans>
             </p>
           </div>
@@ -275,7 +273,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
               size="sm"
               render={<Link to={obligationQueueHref(createdIds[0]!)} />}
             >
-              <Trans>Open first created obligation</Trans>
+              <Trans>Open first created deadline</Trans>
             </Button>
           ) : null}
         </div>
@@ -588,7 +586,7 @@ function GenerationPreviewForm({
             </div>
             <span className="text-xs text-text-tertiary">
               {taxTypeSource === 'obligations' ? (
-                <Trans>Tax types from existing obligations.</Trans>
+                <Trans>Tax types from existing deadlines.</Trans>
               ) : (
                 <Trans>Tax types inferred from suggestions.</Trans>
               )}
@@ -598,9 +596,9 @@ function GenerationPreviewForm({
       </SectionFrame>
 
       {previewQuery.isLoading ? (
-        <QueryPanelState state="loading" message={t`Loading obligation preview…`} />
+        <QueryPanelState state="loading" message={t`Loading deadline preview…`} />
       ) : previewQuery.isError ? (
-        <QueryPanelState state="error" message={t`Couldn't run obligation preview`} />
+        <QueryPanelState state="error" message={t`Couldn't run deadline preview`} />
       ) : (
         <PreviewResultsCard
           reminderReady={groups.reminderReady}
@@ -629,27 +627,27 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         <RolloverMetric
           label={t`Source deadlines`}
           value={result.summary.seedObligationCount}
-          description={t`Closed source-year obligations eligible for rollover. Only done, paid, and extended rows count as source deadlines.`}
+          description={t`Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines.`}
         />
         <RolloverMetric
           label={t`Clients`}
           value={result.summary.clientCount}
-          description={t`Unique clients represented by the source-year obligations in this preview.`}
+          description={t`Unique clients represented by the source-year deadlines in this preview.`}
         />
         <RolloverMetric
           label={t`Will create`}
           value={result.summary.willCreateCount}
-          description={t`Rows that will create pending obligations because an active target-year practice rule produced a concrete due date.`}
+          description={t`Rows that will create pending deadlines because an active target-year practice rule produced a concrete due date.`}
         />
         <RolloverMetric
           label={t`Review`}
           value={result.summary.reviewCount}
-          description={t`Rows that will create review obligations because the active practice rule requires CPA confirmation.`}
+          description={t`Rows that will create review deadlines because the active practice rule requires CPA confirmation.`}
         />
         <RolloverMetric
           label={t`Duplicates`}
           value={result.summary.duplicateCount}
-          description={t`Rows skipped because the target client, rule, tax year, and period already have an obligation.`}
+          description={t`Rows skipped because the target client, rule, tax year, and period already have a deadline.`}
         />
         <RolloverMetric
           label={t`Skipped`}
@@ -670,11 +668,11 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           />
           <RolloverColumnHeader
             label={t`Client`}
-            description={t`The client whose closed source-year obligation is being considered for next-year generation.`}
+            description={t`The client whose closed source-year deadline is being considered for next-year generation.`}
           />
           <RolloverColumnHeader
             label={t`Tax type`}
-            description={t`The tax form or obligation type carried forward from the source-year seed obligation.`}
+            description={t`The tax form or deadline type carried forward from the source-year seed deadline.`}
           />
           <RolloverColumnHeader
             label={t`Due date`}
@@ -696,7 +694,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         </div>
         {result.rows.length === 0 ? (
           <div className="px-3 py-4 text-sm text-text-secondary">
-            <Trans>No closed source-year obligations matched this rollover preview.</Trans>
+            <Trans>No closed source-year deadlines matched this rollover preview.</Trans>
           </div>
         ) : (
           result.rows.map((row, index) => {
@@ -898,7 +896,7 @@ function skippedReasonLabel(reason: string | null, t: ReturnType<typeof useLingu
   if (reason === 'client_state_missing') return t`Client state missing`
   if (reason === 'client_not_found') return t`Client not found`
   if (reason === 'no_verified_rule_for_target_year') return t`No active target-year rule`
-  if (reason === 'target_obligation_already_exists') return t`Target obligation already exists`
+  if (reason === 'target_obligation_already_exists') return t`Target deadline already exists`
   if (reason === 'verified_rule_has_no_concrete_due_date') return t`No concrete due date`
   return reason ?? t`No rule matched`
 }
@@ -1079,7 +1077,7 @@ function PreviewResultsCard({
         tone="success"
         label={
           <ConceptLabel concept="reminderReady">
-            {t`REMINDER READY — ${reminderReady.length} obligation, will fire 30 / 7 / 1-day reminders`}
+            {t`REMINDER READY — ${reminderReady.length} deadline, will fire 30 / 7 / 1-day reminders`}
           </ConceptLabel>
         }
       />

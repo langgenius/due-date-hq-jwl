@@ -35,7 +35,7 @@ function BlockedByChip({
   const label = parentLabel?.trim() ? parentLabel : t`#${parentObligationId.slice(0, 8)}`
   const title = parentLabel
     ? t`Blocked by ${label} — click to open.`
-    : t`Open the upstream obligation that's blocking this row.`
+    : t`Open the upstream deadline that's blocking this row.`
   // 2026-05-25 (Yuqi Deadlines #4): chip palette shifted from full-
   // amber to neutral chip + red-icon. Yuqi's call: "这个不能就 icon
   // 是红色，字体是 secondary，背景是浅灰色背景吗" — let the icon

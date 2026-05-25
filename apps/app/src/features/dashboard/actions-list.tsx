@@ -611,11 +611,7 @@ function DashboardActionsList({
               className="px-0 align-baseline"
               onClick={onOpenAllObligations}
             >
-              <Plural
-                value={totalOpen}
-                one="View # open obligation"
-                other="View # open obligations"
-              />
+              <Plural value={totalOpen} one="View # open deadline" other="View # open deadlines" />
               <ArrowUpRightIcon data-icon="inline-end" />
             </Button>
           </p>

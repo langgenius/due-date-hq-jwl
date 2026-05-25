@@ -35,8 +35,10 @@ const MAPPING_BATCH_SIZE = Math.floor(100 / MAPPING_COLS) // = 11
 const NORM_BATCH_SIZE = Math.floor(100 / 10)
 // migration_error has 7 columns → 14/batch.
 const ERROR_BATCH_SIZE = Math.floor(100 / 7) // = 14
-// migration commit client rows bind 25 values -> 4/batch.
-const CLIENT_BATCH_SIZE = Math.floor(100 / 25)
+// Drizzle binds omitted nullable/default client columns as null/default expressions,
+// so migration commit client rows currently bind 33 params. Keep this aligned
+// with packages/db/src/repo/clients.ts and below D1's 100-param ceiling.
+const CLIENT_BATCH_SIZE = Math.floor(100 / 36)
 // client_filing_profile has 12 columns -> 8/batch.
 const FILING_PROFILE_BATCH_SIZE = Math.floor(100 / 12)
 // obligation_instance commit rows bind 37 columns -> 2/batch.

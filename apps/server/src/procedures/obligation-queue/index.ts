@@ -494,7 +494,7 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
   const page = pdf.addPage([612, 792])
   const font = await pdf.embedFont(StandardFonts.Helvetica)
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold)
-  page.drawText('DueDateHQ Obligations Export', { x: 72, y: 720, font: bold, size: 16 })
+  page.drawText('DueDateHQ Deadlines Export', { x: 72, y: 720, font: bold, size: 16 })
   page.drawText(clientName, { x: 72, y: 692, font: bold, size: 12 })
   const lines = rows.slice(0, 24).map((row) => {
     const accrued =
@@ -563,7 +563,7 @@ function rowsToIcs(rows: ObligationQueueRow[], timestamp: Date): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//DueDateHQ//Obligations Export//EN',
+    'PRODID:-//DueDateHQ//Deadlines Export//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
   ]
@@ -610,7 +610,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
   const rawRow = rows[0]
   if (!rawRow) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const row = toRow(rawRow, { hideDollars, hideSmartPriorityFactors })
@@ -730,7 +730,7 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
     })
     if (rawRows.length !== selectedIds.length) {
       throw new ORPCError('NOT_FOUND', {
-        message: 'One or more selected obligations were not found in the current firm.',
+        message: 'One or more selected deadlines were not found in the current firm.',
       })
     }
   } else {
@@ -748,7 +748,7 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
   }
   if (rawRows.length === 0) {
     throw new ORPCError('BAD_REQUEST', {
-      message: 'No obligations matched this export.',
+      message: 'No deadlines matched this export.',
     })
   }
   const rows = rawRows.map((row) => toRow(row, { hideDollars, hideSmartPriorityFactors }))

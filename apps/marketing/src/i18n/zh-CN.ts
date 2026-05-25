@@ -583,7 +583,7 @@ const zhCN: LandingCopy = {
           '1 个生产 practice',
           '包含 3 个席位',
           '共享截止日运营',
-          'Pulse 与 Obligations 访问权限',
+          'Pulse 与 Deadlines 访问权限',
         ],
       },
       {
@@ -645,7 +645,7 @@ const zhCN: LandingCopy = {
       {
         question: 'Pro 比 Solo 多什么？',
         answer:
-          'Pro 增加 3 席共享工作区、Pulse 监控和小型 practice 管理截止日运营所需的 Obligations 视图。',
+          'Pro 增加 3 席共享工作区、Pulse 监控和小型 practice 管理截止日运营所需的 Deadlines 视图。',
       },
       {
         question: '什么时候选择 Team？',
@@ -738,14 +738,14 @@ const zhCN: LandingCopy = {
             '只有当规则保留官方来源上下文和复核状态时才值得信任。DueDateHQ 可以让 AI 辅助总结或分类，但来源和复核决定才是信任边界。',
         },
         {
-          question: '规则影响 Obligations 或 Dashboard 分诊前会发生什么？',
+          question: '规则影响 Deadlines 或 Dashboard 分诊前会发生什么？',
           answer:
             '规则需要来源证据、归一化的申报上下文和复核状态，之后才可能生成或更新截止日工作。产品不会根据没有支撑的信号静默改变客户工作。',
         },
         {
           question: 'DueDateHQ 如何把规则变化连接到正确客户？',
           answer:
-            '它使用事务所的客户 filing profile、辖区、税种和义务记录，把已复核变化路由到可能受影响客户的 Pulse、Obligations 和分诊工作流。',
+            '它使用事务所的客户 filing profile、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的 Pulse、Deadlines 和分诊工作流。',
         },
       ],
       cta: {
@@ -830,7 +830,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营交接',
-            body: '相关变更复核后，可以出现在 dashboard、Obligations 和邮件工作流中。',
+            body: '相关变更复核后，可以出现在 dashboard、Deadlines 和邮件工作流中。',
           },
         ],
       },
@@ -899,7 +899,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营路由',
-            body: '当事务所数据提示可能受影响时，已复核信号可以出现在 dashboard 或 Obligations 动作中。',
+            body: '当事务所数据提示可能受影响时，已复核信号可以出现在 dashboard 或 Deadlines 动作中。',
           },
         ],
         limitations: [
@@ -916,7 +916,7 @@ const zhCN: LandingCopy = {
           {
             question: 'California 更新如何变成运营工作？',
             answer:
-              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响 dashboard 或 Obligations 工作前需要先复核。',
+              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响 dashboard 或 Deadlines 工作前需要先复核。',
           },
         ],
       },
@@ -1022,7 +1022,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '复核交接',
-            body: '已复核信号可以成为 CPA 团队管理受影响客户的 Obligations 动作。',
+            body: '已复核信号可以成为 CPA 团队管理受影响客户的 Deadlines 动作。',
           },
         ],
         limitations: [
@@ -1039,7 +1039,7 @@ const zhCN: LandingCopy = {
           {
             question: 'Texas 来源信号复核后会发生什么？',
             answer:
-              '已复核信号可以成为受影响客户的 Obligations 动作或分诊上下文；申报决策仍属于 CPA 事务所。',
+              '已复核信号可以成为受影响客户的 Deadlines 动作或分诊上下文；申报决策仍属于 CPA 事务所。',
           },
         ],
       },
@@ -1138,7 +1138,7 @@ const zhCN: LandingCopy = {
         coveredSignals: [
           {
             title: '截止日运营',
-            body: '信号在成为 dashboard 或 Obligations 项目前会被评估运营影响。',
+            body: '信号在成为 dashboard 或 Deadlines 项目前会被评估运营影响。',
           },
           {
             title: '适用性上下文',

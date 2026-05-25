@@ -66,7 +66,7 @@ export function AffectedClientsTable({
         <TableRow>
           <TableHead className="w-8">
             <Checkbox
-              aria-label={t`Select all eligible obligations`}
+              aria-label={t`Select all eligible deadlines`}
               checked={allSelectableChecked}
               disabled={readOnly || selectableCount === 0}
               onCheckedChange={(checked) => handleToggleAll(checked)}
@@ -166,7 +166,7 @@ export function AffectedClientsTable({
                 <Link
                   to={deadlineDetailHref({ obligationId: row.obligationId })}
                   state={{ obligationId: row.obligationId }}
-                  aria-label={t`Open ${row.clientName} ${row.taxType} in the obligation queue`}
+                  aria-label={t`Open ${row.clientName} ${row.taxType} in the deadlines queue`}
                   className="inline-flex items-center gap-0.5 text-xs text-text-tertiary outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
                 >
                   <Trans>Open</Trans>
