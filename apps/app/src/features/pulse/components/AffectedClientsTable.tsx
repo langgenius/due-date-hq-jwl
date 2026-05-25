@@ -1,5 +1,6 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
 import type { PulseAffectedClient } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -15,6 +16,8 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDate } from '@/lib/utils'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
 
@@ -63,7 +66,7 @@ export function AffectedClientsTable({
         <TableRow>
           <TableHead className="w-8">
             <Checkbox
-              aria-label={t`Select all eligible obligations`}
+              aria-label={t`Select all eligible deadlines`}
               checked={allSelectableChecked}
               disabled={readOnly || selectableCount === 0}
               onCheckedChange={(checked) => handleToggleAll(checked)}
@@ -73,6 +76,9 @@ export function AffectedClientsTable({
           <TableHead>{t`Form`}</TableHead>
           <TableHead className="text-right">{t`Due date change`}</TableHead>
           <TableHead>{t`Match`}</TableHead>
+          <TableHead className="w-[1%]">
+            <span className="sr-only">{t`Open in queue`}</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -103,8 +109,8 @@ export function AffectedClientsTable({
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="font-mono tabular-nums text-text-secondary">
-                {row.taxType}
+              <TableCell className="text-text-secondary">
+                <TaxCodeLabel code={row.taxType} />
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1.5 font-mono text-xs tabular-nums text-text-primary">
@@ -112,7 +118,9 @@ export function AffectedClientsTable({
                     {formatDate(row.currentDueDate)}
                   </span>
                   <ArrowRightIcon className="size-3 text-text-tertiary" aria-hidden />
-                  <span>{formatDate(row.newDueDate)}</span>
+                  <span>
+                    {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
+                  </span>
                 </div>
               </TableCell>
               <TableCell>
@@ -148,6 +156,22 @@ export function AffectedClientsTable({
                     </label>
                   ) : null}
                 </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {/* Deep-link out to the obligation queue so CPAs can
+                    investigate a row before applying the relief.
+                    Without this the drawer is a read-only triage and
+                    the only way to inspect the obligation in context
+                    is to memorise the client name and search. */}
+                <Link
+                  to={deadlineDetailHref({ obligationId: row.obligationId })}
+                  state={{ obligationId: row.obligationId }}
+                  aria-label={t`Open ${row.clientName} ${row.taxType} in the deadlines queue`}
+                  className="inline-flex items-center gap-0.5 text-xs text-text-tertiary outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                >
+                  <Trans>Open</Trans>
+                  <ArrowUpRightIcon className="size-3" aria-hidden />
+                </Link>
               </TableCell>
             </TableRow>
           )

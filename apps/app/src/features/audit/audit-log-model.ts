@@ -17,6 +17,7 @@ export const AUDIT_CATEGORY_OPTIONS = [
   'auth',
   'team',
   'pulse',
+  'opportunity',
   'export',
   'ai',
   'system',
@@ -108,8 +109,10 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'obligation.batch_created': 'obligationBatchCreated',
   'obligation.annual_rollover.created': 'obligationAnnualRolloverCreated',
   'obligation.due_date.updated': 'obligationDueDateUpdated',
+  'obligation.extension.decided': 'obligationExtensionDecided',
   'obligation.readiness.updated': 'obligationReadinessUpdated',
   'obligation.status.updated': 'obligationStatusUpdated',
+  'obligation.tax_year_profile.updated': 'obligationTaxYearProfileUpdated',
   'onboarding.agent.dry_run.previewed': 'onboardingAgentDryRunPreviewed',
   'onboarding.agent.fallback.triggered': 'onboardingAgentFallbackTriggered',
   'onboarding.agent.handoff.chosen': 'onboardingAgentHandoffChosen',
@@ -121,6 +124,9 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'onboarding.agent.preview_card.clicked': 'onboardingAgentPreviewCardClicked',
   'onboarding.agent.state.advanced': 'onboardingAgentStateAdvanced',
   'onboarding.agent.turn.opened': 'onboardingAgentTurnOpened',
+  'opportunity.dismissed': 'opportunityDismissed',
+  'opportunity.restored': 'opportunityRestored',
+  'opportunity.snoozed': 'opportunitySnoozed',
   'penalty.override': 'penaltyOverride',
   'pulse.apply': 'pulseApply',
   'pulse.approve': 'pulseApprove',
@@ -141,6 +147,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'rules.candidate.created': 'rulesCandidateCreated',
   'rules.accepted': 'rulesAccepted',
   'rules.bulk_accepted': 'rulesBulkAccepted',
+  'rules.onboarding_activated': 'rulesOnboardingActivated',
   'rules.rejected': 'rulesRejected',
   'rules.created': 'rulesCreated',
   'rules.updated': 'rulesUpdated',
@@ -207,6 +214,7 @@ export type AuditEntityTypeLabels = {
   ruleSource: string
   obligationQueueExport: string
   obligationQueueSavedView: string
+  opportunity: string
 }
 
 const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
@@ -228,6 +236,7 @@ const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
   rule_source: 'ruleSource',
   obligations_export: 'obligationQueueExport',
   obligation_saved_view: 'obligationQueueSavedView',
+  opportunity: 'opportunity',
 } as const satisfies Record<string, keyof AuditEntityTypeLabels>
 
 type KnownAuditEntityType = keyof typeof AUDIT_ENTITY_TYPE_LABEL_KEYS

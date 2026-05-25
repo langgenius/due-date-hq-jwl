@@ -33,6 +33,18 @@ export type ObligationRecurrence = (typeof OBLIGATION_RECURRENCES)[number]
 export const OBLIGATION_RISK_LEVELS = ['low', 'med', 'high'] as const
 export type ObligationRiskLevel = (typeof OBLIGATION_RISK_LEVELS)[number]
 
+export const TAX_PERIOD_KINDS = ['calendar', 'fiscal', 'short', '52_53_week', 'unknown'] as const
+export type TaxPeriodKind = (typeof TAX_PERIOD_KINDS)[number]
+
+export const TAX_PERIOD_SOURCES = [
+  'client_default',
+  'prior_obligation',
+  'migration',
+  'manual_cpa_confirmed',
+  'unknown',
+] as const
+export type TaxPeriodSource = (typeof TAX_PERIOD_SOURCES)[number]
+
 export const OBLIGATION_PREP_STAGES = [
   'not_started',
   'waiting_on_client',
@@ -107,12 +119,12 @@ export type ObligationDependencyStatus = (typeof OBLIGATION_DEPENDENCY_STATUSES)
  *     those are Pulse Pipeline owner's responsibility.
  *
  * Base vs current due date:
- *   - `base_due_date` — the statutory date for this (tax_type, tax_year);
- *     written at create-time and never mutated.
- *   - `current_due_date` — what the Dashboard / Obligations show. Pulse apply
- *     in Demo Sprint directly UPDATEs this value (no overlay); migration
- *     import and manual edits also write here. Phase 1: this column becomes
- *     generated/virtual from base + overlays.
+ *   - `base_due_date` — the statutory/base rule date for this
+ *     (tax_type, tax_year); written at create-time and never mutated.
+ *   - `current_due_date` — the internal practice deadline shown by Dashboard /
+ *     Obligations. It is normally `base_due_date - firm.internalDeadlineOffsetDays`.
+ *     Tax authority filing/payment deadlines stay separate in `filing_due_date` and
+ *     `payment_due_date`.
  *
  * status workflow: full P0-16 surface with flexible corrective transitions.
  * Readiness is derived from status plus client readiness request responses.
@@ -139,6 +151,22 @@ export const obligationInstance = sqliteTable(
     // Optional: 4-digit tax year (e.g. '2026'). Some Demo obligations span
     // calendars; NULL means "non-year-specific" which is rare for Demo.
     taxYear: integer('tax_year'),
+    // CPA-confirmed tax year basis for this specific obligation. Kept on the
+    // obligation because one client can have both calendar-year and fiscal-year work.
+    taxYearType: text('tax_year_type', { enum: ['calendar', 'fiscal'] })
+      .notNull()
+      .default('calendar'),
+    fiscalYearEndMonth: integer('fiscal_year_end_month'),
+    fiscalYearEndDay: integer('fiscal_year_end_day'),
+    // Tax return/reporting period that the authority deadline is based on.
+    // For fiscal and short-year returns this is the CPA-facing source of truth.
+    taxPeriodStart: integer('tax_period_start', { mode: 'timestamp_ms' }),
+    taxPeriodEnd: integer('tax_period_end', { mode: 'timestamp_ms' }),
+    taxPeriodKind: text('tax_period_kind', { enum: TAX_PERIOD_KINDS }).notNull().default('unknown'),
+    taxPeriodSource: text('tax_period_source', { enum: TAX_PERIOD_SOURCES })
+      .notNull()
+      .default('unknown'),
+    taxPeriodReviewReason: text('tax_period_review_reason'),
     ruleId: text('rule_id'),
     ruleVersion: integer('rule_version'),
     rulePeriod: text('rule_period'),
@@ -168,10 +196,22 @@ export const obligationInstance = sqliteTable(
         'waiting_on_client',
         'review',
         'not_applicable',
+        // Lifecycle v2 additions (behind the ?lifecycle=v2 flag until migration).
+        // See docs/Design/obligation-lifecycle-design-brief.md.
+        'blocked',
+        'completed',
       ],
     })
       .notNull()
       .default('pending'),
+    // Lifecycle v2 (slice 2b): when status === 'blocked', this column
+    // records *which other obligation* is blocking this one. Encodes
+    // the K-1 dependency graph from PDF anti-pattern #4 — the
+    // partnership 1065 that's holding up N partner 1040s. Auto-clears
+    // when status transitions away from 'blocked'. Soft self-reference
+    // (no FK constraint) — the upstream may belong to a different
+    // firm in v3 (K-1 partners across practices).
+    blockedByObligationInstanceId: text('blocked_by_obligation_instance_id'),
     extensionDecision: text('extension_decision', { enum: OBLIGATION_EXTENSION_DECISIONS })
       .notNull()
       .default('not_considered'),
@@ -237,7 +277,7 @@ export const obligationInstance = sqliteTable(
     // Dashboard tabs: This Week / This Month / All — scan by firm + status +
     // soonest due first.
     index('idx_oi_firm_status_due').on(table.firmId, table.status, table.currentDueDate),
-    // Penalty Radar / Obligations triage: sort open obligations by exposure.
+    // Deadline Radar / Obligations triage: sort open obligations by exposure.
     index('idx_oi_firm_due_exposure').on(
       table.firmId,
       table.currentDueDate,
@@ -378,5 +418,8 @@ export const OBLIGATION_STATUSES = [
   'waiting_on_client',
   'review',
   'not_applicable',
+  // Lifecycle v2 additions. See docs/Design/obligation-lifecycle-design-brief.md.
+  'blocked',
+  'completed',
 ] as const
 export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number]

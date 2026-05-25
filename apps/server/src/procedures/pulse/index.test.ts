@@ -126,6 +126,7 @@ function contextFor(
         plan,
         seatLimit: 5,
         status: 'active',
+        internalDeadlineOffsetDays: 14,
         ownerUserId: 'user_owner',
         coordinatorCanSeeDollars: false,
       },

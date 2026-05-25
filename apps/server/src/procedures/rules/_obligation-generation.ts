@@ -6,11 +6,8 @@ import {
   type ObligationRule,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
-import {
-  buildPenaltyFactsFromLegacy,
-  estimateProjectedExposure,
-  PENALTY_FACTS_VERSION,
-} from '@duedatehq/core/penalty'
+import { buildPenaltyFactsFromLegacy, PENALTY_FACTS_VERSION } from '@duedatehq/core/penalty'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
@@ -20,6 +17,7 @@ interface GenerateForAcceptedRulesInput {
   scoped: ScopedRepo
   userId: string
   rules: readonly ObligationRule[]
+  internalDeadlineOffsetDays: number
   now?: Date
   reason?: string | null
 }
@@ -37,15 +35,11 @@ function isRuleGenerationState(value: string | null | undefined): value is RuleG
   return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
 }
 
-function defaultRuleDates(now: Date): { taxYearStart: string; taxYearEnd: string } {
-  const year = now.getUTCFullYear()
-  return {
-    taxYearStart: `${year}-01-01`,
-    taxYearEnd: `${year - 1}-12-31`,
-  }
+function toDateOrNull(value: string | null): Date | null {
+  return value ? new Date(`${value}T00:00:00.000Z`) : null
 }
 
-function keyForGenerated(input: {
+export function keyForGenerated(input: {
   clientId: string
   jurisdiction: string | null
   ruleId: string
@@ -61,7 +55,7 @@ function keyForGenerated(input: {
   ].join('::')
 }
 
-function sourceUrlForPreview(
+export function sourceUrlForPreview(
   preview: ObligationGenerationPreview,
   sourceById: ReadonlyMap<string, ReturnType<typeof listRuleSources>[number]>,
 ): string | null {
@@ -112,49 +106,53 @@ function paymentDueDateForPreview(
   return null
 }
 
-function buildCreateInput(input: {
+export function buildRuleBackedCreateInput(input: {
   client: ClientRow
-  profile: ClientFilingProfileRow
+  profile: Pick<ClientFilingProfileRow, 'id'> | null
   rule: ObligationRule
   preview: ObligationGenerationPreview
+  internalDeadlineOffsetDays: number
   now: Date
+  generationSource?: ObligationCreateInput['generationSource']
 }): ObligationCreateInput & { preview: ObligationGenerationPreview } {
   const dueDate = new Date(`${input.preview.dueDate}T00:00:00.000Z`)
+  const internalDueDate = internalDeadlineFromBaseDueDate(dueDate, input.internalDeadlineOffsetDays)
   const paymentDueDate = paymentDueDateForPreview(input.preview, input.rule, dueDate)
   const penaltyFacts = buildPenaltyFactsFromLegacy({
     taxType: input.preview.taxType,
     estimatedTaxLiabilityCents: input.client.estimatedTaxLiabilityCents,
     equityOwnerCount: input.client.equityOwnerCount,
   })
-  const exposure = estimateProjectedExposure({
-    jurisdiction: input.preview.jurisdiction,
-    taxType: input.preview.taxType,
-    entityType: input.client.entityType,
-    dueDate,
-    asOfDate: input.now,
-    penaltyFactsJson: penaltyFacts,
-  })
 
   return {
     clientId: input.client.id,
-    clientFilingProfileId: input.preview.jurisdiction === 'FED' ? null : input.profile.id,
+    clientFilingProfileId:
+      input.preview.jurisdiction === 'FED' ? null : (input.profile?.id ?? null),
     taxType: input.preview.taxType,
     taxYear: input.rule.taxYear,
     ruleId: input.rule.id,
     ruleVersion: input.preview.ruleVersion,
     rulePeriod: input.preview.period,
-    generationSource: input.client.migrationBatchId ? 'migration' : 'manual',
+    taxPeriodStart: toDateOrNull(input.preview.taxPeriodStart),
+    taxPeriodEnd: toDateOrNull(input.preview.taxPeriodEnd),
+    taxPeriodKind: input.preview.taxPeriodKind,
+    taxPeriodSource: input.preview.taxPeriodSource,
+    taxPeriodReviewReason: input.preview.taxPeriodReviewReason,
+    generationSource:
+      input.generationSource ?? (input.client.migrationBatchId ? 'migration' : 'manual'),
     jurisdiction: input.preview.jurisdiction,
     obligationType: obligationTypeForPreview(input.preview),
     formName: input.preview.formName,
-    authority: input.preview.jurisdiction === 'FED' ? 'IRS' : input.preview.jurisdiction,
+    authority:
+      input.preview.localJurisdiction?.sourceAuthority ??
+      (input.preview.jurisdiction === 'FED' ? 'IRS' : input.preview.jurisdiction),
     filingDueDate: input.preview.isFiling ? dueDate : null,
     paymentDueDate,
     sourceEvidenceJson: input.preview.evidence,
     recurrence: recurrenceForPreview(input.preview, input.rule),
     riskLevel: input.rule.riskLevel,
     baseDueDate: dueDate,
-    currentDueDate: dueDate,
+    currentDueDate: internalDueDate,
     status: input.preview.requiresReview ? 'review' : 'pending',
     prepStage: input.preview.requiresReview ? 'ready_for_prep' : 'not_started',
     reviewStage: input.preview.requiresReview ? 'ready_for_review' : 'not_required',
@@ -168,17 +166,9 @@ function buildCreateInput(input: {
     paymentState: paymentDueDate ? 'estimate_needed' : 'not_applicable',
     efileState: input.preview.isFiling ? 'authorization_requested' : 'not_applicable',
     migrationBatchId: input.client.migrationBatchId,
-    estimatedTaxDueCents: exposure.estimatedTaxDueCents,
-    estimatedExposureCents: exposure.estimatedExposureCents,
-    exposureStatus: exposure.status,
+    estimatedTaxDueCents: input.client.estimatedTaxLiabilityCents,
     penaltyFactsJson: penaltyFacts,
     penaltyFactsVersion: PENALTY_FACTS_VERSION,
-    penaltyBreakdownJson: exposure.breakdown,
-    penaltyFormulaVersion: exposure.formulaVersion,
-    missingPenaltyFactsJson: exposure.missingPenaltyFacts,
-    penaltySourceRefsJson: exposure.penaltySourceRefs,
-    penaltyFormulaLabel: exposure.penaltyFormulaLabel,
-    exposureCalculatedAt: input.now,
     preview: input.preview,
   }
 }
@@ -220,7 +210,6 @@ export async function generateObligationsForAcceptedRules(
   )
   const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
-  const dates = defaultRuleDates(now)
   const createInputs: Array<ObligationCreateInput & { preview: ObligationGenerationPreview }> = []
   const clientIdsWithCandidates = new Set<string>()
   let candidateCount = 0
@@ -236,8 +225,7 @@ export async function generateObligationsForAcceptedRules(
         entityType: client.entityType,
         state: profile.state,
         taxTypes: profile.taxTypes,
-        taxYearStart: dates.taxYearStart,
-        taxYearEnd: dates.taxYearEnd,
+        taxPeriodSource: 'client_default' as const,
         ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
       } as const
       const previews = previewObligationsFromRules({
@@ -264,7 +252,16 @@ export async function generateObligationsForAcceptedRules(
         }
 
         seenGeneratedKeys.add(key)
-        createInputs.push(buildCreateInput({ client, profile, rule, preview, now }))
+        createInputs.push(
+          buildRuleBackedCreateInput({
+            client,
+            profile,
+            rule,
+            preview,
+            internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+            now,
+          }),
+        )
       }
     }
   }
@@ -282,7 +279,7 @@ export async function generateObligationsForAcceptedRules(
   await input.scoped.evidence.writeBatch(
     createInputs.map((created, index) => ({
       obligationInstanceId: ids[index] ?? null,
-      aiOutputId: null,
+      aiOutputId: created.preview.evidence[0]?.aiOutputId ?? null,
       sourceType: 'verified_rule',
       sourceId: created.preview.ruleId,
       sourceUrl: sourceUrlForPreview(created.preview, sourceById),

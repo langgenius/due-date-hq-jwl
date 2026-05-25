@@ -8,7 +8,17 @@ const alertVariants = cva(
     'group/alert relative grid w-full gap-0.5 rounded-lg border px-4 py-3 text-left text-sm',
     'has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18',
     'has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5',
-    "*:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+    // 2026-05-25 (Yuqi Today #9): icon aligns with the title's first
+    // line, not vertically-centered between title and description.
+    // The previous `row-span-2` made the icon sit mid-way between
+    // the two rows (centered across both), which on alerts with a
+    // long title + short description left the icon visually below
+    // the title's baseline — Yuqi flagged it as "doesn't align with
+    // first text line". Now icon lives on row 1 (`row-start-1`) with
+    // `self-start` + a 1px nudge down so the visual centroid of the
+    // glyph aligns with the cap-height of the title text. Long
+    // descriptions wrap freely on row 2 without the icon following.
+    "*:[svg]:row-start-1 *:[svg]:self-start *:[svg]:mt-px *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   ),
   {
     variants: {

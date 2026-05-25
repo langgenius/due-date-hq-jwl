@@ -64,6 +64,7 @@ const MOCK_FIRM: FirmPublic = {
   plan: 'firm',
   seatLimit: 10,
   timezone: 'America/Los_Angeles',
+  internalDeadlineOffsetDays: 14,
   status: 'active',
   role: 'owner',
   ownerUserId: 'user_mock_001',
@@ -145,6 +146,8 @@ const MATCHED_ALERT: PulseAlertPublic = {
   title: 'IRS extends CA wildfire-zone filing deadlines (TX-2026-04)',
   source: 'IRS',
   sourceUrl: 'https://www.irs.gov/newsroom/mock-ca-wildfire-2026-04',
+  changeKind: 'deadline_shift',
+  actionMode: 'due_date_overlay',
   summary:
     'IRS grants 30-day extension for individuals and businesses in Los Angeles + Ventura counties affected by the April 2026 wildfires. Applies to Forms 1040, 1065, 1120-S, 1041 with original due dates between Apr 25 and May 25, 2026.',
   publishedAt: ISO_NOW,
@@ -152,6 +155,7 @@ const MATCHED_ALERT: PulseAlertPublic = {
   needsReviewCount: 1,
   confidence: 0.96,
   isSample: true,
+  jurisdiction: 'CA',
 }
 
 const MATCHED_DETAIL: PulseDetail = {
@@ -163,6 +167,9 @@ const MATCHED_DETAIL: PulseDetail = {
   originalDueDate: isoDate(5),
   newDueDate: isoDate(35),
   effectiveFrom: isoDate(-3),
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: null,
   sourceExcerpt:
     'Affected taxpayers in the disaster area now have until May 25, 2026 to file most tax returns, including individual income tax returns, partnership returns, S-corporation returns, and fiduciary returns originally due on or after April 25, 2026.',
   reviewedAt: null,
@@ -210,6 +217,8 @@ const APPLIED_ALERT: PulseAlertPublic = {
   title: 'CA FTB extends franchise-tax payment deadline (Notice 2026-12)',
   source: 'CA FTB',
   sourceUrl: 'https://www.ftb.ca.gov/notice-mock-2026-12',
+  changeKind: 'deadline_shift',
+  actionMode: 'due_date_overlay',
   summary:
     'California Franchise Tax Board pushes franchise-tax payment deadline by 30 days for storm-affected entities in Alameda and San Francisco counties.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 26).toISOString(),
@@ -217,6 +226,7 @@ const APPLIED_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.82,
   isSample: true,
+  jurisdiction: 'CA',
 }
 
 const APPLIED_DETAIL: PulseDetail = {
@@ -228,6 +238,9 @@ const APPLIED_DETAIL: PulseDetail = {
   originalDueDate: isoDate(15),
   newDueDate: isoDate(45),
   effectiveFrom: isoDate(-1),
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: null,
   sourceExcerpt:
     'The Franchise Tax Board extends the franchise-tax payment due date for the 2025 taxable year by 30 days for entities with a principal place of business in the affected counties.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 2).toISOString(),
@@ -244,6 +257,8 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   title: 'NY DTF clarifies pass-through entity tax election window',
   source: 'NY DTF',
   sourceUrl: 'https://www.tax.ny.gov/notice-mock-pte-2026',
+  changeKind: 'form_instruction',
+  actionMode: 'review_only',
   summary:
     'No matching clients in this practice - informational notice only. Dismissed by Sarah on 2026-04-28.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 48).toISOString(),
@@ -251,6 +266,7 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.58,
   isSample: true,
+  jurisdiction: 'NY',
 }
 
 const DISMISSED_DETAIL: PulseDetail = {
@@ -262,6 +278,11 @@ const DISMISSED_DETAIL: PulseDetail = {
   originalDueDate: isoDate(60),
   newDueDate: isoDate(60),
   effectiveFrom: null,
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: {
+    note: 'PTET election reminder only.',
+  },
   sourceExcerpt:
     'The Department of Taxation and Finance reminds taxpayers that the PTET election for tax year 2026 must be made by March 15, 2026.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 24).toISOString(),
@@ -278,6 +299,8 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   title: 'FL DOR posts corporate income-tax deadline bulletin',
   source: 'FL DOR',
   sourceUrl: 'https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx',
+  changeKind: 'applicability_scope',
+  actionMode: 'review_only',
   summary:
     'Very-low-confidence extraction: deadline details depend on entity status, fiscal year, and extension election.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 72).toISOString(),
@@ -285,6 +308,7 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   needsReviewCount: 0,
   confidence: 0.46,
   isSample: true,
+  jurisdiction: 'FL',
 }
 
 const VERY_LOW_DETAIL: PulseDetail = {
@@ -296,6 +320,11 @@ const VERY_LOW_DETAIL: PulseDetail = {
   originalDueDate: isoDate(12),
   newDueDate: isoDate(32),
   effectiveFrom: null,
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: {
+    note: 'Applicability depends on fiscal year and extension election.',
+  },
   sourceExcerpt:
     'Corporate income tax filing dates may depend on entity status, fiscal year, and extension election.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 36).toISOString(),
@@ -322,11 +351,38 @@ const SOURCE_HEALTH: PulseSourceHealth[] = [
     consecutiveFailures: 0,
     lastError: null,
   },
+  {
+    sourceId: 'wa.dor',
+    label: 'WA DOR Bulletin',
+    tier: 'T2',
+    jurisdiction: 'state',
+    enabled: true,
+    healthStatus: 'healthy',
+    lastCheckedAt: '2026-05-18T20:00:00.000Z',
+    lastSuccessAt: '2026-05-17T08:00:00.000Z',
+    nextCheckAt: '2026-05-19T08:00:00.000Z',
+    consecutiveFailures: 3,
+    lastError: 'Timed out fetching change feed',
+  },
 ]
 
 // --- Public API -----------------------------------------------------------
 
 export function seedPulseMock(queryClient: QueryClient): void {
+  // Pin the mock seed: `setQueryData` alone is shadowed the moment a
+  // live `useQuery` for the same key fires and returns from the server
+  // (typically `[]`). Setting `staleTime: Infinity` + disabling refetch
+  // on the pulse query key keeps the seeded alerts sticky for the whole
+  // session. Reviewers want the cards to STAY visible regardless of
+  // what the dev backend has — this is mock-driven, not server-driven.
+  queryClient.setQueryDefaults(orpc.pulse.key(), {
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
   queryClient.setQueryData(orpc.firms.listMine.queryKey({ input: undefined }), [MOCK_FIRM])
 
   // Three call sites read listAlerts with different limits — seed each shape.
@@ -359,9 +415,12 @@ export function seedPulseMock(queryClient: QueryClient): void {
 }
 
 export function installMockPulse(queryClient: QueryClient): void {
+  // Preview-integration: default-on in dev so the NEEDS ATTENTION
+  // surface always has cards to render. Explicit `?mockPulse=0`
+  // turns it off for users who want an empty-state preview.
   if (!import.meta.env.DEV) return
   if (typeof window === 'undefined') return
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('mockPulse') !== '1') return
+  const explicit = new URLSearchParams(window.location.search).get('mockPulse')
+  if (explicit === '0') return
   seedPulseMock(queryClient)
 }

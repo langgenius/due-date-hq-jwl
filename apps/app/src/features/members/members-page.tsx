@@ -62,6 +62,8 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
+import { PageHeader } from '@/components/patterns/page-header'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
   useAppHotkey,
@@ -69,14 +71,16 @@ import {
 } from '@/components/patterns/keyboard-shell/hooks'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
+import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
 import {
   formatInvitationDate,
-  formatMemberDate,
   invitationDescription,
   inviterName,
   isManagedRole,
+  isRoleDowngrade,
   MANAGED_ROLES,
+  roleDowngradeImpact,
   roleLabel,
 } from './member-model'
 
@@ -108,7 +112,7 @@ export function MembersPageRoute() {
             teammates or change roles.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open Obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
       >
         <MembersSkeleton />
       </PermissionGate>
@@ -121,7 +125,7 @@ export function MembersPageRoute() {
 
   if (membersQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 py-6 md:px-6">
         <Alert variant="destructive">
           <AlertTriangleIcon />
           <AlertTitle>
@@ -144,10 +148,36 @@ export function MembersPageRoute() {
 }
 
 function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTimezone: string }) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const [inviteOpen, setInviteOpen] = useState(false)
   const [pendingRemoval, setPendingRemoval] = useState<MemberActionTarget | null>(null)
+  // 2026-05-24 (critique /polish): role-change used to apply
+  // instantly on dropdown pick — a misclick could drop a partner
+  // down to coordinator with no recovery (downgrades silently strip
+  // sign-off, member admin, billing access). Gate downgrades behind
+  // an AlertDialog confirm following the existing pendingRemoval
+  // pattern. Upgrades and sideways moves apply directly.
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    member: MemberActionTarget
+    fromRole: MemberPublic['role']
+    toRole: MemberManagedRole
+  } | null>(null)
+  // 2026-05-24 (re-critique): cancel-invitation used to fire on
+  // a single text-button click — no confirm, no preview, no undo.
+  // The recipient may be checking their inbox right now. Gate
+  // behind a small confirm so an accidental click on the
+  // table-cell-sized link doesn't pull the rug out from under them.
+  const [pendingInvitationCancel, setPendingInvitationCancel] = useState<{
+    invitationId: string
+    inviteeLabel: string
+  } | null>(null)
+  // 2026-05-24 (re-critique): suspend is reversible (Reactivate is
+  // right next to it in the menu) but the suspended member is
+  // silently locked out until they hit the login screen and see an
+  // error — wrong-person suspends turn into Saturday-morning panic
+  // calls. Reactivate stays direct (additive, no harm).
+  const [pendingSuspend, setPendingSuspend] = useState<MemberPublic | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
   const inviteShortcutLabel = formatShortcutForDisplay(INVITE_MEMBER_HOTKEY)
   const activeMembers = data.members.filter((member) => member.status === 'active')
@@ -166,6 +196,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   const updateRoleMutation = useMutation(
     orpc.members.updateRole.mutationOptions({
       onSuccess: (next) => {
+        setPendingRoleChange(null)
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
       },
     }),
@@ -230,33 +261,31 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   })
 
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
-      <header className="flex min-h-20 flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl leading-[30px] font-semibold text-text-primary">
-            <Trans>Members</Trans>
-          </h1>
-          <p className="mt-1 text-base leading-5 text-text-secondary">
-            <Trans>Owner-only. Invite teammates, change roles, and manage seats.</Trans>
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <Button variant="outline" size="lg" render={<Link to="/audit" />}>
-            <Trans>View audit log</Trans>
-          </Button>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => setInviteOpen(true)}
-            aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
-            aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            <Trans>Invite member</Trans>
-            <span className="ml-1 font-mono text-[10px] opacity-70">{inviteShortcutLabel}</span>
-          </Button>
-        </div>
-      </header>
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Members` }]}
+        title={<Trans>Members</Trans>}
+        actions={
+          <>
+            <Button variant="outline" size="sm" render={<Link to="/audit" />}>
+              <Trans>View audit log</Trans>
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setInviteOpen(true)}
+              aria-describedby={seatsFull ? 'members-seat-limit-note' : undefined}
+              aria-keyshortcuts={INVITE_MEMBER_ARIA_SHORTCUTS}
+            >
+              <PlusIcon className="size-3.5" aria-hidden />
+              <Trans>Invite member</Trans>
+              <span className="ml-1 font-mono text-caption-xs opacity-70">
+                {inviteShortcutLabel}
+              </span>
+            </Button>
+          </>
+        }
+      />
 
       <section className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
         <div className="grid divide-y divide-divider-subtle md:grid-cols-4 md:divide-x md:divide-y-0">
@@ -301,8 +330,22 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         <ActiveMembersTable
           members={data.members}
           firmTimezone={firmTimezone}
-          onRoleChange={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
-          onSuspend={(member) => suspendMutation.mutate({ memberId: member.id })}
+          onRoleChange={(memberId, role) => {
+            // 2026-05-24 (critique /polish): downgrades go through a
+            // confirm dialog; upgrades + sideways apply directly.
+            const member = data.members.find((candidate) => candidate.id === memberId)
+            if (!member) return
+            if (isRoleDowngrade(member.role, role)) {
+              setPendingRoleChange({
+                member: { id: member.id, name: member.name },
+                fromRole: member.role,
+                toRole: role,
+              })
+              return
+            }
+            updateRoleMutation.mutate({ memberId, role })
+          }}
+          onSuspend={(member) => setPendingSuspend(member)}
           onReactivate={(member) => reactivateMutation.mutate({ memberId: member.id })}
           onRemove={setPendingRemoval}
           busy={
@@ -325,7 +368,12 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
           members={data.members}
           firmTimezone={firmTimezone}
           onResend={(invitation) => resendMutation.mutate({ invitationId: invitation.id })}
-          onCancel={(invitation) => cancelMutation.mutate({ invitationId: invitation.id })}
+          onCancel={(invitation) =>
+            setPendingInvitationCancel({
+              invitationId: invitation.id,
+              inviteeLabel: invitation.email,
+            })
+          }
           busy={resendMutation.isPending || cancelMutation.isPending}
         />
       </section>
@@ -354,6 +402,28 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendingRemoval ? (
+            <DestructiveChangePreview
+              title={<Trans>Removing this member will commit these changes</Trans>}
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Removes</Trans>,
+                  detail: t`Practice access for ${pendingRemoval.name}`,
+                },
+                {
+                  tone: 'add',
+                  label: <Trans>Adds</Trans>,
+                  detail: <Trans>No replacement assignments or records</Trans>,
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: <Trans>Audit history and existing client work</Trans>,
+                },
+              ]}
+            />
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel>
               <Trans>Cancel</Trans>
@@ -365,7 +435,184 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
                 if (pendingRemoval) removeMutation.mutate({ memberId: pendingRemoval.id })
               }}
             >
-              <Trans>Remove from practice</Trans>
+              {removeMutation.isPending ? (
+                <Trans>Removing…</Trans>
+              ) : (
+                <Trans>Remove from practice (1)</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (critique /polish): downgrade confirm. Mirrors
+          the Remove dialog above — same DestructiveChangePreview,
+          same destructive-primary CTA. Upgrades skip this gate
+          entirely (instant apply via the dropdown). */}
+      <AlertDialog
+        open={pendingRoleChange !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRoleChange(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Downgrade member?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRoleChange
+                ? t`${pendingRoleChange.member.name} will drop from ${roleLabel(pendingRoleChange.fromRole)} to ${roleLabel(pendingRoleChange.toRole)}.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingRoleChange
+            ? (() => {
+                const impact = roleDowngradeImpact(
+                  pendingRoleChange.fromRole,
+                  pendingRoleChange.toRole,
+                  i18n,
+                )
+                return (
+                  <DestructiveChangePreview
+                    title={<Trans>This downgrade commits the following changes</Trans>}
+                    lines={[
+                      {
+                        tone: 'remove',
+                        label: <Trans>Removes</Trans>,
+                        detail: impact.removes,
+                      },
+                      {
+                        tone: 'keep',
+                        label: <Trans>Keeps</Trans>,
+                        detail: impact.keeps,
+                      },
+                    ]}
+                  />
+                )
+              })()
+            : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={updateRoleMutation.isPending || !pendingRoleChange}
+              onClick={() => {
+                if (pendingRoleChange) {
+                  updateRoleMutation.mutate({
+                    memberId: pendingRoleChange.member.id,
+                    role: pendingRoleChange.toRole,
+                  })
+                }
+              }}
+            >
+              {updateRoleMutation.isPending ? (
+                <Trans>Downgrading…</Trans>
+              ) : (
+                <Trans>Downgrade role</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (re-critique): suspend-access confirm. Reactivate
+          is right next to it in the dropdown so the action is fully
+          reversible, but the suspended member learns about it from
+          a confusing login error — naming them in the dialog forces
+          the admin to check the right row. */}
+      <AlertDialog
+        open={pendingSuspend !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingSuspend(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Suspend access?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingSuspend
+                ? t`${pendingSuspend.name} will lose login access immediately. Their assignments and audit history stay intact — Reactivate access from this menu brings them back.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={suspendMutation.isPending || !pendingSuspend}
+              onClick={() => {
+                if (pendingSuspend) {
+                  suspendMutation.mutate(
+                    { memberId: pendingSuspend.id },
+                    {
+                      onSettled: () => setPendingSuspend(null),
+                    },
+                  )
+                }
+              }}
+            >
+              {suspendMutation.isPending ? (
+                <Trans>Suspending…</Trans>
+              ) : (
+                <Trans>Suspend access</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 2026-05-24 (re-critique): small confirm before cancelling an
+          invitation. Uses a plain description instead of the heavy
+          DestructiveChangePreview — cancel-invite isn't on the same
+          severity tier as Remove / Downgrade, but a confirm prevents
+          accidental misclicks on the inline text-button. */}
+      <AlertDialog
+        open={pendingInvitationCancel !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingInvitationCancel(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Cancel this invitation?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingInvitationCancel
+                ? t`The magic link sent to ${pendingInvitationCancel.inviteeLabel} will stop working. You can re-invite them later, but the original link can't be revived.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Keep invitation</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={cancelMutation.isPending || !pendingInvitationCancel}
+              onClick={() => {
+                if (pendingInvitationCancel) {
+                  cancelMutation.mutate(
+                    { invitationId: pendingInvitationCancel.invitationId },
+                    {
+                      onSettled: () => setPendingInvitationCancel(null),
+                    },
+                  )
+                }
+              }}
+            >
+              {cancelMutation.isPending ? (
+                <Trans>Cancelling…</Trans>
+              ) : (
+                <Trans>Cancel invitation</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -478,7 +725,7 @@ function ActiveMembersTable({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-      <Table className="min-w-[1040px]">
+      <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
             <TableHead className="w-[304px] px-4">Name</TableHead>
@@ -486,7 +733,14 @@ function ActiveMembersTable({
             <TableHead className="w-44">Role</TableHead>
             <TableHead className="w-32">Status</TableHead>
             <TableHead className="w-44">Joined</TableHead>
-            <TableHead className="w-28">Last active</TableHead>
+            {/* 2026-05-24 (critique /polish): "Last active" column
+                used to render "Not recorded" on every row because
+                the server isn't tracking last-active yet. A column
+                of "Not recorded" eats horizontal real estate to
+                tell the user nothing. Hide it until real data lands;
+                restore the <TableHead className="w-28">Last active
+                </TableHead> + matching cell when the backend grows
+                a `lastActiveAt` field. */}
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
@@ -511,11 +765,14 @@ function ActiveMembersTable({
                 <TableCell className="py-1.5">
                   <MemberStatusPill status={member.status} />
                 </TableCell>
-                <TableCell className="py-1.5 font-mono text-xs whitespace-nowrap text-text-muted">
-                  {formatMemberDate(member.createdAt, firmTimezone)}
-                </TableCell>
-                <TableCell className="py-1.5 font-mono text-xs text-text-muted">
-                  <Trans>Not recorded</Trans>
+                {/* 2026-05-24 (critique P2 — clarify): JOINED used
+                    to read `2026-05-01 01:10:00 PDT` — engineering-
+                    precise but unparseable at a glance. Use relative
+                    time ("3 weeks ago"); exact value lives on the
+                    tooltip via <RelativeTime>. Drop font-mono — this
+                    column reads as recency, not as data. */}
+                <TableCell className="py-1.5 text-xs whitespace-nowrap text-text-muted">
+                  <RelativeTime value={member.createdAt} timeZone={firmTimezone} />
                 </TableCell>
                 <TableCell className="py-1.5 pr-2">
                   <MemberActionsMenu
@@ -553,7 +810,7 @@ function PendingInvitationsTable({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-      <Table className="min-w-[1040px]">
+      <Table>
         <TableHeader>
           <TableRow className="h-9 hover:bg-transparent">
             <TableHead className="w-[444px] px-4">Email</TableHead>
@@ -638,7 +895,17 @@ function PendingInvitationsTable({
 function MemberIdentity({ member }: { member: MemberPublic }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-background-subtle font-semibold text-text-secondary">
+      {/* 2026-05-24 (critique P2 — audit): the member's full name
+          renders in the sibling block, so the avatar is decorative
+          for screen readers — `aria-hidden` on the wrapper makes
+          that explicit and stops the single-letter initial from
+          being announced as a separate sentence ("S, Sarah
+          Martinez"). Empty alt on the image variant stays correct
+          for the same reason. */}
+      <span
+        aria-hidden
+        className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-background-subtle font-semibold text-text-secondary"
+      >
         {member.image ? (
           <img src={member.image} alt="" className="size-full object-cover" />
         ) : (
@@ -654,7 +921,7 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
         {member.name}
       </span>
       {member.isCurrentUser ? (
-        <Badge variant="secondary" className="h-4 rounded-sm px-1.5 font-mono text-[10px]">
+        <Badge variant="secondary" className="h-4 rounded-sm px-1.5 font-mono text-caption-xs">
           <Trans>You</Trans>
         </Badge>
       ) : null}
@@ -704,14 +971,22 @@ function RoleDisplay({ role }: { role: MemberPublic['role'] | MemberManagedRole 
   )
 }
 
+// 2026-05-25 (status-pill audit §4 #5): MemberStatusPill was
+// `outline` + `warning` dot for active (amber dot on a non-amber
+// concept) and `secondary` + `disabled` for suspended; the
+// invitation pill was a fully-filled `success` / `warning` chip
+// with a redundant dot. The two pills coexist in the same table,
+// so "Suspended" (secondary fill) and "Expired" (warning fill)
+// looked like they belonged to different families. Unified to
+// the audit's preferred shape: `outline` chip + tone-colored
+// dot (filled chip + dot is redundant per §3.3). Tones now
+// follow the §3.1 ladder: success = healthy, info = active work,
+// warning = external pause, disabled = dormant.
 function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
   const suspended = status === 'suspended'
   return (
-    <Badge
-      variant={suspended ? 'secondary' : 'outline'}
-      className="h-5 rounded-sm px-2 text-xs text-text-secondary"
-    >
-      <BadgeStatusDot tone={suspended ? 'disabled' : 'warning'} className="size-1.5" />
+    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+      <BadgeStatusDot tone={suspended ? 'disabled' : 'success'} className="size-1.5" />
       {suspended ? <Trans>Suspended</Trans> : <Trans>Active</Trans>}
     </Badge>
   )
@@ -720,8 +995,8 @@ function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
 function InvitationStatusPill({ status }: { status: MemberInvitationPublic['status'] }) {
   const expired = status === 'expired'
   return (
-    <Badge variant={expired ? 'warning' : 'success'} className="h-5 rounded-sm px-2 text-xs">
-      <BadgeStatusDot tone={expired ? 'warning' : 'success'} className="size-1.5" />
+    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+      <BadgeStatusDot tone={expired ? 'warning' : 'info'} className="size-1.5" />
       {expired ? <Trans>Expired</Trans> : <Trans>Pending</Trans>}
     </Badge>
   )
@@ -906,7 +1181,7 @@ function InviteMemberDialog({
 
 function MembersSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[1172px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
       <div className="flex min-h-20 justify-between gap-4">
         <div className="grid gap-2">
           <Skeleton className="h-4 w-20" />

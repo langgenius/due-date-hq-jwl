@@ -12,7 +12,7 @@ test.skip(
 test.describe('seeded audit trail', () => {
   test.use({ authSeed: 'obligations' })
 
-  test('AC: E2E-AUDIT-OBLIGATIONS-STATUS-DETAIL traces an Obligations write into audit detail', async ({
+  test('AC: E2E-AUDIT-OBLIGATIONS-STATUS-DETAIL traces a Deadlines write into audit detail', async ({
     auditPage,
     authenticatedPage,
     obligationQueuePage,

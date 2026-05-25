@@ -16,11 +16,13 @@ export const CLIENT_ENTITY_FILTERS = [ALL_ENTITIES, ...CLIENT_ENTITY_TYPES] as c
 export const STATE_FILTER_ALL = 'all'
 export const CLIENT_READINESS_FILTERS = ['ready', 'needs_facts'] as const
 export const CLIENT_SOURCE_FILTERS = ['imported', 'manual'] as const
+export const CLIENT_PULSE_FILTERS = ['affected', 'clear'] as const
 export const CLIENT_UNASSIGNED_OWNER_FILTER = '__unassigned__'
 
 export type ClientEntityType = ClientCreateInput['entityType']
 export type ClientSourceType = 'imported' | 'manual'
 export type ClientReadinessStatus = 'ready' | 'needs_facts'
+export type ClientPulseFilter = (typeof CLIENT_PULSE_FILTERS)[number]
 export type RequiredClientFact = 'state' | 'entityType'
 export type OptionalClientFact = 'ein' | 'owner' | 'email'
 
@@ -54,6 +56,11 @@ export type ClientFilters = {
   readinessFilters: readonly ClientReadinessStatus[]
   sourceFilters: readonly ClientSourceType[]
   ownerFilters: readonly string[]
+  pulseFilters: readonly ClientPulseFilter[]
+}
+
+export type FilterClientsContext = {
+  affectedClientIds?: ReadonlySet<string>
 }
 
 export function isClientEntityType(value: string): value is ClientEntityType {
@@ -66,6 +73,10 @@ export function isClientReadinessStatus(value: string): value is ClientReadiness
 
 export function isClientSourceType(value: string): value is ClientSourceType {
   return CLIENT_SOURCE_FILTERS.some((source) => source === value)
+}
+
+export function isClientPulseFilter(value: string): value is ClientPulseFilter {
+  return CLIENT_PULSE_FILTERS.some((option) => option === value)
 }
 
 export function getClientSourceType(client: ClientPublic): ClientSourceType {
@@ -139,6 +150,12 @@ export function getClientSearchHaystack(client: ClientPublic): string {
     client.ein,
     client.state,
     client.county,
+    client.externalClientId,
+    client.addressLine1,
+    client.city,
+    client.postalCode,
+    client.primaryPhone,
+    client.sourceStatus,
     ...client.filingProfiles.flatMap((profile) => [
       profile.state,
       ...profile.counties,
@@ -155,7 +172,11 @@ export function getClientSearchHaystack(client: ClientPublic): string {
     .toLowerCase()
 }
 
-export function filterClients(clients: ClientPublic[], filters: ClientFilters): ClientPublic[] {
+export function filterClients(
+  clients: ClientPublic[],
+  filters: ClientFilters,
+  context: FilterClientsContext = {},
+): ClientPublic[] {
   const normalizedSearch = filters.search.trim().toLowerCase()
   const clientFilterSet = new Set(filters.clientFilters)
   const entityFilterSet = new Set(filters.entityFilters)
@@ -167,6 +188,8 @@ export function filterClients(clients: ClientPublic[], filters: ClientFilters): 
   const readinessFilterSet = new Set(filters.readinessFilters)
   const sourceFilterSet = new Set(filters.sourceFilters)
   const ownerFilterSet = new Set(filters.ownerFilters.filter((owner) => owner.trim().length > 0))
+  const pulseFilterSet = new Set(filters.pulseFilters)
+  const affectedClientIds = context.affectedClientIds
 
   return clients.filter((client) => {
     if (clientFilterSet.size > 0 && !clientFilterSet.has(client.id)) {
@@ -190,6 +213,12 @@ export function filterClients(clients: ClientPublic[], filters: ClientFilters): 
     if (ownerFilterSet.size > 0) {
       const ownerValue = client.assigneeName ?? CLIENT_UNASSIGNED_OWNER_FILTER
       if (!ownerFilterSet.has(ownerValue)) return false
+    }
+    if (pulseFilterSet.size > 0) {
+      const isAffected = affectedClientIds?.has(client.id) ?? false
+      const matchesAffected = pulseFilterSet.has('affected') && isAffected
+      const matchesClear = pulseFilterSet.has('clear') && !isAffected
+      if (!matchesAffected && !matchesClear) return false
     }
     if (normalizedSearch && !getClientSearchHaystack(client).includes(normalizedSearch)) {
       return false

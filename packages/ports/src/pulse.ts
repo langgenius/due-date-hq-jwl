@@ -3,8 +3,24 @@ import type { ClientEntityType, ObligationStatus } from './shared'
 export interface PulseAlertRow {
   id: string
   pulseId: string
-  status: 'matched' | 'partially_applied' | 'applied' | 'dismissed' | 'snoozed' | 'reverted'
+  status:
+    | 'matched'
+    | 'partially_applied'
+    | 'applied'
+    | 'dismissed'
+    | 'snoozed'
+    | 'reverted'
+    | 'reviewed'
   sourceStatus: 'pending_review' | 'approved' | 'rejected' | 'quarantined' | 'source_revoked'
+  changeKind:
+    | 'deadline_shift'
+    | 'filing_requirement'
+    | 'applicability_scope'
+    | 'form_instruction'
+    | 'source_status'
+    | 'new_obligation'
+    | 'other'
+  actionMode: 'due_date_overlay' | 'review_only'
   title: string
   source: string
   sourceUrl: string
@@ -14,6 +30,12 @@ export interface PulseAlertRow {
   needsReviewCount: number
   confidence: number
   isSample: boolean
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code, e.g.
+  // "CA", "TX") on each list-item alert. Same value as
+  // PulseDetailRow.jurisdiction — mirrors `pulse.parsedJurisdiction`
+  // from the DB. Lets the alerts list page filter / group by state
+  // without an N+1 detail fetch.
+  jurisdiction: string
 }
 
 export interface PulseAffectedClientRow {
@@ -25,7 +47,7 @@ export interface PulseAffectedClientRow {
   entityType: ClientEntityType
   taxType: string
   currentDueDate: Date
-  newDueDate: Date
+  newDueDate: Date | null
   status: ObligationStatus
   matchStatus: 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
   reason: string | null
@@ -37,9 +59,12 @@ export interface PulseDetailRow {
   counties: string[]
   forms: string[]
   entityTypes: ClientEntityType[]
-  originalDueDate: Date
-  newDueDate: Date
+  originalDueDate: Date | null
+  newDueDate: Date | null
   effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
   affectedClients: PulseAffectedClientRow[]
@@ -79,6 +104,22 @@ export interface PulseSourceSignalRow {
   linkedPulseId: string | null
   reviewedRuleId: string | null
   reviewDecisionId: string | null
+}
+
+export interface PulseSourceSnapshotRow {
+  id: string
+  sourceId: string
+  externalId: string
+  title: string
+  officialSourceUrl: string
+  publishedAt: Date
+  fetchedAt: Date
+  contentHash: string
+  rawR2Key: string
+  parseStatus: 'pending_extract' | 'extracting' | 'extracted' | 'duplicate' | 'failed' | 'ignored'
+  pulseId: string | null
+  aiOutputId: string | null
+  failureReason: string | null
 }
 
 export type PulsePriorityReviewStatus = 'open' | 'reviewed' | 'applied' | 'dismissed'
@@ -133,9 +174,21 @@ export interface PulseSeedInput {
   parsedCounties: string[]
   parsedForms: string[]
   parsedEntityTypes: ClientEntityType[]
-  parsedOriginalDueDate: Date
-  parsedNewDueDate: Date
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
   parsedEffectiveFrom?: Date | null
+  parsedEffectiveUntil?: Date | null
+  changeKind?:
+    | 'deadline_shift'
+    | 'filing_requirement'
+    | 'applicability_scope'
+    | 'form_instruction'
+    | 'source_status'
+    | 'new_obligation'
+    | 'other'
+  actionMode?: 'due_date_overlay' | 'review_only'
+  affectedRuleIds?: string[]
+  structuredChange?: unknown
   confidence: number
   reviewedBy?: string | null
   reviewedAt?: Date
@@ -169,8 +222,13 @@ export interface PulseAlertActionInput {
   now?: Date
 }
 
+export interface PulseDismissReasonInput extends PulseAlertActionInput {
+  reason: string
+}
+
 export interface PulseSnoozeInput extends PulseAlertActionInput {
   until: Date
+  reason: string
 }
 
 export interface PulseApplyResult {
@@ -199,6 +257,12 @@ export interface PulseRepo {
   readonly firmId: string
   createSeedAlert(input: PulseSeedInput): Promise<{ pulseId: string; alertId: string }>
   listAlerts(opts?: { limit?: number }): Promise<PulseAlertRow[]>
+  /**
+   * Count-only variant of `listAlerts` — same WHERE clause, no row
+   * fetch. Backs the sidebar nav badge so it can show the true count
+   * (not a 50-row-cap slice).
+   */
+  countActiveAlerts(): Promise<number>
   listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   listSourceSignals(opts?: {
@@ -206,6 +270,7 @@ export interface PulseRepo {
     status?: PulseSourceSignalRow['status']
   }): Promise<PulseSourceSignalRow[]>
   getSourceSignal(signalId: string): Promise<PulseSourceSignalRow | null>
+  getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
   reviewSourceSignalForRule(input: {
     signalId: string
     ruleId: string
@@ -221,8 +286,9 @@ export interface PulseRepo {
   reviewPriorityMatches(input: PulseReviewPriorityMatchesInput): Promise<PulsePriorityReviewRow>
   applyReviewed(input: PulseAlertActionInput): Promise<PulseApplyResult>
   apply(input: PulseApplyInput): Promise<PulseApplyResult>
-  dismiss(input: PulseAlertActionInput): Promise<PulseDismissResult>
+  dismiss(input: PulseDismissReasonInput): Promise<PulseDismissResult>
   snooze(input: PulseSnoozeInput): Promise<PulseDismissResult>
   revert(input: PulseAlertActionInput): Promise<PulseRevertResult>
   reactivate(input: PulseAlertActionInput): Promise<PulseDismissResult>
+  markReviewed(input: PulseDismissReasonInput): Promise<PulseDismissResult>
 }

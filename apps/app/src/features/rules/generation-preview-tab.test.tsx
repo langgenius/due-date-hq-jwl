@@ -72,6 +72,12 @@ const clients: ClientPublic[] = [
     fiscalYearEndDay: null,
     email: null,
     notes: null,
+    externalClientId: null,
+    addressLine1: null,
+    city: null,
+    postalCode: null,
+    primaryPhone: null,
+    sourceStatus: null,
     assigneeId: null,
     assigneeName: null,
     ownerCount: 2,
@@ -139,6 +145,11 @@ function annualResult(overrides: Partial<AnnualRolloverOutput> = {}): AnnualRoll
           matchedTaxType: 'ca_100',
           period: 'default',
           dueDate: '2027-04-15',
+          taxPeriodStart: '2026-01-01',
+          taxPeriodEnd: '2026-12-31',
+          taxPeriodKind: 'calendar',
+          taxPeriodSource: 'prior_obligation',
+          taxPeriodReviewReason: null,
           eventType: 'filing',
           isFiling: true,
           isPayment: false,
@@ -157,6 +168,7 @@ function annualResult(overrides: Partial<AnnualRolloverOutput> = {}): AnnualRoll
           requiresReview: false,
           reminderReady: true,
           reviewReasons: [],
+          missingClientFacts: [],
         },
         disposition: 'will_create',
         targetStatus: 'pending',
@@ -265,22 +277,22 @@ describe('AnnualRolloverPanel', () => {
     await renderPanel()
     await waitForText('CA Form 100 annual filing')
 
-    const helpButtons = Array.from(document.querySelectorAll('button[aria-label^="About "]'))
+    const helpButtons = Array.from(document.querySelectorAll('button[aria-label^="Explain "]'))
 
     expect(helpButtons.map((button) => button.getAttribute('aria-label'))).toEqual(
-      expect.arrayContaining(['About Source deadlines', 'About Status', 'About Obligations']),
+      expect.arrayContaining(['Explain Source deadlines', 'Explain Status', 'Explain Deadlines']),
     )
     expect(helpButtons).toHaveLength(14)
   })
 
-  it('generates rollover obligations and shows the Obligations link state', async () => {
+  it('generates rollover obligations and shows the Deadlines link state', async () => {
     await renderPanel()
     await waitForText('CA Form 100 annual filing')
 
     await act(async () => {
       buttonByText('Generate').dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    await waitForText('Open first created obligation')
+    await waitForText('Open first created deadline')
 
     expect(rpcMocks.createAnnualRollover).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -78,7 +78,7 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
   await expect(migrationWizardPage.undoImportDialog).toBeVisible()
   await migrationWizardPage.confirmUndoImport()
 
-  await expect(authenticatedPage).toHaveURL(/\/obligations$/)
+  await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   await expect(obligationQueuePage.heading).toBeVisible()
   await expect(authenticatedPage.getByText('Import undone')).toBeVisible()
   await expect(obligationQueuePage.rowFor(importedClient)).toBeHidden()
@@ -118,8 +118,10 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
-  await expect(authenticatedPage.getByText('Exposure preview')).toBeVisible()
-  await expect(authenticatedPage.getByText(/\d+ obligations \(full tax year\)/)).toBeVisible()
+  await expect(authenticatedPage.getByText(/\d+ deadlines \(full tax year\)/)).toBeVisible()
+  await expect(authenticatedPage.getByRole('status')).toContainText(
+    'Ready to generate your deadline list',
+  )
 
   await migrationWizardPage.importAndGenerate()
 

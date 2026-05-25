@@ -6,17 +6,12 @@ import {
   type ChangeEvent,
   type ClipboardEvent,
   type DragEvent,
-  type ReactNode,
 } from 'react'
+import { msg } from '@lingui/core/macro'
+import { type MessageDescriptor } from '@lingui/core'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
-import readXlsxFile, { type SheetData } from 'read-excel-file/browser'
-import type {
-  MigrationBatch,
-  MigrationExternalEntityType,
-  MigrationExternalStagingRowInput,
-  MigrationIntegrationProvider,
-} from '@duedatehq/contracts'
+import type { MigrationSourceManifest } from '@duedatehq/contracts'
 
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
 import { detectSsnColumns } from '@duedatehq/core/pii'
@@ -25,23 +20,31 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { usePracticeTimezone } from '@/features/firm/practice-timezone'
-import { formatDateTimeWithTimezone } from '@/lib/utils'
-
+import cchAxcessLogoUrl from './assets/source-logos/cch-axcess.png?url'
+import cchProSystemFxLogoUrl from './assets/source-logos/cch-prosystem-fx.png?url'
+import drakeLogoUrl from './assets/source-logos/drake.png?url'
+import fileInTimeLogoUrl from './assets/source-logos/file-in-time.svg?url'
+import karbonLogoUrl from './assets/source-logos/karbon.png?url'
+import lacerteLogoUrl from './assets/source-logos/lacerte.png?url'
+import proconnectTaxLogoUrl from './assets/source-logos/proconnect-tax.png?url'
+import proseriesLogoUrl from './assets/source-logos/proseries.png?url'
+import quickbooksLogoUrl from './assets/source-logos/quickbooks.svg?url'
+import taxdomeLogoUrl from './assets/source-logos/taxdome.png?url'
+import ultrataxCsLogoUrl from './assets/source-logos/ultratax-cs.png?url'
 import {
-  INTEGRATION_PROVIDERS,
   PRESET_IDS,
-  type IntakeMode,
+  TAX_SOFTWARE_PRESET_IDS,
   type IntakeState,
   type PresetId,
+  type PresetSelectionSource,
 } from './state'
 import {
-  PROVIDER_CAPABILITY_BY_PROVIDER,
-  PROVIDER_CAPABILITY_TIER_LABELS,
-  type ProviderCapabilityTier,
-} from './provider-capabilities'
+  prepareUploadFile,
+  UnsupportedUploadError,
+  unsupportedUploadMessageDescriptor,
+} from './intake-files'
 
-const MAX_FILE_BYTES = 2 * 1024 * 1024
+const MAX_FILE_BYTES = 5 * 1024 * 1024
 
 const PRESET_LABELS: Record<PresetId, string> = {
   taxdome: 'TaxDome',
@@ -49,29 +52,86 @@ const PRESET_LABELS: Record<PresetId, string> = {
   karbon: 'Karbon',
   quickbooks: 'QuickBooks',
   file_in_time: 'File In Time',
+  cch_axcess: 'CCH Axcess',
+  cch_prosystem_fx: 'CCH ProSystem fx',
+  lacerte: 'Lacerte',
+  proseries: 'ProSeries',
+  ultratax_cs: 'UltraTax CS',
+  proconnect_tax: 'ProConnect Tax',
 }
 
-const PROVIDER_DEFAULT_ENTITY: Record<MigrationIntegrationProvider, MigrationExternalEntityType> = {
-  karbon: 'work_item',
-  taxdome: 'account',
-  soraban: 'organizer',
-  safesend: 'delivery',
-  proconnect: 'return',
+export const SOURCE_PRESET_IDS: ReadonlyArray<PresetId> = [
+  ...PRESET_IDS,
+  ...TAX_SOFTWARE_PRESET_IDS,
+].toSorted((left, right) => PRESET_LABELS[left].localeCompare(PRESET_LABELS[right], 'en-US'))
+
+const PRESET_LOGOS: Record<
+  PresetId,
+  {
+    src: string
+    tileClassName?: string | undefined
+    imageClassName?: string | undefined
+  }
+> = {
+  taxdome: { src: taxdomeLogoUrl },
+  drake: { src: drakeLogoUrl },
+  karbon: { src: karbonLogoUrl },
+  quickbooks: { src: quickbooksLogoUrl },
+  file_in_time: { src: fileInTimeLogoUrl },
+  cch_axcess: { src: cchAxcessLogoUrl },
+  cch_prosystem_fx: { src: cchProSystemFxLogoUrl },
+  lacerte: { src: lacerteLogoUrl, imageClassName: 'max-w-[30px]' },
+  proseries: { src: proseriesLogoUrl },
+  ultratax_cs: { src: ultrataxCsLogoUrl },
+  proconnect_tax: { src: proconnectTaxLogoUrl },
+}
+
+interface PresetExportGuide {
+  title: string
+  preferredFiles: string
+  steps: string[]
+  note: string
+}
+
+const SOURCE_PRODUCT_LABELS: Record<MigrationSourceManifest['product'], string> = {
+  generic: 'Generic',
+  drake: 'Drake',
+  file_in_time: 'File In Time',
+  quickbooks_online: 'QuickBooks Online',
+  quickbooks_desktop: 'QuickBooks Desktop',
+  taxdome: 'TaxDome',
+  karbon: 'Karbon',
+  cch_axcess: 'CCH Axcess',
+  cch_prosystem_fx: 'CCH ProSystem fx',
+  lacerte: 'Lacerte',
+  proseries: 'ProSeries',
+  ultratax_cs: 'UltraTax CS',
+  proconnect_tax: 'ProConnect Tax',
 }
 
 function hasDraggedFiles(event: DragEvent<HTMLElement>) {
   return Array.from(event.dataTransfer.types).includes('Files')
 }
 
-function formatXlsxCell(cell: unknown): string {
-  if (cell === null || cell === undefined) return ''
-  if (cell instanceof Date) return cell.toISOString()
-  if (typeof cell === 'string') return cell
-  if (typeof cell === 'number' || typeof cell === 'boolean' || typeof cell === 'bigint') {
-    return String(cell)
-  }
-  if (typeof cell === 'symbol') return cell.description ?? ''
-  return JSON.stringify(cell) ?? ''
+type PresetSelectionState = Pick<IntakeState, 'preset' | 'presetSource'>
+
+export function shouldApplyDetectedPreset(
+  intake: PresetSelectionState,
+  suggestedPreset: PresetId | null,
+): suggestedPreset is PresetId {
+  return suggestedPreset !== null && (intake.preset === null || intake.presetSource === 'detected')
+}
+
+export function shouldOfferDetectedPresetSwitch(
+  intake: PresetSelectionState,
+  suggestedPreset: PresetId | null,
+): suggestedPreset is PresetId {
+  return (
+    suggestedPreset !== null &&
+    intake.preset !== null &&
+    intake.presetSource === 'manual' &&
+    intake.preset !== suggestedPreset
+  )
 }
 
 interface Step1Props {
@@ -85,19 +145,10 @@ interface Step1Props {
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     },
   ) => void
-  onPreset: (preset: PresetId | null) => void
-  previousSyncBatches: MigrationBatch[]
-  onMode: (mode: IntakeMode) => void
-  onIntegrationProvider: (provider: MigrationIntegrationProvider) => void
-  onIntegrationRows: (args: {
-    rawText: string
-    tabularText: string
-    rows: MigrationExternalStagingRowInput[]
-    parseError: string | null
-  }) => void
-  onPreviousSync: (batchId: string | null) => void
+  onPreset: (preset: PresetId | null, source?: PresetSelectionSource) => void
   onParsed: (args: {
     rowCount: number
     truncated: boolean
@@ -115,16 +166,10 @@ export function Step1Intake({
   intake,
   onText,
   onPreset,
-  previousSyncBatches,
-  onMode,
-  onIntegrationProvider,
-  onIntegrationRows,
-  onPreviousSync,
   onParsed,
   onParseError,
 }: Step1Props) {
-  const { t } = useLingui()
-  const practiceTimezone = usePracticeTimezone()
+  const { i18n, t } = useLingui()
   const pasteId = useId()
   const uploadHintId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -132,45 +177,14 @@ export function Step1Intake({
   const fileReadSerialRef = useRef(0)
   const [isFileDragActive, setIsFileDragActive] = useState(false)
   const [isReadingFile, setIsReadingFile] = useState(false)
+  const [detectedPresetSuggestion, setDetectedPresetSuggestion] = useState<PresetId | null>(null)
   const compact = density === 'compact'
-
-  function handleIntegrationText(text: string) {
-    try {
-      const rows = parseIntegrationRows(text, intake.integrationProvider)
-      onIntegrationRows({
-        rawText: text,
-        tabularText: integrationRowsToTabularText(rows, intake.integrationProvider),
-        rows,
-        parseError: rows.length === 0 ? t`Add at least one provider record to continue.` : null,
-      })
-    } catch (err) {
-      onIntegrationRows({
-        rawText: text,
-        tabularText: '',
-        rows: [],
-        parseError:
-          err instanceof Error
-            ? err.message
-            : t`Paste provider records in the integration handoff format.`,
-      })
-    }
-  }
-
-  function handleIntegrationPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
-    const pastedText = event.clipboardData.getData('text')
-    if (!pastedText.trim()) return
-
-    const target = event.currentTarget
-    const nextText =
-      target.value.slice(0, target.selectionStart) +
-      pastedText +
-      target.value.slice(target.selectionEnd)
-    const normalizedText = normalizeIntegrationJsonText(nextText)
-    if (!normalizedText) return
-
-    event.preventDefault()
-    handleIntegrationText(normalizedText)
-  }
+  const selectedPreset = intake.preset
+  const selectedExportGuide = getPresetExportGuide(selectedPreset, i18n)
+  const selectedPresetLabel = selectedPreset ? PRESET_LABELS[selectedPreset] : ''
+  const detectedPresetSuggestionLabel = detectedPresetSuggestion
+    ? PRESET_LABELS[detectedPresetSuggestion]
+    : ''
 
   function resetParsedRows() {
     onParsed({ rowCount: 0, truncated: false, ssnBlockedColumnIndexes: [] })
@@ -184,6 +198,7 @@ export function Step1Intake({
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     } = {},
   ) {
     onText(text, fileName, options)
@@ -192,7 +207,11 @@ export function Step1Intake({
       resetParsedRows()
       onParseError(
         fileName
-          ? t`That file doesn't contain any rows. Upload a CSV, TSV, or XLSX with a header and at least one data row.`
+          ? // 2026-05-25 (Wizard #40 copy polish): action-led.
+            // Original led with what's wrong ("that file doesn't
+            // contain rows") and made the user infer the fix.
+            // New: tell them what to do to recover.
+            t`That file has no data rows. Add a header and at least one row, then re-upload.`
           : null,
       )
       return
@@ -217,7 +236,7 @@ export function Step1Intake({
     } catch (err) {
       const message =
         err instanceof TabularParseError
-          ? friendlyParseError(err)
+          ? i18n._(friendlyParseErrorDescriptor(err))
           : t`We couldn't read that file. Try exporting as CSV.`
       resetParsedRows()
       onParseError(message)
@@ -227,11 +246,13 @@ export function Step1Intake({
   function handleTextChange(text: string) {
     fileReadSerialRef.current += 1
     setIsReadingFile(false)
+    setDetectedPresetSuggestion(null)
     commitText(text, null, {
       fileKind: 'paste',
       rawFileBase64: null,
       contentType: null,
       sizeBytes: 0,
+      sourceManifest: null,
     })
   }
 
@@ -262,15 +283,9 @@ export function Step1Intake({
       return []
     }
   }, [intake.ssnBlockedColumnIndexes, intake.rawText])
-
-  const integrationProvidersByTier = useMemo(() => {
-    const groups = new Map<ProviderCapabilityTier, MigrationIntegrationProvider[]>()
-    for (const provider of INTEGRATION_PROVIDERS) {
-      const tier = PROVIDER_CAPABILITY_BY_PROVIDER[provider].tier
-      groups.set(tier, [...(groups.get(tier) ?? []), provider])
-    }
-    return groups
-  }, [])
+  const sourceManifest = intake.sourceManifest
+  const sourceProductLabel = sourceManifest ? SOURCE_PRODUCT_LABELS[sourceManifest.product] : ''
+  const sourceWarnings = sourceManifest?.warnings ?? []
 
   function resetFileDragState() {
     fileDragDepthRef.current = 0
@@ -311,48 +326,65 @@ export function Step1Intake({
   }
 
   function loadFile(file: File) {
-    const lowerName = file.name.toLowerCase()
-    const fileKind: IntakeState['fileKind'] = lowerName.endsWith('.xlsx')
-      ? 'xlsx'
-      : lowerName.endsWith('.tsv')
-        ? 'tsv'
-        : 'csv'
-    const contentType =
-      file.type ||
-      (fileKind === 'xlsx'
-        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        : fileKind === 'tsv'
-          ? 'text/tab-separated-values'
-          : 'text/csv')
-    const readSerial = startFileRead(file, fileKind, contentType)
+    const contentType = file.type || 'application/octet-stream'
+    const readSerial = startFileRead(file, 'csv', contentType)
 
     if (file.size > MAX_FILE_BYTES) {
       setIsReadingFile(false)
-      onParseError(t`File is larger than 2 MB. Please trim or split the export.`)
+      onParseError(t`File is larger than 5 MB. Please trim or split the export.`)
       return
     }
-    if (fileKind === 'xlsx') {
-      void loadXlsxFile(file, readSerial, contentType)
-      return
-    }
-    void file
-      .text()
-      .then((text) => {
+    void prepareUploadFile(file)
+      .then((prepared) => {
         if (!isCurrentFileRead(readSerial)) return
-        commitText(text, file.name, {
-          fileKind,
-          contentType,
-          sizeBytes: file.size,
+        const suggestedPreset = prepared.suggestedPreset
+        if (shouldApplyDetectedPreset(intake, suggestedPreset)) {
+          onPreset(suggestedPreset, 'detected')
+          setDetectedPresetSuggestion(null)
+        } else if (shouldOfferDetectedPresetSwitch(intake, suggestedPreset)) {
+          setDetectedPresetSuggestion(suggestedPreset)
+        } else {
+          setDetectedPresetSuggestion(null)
+        }
+        commitText(prepared.text, prepared.fileName, {
+          fileKind: prepared.fileKind,
+          rawFileBase64: prepared.rawFileBase64,
+          contentType: prepared.contentType,
+          sizeBytes: prepared.sizeBytes,
+          sourceManifest: prepared.sourceManifest,
         })
       })
-      .catch(() => {
+      .catch((err) => {
         if (!isCurrentFileRead(readSerial)) return
+        setDetectedPresetSuggestion(null)
         resetParsedRows()
-        onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+        if (err instanceof UnsupportedUploadError) {
+          // 2026-05-25 (Wizard #40 — MessageDescriptor refactor):
+          // render the rejection message through `i18n._()` so it
+          // translates with the rest of the wizard. Previously
+          // returned the English-only string baked into
+          // intake-files.ts.
+          onParseError(i18n._(unsupportedUploadMessageDescriptor(err.upload)))
+        } else if (err instanceof Error && err.message) {
+          onParseError(err.message)
+        } else {
+          onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+        }
       })
       .finally(() => {
         if (isCurrentFileRead(readSerial)) setIsReadingFile(false)
       })
+  }
+
+  function handlePresetToggle(id: PresetId) {
+    setDetectedPresetSuggestion(null)
+    onPreset(intake.preset === id ? null : id, 'manual')
+  }
+
+  function switchToDetectedPreset() {
+    if (!detectedPresetSuggestion) return
+    onPreset(detectedPresetSuggestion, 'manual')
+    setDetectedPresetSuggestion(null)
   }
 
   function startFileRead(
@@ -377,35 +409,6 @@ export function Step1Intake({
     return fileReadSerialRef.current === serial
   }
 
-  async function loadXlsxFile(file: File, readSerial: number, contentType: string) {
-    try {
-      const [sheets, rawFileBase64] = await Promise.all([readXlsxFile(file), fileToBase64(file)])
-      if (!isCurrentFileRead(readSerial)) return
-      const rows: SheetData = sheets.find((sheet) =>
-        sheet.data.some((row) => row.some((cell) => formatXlsxCell(cell).trim() !== '')),
-      )?.data ?? [[]]
-      const text = rows
-        .map((row) =>
-          row
-            .map((cell) => formatXlsxCell(cell).replaceAll('\t', ' ').replaceAll('\n', ' '))
-            .join('\t'),
-        )
-        .join('\n')
-      commitText(text, file.name, {
-        fileKind: 'xlsx',
-        rawFileBase64,
-        contentType,
-        sizeBytes: file.size,
-      })
-    } catch {
-      if (!isCurrentFileRead(readSerial)) return
-      resetParsedRows()
-      onParseError(t`We couldn't read that XLSX file. Try exporting the first sheet as CSV.`)
-    } finally {
-      if (isCurrentFileRead(readSerial)) setIsReadingFile(false)
-    }
-  }
-
   return (
     <div
       className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-5 pt-5 pb-5')}
@@ -415,286 +418,180 @@ export function Step1Intake({
         <h2 className={cn('font-semibold text-text-primary', compact ? 'text-md' : 'text-lg')}>
           <Trans>Where is your data coming from?</Trans>
         </h2>
+        {/* 2026-05-25 (Yuqi #38 + Wizard #40 copy audit): tightened
+            the body. Original ran to 30 words across two clauses
+            with awkward "your call" filler. Final version leads
+            with the action ("Paste or upload"), drops the filler,
+            and lists the high-value columns as a short example
+            (the AI mapper handles the rest regardless).
+            2026-05-25 (Yuqi Today #25): the column-name examples
+            now italicize — they're literal strings the CPA should
+            look for in their export ("see if a column matches one
+            of these"), not narrative prose. Italics typeset them as
+            quoted data tokens without resorting to code-font, which
+            would over-state them as identifiers. */}
+        {/* 2026-05-25 (Wizard #40 length fix): trimmed "give us
+            a head start on payment and penalty context" (wordy +
+            abstract) to "help us flag penalty risk" (concrete +
+            shorter). "Any shape works" replaces "we'll figure out
+            the shape" — both promise the same thing; the
+            imperative is tighter. */}
         <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
-          <Trans>We&apos;ll figure out the shape — paste or upload, your call.</Trans>
-        </p>
-        <p className={cn('text-sm text-text-tertiary', compact ? 'hidden lg:block' : '')}>
           <Trans>
-            Columns named Estimated tax due, Estimated tax liability, Owner count, or Owners can
-            power the penalty exposure preview.
+            Paste or upload — any shape works. Columns like{' '}
+            <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
+            <em className="font-medium not-italic text-text-primary">Owner count</em>, or{' '}
+            <em className="font-medium not-italic text-text-primary">Owners</em> help us flag
+            penalty risk.
           </Trans>
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label={t`Import source type`}>
-        <SourceModeButton
-          compact={compact}
-          selected={intake.mode === 'paste' || intake.mode === 'upload'}
-          onClick={() => onMode('paste')}
-        >
-          <Trans>Paste / Upload</Trans>
-        </SourceModeButton>
-        <SourceModeButton
-          compact={compact}
-          selected={intake.mode === 'integration'}
-          onClick={() => onMode('integration')}
-        >
-          <Trans>Integration records</Trans>
-        </SourceModeButton>
-        <SourceModeButton
-          compact={compact}
-          selected={intake.mode === 'previous_sync'}
-          onClick={() => onMode('previous_sync')}
-        >
-          <Trans>Reuse provider import</Trans>
-        </SourceModeButton>
-      </div>
-
-      {intake.mode === 'integration' ? (
-        <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-components-panel-bg p-3">
-          <div className="flex flex-col gap-2">
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>Integration record source</Trans>
-            </span>
-            <div className="flex flex-col gap-3">
-              {Array.from(integrationProvidersByTier.entries()).map(([tier, providers]) => (
-                <div key={tier} className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-text-tertiary">
-                    {PROVIDER_CAPABILITY_TIER_LABELS[tier]}
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {providers.map((provider) => {
-                      const capability = PROVIDER_CAPABILITY_BY_PROVIDER[provider]
-                      return (
-                        <button
-                          key={provider}
-                          type="button"
-                          aria-pressed={intake.integrationProvider === provider}
-                          onClick={() => onIntegrationProvider(provider)}
-                          title={capability.helper}
-                          className={cn(
-                            'inline-flex min-h-9 cursor-pointer items-center rounded-md border px-3 py-1 text-left text-md font-medium transition-colors',
-                            intake.integrationProvider === provider
-                              ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-                              : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
-                          )}
-                        >
-                          {capability.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-text-tertiary">
-              {PROVIDER_CAPABILITY_BY_PROVIDER[intake.integrationProvider].helper}
-            </p>
-          </div>
-          <Alert variant="warning">
-            <AlertTitle>
-              <Trans>Imported records still need review</Trans>
-            </AlertTitle>
-            <AlertDescription>
-              <Trans>
-                Most provider exports are CSV or XLSX. Use Paste / Upload with an import template
-                for those. This path is for records copied from integration tools or converted
-                provider reports, and generated obligations still require enough imported facts.
-              </Trans>
-            </AlertDescription>
-          </Alert>
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor={`${pasteId}-integration`}
-              className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
-            >
-              <Trans>Provider client records</Trans>
-            </label>
+      {/* 2026-05-25 (Yuqi Today #27): dialog and onboarding now use
+          the same vertical paste/upload stack. The side-by-side
+          dialog treatment made upload read like a separate panel
+          instead of the second import option in Step 1. */}
+      <div className={cn('flex flex-col gap-3', compact ? 'min-h-0' : '')}>
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor={pasteId}
+            className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
+          >
+            <Trans>Paste rows</Trans>
+          </label>
+          <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
             <Textarea
-              id={`${pasteId}-integration`}
-              aria-label={t`Paste provider client records`}
-              value={intake.integrationRawText}
-              onChange={(event) => handleIntegrationText(event.target.value)}
-              onPaste={handleIntegrationPaste}
-              placeholder={t`Paste client records from an integration tool or converted provider report. For CSV/XLSX exports, switch to Paste / Upload and choose an import template.`}
-              className="h-[180px] resize-y bg-background-body font-mono text-base tabular-nums"
+              id={pasteId}
+              aria-label={t`Paste client data`}
+              aria-describedby="paste-hint"
+              value={intake.rawText}
+              onChange={(e) => handleTextChange(e.target.value)}
+              onPaste={handleRowsPaste}
+              placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
+              className={cn(
+                'resize-y border-0 bg-transparent p-2 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
+                'h-[104px]',
+              )}
             />
           </div>
-          <p className="text-sm text-text-tertiary">
-            <Trans>
-              These choices mark where the records came from and keep source-system IDs for future
-              audit and status matching. They do not convert CSV exports into another format.
-            </Trans>
-          </p>
         </div>
-      ) : null}
 
-      {intake.mode === 'previous_sync' ? (
-        <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-components-panel-bg p-3">
+        <div className="flex flex-col gap-2">
           <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-            <Trans>Choose a previous provider import</Trans>
+            <Trans>Upload file</Trans>
           </span>
-          {previousSyncBatches.length > 0 ? (
-            <div className="grid gap-2">
-              {previousSyncBatches.map((batch) => (
-                <button
-                  key={batch.id}
-                  type="button"
-                  onClick={() => onPreviousSync(batch.id)}
-                  aria-pressed={intake.previousSyncBatchId === batch.id}
-                  className={cn(
-                    'flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors',
-                    intake.previousSyncBatchId === batch.id
-                      ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-                      : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
-                  )}
-                >
-                  <span className="font-medium">{batch.source.replace('integration_', '')}</span>
-                  <span className="font-mono text-xs text-text-tertiary tabular-nums">
-                    {batch.rowCount} rows ·{' '}
-                    {formatDateTimeWithTimezone(batch.createdAt, practiceTimezone)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-md text-text-secondary">
-              <Trans>No previous provider imports are available yet.</Trans>
-            </p>
-          )}
-        </div>
-      ) : null}
-
-      {intake.mode === 'paste' || intake.mode === 'upload' ? (
-        <div
-          className={cn(
-            compact ? 'grid min-h-0 gap-3 xl:grid-cols-[minmax(0,1fr)_340px]' : 'contents',
-          )}
-        >
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor={pasteId}
-              className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
-            >
-              <Trans>Paste rows</Trans>
-            </label>
-            <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
-              <Textarea
-                id={pasteId}
-                aria-label={t`Paste client data`}
-                aria-describedby="paste-hint"
-                value={intake.rawText}
-                onChange={(e) => handleTextChange(e.target.value)}
-                onPaste={handleRowsPaste}
-                placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
+          <div
+            role="button"
+            tabIndex={0}
+            onDrop={handleDrop}
+            onDragEnter={handleFileDragEnter}
+            onDragOver={handleFileDragOver}
+            onDragLeave={handleFileDragLeave}
+            onClick={() => fileInputRef.current?.click()}
+            aria-describedby={uploadHintId}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                fileInputRef.current?.click()
+              }
+            }}
+            className={cn(
+              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+              compact ? 'text-sm' : 'text-md',
+              isFileDragActive || isReadingFile
+                ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
+                : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
+            )}
+          >
+            {isReadingFile ? (
+              <LoaderCircleIcon className="size-5 animate-spin text-text-accent" aria-hidden />
+            ) : (
+              <UploadCloudIcon
                 className={cn(
-                  'resize-y border-0 bg-transparent p-2 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
-                  compact ? 'h-[104px]' : 'h-[142px]',
+                  'size-5',
+                  isFileDragActive ? 'text-text-accent' : 'text-text-tertiary',
                 )}
+                aria-hidden
               />
-            </div>
-          </div>
-
-          <div className={cn('flex items-center gap-3', compact ? 'hidden' : '')}>
-            <span aria-hidden className="h-px flex-1 bg-divider-regular" />
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>or</Trans>
+            )}
+            {/* 2026-05-25 (Wizard #40 copy polish): mixed three
+                concerns (file types, action, limits) into one
+                run-on line. Split: primary line names the file
+                types; secondary line carries the limits with a
+                comma-separated 1,000 (readable count notation). */}
+            <span id={uploadHintId} className="flex flex-col items-center gap-0.5">
+              <span>
+                <Trans>Drop a CSV, Excel, ZIP, TXT, or IIF file</Trans>
+              </span>
+              <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                <Trans>Up to 1,000 rows · 5 MB</Trans>
+              </span>
             </span>
-            <span aria-hidden className="h-px flex-1 bg-divider-regular" />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {compact ? (
-              <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-                <Trans>Upload file</Trans>
+            {isReadingFile ? (
+              <span role="status" aria-live="polite" className="font-mono text-md text-text-accent">
+                <Trans>Reading file…</Trans>
+              </span>
+            ) : intake.fileName ? (
+              <span className="font-mono text-md text-text-secondary tabular-nums">
+                {intake.fileName}
               </span>
             ) : null}
-            <div
-              role="button"
-              tabIndex={0}
-              onDrop={handleDrop}
-              onDragEnter={handleFileDragEnter}
-              onDragOver={handleFileDragOver}
-              onDragLeave={handleFileDragLeave}
-              onClick={() => fileInputRef.current?.click()}
-              aria-describedby={uploadHintId}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  fileInputRef.current?.click()
-                }
-              }}
-              className={cn(
-                'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-                compact ? 'h-[104px] text-sm' : 'h-[120px] text-md',
-                isFileDragActive || isReadingFile
-                  ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-                  : 'border-divider-deep bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
-              )}
-            >
-              {isReadingFile ? (
-                <LoaderCircleIcon className="size-5 animate-spin text-text-accent" aria-hidden />
-              ) : (
-                <UploadCloudIcon
-                  className={cn(
-                    'size-5',
-                    isFileDragActive ? 'text-text-accent' : 'text-text-tertiary',
-                  )}
-                  aria-hidden
-                />
-              )}
-              <span id={uploadHintId}>
-                <Trans>Drop CSV / TSV / XLSX here or click to choose · max 1000 rows · 2 MB</Trans>
-              </span>
-              {isReadingFile ? (
-                <span
-                  role="status"
-                  aria-live="polite"
-                  className="font-mono text-md text-text-accent"
-                >
-                  <Trans>Reading file…</Trans>
-                </span>
-              ) : intake.fileName ? (
-                <span className="font-mono text-md text-text-secondary tabular-nums">
-                  {intake.fileName}
-                </span>
-              ) : null}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="hidden"
-                onClick={(event) => event.stopPropagation()}
-                onChange={handleFilePicked}
-              />
-            </div>
-          </div>
-
-          <div className={cn('flex flex-col gap-2', compact ? 'xl:col-span-2' : '')}>
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>I&apos;m coming from… (optional)</Trans>
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_IDS.map((id) => (
-                <PresetChip
-                  key={id}
-                  id={id}
-                  label={PRESET_LABELS[id]}
-                  selected={intake.preset === id}
-                  compact={compact}
-                  onToggle={() => onPreset(intake.preset === id ? null : id)}
-                />
-              ))}
-            </div>
-            <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
-              <Trans>
-                The AI mapper runs first. Selecting an import template adds source context and
-                provides default suggestions if AI is unavailable.
-              </Trans>
-            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
+              className="hidden"
+              onClick={(event) => event.stopPropagation()}
+              onChange={handleFilePicked}
+            />
           </div>
         </div>
-      ) : null}
+      </div>
+
+      {/* Preset chips live BELOW the paste/upload stack — they're a
+          separate "tell us more about your data source" affordance,
+          not a third entry method. */}
+      <div className="flex flex-col gap-2">
+        <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+          <Trans>I&apos;m coming from… (optional)</Trans>
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {SOURCE_PRESET_IDS.map((id) => (
+            <PresetChip
+              key={id}
+              id={id}
+              label={PRESET_LABELS[id]}
+              selected={intake.preset === id}
+              compact={compact}
+              onToggle={() => handlePresetToggle(id)}
+            />
+          ))}
+        </div>
+        {selectedExportGuide && selectedPreset ? (
+          <PresetExportGuideCard
+            id={selectedPreset}
+            label={PRESET_LABELS[selectedPreset]}
+            guide={selectedExportGuide}
+            uploadedFileName={intake.fileName}
+            compact={compact}
+          />
+        ) : null}
+        {/* 2026-05-25 (Wizard #40 copy polish): verb-led, ~30%
+            shorter. The original led with "the AI mapper runs
+            first" and trailed off with "provides default
+            suggestions if AI is unavailable" — three concepts in
+            one sentence. New version names the AI path up front
+            and clarifies templates as the fallback. Also unifies
+            on lowercase "AI mapper" (Step 2 badge uses title-case
+            "AI Mapper" as a proper-noun label; here in body
+            prose the lowercase form is correct). */}
+        <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
+          <Trans>
+            Pick a source to add context. The AI mapper runs either way; templates also fill
+            defaults if AI is unavailable.
+          </Trans>
+        </p>
+      </div>
 
       <p
         id="paste-hint"
@@ -715,8 +612,51 @@ export function Step1Intake({
           <AlertDescription>
             <Trans>
               We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
-              to the AI. Columns flagged: {ssnBlockedHeaders.join(', ')} → forced IGNORE.
+              to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping;
+              true SSN/ITIN values should stay ignored. Columns flagged:{' '}
+              {ssnBlockedHeaders.join(', ')} → AI default IGNORE.
             </Trans>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {sourceManifest ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle>
+            <Trans>Detected export source</Trans>
+          </AlertTitle>
+          <AlertDescription className="flex flex-col gap-1">
+            <span>
+              <Trans>
+                Using {sourceProductLabel} data from {sourceManifest.selectedFileName}.
+              </Trans>
+            </span>
+            {sourceWarnings.length > 0 ? (
+              <span>{sourceWarnings.map((warning) => warning.message).join(' ')}</span>
+            ) : null}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {detectedPresetSuggestion && selectedPreset ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle>
+            <Trans>Preset mismatch</Trans>
+          </AlertTitle>
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              <Trans>
+                This file looks like {detectedPresetSuggestionLabel}. Current preset is{' '}
+                {selectedPresetLabel}.
+              </Trans>
+            </span>
+            <button
+              type="button"
+              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary transition hover:bg-background-subtle"
+              onClick={switchToDetectedPreset}
+            >
+              <Trans>Switch preset</Trans>
+            </button>
           </AlertDescription>
         </Alert>
       ) : null}
@@ -739,7 +679,11 @@ export function Step1Intake({
       {intake.parseError ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
-            <Trans>Couldn&apos;t parse the input</Trans>
+            {/* 2026-05-25 (Wizard #40 copy polish): "the input"
+                is developer prose; "your data" matches the
+                user's mental model and the rest of the wizard
+                ("Couldn't read that file…", "We couldn't…"). */}
+            <Trans>Couldn&apos;t read your data</Trans>
           </AlertTitle>
           <AlertDescription>{intake.parseError}</AlertDescription>
         </Alert>
@@ -776,14 +720,32 @@ interface PresetChipProps {
 }
 
 function PresetChip({ id, label, selected, compact = false, onToggle }: PresetChipProps) {
+  const logo = PRESET_LOGOS[id]
+  // 2026-05-25 (Yuqi Today #27): heights and typography now snap to
+  // the canonical Button tokens (h-8 default / h-7 compact, text-sm
+  // body, font-medium). The previous h-9 + text-md was an off-scale
+  // size unique to this chip, which made the chip row read taller
+  // than the inputs above and below. Aligning to Button means these
+  // chips visually live in the same "click target" family as the
+  // rest of the dialog's primary buttons.
+  // 2026-05-25 (Yuqi Today #24): logo tile drops the hardcoded
+  // `bg-white ring-black/10`. White-on-white was specifically
+  // jarring against PNG logos with non-white backgrounds — the
+  // bright square framed each brand mark with a hard rectangle
+  // that fought the brand color. Now: subtle bg + divider ring, so
+  // transparent/SVG logos integrate, and logos that ship with their
+  // own background look intentional rather than awkwardly clipped.
+  // Per-brand tile colors can still be overridden via
+  // `logo.tileClassName` for marks that need a specific brand
+  // surface.
   const chip = (
     <button
       type="button"
       onClick={onToggle}
       aria-pressed={selected}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-1.5 rounded-md border font-medium transition-colors',
-        compact ? 'h-8 px-2.5 text-sm' : 'h-9 px-3 text-md',
+        'inline-flex cursor-pointer items-center gap-2 rounded-md border text-sm font-medium transition-colors',
+        compact ? 'h-7 px-2 pl-1.5' : 'h-8 px-3 pl-1.5',
         selected
           ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
           : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
@@ -792,10 +754,23 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
       <span
         aria-hidden
         className={cn(
-          'block size-1.5 rounded-full transition-colors',
-          selected ? 'bg-state-accent-solid' : 'bg-state-accent-solid/60',
+          'grid shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle transition-transform',
+          compact ? 'size-5' : 'size-5.5',
+          logo.tileClassName,
+          selected && 'scale-105',
         )}
-      />
+      >
+        <img
+          src={logo.src}
+          alt=""
+          draggable={false}
+          className={cn(
+            'max-h-[18px] max-w-[22px] object-contain',
+            compact && 'max-h-4 max-w-5',
+            logo.imageClassName,
+          )}
+        />
+      </span>
       {label}
     </button>
   )
@@ -815,84 +790,259 @@ function PresetChip({ id, label, selected, compact = false, onToggle }: PresetCh
   return chip
 }
 
-interface SourceModeButtonProps {
-  selected: boolean
+interface PresetExportGuideCardProps {
+  id: PresetId
+  label: string
+  guide: PresetExportGuide
+  uploadedFileName?: string | null
   compact?: boolean | undefined
-  onClick: () => void
-  children: ReactNode
 }
 
-function SourceModeButton({ selected, compact = false, onClick, children }: SourceModeButtonProps) {
+function PresetExportGuideCard({
+  id,
+  label,
+  guide,
+  uploadedFileName,
+  compact = false,
+}: PresetExportGuideCardProps) {
+  const logo = PRESET_LOGOS[id]
+  const fileBadgeLabel = uploadedFileName ?? guide.preferredFiles
+
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={onClick}
+    <div
       className={cn(
-        'inline-flex cursor-pointer items-center rounded-md border font-medium transition-colors',
-        compact ? 'h-8 px-2.5 text-sm' : 'h-9 px-3 text-md',
-        selected
-          ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-          : 'border-divider-regular bg-background-body text-text-secondary hover:border-state-accent-solid hover:text-text-accent',
+        'rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5',
+        compact ? 'space-y-2' : 'space-y-2.5',
       )}
     >
-      {children}
-    </button>
+      <div className="flex min-w-0 items-center gap-2">
+        {/* 2026-05-24 (design-system audit): was `rounded-[5px]`, an
+            off-scale value with no Tailwind equivalent. `rounded-sm`
+            matches the chip variant above and aligns with the app's
+            small-logo-tile treatment elsewhere.
+            2026-05-25 (Yuqi Today #24): same tile-bg shift as the
+            chip variant above — replaced bg-white ring-black/10 with
+            subtle bg + divider ring so logos with their own brand
+            colour stop fighting a hard white square. */}
+        <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle">
+          <img
+            src={logo.src}
+            alt=""
+            draggable={false}
+            className={cn('max-h-5 max-w-5 object-contain', logo.imageClassName)}
+          />
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-medium text-text-primary">{guide.title}</span>
+            <span
+              className="inline-block max-w-[min(28rem,100%)] truncate rounded-sm border border-divider-subtle bg-background-body px-1.5 py-0.5 font-mono text-xs text-text-tertiary"
+              title={fileBadgeLabel}
+            >
+              {fileBadgeLabel}
+            </span>
+          </div>
+          <span className="sr-only">{label}</span>
+        </div>
+      </div>
+      <ol className="list-decimal space-y-1 pl-9 text-sm text-text-secondary">
+        {guide.steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+      <p className="pl-9 text-xs text-text-tertiary">{guide.note}</p>
+    </div>
   )
 }
 
-export function parseIntegrationRows(
-  text: string,
-  provider: MigrationIntegrationProvider,
-): MigrationExternalStagingRowInput[] {
-  if (!text.trim()) return []
-  const records = parseIntegrationRecords(text)
-  if (!records) {
-    throw new Error('Paste provider records in the integration handoff format.')
-  }
-  return records.map((record, index) => {
-    const rawJson = toPlainRecord(record)
-    if (!rawJson) {
-      throw new Error(`Record ${index + 1} must be a JSON object.`)
-    }
-    return {
-      externalId: pickString(rawJson, [
-        'externalId',
-        'external_id',
-        'id',
-        'Id',
-        'ID',
-        'workId',
-        'work_id',
-        'accountId',
-        'account_id',
-      ]),
-      externalUrl: pickUrl(rawJson, [
-        'externalUrl',
-        'external_url',
-        'url',
-        'Url',
-        'permalink',
-        'webUrl',
-      ]),
-      externalEntityType: inferExternalEntityType(rawJson, provider),
-      rawJson,
-    }
-  })
-}
+type LinguiI18n = ReturnType<typeof useLingui>['i18n']
 
-export function normalizeIntegrationJsonText(text: string): string | null {
-  try {
-    const records = parseIntegrationRecords(text)
-    return records ? JSON.stringify(records, null, 2) : null
-  } catch {
-    return null
+function getPresetExportGuide(preset: PresetId | null, i18n: LinguiI18n): PresetExportGuide | null {
+  switch (preset) {
+    case 'taxdome':
+      return {
+        title: i18n._(msg`Export TaxDome accounts and contacts`),
+        preferredFiles: i18n._(msg`ZIP or CSV`),
+        steps: [
+          i18n._(
+            msg`Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV.`,
+          ),
+          i18n._(
+            msg`Go to Clients > Contacts, click Export contacts, then download that zipped CSV too.`,
+          ),
+          i18n._(
+            msg`Optional: export Workflow > Jobs if you want TaxDome due dates and internal deadlines.`,
+          ),
+          i18n._(msg`Upload the ZIPs or extracted CSVs so accounts can be matched to contacts.`),
+        ],
+        note: i18n._(msg`Avoid document archives; they are not client account or contact lists.`),
+      }
+    case 'drake':
+      return {
+        title: i18n._(msg`Export Drake client data`),
+        preferredFiles: i18n._(msg`CSV or TXT`),
+        steps: [
+          i18n._(msg`Use Tools > File Maintenance > Export Client/EF Data.`),
+          i18n._(
+            msg`Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue.`,
+          ),
+          i18n._(
+            msg`Use Reports > Report Manager > Tax return data only when you need a custom column report.`,
+          ),
+          i18n._(
+            msg`Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Do not use Backup or Restore for this import; those are for moving Drake data between Drake installs.`,
+        ),
+      }
+    case 'karbon':
+      return {
+        title: i18n._(msg`Export Karbon contacts`),
+        preferredFiles: i18n._(msg`Spreadsheet`),
+        steps: [
+          i18n._(
+            msg`Open Contacts and select the cloud export icon; Admin access may be required.`,
+          ),
+          i18n._(
+            msg`Choose the contact data to download; Karbon saves a spreadsheet to your device.`,
+          ),
+          i18n._(msg`For deadline history, export Work separately from the Work page cloud icon.`),
+        ],
+        note: i18n._(msg`Karbon columns vary by firm setup, so keep the header row in the file.`),
+      }
+    case 'quickbooks':
+      return {
+        title: i18n._(msg`Export QuickBooks customers`),
+        preferredFiles: i18n._(msg`XLSX or IIF`),
+        steps: [
+          i18n._(
+            msg`QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List.`,
+          ),
+          i18n._(
+            msg`QuickBooks Desktop: open Customer Center, then use Excel > Export Customer List.`,
+          ),
+          i18n._(
+            msg`For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List.`,
+          ),
+          i18n._(
+            msg`Upload the customer list file; ZIP exports are okay only if they contain readable customer reports.`,
+          ),
+        ],
+        note: i18n._(msg`Do not upload QBB, QBW, QBM, or CAB backups; those are not client lists.`),
+      }
+    case 'file_in_time':
+      return {
+        title: i18n._(msg`Export File In Time client information`),
+        preferredFiles: i18n._(msg`TXT, CSV, or Excel`),
+        steps: [
+          i18n._(
+            msg`In the client export/report screen, select the clients and fields to export, then click Export.`,
+          ),
+          i18n._(msg`For existing tasks or due dates, use Tools > Display Task View in Excel.`),
+          i18n._(msg`Upload the exported client file, task-view spreadsheet, or both.`),
+        ],
+        note: i18n._(msg`Do not upload FBK database backups; export client information instead.`),
+      }
+    case 'cch_axcess':
+      return {
+        title: i18n._(msg`Export CCH Axcess clients`),
+        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        steps: [
+          i18n._(
+            msg`Use Dashboard > Application Links > Utilities > Create client list for Portal.`,
+          ),
+          i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
+          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
+          i18n._(
+            msg`Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid.`,
+          ),
+        ],
+        note: i18n._(msg`Do not upload RTNBAK or RCTRL return backup files.`),
+      }
+    case 'cch_prosystem_fx':
+      return {
+        title: i18n._(msg`Export CCH ProSystem fx clients`),
+        preferredFiles: i18n._(msg`CSV, XLS, or XLSX`),
+        steps: [
+          i18n._(
+            msg`Use Create client list for Portal to export a client-list spreadsheet, not Office Manager backup.`,
+          ),
+          i18n._(msg`Go to Dashboard > Applications > Utilities > Create client list for Portal.`),
+          i18n._(msg`Select Quick Search criteria, run Go, then choose Export.`),
+          i18n._(msg`Save the client list as CSV, XLS, or XLSX before uploading.`),
+        ],
+        note: i18n._(
+          msg`Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import.`,
+        ),
+      }
+    case 'lacerte':
+      return {
+        title: i18n._(msg`Export Lacerte clients`),
+        preferredFiles: i18n._(msg`CSV`),
+        steps: [
+          i18n._(msg`In the Clients tab, highlight the clients to export.`),
+          i18n._(msg`Use Client > Export > Export to File, then choose Comma Delimited.`),
+          i18n._(msg`Save the export as EXPORT.CSV or choose your own CSV file name.`),
+          i18n._(
+            msg`Include client number, client name, email, phone, address, return type, and preparer fields.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Do not use Client > Backup for this import; backups and IDATA/DBF/MDX files are return-data files, not client-list CSVs.`,
+        ),
+      }
+    case 'proseries':
+      return {
+        title: i18n._(msg`Export ProSeries contacts`),
+        preferredFiles: i18n._(msg`HomeBase contacts CSV`),
+        steps: [
+          i18n._(msg`Open HomeBase View and make sure you are not inside a client return.`),
+          i18n._(
+            msg`Optionally customize HomeBase columns for client status, return type, address, phone, email, and preparer.`,
+          ),
+          i18n._(
+            msg`Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs.`,
+        ),
+      }
+    case 'ultratax_cs':
+      return {
+        title: i18n._(msg`Export UltraTax CS client reports`),
+        preferredFiles: i18n._(msg`XLS or DIF`),
+        steps: [
+          i18n._(msg`Use Utilities > Client Listing Reports.`),
+          i18n._(
+            msg`Choose Client Contact, General Client Information, or General Return Information, then select clients.`,
+          ),
+          i18n._(msg`Export to Excel 97-2003 Workbook and include column headings when prompted.`),
+        ],
+        note: i18n._(msg`Do not upload CSD client data files; export a listing report instead.`),
+      }
+    case 'proconnect_tax':
+      return {
+        title: i18n._(msg`Export ProConnect Tax clients`),
+        preferredFiles: i18n._(msg`XLSX or CSV`),
+        steps: [
+          i18n._(msg`For the client list, open Clients and use the top-right download arrow.`),
+          i18n._(msg`Export the client list to Excel; it includes client names and addresses.`),
+          i18n._(
+            msg`For return facts, use Reporting > Download return data to download the eligible e-filed return CSV.`,
+          ),
+          i18n._(
+            msg`For supplemental organizer data, open Intuit Link and download client responses as CSV.`,
+          ),
+        ],
+        note: i18n._(
+          msg`Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list.`,
+        ),
+      }
   }
-}
-
-function parseIntegrationRecords(text: string): unknown[] | null {
-  const parsed = parseFlexibleJsonInput(text)
-  return integrationRecords(parsed)
+  return null
 }
 
 export function normalizePastedRowsText(text: string): string | null {
@@ -1085,31 +1235,6 @@ function stringifyRowsCell(value: unknown): string {
   return JSON.stringify(value).replaceAll('\t', ' ').replaceAll('\n', ' ')
 }
 
-function integrationRecords(value: unknown): unknown[] | null {
-  if (Array.isArray(value)) {
-    const records: unknown[] = []
-    for (const item of value) {
-      if (toPlainRecord(item)) {
-        records.push(item)
-        continue
-      }
-
-      const nested = integrationRecords(item)
-      if (!nested) return null
-      records.push(...nested)
-    }
-    return records
-  }
-
-  const record = toPlainRecord(value)
-  if (!record) return null
-  for (const key of ['records', 'items', 'data', 'results']) {
-    const records = record[key]
-    if (Array.isArray(records)) return integrationRecords(records)
-  }
-  return [record]
-}
-
 function toPlainRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const out: Record<string, unknown> = {}
@@ -1117,103 +1242,24 @@ function toPlainRecord(value: unknown): Record<string, unknown> | null {
   return out
 }
 
-function inferExternalEntityType(
-  rawJson: Record<string, unknown>,
-  provider: MigrationIntegrationProvider,
-): MigrationExternalEntityType {
-  const explicit = pickString(rawJson, ['externalEntityType', 'external_entity_type', 'type'])
-  if (isExternalEntityType(explicit)) return explicit
-  return PROVIDER_DEFAULT_ENTITY[provider]
-}
-
-function pickString(rawJson: Record<string, unknown>, keys: readonly string[]): string | undefined {
-  for (const key of keys) {
-    const value = rawJson[key]
-    if (typeof value === 'string' && value.trim()) return value.trim()
-    if (typeof value === 'number' && Number.isFinite(value)) return String(value)
-  }
-  return undefined
-}
-
-function pickUrl(rawJson: Record<string, unknown>, keys: readonly string[]): string | undefined {
-  const value = pickString(rawJson, keys)
-  if (!value) return undefined
-  return /^https?:\/\//i.test(value) ? value : undefined
-}
-
-function isExternalEntityType(value: string | undefined): value is MigrationExternalEntityType {
-  return (
-    value === 'account' ||
-    value === 'contact' ||
-    value === 'organization' ||
-    value === 'work_item' ||
-    value === 'client' ||
-    value === 'return' ||
-    value === 'organizer' ||
-    value === 'delivery' ||
-    value === 'signature' ||
-    value === 'payment' ||
-    value === 'unknown'
-  )
-}
-
-function integrationRowsToTabularText(
-  rows: readonly MigrationExternalStagingRowInput[],
-  provider: MigrationIntegrationProvider,
-): string {
-  if (rows.length === 0) return ''
-  const rawHeaders = Array.from(
-    new Set(rows.flatMap((row) => Object.keys(row.rawJson).filter((key) => key.trim()))),
-  ).toSorted((a, b) => a.localeCompare(b))
-  const headers = [
-    'External Provider',
-    'External Entity Type',
-    'External ID',
-    'External URL',
-    ...rawHeaders,
-  ]
-  const body = rows.map((row) =>
-    [
-      provider,
-      row.externalEntityType ?? 'unknown',
-      row.externalId ?? '',
-      row.externalUrl ?? '',
-      ...rawHeaders.map((header) => stringifyIntegrationCell(row.rawJson[header])),
-    ].join('\t'),
-  )
-  return [headers.join('\t'), ...body].join('\n')
-}
-
-function stringifyIntegrationCell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value.replaceAll('\t', ' ').replaceAll('\n', ' ')
-  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value)
-  }
-  return JSON.stringify(value).replaceAll('\t', ' ').replaceAll('\n', ' ')
-}
-
-function friendlyParseError(error: TabularParseError): string {
+/**
+ * 2026-05-25 (Wizard #40 — i18n bug fix): `friendlyParseError`
+ * used to return bare English strings, which then rendered
+ * untranslated into the parse-error `<Alert>` at L597. Now
+ * returns a Lingui `MessageDescriptor` produced via the `msg`
+ * macro so callers can render through `i18n._()` at React
+ * render time. Same shape as `unsupportedUploadMessageDescriptor`
+ * in `intake-files.ts`.
+ */
+function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescriptor {
   switch (error.code) {
     case 'empty_input':
-      return 'Paste or upload to continue.'
+      return msg`Paste or upload to continue.`
     case 'no_data_rows':
-      return "We couldn't find a header row. Make sure the first line lists your column names."
+      return msg`We couldn't find a header row. Make sure the first line lists your column names.`
     case 'xlsx_not_supported':
-      return "XLSX couldn't be parsed. Export as CSV and re-upload."
+      return msg`XLSX couldn't be parsed. Export as CSV and re-upload.`
     default:
-      return "We couldn't read that file. Try exporting as CSV."
+      return msg`We couldn't read that file. Try exporting as CSV.`
   }
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.addEventListener('error', () => reject(reader.error))
-    reader.addEventListener('load', () => {
-      const value = typeof reader.result === 'string' ? reader.result : ''
-      resolve(value.includes(',') ? value.split(',').slice(1).join(',') : value)
-    })
-    reader.readAsDataURL(file)
-  })
 }

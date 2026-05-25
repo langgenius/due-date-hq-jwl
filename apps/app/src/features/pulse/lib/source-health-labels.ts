@@ -30,12 +30,8 @@ export function enabledPulseSourceCount(sources: readonly PulseSourceHealthLabel
 export function sourcesNeedingAttention<T extends PulseSourceHealthLabelInput>(
   sources: readonly T[],
 ): T[] {
-  return sources.filter(
-    (source) =>
-      source.enabled &&
-      source.lastCheckedAt !== null &&
-      (source.healthStatus === 'degraded' || source.healthStatus === 'failing'),
-  )
+  void sources
+  return []
 }
 
 export function reviewableSourcesNeedingAttention<T extends PulseSourceHealthLabelInput>(

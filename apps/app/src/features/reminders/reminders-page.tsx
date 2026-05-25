@@ -44,9 +44,12 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
+import { RelativeTime } from '@/components/primitives/relative-time'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 function statusBadge(status: ReminderDeliveryStatus) {
   if (status === 'sent')
@@ -88,6 +91,35 @@ function offsetLabel(offsetDays: number) {
   if (offsetDays === 0) return <Trans>Overdue</Trans>
   if (offsetDays === 1) return <Trans>1 day before</Trans>
   return <Trans>{offsetDays} days before</Trans>
+}
+
+// 2026-05-24 (critique P1 — clarify): a CPA reading the Reminders
+// templates table doesn't want to see `{{client_name}}: {{tax_type}}
+// due {{due_date}}` — they want to see what the recipient will
+// receive. Render the subject against a stable, recognizable sample
+// so the value of the row is "is this readable copy?" not "can I
+// parse this template grammar?".
+//
+// Authors still see the raw mustache in the Edit dialog where it
+// belongs.
+//
+// Keep this in sync with the server-side variable list — currently
+// `client_name`, `tax_type`, `due_date`, `offset_days`,
+// `obligation_url`, `unsubscribe_url`.
+const REMINDER_TEMPLATE_SAMPLE: Record<string, string> = {
+  client_name: 'Acme LLC',
+  tax_type: 'Form 1065',
+  due_date: 'May 15, 2026',
+  offset_days: '7',
+  obligation_url: 'duedatehq.com/o/sample',
+  unsubscribe_url: 'duedatehq.com/u/sample',
+}
+
+function renderReminderTemplatePreview(template: string): string {
+  return template.replace(/\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}/gi, (match, name) => {
+    const replacement = REMINDER_TEMPLATE_SAMPLE[String(name).toLowerCase()]
+    return replacement ?? match
+  })
 }
 
 function StatTile({
@@ -139,23 +171,16 @@ export function RemindersPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div className="grid gap-1">
-          <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-            <Trans>Reminders</Trans>
-          </h1>
-          <p className="max-w-[760px] text-sm text-text-secondary">
-            <Trans>
-              Manage the reminder schedule, message templates, recent delivery status, and client
-              email suppressions for deadline work.
-            </Trans>
-          </p>
-        </div>
-        <Button render={<Link to="/notifications" />} variant="outline" size="sm">
-          <BellIcon data-icon="inline-start" />
-          <Trans>Personal inbox</Trans>
-        </Button>
-      </header>
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminders` }]}
+        title={<Trans>Reminders</Trans>}
+        actions={
+          <Button render={<Link to="/notifications" />} variant="outline" size="sm">
+            <BellIcon data-icon="inline-start" />
+            <Trans>Personal inbox</Trans>
+          </Button>
+        }
+      />
 
       {overviewQuery.isError ? (
         <Card>
@@ -273,7 +298,17 @@ function TemplatesPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <span className="font-medium text-text-primary">{template.name}</span>
-                      <span className="text-xs text-text-tertiary">{template.subject}</span>
+                      {/* 2026-05-24 (critique P1 — clarify): render
+                          the subject against sample data so a CPA
+                          sees what their client will receive
+                          ("Acme LLC: Form 1065 due May 15, 2026"),
+                          not the raw mustache syntax
+                          ("{{client_name}}: {{tax_type}} due
+                          {{due_date}}"). The raw syntax still shows
+                          in the Edit dialog where authors need it. */}
+                      <span className="text-xs text-text-tertiary">
+                        {renderReminderTemplatePreview(template.subject)}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -356,12 +391,14 @@ function UpcomingPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <Link
-                        to={`/obligations?obligation=${item.obligationId}`}
+                        to={`/deadlines?obligation=${item.obligationId}`}
                         className="font-medium text-text-primary hover:underline"
                       >
                         {item.clientName}
                       </Link>
-                      <span className="text-xs text-text-tertiary">{item.taxType}</span>
+                      <span className="text-xs text-text-tertiary">
+                        <TaxCodeLabel code={item.taxType} />
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>{recipientLabel(item.recipientKind)}</TableCell>
@@ -427,7 +464,9 @@ function RecentSendsPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <span className="font-medium text-text-primary">{item.clientName}</span>
-                      <span className="text-xs text-text-tertiary">{item.taxType}</span>
+                      <span className="text-xs text-text-tertiary">
+                        <TaxCodeLabel code={item.taxType} />
+                      </span>
                       {item.failureReason ? (
                         <span className="text-xs text-text-destructive">{item.failureReason}</span>
                       ) : null}
@@ -440,8 +479,15 @@ function RecentSendsPanel({
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(item.deliveryStatus)}</TableCell>
-                  <TableCell className="tabular-nums">
-                    {formatDateTimeWithTimezone(item.createdAt, timezone)}
+                  {/* 2026-05-24 (critique /polish): same RelativeTime
+                      treatment as the suppression card and the Inbox
+                      / Members table. */}
+                  <TableCell>
+                    <RelativeTime
+                      value={item.createdAt}
+                      timeZone={timezone}
+                      className="text-text-secondary"
+                    />
                   </TableCell>
                 </TableRow>
               ))}
@@ -490,9 +536,14 @@ function SuppressionsPanel({
                 </span>
                 <Badge variant="secondary">{item.reason}</Badge>
               </div>
-              <span className="text-xs tabular-nums text-text-tertiary">
-                {formatDateTimeWithTimezone(item.createdAt, timezone)}
-              </span>
+              {/* 2026-05-24 (critique /polish): suppression timestamp
+                  becomes RelativeTime, consistent with Inbox + Members.
+                  Hover still surfaces the precise ISO. */}
+              <RelativeTime
+                value={item.createdAt}
+                timeZone={timezone}
+                className="text-xs text-text-tertiary"
+              />
             </article>
           ))
         )}
@@ -524,7 +575,9 @@ function TemplateDialog({
       },
       onError: (error) => {
         toast.error(t`Couldn't update reminder template`, {
-          description: rpcErrorMessage(error) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),

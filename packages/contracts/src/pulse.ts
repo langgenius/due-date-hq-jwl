@@ -19,8 +19,23 @@ export const PulseFirmAlertStatusSchema = z.enum([
   'partially_applied',
   'applied',
   'reverted',
+  'reviewed',
 ])
 export type PulseFirmAlertStatus = z.infer<typeof PulseFirmAlertStatusSchema>
+
+export const PulseChangeKindSchema = z.enum([
+  'deadline_shift',
+  'filing_requirement',
+  'applicability_scope',
+  'form_instruction',
+  'source_status',
+  'new_obligation',
+  'other',
+])
+export type PulseChangeKind = z.infer<typeof PulseChangeKindSchema>
+
+export const PulseActionModeSchema = z.enum(['due_date_overlay', 'review_only'])
+export type PulseActionMode = z.infer<typeof PulseActionModeSchema>
 
 export const PulseSourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 export type PulseSourceHealthStatus = z.infer<typeof PulseSourceHealthStatusSchema>
@@ -63,6 +78,8 @@ export const PulseAlertPublicSchema = z.object({
   pulseId: EntityIdSchema,
   status: PulseFirmAlertStatusSchema,
   sourceStatus: PulseStatusSchema,
+  changeKind: PulseChangeKindSchema,
+  actionMode: PulseActionModeSchema,
   title: z.string().min(1),
   source: z.string().min(1),
   sourceUrl: z.url(),
@@ -72,6 +89,14 @@ export const PulseAlertPublicSchema = z.object({
   needsReviewCount: z.number().int().min(0),
   confidence: z.number().min(0).max(1),
   isSample: z.boolean(),
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code) now
+  // travels with each list-item alert so the alerts list page can
+  // filter / group / map by state without an N+1 detail fetch. The
+  // value mirrors `PulseDetail.jurisdiction` — same underlying
+  // `pulse.parsedJurisdiction` column in the DB. Marked as required
+  // because every pulse alert has a parsed jurisdiction at insertion
+  // time (the ingest pipeline rejects rows without one).
+  jurisdiction: StateCodeSchema,
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 
@@ -84,7 +109,7 @@ export const PulseAffectedClientSchema = z.object({
   entityType: EntityTypeSchema,
   taxType: z.string().min(1),
   currentDueDate: z.iso.date(),
-  newDueDate: z.iso.date(),
+  newDueDate: z.iso.date().nullable(),
   status: ObligationStatusSchema,
   matchStatus: PulseAffectedClientStatusSchema,
   reason: z.string().nullable(),
@@ -97,9 +122,12 @@ export const PulseDetailSchema = z.object({
   counties: z.array(z.string()),
   forms: z.array(z.string()),
   entityTypes: z.array(EntityTypeSchema),
-  originalDueDate: z.iso.date(),
-  newDueDate: z.iso.date(),
+  originalDueDate: z.iso.date().nullable(),
+  newDueDate: z.iso.date().nullable(),
   effectiveFrom: z.iso.date().nullable(),
+  effectiveUntil: z.iso.date().nullable(),
+  affectedRuleIds: z.array(z.string()),
+  structuredChange: z.unknown().nullable(),
   sourceExcerpt: z.string().min(1),
   reviewedAt: z.iso.datetime().nullable(),
   affectedClients: z.array(PulseAffectedClientSchema),
@@ -134,7 +162,7 @@ export type PulsePriorityQueueItem = z.infer<typeof PulsePriorityQueueItemSchema
 
 export const PulseListAlertsInputSchema = z
   .object({
-    limit: z.number().int().min(1).max(20).default(5).optional(),
+    limit: z.number().int().min(1).max(50).default(5).optional(),
   })
   .optional()
 export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
@@ -208,8 +236,18 @@ export type PulseApplyInput = z.infer<typeof PulseApplyInputSchema>
 export const PulseSnoozeInputSchema = z.object({
   alertId: EntityIdSchema,
   until: z.iso.datetime(),
+  reason: z.string().trim().min(1).max(500),
 })
 export type PulseSnoozeInput = z.infer<typeof PulseSnoozeInputSchema>
+
+export const PulseDismissInputSchema = z.object({
+  alertId: EntityIdSchema,
+  reason: z.string().trim().min(1).max(500),
+})
+export type PulseDismissInput = z.infer<typeof PulseDismissInputSchema>
+
+export const PulseMarkReviewedInputSchema = PulseDismissInputSchema
+export type PulseMarkReviewedInput = z.infer<typeof PulseMarkReviewedInputSchema>
 
 export const PulseRequestReviewInputSchema = z.object({
   alertId: EntityIdSchema,
@@ -249,6 +287,9 @@ export type PulseSnoozeOutput = z.infer<typeof PulseSnoozeOutputSchema>
 export const PulseReactivateOutputSchema = PulseDismissOutputSchema
 export type PulseReactivateOutput = z.infer<typeof PulseReactivateOutputSchema>
 
+export const PulseMarkReviewedOutputSchema = PulseDismissOutputSchema
+export type PulseMarkReviewedOutput = z.infer<typeof PulseMarkReviewedOutputSchema>
+
 export const PulseRevertOutputSchema = z.object({
   alert: PulseAlertPublicSchema,
   revertedCount: z.number().int().min(0),
@@ -268,6 +309,16 @@ export const pulseContract = oc.router({
   listAlerts: oc
     .input(PulseListAlertsInputSchema)
     .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
+  /**
+   * Count-only variant of `listAlerts` for the sidebar nav badge.
+   *
+   * The list endpoint clamps to a 50-row max, so a firm with more
+   * than 50 active alerts saw "50" in the sidebar badge even though
+   * the real count was higher. This endpoint runs a true COUNT(*)
+   * against the same WHERE clause `listAlerts` uses, so the badge
+   * always shows the true number with no upper bound.
+   */
+  activeCount: oc.input(z.undefined()).output(z.object({ count: z.number().int().min(0) })),
   listHistory: oc
     .input(PulseListHistoryInputSchema)
     .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
@@ -289,8 +340,9 @@ export const pulseContract = oc.router({
     .output(PulsePriorityReviewSchema),
   applyReviewed: oc.input(PulseAlertIdInputSchema).output(PulseApplyOutputSchema),
   apply: oc.input(PulseApplyInputSchema).output(PulseApplyOutputSchema),
-  dismiss: oc.input(PulseAlertIdInputSchema).output(PulseDismissOutputSchema),
+  dismiss: oc.input(PulseDismissInputSchema).output(PulseDismissOutputSchema),
   snooze: oc.input(PulseSnoozeInputSchema).output(PulseSnoozeOutputSchema),
+  markReviewed: oc.input(PulseMarkReviewedInputSchema).output(PulseMarkReviewedOutputSchema),
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),
   requestReview: oc.input(PulseRequestReviewInputSchema).output(PulseRequestReviewOutputSchema),

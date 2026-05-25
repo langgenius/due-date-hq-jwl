@@ -4,6 +4,8 @@ import {
   ClientTaxClassificationSchema,
   EntityTypeSchema,
   ObligationTypeSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
 } from './shared/enums'
 import { EntityIdSchema } from './shared/ids'
 
@@ -93,28 +95,40 @@ export const SourceCadenceSchema = z.enum(['daily', 'weekly', 'monthly', 'quarte
 export const SourcePrioritySchema = z.enum(['critical', 'high', 'medium', 'low'])
 export const SourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 
+export const RuleSourceDomainSchema = z.enum([
+  'individual_income_return',
+  'individual_estimated_tax',
+  'fiduciary_income_return',
+  'business_income_return',
+  'business_estimated_tax',
+  'pass_through_entity_return',
+  'franchise_or_entity_tax',
+  'sales_use_tax',
+  'withholding',
+  'ui_wage_report',
+  'local_individual_income',
+  'local_business_income',
+  'local_employer_withholding',
+  'local_services_tax',
+])
+export type RuleSourceDomain = z.infer<typeof RuleSourceDomainSchema>
+
+export const RuleSourceCoverageStatusSchema = z.enum([
+  'missing_source',
+  'source_registered',
+  'source_verified',
+  'rule_pending_review',
+  'rule_active',
+  'not_applicable',
+])
+export type RuleSourceCoverageStatus = z.infer<typeof RuleSourceCoverageStatusSchema>
+
 export const RuleNotificationChannelSchema = z.enum([
   'source_change',
   'practice_rule_review',
   'practice_rule_preview',
   'user_deadline_reminder',
 ])
-
-export const RuleSourceSchema = z.object({
-  id: z.string().min(1),
-  jurisdiction: RuleJurisdictionSchema,
-  title: z.string().min(1),
-  url: z.url(),
-  sourceType: RuleSourceTypeSchema,
-  acquisitionMethod: AcquisitionMethodSchema,
-  cadence: SourceCadenceSchema,
-  priority: SourcePrioritySchema,
-  healthStatus: SourceHealthStatusSchema,
-  isEarlyWarning: z.boolean(),
-  notificationChannels: z.array(RuleNotificationChannelSchema),
-  lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-})
-export type RuleSource = z.infer<typeof RuleSourceSchema>
 
 export const EntityApplicabilitySchema = z.enum([
   'llc',
@@ -126,6 +140,89 @@ export const EntityApplicabilitySchema = z.enum([
   'individual',
   'any_business',
 ])
+
+export const RuleEvidenceAuthorityRoleSchema = z.enum([
+  'basis',
+  'cross_check',
+  'watch',
+  'early_warning',
+])
+export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
+
+export const LocalJurisdictionLevelSchema = z.enum([
+  'state_administered_local',
+  'county',
+  'municipality',
+  'school_district',
+  'special_district',
+])
+export type LocalJurisdictionLevel = z.infer<typeof LocalJurisdictionLevelSchema>
+
+export const LocalJurisdictionAdministeredBySchema = z.enum([
+  'state',
+  'local_collector',
+  'municipal_authority',
+])
+export type LocalJurisdictionAdministeredBy = z.infer<typeof LocalJurisdictionAdministeredBySchema>
+
+export const LocalJurisdictionCollectedViaSchema = z.enum([
+  'state_return',
+  'local_return',
+  'employer_withholding',
+  'manual_review',
+])
+export type LocalJurisdictionCollectedVia = z.infer<typeof LocalJurisdictionCollectedViaSchema>
+
+export const LocalFactRequirementSchema = z.enum([
+  'resident_county',
+  'resident_municipality',
+  'work_county',
+  'work_municipality',
+  'worksite_psd_code',
+  'principal_office_municipality',
+  'local_collector',
+  'local_filing_channel',
+  'local_tax_rate',
+  'lst_exemption_status',
+])
+export type LocalFactRequirement = z.infer<typeof LocalFactRequirementSchema>
+
+export const LocalJurisdictionRefSchema = z.object({
+  level: LocalJurisdictionLevelSchema,
+  state: RuleGenerationStateSchema,
+  localCode: z.string().min(1),
+  displayName: z.string().min(1),
+  administeredBy: LocalJurisdictionAdministeredBySchema,
+  collectedVia: LocalJurisdictionCollectedViaSchema,
+  sourceAuthority: z.string().min(1),
+})
+export type LocalJurisdictionRef = z.infer<typeof LocalJurisdictionRefSchema>
+
+export const SourceAdapterKindSchema = z.enum(['rss_or_announcement_list'])
+export type SourceAdapterKind = z.infer<typeof SourceAdapterKindSchema>
+
+export const RuleSourceSchema = z.object({
+  id: z.string().min(1),
+  jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
+  title: z.string().min(1),
+  url: z.url(),
+  sourceType: RuleSourceTypeSchema,
+  acquisitionMethod: AcquisitionMethodSchema,
+  cadence: SourceCadenceSchema,
+  priority: SourcePrioritySchema,
+  healthStatus: SourceHealthStatusSchema,
+  isEarlyWarning: z.boolean(),
+  domains: z.array(RuleSourceDomainSchema).min(1),
+  entityApplicability: z.array(EntityApplicabilitySchema).min(1),
+  authorityRole: RuleEvidenceAuthorityRoleSchema,
+  notificationChannels: z.array(RuleNotificationChannelSchema),
+  lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  adapterKind: SourceAdapterKindSchema.optional(),
+  feedUrl: z.url().optional(),
+})
+export type RuleSource = z.infer<typeof RuleSourceSchema>
 
 export const RuleGenerationEntitySchema = EntityTypeSchema
 
@@ -201,6 +298,38 @@ export const DueDateLogicSchema = z.discriminatedUnion('kind', [
 ])
 export type DueDateLogic = z.infer<typeof DueDateLogicSchema>
 
+export const ConcreteDueDateLogicSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('fixed_date'),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    holidayRollover: z.enum(['source_adjusted', 'next_business_day']),
+  }),
+  z.object({
+    kind: z.literal('nth_day_after_tax_year_end'),
+    monthOffset: z.number().int().min(1).max(12),
+    day: z.number().int().min(1).max(31),
+    holidayRollover: z.literal('next_business_day'),
+  }),
+  z.object({
+    kind: z.literal('nth_day_after_tax_year_begin'),
+    monthOffset: z.number().int().min(1).max(12),
+    day: z.number().int().min(1).max(31),
+    holidayRollover: z.literal('next_business_day'),
+  }),
+  z.object({
+    kind: z.literal('period_table'),
+    frequency: z.enum(['semiweekly', 'monthly', 'quarterly', 'annual']),
+    periods: z.array(
+      z.object({
+        period: z.string().min(1),
+        dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      }),
+    ),
+    holidayRollover: z.literal('source_adjusted'),
+  }),
+])
+export type ConcreteDueDateLogic = z.infer<typeof ConcreteDueDateLogicSchema>
+
 export const ExtensionPolicySchema = z.object({
   available: z.boolean(),
   formName: z.string().min(1).optional(),
@@ -218,13 +347,6 @@ export const RuleQualityChecklistSchema = z.object({
   exceptionChannel: z.boolean(),
 })
 
-export const RuleEvidenceAuthorityRoleSchema = z.enum([
-  'basis',
-  'cross_check',
-  'watch',
-  'early_warning',
-])
-export type RuleEvidenceAuthorityRole = z.infer<typeof RuleEvidenceAuthorityRoleSchema>
 export const RuleEvidenceLocatorSchema = z.object({
   kind: z.enum(['html', 'pdf', 'table', 'api', 'email_subscription']),
   heading: z.string().min(1).optional(),
@@ -237,6 +359,7 @@ export type RuleEvidenceLocator = z.infer<typeof RuleEvidenceLocatorSchema>
 
 export const RuleEvidenceSchema = z.object({
   sourceId: z.string().min(1),
+  aiOutputId: EntityIdSchema.nullable().optional(),
   authorityRole: RuleEvidenceAuthorityRoleSchema,
   locator: RuleEvidenceLocatorSchema,
   summary: z.string().min(1),
@@ -253,6 +376,8 @@ export const ObligationRuleSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
   entityApplicability: z.array(EntityApplicabilitySchema),
   taxType: z.string().min(1),
   formName: z.string().min(1),
@@ -275,6 +400,8 @@ export const ObligationRuleSchema = z.object({
   quality: RuleQualityChecklistSchema,
   verifiedBy: z.string().min(1),
   verifiedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  reviewedByName: z.string().min(1).optional(),
+  reviewedAt: z.iso.datetime().optional(),
   nextReviewOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   version: z.number().int().positive(),
 })
@@ -286,11 +413,33 @@ export const RuleCoverageRowSchema = z.object({
   verifiedRuleCount: z.number().int().nonnegative(),
   candidateCount: z.number().int().nonnegative(),
   highPrioritySourceCount: z.number().int().nonnegative(),
+  missingSourceCount: z.number().int().nonnegative(),
+  requiredSourceCount: z.number().int().nonnegative(),
+  missingSourceDomains: z.array(RuleSourceDomainSchema).optional(),
+  sourceCoverageStatus: RuleSourceCoverageStatusSchema,
   activeRuleCount: z.number().int().nonnegative().optional(),
   pendingReviewCount: z.number().int().nonnegative().optional(),
   rejectedRuleCount: z.number().int().nonnegative().optional(),
   archivedRuleCount: z.number().int().nonnegative().optional(),
   customRuleCount: z.number().int().nonnegative().optional(),
+  entityCoverage: z.object({
+    llc: z.enum(['active', 'review', 'none']),
+    partnership: z.enum(['active', 'review', 'none']),
+    s_corp: z.enum(['active', 'review', 'none']),
+    c_corp: z.enum(['active', 'review', 'none']),
+    sole_prop: z.enum(['active', 'review', 'none']),
+    individual: z.enum(['active', 'review', 'none']),
+    trust: z.enum(['active', 'review', 'none']),
+  }),
+  entitySourceCoverage: z.object({
+    llc: RuleSourceCoverageStatusSchema,
+    partnership: RuleSourceCoverageStatusSchema,
+    s_corp: RuleSourceCoverageStatusSchema,
+    c_corp: RuleSourceCoverageStatusSchema,
+    sole_prop: RuleSourceCoverageStatusSchema,
+    individual: RuleSourceCoverageStatusSchema,
+    trust: RuleSourceCoverageStatusSchema,
+  }),
 })
 export type RuleCoverageRow = z.infer<typeof RuleCoverageRowSchema>
 
@@ -308,6 +457,11 @@ export const RuleGenerationClientFactsSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
+  taxYearType: z.enum(['calendar', 'fiscal']).nullable().optional(),
+  fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
+  fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
+  taxPeriodSource: TaxPeriodSourceSchema.optional(),
+  localFacts: z.partialRecord(LocalFactRequirementSchema, z.string().min(1)).optional(),
 })
 export type RuleGenerationClientFacts = z.infer<typeof RuleGenerationClientFactsSchema>
 
@@ -317,12 +471,29 @@ export const RuleGenerationPreviewInputSchema = z.object({
 })
 export type RuleGenerationPreviewInput = z.infer<typeof RuleGenerationPreviewInputSchema>
 
+export const RuleGenerationMissingClientFactSchema = z.enum([
+  'fiscalYearEnd',
+  'resident_county',
+  'resident_municipality',
+  'work_county',
+  'work_municipality',
+  'worksite_psd_code',
+  'principal_office_municipality',
+  'local_collector',
+  'local_filing_channel',
+  'local_tax_rate',
+  'lst_exemption_status',
+])
+export type RuleGenerationMissingClientFact = z.infer<typeof RuleGenerationMissingClientFactSchema>
+
 export const ObligationGenerationPreviewSchema = z.object({
   clientId: z.string().min(1),
   ruleId: z.string().min(1),
   ruleVersion: z.number().int().positive(),
   ruleTitle: z.string().min(1),
   jurisdiction: RuleJurisdictionSchema,
+  localJurisdiction: LocalJurisdictionRefSchema.optional(),
+  localFactRequirements: z.array(LocalFactRequirementSchema).min(1).optional(),
   taxType: z.string().min(1),
   matchedTaxType: z.string().min(1),
   period: z.string().min(1),
@@ -330,6 +501,11 @@ export const ObligationGenerationPreviewSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable(),
+  taxPeriodStart: z.iso.date().nullable(),
+  taxPeriodEnd: z.iso.date().nullable(),
+  taxPeriodKind: TaxPeriodKindSchema,
+  taxPeriodSource: TaxPeriodSourceSchema,
+  taxPeriodReviewReason: z.string().min(1).nullable(),
   eventType: ObligationEventTypeSchema,
   isFiling: z.boolean(),
   isPayment: z.boolean(),
@@ -339,6 +515,7 @@ export const ObligationGenerationPreviewSchema = z.object({
   requiresReview: z.boolean(),
   reminderReady: z.boolean(),
   reviewReasons: z.array(z.string().min(1)),
+  missingClientFacts: z.array(RuleGenerationMissingClientFactSchema),
 })
 export type ObligationGenerationPreview = z.infer<typeof ObligationGenerationPreviewSchema>
 
@@ -417,6 +594,7 @@ export const RuleBulkAcceptSkipSchema = z.object({
     'archived',
     'invalid_template',
     'source_changed_requires_review',
+    'source_defined_requires_ai_review',
   ]),
 })
 export type RuleBulkAcceptSkip = z.infer<typeof RuleBulkAcceptSkipSchema>
@@ -426,6 +604,22 @@ export const RuleBulkAcceptTemplatesOutputSchema = z.object({
   skipped: z.array(RuleBulkAcceptSkipSchema),
 })
 export type RuleBulkAcceptTemplatesOutput = z.infer<typeof RuleBulkAcceptTemplatesOutputSchema>
+
+export const RuleOnboardingActivationInputSchema = z.object({
+  states: z.array(RuleGenerationStateSchema).max(RuleGenerationStateValues.length),
+})
+export type RuleOnboardingActivationInput = z.infer<typeof RuleOnboardingActivationInputSchema>
+
+export const RuleOnboardingActivationOutputSchema = z.object({
+  selectedStates: z.array(RuleGenerationStateSchema),
+  jurisdictions: z.array(RuleJurisdictionSchema),
+  activatedCount: z.number().int().nonnegative(),
+  skippedCount: z.number().int().nonnegative(),
+  reviewRequiredCount: z.number().int().nonnegative(),
+  reviewRequiredJurisdictions: z.array(RuleJurisdictionSchema),
+  generatedObligationCount: z.number().int().nonnegative(),
+})
+export type RuleOnboardingActivationOutput = z.infer<typeof RuleOnboardingActivationOutputSchema>
 
 export const RuleRejectTemplateInputSchema = RuleVersionSelectionSchema.extend({
   reason: z.string().trim().min(1).max(1000),
@@ -506,22 +700,84 @@ export const RuleVerifyCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
   sourceSignalId: EntityIdSchema.optional(),
-  sourceHeading: z.string().min(1),
-  sourceExcerpt: z.string().min(1),
-  sourceUpdatedOn: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
-  dueDateLogic: DueDateLogicSchema,
-  extensionPolicy: ExtensionPolicySchema,
-  ruleTier: RuleTierSchema,
-  coverageStatus: CoverageStatusSchema,
-  requiresApplicabilityReview: z.boolean(),
-  quality: RuleQualityChecklistSchema,
-  nextReviewOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  aiOutputId: EntityIdSchema,
   reviewNote: z.string().trim().max(1000).optional(),
 })
 export type RuleVerifyCandidateInput = z.infer<typeof RuleVerifyCandidateInputSchema>
+
+export const RuleDraftConcreteRuleInputSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.optional(),
+})
+export type RuleDraftConcreteRuleInput = z.infer<typeof RuleDraftConcreteRuleInputSchema>
+
+export const RuleConcreteDraftSchema = z.object({
+  aiOutputId: EntityIdSchema,
+  dueDateLogic: ConcreteDueDateLogicSchema,
+  extensionPolicy: ExtensionPolicySchema,
+  coverageStatus: CoverageStatusSchema,
+  requiresApplicabilityReview: z.boolean(),
+  quality: RuleQualityChecklistSchema,
+  sourceHeading: z.string().min(1),
+  sourceExcerpt: z.string().min(1),
+  confidence: z.number().min(0).max(1),
+  reasoning: z.string().min(1),
+})
+export type RuleConcreteDraft = z.infer<typeof RuleConcreteDraftSchema>
+
+export const RuleListConcreteDraftsInputSchema = z.object({
+  rules: z.array(RuleDraftConcreteRuleInputSchema).max(500),
+})
+export type RuleListConcreteDraftsInput = z.infer<typeof RuleListConcreteDraftsInputSchema>
+
+export const RuleConcreteDraftCacheEntrySchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.nullable(),
+  draft: RuleConcreteDraftSchema,
+})
+export type RuleConcreteDraftCacheEntry = z.infer<typeof RuleConcreteDraftCacheEntrySchema>
+
+export const RuleBulkVerifyCandidateSelectionSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1),
+  sourceSignalId: EntityIdSchema.optional(),
+  aiOutputId: EntityIdSchema,
+})
+export type RuleBulkVerifyCandidateSelection = z.infer<
+  typeof RuleBulkVerifyCandidateSelectionSchema
+>
+
+export const RuleBulkVerifyCandidatesInputSchema = z.object({
+  rules: z.array(RuleBulkVerifyCandidateSelectionSchema).min(1).max(100),
+  reviewNote: z.string().trim().min(1).max(1000),
+})
+export type RuleBulkVerifyCandidatesInput = z.infer<typeof RuleBulkVerifyCandidatesInputSchema>
+
+export const RuleBulkVerifyCandidateSkipSchema = z.object({
+  ruleId: z.string().min(1),
+  sourceId: z.string().min(1).nullable(),
+  reason: z.enum([
+    'rule_not_found',
+    'not_source_defined',
+    'draft_not_found',
+    'draft_mismatch',
+    'already_active',
+    'rejected',
+    'archived',
+    'source_changed_requires_review',
+    'no_open_task',
+    'validation_failed',
+  ]),
+})
+export type RuleBulkVerifyCandidateSkip = z.infer<typeof RuleBulkVerifyCandidateSkipSchema>
+
+export const RuleBulkVerifyCandidatesOutputSchema = z.object({
+  verified: z.array(RuleReviewDecisionSchema),
+  skipped: z.array(RuleBulkVerifyCandidateSkipSchema),
+})
+export type RuleBulkVerifyCandidatesOutput = z.infer<typeof RuleBulkVerifyCandidatesOutputSchema>
 
 export const RuleRejectCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
@@ -557,6 +813,9 @@ export const rulesContract = oc.router({
   bulkAcceptTemplates: oc
     .input(RuleBulkAcceptTemplatesInputSchema)
     .output(RuleBulkAcceptTemplatesOutputSchema),
+  activateOnboardingJurisdictions: oc
+    .input(RuleOnboardingActivationInputSchema)
+    .output(RuleOnboardingActivationOutputSchema),
   rejectTemplate: oc.input(RuleRejectTemplateInputSchema).output(RuleReviewTaskSchema),
   createCustomRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),
   updatePracticeRule: oc.input(RuleCustomRuleInputSchema).output(RuleReviewTaskSchema),
@@ -565,7 +824,14 @@ export const rulesContract = oc.router({
   previewBulkRuleImpact: oc
     .input(RuleBulkImpactPreviewInputSchema)
     .output(RuleBulkImpactPreviewSchema),
+  draftConcreteRule: oc.input(RuleDraftConcreteRuleInputSchema).output(RuleConcreteDraftSchema),
+  listConcreteDrafts: oc
+    .input(RuleListConcreteDraftsInputSchema)
+    .output(z.array(RuleConcreteDraftCacheEntrySchema)),
   verifyCandidate: oc.input(RuleVerifyCandidateInputSchema).output(RuleReviewDecisionSchema),
+  bulkVerifyCandidates: oc
+    .input(RuleBulkVerifyCandidatesInputSchema)
+    .output(RuleBulkVerifyCandidatesOutputSchema),
   rejectCandidate: oc.input(RuleRejectCandidateInputSchema).output(RuleReviewDecisionSchema),
   coverage: oc.input(z.undefined()).output(z.array(RuleCoverageRowSchema)),
   previewObligations: oc

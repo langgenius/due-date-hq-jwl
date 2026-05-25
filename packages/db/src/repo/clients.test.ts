@@ -45,6 +45,12 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     taxYearType: overrides.taxYearType ?? 'calendar',
     fiscalYearEndMonth: overrides.fiscalYearEndMonth ?? null,
     fiscalYearEndDay: overrides.fiscalYearEndDay ?? null,
+    externalClientId: overrides.externalClientId ?? null,
+    addressLine1: overrides.addressLine1 ?? null,
+    city: overrides.city ?? null,
+    postalCode: overrides.postalCode ?? null,
+    primaryPhone: overrides.primaryPhone ?? null,
+    sourceStatus: overrides.sourceStatus ?? null,
     email: overrides.email ?? null,
     notes: overrides.notes ?? null,
     assigneeId: overrides.assigneeId ?? null,
@@ -105,5 +111,43 @@ describe('makeClientsRepo.updateJurisdiction', () => {
     expect(fake.update).toHaveBeenCalledTimes(1)
     expect(fake.set).toHaveBeenCalledWith({ state: 'WA', county: 'King' })
     expect(fake.where).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('makeClientsRepo.updateTaxYearProfile', () => {
+  it('updates fiscal year profile in one tenant-scoped statement', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.updateTaxYearProfile('client_1', {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    expect(fake.update).toHaveBeenCalledTimes(1)
+    expect(fake.set).toHaveBeenCalledWith({
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+    expect(fake.where).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears fiscal year end fields for calendar-year clients', async () => {
+    const fake = createFakeUpdateDb()
+    const repo = makeClientsRepo(fake.db, 'firm_1')
+
+    await repo.updateTaxYearProfile('client_1', {
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    expect(fake.set).toHaveBeenCalledWith({
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
   })
 })

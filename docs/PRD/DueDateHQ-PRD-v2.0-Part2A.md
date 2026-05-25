@@ -148,13 +148,13 @@ Verified by DueDateHQ Glass-Box engine as of 2026-04-23.
 - 不嵌入 AI narrative；只嵌入 **已 human-verified 的 rule + penalty 数字**（避免把模型幻觉送客户）
 - 每条 obligation 右下 QR 码回链到在线 Evidence Mode
 
-### 7.5 Penalty Radar™（P0-18 · 跨页面）
+### 7.5 Deadline Radar™（P0-18 · 跨页面）
 
 #### 7.5.1 为什么必须做
 
 CPA 的脑回路："客户会怪我什么？" → 怪你让他多交了钱。DueDateHQ 把风险单位从"天数"换成"美元"，直接对接 CPA 的职业恐惧。
 
-#### 7.5.2 美元敞口计算（纯函数 · 零幻觉 · 融合两份 PRD）
+#### 7.5.2 截止日风险计算（纯函数 · 零幻觉 · 融合两份 PRD）
 
 ```typescript
 // Formulas from IRS IRC §6651 + public state statutes.
@@ -226,7 +226,7 @@ CPA 可手动覆盖某条 obligation 的 `estimated_tax_liability`，写 `audit_
 
 #### 7.5.6 ★ Scoreboard 游戏化规格（集训记忆钩子）
 
-> 所有组都会做美元敞口数字。本节规定**怎么把它做成"赌场分数面板级别"**的视觉体验——让现场观众 2 小时看 20 组 Demo 后仍记得这一个数字。
+> 所有组都会做截止日风险数字。本节规定**怎么把它做成"赌场分数面板级别"**的视觉体验——让现场观众 2 小时看 20 组 Demo 后仍记得这一个数字。
 
 ##### 7.5.6.1 顶栏 Hero 视觉规格
 
@@ -332,7 +332,7 @@ Total this week: −$15,150
 
 ##### 7.5.6.7 无障碍
 
-- 每次数字变化触发 `aria-live="polite"` 通告：`Penalty radar updated to thirty-one thousand four hundred dollars`
+- 每次数字变化触发 `aria-live="polite"` 通告：`Deadline radar updated to five urgent reviews`
 - 彩带动画全程非阻塞（`pointer-events: none`）
 - 庆祝有"关闭动效"偏好 + 纯文本 toast 备份
 
@@ -457,7 +457,7 @@ app/api/push/
 | T-PWA-08 | 一用户多设备订阅            | 同一事件在所有设备送达（去重按 endpoint）                                 |
 | T-PWA-09 | 取消订阅                    | 从 Settings 关闭 + 立即失效                                               |
 
-##### 与 Penalty Radar Scoreboard 联动
+##### 与 Deadline Radar Scoreboard 联动
 
 PWA 壳内**Dock / Home 图标的 App Badge 实时显示 overdue count**：
 
@@ -603,7 +603,7 @@ Client
   tax_types[],                       -- nullable, fallback to Default Matrix
   importance (high/med/low),
   num_partners, num_shareholders,    -- for Penalty per-partner calc
-  estimated_tax_liability,           -- optional, for Penalty Radar
+  estimated_tax_liability,           -- optional, for Deadline Radar
   assignee_id, email, notes,
   migration_batch_id                 -- nullable, for Revert
 
@@ -611,7 +611,7 @@ ObligationRule (base rule · Rules-as-Asset 核心实体 · §6D)
   id, jurisdiction, entity_applicability[], tax_type, form_name,
   due_date_logic (DSL/json),
   extension_policy, is_payment, is_filing,
-  penalty_formula,                   -- for Penalty Radar
+  penalty_formula,                   -- for Deadline Radar
   default_tip,                       -- fallback for Deadline Tip
   source_url, source_title,          -- NEW (§6D.8): 官方文档全名
   statutory_ref, verbatim_quote,

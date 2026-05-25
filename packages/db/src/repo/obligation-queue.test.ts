@@ -9,6 +9,21 @@ interface FakeRow {
   clientId: string
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
+  taxPeriodSource:
+    | 'client_default'
+    | 'prior_obligation'
+    | 'migration'
+    | 'manual_cpa_confirmed'
+    | 'unknown'
+  taxPeriodReviewReason: string | null
+  filingDueDate: Date | null
+  paymentDueDate: Date | null
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
@@ -40,6 +55,11 @@ interface FakeReadinessResponse {
   status: ReadinessResponseStatus
 }
 
+interface FakeReadinessChecklistItem {
+  obligationInstanceId: string
+  status: 'missing' | 'received' | 'needs_review'
+}
+
 /**
  * Fake Drizzle chain — only what makeObligationQueueRepo.list calls actually walks.
  * Order: select().from().innerJoin().leftJoin().where().orderBy().limit() => Promise<rows>.
@@ -49,6 +69,7 @@ function createFakeDb(
   options: {
     readinessRequests?: FakeReadinessRequest[]
     readinessResponses?: FakeReadinessResponse[]
+    readinessChecklistItems?: FakeReadinessChecklistItem[]
   } = {},
 ) {
   const limit = vi.fn(async (_n: number) => rows)
@@ -71,6 +92,8 @@ function createFakeDb(
   const readinessRequestFrom = vi.fn(() => ({ where: readinessRequestWhere }))
   const readinessResponseWhere = vi.fn(async () => options.readinessResponses ?? [])
   const readinessResponseFrom = vi.fn(() => ({ where: readinessResponseWhere }))
+  const readinessChecklistWhere = vi.fn(async () => options.readinessChecklistItems ?? [])
+  const readinessChecklistFrom = vi.fn(() => ({ where: readinessChecklistWhere }))
   const select = vi.fn((shape?: Record<string, unknown>) => {
     const keys = Object.keys(shape ?? {})
     if (
@@ -85,6 +108,9 @@ function createFakeDb(
     }
     if (keys.length === 2 && keys.includes('requestId') && keys.includes('status')) {
       return { from: readinessResponseFrom }
+    }
+    if (keys.length === 2 && keys.includes('obligationInstanceId') && keys.includes('status')) {
+      return { from: readinessChecklistFrom }
     }
     if (shape && 'overrideDueDate' in shape) return { from: overlayFrom }
     if (keys.length === 1 && keys.includes('obligationInstanceId')) {
@@ -117,7 +143,17 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     clientId: over.clientId ?? '22222222-2222-4222-8222-222222222222',
     taxType: over.taxType ?? '1040',
     taxYear: over.taxYear ?? 2026,
+    taxYearType: over.taxYearType ?? 'calendar',
+    fiscalYearEndMonth: over.fiscalYearEndMonth ?? null,
+    fiscalYearEndDay: over.fiscalYearEndDay ?? null,
+    taxPeriodStart: over.taxPeriodStart ?? null,
+    taxPeriodEnd: over.taxPeriodEnd ?? null,
+    taxPeriodKind: over.taxPeriodKind ?? 'unknown',
+    taxPeriodSource: over.taxPeriodSource ?? 'unknown',
+    taxPeriodReviewReason: over.taxPeriodReviewReason ?? null,
     baseDueDate: over.baseDueDate ?? due,
+    filingDueDate: over.filingDueDate ?? null,
+    paymentDueDate: over.paymentDueDate ?? null,
     currentDueDate: due,
     status: over.status ?? 'pending',
     migrationBatchId: over.migrationBatchId ?? null,
@@ -168,6 +204,25 @@ describe('makeObligationQueueRepo.list', () => {
     expect(result.rows.map((row) => row.id)).toEqual(['target-obligation'])
   })
 
+  it('falls back statutory split dates to the tax authority source-backed date', async () => {
+    const baseDueDate = new Date('2026-04-15T00:00:00.000Z')
+    const fake = createFakeDb([
+      makeRow({
+        id: 'legacy-without-split-dates',
+        baseDueDate,
+        filingDueDate: null,
+        paymentDueDate: null,
+      }),
+    ])
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ limit: 50 })
+
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0]?.filingDueDate).toBe(baseDueDate)
+    expect(result.rows[0]?.paymentDueDate).toBe(baseDueDate)
+  })
+
   it('emits nextCursor when more rows exist (sentinel detection)', async () => {
     const rows: FakeRow[] = []
     for (let i = 0; i < 6; i += 1) {
@@ -200,34 +255,6 @@ describe('makeObligationQueueRepo.list', () => {
 
     expect(result.rows).toHaveLength(5)
     expect(result.nextCursor).toBeNull()
-  })
-
-  it('sorts by exposure in both directions', async () => {
-    const fake = createFakeDb([
-      makeRow({
-        id: 'low',
-        exposureStatus: 'ready',
-        estimatedExposureCents: 25_000,
-      }),
-      makeRow({
-        id: 'needs-input',
-        exposureStatus: 'needs_input',
-        estimatedExposureCents: null,
-      }),
-      makeRow({
-        id: 'high',
-        exposureStatus: 'ready',
-        estimatedExposureCents: 150_000,
-      }),
-    ])
-    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
-
-    await expect(repo.list({ sort: 'exposure_desc' })).resolves.toMatchObject({
-      rows: [{ id: 'high' }, { id: 'low' }, { id: 'needs-input' }],
-    })
-    await expect(repo.list({ sort: 'exposure_asc' })).resolves.toMatchObject({
-      rows: [{ id: 'needs-input' }, { id: 'low' }, { id: 'high' }],
-    })
   })
 
   it('clamps limit between 1 and 100', async () => {
@@ -302,6 +329,47 @@ describe('makeObligationQueueRepo.list', () => {
     expect(result.rows.map((row) => row.id)).toEqual(['needs-input', 'ready'])
     expect(result.rows.map((row) => row.daysUntilDue)).toEqual([3, 5])
     expect(result.rows.map((row) => row.readiness)).toEqual(['needs_review', 'ready'])
+  })
+
+  it('uses internal document checklist readiness before legacy portal responses', async () => {
+    const fake = createFakeDb(
+      [
+        makeRow({
+          id: 'document-missing',
+          currentDueDate: new Date('2026-04-20T00:00:00.000Z'),
+          exposureStatus: 'ready',
+        }),
+        makeRow({
+          id: 'document-received',
+          currentDueDate: new Date('2026-04-21T00:00:00.000Z'),
+          exposureStatus: 'ready',
+        }),
+      ],
+      {
+        readinessRequests: [
+          {
+            id: 'request-legacy-ready',
+            obligationInstanceId: 'document-missing',
+            status: 'responded',
+            updatedAt: new Date('2026-04-16T00:00:00.000Z'),
+            createdAt: new Date('2026-04-16T00:00:00.000Z'),
+          },
+        ],
+        readinessResponses: [{ requestId: 'request-legacy-ready', status: 'ready' }],
+        readinessChecklistItems: [
+          { obligationInstanceId: 'document-missing', status: 'missing' },
+          { obligationInstanceId: 'document-received', status: 'received' },
+        ],
+      },
+    )
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ asOfDate: '2026-04-15', limit: 10 })
+
+    expect(result.rows.map((row) => [row.id, row.readiness])).toEqual([
+      ['document-missing', 'waiting'],
+      ['document-received', 'ready'],
+    ])
   })
 
   it('aggregates obligation facet options for client, geography, form, and assignee filters', async () => {

@@ -1,0 +1,3 @@
+Client ID,Client Name,Entity,SSN/EIN,Preparer,Street Address,City,State,ZIP,Phone,Email,Status
+UT100,Acme UltraTax LLC,1065,99-0000500,JDOE,500 Spring St,Los Angeles,CA,90015,213-555-0500,owner+ultratax@example.com,Ready to e-file
+UT101,Bright UltraTax Inc,1120S,99-0000501,ASMITH,501 Fifth Ave,New York,NY,10018,212-555-0501,owner+ultratax2@example.com,In process

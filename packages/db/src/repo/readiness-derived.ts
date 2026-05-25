@@ -1,17 +1,35 @@
 import { and, desc, eq, inArray } from 'drizzle-orm'
-import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
+import {
+  deriveObligationReadiness,
+  isClosedObligationStatus,
+} from '@duedatehq/core/obligation-workflow'
 import type {
   ObligationReadiness,
   ObligationStatus,
   ReadinessResponseStatus,
 } from '@duedatehq/core/obligation-workflow'
 import type { Db } from '../client'
-import { clientReadinessRequest, clientReadinessResponse } from '../schema/readiness'
+import {
+  clientReadinessRequest,
+  clientReadinessResponse,
+  obligationReadinessChecklistItem,
+  type ReadinessDocumentChecklistItemStatus,
+} from '../schema/readiness'
 
 const READINESS_LOOKUP_BATCH_SIZE = 90
 
 export function deriveReadinessForStatus(status: ObligationStatus): ObligationReadiness {
   return deriveObligationReadiness({ status })
+}
+
+function deriveReadinessFromDocumentChecklist(input: {
+  status: ObligationStatus
+  checklistStatuses: readonly ReadinessDocumentChecklistItemStatus[]
+}): ObligationReadiness {
+  if (isClosedObligationStatus(input.status)) return 'ready'
+  if (input.checklistStatuses.some((status) => status === 'needs_review')) return 'needs_review'
+  if (input.checklistStatuses.every((status) => status === 'received')) return 'ready'
+  return 'waiting'
 }
 
 export async function loadDerivedReadinessByObligation(
@@ -26,6 +44,32 @@ export async function loadDerivedReadinessByObligation(
     result.set(id, deriveReadinessForStatus(status))
   }
   if (obligationIds.length === 0) return result
+
+  const checklistStatusesByObligationId = new Map<string, ReadinessDocumentChecklistItemStatus[]>()
+  const checklistReads = []
+  for (let i = 0; i < obligationIds.length; i += READINESS_LOOKUP_BATCH_SIZE) {
+    const chunk = obligationIds.slice(i, i + READINESS_LOOKUP_BATCH_SIZE)
+    checklistReads.push(
+      db
+        .select({
+          obligationInstanceId: obligationReadinessChecklistItem.obligationInstanceId,
+          status: obligationReadinessChecklistItem.status,
+        })
+        .from(obligationReadinessChecklistItem)
+        .where(
+          and(
+            eq(obligationReadinessChecklistItem.firmId, firmId),
+            inArray(obligationReadinessChecklistItem.obligationInstanceId, chunk),
+          ),
+        ),
+    )
+  }
+
+  for (const item of (await Promise.all(checklistReads)).flat()) {
+    const bucket = checklistStatusesByObligationId.get(item.obligationInstanceId) ?? []
+    bucket.push(item.status)
+    checklistStatusesByObligationId.set(item.obligationInstanceId, bucket)
+  }
 
   const requestByObligationId = new Map<
     string,
@@ -95,6 +139,7 @@ export async function loadDerivedReadinessByObligation(
   }
 
   for (const [obligationId, request] of requestByObligationId) {
+    if (checklistStatusesByObligationId.has(obligationId)) continue
     const status = statusesByObligationId.get(obligationId)
     if (!status) continue
     result.set(
@@ -105,6 +150,12 @@ export async function loadDerivedReadinessByObligation(
         responseStatuses: responseStatusesByRequestId.get(request.id) ?? [],
       }),
     )
+  }
+
+  for (const [obligationId, checklistStatuses] of checklistStatusesByObligationId) {
+    const status = statusesByObligationId.get(obligationId)
+    if (!status) continue
+    result.set(obligationId, deriveReadinessFromDocumentChecklist({ status, checklistStatuses }))
   }
 
   return result

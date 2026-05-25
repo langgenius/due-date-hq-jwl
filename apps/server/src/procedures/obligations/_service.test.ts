@@ -3,7 +3,14 @@ import { ObligationInstancePublicSchema } from '@duedatehq/contracts'
 import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
-import { bulkUpdateObligationStatus, toObligationPublic, updateObligationStatus } from './_service'
+import {
+  bulkUpdateObligationStatus,
+  decideObligationExtension,
+  toObligationPublic,
+  updateObligationPrepStage,
+  updateObligationReviewStage,
+  updateObligationStatus,
+} from './_service'
 
 type Row = ObligationInstanceRow
 
@@ -42,8 +49,16 @@ function buildScoped(firmId: string, rows: Row[]) {
     after: unknown
     reason?: string
   }> = []
+  const evidences: Array<{
+    obligationInstanceId: string | null
+    sourceType: string
+    rawValue: string | null
+    normalizedValue: string | null
+    appliedBy: string | null
+  }> = []
   const map = new Map<string, Row>(rows.map((r) => [r.id, r]))
   let auditCounter = 0
+  let evidenceCounter = 0
 
   const obligations: ScopedRepo['obligations'] = {
     firmId,
@@ -69,6 +84,7 @@ function buildScoped(firmId: string, rows: Row[]) {
       return []
     },
     async updateDueDate() {},
+    async updateTaxYearProfile() {},
     async updateExposure() {},
     async updateStatus(id: string, status: Row['status']) {
       const row = map.get(id)
@@ -93,7 +109,60 @@ function buildScoped(firmId: string, rows: Row[]) {
         }
       }
     },
-    async updateExtensionDecision() {},
+    async setEfileRejected(id: string, patch: { rejectedAt: Date; nextStatus: Row['status'] }) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, {
+        ...row,
+        status: patch.nextStatus,
+        efileRejectedAt: patch.rejectedAt,
+        efileAcceptedAt: null,
+        readiness: deriveObligationReadiness({ status: patch.nextStatus }),
+        updatedAt: new Date(),
+      })
+    },
+    async setBlockedBy(id: string, patch: { blockedBy: string | null; nextStatus: Row['status'] }) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, {
+        ...row,
+        blockedByObligationInstanceId: patch.blockedBy,
+        status: patch.nextStatus,
+        readiness: deriveObligationReadiness({ status: patch.nextStatus }),
+        updatedAt: new Date(),
+      })
+    },
+    async setPrepStage(id: string, prepStage: Row['prepStage']) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, prepStage, updatedAt: new Date() })
+    },
+    async setReviewStage(id: string, reviewStage: Row['reviewStage']) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, reviewStage, updatedAt: new Date() })
+    },
+    async unblockChildrenOf() {
+      return []
+    },
+    async updateExtensionDecision(id, patch) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      const status = patch.status ?? row.status
+      map.set(id, {
+        ...row,
+        extensionDecision: patch.decision,
+        extensionMemo: patch.memo,
+        extensionSource: patch.source,
+        extensionExpectedDueDate: patch.internalTargetDate,
+        extensionDecidedAt: patch.decidedAt,
+        extensionDecidedByUserId: patch.decidedByUserId,
+        extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
+        status,
+        readiness: deriveObligationReadiness({ status }),
+        updatedAt: new Date(),
+      })
+    },
     async deleteByBatch() {
       return 0
     },
@@ -162,6 +231,7 @@ function buildScoped(firmId: string, rows: Row[]) {
     async updatePenaltyInputs() {},
     async updateJurisdiction() {},
     async updateRiskProfile() {},
+    async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
     async deleteByBatch() {
@@ -178,7 +248,14 @@ function buildScoped(firmId: string, rows: Row[]) {
       return []
     },
     async facets() {
-      return { clients: [], states: [], counties: [], taxTypes: [], assigneeNames: [] }
+      return {
+        clients: [],
+        states: [],
+        counties: [],
+        taxTypes: [],
+        assigneeNames: [],
+        statuses: [],
+      }
     },
     async listSavedViews() {
       return []
@@ -225,9 +302,6 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listErrors() {
       return []
     },
-    async listStagingRows() {
-      return []
-    },
     async createMappings() {
       return 0
     },
@@ -236,15 +310,6 @@ function buildScoped(firmId: string, rows: Row[]) {
     },
     async createErrors() {
       return 0
-    },
-    async createStagingRows() {
-      return 0
-    },
-    async createExternalReferences() {
-      return 0
-    },
-    async findExternalReferences() {
-      return []
     },
     async commitImport() {
       return unused('migration.commitImport')
@@ -259,8 +324,16 @@ function buildScoped(firmId: string, rows: Row[]) {
 
   const evidence: ScopedRepo['evidence'] = {
     firmId,
-    async write() {
-      return unused('evidence.write')
+    async write(event) {
+      evidenceCounter += 1
+      evidences.push({
+        obligationInstanceId: event.obligationInstanceId ?? null,
+        sourceType: event.sourceType,
+        rawValue: event.rawValue ?? null,
+        normalizedValue: event.normalizedValue ?? null,
+        appliedBy: event.appliedBy ?? null,
+      })
+      return { id: `evidence-${evidenceCounter}` }
     },
     async writeBatch() {
       return unused('evidence.writeBatch')
@@ -278,6 +351,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listAlerts() {
       return unused('pulse.listAlerts')
     },
+    async countActiveAlerts() {
+      return unused('pulse.countActiveAlerts')
+    },
     async listHistory() {
       return unused('pulse.listHistory')
     },
@@ -289,6 +365,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     },
     async getSourceSignal() {
       return unused('pulse.getSourceSignal')
+    },
+    async getLatestSourceSnapshotBySourceId() {
+      return unused('pulse.getLatestSourceSnapshotBySourceId')
     },
     async reviewSourceSignalForRule() {
       return unused('pulse.reviewSourceSignalForRule')
@@ -317,6 +396,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async snooze() {
       return unused('pulse.snooze')
     },
+    async markReviewed() {
+      return unused('pulse.markReviewed')
+    },
     async revert() {
       return unused('pulse.revert')
     },
@@ -330,8 +412,23 @@ function buildScoped(firmId: string, rows: Row[]) {
     filingProfiles: unusedFilingProfilesRepo(firmId),
     ai: {
       firmId,
+      async findSuccessfulRun() {
+        return null
+      },
+      async findSuccessfulGlobalRun() {
+        return null
+      },
+      async findSuccessfulRunsByContextRefs() {
+        return []
+      },
+      async findSuccessfulGlobalRunsByContextRefs() {
+        return []
+      },
       async recordRun() {
         return unused('ai.recordRun')
+      },
+      async recordGlobalRun() {
+        return unused('ai.recordGlobalRun')
       },
     },
     aiInsights: {
@@ -398,6 +495,21 @@ function buildScoped(firmId: string, rows: Row[]) {
     pulse,
     readiness: {
       firmId,
+      async listDocumentChecklistByObligation() {
+        return unused('readiness.listDocumentChecklistByObligation')
+      },
+      async createDocumentChecklistItems() {
+        return unused('readiness.createDocumentChecklistItems')
+      },
+      async reconcileDocumentChecklistItems() {
+        return unused('readiness.reconcileDocumentChecklistItems')
+      },
+      async updateDocumentChecklistItem() {
+        return unused('readiness.updateDocumentChecklistItem')
+      },
+      async deleteDocumentChecklistItem() {
+        return unused('readiness.deleteDocumentChecklistItem')
+      },
       async listByObligation() {
         return unused('readiness.listByObligation')
       },
@@ -412,6 +524,7 @@ function buildScoped(firmId: string, rows: Row[]) {
       async submitResponses() {
         return unused('readiness.submitResponses')
       },
+      async syncDocumentChecklistFromResponses() {},
     },
     rules: {
       firmId,
@@ -461,7 +574,7 @@ function buildScoped(firmId: string, rows: Row[]) {
     audit,
   }
 
-  return { repo, audits, map }
+  return { repo, audits, evidences, map }
 }
 
 const ROW_ID = '11111111-1111-4111-8111-111111111111'
@@ -476,6 +589,14 @@ function makeRow(over: Partial<Row> = {}): Row {
     clientFilingProfileId: null,
     taxType: '1040',
     taxYear: 2026,
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
+    taxPeriodStart: new Date('2026-01-01T00:00:00.000Z'),
+    taxPeriodEnd: new Date('2026-12-31T00:00:00.000Z'),
+    taxPeriodKind: 'calendar',
+    taxPeriodSource: 'client_default',
+    taxPeriodReviewReason: null,
     ruleId: null,
     ruleVersion: null,
     rulePeriod: null,
@@ -492,6 +613,7 @@ function makeRow(over: Partial<Row> = {}): Row {
     baseDueDate: now,
     currentDueDate: now,
     status: 'pending',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,
@@ -551,6 +673,21 @@ describe('toObligationPublic', () => {
     expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
   })
 
+  it('falls back missing statutory split dates to the tax authority source-backed date', () => {
+    const result = toObligationPublic(
+      makeRow({
+        filingDueDate: null,
+        paymentDueDate: null,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+      { asOfDate: '2026-04-26' },
+    )
+
+    expect(result.filingDueDate).toBe('2026-04-15')
+    expect(result.paymentDueDate).toBe('2026-04-15')
+    expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
+  })
+
   it('keeps list output contract-valid when accrued penalty is calculated', () => {
     const result = toObligationPublic(
       makeRow({
@@ -576,6 +713,92 @@ describe('toObligationPublic', () => {
     expect(result.generationSource).toBeNull()
     expect(result.accruedPenaltyStatus).toBe('ready')
     expect(() => ObligationInstancePublicSchema.parse(result)).not.toThrow()
+  })
+})
+
+describe('decideObligationExtension', () => {
+  it('saves an internal extension plan as applied without accepting a caller decision', async () => {
+    const { repo, audits, evidences, map } = buildScoped(FIRM, [
+      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    const result = await decideObligationExtension(repo, 'user_1', {
+      id: ROW_ID,
+      internalTargetDate: '2026-04-15',
+      source: 'Partner approval',
+      memo: 'Client materials are late.',
+    })
+
+    expect(result.auditId).toBe('audit-1')
+    expect(result.evidenceId).toBe('evidence-1')
+    expect(result.obligation.status).toBe('extended')
+    expect(result.obligation.extensionDecision).toBe('applied')
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
+    expect(map.get(ROW_ID)).toMatchObject({
+      status: 'extended',
+      extensionDecision: 'applied',
+      extensionMemo: 'Client materials are late.',
+      extensionSource: 'Partner approval',
+      extensionState: 'filed',
+    })
+    expect(map.get(ROW_ID)?.extensionExpectedDueDate?.toISOString().slice(0, 10)).toBe('2026-04-15')
+    expect(evidences).toHaveLength(1)
+    const [evidence] = evidences
+    if (!evidence) throw new Error('Expected extension evidence')
+    expect(JSON.parse(evidence.normalizedValue ?? '{}')).toMatchObject({
+      decision: 'applied',
+      internalTargetDate: '2026-04-15',
+      paymentStillDue: true,
+    })
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.extension.decided',
+      before: {
+        status: 'pending',
+        extensionDecision: 'not_considered',
+        extensionInternalTargetDate: null,
+      },
+      after: {
+        status: 'extended',
+        extensionDecision: 'applied',
+        extensionInternalTargetDate: '2026-04-15',
+        paymentStillDue: true,
+      },
+      reason: 'Client materials are late.',
+    })
+  })
+
+  it('rejects an internal target date after the filing deadline', async () => {
+    const { repo, audits, evidences, map } = buildScoped(FIRM, [
+      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    await expect(
+      decideObligationExtension(repo, 'user_1', {
+        id: ROW_ID,
+        internalTargetDate: '2026-04-16',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+
+    expect(map.get(ROW_ID)?.extensionDecision).toBe('not_considered')
+    expect(audits).toHaveLength(0)
+    expect(evidences).toHaveLength(0)
+  })
+
+  it('uses base due date as the filing deadline fallback', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({
+        filingDueDate: null,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+    ])
+
+    const result = await decideObligationExtension(repo, 'user_1', {
+      id: ROW_ID,
+      internalTargetDate: '2026-04-15',
+    })
+
+    expect(result.obligation.extensionDecision).toBe('applied')
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
   })
 })
 
@@ -697,5 +920,157 @@ describe('updateObligationStatus', () => {
     })
 
     expect(audits[0]).not.toHaveProperty('reason')
+  })
+})
+
+describe('updateObligationPrepStage', () => {
+  it('updates prepStage and writes one audit row with before/after', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ prepStage: 'ready_for_prep' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'in_prep',
+      reason: 'started drafting',
+    })
+
+    expect(result.obligation.prepStage).toBe('in_prep')
+    expect(result.auditId).toBe('audit-1')
+    expect(map.get(ROW_ID)?.prepStage).toBe('in_prep')
+
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.prep_stage.updated',
+      actorId: 'user_1',
+      entityType: 'obligation_instance',
+      entityId: ROW_ID,
+      before: { prepStage: 'ready_for_prep' },
+      after: { prepStage: 'in_prep' },
+      reason: 'started drafting',
+    })
+  })
+
+  it('permits backward transitions — slider model has no guards', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ prepStage: 'prepared' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'ready_for_prep',
+    })
+
+    expect(result.obligation.prepStage).toBe('ready_for_prep')
+    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
+    expect(audits[0]).toMatchObject({
+      before: { prepStage: 'prepared' },
+      after: { prepStage: 'ready_for_prep' },
+    })
+  })
+
+  it('is a no-op when before === after (no audit row)', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ prepStage: 'in_prep' })])
+
+    const result = await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'in_prep',
+    })
+
+    expect(result.auditId).toBe('00000000-0000-0000-0000-000000000000')
+    expect(audits).toHaveLength(0)
+  })
+
+  it('throws NOT_FOUND when the obligation is not in this firm', async () => {
+    const { repo, audits } = buildScoped(FIRM, [])
+
+    await expect(
+      updateObligationPrepStage(repo, 'user_1', {
+        id: ROW_ID,
+        prepStage: 'in_prep',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' })
+
+    expect(audits).toHaveLength(0)
+  })
+
+  it('omits reason from audit when not provided', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ prepStage: 'ready_for_prep' })])
+
+    await updateObligationPrepStage(repo, 'user_1', {
+      id: ROW_ID,
+      prepStage: 'prepared',
+    })
+
+    expect(audits[0]).not.toHaveProperty('reason')
+  })
+})
+
+describe('updateObligationReviewStage', () => {
+  it('updates reviewStage and writes one audit row with before/after', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ reviewStage: 'ready_for_review' })])
+
+    const result = await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+      reason: 'reviewer picked it up',
+    })
+
+    expect(result.obligation.reviewStage).toBe('in_review')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
+
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.review_stage.updated',
+      actorId: 'user_1',
+      entityType: 'obligation_instance',
+      entityId: ROW_ID,
+      before: { reviewStage: 'ready_for_review' },
+      after: { reviewStage: 'in_review' },
+      reason: 'reviewer picked it up',
+    })
+  })
+
+  it('permits the notes_open ↔ in_review round-trip', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ reviewStage: 'in_review' })])
+
+    await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'notes_open',
+    })
+    await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+    })
+
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
+    expect(audits).toHaveLength(2)
+    expect(audits[0]).toMatchObject({
+      before: { reviewStage: 'in_review' },
+      after: { reviewStage: 'notes_open' },
+    })
+    expect(audits[1]).toMatchObject({
+      before: { reviewStage: 'notes_open' },
+      after: { reviewStage: 'in_review' },
+    })
+  })
+
+  it('is a no-op when before === after', async () => {
+    const { repo, audits } = buildScoped(FIRM, [makeRow({ reviewStage: 'in_review' })])
+
+    const result = await updateObligationReviewStage(repo, 'user_1', {
+      id: ROW_ID,
+      reviewStage: 'in_review',
+    })
+
+    expect(result.auditId).toBe('00000000-0000-0000-0000-000000000000')
+    expect(audits).toHaveLength(0)
+  })
+
+  it('throws NOT_FOUND when the obligation is not in this firm', async () => {
+    const { repo } = buildScoped(FIRM, [])
+
+    await expect(
+      updateObligationReviewStage(repo, 'user_1', {
+        id: ROW_ID,
+        reviewStage: 'approved',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' })
   })
 })

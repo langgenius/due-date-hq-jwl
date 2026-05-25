@@ -29,6 +29,8 @@ import {
   ClientDeleteOutputSchema,
   ClientJurisdictionUpdateOutputSchema,
   ClientJurisdictionUpdateSchema,
+  ClientTaxYearProfileUpdateOutputSchema,
+  ClientTaxYearProfileUpdateSchema,
   clientsContract,
 } from './clients'
 import {
@@ -36,6 +38,11 @@ import {
   AnnualRolloverOutputSchema,
   ObligationBulkStatusUpdateInputSchema,
   ObligationBulkStatusUpdateOutputSchema,
+  ObligationCreateFromRuleInputSchema,
+  ObligationCreateFromRuleOutputSchema,
+  ObligationExtensionDecisionInputSchema,
+  ObligationTaxYearProfileUpdateInputSchema,
+  ObligationTaxYearProfileUpdateOutputSchema,
   ObligationStatusUpdateInputSchema,
   ObligationStatusUpdateOutputSchema,
   obligationsContract,
@@ -66,10 +73,11 @@ import {
 } from './workload'
 import {
   MatrixSelectionSchema,
+  MappingTargetSchema,
+  MigrationDetectedSourceProductSchema,
   MigrationErrorStageSchema,
-  MigrationIntegrationProviderSchema,
+  MigrationSourceFileRoleSchema,
   MigrationSourceSchema,
-  MigrationStageExternalRowsInputSchema,
   migrationContract,
 } from './migration'
 import {
@@ -104,6 +112,7 @@ import {
   PulseApplyInputSchema,
   PulseApplyOutputSchema,
   PulseFirmAlertStatusSchema,
+  PulseListAlertsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
   PulseSourceSignalSchema,
@@ -112,7 +121,10 @@ import {
 import {
   ObligationRuleSchema,
   ObligationGenerationPreviewSchema,
+  RuleConcreteDraftSchema,
   RuleBulkAcceptSkipSchema,
+  RuleOnboardingActivationInputSchema,
+  RuleOnboardingActivationOutputSchema,
   RuleGenerationPreviewInputSchema,
   RuleCoverageRowSchema,
   RuleSourceSchema,
@@ -120,6 +132,11 @@ import {
   TemporaryRuleSchema,
   rulesContract,
 } from './rules'
+import {
+  ClientReadinessRequestPublicSchema,
+  ReadinessChecklistItemSchema,
+  ReadinessSendRequestInputSchema,
+} from './readiness'
 
 describe('@duedatehq/contracts', () => {
   it('freezes audit.list read contract', () => {
@@ -139,6 +156,7 @@ describe('@duedatehq/contracts', () => {
       'auth',
       'team',
       'pulse',
+      'opportunity',
       'export',
       'ai',
       'system',
@@ -194,7 +212,6 @@ describe('@duedatehq/contracts', () => {
       'switchActive',
       'updateCurrent',
       'previewSmartPriorityProfile',
-      'backfillPenaltyExposure',
       'listSubscriptions',
       'billingCheckoutConfig',
       'softDeleteCurrent',
@@ -223,10 +240,12 @@ describe('@duedatehq/contracts', () => {
       FirmUpdateInputSchema.parse({
         name: 'Bright CPA',
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         smartPriorityProfile: SMART_PRIORITY_DEFAULT_PROFILE,
-      }).smartPriorityProfile?.weights.exposure,
-    ).toBe(45)
+      }).smartPriorityProfile?.weights.urgency,
+    ).toBe(70)
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).timezone).toBe('America/New_York')
+    expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).internalDeadlineOffsetDays).toBe(14)
     expect(
       FirmPublicSchema.parse({
         id: 'firm_123',
@@ -235,6 +254,7 @@ describe('@duedatehq/contracts', () => {
         plan: 'pro',
         seatLimit: 5,
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         status: 'active',
         role: 'owner',
         ownerUserId: 'user_123',
@@ -246,7 +266,7 @@ describe('@duedatehq/contracts', () => {
         updatedAt: '2026-04-28T00:00:00.000Z',
         deletedAt: null,
       }).smartPriorityProfile?.weights.urgency,
-    ).toBe(25)
+    ).toBe(70)
     expect(
       FirmPublicSchema.parse({
         id: 'firm_123',
@@ -255,6 +275,7 @@ describe('@duedatehq/contracts', () => {
         plan: 'pro',
         seatLimit: 5,
         timezone: 'America/New_York',
+        internalDeadlineOffsetDays: 14,
         status: 'active',
         role: 'manager',
         ownerUserId: 'user_123',
@@ -435,6 +456,9 @@ describe('@duedatehq/contracts', () => {
       'waiting_on_client',
       'review',
       'not_applicable',
+      // Lifecycle v2 additions — see docs/Design/obligation-lifecycle-design-brief.md.
+      'blocked',
+      'completed',
     ])
   })
 
@@ -442,13 +466,53 @@ describe('@duedatehq/contracts', () => {
     expect(ObligationReadinessSchema.options).toEqual(['ready', 'waiting', 'needs_review'])
   })
 
+  it('allows readiness portal checklist payloads up to thirty items', () => {
+    const checklist = Array.from({ length: 30 }, (_, index) => ({
+      id: `item_${index}`,
+      label: `Document ${index}`,
+      description: null,
+      reason: null,
+      sourceHint: null,
+    }))
+
+    expect(ReadinessChecklistItemSchema.array().min(1).max(30).parse(checklist)).toHaveLength(30)
+    expect(
+      ReadinessSendRequestInputSchema.parse({
+        obligationId: '11111111-1111-4111-8111-111111111111',
+        checklist,
+      }).checklist,
+    ).toHaveLength(30)
+    expect(
+      ClientReadinessRequestPublicSchema.parse({
+        id: '22222222-2222-4222-8222-222222222222',
+        firmId: 'firm_123',
+        obligationInstanceId: '11111111-1111-4111-8111-111111111111',
+        clientId: '33333333-3333-4333-8333-333333333333',
+        createdByUserId: 'user_1',
+        recipientEmail: null,
+        status: 'sent',
+        checklist,
+        portalUrl: null,
+        expiresAt: '2026-06-05T00:00:00.000Z',
+        sentAt: null,
+        firstOpenedAt: null,
+        lastRespondedAt: null,
+        createdAt: '2026-05-22T00:00:00.000Z',
+        updatedAt: '2026-05-22T00:00:00.000Z',
+        responses: [],
+      }).checklist,
+    ).toHaveLength(30)
+  })
+
   it('exposes obligations.updateStatus with before/after audit contract', () => {
     expect(Object.keys(obligationsContract)).toEqual(
       expect.arrayContaining([
         'createBatch',
+        'createFromRule',
         'previewAnnualRollover',
         'createAnnualRollover',
         'updateDueDate',
+        'updateTaxYearProfile',
         'updateStatus',
         'bulkUpdateStatus',
         'decideExtension',
@@ -471,6 +535,9 @@ describe('@duedatehq/contracts', () => {
         clientFilingProfileId: null,
         taxType: '1040',
         taxYear: 2026,
+        taxYearType: 'calendar',
+        fiscalYearEndMonth: null,
+        fiscalYearEndDay: null,
         ruleId: null,
         ruleVersion: null,
         rulePeriod: null,
@@ -486,12 +553,18 @@ describe('@duedatehq/contracts', () => {
         riskLevel: 'med',
         baseDueDate: '2026-04-15',
         currentDueDate: '2026-04-15',
+        taxPeriodStart: '2026-01-01',
+        taxPeriodEnd: '2026-12-31',
+        taxPeriodKind: 'calendar',
+        taxPeriodSource: 'client_default',
+        taxPeriodReviewReason: null,
         status: 'in_progress',
+        blockedByObligationInstanceId: null,
         readiness: 'ready',
         extensionDecision: 'not_considered',
         extensionMemo: null,
         extensionSource: null,
-        extensionExpectedDueDate: null,
+        extensionInternalTargetDate: null,
         extensionDecidedAt: null,
         extensionDecidedByUserId: null,
         extensionState: 'not_started',
@@ -530,6 +603,39 @@ describe('@duedatehq/contracts', () => {
       auditId: '33333333-3333-4333-8333-333333333333',
     })
     expect(output.auditId).toMatch(/-/)
+
+    const taxYearInput = ObligationTaxYearProfileUpdateInputSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+      reason: 'specific obligation uses fiscal year',
+    })
+    expect(taxYearInput.taxYearType).toBe('fiscal')
+
+    const taxYearOutput = ObligationTaxYearProfileUpdateOutputSchema.parse({
+      obligation: {
+        ...output.obligation,
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: 6,
+        fiscalYearEndDay: 30,
+        taxPeriodStart: '2025-07-01',
+        taxPeriodEnd: '2026-06-30',
+        taxPeriodKind: 'fiscal',
+        taxPeriodSource: 'manual_cpa_confirmed',
+      },
+      auditId: '33333333-3333-4333-8333-333333333333',
+    })
+    expect(taxYearOutput.obligation.taxPeriodKind).toBe('fiscal')
+
+    const extensionInput = ObligationExtensionDecisionInputSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      internalTargetDate: '2026-04-15',
+      memo: 'client material cutoff missed',
+      source: 'partner approval',
+    })
+    expect(extensionInput).not.toHaveProperty('decision')
+    expect(extensionInput.internalTargetDate).toBe('2026-04-15')
 
     const bulkInput = ObligationBulkStatusUpdateInputSchema.parse({
       ids: ['11111111-1111-4111-8111-111111111111'],
@@ -586,6 +692,11 @@ describe('@duedatehq/contracts', () => {
             matchedTaxType: 'ca_100',
             period: 'annual',
             dueDate: '2027-04-15',
+            taxPeriodStart: '2027-01-01',
+            taxPeriodEnd: '2027-12-31',
+            taxPeriodKind: 'calendar',
+            taxPeriodSource: 'client_default',
+            taxPeriodReviewReason: null,
             eventType: 'filing',
             isFiling: true,
             isPayment: false,
@@ -604,6 +715,7 @@ describe('@duedatehq/contracts', () => {
             requiresReview: false,
             reminderReady: true,
             reviewReasons: [],
+            missingClientFacts: [],
           },
           disposition: 'will_create',
           targetStatus: 'pending',
@@ -671,6 +783,12 @@ describe('@duedatehq/contracts', () => {
         taxYearType: 'calendar',
         fiscalYearEndMonth: null,
         fiscalYearEndDay: null,
+        externalClientId: null,
+        addressLine1: null,
+        city: null,
+        postalCode: null,
+        primaryPhone: null,
+        sourceStatus: null,
         email: null,
         notes: null,
         assigneeId: null,
@@ -714,6 +832,27 @@ describe('@duedatehq/contracts', () => {
     })
     expect(output.client.state).toBe('WA')
     expect(output.recalculatedObligationCount).toBe(1)
+
+    expect(Object.keys(clientsContract)).toEqual(expect.arrayContaining(['updateTaxYearProfile']))
+    const taxYearInput = ClientTaxYearProfileUpdateSchema.parse({
+      id: '22222222-2222-4222-8222-222222222222',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+      reason: 'client fiscal year correction',
+    })
+    expect(taxYearInput.taxYearType).toBe('fiscal')
+    const taxYearOutput = ClientTaxYearProfileUpdateOutputSchema.parse({
+      client: {
+        ...output.client,
+        taxYearType: 'fiscal',
+        fiscalYearEndMonth: 6,
+        fiscalYearEndDay: 30,
+      },
+      recalculatedObligationCount: 1,
+      auditId: '33333333-3333-4333-8333-333333333333',
+    })
+    expect(taxYearOutput.client.fiscalYearEndMonth).toBe(6)
   })
 
   it('freezes obligations.list input shape', () => {
@@ -731,8 +870,6 @@ describe('@duedatehq/contracts', () => {
       'smart_priority',
       'due_asc',
       'due_desc',
-      'exposure_desc',
-      'exposure_asc',
       'updated_desc',
     ])
     expect(ObligationQueueDensitySchema.options).toEqual(['comfortable', 'compact'])
@@ -751,10 +888,7 @@ describe('@duedatehq/contracts', () => {
       owner: 'unassigned',
       due: 'overdue',
       dueWithinDays: 7,
-      exposureStatus: 'ready',
       readiness: ['ready'],
-      minExposureCents: 100_00,
-      maxExposureCents: 500_00,
       minDaysUntilDue: -10,
       maxDaysUntilDue: 30,
       asOfDate: '2026-04-29',
@@ -792,6 +926,7 @@ describe('@duedatehq/contracts', () => {
       counties: [{ value: 'Orange', label: 'Orange, CA', count: 2, state: 'CA' }],
       taxTypes: [{ value: '1040', label: '1040', count: 2 }],
       assigneeNames: [{ value: 'Sarah', label: 'Sarah', count: 2 }],
+      statuses: [{ value: 'pending', label: 'pending', count: 2 }],
     })
     expect(facets.clients[0]?.state).toBe('CA')
 
@@ -824,9 +959,10 @@ describe('@duedatehq/contracts', () => {
     ).toBe(false)
     const exportInput = ObligationQueueExportSelectedInputSchema.parse({
       ids: ['11111111-1111-4111-8111-111111111111'],
-      format: 'pdf_zip',
+      format: 'ics',
     })
-    expect(exportInput.format).toBe('pdf_zip')
+    expect(exportInput.format).toBe('ics')
+    expect(exportInput.scope).toBe('selected')
     expect(
       ObligationQueueExportSelectedOutputSchema.parse({
         fileName: 'obligations.zip',
@@ -879,38 +1015,50 @@ describe('@duedatehq/contracts', () => {
   it('freezes migration.listErrors stages', () => {
     expect(MigrationErrorStageSchema.options).toEqual(['mapping', 'normalize', 'matrix', 'all'])
     expect(Object.keys(migrationContract)).toEqual(
-      expect.arrayContaining([
-        'runMapper',
-        'stageExternalRows',
-        'cloneStagingRows',
-        'applyDefaultMatrix',
-        'discardDraft',
-        'listErrors',
-      ]),
+      expect.arrayContaining(['runMapper', 'applyDefaultMatrix', 'discardDraft', 'listErrors']),
     )
     expect(MigrationSourceSchema.options).toEqual(
-      expect.arrayContaining(['integration_taxdome_zapier', 'integration_karbon_api']),
+      expect.arrayContaining([
+        'paste',
+        'csv',
+        'xlsx',
+        'preset_taxdome',
+        'preset_drake',
+        'preset_karbon',
+        'preset_quickbooks',
+        'preset_file_in_time',
+        'preset_cch_axcess',
+        'preset_cch_prosystem_fx',
+        'preset_lacerte',
+        'preset_proseries',
+        'preset_ultratax_cs',
+        'preset_proconnect_tax',
+      ]),
     )
-    expect(MigrationIntegrationProviderSchema.options).toEqual([
-      'taxdome',
-      'karbon',
-      'soraban',
-      'safesend',
-      'proconnect',
-    ])
-    expect(
-      MigrationStageExternalRowsInputSchema.parse({
-        batchId: '11111111-1111-4111-8111-111111111111',
-        provider: 'karbon',
-        rows: [
-          {
-            externalId: 'work_123',
-            externalEntityType: 'work_item',
-            rawJson: { 'Organization Name': 'Acme LLC', State: 'CA' },
-          },
-        ],
-      }).rows[0]?.externalEntityType,
-    ).toBe('work_item')
+    expect(MigrationDetectedSourceProductSchema.options).toEqual(
+      expect.arrayContaining([
+        'drake',
+        'cch_axcess',
+        'cch_prosystem_fx',
+        'lacerte',
+        'proseries',
+        'ultratax_cs',
+        'proconnect_tax',
+      ]),
+    )
+    expect(MigrationSourceFileRoleSchema.options).toEqual(
+      expect.arrayContaining(['return_data', 'client_listing_report', 'questionnaire_responses']),
+    )
+    expect(MappingTargetSchema.options).toEqual(
+      expect.arrayContaining([
+        'client.external_client_id',
+        'client.address_line_1',
+        'client.city',
+        'client.postal_code',
+        'client.primary_phone',
+        'client.source_status',
+      ]),
+    )
   })
 
   it('accepts explicit Default Matrix cell selections', () => {
@@ -935,9 +1083,6 @@ describe('@duedatehq/contracts', () => {
 
   it('allows migration and Pulse audit strings used by batch apply', () => {
     expect(AuditActionSchema.parse('migration.batch.created')).toBe('migration.batch.created')
-    expect(AuditActionSchema.parse('migration.staging_rows.created')).toBe(
-      'migration.staging_rows.created',
-    )
     expect(AuditActionSchema.parse('migration.discarded')).toBe('migration.discarded')
     expect(PulseAuditActionSchema.parse('pulse.apply')).toBe('pulse.apply')
     expect(PulseAuditActionSchema.parse('pulse.dismiss')).toBe('pulse.dismiss')
@@ -953,6 +1098,7 @@ describe('@duedatehq/contracts', () => {
     expect(AuditActionSchema.parse('client.deleted')).toBe('client.deleted')
     expect(AuditActionSchema.parse('rules.accepted')).toBe('rules.accepted')
     expect(AuditActionSchema.parse('rules.bulk_accepted')).toBe('rules.bulk_accepted')
+    expect(AuditActionSchema.parse('rules.onboarding_activated')).toBe('rules.onboarding_activated')
     expect(AuditActionSchema.parse('rules.rejected')).toBe('rules.rejected')
     expect(AuditActionSchema.parse('obligation.annual_rollover.created')).toBe(
       'obligation.annual_rollover.created',
@@ -962,6 +1108,7 @@ describe('@duedatehq/contracts', () => {
   it('freezes Pulse demo backend contracts', () => {
     expect(Object.keys(pulseContract)).toEqual([
       'listAlerts',
+      'activeCount',
       'listHistory',
       'listSourceHealth',
       'listSourceSignals',
@@ -973,6 +1120,7 @@ describe('@duedatehq/contracts', () => {
       'apply',
       'dismiss',
       'snooze',
+      'markReviewed',
       'revert',
       'reactivate',
       'requestReview',
@@ -984,8 +1132,11 @@ describe('@duedatehq/contracts', () => {
       'partially_applied',
       'applied',
       'reverted',
+      'reviewed',
     ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
+    expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
+    expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',
@@ -995,6 +1146,8 @@ describe('@duedatehq/contracts', () => {
       title: 'IRS CA storm relief',
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
       summary: 'IRS extends selected filing deadlines for Los Angeles County.',
       publishedAt: '2026-04-15T17:00:00.000Z',
       matchedCount: 1,
@@ -1110,7 +1263,6 @@ describe('@duedatehq/contracts', () => {
       dueBuckets: ['overdue', 'next_7_days'],
       status: ['pending', 'review'],
       severity: ['critical'],
-      exposureStatus: ['ready'],
       evidence: ['linked'],
     })
     expect(input?.dueBuckets).toEqual(['overdue', 'next_7_days'])
@@ -1131,10 +1283,6 @@ describe('@duedatehq/contracts', () => {
         dueThisWeekCount: 1,
         needsReviewCount: 0,
         evidenceGapCount: 0,
-        totalExposureCents: 80000,
-        exposureReadyCount: 1,
-        exposureNeedsInputCount: 0,
-        exposureUnsupportedCount: 0,
         totalAccruedPenaltyCents: 0,
         accruedPenaltyReadyCount: 0,
         accruedPenaltyNeedsInputCount: 0,
@@ -1149,8 +1297,6 @@ describe('@duedatehq/contracts', () => {
           taxType: 'ca_llc_annual_tax',
           currentDueDate: '2026-04-30',
           status: 'pending',
-          estimatedExposureCents: 80000,
-          exposureStatus: 'ready',
           missingPenaltyFacts: [],
           penaltySourceRefs: [],
           penaltyFormulaLabel: 'California LLC annual tax penalty',
@@ -1189,7 +1335,6 @@ describe('@duedatehq/contracts', () => {
           key: 'this_week',
           label: 'This Week',
           count: 1,
-          totalExposureCents: 80000,
           rows: [
             {
               obligationId: '11111111-1111-4111-8111-111111111111',
@@ -1199,8 +1344,6 @@ describe('@duedatehq/contracts', () => {
               taxType: 'ca_llc_annual_tax',
               currentDueDate: '2026-04-30',
               status: 'pending',
-              estimatedExposureCents: 80000,
-              exposureStatus: 'ready',
               missingPenaltyFacts: [],
               penaltySourceRefs: [],
               penaltyFormulaLabel: 'California LLC annual tax penalty',
@@ -1226,14 +1369,12 @@ describe('@duedatehq/contracts', () => {
           key: 'this_month',
           label: 'This Month',
           count: 0,
-          totalExposureCents: 0,
           rows: [],
         },
         {
           key: 'long_term',
           label: 'Long-term',
           count: 0,
-          totalExposureCents: 0,
           rows: [],
         },
       ],
@@ -1264,11 +1405,6 @@ describe('@duedatehq/contracts', () => {
           { value: 'high', label: 'high', count: 0 },
           { value: 'medium', label: 'medium', count: 0 },
           { value: 'neutral', label: 'neutral', count: 0 },
-        ],
-        exposureStatuses: [
-          { value: 'ready', label: 'ready', count: 1 },
-          { value: 'needs_input', label: 'needs_input', count: 0 },
-          { value: 'unsupported', label: 'unsupported', count: 0 },
         ],
         evidence: [
           { value: 'needs', label: 'needs', count: 0 },
@@ -1309,13 +1445,17 @@ describe('@duedatehq/contracts', () => {
       'listReviewDecisions',
       'acceptTemplate',
       'bulkAcceptTemplates',
+      'activateOnboardingJurisdictions',
       'rejectTemplate',
       'createCustomRule',
       'updatePracticeRule',
       'archivePracticeRule',
       'previewRuleImpact',
       'previewBulkRuleImpact',
+      'draftConcreteRule',
+      'listConcreteDrafts',
       'verifyCandidate',
+      'bulkVerifyCandidates',
       'rejectCandidate',
       'coverage',
       'previewObligations',
@@ -1332,10 +1472,58 @@ describe('@duedatehq/contracts', () => {
       priority: 'critical',
       healthStatus: 'healthy',
       isEarlyWarning: false,
+      domains: ['individual_income_return', 'individual_estimated_tax'],
+      entityApplicability: ['individual', 'sole_prop'],
+      authorityRole: 'basis',
       notificationChannels: ['source_change', 'practice_rule_preview'],
       lastReviewedOn: '2026-04-27',
     })
     expect(source.jurisdiction).toBe('FED')
+
+    const localSource = RuleSourceSchema.parse({
+      id: 'pa.local_eit_lit_psd',
+      jurisdiction: 'PA',
+      localJurisdiction: {
+        level: 'municipality',
+        state: 'PA',
+        localCode: 'PA:PSD:*',
+        displayName: 'Pennsylvania PSD / local earned income tax jurisdictions',
+        administeredBy: 'local_collector',
+        collectedVia: 'manual_review',
+        sourceAuthority: 'Pennsylvania Department of Community and Economic Development',
+      },
+      title: 'Pennsylvania DCED PSD Codes and Local EIT Rates',
+      url: 'https://dced.pa.gov/local-government/local-income-tax-information/psd-codes-and-eit-rates/',
+      sourceType: 'instructions',
+      acquisitionMethod: 'manual_review',
+      cadence: 'pre_season',
+      priority: 'high',
+      healthStatus: 'healthy',
+      isEarlyWarning: false,
+      domains: ['local_individual_income', 'local_employer_withholding', 'local_services_tax'],
+      entityApplicability: ['individual', 'sole_prop', 'llc'],
+      authorityRole: 'basis',
+      notificationChannels: ['practice_rule_review', 'practice_rule_preview'],
+      lastReviewedOn: '2026-05-23',
+    })
+    expect(localSource.localJurisdiction?.collectedVia).toBe('manual_review')
+
+    const onboardingActivationInput = RuleOnboardingActivationInputSchema.parse({
+      states: ['CA', 'TX'],
+    })
+    expect(onboardingActivationInput.states).toEqual(['CA', 'TX'])
+    expect(() => RuleOnboardingActivationInputSchema.parse({ states: ['ca'] })).toThrow()
+
+    const onboardingActivationOutput = RuleOnboardingActivationOutputSchema.parse({
+      selectedStates: ['CA', 'TX'],
+      jurisdictions: ['FED', 'CA', 'TX'],
+      activatedCount: 42,
+      skippedCount: 1,
+      reviewRequiredCount: 3,
+      reviewRequiredJurisdictions: ['AK'],
+      generatedObligationCount: 0,
+    })
+    expect(onboardingActivationOutput.jurisdictions).toEqual(['FED', 'CA', 'TX'])
 
     const temporaryRule = TemporaryRuleSchema.parse({
       id: 'exception-1',
@@ -1369,6 +1557,9 @@ describe('@duedatehq/contracts', () => {
         url: 'https://www.tax.ny.gov/help/subscribe.htm',
         sourceType: 'subscription',
         acquisitionMethod: 'email_subscription',
+        domains: ['business_income_return'],
+        entityApplicability: ['any_business'],
+        authorityRole: 'watch',
       }).sourceType,
     ).toBe('subscription')
 
@@ -1376,6 +1567,14 @@ describe('@duedatehq/contracts', () => {
       ruleId: 'ca.individual_income_return.candidate.2026',
       sourceId: 'ca.income_tax',
       sourceSignalId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      aiOutputId: '44444444-4444-4444-8444-444444444444',
+      reviewNote: 'Accepted cached AI concrete draft.',
+    })
+    expect(verifyInput.sourceSignalId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+    expect(verifyInput.aiOutputId).toBe('44444444-4444-4444-8444-444444444444')
+
+    const concreteDraft = RuleConcreteDraftSchema.parse({
+      aiOutputId: '44444444-4444-4444-8444-444444444444',
       sourceHeading: 'Personal filing due dates',
       sourceExcerpt: 'California personal income tax returns are due April 15.',
       dueDateLogic: {
@@ -1386,9 +1585,8 @@ describe('@duedatehq/contracts', () => {
       extensionPolicy: {
         available: false,
         paymentExtended: false,
-        notes: 'No extension policy verified for this candidate.',
+        notes: 'No source-backed extension policy identified.',
       },
-      ruleTier: 'basic',
       coverageStatus: 'full',
       requiresApplicabilityReview: false,
       quality: {
@@ -1399,9 +1597,10 @@ describe('@duedatehq/contracts', () => {
         crossVerified: true,
         exceptionChannel: true,
       },
-      nextReviewOn: '2027-01-15',
+      confidence: 0.92,
+      reasoning: 'Official source names an April 15 filing deadline.',
     })
-    expect(verifyInput.sourceSignalId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
+    expect(concreteDraft.dueDateLogic.kind).toBe('fixed_date')
 
     const rule = ObligationRuleSchema.parse({
       id: 'fed.1065.return.2025',
@@ -1459,10 +1658,14 @@ describe('@duedatehq/contracts', () => {
       },
       verifiedBy: 'practice.template_seed',
       verifiedAt: '2026-04-27',
+      reviewedByName: 'Sarah Martinez',
+      reviewedAt: '2026-05-23T14:08:09.000Z',
       nextReviewOn: '2026-11-15',
       version: 1,
     })
     expect(rule.status).toBe('verified')
+    expect(rule.reviewedByName).toBe('Sarah Martinez')
+    expect(rule.reviewedAt).toBe('2026-05-23T14:08:09.000Z')
 
     const previewInput = RuleGenerationPreviewInputSchema.parse({
       client: {
@@ -1472,10 +1675,18 @@ describe('@duedatehq/contracts', () => {
         taxTypes: ['ca_llc_franchise_min_800'],
         taxYearStart: '2026-01-01',
         taxYearEnd: '2025-12-31',
+        localFacts: {
+          resident_county: 'Los Angeles',
+          local_filing_channel: 'state_return',
+        },
       },
       holidays: ['2026-01-01'],
     })
     expect(previewInput.client.taxTypes).toEqual(['ca_llc_franchise_min_800'])
+    expect(previewInput.client.localFacts).toMatchObject({
+      resident_county: 'Los Angeles',
+      local_filing_channel: 'state_return',
+    })
 
     expect(() =>
       RuleGenerationPreviewInputSchema.parse({
@@ -1531,6 +1742,11 @@ describe('@duedatehq/contracts', () => {
       matchedTaxType: 'ca_llc_franchise_min_800',
       period: 'tax_year',
       dueDate: '2026-04-15',
+      taxPeriodStart: '2026-01-01',
+      taxPeriodEnd: '2026-12-31',
+      taxPeriodKind: 'calendar',
+      taxPeriodSource: 'client_default',
+      taxPeriodReviewReason: null,
       eventType: 'payment',
       isFiling: false,
       isPayment: true,
@@ -1553,6 +1769,7 @@ describe('@duedatehq/contracts', () => {
       requiresReview: false,
       reminderReady: true,
       reviewReasons: [],
+      missingClientFacts: [],
     })
     expect(preview.reminderReady).toBe(true)
 
@@ -1563,12 +1780,44 @@ describe('@duedatehq/contracts', () => {
         verifiedRuleCount: 5,
         candidateCount: 0,
         highPrioritySourceCount: 5,
+        missingSourceCount: 1,
+        requiredSourceCount: 12,
+        missingSourceDomains: ['fiduciary_income_return'],
+        sourceCoverageStatus: 'missing_source',
+        entityCoverage: {
+          llc: 'review',
+          partnership: 'none',
+          s_corp: 'active',
+          c_corp: 'active',
+          sole_prop: 'review',
+          individual: 'review',
+          trust: 'none',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_pending_review',
+          partnership: 'source_verified',
+          s_corp: 'rule_active',
+          c_corp: 'rule_active',
+          sole_prop: 'source_registered',
+          individual: 'rule_pending_review',
+          trust: 'missing_source',
+        },
       }).jurisdiction,
     ).toBe('CA')
   })
 
   it('freezes opportunities.list lightweight business guidance shape', () => {
-    expect(Object.keys(opportunitiesContract)).toEqual(['list'])
+    // 2026-05-24 (critique P2): added dismiss + snooze mutations for
+    // user-driven hide. See `opportunity_dismissal` schema + handler.
+    // /polish follow-up grew restore + listDismissed for the un-dismiss
+    // path on /opportunities.
+    expect(Object.keys(opportunitiesContract)).toEqual([
+      'list',
+      'dismiss',
+      'snooze',
+      'restore',
+      'listDismissed',
+    ])
     expect(OpportunityKindSchema.options).toEqual([
       'advisory_conversation',
       'scope_review',
@@ -1624,5 +1873,29 @@ describe('@duedatehq/contracts', () => {
         'rules',
       ]),
     )
+  })
+
+  it('validates rule-backed manual creation input and output', () => {
+    expect(
+      ObligationCreateFromRuleInputSchema.parse({
+        clientId: '33333333-3333-4333-8333-333333333333',
+        ruleId: 'fed.7004.extension.1120s.2025',
+        taxYear: 2026,
+      }),
+    ).toEqual({
+      clientId: '33333333-3333-4333-8333-333333333333',
+      ruleId: 'fed.7004.extension.1120s.2025',
+      taxYear: 2026,
+    })
+
+    expect(
+      ObligationCreateFromRuleOutputSchema.parse({
+        obligations: [],
+        duplicateCount: 1,
+      }),
+    ).toEqual({
+      obligations: [],
+      duplicateCount: 1,
+    })
   })
 })

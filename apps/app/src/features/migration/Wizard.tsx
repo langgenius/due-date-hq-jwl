@@ -1,11 +1,17 @@
 import { useCallback, useMemo, useReducer, useState, type ReactNode } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { plural } from '@lingui/core/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { parseTabular } from '@duedatehq/core/csv-parser'
-import { inferTaxTypes, type EntityType } from '@duedatehq/core/default-matrix'
+import {
+  inferTaxTypes,
+  matrixApplicationModeForTaxTypes,
+  type EntityType,
+  type MatrixApplicationMode,
+} from '@duedatehq/core/default-matrix'
 import type {
   MapperRunOutput,
   MappingRow,
@@ -28,7 +34,6 @@ import {
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { orpc } from '@/lib/rpc'
-import { formatCents } from '@/lib/utils'
 
 import { canContinueNormalization } from './continue-rules'
 import { Step1Intake } from './Step1Intake'
@@ -38,7 +43,6 @@ import { Step4Preview } from './Step4Preview'
 import { WizardRouteShell, WizardShell, type WizardTransitionState } from './WizardShell'
 import {
   INITIAL_STATE,
-  PROVIDER_TO_SOURCE,
   PRESET_TO_SOURCE,
   hasDiscardableWizardWork,
   wizardReducer,
@@ -67,7 +71,7 @@ const OBLIGATION_QUEUE_PREFETCH_LIMIT = 50
  * from a clean Step 1 instead of resuming a half-finished draft.
  */
 export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps) {
-  const { t } = useLingui()
+  const { i18n, t } = useLingui()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [state, dispatch] = useReducer(wizardReducer, INITIAL_STATE)
@@ -77,8 +81,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     obligationCount: number
   } | null>(null)
   const [genesis, setGenesis] = useState<{
-    totalExposureCents: number
-    needsInputCount: number
+    clientCount: number
+    obligationCount: number
   } | null>(null)
 
   const invalidateMigration = useCallback(() => {
@@ -121,24 +125,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       onSuccess: invalidateMigration,
     }),
   )
-  const stageExternalRowsMutation = useMutation(
-    orpc.migration.stageExternalRows.mutationOptions({
-      onSuccess: (out) => {
-        cacheBatch(out.batch)
-      },
-    }),
-  )
-  const cloneStagingRowsMutation = useMutation(
-    orpc.migration.cloneStagingRows.mutationOptions({
-      onSuccess: (out) => {
-        cacheBatch(out.batch)
-      },
-    }),
-  )
-  const previousSyncQuery = useQuery({
-    ...orpc.migration.listBatches.queryOptions({ input: { limit: 20 } }),
-    enabled: open,
-  })
   const runMapperMutation = useMutation(
     orpc.migration.runMapper.mutationOptions({
       onSuccess: invalidateMigration,
@@ -206,15 +192,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
   const handleStep1Continue = useCallback(() => {
     const intake = state.intake
-    if (intake.mode === 'previous_sync') {
-      if (!intake.previousSyncBatchId) return
-    } else if (intake.mode === 'integration') {
-      if (intake.integrationRows.length === 0 || intake.parseError !== null) return
-    } else if (!intake.rawText.trim() || intake.rowCount === 0) return
+    if (!intake.rawText.trim() || intake.rowCount === 0) return
 
     dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: null })
     const handleError = (err: unknown) => {
-      const description = rpcErrorMessage(err) ?? t`Please try again.`
+      const description =
+        rpcErrorMessage(err) ??
+        t`Check your network and try again. If this keeps happening, contact support.`
       dispatch({ type: 'INTAKE_SUBMIT_ERROR', error: description })
       toast.error(t`Couldn't start the import`, { description })
     }
@@ -228,33 +212,13 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       listErrorsMutation.mutate({ batchId, stage: 'mapping' })
     }
 
-    if (intake.mode === 'previous_sync') {
-      cloneStagingRowsMutation.mutate(
-        { sourceBatchId: intake.previousSyncBatchId! },
-        {
-          onError: handleError,
-          onSuccess: (out) => {
-            dispatch({ type: 'BATCH_CREATED', batch: out.batch })
-            runMapperMutation.mutate(
-              { batchId: out.batch.id },
-              { onError: handleError, onSuccess: handleMapperSuccess(out.batch.id) },
-            )
-          },
-        },
-      )
-      return
-    }
-
-    const source: MigrationSource =
-      intake.mode === 'integration'
-        ? PROVIDER_TO_SOURCE[intake.integrationProvider]
-        : intake.preset
-          ? PRESET_TO_SOURCE[intake.preset]
-          : intake.fileKind === 'xlsx'
-            ? 'xlsx'
-            : intake.fileKind === 'csv'
-              ? 'csv'
-              : 'paste'
+    const source: MigrationSource = intake.preset
+      ? PRESET_TO_SOURCE[intake.preset]
+      : intake.fileKind === 'xlsx'
+        ? 'xlsx'
+        : intake.fileKind === 'csv'
+          ? 'csv'
+          : 'paste'
 
     createBatchMutation.mutate(
       {
@@ -266,25 +230,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         onError: handleError,
         onSuccess: (batch) => {
           dispatch({ type: 'BATCH_CREATED', batch })
-          if (intake.mode === 'integration') {
-            stageExternalRowsMutation.mutate(
-              {
-                batchId: batch.id,
-                provider: intake.integrationProvider,
-                rows: intake.integrationRows,
-              },
-              {
-                onError: handleError,
-                onSuccess: () => {
-                  runMapperMutation.mutate(
-                    { batchId: batch.id },
-                    { onError: handleError, onSuccess: handleMapperSuccess(batch.id) },
-                  )
-                },
-              },
-            )
-            return
-          }
           uploadRawMutation.mutate(
             {
               batchId: batch.id,
@@ -297,6 +242,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
                 kind: intake.fileKind,
                 text: intake.rawText,
                 ...(intake.rawFileBase64 ? { rawBase64: intake.rawFileBase64 } : {}),
+                ...(intake.sourceManifest ? { sourceManifest: intake.sourceManifest } : {}),
               },
             },
             {
@@ -317,11 +263,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     )
   }, [
     createBatchMutation,
-    cloneStagingRowsMutation,
     listErrorsMutation,
     runMapperMutation,
     state.intake,
-    stageExternalRowsMutation,
     t,
     uploadRawMutation,
   ])
@@ -332,7 +276,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't save mapping`, {
-        description: rpcErrorMessage(err) ?? t`Please try again.`,
+        description:
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`,
       })
     }
 
@@ -403,7 +349,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 
     const handleError = (err: unknown) => {
       toast.error(t`Couldn't apply tax type suggestions`, {
-        description: rpcErrorMessage(err) ?? t`Please try again.`,
+        description:
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`,
       })
     }
 
@@ -452,13 +400,27 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       {
         onError: (err) => {
           toast.error(t`Couldn't import clients`, {
-            description: rpcErrorMessage(err) ?? t`Please try again.`,
+            description:
+              rpcErrorMessage(err) ??
+              t`Check your network and try again. If this keeps happening, contact support.`,
           })
         },
         onSuccess: (result) => {
-          const exposure = result.exposureSummary
+          // 2026-05-25 (Wizard #40 — plural fix): "clients" and
+          // "deadlines" were baked into the English template
+          // and never pluralised. `plural()` macro extracts both
+          // forms so n=1 renders "1 client" / "1 deadline".
+          const clientPart = i18n._(
+            plural(result.clientCount, { one: '# client', other: '# clients' }),
+          )
+          const obligationPart = i18n._(
+            plural(result.obligationCount, {
+              one: '# deadline',
+              other: '# deadlines',
+            }),
+          )
           toast.success(t`Import complete`, {
-            description: t`${result.clientCount} clients, ${result.obligationCount} obligations, ${formatCents(exposure.totalExposureCents)} exposure, ${exposure.needsInputCount} need input`,
+            description: t`${clientPart}, ${obligationPart} created`,
             action: {
               label: t`Undo import`,
               onClick: () =>
@@ -473,41 +435,29 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             new CustomEvent('migration.genesis.started', {
               detail: {
                 batchId: result.batchId,
-                totalExposureCents: exposure.totalExposureCents,
-                needsInputCount: exposure.needsInputCount,
+                clientCount: result.clientCount,
+                obligationCount: result.obligationCount,
               },
             }),
           )
-          if (exposure.totalExposureCents === 0 && exposure.needsInputCount > 0) {
-            resetAndClose()
-            void navigate('/')
-            window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
-            return
-          }
-          if (exposure.totalExposureCents > 0) {
-            setGenesis({
-              totalExposureCents: exposure.totalExposureCents,
-              needsInputCount: exposure.needsInputCount,
-            })
-            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            window.setTimeout(
-              () => {
-                setGenesis(null)
-                resetAndClose()
-                void navigate('/')
-                window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
-              },
-              reduced ? 200 : 1200,
-            )
-            return
-          }
-          resetAndClose()
-          void navigate('/')
-          window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
+          setGenesis({
+            clientCount: result.clientCount,
+            obligationCount: result.obligationCount,
+          })
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          window.setTimeout(
+            () => {
+              setGenesis(null)
+              resetAndClose()
+              void navigate('/')
+              window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
+            },
+            reduced ? 200 : 1200,
+          )
         },
       },
     )
-  }, [applyMutation, navigate, resetAndClose, state.batchId, t])
+  }, [applyMutation, i18n, navigate, resetAndClose, state.batchId, t])
 
   const sampleByHeader = useMemo(() => {
     if (!state.intake.rawText) return {}
@@ -543,8 +493,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
   const isMutating =
     createBatchMutation.isPending ||
     uploadRawMutation.isPending ||
-    stageExternalRowsMutation.isPending ||
-    cloneStagingRowsMutation.isPending ||
     runMapperMutation.isPending ||
     confirmMappingMutation.isPending ||
     runNormalizerMutation.isPending ||
@@ -554,13 +502,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     revertMutation.isPending
   const transition = useMemo<WizardTransitionState | null>(() => {
     if (createBatchMutation.isPending) return { phase: 'intake', activeIndex: 0 }
-    if (
-      uploadRawMutation.isPending ||
-      stageExternalRowsMutation.isPending ||
-      cloneStagingRowsMutation.isPending
-    ) {
-      return { phase: 'intake', activeIndex: 1 }
-    }
+    if (uploadRawMutation.isPending) return { phase: 'intake', activeIndex: 1 }
     if (runMapperMutation.isPending) {
       return state.step === 2
         ? { phase: 'rerun_mapper', activeIndex: 1 }
@@ -578,10 +520,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     confirmMappingMutation.isPending,
     confirmNormalizationMutation.isPending,
     createBatchMutation.isPending,
-    cloneStagingRowsMutation.isPending,
     runMapperMutation.isPending,
     runNormalizerMutation.isPending,
-    stageExternalRowsMutation.isPending,
     state.step,
     uploadRawMutation.isPending,
   ])
@@ -593,19 +533,33 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       {
         onError: (err) => {
           toast.error(t`Couldn't undo import`, {
-            description: rpcErrorMessage(err) ?? t`Please try again.`,
+            description:
+              rpcErrorMessage(err) ??
+              t`Check your network and try again. If this keeps happening, contact support.`,
           })
         },
         onSuccess: () => {
+          // 2026-05-25 (Wizard #40 — plural fix): same shape as
+          // the "Import complete" toast above — pluralise both
+          // sides so n=1 reads "1 client · 1 deadline".
+          const undoClientPart = i18n._(
+            plural(pendingRevert.clientCount, { one: '# client', other: '# clients' }),
+          )
+          const undoObligationPart = i18n._(
+            plural(pendingRevert.obligationCount, {
+              one: '# deadline',
+              other: '# deadlines',
+            }),
+          )
           toast.success(t`Import undone`, {
-            description: t`${pendingRevert.clientCount} clients · ${pendingRevert.obligationCount} obligations removed`,
+            description: t`${undoClientPart} · ${undoObligationPart} removed`,
           })
           setPendingRevert(null)
-          void navigate('/obligations')
+          void navigate('/deadlines')
         },
       },
     )
-  }, [navigate, pendingRevert, revertMutation, t])
+  }, [i18n, navigate, pendingRevert, revertMutation, t])
 
   const shellProps = {
     step: state.step,
@@ -626,18 +580,15 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             onText={(text, fileName, options) =>
               dispatch({ type: 'INTAKE_TEXT', text, fileName, ...options })
             }
-            onPreset={(preset) => dispatch({ type: 'INTAKE_PRESET', preset })}
+            onPreset={(preset, source) =>
+              dispatch({
+                type: 'INTAKE_PRESET',
+                preset,
+                ...(source ? { source } : {}),
+              })
+            }
             onParsed={(args) => dispatch({ type: 'INTAKE_PARSED', ...args })}
             onParseError={(error) => dispatch({ type: 'INTAKE_PARSE_ERROR', error })}
-            previousSyncBatches={(previousSyncQuery.data?.batches ?? []).filter((batch) =>
-              batch.source.startsWith('integration_'),
-            )}
-            onMode={(mode) => dispatch({ type: 'INTAKE_MODE', mode })}
-            onIntegrationProvider={(provider) =>
-              dispatch({ type: 'INTAKE_INTEGRATION_PROVIDER', provider })
-            }
-            onIntegrationRows={(args) => dispatch({ type: 'INTAKE_INTEGRATION_ROWS', ...args })}
-            onPreviousSync={(batchId) => dispatch({ type: 'INTAKE_PREVIOUS_SYNC', batchId })}
           />
         ) : null}
 
@@ -718,23 +669,29 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
 function LiveGenesisOverlay({
   genesis,
 }: {
-  genesis: { totalExposureCents: number; needsInputCount: number } | null
+  genesis: { clientCount: number; obligationCount: number } | null
 }) {
   if (!genesis) return null
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
-        <div className="font-mono text-hero font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
-          {formatCents(genesis.totalExposureCents)}
+        <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
+          {genesis.obligationCount}
         </div>
+        {/* 2026-05-25 (Wizard #40 — plural fix): "obligations
+            created" baked plural in English; the value above is
+            the count, so pluralise the label too. Same fix on
+            the "clients imported" line below. */}
         <div className="text-sm text-text-secondary">
-          <Trans>at risk this week</Trans>
+          <Plural
+            value={genesis.obligationCount}
+            one="deadline created"
+            other="deadlines created"
+          />
         </div>
-        {genesis.needsInputCount > 0 ? (
-          <div className="text-xs text-text-tertiary">
-            <Trans>{genesis.needsInputCount} obligations still need penalty inputs.</Trans>
-          </div>
-        ) : null}
+        <div className="text-xs text-text-tertiary">
+          <Plural value={genesis.clientCount} one="# client imported" other="# clients imported" />
+        </div>
       </div>
     </div>
   )
@@ -742,7 +699,6 @@ function LiveGenesisOverlay({
 
 function computeCanContinue(state: WizardState): boolean {
   if (state.step === 1) {
-    if (state.intake.mode === 'previous_sync') return state.intake.previousSyncBatchId !== null
     return state.intake.rowCount > 0 && state.intake.parseError === null
   }
   if (state.step === 2) {
@@ -798,10 +754,13 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
     else if (r.field === 'state') stateMap.set(r.rawValue, r.normalizedValue)
   }
 
-  const counts = new Map<string, { entity: string; state: string; count: number }>()
+  const counts = new Map<
+    string,
+    { entity: string; state: string; count: number; applicationMode: MatrixApplicationMode }
+  >()
   for (const row of parsed.rows) {
     const rawTaxTypes = taxIdx !== undefined ? (row[taxIdx] ?? '').trim() : ''
-    if (rawTaxTypes) continue
+    const explicitTaxTypes = normalizeTaxTypesForMatrix(input.normalizations, rawTaxTypes)
 
     const rawEntity = entityIdx !== undefined ? (row[entityIdx] ?? '').trim() : ''
     const rawState = stateIdx !== undefined ? (row[stateIdx] ?? '').trim() : ''
@@ -813,10 +772,18 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
       ...splitStateList(rawFilingStates, stateMap),
     ])
     for (const normalizedState of states) {
+      const applicationMode = matrixApplicationModeForTaxTypes(explicitTaxTypes, normalizedState)
+      if (!applicationMode) continue
       const key = `${entity}::${normalizedState}`
       const existing = counts.get(key)
-      if (existing) existing.count += 1
-      else counts.set(key, { entity, state: normalizedState, count: 1 })
+      if (existing) {
+        existing.count += 1
+        if (applicationMode === 'federal_return_type_plus_state') {
+          existing.applicationMode = applicationMode
+        }
+      } else {
+        counts.set(key, { entity, state: normalizedState, count: 1, applicationMode })
+      }
     }
   }
 
@@ -833,9 +800,33 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
       matrixVersion: result.matrixVersion,
       enabled: input.applyToAll[`${cell.entity}::${cell.state}`] ?? true,
       appliedClientCount: cell.count,
+      applicationMode: cell.applicationMode,
     })
   }
   return out
+}
+
+function normalizeTaxTypesForMatrix(
+  normalizations: readonly NormalizationRow[],
+  raw: string,
+): string[] {
+  if (!raw) return []
+  const hit = normalizations.find((row) => row.field === 'tax_types' && row.rawValue === raw)
+  if (hit?.normalizedValue) {
+    try {
+      const parsed = JSON.parse(hit.normalizedValue)
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string')
+      }
+    } catch {
+      return [hit.normalizedValue]
+    }
+    return [hit.normalizedValue]
+  }
+  return raw
+    .split(/[;,|]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
 }
 
 function splitStateList(raw: string, normalizations: ReadonlyMap<string, string | null>): string[] {

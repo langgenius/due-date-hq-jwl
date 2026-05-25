@@ -12,6 +12,7 @@ export interface ObligationQueueListInput {
   search?: string
   obligationIds?: string[]
   clientIds?: string[]
+  ruleIds?: string[]
   states?: string[]
   counties?: string[]
   taxTypes?: string[]
@@ -20,10 +21,7 @@ export interface ObligationQueueListInput {
   owner?: ObligationQueueOwnerFilter
   due?: ObligationQueueDueFilter
   dueWithinDays?: number
-  exposureStatus?: ObligationInstanceRow['exposureStatus']
   readiness?: ObligationQueueReadiness[]
-  minExposureCents?: number
-  maxExposureCents?: number
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean

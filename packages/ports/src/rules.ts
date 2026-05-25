@@ -160,3 +160,13 @@ export interface RulesRepo {
   getDecision(ruleId: string): Promise<RuleReviewDecisionRow | null>
   upsertDecision(input: RuleReviewDecisionInput): Promise<RuleReviewDecisionRow>
 }
+
+export interface RulesOpsRepo {
+  listGlobalRuleTemplates(): Promise<
+    Array<{ id: string; version: number; status: string; ruleJson: unknown; sourceIds: string[] }>
+  >
+  fanoutReviewTasks(input: {
+    newRules: Array<{ ruleId: string; templateVersion: number }>
+    changedRules: Array<{ ruleId: string; templateVersion: number }>
+  }): Promise<{ newTaskTargets: number; changedTaskTargets: number; supersededTasks: number }>
+}

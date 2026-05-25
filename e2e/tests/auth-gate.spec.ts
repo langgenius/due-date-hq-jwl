@@ -33,13 +33,13 @@ test('AC: E2E-SMOKE-AUTH-REDIRECT preserves protected route query params', async
   loginPage,
   page,
 }) => {
-  await loginPage.goto('/obligations?status=in_review&sort=due_asc')
+  await loginPage.goto('/deadlines?status=in_review&sort=due_asc')
 
   await expect(loginPage.googleButton).toBeVisible()
 
   const url = new URL(page.url())
   expect(url.pathname).toBe('/login')
-  expect(url.searchParams.get('redirectTo')).toBe('/obligations?status=in_review&sort=due_asc')
+  expect(url.searchParams.get('redirectTo')).toBe('/deadlines?status=in_review&sort=due_asc')
 })
 
 test('AC: E2E-SMOKE-AUTH-REDIRECT preserves the onboarding target', async ({ loginPage, page }) => {

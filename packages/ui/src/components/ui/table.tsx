@@ -6,7 +6,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div data-slot="table-container" className="relative w-full">
       <table
         data-slot="table"
         className={cn('w-full caption-bottom text-xs text-text-primary', className)}
@@ -20,7 +20,15 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
   return (
     <thead
       data-slot="table-header"
-      className={cn('[&_tr]:border-b [&_tr]:border-divider-regular', className)}
+      className={cn(
+        // `bg-background-subtle` mirrors the Coverage / Sources / Rule
+        // library / Temporary tables, which are the visual reference for
+        // every other workbench table. Baking it into the primitive
+        // means new tables inherit the right header tone without each
+        // call site having to remember the override.
+        'bg-background-subtle [&_tr]:border-b [&_tr]:border-divider-regular [&_tr]:hover:bg-transparent',
+        className,
+      )}
       {...props}
     />
   )
@@ -66,8 +74,11 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
       data-slot="table-head"
+      // 0.08em tracking matches DESIGN.md `typography.label` (11px / 500
+      // / 0.08em). Size stays at 12px (`text-xs`) so column headers
+      // don't compete visually with single-digit numeric cells.
       className={cn(
-        'h-9 px-3 text-left align-middle text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase [&:has([role=checkbox])]:pr-0',
+        'h-9 px-3 text-left align-middle text-xs font-medium tracking-[0.08em] whitespace-nowrap text-text-tertiary uppercase [&:has([role=checkbox])]:pr-0',
         className,
       )}
       {...props}

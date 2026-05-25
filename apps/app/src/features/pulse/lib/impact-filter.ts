@@ -25,5 +25,10 @@ export function matchesPulseImpactFilter(
   }
   if (filter === 'needs_review') return alert.needsReviewCount > 0
   if (filter === 'no_matches') return impacted === 0
-  return alert.status === 'applied' || alert.status === 'dismissed' || alert.status === 'reverted'
+  return (
+    alert.status === 'applied' ||
+    alert.status === 'dismissed' ||
+    alert.status === 'reverted' ||
+    alert.status === 'reviewed'
+  )
 }

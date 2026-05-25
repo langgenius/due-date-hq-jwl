@@ -49,23 +49,30 @@ function FieldGroup({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-const fieldVariants = cva(
-  'group/field flex w-full gap-3 data-[invalid=true]:text-text-destructive',
-  {
-    variants: {
-      orientation: {
-        vertical: 'flex-col *:w-full [&>.sr-only]:w-auto',
-        horizontal:
-          'flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
-        responsive:
-          'flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
-      },
-    },
-    defaultVariants: {
-      orientation: 'vertical',
+// 2026-05-25 (Yuqi #42-#44, form density audit): the Field primitive
+// had two density issues that surfaced across every form in the app
+// (CreateClientDialog, CreateObligationDialog, ClientFactsWorkspace,
+// email-otp-sign-in-form, accept-invite):
+//   - vertical `gap-3` (12px) between label and input read as too
+//     airy — labels floated away from their inputs. Tightened to
+//     `gap-1.5` (6px), matching the Linear/Stripe form density.
+//   - horizontal layouts kept their original `gap-3` because the
+//     label sits to the LEFT of the input, not above it — 12px of
+//     horizontal breathing room is correct there.
+const fieldVariants = cva('group/field flex w-full data-[invalid=true]:text-text-destructive', {
+  variants: {
+    orientation: {
+      vertical: 'flex-col gap-1.5 *:w-full [&>.sr-only]:w-auto',
+      horizontal:
+        'flex-row items-center gap-3 has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
+      responsive:
+        'flex-col gap-1.5 *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:gap-3 @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
     },
   },
-)
+  defaultVariants: {
+    orientation: 'vertical',
+  },
+})
 
 function Field({
   className,

@@ -11,7 +11,12 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { useReadinessLabels, useStatusLabels } from '@/features/obligations/status-control'
+import {
+  useLifecycleV2StatusLabels,
+  useReadinessLabels,
+  useStatusLabels,
+} from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 
 import { buildAuditChangeView, type AuditChangeView } from './audit-change-view'
 import {
@@ -75,7 +80,11 @@ function AuditEventDrawerContent({
   const { t } = useLingui()
   const actionLabels = useAuditActionLabels()
   const entityTypeLabels = useAuditEntityTypeLabels()
-  const statusLabels = useStatusLabels()
+  // v2-aware labels: see audit-log-table.tsx for the rationale.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const readinessLabels = useReadinessLabels()
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
   const actor = event.actorLabel ?? event.actorId ?? t`System`

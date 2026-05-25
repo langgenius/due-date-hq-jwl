@@ -83,9 +83,9 @@
   --state-success-active: rgba(23, 178, 106, 0.3);
   --state-success-solid: var(--color-util-colors-green-400);
 
-  --state-warning-hover: rgba(247, 144, 9, 0.14);
-  --state-warning-hover-alt: rgba(247, 144, 9, 0.25);
-  --state-warning-active: rgba(247, 144, 9, 0.3);
+  --state-warning-hover: rgba(242, 95, 76, 0.14);
+  --state-warning-hover-alt: rgba(242, 95, 76, 0.25);
+  --state-warning-active: rgba(242, 95, 76, 0.3);
   --state-warning-solid: var(--color-util-colors-warning-500);
 
   /* ===== Shadow alpha steps ============================================= */
@@ -254,7 +254,7 @@
   --components-badge-status-light-success-halo: rgb(23 178 106 / 0.3);
   --components-badge-status-light-warning-bg: var(--color-util-colors-warning-500);
   --components-badge-status-light-warning-border-inner: var(--color-util-colors-warning-400);
-  --components-badge-status-light-warning-halo: rgb(247 144 9 / 0.3);
+  --components-badge-status-light-warning-halo: rgb(242 95 76 / 0.3);
   --components-badge-status-light-error-bg: var(--color-util-colors-red-500);
   --components-badge-status-light-error-border-inner: var(--color-util-colors-red-400);
   --components-badge-status-light-error-halo: rgb(240 68 56 / 0.3);
@@ -267,7 +267,7 @@
   --components-badge-bg-gray-soft: rgb(200 206 218 / 0.08);
   --components-badge-bg-green-soft: rgb(23 178 106 / 0.14);
   --components-badge-bg-red-soft: rgb(240 68 56 / 0.14);
-  --components-badge-bg-warning-soft: rgb(247 144 9 / 0.14);
+  --components-badge-bg-warning-soft: rgb(242 95 76 / 0.14);
   --components-badge-bg-blue-soft: rgb(11 165 236 / 0.14);
 
   /* Status-indicator shadows recompose using the dark halos / outer border */
@@ -337,8 +337,8 @@
   --severity-high-tint: rgb(239 104 32 / 0.14);
   --severity-high-border: rgb(239 104 32 / 0.4);
   --severity-medium: var(--color-util-colors-warning-400);
-  --severity-medium-tint: rgb(247 144 9 / 0.14);
-  --severity-medium-border: rgb(247 144 9 / 0.4);
+  --severity-medium-tint: rgb(242 95 76 / 0.14);
+  --severity-medium-border: rgb(242 95 76 / 0.4);
   --severity-neutral: var(--color-util-colors-gray-500);
   --severity-neutral-tint: rgb(200 206 218 / 0.08);
 

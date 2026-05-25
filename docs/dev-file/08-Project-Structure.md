@@ -689,22 +689,22 @@ vp run -r dev
 
 ## 13. PRD 映射速查
 
-| PRD §               | 工程落地                                                                                                                    |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| §1.3 设计原则       | `docs/Design/DueDateHQ-DESIGN.md` + `packages/ui/src/styles/preset.css`                                                     |
-| §3 Story S1/S2/S3   | E2E 10 条核心路径（§07.5.4）                                                                                                |
-| §3.6 Team           | `packages/auth` Organization plugin                                                                                         |
-| §5.1 Dashboard      | `apps/app/src/routes/dashboard.tsx` + `apps/server/src/procedures/dashboard` + `packages/db/src/repo/dashboard.ts`          |
-| §5.2 Obligations    | `apps/app/src/routes/obligations.tsx` + `features/obligations/`                                                             |
-| §5.5 Evidence Mode  | `apps/app/src/components/patterns/evidence-drawer/` + `packages/db/evidence-writer`                                         |
-| §6.1 Rule Engine    | `packages/db/seed/rules.ts` + `packages/core/date-logic`                                                                    |
-| §6.2 Glass-Box      | `packages/ai/guard.ts`                                                                                                      |
-| §6.3 Pulse          | `apps/server/src/jobs/pulse/*` + `procedures/pulse/*`                                                                       |
-| §6.4 Smart Priority | `packages/core/priority/`                                                                                                   |
-| §6A Migration       | `apps/server/src/procedures/migration/*` + `features/migration/`                                                            |
-| §7.5 Penalty Radar  | 后续 `packages/core/penalty/` + dashboard read model；Activation Slice v1 暂用真实 obligation count，不伪造 dollar exposure |
-| §7.8.1 PWA          | Phase 0 不实现（见 `05 §8`）；Phase 2 Tauri menu bar widget 统一覆盖 install 体验                                           |
-| §13 Security        | `06-Security-Compliance.md` + `packages/auth`                                                                               |
+| PRD §               | 工程落地                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| §1.3 设计原则       | `docs/Design/DueDateHQ-DESIGN.md` + `packages/ui/src/styles/preset.css`                                                        |
+| §3 Story S1/S2/S3   | E2E 10 条核心路径（§07.5.4）                                                                                                   |
+| §3.6 Team           | `packages/auth` Organization plugin                                                                                            |
+| §5.1 Dashboard      | `apps/app/src/routes/dashboard.tsx` + `apps/server/src/procedures/dashboard` + `packages/db/src/repo/dashboard.ts`             |
+| §5.2 Obligations    | `apps/app/src/routes/obligations.tsx` + `features/obligations/`                                                                |
+| §5.5 Evidence Mode  | `apps/app/src/components/patterns/evidence-drawer/` + `packages/db/evidence-writer`                                            |
+| §6.1 Rule Engine    | `packages/db/seed/rules.ts` + `packages/core/date-logic`                                                                       |
+| §6.2 Glass-Box      | `packages/ai/guard.ts`                                                                                                         |
+| §6.3 Pulse          | `apps/server/src/jobs/pulse/*` + `procedures/pulse/*`                                                                          |
+| §6.4 Smart Priority | `packages/core/priority/`                                                                                                      |
+| §6A Migration       | `apps/server/src/procedures/migration/*` + `features/migration/`                                                               |
+| §7.5 Deadline Radar | 后续 `packages/core/penalty/` + dashboard read model；Activation Slice v1 暂用真实 obligation count，不伪造 deadline readiness |
+| §7.8.1 PWA          | Phase 0 不实现（见 `05 §8`）；Phase 2 Tauri menu bar widget 统一覆盖 install 体验                                              |
+| §13 Security        | `06-Security-Compliance.md` + `packages/auth`                                                                                  |
 
 ---
 

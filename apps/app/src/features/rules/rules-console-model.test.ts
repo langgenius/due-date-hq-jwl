@@ -1,13 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  coverageCellState,
   COVERAGE_ENTITY_GROUPS,
-  countRulesByFilter,
   ENTITY_COLUMN_GROUPS,
   countSourcesByHealth,
   DEFAULT_PREVIEW_CALENDAR_YEAR,
-  filterRules,
   filterSources,
   groupPreviewRows,
   humanizeDueDateLogic,
@@ -40,17 +37,6 @@ describe('rules console model', () => {
       'sole_prop',
     ])
     expect(ENTITY_COLUMN_GROUPS.all).not.toContain('other')
-  })
-
-  it('returns valid coverage states for every displayable entity', () => {
-    const validStates = ['verified', 'review', 'none']
-
-    for (const entity of ENTITY_COLUMN_GROUPS.all) {
-      expect(validStates).toContain(coverageCellState('CA', entity))
-    }
-    expect(coverageCellState('FED', 'sole_prop')).toBe('review')
-    expect(coverageCellState('FED', 'individual')).toBe('review')
-    expect(coverageCellState('FED', 'trust')).toBe('review')
   })
 
   it('converts preview form values into contract input', () => {
@@ -105,37 +91,19 @@ describe('rules console model', () => {
     })
   })
 
-  it('derives source and rule filter counts without state drift', () => {
+  it('derives source health counts without state drift', () => {
     const sources = [
       { id: 's1', healthStatus: 'healthy' },
       { id: 's2', healthStatus: 'degraded' },
-      { id: 's3', healthStatus: 'healthy' },
+      { id: 's3', healthStatus: 'paused' },
     ] as const
 
     expect(countSourcesByHealth(sources)).toMatchObject({
       all: 3,
       healthy: 2,
-      degraded: 1,
+      paused: 1,
     })
-    expect(filterSources(sources, 'degraded')).toHaveLength(1)
-
-    const rules = [
-      { status: 'verified', ruleTier: 'basic' },
-      { status: 'candidate', ruleTier: 'exception' },
-      { status: 'verified', ruleTier: 'applicability_review' },
-    ] as const
-
-    expect(countRulesByFilter(rules)).toMatchObject({
-      all: 3,
-      active: 2,
-      pending_review: 1,
-      verified: 2,
-      candidate: 1,
-      applicability_review: 1,
-      exception: 1,
-    })
-    expect(filterRules(rules, 'candidate')).toHaveLength(1)
-    expect(filterRules(rules, 'applicability_review')).toHaveLength(1)
+    expect(filterSources(sources, 'healthy')).toHaveLength(2)
   })
 
   it('humanizes the five DueDateLogic kinds for the rule detail drawer', () => {
@@ -188,11 +156,13 @@ describe('rules console model', () => {
 
   it('groups preview rows by reminder readiness', () => {
     const rows = [
-      { ruleId: 'ready', reminderReady: true },
-      { ruleId: 'review', reminderReady: false },
+      { ruleId: 'ready', reminderReady: true, missingClientFacts: [] },
+      { ruleId: 'review', reminderReady: false, missingClientFacts: [] },
+      { ruleId: 'facts', reminderReady: false, missingClientFacts: ['fiscalYearEnd'] },
     ] as const
 
     expect(groupPreviewRows(rows).reminderReady.map((row) => row.ruleId)).toEqual(['ready'])
     expect(groupPreviewRows(rows).requiresReview.map((row) => row.ruleId)).toEqual(['review'])
+    expect(groupPreviewRows(rows).needsClientFacts.map((row) => row.ruleId)).toEqual(['facts'])
   })
 })

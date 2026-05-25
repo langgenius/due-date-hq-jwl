@@ -5,7 +5,6 @@ import {
   ActivityIcon,
   AlarmClockIcon,
   BellIcon,
-  BotIcon,
   Building2Icon,
   CalendarDaysIcon,
   CalendarClockIcon,
@@ -50,7 +49,7 @@ type CommandEntry = {
   id: string
   label: string
   description: string
-  group: 'navigate' | 'actions' | 'ask'
+  group: 'navigate' | 'actions'
   disabled?: boolean
   permission?: FirmPermission
   onSelect: () => void
@@ -70,7 +69,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     () => [
       {
         id: 'dashboard',
-        label: t`Dashboard`,
+        label: t`Today`,
         description: t`Review risk and operating pressure.`,
         group: 'navigate',
         icon: LayoutDashboardIcon,
@@ -78,11 +77,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       },
       {
         id: 'obligations',
-        label: t`Obligations`,
-        description: t`Open Obligations.`,
+        label: t`Deadlines`,
+        description: t`Open Deadlines.`,
         group: 'navigate',
         icon: CalendarClockIcon,
-        onSelect: () => navigate('/obligations'),
+        onSelect: () => navigate('/deadlines'),
       },
       {
         id: 'notifications',
@@ -111,7 +110,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'clients',
         label: t`Clients`,
-        description: t`Manage client facts and readiness.`,
+        description: t`Manage client facts and materials.`,
         group: 'navigate',
         icon: UsersIcon,
         onSelect: () => navigate('/clients'),
@@ -138,7 +137,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         description: t`Review per-jurisdiction rule coverage by entity.`,
         group: 'navigate',
         icon: MapIcon,
-        onSelect: () => navigate('/rules/coverage'),
+        // Canonical URL is /rules/library; ?view=matrix selects the
+        // coverage view by default. The /rules/coverage alias still
+        // resolves but adds a redirect hop.
+        onSelect: () => navigate('/rules/library?view=matrix'),
       },
       {
         id: 'rules-sources',
@@ -151,14 +153,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       {
         id: 'rules-library',
         label: t`Rule library`,
-        description: t`Browse pending, active, rejected, and archived rules.`,
+        description: t`Review coverage, sources, and pending rules.`,
         group: 'navigate',
         icon: LibraryIcon,
         onSelect: () => navigate('/rules/library'),
       },
       {
         id: 'rules-pulse',
-        label: t`Radar`,
+        label: t`Alerts`,
         description: t`Triage source-backed government changes affecting clients.`,
         group: 'navigate',
         icon: ActivityIcon,
@@ -172,7 +174,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         icon: HourglassIcon,
         onSelect: () => navigate('/rules/temporary'),
       },
-      // Obligation preview (/rules/preview) is intentionally not listed
+      // Deadline preview (/rules/preview) is intentionally not listed
       // in the Command Palette navigate group. See app-shell-nav.tsx for
       // the rationale — it's a sandbox, not a day-to-day surface. The
       // route stays accessible by direct URL.
@@ -217,7 +219,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         description: t`Manage external deadline calendar feeds.`,
         group: 'actions',
         icon: CalendarDaysIcon,
-        onSelect: () => navigate('/obligations/calendar'),
+        onSelect: () => navigate('/deadlines/calendar'),
       },
       {
         id: 'migration',
@@ -228,25 +230,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         permission: 'migration.run',
         onSelect: openWizard,
       },
-      {
-        id: 'ask',
-        label: t`Ask DueDateHQ`,
-        description: t`Coming soon`,
-        group: 'ask',
-        icon: BotIcon,
-        disabled: true,
-        onSelect: () => undefined,
-      },
     ],
     [navigate, openWizard, t],
   )
 
+  // The `ask` group previously held a single "Ask DueDateHQ" placeholder
+  // with a "Coming soon" badge — a UX dead-end. Until the assistant lands,
+  // the palette stays focused on the two real groups (Navigate / Actions);
+  // the search input itself is the natural fast-find affordance.
   const groups = useMemo(
     () =>
       [
         { id: 'navigate', heading: t`Navigate` },
         { id: 'actions', heading: t`Actions` },
-        { id: 'ask', heading: t`Ask` },
       ] satisfies Array<{ id: CommandGroupId; heading: string }>,
     [t],
   )
@@ -262,10 +258,17 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       open={open}
       onOpenChange={onOpenChange}
       title={t`Command palette`}
-      description={t`Search, ask, or navigate.`}
+      // 2026-05-24 (critique P2 — clarify): dropped "ask" from both
+      // the dialog description and the input placeholder. The "ask"
+      // group was removed earlier when the assistant didn't ship;
+      // the copy hadn't been updated. Typing "what's overdue?" today
+      // returns "No commands found." — a quiet discoverability lie
+      // that erodes trust in the rest of the palette. Restore once
+      // an assistant lands.
+      description={t`Search or navigate.`}
     >
       <Command loop disablePointerSelection>
-        <CommandInput autoFocus placeholder={t`Search, ask, or navigate...`} />
+        <CommandInput autoFocus placeholder={t`Search or navigate…`} />
         <CommandList>
           <CommandEmpty>
             <Trans>No commands found.</Trans>

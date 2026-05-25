@@ -214,7 +214,6 @@ export type NewAuditEvidencePackage = typeof auditEvidencePackage.$inferInsert
 export const MIGRATION_AUDIT_ACTIONS = [
   'migration.batch.created',
   'migration.raw_uploaded',
-  'migration.staging_rows.created',
   'migration.discarded',
   'migration.imported',
   'migration.reverted',
@@ -238,6 +237,7 @@ export const PULSE_AUDIT_ACTIONS = [
   'pulse.revert',
   'pulse.reactivate',
   'pulse.review_requested',
+  'pulse.reviewed',
 ] as const
 export type PulseAuditAction = (typeof PULSE_AUDIT_ACTIONS)[number]
 
@@ -247,6 +247,7 @@ export type PenaltyAuditAction = (typeof PENALTY_AUDIT_ACTIONS)[number]
 export const RULES_AUDIT_ACTIONS = [
   'rules.accepted',
   'rules.bulk_accepted',
+  'rules.onboarding_activated',
   'rules.rejected',
   'rules.created',
   'rules.updated',

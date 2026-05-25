@@ -4,16 +4,26 @@ import { PDFDocument, StandardFonts } from 'pdf-lib'
 import type {
   AuditEventPublic,
   EvidencePublic,
+  ObligationQueueListInput,
   ObligationQueueMatchedRule,
   ObligationQueueRow,
 } from '@duedatehq/contracts'
-import { listObligationRules, normalizeRuleTaxTypeCandidates } from '@duedatehq/core/rules'
+import { ObligationQueueFacetsOutputSchema } from '@duedatehq/contracts'
+import {
+  canEditTaxYearProfileForObligation,
+  findRuleById,
+  listObligationRules,
+  normalizeRuleTaxTypeCandidates,
+} from '@duedatehq/core/rules'
 import { toAuditEventPublic } from '../audit'
 import { requireTenant } from '../_context'
 import { OBLIGATION_STATUS_WRITE_ROLES, requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { signReadinessPortalToken } from '../../lib/readiness-token'
-import { toReadinessRequestPublic } from '../readiness/_public'
+import {
+  toReadinessDocumentChecklistItemPublic,
+  toReadinessRequestPublic,
+} from '../readiness/_public'
 
 /**
  * obligations.* — internal API namespace for the firm-wide Obligations queue.
@@ -29,6 +39,14 @@ interface RawRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: ObligationQueueRow['taxYearType']
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: ObligationQueueRow['taxPeriodKind']
+  taxPeriodSource: ObligationQueueRow['taxPeriodSource']
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -45,6 +63,7 @@ interface RawRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationQueueRow['status']
+  blockedByObligationInstanceId: string | null
   readiness: ObligationQueueRow['readiness']
   extensionDecision: ObligationQueueRow['extensionDecision']
   extensionMemo: string | null
@@ -69,8 +88,6 @@ interface RawRow {
   efileRejectedAt: Date | null
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
-  estimatedExposureCents: number | null
-  exposureStatus: ObligationQueueRow['exposureStatus']
   penaltyBreakdownJson: unknown
   missingPenaltyFactsJson: unknown
   penaltySourceRefsJson: unknown
@@ -81,7 +98,6 @@ interface RawRow {
   accruedPenaltyBreakdown: ObligationQueueRow['accruedPenaltyBreakdown']
   penaltyAsOfDate: string
   penaltyFormulaVersion: string | null
-  exposureCalculatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   clientName: string
@@ -92,6 +108,20 @@ interface RawRow {
   evidenceCount: number
   smartPriority: ObligationQueueRow['smartPriority']
 }
+
+type ObligationQueueRepoListInput = NonNullable<
+  Parameters<ReturnType<typeof requireTenant>['scoped']['obligationQueue']['list']>[0]
+>
+
+const EXPORT_MAX_ROWS = 1000
+const ACTIVE_EXPORT_STATUSES = [
+  'pending',
+  'in_progress',
+  'waiting_on_client',
+  'review',
+  'extended',
+  'blocked',
+] as const satisfies readonly ObligationQueueRow['status'][]
 
 interface SavedViewRow {
   id: string
@@ -130,6 +160,9 @@ function toRow(
   row: RawRow,
   opts: { hideDollars?: boolean; hideSmartPriorityFactors?: boolean } = {},
 ): ObligationQueueRow {
+  const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+  const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
+  const rule = row.ruleId ? findRuleById(row.ruleId) : null
   return {
     id: row.id,
     firmId: row.firmId,
@@ -137,6 +170,14 @@ function toRow(
     clientFilingProfileId: row.clientFilingProfileId,
     taxType: row.taxType,
     taxYear: row.taxYear,
+    taxYearType: row.taxYearType,
+    fiscalYearEndMonth: row.fiscalYearEndMonth,
+    fiscalYearEndDay: row.fiscalYearEndDay,
+    taxPeriodStart: row.taxPeriodStart ? toIsoDate(row.taxPeriodStart) : null,
+    taxPeriodEnd: row.taxPeriodEnd ? toIsoDate(row.taxPeriodEnd) : null,
+    taxPeriodKind: row.taxPeriodKind,
+    taxPeriodSource: row.taxPeriodSource,
+    taxPeriodReviewReason: row.taxPeriodReviewReason,
     ruleId: row.ruleId,
     ruleVersion: row.ruleVersion,
     rulePeriod: row.rulePeriod,
@@ -145,19 +186,20 @@ function toRow(
     obligationType: row.obligationType,
     formName: row.formName,
     authority: row.authority,
-    filingDueDate: row.filingDueDate ? toIsoDate(row.filingDueDate) : null,
-    paymentDueDate: row.paymentDueDate ? toIsoDate(row.paymentDueDate) : null,
+    filingDueDate: toIsoDate(taxAuthorityFilingDueDate),
+    paymentDueDate: toIsoDate(taxAuthorityPaymentDueDate),
     sourceEvidence: row.sourceEvidenceJson ?? null,
     recurrence: row.recurrence,
     riskLevel: row.riskLevel,
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    blockedByObligationInstanceId: row.blockedByObligationInstanceId,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,
     extensionSource: row.extensionSource,
-    extensionExpectedDueDate: row.extensionExpectedDueDate
+    extensionInternalTargetDate: row.extensionExpectedDueDate
       ? toIsoDate(row.extensionExpectedDueDate)
       : null,
     extensionDecidedAt: row.extensionDecidedAt?.toISOString() ?? null,
@@ -179,8 +221,6 @@ function toRow(
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: opts.hideDollars ? null : row.estimatedTaxDueCents,
-    estimatedExposureCents: opts.hideDollars ? null : row.estimatedExposureCents,
-    exposureStatus: row.exposureStatus,
     penaltyBreakdown: opts.hideDollars ? [] : parsePenaltyBreakdown(row.penaltyBreakdownJson),
     missingPenaltyFacts: opts.hideDollars ? [] : parseStringArray(row.missingPenaltyFactsJson),
     penaltySourceRefs: opts.hideDollars ? [] : parsePenaltySourceRefs(row.penaltySourceRefsJson),
@@ -191,15 +231,18 @@ function toRow(
     accruedPenaltyBreakdown: opts.hideDollars ? [] : row.accruedPenaltyBreakdown,
     penaltyAsOfDate: row.penaltyAsOfDate,
     penaltyFormulaVersion: opts.hideDollars ? null : row.penaltyFormulaVersion,
-    exposureCalculatedAt: opts.hideDollars
-      ? null
-      : (row.exposureCalculatedAt?.toISOString() ?? null),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     clientName: row.clientName,
     clientState: normalizeStateCode(row.clientState),
     clientCounty: normalizeNullableText(row.clientCounty),
     assigneeName: row.assigneeName?.trim() || null,
+    taxYearProfileEditable: canEditTaxYearProfileForObligation({
+      rule,
+      taxType: row.taxType,
+      taxYearType: row.taxYearType,
+      taxPeriodKind: row.taxPeriodKind,
+    }),
     daysUntilDue: row.daysUntilDue,
     evidenceCount: row.evidenceCount,
     smartPriority: opts.hideSmartPriorityFactors
@@ -352,16 +395,24 @@ function matchedRuleForRow(row: ObligationQueueRow): ObligationQueueMatchedRule 
     (candidate) => candidate.taxType,
   )
   const candidateSet = new Set([row.taxType, ...candidates])
-  const rule = listObligationRules({ includeCandidates: true }).find((item) => {
-    if (!candidateSet.has(item.taxType)) return false
-    if (item.jurisdiction === 'FED') return true
-    return row.clientState === item.jurisdiction
-  })
+  const rule =
+    (row.ruleId ? findRuleById(row.ruleId) : undefined) ??
+    listObligationRules({ includeCandidates: true }).find((item) => {
+      if (!candidateSet.has(item.taxType)) return false
+      if (item.jurisdiction === 'FED') return true
+      return row.clientState === item.jurisdiction
+    })
   if (!rule) return null
   return {
     id: rule.id,
     title: rule.title,
     defaultTip: rule.defaultTip,
+    taxYearProfileEditable: canEditTaxYearProfileForObligation({
+      rule,
+      taxType: row.taxType,
+      taxYearType: row.taxYearType,
+      taxPeriodKind: row.taxPeriodKind,
+    }),
     extensionPolicy: { ...rule.extensionPolicy },
     evidence: rule.evidence.map((item) => Object.assign({}, item)),
   }
@@ -403,8 +454,6 @@ function rowsToCsv(rows: ObligationQueueRow[]): string {
     row.taxType,
     row.currentDueDate,
     row.daysUntilDue,
-    row.estimatedExposureCents === null ? '' : row.estimatedExposureCents,
-    row.exposureStatus,
     row.accruedPenaltyCents === null ? '' : row.accruedPenaltyCents,
     row.accruedPenaltyStatus,
     row.status,
@@ -420,8 +469,6 @@ function rowsToCsv(rows: ObligationQueueRow[]): string {
       'Tax type',
       'Current due',
       'Days until due',
-      'Projected risk cents',
-      'Projected risk status',
       'Accrued penalty cents',
       'Accrued penalty status',
       'Status',
@@ -447,18 +494,14 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
   const page = pdf.addPage([612, 792])
   const font = await pdf.embedFont(StandardFonts.Helvetica)
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold)
-  page.drawText('DueDateHQ Obligations Export', { x: 72, y: 720, font: bold, size: 16 })
+  page.drawText('DueDateHQ Deadlines Export', { x: 72, y: 720, font: bold, size: 16 })
   page.drawText(clientName, { x: 72, y: 692, font: bold, size: 12 })
   const lines = rows.slice(0, 24).map((row) => {
-    const exposure =
-      row.estimatedExposureCents === null
-        ? row.exposureStatus
-        : `$${row.estimatedExposureCents / 100}`
     const accrued =
       row.accruedPenaltyCents === null
         ? row.accruedPenaltyStatus
         : `$${row.accruedPenaltyCents / 100}`
-    return `${row.taxType} | due ${row.currentDueDate} | ${row.status} | projected ${exposure} | accrued ${accrued}`
+    return `${row.taxType} | due ${row.currentDueDate} | ${row.status} | accrued ${accrued}`
   })
   lines.forEach((line, index) => {
     page.drawText(line.slice(0, 92), { x: 72, y: 660 - index * 20, font, size: 10 })
@@ -466,17 +509,20 @@ async function buildClientPdf(clientName: string, rows: ObligationQueueRow[]): P
   return pdf.save()
 }
 
-const list = os.obligations.list.handler(async ({ input, context }) => {
-  const { scoped, tenant, userId } = requireTenant(context)
-  const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
-  const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
-  const hideSmartPriorityFactors = actor?.role !== 'owner'
-
-  const repoInput: NonNullable<Parameters<typeof scoped.obligationQueue.list>[0]> = {}
+function toRepoListInput(
+  input: ObligationQueueListInput,
+  {
+    limit,
+  }: {
+    limit?: number
+  },
+): ObligationQueueRepoListInput {
+  const repoInput: ObligationQueueRepoListInput = {}
   if (input.status !== undefined) repoInput.status = input.status
   if (input.search !== undefined) repoInput.search = input.search
   if (input.obligationIds !== undefined) repoInput.obligationIds = input.obligationIds
   if (input.clientIds !== undefined) repoInput.clientIds = input.clientIds
+  if (input.ruleIds !== undefined) repoInput.ruleIds = input.ruleIds
   if (input.states !== undefined) repoInput.states = input.states
   if (input.counties !== undefined) repoInput.counties = input.counties
   if (input.taxTypes !== undefined) repoInput.taxTypes = input.taxTypes
@@ -485,21 +531,65 @@ const list = os.obligations.list.handler(async ({ input, context }) => {
   if (input.owner !== undefined) repoInput.owner = input.owner
   if (input.due !== undefined) repoInput.due = input.due
   if (input.dueWithinDays !== undefined) repoInput.dueWithinDays = input.dueWithinDays
-  if (input.exposureStatus !== undefined) repoInput.exposureStatus = input.exposureStatus
   if (input.readiness !== undefined) repoInput.readiness = input.readiness
-  if (!hideDollars && input.minExposureCents !== undefined) {
-    repoInput.minExposureCents = input.minExposureCents
-  }
-  if (!hideDollars && input.maxExposureCents !== undefined) {
-    repoInput.maxExposureCents = input.maxExposureCents
-  }
   if (input.minDaysUntilDue !== undefined) repoInput.minDaysUntilDue = input.minDaysUntilDue
   if (input.maxDaysUntilDue !== undefined) repoInput.maxDaysUntilDue = input.maxDaysUntilDue
   if (input.needsEvidence !== undefined) repoInput.needsEvidence = input.needsEvidence
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor
-  if (input.limit !== undefined) repoInput.limit = input.limit
+  const outputLimit = limit ?? input.limit
+  if (outputLimit !== undefined) repoInput.limit = outputLimit
+  return repoInput
+}
+
+function escapeIcsText(value: string): string {
+  return value
+    .replaceAll('\\', '\\\\')
+    .replaceAll(';', '\\;')
+    .replaceAll(',', '\\,')
+    .replace(/\r?\n/g, '\\n')
+}
+
+function toIcsDate(value: string): string {
+  return value.replaceAll('-', '')
+}
+
+function rowsToIcs(rows: ObligationQueueRow[], timestamp: Date): string {
+  const stamp = timestamp
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DueDateHQ//Deadlines Export//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ]
+  for (const row of rows) {
+    const dueDate = toIcsDate(row.currentDueDate)
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${row.id}@duedatehq`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${dueDate}`,
+      `SUMMARY:${escapeIcsText(`${row.clientName} - ${row.taxType}`)}`,
+      `DESCRIPTION:${escapeIcsText(`Status: ${row.status}\nAuthority: ${row.authority ?? 'Unknown'}\nDueDateHQ obligation ${row.id}`)}`,
+      'END:VEVENT',
+    )
+  }
+  lines.push('END:VCALENDAR')
+  return `${lines.join('\r\n')}\r\n`
+}
+
+const list = os.obligations.list.handler(async ({ input, context }) => {
+  const { scoped, tenant, userId } = requireTenant(context)
+  const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
+  const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
+  const hideSmartPriorityFactors = actor?.role !== 'owner'
+
+  const repoInput = toRepoListInput(input, {})
 
   const result = await scoped.obligationQueue.list(repoInput)
 
@@ -520,11 +610,11 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
   const rawRow = rows[0]
   if (!rawRow) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const row = toRow(rawRow, { hideDollars, hideSmartPriorityFactors })
-  const [evidenceRows, auditResult, readinessRows] = await Promise.all([
+  const [evidenceRows, auditResult, readinessRows, readinessChecklistRows] = await Promise.all([
     scoped.evidence.listByObligation(input.obligationId),
     scoped.audit.list({
       entityType: 'obligation_instance',
@@ -533,6 +623,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
       limit: 50,
     }),
     scoped.readiness.listByObligation(input.obligationId),
+    scoped.readiness.listDocumentChecklistByObligation(input.obligationId),
   ])
 
   return {
@@ -540,6 +631,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
     matchedRule: matchedRuleForRow(row),
     evidence: evidenceRows.map(toEvidencePublic),
     auditEvents: auditResult.rows.map((auditRow): AuditEventPublic => toAuditEventPublic(auditRow)),
+    readinessChecklist: readinessChecklistRows.map(toReadinessDocumentChecklistItemPublic),
     readinessRequests: await Promise.all(
       readinessRows.map(async (readinessRow) =>
         toReadinessRequestPublic(
@@ -559,7 +651,7 @@ const getDetail = os.obligations.getDetail.handler(async ({ input, context }) =>
 
 const facets = os.obligations.facets.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
-  return scoped.obligationQueue.facets()
+  return ObligationQueueFacetsOutputSchema.parse(await scoped.obligationQueue.facets())
 })
 
 const listSavedViews = os.obligations.listSavedViews.handler(async ({ context }) => {
@@ -630,23 +722,44 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
   const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
   const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
   const hideSmartPriorityFactors = actor?.role !== 'owner'
-  const selectedIds = [...new Set(input.ids)]
-  const rawRows = await scoped.obligationQueue.listByIds(selectedIds, {
-    asOfDate: dateInTimezone(tenant.timezone),
-  })
-  if (rawRows.length !== selectedIds.length) {
-    throw new ORPCError('NOT_FOUND', {
-      message: 'One or more selected obligations were not found in the current firm.',
+  let rawRows: RawRow[]
+  if (input.scope === 'selected') {
+    const selectedIds = [...new Set(input.ids ?? [])]
+    rawRows = await scoped.obligationQueue.listByIds(selectedIds, {
+      asOfDate: dateInTimezone(tenant.timezone),
+    })
+    if (rawRows.length !== selectedIds.length) {
+      throw new ORPCError('NOT_FOUND', {
+        message: 'One or more selected deadlines were not found in the current firm.',
+      })
+    }
+  } else {
+    const query =
+      input.scope === 'all_active'
+        ? { status: [...ACTIVE_EXPORT_STATUSES], sort: 'due_asc' as const }
+        : input.query
+    if (!query) {
+      throw new ORPCError('BAD_REQUEST', { message: 'Export scope requires a query.' })
+    }
+    const result = await scoped.obligationQueue.list(
+      toRepoListInput(query, { limit: EXPORT_MAX_ROWS }),
+    )
+    rawRows = result.rows
+  }
+  if (rawRows.length === 0) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'No deadlines matched this export.',
     })
   }
   const rows = rawRows.map((row) => toRow(row, { hideDollars, hideSmartPriorityFactors }))
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
     entityType: 'obligations_export',
-    entityId: selectedIds[0] ?? 'empty',
+    entityId: rows[0]?.id ?? 'empty',
     action: 'obligations.exported',
     after: {
       format: input.format,
+      scope: input.scope,
       rowCount: rows.length,
       clientCount: new Set(rows.map((row) => row.clientId)).size,
     },
@@ -657,6 +770,14 @@ const exportSelected = os.obligations.exportSelected.handler(async ({ input, con
       fileName: `obligations-${dateInTimezone(tenant.timezone)}.csv`,
       contentType: 'text/csv',
       contentBase64: base64Text(rowsToCsv(rows)),
+      auditId,
+    }
+  }
+  if (input.format === 'ics') {
+    return {
+      fileName: `obligations-${dateInTimezone(tenant.timezone)}.ics`,
+      contentType: 'text/calendar',
+      contentBase64: base64Text(rowsToIcs(rows, new Date())),
       auditId,
     }
   }

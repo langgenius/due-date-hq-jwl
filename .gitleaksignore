@@ -6,3 +6,14 @@
 docs/html/DueDateHQ - 用户故事与价值主张画布.html:generic-api-key:1231
 docs/html/工程师集训.html:generic-api-key:1539
 docs/html/DueDateHQ - 商业计划书.html:generic-api-key:1236
+# Readiness document template identifiers in deterministic test snapshots
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:22
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:23
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:24
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:25
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:26
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:27
+packages/core/src/readiness-documents/index.test.ts:generic-api-key:30
+packages/db/src/repo/readiness.test.ts:generic-api-key:14
+packages/db/src/repo/readiness.test.ts:generic-api-key:21
+packages/db/src/repo/readiness.test.ts:generic-api-key:157

@@ -47,6 +47,9 @@ const ENTITY_DICT: Record<string, EntityNormalized> = {
   'corp (s)': 's_corp',
   'corp(s)': 's_corp',
   scorp: 's_corp',
+  '1120s': 's_corp',
+  '1120-s': 's_corp',
+  '1120 s': 's_corp',
 
   'c-corp': 'c_corp',
   'c-corporation': 'c_corp',
@@ -57,6 +60,7 @@ const ENTITY_DICT: Record<string, EntityNormalized> = {
   corporation: 'c_corp',
   inc: 'c_corp',
   'inc.': 'c_corp',
+  '1120': 'c_corp',
 
   partnership: 'partnership',
   ptnr: 'partnership',
@@ -64,6 +68,7 @@ const ENTITY_DICT: Record<string, EntityNormalized> = {
   'gen ptnr': 'partnership',
   llp: 'partnership',
   lp: 'partnership',
+  '1065': 'partnership',
 
   'sole proprietor': 'sole_prop',
   'sole proprietorship': 'sole_prop',
@@ -82,6 +87,7 @@ const ENTITY_DICT: Record<string, EntityNormalized> = {
   'rev trust': 'trust',
   'revocable trust': 'trust',
   estate: 'trust',
+  '1041': 'trust',
 
   individual: 'individual',
   'sole individual': 'individual',

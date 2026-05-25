@@ -9,8 +9,8 @@ digest settings, and a modal first-land triage pattern.
 
 This repository's canonical implementation is narrower and more operational:
 
-1. `jobs/pulse/ingest` watches official sources and records source health, snapshots, or T2/T3
-   signals.
+1. `jobs/pulse/ingest` watches official sources and records watched/paused source state,
+   internal diagnostics, snapshots, or T2/T3 signals.
 2. `pulse.extract` turns T1 source snapshots into approved `pulse` records.
 3. The DB repo fans approved records into firm-scoped `pulse_firm_alert` rows only when client
    obligations match.

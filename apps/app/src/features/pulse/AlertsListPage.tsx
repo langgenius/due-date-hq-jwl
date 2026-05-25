@@ -1,27 +1,19 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlertCircleIcon,
-  AlertTriangleIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  FilterXIcon,
-  InfoIcon,
-  RefreshCwIcon,
-} from 'lucide-react'
-import { parseAsStringLiteral, useQueryState } from 'nuqs'
+import { AlertCircleIcon, ArrowUpRightIcon, ChevronDownIcon, HistoryIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
   PulseAlertPublic,
+  PulseChangeKind,
   PulseFirmAlertStatus,
   PulseSourceHealth,
-  PulseSourceHealthStatus,
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -29,34 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@duedatehq/ui/components/ui/table'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { StateBadge } from '@/components/primitives/state-badge'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDrawer } from './DrawerProvider'
+import { PulseDetailDrawer } from './PulseDetailDrawer'
+import { StateTilegram } from './components/StateTilegram'
 import {
   usePulseInvalidation,
   usePulseListHistoryQueryOptions,
   usePulseSourceHealthQueryOptions,
 } from './api'
 import { PulseAlertCard } from './components/PulseAlertCard'
+import { PulseReasonDialog, type PulseReasonAction } from './components/PulseReasonDialog'
 import { PulsingDot } from './components/PulsingDot'
-import {
-  enabledPulseSourceCount,
-  reviewableSourcesNeedingAttention,
-  sourcesNeedingAttention,
-  summarizePulseSources,
-} from './lib/source-health-labels'
+import { enabledPulseSourceCount, summarizePulseSources } from './lib/source-health-labels'
 import {
   isPulseImpactFilter,
   matchesPulseImpactFilter,
@@ -72,38 +55,124 @@ const STATUS_FILTER_OPTIONS = [
   'dismissed',
   'reverted',
   'snoozed',
+  'reviewed',
 ] as const
 type PulseStatusFilter = (typeof STATUS_FILTER_OPTIONS)[number]
+const CHANGE_KIND_FILTER_OPTIONS = [
+  'all',
+  'deadline_shift',
+  'filing_requirement',
+  'applicability_scope',
+  'form_instruction',
+  'source_status',
+  'new_obligation',
+  'other',
+] as const
+type PulseChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 
 interface PulseChangesTabProps {
   embedded?: boolean
+  /**
+   * 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): when true, the
+   * page renders the closed-alerts archive — initial status filter
+   * locked to `applied` (the most common terminal state), the
+   * "View history" cross-link in the header is hidden (we're
+   * already on it), and the impact/source filters still work as
+   * normal. The dedicated `/rules/pulse/history` route mounts
+   * this with `historyMode={true}` so the archive has its own
+   * URL + sidebar entry instead of being a soft-filter on the
+   * live page.
+   */
+  historyMode?: boolean
 }
 
 // Pulse Changes — source-backed rule-change timeline used inside Rules.
 // Uses the same hairline / mono language as the dashboard strip; no oversized
 // cards, no chrome shadows.
-export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
+export function PulseChangesTab({ embedded = false, historyMode = false }: PulseChangesTabProps) {
   const { t } = useLingui()
-  const { openDrawer } = usePulseDrawer()
-  const permission = useFirmPermission()
-  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>('all')
+  const { openDrawer, alertId: openAlertId, closeDrawer } = usePulseDrawer()
+  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
+    historyMode ? 'applied' : 'all',
+  )
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
+  const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
-  const [sourceReviewParam, setSourceReviewParam] = useQueryState(
-    'sourceReview',
-    parseAsStringLiteral(['1']).withOptions({ history: 'replace' }),
+  // 2026-05-25 (Yuqi Alerts #9): state filter. v1 ships as a chip
+  // strip (one chip per state with active alerts, count badge,
+  // click-to-filter). The full SVG US map is a follow-on polish
+  // round on top of this; the chip strip delivers the same filter
+  // function with much less surface area. `null` = no filter
+  // active.
+  const [jurisdictionFilter, setJurisdictionFilter] = useState<string | null>(null)
+  const invalidatePulse = usePulseInvalidation()
+  // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
+  // to grab the reason via `window.prompt()` — system-styled, no
+  // textarea, no character counter, no app context. The drawer
+  // already had a proper `PulseReasonDialog` for the same flow;
+  // extracted it to a shared component (see
+  // `./components/PulseReasonDialog.tsx`) and wired both surfaces
+  // through it so the dismiss / snooze experience is consistent
+  // whether the user is in the drawer or running through the list.
+  const [reasonState, setReasonState] = useState<{
+    action: PulseReasonAction
+    alertId: string
+  } | null>(null)
+  const [reasonText, setReasonText] = useState('')
+  const closeReasonDialog = () => {
+    setReasonState(null)
+    setReasonText('')
+  }
+  // Dismiss alerts directly from the Radar list (Rules › Radar). Mirrors
+  // the dashboard banner's dismiss flow — same orpc.pulse.dismiss
+  // mutation, same toast + invalidation on success. The optional
+  // onDismiss prop on PulseAlertCard already renders a "Dismiss" button
+  // when provided; wiring this handler turns it on for the in-Rules
+  // surface so CPAs reviewing alerts at depth don't have to go back to
+  // the dashboard banner just to dismiss noise.
+  const dismissAlertMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert dismissed`)
+        invalidatePulse()
+        closeReasonDialog()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // Snooze mirrors Dismiss — same canonical reason prompt, same audit
+  // semantics, same toast pattern — but the alert reappears when the
+  // 24h window elapses. Wired here per docs/Design/pulse-vocabulary.md
+  // so CPAs don't have to open the drawer to defer a low-priority
+  // alert.
+  const snoozeAlertMutation = useMutation(
+    orpc.pulse.snooze.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert snoozed for 24h`)
+        invalidatePulse()
+        closeReasonDialog()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't snooze alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
   )
   const alertsQuery = useQuery(usePulseListHistoryQueryOptions(50))
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
-  const attentionSources = sourcesNeedingAttention(sourceHealth)
-  const reviewableAttentionSources = reviewableSourcesNeedingAttention(sourceHealth)
-  const canReviewSourceHealth = permission.can('pulse.apply')
-  const sourceReviewOpen = sourceReviewParam === '1' && canReviewSourceHealth
-  const hasSourceAttention = attentionSources.length > 0
   const sourceOptions = useMemo(
     () =>
       alerts
@@ -112,30 +181,80 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
         .toSorted(),
     [alerts],
   )
+  // Counts per jurisdiction (state) across the unfiltered alerts —
+  // backs the chip strip below. Sorted by count desc then state code
+  // asc so the highest-impact states float to the front; zero-count
+  // states never appear (alerts.filter excludes them implicitly).
+  const jurisdictionCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const alert of alerts) {
+      map.set(alert.jurisdiction, (map.get(alert.jurisdiction) ?? 0) + 1)
+    }
+    return [...map.entries()].toSorted(([aCode, aCount], [bCode, bCount]) => {
+      if (aCount !== bCount) return bCount - aCount
+      return aCode.localeCompare(bCode)
+    })
+  }, [alerts])
   const filteredAlerts = useMemo(
     () =>
       alerts.filter(
         (alert) =>
           matchesPulseImpactFilter(alert, impactFilter) &&
           matchesStatusFilter(alert.status, statusFilter) &&
-          (sourceFilter === 'all' || alert.source === sourceFilter),
+          (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
+          (sourceFilter === 'all' || alert.source === sourceFilter) &&
+          (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter),
       ),
-    [alerts, impactFilter, sourceFilter, statusFilter],
+    [alerts, changeKindFilter, impactFilter, jurisdictionFilter, sourceFilter, statusFilter],
   )
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
-  const breathingAlertId = filteredAlerts.find(isBreathingAlertRow)?.id
-  const filtersActive = impactFilter !== 'all' || statusFilter !== 'all' || sourceFilter !== 'all'
+  const filtersActive =
+    impactFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    changeKindFilter !== 'all' ||
+    sourceFilter !== 'all' ||
+    jurisdictionFilter !== null
 
+  // 2026-05-25 (Yuqi /rules/pulse #9 — drawer → page panel): when
+  // an alert is open, the page splits into a left column (header,
+  // filters, alert list) + a right column (the inline PulseDetail
+  // panel). When no alert is open the page renders as a single
+  // column. Mirrors the /deadlines + obligation-drawer pattern. The
+  // panel is only rendered in `historyMode=false || true` — both
+  // routes can review an alert in place.
+  const panelOpen = openAlertId !== null
   return (
-    <div className={embedded ? 'flex flex-col gap-5' : 'flex flex-col gap-5 p-4 md:p-6'}>
+    // 2026-05-25 (Yuqi panel polish): when an alert is open, the
+    // page becomes a fixed-height (h-full) flex container so the
+    // split-column inner can scroll independently inside its own
+    // bounds — the page itself no longer scrolls vertically. This
+    // kills the "scroll on the left AND scroll on the right"
+    // double-scroll Yuqi flagged. When no alert is open the page
+    // keeps its natural auto-height (the table below paginates so
+    // there's nothing to scroll past anyway).
+    <div
+      className={
+        embedded
+          ? 'flex flex-col gap-4'
+          : panelOpen
+            ? 'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-4 p-3 md:p-4'
+            : 'mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-4'
+      }
+    >
       {!embedded ? (
         <header className="flex flex-col gap-2">
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col gap-1">
               <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
-                <PulsingDot tone={isEmpty ? 'success' : 'warning'} active />
-                <Trans>Pulse Changes</Trans>
+                <PulsingDot
+                  tone={isEmpty ? 'success' : 'warning'}
+                  active
+                  label={
+                    isEmpty ? t`No active alerts right now` : t`Active alerts waiting for review`
+                  }
+                />
+                <Trans>Alerts</Trans>
               </h1>
               <p className="max-w-[640px] text-md text-text-secondary">
                 <ConceptLabel concept="pulse">
@@ -146,19 +265,52 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 </ConceptLabel>
               </p>
             </div>
-            {!alertsQuery.isLoading ? (
-              <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
-                {alerts.length === 0 ? (
-                  <Trans>0 active</Trans>
-                ) : filtersActive ? (
-                  <Trans>
-                    {filteredAlerts.length} shown · {alerts.length} total
-                  </Trans>
-                ) : (
-                  <Plural value={alerts.length} one="# active" other="# active" />
-                )}
-              </span>
-            ) : null}
+            <div className="flex shrink-0 items-end gap-3">
+              {!alertsQuery.isLoading ? (
+                <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
+                  {alerts.length === 0 ? (
+                    <Trans>0 active</Trans>
+                  ) : filtersActive ? (
+                    <Trans>
+                      {filteredAlerts.length} shown · {alerts.length} total
+                    </Trans>
+                  ) : (
+                    <Plural value={alerts.length} one="# active" other="# active" />
+                  )}
+                </span>
+              ) : null}
+              {/* 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): the
+                  "View history" button now navigates to
+                  `/rules/pulse/history` instead of pre-setting the
+                  status filter inline. History earns its own
+                  route + sidebar entry so the CPA can deep-link
+                  the archive, bookmark it, and find it via global
+                  search — none of which worked when history was
+                  a soft-filter on the live page. Hidden when this
+                  component is mounted in history-mode (we're
+                  already on the archive). */}
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  to="/rules/library"
+                  className="group/sources inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+                >
+                  <Trans>View sources</Trans>
+                  <ArrowUpRightIcon
+                    className="size-3.5 transition-transform duration-200 group-hover/sources:rotate-45"
+                    aria-hidden
+                  />
+                </Link>
+                {!historyMode ? (
+                  <Link
+                    to="/rules/pulse/history"
+                    className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+                  >
+                    <HistoryIcon className="size-3.5" aria-hidden />
+                    <Trans>View history</Trans>
+                  </Link>
+                ) : null}
+              </div>
+            </div>
           </div>
         </header>
       ) : null}
@@ -170,7 +322,8 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
             <Trans>Couldn't load alerts</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(alertsQuery.error) ?? t`Please try again.`}{' '}
+            {rpcErrorMessage(alertsQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
             <button type="button" className="underline" onClick={() => void alertsQuery.refetch()}>
               <Trans>Retry</Trans>
             </button>
@@ -178,128 +331,317 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
         </Alert>
       ) : null}
 
-      {canReviewSourceHealth && reviewableAttentionSources.length > 0 ? (
-        <SourceAttentionAlert
-          sources={reviewableAttentionSources}
-          open={sourceReviewOpen}
-          onOpenChange={(open) => {
-            void setSourceReviewParam(open ? '1' : null)
-          }}
-          onRefresh={() => {
-            void sourceHealthQuery.refetch()
-          }}
-        />
-      ) : attentionSources.length > 0 ? (
-        <PassiveSourceHealthNotice />
-      ) : null}
-
-      {alertsQuery.isLoading ? (
-        <SkeletonList sources={sourceHealth} />
-      ) : isEmpty && hasSourceAttention ? (
-        <NoClientMatchesState />
-      ) : isEmpty ? (
-        <EmptyState sources={sourceHealth} />
-      ) : (
-        <>
-          <div className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 md:flex-row md:items-center md:justify-between">
-            <div className="grid gap-2 md:grid-cols-[180px_180px_minmax(220px,320px)]">
-              <Select
-                value={impactFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && isPulseImpactFilter(value))
-                    setImpactFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by impact`}>
-                  <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {impactFilterLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by alert status`}>
-                  <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  {STATUS_FILTER_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {statusFilterLabel(option)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={sourceFilter}
-                onValueChange={(value) => {
-                  if (typeof value === 'string') setSourceFilter(value)
-                }}
-              >
-                <SelectTrigger className="w-full" size="sm" aria-label={t`Filter by source`}>
-                  <SelectValue>
-                    {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent align="start">
-                  <SelectItem value="all">
-                    <Trans>All sources</Trans>
-                  </SelectItem>
-                  {sourceOptions.map((source) => (
-                    <SelectItem key={source} value={source}>
-                      {source}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!filtersActive}
-              onClick={() => {
-                setImpactFilter('all')
-                setStatusFilter('all')
-                setSourceFilter('all')
-              }}
-            >
-              <FilterXIcon data-icon="inline-start" />
-              <Trans>Reset</Trans>
-            </Button>
-          </div>
-
-          {isFilteredEmpty ? (
-            <FilteredEmptyState />
+      {/* 2026-05-25 (Yuqi /rules/pulse #9): split-column wrapper.
+          When an alert is open, the list column shrinks to leave
+          room for the inline panel on the right. When no alert is
+          open, the list takes the full width — `panelOpen ? flex
+          gap-4 : contents` collapses the wrapper away so the
+          empty state and skeleton lay out exactly as they did
+          before this refactor. */}
+      {/* 2026-05-25 (Yuqi panel polish): when the panel is open
+          the list column scrolls independently — `overflow-y-auto`
+          contains the alert cards so long lists don't push the
+          page down. Outer page is fixed-height (see root), so
+          the panel column's own scroll-management on the right
+          stays independent. No more double-scroll. */}
+      <div className={panelOpen ? 'flex min-h-0 flex-1 gap-4' : 'contents'}>
+        <div
+          className={
+            panelOpen
+              ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto pr-1'
+              : 'flex flex-col gap-4'
+          }
+        >
+          {alertsQuery.isLoading ? (
+            <SkeletonList sources={sourceHealth} />
+          ) : isEmpty ? (
+            <EmptyState sources={sourceHealth} />
           ) : (
-            <div className="flex flex-col gap-2">
-              {filteredAlerts.map((alert) => (
-                <PulseAlertCard
-                  key={alert.id}
-                  alert={alert}
-                  breathing={alert.id === breathingAlertId}
-                  onReview={() => openDrawer(alert.id)}
-                />
-              ))}
-            </div>
+            <>
+              {/* 2026-05-25 (Yuqi Alerts #3): dropped the framed
+              container around the filter row. The cards below
+              already sit on the page surface without a frame —
+              wrapping just the filters in a `border + bg + p-3`
+              container made them look heavier than the actual
+              alert content. Now the filters live inline with the
+              page's outer padding, same rhythm as the header
+              above and the list below. */}
+              {/* State filter chip strip (Yuqi Alerts #9, 2026-05-25):
+              one chip per state with active alerts. Counts come from
+              the unfiltered alert set so the chip stays clickable
+              even after other filters narrow the list. Clicking
+              toggles single-state focus; clicking the active chip
+              clears the filter. A full SVG US map could replace this
+              chip strip as a follow-on polish — the data shape
+              (state + count) is the same, only the visual changes. */}
+              {/* 2026-05-25 (Yuqi Alerts follow-up — state badges export):
+              the state chip strip now leads each chip with the
+              designed StateBadge SVG (flag/seal motif) instead of the
+              bare two-letter code. The visual makes the strip scan
+              like a row of flags — you spot "your state" by motif at
+              a glance, the way a CPA recognises a Florida licence
+              plate before reading "FL". Code text follows so the
+              filter remains keyboard-typable and the chip is
+              accessible without the SVG. The count chip on the right
+              stays — same affordance as before. */}
+              {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #1): chip
+              further shrunk — Yuqi reported the chips still read
+              "too big" after the previous compression. Dropped
+              the inner count chip entirely (was a small bordered
+              box that visually fused with the state code,
+              producing "NY1" run-together reading); count now
+              lives inline as tabular-nums text-tertiary, separated
+              from the code by a real space character. Outer
+              padding tightened (py-0 pl-1 pr-2) so each chip
+              collapses to its natural badge-height (~24px)
+              without claiming extra row real estate. */}
+              {/* 2026-05-25 (Yuqi /rules/pulse fifth pass — map
+                  in dropdown): the always-visible tilegram was
+                  claiming ~300×300 px of vertical real estate
+                  above the alert list at all times. Yuqi flagged
+                  that as wrong — the map should surface ON DEMAND
+                  through a dropdown, not as standing chrome.
+                  Wrapped the StateTilegram in a Popover with a
+                  compact trigger button that shows the active
+                  state (or "Any state") + count. */}
+              {jurisdictionCounts.length === 0 ? null : null}
+
+              {/* 2026-05-25 (Yuqi panel polish — minimal filters):
+                  when the panel is open the filter row collapses
+                  to a single non-wrapping line that scrolls
+                  horizontally if there's overflow. The list
+                  column is narrower in split-view (~half width)
+                  so wrapping the 4 selects to 2-3 rows would eat
+                  most of the visible vertical space above the
+                  alerts list. `shrink-0` on each trigger keeps
+                  each filter at its natural width inside the
+                  scroller. When no panel is open, the row still
+                  flex-wraps as before. */}
+              <div
+                className={
+                  panelOpen
+                    ? 'flex flex-nowrap items-center gap-2 overflow-x-auto pb-1'
+                    : 'flex flex-wrap items-center gap-2'
+                }
+              >
+                <Select
+                  value={impactFilter}
+                  onValueChange={(value) => {
+                    if (typeof value === 'string' && isPulseImpactFilter(value))
+                      setImpactFilter(value)
+                  }}
+                >
+                  <SelectTrigger
+                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    size="sm"
+                    aria-label={t`Filter by impact`}
+                  >
+                    <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {impactFilterLabel(option)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={changeKindFilter}
+                  onValueChange={(value) => {
+                    if (typeof value === 'string' && isChangeKindFilter(value))
+                      setChangeKindFilter(value)
+                  }}
+                >
+                  <SelectTrigger
+                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    size="sm"
+                    aria-label={t`Filter by change type`}
+                  >
+                    <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {changeKindFilterLabel(option)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
+                  }}
+                >
+                  <SelectTrigger
+                    className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    size="sm"
+                    aria-label={t`Filter by alert status`}
+                  >
+                    <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    {STATUS_FILTER_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {statusFilterLabel(option)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={sourceFilter}
+                  onValueChange={(value) => {
+                    if (typeof value === 'string') setSourceFilter(value)
+                  }}
+                >
+                  <SelectTrigger
+                    className="w-[220px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                    size="sm"
+                    aria-label={t`Filter by source`}
+                  >
+                    <SelectValue>
+                      {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent align="start" alignItemWithTrigger={false}>
+                    <SelectItem value="all">
+                      <Trans>All sources</Trans>
+                    </SelectItem>
+                    {sourceOptions.map((source) => (
+                      <SelectItem key={source} value={source}>
+                        {source}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* 2026-05-25 (Yuqi /rules/pulse fifth pass — map
+                    in dropdown): state-filter map lives behind a
+                    Popover trigger instead of being always
+                    visible. The trigger sits in the filter row
+                    next to the four Selects; its label reflects
+                    the active state ("CA · 4 alerts" / "Any
+                    state"). Clicking opens the tilegram in a
+                    popover panel; clicking a tile applies the
+                    filter and closes the popover. */}
+                {jurisdictionCounts.length > 0 ? (
+                  <StateFilterPopover
+                    jurisdictionCounts={jurisdictionCounts}
+                    activeState={jurisdictionFilter}
+                    onSelect={(code) =>
+                      setJurisdictionFilter(jurisdictionFilter === code ? null : code)
+                    }
+                  />
+                ) : null}
+
+                {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #7):
+                FilterX icon dropped from the Reset button — was
+                reading as redundant chrome next to the word
+                "Reset" itself. Bare ghost button keeps the
+                tertiary-action affordance without the visual
+                noise of the icon. */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={!filtersActive}
+                  onClick={() => {
+                    setImpactFilter('all')
+                    setStatusFilter('all')
+                    setChangeKindFilter('all')
+                    setSourceFilter('all')
+                    setJurisdictionFilter(null)
+                  }}
+                >
+                  <Trans>Reset</Trans>
+                </Button>
+              </div>
+
+              {isFilteredEmpty ? (
+                <FilteredEmptyState />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {filteredAlerts.map((alert) => {
+                    // Dismiss only on `matched` (still-open) alerts. Other statuses
+                    // are terminal or already-actioned (dismissed / applied /
+                    // partially_applied / reverted / snoozed) — growing a Dismiss
+                    // button there would imply a no-op or a misleading retreat.
+                    const canDismiss = alert.status === 'matched'
+                    // Snooze applies to the same lifecycle stage as Dismiss
+                    // (still-open alerts) — the difference is the alert
+                    // reappears after 24h. Per canonical action order, both
+                    // are exposed on the card; Snooze is the softer choice.
+                    const canSnooze = canDismiss
+                    return (
+                      <PulseAlertCard
+                        key={alert.id}
+                        alert={alert}
+                        onReview={() => openDrawer(alert.id)}
+                        {...(canSnooze
+                          ? {
+                              onSnooze: () => {
+                                setReasonState({ action: 'snooze', alertId: alert.id })
+                                setReasonText('')
+                              },
+                            }
+                          : {})}
+                        {...(canDismiss
+                          ? {
+                              onDismiss: () => {
+                                setReasonState({ action: 'dismiss', alertId: alert.id })
+                                setReasonText('')
+                              },
+                            }
+                          : {})}
+                      />
+                    )
+                  })}
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+        {/* Right column — inline PulseDetailDrawer rendered in
+            panel mode. Splits the page when an alert is open;
+            closing the panel collapses the wrapper back to a
+            single column. */}
+        {panelOpen ? (
+          <div className="flex min-h-0 w-[440px] shrink-0 self-stretch lg:w-[480px] xl:w-[520px]">
+            <PulseDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
+          </div>
+        ) : null}
+      </div>
+
+      <PulseReasonDialog
+        action={reasonState?.action ?? null}
+        reason={reasonText}
+        pending={dismissAlertMutation.isPending || snoozeAlertMutation.isPending}
+        onChangeReason={setReasonText}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) closeReasonDialog()
+        }}
+        onSubmit={() => {
+          const trimmed = reasonText.trim()
+          if (!trimmed || !reasonState) return
+          if (reasonState.action === 'dismiss') {
+            dismissAlertMutation.mutate({ alertId: reasonState.alertId, reason: trimmed })
+          } else if (reasonState.action === 'snooze') {
+            snoozeAlertMutation.mutate({
+              alertId: reasonState.alertId,
+              until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              reason: trimmed,
+            })
+          }
+          // The list-page surface doesn't expose `reviewed` — that's
+          // a drawer-only flow (it depends on the affected-client
+          // selection state the drawer holds).
+        }}
+      />
     </div>
   )
-}
-
-function isBreathingAlertRow(alert: PulseAlertPublic): boolean {
-  return alert.status === 'matched' && alert.matchedCount + alert.needsReviewCount > 0
 }
 
 // Loading shimmer that matches the heartbeat language: warning-tone pulsing
@@ -313,240 +655,84 @@ function enabledSourceCount(sources: readonly PulseSourceHealth[]): number {
   return enabledPulseSourceCount(sources)
 }
 
-function SourceAttentionAlert({
-  sources,
-  open,
-  onOpenChange,
-  onRefresh,
+// 2026-05-25 (Yuqi /rules/pulse fifth pass — map in dropdown):
+// state-filter popover. Trigger sits inline with the other
+// filter dropdowns; opens a Popover containing the
+// StateTilegram. Trigger label reflects the active filter so
+// the row reads as "AZ · 3 alerts" / "Any state" without having
+// to open the panel.
+function StateFilterPopover({
+  jurisdictionCounts,
+  activeState,
+  onSelect,
 }: {
-  sources: readonly PulseSourceHealth[]
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onRefresh: () => void
+  jurisdictionCounts: Array<[string, number]>
+  activeState: string | null
+  onSelect: (code: string) => void
 }) {
-  const sourceCount = sources.length
-  return (
-    <Alert id="pulse-source-health" variant="warning" className="scroll-mt-24">
-      <AlertTriangleIcon />
-      <AlertTitle className="flex min-w-0 flex-wrap items-center gap-2">
-        <span>
-          <Trans>Pulse source needs attention</Trans>
-        </span>
-        <Badge variant="warning" className="tabular-nums">
-          <Plural value={sourceCount} one="# source" other="# sources" />
-        </Badge>
-      </AlertTitle>
-      <AlertDescription className="flex flex-col gap-3 text-pretty">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <span>
-            <Plural
-              value={sourceCount}
-              one="# official source needs review. Alerts remain reviewable."
-              other="# official sources need review. Alerts remain reviewable."
-            />
-          </span>
-          <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(!open)}>
-            {open ? (
-              <>
-                <Trans>Hide sources</Trans>
-                <ChevronUpIcon data-icon="inline-end" />
-              </>
-            ) : (
-              <>
-                <Trans>Review sources</Trans>
-                <ChevronDownIcon data-icon="inline-end" />
-              </>
-            )}
-          </Button>
-        </div>
-
-        {open ? <PulseSourceHealthTable sources={sources} onRefresh={onRefresh} /> : null}
-      </AlertDescription>
-    </Alert>
-  )
-}
-
-function PassiveSourceHealthNotice() {
-  return (
-    <Alert id="pulse-source-health" variant="info" className="scroll-mt-24">
-      <InfoIcon />
-      <AlertTitle>
-        <Trans>Pulse source checks degraded · Monitoring continues</Trans>
-      </AlertTitle>
-      <AlertDescription>
-        <Trans>
-          Lower-priority source checks are recovering in the background. Existing Pulse alerts
-          remain reviewable.
-        </Trans>
-      </AlertDescription>
-    </Alert>
-  )
-}
-
-function PulseSourceHealthTable({
-  sources,
-  onRefresh,
-}: {
-  sources: readonly PulseSourceHealth[]
-  onRefresh: () => void
-}) {
-  const { i18n, t } = useLingui()
-
-  return (
-    <div className="overflow-x-auto rounded-md border border-divider-subtle bg-background-default">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Trans>Source</Trans>
-            </TableHead>
-            <TableHead>
-              <Trans>Status</Trans>
-            </TableHead>
-            <TableHead>
-              <Trans>Last success</Trans>
-            </TableHead>
-            <TableHead className="text-right">
-              <Trans>Failures</Trans>
-            </TableHead>
-            <TableHead>
-              <Trans>Next check</Trans>
-            </TableHead>
-            <TableHead className="text-right">
-              <Trans>Check</Trans>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
-          {sources.map((source) => (
-            <TableRow key={source.sourceId}>
-              <TableCell className="min-w-[220px]">
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="truncate font-medium text-text-primary">{source.label}</span>
-                  <span className="truncate font-mono text-xs text-text-tertiary">
-                    {source.sourceId} · {source.jurisdiction} · {source.tier}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <SourceHealthStatusBadge status={source.healthStatus} />
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-text-secondary">
-                {formatSourceDate(source.lastSuccessAt, i18n, t`Never`)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums text-text-primary">
-                {source.consecutiveFailures}
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-text-secondary">
-                {formatSourceDate(source.nextCheckAt, i18n, t`Not scheduled`)}
-              </TableCell>
-              <TableCell className="text-right">
-                <RetryPulseSourceButton source={source} onRefresh={onRefresh} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
-
-function SourceHealthStatusBadge({ status }: { status: PulseSourceHealthStatus }) {
-  if (status === 'healthy') {
-    return (
-      <Badge variant="success" className="text-xs">
-        <BadgeStatusDot tone="success" />
-        <Trans>Healthy</Trans>
-      </Badge>
-    )
-  }
-  if (status === 'failing') {
-    return (
-      <Badge variant="destructive" className="text-xs">
-        <BadgeStatusDot tone="error" />
-        <Trans>Failing</Trans>
-      </Badge>
-    )
-  }
-  if (status === 'paused') {
-    return (
-      <Badge variant="secondary" className="text-xs">
-        <BadgeStatusDot tone="disabled" />
-        <Trans>Paused</Trans>
-      </Badge>
-    )
-  }
-
-  return (
-    <Badge variant="warning" className="text-xs">
-      <BadgeStatusDot tone="warning" />
-      <Trans>Degraded</Trans>
-    </Badge>
-  )
-}
-
-function RetryPulseSourceButton({
-  source,
-  onRefresh,
-}: {
-  source: PulseSourceHealth
-  onRefresh: () => void
-}) {
+  const [open, setOpen] = useState(false)
   const { t } = useLingui()
-  const invalidate = usePulseInvalidation()
-  const retryMutation = useMutation(
-    orpc.pulse.retrySourceHealth.mutationOptions({
-      onSuccess: (data) => {
-        const updatedSource = data.sources.find(
-          (candidate) => candidate.sourceId === source.sourceId,
-        )
-        if (updatedSource?.healthStatus === 'healthy') {
-          toast.success(t`Source recovered`, { description: updatedSource.label })
-        } else if (updatedSource) {
-          toast.warning(t`Source checked, but still needs attention`, {
-            description: updatedSource.label,
-          })
-        } else {
-          toast.success(t`Source checked`)
-        }
-        invalidate()
-        onRefresh()
-      },
-      onError: (err) => {
-        toast.error(t`Please try again.`, {
-          description: rpcErrorMessage(err) ?? undefined,
-        })
-      },
-    }),
-  )
-
+  const activeCount = activeState
+    ? (jurisdictionCounts.find(([code]) => code === activeState)?.[1] ?? 0)
+    : 0
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      disabled={retryMutation.isPending}
-      onClick={() => retryMutation.mutate({ sourceId: source.sourceId })}
-    >
-      <RefreshCwIcon
-        data-icon="inline-start"
-        className={retryMutation.isPending ? 'animate-spin' : undefined}
-      />
-      <Trans>Check</Trans>
-    </Button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className={cn(
+          'inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm whitespace-nowrap transition-colors outline-none',
+          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2',
+          activeState
+            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
+            : 'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+        )}
+        aria-label={t`Filter by state`}
+      >
+        {activeState ? (
+          <>
+            <StateBadge code={activeState} size="xs" aria-hidden />
+            <span className="font-mono font-medium">{activeState}</span>
+            <span className="tabular-nums text-text-accent/70">
+              <Plural value={activeCount} one="# alert" other="# alerts" />
+            </span>
+          </>
+        ) : (
+          <span>
+            <Trans>Any state</Trans>
+          </span>
+        )}
+        <ChevronDownIcon className="size-4 text-text-tertiary" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent align="start" alignOffset={0} sideOffset={4} className="w-auto p-3">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3 text-xs">
+            <span className="uppercase tracking-wide text-text-tertiary">
+              <Trans>Filter by state</Trans>
+            </span>
+            {activeState ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onSelect(activeState)
+                  setOpen(false)
+                }}
+                className="text-text-accent hover:underline"
+              >
+                <Trans>Clear</Trans>
+              </button>
+            ) : null}
+          </div>
+          <StateTilegram
+            counts={new Map(jurisdictionCounts)}
+            activeState={activeState}
+            onSelect={(code) => {
+              onSelect(code)
+              setOpen(false)
+            }}
+          />
+        </div>
+      </PopoverContent>
+    </Popover>
   )
-}
-
-function formatSourceDate(
-  iso: string | null,
-  i18n: ReturnType<typeof useLingui>['i18n'],
-  empty: string,
-) {
-  if (!iso) return empty
-  return i18n.date(new Date(iso), {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
 }
 
 function FilteredEmptyState() {
@@ -560,19 +746,12 @@ function FilteredEmptyState() {
   )
 }
 
-function NoClientMatchesState() {
-  return (
-    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default px-4 py-5 text-md text-text-secondary">
-      <PulsingDot tone="disabled" />
-      <span className="flex-1">
-        <Trans>No client-matching Pulse changes right now.</Trans>
-      </span>
-    </div>
-  )
-}
-
 function isStatusFilter(value: string): value is PulseStatusFilter {
   return STATUS_FILTER_OPTIONS.some((option) => option === value)
+}
+
+function isChangeKindFilter(value: string): value is PulseChangeKindFilter {
+  return CHANGE_KIND_FILTER_OPTIONS.some((option) => option === value)
 }
 
 function matchesStatusFilter(status: PulseFirmAlertStatus, filter: PulseStatusFilter): boolean {
@@ -596,7 +775,23 @@ function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
   if (filter === 'applied') return <Trans>Applied</Trans>
   if (filter === 'dismissed') return <Trans>Dismissed</Trans>
   if (filter === 'reverted') return <Trans>Reverted</Trans>
+  if (filter === 'reviewed') return <Trans>Reviewed</Trans>
   return <Trans>Snoozed</Trans>
+}
+
+function changeKindFilterLabel(filter: PulseChangeKindFilter): React.ReactNode {
+  if (filter === 'all') return <Trans>All change types</Trans>
+  return changeKindLabel(filter)
+}
+
+function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
+  if (kind === 'deadline_shift') return <Trans>Deadline shifts</Trans>
+  if (kind === 'filing_requirement') return <Trans>Filing requirements</Trans>
+  if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
+  if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
+  if (kind === 'source_status') return <Trans>Source status</Trans>
+  if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
+  return <Trans>Other changes</Trans>
 }
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {

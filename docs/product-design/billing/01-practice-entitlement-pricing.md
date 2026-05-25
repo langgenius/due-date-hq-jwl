@@ -56,8 +56,9 @@ usable entitlement.
 6. Members cannot create practices on behalf of a paid practice unless they are creating a separate
    practice they will own. That separate practice still counts against their own entitlement state.
 7. Invitations and member management remain seat-limited per active practice.
-8. Pro and Team expose the same Practice AI functionality. Team can have higher aggregate fair-use
-   protection because it includes more seats, but it must not be marketed as a stronger AI model.
+8. Pro and Team expose the same Practice AI functionality. Team can have higher aggregate production
+   fair-use protection because it includes more seats, but it must not be marketed as a stronger AI
+   model. Development/staging environments are uncapped for testing and are not plan promises.
 9. Enterprise may use custom AI controls, custom coverage, and audit-grade AI terms by contract.
 
 ## Product Surfaces

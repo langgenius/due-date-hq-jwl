@@ -19,13 +19,14 @@ import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
 import { os } from '../_root'
-import { recalculateObligationExposure } from '../_penalty-exposure'
 
 interface PulseAlertRow {
   id: string
   pulseId: string
   status: PulseAlertPublic['status']
   sourceStatus: PulseAlertPublic['sourceStatus']
+  changeKind: PulseAlertPublic['changeKind']
+  actionMode: PulseAlertPublic['actionMode']
   title: string
   source: string
   sourceUrl: string
@@ -35,6 +36,11 @@ interface PulseAlertRow {
   needsReviewCount: number
   confidence: number
   isSample: boolean
+  // 2026-05-25 (Yuqi Alerts #9): mirrors the repo's PulseAlertRow
+  // jurisdiction field. Local interface stays a structural twin of
+  // the repo type (history-deep separation; merging the two is a
+  // refactor task on its own).
+  jurisdiction: string
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -63,7 +69,7 @@ interface PulseAffectedClientRow {
   entityType: PulseAffectedClient['entityType']
   taxType: string
   currentDueDate: Date
-  newDueDate: Date
+  newDueDate: Date | null
   status: PulseAffectedClient['status']
   matchStatus: PulseAffectedClient['matchStatus']
   reason: string | null
@@ -117,7 +123,7 @@ interface PulsePriorityQueueItemRow {
 }
 
 type PulseRepoErrorShape = Error & {
-  code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible'
+  code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible' | 'review_only'
 }
 
 const REVIEW_UNAVAILABLE_ALERT_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
@@ -132,7 +138,8 @@ function pulseRepoErrorCode(error: unknown): PulseRepoErrorShape['code'] | null 
     code === 'not_found' ||
     code === 'conflict' ||
     code === 'revert_expired' ||
-    code === 'no_eligible'
+    code === 'no_eligible' ||
+    code === 'review_only'
   ) {
     return code
   }
@@ -149,6 +156,8 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     pulseId: row.pulseId,
     status: row.status,
     sourceStatus: row.sourceStatus,
+    changeKind: row.changeKind,
+    actionMode: row.actionMode,
     title: row.title,
     source: row.source,
     sourceUrl: row.sourceUrl,
@@ -158,6 +167,9 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     needsReviewCount: row.needsReviewCount,
     confidence: row.confidence,
     isSample: row.isSample,
+    // 2026-05-25 (Yuqi Alerts #9): plumb jurisdiction through to the
+    // public row so the alerts list page can group/filter by state.
+    jurisdiction: row.jurisdiction,
   }
 }
 
@@ -171,7 +183,7 @@ function toAffectedClientPublic(row: PulseAffectedClientRow): PulseAffectedClien
     entityType: row.entityType,
     taxType: row.taxType,
     currentDueDate: toDateOnly(row.currentDueDate),
-    newDueDate: toDateOnly(row.newDueDate),
+    newDueDate: row.newDueDate ? toDateOnly(row.newDueDate) : null,
     status: row.status,
     matchStatus: row.matchStatus,
     reason: row.reason,
@@ -269,6 +281,9 @@ function mapPulseError(error: unknown): never {
     if (code === 'no_eligible') {
       throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS })
     }
+    if (code === 'review_only') {
+      throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_REVIEW_ONLY })
+    }
   }
   throw error
 }
@@ -321,6 +336,12 @@ const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   return { alerts: alerts.map(toAlertPublic) }
 })
 
+const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
+  const { scoped } = requireTenant(context)
+  const count = await scoped.pulse.countActiveAlerts()
+  return { count }
+})
+
 const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   const alerts = await scoped.pulse.listHistory({
@@ -338,13 +359,15 @@ async function listSourceHealthForScopedRepo(
   )
   const sources: PulseSourceHealth[] = liveRegulatorySourceAdapters.map((adapter) => {
     const state = persisted.get(adapter.id)
+    const healthStatus =
+      state?.enabled === false || state?.healthStatus === 'paused' ? 'paused' : 'healthy'
     return {
       sourceId: adapter.id,
       label: SOURCE_LABELS[adapter.id] ?? adapter.id,
       tier: adapter.tier,
       jurisdiction: adapter.jurisdiction,
       enabled: state?.enabled ?? true,
-      healthStatus: state?.healthStatus ?? 'degraded',
+      healthStatus,
       lastCheckedAt: toIsoOrNull(state?.lastCheckedAt ?? null),
       lastSuccessAt: toIsoOrNull(state?.lastSuccessAt ?? null),
       nextCheckAt: toIsoOrNull(state?.nextCheckAt ?? null),
@@ -397,9 +420,12 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
       counties: detail.counties,
       forms: detail.forms,
       entityTypes: detail.entityTypes,
-      originalDueDate: toDateOnly(detail.originalDueDate),
-      newDueDate: toDateOnly(detail.newDueDate),
+      originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+      newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
       effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+      effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+      affectedRuleIds: detail.affectedRuleIds,
+      structuredChange: detail.structuredChange ?? null,
       sourceExcerpt: detail.sourceExcerpt,
       reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
       affectedClients: detail.affectedClients.map(toAffectedClientPublic),
@@ -440,7 +466,6 @@ const applyReviewed = os.pulse.applyReviewed.handler(async ({ input, context }) 
   const { scoped, tenant } = requireTenant(context)
   requirePriorityPulseMatching(tenant.plan)
   try {
-    const detail = await scoped.pulse.getDetail(input.alertId)
     const result = await withPulseMutationLock(
       context,
       { firmId: tenant.firmId, alertId: input.alertId, action: 'apply' },
@@ -455,9 +480,6 @@ const applyReviewed = os.pulse.applyReviewed.handler(async ({ input, context }) 
       emailOutboxId: result.emailOutboxId,
       revertExpiresAt: result.revertExpiresAt.toISOString(),
     }
-    await Promise.all(
-      detail.affectedClients.map((row) => recalculateObligationExposure(scoped, row.obligationId)),
-    )
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       reason: 'pulse_apply',
@@ -493,11 +515,6 @@ const apply = os.pulse.apply.handler(async ({ input, context }) => {
       emailOutboxId: result.emailOutboxId,
       revertExpiresAt: result.revertExpiresAt.toISOString(),
     }
-    await Promise.all(
-      input.obligationIds.map((obligationId) =>
-        recalculateObligationExposure(scoped, obligationId),
-      ),
-    )
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       reason: 'pulse_apply',
@@ -513,7 +530,11 @@ const dismiss = os.pulse.dismiss.handler(async ({ input, context }) => {
   const { scoped, tenant } = requireTenant(context)
   requireProductionPulse(tenant.plan)
   try {
-    const result = await scoped.pulse.dismiss({ alertId: input.alertId, userId })
+    const result = await scoped.pulse.dismiss({
+      alertId: input.alertId,
+      userId,
+      reason: input.reason,
+    })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       reason: 'pulse_dismiss',
@@ -533,6 +554,27 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
       alertId: input.alertId,
       userId,
       until: new Date(input.until),
+      reason: input.reason,
+    })
+    await enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'pulse_dismiss',
+    }).catch(() => false)
+    return { alert: toAlertPublic(result.alert), auditId: result.auditId }
+  } catch (error) {
+    return mapPulseError(error)
+  }
+})
+
+const markReviewed = os.pulse.markReviewed.handler(async ({ input, context }) => {
+  const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
+  const { scoped, tenant } = requireTenant(context)
+  requireProductionPulse(tenant.plan)
+  try {
+    const result = await scoped.pulse.markReviewed({
+      alertId: input.alertId,
+      userId,
+      reason: input.reason,
     })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
@@ -549,7 +591,6 @@ const revert = os.pulse.revert.handler(async ({ input, context }) => {
   const { scoped, tenant } = requireTenant(context)
   requireProductionPulse(tenant.plan)
   try {
-    const detail = await scoped.pulse.getDetail(input.alertId)
     const result = await withPulseMutationLock(
       context,
       { firmId: tenant.firmId, alertId: input.alertId, action: 'revert' },
@@ -561,9 +602,6 @@ const revert = os.pulse.revert.handler(async ({ input, context }) => {
       auditIds: result.auditIds,
       evidenceIds: result.evidenceIds,
     }
-    await Promise.all(
-      detail.affectedClients.map((row) => recalculateObligationExposure(scoped, row.obligationId)),
-    )
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
       reason: 'pulse_revert',
@@ -724,6 +762,7 @@ const requestReview = os.pulse.requestReview.handler(async ({ input, context }) 
 
 export const pulseHandlers = {
   listAlerts,
+  activeCount,
   listHistory,
   listSourceHealth,
   listSourceSignals,
@@ -735,6 +774,7 @@ export const pulseHandlers = {
   apply,
   dismiss,
   snooze,
+  markReviewed,
   revert,
   reactivate,
   requestReview,

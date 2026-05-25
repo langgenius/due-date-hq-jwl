@@ -26,7 +26,7 @@ DELETE FROM practice_rule WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_s
 DELETE FROM rule_review_decision WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_application WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_firm_alert WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
-DELETE FROM pulse_source_signal WHERE id LIKE 'mock_%';
+DELETE FROM pulse_source_signal WHERE source_id = 'fema.declarations' AND external_id IN ('fema-ca-2026-early-signal', 'fema-tx-2026-early-signal');
 DELETE FROM pulse_source_snapshot WHERE id LIKE 'mock_%';
 DELETE FROM pulse
 WHERE id LIKE 'mock_%'
@@ -253,12 +253,326 @@ VALUES
   ('20000000-0000-4000-8000-000000000005', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000004', 'tx_franchise_report', 2026, CAST(unixepoch('2026-05-05 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-05 00:00:00') * 1000 AS INTEGER), 'waiting_on_client', '30000000-0000-4000-8000-000000000001', 12600000, 185000, 'ready', '[{"key":"tx_franchise","label":"TX franchise report exposure","amountCents":185000,"formula":"Demo state estimate"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:25:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000006', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000005', 'federal_1040', 2026, CAST(unixepoch('2026-04-29 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-29 00:00:00') * 1000 AS INTEGER), 'pending', NULL, NULL, NULL, 'needs_input', '[]', NULL, NULL, CAST(unixepoch('2026-05-01 08:56:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:56:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000007', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000006', 'federal_1041', 2026, CAST(unixepoch('2026-05-08 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-08 00:00:00') * 1000 AS INTEGER), 'done', NULL, 2500000, 0, 'ready', '[{"key":"closed","label":"Completed before exposure accrued","amountCents":0,"formula":"Marked done"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:57:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
-  ('20000000-0000-4000-8000-000000000008', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000006', 'fl_corp_income', 2026, CAST(unixepoch('2026-05-12 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-12 00:00:00') * 1000 AS INTEGER), 'pending', NULL, 2500000, NULL, 'unsupported', '[]', NULL, NULL, CAST(unixepoch('2026-05-01 08:58:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:58:00') * 1000 AS INTEGER)),
+  ('20000000-0000-4000-8000-000000000008', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000006', 'fl_corp_income', 2026, CAST(unixepoch('2026-05-08 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-08 00:00:00') * 1000 AS INTEGER), 'pending', NULL, 2500000, NULL, 'unsupported', '[]', NULL, NULL, CAST(unixepoch('2026-05-01 08:58:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:58:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000009', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000007', 'federal_1065', 2026, CAST(unixepoch('2026-05-01 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 00:00:00') * 1000 AS INTEGER), 'pending', '30000000-0000-4000-8000-000000000001', 18500000, 430000, 'ready', '[{"key":"late_filing","label":"Large partnership late filing exposure","amountCents":430000,"formula":"$245 x 11 partners x 2 months"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:26:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000010', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000008', 'ca_llc_franchise_min_800', 2026, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), 'in_progress', NULL, 4100000, 75000, 'ready', '[{"key":"ca_llc","label":"CA LLC minimum tax exposure","amountCents":75000,"formula":"Demo overlay adjusted due date"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:59:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000011', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000009', 'federal_1040', 2026, CAST(unixepoch('2026-05-06 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-06 00:00:00') * 1000 AS INTEGER), 'pending', '30000000-0000-4000-8000-000000000001', NULL, NULL, 'needs_input', '[]', NULL, NULL, CAST(unixepoch('2026-05-01 09:27:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:27:00') * 1000 AS INTEGER)),
   ('20000000-0000-4000-8000-000000000013', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000002', 'federal_1120s', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'done', NULL, 9400000, 0, 'ready', '[{"key":"closed","label":"Annual rollover seed","amountCents":0,"formula":"Closed 2026 source-year S corporation return"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER)),
-  ('20000000-0000-4000-8000-000000000014', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000007', 'federal_1065', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'paid', '30000000-0000-4000-8000-000000000001', 18500000, 0, 'ready', '[{"key":"closed","label":"Annual rollover seed","amountCents":0,"formula":"Closed 2026 source-year partnership return"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER));
+  ('20000000-0000-4000-8000-000000000014', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000007', 'federal_1065', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'paid', '30000000-0000-4000-8000-000000000001', 18500000, 0, 'ready', '[{"key":"closed","label":"Annual rollover seed","amountCents":0,"formula":"Closed 2026 source-year partnership return"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:06:00') * 1000 AS INTEGER)),
+  -- Northstar Dental Group (client 0003) extended to 5 obligations
+  -- so the queue can demo same-client grouping. Existing row 0004 is
+  -- the NY CT-3S — these add federal income, prior-year federal, Q1
+  -- payroll, and Q1 sales tax.
+  ('20000000-0000-4000-8000-000000000020', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000003', 'federal_1120s', 2026, CAST(unixepoch('2026-05-11 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-11 00:00:00') * 1000 AS INTEGER), 'in_progress', NULL, 9400000, 260000, 'ready', '[{"key":"late_filing","label":"S corp shareholder penalty","amountCents":260000,"formula":"Shareholder count x monthly penalty"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
+  ('20000000-0000-4000-8000-000000000021', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000003', 'federal_1120s', 2026, CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-03-16 00:00:00') * 1000 AS INTEGER), 'done', NULL, 8800000, 0, 'ready', '[{"key":"closed","label":"Prior-year S corp closed","amountCents":0,"formula":"Filed on time"}]', 'penalty-v1', CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-04 10:05:00') * 1000 AS INTEGER)),
+  ('20000000-0000-4000-8000-000000000022', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000003', 'federal_941', 2026, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), 'waiting_on_client', NULL, 4100000, 41000, 'ready', '[{"key":"941_late_dep","label":"Late deposit exposure","amountCents":41000,"formula":"1% per month on Q1 deposit"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:01:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
+  ('20000000-0000-4000-8000-000000000023', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000003', 'ny_sales_st100', 2026, CAST(unixepoch('2026-05-22 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-22 00:00:00') * 1000 AS INTEGER), 'pending', NULL, 1300000, 26000, 'ready', '[{"key":"ny_sales","label":"NY sales tax exposure","amountCents":26000,"formula":"2% per month on net taxable"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:02:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER));
+
+-- Backfill obligation_instance.jurisdiction from tax_type so the
+-- Obligations queue State column reads something other than '—'.
+-- Federal forms (1040 / 1041 / 1065 / 1120(s) / 941) get 'FED';
+-- state-specific tax_types take their two-letter prefix.
+UPDATE obligation_instance
+SET jurisdiction = CASE
+  WHEN substr(tax_type, 1, 8) = 'federal_' THEN 'FED'
+  WHEN substr(tax_type, 1, 3) = 'ca_' THEN 'CA'
+  WHEN substr(tax_type, 1, 3) = 'ny_' THEN 'NY'
+  WHEN substr(tax_type, 1, 3) = 'tx_' THEN 'TX'
+  WHEN substr(tax_type, 1, 3) = 'fl_' THEN 'FL'
+  WHEN substr(tax_type, 1, 3) = 'co_' THEN 'CO'
+  WHEN substr(tax_type, 1, 3) = 'wa_' THEN 'WA'
+  WHEN substr(tax_type, 1, 3) = 'ma_' THEN 'MA'
+  ELSE jurisdiction
+END
+WHERE jurisdiction IS NULL
+  AND firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+
+-- Seed sub-status fields so the milestone timeline can render the
+-- "ACTIVE / Awaiting acceptance" style annotation on demo rows. Each
+-- update is keyed to an obligation_instance id we set up earlier:
+--   review_stage   → drives the "In review" sub-status (PRD §6.4)
+--   prep_stage     → drives the "Waiting" sub-status
+--   efile_state    → drives the "Filed" sub-status (accepted / awaiting / rejected)
+
+-- Lakeview Medical Partners federal_1065 (status=pending): mark as
+-- ready_for_review so the queue has at least one row with that signal
+-- even though status has not flipped yet.
+UPDATE obligation_instance
+SET review_stage = 'ready_for_review'
+WHERE id = '20000000-0000-4000-8000-000000000009';
+
+-- Northstar Dental Group federal_1120s in_progress: review notes open.
+UPDATE obligation_instance
+SET review_stage = 'notes_open'
+WHERE id = '20000000-0000-4000-8000-000000000020';
+
+-- Bright Studio S-Corp federal_1120s (review): in active review.
+UPDATE obligation_instance
+SET review_stage = 'in_review'
+WHERE id = '20000000-0000-4000-8000-000000000003';
+
+-- Magnolia Family Trust federal_1041 (status=done): demo "Accepted by
+-- authority" annotation on Filed stage.
+UPDATE obligation_instance
+SET efile_state = 'accepted',
+    efile_accepted_at = CAST(unixepoch('2026-05-12 14:20:00') * 1000 AS INTEGER)
+WHERE id = '20000000-0000-4000-8000-000000000007';
+
+-- Bright Studio S-Corp federal_1120s (annual rollover, status=done):
+-- demo "Awaiting acceptance" annotation (efile submitted, no ack yet).
+UPDATE obligation_instance
+SET efile_state = 'submitted',
+    efile_submitted_at = CAST(unixepoch('2026-03-15 10:00:00') * 1000 AS INTEGER)
+WHERE id = '20000000-0000-4000-8000-000000000013';
+
+-- Copperline Studios TX franchise (status=waiting_on_client): demo
+-- "Documents from client" annotation (the default prep_stage).
+UPDATE obligation_instance
+SET prep_stage = 'waiting_on_client'
+WHERE id = '20000000-0000-4000-8000-000000000005';
+
+-- =========================================================================
+-- DEMO STATUS SPREAD (2026-05-23)
+--
+-- Forces each of the 9 brightline demo clients to surface a DIFFERENT
+-- obligation status on the /clients list, so the design surfaces (stage
+-- card, pipeline strips, sub-status text, status chips) can be evaluated
+-- against every state from a single seed.
+--
+-- The /clients list shows the EARLIEST non-terminal obligation's status as
+-- the row's signal. For each client we flip the earliest-non-terminal row
+-- to the target status + set the matching sub-status fields so the stage
+-- card has something to render. Terminal-status showcases (completed,
+-- paid) need every other obligation closed out too, otherwise the
+-- earlier non-terminal one steals the row signal.
+-- =========================================================================
+
+-- Client 0001 — Arbor & Vale LLC → pending (Not started)
+-- The CA 568 (oblig 0002) is the earliest non-terminal. Flip it to
+-- pending so the row reads "Not started" cleanly. The federal 1065
+-- (oblig 0001) is already pending, so the whole client now sits in
+-- the Not started bucket.
+UPDATE obligation_instance
+SET status = 'pending',
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000002';
+
+-- Client 0002 — Bright Studio S-Corp → waiting_on_client
+-- Federal 1120S (oblig 0003) is the earliest non-terminal. Flip from
+-- review → waiting_on_client + prep_stage so the sub-status reads
+-- "Waiting on client to send docs."
+UPDATE obligation_instance
+SET status = 'waiting_on_client',
+    prep_stage = 'waiting_on_client',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000003';
+
+-- Client 0003 — Northstar Dental Group → blocked
+-- This client has 5 obligations. The Q1 941 (oblig 0022, due
+-- 2026-04-30) is already the earliest non-terminal row, so we just
+-- flip it to blocked + point at the upstream Lakeview partnership
+-- return (oblig 0009) so the inline BlockerContextCard has a real
+-- K-1 dependency story to render.
+UPDATE obligation_instance
+SET status = 'blocked',
+    blocked_by_obligation_instance_id = '20000000-0000-4000-8000-000000000009',
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000022';
+
+-- Client 0004 — Copperline Studios Inc. → review
+-- Only one obligation (TX franchise, 0005). Flip to review with
+-- reviewStage='in_review' so the In Review pipeline strip lights up
+-- mid-flow ("Reviewer checking the return").
+UPDATE obligation_instance
+SET status = 'review',
+    prep_stage = 'prepared',
+    review_stage = 'in_review',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000005';
+
+-- Client 0005 — Cascade Florist → in_progress (drafting)
+-- Federal 1040 (oblig 0006) flipped from pending to in_progress with
+-- prep_stage='in_prep' so the In Review pipeline shows "Preparer
+-- drafting the return" as the current step.
+UPDATE obligation_instance
+SET status = 'in_progress',
+    prep_stage = 'in_prep',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000006';
+
+-- Client 0006 — Magnolia Family Trust → done (Filed, awaiting acceptance)
+-- Trust currently has 2 obligations: 0007 (already done/accepted) and
+-- 0008 (pending FL corp income). Flip 0008 to done + efile submitted
+-- (awaiting acceptance) so the next-due signal reads as a fresh Filed
+-- row with the e-file pipeline visible.
+UPDATE obligation_instance
+SET status = 'done',
+    efile_state = 'submitted',
+    efile_submitted_at = CAST(unixepoch('2026-05-20 14:00:00') * 1000 AS INTEGER),
+    efile_accepted_at = NULL,
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000008';
+
+-- Client 0007 — Lakeview Medical Partners → extended
+-- Federal 1065 (oblig 0009) flipped to extended with the new internal
+-- due date 6 months out. Sets extension_filed_at so the extension
+-- timeline + sub-status both render meaningfully.
+--
+-- 2026-05-24 (critique P0): also set extension_state='filed' so the
+-- client-detail "All on track" pill doesn't read this as a statutory
+-- late row. The schema default is 'not_started'; without an explicit
+-- update, extension_filed_at and extension_state told two different
+-- stories about the same row.
+UPDATE obligation_instance
+SET status = 'extended',
+    extension_filed_at = CAST(unixepoch('2026-04-25 11:00:00') * 1000 AS INTEGER),
+    extension_state = 'filed',
+    current_due_date = CAST(unixepoch('2026-11-15 00:00:00') * 1000 AS INTEGER),
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000009';
+
+-- Client 0008 — Orbit Design LLC → paid (payment confirmed)
+-- CA LLC minimum tax (oblig 0010) flipped to paid + payment_state
+-- 'confirmed' so the payment pipeline strip ends at "Authority
+-- confirmed payment cleared" and the canonical "Close out this
+-- payment" button is the wired primary.
+UPDATE obligation_instance
+SET status = 'paid',
+    payment_state = 'confirmed',
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    efile_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000010';
+
+-- Client 0009 — Riverbend Draft Client → completed
+-- Single obligation (federal 1040, oblig 0011). Flip to completed with
+-- e-file fully delivered so the Completed stage's key-dates summary
+-- (Opened / Filed / Completed / Cycle time) has full audit-derived
+-- data to render. Filed two weeks ago, completed today.
+UPDATE obligation_instance
+SET status = 'completed',
+    efile_state = 'final_package_delivered',
+    efile_submitted_at = CAST(unixepoch('2026-05-09 09:30:00') * 1000 AS INTEGER),
+    efile_accepted_at = CAST(unixepoch('2026-05-12 10:15:00') * 1000 AS INTEGER),
+    prep_stage = 'not_started',
+    review_stage = 'not_required',
+    payment_state = 'not_applicable'
+WHERE id = '20000000-0000-4000-8000-000000000011';
+
+-- =========================================================================
+-- End demo status spread
+-- =========================================================================
+
+WITH inferred_period AS (
+  SELECT
+    id,
+    CASE
+      WHEN tax_year_type = 'fiscal'
+        AND fiscal_year_end_month IS NOT NULL
+        AND fiscal_year_end_day IS NOT NULL
+        THEN
+          CASE
+            WHEN date(
+              printf(
+                '%04d-%02d-%02d',
+                CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer),
+                fiscal_year_end_month,
+                fiscal_year_end_day
+              )
+            ) >= date(base_due_date / 1000, 'unixepoch')
+              THEN CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer) - 1
+            ELSE CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer)
+          END
+      WHEN tax_type IN (
+        'federal_1040',
+        'federal_1041',
+        'federal_1065',
+        'federal_1120',
+        'federal_1120s',
+        'ny_ct3s',
+        'ny_it204',
+        'ca_100',
+        'ca_100s',
+        'ca_568',
+        'fl_corp_income',
+        'co_partnership'
+      )
+        THEN CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer) - 1
+      ELSE COALESCE(tax_year, CAST(strftime('%Y', base_due_date / 1000, 'unixepoch') AS integer))
+    END AS period_year
+  FROM obligation_instance
+  WHERE tax_year IS NOT NULL
+    AND tax_period_start IS NULL
+    AND tax_period_end IS NULL
+)
+UPDATE obligation_instance
+SET
+  tax_period_start = (
+    SELECT
+      CASE
+        WHEN obligation_instance.tax_year_type = 'fiscal'
+          AND obligation_instance.fiscal_year_end_month IS NOT NULL
+          AND obligation_instance.fiscal_year_end_day IS NOT NULL
+          THEN CAST(unixepoch(date(
+            printf(
+              '%04d-%02d-%02d',
+              inferred_period.period_year,
+              obligation_instance.fiscal_year_end_month,
+              obligation_instance.fiscal_year_end_day
+            ),
+            '+1 day',
+            '-1 year'
+          )) * 1000 AS integer)
+        ELSE CAST(unixepoch(printf('%04d-01-01 00:00:00', inferred_period.period_year)) * 1000 AS integer)
+      END
+    FROM inferred_period
+    WHERE inferred_period.id = obligation_instance.id
+  ),
+  tax_period_end = (
+    SELECT
+      CASE
+        WHEN obligation_instance.tax_year_type = 'fiscal'
+          AND obligation_instance.fiscal_year_end_month IS NOT NULL
+          AND obligation_instance.fiscal_year_end_day IS NOT NULL
+          THEN CAST(unixepoch(printf(
+            '%04d-%02d-%02d 00:00:00',
+            inferred_period.period_year,
+            obligation_instance.fiscal_year_end_month,
+            obligation_instance.fiscal_year_end_day
+          )) * 1000 AS integer)
+        ELSE CAST(unixepoch(printf('%04d-12-31 00:00:00', inferred_period.period_year)) * 1000 AS integer)
+      END
+    FROM inferred_period
+    WHERE inferred_period.id = obligation_instance.id
+  ),
+  tax_period_kind = CASE
+    WHEN tax_year_type = 'fiscal'
+      AND fiscal_year_end_month IS NOT NULL
+      AND fiscal_year_end_day IS NOT NULL THEN 'fiscal'
+    ELSE 'calendar'
+  END,
+  tax_period_source = CASE
+    WHEN tax_period_source = 'unknown' THEN 'migration'
+    ELSE tax_period_source
+  END,
+  tax_period_review_reason = NULL
+WHERE id IN (SELECT id FROM inferred_period);
 
 INSERT INTO pulse
   (id, source, source_url, raw_r2_key, published_at, ai_summary, verbatim_quote, parsed_jurisdiction, parsed_counties, parsed_forms, parsed_entity_types, parsed_original_due_date, parsed_new_due_date, parsed_effective_from, confidence, status, reviewed_by, reviewed_at, requires_human_review, is_sample, created_at, updated_at)
@@ -326,8 +640,8 @@ VALUES
 INSERT INTO pulse_source_signal
   (id, source_id, external_id, title, official_source_url, published_at, fetched_at, content_hash, raw_r2_key, tier, jurisdiction, signal_type, status, linked_pulse_id, created_at, updated_at)
 VALUES
-  ('mock_signal_fema_ca', 'fema.declarations', 'fema-ca-2026-early-signal', 'FEMA early signal for CA counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 12:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), 'mockhashfema', 'mock/pulse/fema-ca-signal.json', 'T2', 'CA', 'anticipated_pulse', 'linked', '40000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:45:00') * 1000 AS INTEGER)),
-  ('mock_signal_fema_tx_open', 'fema.declarations', 'fema-tx-2026-early-signal', 'FEMA early signal for TX counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 13:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), 'mockhashfematx', 'mock/pulse/fema-tx-signal.json', 'T2', 'TX', 'anticipated_pulse', 'open', NULL, CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER));
+  ('41000000-0000-4000-8000-000000000001', 'fema.declarations', 'fema-ca-2026-early-signal', 'FEMA early signal for CA counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 12:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), 'mockhashfema', 'mock/pulse/fema-ca-signal.json', 'T2', 'CA', 'anticipated_pulse', 'linked', '40000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:45:00') * 1000 AS INTEGER)),
+  ('41000000-0000-4000-8000-000000000002', 'fema.declarations', 'fema-tx-2026-early-signal', 'FEMA early signal for TX counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 13:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), 'mockhashfematx', 'mock/pulse/fema-tx-signal.json', 'T2', 'TX', 'anticipated_pulse', 'open', NULL, CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER));
 
 INSERT INTO ai_output
   (id, firm_id, user_id, kind, prompt_version, model, input_context_ref, input_hash, output_text, citations_json, guard_result, refusal_code, generated_at, tokens_in, tokens_out, latency_ms, cost_usd)
@@ -639,5 +953,24 @@ VALUES
   ('67000000-0000-4000-8000-000000001001', 'mock_firm_plan_solo', 'mock_user_plan_solo', 'dashboard-brief@v1', 'openai/gpt-5-mini', 'mockhash-plan-solo-dashboard-2026-05-03', 990, 126, 870, 0.006, 'allowed', NULL, 1, NULL, CAST(unixepoch('2026-05-03 09:00:00') * 1000 AS INTEGER)),
   ('67000000-0000-4000-8000-000000002001', 'mock_firm_plan_pro', 'mock_user_plan_pro', 'dashboard-brief@v1', 'openai/gpt-5-mini', 'mockhash-plan-pro-dashboard-2026-05-03', 1240, 148, 910, 0.008, 'allowed', NULL, 1, NULL, CAST(unixepoch('2026-05-03 09:05:00') * 1000 AS INTEGER)),
   ('67000000-0000-4000-8000-000000003001', 'mock_firm_plan_team', 'mock_user_plan_team', 'dashboard-brief@v1', 'openai/gpt-5-mini', 'mockhash-plan-team-dashboard-2026-05-03', 1510, 172, 1030, 0.011, 'allowed', NULL, 1, NULL, CAST(unixepoch('2026-05-03 09:10:00') * 1000 AS INTEGER));
+
+-- K-1 dependency demo (PDF anti-pattern #4): Lakeview Medical Partners'
+-- federal 1120-S waits on Brightline's federal 1065 K-1. When the
+-- parent (#001) reaches `completed`, the child auto-unblocks.
+UPDATE obligation_instance
+SET
+  status = 'blocked',
+  blocked_by_obligation_instance_id = '20000000-0000-4000-8000-000000000001'
+WHERE id = '20000000-0000-4000-8000-000000000020';
+
+-- Rejection demo (PDF anti-pattern #3, Filed != Done): Brightline trust
+-- 1041 was e-filed, the IRS rejected. Status unwinds to `review` with
+-- an efile_rejected_at stamp so the Rejected chip renders.
+UPDATE obligation_instance
+SET
+  status = 'review',
+  efile_rejected_at = CAST(unixepoch('2026-05-10 14:23:00') * 1000 AS INTEGER),
+  efile_accepted_at = NULL
+WHERE id = '20000000-0000-4000-8000-000000000007';
 
 COMMIT;

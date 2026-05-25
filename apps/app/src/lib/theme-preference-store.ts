@@ -16,12 +16,12 @@ function getStoredThemePreference(): ThemePreference {
   try {
     return readStoredThemePreference(window.localStorage)
   } catch {
-    return 'system'
+    return 'light'
   }
 }
 
 function getServerThemePreference(): ThemePreference {
-  return 'system'
+  return 'light'
 }
 
 function syncFromStoredThemePreference(onStoreChange: () => void): void {

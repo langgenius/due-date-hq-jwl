@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app-5177",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5177", "--strictPort"],
+      "port": 5177
+    },
+    {
+      "name": "app-5183",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5183", "--strictPort"],
+      "port": 5183
+    },
+    {
+      "name": "app-5188",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5188", "--strictPort"],
+      "port": 5188
+    },
+    {
+      "name": "server-8787",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "apps/server", "exec", "wrangler", "dev", "--local", "--port", "8787"],
+      "port": 8787
+    }
+  ]
+}

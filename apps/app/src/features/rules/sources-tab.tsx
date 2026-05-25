@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
 
-import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
+import type { PulseSourceHealth, PulseSourceSignal, RuleSource } from '@duedatehq/contracts'
 import {
   Table,
   TableBody,
@@ -22,8 +23,6 @@ import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
 import { orpc } from '@/lib/rpc'
 
 import {
-  compactAcquisitionMethod,
-  compactSourceType,
   countSourcesByHealth,
   filterSources,
   jurisdictionLabel,
@@ -38,18 +37,23 @@ import {
   TablePaginationFooter,
 } from './rules-console-primitives'
 
-type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence' | 'method'
+type SourceHeaderFilterId = 'jurisdiction' | 'sourceType' | 'cadence'
+type SourceTypeLabelMap = Record<RuleSource['sourceType'], string>
 
 const SOURCE_PAGE_SIZE = 25
 const EMPTY_SOURCE_ROWS: RuleSource[] = []
 
 export function SourcesTab() {
   const { t } = useLingui()
+  const [searchParams] = useSearchParams()
+  const domainFilter = searchParams.get('domain')
   const [healthFilter, setHealthFilter] = useState<SourceHealthFilter>('all')
-  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>([])
+  const [jurisdictionFilters, setJurisdictionFilters] = useState<string[]>(() => {
+    const jurisdiction = searchParams.get('jur')
+    return jurisdiction ? [jurisdiction] : []
+  })
   const [sourceTypeFilters, setSourceTypeFilters] = useState<string[]>([])
   const [cadenceFilters, setCadenceFilters] = useState<string[]>([])
-  const [methodFilters, setMethodFilters] = useState<string[]>([])
   const [openHeaderFilter, setOpenHeaderFilter] = useState<SourceHeaderFilterId | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
 
@@ -70,6 +74,20 @@ export function SourcesTab() {
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
+  const sourceTypeLabels = useMemo<SourceTypeLabelMap>(
+    () => ({
+      calendar: t`Calendar`,
+      due_dates: t`Due dates`,
+      early_warning: t`Early alert`,
+      emergency_relief: t`Relief notice`,
+      form: t`Form`,
+      instructions: t`Instructions`,
+      news: t`News`,
+      publication: t`Publication`,
+      subscription: t`Email updates`,
+    }),
+    [t],
+  )
   const filteredRows = useMemo(
     () =>
       filterSources(rows, healthFilter).filter(
@@ -77,9 +95,9 @@ export function SourcesTab() {
           matchesSelected(source.jurisdiction, jurisdictionFilters) &&
           matchesSelected(source.sourceType, sourceTypeFilters) &&
           matchesSelected(source.cadence, cadenceFilters) &&
-          matchesSelected(source.acquisitionMethod, methodFilters),
+          (!domainFilter || source.domains.some((domain) => domain === domainFilter)),
       ),
-    [cadenceFilters, healthFilter, jurisdictionFilters, methodFilters, rows, sourceTypeFilters],
+    [cadenceFilters, domainFilter, healthFilter, jurisdictionFilters, rows, sourceTypeFilters],
   )
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / SOURCE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, pageCount - 1)
@@ -92,8 +110,13 @@ export function SourcesTab() {
     [rows],
   )
   const sourceTypeOptions = useMemo(
-    () => sourceFilterOptions(rows, (source) => source.sourceType, compactSourceType),
-    [rows],
+    () =>
+      sourceFilterOptions(
+        rows,
+        (source) => source.sourceType,
+        (type) => sourceTypeLabel(type, sourceTypeLabels),
+      ),
+    [rows, sourceTypeLabels],
   )
   const cadenceOptions = useMemo(
     () =>
@@ -104,17 +127,11 @@ export function SourcesTab() {
       ),
     [rows],
   )
-  const methodOptions = useMemo(
-    () => sourceFilterOptions(rows, (source) => source.acquisitionMethod, compactAcquisitionMethod),
-    [rows],
-  )
 
   const filterOptions = useMemo(
     () => [
       { value: 'all' as const, label: t`All`, count: counts.all },
-      { value: 'healthy' as const, label: t`Healthy`, count: counts.healthy },
-      { value: 'degraded' as const, label: t`Degraded`, count: counts.degraded },
-      { value: 'failing' as const, label: t`Failing`, count: counts.failing },
+      { value: 'healthy' as const, label: t`Watched`, count: counts.healthy },
       { value: 'paused' as const, label: t`Paused`, count: counts.paused },
     ],
     [counts, t],
@@ -154,7 +171,7 @@ export function SourcesTab() {
       <SectionFrame>
         {/*
           `table-fixed` keeps source rows stable when long values such as
-          "email_subscription" or NY Article 9-A titles appear. After adding
+          NY Article 9-A titles appear. After adding
           header filters, the right-hand columns need enough width for label +
           active-count badge + chevron; SOURCE auto-fills the remaining space
           and shrinks first on narrower viewports.
@@ -201,20 +218,8 @@ export function SourcesTab() {
                   onSelectedChange={(next) => updateHeaderFilter(setCadenceFilters, next)}
                 />
               </TableHead>
-              <TableHead className="w-[112px] px-2">
-                <TableHeaderMultiFilter
-                  trigger="header"
-                  label={t`METHOD`}
-                  open={openHeaderFilter === 'method'}
-                  onOpenChange={(nextOpen) => setHeaderFilterOpen('method', nextOpen)}
-                  options={methodOptions}
-                  selected={methodFilters}
-                  emptyLabel={emptyFilterLabel}
-                  onSelectedChange={(next) => updateHeaderFilter(setMethodFilters, next)}
-                />
-              </TableHead>
-              <TableHead className="w-[112px] px-2">HEALTH</TableHead>
-              <TableHead className="w-[92px] px-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text-tertiary">
+              <TableHead className="w-[112px] px-2">WATCH</TableHead>
+              <TableHead className="w-[92px] px-2 font-mono text-caption-xs uppercase tracking-[0.06em] text-text-tertiary">
                 LAST CHECKED
               </TableHead>
               <TableHead className="w-[42px] px-0" />
@@ -226,18 +231,19 @@ export function SourcesTab() {
                 key={source.id}
                 source={source}
                 health={sourceHealthBySourceId.get(source.id)}
+                sourceTypeLabels={sourceTypeLabels}
               />
             ))}
             {visibleRows.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="px-4 py-10 text-center text-xs text-text-tertiary"
                 >
                   {rows.length === 0 ? (
                     <Trans>
                       No sources registered yet. Source watchers feed the rule catalog — once
-                      configured, they appear here with health and cadence.
+                      configured, they appear here with watch status and cadence.
                     </Trans>
                   ) : (
                     <Trans>
@@ -260,7 +266,113 @@ export function SourcesTab() {
           onNextPage={() => setPageIndex(Math.min(pageCount - 1, currentPageIndex + 1))}
         />
       </SectionFrame>
+      <SourceSignalsPanel sources={rows} />
     </div>
+  )
+}
+
+// SourceSignalsPanel — the per-source signal trail a CPA needs for
+// "history of sources" (PDF guide §audit). Wires the existing
+// `pulse.listSourceSignals` ORPC into a compact table: what was
+// fetched, when, what status it landed in, and a link to the
+// authority document. No filters yet — that comes next iteration.
+function SourceSignalsPanel({ sources }: { sources: readonly RuleSource[] }) {
+  const signalsQuery = useQuery(orpc.pulse.listSourceSignals.queryOptions({ input: { limit: 50 } }))
+  const signals = signalsQuery.data?.signals ?? []
+  const sourceLabelById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const source of sources) map.set(source.id, source.title)
+    return map
+  }, [sources])
+
+  return (
+    <SectionFrame>
+      <div className="flex items-baseline justify-between gap-3 px-4 pt-3 pb-1">
+        <h3 className="text-md font-semibold text-text-primary">
+          <Trans>Source signal trail</Trans>
+        </h3>
+        <span className="text-sm text-text-tertiary tabular-nums">
+          {signalsQuery.isLoading ? (
+            <Trans>Loading…</Trans>
+          ) : (
+            <Trans>{signals.length} recent</Trans>
+          )}
+        </span>
+      </div>
+      <Table className="table-fixed">
+        <TableHeader className="bg-background-subtle">
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-[96px] px-4">FETCHED</TableHead>
+            <TableHead className="px-4">SOURCE · SIGNAL</TableHead>
+            <TableHead className="w-[112px] px-2">TYPE</TableHead>
+            <TableHead className="w-[88px] px-2">STATUS</TableHead>
+            <TableHead className="w-[42px] px-0" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {signals.map((signal) => (
+            <SignalRow
+              key={signal.id}
+              signal={signal}
+              sourceLabel={sourceLabelById.get(signal.sourceId) ?? signal.sourceId}
+            />
+          ))}
+          {!signalsQuery.isLoading && signals.length === 0 ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-text-tertiary">
+                <Trans>No source signals yet — watchers haven't surfaced anything.</Trans>
+              </TableCell>
+            </TableRow>
+          ) : null}
+        </TableBody>
+      </Table>
+    </SectionFrame>
+  )
+}
+
+function SignalRow({ signal, sourceLabel }: { signal: PulseSourceSignal; sourceLabel: string }) {
+  return (
+    <TableRow>
+      <TableCell className="px-4 py-2 align-top">
+        <span className="text-sm tabular-nums text-text-secondary" title={signal.fetchedAt}>
+          {relativeTimeShort(signal.fetchedAt)}
+        </span>
+      </TableCell>
+      <TableCell className="px-4 py-2 align-top">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-text-tertiary">{sourceLabel}</span>
+          <span className="line-clamp-2 text-sm text-text-primary">{signal.title}</span>
+        </div>
+      </TableCell>
+      <TableCell className="px-2 py-2 align-top text-sm text-text-secondary">
+        {signal.signalType}
+      </TableCell>
+      <TableCell className="px-2 py-2 align-top">
+        <span
+          className={cn(
+            'inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs uppercase tracking-[0.06em]',
+            signal.status === 'open' && 'bg-state-warning-hover text-text-warning',
+            signal.status === 'linked' && 'bg-state-accent-hover text-text-accent',
+            signal.status === 'reviewed' &&
+              'border border-divider-subtle bg-background-default text-text-secondary',
+            signal.status === 'dismissed' && 'bg-background-subtle text-text-tertiary',
+          )}
+        >
+          {signal.status}
+        </span>
+      </TableCell>
+      <TableCell className="px-0 py-2 align-top">
+        <a
+          href={signal.officialSourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
+          aria-label="Open authority source"
+        >
+          <ExternalLinkIcon className="size-3.5" aria-hidden />
+        </a>
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -293,6 +405,10 @@ function relativeTimeShort(iso: string): string {
   return `${months}mo`
 }
 
+function sourceTypeLabel(sourceType: RuleSource['sourceType'], labels: SourceTypeLabelMap): string {
+  return labels[sourceType]
+}
+
 function sourceFilterOptions<T extends string>(
   sources: readonly RuleSource[],
   getValue: (source: RuleSource) => T,
@@ -312,9 +428,11 @@ function sourceFilterOptions<T extends string>(
 function SourceRow({
   source,
   health,
+  sourceTypeLabels,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
+  sourceTypeLabels: SourceTypeLabelMap
 }) {
   const { t } = useLingui()
 
@@ -338,8 +456,6 @@ function SourceRow({
     },
     [openSource],
   )
-
-  const isManualReview = source.acquisitionMethod === 'manual_review'
 
   return (
     <TableRow
@@ -368,34 +484,17 @@ function SourceRow({
         <JurisdictionCode code={source.jurisdiction} />
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
-        {compactSourceType(source.sourceType)}
+        {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
         {source.cadence.replace('_', '-')}
       </TableCell>
       <TableCell
-        className={cn(
-          'px-2 py-1.5 text-xs',
-          isManualReview ? 'text-severity-medium' : 'text-text-secondary',
-        )}
-        title={
-          isManualReview ? t`Manual review source · click to open the official page` : undefined
-        }
-      >
-        {compactAcquisitionMethod(source.acquisitionMethod)}
-      </TableCell>
-      <TableCell
         className="px-2 py-1.5"
-        // The HealthBadge by itself is a verdict with no evidence — the
-        // CPA opening Sources to triage "why is X degraded?" gets a yellow
-        // pill and nothing else. Surface the most recent error from Pulse
-        // on hover so the diagnostic answer is one tooltip away.
         title={
-          health?.lastError
-            ? t`Last error: ${health.lastError}`
-            : source.healthStatus === 'degraded' || source.healthStatus === 'failing'
-              ? t`Status set by Pulse · open Radar for full watcher diagnostics`
-              : undefined
+          health?.lastCheckedAt
+            ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
+            : undefined
         }
       >
         <HealthBadge health={source.healthStatus} />

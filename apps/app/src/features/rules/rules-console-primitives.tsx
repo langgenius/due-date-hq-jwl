@@ -8,9 +8,11 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
+import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
-import type { CoverageCellState } from './rules-console-model'
+import { normalizeSourceHealth, type CoverageCellState } from './rules-console-model'
 
 type FilterOption<T extends string> = {
   value: T
@@ -18,14 +20,31 @@ type FilterOption<T extends string> = {
   count: number
 }
 
-export function RulesPageHeader({ title, description }: { title: string; description: string }) {
+/**
+ * Thin wrapper around the shared `PageHeader`. Kept for the string-based
+ * call sites in `rules.{coverage,library,sources,pulse,temporary,preview}.tsx`
+ * — the shared primitive accepts ReactNode, but rules pages still pass
+ * plain strings through their loaders, so this adapter keeps that
+ * ergonomics-of-strings while routing through the single source of truth.
+ */
+export function RulesPageHeader({
+  title,
+  description,
+  breadcrumbs,
+  actions,
+}: {
+  title: string
+  description?: string
+  breadcrumbs?: BreadcrumbItem[]
+  actions?: ReactNode
+}) {
   return (
-    <header className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
-      </div>
-      <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
-    </header>
+    <PageHeader
+      title={title}
+      {...(description ? { description } : {})}
+      {...(breadcrumbs ? { breadcrumbs } : {})}
+      {...(actions ? { actions } : {})}
+    />
   )
 }
 
@@ -34,21 +53,60 @@ export function RulesPageHeader({ title, description }: { title: string; descrip
  * (24 px padding · single scroll region · header + content column) so each
  * extracted page keeps the visual rhythm it had as a tab, just without the
  * tab nav rib that previously sat above it.
+ *
+ * `compact` collapses the page header (title + description) — used by
+ * pages that enter a focused "review mode" where the orientation
+ * header just steals vertical space. The collapse is animated via a
+ * max-height + opacity + margin transition so the transition between
+ * the two modes feels smooth instead of snapping.
  */
 export function RulesPageShell({
   title,
   description,
+  breadcrumbs,
+  actions,
+  compact = false,
+  lockViewport = false,
+  contentClassName,
   children,
 }: {
   title: string
-  description: string
+  description?: string
+  breadcrumbs?: BreadcrumbItem[]
+  actions?: ReactNode
+  compact?: boolean
+  lockViewport?: boolean
+  contentClassName?: string
   children: ReactNode
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="flex w-full flex-col gap-6 px-6 py-6">
-          <RulesPageHeader title={title} description={description} />
+    <div className={cn('flex min-h-0 flex-col overflow-hidden', lockViewport ? 'h-svh' : 'h-full')}>
+      {/* `overscroll-contain` deliberately omitted on the rules shell —
+        the gesture should chain to the route layout when the user
+        scrolls past the end of a rules table (rule library, sources,
+        preview, pulse). Was trapping the scroll at the seam before,
+        which felt "stuck" at the boundary. Drawer + settings shells
+        still trap (different intent). */}
+      <div className={cn('min-h-0 flex-1', lockViewport ? 'overflow-hidden' : 'overflow-y-auto')}>
+        <div
+          className={cn(
+            'flex w-full flex-col gap-6 px-6 py-6',
+            lockViewport && 'h-full min-h-0',
+            contentClassName,
+          )}
+        >
+          {/* Header is unmounted in compact mode — not just visually
+            collapsed. A collapsed-but-mounted div still consumes a
+            flex `gap-6` slot above the next child, which created a
+            ~48-72px dead space at the top of the review surface. */}
+          {!compact ? (
+            <RulesPageHeader
+              title={title}
+              {...(description ? { description } : {})}
+              {...(breadcrumbs ? { breadcrumbs } : {})}
+              {...(actions ? { actions } : {})}
+            />
+          ) : null}
           {children}
         </div>
       </div>
@@ -103,7 +161,7 @@ export function FilterChips<T extends string>({
             className={cn(
               'h-[26px] rounded px-2.5 text-xs shadow-none',
               active
-                ? 'border-text-primary bg-text-primary text-text-inverted hover:border-text-primary hover:bg-text-primary'
+                ? 'border-transparent bg-text-primary text-text-inverted hover:bg-text-primary'
                 : 'bg-background-default text-text-secondary',
             )}
             onClick={() => onValueChange(option.value)}
@@ -166,14 +224,21 @@ export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'di
 
 export function CoverageCell({ state }: { state: CoverageCellState }) {
   const { t } = useLingui()
-  const tone = state === 'verified' ? 'success' : state === 'review' ? 'warning' : 'disabled'
-  const label = state === 'verified' ? t`active` : state === 'review' ? t`review` : t`no rule`
+  // 2026-05-25 (status-pill audit #3, finding 2.1): "review" now
+  // reads in blue everywhere across the app. Was `warning` here
+  // (amber via `text-severity-medium`) which collided with the
+  // queue's amber `waiting_on_client` status + the missing-facts
+  // banner. Aligned to `text-text-accent` (blue) so reviewers
+  // learn one tone = one meaning ("review = blue, do something
+  // human").
+  const tone = state === 'active' ? 'success' : state === 'review' ? 'review' : 'disabled'
+  const label = state === 'active' ? t`active` : state === 'review' ? t`review` : t`no rule`
   return (
     <span
       className={cn(
         'inline-flex items-center gap-2 text-sm',
-        state === 'verified' && 'text-text-primary',
-        state === 'review' && 'text-severity-medium',
+        state === 'active' && 'text-text-primary',
+        state === 'review' && 'text-text-accent',
         state === 'none' && 'text-text-disabled',
       )}
     >
@@ -183,49 +248,109 @@ export function CoverageCell({ state }: { state: CoverageCellState }) {
   )
 }
 
+/**
+ * Compact legend describing both axes of the Coverage status entity-dot
+ * strip: *which entity each dot represents* (left-to-right order) and
+ * *what tone means* (active / review / no rule). Lives above the table
+ * rather than below so users see it before they encounter the dots.
+ */
 export function CoverageLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-7 gap-y-1 text-xs text-text-tertiary">
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="success" />
-        <ConceptLabel concept="verifiedRule">
-          <Trans>active — accepted by this practice</Trans>
-        </ConceptLabel>
-      </span>
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="warning" />
-        <ConceptLabel concept="requiresReview">
-          <Trans>review — needs CPA confirmation</Trans>
-        </ConceptLabel>
-      </span>
-      <span className="inline-flex items-center gap-2">
-        <ToneDot tone="disabled" />
-        <Trans>no rule — not in MVP scope</Trans>
-      </span>
+    <div className="flex flex-col gap-2 text-xs text-text-tertiary">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="shrink-0 font-medium tracking-[0.04em] text-text-tertiary uppercase">
+          <Trans>Dot order</Trans>
+        </span>
+        <span aria-hidden>·</span>
+        <span>LLC</span>
+        <span aria-hidden>·</span>
+        <span>Partnership</span>
+        <span aria-hidden>·</span>
+        <span>S-Corp</span>
+        <span aria-hidden>·</span>
+        <span>C-Corp</span>
+        <span aria-hidden>·</span>
+        <span>Sole prop</span>
+        <span aria-hidden>·</span>
+        <span>Trust</span>
+        <span aria-hidden>·</span>
+        <span>Individual</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="success" />
+          <ConceptLabel concept="verifiedRule">
+            <Trans>active — accepted by this practice</Trans>
+          </ConceptLabel>
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="warning" />
+          <ConceptLabel concept="requiresReview">
+            <Trans>review — needs CPA confirmation</Trans>
+          </ConceptLabel>
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <ToneDot tone="disabled" />
+          <Trans>no rule — not in MVP scope</Trans>
+        </span>
+      </div>
     </div>
   )
 }
 
 export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) {
   const { t } = useLingui()
-  const tones: Record<typeof health, 'success' | 'warning' | 'error' | 'disabled'> = {
+  const normalized = normalizeSourceHealth(health)
+  const tones: Record<typeof normalized, 'success' | 'disabled'> = {
     healthy: 'success',
-    degraded: 'warning',
-    failing: 'error',
     paused: 'disabled',
   }
-  const labels: Record<typeof health, string> = {
-    healthy: t`Healthy`,
-    degraded: t`Degraded`,
-    failing: t`Failing`,
+  const labels: Record<typeof normalized, string> = {
+    healthy: t`Watched`,
     paused: t`Paused`,
   }
-  const tone = tones[health]
+  const tone = tones[normalized]
   return (
     <Badge variant="outline" className="h-[22px] rounded-full px-2 text-xs">
       <BadgeStatusDot tone={tone} className="size-1.5" />
-      {labels[health]}
+      {labels[normalized]}
     </Badge>
+  )
+}
+
+/**
+ * Cross-page origin breadcrumb. Renders above a filtered table when the
+ * user landed via a drill-in URL (e.g. `?from=coverage`, `?from=sources`,
+ * `?from=cmd`). Shows the origin label + a Clear button that resets the
+ * page to its default state.
+ *
+ * Each page owns its own Clear semantics (Library clears 4 filters,
+ * Sources clears 2). The component itself is just the chrome — pass the
+ * resolved label and onClear callback in.
+ */
+export function OriginBreadcrumb({
+  label,
+  onClear,
+  clearLabel,
+}: {
+  label: string
+  onClear: () => void
+  clearLabel: string
+}) {
+  return (
+    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
+      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={clearLabel}
+        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Clear</Trans>
+        <span aria-hidden>×</span>
+      </button>
+    </div>
   )
 }
 

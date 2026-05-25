@@ -6,6 +6,14 @@ import { TenantIdSchema } from './shared/ids'
 export const FirmPlanSchema = z.enum(['solo', 'pro', 'team', 'firm'])
 export const FirmStatusSchema = z.enum(['active', 'suspended', 'deleted'])
 export const FirmRoleSchema = z.enum(['owner', 'partner', 'manager', 'preparer', 'coordinator'])
+export const DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS = 14
+export const MIN_INTERNAL_DEADLINE_OFFSET_DAYS = 0
+export const MAX_INTERNAL_DEADLINE_OFFSET_DAYS = 365
+export const InternalDeadlineOffsetDaysSchema = z
+  .number()
+  .int()
+  .min(MIN_INTERNAL_DEADLINE_OFFSET_DAYS)
+  .max(MAX_INTERNAL_DEADLINE_OFFSET_DAYS)
 export const US_FIRM_TIMEZONES = [
   'America/New_York',
   'America/Detroit',
@@ -101,6 +109,7 @@ export const FirmPublicSchema = z.object({
   plan: FirmPlanSchema,
   seatLimit: z.number().int().min(1),
   timezone: z.string().min(1),
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema,
   status: FirmStatusSchema,
   role: FirmRoleSchema,
   ownerUserId: z.string().min(1),
@@ -116,11 +125,15 @@ export const FirmPublicSchema = z.object({
 export const FirmCreateInputSchema = z.object({
   name: z.string().trim().min(2).max(120),
   timezone: USFirmTimezoneSchema.default('America/New_York'),
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema.default(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  ),
 })
 
 export const FirmUpdateInputSchema = z.object({
   name: z.string().trim().min(2).max(120),
   timezone: USFirmTimezoneSchema,
+  internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema,
   coordinatorCanSeeDollars: z.boolean().optional(),
   smartPriorityProfile: SmartPriorityProfileSchema.optional(),
 })
@@ -147,10 +160,6 @@ export const FirmSmartPriorityPreviewRowSchema = z.object({
 export const FirmSmartPriorityPreviewOutputSchema = z.object({
   asOfDate: z.iso.date(),
   rows: z.array(FirmSmartPriorityPreviewRowSchema),
-})
-
-export const FirmPenaltyExposureBackfillOutputSchema = z.object({
-  recalculatedObligationCount: z.number().int().min(0),
 })
 
 export const FirmBillingSubscriptionPublicSchema = z.object({
@@ -195,7 +204,6 @@ export const firmsContract = oc.router({
   previewSmartPriorityProfile: oc
     .input(FirmSmartPriorityPreviewInputSchema)
     .output(FirmSmartPriorityPreviewOutputSchema),
-  backfillPenaltyExposure: oc.input(z.undefined()).output(FirmPenaltyExposureBackfillOutputSchema),
   listSubscriptions: oc.input(z.undefined()).output(z.array(FirmBillingSubscriptionPublicSchema)),
   billingCheckoutConfig: oc.input(z.undefined()).output(FirmBillingCheckoutConfigSchema),
   softDeleteCurrent: oc
@@ -213,9 +221,6 @@ export type FirmSelfServeBillingPlan = z.infer<typeof FirmSelfServeBillingPlanSc
 export type FirmSmartPriorityPreviewInput = z.infer<typeof FirmSmartPriorityPreviewInputSchema>
 export type FirmSmartPriorityPreviewOutput = z.infer<typeof FirmSmartPriorityPreviewOutputSchema>
 export type FirmSmartPriorityPreviewRow = z.infer<typeof FirmSmartPriorityPreviewRowSchema>
-export type FirmPenaltyExposureBackfillOutput = z.infer<
-  typeof FirmPenaltyExposureBackfillOutputSchema
->
 export type FirmStatus = z.infer<typeof FirmStatusSchema>
 export type FirmUpdateInput = z.infer<typeof FirmUpdateInputSchema>
 export type FirmsContract = typeof firmsContract

@@ -81,7 +81,7 @@ Unsubscribe: https://app.duedatehq.com/notifications?unsub={token}
 ### 3.2 Plain-text · zh-CN
 
 ```
-Subject: DueDateHQ 导入完成 —— 30 个客户，本季度 $19,200 美元敞口
+Subject: DueDateHQ 导入完成 —— 30 个客户，本季度 $19,200 截止日风险
 
 批次概览
   ✓ 已创建 30 个客户
@@ -600,7 +600,7 @@ List-Unsubscribe-Post: List-Unsubscribe=One-Click
 
 - **必要 PII**：客户姓名（业务必要；PRD Part1B §6A.9 未禁止）
 - **禁止出现**：EIN、邮箱、电话、SSN、完整税额、完整地址（Demo Sprint + Phase 0 一致）
-- **允许**：金额（美元敞口）、天数、实体类型、州代码
+- **允许**：金额（截止日风险）、天数、实体类型、州代码
 - **理由**：邮件是"信道外"载体，截图 / 转发风险高于 SPA；EIN 出现在邮件等同于泄漏（对齐 PRD Part1B §6A.9 + ADR 0011 Migration 安全护栏）
 
 ### 7.4 SPF / DKIM / DMARC

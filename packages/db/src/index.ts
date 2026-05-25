@@ -4,10 +4,12 @@ import * as calendarSchema from './schema/calendar'
 import * as dashboardSchema from './schema/dashboard'
 import * as firmSchema from './schema/firm'
 import * as notificationSchema from './schema/notifications'
+import * as opportunitiesSchema from './schema/opportunities'
 import * as readinessSchema from './schema/readiness'
 import * as rulesSchema from './schema/rules'
 import * as obligationSavedViewSchema from './schema/obligation-saved-view'
 import { makeFirmsRepo } from './repo/firms'
+import { makeAiRepo } from './repo/ai'
 import { makeMembersRepo } from './repo/members'
 import { makePulseOpsRepo } from './repo/pulse'
 import { makeReadinessPortalRepo } from './repo/readiness'
@@ -16,7 +18,7 @@ import {
   renderReminderTemplate,
   DEFAULT_REMINDER_TEMPLATES,
 } from './repo/reminders'
-import { makeRulesRepo } from './repo/rules'
+import { makeRulesOpsRepo, makeRulesRepo } from './repo/rules'
 import { makeCalendarFeedRepo, makeCalendarRepo } from './repo/calendar'
 
 export { createDb } from './client'
@@ -33,10 +35,12 @@ export { dashboardSchema }
 // middleware, never read by procedures.
 export { firmSchema }
 export { notificationSchema }
+export { opportunitiesSchema }
 export { readinessSchema }
 export { rulesSchema }
 export { obligationSavedViewSchema }
 export { makeFirmsRepo }
+export { makeAiRepo }
 export { makeCalendarRepo }
 export { makeCalendarFeedRepo }
 export { makeMembersRepo }
@@ -44,6 +48,7 @@ export { makePulseOpsRepo }
 export { makeReadinessPortalRepo }
 export { makeRemindersRepo, renderReminderTemplate, DEFAULT_REMINDER_TEMPLATES }
 export { makeRulesRepo }
+export { makeRulesOpsRepo }
 export type {
   Db,
   ScopedRepo,

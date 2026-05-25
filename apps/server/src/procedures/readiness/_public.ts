@@ -1,7 +1,25 @@
 import type {
   ClientReadinessRequestPublic,
   ClientReadinessResponsePublic,
+  ReadinessDocumentChecklistItemPublic,
 } from '@duedatehq/contracts'
+
+interface DocumentChecklistItemRow {
+  id: string
+  firmId: string
+  obligationInstanceId: string
+  label: string
+  description: string | null
+  source: 'template' | 'custom'
+  status: 'missing' | 'received' | 'needs_review'
+  sortOrder: number
+  note: string | null
+  receivedAt: Date | null
+  receivedByUserId: string | null
+  createdByUserId: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 interface ResponseRow {
   id: string
@@ -38,6 +56,27 @@ function toIsoDate(value: Date | null): string | null {
 
 function toNullableIso(value: Date | null): string | null {
   return value ? value.toISOString() : null
+}
+
+export function toReadinessDocumentChecklistItemPublic(
+  row: DocumentChecklistItemRow,
+): ReadinessDocumentChecklistItemPublic {
+  return {
+    id: row.id,
+    firmId: row.firmId,
+    obligationInstanceId: row.obligationInstanceId,
+    label: row.label,
+    description: row.description,
+    source: row.source,
+    status: row.status,
+    sortOrder: row.sortOrder,
+    note: row.note,
+    receivedAt: toNullableIso(row.receivedAt),
+    receivedByUserId: row.receivedByUserId,
+    createdByUserId: row.createdByUserId,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }
 }
 
 export function toReadinessResponsePublic(row: ResponseRow): ClientReadinessResponsePublic {

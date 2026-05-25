@@ -27,6 +27,8 @@ export type ClientLegalEntity =
   | 'foreign_entity'
   | 'other'
 
+// Lifecycle v2: `blocked` and `completed` are non-breaking additions.
+// See docs/Design/obligation-lifecycle-design-brief.md.
 export type ObligationStatus =
   | 'pending'
   | 'in_progress'
@@ -36,6 +38,8 @@ export type ObligationStatus =
   | 'waiting_on_client'
   | 'review'
   | 'not_applicable'
+  | 'blocked'
+  | 'completed'
 
 export type ObligationReadiness = 'ready' | 'waiting' | 'needs_review'
 
@@ -53,6 +57,15 @@ export type ClientTaxClassification =
   | 'estate'
   | 'nonprofit'
   | 'foreign_reporting_company'
+  | 'unknown'
+
+export type TaxYearType = 'calendar' | 'fiscal'
+export type TaxPeriodKind = 'calendar' | 'fiscal' | 'short' | '52_53_week' | 'unknown'
+export type TaxPeriodSource =
+  | 'client_default'
+  | 'prior_obligation'
+  | 'migration'
+  | 'manual_cpa_confirmed'
   | 'unknown'
 
 export type ObligationType =
@@ -121,11 +134,12 @@ export type MigrationSource =
   | 'preset_karbon'
   | 'preset_quickbooks'
   | 'preset_file_in_time'
-  | 'integration_taxdome_zapier'
-  | 'integration_karbon_api'
-  | 'integration_soraban_api'
-  | 'integration_safesend_api'
-  | 'integration_proconnect_export'
+  | 'preset_cch_axcess'
+  | 'preset_cch_prosystem_fx'
+  | 'preset_lacerte'
+  | 'preset_proseries'
+  | 'preset_ultratax_cs'
+  | 'preset_proconnect_tax'
 
 export type MigrationBatchStatus =
   | 'draft'
@@ -141,6 +155,7 @@ export type AiOutputKind =
   | 'summary'
   | 'ask_answer'
   | 'pulse_extract'
+  | 'rule_concrete_draft'
   | 'migration_map'
   | 'migration_normalize'
   | 'readiness_checklist'
@@ -153,17 +168,12 @@ export type AuditActionCategory =
   | 'auth'
   | 'team'
   | 'pulse'
+  | 'opportunity'
   | 'export'
   | 'ai'
   | 'system'
 
-export type ObligationQueueSort =
-  | 'smart_priority'
-  | 'due_asc'
-  | 'due_desc'
-  | 'exposure_desc'
-  | 'exposure_asc'
-  | 'updated_desc'
+export type ObligationQueueSort = 'smart_priority' | 'due_asc' | 'due_desc' | 'updated_desc'
 export type ObligationQueueOwnerFilter = 'unassigned'
 export type ObligationQueueDueFilter = 'overdue'
 export type ObligationQueueReadiness = ObligationReadiness

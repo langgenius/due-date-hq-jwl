@@ -7,6 +7,7 @@ export interface TenantContext {
   readonly plan: FirmPlan
   readonly seatLimit: number
   readonly timezone: string
+  readonly internalDeadlineOffsetDays: number
   readonly status: FirmStatus
   readonly ownerUserId: string
   readonly coordinatorCanSeeDollars: boolean
@@ -20,6 +21,7 @@ export interface FirmMembershipRow {
   plan: FirmPlan
   seatLimit: number
   timezone: string
+  internalDeadlineOffsetDays: number
   status: FirmStatus
   role: FirmRole
   ownerUserId: string
@@ -34,6 +36,7 @@ export interface FirmMembershipRow {
 export interface FirmUpdateInput {
   name: string
   timezone: string
+  internalDeadlineOffsetDays: number
   coordinatorCanSeeDollars?: boolean
   smartPriorityProfile?: SmartPriorityProfile
 }
@@ -118,6 +121,7 @@ export interface FirmsRepo {
   listMine(userId: string): Promise<FirmMembershipRow[]>
   listOwnedActive(userId: string): Promise<FirmMembershipRow[]>
   findActiveForUser(userId: string, firmId: string): Promise<FirmMembershipRow | undefined>
+  applyInternalDeadlineOffset(firmId: string, offsetDays: number): Promise<number>
   updateProfile(firmId: string, input: FirmUpdateInput): Promise<void>
   previewSmartPriorityProfile(
     firmId: string,

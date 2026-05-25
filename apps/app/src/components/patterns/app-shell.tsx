@@ -1,25 +1,20 @@
-import { Link, Outlet, useNavigation } from 'react-router'
-import { useLingui } from '@lingui/react/macro'
-import { BellIcon, PanelLeftIcon } from 'lucide-react'
+import { Outlet, useNavigation } from 'react-router'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
+  SidebarCollapseToggle,
   SidebarContent,
   SidebarInset,
   SidebarProvider,
   SidebarSeparator,
-  SidebarTrigger,
 } from '@duedatehq/ui/components/ui/sidebar'
 import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
+import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
 import type { AuthUser } from '@/lib/auth'
-import {
-  COMMAND_PALETTE_HOTKEY,
-  formatCompactShortcutForDisplay,
-} from '@/components/patterns/keyboard-shell/display'
 
 /**
  * AppShell — layout-level shell shared by every protected layout.
@@ -51,7 +46,6 @@ export type AppShellProps = {
   route: RouteSummary
   themePreference: ThemePreference
   switchThemePreference: (next: ThemePreference) => void
-  unreadNotificationCount?: number
 }
 
 export function AppShell(props: AppShellProps) {
@@ -67,7 +61,29 @@ export function AppShell(props: AppShellProps) {
       <div className="relative isolate flex h-svh w-full overflow-hidden bg-background-body text-text-primary">
         <PendingBar />
         <Sidebar>
-          <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+          {/* 2026-05-25 (Yuqi Today #28): notifications bell moved
+              from the sidebar BOTTOM to the firm-switcher row at the
+              top.
+              2026-05-25 (Yuqi sidebar collapse): when the sidebar
+              is collapsed (data-collapsed=true on the aside),
+              the firm switcher + bell stack vertically so the
+              bell remains reachable inside the 56px rail. Firm
+              switcher trigger itself hides its label + chevron
+              via its own data-aware styling — only the avatar
+              tile renders.
+              2026-05-25 (Yuqi sidebar collapse v2): collapse
+              toggle moved here from the lonely centered row above
+              the user menu. Lives at the right edge of the header
+              row when expanded; stacks below the bell when
+              collapsed. Top-of-sidebar placement matches the
+              VSCode / Notion / Linear convention. */}
+          <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:items-stretch group-data-[collapsed=true]/sidebar:gap-1 group-data-[collapsed=true]/sidebar:px-1.5">
+            <div className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:justify-center">
+              <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+            </div>
+            <PulseNotificationsBell />
+            <SidebarCollapseToggle className="group-data-[collapsed=true]/sidebar:mx-auto" />
+          </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route
             header (see SidebarInset), so both ribs sit at exactly y =
@@ -77,26 +93,50 @@ export function AppShell(props: AppShellProps) {
           <SidebarContent>
             <NavGroups firm={props.firm} />
           </SidebarContent>
+          {/* User menu stays at sidebar bottom — that's where
+              account-level controls (Settings, account, sign out)
+              belong per the Linear/Notion pattern. The bell moved
+              up; this row simplifies to just the user menu now.
+              2026-05-25 (Yuqi sidebar collapse v2): collapse
+              toggle moved out of this row — it was rendering
+              as a lonely centered chevron orphaned between the
+              footer nav divider and the user. Now lives in the
+              top firm-switcher row (right side). */}
+          <div className="border-t border-divider-regular px-2 py-2">
+            <UserMenuTrigger
+              user={props.user}
+              firm={props.firm}
+              themePreference={props.themePreference}
+              switchThemePreference={props.switchThemePreference}
+            />
+          </div>
         </Sidebar>
-        <SidebarInset>
-          <RouteHeader
-            title={props.route.title}
-            user={props.user}
-            firm={props.firm}
-            themePreference={props.themePreference}
-            switchThemePreference={props.switchThemePreference}
-            unreadNotificationCount={props.unreadNotificationCount ?? 0}
-          />
-          {/*
-            The sibling 1px hairline (instead of `border-b` on `<header>`)
-            puts the route-header rib at the same Y as the sidebar's
-            Practice switcher hairline (both at `h_header + 0`), avoiding the
-            1px collinearity drift caused by mixing `strokeAlign:'INSIDE'`
-            with sibling rectangles.
-          */}
-          <div className="h-px shrink-0 bg-divider-regular" aria-hidden />
-          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="mx-auto w-full max-w-[1080px]">
+        <SidebarInset className="bg-background-default">
+          {/* Route header strip removed — page title was redundant
+            with the sidebar selection state, and notifications + user
+            menu now live in the sidebar footer (alongside Settings)
+            where account-level controls belong.
+            bg-background-default makes the inset white (Notion/Linear
+            pattern: gray rail, white work surface). */}
+          <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
+            {/* Outer cap = 1280px per 2026-05-21 design call.
+              Dashboard ("Today") narrows itself to 1100px via its
+              own inner container — that's the reading-column page.
+              Every other route (Obligations queue, Clients, Rules,
+              Settings) lands at 1280px, which fits the queue's
+              column set without horizontal scroll while still
+              keeping content off the far edges of 27"+ monitors.
+
+              2026-05-25 (sticky-header bug fix): added `h-full` and
+              `flex flex-col` so the max-width wrapper propagates
+              `<main>`'s definite height down to RulesPageShell
+              (and any other route shell using `h-full`). Without
+              it, `h-full` on the shell resolved against an
+              auto-height parent and the inner overflow-y-auto
+              never established a real scroll container — sticky
+              elements like the rule library's TableHeader fell
+              back to the document scroll context and never pinned. */}
+            <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col">
               <Outlet />
             </div>
           </main>
@@ -128,80 +168,5 @@ function PendingBar() {
         )}
       />
     </div>
-  )
-}
-
-// -----------------------------------------------------------------------------
-// Route header — eyebrow + title (left) + AppShell-owned utility (right)
-// -----------------------------------------------------------------------------
-
-const KBD_CMDK = formatCompactShortcutForDisplay(COMMAND_PALETTE_HOTKEY)
-
-function RouteHeader({
-  title,
-  user,
-  firm,
-  themePreference,
-  switchThemePreference,
-  unreadNotificationCount,
-}: {
-  title: string
-  user: AuthUser
-  firm: FirmPublic
-  themePreference: ThemePreference
-  switchThemePreference: (next: ThemePreference) => void
-  unreadNotificationCount: number
-}) {
-  return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-4 bg-background-default px-4 md:px-6">
-      <div className="flex min-w-0 items-center gap-3">
-        <SidebarTrigger>
-          <PanelLeftIcon className="size-4" aria-hidden />
-        </SidebarTrigger>
-        <span className="truncate text-sm font-semibold text-text-primary">{title}</span>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {/*
-          Mirrors Figma 159:2 exactly: 28×22 frame, no border, fill
-          `surface/subtle`, text style `Numeric / Small` (Geist Mono Medium
-          11/16) at `text/muted`. The narrow-no-break-space (`\u202f`) keeps
-          modifier+key glued without a visible spacing gap.
-        */}
-        <kbd className="hidden h-[22px] items-center rounded-sm bg-background-subtle px-1.5 font-mono text-xs font-medium tabular-nums text-text-muted md:inline-flex">
-          {KBD_CMDK}
-        </kbd>
-        <NotificationsBell unreadCount={unreadNotificationCount} />
-        <UserMenuTrigger
-          user={user}
-          firm={firm}
-          themePreference={themePreference}
-          switchThemePreference={switchThemePreference}
-        />
-      </div>
-    </header>
-  )
-}
-
-function NotificationsBell({ unreadCount }: { unreadCount: number }) {
-  const { t } = useLingui()
-  const hasUnread = unreadCount > 0
-  return (
-    <Link
-      to="/notifications"
-      aria-label={hasUnread ? t`Notifications, ${unreadCount} unread` : t`Notifications`}
-      className={cn(
-        'relative inline-flex size-7 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-colors',
-        'hover:bg-background-default-hover hover:text-text-primary',
-        'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-      )}
-    >
-      <BellIcon className="size-4" aria-hidden />
-      {hasUnread ? (
-        <span
-          aria-hidden
-          className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-state-destructive-solid"
-        />
-      ) : null}
-    </Link>
   )
 }

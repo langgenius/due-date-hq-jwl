@@ -25,6 +25,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     },
     dbMocks: {
       createDb: vi.fn(() => ({})),
+      makeAiRepo: vi.fn(),
       makePulseOpsRepo: vi.fn(() => repo),
     },
   }
@@ -32,6 +33,7 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
 
 vi.mock('@duedatehq/db', () => ({
   createDb: dbMocks.createDb,
+  makeAiRepo: dbMocks.makeAiRepo,
   makePulseOpsRepo: dbMocks.makePulseOpsRepo,
 }))
 
@@ -124,6 +126,9 @@ describe('runPulseIngest', () => {
         jurisdiction: 'CA',
         signalType: 'anticipated_pulse',
       }),
+    )
+    expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'fema.declarations' }),
     )
     expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
     expect(queueSend).not.toHaveBeenCalled()

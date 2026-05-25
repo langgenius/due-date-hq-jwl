@@ -13,6 +13,8 @@ const ALERT = {
   source: 'IRS Disaster Relief',
   sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
   publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+  changeKind: 'deadline_shift' as const,
+  actionMode: 'due_date_overlay' as const,
   aiSummary: 'IRS CA storm relief',
   verbatimQuote: 'Individuals and businesses in Los Angeles County have until October 15, 2026.',
   parsedJurisdiction: 'CA',
@@ -22,6 +24,9 @@ const ALERT = {
   parsedOriginalDueDate: new Date('2026-03-15T00:00:00.000Z'),
   parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
   parsedEffectiveFrom: new Date('2026-04-15T00:00:00.000Z'),
+  parsedEffectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: null,
   confidence: 0.94,
   pulseStatus: 'approved' as const,
   reviewedBy: 'user-1',
@@ -397,7 +402,6 @@ describe('makePulseRepo', () => {
       [],
       [],
       [],
-      [],
       [
         {
           id: 'priority-1',
@@ -464,6 +468,50 @@ describe('makePulseRepo', () => {
       }),
     ).rejects.toMatchObject({ code: 'no_eligible' } satisfies Partial<PulseRepoError>)
     expect(batchStatements).toHaveLength(0)
+  })
+
+  it('marks review-only Pulse changes reviewed without applying overlays', async () => {
+    const reviewOnlyAlert = {
+      ...ALERT,
+      changeKind: 'form_instruction' as const,
+      actionMode: 'review_only' as const,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+    }
+    const { db, batchStatements } = fakeDb([
+      [reviewOnlyAlert],
+      [reviewOnlyAlert],
+      [{ ...reviewOnlyAlert, alertStatus: 'reviewed' as const }],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(
+      repo.apply({
+        alertId: 'alert-1',
+        obligationIds: ['oi-eligible'],
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({ code: 'review_only' } satisfies Partial<PulseRepoError>)
+
+    const result = await repo.markReviewed({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      reason: 'Reviewed source instruction change.',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(result.alert.status).toBe('reviewed')
+    expect(batchStatements).toHaveLength(2)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { status: 'reviewed', dismissedBy: 'user-1' }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { action: 'pulse.reviewed' }),
+      ),
+    ).toBe(true)
   })
 
   it('reopens the alert as matched after a successful undo', async () => {
@@ -635,10 +683,97 @@ describe('makePulseRepo', () => {
 })
 
 describe('makePulseOpsRepo', () => {
+  it('creates enabled source state as healthy by default', async () => {
+    const sourceState = {
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      enabled: true,
+      cadenceMs: 60_000,
+      healthStatus: 'healthy' as const,
+      lastCheckedAt: null,
+      lastSuccessAt: null,
+      lastChangeDetectedAt: null,
+      nextCheckAt: new Date('2026-05-06T10:00:00.000Z'),
+      consecutiveFailures: 0,
+      lastError: null,
+      etag: null,
+      lastModified: null,
+    }
+    const { db, directStatements } = fakeDb([[sourceState]])
+
+    await makePulseOpsRepo(db).ensureSourceState({
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      cadenceMs: 60_000,
+      now: new Date('2026-05-06T10:00:00.000Z'),
+    })
+
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { sourceId: 'irs.disaster', healthStatus: 'healthy' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('records source failures without changing CPA-facing health', async () => {
+    const sourceState = {
+      sourceId: 'irs.disaster',
+      tier: 'T1',
+      jurisdiction: 'FED',
+      enabled: true,
+      cadenceMs: 60_000,
+      healthStatus: 'healthy' as const,
+      lastCheckedAt: null,
+      lastSuccessAt: null,
+      lastChangeDetectedAt: null,
+      nextCheckAt: null,
+      consecutiveFailures: 2,
+      lastError: null,
+      etag: null,
+      lastModified: null,
+    }
+    const { db, directStatements } = fakeDb([[sourceState]])
+
+    await makePulseOpsRepo(db).recordSourceFailure({
+      sourceId: 'irs.disaster',
+      checkedAt: new Date('2026-05-06T10:00:00.000Z'),
+      nextCheckAt: new Date('2026-05-06T10:15:00.000Z'),
+      error: 'selector_drift',
+    })
+
+    const update = directStatements.find((statement) => isKind(statement, 'update')) as
+      | { value?: Record<string, unknown> }
+      | undefined
+    expect(update?.value).toMatchObject({
+      consecutiveFailures: 3,
+      lastError: 'selector_drift',
+    })
+    expect(update?.value).not.toHaveProperty('healthStatus')
+  })
+
+  it('restores watched health when source monitoring is re-enabled', async () => {
+    const { db, directStatements } = fakeDb([])
+
+    await makePulseOpsRepo(db).setSourceEnabled({
+      sourceId: 'irs.disaster',
+      enabled: true,
+      now: new Date('2026-05-06T10:00:00.000Z'),
+    })
+
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { enabled: true, healthStatus: 'healthy' }),
+      ),
+    ).toBe(true)
+  })
+
   it('publishes extracted pulses directly to firm review', async () => {
     const extractedPulse = {
       id: 'pulse-created',
       status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
       parsedForms: [],
       parsedEntityTypes: [],
     }
@@ -725,6 +860,7 @@ describe('makePulseOpsRepo', () => {
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
       status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
       aiSummary: 'IRS CA storm relief',
       parsedJurisdiction: 'CA',
       parsedCounties: ['Los Angeles County'],

@@ -362,7 +362,7 @@ export function BillingCheckoutRoute() {
                 </div>
                 <div className="text-left md:text-right">
                   <div className="flex items-baseline gap-2 md:justify-end">
-                    <span className="font-mono text-4xl font-semibold tabular-nums text-text-primary">
+                    <span className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
                       {view.price}
                     </span>
                     <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">

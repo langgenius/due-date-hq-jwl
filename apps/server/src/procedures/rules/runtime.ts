@@ -21,8 +21,12 @@ export function toContractDueDateLogic(
 }
 
 export function toContractRule(rule: CoreObligationRule): ContractObligationRule {
+  const { localFactRequirements, ...ruleRest } = rule
   return {
-    ...rule,
+    ...ruleRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
     entityApplicability: [...rule.entityApplicability],
     dueDateLogic: toContractDueDateLogic(rule.dueDateLogic),
     sourceIds: [...rule.sourceIds],
@@ -38,6 +42,8 @@ export function toPracticeContractRule(
   input: {
     verifiedBy?: string
     verifiedAt?: string
+    reviewedByName?: string
+    reviewedAt?: string
     nextReviewOn?: string
     version?: number
   } = {},
@@ -47,6 +53,8 @@ export function toPracticeContractRule(
     status,
     verifiedBy: input.verifiedBy ?? rule.verifiedBy,
     verifiedAt: input.verifiedAt ?? rule.verifiedAt,
+    ...(input.reviewedByName !== undefined ? { reviewedByName: input.reviewedByName } : {}),
+    ...(input.reviewedAt !== undefined ? { reviewedAt: input.reviewedAt } : {}),
     nextReviewOn: input.nextReviewOn ?? rule.nextReviewOn,
     version: input.version ?? rule.version,
   }
@@ -78,6 +86,7 @@ function toCoreLocator(
 function toCoreEvidence(evidence: ContractObligationRule['evidence'][number]): RuleEvidence {
   return {
     sourceId: evidence.sourceId,
+    ...(evidence.aiOutputId !== undefined ? { aiOutputId: evidence.aiOutputId } : {}),
     authorityRole: evidence.authorityRole,
     locator: toCoreLocator(evidence.locator),
     summary: evidence.summary,
@@ -96,10 +105,23 @@ export function toCoreRule(rule: ContractObligationRule): CoreObligationRule {
       : rule.status === 'deprecated' || rule.status === 'archived'
         ? 'deprecated'
         : 'candidate'
-  const { obligationType, ...ruleRest } = rule
+  const {
+    obligationType,
+    localJurisdiction,
+    localFactRequirements,
+    reviewedByName,
+    reviewedAt,
+    ...ruleRest
+  } = rule
   return {
     ...ruleRest,
     status,
+    ...(localJurisdiction !== undefined ? { localJurisdiction } : {}),
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
+    ...(reviewedByName !== undefined ? { reviewedByName } : {}),
+    ...(reviewedAt !== undefined ? { reviewedAt } : {}),
     entityApplicability: [...rule.entityApplicability],
     dueDateLogic: rule.dueDateLogic,
     extensionPolicy: toCoreExtensionPolicy(rule.extensionPolicy),

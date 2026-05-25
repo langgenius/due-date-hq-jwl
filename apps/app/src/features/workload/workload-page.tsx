@@ -25,10 +25,12 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDatePretty } from '@/lib/utils'
 import { workloadRowDueSoonHref, workloadRowHref, workloadRowOverdueHref } from './workload-links'
 
 function todayDateOnly(): string {
@@ -70,28 +72,36 @@ export function WorkloadPage() {
   const data = workloadQuery.data
 
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
+    <section className="grid gap-6 p-4 md:p-6">
+      <PageHeader
+        title={<Trans>Team workload</Trans>}
+        description={
+          <>
             <Trans>Shared deadline operations for Pro, Team, and Enterprise plans.</Trans>
-          </p>
-          <p className="text-xs tabular-nums text-text-muted">
-            <Trans>
-              As of {asOfDate} · next {windowDays} days
-            </Trans>
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => void workloadQuery.refetch()}
-          disabled={workloadQuery.isFetching}
-        >
-          <RefreshCwIcon data-icon="inline-start" />
-          <Trans>Refresh</Trans>
-        </Button>
-      </div>
+            {/* 2026-05-24 (re-critique): the previous shape rendered
+                `As of 2026-05-24 · next 60 days` in monospace —
+                read as machine output, not prose. Pretty-printed
+                date + drop the `font-mono` so it sits naturally
+                under the description sentence. */}
+            <span className="mt-1 block text-caption text-text-muted">
+              <Trans>
+                As of {formatDatePretty(asOfDate)} · next {windowDays} days
+              </Trans>
+            </span>
+          </>
+        }
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void workloadQuery.refetch()}
+            disabled={workloadQuery.isFetching}
+          >
+            <RefreshCwIcon data-icon="inline-start" />
+            <Trans>Refresh</Trans>
+          </Button>
+        }
+      />
 
       {workloadQuery.isError ? (
         <Card>
@@ -100,7 +110,8 @@ export function WorkloadPage() {
               <Trans>Couldn't load team workload</Trans>
             </CardTitle>
             <CardDescription>
-              {rpcErrorMessage(workloadQuery.error) ?? t`Please try again.`}
+              {rpcErrorMessage(workloadQuery.error) ??
+                t`Check your network and try again. If this keeps happening, contact support.`}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -124,13 +135,18 @@ export function WorkloadPage() {
           </CardTitle>
           <CardDescription>
             <Trans>
-              Aggregated from open obligations and client owner labels. Open any row in Obligations
-              to triage the underlying deadlines.
+              Aggregated from open deadlines and client owner labels. Open any row in Deadlines to
+              triage the underlying deadlines.
             </Trans>
           </CardDescription>
           <CardAction>
-            <Button variant="outline" size="sm" render={<Link to="/obligations" />}>
-              <Trans>Open Obligations</Trans>
+            <Button
+              nativeButton={false}
+              variant="outline"
+              size="sm"
+              render={<Link to="/deadlines" />}
+            >
+              <Trans>Open deadlines</Trans>
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           </CardAction>
@@ -144,7 +160,7 @@ export function WorkloadPage() {
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
             <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>No open obligations match the workload window.</Trans>
+              <Trans>No open deadlines match the workload window.</Trans>
             </div>
           )}
         </CardContent>
@@ -171,7 +187,7 @@ function WorkloadUpgradePanel() {
             <Trans>
               Solo is the personal deadline workbench. Pro, Team, and Enterprise add shared deadline
               operations: owner-level workload, unassigned risk, waiting and review pressure, and
-              Obligations jump links for weekly triage.
+              Deadlines jump links for weekly triage.
             </Trans>
           </CardDescription>
           <CardAction>
@@ -181,11 +197,11 @@ function WorkloadUpgradePanel() {
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Button render={<Link to="/billing" />}>
+          <Button nativeButton={false} render={<Link to="/billing" />}>
             <Trans>Upgrade plan</Trans>
           </Button>
-          <Button variant="outline" render={<Link to="/obligations" />}>
-            <Trans>Open Obligations</Trans>
+          <Button nativeButton={false} variant="outline" render={<Link to="/deadlines" />}>
+            <Trans>Open deadlines</Trans>
           </Button>
         </CardContent>
       </Card>
@@ -258,7 +274,7 @@ function MetricCard({
         <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
         <CardDescription
           className={cn(
-            'text-3xl font-semibold tabular-nums text-text-primary',
+            'text-2xl font-semibold tabular-nums text-text-primary',
             intent === 'critical' && 'text-text-destructive',
             intent === 'warning' && 'text-text-warning',
           )}
@@ -312,10 +328,7 @@ function WorkloadTable({
       </TableHeader>
       <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {rows.map((row) => (
-          <TableRow
-            key={row.id}
-            className={row.kind === 'unassigned' ? 'bg-state-warning-hover' : ''}
-          >
+          <TableRow key={row.id}>
             <TableCell>
               <div className="flex min-w-0 items-center gap-2">
                 <ClipboardListIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
@@ -353,6 +366,7 @@ function WorkloadTable({
             </TableCell>
             <TableCell className="text-right">
               <Button
+                nativeButton={false}
                 variant="outline"
                 size="sm"
                 className="text-xs"

@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -19,6 +20,16 @@ import type {
   CalendarSubscriptionScope,
   FirmRole,
 } from '@duedatehq/contracts'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -38,6 +49,8 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
+import { PageHeader } from '@/components/patterns/page-header'
 import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -90,7 +103,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update calendar subscription`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -103,7 +118,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't regenerate calendar URL`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -116,7 +133,9 @@ export function CalendarPage() {
       },
       onError: (err) => {
         toast.error(t`Couldn't disable calendar subscription`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -130,25 +149,44 @@ export function CalendarPage() {
     },
   ]
 
+  // 2026-05-24 (re-critique): Regenerate URL and Disable feed are
+  // both hard-to-undo — the old URL is silently invalidated, breaking
+  // any Google/Apple/Outlook subscription that was already pointing
+  // at it. Stage these actions through an AlertDialog +
+  // DestructiveChangePreview so the user understands the blast
+  // radius before the mutation fires. Enable / privacy-swap stay
+  // direct: they're additive, easy to reverse.
+  const [pendingRegenerate, setPendingRegenerate] = useState<{
+    id: string
+    title: string
+  } | null>(null)
+  const [pendingDisable, setPendingDisable] = useState<{
+    id: string
+    title: string
+  } | null>(null)
+
   return (
-    <section className="grid gap-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="grid gap-1">
-          <p className="text-sm text-text-secondary">
-            <Trans>
-              Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ remains the
-              source of truth for deadline changes.
-            </Trans>
-          </p>
-          <p className="font-mono text-xs text-text-muted">
-            <Trans>ICS is one-way: external calendar edits never update DueDateHQ.</Trans>
-          </p>
-        </div>
-        <Button variant="secondary" size="sm" render={<Link to="/obligations" />}>
-          <ArrowLeftIcon data-icon="inline-start" />
-          <Trans>Back to Obligations</Trans>
-        </Button>
-      </div>
+    <section className="grid gap-6 p-4 md:p-6">
+      <PageHeader
+        title={<Trans>Calendar sync</Trans>}
+        description={
+          <Trans>
+            Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in your calendar don't
+            change DueDateHQ.
+          </Trans>
+        }
+        actions={
+          <Button
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+            render={<Link to="/deadlines" />}
+          >
+            <ArrowLeftIcon data-icon="inline-start" />
+            <Trans>Back to Deadlines</Trans>
+          </Button>
+        }
+      />
 
       {subscriptionsQuery.isLoading || firmsQuery.isLoading ? (
         <Skeleton className="h-72 max-w-2xl rounded-lg" />
@@ -160,8 +198,8 @@ export function CalendarPage() {
               config={card}
               subscription={subscriptionForScope(subscriptionsQuery.data, card.scope)}
               onEnable={(privacyMode) => upsertMutation.mutate({ scope: card.scope, privacyMode })}
-              onRegenerate={(id) => regenerateMutation.mutate({ id })}
-              onDisable={(id) => disableMutation.mutate({ id })}
+              onRegenerate={(id) => setPendingRegenerate({ id, title: card.title })}
+              onDisable={(id) => setPendingDisable({ id, title: card.title })}
               pending={
                 upsertMutation.isPending ||
                 regenerateMutation.isPending ||
@@ -172,6 +210,136 @@ export function CalendarPage() {
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={pendingRegenerate !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingRegenerate(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Regenerate calendar URL?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRegenerate
+                ? t`Any device subscribed to the current ${pendingRegenerate.title} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingRegenerate ? (
+            <DestructiveChangePreview
+              title={<Trans>Regenerating commits these changes</Trans>}
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Invalidates</Trans>,
+                  detail: <Trans>The current URL on every subscribed device</Trans>,
+                },
+                {
+                  tone: 'add',
+                  label: <Trans>Issues</Trans>,
+                  detail: <Trans>A fresh URL — same scope, same privacy mode</Trans>,
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: <Trans>The events themselves — nothing scheduled is removed</Trans>,
+                },
+              ]}
+            />
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={regenerateMutation.isPending || !pendingRegenerate}
+              onClick={() => {
+                if (pendingRegenerate) {
+                  regenerateMutation.mutate(
+                    { id: pendingRegenerate.id },
+                    {
+                      onSettled: () => setPendingRegenerate(null),
+                    },
+                  )
+                }
+              }}
+            >
+              {regenerateMutation.isPending ? (
+                <Trans>Regenerating…</Trans>
+              ) : (
+                <Trans>Regenerate URL</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingDisable !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDisable(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Disable calendar feed?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDisable
+                ? t`The ${pendingDisable.title} feed will stop syncing on every subscribed device. You can re-enable later, but the URL will be a fresh one — old subscriptions won't reconnect automatically.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingDisable ? (
+            <DestructiveChangePreview
+              title={<Trans>Disabling commits these changes</Trans>}
+              lines={[
+                {
+                  tone: 'remove',
+                  label: <Trans>Stops</Trans>,
+                  detail: <Trans>Calendar sync on every subscribed device</Trans>,
+                },
+                {
+                  tone: 'add',
+                  label: <Trans>Adds</Trans>,
+                  detail: <Trans>Nothing — re-enabling later issues a brand-new URL</Trans>,
+                },
+                {
+                  tone: 'keep',
+                  label: <Trans>Keeps</Trans>,
+                  detail: <Trans>Your deadlines and assignments inside DueDateHQ</Trans>,
+                },
+              ]}
+            />
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={disableMutation.isPending || !pendingDisable}
+              onClick={() => {
+                if (pendingDisable) {
+                  disableMutation.mutate(
+                    { id: pendingDisable.id },
+                    {
+                      onSettled: () => setPendingDisable(null),
+                    },
+                  )
+                }
+              }}
+            >
+              {disableMutation.isPending ? <Trans>Disabling…</Trans> : <Trans>Disable feed</Trans>}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card>
         <CardHeader>
@@ -260,36 +428,57 @@ function CalendarSubscriptionCard({
           </PermissionObscuredContent>
         ) : (
           <div className="grid gap-4">
-            <div className="grid gap-2">
-              <span className="text-sm font-medium text-text-primary">
-                <Trans>Privacy</Trans>
-              </span>
-              <Select
-                value={privacyMode}
-                onValueChange={(value) => {
-                  if (isCalendarPrivacyMode(value)) onEnable(value)
-                }}
-                disabled={pending}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="redacted">
-                    <Trans>Redacted client names</Trans>
-                  </SelectItem>
-                  <SelectItem value="full">
-                    <Trans>Full client names</Trans>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* 2026-05-24 (critique /polish): privacy-mode dropdown
+                used to render even when there was no active feed.
+                Combined with the "Enable redacted feed / Enable full
+                feed" pair below, the user saw a dropdown AND two
+                buttons that did effectively the same thing — three
+                ways to pick the same value. Show the dropdown only
+                when a subscription is already active (where it's
+                the swap-mode control). Pre-subscription the buttons
+                are the sole choice. */}
+            {activeSubscription ? (
+              <div className="grid gap-2">
+                <span className="text-sm font-medium text-text-primary">
+                  <Trans>Privacy</Trans>
+                </span>
+                <Select
+                  value={privacyMode}
+                  onValueChange={(value) => {
+                    if (isCalendarPrivacyMode(value)) onEnable(value)
+                  }}
+                  disabled={pending}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="redacted">
+                      <Trans>Redacted client names</Trans>
+                    </SelectItem>
+                    <SelectItem value="full">
+                      <Trans>Full client names</Trans>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
 
+            {/* 2026-05-24 (re-critique): the metadata strip used to
+                always show "Privacy mode: Redacted client names" even
+                when no subscription existed, which implied a privacy
+                mode WAS set on a feed that didn't yet exist. Now the
+                privacy row only renders when a subscription is on
+                file. Created / Last accessed stay always-visible —
+                "Not enabled" / "Never" carry the right signal for
+                them. */}
             <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
-              <MetadataRow
-                label={t`Privacy mode`}
-                value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
-              />
+              {subscription ? (
+                <MetadataRow
+                  label={t`Privacy mode`}
+                  value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
+                />
+              ) : null}
               <MetadataRow
                 label={t`Created`}
                 value={

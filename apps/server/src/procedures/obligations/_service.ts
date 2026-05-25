@@ -5,11 +5,16 @@ import type {
   ObligationExtensionDecisionInput,
   ObligationExtensionDecisionOutput,
   ObligationInstancePublic,
+  ObligationMarkFiledRejectedInput,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
+  ObligationUpdateBlockedByInput,
+  ObligationUpdatePrepStageInput,
+  ObligationUpdateReviewStageInput,
 } from '@duedatehq/contracts'
+import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { calculateAccruedPenalty } from '../_penalty-exposure'
+import { calculateAccruedPenalty } from '../_accrued-penalty'
 
 interface ObligationRow {
   id: string
@@ -18,6 +23,14 @@ interface ObligationRow {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: ObligationInstancePublic['taxYearType']
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: ObligationInstancePublic['taxPeriodKind']
+  taxPeriodSource?: ObligationInstancePublic['taxPeriodSource']
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null
@@ -34,6 +47,7 @@ interface ObligationRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationInstancePublic['status']
+  blockedByObligationInstanceId?: string | null
   readiness: ObligationInstancePublic['readiness']
   extensionDecision: ObligationInstancePublic['extensionDecision']
   extensionMemo: string | null
@@ -92,6 +106,8 @@ export function toObligationPublic(
   row: ObligationRow,
   opts: { client?: ClientPenaltyFacts | null | undefined; asOfDate?: string | Date } = {},
 ): ObligationInstancePublic {
+  const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+  const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
   const penaltyAsOfDate =
     opts.asOfDate instanceof Date
       ? opts.asOfDate.toISOString().slice(0, 10)
@@ -111,6 +127,14 @@ export function toObligationPublic(
     clientFilingProfileId: row.clientFilingProfileId ?? null,
     taxType: row.taxType,
     taxYear: row.taxYear,
+    taxYearType: row.taxYearType,
+    fiscalYearEndMonth: row.fiscalYearEndMonth,
+    fiscalYearEndDay: row.fiscalYearEndDay,
+    taxPeriodStart: row.taxPeriodStart ? toIsoDate(row.taxPeriodStart) : null,
+    taxPeriodEnd: row.taxPeriodEnd ? toIsoDate(row.taxPeriodEnd) : null,
+    taxPeriodKind: row.taxPeriodKind ?? 'unknown',
+    taxPeriodSource: row.taxPeriodSource ?? 'unknown',
+    taxPeriodReviewReason: row.taxPeriodReviewReason ?? null,
     ruleId: row.ruleId ?? null,
     ruleVersion: row.ruleVersion ?? null,
     rulePeriod: row.rulePeriod ?? null,
@@ -119,19 +143,20 @@ export function toObligationPublic(
     obligationType: row.obligationType ?? 'filing',
     formName: row.formName ?? null,
     authority: row.authority ?? null,
-    filingDueDate: row.filingDueDate ? toIsoDate(row.filingDueDate) : null,
-    paymentDueDate: row.paymentDueDate ? toIsoDate(row.paymentDueDate) : null,
+    filingDueDate: toIsoDate(taxAuthorityFilingDueDate),
+    paymentDueDate: toIsoDate(taxAuthorityPaymentDueDate),
     sourceEvidence: row.sourceEvidenceJson ?? null,
     recurrence: row.recurrence ?? 'once',
     riskLevel: row.riskLevel ?? 'low',
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    blockedByObligationInstanceId: row.blockedByObligationInstanceId ?? null,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,
     extensionMemo: row.extensionMemo,
     extensionSource: row.extensionSource,
-    extensionExpectedDueDate: row.extensionExpectedDueDate
+    extensionInternalTargetDate: row.extensionExpectedDueDate
       ? toIsoDate(row.extensionExpectedDueDate)
       : null,
     extensionDecidedAt: row.extensionDecidedAt?.toISOString() ?? null,
@@ -269,7 +294,7 @@ export async function updateObligationStatus(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -280,11 +305,23 @@ export async function updateObligationStatus(
     }
   }
 
+  // Lifecycle v2 transition validation. The matrix lives in
+  // packages/core/src/obligation-workflow — see "Filed ≠ Done"
+  // (PDF anti-pattern #3) for the load-bearing invariant: `completed`
+  // can only follow `done` or `paid`. The legacy 8 states still
+  // transition freely among themselves; the new `completed` is the
+  // strict gate.
+  if (!isLegalObligationTransition(before.status, input.status)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition: ${before.status} → ${input.status}.`,
+    })
+  }
+
   await scoped.obligations.updateStatus(input.id, input.status)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -308,6 +345,300 @@ export async function updateObligationStatus(
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 
+  // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
+  // When this row reaches `completed`, every obligation that was
+  // `blocked_by` this row flips back to `pending` (with blocked_by
+  // cleared). Each cascade writes its own audit row so the child's
+  // timeline reads "Unblocked by Lakeview Partnership · federal_1065"
+  // instead of just a bare parent UUID. (Slice 2d.4 polish.)
+  if (after.status === 'completed') {
+    const unblockedIds = await scoped.obligations.unblockChildrenOf(input.id)
+    if (unblockedIds.length > 0) {
+      const parentClient = await scoped.clients.findById(after.clientId)
+      const parentLabel = `${parentClient?.name ?? 'Unknown client'} · ${after.taxType}`
+      await Promise.all(
+        unblockedIds.map((childId) =>
+          scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentLabel} (parent #${input.id.slice(0, 8)}).`,
+          }),
+        ),
+      )
+    }
+  }
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
+ *
+ * Caller holds a row in `done` ("Filed"). We stamp `efile_rejected_at`,
+ * clear any prior acceptance timestamp, transition status to `review`,
+ * and write an `obligation.efile.rejected` audit row. The Rejected
+ * chip auto-renders on the queue once efileRejectedAt + status='review'
+ * both hold (see apps/app/src/features/obligations/rejection-chip.tsx).
+ */
+export async function markObligationFiledRejected(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationMarkFiledRejectedInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  if (before.status !== 'done') {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Only a Filed deadline can be marked rejected. Current status: ${before.status}.`,
+    })
+  }
+
+  const rejectedAt = new Date()
+  await scoped.obligations.setEfileRejected(input.id, { rejectedAt, nextStatus: 'review' })
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { status: string; efileAcceptedAt: string | null }
+    after: { status: string; efileRejectedAt: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.efile.rejected',
+    before: {
+      status: before.status,
+      efileAcceptedAt: before.efileAcceptedAt ? before.efileAcceptedAt.toISOString() : null,
+    },
+    after: { status: after.status, efileRejectedAt: rejectedAt.toISOString() },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * K-1 dependency wiring (PDF anti-pattern #4 + §6.4).
+ *
+ * Set or clear `blocked_by_obligation_instance_id`. When the pointer
+ * is set, status flips to `blocked`; when cleared (only legal from
+ * `blocked`), status reverts to `pending`. Auto-unblock on parent
+ * completion is handled separately by updateObligationStatus →
+ * unblockChildrenOf.
+ */
+export async function updateObligationBlockedBy(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdateBlockedByInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  const nextParentId = input.blockedByObligationInstanceId
+  if (nextParentId === input.id) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'A deadline cannot block itself.',
+    })
+  }
+  if (nextParentId !== null) {
+    const parent = await scoped.obligations.findById(nextParentId)
+    if (!parent) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Parent deadline ${nextParentId} not found in current firm.`,
+      })
+    }
+    if (parent.status === 'completed') {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Cannot mark blocked by an already-completed deadline.',
+      })
+    }
+  } else if (before.status !== 'blocked') {
+    // Clearing a blocker on a row that isn't currently blocked is a
+    // no-op; we still allow it (idempotent) so the UI can call
+    // updateBlockedBy(null) defensively.
+  }
+
+  const nextStatus = nextParentId !== null ? 'blocked' : 'pending'
+  await scoped.obligations.setBlockedBy(input.id, { blockedBy: nextParentId, nextStatus })
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { status: string; blockedBy: string | null }
+    after: { status: string; blockedBy: string | null }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: nextParentId !== null ? 'obligation.blocked_by.set' : 'obligation.blocked_by.cleared',
+    before: { status: before.status, blockedBy: before.blockedByObligationInstanceId ?? null },
+    after: { status: after.status, blockedBy: nextParentId },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * In Review sub-status mutations — `prep_stage` and `review_stage`.
+ *
+ * Each click on a pipeline step in the obligation drawer fires one of
+ * these. Slider model: any value→any value is legal, forward or
+ * backward; the strip permits jumping non-adjacent steps too (e.g.
+ * from `ready_for_prep` direct to `prepared` if the CPA wants to
+ * skip ahead).
+ *
+ * Same NOT_FOUND / no-op / re-read pattern as `updateObligationStatus`.
+ * Audit row mirrors the `status_changed` shape with the relevant
+ * column in `before` / `after`. Action strings (`obligation.prep_stage.
+ * updated` / `obligation.review_stage.updated`) follow the existing
+ * `obligation.*` namespace used by `obligation.status.updated`,
+ * `obligation.efile.rejected`, etc.
+ *
+ * See docs/Design/in-review-substatus-mutations-2026-05-23.md.
+ */
+export async function updateObligationPrepStage(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdatePrepStageInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+
+  if (before.prepStage === input.prepStage) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+
+  await scoped.obligations.setPrepStage(input.id, input.prepStage)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { prepStage: string }
+    after: { prepStage: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.prep_stage.updated',
+    before: { prepStage: before.prepStage },
+    after: { prepStage: after.prepStage },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+export async function updateObligationReviewStage(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdateReviewStageInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+
+  if (before.reviewStage === input.reviewStage) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+
+  await scoped.obligations.setReviewStage(input.id, input.reviewStage)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { reviewStage: string }
+    after: { reviewStage: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.review_stage.updated',
+    before: { reviewStage: before.reviewStage },
+    after: { reviewStage: after.reviewStage },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),
     auditId,
@@ -323,13 +654,26 @@ export async function bulkUpdateObligationStatus(
   const beforeRows = await scoped.obligations.findManyByIds(ids)
   if (beforeRows.length !== ids.length) {
     throw new ORPCError('NOT_FOUND', {
-      message: 'One or more selected obligations were not found in the current firm.',
+      message: 'One or more selected deadlines were not found in the current firm.',
     })
   }
 
   const changedRows = beforeRows.filter((row) => row.status !== input.status)
   if (changedRows.length === 0) {
     return { updatedCount: 0, auditIds: [] }
+  }
+
+  // Lifecycle v2: bulk transitions must each pass the matrix. Any
+  // illegal source row blocks the entire batch so the partial-failure
+  // surprise doesn't bite preparers mid-tax-week. (Per the brief's
+  // bulk-error contract: "<N> rows skipped — illegal status transition")
+  const illegalRow = changedRows.find(
+    (row) => !isLegalObligationTransition(row.status, input.status),
+  )
+  if (illegalRow) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal status transition for deadline ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
+    })
   }
 
   await scoped.obligations.updateStatusMany(
@@ -357,6 +701,47 @@ export async function bulkUpdateObligationStatus(
     }),
   )
 
+  // Lifecycle v2 (slice 2d.4): cascade parent→child unblock for each
+  // row in the bulk that landed at `completed`. Mirrors the single-
+  // row path. Failures don't block the bulk write; cascades are
+  // best-effort with their own audit trail. Reason includes the
+  // parent's client name + tax type for readable child timelines
+  // (slice 2d.4 polish).
+  if (input.status === 'completed') {
+    const cascades = await Promise.all(
+      changedRows.map((row) =>
+        scoped.obligations.unblockChildrenOf(row.id).then((childIds) =>
+          childIds.map((childId) => ({
+            parentId: row.id,
+            parentClientId: row.clientId,
+            parentTaxType: row.taxType,
+            childId,
+          })),
+        ),
+      ),
+    )
+    const allCascades = cascades.flat()
+    if (allCascades.length > 0) {
+      const parentClientIds = [...new Set(allCascades.map((c) => c.parentClientId))]
+      const parentClients = await scoped.clients.findManyByIds(parentClientIds)
+      const parentClientNameById = new Map(parentClients.map((c) => [c.id, c.name]))
+      await Promise.all(
+        allCascades.map(({ parentId, parentClientId, parentTaxType, childId }) => {
+          const parentClientName = parentClientNameById.get(parentClientId) ?? 'Unknown client'
+          return scoped.audit.write({
+            actorId: userId,
+            entityType: 'obligation_instance',
+            entityId: childId,
+            action: 'obligation.status.auto_unblocked',
+            before: { status: 'blocked', readiness: 'needs_review' },
+            after: { status: 'pending', readiness: 'ready' },
+            reason: `Unblocked by ${parentClientName} · ${parentTaxType} (parent #${parentId.slice(0, 8)}, bulk).`,
+          })
+        }),
+      )
+    }
+  }
+
   return {
     updatedCount: changedRows.length,
     auditIds,
@@ -371,23 +756,31 @@ export async function decideObligationExtension(
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
   const decidedAt = new Date()
   const memo = input.memo?.trim() || null
   const source = input.source?.trim() || null
-  const expectedExtendedDueDate = input.expectedExtendedDueDate
-    ? new Date(`${input.expectedExtendedDueDate}T00:00:00.000Z`)
+  const filingDeadline = before.filingDueDate ?? before.baseDueDate
+  const filingDeadlineIso = toIsoDate(filingDeadline)
+  if (input.internalTargetDate && input.internalTargetDate > filingDeadlineIso) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Internal extension target date must be on or before filing deadline ${filingDeadlineIso}.`,
+    })
+  }
+
+  const internalTargetDate = input.internalTargetDate
+    ? new Date(`${input.internalTargetDate}T00:00:00.000Z`)
     : null
-  const nextStatus = input.decision === 'applied' ? 'extended' : before.status
+  const nextStatus = 'extended'
 
   await scoped.obligations.updateExtensionDecision(input.id, {
-    decision: input.decision,
+    decision: 'applied',
     memo,
     source,
-    expectedExtendedDueDate,
+    internalTargetDate,
     decidedAt,
     decidedByUserId: userId,
     status: nextStatus,
@@ -395,7 +788,7 @@ export async function decideObligationExtension(
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -408,10 +801,10 @@ export async function decideObligationExtension(
       source: before.extensionSource,
     }),
     normalizedValue: JSON.stringify({
-      decision: input.decision,
+      decision: 'applied',
       memo,
       source,
-      expectedExtendedDueDate: input.expectedExtendedDueDate ?? null,
+      internalTargetDate: input.internalTargetDate ?? null,
       paymentStillDue: true,
     }),
     appliedBy: userId,
@@ -427,14 +820,16 @@ export async function decideObligationExtension(
       extensionDecision: before.extensionDecision,
       extensionMemo: before.extensionMemo,
       extensionSource: before.extensionSource,
-      extensionExpectedDueDate: before.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      extensionInternalTargetDate:
+        before.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
     },
     after: {
       status: after.status,
       extensionDecision: after.extensionDecision,
       extensionMemo: after.extensionMemo,
       extensionSource: after.extensionSource,
-      extensionExpectedDueDate: after.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      extensionInternalTargetDate:
+        after.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
       paymentStillDue: true,
     },
     ...(memo ? { reason: memo } : {}),

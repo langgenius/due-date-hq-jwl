@@ -20,7 +20,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * Workspace settings hub. Replaces the previous "Practice" sidebar group —
  * the routes underneath still exist at their original paths (`/practice`,
  * `/members`, `/workload`, `/billing`, `/audit`, `/reminders`,
- * `/notifications`, `/obligations/calendar`), they're just no longer
+ * `/notifications`, `/deadlines/calendar`), they're just no longer
  * surfaced in the primary nav. This page is the discovery surface for
  * those config destinations.
  *
@@ -47,7 +47,7 @@ export function SettingsRoute() {
         {
           href: '/practice',
           label: t`Practice profile`,
-          description: t`Practice name, timezone, smart priority weighting.`,
+          description: t`Practice name, timezone, internal deadline policy, smart priority weighting.`,
           icon: Building2Icon,
         },
         {
@@ -99,13 +99,13 @@ export function SettingsRoute() {
           icon: AlarmClockIcon,
         },
         {
-          href: '/notifications',
-          label: t`Notifications`,
+          href: '/notifications/preferences',
+          label: t`Notification preferences`,
           description: t`Personal morning digest preferences and types.`,
           icon: BellIcon,
         },
         {
-          href: '/obligations/calendar',
+          href: '/deadlines/calendar',
           label: t`Calendar sync`,
           description: t`Subscribe to deadlines from Apple / Google calendars.`,
           icon: CalendarDaysIcon,
@@ -117,15 +117,23 @@ export function SettingsRoute() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-8 px-6 py-6">
+        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 px-6 py-6">
           <header className="flex flex-col gap-2">
             <h1 className="text-2xl leading-7 font-semibold text-text-primary">
               <Trans>Settings</Trans>
             </h1>
             <p className="max-w-[680px] text-[13px] leading-5 text-text-secondary">
+              {/* 2026-05-24 (critique P2 — clarify): dropped the
+                  trailing "Personal account settings live in the user
+                  menu in the sidebar footer" line. It pointed first-
+                  timers at a second settings home before they'd
+                  explored the first one; the user menu is already a
+                  discoverable surface on its own. The page subtitle
+                  should describe what's on this page, not where
+                  other settings live. */}
               <Trans>
                 Workspace configuration for this practice — identity, team, billing, compliance, and
-                automation. Personal account settings live in the user menu in the sidebar footer.
+                automation.
               </Trans>
             </p>
           </header>

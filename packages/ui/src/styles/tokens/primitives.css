@@ -13,8 +13,14 @@
  * -------------------------------------------------------------------------- */
 
 @theme {
-  /* ===== Fonts =========================================================== */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* ===== Fonts ===========================================================
+   * 2026-05-20: system-first per Mercury/Sana AI/Oku inheritance (DESIGN.md
+   * §Reference inheritance). Apple system on macOS/iOS, Segoe UI on
+   * Windows, Inter as a hosted fallback. Same metrics across the major
+   * platforms keeps tabular-nums alignment stable in numeric tables.
+   * --------------------------------------------------------------------- */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, Roboto, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
   /* ===== Font sizes ====================================================== */
@@ -23,11 +29,11 @@
   --text-badge: 11px;
   --text-badge--line-height: 1.333;
   --text-sm: 12px;
-  --text-base: 13px;
+  --text-base: 14px; /* 2026-05-20: was 13px. Workbench body scale. */
   --text-md: 14px;
   --text-lg: 16px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
+  --text-xl: 18px; /* 2026-05-20: was 20px. Calm section-label scale. */
+  --text-2xl: 28px; /* 2026-05-20: was 24px. Loud page/KPI anchor scale. */
   --text-section-title: 32px;
   --text-section-title--line-height: 1.1875;
   --text-display-large: 36px;
@@ -148,15 +154,15 @@
   --color-util-colors-orange-600: #e04f16;
   --color-util-colors-orange-700: #b93815;
 
-  /* ===== Util-colors: warning (amber) ==================================== */
-  --color-util-colors-warning-50: #fffaeb;
-  --color-util-colors-warning-100: #fef0c7;
-  --color-util-colors-warning-200: #fedf89;
-  --color-util-colors-warning-300: #fec84b;
-  --color-util-colors-warning-400: #fdb022;
-  --color-util-colors-warning-500: #f79009;
-  --color-util-colors-warning-600: #dc6803;
-  --color-util-colors-warning-700: #b54708;
+  /* ===== Util-colors: warning (peach/coral) ============================== */
+  --color-util-colors-warning-50: #fff4f1;
+  --color-util-colors-warning-100: #ffe4dd;
+  --color-util-colors-warning-200: #ffc7bd;
+  --color-util-colors-warning-300: #ffa091;
+  --color-util-colors-warning-400: #f77865;
+  --color-util-colors-warning-500: #f25f4c;
+  --color-util-colors-warning-600: #c83d2f;
+  --color-util-colors-warning-700: #a83227;
 
   /* ===== Util-colors: blue =============================================== */
   --color-util-colors-blue-50: #eff8ff;

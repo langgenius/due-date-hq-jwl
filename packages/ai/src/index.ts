@@ -6,6 +6,7 @@ import {
   verifyInsightOutput,
   verifyMapperEinHitRate,
   verifyPulseSourceExcerpt,
+  verifyRuleConcreteDraft,
 } from './guard'
 import { redactMigrationInput } from './pii'
 import { PulseExtractOutputSchema, type PulseExtractInput, type PulseExtractOutput } from './pulse'
@@ -20,6 +21,7 @@ import {
 import { createTrace, type AiTrace } from './trace'
 
 export interface AiEnv extends AiModelRoutingEnv {
+  ENV?: 'development' | 'staging' | 'production'
   AI_GATEWAY_ACCOUNT_ID?: string
   AI_GATEWAY_SLUG?: string
   AI_GATEWAY_API_KEY?: string
@@ -101,6 +103,10 @@ function gatewayProvider(env: AiEnv): GatewayRequest<unknown>['provider'] {
   return env.AI_GATEWAY_PROVIDER === 'openrouter' ? 'openrouter' : 'unified'
 }
 
+function shouldEnforceAiBudget(env: AiEnv): boolean {
+  return env.ENV === undefined || env.ENV === 'production'
+}
+
 export function createAI(env: AiEnv = {}) {
   async function runPrompt<TOut>(
     name: PromptName,
@@ -138,30 +144,32 @@ export function createAI(env: AiEnv = {}) {
     }
 
     try {
-      const budget = await consumeAiBudget({
-        taskKind,
-        ...(env.CACHE ? { kv: env.CACHE } : {}),
-        ...(routing.firmId ? { firmId: routing.firmId } : {}),
-        ...(routing.plan ? { plan: routing.plan } : {}),
-        ...(routing.firmCreatedAt ? { firmCreatedAt: routing.firmCreatedAt } : {}),
-        ...(routing.migrationOnboardingCompleted !== undefined
-          ? { migrationOnboardingCompleted: routing.migrationOnboardingCompleted }
-          : {}),
-      })
-      if (!budget.allowed) {
-        return refusal(
-          'AI_BUDGET_EXCEEDED',
-          'The practice reached its AI fair-use limit for today.',
-          createTrace({
-            promptVersion: name,
-            model: selectedModel,
-            latencyMs: Date.now() - startedAt,
-            guardResult: 'budget_exceeded',
-            inputHash,
-            refusalCode: 'AI_BUDGET_EXCEEDED',
-          }),
-          selectedModel,
-        )
+      if (shouldEnforceAiBudget(env)) {
+        const budget = await consumeAiBudget({
+          taskKind,
+          ...(env.CACHE ? { kv: env.CACHE } : {}),
+          ...(routing.firmId ? { firmId: routing.firmId } : {}),
+          ...(routing.plan ? { plan: routing.plan } : {}),
+          ...(routing.firmCreatedAt ? { firmCreatedAt: routing.firmCreatedAt } : {}),
+          ...(routing.migrationOnboardingCompleted !== undefined
+            ? { migrationOnboardingCompleted: routing.migrationOnboardingCompleted }
+            : {}),
+        })
+        if (!budget.allowed) {
+          return refusal(
+            'AI_BUDGET_EXCEEDED',
+            'The practice reached its AI fair-use limit for today.',
+            createTrace({
+              promptVersion: name,
+              model: selectedModel,
+              latencyMs: Date.now() - startedAt,
+              guardResult: 'budget_exceeded',
+              inputHash,
+              refusalCode: 'AI_BUDGET_EXCEEDED',
+            }),
+            selectedModel,
+          )
+        }
       }
 
       const provider = gatewayProvider(env)
@@ -173,6 +181,9 @@ export function createAI(env: AiEnv = {}) {
         input: redacted.input,
         schema,
         provider,
+        ...(name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2'
+          ? { timeoutMs: 25_000 }
+          : {}),
         ...(env.AI_GATEWAY_API_KEY ? { gatewayApiKey: env.AI_GATEWAY_API_KEY } : {}),
         ...(provider === 'openrouter' && env.AI_GATEWAY_PROVIDER_API_KEY
           ? { providerApiKey: env.AI_GATEWAY_PROVIDER_API_KEY }
@@ -199,8 +210,11 @@ export function createAI(env: AiEnv = {}) {
         )
       }
 
-      if (name === 'mapper@v1') verifyMapperEinHitRate(input, parsed.data)
-      if (name === 'pulse-extract@v1') verifyPulseSourceExcerpt(input, parsed.data)
+      if (name === 'mapper@v1' || name === 'mapper@v2') verifyMapperEinHitRate(input, parsed.data)
+      if (name === 'pulse-extract@v2') verifyPulseSourceExcerpt(input, parsed.data)
+      if (name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2') {
+        verifyRuleConcreteDraft(input, parsed.data)
+      }
       if (name === 'client-risk-summary@v1' || name === 'deadline-tip@v1') {
         verifyInsightOutput(input, parsed.data)
       }
@@ -261,7 +275,7 @@ export function createAI(env: AiEnv = {}) {
       input: PulseExtractInput,
       routing: AiRoutingInput = {},
     ): Promise<AiRunResult<PulseExtractOutput>> {
-      return runPrompt('pulse-extract@v1', input, PulseExtractOutputSchema, {
+      return runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema, {
         ...routing,
         taskKind: routing.taskKind ?? 'pulse',
       })

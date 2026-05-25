@@ -18,6 +18,7 @@ type AuditActionCategory =
   | 'auth'
   | 'team'
   | 'pulse'
+  | 'opportunity'
   | 'export'
   | 'ai'
   | 'system'
@@ -57,6 +58,12 @@ const CATEGORY_PREFIXES: Record<Exclude<AuditActionCategory, 'system'>, readonly
   auth: ['auth.'],
   team: ['team.', 'member.', 'firm.owner.'],
   pulse: ['pulse.'],
+  // 2026-05-24 (re-critique): `opportunity.*` events (dismiss /
+  // snooze / restore) used to fall through into the "system" bucket
+  // when a reviewer filtered by category — visible in the log itself
+  // but invisible to the filter. Now they have their own first-class
+  // category alongside `pulse`.
+  opportunity: ['opportunity.'],
   export: ['export.', 'ics.'],
   ai: ['ai.', 'ask.', 'onboarding.agent.'],
 }

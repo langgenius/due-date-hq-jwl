@@ -23,9 +23,13 @@ const OTHER_FIRM = 'firm-2'
 const USER = 'user-1'
 const RULE_REVIEWED_AT = new Date('2026-05-05T00:00:00.000Z')
 
-function activePracticeRuleRows(firmId: string) {
+function activePracticeRuleRows(
+  firmId: string,
+  predicate: (rule: ReturnType<typeof listObligationRules>[number]) => boolean = (rule) =>
+    rule.status === 'verified',
+) {
   return listObligationRules({ includeCandidates: true })
-    .filter((rule) => rule.status === 'verified')
+    .filter(predicate)
     .map((rule) => ({
       id: `practice_${rule.id}`,
       firmId,
@@ -55,11 +59,12 @@ interface MigrationBatchRow {
     | 'preset_karbon'
     | 'preset_quickbooks'
     | 'preset_file_in_time'
-    | 'integration_taxdome_zapier'
-    | 'integration_karbon_api'
-    | 'integration_soraban_api'
-    | 'integration_safesend_api'
-    | 'integration_proconnect_export'
+    | 'preset_cch_axcess'
+    | 'preset_cch_prosystem_fx'
+    | 'preset_lacerte'
+    | 'preset_proseries'
+    | 'preset_ultratax_cs'
+    | 'preset_proconnect_tax'
   rawInputR2Key: string | null
   rawInputFileName: string | null
   rawInputContentType: string | null
@@ -106,66 +111,48 @@ function unusedFilingProfilesRepo(firmId: string): ScopedRepo['filingProfiles'] 
   }
 }
 
-function buildScopedRepo(firmId: string) {
+function buildScopedRepo(
+  firmId: string,
+  options: { activeRuleRows?: ReturnType<typeof activePracticeRuleRows> } = {},
+) {
   const batches = new Map<string, MigrationBatchRow>()
   const audits: Array<{ action: string; firmId: string; entityId: string }> = []
   const evidences: Array<{ sourceType: string; firmId: string; aiOutputId?: string | null }> = []
   const aiRuns: Array<{ kind: string; aiOutputId: string }> = []
-  const importedClients: Array<{ id: string; migrationBatchId: string | null | undefined }> = []
+  const importedClients: Array<{
+    id: string
+    name?: string
+    primaryContactName: string | null | undefined
+    primaryContactEmail: string | null | undefined
+    externalClientId: string | null | undefined
+    addressLine1: string | null | undefined
+    city: string | null | undefined
+    postalCode: string | null | undefined
+    primaryPhone: string | null | undefined
+    sourceStatus: string | null | undefined
+    taxYearType: 'calendar' | 'fiscal' | undefined
+    fiscalYearEndMonth: number | null | undefined
+    fiscalYearEndDay: number | null | undefined
+    migrationBatchId: string | null | undefined
+  }> = []
   const importedObligations: Array<{
     id: string
     clientId: string
+    clientFilingProfileId: string | null | undefined
+    jurisdiction: string | null | undefined
+    taxType: string | undefined
+    baseDueDate: Date | undefined
+    taxPeriodStart: Date | null | undefined
+    taxPeriodEnd: Date | null | undefined
+    status: string | undefined
     migrationBatchId: string | null | undefined
   }> = []
-  const stagingRows: Array<{
+  const importedFilingProfiles: Array<{
     id: string
-    batchId: string
-    firmId: string
-    provider: 'taxdome' | 'karbon' | 'soraban' | 'safesend' | 'proconnect'
-    externalEntityType:
-      | 'account'
-      | 'contact'
-      | 'organization'
-      | 'work_item'
-      | 'client'
-      | 'return'
-      | 'organizer'
-      | 'delivery'
-      | 'signature'
-      | 'payment'
-      | 'unknown'
-    externalId: string
-    externalUrl: string | null
-    rowIndex: number
-    rowHash: string
-    rawRowJson: unknown
-    createdAt: Date
-  }> = []
-  const externalRefs: Array<{
-    id: string
-    firmId: string
-    provider: 'taxdome' | 'karbon' | 'soraban' | 'safesend' | 'proconnect'
-    migrationBatchId: string | null
-    internalEntityType: 'client' | 'obligation' | 'return_project'
-    internalEntityId: string
-    externalEntityType:
-      | 'account'
-      | 'contact'
-      | 'organization'
-      | 'work_item'
-      | 'client'
-      | 'return'
-      | 'organizer'
-      | 'delivery'
-      | 'signature'
-      | 'payment'
-      | 'unknown'
-    externalId: string
-    externalUrl: string | null
-    metadataJson: unknown
-    lastSyncedAt: Date | null
-    createdAt: Date
-    updatedAt: Date
+    clientId: string
+    state: string
+    taxTypesJson: string[] | undefined
+    migrationBatchId: string | null | undefined
   }> = []
   const mappings: Array<{ batchId: string; sourceHeader: string; targetField: string }> = []
   const normalizations: Array<{ batchId: string; field: string; rawValue: string }> = []
@@ -200,6 +187,7 @@ function buildScopedRepo(firmId: string) {
     async updatePenaltyInputs() {},
     async updateJurisdiction() {},
     async updateRiskProfile() {},
+    async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
     async deleteByBatch() {
@@ -231,10 +219,18 @@ function buildScopedRepo(firmId: string) {
       return []
     },
     async updateDueDate() {},
+    async updateTaxYearProfile() {},
     async updateExposure() {},
     async updateStatus() {},
     async updateExtensionDecision() {},
     async updateStatusMany() {},
+    async setEfileRejected() {},
+    async setBlockedBy() {},
+    async setPrepStage() {},
+    async setReviewStage() {},
+    async unblockChildrenOf() {
+      return []
+    },
     async deleteByBatch() {
       return 0
     },
@@ -320,68 +316,6 @@ function buildScopedRepo(firmId: string) {
         })
       return rows.length
     },
-    async createStagingRows(
-      batchId: string,
-      rows: Parameters<MigrationRepo['createStagingRows']>[1],
-    ) {
-      const b = batches.get(batchId)
-      if (!b || b.firmId !== firmId) throw new Error('cross firm')
-      const now = new Date()
-      for (const row of rows) {
-        stagingRows.push({
-          id: row.id ?? crypto.randomUUID(),
-          firmId,
-          batchId,
-          provider: row.provider,
-          externalEntityType: row.externalEntityType,
-          externalId: row.externalId,
-          externalUrl: row.externalUrl ?? null,
-          rowIndex: row.rowIndex,
-          rowHash: row.rowHash,
-          rawRowJson: row.rawRowJson,
-          createdAt: now,
-        })
-      }
-      return rows.length
-    },
-    async listStagingRows(batchId: string) {
-      const b = batches.get(batchId)
-      if (!b || b.firmId !== firmId) return []
-      return stagingRows
-        .filter((row) => row.batchId === batchId)
-        .toSorted((left, right) => left.rowIndex - right.rowIndex)
-    },
-    async createExternalReferences(rows) {
-      const now = new Date()
-      for (const row of rows) {
-        externalRefs.push({
-          id: row.id ?? crypto.randomUUID(),
-          firmId,
-          provider: row.provider,
-          migrationBatchId: row.migrationBatchId ?? null,
-          internalEntityType: row.internalEntityType,
-          internalEntityId: row.internalEntityId,
-          externalEntityType: row.externalEntityType,
-          externalId: row.externalId,
-          externalUrl: row.externalUrl ?? null,
-          metadataJson: row.metadataJson ?? null,
-          lastSyncedAt: row.lastSyncedAt ?? null,
-          createdAt: now,
-          updatedAt: now,
-        })
-      }
-      return rows.length
-    },
-    async findExternalReferences(input) {
-      const ids = new Set(input.externalIds)
-      return externalRefs.filter(
-        (row) =>
-          row.firmId === firmId &&
-          row.provider === input.provider &&
-          ids.has(row.externalId) &&
-          (input.internalEntityType ? row.internalEntityType === input.internalEntityType : true),
-      )
-    },
     async listMappings() {
       return []
     },
@@ -414,6 +348,18 @@ function buildScopedRepo(firmId: string) {
       importedClients.push(
         ...input.clients.map((item) => ({
           id: item.id,
+          name: item.name,
+          primaryContactName: item.primaryContactName,
+          primaryContactEmail: item.primaryContactEmail,
+          externalClientId: item.externalClientId,
+          addressLine1: item.addressLine1,
+          city: item.city,
+          postalCode: item.postalCode,
+          primaryPhone: item.primaryPhone,
+          sourceStatus: item.sourceStatus,
+          taxYearType: item.taxYearType,
+          fiscalYearEndMonth: item.fiscalYearEndMonth,
+          fiscalYearEndDay: item.fiscalYearEndDay,
           migrationBatchId: item.migrationBatchId,
         })),
       )
@@ -421,6 +367,22 @@ function buildScopedRepo(firmId: string) {
         ...input.obligations.map((item) => ({
           id: item.id,
           clientId: item.clientId,
+          clientFilingProfileId: item.clientFilingProfileId,
+          jurisdiction: item.jurisdiction,
+          taxType: item.taxType,
+          baseDueDate: item.baseDueDate,
+          taxPeriodStart: item.taxPeriodStart,
+          taxPeriodEnd: item.taxPeriodEnd,
+          status: item.status,
+          migrationBatchId: item.migrationBatchId,
+        })),
+      )
+      importedFilingProfiles.push(
+        ...input.filingProfiles.map((item) => ({
+          id: item.id,
+          clientId: item.clientId,
+          state: item.state,
+          taxTypesJson: item.taxTypesJson,
           migrationBatchId: item.migrationBatchId,
         })),
       )
@@ -433,24 +395,6 @@ function buildScopedRepo(firmId: string) {
       }
       for (const item of input.audits) {
         audits.push({ action: item.action, firmId, entityId: item.entityId })
-      }
-      const now = new Date()
-      for (const item of input.externalReferences ?? []) {
-        externalRefs.push({
-          id: item.id,
-          firmId,
-          provider: item.provider,
-          migrationBatchId: item.migrationBatchId ?? null,
-          internalEntityType: item.internalEntityType,
-          internalEntityId: item.internalEntityId,
-          externalEntityType: item.externalEntityType,
-          externalId: item.externalId,
-          externalUrl: item.externalUrl ?? null,
-          metadataJson: item.metadataJson ?? null,
-          lastSyncedAt: item.lastSyncedAt ?? null,
-          createdAt: now,
-          updatedAt: now,
-        })
       }
       batches.set(input.batchId, {
         ...b,
@@ -472,6 +416,7 @@ function buildScopedRepo(firmId: string) {
         (item) => item.migrationBatchId === input.batchId,
       ).length
       removeWhere(importedObligations, (item) => item.migrationBatchId === input.batchId)
+      removeWhere(importedFilingProfiles, (item) => item.migrationBatchId === input.batchId)
       removeWhere(importedClients, (item) => item.migrationBatchId === input.batchId)
       evidences.push({ sourceType: 'migration_revert', firmId })
       audits.push({ action: 'migration.reverted', firmId, entityId: input.batchId })
@@ -497,6 +442,10 @@ function buildScopedRepo(firmId: string) {
       ).length
       removeWhere(
         importedObligations,
+        (item) => item.clientId === input.clientId && item.migrationBatchId === input.batchId,
+      )
+      removeWhere(
+        importedFilingProfiles,
         (item) => item.clientId === input.clientId && item.migrationBatchId === input.batchId,
       )
       removeWhere(
@@ -567,7 +516,14 @@ function buildScopedRepo(firmId: string) {
       return []
     },
     async facets() {
-      return { clients: [], states: [], counties: [], taxTypes: [], assigneeNames: [] }
+      return {
+        clients: [],
+        states: [],
+        counties: [],
+        taxTypes: [],
+        assigneeNames: [],
+        statuses: [],
+      }
     },
     async listSavedViews() {
       return []
@@ -596,6 +552,9 @@ function buildScopedRepo(firmId: string) {
     async listAlerts() {
       return unexpectedRepoCall('pulse.listAlerts')
     },
+    async countActiveAlerts() {
+      return unexpectedRepoCall('pulse.countActiveAlerts')
+    },
     async listHistory() {
       return unexpectedRepoCall('pulse.listHistory')
     },
@@ -607,6 +566,9 @@ function buildScopedRepo(firmId: string) {
     },
     async getSourceSignal() {
       return unexpectedRepoCall('pulse.getSourceSignal')
+    },
+    async getLatestSourceSnapshotBySourceId() {
+      return unexpectedRepoCall('pulse.getLatestSourceSnapshotBySourceId')
     },
     async reviewSourceSignalForRule() {
       return unexpectedRepoCall('pulse.reviewSourceSignalForRule')
@@ -635,6 +597,9 @@ function buildScopedRepo(firmId: string) {
     async snooze() {
       return unexpectedRepoCall('pulse.snooze')
     },
+    async markReviewed() {
+      return unexpectedRepoCall('pulse.markReviewed')
+    },
     async revert() {
       return unexpectedRepoCall('pulse.revert')
     },
@@ -648,7 +613,24 @@ function buildScopedRepo(firmId: string) {
     filingProfiles: unusedFilingProfilesRepo(firmId),
     ai: {
       firmId,
+      async findSuccessfulRun() {
+        return null
+      },
+      async findSuccessfulGlobalRun() {
+        return null
+      },
+      async findSuccessfulRunsByContextRefs() {
+        return []
+      },
+      async findSuccessfulGlobalRunsByContextRefs() {
+        return []
+      },
       async recordRun(input) {
+        const aiOutputId = `ai-output-${aiRuns.length + 1}`
+        aiRuns.push({ kind: input.kind, aiOutputId })
+        return { aiOutputId, llmLogId: `llm-log-${aiRuns.length}` }
+      },
+      async recordGlobalRun(input) {
         const aiOutputId = `ai-output-${aiRuns.length + 1}`
         aiRuns.push({ kind: input.kind, aiOutputId })
         return { aiOutputId, llmLogId: `llm-log-${aiRuns.length}` }
@@ -718,6 +700,21 @@ function buildScopedRepo(firmId: string) {
     pulse,
     readiness: {
       firmId,
+      async listDocumentChecklistByObligation() {
+        return unexpectedRepoCall('readiness.listDocumentChecklistByObligation')
+      },
+      async createDocumentChecklistItems() {
+        return unexpectedRepoCall('readiness.createDocumentChecklistItems')
+      },
+      async reconcileDocumentChecklistItems() {
+        return unexpectedRepoCall('readiness.reconcileDocumentChecklistItems')
+      },
+      async updateDocumentChecklistItem() {
+        return unexpectedRepoCall('readiness.updateDocumentChecklistItem')
+      },
+      async deleteDocumentChecklistItem() {
+        return unexpectedRepoCall('readiness.deleteDocumentChecklistItem')
+      },
       async listByObligation() {
         return unexpectedRepoCall('readiness.listByObligation')
       },
@@ -732,15 +729,16 @@ function buildScopedRepo(firmId: string) {
       async submitResponses() {
         return unexpectedRepoCall('readiness.submitResponses')
       },
+      async syncDocumentChecklistFromResponses() {},
     },
     rules: {
       firmId,
       async upsertGlobalTemplates() {},
       async listPracticeRules() {
-        return activePracticeRuleRows(firmId)
+        return options.activeRuleRows ?? activePracticeRuleRows(firmId)
       },
       async listActivePracticeRules() {
-        return activePracticeRuleRows(firmId)
+        return options.activeRuleRows ?? activePracticeRuleRows(firmId)
       },
       async getPracticeRule() {
         return null
@@ -790,9 +788,8 @@ function buildScopedRepo(firmId: string) {
       normalizations,
       errors,
       importedClients,
+      importedFilingProfiles,
       importedObligations,
-      stagingRows,
-      externalRefs,
       aiRuns,
     },
     repo,
@@ -857,7 +854,7 @@ function buildAi(rawResult?: unknown): AI {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v1', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
 
   return { extractPulse, runPrompt, runStreaming: runPrompt }
 }
@@ -873,7 +870,7 @@ function buildCountingMigrationAi(): {
     calls.push(name)
     routings.push(routing)
     const result =
-      name === 'mapper@v1'
+      name === 'mapper@v2'
         ? {
             mappings: [
               {
@@ -950,7 +947,7 @@ function buildCountingMigrationAi(): {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v1', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
 
   return { ai: { extractPulse, runPrompt, runStreaming: runPrompt }, calls, routings }
 }
@@ -983,9 +980,26 @@ type SourcePreset =
   | 'preset_karbon'
   | 'preset_quickbooks'
   | 'preset_file_in_time'
+  | 'preset_cch_axcess'
+  | 'preset_cch_prosystem_fx'
+  | 'preset_lacerte'
+  | 'preset_proseries'
+  | 'preset_ultratax_cs'
+  | 'preset_proconnect_tax'
 
 interface FixtureGoldenCase {
-  preset: 'taxdome' | 'drake' | 'karbon' | 'quickbooks' | 'file_in_time'
+  preset:
+    | 'taxdome'
+    | 'drake'
+    | 'karbon'
+    | 'quickbooks'
+    | 'file_in_time'
+    | 'cch_axcess'
+    | 'cch_prosystem_fx'
+    | 'lacerte'
+    | 'proseries'
+    | 'ultratax_cs'
+    | 'proconnect_tax'
   source: SourcePreset
   file: string
   clients: number
@@ -1049,15 +1063,15 @@ const PRESET_GOLDENS: FixtureGoldenCase[] = [
       'Organization Name': 'client.name',
       'Tax ID': 'client.ein',
       Country: 'IGNORE',
-      'Primary Contact': 'IGNORE',
-      'Contact Email': 'IGNORE',
+      'Primary Contact': 'client.primary_contact_name',
+      'Contact Email': 'client.primary_contact_email',
     },
     importMappings: {
       'Organization Name': 'client.name',
       'Tax ID': 'client.ein',
       Country: 'IGNORE',
-      'Primary Contact': 'client.assignee_name',
-      'Contact Email': 'client.email',
+      'Primary Contact': 'client.primary_contact_name',
+      'Contact Email': 'client.primary_contact_email',
     },
   },
   {
@@ -1106,6 +1120,145 @@ const PRESET_GOLDENS: FixtureGoldenCase[] = [
       State: 'client.state',
       County: 'client.county',
       Notes: 'client.notes',
+    },
+  },
+  {
+    preset: 'cch_axcess',
+    source: 'preset_cch_axcess',
+    file: 'cch-axcess-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Sub-ID': 'client.external_client_id',
+      'Client GUID': 'IGNORE',
+      'Name Line 1': 'client.name',
+      'Name Line 2': 'IGNORE',
+      'Sort Name': 'client.name',
+      'Federal ID': 'client.ein',
+      'Client Type': 'client.tax_types',
+      FYE: 'client.fiscal_year_end',
+      'Address 1': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Office: 'client.notes',
+      'Responsible Staff': 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'cch_prosystem_fx',
+    source: 'preset_cch_prosystem_fx',
+    file: 'cch-prosystem-fx-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Sub-ID': 'client.external_client_id',
+      'Name Line 1': 'client.name',
+      'Name Line 2': 'IGNORE',
+      'Sort Name': 'client.name',
+      'Federal ID': 'client.ein',
+      'Client Type': 'client.tax_types',
+      FYE: 'client.fiscal_year_end',
+      'Address 1': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Partner: 'client.assignee_name',
+      Manager: 'client.assignee_name',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'lacerte',
+    source: 'preset_lacerte',
+    file: 'lacerte-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client Number': 'client.external_client_id',
+      'Taxpayer First Name': 'client.primary_contact_name',
+      'Taxpayer Last Name': 'client.primary_contact_name',
+      'Client Name': 'client.name',
+      'Return Type': 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      'Street Address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      'Taxpayer Phone': 'client.primary_phone',
+      'Taxpayer E-mail Address': 'client.email',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'proseries',
+    source: 'preset_proseries',
+    file: 'proseries-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'First Name': 'client.primary_contact_name',
+      'Last Name': 'client.primary_contact_name',
+      'Client Name': 'client.name',
+      'Client Status': 'client.source_status',
+      'Return Type': 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      'Client Street and Apt Address': 'client.address_line_1',
+      'Client City': 'client.city',
+      'Client State': 'client.state',
+      'Client Zip': 'client.postal_code',
+      'Home Phone': 'client.primary_phone',
+      'Mobile Phone': 'client.primary_phone',
+      Email: 'client.email',
+      Preparer: 'client.assignee_name',
+    },
+  },
+  {
+    preset: 'ultratax_cs',
+    source: 'preset_ultratax_cs',
+    file: 'ultratax-cs-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Client ID': 'client.external_client_id',
+      'Client Name': 'client.name',
+      Entity: 'client.tax_types',
+      'SSN/EIN': 'IGNORE',
+      Preparer: 'client.assignee_name',
+      'Street Address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      ZIP: 'client.postal_code',
+      Phone: 'client.primary_phone',
+      Email: 'client.email',
+      Status: 'client.source_status',
+    },
+  },
+  {
+    preset: 'proconnect_tax',
+    source: 'preset_proconnect_tax',
+    file: 'proconnect-tax-2clients.csv',
+    clients: 2,
+    expectedEinInvalid: 0,
+    expectedMappings: {
+      'Taxpayer name': 'client.name',
+      'Taxpayer email address': 'client.email',
+      'Taxpayer phone number': 'client.primary_phone',
+      'Street address': 'client.address_line_1',
+      City: 'client.city',
+      State: 'client.state',
+      'Zip code': 'client.postal_code',
+      'Return type': 'client.tax_types',
+      'Tax year': 'IGNORE',
+      Refund: 'IGNORE',
+      'Taxes owed': 'client.estimated_tax_liability',
+      Preparer: 'client.assignee_name',
     },
   },
 ]
@@ -1180,6 +1333,31 @@ function overrideFixtureMappings(
   })
 }
 
+function matrixAppliedForTest(value: unknown): Array<{
+  entityType: string
+  state: string
+  applicationMode: string
+  taxTypes: string[]
+}> {
+  if (typeof value !== 'object' || value === null || !('matrixApplied' in value)) return []
+  const matrixApplied = value.matrixApplied
+  if (!Array.isArray(matrixApplied)) return []
+  return matrixApplied.filter(isMatrixApplicationTestEntry)
+}
+
+function isMatrixApplicationTestEntry(value: unknown): value is {
+  entityType: string
+  state: string
+  applicationMode: string
+  taxTypes: string[]
+} {
+  if (typeof value !== 'object' || value === null) return false
+  if (!('entityType' in value) || typeof value.entityType !== 'string') return false
+  if (!('state' in value) || typeof value.state !== 'string') return false
+  if (!('applicationMode' in value) || typeof value.applicationMode !== 'string') return false
+  return 'taxTypes' in value && Array.isArray(value.taxTypes)
+}
+
 describe('MigrationService.createBatch', () => {
   it('writes a draft batch + audit row', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
@@ -1226,10 +1404,40 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
 
     const batch = await service.createBatch({ source: 'preset_taxdome', presetUsed: 'taxdome' })
-    await service.uploadRaw({ batchId: batch.id, kind: 'csv', text: SAMPLE_CSV })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'csv',
+      text: SAMPLE_CSV,
+      sourceManifest: {
+        product: 'taxdome',
+        confidence: 0.95,
+        reason: 'TaxDome account export headers detected.',
+        originalFileName: 'accounts.csv',
+        originalKind: 'csv',
+        selectedFileName: 'accounts.csv',
+        selectedRole: 'account_list',
+        files: [
+          {
+            fileName: 'accounts.csv',
+            originalKind: 'csv',
+            role: 'account_list',
+            product: 'taxdome',
+            rowCount: 3,
+            selected: true,
+          },
+        ],
+        warnings: [],
+      },
+    })
 
     const result = await service.runMapper(batch.id)
 
+    expect(state.batches.get(batch.id)?.mappingJson).toMatchObject({
+      sourceManifest: {
+        product: 'taxdome',
+        selectedFileName: 'accounts.csv',
+      },
+    })
     expect(result.meta?.fallback).toBe('preset')
     expect(result.mappings.length).toBeGreaterThan(0)
     // TaxDome's public export docs use Account Name, not this fixture's
@@ -1275,7 +1483,7 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
 
     const result = await service.runMapper(batch.id)
 
-    expect(calls).toContain('mapper@v1')
+    expect(calls).toContain('mapper@v2')
     expect(result.meta?.fallback).toBeNull()
     expect(result.mappings.some((mapping) => mapping.targetField === 'client.name')).toBe(true)
     expect(state.aiRuns.some((run) => run.kind === 'migration_map')).toBe(true)
@@ -1389,96 +1597,42 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
     const updated = await service.getBatch(batch.id)
     expect(updated?.mappingJson).toEqual(expect.objectContaining({ ssnBlockedColumns: [1, 2] }))
   })
-})
 
-describe('MigrationService integration staging', () => {
-  it('routes Karbon staging rows through mapper, normalizer, apply, and external refs', async () => {
-    const { repo, state } = buildScopedRepo(FIRM)
-    const ai = buildAi()
+  it('allows a user-confirmed EIN mapping for an SSN/EIN column', async () => {
+    const { repo } = buildScopedRepo(FIRM)
+    const ai = buildAi({
+      mappings: [{ source: 'Client Name', target: 'client.name', confidence: 0.99 }],
+    })
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
 
-    const batch = await service.createBatch({ source: 'integration_karbon_api' })
-    const staged = await service.stageExternalRows({
-      batchId: batch.id,
-      provider: 'karbon',
-      rows: [
-        {
-          externalId: 'karbon-work-1',
-          externalEntityType: 'work_item',
-          externalUrl: 'https://app.karbonhq.com/work/karbon-work-1',
-          rawJson: {
-            'Organization Name': 'Acme LLC',
-            'Tax ID': '12-3456789',
-            State: 'CA',
-            'Entity Type': 'LLC',
-            'Tax Return Type': 'Form 1120-S',
-            'Contact Email': 'acme@example.com',
-          },
-        },
-      ],
-    })
-
-    expect(staged.rowCount).toBe(1)
-    expect(state.stagingRows).toHaveLength(1)
-    expect(staged.headers).toEqual(expect.arrayContaining(['External ID', 'Organization Name']))
+    const batch = await service.createBatch({ source: 'paste' })
+    const csv = `Client Name,SSN/EIN,SSN\nAcme LLC,12-3456789,123-45-6789`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
 
     const mapper = await service.runMapper(batch.id)
-    const mappings = mapper.mappings.map((mapping) =>
-      Object.assign({}, mapping, {
-        targetField:
-          mapping.sourceHeader === 'Organization Name'
-            ? ('client.name' as const)
-            : mapping.sourceHeader === 'Tax ID'
-              ? ('client.ein' as const)
-              : mapping.sourceHeader === 'State'
-                ? ('client.state' as const)
-                : mapping.sourceHeader === 'Entity Type'
-                  ? ('client.entity_type' as const)
-                  : mapping.sourceHeader === 'Contact Email'
-                    ? ('client.email' as const)
-                    : ('IGNORE' as const),
+    const userMappings = [...mapper.mappings]
+    const ssnEinIndex = userMappings.findIndex((mapping) => mapping.sourceHeader === 'SSN/EIN')
+    const ssnIndex = userMappings.findIndex((mapping) => mapping.sourceHeader === 'SSN')
+    if (ssnEinIndex >= 0) {
+      userMappings[ssnEinIndex] = {
+        ...userMappings[ssnEinIndex]!,
+        targetField: 'client.ein',
         userOverridden: true,
-      }),
+      }
+    }
+    if (ssnIndex >= 0) {
+      userMappings[ssnIndex] = {
+        ...userMappings[ssnIndex]!,
+        targetField: 'client.notes',
+        userOverridden: true,
+      }
+    }
+    const confirmed = await service.confirmMapping(batch.id, userMappings)
+
+    expect(confirmed.mappings.find((m) => m.sourceHeader === 'SSN/EIN')?.targetField).toBe(
+      'client.ein',
     )
-    await service.confirmMapping(batch.id, mappings)
-    const normalizer = await service.runNormalizer(batch.id)
-    await service.confirmNormalization(batch.id, normalizer.normalizations)
-    await service.applyDefaultMatrix(batch.id)
-
-    const applied = await service.apply(batch.id)
-
-    expect(applied.clientCount).toBe(1)
-    expect(applied.obligationCount).toBeGreaterThan(0)
-    expect(state.externalRefs.some((ref) => ref.internalEntityType === 'client')).toBe(true)
-    expect(state.externalRefs.some((ref) => ref.internalEntityType === 'obligation')).toBe(true)
-    expect(state.externalRefs.every((ref) => ref.provider === 'karbon')).toBe(true)
-  })
-
-  it('clones previous staging rows without calling the provider again', async () => {
-    const { repo, state } = buildScopedRepo(FIRM)
-    const ai = buildAi()
-    const service = new MigrationService({ scoped: repo, ai, userId: USER })
-
-    const source = await service.createBatch({ source: 'integration_taxdome_zapier' })
-    await service.stageExternalRows({
-      batchId: source.id,
-      provider: 'taxdome',
-      rows: [
-        {
-          externalId: 'taxdome-account-1',
-          externalEntityType: 'account',
-          rawJson: { 'Client Name': 'Bright Studio', State: 'NY', 'Entity Type': 'S-Corp' },
-        },
-      ],
-    })
-    await repo.migration.updateBatch(source.id, { status: 'failed' })
-
-    const cloned = await service.cloneStagingRows(source.id)
-
-    expect(cloned.batch.id).not.toBe(source.id)
-    expect(cloned.batch.source).toBe('integration_taxdome_zapier')
-    expect(cloned.rowCount).toBe(1)
-    expect(state.stagingRows.filter((row) => row.batchId === cloned.batch.id)).toHaveLength(1)
+    expect(confirmed.mappings.find((m) => m.sourceHeader === 'SSN')?.targetField).toBe('IGNORE')
   })
 })
 
@@ -1518,6 +1672,42 @@ describe('MigrationService fixture golden tests', () => {
     },
   )
 
+  it('commits tax software source fields onto imported clients', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+    const golden = PRESET_GOLDENS.find((item) => item.preset === 'cch_axcess')
+    if (!golden) throw new Error('Missing CCH Axcess fixture golden case')
+
+    const batch = await service.createBatch({
+      source: golden.source,
+      presetUsed: golden.preset,
+    })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'csv',
+      text: readFixture(golden.file),
+    })
+
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, golden.importMappings ?? golden.expectedMappings),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+    await service.applyDefaultMatrix(batch.id)
+    await service.apply(batch.id)
+
+    expect(state.importedClients[0]).toMatchObject({
+      externalClientId: 'AX100',
+      addressLine1: '100 Main St',
+      city: 'Los Angeles',
+      postalCode: '90012',
+      primaryPhone: '213-555-0100',
+    })
+  })
+
   it('keeps the messy fixture bad-row count stable when mapped without AI', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
     const ai = buildAi()
@@ -1538,7 +1728,7 @@ describe('MigrationService fixture golden tests', () => {
     expect(state.errors.filter((error) => error.errorCode === 'EIN_INVALID')).toHaveLength(8)
   })
 
-  it('calculates exposure preview from explicit tax-due fixture inputs', async () => {
+  it('imports obligations from explicit tax-due fixture inputs', async () => {
     const { repo } = buildScopedRepo(FIRM)
     const ai = buildAi()
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
@@ -1577,14 +1767,10 @@ describe('MigrationService fixture golden tests', () => {
     await service.confirmNormalization(batch.id, normalizer.normalizations)
 
     const dryRun = await service.applyDefaultMatrix(batch.id)
-    expect(dryRun.exposurePreview?.totalExposureCents).toBeGreaterThan(0)
-    expect(dryRun.exposurePreview?.readyCount).toBeGreaterThan(0)
-    expect(dryRun.exposurePreview?.needsInputCount).toBeGreaterThan(0)
+    expect(dryRun.obligationsToCreate).toBeGreaterThan(0)
 
     const applied = await service.apply(batch.id)
-    expect(applied.exposureSummary.totalExposureCents).toBe(
-      dryRun.exposurePreview?.totalExposureCents,
-    )
+    expect(applied.obligationCount).toBeGreaterThanOrEqual(dryRun.obligationsToCreate)
   })
 })
 
@@ -1687,6 +1873,185 @@ describe('MigrationService.dryRun with Default Matrix', () => {
     expect(summary.obligationsToCreate).toBeGreaterThan(0)
   })
 
+  it('applies matrix suggestions when imported tax types are only federal return types', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+Texas Corp,TX,C-Corp,Form 1120`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const matrixApplied = matrixAppliedForTest(state.batches.get(batch.id)?.mappingJson)
+    const txCell = matrixApplied.find((cell) => cell.entityType === 'c_corp' && cell.state === 'TX')
+
+    expect(txCell).toMatchObject({ applicationMode: 'federal_return_type_plus_state' })
+    expect(txCell?.taxTypes).toContain('federal_1120')
+    expect(txCell?.taxTypes).toContain('tx_state_franchise_or_entity_tax')
+    expect(summary.ruleReviewWarnings.some((warning) => warning.state === 'TX')).toBe(true)
+  })
+
+  it('does not apply matrix suggestions when explicit tax types already include that state', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California LLC,CA,LLC,Form 1065 + CA LLC`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    await service.applyDefaultMatrix(batch.id)
+    const matrixApplied = matrixAppliedForTest(state.batches.get(batch.id)?.mappingJson)
+
+    expect(matrixApplied).toEqual([])
+  })
+
+  it('warns when state matrix suggestions do not have active practice rules', async () => {
+    const federalOnlyRules = activePracticeRuleRows(
+      FIRM,
+      (rule) => rule.status === 'verified' && rule.jurisdiction === 'FED',
+    )
+    const { repo, state } = buildScopedRepo(FIRM, { activeRuleRows: federalOnlyRules })
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California LLC,CA,LLC,Form 1065`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    expect(summary.ruleReviewWarnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          state: 'CA',
+          entityType: 'llc',
+          affectedClientCount: 1,
+          reason: 'rules_pending_review',
+        }),
+      ]),
+    )
+    expect(result.clientCount).toBe(1)
+    expect(state.importedObligations.some((item) => item.jurisdiction === 'FED')).toBe(true)
+    expect(state.importedObligations.some((item) => item.jurisdiction === 'CA')).toBe(false)
+  })
+
+  it('warns about state rule review even when the firm has no active rules yet', async () => {
+    const { repo } = buildScopedRepo(FIRM, { activeRuleRows: [] })
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California LLC,CA,LLC,Form 1065`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+
+    expect(summary.obligationsToCreate).toBe(0)
+    expect(summary.ruleReviewWarnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          state: 'CA',
+          entityType: 'llc',
+          reason: 'rules_pending_review',
+        }),
+      ]),
+    )
+  })
+
+  it('creates state deadlines from matrix suggestions when matching practice rules are active', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Entity Type,Return Type
+California LLC,CA,LLC,Form 1065`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+    const summary = await service.applyDefaultMatrix(batch.id)
+
+    await service.apply(batch.id)
+
+    expect(summary.ruleReviewWarnings).toEqual([])
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'CA' && item.clientFilingProfileId !== null,
+      ),
+    ).toBe(true)
+    expect(
+      state.importedFilingProfiles.some(
+        (profile) =>
+          profile.state === 'CA' && profile.taxTypesJson?.includes('ca_llc_franchise_min_800'),
+      ),
+    ).toBe(true)
+  })
+
   it('honors disabled matrix selections in dryRun and apply', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
     const ai = buildAi()
@@ -1755,6 +2120,110 @@ describe('MigrationService.apply', () => {
     expect(state.audits.some((item) => item.action === 'migration.imported')).toBe(true)
     expect(appliedBatch?.status).toBe('applied')
     expect(appliedBatch?.successCount).toBe(3)
+  })
+
+  it('uses calendar fallback unless imported client facts explicitly mark a fiscal year', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types,Tax Year Type,Fiscal Year End
+Calendar S Corp,CA,S-Corp,federal_1120s,,
+Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+        'Tax Year Type': 'client.tax_year_type',
+        'Fiscal Year End': 'client.fiscal_year_end',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    await service.apply(batch.id)
+
+    const calendarClient = state.importedClients.find((client) => client.name === 'Calendar S Corp')
+    const fiscalClient = state.importedClients.find((client) => client.name === 'Fiscal S Corp')
+    expect(calendarClient).toMatchObject({
+      taxYearType: 'calendar',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
+    expect(fiscalClient).toMatchObject({
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: 6,
+      fiscalYearEndDay: 30,
+    })
+
+    const calendarObligation = state.importedObligations.find(
+      (obligation) =>
+        obligation.clientId === calendarClient?.id && obligation.taxType === 'federal_1120s',
+    )
+    const fiscalObligation = state.importedObligations.find(
+      (obligation) =>
+        obligation.clientId === fiscalClient?.id && obligation.taxType === 'federal_1120s',
+    )
+    expect(calendarObligation).toMatchObject({
+      baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
+      taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
+      taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
+      status: 'pending',
+    })
+    expect(fiscalObligation).toMatchObject({
+      baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+      taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
+      taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
+      status: 'pending',
+    })
+  })
+
+  it('creates the fiscal client but skips deadline creation when fiscal year end is missing', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types,Tax Year Type
+Fiscal Missing End,CA,S-Corp,federal_1120s,Fiscal`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+        'Tax Year Type': 'client.tax_year_type',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const result = await service.apply(batch.id)
+
+    expect(result.clientCount).toBe(1)
+    expect(result.obligationCount).toBe(0)
+    expect(state.importedClients[0]).toMatchObject({
+      name: 'Fiscal Missing End',
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: null,
+      fiscalYearEndDay: null,
+    })
+    expect(state.importedObligations).toHaveLength(0)
   })
 
   it('skips empty-name rows without blocking valid rows', async () => {

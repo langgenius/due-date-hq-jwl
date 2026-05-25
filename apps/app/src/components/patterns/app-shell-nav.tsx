@@ -5,21 +5,30 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { msg } from '@lingui/core/macro'
 import type { I18n } from '@lingui/core'
 import {
-  ActivityIcon,
-  CalendarClockIcon,
+  BookOpenIcon,
+  CalendarIcon,
   CheckIcon,
   ChevronsUpDownIcon,
-  LayoutDashboardIcon,
-  LibraryIcon,
+  HistoryIcon,
+  MapIcon,
+  MegaphoneIcon,
   PlusIcon,
+  ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
+  SquareChartGanttIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import type { FirmPublic, USFirmTimezone } from '@duedatehq/contracts'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
+  type FirmPublic,
+  type USFirmTimezone,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Dialog,
@@ -56,10 +65,10 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
 import { canCreateAdditionalFirm, ownedActiveFirms } from '@/features/billing/model'
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { DEFAULT_US_FIRM_TIMEZONE } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import { FIRM_SWITCHER_HOTKEY } from '@/components/patterns/keyboard-shell/display'
+import { useNavV2 } from '@/components/patterns/use-nav-v2'
 import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
@@ -71,11 +80,22 @@ type NavItem = {
   icon: LucideIcon
   end?: boolean
   badge?: string
+  /**
+   * Visual tone for the badge:
+   *  - `urgent`   — saturated warning pill ("look at this"). Default.
+   *  - `inventory` — slim tertiary number ("reference fact"). Used
+   *    for counts the CPA shouldn't read as a call to action.
+   */
+  badgeTone?: 'urgent' | 'inventory'
   tag?: string
   disabledReason?: string
 }
 
 type NavConfig = {
+  // v2-only: standalone item(s) above the first labelled group.
+  // Dashboard sits here as the "home" surface — visually separate
+  // from OPERATIONS (which is the daily-work group).
+  primary: NavItem[]
   // Primary daily / weekly destinations, split into small labeled groups so
   // the eye can scan by "what kind of work am I doing?". Each group is
   // 1–3 items — labels are muted (uppercase 11px tracking) so they read
@@ -83,6 +103,14 @@ type NavConfig = {
   operations: NavItem[]
   clients: NavItem[]
   rules: NavItem[]
+  // v2-only: a "Practice" group consolidates workspace management
+  // destinations (Team, Workload, Billing, Audit log, Practice
+  // profile) that today are scattered between Clients group and
+  // Settings sub-pages. Empty in legacy mode.
+  practice: NavItem[]
+  // v2-only: Coverage replaces the legacy Rules group label. The
+  // legacy `rules` array stays populated in v1 mode for back-compat.
+  coverage: NavItem[]
   // Bottom of the sidebar. Holds the Settings hub for workspace
   // configuration (Practice profile, Members, Billing, Audit, automation
   // settings — see `apps/app/src/routes/settings.tsx`). Personal account
@@ -141,7 +169,9 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
       },
       onError: (err) => {
         toast.error(t`Couldn't switch practice`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -177,24 +207,40 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               type="button"
               aria-label={t`Switch practice, current ${firm.name}`}
               aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
-              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 px-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              title={firm.name}
+              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
             />
           }
         >
+          {/* 2026-05-25 (Yuqi Today #1): avatar bumped from size-6 (24px)
+              to size-8 (32px). The original was too small for a brand
+              mark at h-14 — read as a UI dot, not a workspace
+              identity. 32px is the canonical avatar size used in the
+              dropdown's own list (matched to the chip mark Yuqi
+              expects elsewhere). Text bumps too (text-sm) so the
+              initials don't look squeezed inside the larger tile.
+              2026-05-25 (Yuqi sidebar collapse): the avatar shrinks
+              from size-8 → size-6 in collapsed mode so it fits the
+              48px-square trigger (32px would push past the 40px
+              available inside the 56px rail). Label + chevron hide
+              entirely via the group-data selector. */}
           <span
             aria-hidden
-            className="grid size-6 shrink-0 place-items-center rounded-md bg-brand-primary text-xs font-semibold text-text-inverted"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-6 group-data-[collapsed=true]/sidebar:text-xs"
             translate="no"
           >
             {currentMonogram}
           </span>
           <span
-            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary"
+            className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
           >
             {firm.name}
           </span>
-          <ChevronsUpDownIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+          <ChevronsUpDownIcon
+            className="size-3 shrink-0 text-text-muted group-data-[collapsed=true]/sidebar:hidden"
+            aria-hidden
+          />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="bottom" sideOffset={6} className="w-64">
           <DropdownMenuGroup>
@@ -215,7 +261,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
                   <span className="flex min-w-0 items-center gap-2">
                     <span
                       aria-hidden
-                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-[10px] font-semibold text-text-inverted"
+                      className="grid size-5 shrink-0 place-items-center rounded-sm bg-brand-primary text-caption-xs font-semibold text-text-inverted"
                       translate="no"
                     >
                       {firmMonogram(item.name)}
@@ -274,6 +320,9 @@ function AddFirmDialog({
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [timezone, setTimezone] = useState<USFirmTimezone>(DEFAULT_US_FIRM_TIMEZONE)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  )
   const [error, setError] = useState<string | null>(null)
   const canCreate = canCreateAdditionalFirm(firms)
   const ownedFirmCount = ownedActiveFirms(firms).length
@@ -282,6 +331,7 @@ function AddFirmDialog({
       onSuccess: () => {
         setName('')
         setTimezone(DEFAULT_US_FIRM_TIMEZONE)
+        setInternalDeadlineOffsetDays(DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS)
         setError(null)
         onOpenChange(false)
         void resetPracticeScopedQueryCache(queryClient)
@@ -301,8 +351,15 @@ function AddFirmDialog({
       setError(t`Please enter at least 2 characters.`)
       return
     }
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      setError(t`Internal deadline offset must be between 0 and 365 days.`)
+      return
+    }
     setError(null)
-    createMutation.mutate({ name: trimmed, timezone })
+    createMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
   }
 
   return (
@@ -379,6 +436,27 @@ function AddFirmDialog({
                 disabled={createMutation.isPending}
               />
             </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="add-firm-internal-deadline-offset">
+                <Trans>Internal deadline</Trans>
+              </Label>
+              <Input
+                id="add-firm-internal-deadline-offset"
+                type="number"
+                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                step={1}
+                value={internalDeadlineOffsetDays}
+                onChange={(event) =>
+                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                }
+                disabled={createMutation.isPending}
+                className="font-mono tabular-nums"
+              />
+              <p className="text-xs text-text-tertiary">
+                <Trans>Show work as due this many days before the statutory deadline.</Trans>
+              </p>
+            </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">
                 {error}
@@ -403,66 +481,282 @@ function AddFirmDialog({
   )
 }
 
-function usePulseAlertCount(): number {
-  // Surface the real Pulse alert count next to the nav entry. Uses the
-  // shared cache primed by the dashboard banner so we don't double-fetch.
-  const query = useQuery(usePulseListAlertsQueryOptions(5))
-  return query.data?.alerts.length ?? 0
+// 2026-05-24 (critique P0): the sidebar Alerts badge previously read
+// from `notifications.unreadCount`. That bucket covers @-mentions,
+// status changes, system events — anything that lands in the unified
+// Inbox — while the Alerts sidebar entry and the Today "Alerts" strip
+// both scope to *Pulse* (statutory-source changes). Result: three
+// surfaces claiming the same word counted three different things
+// (2 sidebar, 3 Today, 4 Pulse-page history).
+//
+// 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
+// endpoint — a true `COUNT(*)` against the same WHERE clause
+// `listAlerts` uses. The previous shape fetched up to 50 rows just to
+// call `.length` on the array, so any firm with more than 50 active
+// alerts saw "50" in the badge (silent truncation). The count endpoint
+// has no upper bound; Today's section still uses `listAlerts(50)`
+// because it needs the row contents to render the alert cards.
+function useActivePulseAlertCount(): number {
+  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
+  return query.data?.count ?? 0
 }
 
-function useNavItems(_firm: FirmPublic): NavConfig {
+function useRuleLibraryPendingCount(): number {
+  // Aggregate pending-review rule count across all jurisdictions for the
+  // sidebar badge next to "Rule library". Pulls from the same coverage
+  // query the page uses, so no extra fetch.
+  const query = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
+  const rows = query.data ?? []
+  let total = 0
+  for (const row of rows) total += row.pendingReviewCount ?? row.candidateCount ?? 0
+  return total
+}
+
+// Total active-clients count for the sidebar badge next to "Clients".
+// Shares the cache with `/clients` + `ClientTitleSwitcher` +
+// `ClientCycleArrows` — all use the same `listByFirm({limit:500})`
+// query, so no extra fetch when the user has visited any of those
+// surfaces. On a cold load the sidebar triggers the first fetch; the
+// downstream surfaces hit warm cache after that.
+const CLIENTS_LIST_INPUT = { limit: 500 } as const
+
+// 2026-05-24 (B2): retired `SIDEBAR_PULSE_LIMIT = 50`. The sidebar
+// badge now goes through `pulse.activeCount` (true COUNT(*) with no
+// upper bound) instead of slicing `pulse.listAlerts`. See the comment
+// on `useActivePulseAlertCount` above for the full history.
+
+function useClientsCount(): number {
+  const query = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
+  return query.data?.length ?? 0
+}
+
+function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
-  const pulseCount = usePulseAlertCount()
+  // 2026-05-24 (critique P0): switched from notifications.unreadCount
+  // (which mixed @-mentions and system notifications into the count)
+  // to useActivePulseAlertCount (Pulse-only). Sidebar and Today now
+  // share one cache entry and report the same number.
+  const pulseCount = useActivePulseAlertCount()
   const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
-  return useMemo<NavConfig>(
-    () => ({
+  const ruleReviewCount = useRuleLibraryPendingCount()
+  const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
+  // D-2: sidebar counts. Clients = total active clients; Deadlines =
+  // open-obligation count from FirmPublic.openObligationCount (already
+  // aggregated server-side, no extra query). Counts render only when
+  // > 0 to avoid `Clients (0)` ghost text on a fresh workspace.
+  const clientsCount = useClientsCount()
+  const clientsBadge = clientsCount > 0 ? String(clientsCount) : undefined
+  const obligationsBadge =
+    firm.openObligationCount > 0 ? String(firm.openObligationCount) : undefined
+  return useMemo<NavConfig>(() => {
+    if (navV2) {
+      // v2 IA per 2026-05-19 design mockup. Radar disappears from the
+      // sidebar — it lives as the NEEDS ATTENTION surface on the
+      // dashboard. Coverage / Library consolidate under their own
+      // group. Practice management gathers Team, Workload, Billing,
+      // Audit log, Practice profile into one group instead of
+      // scattering them across Clients group + Settings sub-pages.
+      // Contacts and Payments aren't built yet — deferred until
+      // those routes exist.
+      return {
+        // 2026-05-20 layout: three standalone items above the RULE
+        // group — no "Operations" label. Order reads as the CPA's
+        // morning routine: glance Today → triage Deadlines. The
+        // Inbox lives behind the bell icon in the top-right utility
+        // strip (PulseNotificationsBell) — clicking it opens a
+        // popover; the expand icon there promotes to the full-page
+        // Inbox at /notifications. Surfacing Inbox in the sidebar
+        // too created two top-level destinations for the same thing.
+        // 2026-05-25 (Yuqi Today follow-up — sidebar icon set):
+        //   Today        → Calendar (plain calendar grid; Yuqi
+        //                   walked back the Calendar1 day-marker
+        //                   variant — the open grid reads cleaner
+        //                   at sidebar scale)
+        //   Alerts       → Megaphone (a literal announcement vector,
+        //                   matches the Pulse concept of "the system
+        //                   is broadcasting at you")
+        //   Deadlines    → SquareChartGantt (Gantt = scheduling /
+        //                   timeline view, matches the Deadlines
+        //                   table's row-per-deadline cadence)
+        //   Rule library → BookOpen (literal "reference manual",
+        //                   replaces the more abstract Library icon)
+        primary: [
+          { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
+          {
+            href: '/rules/pulse',
+            label: t`Alerts`,
+            icon: MegaphoneIcon,
+            end: false,
+            ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
+          },
+          {
+            href: '/deadlines',
+            label: t`Deadlines`,
+            icon: SquareChartGanttIcon,
+            end: false,
+            ...(obligationsBadge !== undefined
+              ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+              : {}),
+          },
+        ],
+        operations: [],
+        clients: [],
+        rules: [
+          {
+            href: '/rules/library',
+            label: t`Rule library`,
+            icon: BookOpenIcon,
+            end: false,
+            ...(ruleReviewBadge !== undefined ? { badge: ruleReviewBadge } : {}),
+          },
+        ],
+        coverage: [],
+        // Team / Workload / Practice profile / Billing / Audit log live
+        // inside `/settings` (the workspace-config hub). Surfacing them
+        // here too would be duplicate chrome — sidebar keeps only the
+        // daily client-facing destinations.
+        practice: [
+          {
+            href: '/clients',
+            label: t`Clients`,
+            icon: UsersIcon,
+            end: false,
+            ...(clientsBadge !== undefined
+              ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+              : {}),
+          },
+          {
+            href: '/opportunities',
+            label: t`Opportunities`,
+            icon: SparklesIcon,
+            end: false,
+          },
+        ],
+        footer: [
+          // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): "Alerts
+          // archive" sits in the footer next to Audit log. Both
+          // are retrospective surfaces (review what already
+          // happened), not daily-driver destinations — same IA
+          // tier. HistoryIcon distinguishes from the live Alerts
+          // entry above without crowding the primary nav.
+          {
+            href: '/rules/pulse/history',
+            label: t`Alerts archive`,
+            icon: HistoryIcon,
+            end: false,
+          },
+          { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
+          { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
+        ],
+      }
+    }
+    // Legacy (default) sidebar.
+    return {
+      primary: [],
+      // 2026-05-25 (Yuqi Today follow-up — sidebar icon set): same
+      // four-icon swap as the navV2 branch above. Legacy nav stays in
+      // sync so the iconography reads identically regardless of flag.
       operations: [
-        { href: '/', label: t`Dashboard`, icon: LayoutDashboardIcon, end: true },
+        { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
         {
-          href: '/obligations',
-          label: t`Obligations`,
-          icon: CalendarClockIcon,
+          href: '/deadlines',
+          label: t`Deadlines`,
+          icon: SquareChartGanttIcon,
           end: false,
+          ...(obligationsBadge !== undefined
+            ? { badge: obligationsBadge, badgeTone: 'inventory' as const }
+            : {}),
         },
-        // Radar is the spine of the product (per the canonical product
-        // spec — "you won't be the last CPA in your state to find out about
-        // a filing extension"). Direct entry, not buried under Rules: it's
-        // operational/real-time work, not governance. The sidebar badge
-        // counts incoming alerts only. Internal product name "Pulse" is
-        // preserved in code (component names, database tables, ORPC
-        // routes); only the user-facing label is "Radar".
         {
           href: '/rules/pulse',
-          label: t`Radar`,
-          icon: ActivityIcon,
+          label: t`Pulse`,
+          icon: MegaphoneIcon,
           end: false,
           ...(pulseBadge !== undefined ? { badge: pulseBadge } : {}),
         },
       ],
       clients: [
-        { href: '/clients', label: t`Clients`, icon: UsersIcon, end: false },
+        {
+          href: '/clients',
+          label: t`Clients`,
+          icon: UsersIcon,
+          end: false,
+          ...(clientsBadge !== undefined
+            ? { badge: clientsBadge, badgeTone: 'inventory' as const }
+            : {}),
+        },
         { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
-      // Rule library is a single direct entry. Coverage and Sources are
-      // not separate sidebar destinations — they're aggregate views of
-      // the catalog, rendered as sections inside the Library page.
+      // Preview-integration adjustment: surface Coverage alongside
+      // Rule library in the legacy nav so the Coverage rebuild is
+      // reachable without the navV2 flag. (Their original v1 rules
+      // group treated Coverage as a section inside Library; the
+      // merged tree wants both as first-class destinations.)
       rules: [
+        {
+          href: '/rules/coverage',
+          label: t`Coverage`,
+          icon: MapIcon,
+          end: false,
+        },
         {
           href: '/rules/library',
           label: t`Rule library`,
-          icon: LibraryIcon,
+          icon: BookOpenIcon,
           end: false,
         },
       ],
+      coverage: [],
+      practice: [],
       footer: [{ href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false }],
-    }),
-    [t, pulseBadge],
-  )
+    }
+  }, [t, pulseBadge, ruleReviewBadge, clientsBadge, obligationsBadge, navV2])
 }
 
 function NavGroups({ firm }: { firm: FirmPublic }) {
   const { t } = useLingui()
-  const items = useNavItems(firm)
+  const navV2 = useNavV2()
+  const items = useNavItems(firm, navV2)
+  if (navV2) {
+    return (
+      <nav aria-label={t`Primary navigation`} className="contents">
+        {/* Today sits as a standalone item above OPERATIONS — no
+          group label so the eye reads it as "home", separate from
+          the daily-work group below. */}
+        {items.primary.length > 0 ? (
+          <NavGroupSection>
+            {items.primary.map((item) => (
+              <NavMenuItem key={item.href} item={item} />
+            ))}
+          </NavGroupSection>
+        ) : null}
+        {items.operations.length > 0 ? (
+          <NavGroupSection label={t`Operations`}>
+            {items.operations.map((item) => (
+              <NavMenuItem key={item.href} item={item} disabled={Boolean(item.tag)} />
+            ))}
+          </NavGroupSection>
+        ) : null}
+        {items.rules.length > 0 ? (
+          <NavGroupSection label={t`Rule`}>
+            {items.rules.map((item) => (
+              <NavMenuItem key={item.href} item={item} />
+            ))}
+          </NavGroupSection>
+        ) : null}
+        <NavGroupSection label={t`Clients`}>
+          {items.practice.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+        <NavGroupSection muted>
+          {items.footer.map((item) => (
+            <NavMenuItem key={item.href} item={item} />
+          ))}
+        </NavGroupSection>
+      </nav>
+    )
+  }
   return (
     <nav aria-label={t`Primary navigation`} className="contents">
       <NavGroupSection label={t`Operations`}>
@@ -502,8 +796,14 @@ function NavGroupSection({
   muted?: boolean
   children: ReactNode
 }) {
+  // 2026-05-25 (Yuqi #31): `muted` groups (today: Audit log +
+  // Settings) get pushed to the bottom of the sidebar via
+  // `mt-auto`. They're secondary nav — the eye expects to find
+  // them at the bottom of the rail, not directly under the primary
+  // groups. Without this they sit immediately under Clients with no
+  // separation.
   return (
-    <SidebarGroup className={muted ? 'opacity-55' : undefined}>
+    <SidebarGroup className={cn(muted && 'mt-auto opacity-55')}>
       {label ? <SidebarGroupLabel>{label}</SidebarGroupLabel> : null}
       <SidebarGroupContent>
         <SidebarMenu>{children}</SidebarMenu>
@@ -514,6 +814,11 @@ function NavGroupSection({
 
 function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boolean }) {
   const Icon = item.icon
+  // 2026-05-25 (Yuqi sidebar collapse): native `title` attribute
+  // doubles as the hover tooltip when the rail is collapsed and
+  // the label span is hidden. Disabled state still wins (its
+  // explanatory `disabledReason` takes priority over the label).
+  const navTitle = disabled ? item.disabledReason : item.label
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -523,15 +828,17 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
             end={item.end ?? false}
             aria-disabled={disabled || undefined}
             tabIndex={disabled ? -1 : undefined}
-            title={disabled ? item.disabledReason : undefined}
+            title={navTitle}
           />
         }
         className={cn(disabled && 'pointer-events-none')}
-        title={disabled ? item.disabledReason : undefined}
+        title={navTitle}
       >
         <Icon aria-hidden />
         <span>{item.label}</span>
-        {item.badge ? <SidebarMenuBadge>{item.badge}</SidebarMenuBadge> : null}
+        {item.badge ? (
+          <SidebarMenuBadge tone={item.badgeTone ?? 'urgent'}>{item.badge}</SidebarMenuBadge>
+        ) : null}
         {item.tag ? (
           <span className="ml-auto font-mono text-xs tabular-nums text-text-muted">{item.tag}</span>
         ) : null}

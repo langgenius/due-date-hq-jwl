@@ -1,6 +1,11 @@
 import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  internalDeadlineFromBaseDueDate,
+} from '@duedatehq/core/deadlines'
 import { deriveOverlayDueDateMap } from '@duedatehq/core/overlay'
 import type { Db } from '../client'
+import { firmProfile } from '../schema/firm'
 import { exceptionRule, obligationExceptionApplication } from '../schema/overlay'
 
 const OVERLAY_READ_BATCH_SIZE = 90
@@ -52,5 +57,26 @@ export async function listActiveOverlayDueDates(
         overrideDueDate: row.overrideDueDate,
         appliedAt: row.appliedAt,
       })),
+  )
+}
+
+export async function listActiveOverlayInternalDeadlines(
+  db: Db,
+  firmId: string,
+  obligationIds: readonly string[],
+): Promise<Map<string, Date>> {
+  const statutoryDueDates = await listActiveOverlayDueDates(db, firmId, obligationIds)
+  if (statutoryDueDates.size === 0) return new Map()
+  const [policy] = await db
+    .select({ internalDeadlineOffsetDays: firmProfile.internalDeadlineOffsetDays })
+    .from(firmProfile)
+    .where(eq(firmProfile.id, firmId))
+    .limit(1)
+  const offsetDays = policy?.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS
+  return new Map(
+    [...statutoryDueDates.entries()].map(([obligationId, statutoryDueDate]) => [
+      obligationId,
+      internalDeadlineFromBaseDueDate(statutoryDueDate, offsetDays),
+    ]),
   )
 }

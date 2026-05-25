@@ -1,59 +1,81 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { strToU8, zipSync } from 'fflate'
 
 import {
-  normalizeIntegrationJsonText,
   normalizePastedRowsText,
-  parseIntegrationRows,
+  shouldApplyDetectedPreset,
+  shouldOfferDetectedPresetSwitch,
+  SOURCE_PRESET_IDS,
 } from './Step1Intake'
-import { PROVIDER_CAPABILITY_BY_PROVIDER } from './provider-capabilities'
+import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
 
-describe('provider integration intake parsing', () => {
-  it('labels Soraban as a routed export path, not a direct API', () => {
-    expect(PROVIDER_CAPABILITY_BY_PROVIDER.soraban.label).toBe(
-      'Soraban via Karbon/Zapier or uploaded export',
-    )
-    expect(PROVIDER_CAPABILITY_BY_PROVIDER.soraban.label).not.toContain('API')
-  })
+const testDir = dirname(fileURLToPath(import.meta.url))
+const realisticFixtureDir = join(
+  testDir,
+  '../../../../../docs/product-design/migration-copilot/06-fixtures/realistic-exports',
+)
 
-  it('parses standard provider arrays', () => {
-    const rows = parseIntegrationRows('[{"id":"acct_1","name":"Acme"}]', 'taxdome')
+function fixtureFile(fileName: string, type = 'text/csv') {
+  const bytes = readFileSync(join(realisticFixtureDir, fileName))
+  return new File([new Uint8Array(bytes)], fileName, { type })
+}
 
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?.externalId).toBe('acct_1')
-    expect(rows[0]?.externalEntityType).toBe('account')
-  })
+function unsupportedSampleFile(fileName: string) {
+  if (fileName === 'file-in-time-backup.fbk' || fileName === 'ultratax-client-listing-report.dif') {
+    return fixtureFile(fileName, 'application/octet-stream')
+  }
+  return new File(['unsupported backup marker'], fileName, { type: 'application/octet-stream' })
+}
 
-  it('accepts copied JSON objects without wrapping brackets', () => {
-    const rows = parseIntegrationRows(
-      '{"id":"work_1","name":"Alpha"}\n{"id":"work_2","name":"Beta"}',
+describe('source preset chips', () => {
+  it('lists provider chips alphabetically by displayed label', () => {
+    expect(SOURCE_PRESET_IDS).toEqual([
+      'cch_axcess',
+      'cch_prosystem_fx',
+      'drake',
+      'file_in_time',
       'karbon',
+      'lacerte',
+      'proconnect_tax',
+      'proseries',
+      'quickbooks',
+      'taxdome',
+      'ultratax_cs',
+    ])
+  })
+
+  it('auto-applies detected presets only when the user has not made a manual choice', () => {
+    expect(shouldApplyDetectedPreset({ preset: null, presetSource: null }, 'taxdome')).toBe(true)
+    expect(
+      shouldApplyDetectedPreset({ preset: 'taxdome', presetSource: 'detected' }, 'drake'),
+    ).toBe(true)
+    expect(shouldApplyDetectedPreset({ preset: 'taxdome', presetSource: 'manual' }, 'drake')).toBe(
+      false,
     )
-
-    expect(rows.map((row) => row.externalId)).toEqual(['work_1', 'work_2'])
-    expect(rows.every((row) => row.externalEntityType === 'work_item')).toBe(true)
+    expect(shouldApplyDetectedPreset({ preset: null, presetSource: null }, null)).toBe(false)
   })
 
-  it('accepts common API wrapper keys', () => {
-    const rows = parseIntegrationRows('{"data":[{"id":101},{"id":102}]}', 'proconnect')
-
-    expect(rows.map((row) => row.externalId)).toEqual(['101', '102'])
-  })
-
-  it('normalizes paste-friendly JSONL and markdown fenced JSON into arrays', () => {
-    expect(normalizeIntegrationJsonText('```json\n{"id":"a"}\n{"id":"b"}\n```')).toBe(
-      '[\n  {\n    "id": "a"\n  },\n  {\n    "id": "b"\n  }\n]',
-    )
-  })
-
-  it('repairs trailing commas before parsing', () => {
-    const rows = parseIntegrationRows('[{"id":"acct_1",},]', 'taxdome')
-
-    expect(rows[0]?.externalId).toBe('acct_1')
+  it('offers a switch when a manual preset conflicts with a detected upload', () => {
+    expect(
+      shouldOfferDetectedPresetSwitch({ preset: 'taxdome', presetSource: 'manual' }, 'quickbooks'),
+    ).toBe(true)
+    expect(
+      shouldOfferDetectedPresetSwitch({ preset: 'taxdome', presetSource: 'manual' }, 'taxdome'),
+    ).toBe(false)
+    expect(
+      shouldOfferDetectedPresetSwitch(
+        { preset: 'taxdome', presetSource: 'detected' },
+        'quickbooks',
+      ),
+    ).toBe(false)
   })
 })
 
 describe('client rows paste normalization', () => {
-  it('turns copied provider records into tabular rows', () => {
+  it('turns copied JSON client rows into tabular rows', () => {
     expect(
       normalizePastedRowsText(
         '[{"Client name":"Acme LLC","State":"CA"},{"Client name":"Bright Books","State":"TX"}]',
@@ -77,5 +99,271 @@ describe('client rows paste normalization', () => {
     expect(normalizePastedRowsText('```csv\nname,state\nAcme,CA\n```')).toBe(
       'name\tstate\nAcme\tCA',
     )
+  })
+})
+
+describe('client export file intake adapters', () => {
+  it('explains unsupported proprietary backups before parsing', () => {
+    expect(unsupportedUploadForFileName('backup.qbb')).toEqual({
+      code: 'quickbooks_backup',
+      fileName: 'backup.qbb',
+    })
+    expect(unsupportedUploadForFileName('file-in-time.fbk')).toEqual({
+      code: 'file_in_time_backup',
+      fileName: 'file-in-time.fbk',
+    })
+    expect(unsupportedUploadForFileName('2025.Return.rtnbak')).toEqual({
+      code: 'cch_axcess_backup',
+      fileName: '2025.Return.rtnbak',
+    })
+    expect(unsupportedUploadForFileName('client.dbf')).toEqual({
+      code: 'lacerte_data_file',
+      fileName: 'client.dbf',
+    })
+    expect(unsupportedUploadForFileName('sample.24i')).toEqual({
+      code: 'proseries_return_file',
+      fileName: 'sample.24i',
+    })
+    expect(unsupportedUploadForFileName('client.csd')).toEqual({
+      code: 'ultratax_client_data',
+      fileName: 'client.csd',
+    })
+    expect(unsupportedUploadForFileName('client-listing.dif')).toEqual({
+      code: 'ultratax_dif',
+      fileName: 'client-listing.dif',
+    })
+  })
+
+  it.each([
+    [
+      'drake-client-ef-export.csv',
+      'Client ID,Name,EIN,Entity,State,Return Type,Staff\n100,Acme LLC,99-1000001,LLC,CA,Form 1065,Pat\n',
+      'drake',
+      'drake',
+    ],
+    [
+      'cch-axcess.csv',
+      'Client ID,Client Sub-ID,Name Line 1,Federal ID,State\n100,00,Acme LLC,12-3456789,CA\n',
+      'cch_axcess',
+      'cch_axcess',
+    ],
+    [
+      'PortalSaaSClient.csv',
+      'Client ID,Partner,Manager,Preparer,Name Line 1\n100,Pat,Mia,Chris,Acme LLC\n',
+      'cch_prosystem_fx',
+      'cch_prosystem_fx',
+    ],
+    [
+      'lacerte-export.csv',
+      'Client Number,Client Name,Taxpayer E-mail Address,State\n100,Acme LLC,a@example.com,CA\n',
+      'lacerte',
+      'lacerte',
+    ],
+    [
+      'Contacts.csv',
+      'Client Name,Client Status,Client Street and Apt Address,Client State\nAcme,Active,1 Main,CA\n',
+      'proseries',
+      'proseries',
+    ],
+    [
+      'ultratax.csv',
+      'Client ID,Client Name,Entity,SSN/EIN,Preparer,Status\n100,Acme,1065,12-3456789,Pat,Ready\n',
+      'ultratax_cs',
+      'ultratax_cs',
+    ],
+    [
+      'proconnect.csv',
+      'Taxpayer name,Taxpayer email address,Taxpayer phone number,Return type\nAcme,a@example.com,555-0100,1120S\n',
+      'proconnect_tax',
+      'proconnect_tax',
+    ],
+  ])('detects %s as %s', async (fileName, text, product, preset) => {
+    const prepared = await prepareUploadFile(new File([text], fileName, { type: 'text/csv' }))
+
+    expect(prepared.suggestedPreset).toBe(preset)
+    expect(prepared.sourceManifest.product).toBe(product)
+  })
+
+  it('converts QuickBooks Desktop IIF customers into tabular upload text', async () => {
+    const file = new File(
+      [
+        [
+          '!CUST\tNAME\tREFNUM\tBADDR1\tBADDR2\tBADDR3\tPHONE1\tPHONE2\tEMAIL\tCUSTFLD1\tNOTE',
+          'CUST\tAcme LLC\tQB-1\tAcme LLC\t1 Main St\tCA 94105\t555-0101\t\towner@example.com\tBusiness\tVIP',
+        ].join('\n'),
+      ],
+      'customers.iif',
+      { type: 'text/plain' },
+    )
+
+    const prepared = await prepareUploadFile(file)
+
+    expect(prepared.fileKind).toBe('tsv')
+    expect(prepared.suggestedPreset).toBe('quickbooks')
+    expect(prepared.sourceManifest).toMatchObject({
+      product: 'quickbooks_desktop',
+      selectedRole: 'quickbooks_iif_customers',
+      originalKind: 'iif',
+    })
+    expect(prepared.text).toContain('Customer\tExternal ID\tCompany Name')
+    expect(prepared.text).toContain('Acme LLC\tQB-1\tAcme LLC')
+  })
+
+  it('merges TaxDome account and contact files inside ZIP exports', async () => {
+    const archive = zipSync({
+      'accounts.csv': strToU8(
+        'Account ID,Account Name,Linked Contact #1\nacct_1,Acme LLC,Jane Owner\n',
+      ),
+      'contacts.csv': strToU8(
+        'Contact Name,Email Address,Linked Account #1\nJane Owner,jane@example.com,Acme LLC\n',
+      ),
+    })
+    const archiveBuffer = new ArrayBuffer(archive.byteLength)
+    new Uint8Array(archiveBuffer).set(archive)
+    const file = new File([archiveBuffer], 'taxdome-export.zip', { type: 'application/zip' })
+
+    const prepared = await prepareUploadFile(file)
+
+    expect(prepared.suggestedPreset).toBe('taxdome')
+    expect(prepared.fileKind).toBe('tsv')
+    expect(prepared.sourceManifest.product).toBe('taxdome')
+    expect(prepared.sourceManifest.originalKind).toBe('zip')
+    expect(prepared.sourceManifest.selectedFileName).toContain('accounts.csv + contacts.csv')
+    expect(prepared.text).toContain('Primary Contact Name\tPrimary Contact Email')
+    expect(prepared.text).toContain('Jane Owner\tjane@example.com')
+  })
+
+  it.each([
+    [
+      'taxdome-client-export.zip',
+      'application/zip',
+      'taxdome',
+      'taxdome',
+      'account_list',
+      ['Account ID', 'Account name', 'Primary Contact Email'],
+    ],
+    [
+      'drake-client-ef-export.csv',
+      'text/csv',
+      'drake',
+      'drake',
+      'client_list',
+      ['Client ID', 'EIN', 'EF Status'],
+    ],
+    [
+      'karbon-all-contacts.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'karbon',
+      'karbon',
+      'contact_list',
+      ['ContactKey', 'OrganizationKey', 'Client Owner'],
+    ],
+    [
+      'quickbooks-online-customer-contact-list.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'quickbooks',
+      'quickbooks_online',
+      'customer_list',
+      ['Customer', 'Customer Type', 'Open Balance'],
+    ],
+    [
+      'file-in-time-client-information.txt',
+      'text/plain',
+      'file_in_time',
+      'file_in_time',
+      'client_list',
+      ['ClientName', 'Service', 'AssignedStaff'],
+    ],
+    [
+      'cch-axcess-client-manager-grid.csv',
+      'text/csv',
+      'cch_axcess',
+      'cch_axcess',
+      'client_list',
+      ['Client GUID', 'Name Line 1', 'Federal ID'],
+    ],
+    [
+      'PortalSaaSClient_20260525_093000.csv',
+      'text/csv',
+      'cch_prosystem_fx',
+      'cch_prosystem_fx',
+      'client_list',
+      ['Client ID', 'Partner', 'Preparer'],
+    ],
+    [
+      'EXPORT.CSV',
+      'text/csv',
+      'lacerte',
+      'lacerte',
+      'client_list',
+      ['Client Number', 'Taxpayer E-mail Address', 'SSN/EIN'],
+    ],
+    [
+      'Contacts.csv',
+      'text/csv',
+      'proseries',
+      'proseries',
+      'contact_list',
+      ['Client Status', 'Client Street and Apt Address', 'EF Status'],
+    ],
+    [
+      'ultratax-client-listing-report.csv',
+      'text/csv',
+      'ultratax_cs',
+      'ultratax_cs',
+      'client_listing_report',
+      ['Entity', 'SSN/EIN', 'Preparer'],
+    ],
+    [
+      'proconnect-return-data-2025.csv',
+      'text/csv',
+      'proconnect_tax',
+      'proconnect_tax',
+      'return_data',
+      ['Tax year', 'Taxpayer name', 'Return type'],
+    ],
+  ] as const)(
+    'detects realistic %s fixture',
+    async (fileName, contentType, preset, product, role, expectedHeaders) => {
+      const prepared = await prepareUploadFile(fixtureFile(fileName, contentType))
+      const selectedFile = prepared.sourceManifest.files.find((file) => file.selected)
+
+      expect(prepared.suggestedPreset).toBe(preset)
+      expect(prepared.sourceManifest.product).toBe(product)
+      expect(prepared.sourceManifest.selectedRole).toBe(role)
+      expect(selectedFile?.rowCount).toBeGreaterThan(0)
+      for (const header of expectedHeaders) {
+        expect(prepared.text).toContain(header)
+      }
+    },
+  )
+
+  it('detects the QuickBooks Desktop IIF realistic variant', async () => {
+    const prepared = await prepareUploadFile(
+      fixtureFile('quickbooks-desktop-customers.iif', 'text/plain'),
+    )
+
+    expect(prepared.suggestedPreset).toBe('quickbooks')
+    expect(prepared.sourceManifest).toMatchObject({
+      product: 'quickbooks_desktop',
+      selectedRole: 'quickbooks_iif_customers',
+      originalKind: 'iif',
+    })
+    expect(prepared.text).toContain('Billing State')
+    expect(prepared.text).toContain('Marin Harbor Analytics LLC (TEST)')
+  })
+
+  it.each([
+    ['file-in-time-backup.fbk', 'file_in_time_backup'],
+    ['ultratax-client-listing-report.dif', 'ultratax_dif'],
+    ['quickbooks-backup.qbb', 'quickbooks_backup'],
+    ['client-clntbkup.zip', 'cch_prosystem_fx_backup'],
+    ['client.dbf', 'lacerte_data_file'],
+    ['sample.24i', 'proseries_return_file'],
+    ['client.csd', 'ultratax_client_data'],
+  ] as const)('rejects %s with specific unsupported guidance', async (fileName, code) => {
+    await expect(prepareUploadFile(unsupportedSampleFile(fileName))).rejects.toMatchObject({
+      upload: { code, fileName },
+    })
   })
 })

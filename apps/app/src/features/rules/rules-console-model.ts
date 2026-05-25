@@ -8,7 +8,6 @@ import {
   type DueDateLogic,
   type ObligationGenerationPreview,
   type ObligationInstancePublic,
-  type ObligationRule,
   type RuleEvidenceAuthorityRole,
   type RuleGenerationPreviewInput,
   type RuleGenerationState,
@@ -16,18 +15,9 @@ import {
   type RuleSource,
 } from '@duedatehq/contracts'
 
-export type SourceHealthFilter = 'all' | RuleSource['healthStatus']
-export type RuleLibraryFilter =
-  | 'all'
-  | 'active'
-  | 'pending_review'
-  | 'rejected'
-  | 'archived'
-  | 'verified'
-  | 'candidate'
-  | 'applicability_review'
-  | 'exception'
-export type CoverageCellState = 'verified' | 'review' | 'none'
+export type SourceDisplayHealth = 'healthy' | 'paused'
+export type SourceHealthFilter = 'all' | SourceDisplayHealth
+export type CoverageCellState = 'active' | 'review' | 'none'
 
 export const RULE_JURISDICTIONS: RuleJurisdiction[] = [...RuleJurisdictionValues]
 export const RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
@@ -40,7 +30,6 @@ export const COVERAGE_ENTITY_GROUPS = ['business', 'personal', 'all'] as const
 export const DEFAULT_COVERAGE_ENTITY_GROUP = 'business'
 export type CoverageEntityGroup = (typeof COVERAGE_ENTITY_GROUPS)[number]
 export type CoverageEntityColumn = (typeof ENTITY_COLUMN_GROUPS)['all'][number]
-type EntityCoverageState = Record<CoverageEntityColumn, CoverageCellState>
 
 export const RULE_JURISDICTION_LABELS: Record<string, string> = {
   FED: 'Federal',
@@ -99,80 +88,6 @@ export const RULE_JURISDICTION_LABELS: Record<string, string> = {
 
 export function jurisdictionLabel(jurisdiction: string): string {
   return RULE_JURISDICTION_LABELS[jurisdiction] ?? jurisdiction
-}
-
-const REVIEW_COVERAGE: EntityCoverageState = {
-  llc: 'review',
-  partnership: 'review',
-  s_corp: 'review',
-  c_corp: 'review',
-  sole_prop: 'review',
-  individual: 'review',
-  trust: 'review',
-}
-
-const COVERAGE_OVERRIDES: Partial<Record<RuleJurisdiction, EntityCoverageState>> = {
-  FED: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'verified',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  CA: {
-    llc: 'review',
-    partnership: 'none',
-    s_corp: 'verified',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  NY: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'verified',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  TX: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  FL: {
-    llc: 'none',
-    partnership: 'none',
-    s_corp: 'none',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-  WA: {
-    llc: 'review',
-    partnership: 'review',
-    s_corp: 'review',
-    c_corp: 'review',
-    sole_prop: 'review',
-    individual: 'review',
-    trust: 'review',
-  },
-}
-
-export function coverageCellState(
-  jurisdiction: RuleJurisdiction,
-  entity: CoverageEntityColumn,
-): CoverageCellState {
-  return (COVERAGE_OVERRIDES[jurisdiction] ?? REVIEW_COVERAGE)[entity]
 }
 
 export const PREVIEW_ENTITY_OPTIONS = [
@@ -297,16 +212,17 @@ export function compactSourceType(sourceType: RuleSource['sourceType']): string 
 }
 
 type SourceHealthOnly = Pick<RuleSource, 'healthStatus'>
-type RuleFilterOnly = Pick<ObligationRule, 'ruleTier' | 'status'>
-type PreviewReadyOnly = Pick<ObligationGenerationPreview, 'reminderReady'>
+type PreviewReadyOnly = {
+  reminderReady: ObligationGenerationPreview['reminderReady']
+  missingClientFacts: readonly ObligationGenerationPreview['missingClientFacts'][number][]
+}
 
 export function countSourcesByHealth(sources: readonly SourceHealthOnly[]) {
+  const normalized = sources.map((source) => normalizeSourceHealth(source.healthStatus))
   return {
     all: sources.length,
-    healthy: sources.filter((source) => source.healthStatus === 'healthy').length,
-    degraded: sources.filter((source) => source.healthStatus === 'degraded').length,
-    failing: sources.filter((source) => source.healthStatus === 'failing').length,
-    paused: sources.filter((source) => source.healthStatus === 'paused').length,
+    healthy: normalized.filter((status) => status === 'healthy').length,
+    paused: normalized.filter((status) => status === 'paused').length,
   }
 }
 
@@ -315,51 +231,20 @@ export function filterSources<T extends SourceHealthOnly>(
   healthFilter: SourceHealthFilter,
 ): T[] {
   if (healthFilter === 'all') return [...sources]
-  return sources.filter((source) => source.healthStatus === healthFilter)
+  return sources.filter((source) => normalizeSourceHealth(source.healthStatus) === healthFilter)
 }
 
-export function countRulesByFilter(rules: readonly RuleFilterOnly[]) {
-  return {
-    all: rules.length,
-    active: rules.filter((rule) => rule.status === 'active' || rule.status === 'verified').length,
-    pending_review: rules.filter(
-      (rule) => rule.status === 'pending_review' || rule.status === 'candidate',
-    ).length,
-    rejected: rules.filter((rule) => rule.status === 'rejected').length,
-    archived: rules.filter((rule) => rule.status === 'archived').length,
-    verified: rules.filter((rule) => rule.status === 'active' || rule.status === 'verified').length,
-    candidate: rules.filter(
-      (rule) => rule.status === 'pending_review' || rule.status === 'candidate',
-    ).length,
-    applicability_review: rules.filter((rule) => rule.ruleTier === 'applicability_review').length,
-    exception: rules.filter((rule) => rule.ruleTier === 'exception').length,
-  }
-}
-
-export function filterRules<T extends RuleFilterOnly>(
-  rules: readonly T[],
-  filter: RuleLibraryFilter,
-): T[] {
-  if (filter === 'all') return [...rules]
-  if (
-    filter === 'active' ||
-    filter === 'pending_review' ||
-    filter === 'rejected' ||
-    filter === 'archived'
-  ) {
-    return rules.filter((rule) => rule.status === filter)
-  }
-  if (filter === 'verified' || filter === 'candidate') {
-    const mapped = filter === 'verified' ? 'active' : 'pending_review'
-    return rules.filter((rule) => rule.status === mapped || rule.status === filter)
-  }
-  return rules.filter((rule) => rule.ruleTier === filter)
+export function normalizeSourceHealth(
+  healthStatus: RuleSource['healthStatus'],
+): SourceDisplayHealth {
+  return healthStatus === 'paused' ? 'paused' : 'healthy'
 }
 
 export function groupPreviewRows<T extends PreviewReadyOnly>(rows: readonly T[]) {
   return {
     reminderReady: rows.filter((row) => row.reminderReady),
-    requiresReview: rows.filter((row) => !row.reminderReady),
+    needsClientFacts: rows.filter((row) => !row.reminderReady && row.missingClientFacts.length > 0),
+    requiresReview: rows.filter((row) => !row.reminderReady && row.missingClientFacts.length === 0),
   }
 }
 

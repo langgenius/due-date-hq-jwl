@@ -8,7 +8,7 @@ author: 'Codex'
 
 ## Context
 
-Post-activation still had four visible gaps: dollar exposure was not computable, evidence was
+Post-activation still had four visible gaps: deadline readiness was not computable, evidence was
 written but not explorable, Migration review did not show exposure readiness, and Dashboard /
 Obligations triage still centered on counts instead of actionable risk.
 
@@ -20,9 +20,9 @@ Obligations triage still centered on counts instead of actionable risk.
   due-date update.
 - Added app-level Evidence drawer wiring for Obligations `E`, row actions, Dashboard top rows, and
   Brief citations.
-- Added Migration exposure preview, Live Genesis, reduced-motion fallback, Dashboard/Obligations
+- Added Migration import readiness preview, Live Genesis, reduced-motion fallback, Dashboard/Obligations
   cache preheat, and preset fixture golden tests.
-- Added Dashboard Penalty Radar and Obligations triage polish: exposure pills, needs-input editor,
+- Added Dashboard Deadline Radar and Obligations triage polish: exposure pills, needs-input editor,
   evidence counts, quick filters, and detail drawer entry.
 
 ## Why

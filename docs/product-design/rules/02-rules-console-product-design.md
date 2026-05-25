@@ -45,7 +45,7 @@ the default tab.
 
 权限裁定：
 
-- Owner/manager 可以 accept/reject/bulk accept/create/edit/archive rules。
+- Owner/manager 可以 accept、skip、bulk accept、create、edit、archive rules。
 - Preparer/coordinator 只能读取和预览，不能让规则进入生产状态。
 - 公开页面 `/rules` / `/watch` 不进入本轮实现，只保留文案和增长位。
 
@@ -53,12 +53,12 @@ the default tab.
 
 页面使用核心 tab：
 
-| Tab                | 目的                                                                           | 核心动作                                                   |
-| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| Coverage           | 看 `FED + 50 states + DC` 的 source-backed 覆盖和 review/active 状态           | Drill into jurisdiction                                    |
-| Sources            | 看 source registry 健康度和最近变化                                            | Check now, view snapshot                                   |
-| Rules              | 查看 practice rules + templates；审核 pending templates 和 source-change tasks | Smart view, select, bulk preview, accept/reject, open rule |
-| Obligation Preview | 预览规则对客户 obligations 的影响                                              | Run preview / annual rollover preview                      |
+| Tab                | 目的                                                                           | 核心动作                                                 |
+| ------------------ | ------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| Coverage           | 看 `FED + 50 states + DC` 的 source-backed 覆盖和 review/active 状态           | Drill into jurisdiction                                  |
+| Sources            | 看 source registry 健康度和最近变化                                            | Check now, view snapshot                                 |
+| Rules              | 查看 practice rules + templates；审核 pending templates 和 source-change tasks | Smart view, select, bulk preview, accept/skip, open rule |
+| Obligation Preview | 预览规则对客户 obligations 的影响                                              | Run preview / annual rollover preview                    |
 
 ## 4. Coverage Tab
 
@@ -138,17 +138,17 @@ Review pending templates or create a custom practice rule before generating dead
 
 ### 5.1 表格字段
 
-| 字段         | 说明                                                    |
-| ------------ | ------------------------------------------------------- |
-| Source       | 官方来源标题                                            |
-| Jurisdiction | federal / 50 states / DC                                |
-| Type         | calendar / instructions / form / news / emergency / api |
-| Cadence      | daily / weekly / quarterly                              |
-| Health       | healthy / degraded / failing / paused                   |
-| Last checked | 最近检查时间                                            |
-| Last changed | 最近内容变化                                            |
-| Next check   | 下次检查                                                |
-| Owner        | 负责此 source review 的 practice owner/manager          |
+| 字段         | 说明                                                       |
+| ------------ | ---------------------------------------------------------- |
+| Source       | 官方来源标题                                               |
+| Jurisdiction | federal / 50 states / DC                                   |
+| Type         | calendar / instructions / form / news / emergency / api    |
+| Cadence      | daily / weekly / quarterly                                 |
+| Watch        | watched / paused；历史 degraded/failing 兼容显示为 watched |
+| Last checked | 最近检查时间                                               |
+| Last changed | 最近内容变化                                               |
+| Next check   | 下次检查                                                   |
+| Owner        | 负责此 source review 的 practice owner/manager             |
 
 ### 5.2 Row actions
 
@@ -157,16 +157,17 @@ Review pending templates or create a custom practice rule before generating dead
 - `Check now`：立即检查并生成 diff。
 - `Create review task`：从当前 snapshot 手动创建 practice review task。
 
-### 5.3 Health 状态
+### 5.3 Watch 状态
 
-| 状态     | 产品含义                                | UI   |
-| -------- | --------------------------------------- | ---- |
-| healthy  | 按频率成功检查，hash 无异常             | 绿色 |
-| degraded | 最近一次失败或 parser warning           | 黄色 |
-| failing  | 连续失败 3 次或 source 结构变化无法解析 | 红色 |
-| paused   | 人工暂停，不参与 coverage freshness     | 灰色 |
+| 状态              | 产品含义                                              | UI   |
+| ----------------- | ----------------------------------------------------- | ---- |
+| watched / healthy | 官方来源已纳入 watch，最近成功 fetch/parse 后保持监控 | 绿色 |
+| paused            | 人工暂停，不参与当前 watch cadence                    | 灰色 |
 
-Source failing 只创建 practice review task，不通知客户，除非它导致 active rule 被 owner/manager 归档或替换。
+`degraded` / `failing` 只作为历史 API/DB 兼容值保留。前端遇到旧值按 watched 显示。
+Source fetch/parser failure 属于内部运维诊断：记录失败次数、`lastError` 和 ingest metric，
+不自动创建 CPA review task。只有成功解析到官方来源内容变化后，才通过 Pulse change 进入
+owner/manager review。
 
 ## 6. Rules Tab
 
@@ -179,16 +180,20 @@ Needs review · Active · All · Rejected · Archived · Applicability review ·
 ```
 
 - 默认进入 `Needs review`，即 pending/open-task rules。
-- Pending/open-task 行显示 checkbox；选择后只在表格上方出现轻量 selection bar。
+- Batch-ready pending/open-task 行显示 checkbox；选择后只在表格上方出现轻量 selection bar。
+- Source-defined 行在没有全局 cached AI concrete draft 时不显示 checkbox，只显示
+  `AI draft needed` 并保留单条 Rule Detail 审核路径；已有 cached AI concrete draft 的
+  source-defined 行立即显示 checkbox，可进入 Bulk Review drawer。打开 Rule Detail 不触发
+  `draftConcreteRule` 自动生成。
 - `Review selected` 打开 Bulk Review drawer；drawer 内集中展示 selected rules、
   preview summary、batch review note 和 `Accept selected`，并在 drawer 内执行 preview。
 - 如果 practice 已有 active v1，而全局 template 已升级到 v2，Rules 表必须同时显示
   active v1 台账行和 pending v2 `Update available` 行；v2 行来自 `source_changed`
   review task，不进入 Pulse Changes。
-- `Update available` / `source_changed` 行不能 bulk accept；checkbox 禁用，必须进入单条
-  Rule Detail drawer 审阅证据和当前规则字段，然后原样 Accept update 或 Reject。
+- `Update available` / `source_changed` 行不能 bulk accept，且不显示 row checkbox，必须进入单条
+  Rule Detail drawer 审阅证据和当前规则字段，然后原样 Accept update 或 Skip。
 - Active / rejected / archived 行不参与批量接受，只保留详情查看、编辑/归档和审计入口。
-- 点击任意行都打开 Rule Detail drawer；pending 行可以单条 accept/reject，active 行展示证据、版本、review metadata。
+- 点击任意行都打开 Rule Detail drawer；pending 行可以单条 accept 或 skip，active 行展示证据、版本、review metadata。
 
 ### 6.1 Needs review row
 
@@ -232,7 +237,7 @@ selected pending templates
   -> active practice rules
 ```
 
-批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept/Reject。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review，应 reject 或进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。后端只信任 selected IDs + expected template versions，单次最多 100 条，冲突项跳过并返回 skipped list。
+批量确认不允许顺手编辑规则字段，也不占用常驻右栏；单条 review 同样不编辑字段，只是审阅当前规则后 Accept 或 Skip。需要修改 due date logic、applicability、extension policy 的情况不走默认 practice review；用户应 Skip，让规则保持 inactive，并进入后续 Advanced edit / internal rule editor。`source_changed` 行强制单条 review，后端在 bulk preview / accept 中返回 skipped。source-defined 批量确认只接受 `rules.listConcreteDrafts` 返回的全局 AI draft `aiOutputId`，并保留 current-firm legacy draft fallback。后端只信任 selected IDs + expected template versions / AI output IDs，单次最多 100 条，冲突项跳过并返回 skipped list。
 
 ## 7. Rule table ledger
 
@@ -389,14 +394,14 @@ AI Tip 只能使用 active practice rule 和 source summary：
 
 ## 10. 错误与边界
 
-| 场景                            | 处理                                                                    |
-| ------------------------------- | ----------------------------------------------------------------------- |
-| Source parse failed             | Source health = degraded；生成 practice review task，不影响 active rule |
-| Official source changed         | Review task created；active rule 保持不变直到 owner/manager 接受更新    |
-| 两个官方来源冲突                | Review task 标为 needs_more_source；不能 bulk accept                    |
-| Exception 只有 FEMA declaration | early warning only；不能生成 tax deadline overlay                       |
-| Rule quality < 6/6              | 只能 `applicability_review` 或保持 pending review                       |
-| Active rule 被废弃              | 新 rule version accepted 后 archive old version；保留审计               |
+| 场景                            | 处理                                                                                     |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| Source parse failed             | 记录内部 failure metric/lastError；CPA-facing watch 状态保持 watched，不影响 active rule |
+| Official source changed         | Review task created；active rule 保持不变直到 owner/manager 接受更新                     |
+| 两个官方来源冲突                | Review task 标为 needs_more_source；不能 bulk accept                                     |
+| Exception 只有 FEMA declaration | early warning only；不能生成 tax deadline overlay                                        |
+| Rule quality < 6/6              | 只能 `applicability_review` 或保持 pending review                                        |
+| Active rule 被废弃              | 新 rule version accepted 后 archive old version；保留审计                                |
 
 ## 11. MVP 验收
 
@@ -410,6 +415,9 @@ AI Tip 只能使用 active practice rule 和 source summary：
 
 | 版本 | 日期       | 作者  | 摘要                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---- | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v2.0 | 2026-05-22 | Codex | Source-defined AI concrete draft 改为全局 prewarm/cache：正常 Rule Detail 打开不再调用 `draftConcreteRule`，pending queue 只用 `rules.listConcreteDrafts` 判定 checkbox，bulk verify 接受全局 `ai_output` 并保留 legacy firm fallback；`source_changed` 继续强制单条 review。                                                                                                                                                                                                                                                                                 |
+| v1.9 | 2026-05-21 | Codex | Pending review queue 不再为无法批量处理的行渲染 disabled checkbox；source-defined 行若已有 cached AI concrete draft，或当前 Rule Detail 已生成 AI concrete draft，可显示常驻 checkbox 并进入 Bulk Review drawer，drawer 展示 draft 字段，后端在 bulk verify 前重新校验 draft。                                                                                                                                                                                                                                                                                |
+| v1.8 | 2026-05-20 | Codex | Source-defined candidate 的 `Accept rule` 改为接受 AI 生成、用户审阅过的 concrete draft；`acceptTemplate` / bulk accept 拒绝 `source_defined_calendar` placeholder，bulk UI 标出需要单条 AI review。Coverage matrix 不再使用前端静态映射，直接渲染后端按 active concrete rule / pending candidate 计算的 `entityCoverage`，source-defined rule 在 concrete draft 被 CPA accept 前保持 pending review。                                                                                                                                                        |
 | v1.7 | 2026-05-05 | Codex | 单条 Rule Detail review 与 bulk review 收敛为同一语义：默认只读审阅当前规则与证据，`Accept rule` 调用 `acceptTemplate` 原样激活，不再在 practice review 默认路径中编辑 due-date logic、extension、tier 或 applicability。                                                                                                                                                                                                                                                                                                                                     |
 | v1.6 | 2026-05-05 | Codex | `Update available` / `source_changed` 行禁止 bulk accept：前端禁用 checkbox，后端 bulk preview / accept 返回 skipped，强制进入单条 Rule Detail drawer 审核证据和规则字段。                                                                                                                                                                                                                                                                                                                                                                                    |
 | v1.5 | 2026-05-05 | Codex | 将批量确认从常驻右侧面板收敛为 Rules 表 selection bar + Bulk Review drawer：主表保持全宽，drawer 内承载 selected rules、preview summary、batch review note 和 Accept selected。                                                                                                                                                                                                                                                                                                                                                                               |

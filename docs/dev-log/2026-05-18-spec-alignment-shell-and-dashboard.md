@@ -23,7 +23,7 @@ This pass undoes those three plus the redundant page eyebrow text that the spec 
 
 - Dashboard date in the page header (`Today` + date) — dropped `font-mono`, kept `tabular-nums`. The date now renders in the same system sans as the rest of the title with proportional weight (`font-normal`) and tertiary color.
 - `NeedsReviewBanner` counts (`X rows ready`, `Y need evidence first`) — dropped `font-mono`, kept `tabular-nums`.
-- `ProjectedRiskInline` amounts (`90-day projected risk`, `Accrued penalty`) — dropped `font-mono`, kept `tabular-nums`.
+- `LegacyPenaltyInline` amounts (`90-day legacy penalty estimate`, `Accrued penalty`) — dropped `font-mono`, kept `tabular-nums`.
 
 (The wider catalog of `font-mono` callsites across the app — table cells, sidebar plan numbers, deadline countdowns, etc. — is deferred to a separate sweep PR. This pass only touches the surfaces I introduced in PR #3.)
 
@@ -48,7 +48,7 @@ Files: `dashboard.tsx`, `obligations.tsx`, `practice.tsx`, `clients.tsx`, `audit
 The spec forbids `·` as a structural separator between metric values but explicitly allows it inside metadata strings (`Tax 2025 · Federal · LLC`). Audited:
 
 - `NeedsReviewBanner` separates items with `gap-x-3` Flex spacing, not a literal `·` — clean.
-- `ProjectedRiskInline` same — clean.
+- `LegacyPenaltyInline` same — clean.
 - The two remaining literal `·` characters in `obligations.tsx` (lines 2948, 2980) are inside metadata strings (`label · sourceLabel`, `$X · date`) — allowed.
 
 ## Docs Check

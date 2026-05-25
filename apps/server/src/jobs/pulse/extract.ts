@@ -8,6 +8,10 @@ function dateFromIsoDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`)
 }
 
+function nullableDateFromIsoDate(value: string | null): Date | null {
+  return value ? dateFromIsoDate(value) : null
+}
+
 export async function extractPulseSnapshot(
   env: Pick<
     Env,
@@ -116,6 +120,31 @@ export async function extractPulseSnapshot(
     return { pulseId: null, status: 'failed' }
   }
 
+  if (result.result.classification === 'no_regulatory_change') {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: null,
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
+  }
+
+  if (!result.result.changeKind || !result.result.actionMode) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'failed',
+      aiOutputId,
+      failureReason: 'Pulse extract returned a regulatory change without kind or action mode.',
+    })
+    return { pulseId: null, status: 'failed' }
+  }
+
   const created = await repo.createPulseForFirmReviewFromExtract({
     snapshotId,
     aiOutputId,
@@ -123,17 +152,20 @@ export async function extractPulseSnapshot(
     sourceUrl: snapshot.officialSourceUrl,
     rawR2Key: snapshot.rawR2Key,
     publishedAt: snapshot.publishedAt,
+    changeKind: result.result.changeKind,
+    actionMode: result.result.actionMode,
     aiSummary: result.result.summary,
     verbatimQuote: result.result.sourceExcerpt,
     parsedJurisdiction: result.result.jurisdiction,
     parsedCounties: result.result.counties,
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,
-    parsedOriginalDueDate: dateFromIsoDate(result.result.originalDueDate),
-    parsedNewDueDate: dateFromIsoDate(result.result.newDueDate),
-    parsedEffectiveFrom: result.result.effectiveFrom
-      ? dateFromIsoDate(result.result.effectiveFrom)
-      : null,
+    parsedOriginalDueDate: nullableDateFromIsoDate(result.result.originalDueDate),
+    parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
+    parsedEffectiveFrom: nullableDateFromIsoDate(result.result.effectiveFrom),
+    parsedEffectiveUntil: nullableDateFromIsoDate(result.result.effectiveUntil),
+    affectedRuleIds: result.result.affectedRuleIds,
+    structuredChange: result.result.structuredChange,
     confidence: result.result.confidence,
     requiresHumanReview: true,
     isSample: false,

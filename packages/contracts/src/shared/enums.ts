@@ -45,6 +45,18 @@ export type ClientTaxClassification = z.infer<typeof ClientTaxClassificationSche
 export const ClientTaxYearTypeSchema = z.enum(['calendar', 'fiscal'])
 export type ClientTaxYearType = z.infer<typeof ClientTaxYearTypeSchema>
 
+export const TaxPeriodKindSchema = z.enum(['calendar', 'fiscal', 'short', '52_53_week', 'unknown'])
+export type TaxPeriodKind = z.infer<typeof TaxPeriodKindSchema>
+
+export const TaxPeriodSourceSchema = z.enum([
+  'client_default',
+  'prior_obligation',
+  'migration',
+  'manual_cpa_confirmed',
+  'unknown',
+])
+export type TaxPeriodSource = z.infer<typeof TaxPeriodSourceSchema>
+
 // US state code whitelist lives in packages/core/default-matrix.
 export const StateCodeSchema = z.string().regex(/^[A-Z]{2}$/, {
   error: 'Expected 2-letter state code',
@@ -52,6 +64,11 @@ export const StateCodeSchema = z.string().regex(/^[A-Z]{2}$/, {
 export type StateCode = z.infer<typeof StateCodeSchema>
 
 // Obligation status (PRD §5.2).
+// Lifecycle v2 (in flight): the queue is migrating to a 6-state model
+// (not_started, waiting_on_client, blocked, in_review, filed, completed).
+// `blocked` and `completed` are added below as non-breaking enum
+// additions. Existing 8 values stay valid through the migration.
+// See docs/Design/obligation-lifecycle-design-brief.md.
 export const ObligationStatusSchema = z.enum([
   'pending',
   'in_progress',
@@ -61,6 +78,8 @@ export const ObligationStatusSchema = z.enum([
   'waiting_on_client',
   'review',
   'not_applicable',
+  'blocked',
+  'completed',
 ])
 export type ObligationStatus = z.infer<typeof ObligationStatusSchema>
 

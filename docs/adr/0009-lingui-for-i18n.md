@@ -13,7 +13,7 @@
 - **AI 协作的两人团队**（ADR 0000）：string-key 形式的 i18n API
   （`t('feature.section.key')`）容易让 AI 生成与 catalog 漂移的键名，评审时
   难以察觉。
-- **需要 ICU 格式化**：Penalty Radar / Overdue 表格 / 邮件摘要等场景需要复数
+- **需要 ICU 格式化**：Deadline Radar / Overdue 表格 / 邮件摘要等场景需要复数
   与数字格式化（`{count, plural, one {# day} other {# days}}`）。
 - **React Email 模板** 在 Worker 中渲染；服务端也要按调用方 locale 选文案。
 - **Phase 0 demo sprint** 要求 en + zh-CN 端到端可用，而不是留到 Phase 2

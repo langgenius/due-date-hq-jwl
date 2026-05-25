@@ -5,6 +5,12 @@ import { orpc } from '@/lib/rpc'
 
 const PULSE_ACTIVE_ALERTS_REFETCH_INTERVAL_MS = 60_000
 const PULSE_SOURCE_HEALTH_REFETCH_INTERVAL_MS = 60_000
+const PULSE_LIST_ALERTS_MAX_LIMIT = 50
+
+function normalizePulseListAlertsLimit(limit: number | undefined): number | undefined {
+  if (limit === undefined || !Number.isFinite(limit)) return undefined
+  return Math.min(Math.max(Math.trunc(limit), 1), PULSE_LIST_ALERTS_MAX_LIMIT)
+}
 
 // All Pulse-related cache invalidation flows through this hook so every
 // mutation (apply, dismiss, revert) refreshes the same surfaces:
@@ -23,9 +29,10 @@ export function usePulseInvalidation(): () => void {
 }
 
 export function usePulseListAlertsQueryOptions(limit?: number) {
+  const normalizedLimit = normalizePulseListAlertsLimit(limit)
   return {
     ...orpc.pulse.listAlerts.queryOptions({
-      input: limit === undefined ? undefined : { limit },
+      input: normalizedLimit === undefined ? undefined : { limit: normalizedLimit },
     }),
     refetchInterval: PULSE_ACTIVE_ALERTS_REFETCH_INTERVAL_MS,
     refetchIntervalInBackground: true,

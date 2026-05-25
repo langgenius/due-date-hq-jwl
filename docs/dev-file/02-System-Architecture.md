@@ -84,7 +84,7 @@
 | **obligations**（Obligations read queue） | `apps/server/src/procedures/obligations`                                                          | §5.2                                             | filter + sort + page                                | Table rows                                                                                    |
 | **pulse**                                 | `apps/server/src/procedures/pulse` + `jobs/pulse` + `packages/ingest`                             | §6.3 · [11](./11-Pulse-Ingest-Source-Catalog.md) | HTML / RSS / JSON API / email signal（源清单见 11） | Pulse + （Phase 1）ExceptionRule                                                              |
 | **migration**                             | `apps/server/src/procedures/migration`                                                            | §6A                                              | paste / CSV                                         | Client[] + Obligation[]                                                                       |
-| **readiness**（Phase 1）                  | `apps/server/src/procedures/readiness`                                                            | §6B                                              | CPA checklist                                       | Signed portal link + Response                                                                 |
+| **readiness**（Phase 1）                  | `apps/server/src/procedures/readiness`                                                            | §6B                                              | obligation tax type + CPA edits                     | Internal document checklist + optional signed portal link / response                          |
 | **audit**                                 | `apps/server/src/procedures/audit` + `packages/db/audit-writer`                                   | §13.2                                            | write events + firm-scoped read filters             | AuditEvent stream                                                                             |
 | **evidence**                              | `packages/db/evidence-writer`                                                                     | §5.5 · §6.2                                      | any source                                          | EvidenceLink                                                                                  |
 | **ai**                                    | `packages/ai`                                                                                     | §6.2 · §9                                        | retrieval + prompt + guard                          | `AiResult` + trace payload；`apps/server` 注入 writer 持久化 AiOutput / EvidenceLink / LlmLog |
@@ -338,7 +338,7 @@ D1 无 RLS 能力，不依赖 DB 级防护。
 ## 8. 性能架构要点
 
 - Dashboard / Obligations 查询结果由 Worker 内存 + KV **分层缓存**；TTL 60s，写时主动 invalidate
-- Penalty Radar 顶栏 $ 聚合由一条 SQL 完成（复合索引 § 03.3），不在前端二次求和
+- Deadline Radar 顶栏 $ 聚合由一条 SQL 完成（复合索引 § 03.3），不在前端二次求和
 - Obligations 走服务端分页（50 行/页）+ 前端 TanStack Table 虚拟化
 - AI 调用全部异步；Weekly Brief 后台 Queue 物化到 `dashboard_brief`，Dashboard 首屏不等待模型
 - Streaming 只用于 Ask / future agent surfaces，不用于 Dashboard Brief 首屏

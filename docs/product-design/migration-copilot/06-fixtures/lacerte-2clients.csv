@@ -1,0 +1,3 @@
+Client Number,Taxpayer First Name,Taxpayer Last Name,Client Name,Return Type,SSN/EIN,Street Address,City,State,ZIP,Taxpayer Phone,Taxpayer E-mail Address,Preparer
+LAC100,Jane,Owner,Acme Lacerte LLC,1065,99-0000300,300 Lake St,Los Angeles,CA,90013,213-555-0300,owner+lacerte@example.com,JDOE
+LAC101,John,Signer,Bright Lacerte Inc,1120S,99-0000301,301 Park Ave,New York,NY,10022,212-555-0301,owner+lacerte2@example.com,ASMITH

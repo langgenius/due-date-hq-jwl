@@ -233,6 +233,42 @@ describe('@duedatehq/ai', () => {
     expect(callGatewayMock).not.toHaveBeenCalled()
   })
 
+  it.each(['development', 'staging'] as const)(
+    'skips fair-use budget enforcement in %s',
+    async (envName) => {
+      callGatewayMock.mockResolvedValueOnce({
+        output: { ok: true },
+        model: 'test-model',
+      })
+      const get = vi.fn(async () => '999')
+      const put = vi.fn(async () => {
+        throw new Error('put should not run')
+      })
+      const ai = createAI({
+        ...CONFIGURED_ENV,
+        ENV: envName,
+        CACHE: { get, put },
+      })
+
+      const result = await ai.runPrompt(
+        'normalizer-entity@v1',
+        { values: ['LLC'] },
+        z.object({ ok: z.boolean() }),
+        { plan: 'solo', firmId: 'firm-1', taskKind: 'migration' },
+      )
+
+      expect(result.result).toEqual({ ok: true })
+      expect(result.refusal).toBeNull()
+      expect(get).not.toHaveBeenCalled()
+      expect(put).not.toHaveBeenCalled()
+      expect(callGatewayMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'fast-json-solo-test-model',
+        }),
+      )
+    },
+  )
+
   it('returns GUARD_REJECTED when mapper EIN hit rate fails', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
@@ -264,6 +300,9 @@ describe('@duedatehq/ai', () => {
   it('extracts Pulse output and requires a source-backed excerpt', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
         summary: 'IRS extends selected filing deadlines for Los Angeles County.',
         sourceExcerpt: 'Los Angeles County have until October 15, 2026',
         jurisdiction: 'CA',
@@ -273,6 +312,9 @@ describe('@duedatehq/ai', () => {
         originalDueDate: '2026-03-15',
         newDueDate: '2026-10-15',
         effectiveFrom: '2026-04-15',
+        effectiveUntil: null,
+        affectedRuleIds: ['ca.business_income_return.candidate.2026'],
+        structuredChange: null,
         confidence: 0.94,
       },
       model: 'test-model',
@@ -293,6 +335,9 @@ describe('@duedatehq/ai', () => {
   it('rejects Pulse extract output when the excerpt is not in the source', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
         summary: 'IRS extends selected filing deadlines.',
         sourceExcerpt: 'made up quote',
         jurisdiction: 'CA',
@@ -302,6 +347,9 @@ describe('@duedatehq/ai', () => {
         originalDueDate: '2026-03-15',
         newDueDate: '2026-10-15',
         effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
         confidence: 0.94,
       },
       model: 'test-model',
@@ -314,6 +362,274 @@ describe('@duedatehq/ai', () => {
       officialSourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
       rawText: 'Official text.',
     })
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
+  it('keeps noisy Pulse news fixtures review-only or no-change unless dates are explicit', async () => {
+    callGatewayMock
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'no_regulatory_change',
+          changeKind: null,
+          actionMode: null,
+          summary: 'Agency warning does not change a filing or payment obligation.',
+          sourceExcerpt: 'Tax fraud warning for taxpayers',
+          jurisdiction: 'AZ',
+          counties: [],
+          forms: [],
+          entityTypes: [],
+          originalDueDate: null,
+          newDueDate: null,
+          effectiveFrom: null,
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.88,
+        },
+        model: 'test-model',
+      })
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'regulatory_change',
+          changeKind: 'form_instruction',
+          actionMode: 'review_only',
+          summary: 'Agency published new form instructions without an explicit due-date move.',
+          sourceExcerpt: 'new form instructions are available',
+          jurisdiction: 'CA',
+          counties: [],
+          forms: ['Form 100'],
+          entityTypes: ['c_corp'],
+          originalDueDate: null,
+          newDueDate: null,
+          effectiveFrom: '2026-01-01',
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.82,
+        },
+        model: 'test-model',
+      })
+      .mockResolvedValueOnce({
+        output: {
+          classification: 'regulatory_change',
+          changeKind: 'deadline_shift',
+          actionMode: 'due_date_overlay',
+          summary: 'Disaster relief moved the filing and payment deadline.',
+          sourceExcerpt: 'extended from April 15, 2026 to October 15, 2026',
+          jurisdiction: 'CA',
+          counties: ['Los Angeles'],
+          forms: ['federal_1040'],
+          entityTypes: ['individual'],
+          originalDueDate: '2026-04-15',
+          newDueDate: '2026-10-15',
+          effectiveFrom: '2026-04-15',
+          effectiveUntil: null,
+          affectedRuleIds: [],
+          structuredChange: null,
+          confidence: 0.9,
+        },
+        model: 'test-model',
+      })
+    const ai = createAI(CONFIGURED_ENV)
+
+    await expect(
+      ai.extractPulse({
+        sourceId: 'az.temporary_announcements',
+        title: 'Tax fraud warning',
+        officialSourceUrl: 'https://azdor.gov/news/fraud-warning',
+        rawText: 'Tax fraud warning for taxpayers',
+      }),
+    ).resolves.toMatchObject({ result: { classification: 'no_regulatory_change' } })
+    await expect(
+      ai.extractPulse({
+        sourceId: 'ca.temporary_announcements',
+        title: 'New form instructions',
+        officialSourceUrl: 'https://www.ftb.ca.gov/forms/',
+        rawText: 'new form instructions are available',
+      }),
+    ).resolves.toMatchObject({ result: { actionMode: 'review_only' } })
+    await expect(
+      ai.extractPulse({
+        sourceId: 'irs.disaster',
+        title: 'Disaster relief',
+        officialSourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+        rawText: 'extended from April 15, 2026 to October 15, 2026',
+      }),
+    ).resolves.toMatchObject({ result: { actionMode: 'due_date_overlay' } })
+  })
+
+  it('rejects deadline shift Pulse output unless both due dates are explicit', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Agency says some deadlines were extended.',
+        sourceExcerpt: 'some deadlines were extended',
+        jurisdiction: 'CA',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.8,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'ca.temporary_announcements',
+      title: 'Deadline extension',
+      officialSourceUrl: 'https://www.ftb.ca.gov/file/when-to-file/emergency-tax-relief.html',
+      rawText: 'some deadlines were extended',
+    })
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
+  it('rejects rule concrete drafts when the source excerpt is not source-backed', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt: 'made up rule quote',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v2',
+      { sourceText: 'Official source says returns are due April 15, 2026.' },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result).toBeNull()
+    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+  })
+
+  it('accepts rule concrete drafts when the excerpt is source-backed but not contiguous', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt: 'Alabama individual income tax returns April 15 calendar year 2026',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v2',
+      {
+        sourceText:
+          'Alabama individual income tax returns should be filed by April 15 for calendar year 2026.',
+      },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result).toEqual({
+      sourceExcerpt: 'Alabama individual income tax returns April 15 calendar year 2026',
+      confidence: 0.9,
+    })
+    expect(result.refusal).toBeNull()
+  })
+
+  it('guides rule concrete drafts to year-fill month/day installment schedules', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        dueDateLogic: {
+          kind: 'period_table',
+          frequency: 'quarterly',
+          periods: [
+            { period: 'Payment 1', dueDate: '2026-04-15' },
+            { period: 'Payment 2', dueDate: '2026-06-15' },
+            { period: 'Payment 3', dueDate: '2026-09-15' },
+            { period: 'Payment 4', dueDate: '2026-12-15' },
+          ],
+          holidayRollover: 'source_adjusted',
+        },
+        sourceExcerpt:
+          'Estimate tax due dates for calendar year filers: Payment 1 April 15 Payment 2 June 15 Payment 3 September 15 Payment 4 December 15',
+        confidence: 0.86,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v2',
+      {
+        rule: {
+          id: 'al.individual_estimated_tax.candidate.2026',
+          applicableYear: 2026,
+        },
+        sourceText:
+          'Estimate tax due dates for calendar year filers: Payment 1 April 15 Payment 2 June 15 Payment 3 September 15 Payment 4 December 15\nEstimate tax due dates for fiscal year filers: Will be due on the 15th day of the fourth, sixth, ninth, and 12th months of the fiscal year.',
+      },
+      z.object({
+        dueDateLogic: z.object({
+          kind: z.literal('period_table'),
+          frequency: z.literal('quarterly'),
+          periods: z.array(
+            z.object({
+              period: z.string(),
+              dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            }),
+          ),
+          holidayRollover: z.literal('source_adjusted'),
+        }),
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
+
+    expect(result.result?.dueDateLogic.periods.map((period) => period.dueDate)).toEqual([
+      '2026-04-15',
+      '2026-06-15',
+      '2026-09-15',
+      '2026-12-15',
+    ])
+    expect(result.refusal).toBeNull()
+    expect(callGatewayMock.mock.calls[0]?.[0].prompt).toContain(
+      'fill the year from rule.applicableYear',
+    )
+  })
+
+  it('rejects rule concrete drafts that cite source-watch metadata as evidence', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        sourceExcerpt:
+          'Alabama official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.',
+        confidence: 0.9,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.runPrompt(
+      'rule-concrete-draft@v2',
+      {
+        sourceText:
+          'Alabama official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.',
+      },
+      z.object({
+        sourceExcerpt: z.string(),
+        confidence: z.number(),
+      }),
+    )
 
     expect(result.result).toBeNull()
     expect(result.refusal?.code).toBe('GUARD_REJECTED')

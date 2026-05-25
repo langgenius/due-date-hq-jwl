@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
 import { AUDIT_FILTER_MAX_LENGTH } from '@duedatehq/contracts'
@@ -41,6 +42,8 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
+
+import { PageHeader } from '@/components/patterns/page-header'
 
 import { AuditEventDrawer } from './audit-event-drawer'
 import { useAuditActionLabels, useAuditEntityTypeLabels } from './audit-log-labels'
@@ -91,12 +94,13 @@ function useAuditCategoryLabels(): Record<AuditCategoryOption, string> {
   return {
     all: t`All categories`,
     client: t`Client`,
-    obligation: t`Obligation`,
+    obligation: t`Deadline`,
     migration: t`Migration`,
     rules: t`Rules`,
     auth: t`Auth`,
     team: t`Team`,
     pulse: t`Pulse`,
+    opportunity: t`Opportunity`,
     export: t`Export`,
     ai: t`AI`,
     system: t`System`,
@@ -315,7 +319,15 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
       },
       onError: (error) => {
-        window.alert(rpcErrorMessage(error) ?? t`Couldn't request export`)
+        // 2026-05-24 (re-critique): replaced `window.alert()` with
+        // the app's `toast.error` so the failure message lands in
+        // the same surface the rest of the app uses, not a system-
+        // styled blocking dialog.
+        toast.error(t`Couldn't request export`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
       },
     }),
   )
@@ -364,10 +376,12 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
+            {/* 2026-05-25 (info-icon audit): unwrapped — the
+                DialogDescription below already explains the
+                evidence bundle; the popover trigger was a
+                third copy on the same surface. */}
             <DialogTitle>
-              <ConceptLabel concept="auditTrail">
-                <Trans>Audit evidence package</Trans>
-              </ConceptLabel>
+              <Trans>Audit evidence package</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>
@@ -545,7 +559,7 @@ export function AuditLogPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="flex flex-col gap-6 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-60 w-full rounded-lg" />
       </div>
@@ -563,7 +577,7 @@ export function AuditLogPage() {
             practice owner if you need audit access.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open Obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
       >
         <div />
       </PermissionGate>
@@ -571,19 +585,21 @@ export function AuditLogPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl leading-tight font-semibold text-text-primary">
-              <ConceptLabel concept="auditTrail">
-                <Trans>Audit log</Trans>
-              </ConceptLabel>
-            </h1>
-            <p className="max-w-180 text-md text-text-secondary">
-              <Trans>Review practice-wide write events, what changed, and actor metadata.</Trans>
-            </p>
-          </div>
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+      <PageHeader
+        // 2026-05-24 (critique P2 — clarify): dropped the "Settings"
+        // breadcrumb. Audit log is a top-level sidebar destination
+        // (and shows up that way in the demo screen); the crumb
+        // claimed a parent that the route doesn't actually have. The
+        // Settings landing page still links to /audit under
+        // Compliance, so users can navigate inbound from there — but
+        // that's a link, not a breadcrumb relationship.
+        title={
+          <ConceptLabel concept="auditTrail">
+            <Trans>Audit log</Trans>
+          </ConceptLabel>
+        }
+        actions={
           <div className="flex flex-col items-start gap-2 md:items-end">
             <AuditExportButton firm={currentFirm} />
             {currentFirm?.role !== 'owner' ? (
@@ -592,8 +608,8 @@ export function AuditLogPage() {
               </PermissionInlineNotice>
             ) : null}
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -695,10 +711,12 @@ export function AuditLogPage() {
 
       <Card>
         <CardHeader>
+          {/* 2026-05-25 (info-icon audit): unwrapped — the
+              PageHeader at L596 already carries the auditTrail
+              popover; the card heading doesn't need a third
+              copy on the same page. */}
           <CardTitle>
-            <ConceptLabel concept="auditTrail">
-              <Trans>Event stream</Trans>
-            </ConceptLabel>
+            <Trans>Event stream</Trans>
           </CardTitle>
           <CardDescription>
             <Trans>Newest practice-scoped audit events appear first.</Trans>
@@ -713,7 +731,8 @@ export function AuditLogPage() {
                 <Trans>Couldn't load audit events</Trans>
               </AlertTitle>
               <AlertDescription>
-                {rpcErrorMessage(auditQuery.error) ?? t`Please try again.`}
+                {rpcErrorMessage(auditQuery.error) ??
+                  t`Check your network and try again. If this keeps happening, contact support.`}
               </AlertDescription>
             </Alert>
           ) : null}
@@ -732,7 +751,7 @@ export function AuditLogPage() {
                   <Trans>Reset filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
-                    Obligation status updates and client imports will appear here when they write
+                    Deadline status updates and client imports will appear here when they write
                     audit rows.
                   </Trans>
                 )}

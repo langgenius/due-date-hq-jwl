@@ -23,13 +23,15 @@ export interface AiRoutingInput {
 export function taskKindForPrompt(prompt: PromptName): AiTaskKind {
   if (
     prompt === 'mapper@v1' ||
+    prompt === 'mapper@v2' ||
     prompt === 'normalizer-entity@v1' ||
     prompt === 'normalizer-tax-types@v1'
   ) {
     return 'migration'
   }
   if (prompt === 'brief@v1') return 'brief'
-  if (prompt === 'pulse-extract@v1') return 'pulse'
+  if (prompt === 'pulse-extract@v2') return 'pulse'
+  if (prompt === 'rule-concrete-draft@v1' || prompt === 'rule-concrete-draft@v2') return 'insight'
   if (prompt === 'readiness-checklist@v1') return 'readiness'
   return 'insight'
 }

@@ -13,18 +13,17 @@ test.describe('seeded opportunities', () => {
   test.use({ authSeed: 'obligations' })
 
   test('AC: E2E-OPPORTUNITIES-PAGE surfaces real client business cues', async ({
-    appShellPage,
     authenticatedPage,
     opportunitiesPage,
   }) => {
-    await appShellPage.goto()
-    await appShellPage.opportunitiesLink.click()
+    await opportunitiesPage.goto()
 
     await expect(authenticatedPage).toHaveURL(/\/opportunities$/)
     await expect(opportunitiesPage.heading).toBeVisible()
+    await expect(authenticatedPage.getByText('Business guidance queue')).toBeVisible()
     await expect(
       authenticatedPage.getByText(
-        'Lightweight client conversation cues for future service, retention, and engagement scope.',
+        'Open the client to review facts before deciding whether to follow up.',
       ),
     ).toBeVisible()
     await expect(opportunitiesPage.advisorySummary).toContainText('1')
@@ -40,7 +39,7 @@ test.describe('seeded opportunities', () => {
     await expect(retentionRow).toContainText('Late filings in 12 months: 2')
 
     await retentionRow.getByRole('link', { name: 'Open client' }).click()
-    await expect(authenticatedPage).toHaveURL(/\/clients\?client=/)
+    await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
     await expect(
       authenticatedPage.getByRole('heading', { name: 'Copperline Studios' }),
     ).toBeVisible()
@@ -48,12 +47,20 @@ test.describe('seeded opportunities', () => {
 
   test('AC: E2E-OPPORTUNITIES-CLIENT-CARD appears in client detail', async ({
     authenticatedPage,
-    clientsPage,
+    opportunitiesPage,
   }) => {
-    await clientsPage.goto()
-    await clientsPage.rowFor('Arbor & Vale LLC').click()
+    await opportunitiesPage.goto()
+    await opportunitiesPage
+      .rowFor('Arbor & Vale LLC')
+      .getByRole('link', { name: 'Open client' })
+      .click()
 
     await expect(authenticatedPage.getByRole('heading', { name: 'Arbor & Vale LLC' })).toBeVisible()
+    await authenticatedPage
+      .getByRole('button', {
+        name: /Future business cues Advisory, scope, and retention opportunities/,
+      })
+      .click()
     const card = authenticatedPage.locator('[data-slot="card"]').filter({
       has: authenticatedPage.getByText('Future business cues', { exact: true }),
     })

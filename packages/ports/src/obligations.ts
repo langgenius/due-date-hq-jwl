@@ -11,6 +11,9 @@ import type {
   ObligationRiskLevel,
   ObligationStatus,
   ObligationType,
+  TaxPeriodKind,
+  TaxPeriodSource,
+  TaxYearType,
 } from './shared'
 
 export interface PenaltyBreakdownItem {
@@ -37,6 +40,14 @@ export interface ObligationInstanceRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: TaxYearType
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -53,6 +64,7 @@ export interface ObligationInstanceRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  blockedByObligationInstanceId: string | null
   readiness: ObligationReadiness
   extensionDecision: ObligationExtensionDecision
   extensionMemo: string | null
@@ -97,6 +109,14 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxYearType?: TaxYearType
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: TaxPeriodKind
+  taxPeriodSource?: TaxPeriodSource
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null
@@ -156,6 +176,23 @@ export interface ObligationsRepo {
     }>
   >
   updateDueDate(id: string, newDate: Date): Promise<void>
+  updateTaxYearProfile(
+    id: string,
+    patch: {
+      taxYearType: TaxYearType
+      fiscalYearEndMonth: number | null
+      fiscalYearEndDay: number | null
+      taxPeriodStart: Date | null
+      taxPeriodEnd: Date | null
+      taxPeriodKind: TaxPeriodKind
+      taxPeriodSource: TaxPeriodSource
+      taxPeriodReviewReason: string | null
+      baseDueDate?: Date
+      currentDueDate?: Date
+      filingDueDate?: Date | null
+      paymentDueDate?: Date | null
+    },
+  ): Promise<void>
   updateExposure(
     id: string,
     patch: {
@@ -179,12 +216,47 @@ export interface ObligationsRepo {
       decision: Exclude<ObligationExtensionDecision, 'not_considered'>
       memo: string | null
       source: string | null
-      expectedExtendedDueDate: Date | null
+      internalTargetDate: Date | null
       decidedAt: Date
       decidedByUserId: string
       status?: ObligationStatus
     },
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>
+  /**
+   * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
+   * Stamps `efile_rejected_at`, clears any acceptance timestamp, and
+   * transitions status (typically `done → review`).
+   */
+  setEfileRejected(
+    id: string,
+    patch: { rejectedAt: Date; nextStatus: ObligationStatus },
+  ): Promise<void>
+  /**
+   * K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Set or clear
+   * the upstream-blocker pointer. The caller decides the next status
+   * based on whether `blockedBy` is non-null.
+   */
+  setBlockedBy(
+    id: string,
+    patch: { blockedBy: string | null; nextStatus: ObligationStatus },
+  ): Promise<void>
+  /**
+   * In Review sub-status mutations — set `prep_stage` /
+   * `review_stage` directly. The pipeline strip in the obligation
+   * drawer treats these as a slider: any value→any value is legal,
+   * forward or backward, no transition guards at the port layer.
+   * Service-layer caller adds firm scope + audit write.
+   */
+  setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void>
+  setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void>
+  /**
+   * Lifecycle v2: when the obligation identified by
+   * `parentObligationInstanceId` reaches `completed`, every child row
+   * that was `blocked_by` it AND in `blocked` state flips back to
+   * `pending` with `blockedBy` cleared. Returns the list of child IDs
+   * so the caller can audit the cascade.
+   */
+  unblockChildrenOf(parentObligationInstanceId: string): Promise<string[]>
   deleteByBatch(batchId: string): Promise<number>
 }

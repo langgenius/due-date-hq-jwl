@@ -269,10 +269,36 @@
 | `text-2xl`           | 24px | 600    | 1.2         | Client Detail 顶部名称                                                                          |
 | `text-section-title` | 32px | 600    | 1.1875      | Marketing landing 段标题（即 `typography.section-title`，仅 marketing 使用）                    |
 | `text-display-large` | 36px | 600    | 1.167       | Marketing landing 二级 hero（即 `typography.display-large`，仅 marketing；权威值与 Figma 同步） |
-| `text-hero`          | 56px | 700    | 1.0         | **Penalty Radar Hero 数字**（即 `typography.hero-metric`，tabular-nums 必开）                   |
+| `text-hero`          | 56px | 700    | 1.0         | **Deadline Radar Hero 数字**（即 `typography.hero-metric`，tabular-nums 必开）                  |
 | `text-display-hero`  | 54px | 600    | 1.074       | Marketing landing h1（即 `typography.display-hero`，**禁用**于 workbench；权威值与 Figma 同步） |
 
 > **铁律**：`text-section-title` / `text-display-large` / `text-display-hero` 仅限 marketing landing（`apps/app/src/routes/landing.*` 之类）使用，**禁止**进入 dashboard / obligations / drawer / modal 等 workbench 表面。
+
+#### 角色 → token 映射（2026-05-25 增补）
+
+When picking a size, anchor on the **role** the text plays in the
+component, not the visual eyeball test. Role-to-token table for
+recurring patterns we ship across drawers / cards / list rows:
+
+| Role                                                       | Token                   | Weight   | Example                                                              |
+| ---------------------------------------------------------- | ----------------------- | -------- | -------------------------------------------------------------------- |
+| **h1** — page title                                        | `text-2xl`              | semibold | "Today", client name on `/clients/[id]`                              |
+| **h2** — section header (TabSection, page sub-area)        | `text-xl`               | semibold | "Alerts", "Filing plan", "Actions this week"                         |
+| **h3** — card title (drawer body, stage card)              | `text-base` / `text-lg` | semibold | Stage card stageLabel; PulseDetailDrawer title (`text-xl` exception) |
+| **Body** — list-row primary text                           | `text-base`             | regular  | Action prompt in dashboard ActionRow                                 |
+| **Body strong** — list-row anchor (client name, form code) | `text-base`             | semibold | ActionRow client name (2026-05-25 #25); filing-plan form code        |
+| **Body secondary** — list-row supporting copy              | `text-sm`               | regular  | Stage stepper items, drawer description, tile sublines               |
+| **Tile value**                                             | `text-xl`               | semibold | Summary tiles on dashboard + client detail                           |
+| **Eyebrow** (uppercase tracking)                           | `text-caption`          | medium   | "Steps", "Filing activity", section labels above fact grids          |
+| **Caption-xs**                                             | `text-caption-xs`       | medium   | Keyboard chips, dense badges, tabular gutters                        |
+
+**The body / body-strong / body-secondary trio must always read as
+three distinct tiers in the same row.** If the difference between a
+heading and its supporting copy is just `font-medium` vs
+`font-regular` at the same size, the hierarchy reads as flat — that's
+what Yuqi flagged across multiple surfaces (e.g. Today #25, drawer
+#22, drawer #28/#29). The fix is to **change the token AND the
+weight**, not just the weight.
 
 ### 3.3 字母间距
 
@@ -298,6 +324,18 @@ Datetime 展示统一使用 `YYYY-MM-DD HH:mm:ss <timezone>`，例如
 `YYYY-MM-DD`。Firm-scoped operational surfaces use the active firm timezone as the primary
 display timezone and may show UTC as secondary audit metadata.
 
+主工作台中的 `Due date` 口径是 practice internal deadline；如果 UI 展示税务机关规则来源中的
+filing 或 payment deadline，必须显式写出 `Filing Deadline` / `Payment Deadline`，不能和
+internal deadline 混用。
+
+Obligation detail 展示税务机关 deadline 时，必须同时展示 CPA-facing `Tax period`。Fiscal-year
+和 short-year return 的 deadline 以 obligation tax period 为依据；如果客户没有明确标记为
+fiscal year，系统按 calendar year 兜底计算。只有明确 fiscal-year client 且缺少有效 fiscal
+year end 时，才显示 `Needs fiscal year end` 作为 client-level missing fact；这类客户不得生成
+占位 deadline，也不得静默显示 calendar-year deadline。有效 fiscal year end 是 CPA 导入或维护
+的客户事实，直接用于 Tax Period、Filing Deadline、Payment Deadline 和 Internal deadline，不进入
+Tax Period review。
+
 ---
 
 ## 4. Component Stylings
@@ -321,12 +359,12 @@ display timezone and may show UTC as secondary audit metadata.
 - Selected：`background: var(--accent-tint)` + 2px 左 `--accent-default`
 - **行内操作区** `[Apply]` `[Start]` 用 `text-accent-default`，hover underline
 
-| Row kind            | Severity bar (left)                  | Background                      | 触发条件                                       |
-| ------------------- | ------------------------------------ | ------------------------------- | ---------------------------------------------- |
-| `risk-row-critical` | `2px solid var(--severity-critical)` | `var(--severity-critical-tint)` | `days_left ≤ 2` 或 projected risk > $10,000    |
-| `risk-row-high`     | `2px solid var(--severity-high)`     | `var(--severity-high-tint)`     | `3 ≤ days_left ≤ 7` 或 projected risk > $3,000 |
-| `risk-row-upcoming` | `2px solid var(--severity-medium)`   | `var(--severity-medium-tint)`   | `8 ≤ days_left ≤ 30`                           |
-| Neutral row         | —（仅 `--border-subtle` 1px 底线）   | 透明                            | `days_left > 30` 或 `status = OK`              |
+| Row kind            | Severity bar (left)                  | Background                      | 触发条件                                                |
+| ------------------- | ------------------------------------ | ------------------------------- | ------------------------------------------------------- |
+| `risk-row-critical` | `2px solid var(--severity-critical)` | `var(--severity-critical-tint)` | `days_left ≤ 2` 或 legacy penalty estimate > $10,000    |
+| `risk-row-high`     | `2px solid var(--severity-high)`     | `var(--severity-high-tint)`     | `3 ≤ days_left ≤ 7` 或 legacy penalty estimate > $3,000 |
+| `risk-row-upcoming` | `2px solid var(--severity-medium)`   | `var(--severity-medium-tint)`   | `8 ≤ days_left ≤ 30`                                    |
+| Neutral row         | —（仅 `--border-subtle` 1px 底线）   | 透明                            | `days_left > 30` 或 `status = OK`                       |
 
 ### 4.2 Hero Metric（Dashboard 顶部 $ 风险聚合）
 
@@ -360,12 +398,13 @@ display timezone and may show UTC as secondary audit metadata.
 **规格**
 
 - 36px hairline strip：`background-default` + `border-divider-subtle` + `radius: 6px`
-- 左侧 8x8 `PulsingDot`，active alert 用 warning tone；all-clear 用 success tone
+- 左侧 8x8 `PulsingDot`，tone 必须通过 `pulseAlertTone(alert)` helper 计算 — **不允许在 banner / card / drawer 各自手写 tone 公式**。详见 [`docs/Design/pulse-vocabulary.md`](./pulse-vocabulary.md) 中 "Canonical implementation" 章节。
+- 每个 `<PulsingDot>` 都必须有 `label` prop（hover tooltip + aria-label），通过 `pulseAlertToneLabel(tone)` 拿到，避免出现 "这绿色点点是什么意思？" 这类问题
 - Active alert 与 all-clear strip 叠加低频 breathing background tint：3.8s `ease-in-out`，只改变 overlay opacity，不改变布局尺寸
 - `prefers-reduced-motion: reduce` 时关闭动画，保留静态低透明度背景 tint
 - 右侧 `[Dismiss]` 次级动作 + `[Review]` 主按钮；整行点击进入 drawer，按钮区域阻止冒泡
 - 多条时：主条显示 `+ N more`，历史页用同一 hairline row 语言；仅第一条 `matched` 且影响客户数 > 0 的 row 使用 breathing background
-- **禁止使用红色做 Banner** —— 红色留给行内 Critical 风险
+- **禁止使用红色做 Banner** —— 红色留给行内 Critical 风险。Low-confidence alert 走 `normal` (info) tone，不是 `error`
 
 ### 4.4 Evidence Chip（证据徽章 · Glass-Box 核心）
 
@@ -412,7 +451,7 @@ display timezone and may show UTC as secondary audit metadata.
 - 鼠标 hover 是浅层中性反馈 `bg-background-subtle`；键盘 active item 使用更深的 `bg-state-base-hover`，不加左侧指示条
 - 快捷键提示用 `<kbd>` 小胶囊，`background: bg-subtle` + 1px border
 
-### 4.6 Penalty Radar Strip（首屏顶栏）
+### 4.6 Deadline Radar Strip（首屏顶栏）
 
 - 始终 sticky 顶部，高度 48px
 - 默认灰色文字；有新 alert 时 `background: var(--severity-critical-tint)` 脉冲 1.5s 后淡出
@@ -472,15 +511,15 @@ shadcn `Sidebar`（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `
 
 #### 三段式结构（顶到底）
 
-| Slot                                        | 高              | 内容                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PendingBar**（route-owned）               | 2               | idle 几乎不可见；导航中 accent-default 段从左滑出                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| **Practice identity / switcher**（trigger） | 56              | 24px navy brand tile + practice name (Body·Medium) + role/seat eyebrow (Numeric/Small) + ChevronsUpDown 堆叠图标。Popover 内 `Add practice` 是 plan-gated secondary action：entitlement 内打开创建 dialog，超出 Solo / Pro 的 1 active practice 限制时打开 Billing / Contact sales gate。内部组件名可继续沿用 `FirmSwitcher`，但可见文案使用 Practice。                                                                                                                                                                                                                                                    |
-| Hairline `border/default`                   | 1               | 与右侧 route header 底边在同一 Y 处 collinear                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| **SidebarContent**（nav body, flex 1）      | —               | 三个 group：`OPERATIONS`（Dashboard / Obligations / Rules）、`CLIENTS`（Clients facts）、`PRACTICE`（Practice profile / Team workload / Members / Billing / Audit log）。Calendar sync 是 Obligations header 的二级入口（`/obligations/calendar`），不是 sidebar 一级项。Pulse Changes 合并进 Rules，Rules 使用 `FileCheck2` 并承载 verified rules、source-backed deadline templates、政府来源变更和 Pulse badge；右上角 `Bell` 保留给个人 notification center。Team workload 是 paid practice surface：Solo 显示 locked `Pro` hint，Pro/Enterprise 启用。主导航按工作心智组织，不按工程模块或权限表命名。 |
-| **Plan status**                             | 48 + 12 padding | `CreditCard` icon + 当前 `Solo / Pro / Enterprise` + seat count + `Upgrade / Manage / View` action chip，链接 `/billing`。这是持久 subscription 状态入口，不是 pricing 卡片；完整 Billing 页面展示 seats 和 active practices 两个 entitlement 维度。使用 `bg-background-section`、8px card radius、brand/accent icon tile 和 action chip，让它比普通 nav item 更像账户状态卡，但不进入营销视觉。                                                                                                                                                                                                           |
-| Hairline `border/default`                   | 1               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| **User row**                                | 56              | 28px 头像 + 右下 6px `status-done` 绿点（包 surface-panel 环 = ring 效果） + Body·Medium name + Numeric/Small email + 右端 chevron。点击展开 popover 含 sign-out / theme / locale                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Slot                                        | 高              | 内容                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PendingBar**（route-owned）               | 2               | idle 几乎不可见；导航中 accent-default 段从左滑出                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **Practice identity / switcher**（trigger） | 56              | 24px navy brand tile + practice name (Body·Medium) + role/seat eyebrow (Numeric/Small) + ChevronsUpDown 堆叠图标。Popover 内 `Add practice` 是 plan-gated secondary action：entitlement 内打开创建 dialog，超出 Solo / Pro 的 1 active practice 限制时打开 Billing / Contact sales gate。内部组件名可继续沿用 `FirmSwitcher`，但可见文案使用 Practice。                                                                                                                                                                                                                                              |
+| Hairline `border/default`                   | 1               | 与右侧 route header 底边在同一 Y 处 collinear                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **SidebarContent**（nav body, flex 1）      | —               | 三个 group：`OPERATIONS`（Dashboard / Deadlines / Rules）、`CLIENTS`（Clients facts）、`PRACTICE`（Practice profile / Team workload / Members / Billing / Audit log）。Calendar sync 是 Deadlines header 的二级入口（`/deadlines/calendar`），不是 sidebar 一级项。Pulse Changes 合并进 Rules，Rules 使用 `FileCheck2` 并承载 verified rules、source-backed deadline templates、政府来源变更和 Pulse badge；右上角 `Bell` 保留给个人 notification center。Team workload 是 paid practice surface：Solo 显示 locked `Pro` hint，Pro/Enterprise 启用。主导航按工作心智组织，不按工程模块或权限表命名。 |
+| **Plan status**                             | 48 + 12 padding | `CreditCard` icon + 当前 `Solo / Pro / Enterprise` + seat count + `Upgrade / Manage / View` action chip，链接 `/billing`。这是持久 subscription 状态入口，不是 pricing 卡片；完整 Billing 页面展示 seats 和 active practices 两个 entitlement 维度。使用 `bg-background-section`、8px card radius、brand/accent icon tile 和 action chip，让它比普通 nav item 更像账户状态卡，但不进入营销视觉。                                                                                                                                                                                                     |
+| Hairline `border/default`                   | 1               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| **User row**                                | 56              | 28px 头像 + 右下 6px `status-done` 绿点（包 surface-panel 环 = ring 效果） + Body·Medium name + Numeric/Small email + 右端 chevron。点击展开 popover 含 sign-out / theme / locale                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 #### Mobile（< 768px）
 
@@ -526,6 +565,56 @@ dialog shell 打开同一套 wizard。
 Sidebar footer 只保留 workspace/account 持久状态：plan status + user menu。`/practice`
 入口放在 Practice 导航；user menu 不承载 practice profile，除非后续新增真正的 user account
 profile。
+
+### 4.10 Status Pill Tone Ladder（2026-05-25 增补）
+
+> 全审计与变更清单见 [`status-pill-audit-2026-05-25.md`](./status-pill-audit-2026-05-25.md)。
+> 这一节是 audit §3 的"硬裁定"，新加任何 chip / pill 必须先来这里对一遍 tone。
+
+App 里所有"X 是什么状态？"的 chip 都是
+`(tone, shape, ornament)` 三元组。先选 tone（语义），再选 shape（类别），最后
+按 ornament 规则决定要不要加 dot。三档独立，不允许"我觉得这个看着该是绿的"自由发挥。
+
+#### Tone → 语义（不可重新定义）
+
+| Tone                  | 语义                                 | 典型场景                                                                                                                |
+| --------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `success`（绿）       | 完成 / 已结算 / 健康                 | `done` / `paid` / `completed`、rule `active`/`verified`、source `healthy`、materials `Received`、client `ready`         |
+| `info`（蓝）          | **进行中的工作**                     | obligation `in_progress` / `review`、rule `pending_review` / `candidate`、pulse alert `New`                             |
+| `warning`（黄）       | **外部暂停** — 等别人，暂无紧急性    | obligation `waiting_on_client`、source `paused`、invitation `expired`、tip `Failed`                                     |
+| `destructive`（红）   | **硬阻断 / 失败** — 不干预就走不下去 | obligation `blocked`、rule `rejected`、coverage `none`、pulse confidence `< 0.7`、materials `Needs review`、AI `Failed` |
+| `secondary`（灰填充） | 未开始 / 休眠                        | `pending`、`not_applicable`、rule `archived`/`deprecated`、member `suspended`                                           |
+| `outline`（中性边框） | 引用 tag — 不是状态                  | source name、tax code、jurisdiction code、entity tag                                                                    |
+
+注意：§14.7 已经独立裁定了 `needs_review` 一词的双重含义（数据质量类走
+severity-medium 黄；工作流态走 status-review 蓝）。这张表只覆盖工作流态。
+
+#### Shape → 类别（决定整个 chip 的画法）
+
+| Shape                         | 含义                                                 | 例子                                                           |
+| ----------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
+| 填充 chip + lucide icon       | Lifecycle / 工作流状态（"它在它的旅程中走到哪了？"） | `ObligationStatusReadBadge`（标准实现）、rule 状态徽章         |
+| Outline chip + 引用文本       | 元数据 tag，不是状态                                 | tax code、jurisdiction、entity type、source name               |
+| 裸 icon + 浅色文字（无 chip） | 行内 kicker，已经在有 label 的容器里                 | `RuleStatusKicker`（保留）、`ClientReadinessBadge`（压扁版本） |
+| Progress bar 分段             | 跨多行的聚合计数                                     | `RuleStatusBar`、rule library StatsBar 进度条                  |
+
+#### Ornament 规则（dot 用不用）
+
+- 填充 chip → **只用 icon，不再加 dot**。Chip fill 已经在表达 tone，icon
+  负责表达身份。`ObligationStatusReadBadge` / `ObligationQueueStatusControl` 是
+  标准实现。
+- `outline` chip → **可以加 dot**。因为 chip 本身没有 tone 可传达，dot 来
+  补这个信号（`HealthBadge`、`TemporaryRuleStatusBadge`、members &
+  invitations 行）。
+- 填充 chip + dot 是 **冗余**，不允许新加。已经踩过这个坑的位置见
+  [audit §2.3](./status-pill-audit-2026-05-25.md#23--badgestatusdot-是半弃用同家族内不一致的-dot-用法-sev-med)。
+
+#### 落地纪律
+
+- 添加新 chip 前先来这一节对 tone；如果是新语义，去 audit doc 加一行，再回来更新本表。
+- 不要在某个 surface 里自由发挥重新映射 tone（"我们这页这里 review 用黄看着比较稳"
+  这种话术等于在制造 audit §2.1 那种 4 色 review 灾难）。
+- `BadgeStatusDot` 不是默认 ornament。先看 chip 是不是 outline，再决定要不要 dot。
 
 ---
 
@@ -778,7 +867,7 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 | ------------------------ | ---------------------------------------------- |
 | §1 / §2 / §3             | PRD v2.0 §1.3（设计原则）+ §10.1（视觉语言）   |
 | §4.1 Risk Row            | PRD v2.0 §5.2 Obligations                      |
-| §4.2 Hero Metric         | PRD v2.0 §5.1.1 Layer 1 Penalty Radar          |
+| §4.2 Hero Metric         | PRD v2.0 §5.1.1 Layer 1 Deadline Radar         |
 | §4.3 Pulse Banner        | PRD v2.0 §5.1.4 + §6.3                         |
 | §4.4 Evidence Chip       | PRD v2.0 §5.5 Evidence Mode + §6.2 Glass-Box   |
 | §4.5 Command Palette     | PRD v2.0 §10.3 + §6.6 Ask                      |
@@ -987,13 +1076,13 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 
 把产品语义压成一个 fintech / accounting workbench 风格的 256×256 几何符号：
 
-| 元素                    | 产品语义                                | 视觉                                            |
-| ----------------------- | --------------------------------------- | ----------------------------------------------- |
-| 圆角方块外壳            | fintech app / HQ 工作台                 | radius 54，深 midnight navy                     |
-| 银色 `D` monogram       | DueDateHQ 产品识别                      | 大单形状，Cash App / Stripe 式小尺寸强识别      |
-| D 内部 ledger ticks     | 会计账本 / source-backed working papers | brass 主 tick + 两条 muted silver 账本行        |
-| Cyan deadline pulse dot | 截止日风险被命中                        | 单一高记忆信号色；与 Penalty Radar 语义保持关联 |
-| Pulse halo（256 only）  | 风险提醒的可见度                        | 仅大尺寸保留；favicon 删除以避免小尺寸糊掉      |
+| 元素                    | 产品语义                                | 视觉                                             |
+| ----------------------- | --------------------------------------- | ------------------------------------------------ |
+| 圆角方块外壳            | fintech app / HQ 工作台                 | radius 54，深 midnight navy                      |
+| 银色 `D` monogram       | DueDateHQ 产品识别                      | 大单形状，Cash App / Stripe 式小尺寸强识别       |
+| D 内部 ledger ticks     | 会计账本 / source-backed working papers | brass 主 tick + 两条 muted silver 账本行         |
+| Cyan deadline pulse dot | 截止日风险被命中                        | 单一高记忆信号色；与 Deadline Radar 语义保持关联 |
+| Pulse halo（256 only）  | 风险提醒的可见度                        | 仅大尺寸保留；favicon 删除以避免小尺寸糊掉       |
 
 刻意避开的（呼应 §0 / §2.4 / §9 禁用清单）：渐变、阴影（除 `--shadow-subtle`）、纯黑 dark 背景、绿色"OK"语义、emoji 装饰、泛用日历图标、`>12px` 圆角胶囊。
 

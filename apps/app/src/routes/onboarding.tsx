@@ -6,8 +6,15 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, Loader2Icon } from 'lucide-react'
 
 import { derivePracticeName } from '@duedatehq/core/practice-name'
+import {
+  DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
+  type RuleGenerationState,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboarding-firm-flow'
@@ -36,6 +43,9 @@ export function OnboardingRoute() {
   const [error, setError] = useState<string | null>(null)
   const switchMutation = useMutation(orpc.firms.switchActive.mutationOptions())
   const createMutation = useMutation(orpc.firms.create.mutationOptions())
+  const activateRulesMutation = useMutation(
+    orpc.rules.activateOnboardingJurisdictions.mutationOptions(),
+  )
 
   const fallback = t`My Practice`
   const defaultName = useMemo(
@@ -43,6 +53,10 @@ export function OnboardingRoute() {
     [user.name, user.email, fallback],
   )
   const [name, setName] = useState(defaultName)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+  )
+  const [selectedRuleStates, setSelectedRuleStates] = useState<RuleGenerationState[]>([])
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
@@ -57,23 +71,37 @@ export function OnboardingRoute() {
       setError(t`Please enter at least 2 characters.`)
       return
     }
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      setError(t`Internal deadline offset must be between 0 and 365 days.`)
+      return
+    }
 
     setIsSubmitting(true)
     void activateOrCreateOnboardingFirm({
       name: trimmed,
+      internalDeadlineOffsetDays,
       gateway: {
         listMine: () =>
           queryClient.fetchQuery(orpc.firms.listMine.queryOptions({ input: undefined })),
         switchActive: (input) => switchMutation.mutateAsync(input),
         create: (input) => createMutation.mutateAsync(input),
+        activateOnboardingJurisdictions: (input) => activateRulesMutation.mutateAsync(input),
       },
+      selectedRuleStates,
     })
       .then(async (result) => {
         await queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+        await queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
         await navigate(postOnboardingTarget(result, redirectTo), { replace: true })
       })
       .catch((err: unknown) => {
-        const message = readErrorMessage(err, t`Please try again.`)
+        const message = readErrorMessage(
+          err,
+          t`Check your network and try again. If this keeps happening, contact support.`,
+        )
         setError(message)
         toast.error(t`Couldn't create your practice`, { description: message })
       })
@@ -82,7 +110,7 @@ export function OnboardingRoute() {
 
   return (
     <div className="flex w-full max-w-[400px] flex-col">
-      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-[11px] tracking-[0.16em] text-accent-text">
+      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
         <Trans>PRACTICE PROFILE</Trans>
       </span>
@@ -102,7 +130,7 @@ export function OnboardingRoute() {
         <div className="mt-8 flex flex-col gap-1.5">
           <label
             htmlFor="practice-name"
-            className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
           >
             <Trans>Practice name</Trans>
           </label>
@@ -134,13 +162,46 @@ export function OnboardingRoute() {
           )}
         </div>
 
+        <StateRuleActivationSelector
+          selected={selectedRuleStates}
+          onChange={setSelectedRuleStates}
+        />
+
+        <div className="mt-5 flex flex-col gap-1.5">
+          <label
+            htmlFor="internal-deadline-offset"
+            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
+          >
+            <Trans>Internal deadline</Trans>
+          </label>
+          <Input
+            id="internal-deadline-offset"
+            name="internalDeadlineOffsetDays"
+            type="number"
+            min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+            max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+            step={1}
+            value={internalDeadlineOffsetDays}
+            onChange={(event) =>
+              setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+            }
+            aria-describedby="internal-deadline-offset-helper"
+          />
+          <p
+            id="internal-deadline-offset-helper"
+            className="text-[12px] leading-relaxed text-text-muted"
+          >
+            <Trans>Show work as due this many days before the statutory deadline.</Trans>
+          </p>
+        </div>
+
         <Button
           type="submit"
           className="mt-5 w-full justify-center gap-2"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
+          disabled={isSubmitting || activateRulesMutation.isPending}
+          aria-busy={isSubmitting || activateRulesMutation.isPending}
         >
-          {isSubmitting ? (
+          {isSubmitting || activateRulesMutation.isPending ? (
             <>
               <Loader2Icon className="size-4 animate-spin" aria-hidden />
               <span>
@@ -158,7 +219,7 @@ export function OnboardingRoute() {
         </Button>
       </form>
 
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-[11px] text-text-muted">
+      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
         <Trans>Encrypted · Auto-saves · Renamable later</Trans>
       </p>

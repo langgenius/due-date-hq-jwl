@@ -1,5 +1,15 @@
 import { ORPCError } from '@orpc/server'
-import type { ObligationInstancePublic } from '@duedatehq/contracts'
+import { ObligationRuleSchema, type ObligationInstancePublic } from '@duedatehq/contracts'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
+import {
+  canEditTaxYearProfileForObligation,
+  findRuleById,
+  listRuleSources,
+  previewObligationsFromRules,
+  STATE_RULE_JURISDICTIONS,
+  type ObligationRule as CoreObligationRule,
+  type RuleGenerationState,
+} from '@duedatehq/core/rules'
 import { requireTenant } from '../_context'
 import {
   MIGRATION_RUN_ROLES,
@@ -11,14 +21,24 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
-import { recalculateObligationExposure } from '../_penalty-exposure'
 import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
+  markObligationFiledRejected,
   toObligationPublic,
+  updateObligationBlockedBy,
+  updateObligationPrepStage,
+  updateObligationReviewStage,
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
+import { resolveUpdatedTaxYearProfilePlan } from './_tax-year-profile'
+import { toCoreRule } from '../rules/runtime'
+import {
+  buildRuleBackedCreateInput,
+  keyForGenerated,
+  sourceUrlForPreview,
+} from '../rules/_obligation-generation'
 
 /**
  * obligations.* — Demo Sprint subset of the Obligation Domain Contract.
@@ -39,6 +59,14 @@ interface ObligationRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: ObligationInstancePublic['taxYearType']
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: ObligationInstancePublic['taxPeriodKind']
+  taxPeriodSource: ObligationInstancePublic['taxPeriodSource']
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -93,16 +121,68 @@ interface ObligationRow {
   updatedAt: Date
 }
 
+const RULE_GENERATION_STATES = new Set<string>(STATE_RULE_JURISDICTIONS)
+
+function isRuleGenerationState(value: string | null | undefined): value is RuleGenerationState {
+  return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
+}
+
+function isDefaultActiveTemplateRule(rule: Pick<CoreObligationRule, 'jurisdiction' | 'status'>) {
+  return rule.jurisdiction === 'FED' && rule.status === 'verified'
+}
+
+function canRetargetRuleTaxYear(rule: Pick<CoreObligationRule, 'dueDateLogic'>): boolean {
+  return (
+    rule.dueDateLogic.kind === 'nth_day_after_tax_year_end' ||
+    rule.dueDateLogic.kind === 'nth_day_after_tax_year_begin'
+  )
+}
+
+async function activeRuleForManualCreate(
+  scoped: ReturnType<typeof requireTenant>['scoped'],
+  ruleId: string,
+): Promise<CoreObligationRule | null> {
+  const [practice, template] = await Promise.all([
+    scoped.rules.getPracticeRule(ruleId),
+    Promise.resolve(findRuleById(ruleId)),
+  ])
+
+  if (practice?.status === 'active' && practice.ruleJson) {
+    const parsed = ObligationRuleSchema.safeParse(practice.ruleJson)
+    if (parsed.success) return toCoreRule(parsed.data)
+  }
+
+  if (
+    template &&
+    isDefaultActiveTemplateRule(template) &&
+    practice?.status !== 'rejected' &&
+    practice?.status !== 'archived'
+  ) {
+    return template
+  }
+
+  return null
+}
+
 const createBatch = os.obligations.createBatch.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
 
   const repoInputs = input.obligations.map((o) => {
+    const baseDueDate = new Date(o.baseDueDate)
     const repoInput: {
       clientId: string
       clientFilingProfileId?: string | null
       taxType: string
       taxYear: number | null
+      taxYearType?: ObligationInstancePublic['taxYearType']
+      fiscalYearEndMonth?: number | null
+      fiscalYearEndDay?: number | null
+      taxPeriodStart?: Date | null
+      taxPeriodEnd?: Date | null
+      taxPeriodKind?: ObligationInstancePublic['taxPeriodKind']
+      taxPeriodSource?: ObligationInstancePublic['taxPeriodSource']
+      taxPeriodReviewReason?: string | null
       ruleId?: string | null
       ruleVersion?: number | null
       rulePeriod?: string | null
@@ -143,6 +223,11 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       clientFilingProfileId: o.clientFilingProfileId ?? null,
       taxType: o.taxType,
       taxYear: o.taxYear ?? null,
+      taxPeriodStart: o.taxPeriodStart ? new Date(o.taxPeriodStart) : null,
+      taxPeriodEnd: o.taxPeriodEnd ? new Date(o.taxPeriodEnd) : null,
+      taxPeriodKind: o.taxPeriodKind ?? 'unknown',
+      taxPeriodSource: o.taxPeriodSource ?? 'unknown',
+      taxPeriodReviewReason: o.taxPeriodReviewReason ?? null,
       ruleId: o.ruleId ?? null,
       ruleVersion: o.ruleVersion ?? null,
       rulePeriod: o.rulePeriod ?? null,
@@ -156,8 +241,10 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       sourceEvidenceJson: o.sourceEvidence ?? null,
       recurrence: o.recurrence ?? 'once',
       riskLevel: o.riskLevel ?? 'low',
-      baseDueDate: new Date(o.baseDueDate),
-      currentDueDate: o.currentDueDate ? new Date(o.currentDueDate) : new Date(o.baseDueDate),
+      baseDueDate,
+      currentDueDate: o.currentDueDate
+        ? new Date(o.currentDueDate)
+        : internalDeadlineFromBaseDueDate(baseDueDate, tenant.internalDeadlineOffsetDays),
       prepStage: o.prepStage ?? 'not_started',
       reviewStage: o.reviewStage ?? 'not_required',
       extensionState: o.extensionState ?? 'not_started',
@@ -177,6 +264,12 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
       penaltySourceRefsJson: o.penaltySourceRefs ?? [],
       penaltyFormulaLabel: o.penaltyFormulaLabel ?? null,
       exposureCalculatedAt: o.exposureCalculatedAt ? new Date(o.exposureCalculatedAt) : null,
+    }
+    if (o.taxYearType !== undefined) {
+      repoInput.taxYearType = o.taxYearType
+      repoInput.fiscalYearEndMonth =
+        o.taxYearType === 'fiscal' ? (o.fiscalYearEndMonth ?? null) : null
+      repoInput.fiscalYearEndDay = o.taxYearType === 'fiscal' ? (o.fiscalYearEndDay ?? null) : null
     }
     if (o.status !== undefined) repoInput.status = o.status
     return repoInput
@@ -207,7 +300,7 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
   if (allRows.length !== ids.length) {
     // Defensive: re-read drift would mask a partial batch failure.
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Created obligations could not be re-read in full.',
+      message: 'Created deadlines could not be re-read in full.',
     })
   }
 
@@ -216,6 +309,194 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
     obligations: allRows.map((row) =>
       toObligationPublic(row, { client: clientById.get(row.clientId), asOfDate }),
     ),
+  }
+})
+
+const createFromRule = os.obligations.createFromRule.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+
+  const [client, rule] = await Promise.all([
+    scoped.clients.findById(input.clientId),
+    activeRuleForManualCreate(scoped, input.ruleId),
+  ])
+  if (!client) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.clientId} not found in current firm.`,
+    })
+  }
+  if (!rule) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Active rule ${input.ruleId} was not found in current firm.`,
+    })
+  }
+  if (rule.dueDateLogic.kind === 'source_defined_calendar') {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'This rule needs review before it can create a deadline.',
+    })
+  }
+  const selectedRule =
+    input.taxYear !== undefined && input.taxYear !== rule.taxYear
+      ? (() => {
+          if (!canRetargetRuleTaxYear(rule)) {
+            throw new ORPCError('BAD_REQUEST', {
+              message: 'This rule cannot be reused for a different tax year yet.',
+            })
+          }
+          return {
+            ...rule,
+            taxYear: input.taxYear,
+            applicableYear: input.taxYear + (rule.applicableYear - rule.taxYear),
+          }
+        })()
+      : rule
+
+  const profilesByClient = await scoped.filingProfiles.listByClients([client.id])
+  const profiles = profilesByClient.get(client.id) ?? []
+  const matchingProfile =
+    selectedRule.jurisdiction === 'FED'
+      ? null
+      : (profiles.find((profile) => profile.state === selectedRule.jurisdiction) ?? null)
+  if (selectedRule.jurisdiction !== 'FED' && !matchingProfile) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Client ${client.id} does not have a ${selectedRule.jurisdiction} filing profile.`,
+    })
+  }
+
+  const generationState =
+    selectedRule.jurisdiction !== 'FED'
+      ? selectedRule.jurisdiction
+      : (profiles.find((profile) => isRuleGenerationState(profile.state))?.state ??
+        (isRuleGenerationState(client.state) ? client.state : null))
+  if (!isRuleGenerationState(generationState)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Client needs a filing jurisdiction before a rule can create a deadline.',
+    })
+  }
+
+  const previews = previewObligationsFromRules({
+    client: {
+      id: client.id,
+      entityType: client.entityType,
+      state: generationState,
+      taxTypes: [selectedRule.taxType],
+      taxPeriodSource: 'manual_cpa_confirmed',
+      ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
+    },
+    rules: [selectedRule],
+  }).filter((preview) => preview.ruleId === selectedRule.id)
+
+  if (previews.every((preview) => !preview.dueDate)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'This rule did not produce a concrete due date for this client.',
+    })
+  }
+
+  const duplicateRows = await scoped.obligations.listGeneratedByClientAndTaxYears({
+    clientIds: [client.id],
+    taxYears: [selectedRule.taxYear],
+  })
+  const seenGeneratedKeys = new Set(
+    duplicateRows
+      .filter((row) => row.ruleId && row.taxYear !== null && row.rulePeriod)
+      .map((row) =>
+        keyForGenerated({
+          clientId: row.clientId,
+          jurisdiction: row.jurisdiction,
+          ruleId: row.ruleId!,
+          taxYear: row.taxYear,
+          rulePeriod: row.rulePeriod!,
+        }),
+      ),
+  )
+
+  let duplicateCount = 0
+  const createInputs = previews.flatMap((preview) => {
+    if (!preview.dueDate) return []
+    const key = keyForGenerated({
+      clientId: client.id,
+      jurisdiction: preview.jurisdiction,
+      ruleId: selectedRule.id,
+      taxYear: selectedRule.taxYear,
+      rulePeriod: preview.period,
+    })
+    if (seenGeneratedKeys.has(key)) {
+      duplicateCount += 1
+      return []
+    }
+    seenGeneratedKeys.add(key)
+    return [
+      buildRuleBackedCreateInput({
+        client,
+        profile: matchingProfile,
+        rule: selectedRule,
+        preview,
+        internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+        now: new Date(),
+        generationSource: 'manual',
+      }),
+    ]
+  })
+
+  if (createInputs.length === 0) {
+    return { obligations: [], duplicateCount }
+  }
+
+  const now = new Date()
+  const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
+  const { ids } = await scoped.obligations.createBatch(createInputs)
+  await scoped.evidence.writeBatch(
+    createInputs.map((created, index) => ({
+      obligationInstanceId: ids[index] ?? null,
+      aiOutputId: created.preview.evidence[0]?.aiOutputId ?? null,
+      sourceType: 'verified_rule',
+      sourceId: created.preview.ruleId,
+      sourceUrl: sourceUrlForPreview(created.preview, sourceById),
+      verbatimQuote: created.preview.evidence[0]?.sourceExcerpt ?? null,
+      rawValue: created.preview.matchedTaxType,
+      normalizedValue: created.preview.taxType,
+      confidence: created.preview.reminderReady ? 1 : 0.7,
+      model: null,
+      matrixVersion: null,
+      verifiedAt: null,
+      verifiedBy: null,
+      appliedAt: now,
+      appliedBy: userId,
+    })),
+  )
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_batch',
+    entityId: ids[0] ?? 'empty',
+    action: 'obligation.batch_created',
+    after: {
+      reason: 'rules.manual_create',
+      ruleIds: [selectedRule.id],
+      createdCount: ids.length,
+      duplicateCount,
+      clientCount: 1,
+      createdObligationIds: ids,
+    },
+    reason: 'Created from the client rule catalog.',
+  })
+
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'manual_refresh',
+  }).catch(() => false)
+
+  const idSet = new Set(ids)
+  const rows = (await scoped.obligations.listByClient(client.id)).filter((row) => idSet.has(row.id))
+  if (rows.length !== ids.length) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Created deadlines could not be re-read in full.',
+    })
+  }
+
+  const asOfDate = dateInTimezone(tenant.timezone)
+  return {
+    obligations: rows.map((row) => toObligationPublic(row, { client, asOfDate })),
+    duplicateCount,
   }
 })
 
@@ -232,12 +513,13 @@ const listByClient = os.obligations.listByClient.handler(async ({ input, context
 const previewAnnualRollover = os.obligations.previewAnnualRollover.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
-    const { scoped, userId } = requireTenant(context)
+    const { scoped, tenant, userId } = requireTenant(context)
     return runAnnualRollover({
       scoped,
       userId,
       params: input,
       mode: 'preview',
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     })
   },
 )
@@ -251,6 +533,7 @@ const createAnnualRollover = os.obligations.createAnnualRollover.handler(
       userId,
       params: input,
       mode: 'create',
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     })
     if (result.summary.createdCount > 0) {
       await enqueueDashboardBriefRefresh(context.env, {
@@ -268,7 +551,7 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.id} not found in current firm.`,
+      message: `Deadline ${input.id} not found in current firm.`,
     })
   }
 
@@ -276,11 +559,10 @@ const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, conte
     input.id,
     new Date(`${input.currentDueDate}T00:00:00.000Z`),
   )
-  await recalculateObligationExposure(scoped, input.id)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated obligation could not be re-read.',
+      message: 'Updated deadline could not be re-read.',
     })
   }
 
@@ -325,6 +607,47 @@ const updateStatus = os.obligations.updateStatus.handler(async ({ input, context
   return result
 })
 
+const markFiledRejected = os.obligations.markFiledRejected.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await markObligationFiledRejected(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
+const updateBlockedBy = os.obligations.updateBlockedBy.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await updateObligationBlockedBy(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
+// In Review sub-status mutations — fire when the CPA clicks a step in
+// the obligation drawer's prep ↔ review pipeline strip. Reuses
+// `OBLIGATION_STATUS_WRITE_ROLES`: anyone who can flip status can
+// also flip the sub-stage (same workflow authority). Sub-status
+// changes don't affect the dashboard summary tiles or deadline tip,
+// so we skip the dashboard / AI refresh enqueues — the row's status
+// is unchanged.
+const updatePrepStage = os.obligations.updatePrepStage.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationPrepStage(scoped, userId, input)
+})
+
+const updateReviewStage = os.obligations.updateReviewStage.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationReviewStage(scoped, userId, input)
+})
+
 const bulkUpdateStatus = os.obligations.bulkUpdateStatus.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -360,30 +683,170 @@ function deadlineTipFallback(obligationId: string) {
     {
       key: 'what',
       label: 'What',
-      text: 'Cached deadline tip is pending for this obligation.',
+      text: 'Cached deadline tip is pending for this deadline.',
       citationRefs: [],
     },
     {
       key: 'why',
       label: 'Why',
-      text: 'Smart Priority explains urgency with deterministic deadline, exposure, client risk, and readiness inputs.',
+      text: 'Smart Priority explains urgency with deterministic deadline, client risk, and readiness inputs.',
       citationRefs: [],
     },
     {
       key: 'prepare',
       label: 'Prepare',
-      text: `Request a refresh after evidence or status changes for obligation ${obligationId}.`,
+      text: `Request a refresh after evidence or status changes for deadline ${obligationId}.`,
       citationRefs: [],
     },
   ]
 }
+
+const updateTaxYearProfile = os.obligations.updateTaxYearProfile.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const before = await scoped.obligations.findById(input.id)
+    if (!before) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Deadline ${input.id} not found in current firm.`,
+      })
+    }
+    if (before.taxYear === null) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Only tax-year-specific deadlines can update tax year profile.',
+      })
+    }
+    const beforeRule = before.ruleId ? findRuleById(before.ruleId) : null
+    if (
+      !canEditTaxYearProfileForObligation({
+        rule: beforeRule,
+        taxType: before.taxType,
+        taxYearType: before.taxYearType,
+        taxPeriodKind: before.taxPeriodKind,
+      })
+    ) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'This deadline is not driven by a fiscal tax year.',
+      })
+    }
+
+    const nextFiscalYearEndMonth = input.taxYearType === 'fiscal' ? input.fiscalYearEndMonth : null
+    const nextFiscalYearEndDay = input.taxYearType === 'fiscal' ? input.fiscalYearEndDay : null
+    const client = await scoped.clients.findById(before.clientId)
+    if (!client) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Client ${before.clientId} for deadline ${input.id} was not found.`,
+      })
+    }
+    const plan = resolveUpdatedTaxYearProfilePlan({
+      row: before,
+      client,
+      taxYearType: input.taxYearType,
+      fiscalYearEndMonth: nextFiscalYearEndMonth,
+      fiscalYearEndDay: nextFiscalYearEndDay,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+    })
+    if (!plan) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Could not determine the statutory due date for this tax year profile.',
+      })
+    }
+    if (plan.currentDueDate.getTime() > plan.baseDueDate.getTime()) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Internal deadline must be on or before the statutory deadline.',
+      })
+    }
+    if (
+      plan.filingDueDate &&
+      plan.taxPeriodEnd &&
+      plan.filingDueDate.getTime() < plan.taxPeriodEnd.getTime()
+    ) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Statutory filing deadline must be on or after the tax period end.',
+      })
+    }
+
+    await scoped.obligations.updateTaxYearProfile(input.id, {
+      taxYearType: input.taxYearType,
+      fiscalYearEndMonth: nextFiscalYearEndMonth,
+      fiscalYearEndDay: nextFiscalYearEndDay,
+      taxPeriodStart: plan.taxPeriodStart,
+      taxPeriodEnd: plan.taxPeriodEnd,
+      taxPeriodKind: plan.taxPeriodKind,
+      taxPeriodSource: plan.taxPeriodSource,
+      taxPeriodReviewReason: plan.taxPeriodReviewReason,
+      baseDueDate: plan.baseDueDate,
+      currentDueDate: plan.currentDueDate,
+      filingDueDate: plan.filingDueDate,
+      paymentDueDate: plan.paymentDueDate,
+    })
+    const after = await scoped.obligations.findById(input.id)
+    if (!after) {
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
+        message: 'Updated deadline could not be re-read.',
+      })
+    }
+
+    const { id: auditId } = await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: input.id,
+      action: 'obligation.tax_year_profile.updated',
+      before: {
+        taxYearType: before.taxYearType,
+        fiscalYearEndMonth: before.fiscalYearEndMonth,
+        fiscalYearEndDay: before.fiscalYearEndDay,
+        taxPeriodStart: before.taxPeriodStart?.toISOString().slice(0, 10) ?? null,
+        taxPeriodEnd: before.taxPeriodEnd?.toISOString().slice(0, 10) ?? null,
+        baseDueDate: before.baseDueDate.toISOString().slice(0, 10),
+        currentDueDate: before.currentDueDate.toISOString().slice(0, 10),
+        filingDueDate: before.filingDueDate?.toISOString().slice(0, 10) ?? null,
+        paymentDueDate: before.paymentDueDate?.toISOString().slice(0, 10) ?? null,
+      },
+      after: {
+        taxYearType: after.taxYearType,
+        fiscalYearEndMonth: after.fiscalYearEndMonth,
+        fiscalYearEndDay: after.fiscalYearEndDay,
+        taxPeriodStart: after.taxPeriodStart?.toISOString().slice(0, 10) ?? null,
+        taxPeriodEnd: after.taxPeriodEnd?.toISOString().slice(0, 10) ?? null,
+        baseDueDate: after.baseDueDate.toISOString().slice(0, 10),
+        currentDueDate: after.currentDueDate.toISOString().slice(0, 10),
+        filingDueDate: after.filingDueDate?.toISOString().slice(0, 10) ?? null,
+        paymentDueDate: after.paymentDueDate?.toISOString().slice(0, 10) ?? null,
+      },
+      ...(input.reason !== undefined ? { reason: input.reason } : {}),
+    })
+
+    await Promise.all([
+      enqueueDashboardBriefRefresh(context.env, {
+        firmId: tenant.firmId,
+        reason: 'due_date_update',
+      }).catch(() => false),
+      enqueueAiInsightRefresh(context.env, {
+        firmId: tenant.firmId,
+        kind: 'deadline_tip',
+        subjectId: input.id,
+        reason: 'due_date_update',
+      }).catch(() => false),
+    ])
+
+    const afterClient = client ?? (await scoped.clients.findById(after.clientId))
+    return {
+      obligation: toObligationPublic(after, {
+        client: afterClient,
+        asOfDate: dateInTimezone(tenant.timezone),
+      }),
+      auditId,
+    }
+  },
+)
 
 const getDeadlineTip = os.obligations.getDeadlineTip.handler(async ({ input, context }) => {
   const { scoped, tenant } = requireTenant(context)
   const obligation = await scoped.obligations.findById(input.obligationId)
   if (!obligation) {
     throw new ORPCError('NOT_FOUND', {
-      message: `Obligation ${input.obligationId} not found in current firm.`,
+      message: `Deadline ${input.obligationId} not found in current firm.`,
     })
   }
   const asOfDate = dateInTimezone(tenant.timezone)
@@ -407,7 +870,7 @@ const requestDeadlineTipRefresh = os.obligations.requestDeadlineTipRefresh.handl
     const obligation = await scoped.obligations.findById(input.obligationId)
     if (!obligation) {
       throw new ORPCError('NOT_FOUND', {
-        message: `Obligation ${input.obligationId} not found in current firm.`,
+        message: `Deadline ${input.obligationId} not found in current firm.`,
       })
     }
     const asOfDate = dateInTimezone(tenant.timezone)
@@ -452,11 +915,17 @@ const requestDeadlineTipRefresh = os.obligations.requestDeadlineTipRefresh.handl
 
 export const obligationsHandlers = {
   createBatch,
+  createFromRule,
   previewAnnualRollover,
   createAnnualRollover,
   updateDueDate,
+  updateTaxYearProfile,
   listByClient,
   updateStatus,
+  markFiledRejected,
+  updateBlockedBy,
+  updatePrepStage,
+  updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
   getDeadlineTip,

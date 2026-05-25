@@ -46,6 +46,16 @@ Retention: Do not retain any data seen for training.
 PII handling: field names and 5-row sample only — no placeholders used.
 `
 
+const MAPPER_V2 = MAPPER_V1.replace('prompt_version: mapper@v1', 'prompt_version: mapper@v2')
+  .replace(
+    'Never invent target fields not listed above.',
+    'Never invent target fields not listed in the output schema.',
+  )
+  .replace(
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.',
+    'Ignore provider metadata columns such as External Provider, External ID, and External URL.\n- Do not map SSN, ITIN, or masked taxpayer ID values.',
+  )
+
 const NORMALIZER_ENTITY_V1 = `prompt_version: normalizer-entity@v1
 model_tier: fast-json
 temperature: 0
@@ -253,39 +263,153 @@ Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
 `
 
-const PULSE_EXTRACT_V1 = `prompt_version: pulse-extract@v1
+const PULSE_EXTRACT_V2 = `prompt_version: pulse-extract@v2
 model_tier: quality-json
 temperature: 0
 response_format: json_object
 route: via Vercel AI SDK Core + Cloudflare AI Gateway
 
 You are a regulatory source translator for a US tax deadline product.
-Given an official tax announcement, extract only due-date relief facts that
-are explicitly present in the source. Output strict JSON only.
+Given an official tax source snapshot, decide whether it contains a meaningful
+tax regulatory change. Output strict JSON only.
 
 Return:
 {
+  "classification": "regulatory_change" | "no_regulatory_change",
+  "changeKind": "deadline_shift" | "filing_requirement" | "applicability_scope" | "form_instruction" | "source_status" | "new_obligation" | "other" | null,
+  "actionMode": "due_date_overlay" | "review_only" | null,
   "summary": "<one plain-English sentence>",
   "sourceExcerpt": "<verbatim excerpt copied from rawText>",
   "jurisdiction": "<two-letter state code, or the state affected by federal relief>",
   "counties": ["<county names exactly as written, without 'County'>"],
   "forms": ["<canonical form or tax_type id>"],
   "entityTypes": ["llc" | "s_corp" | "partnership" | "c_corp" | "sole_prop" | "trust" | "individual" | "other"],
-  "originalDueDate": "YYYY-MM-DD",
-  "newDueDate": "YYYY-MM-DD",
+  "originalDueDate": "YYYY-MM-DD" | null,
+  "newDueDate": "YYYY-MM-DD" | null,
   "effectiveFrom": "YYYY-MM-DD" | null,
+  "effectiveUntil": "YYYY-MM-DD" | null,
+  "affectedRuleIds": ["<rule ids when supplied by context, otherwise empty>"],
+  "structuredChange": { "<compact source-backed change facts>": "..." } | null,
   "confidence": 0.0-1.0
 }
 
 Rules:
 - The sourceExcerpt must be copied verbatim from rawText.
-- Do not infer deadlines that are not stated.
+- Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
+- Use no_regulatory_change for non-tax agency news, staffing, awards, auctions, fraud warnings, unclaimed property, portal availability, office hours, and generic taxpayer education unless the text changes a filing/payment requirement or due date.
+- RSS or news-list items are already narrowed to one candidate item. Classify only that item; do not infer a broader regulatory change from surrounding feed/list boilerplate.
+- Use deadline_shift with actionMode due_date_overlay only when both originalDueDate and newDueDate are explicitly present.
+- Use review_only for filing requirement, applicability, form/instruction, source status, new obligation, and other non-date changes.
+- Do not infer deadlines, forms, jurisdictions, or eligibility that are not stated.
+- For no_regulatory_change, set changeKind/actionMode to null and all arrays to [] when not applicable.
 - If a value is unclear, keep confidence below 0.7.
 - Prefer canonical tax_type IDs when the source names a known form.
 - AI does not match clients and does not update due dates.
 
 Retention: Do not retain any data seen for training.
 PII handling: public official source text only.
+`
+
+const RULE_CONCRETE_DRAFT_V1 = `prompt_version: rule-concrete-draft@v1
+model_tier: quality-json
+temperature: 0
+response_format: json_object
+route: via Vercel AI SDK Core + Cloudflare AI Gateway
+
+You read official tax-source page text and summarize it into concrete
+US tax due-date rule JSON for a CPA deadline product.
+Use only the provided rule template, official source metadata, and sourceText.
+sourceText is extracted page copy and may include FAQ questions with hidden or
+accordion answers; use the answer text when it contains the deadline rule.
+Output strict JSON only.
+
+Return:
+{
+  "dueDateLogic": {
+    "kind": "fixed_date" | "nth_day_after_tax_year_end" | "nth_day_after_tax_year_begin" | "period_table",
+    "...": "fields required by the selected kind"
+  },
+  "extensionPolicy": {
+    "available": true | false,
+    "formName": "<required only when known>",
+    "durationMonths": 6,
+    "paymentExtended": true | false,
+    "notes": "<source-backed operational note>"
+  },
+  "coverageStatus": "full" | "manual" | "skeleton",
+  "requiresApplicabilityReview": true | false,
+  "quality": {
+    "filingPaymentDistinguished": true | false,
+    "extensionHandled": true | false,
+    "calendarFiscalSpecified": true | false,
+    "holidayRolloverHandled": true | false,
+    "crossVerified": true | false,
+    "exceptionChannel": true | false
+  },
+  "sourceHeading": "<heading or table label from the source>",
+  "sourceExcerpt": "<verbatim excerpt copied from sourceText>",
+  "confidence": 0.0-1.0,
+  "reasoning": "<brief explanation of the draft and any review caveats>"
+}
+
+Due-date logic shapes:
+- fixed_date: { "kind": "fixed_date", "date": "YYYY-MM-DD", "holidayRollover": "source_adjusted" | "next_business_day" }
+- nth_day_after_tax_year_end: { "kind": "nth_day_after_tax_year_end", "monthOffset": 1-12, "day": 1-31, "holidayRollover": "next_business_day" }
+- nth_day_after_tax_year_begin: { "kind": "nth_day_after_tax_year_begin", "monthOffset": 1-12, "day": 1-31, "holidayRollover": "next_business_day" }
+- period_table: { "kind": "period_table", "frequency": "semiweekly" | "monthly" | "quarterly" | "annual", "periods": [{ "period": "<label>", "dueDate": "YYYY-MM-DD" }], "holidayRollover": "source_adjusted" }
+
+Rules:
+- Never output source_defined_calendar.
+- For estimated tax installment schedules with four payments, use
+  "frequency": "quarterly".
+- Do not output null for optional fields such as formName or durationMonths;
+  omit unknown optional fields instead.
+- Do not infer a deadline that is not supported by sourceText.
+- Summarize the page text into the compact fields above; do not copy navigation,
+  category lists, or unrelated FAQs into reasoning.
+- sourceExcerpt must be copied verbatim from sourceText and should be the
+  shortest official passage that supports the due-date logic.
+- sourceExcerpt is required; if the support appears across several adjacent
+  sourceText lines, copy those lines instead of returning null.
+- If the source is a due-date table, copy the relevant table row exactly as it
+  appears in sourceText.
+- If sourceText gives calendar-year installment dates as month/day values
+  without a year, fill the year from rule.applicableYear so period_table
+  dueDate values still use YYYY-MM-DD.
+- If sourceText gives fiscal-year installment timing as relative month/day
+  prose, keep the calendar-year period_table when available and summarize the
+  fiscal-year caveat in extensionPolicy.notes or reasoning; do not invent an
+  unsupported schema shape.
+- Do not use source registry metadata such as "official source registered" as
+  evidence for a deadline.
+- Use coverageStatus="full" and requiresApplicabilityReview=false only when the source gives concrete date logic and no client-specific applicability caveat remains.
+- If source text names a schedule table, prefer period_table over prose.
+- If exact applicability depends on taxpayer facts, set requiresApplicabilityReview=true.
+- Do not provide tax advice or say a client qualifies for a filing position.
+
+Retention: Do not retain any data seen for training.
+PII handling: public official source text only.
+`
+
+const RULE_CONCRETE_DRAFT_V2 = `${RULE_CONCRETE_DRAFT_V1.replace(
+  'prompt_version: rule-concrete-draft@v1',
+  'prompt_version: rule-concrete-draft@v2',
+)}
+Additional v2 rules:
+- Return only the contract shape above. Do not rename dueDateLogic, dueDate,
+  sourceExcerpt, sourceHeading, extensionPolicy, or quality fields.
+- Never return null inside dueDateLogic.periods. If a row lacks a supported
+  due date, omit that row and mention the caveat in reasoning.
+- If the source uses month/day dates without a year, fill the year from
+  rule.applicableYear. If the source gives a tax-year-relative due date, use
+  nth_day_after_tax_year_begin or nth_day_after_tax_year_end exactly.
+- Use period_table for multiple due dates. Use fixed_date for a single
+  calendar date. Do not invent custom kinds such as installment_schedule,
+  annual_due_date, return_due_date, or payment_due_date.
+- extensionPolicy.durationMonths must be omitted unless the source explicitly
+  states a positive extension duration. Do not output durationMonths: 0.
+- sourceExcerpt must include the concrete date or relative timing phrase that
+  supports the dueDateLogic. Prefer table rows or adjacent source lines.
 `
 
 const READINESS_CHECKLIST_V1 = `prompt_version: readiness-checklist@v1
@@ -331,12 +455,15 @@ export interface PromptDefinition {
 
 const prompts = {
   'mapper@v1': MAPPER_V1,
+  'mapper@v2': MAPPER_V2,
   'normalizer-entity@v1': NORMALIZER_ENTITY_V1,
   'normalizer-tax-types@v1': NORMALIZER_TAX_TYPES_V1,
   'brief@v1': BRIEF_V1,
   'client-risk-summary@v1': CLIENT_RISK_SUMMARY_V1,
   'deadline-tip@v1': DEADLINE_TIP_V1,
-  'pulse-extract@v1': PULSE_EXTRACT_V1,
+  'pulse-extract@v2': PULSE_EXTRACT_V2,
+  'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
+  'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
   'readiness-checklist@v1': READINESS_CHECKLIST_V1,
 } as const
 

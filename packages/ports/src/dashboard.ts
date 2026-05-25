@@ -23,7 +23,6 @@ export interface DashboardLoadInput {
   dueBuckets?: DashboardDueBucket[]
   status?: ObligationStatus[]
   severity?: DashboardSeverity[]
-  exposureStatus?: ExposureStatus[]
   evidence?: DashboardEvidenceFilter[]
 }
 
@@ -50,8 +49,6 @@ export interface DashboardTopRow {
   taxType: string
   currentDueDate: Date
   status: ObligationStatus
-  estimatedExposureCents: number | null
-  exposureStatus: ExposureStatus
   missingPenaltyFacts: string[]
   penaltySourceRefs: PenaltySourceRef[]
   penaltyFormulaLabel: string | null
@@ -71,7 +68,6 @@ export interface DashboardTriageTab {
   key: DashboardTriageTabKey
   label: string
   count: number
-  totalExposureCents: number
   rows: DashboardTopRow[]
 }
 
@@ -97,10 +93,6 @@ export interface DashboardSeverityFacetOption extends DashboardFacetOption {
   value: DashboardSeverity
 }
 
-export interface DashboardExposureStatusFacetOption extends DashboardFacetOption {
-  value: ExposureStatus
-}
-
 export interface DashboardEvidenceFacetOption extends DashboardFacetOption {
   value: DashboardEvidenceFilter
 }
@@ -111,7 +103,6 @@ export interface DashboardFacetsOutput {
   dueBuckets: DashboardDueBucketFacetOption[]
   statuses: DashboardStatusFacetOption[]
   severities: DashboardSeverityFacetOption[]
-  exposureStatuses: DashboardExposureStatusFacetOption[]
   evidence: DashboardEvidenceFacetOption[]
 }
 
@@ -125,10 +116,6 @@ export interface DashboardLoadResult {
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number
-    totalExposureCents: number
-    exposureReadyCount: number
-    exposureNeedsInputCount: number
-    exposureUnsupportedCount: number
     totalAccruedPenaltyCents: number
     accruedPenaltyReadyCount: number
     accruedPenaltyNeedsInputCount: number

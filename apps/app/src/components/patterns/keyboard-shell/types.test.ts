@@ -54,7 +54,8 @@ describe('keyboard shell utilities', () => {
       NAVIGATION_SHORTCUTS.map((shortcut) => [shortcut.id, shortcut.path, shortcut.displayKeys]),
     ).toEqual([
       ['nav.dashboard', '/', 'G then D'],
-      ['nav.obligations', '/obligations', 'G then W'],
+      ['nav.obligations', '/deadlines', 'G then W'],
+      ['nav.inbox', '/notifications', 'G then I'],
       ['nav.clients', '/clients', 'G then C'],
       ['nav.workload', '/workload', 'G then T'],
     ])

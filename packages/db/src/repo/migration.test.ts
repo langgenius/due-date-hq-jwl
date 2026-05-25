@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { client } from '../schema/clients'
 import { makeMigrationRepo } from './migration'
 
 describe('makeMigrationRepo', () => {
@@ -82,15 +83,68 @@ describe('makeMigrationRepo', () => {
     })
 
     expect(result).toEqual({ clientCount: 1, obligationCount: 2 })
-    expect(batchStatements).toHaveLength(7)
+    expect(batchStatements).toHaveLength(6)
     expect(batchStatements).toEqual([
       expect.objectContaining({ kind: 'insert' }),
       expect.objectContaining({ kind: 'insert' }),
       expect.objectContaining({ kind: 'delete' }),
       expect.objectContaining({ kind: 'delete' }),
       expect.objectContaining({ kind: 'delete' }),
-      expect.objectContaining({ kind: 'delete' }),
       expect.objectContaining({ kind: 'update' }),
     ])
+  })
+
+  it('splits commit client inserts within the D1 bound variable limit', async () => {
+    const clientInsertBatchSizes: number[] = []
+    const batchStatements: unknown[] = []
+    const db = {
+      select: () => ({
+        from: () => ({
+          where: () => ({
+            limit: async () => [{ id: 'batch-1' }],
+          }),
+        }),
+      }),
+      insert: (table: unknown) => ({
+        values: (values: unknown) => {
+          if (table === client) {
+            clientInsertBatchSizes.push(Array.isArray(values) ? values.length : 1)
+          }
+          return { kind: 'insert', table, values }
+        },
+      }),
+      update: () => ({
+        set: (value: unknown) => ({
+          where: () => ({ kind: 'update', value }),
+        }),
+      }),
+      batch: async (statements: [unknown, ...unknown[]]) => {
+        batchStatements.push(...statements)
+        return []
+      },
+    }
+
+    // @ts-expect-error fake db implements only the chains used by commitImport.
+    const repo = makeMigrationRepo(db, 'firm-1')
+    await repo.commitImport({
+      batchId: 'batch-1',
+      clients: Array.from({ length: 5 }, (_, index) => ({
+        id: `client-${index}`,
+        firmId: 'firm-1',
+        name: `Client ${index}`,
+        entityType: 'llc',
+      })),
+      filingProfiles: [],
+      obligations: [],
+      evidence: [],
+      audits: [],
+      successCount: 5,
+      skippedCount: 0,
+      appliedAt: new Date('2026-05-25T00:00:00.000Z'),
+      revertExpiresAt: new Date('2026-05-26T00:00:00.000Z'),
+    })
+
+    expect(clientInsertBatchSizes).toEqual([2, 2, 1])
+    expect(batchStatements).toHaveLength(4)
   })
 })

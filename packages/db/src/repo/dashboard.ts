@@ -17,6 +17,7 @@ import type {
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
 import type { PenaltyBreakdownItem, PenaltySourceRef } from '@duedatehq/core/penalty'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import { rankSmartPriorities } from '@duedatehq/core/priority'
 import type { SmartPriorityProfile } from '@duedatehq/core/priority'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
@@ -26,7 +27,7 @@ import { client } from '../schema/clients'
 import { dashboardBrief } from '../schema/dashboard'
 import { firmProfile } from '../schema/firm'
 import { obligationInstance, type ObligationStatus } from '../schema/obligations'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
@@ -43,11 +44,6 @@ const DASHBOARD_EVIDENCE_FILTERS = [
   'needs',
   'linked',
 ] as const satisfies readonly DashboardEvidenceFilter[]
-const DASHBOARD_EXPOSURE_STATUSES = [
-  'ready',
-  'needs_input',
-  'unsupported',
-] as const satisfies readonly ExposureStatus[]
 const DASHBOARD_SEVERITIES = [
   'critical',
   'high',
@@ -69,7 +65,6 @@ export interface DashboardLoadInput {
   dueBuckets?: DashboardDueBucket[]
   status?: ObligationStatus[]
   severity?: DashboardSeverity[]
-  exposureStatus?: ExposureStatus[]
   evidence?: DashboardEvidenceFilter[]
 }
 
@@ -94,10 +89,11 @@ export interface DashboardRawRow {
   clientName: string
   clientEmail: string | null
   taxType: string
+  filingDueDate: Date | null
+  paymentDueDate: Date | null
+  baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
-  estimatedExposureCents: number | null
-  exposureStatus: ExposureStatus
   penaltyFormulaVersion: string | null
   penaltyFactsJson?: unknown
   penaltyFactsVersion?: string | null
@@ -131,7 +127,6 @@ export interface DashboardTriageTab {
   key: DashboardTriageTabKey
   label: string
   count: number
-  totalExposureCents: number
   rows: DashboardTopRow[]
 }
 
@@ -143,10 +138,6 @@ export interface DashboardLoadResult {
     dueThisWeekCount: number
     needsReviewCount: number
     evidenceGapCount: number
-    totalExposureCents: number
-    exposureReadyCount: number
-    exposureNeedsInputCount: number
-    exposureUnsupportedCount: number
     totalAccruedPenaltyCents: number
     accruedPenaltyReadyCount: number
     accruedPenaltyNeedsInputCount: number
@@ -287,13 +278,6 @@ function matchesDashboardFilters(
   if (input.severity && input.severity.length > 0 && !input.severity.includes(row.severity)) {
     return false
   }
-  if (
-    input.exposureStatus &&
-    input.exposureStatus.length > 0 &&
-    !input.exposureStatus.includes(row.exposureStatus)
-  ) {
-    return false
-  }
 
   if (input.evidence && input.evidence.length > 0) {
     const evidenceState: DashboardEvidenceFilter = row.evidenceCount === 0 ? 'needs' : 'linked'
@@ -309,7 +293,6 @@ function composeDashboardFacets(rows: DashboardTopRow[], asOfMs: number): Dashbo
   const dueBucketCounts = new Map<string, number>()
   const statusCounts = new Map<string, number>()
   const severityCounts = new Map<string, number>()
-  const exposureStatusCounts = new Map<string, number>()
   const evidenceCounts = new Map<string, number>()
 
   for (const row of rows) {
@@ -324,10 +307,6 @@ function composeDashboardFacets(rows: DashboardTopRow[], asOfMs: number): Dashbo
     if (dueBucket) dueBucketCounts.set(dueBucket, (dueBucketCounts.get(dueBucket) ?? 0) + 1)
     statusCounts.set(row.status, (statusCounts.get(row.status) ?? 0) + 1)
     severityCounts.set(row.severity, (severityCounts.get(row.severity) ?? 0) + 1)
-    exposureStatusCounts.set(
-      row.exposureStatus,
-      (exposureStatusCounts.get(row.exposureStatus) ?? 0) + 1,
-    )
     const evidenceState: DashboardEvidenceFilter = row.evidenceCount === 0 ? 'needs' : 'linked'
     evidenceCounts.set(evidenceState, (evidenceCounts.get(evidenceState) ?? 0) + 1)
   }
@@ -338,7 +317,6 @@ function composeDashboardFacets(rows: DashboardTopRow[], asOfMs: number): Dashbo
     dueBuckets: enumFacetOptions(DASHBOARD_DUE_BUCKETS, dueBucketCounts),
     statuses: enumFacetOptions(OPEN_STATUSES, statusCounts),
     severities: enumFacetOptions(DASHBOARD_SEVERITIES, severityCounts),
-    exposureStatuses: enumFacetOptions(DASHBOARD_EXPOSURE_STATUSES, exposureStatusCounts),
     evidence: enumFacetOptions(DASHBOARD_EVIDENCE_FILTERS, evidenceCounts),
   }
 }
@@ -367,10 +345,6 @@ export function composeDashboardLoad(
   let dueThisWeekCount = 0
   let needsReviewCount = 0
   let evidenceGapCount = 0
-  let totalExposureCents = 0
-  let exposureReadyCount = 0
-  let exposureNeedsInputCount = 0
-  let exposureUnsupportedCount = 0
   let totalAccruedPenaltyCents = 0
   let accruedPenaltyReadyCount = 0
   let accruedPenaltyNeedsInputCount = 0
@@ -388,7 +362,7 @@ export function composeDashboardLoad(
         jurisdiction: row.clientState,
         taxType: row.taxType,
         entityType: row.clientEntityType,
-        dueDate: row.currentDueDate,
+        dueDate: statutoryPenaltyDueDate(row),
         penaltyFactsJson: row.penaltyFactsJson,
       },
       { asOfDate: input.asOfDate },
@@ -396,14 +370,6 @@ export function composeDashboardLoad(
     if (inUrgentWindow) dueThisWeekCount += 1
     if (row.status === 'review') needsReviewCount += 1
     if (evidence.length === 0) evidenceGapCount += 1
-    if (inUrgentWindow && row.exposureStatus === 'ready') {
-      exposureReadyCount += 1
-      totalExposureCents += row.estimatedExposureCents ?? 0
-    } else if (inUrgentWindow && row.exposureStatus === 'needs_input') {
-      exposureNeedsInputCount += 1
-    } else if (inUrgentWindow && row.exposureStatus === 'unsupported') {
-      exposureUnsupportedCount += 1
-    }
     if (isOverdue && accrued.status === 'ready') {
       accruedPenaltyReadyCount += 1
       totalAccruedPenaltyCents += accrued.estimatedExposureCents ?? 0
@@ -447,13 +413,10 @@ export function composeDashboardLoad(
   const filteredRows = topRows.filter((row) => matchesDashboardFilters(row, input, asOf))
   const facets = composeDashboardFacets(topRows, asOf)
 
-  const triage = new Map<
-    DashboardTriageTabKey,
-    { count: number; totalExposureCents: number; rows: DashboardTopRow[] }
-  >([
-    ['this_week', { count: 0, totalExposureCents: 0, rows: [] }],
-    ['this_month', { count: 0, totalExposureCents: 0, rows: [] }],
-    ['long_term', { count: 0, totalExposureCents: 0, rows: [] }],
+  const triage = new Map<DashboardTriageTabKey, { count: number; rows: DashboardTopRow[] }>([
+    ['this_week', { count: 0, rows: [] }],
+    ['this_month', { count: 0, rows: [] }],
+    ['long_term', { count: 0, rows: [] }],
   ])
 
   for (const row of filteredRows) {
@@ -465,7 +428,6 @@ export function composeDashboardLoad(
     const bucket = triage.get(key)
     if (!bucket) continue
     bucket.count += 1
-    if (row.exposureStatus === 'ready') bucket.totalExposureCents += row.estimatedExposureCents ?? 0
     if (bucket.rows.length < topLimit) bucket.rows.push(row)
   }
 
@@ -477,10 +439,6 @@ export function composeDashboardLoad(
       dueThisWeekCount,
       needsReviewCount,
       evidenceGapCount,
-      totalExposureCents,
-      exposureReadyCount,
-      exposureNeedsInputCount,
-      exposureUnsupportedCount,
       totalAccruedPenaltyCents,
       accruedPenaltyReadyCount,
       accruedPenaltyNeedsInputCount,
@@ -653,10 +611,11 @@ export function makeDashboardRepo(db: Db, firmId: string) {
           clientName: client.name,
           clientEmail: client.email,
           taxType: obligationInstance.taxType,
+          filingDueDate: obligationInstance.filingDueDate,
+          paymentDueDate: obligationInstance.paymentDueDate,
+          baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
-          estimatedExposureCents: obligationInstance.estimatedExposureCents,
-          exposureStatus: obligationInstance.exposureStatus,
           penaltyFormulaVersion: obligationInstance.penaltyFormulaVersion,
           penaltyFactsJson: obligationInstance.penaltyFactsJson,
           penaltyFactsVersion: obligationInstance.penaltyFactsVersion,
@@ -686,7 +645,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
       const obligationIds = rows.map((row) => row.obligationId)
       const [evidenceRows, overlayDueDates, smartPriorityProfile] = await Promise.all([
         listEvidenceByObligations(obligationIds),
-        listActiveOverlayDueDates(db, firmId, obligationIds),
+        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
         loadSmartPriorityProfile(),
       ])
       const overlayRows = rows.map((row) =>

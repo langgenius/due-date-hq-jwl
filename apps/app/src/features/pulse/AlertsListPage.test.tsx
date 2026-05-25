@@ -4,11 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  SMART_PRIORITY_DEFAULT_PROFILE,
-  type FirmPublic,
-  type PulseSourceHealth,
-} from '@duedatehq/contracts'
+import type { PulseSourceHealth } from '@duedatehq/contracts'
 
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
@@ -18,36 +14,16 @@ import { PulseChangesTab } from './AlertsListPage'
 
 const rpcMocks = vi.hoisted(() => ({
   listHistoryQueryFn: vi.fn(),
-  listMineQueryFn: vi.fn(),
   listSourceHealthQueryFn: vi.fn(),
-  retrySourceHealthMutationFn: vi.fn(),
+  dismissMutationFn: vi.fn(),
+  snoozeMutationFn: vi.fn(),
 }))
-const nuqsMocks = vi.hoisted(() => ({
-  setSourceReviewParam: vi.fn(),
-  sourceReviewParam: '1' as '1' | null,
-}))
-
-vi.mock('nuqs', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('nuqs')>()
-  return {
-    ...actual,
-    useQueryState: () => [nuqsMocks.sourceReviewParam, nuqsMocks.setSourceReviewParam],
-  }
-})
 
 vi.mock('@/lib/rpc', () => ({
   orpc: {
     audit: { key: () => ['audit'] },
     dashboard: { load: { key: () => ['dashboard', 'load'] } },
     obligations: { list: { key: () => ['obligations', 'list'] } },
-    firms: {
-      listMine: {
-        queryOptions: () => ({
-          queryKey: ['firms', 'listMine'],
-          queryFn: rpcMocks.listMineQueryFn,
-        }),
-      },
-    },
     pulse: {
       key: () => ['pulse'],
       listHistory: {
@@ -62,10 +38,16 @@ vi.mock('@/lib/rpc', () => ({
           queryFn: rpcMocks.listSourceHealthQueryFn,
         }),
       },
-      retrySourceHealth: {
+      dismiss: {
         mutationOptions: (options: Record<string, unknown>) => ({
           ...options,
-          mutationFn: rpcMocks.retrySourceHealthMutationFn,
+          mutationFn: rpcMocks.dismissMutationFn,
+        }),
+      },
+      snooze: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          ...options,
+          mutationFn: rpcMocks.snoozeMutationFn,
         }),
       },
     },
@@ -84,28 +66,6 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
-
-function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
-  return {
-    id: 'firm_1',
-    name: 'Test Firm',
-    slug: 'test-firm',
-    plan: 'team',
-    seatLimit: 5,
-    timezone: 'America/New_York',
-    status: 'active',
-    role: 'owner',
-    ownerUserId: 'user_1',
-    coordinatorCanSeeDollars: false,
-    smartPriorityProfile: SMART_PRIORITY_DEFAULT_PROFILE,
-    openObligationCount: 0,
-    isCurrent: true,
-    createdAt: '2026-05-03T00:00:00.000Z',
-    updatedAt: '2026-05-03T00:00:00.000Z',
-    deletedAt: null,
-    ...overrides,
-  }
-}
 
 function source(overrides: Partial<PulseSourceHealth> = {}): PulseSourceHealth {
   return {
@@ -155,13 +115,10 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
 beforeEach(() => {
   bootstrapI18n()
   rpcMocks.listHistoryQueryFn.mockReset()
-  rpcMocks.listMineQueryFn.mockReset()
   rpcMocks.listSourceHealthQueryFn.mockReset()
-  rpcMocks.retrySourceHealthMutationFn.mockReset()
-  nuqsMocks.setSourceReviewParam.mockReset()
-  nuqsMocks.sourceReviewParam = '1'
+  rpcMocks.dismissMutationFn.mockReset()
+  rpcMocks.snoozeMutationFn.mockReset()
   rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [] })
-  rpcMocks.retrySourceHealthMutationFn.mockResolvedValue({ sources: [] })
 })
 
 afterEach(() => {
@@ -175,9 +132,8 @@ afterEach(() => {
   activateLocale('en')
 })
 
-describe('PulseChangesTab source health review', () => {
-  it('opens a T1 source review table for owner and manager roles', async () => {
-    rpcMocks.listMineQueryFn.mockResolvedValue([firm({ role: 'owner' })])
+describe('PulseChangesTab source health display', () => {
+  it('keeps legacy degraded and failing source health out of the CPA Pulse surface', async () => {
     rpcMocks.listSourceHealthQueryFn.mockResolvedValue({
       sources: [
         source(),
@@ -190,31 +146,13 @@ describe('PulseChangesTab source health review', () => {
       ],
     })
 
-    await render(<PulseChangesTab embedded />, '/rules/pulse?sourceReview=1')
+    await render(<PulseChangesTab embedded />)
 
-    await waitForText('Pulse source needs attention')
-    expect(document.body.textContent).toContain('IRS Disaster Relief')
-    expect(document.body.textContent).toContain('Last success')
-    expect(document.body.textContent).toContain('Failures')
-    expect(document.body.textContent).toContain('Check')
-    expect(document.body.textContent).toContain('No client-matching Pulse changes right now.')
-    expect(document.body.textContent).not.toContain('All clear')
-    expect(document.body.textContent).not.toContain('FEMA Declarations')
-  })
-
-  it('uses passive degraded copy for non-manager roles', async () => {
-    rpcMocks.listMineQueryFn.mockResolvedValue([firm({ role: 'preparer' })])
-    rpcMocks.listSourceHealthQueryFn.mockResolvedValue({
-      sources: [source(), source({ sourceId: 'fema.declarations', label: 'FEMA Declarations' })],
-    })
-
-    await render(<PulseChangesTab embedded />, '/rules/pulse?sourceReview=1')
-
-    await waitForText('Pulse source checks degraded · Monitoring continues')
-    expect(document.body.textContent).toContain('No client-matching Pulse changes right now.')
+    await waitForText('All clear')
     expect(document.body.textContent).not.toContain('Pulse source needs attention')
     expect(document.body.textContent).not.toContain('IRS Disaster Relief')
     expect(document.body.textContent).not.toContain('Review sources')
-    expect(document.body.textContent).not.toContain('All clear')
+    expect(document.body.textContent).not.toContain('Pulse source checks degraded')
+    expect(document.body.textContent).not.toContain('FEMA Declarations')
   })
 })

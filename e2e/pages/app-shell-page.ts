@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 
 export class AppShellPage {
   readonly primaryNavigation: Locator
-  readonly dashboardLink: Locator
+  readonly todayLink: Locator
   readonly obligationQueueLink: Locator
   readonly clientsLink: Locator
   readonly opportunitiesLink: Locator
@@ -14,11 +14,11 @@ export class AppShellPage {
 
   constructor(readonly page: Page) {
     this.primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' })
-    this.dashboardLink = page.getByRole('link', { name: /Dashboard/ })
-    this.obligationQueueLink = page.getByRole('link', { name: /Obligations/ })
+    this.todayLink = page.getByRole('link', { name: /^Today$/ })
+    this.obligationQueueLink = page.getByRole('link', { name: /Deadlines/ })
     this.clientsLink = page.getByRole('link', { name: 'Clients' })
     this.opportunitiesLink = page.getByRole('link', { name: 'Opportunities' })
-    this.rulesLink = page.getByRole('link', { name: 'Rules' })
+    this.rulesLink = page.getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
     this.importClientsButton = page
       .getByRole('button', { name: /^(Import clients|Run migration)$/ })
       .first()

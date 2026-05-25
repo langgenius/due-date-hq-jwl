@@ -136,6 +136,7 @@ catalog:
   '@hono/zod-validator': 0.7.6
   fflate: 0.8.2
   pdf-lib: 1.17.1
+  pdfjs-dist: 5.6.205
 
   # ───────── oRPC ─────────
   '@orpc/contract': 1.14.0

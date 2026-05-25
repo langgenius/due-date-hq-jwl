@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { setupI18n } from '@lingui/core'
 import type { MemberInvitationPublic, MemberPublic } from '@duedatehq/contracts'
 
 import {
@@ -7,9 +8,16 @@ import {
   invitationDescription,
   inviterName,
   isManagedRole,
+  isRoleDowngrade,
   MANAGED_ROLES,
+  roleDowngradeImpact,
   roleLabel,
 } from './member-model'
+
+// `msg`-keyed lookups need an i18n instance — when no catalog is
+// loaded the default backend returns the message id (the English
+// source string), which is exactly what the assertions below need.
+const i18n = setupI18n({ locale: 'en', messages: { en: {} } })
 
 const member = {
   id: 'member_1',
@@ -60,5 +68,33 @@ describe('member model', () => {
     expect(formatInvitationDate('2026-04-09T12:00:00.000Z', 'America/New_York')).toMatch(
       /^2026-04-09 08:00:00 (EDT|GMT-4)$/,
     )
+  })
+
+  it('flags downgrades but not upgrades or sideways moves', () => {
+    expect(isRoleDowngrade('partner', 'coordinator')).toBe(true)
+    expect(isRoleDowngrade('manager', 'preparer')).toBe(true)
+    expect(isRoleDowngrade('owner', 'partner')).toBe(true)
+    expect(isRoleDowngrade('preparer', 'manager')).toBe(false)
+    expect(isRoleDowngrade('coordinator', 'partner')).toBe(false)
+    expect(isRoleDowngrade('manager', 'manager')).toBe(false)
+  })
+
+  it('describes downgrade impact based on the privilege gap crossed', () => {
+    expect(roleDowngradeImpact('partner', 'coordinator', i18n)).toEqual({
+      removes: 'Member admin, billing access, and review sign-off',
+      keeps: 'Client assignments and existing work',
+    })
+    expect(roleDowngradeImpact('partner', 'manager', i18n)).toEqual({
+      removes: 'Member admin and billing access',
+      keeps: 'Review sign-off and client assignments',
+    })
+    expect(roleDowngradeImpact('manager', 'preparer', i18n)).toEqual({
+      removes: 'Review sign-off authority',
+      keeps: 'Client assignments and existing work',
+    })
+    expect(roleDowngradeImpact('preparer', 'coordinator', i18n)).toEqual({
+      removes: 'Access to elevated workflow scopes',
+      keeps: 'Day-to-day client work',
+    })
   })
 })

@@ -2,6 +2,7 @@ import {
   test as base,
   expect,
   type APIRequestContext,
+  type APIResponse,
   type Cookie,
   type Page,
 } from '@playwright/test'
@@ -18,7 +19,14 @@ import { ObligationQueuePage } from '../pages/obligations-page'
 import { OpportunitiesPage } from '../pages/opportunities-page'
 import { WorkloadPage } from '../pages/workload-page'
 
-type AuthSeedMode = 'empty' | 'obligations' | 'pulse' | 'mfa'
+type AuthSeedMode =
+  | 'empty'
+  | 'obligations'
+  | 'pulse'
+  | 'mfa'
+  | 'mfaVerified'
+  | 'team'
+  | 'filingPlan'
 type AuthRole = 'owner' | 'manager' | 'preparer' | 'coordinator'
 
 type E2EAuthSession = {
@@ -39,6 +47,16 @@ type E2EAuthSession = {
       alertId: string
       pulseId: string
     }>
+    teamMember: {
+      userId: string
+      name: string
+      email: string
+      role: 'preparer'
+    } | null
+    filingPlanClient: {
+      id: string
+      name: string
+    } | null
   }
 }
 
@@ -180,8 +198,28 @@ function parseAuthSession(value: unknown): E2EAuthSession {
       pulseAlerts: Array.isArray(seeded.pulseAlerts)
         ? seeded.pulseAlerts.filter(isPulseSeedAlert)
         : [],
+      teamMember: isTeamMemberSeed(seeded.teamMember) ? seeded.teamMember : null,
+      filingPlanClient: isFilingPlanClientSeed(seeded.filingPlanClient)
+        ? seeded.filingPlanClient
+        : null,
     },
   }
+}
+
+function isTeamMemberSeed(
+  value: unknown,
+): value is { userId: string; name: string; email: string; role: 'preparer' } {
+  return (
+    isRecord(value) &&
+    typeof value.userId === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.email === 'string' &&
+    value.role === 'preparer'
+  )
+}
+
+function isFilingPlanClientSeed(value: unknown): value is { id: string; name: string } {
+  return isRecord(value) && typeof value.id === 'string' && typeof value.name === 'string'
 }
 
 async function createAuthSession(
@@ -191,15 +229,28 @@ async function createAuthSession(
   return tryCreateAuthSession(request, data, 0)
 }
 
+const AUTH_SESSION_MAX_ATTEMPTS = 5
+
 async function tryCreateAuthSession(
   request: APIRequestContext,
   data: { seed: AuthSeedMode; role: AuthRole; testId: string },
   attempt: number,
 ): Promise<E2EAuthSession> {
-  const response = await request.post('/api/e2e/session', {
-    data,
-    headers: e2eSeedHeaders(),
-  })
+  let response: APIResponse
+  try {
+    response = await request.post('/api/e2e/session', {
+      data,
+      headers: e2eSeedHeaders(),
+    })
+  } catch (error) {
+    if (attempt >= AUTH_SESSION_MAX_ATTEMPTS || !isRetryableAuthSessionError(error)) {
+      throw error
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)))
+    return tryCreateAuthSession(request, data, attempt + 1)
+  }
+
   if (response.ok()) {
     const body: unknown = await response.json()
     return parseAuthSession(body)
@@ -207,12 +258,23 @@ async function tryCreateAuthSession(
 
   const lastStatus = response.status()
   const lastBody = await response.text()
-  if (attempt >= 3) {
+  if (attempt >= AUTH_SESSION_MAX_ATTEMPTS) {
     throw new Error(`Could not create e2e auth session: ${lastStatus} ${lastBody}`)
   }
 
   await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)))
   return tryCreateAuthSession(request, data, attempt + 1)
+}
+
+function isRetryableAuthSessionError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error)
+  return (
+    message.includes('EADDRNOTAVAIL') ||
+    message.includes('ECONNREFUSED') ||
+    message.includes('ECONNRESET') ||
+    message.includes('ETIMEDOUT') ||
+    message.includes('socket hang up')
+  )
 }
 
 function e2eSeedHeaders(): Record<string, string> {

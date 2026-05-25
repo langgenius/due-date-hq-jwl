@@ -50,11 +50,12 @@ export const migrationBatch = sqliteTable(
         'preset_karbon',
         'preset_quickbooks',
         'preset_file_in_time',
-        'integration_taxdome_zapier',
-        'integration_karbon_api',
-        'integration_soraban_api',
-        'integration_safesend_api',
-        'integration_proconnect_export',
+        'preset_cch_axcess',
+        'preset_cch_prosystem_fx',
+        'preset_lacerte',
+        'preset_proseries',
+        'preset_ultratax_cs',
+        'preset_proconnect_tax',
       ],
     }).notNull(),
 
@@ -189,132 +190,10 @@ export const migrationError = sqliteTable(
   (table) => [index('idx_me_batch').on(table.batchId)],
 )
 
-export const MIGRATION_INTEGRATION_PROVIDERS = [
-  'taxdome',
-  'karbon',
-  'soraban',
-  'safesend',
-  'proconnect',
-] as const
-export type MigrationIntegrationProvider = (typeof MIGRATION_INTEGRATION_PROVIDERS)[number]
-
-export const MIGRATION_EXTERNAL_ENTITY_TYPES = [
-  'account',
-  'contact',
-  'organization',
-  'work_item',
-  'client',
-  'return',
-  'organizer',
-  'delivery',
-  'signature',
-  'payment',
-  'unknown',
-] as const
-export type MigrationExternalEntityType = (typeof MIGRATION_EXTERNAL_ENTITY_TYPES)[number]
-
-/**
- * migration_staging_row — provider-normalized landing zone for integration
- * payloads before the shared Mapper / Normalizer pipeline takes over.
- *
- * Rows intentionally keep the original JSON alongside the tabular projection
- * stored in migration_batch.mapping_json. That lets us preserve provenance
- * and clone a previous sync into a fresh Migration batch without calling the
- * external provider again.
- */
-export const migrationStagingRow = sqliteTable(
-  'migration_staging_row',
-  {
-    id: text('id').primaryKey(),
-    firmId: text('firm_id')
-      .notNull()
-      .references(() => firmProfile.id, { onDelete: 'cascade' }),
-    batchId: text('batch_id')
-      .notNull()
-      .references(() => migrationBatch.id, { onDelete: 'cascade' }),
-    provider: text('provider', { enum: MIGRATION_INTEGRATION_PROVIDERS }).notNull(),
-    externalEntityType: text('external_entity_type', {
-      enum: MIGRATION_EXTERNAL_ENTITY_TYPES,
-    })
-      .notNull()
-      .default('unknown'),
-    externalId: text('external_id').notNull(),
-    externalUrl: text('external_url'),
-    rowIndex: integer('row_index').notNull(),
-    rowHash: text('row_hash').notNull(),
-    rawRowJson: text('raw_row_json', { mode: 'json' }).$type<unknown>().notNull(),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex('uq_msr_batch_row').on(table.batchId, table.rowIndex),
-    index('idx_msr_batch').on(table.batchId),
-    index('idx_msr_firm_provider_external').on(table.firmId, table.provider, table.externalId),
-  ],
-)
-
-/**
- * external_reference — durable mapping from DueDateHQ records back to the
- * originating provider objects. Migration writes these on apply; later
- * webhooks can use them for status mirrors without re-matching clients.
- */
-export const externalReference = sqliteTable(
-  'external_reference',
-  {
-    id: text('id').primaryKey(),
-    firmId: text('firm_id')
-      .notNull()
-      .references(() => firmProfile.id, { onDelete: 'cascade' }),
-    provider: text('provider', { enum: MIGRATION_INTEGRATION_PROVIDERS }).notNull(),
-    migrationBatchId: text('migration_batch_id').references(() => migrationBatch.id, {
-      onDelete: 'set null',
-    }),
-    internalEntityType: text('internal_entity_type', {
-      enum: ['client', 'obligation', 'return_project'],
-    }).notNull(),
-    internalEntityId: text('internal_entity_id').notNull(),
-    externalEntityType: text('external_entity_type', {
-      enum: MIGRATION_EXTERNAL_ENTITY_TYPES,
-    })
-      .notNull()
-      .default('unknown'),
-    externalId: text('external_id').notNull(),
-    externalUrl: text('external_url'),
-    metadataJson: text('metadata_json', { mode: 'json' }).$type<unknown>(),
-    lastSyncedAt: integer('last_synced_at', { mode: 'timestamp_ms' }),
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex('uq_ext_ref_provider_external_internal').on(
-      table.firmId,
-      table.provider,
-      table.externalEntityType,
-      table.externalId,
-      table.internalEntityType,
-      table.internalEntityId,
-    ),
-    index('idx_ext_ref_internal').on(
-      table.firmId,
-      table.internalEntityType,
-      table.internalEntityId,
-    ),
-    index('idx_ext_ref_batch').on(table.migrationBatchId),
-  ],
-)
-
 export const migrationBatchRelations = relations(migrationBatch, ({ many, one }) => ({
   mappings: many(migrationMapping),
   normalizations: many(migrationNormalization),
   errors: many(migrationError),
-  stagingRows: many(migrationStagingRow),
-  externalReferences: many(externalReference),
   firm: one(firmProfile, {
     fields: [migrationBatch.firmId],
     references: [firmProfile.id],
@@ -346,28 +225,6 @@ export const migrationErrorRelations = relations(migrationError, ({ one }) => ({
   }),
 }))
 
-export const migrationStagingRowRelations = relations(migrationStagingRow, ({ one }) => ({
-  batch: one(migrationBatch, {
-    fields: [migrationStagingRow.batchId],
-    references: [migrationBatch.id],
-  }),
-  firm: one(firmProfile, {
-    fields: [migrationStagingRow.firmId],
-    references: [firmProfile.id],
-  }),
-}))
-
-export const externalReferenceRelations = relations(externalReference, ({ one }) => ({
-  batch: one(migrationBatch, {
-    fields: [externalReference.migrationBatchId],
-    references: [migrationBatch.id],
-  }),
-  firm: one(firmProfile, {
-    fields: [externalReference.firmId],
-    references: [firmProfile.id],
-  }),
-}))
-
 export type MigrationBatch = typeof migrationBatch.$inferSelect
 export type NewMigrationBatch = typeof migrationBatch.$inferInsert
 export type MigrationMapping = typeof migrationMapping.$inferSelect
@@ -376,10 +233,6 @@ export type MigrationNormalization = typeof migrationNormalization.$inferSelect
 export type NewMigrationNormalization = typeof migrationNormalization.$inferInsert
 export type MigrationError = typeof migrationError.$inferSelect
 export type NewMigrationError = typeof migrationError.$inferInsert
-export type MigrationStagingRow = typeof migrationStagingRow.$inferSelect
-export type NewMigrationStagingRow = typeof migrationStagingRow.$inferInsert
-export type ExternalReference = typeof externalReference.$inferSelect
-export type NewExternalReference = typeof externalReference.$inferInsert
 
 export const MIGRATION_BATCH_STATUSES = [
   'draft',
@@ -400,10 +253,11 @@ export const MIGRATION_SOURCES = [
   'preset_karbon',
   'preset_quickbooks',
   'preset_file_in_time',
-  'integration_taxdome_zapier',
-  'integration_karbon_api',
-  'integration_soraban_api',
-  'integration_safesend_api',
-  'integration_proconnect_export',
+  'preset_cch_axcess',
+  'preset_cch_prosystem_fx',
+  'preset_lacerte',
+  'preset_proseries',
+  'preset_ultratax_cs',
+  'preset_proconnect_tax',
 ] as const
 export type MigrationSource = (typeof MIGRATION_SOURCES)[number]

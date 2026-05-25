@@ -12,7 +12,18 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -41,6 +52,23 @@ export function AccountSecurityRoute() {
   const [pendingSetup, setPendingSetup] = useState<PendingTwoFactorSetup | null>(null)
   const [code, setCode] = useState('')
   const securityKey = orpc.security.key()
+
+  // 2026-05-24 (re-critique): the three destructive security actions
+  // — Disable MFA, Sign out other sessions, Revoke session — all
+  // fired on a single click with no confirm. Stage each through an
+  // AlertDialog before the mutation. Per-session Revoke shows the
+  // session's user-agent + IP + created-at so the admin sees which
+  // device they're killing (especially important for the "revoke
+  // current session" path, which signs them out).
+  const [confirmDisableMfa, setConfirmDisableMfa] = useState(false)
+  const [confirmSignOutOthers, setConfirmSignOutOthers] = useState(false)
+  const [pendingSessionRevoke, setPendingSessionRevoke] = useState<{
+    sessionId: string
+    userAgent: string
+    ipAddress: string
+    createdAt: string
+    isCurrent: boolean
+  } | null>(null)
 
   const enableMutation = useMutation(
     orpc.security.enableTwoFactor.mutationOptions({
@@ -78,6 +106,7 @@ export function AccountSecurityRoute() {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: securityKey })
         toast.success(t`Two-factor authentication disabled`)
+        setConfirmDisableMfa(false)
       },
       onError: (err) => {
         toast.error(t`Couldn't disable two-factor authentication`, {
@@ -95,6 +124,7 @@ export function AccountSecurityRoute() {
         )
         void queryClient.invalidateQueries({ queryKey: securityKey })
         toast.success(t`Session revoked`)
+        setPendingSessionRevoke(null)
         if (revokedCurrent) void navigate('/login', { replace: true })
       },
       onError: (err) => {
@@ -110,6 +140,7 @@ export function AccountSecurityRoute() {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: securityKey })
         toast.success(t`Other sessions revoked`)
+        setConfirmSignOutOthers(false)
       },
       onError: (err) => {
         toast.error(t`Couldn't revoke other sessions`, {
@@ -147,7 +178,7 @@ export function AccountSecurityRoute() {
 
   if (statusQuery.isLoading) {
     return (
-      <div className="mx-auto grid w-full max-w-[920px] gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto grid w-full max-w-page-medium gap-4 px-4 py-6 md:px-6">
         <Skeleton className="h-24" />
         <Skeleton className="h-64" />
       </div>
@@ -156,7 +187,7 @@ export function AccountSecurityRoute() {
 
   if (statusQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -172,20 +203,21 @@ export function AccountSecurityRoute() {
   if (!status) return null
 
   return (
-    <div className="mx-auto flex w-full max-w-[920px] flex-col gap-4 px-4 py-6 md:px-6">
-      <section className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Account</Trans>
-          </span>
-          <h1 className="mt-1 text-2xl font-semibold text-text-primary">
-            <Trans>Security</Trans>
-          </h1>
-        </div>
-        <Badge variant={status.twoFactorEnabled ? 'success' : 'outline'}>
-          {status.twoFactorEnabled ? <Trans>MFA enabled</Trans> : <Trans>MFA not enabled</Trans>}
-        </Badge>
-      </section>
+    <div className="mx-auto flex w-full max-w-page-medium flex-col gap-4 px-4 py-6 md:px-6">
+      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
+          Breadcrumb + h1 + Badge layout to the shared `<PageHeader>`
+          primitive. Breadcrumb routes through the eyebrow slot; MFA
+          status Badge sits in the actions slot. Same visual outcome,
+          one less custom header to maintain. */}
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Security` }]}
+        title={<Trans>Security</Trans>}
+        actions={
+          <Badge variant={status.twoFactorEnabled ? 'success' : 'outline'}>
+            {status.twoFactorEnabled ? <Trans>MFA enabled</Trans> : <Trans>MFA not enabled</Trans>}
+          </Badge>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -206,7 +238,7 @@ export function AccountSecurityRoute() {
               </div>
               <Button
                 variant="outline"
-                onClick={() => disableMutation.mutate(undefined)}
+                onClick={() => setConfirmDisableMfa(true)}
                 disabled={disableMutation.isPending}
               >
                 <Trans>Disable MFA</Trans>
@@ -255,7 +287,7 @@ export function AccountSecurityRoute() {
           <div className="flex justify-end">
             <Button
               variant="outline"
-              onClick={() => revokeOtherSessionsMutation.mutate(undefined)}
+              onClick={() => setConfirmSignOutOthers(true)}
               disabled={revokeOtherSessionsMutation.isPending || status.sessions.length <= 1}
             >
               <Trans>Sign out other sessions</Trans>
@@ -287,7 +319,15 @@ export function AccountSecurityRoute() {
                   variant="outline"
                   size="sm"
                   disabled={revokeSessionMutation.isPending}
-                  onClick={() => revokeSessionMutation.mutate({ sessionId: session.id })}
+                  onClick={() =>
+                    setPendingSessionRevoke({
+                      sessionId: session.id,
+                      userAgent: session.userAgent ?? '',
+                      ipAddress: session.ipAddress ?? '',
+                      createdAt: session.createdAt,
+                      isCurrent: session.isCurrent,
+                    })
+                  }
                 >
                   <Trans>Revoke</Trans>
                 </Button>
@@ -296,6 +336,145 @@ export function AccountSecurityRoute() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 2026-05-24 (re-critique): three security-side confirms. MFA
+          disable + sign-out-others are both account-wide and hard to
+          recover from quickly; per-session revoke shows the device
+          details so the user knows which session they're killing
+          (especially important for "revoke current session" — that
+          path navigates them to /login). */}
+      <AlertDialog
+        open={confirmDisableMfa}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDisableMfa(false)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Disable two-factor authentication?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                Sign-in will only require your password until you re-enable MFA. Owners need MFA
+                before sensitive production actions — disabling now blocks those flows.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Keep enabled</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={disableMutation.isPending}
+              onClick={() => disableMutation.mutate(undefined)}
+            >
+              {disableMutation.isPending ? <Trans>Disabling…</Trans> : <Trans>Disable MFA</Trans>}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={confirmSignOutOthers}
+        onOpenChange={(open) => {
+          if (!open) setConfirmSignOutOthers(false)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Sign out other sessions?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                Every signed-in browser and device EXCEPT this one will lose access immediately.
+                Each one will need to re-authenticate next time it's used.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={revokeOtherSessionsMutation.isPending}
+              onClick={() => revokeOtherSessionsMutation.mutate(undefined)}
+            >
+              {revokeOtherSessionsMutation.isPending ? (
+                <Trans>Signing out…</Trans>
+              ) : (
+                <Trans>Sign out other sessions</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingSessionRevoke !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingSessionRevoke(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingSessionRevoke?.isCurrent ? (
+                <Trans>Revoke this session and sign out?</Trans>
+              ) : (
+                <Trans>Revoke this session?</Trans>
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingSessionRevoke?.isCurrent ? (
+                <Trans>
+                  This is your current session — revoking it will sign you out and send you to the
+                  login screen.
+                </Trans>
+              ) : (
+                <Trans>
+                  Whoever is signed in on this browser will lose access immediately. They'll need to
+                  re-authenticate next time.
+                </Trans>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pendingSessionRevoke ? (
+            <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3 text-sm">
+              <p className="font-medium text-text-primary">
+                {pendingSessionRevoke.userAgent || <Trans>Unknown browser</Trans>}
+              </p>
+              <p className="font-mono text-xs text-text-muted">
+                {pendingSessionRevoke.ipAddress || '-'} ·{' '}
+                {formatDateTimeWithTimezone(pendingSessionRevoke.createdAt, practiceTimezone)}
+              </p>
+            </div>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={revokeSessionMutation.isPending || !pendingSessionRevoke}
+              onClick={() => {
+                if (pendingSessionRevoke) {
+                  revokeSessionMutation.mutate({ sessionId: pendingSessionRevoke.sessionId })
+                }
+              }}
+            >
+              {revokeSessionMutation.isPending ? (
+                <Trans>Revoking…</Trans>
+              ) : (
+                <Trans>Revoke session</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

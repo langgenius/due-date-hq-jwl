@@ -1,5 +1,6 @@
+import type { ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import { ArrowRightIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseDetail } from '@duedatehq/contracts'
@@ -8,11 +9,39 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { formatDate } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
+import { StateBadge } from '@/components/primitives/state-badge'
+import { FieldLabel } from '@/components/primitives/field-label'
 
 interface PulseStructuredFieldsProps {
   detail: PulseDetail
 }
 
+/**
+ * Structured-fields panel inside the Pulse drawer body.
+ *
+ * 2026-05-25 (Yuqi review #11, #20, #21, #22, #23): rebuilt as a
+ * three-column grid with sentence-case copy. Earlier version used
+ * vertical FieldRows with label-left / value-right; the user's eye
+ * had to ping-pong across an 880px-wide drawer to read each fact,
+ * and the section labels were `text-xs uppercase tracking-wider`
+ * which made them invisible against the body copy at the same size.
+ *
+ * New shape:
+ *  - Two clearly-headed sections ("Source" and "Scope"), each as a
+ *    titled card with a small accent rule under the heading. The
+ *    heading is `text-sm font-semibold` (not the old caption-size
+ *    eyebrow) so it reads as a section title, not row chrome.
+ *  - Inside each card, facts live in a `grid-cols-2 md:grid-cols-3`
+ *    arrangement — labels stack ABOVE their values, so the eye
+ *    scans top-to-bottom across columns instead of zigzagging.
+ *  - Source excerpt stays at the bottom as a distinct block (it's
+ *    long-form text, not a key/value).
+ *  - "Read official source" button lives at the top of the Source
+ *    card next to the heading so it's discoverable without
+ *    scrolling.
+ */
 export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
   const { t } = useLingui()
 
@@ -23,144 +52,329 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
     )
   }
 
+  // Source card facts — chronology + the actual deadline shift if
+  // this is a due-date overlay. Listed in scan order: where it came
+  // from, when it was published, when it takes effect, when it
+  // expires, then the change itself.
+  const sourceFacts: Array<{ key: string; label: ReactNode; value: ReactNode }> = []
+  sourceFacts.push({
+    key: 'authority',
+    label: <Trans>Authority</Trans>,
+    value: <span className="font-medium text-text-primary">{detail.alert.source}</span>,
+  })
+  sourceFacts.push({
+    key: 'issued',
+    label: <Trans>Issued</Trans>,
+    value: (
+      <span className="font-mono tabular-nums text-text-primary">
+        {formatDate(detail.alert.publishedAt)}
+      </span>
+    ),
+  })
+  if (detail.effectiveFrom) {
+    sourceFacts.push({
+      key: 'effective',
+      label: <Trans>Effective</Trans>,
+      value: (
+        <span className="font-mono tabular-nums text-text-primary">
+          {formatDate(detail.effectiveFrom)}
+        </span>
+      ),
+    })
+  }
+  if (detail.effectiveUntil) {
+    sourceFacts.push({
+      key: 'expires',
+      label: <Trans>Expires</Trans>,
+      value: (
+        <span className="font-mono tabular-nums text-text-primary">
+          {formatDate(detail.effectiveUntil)}
+        </span>
+      ),
+    })
+  }
+  if (detail.alert.actionMode === 'due_date_overlay') {
+    sourceFacts.push({
+      key: 'shift',
+      label: <Trans>Deadline shift</Trans>,
+      value: (
+        // 2026-05-25 (Yuqi Today #12 + #21): swapped the inline ' → '
+        // glyph for a real ArrowRightIcon framed in warning amber.
+        // Yuqi flagged that the most CONSEQUENTIAL fact in the
+        // drawer — the date change — was visually identical to every
+        // other key/value row. Now: the new date sits in
+        // text-text-warning + font-semibold so the eye lands on it
+        // first, and the arrow icon between makes "from → to"
+        // unmistakable as a delta (not just two dates side by side).
+        <span className="inline-flex items-center gap-2 font-mono tabular-nums">
+          <span className="text-text-tertiary">
+            {detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`}
+          </span>
+          <ArrowRightIcon className="size-3.5 text-text-warning" aria-hidden />
+          <span className="font-semibold text-text-warning">
+            {detail.newDueDate ? formatDate(detail.newDueDate) : t`Unknown`}
+          </span>
+        </span>
+      ),
+    })
+  } else {
+    sourceFacts.push({
+      key: 'mode',
+      label: <Trans>Action mode</Trans>,
+      value: (
+        <span className="font-medium text-text-primary">
+          <Trans>Review only</Trans>
+        </span>
+      ),
+    })
+  }
+
+  // Scope card facts — who/what the alert applies to. Jurisdiction
+  // first (most CPAs filter by state first), then counties, forms,
+  // entity types, base rules.
+  const scopeFacts: Array<{ key: string; label: ReactNode; value: ReactNode }> = []
+  // 2026-05-25 (Yuqi Today #14 + Alerts second pass #10): the
+  // jurisdiction fact is now a single integrated chip — leading
+  // StateBadge motif, mono code, full state name — all inside one
+  // bordered pill so it reads as one unit. Yuqi flagged the earlier
+  // "StateBadge + outline Badge + tertiary text" treatment as three
+  // separate visual elements ("要看做一个整体, 不要三个分开的个体").
+  // The chip uses the canonical badge typography but expands
+  // horizontally to hold the full label, so all three pieces sit on
+  // the same baseline with consistent vertical padding.
+  const jurisdictionFull = RULE_JURISDICTION_LABELS[detail.jurisdiction] ?? null
+  scopeFacts.push({
+    key: 'jurisdiction',
+    label: <Trans>Jurisdiction</Trans>,
+    value: (
+      <span className="inline-flex h-7 items-center gap-2 rounded-full border border-divider-regular bg-background-default pl-1 pr-3 text-sm">
+        <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
+        <span className="font-mono tabular-nums font-medium text-text-primary">
+          {detail.jurisdiction}
+        </span>
+        {jurisdictionFull ? <span className="text-text-secondary">{jurisdictionFull}</span> : null}
+      </span>
+    ),
+  })
+  if (detail.counties.length > 0) {
+    scopeFacts.push({
+      key: 'counties',
+      label: <Trans>Counties</Trans>,
+      value: (
+        <div className="flex flex-wrap gap-1">
+          {detail.counties.map((county) => (
+            <Badge key={county} variant="secondary" className="font-mono">
+              {county}
+            </Badge>
+          ))}
+        </div>
+      ),
+    })
+  }
+  // 2026-05-25 (Yuqi Today #15): show the human-readable form label
+  // ("FL Corporate Income"), not the snake_case tax code
+  // ("fl_corp_income"). CPAs don't think in DB-key names; the alert
+  // refers to a specific form they file with the state, and the
+  // canonical name should appear here. `formatTaxCode` falls back to
+  // a prettified version of the snake_case if the code isn't in the
+  // central registry, so unknown forms still render readably instead
+  // of as raw identifiers.
+  scopeFacts.push({
+    key: 'forms',
+    label: <Trans>Forms</Trans>,
+    value:
+      detail.forms.length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {detail.forms.map((form) => (
+            <Badge key={form} variant="outline" title={form}>
+              {formatTaxCode(form)}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <span className="text-text-tertiary">
+          <Trans>None</Trans>
+        </span>
+      ),
+  })
+  scopeFacts.push({
+    key: 'entityTypes',
+    label: <Trans>Entity types</Trans>,
+    value:
+      detail.entityTypes.length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {detail.entityTypes.map((entity) => (
+            <Badge key={entity} variant="secondary" className="font-mono uppercase">
+              {entity}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <span className="text-text-tertiary">
+          <Trans>None</Trans>
+        </span>
+      ),
+  })
+  if (detail.affectedRuleIds.length > 0) {
+    scopeFacts.push({
+      key: 'rules',
+      label: <Trans>Base rules</Trans>,
+      value: (
+        <div className="flex flex-wrap gap-1">
+          {detail.affectedRuleIds.map((ruleId) => (
+            <Badge key={ruleId} variant="outline" className="font-mono tabular-nums">
+              {ruleId}
+            </Badge>
+          ))}
+        </div>
+      ),
+    })
+  }
+
   return (
-    <section className="grid gap-4 rounded-lg border border-divider-subtle bg-background-section p-4">
-      <div className="grid gap-3">
-        <SectionLabel>
-          <Trans>Source context</Trans>
-        </SectionLabel>
-        <FieldRow label={<Trans>Authority</Trans>}>
-          <span className="font-medium text-text-primary">{detail.alert.source}</span>
-        </FieldRow>
-        <FieldRow label={<Trans>Issued</Trans>}>
-          <span className="font-mono tabular-nums text-text-secondary">
-            {formatDate(detail.alert.publishedAt)}
-          </span>
-        </FieldRow>
-        {detail.effectiveFrom ? (
-          <FieldRow label={<Trans>Effective</Trans>}>
-            <span className="font-mono tabular-nums text-text-secondary">
-              {formatDate(detail.effectiveFrom)}
-            </span>
-          </FieldRow>
-        ) : null}
-        <FieldRow label={<Trans>Deadline shift</Trans>}>
-          <span className="font-mono tabular-nums text-text-primary">
-            {formatDate(detail.originalDueDate)}
-            {' -> '}
-            <span className="font-semibold">{formatDate(detail.newDueDate)}</span>
-          </span>
-        </FieldRow>
-        <div className="pt-1">
+    <div className="flex flex-col gap-4">
+      <FactCard
+        title={<Trans>Source</Trans>}
+        action={
+          // 2026-05-25 (Yuqi Today #17): "Open official source" used
+          // to be a generic outline-button labeled with that generic
+          // phrase. Yuqi flagged: "be a better button. maybe just a
+          // link. also the name of the official source". Now: rendered
+          // as a `link` variant with the actual source name (e.g.
+          // "FL DOR Bulletin ↗"), which is the same string the CPA
+          // sees on the source badge upstream and on the alert title.
+          // The trailing arrow icon makes it read as "this opens an
+          // external link" without needing the redundant label. Same
+          // size token as the icon-only Copy button below so the
+          // section header heights agree (#16).
           <Button
-            type="button"
-            variant="outline"
+            nativeButton={false}
+            variant="link"
             size="sm"
+            className="h-7"
             render={<a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />}
           >
-            <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Read official source</Trans>
+            {detail.alert.source}
+            <ExternalLinkIcon data-icon="inline-end" />
           </Button>
-        </div>
-      </div>
+        }
+      >
+        <FactGrid facts={sourceFacts} />
+      </FactCard>
 
-      <div className="grid gap-3 border-t border-divider-subtle pt-4">
-        <SectionLabel>
-          <Trans>Parsed scope</Trans>
-        </SectionLabel>
-        <FieldRow label={<Trans>Jurisdiction</Trans>}>
-          <Badge variant="outline" className="font-mono tabular-nums">
-            {detail.jurisdiction}
-          </Badge>
-        </FieldRow>
-        {detail.counties.length > 0 ? (
-          <FieldRow label={<Trans>Counties</Trans>}>
-            <div className="flex flex-wrap justify-end gap-1">
-              {detail.counties.map((county) => (
-                <Badge key={county} variant="secondary" className="font-mono">
-                  {county}
-                </Badge>
-              ))}
-            </div>
-          </FieldRow>
+      <FactCard title={<Trans>Scope</Trans>}>
+        <FactGrid facts={scopeFacts} />
+        {detail.alert.actionMode === 'review_only' ? (
+          <div className="mt-3 rounded-md border border-divider-subtle bg-background-soft p-3 text-sm text-text-secondary">
+            <span className="block text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+              <Trans>Structured change</Trans>
+            </span>
+            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs">
+              {formatStructuredChange(detail.structuredChange, t`No structured fields.`)}
+            </pre>
+          </div>
         ) : null}
-        <FieldRow label={<Trans>Forms</Trans>}>
-          <div className="flex flex-wrap justify-end gap-1">
-            {detail.forms.length > 0 ? (
-              detail.forms.map((form) => (
-                <Badge key={form} variant="outline" className="font-mono tabular-nums">
-                  {form}
-                </Badge>
-              ))
-            ) : (
-              <span className="text-text-tertiary">
-                <Trans>None</Trans>
-              </span>
-            )}
-          </div>
-        </FieldRow>
-        <FieldRow label={<Trans>Entity types</Trans>}>
-          <div className="flex flex-wrap justify-end gap-1">
-            {detail.entityTypes.length > 0 ? (
-              detail.entityTypes.map((entity) => (
-                <Badge key={entity} variant="secondary" className="font-mono uppercase">
-                  {entity}
-                </Badge>
-              ))
-            ) : (
-              <span className="text-text-tertiary">
-                <Trans>None</Trans>
-              </span>
-            )}
-          </div>
-        </FieldRow>
-      </div>
+      </FactCard>
 
-      <div className="grid gap-1 rounded-md bg-background-default p-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Source excerpt</Trans>
-          </span>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t`Copy source excerpt`}
-                  onClick={copySourceExcerpt}
-                >
-                  <CopyIcon className="size-3.5" aria-hidden />
-                </Button>
-              }
-            />
-            <TooltipContent>
-              <Trans>Copy source excerpt</Trans>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <blockquote className="break-words text-md italic text-text-secondary">
+      {/* 2026-05-25 (Yuqi Today #20): source excerpt no longer wrapped
+          in a labeled FactCard. Yuqi flagged that "Source excerpt"
+          doesn't need to be a section like Source — it's just a quote.
+          Rendered as a flush bordered blockquote with the copy
+          affordance pinned to the top-right corner. Sits directly
+          under the Scope card as a quiet supporting paragraph, not
+          a third heavy section. */}
+      <div className="group/excerpt relative rounded-md border border-divider-subtle bg-background-soft px-4 py-3">
+        <blockquote className="break-words pr-8 text-sm italic leading-relaxed text-text-secondary">
           “{detail.sourceExcerpt}”
         </blockquote>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t`Copy source excerpt`}
+                onClick={copySourceExcerpt}
+                className="absolute right-2 top-2 opacity-0 transition-opacity group-hover/excerpt:opacity-100 focus-visible:opacity-100"
+              >
+                <CopyIcon aria-hidden />
+              </Button>
+            }
+          />
+          <TooltipContent>
+            <Trans>Copy source excerpt</Trans>
+          </TooltipContent>
+        </Tooltip>
       </div>
+    </div>
+  )
+}
+
+function formatStructuredChange(value: unknown, fallback: string): string {
+  if (value === null || value === undefined) return fallback
+  if (typeof value === 'string') return value
+  return JSON.stringify(value, null, 2)
+}
+
+// Visible card wrapper around a logical section. Header is a real
+// `text-sm font-semibold` so it actually reads as a heading — the
+// old `text-xs uppercase tracking-wider` blended with content at the
+// same size + color (Yuqi #22).
+//
+// 2026-05-25 (Yuqi Today #13 + #16):
+//   - Title bumped from `text-sm` → `text-base` font-semibold. At
+//     text-sm the heading sat at the same scale as the fact labels
+//     below it, blurring the section/content separation Yuqi
+//     specifically asked the original FactCard refactor to fix.
+//   - Header height locked to `h-11` via `min-h-11 items-center` so
+//     all three FactCards (Source, Scope, Source excerpt) start
+//     their content at the exact same vertical position — the
+//     previous variable padding produced misaligned section starts
+//     when the actions row had a button vs. an icon-only button.
+// 2026-05-25 (Yuqi Alerts second pass #11): radius dropped from
+// `rounded-md` (6px) to `rounded-xs` (2px) and body padding bumped
+// from `p-4` to `px-6 py-5`. The smaller radius makes the FactCard
+// read as document-style structural surface (not a UI chip); the
+// generous padding gives the dense fact grid breathing room
+// without competing with the surrounding drawer chrome.
+function FactCard({
+  title,
+  action,
+  children,
+}: {
+  title: ReactNode
+  action?: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <section className="rounded-[2px] border border-divider-subtle bg-background-default">
+      <header className="flex min-h-11 items-center justify-between gap-3 border-b border-divider-subtle px-6 py-2">
+        <h3 className="text-base font-semibold text-text-primary">{title}</h3>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </header>
+      <div className="px-6 py-5">{children}</div>
     </section>
   )
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+// 3-column fact grid. Each cell stacks the label above the value so
+// the eye scans top-to-bottom within a column, not left-right across
+// the full drawer width (Yuqi #20, #21). Collapses to 2-column on
+// narrow widths and 1-column on mobile so values never get cramped.
+function FactGrid({
+  facts,
+}: {
+  facts: ReadonlyArray<{ key: string; label: ReactNode; value: ReactNode }>
+}) {
   return (
-    <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">{children}</h3>
-  )
-}
-
-function FieldRow({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <span className="shrink-0 text-sm font-medium text-text-tertiary">{label}</span>
-      <div className="flex min-w-0 flex-1 flex-wrap justify-end gap-1 break-words text-right sm:max-w-[60%]">
-        {children}
-      </div>
-    </div>
+    <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 md:grid-cols-3">
+      {facts.map((fact) => (
+        <div key={fact.key} className="flex flex-col gap-1 min-w-0">
+          <FieldLabel as="dt">{fact.label}</FieldLabel>
+          <dd className="text-sm text-text-primary min-w-0">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

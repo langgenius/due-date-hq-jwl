@@ -12,7 +12,7 @@ export class WorkloadPage {
     })
     this.ownerWorkloadHeading = page.getByText('Owner workload', { exact: true })
     this.upgradePlanLink = page.getByRole('link', { name: 'Upgrade plan' })
-    this.openObligationQueueLink = page.getByRole('link', { name: 'Open Obligations' })
+    this.openObligationQueueLink = page.getByRole('link', { name: 'Open Deadlines' })
   }
 
   async goto(path = '/workload') {

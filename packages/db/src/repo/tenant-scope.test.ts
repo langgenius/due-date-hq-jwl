@@ -59,23 +59,30 @@ describe('tenant-scoped repo cross-reference guards', () => {
     ).resolves.toEqual({ ids: [expect.any(String), expect.any(String)] })
 
     expect(fake.select).toHaveBeenCalledTimes(1)
-    expect(fake.insertValues).toHaveBeenCalledTimes(1)
+    expect(fake.insertValues).toHaveBeenCalledTimes(2)
   })
 
   it('persists generated rule metadata for obligations', async () => {
     const fake = createFakeDb([[{ id: 'client_1' }]])
     const repo = makeObligationsRepo(fake.db, 'firm_current')
+    const baseDueDate = new Date('2027-04-15T00:00:00.000Z')
+    const taxPeriodStart = new Date('2026-01-01T00:00:00.000Z')
+    const taxPeriodEnd = new Date('2026-12-31T00:00:00.000Z')
 
     await repo.createBatch([
       {
         clientId: 'client_1',
         taxType: 'ca_100',
         taxYear: 2026,
+        taxPeriodStart,
+        taxPeriodEnd,
+        taxPeriodKind: 'calendar',
+        taxPeriodSource: 'manual_cpa_confirmed',
         ruleId: 'ca_100_2027',
         ruleVersion: 3,
         rulePeriod: 'annual',
         generationSource: 'annual_rollover',
-        baseDueDate: new Date('2027-04-15T00:00:00.000Z'),
+        baseDueDate,
       },
     ])
 
@@ -85,6 +92,13 @@ describe('tenant-scoped repo cross-reference guards', () => {
         ruleVersion: 3,
         rulePeriod: 'annual',
         generationSource: 'annual_rollover',
+        taxPeriodStart,
+        taxPeriodEnd,
+        taxPeriodKind: 'calendar',
+        taxPeriodSource: 'manual_cpa_confirmed',
+        taxPeriodReviewReason: null,
+        filingDueDate: baseDueDate,
+        paymentDueDate: baseDueDate,
       }),
     ])
   })

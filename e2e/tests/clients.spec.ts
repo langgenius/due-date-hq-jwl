@@ -44,9 +44,9 @@ test('AC: E2E-CLIENTS-CREATE creates a manual client through oRPC', async ({
 
   await expect(authenticatedPage.getByText('Client created')).toBeVisible()
   await expect(clientsPage.clientDetailHeading(clientName)).toBeVisible()
-  await expect(clientsPage.detailSection('Work plan')).toBeVisible()
-  await expect(authenticatedPage.getByRole('main').getByText('E2E Owner').first()).toBeVisible()
-  await expect(authenticatedPage.getByText('23-4567890')).toBeVisible()
+  await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
+  await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
+  await expect(clientsPage.detailSection('Fact readiness')).toBeVisible()
 })
 
 test.describe('seeded client facts', () => {
@@ -104,16 +104,71 @@ test.describe('seeded client facts', () => {
     await clientsPage.rowFor('Unassigned Foundry LLC').click()
 
     await expect(clientsPage.clientDetailHeading('Unassigned Foundry LLC')).toBeVisible()
-    await expect(clientsPage.backToClientsButton).toBeVisible()
-    await expect(authenticatedPage.getByText(/LLC \/ Filing, payment/)).toBeVisible()
     await expect(authenticatedPage.getByText('Manual')).toBeVisible()
     await expect(authenticatedPage.getByText('Ready for rules')).toBeVisible()
-    await expect(authenticatedPage.getByText('CA / San Diego')).toBeVisible()
-    await expect(authenticatedPage.getByText('37-2222222')).toBeVisible()
-    await expect(clientsPage.detailSection('Pulse impact')).toBeVisible()
-    await expect(clientsPage.detailSection('Work plan')).toBeVisible()
+    await expect(authenticatedPage.getByText(/1 open filing/)).toBeVisible()
+    await expect(clientsPage.detailSection('Future business cues')).toBeVisible()
+    await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
+    await authenticatedPage.getByRole('button', { name: /Fact readiness/ }).click()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
-    await expect(authenticatedPage).toHaveURL(/\/clients\?client=/)
+    await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
+    await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
+  })
+
+  test('AC: E2E-CLIENTS-ADD-DEADLINE shows readable category and form pickers', async ({
+    authenticatedPage,
+    clientsPage,
+  }) => {
+    await clientsPage.goto()
+
+    await clientsPage.rowFor('Unassigned Foundry LLC').click()
+    await expect(clientsPage.clientDetailHeading('Unassigned Foundry LLC')).toBeVisible()
+
+    await authenticatedPage.getByRole('button', { name: 'Add deadline' }).first().click()
+
+    const dialog = authenticatedPage.getByRole('dialog', { name: 'Add deadline' })
+    await expect(dialog).toBeVisible()
+
+    await expect(dialog.getByText('Base due date')).toHaveCount(0)
+    await expect(dialog.getByText('YYYY-MM-DD')).toHaveCount(0)
+    await expect(dialog.getByText(/年|月|日/)).toHaveCount(0)
+    const taxYearPicker = dialog.locator('#obligation-tax-year')
+    await expect(taxYearPicker).toBeVisible()
+    await expect(taxYearPicker).toContainText(/\d{4}/)
+
+    const categoryPicker = dialog.locator('#obligation-tax-type')
+    await expect(categoryPicker).toHaveAttribute('role', 'combobox')
+    await categoryPicker.click()
+    await expect(authenticatedPage.getByText('Recommended for this client')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('Other common deadlines')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('Partnership income tax return')).toBeVisible()
+    await expect(authenticatedPage.getByText('Business return extension')).toBeVisible()
+    await expect(authenticatedPage.getByText('Franchise or annual tax payment')).toBeVisible()
+    await expect(authenticatedPage.getByText('Schedule K-1 dependency')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('ca_llc_annual_tax')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('California LLC annual tax')).toHaveCount(0)
+    await expect(authenticatedPage.getByText('taxType')).toHaveCount(0)
+    await authenticatedPage.getByPlaceholder('Search deadline categories…').fill('S corporation')
+    await authenticatedPage.getByText('S corporation income tax return').click()
+    await expect(categoryPicker).toContainText('S corporation income tax return')
+    await categoryPicker.click()
+    await expect(authenticatedPage.getByPlaceholder('Search deadline categories…')).toHaveValue(
+      'S corporation income tax return',
+    )
+    await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
+    await authenticatedPage.keyboard.press('Escape')
+
+    const formPicker = dialog.locator('#obligation-form-name')
+    await expect(formPicker).toHaveAttribute('role', 'combobox')
+    await expect(formPicker).toContainText('Form 1120-S')
+    await formPicker.click()
+    const suggestedForms = authenticatedPage.getByLabel('Suggested forms and vouchers')
+    await expect(suggestedForms).toBeVisible()
+    await expect(suggestedForms.getByText('Form 1120-S', { exact: true })).toBeVisible()
+    await authenticatedPage.getByPlaceholder('Search forms and vouchers…').fill('7004')
+    await expect(suggestedForms.getByText('Form 7004', { exact: true })).toBeVisible()
+    await expect(suggestedForms.getByText('Schedule K-1', { exact: true })).toHaveCount(0)
   })
 })

@@ -10,7 +10,7 @@ updates:
   - note: 'Applied the fourth browser review pass: replaced evidence markers with the product FileSearch icon, localized the trust-boundary table headers, and merged the final two pages into one summary slide.'
   - note: 'Applied the fifth browser review pass: right-aligned numeric table headers with their values and replaced the trust-boundary table with three audience-facing proof points.'
   - note: 'Applied the sixth browser review pass: localized AI output-rule explanations and rewrote the architecture slide to remove repo-path-heavy implementation language.'
-  - note: 'Added the product capability names Penalty Radar™, Migration Copilot, and Glass-Box AI™ to their dedicated slides while keeping the final summary generic.'
+  - note: 'Added the product capability names Deadline Radar™, Migration Copilot, and Glass-Box AI™ to their dedicated slides while keeping the final summary generic.'
   - note: 'Inserted an AI cost model page before the final product summary, covering plan-level AI estimates and total variable cost.'
   - note: 'Cleaned up the AI cost model copy by centralizing the monthly-cost note and localizing Guardrail and cost-card explanations.'
   - note: 'Added a next-stage roadmap slide before the final summary, combining the product build plan with the short-term pilot route.'

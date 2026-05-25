@@ -1,16 +1,24 @@
 import { useCallback, useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, FileClockIcon, FileSearchIcon } from 'lucide-react'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
-import type { ClientCreateInput, ClientPublic } from '@duedatehq/contracts'
+import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
-import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
+import { clientDetailPath } from '@/features/clients/client-url'
+import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitButton'
+import {
+  buildClientObligationListSummaries,
+  buildOpportunityCountByClient,
+  buildPulseMatchesByClient,
+} from '@/features/clients/client-detail-model'
 import {
   CLIENT_LIST_LIMIT,
   clientsSearchParamsParsers,
@@ -24,7 +32,7 @@ import {
   buildClientFactsModel,
   filterClients,
   isClientEntityType,
-  isClientReadinessStatus,
+  isClientPulseFilter,
   isClientSourceType,
   type ClientEntityType,
 } from '@/features/clients/client-readiness'
@@ -35,8 +43,39 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
 const EMPTY_CLIENTS: ClientPublic[] = []
+const EMPTY_AFFECTED_CLIENT_IDS: ReadonlySet<string> = new Set()
+const PULSE_HISTORY_LIMIT = 50
+const OBLIGATION_LIST_LIMIT = 100
+const OPPORTUNITY_LIST_LIMIT = 50
+const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
+  'pending',
+  'in_progress',
+  'extended',
+  'waiting_on_client',
+  'review',
+]
+// 2026-05-23: widened the list query to include terminal-state rows
+// so the /clients list can render a DONE count column alongside OPEN.
+// Open rows still populate next-due tracking; done rows only bump the
+// done count (the summary builder distinguishes by status). For larger
+// firms this query should bound by filing year before scaling — done
+// rows accumulate over time and the 100-row limit would silently drop
+// older filings.
+const CLIENTS_LIST_OBLIGATION_STATUSES: ObligationStatus[] = [
+  ...OPEN_OBLIGATION_STATUSES,
+  'done',
+  'completed',
+]
+const OBLIGATIONS_LIST_INPUT = {
+  status: CLIENTS_LIST_OBLIGATION_STATUSES,
+  sort: 'due_asc' as const,
+  limit: OBLIGATION_LIST_LIMIT,
+}
+const OPPORTUNITIES_LIST_INPUT = { limit: OPPORTUNITY_LIST_LIMIT }
+const PULSE_HISTORY_INPUT = { limit: PULSE_HISTORY_LIMIT }
+const CLIENTS_LIST_INPUT = { limit: CLIENT_LIST_LIMIT }
 
-function useEntityLabels(): Record<ClientEntityType, string> {
+export function useEntityLabels(): Record<ClientEntityType, string> {
   const { t } = useLingui()
   return useMemo(
     () => ({
@@ -55,11 +94,11 @@ function useEntityLabels(): Record<ClientEntityType, string> {
 
 export function ClientsRoute() {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
-  const canDeleteClients = permission.can('client.write')
   const entityLabels = useEntityLabels()
   const [
     {
@@ -68,18 +107,59 @@ export function ClientsRoute() {
       state: stateFilter,
       readiness: readinessFilter,
       source: sourceFilter,
+      pulse: pulseFilter,
       owner: ownerFilter,
-      client: selectedClientId,
       importHistory,
     },
     setClientsQuery,
   ] = useQueryStates(clientsSearchParamsParsers)
 
-  const clientsQuery = useQuery(
-    orpc.clients.listByFirm.queryOptions({ input: { limit: CLIENT_LIST_LIMIT } }),
-  )
+  const clientsQuery = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))
   const clients = clientsQuery.data ?? EMPTY_CLIENTS
   const factsModel = useMemo(() => buildClientFactsModel(clients), [clients])
+  const obligationsListQuery = useQuery(
+    orpc.obligations.list.queryOptions({ input: OBLIGATIONS_LIST_INPUT }),
+  )
+  const obligationListRows = obligationsListQuery.data?.rows
+  const obligationSummariesByClient = useMemo(
+    () => buildClientObligationListSummaries(obligationListRows ?? []),
+    [obligationListRows],
+  )
+  const opportunitiesQuery = useQuery(
+    orpc.opportunities.list.queryOptions({ input: OPPORTUNITIES_LIST_INPUT }),
+  )
+  const opportunitiesList = opportunitiesQuery.data?.opportunities
+  const opportunityCountByClient = useMemo(
+    () => buildOpportunityCountByClient(opportunitiesList ?? []),
+    [opportunitiesList],
+  )
+  const pulseHistoryQuery = useQuery(
+    orpc.pulse.listHistory.queryOptions({ input: PULSE_HISTORY_INPUT }),
+  )
+  const pulseAlerts = pulseHistoryQuery.data?.alerts
+  const pulseDetailsQueries = useQueries({
+    queries: useMemo(
+      () =>
+        (pulseAlerts ?? []).map((alert) =>
+          orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
+        ),
+      [pulseAlerts],
+    ),
+  })
+  const pulseDetailsLoading = pulseDetailsQueries.some((query) => query.isLoading)
+  const pulseDetails = pulseDetailsQueries
+    .map((query) => query.data)
+    .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail))
+  const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
+  const pulseMatchesByClient = useMemo(
+    () => buildPulseMatchesByClient(pulseDetails),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pulseDetailsKey],
+  )
+  const affectedClientIds = useMemo<ReadonlySet<string>>(() => {
+    if (pulseMatchesByClient.size === 0) return EMPTY_AFFECTED_CLIENT_IDS
+    return new Set(pulseMatchesByClient.keys())
+  }, [pulseMatchesByClient])
   const filters = useMemo(
     () =>
       normalizeClientsQueryFilters({
@@ -89,34 +169,46 @@ export function ClientsRoute() {
         readiness: readinessFilter,
         source: sourceFilter,
         owner: ownerFilter,
+        pulse: pulseFilter,
       }),
-    [clientFilter, entityFilter, ownerFilter, readinessFilter, sourceFilter, stateFilter],
+    [
+      clientFilter,
+      entityFilter,
+      ownerFilter,
+      pulseFilter,
+      readinessFilter,
+      sourceFilter,
+      stateFilter,
+    ],
   )
-  const filteredClients = useMemo(() => filterClients(clients, filters), [clients, filters])
-  const selectedClient = selectedClientId
-    ? (clients.find((client) => client.id === selectedClientId) ?? null)
-    : null
-  const activeClient = selectedClient ?? filteredClients[0] ?? null
+  const filteredClients = useMemo(
+    () => filterClients(clients, filters, { affectedClientIds }),
+    [affectedClientIds, clients, filters],
+  )
+  const clientWorkspaceLoading =
+    clientsQuery.isLoading ||
+    obligationsListQuery.isLoading ||
+    opportunitiesQuery.isLoading ||
+    pulseHistoryQuery.isLoading ||
+    pulseDetailsLoading
 
+  // 2026-05-24 (useEffect audit): cycle-list write moved into the
+  // row-click handler inside ClientFactsWorkspace. That writes
+  // sessionStorage only on actual navigation intent rather than on
+  // every filteredClients change, and removes one of the app's
+  // useEffect violations per the AGENTS.md rule.
   const createMutation = useMutation(
     orpc.clients.create.mutationOptions({
       onSuccess: (client) => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
-        void setClientsQuery({
-          q: null,
-          clients: null,
-          entity: null,
-          state: null,
-          readiness: null,
-          source: null,
-          owner: null,
-          client: client.id,
-        })
         toast.success(t`Client created`, { description: client.name })
+        void navigate(clientDetailPath(client))
       },
       onError: (err) => {
         toast.error(t`Couldn't create client`, {
-          description: rpcErrorMessage(err) ?? t`Please try again.`,
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
         })
       },
     }),
@@ -128,7 +220,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         clients: nullableQueryArray(clientIds),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -140,7 +231,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         entity: nullableQueryArray(typedEntities),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -152,19 +242,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         state: nullableQueryArray(states),
-        client: null,
-      })
-    },
-    [setClientsQuery],
-  )
-
-  const handleReadinessFilterChange = useCallback(
-    (values: string[]) => {
-      const typedReadiness = values.filter(isClientReadinessStatus)
-      void setClientsQuery({
-        q: null,
-        readiness: nullableQueryArray(typedReadiness),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -176,7 +253,6 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         source: nullableQueryArray(typedSources),
-        client: null,
       })
     },
     [setClientsQuery],
@@ -188,15 +264,18 @@ export function ClientsRoute() {
       void setClientsQuery({
         q: null,
         owner: nullableQueryArray(owners),
-        client: null,
       })
     },
     [setClientsQuery],
   )
 
-  const handleSelectClient = useCallback(
-    (clientId: string) => {
-      void setClientsQuery({ client: clientId })
+  const handlePulseFilterChange = useCallback(
+    (values: string[]) => {
+      const typedPulse = values.filter(isClientPulseFilter)
+      void setClientsQuery({
+        q: null,
+        pulse: nullableQueryArray(typedPulse),
+      })
     },
     [setClientsQuery],
   )
@@ -210,19 +289,11 @@ export function ClientsRoute() {
 
   const handleViewImportedClient = useCallback(
     (clientId: string) => {
-      void setClientsQuery({
-        q: null,
-        clients: null,
-        entity: null,
-        state: null,
-        readiness: null,
-        source: null,
-        owner: null,
-        client: clientId,
-        importHistory: null,
-      })
+      const client = clients.find((candidate) => candidate.id === clientId)
+      void setClientsQuery({ importHistory: null })
+      void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
     },
-    [setClientsQuery],
+    [clients, navigate, setClientsQuery],
   )
 
   const handleCreateClient = useCallback(
@@ -232,48 +303,50 @@ export function ClientsRoute() {
     [createMutation],
   )
 
-  const handleClientDeleted = useCallback(() => {
-    void setClientsQuery({ client: null, clients: null })
-  }, [setClientsQuery])
-
-  const handleClearSelectedClient = useCallback(() => {
-    void setClientsQuery({ client: null })
-  }, [setClientsQuery])
-
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
-      {selectedClient ? null : (
-        <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex min-w-0 flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-xl font-semibold text-text-primary">
-                <Trans>Client facts</Trans>
-              </h1>
-              <p className="max-w-3xl text-sm text-text-secondary">
-                <Trans>
-                  Validate the practice client facts that generate obligations, dashboard risk, and
-                  Pulse matches.
-                </Trans>
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" onClick={() => handleImportHistoryOpenChange(true)}>
-              <FileClockIcon data-icon="inline-start" />
+    // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
+    // padding md:p-6 → md:p-5. /clients is a list page — the table
+    // is what CPAs scan; chrome around it should be efficient.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-5">
+      <PageHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Trans>Clients</Trans>
+            {/* 2026-05-23: count chip next to the title gives a one-glance
+                "how many clients does this firm manage?" signal. Reads the
+                full unfiltered list (not the filtered subset) so it stays
+                stable as the user toggles action-strip chips. */}
+            <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
+              <Plural value={clients.length} one="# Client" other="# Clients" />
+            </span>
+          </span>
+        }
+        actions={
+          <>
+            {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
+                import history, not client archival. Keep the visible label
+                aligned with the drawer title so "Archive" does not read as
+                a destructive client action. */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleImportHistoryOpenChange(true)}
+              aria-label={t`Import history`}
+              title={t`Import history`}
+            >
+              <HistoryIcon data-icon="inline-start" />
               <Trans>Import history</Trans>
             </Button>
-            <Button variant="outline" onClick={openWizard} disabled={!canRunMigration}>
-              <FileSearchIcon data-icon="inline-start" />
-              <Trans>Import clients</Trans>
-            </Button>
-            <CreateClientDialog
+            <ClientsCreateSplitButton
               entityLabels={entityLabels}
               isPending={createMutation.isPending}
               onCreate={handleCreateClient}
+              onImport={openWizard}
+              canImport={canRunMigration}
             />
-          </div>
-        </header>
-      )}
+          </>
+        }
+      />
 
       {clientsQuery.isError ? (
         <Alert variant="destructive">
@@ -282,7 +355,8 @@ export function ClientsRoute() {
             <Trans>Couldn't load clients</Trans>
           </AlertTitle>
           <AlertDescription>
-            {rpcErrorMessage(clientsQuery.error) ?? t`Please try again.`}{' '}
+            {rpcErrorMessage(clientsQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}{' '}
             <button type="button" className="underline" onClick={() => void clientsQuery.refetch()}>
               <Trans>Retry</Trans>
             </button>
@@ -298,29 +372,27 @@ export function ClientsRoute() {
       <ClientFactsWorkspace
         clients={clients}
         filteredClients={filteredClients}
-        activeClient={activeClient}
-        selectedClient={selectedClient}
         factsModel={factsModel}
         entityLabels={entityLabels}
-        isLoading={clientsQuery.isLoading}
+        isLoading={clientWorkspaceLoading}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}
         readinessFilter={filters.readinessFilters}
         sourceFilter={filters.sourceFilters}
         ownerFilter={filters.ownerFilters}
+        pulseFilter={filters.pulseFilters}
+        pulseMatchesByClient={pulseMatchesByClient}
+        obligationSummariesByClient={obligationSummariesByClient}
+        opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
-        onReadinessFilterChange={handleReadinessFilterChange}
         onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
-        onSelectClient={handleSelectClient}
-        onClearSelectedClient={handleClearSelectedClient}
+        onPulseFilterChange={handlePulseFilterChange}
         onImport={openWizard}
         canImport={canRunMigration}
-        canDelete={canDeleteClients}
-        onClientDeleted={handleClientDeleted}
       />
     </div>
   )

@@ -3,6 +3,7 @@ export type ShortcutCategory =
   | 'navigate'
   | 'practice'
   | 'obligations'
+  | 'rules'
   | 'wizard'
   | 'reserved'
 

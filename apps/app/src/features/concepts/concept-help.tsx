@@ -14,10 +14,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 export type ConceptId =
   | 'smartPriority'
-  | 'projectedRiskCap'
   | 'urgencyWindow'
   | 'lateFilingCap'
-  | 'penaltyRadar'
   | 'exposure'
   | 'readiness'
   | 'obligation'
@@ -67,12 +65,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'smartPriority':
       return {
         title: t`Smart Priority`,
-        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines projected risk, urgency, client importance, late filing history, and readiness pressure.`,
-      }
-    case 'projectedRiskCap':
-      return {
-        title: t`Projected risk cap`,
-        description: t`The dollar amount where projected risk reaches the maximum Smart Priority contribution. Higher values still display, but do not add more score from this factor.`,
+        description: t`DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure.`,
       }
     case 'urgencyWindow':
       return {
@@ -84,24 +77,19 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
         title: t`Late filing cap`,
         description: t`The late-filing count where history reaches its maximum Smart Priority contribution. Higher counts still display, but do not add more score from this factor.`,
       }
-    case 'penaltyRadar':
-      return {
-        title: t`Penalty Radar`,
-        description: t`The projected risk across the current deadline list. It helps prioritize work, but it is not an official penalty notice.`,
-      }
     case 'exposure':
       return {
-        title: t`Projected risk`,
-        description: t`The estimated dollars at risk if a deadline is missed. Rows without enough tax inputs show as needing input or unsupported.`,
+        title: t`Penalty inputs`,
+        description: t`The tax facts used when the app needs to calculate penalty context for overdue work.`,
       }
     case 'readiness':
       return {
-        title: t`Readiness`,
-        description: t`Whether a deadline has what the team needs to move forward, such as client materials, review, evidence, or risk inputs.`,
+        title: t`Materials`,
+        description: t`The firm's running tally of client-provided documents, signatures, and confirmations for a specific deadline. Tracked per deadline. Independent of the firm's workflow status — the materials can be complete while status is still Waiting, or incomplete after drafting has begun.`,
       }
     case 'obligation':
       return {
-        title: t`Obligation`,
+        title: t`Deadline`,
         description: t`A specific compliance deadline generated from client facts and active practice rules. It is more structured than a generic task.`,
       }
     case 'evidence':
@@ -141,13 +129,13 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'obligations':
       return {
-        title: t`Obligations`,
-        description: t`The operating surface for obligation work: filter, sort, assign owners, update status, and open evidence for each obligation.`,
+        title: t`Deadlines`,
+        description: t`The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline.`,
       }
     case 'triageQueue':
       return {
-        title: t`Top obligations by risk`,
-        description: t`The highest-risk open obligations for the chosen window — work these first.`,
+        title: t`Top deadlines by risk`,
+        description: t`The highest-risk open deadlines for the chosen window — work these first.`,
       }
     case 'aiWeeklyBrief':
       return {
@@ -166,13 +154,13 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
       }
     case 'obligationPreview':
       return {
-        title: t`Obligation Preview`,
-        description: t`A dry run that shows which obligations rules would create for a client before anything is written to the deadline list.`,
+        title: t`Deadline Preview`,
+        description: t`A dry run that shows which deadline rules would create for a client before anything is written to the deadline list.`,
       }
     case 'reminderReady':
       return {
         title: t`Reminder-ready`,
-        description: t`This obligation comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule.`,
+        description: t`This deadline comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule.`,
       }
     case 'requiresReview':
       return {
@@ -192,12 +180,12 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'owner':
       return {
         title: t`Owner`,
-        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for exposure calculations.`,
+        description: t`A high-permission practice role. In client tax inputs, owner count separately means the number of equity owners used for penalty facts.`,
       }
     case 'risk':
       return {
         title: t`Risk`,
-        description: t`The stored deadline risk view, mainly based on due date pressure, penalty exposure, readiness, and evidence status.`,
+        description: t`The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status.`,
       }
     case 'aiConfidence':
       return {
@@ -243,10 +231,17 @@ export function ConceptHelp({
       >
         <CircleHelpIcon className="size-3.5" aria-hidden />
       </PopoverTrigger>
-      <PopoverContent side={side} align={align} className="w-72 gap-2 p-3">
+      {/* 2026-05-25 (Yuqi rule library #18): concept-help popovers
+          were rendering at text-xs (12px) which Yuqi flagged as too
+          small to read comfortably. Bumped to text-sm (14px) for the
+          description and widened to w-80 so longer concept blurbs
+          don't wrap to 4+ lines. The title primitive already
+          ships at a readable size; only the description body
+          needed the bump. */}
+      <PopoverContent side={side} align={align} className="w-80 gap-2 p-3">
         <PopoverHeader>
           <PopoverTitle>{copy.title}</PopoverTitle>
-          <PopoverDescription className="text-xs leading-relaxed text-text-secondary">
+          <PopoverDescription className="text-sm leading-relaxed text-text-secondary">
             {copy.description}
           </PopoverDescription>
         </PopoverHeader>

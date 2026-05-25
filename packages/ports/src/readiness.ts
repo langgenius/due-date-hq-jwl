@@ -1,11 +1,33 @@
 import type { ObligationReadiness } from './shared'
 
+export type ReadinessDocumentChecklistItemSource = 'template' | 'custom'
+export type ReadinessDocumentChecklistItemStatus = 'missing' | 'received' | 'needs_review'
+
 export interface ReadinessChecklistItemRow {
   id: string
   label: string
   description: string | null
   reason: string | null
   sourceHint: string | null
+}
+
+export interface ReadinessDocumentChecklistItemRow {
+  id: string
+  firmId: string
+  obligationInstanceId: string
+  label: string
+  description: string | null
+  templateKey: string | null
+  templateVersion: number | null
+  source: ReadinessDocumentChecklistItemSource
+  status: ReadinessDocumentChecklistItemStatus
+  sortOrder: number
+  note: string | null
+  receivedAt: Date | null
+  receivedByUserId: string | null
+  createdByUserId: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export type ReadinessRequestStatus = 'sent' | 'opened' | 'responded' | 'revoked' | 'expired'
@@ -59,6 +81,49 @@ export interface ReadinessSubmitResponseInput {
 
 export interface ReadinessRepo {
   readonly firmId: string
+  listDocumentChecklistByObligation(
+    obligationInstanceId: string,
+  ): Promise<ReadinessDocumentChecklistItemRow[]>
+  createDocumentChecklistItems(input: {
+    obligationInstanceId: string
+    createdByUserId: string
+    items: Array<{
+      id: string
+      label: string
+      description: string | null
+      templateKey?: string | null
+      templateVersion?: number | null
+      source: ReadinessDocumentChecklistItemSource
+      status?: ReadinessDocumentChecklistItemStatus
+      sortOrder: number
+      note?: string | null
+    }>
+  }): Promise<ReadinessDocumentChecklistItemRow[]>
+  reconcileDocumentChecklistItems(input: {
+    obligationInstanceId: string
+    createdByUserId: string
+    template: Array<{
+      templateKey: string
+      templateVersion: number
+      label: string
+      description: string | null
+      source: 'template'
+    }>
+    now: Date
+  }): Promise<ReadinessDocumentChecklistItemRow[]>
+  updateDocumentChecklistItem(input: {
+    id: string
+    label?: string
+    description?: string | null
+    status?: ReadinessDocumentChecklistItemStatus
+    note?: string | null
+    receivedByUserId?: string | null
+    now: Date
+  }): Promise<ReadinessDocumentChecklistItemRow>
+  deleteDocumentChecklistItem(input: {
+    id: string
+    deletedByUserId: string
+  }): Promise<ReadinessDocumentChecklistItemRow | undefined>
   listByObligation(obligationInstanceId: string): Promise<ClientReadinessRequestWithResponses[]>
   createRequest(input: {
     id: string
@@ -77,4 +142,13 @@ export interface ReadinessRepo {
   submitResponses(input: ReadinessSubmitResponseInput): Promise<{
     readiness: ObligationReadiness
   }>
+  syncDocumentChecklistFromResponses(input: {
+    obligationInstanceId: string
+    responses: Array<{
+      itemId: string
+      status: ReadinessResponseStatus
+      note?: string | null
+    }>
+    now: Date
+  }): Promise<void>
 }

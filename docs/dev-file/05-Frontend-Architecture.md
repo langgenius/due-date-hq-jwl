@@ -34,7 +34,7 @@ apps/app/
 │   │   ├── dashboard.tsx         ← index
 │   │   ├── migration.new.tsx     ← 首登客户迁移 activation route（path='/migration/new'，EntryShell 内 route-level wizard）
 │   │   ├── obligations.tsx
-│   │   ├── calendar.tsx          ← Obligations 二级 Calendar sync 页（canonical `/obligations/calendar`；`/calendar` 旧链接重定向）
+│   │   ├── calendar.tsx          ← Deadlines 二级 Calendar sync 页（canonical `/deadlines/calendar`；`/calendar` 旧链接重定向）
 │   │   ├── clients.tsx           ← Client facts 工作台（readiness 派生、筛选、新增、URL 详情态；使用 clients.listByFirm / clients.create）
 │   │   ├── audit.tsx             ← Audit Log 管理页（firm-wide write events；使用 audit.list）
 │   │   ├── practice.tsx          ← active practice profile（name / timezone / soft-delete）
@@ -144,9 +144,9 @@ feature 语义留在 members vertical 内。
     - `/two-factor` — `twoFactorLoader` 只允许“已登录、启用 MFA、当前 session 未验证”的状态访问；未登录回 `/login?redirectTo=/two-factor`，不需要验证或已验证的 session 直接回安全 `redirectTo`，没有 active practice 时默认回 `/onboarding`。它不是普通登录页，也不是长期可访问的 account security surface。
     - `/accept-invite` — `acceptInviteLoader` 允许未登录用户进入 invitation sign-in surface；已登录但当前 MFA 未验证时先跳 `/two-factor?redirectTo=<invite url>`；组件通过 loader data 判断初始 signed-in 状态，Email OTP 同页成功后 revalidate route loader，再用局部 `emailSignedIn` 推进邀请预览。
   - `/onboarding` — `onboardingLoader` 要求有 session、当前 MFA 已验证或无需 MFA，且无 `activeOrganizationId`；已有 active org 直接 `redirect(redirectTo)`，无 session 跳 `/login?redirectTo=/onboarding`，MFA 未通过先跳 `/two-factor?redirectTo=/onboarding`。新建 practice 成功后跳 `/migration/new?source=onboarding`，不再通过 dashboard `location.state` 自动弹 Migration dialog。
-  - `/migration/new` — `migrationActivationLoader` 要求有 session、当前 MFA 已验证或无需 MFA，且已有 `activeOrganizationId`；无 session 回 `/login`，MFA 未通过先回 `/two-factor`，无 active practice 回 `/onboarding`。它仍渲染在 EntryShell 内，不挂 AppShell/sidebar；EntryShell 在该 route 隐藏 footer，并让 main 成为 non-scrolling viewport；`WizardRouteShell` 占满剩余高度，只有 workbench body 内部滚动，避免 step 内容切换时整页滚动位置变化。Route shell 给 Migration Step 1 传 compact density：paste/upload 在宽屏并排、chips 和说明文案压缩；dialog shell 继续使用 comfortable density。`source=onboarding` 的 activation-complete 判断放在 loader：当前 practice 已有 open obligations 或 applied migration batch 时，在页面渲染前直接回 Dashboard；普通手动导入入口不做这个跳转。`Skip for now` 只出现在 route header；workbench header 在 route shell 内隐藏 close/skip 控件，但 Esc 仍走 discard confirmation。完成导入或 skip 后才进入 Dashboard shell。
+  - `/migration/new` — `migrationActivationLoader` 要求有 session、当前 MFA 已验证或无需 MFA，且已有 `activeOrganizationId`；无 session 回 `/login`，MFA 未通过先回 `/two-factor`，无 active practice 回 `/onboarding`。它仍渲染在 EntryShell 内，不挂 AppShell/sidebar；EntryShell 在该 route 隐藏 footer，并让 main 成为 non-scrolling viewport；`WizardRouteShell` 占满剩余高度，只有 workbench body 内部滚动，避免 step 内容切换时整页滚动位置变化。Route shell 给 Migration Step 1 传 compact density：paste rows 与 upload file 仍保持纵向顺序，chips 和说明文案压缩；dialog shell 继续使用 comfortable density。`source=onboarding` 的 activation-complete 判断放在 loader：当前 practice 已有 open obligations 或 applied migration batch 时，在页面渲染前直接回 Dashboard；普通手动导入入口不做这个跳转。`Skip for now` 只出现在 route header；workbench header 在 route shell 内隐藏 close/skip 控件，但 Esc 仍走 discard confirmation。完成导入或 skip 后才进入 Dashboard shell。
     Onboarding 提交不直接调用 Better Auth organization client；它通过 DueDateHQ `firms` RPC gateway 先 `listMine` 查 active、非 deleted 的业务 firm，有则 `switchActive`，没有才 `create`。这样最后一个 firm soft-delete 后不会被 Better Auth 残留 organization 重新激活。
-  - `/` — 受保护路由组（`id: 'protected'`, `Component: RootLayout`），`protectedLoader` 未命中 session 时 `redirect('/login?redirectTo=...')`。`dashboard` / `/obligations` / `practice` / `rules` / `members` / `billing` 等都作为它的 children；不再保留 `/settings`、`/settings/*` 或历史 `/firm` 兼容路由。`/practice` 是 Practice profile 的唯一 URL。
+  - `/` — 受保护路由组（`id: 'protected'`, `Component: RootLayout`），`protectedLoader` 未命中 session 时 `redirect('/login?redirectTo=...')`。`dashboard` / `/deadlines` / `practice` / `rules` / `members` / `billing` 等都作为它的 children；不再保留 `/settings`、`/settings/*` 或历史 `/firm` 兼容路由。`/practice` 是 Practice profile 的唯一 URL。历史 `/obligations` 只做兼容重定向到 `/deadlines`。
     - `/billing` — 登录后账单中心，使用 1180px max-width 的 status + plan selection
       layout：上半区展示当前 practice plan / seat limit / active practice entitlement /
       subscription 状态和 owner-only billing portal 入口，下半区复用 marketing pricing 的
@@ -188,7 +188,8 @@ feature 语义留在 members vertical 内。
   推导类型；不要手写一份和 parser 分离的 query state interface。
 - `history: 'replace'`、`clearOnDefault` 等 URL 行为优先挂在 parser map 里，让
   `useQueryStates`、serializer 和未来 loader 消费同一份 contract。
-- 任何抽屉开关 / 选中项也写 URL（`?drawer=obligation&id=xxx`）
+- Obligation detail 抽屉用可分享的短路径写 URL（`/deadlines/<short-ref>`；非默认 tab 用
+  `/deadlines/<short-ref>/<tab>`）。旧的 `?drawer=obligation&id=xxx` deep link 只保留兼容。
 - Billing 例外约束：`plan` / `interval` 保持在 URL query 以支持 marketing deep link、登录回跳、
   checkout success/cancel 和 E2E；主 checkout 必须是 route，不用 URL dialog 承载支付链路。
   `/billing?changePlan=...` 可作为轻量确认 dialog，但确认后仍跳 `/billing/checkout?...`。
@@ -209,7 +210,7 @@ feature 语义留在 members vertical 内。
 - 动作受限：按钮、dropdown、command palette 项保留但 disabled，右侧显示所需角色 badge 或
   inline note。Members、Billing、Audit 等整页 gate 必须在权限不足时禁用对应 RPC query，
   不能先请求再把 403 当 UI 状态处理。
-- projected risk / accrued penalty 金额对 coordinator 默认显示 `Hidden by role`；只有 firm 开启
+- legacy penalty estimate / accrued penalty 金额对 coordinator 默认显示 `Hidden by role`；只有 firm 开启
   `coordinatorCanSeeDollars` 时才展示金额和 breakdown。
 
 ---
@@ -228,9 +229,9 @@ feature 语义留在 members vertical 内。
 Activation Slice v1 约束：Dashboard 不再维护本地 fake risk rows / queue stats / pulse items。
 `apps/app/src/routes/dashboard.tsx` 直接消费
 `useQuery(orpc.dashboard.load.queryOptions({ input: {} }))`，只负责 loading / error / empty /
-real-data 呈现；open risk、due window、needs review、evidence gap、Penalty Radar projected risk
-和 severity 都由 server aggregation 统一计算。Penalty Radar 的首屏主金额口径是
-overdue + next-seven-day ready 90-day projected risk；accrued penalty 作为辅助指标，只聚合
+real-data 呈现；open risk、due window、needs review、evidence gap、Deadline Radar legacy penalty estimate
+和 severity 都由 server aggregation 统一计算。Deadline Radar 的首屏主金额口径是
+overdue + next-seven-day ready 90-day legacy penalty estimate；accrued penalty 作为辅助指标，只聚合
 overdue open obligations；Dashboard 只保留一个 row-level 操作表
 `Triage queue`，默认选中 `This Week` 并使用同一组 urgent rows。`Needs review` 进入顶部
 metrics，不再用单独的 `Operational closure` 面板重复 summary count。前端只渲染
@@ -241,9 +242,9 @@ Dashboard 首屏不渲染独立 AI Weekly Brief 卡片。`dashboard.load` 仍可
 数据。Triage queue 行内展示 Focus rank、Smart Priority drivers、Next check 和 Evidence 按钮；
 证据按钮调用 app-level `EvidenceDrawerProvider.openEvidence()`，drawer 可跳到 obligation evidence
 和官方 source URL。点击 Triage queue 非控件区域直接跳转
-`/obligations?obligation=<obligationId>&row=<obligationId>&drawer=obligation&id=<obligationId>`：
-Obligations 先用 `obligation` 参数把 table 筛到对应 obligation，等目标行进入列表数据后再打开
-detail drawer；客户名作为独立链接跳转 `/clients?clients=<clientId>&client=<clientId>`。
+`/deadlines/<short-ref>`：Obligations 用短引用打开对应 detail drawer，地址栏不重复暴露
+完整 obligation UUID；旧 `drawer/id/row/tab` query 仍可兼容打开。客户名作为独立链接跳转
+`/clients?clients=<clientId>&client=<clientId>`。
 
 前端不触发模型调用，也不轮询 AI provider。Dashboard 页面不提供 `Refresh brief` 控件；如果未来在
 其他入口恢复手动刷新，只能调用 enqueue mutation（例如 `dashboard.requestBriefRefresh`），不能在
@@ -472,7 +473,7 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
 - **每一个 protected layout（当前的 RootLayout，未来的 Workload Console 等）通过 `<AppShell>` 拼装**，不要在 layout 文件里直接拷贝 `SidebarProvider + Sidebar + SidebarInset` 三件套
 - **Sidebar 不暴露 `collapsible` prop**：desktop 永远 220px，`<md` 自动 Sheet 折叠；这是产品决定不是配置项
 - **selected nav 视觉是 bg-only**（`bg-state-base-hover-alt` + `text-text-primary` + Inter Semi Bold）—— 严禁 accent border 或 accent-tint 出现在 selected 态，否则与 DESIGN §1.2「颜色只为风险服务」冲突。`SidebarMenuButton` 的 cva variants 里**根本不提供** `accent` 变体，把约束写进类型
-- **`navItems` 用一个 `useNavItems()` hook 拼装**，i18n 与权限过滤在 hook 内完成；items 形态 `{ href, label, icon, end?, badge?, tag?, disabledReason? }`。当前 sidebar IA 是 `Operations`（Dashboard / Obligations / Rules / Reminders）、`Clients`（Clients facts）、`Practice`（Practice profile / Team workload / Members / Billing / Audit log）。Calendar sync 是 Obligations 的二级低频出口，canonical URL 是 `/obligations/calendar`，旧 `/calendar` 只做重定向；它不进入 sidebar 一级导航。Pulse Changes 合并到 Rules 的二级 tab，Rules 入口承载待处理 Pulse badge；`/reminders` 是事务所级 reminder automation surface，承载模板、排期、投递状态和 client suppression；右上角 `Bell` 只表达个人通知收件箱，避免把事务所运营配置或政府规则变更误导成普通消息提醒。Team workload 是付费 Practice surface：Solo 可见但禁用并显示 `Pro` hint，Pro/Enterprise 启用 `/workload`；未来 Owner / Manager 角色 gate 仍走同一个 hook，**不**拆 AppShell 的两个版本。
+- **`navItems` 用一个 `useNavItems()` hook 拼装**，i18n 与权限过滤在 hook 内完成；items 形态 `{ href, label, icon, end?, badge?, tag?, disabledReason? }`。当前 sidebar IA 是 `Operations`（Dashboard / Deadlines / Rules / Reminders）、`Clients`（Clients facts）、`Practice`（Practice profile / Team workload / Members / Billing / Audit log）。Calendar sync 是 Deadlines 的二级低频出口，canonical URL 是 `/deadlines/calendar`，旧 `/calendar` 只做重定向；它不进入 sidebar 一级导航。Pulse Changes 合并到 Rules 的二级 tab，Rules 入口承载待处理 Pulse badge；`/reminders` 是事务所级 reminder automation surface，承载模板、排期、投递状态和 client suppression；右上角 `Bell` 只表达个人通知收件箱，避免把事务所运营配置或政府规则变更误导成普通消息提醒。Team workload 是付费 Practice surface：Solo 可见但禁用并显示 `Pro` hint，Pro/Enterprise 启用 `/workload`；未来 Owner / Manager 角色 gate 仍走同一个 hook，**不**拆 AppShell 的两个版本。
 - **Calendar sync 的 Apple 入口只对 HTTPS feed 生成 `webcal://`**：macOS Calendar 会对 `webcal://localhost:<port>` / `http://localhost:<port>` 订阅尝试 TLS 握手，本地明文 `wrangler dev` 端口会失败；本地 HTTP feed 显示解释 toast，staging/production HTTPS feed 才打开 Apple Calendar 直连。
 - **Practice switcher 可见 trigger 在 sidebar 顶部**（不是 PRD §3.2.6 原始的右上 dropdown）；`⌘⇧O` 全局快捷键保留，popover 锚定在 sidebar trigger 上。`Add practice` 是 plan-gated secondary creation action：在 active practice entitlement 内打开创建 dialog，超出 Solo / Pro 的 1 active practice 限制时打开 upgrade / contact-sales gate，而不是继续创建免费 Solo tenant。内部组件名和 RPC 仍可沿用 firm。
 - **Import clients / history 不做一等导航**：Import 是 activation/setup path，把 CPA 已有客户表带入 weekly triage；首登新建 practice 后进入 EntryShell 下的 `/migration/new?source=onboarding`，用无卡片 route header 解释导入价值并提供 route-level wizard + skip。日常启动入口在 `/clients` 页面 header / empty state、Dashboard 空状态和 Command Palette action，并继续打开 dialog shell。Import history 是低频 batch recovery，放在 `/clients` header 的弱入口并打开右侧 drawer；历史 `/imports` URL 仅兼容重定向到 `/clients?importHistory=open`。Sidebar 不承载导入或导入历史。
@@ -511,10 +512,22 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
   active row，避免用 effect 追踪派生状态。
 - **Filter facets**：`obligations.facets` 返回 client / state / county / tax type /
   assignee 的服务器端选项和计数；county option 带 `state`，前端按已选 state 做联动展示。
-  Obligations readiness 由 read model 派生：closed status → `ready`；最新 Readiness Portal
-  response 可产出 `ready` / `waiting` / `needs_review`；无 response 时由
-  `waiting_on_client → waiting`、`review → needs_review`、其余 open status → `ready` 派生。
-- **表头筛选**：Client / Owner / State / County / Tax type / Days / Projected risk /
+  Obligations readiness 由 read model 派生：closed status → `ready`；open obligations 优先读取
+  内部 document checklist，任一 `needs_review` → `needs_review`，任一 `missing` →
+  `waiting`，全部 `received` → `ready`。没有内部 checklist 时才 fallback 到最新 Readiness
+  Portal response 和 `waiting_on_client` / `review` obligation status。
+- **Readiness document checklist**：Obligation detail 的 Readiness tab 以 CPA 内部收件清单为主。
+  打开 obligation 时按 tax type / form / obligation type 对 versioned template catalog 做
+  reconciliation：旧的 4-5 项清单会自动补齐缺失模板项，CPA 编辑过的状态、note、receivedAt 和
+  label/description 保留；CPA 删除 template item 会写 suppression，避免下次补回。`Send to client`
+  使用完整内部清单映射成 client-safe portal checklist（最多 30 项），客户提交后同步回内部清单。
+- **Readiness tax year profile**：Tax year profile editor belongs in the obligation detail
+  Readiness tab, not Client facts. CPA can switch one obligation between calendar/fiscal year and
+  maintain fiscal year end without changing the client's other obligations; the editor appears only
+  when the obligation's rule is tax-year driven, with legacy fiscal obligations kept editable.
+  Saving requires the server to resolve the statutory due date from that obligation's tax period and
+  updates internal, filing, and payment deadlines as one unit.
+- **表头筛选**：Client / Owner / State / County / Tax type / Days / Legacy penalty estimate /
   Readiness / Status 的筛选入口直接挂在 TanStack Table header 上；顶部控制区只保留搜索、排序、
   Reset 和少量 triage 快捷 chip，避免 Obligations 出现两套筛选面。
 - **搜索防抖**：Obligations 搜索是客户端 TanStack Query fetching，不是 React Router
@@ -627,7 +640,7 @@ shadcn Sidebar（base-vega）打包了 3 种 collapse 模式（`offcanvas` / `ic
 - 所有交互元素 `tabindex` 正确；Base UI 自带正确 focus management
 - 颜色对比度 ≥ 4.5:1（DESIGN.md 的 token 已满足）
 - 暗色模式真实切换（不只是 media query）
-- `prefers-reduced-motion` → Live Genesis / Penalty Radar 金额动画降级为短 fade
+- `prefers-reduced-motion` → Live Genesis / Deadline Radar 金额动画降级为短 fade
 
 ---
 

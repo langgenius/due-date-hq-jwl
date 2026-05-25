@@ -70,7 +70,84 @@ export const OpportunityListOutputSchema = z.object({
 })
 export type OpportunityListOutput = z.infer<typeof OpportunityListOutputSchema>
 
+// 2026-05-24 (critique P2 — dismiss/snooze): user-driven hide for
+// computed opportunities. The opportunityKey is the row's deterministic
+// `id` from buildClientOpportunities (e.g. `retention_check_in:client:
+// <id>`); a single dismissal row per (firmId, opportunityKey) shadows
+// the computed result on subsequent list calls. Snooze carries a TTL —
+// the row reappears when `now >= snoozeUntil`; Dismiss is forever.
+export const OpportunityDismissInputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  reason: z.string().max(500).optional(),
+})
+export type OpportunityDismissInput = z.infer<typeof OpportunityDismissInputSchema>
+
+export const OpportunitySnoozeInputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  // ISO datetime; server clamps to a sensible window.
+  until: z.iso.datetime(),
+  reason: z.string().max(500).optional(),
+})
+export type OpportunitySnoozeInput = z.infer<typeof OpportunitySnoozeInputSchema>
+
+export const OpportunityMutationOutputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  kind: z.enum(['dismissed', 'snoozed']),
+  snoozeUntil: z.iso.datetime().nullable(),
+})
+export type OpportunityMutationOutput = z.infer<typeof OpportunityMutationOutputSchema>
+
+// 2026-05-24 (critique /polish — un-dismiss): Restore reverses a
+// prior dismiss/snooze by deleting the dismissal row. The
+// opportunity returns on the next list call IF the computer still
+// produces it; if the underlying client state has shifted, the
+// row may not reappear.
+export const OpportunityRestoreInputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+})
+export type OpportunityRestoreInput = z.infer<typeof OpportunityRestoreInputSchema>
+
+export const OpportunityRestoreOutputSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  restored: z.boolean(),
+})
+export type OpportunityRestoreOutput = z.infer<typeof OpportunityRestoreOutputSchema>
+
+// `listDismissed` returns the user-driven hides currently shadowing
+// computed opportunities. Each row carries the deterministic
+// `opportunityKey` (e.g. `retention_check_in:client:<id>`), the
+// `kind` ('dismissed' | 'snoozed'), optional snoozeUntil + reason,
+// and the actor's display name when available.
+export const OpportunityDismissalRowSchema = z.object({
+  opportunityKey: z.string().min(1).max(160),
+  kind: z.enum(['dismissed', 'snoozed']),
+  snoozeUntil: z.iso.datetime().nullable(),
+  reason: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+  createdByUserId: z.string().min(1),
+  createdByName: z.string().nullable(),
+  /**
+   * Friendly client name resolved from the `opportunityKey`. Opportunity
+   * keys are formatted `<kind>:client:<clientId>`; the server splits the
+   * key, batch-fetches the client rows, and surfaces the name so the UI
+   * can render "Retention check-in · Lakeview Manufacturing" instead of
+   * just "Retention check-in". `null` when the client was deleted or
+   * the key isn't a client-scoped opportunity.
+   */
+  clientName: z.string().nullable(),
+})
+export type OpportunityDismissalRow = z.infer<typeof OpportunityDismissalRowSchema>
+
+export const OpportunityListDismissedOutputSchema = z.object({
+  dismissals: z.array(OpportunityDismissalRowSchema),
+})
+export type OpportunityListDismissedOutput = z.infer<typeof OpportunityListDismissedOutputSchema>
+
 export const opportunitiesContract = oc.router({
   list: oc.input(OpportunityListInputSchema).output(OpportunityListOutputSchema),
+  dismiss: oc.input(OpportunityDismissInputSchema).output(OpportunityMutationOutputSchema),
+  snooze: oc.input(OpportunitySnoozeInputSchema).output(OpportunityMutationOutputSchema),
+  restore: oc.input(OpportunityRestoreInputSchema).output(OpportunityRestoreOutputSchema),
+  listDismissed: oc.output(OpportunityListDismissedOutputSchema),
 })
 export type OpportunitiesContract = typeof opportunitiesContract

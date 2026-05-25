@@ -35,7 +35,7 @@ export function EntryShell() {
       <main
         className={
           isMigrationActivation
-            ? 'flex min-h-0 flex-1 flex-col items-center justify-start overflow-hidden px-6 py-6 lg:px-10'
+            ? 'flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 py-6 lg:px-10'
             : isReadinessPortal
               ? 'flex min-h-0 flex-1 flex-col items-stretch justify-start overflow-y-auto'
               : 'flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-12 lg:px-10'
@@ -83,7 +83,7 @@ function EntryShellHeader() {
 
 function EntryShellFooter() {
   return (
-    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border-default px-6 font-mono text-[11px] text-text-muted lg:px-10">
+    <footer className="flex h-12 shrink-0 items-center justify-between border-t border-border-default px-6 font-mono text-caption text-text-muted lg:px-10">
       <span className="tabular-nums">
         <Trans>© {new Date().getFullYear()} DueDateHQ Inc.</Trans>
       </span>

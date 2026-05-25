@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, lt } from 'drizzle-orm'
 import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
@@ -8,6 +8,7 @@ import type {
   TemporaryRuleRow,
 } from '@duedatehq/ports/rules'
 import type { Db } from '../client'
+import { firmProfile } from '../schema/firm'
 import { client } from '../schema/clients'
 import { obligationInstance } from '../schema/obligations'
 import { exceptionRule, obligationExceptionApplication } from '../schema/overlay'
@@ -472,3 +473,141 @@ export function makeRulesRepo(db: Db, firmId: string) {
 }
 
 export type RulesRepo = ReturnType<typeof makeRulesRepo>
+
+export function makeRulesOpsRepo(db: Db) {
+  async function activeFirmIds(): Promise<string[]> {
+    const rows = await db
+      .select({ id: firmProfile.id })
+      .from(firmProfile)
+      .where(eq(firmProfile.status, 'active'))
+    return rows.map((row) => row.id)
+  }
+
+  async function firmIdsWithReviewedRule(ruleId: string): Promise<string[]> {
+    const [practiceRows, decisionRows] = await Promise.all([
+      db
+        .select({ firmId: practiceRule.firmId })
+        .from(practiceRule)
+        .where(eq(practiceRule.ruleId, ruleId)),
+      db
+        .select({ firmId: ruleReviewDecision.firmId })
+        .from(ruleReviewDecision)
+        .where(eq(ruleReviewDecision.ruleId, ruleId)),
+    ])
+    return Array.from(new Set([...practiceRows, ...decisionRows].map((row) => row.firmId)))
+  }
+
+  async function ensureReviewTasksForFirms(input: {
+    firmIds: string[]
+    ruleId: string
+    templateVersion: number
+    reason: PracticeRuleReviewTaskInput['reason']
+  }): Promise<number> {
+    const firmIds = Array.from(new Set(input.firmIds))
+    if (firmIds.length === 0) return 0
+    await Promise.all(
+      firmIds.map((firmId) =>
+        db
+          .insert(practiceRuleReviewTask)
+          .values({
+            id: crypto.randomUUID(),
+            firmId,
+            ruleId: input.ruleId,
+            templateVersion: input.templateVersion,
+            reason: input.reason,
+          })
+          .onConflictDoNothing({
+            target: [
+              practiceRuleReviewTask.firmId,
+              practiceRuleReviewTask.ruleId,
+              practiceRuleReviewTask.templateVersion,
+            ],
+          }),
+      ),
+    )
+    return firmIds.length
+  }
+
+  return {
+    async listGlobalRuleTemplates(): Promise<
+      Array<{ id: string; version: number; status: string; ruleJson: unknown; sourceIds: string[] }>
+    > {
+      const rows = await db
+        .select({
+          id: ruleTemplate.id,
+          version: ruleTemplate.version,
+          status: ruleTemplate.status,
+          ruleJson: ruleTemplate.ruleJson,
+          sourceIds: ruleTemplate.sourceIdsJson,
+        })
+        .from(ruleTemplate)
+      return rows.map((row) => ({
+        id: row.id,
+        version: row.version,
+        status: row.status,
+        ruleJson: row.ruleJson,
+        sourceIds: row.sourceIds ?? [],
+      }))
+    },
+
+    async fanoutReviewTasks(input: {
+      newRules: Array<{ ruleId: string; templateVersion: number }>
+      changedRules: Array<{ ruleId: string; templateVersion: number }>
+    }): Promise<{ newTaskTargets: number; changedTaskTargets: number; supersededTasks: number }> {
+      let newTaskTargets = 0
+      let changedTaskTargets = 0
+      let supersededTasks = 0
+      const allActiveFirmIds = await activeFirmIds()
+
+      const newCounts = await Promise.all(
+        input.newRules.map(async (rule) => {
+          await db
+            .update(practiceRuleReviewTask)
+            .set({ status: 'superseded', updatedAt: new Date() })
+            .where(
+              and(
+                eq(practiceRuleReviewTask.ruleId, rule.ruleId),
+                eq(practiceRuleReviewTask.status, 'open'),
+                lt(practiceRuleReviewTask.templateVersion, rule.templateVersion),
+              ),
+            )
+          return ensureReviewTasksForFirms({
+            firmIds: allActiveFirmIds,
+            ruleId: rule.ruleId,
+            templateVersion: rule.templateVersion,
+            reason: 'new_template',
+          })
+        }),
+      )
+      newTaskTargets = newCounts.reduce((sum, count) => sum + count, 0)
+
+      const changedCounts = await Promise.all(
+        input.changedRules.map(async (rule) => {
+          await db
+            .update(practiceRuleReviewTask)
+            .set({ status: 'superseded', updatedAt: new Date() })
+            .where(
+              and(
+                eq(practiceRuleReviewTask.ruleId, rule.ruleId),
+                eq(practiceRuleReviewTask.status, 'open'),
+                lt(practiceRuleReviewTask.templateVersion, rule.templateVersion),
+              ),
+            )
+          const firmIds = await firmIdsWithReviewedRule(rule.ruleId)
+          return ensureReviewTasksForFirms({
+            firmIds,
+            ruleId: rule.ruleId,
+            templateVersion: rule.templateVersion,
+            reason: 'source_changed',
+          })
+        }),
+      )
+      changedTaskTargets = changedCounts.reduce((sum, count) => sum + count, 0)
+      supersededTasks = input.changedRules.length
+
+      return { newTaskTargets, changedTaskTargets, supersededTasks }
+    },
+  }
+}
+
+export type RulesOpsRepo = ReturnType<typeof makeRulesOpsRepo>

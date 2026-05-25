@@ -14,11 +14,11 @@ import {
  * Procedures never call this constructor directly; they call
  * `scoped(db, firmId).clients` (packages/db/src/scoped.ts).
  *
- * D1 100-param budget: `client` inserts 17 cols -> 5 rows per batch INSERT.
+ * D1 100-param budget: `client` inserts 36 cols -> 2 rows per batch INSERT.
  */
 
-const COLS_PER_CLIENT_ROW = 34
-const CLIENT_BATCH_SIZE = Math.floor(100 / COLS_PER_CLIENT_ROW) // = 5
+const COLS_PER_CLIENT_ROW = 36
+const CLIENT_BATCH_SIZE = Math.floor(100 / COLS_PER_CLIENT_ROW) // = 2
 const CLIENT_LOOKUP_IDS_PER_BATCH = 99
 const CLIENT_UPDATE_IDS_PER_BATCH = 90
 
@@ -34,6 +34,12 @@ export interface ClientCreateInput {
   taxYearType?: 'calendar' | 'fiscal'
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
+  externalClientId?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  postalCode?: string | null
+  primaryPhone?: string | null
+  sourceStatus?: string | null
   ownerCount?: number | null
   hasForeignAccounts?: boolean
   hasPayroll?: boolean
@@ -73,6 +79,12 @@ export function makeClientsRepo(db: Db, firmId: string) {
         taxYearType: input.taxYearType ?? 'calendar',
         fiscalYearEndMonth: input.fiscalYearEndMonth ?? null,
         fiscalYearEndDay: input.fiscalYearEndDay ?? null,
+        externalClientId: input.externalClientId ?? null,
+        addressLine1: input.addressLine1 ?? null,
+        city: input.city ?? null,
+        postalCode: input.postalCode ?? null,
+        primaryPhone: input.primaryPhone ?? null,
+        sourceStatus: input.sourceStatus ?? null,
         ownerCount: input.ownerCount ?? null,
         hasForeignAccounts: input.hasForeignAccounts ?? false,
         hasPayroll: input.hasPayroll ?? false,
@@ -110,6 +122,12 @@ export function makeClientsRepo(db: Db, firmId: string) {
         taxYearType: i.taxYearType ?? 'calendar',
         fiscalYearEndMonth: i.fiscalYearEndMonth ?? null,
         fiscalYearEndDay: i.fiscalYearEndDay ?? null,
+        externalClientId: i.externalClientId ?? null,
+        addressLine1: i.addressLine1 ?? null,
+        city: i.city ?? null,
+        postalCode: i.postalCode ?? null,
+        primaryPhone: i.primaryPhone ?? null,
+        sourceStatus: i.sourceStatus ?? null,
         ownerCount: i.ownerCount ?? null,
         hasForeignAccounts: i.hasForeignAccounts ?? false,
         hasPayroll: i.hasPayroll ?? false,
@@ -246,6 +264,24 @@ export function makeClientsRepo(db: Db, firmId: string) {
       await db
         .update(client)
         .set(patch)
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
+    async updateTaxYearProfile(
+      id: string,
+      input: {
+        taxYearType: 'calendar' | 'fiscal'
+        fiscalYearEndMonth: number | null
+        fiscalYearEndDay: number | null
+      },
+    ): Promise<void> {
+      await db
+        .update(client)
+        .set({
+          taxYearType: input.taxYearType,
+          fiscalYearEndMonth: input.taxYearType === 'fiscal' ? input.fiscalYearEndMonth : null,
+          fiscalYearEndDay: input.taxYearType === 'fiscal' ? input.fiscalYearEndDay : null,
+        })
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 

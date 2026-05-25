@@ -7,8 +7,11 @@ export function RulesPreviewRoute() {
   const { t } = useLingui()
   return (
     <RulesPageShell
-      title={t`Obligation preview`}
-      description={t`Input client facts → dry-run rules engine → see which obligations would be created. Reminder-ready obligations fire 30 / 7 / 1-day reminders; requires-review items surface for CPA confirmation, never auto-reminded.`}
+      title={t`Deadline preview`}
+      breadcrumbs={[
+        { label: t`Rule library`, to: '/rules/library' },
+        { label: t`Preview & approve` },
+      ]}
     >
       <GenerationPreviewTab />
     </RulesPageShell>

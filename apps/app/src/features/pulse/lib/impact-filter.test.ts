@@ -11,12 +11,15 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     title: 'California disaster relief',
     source: 'ca.ftb',
     sourceUrl: 'https://www.ftb.ca.gov/newsroom/news-releases/state-tax-relief.html',
+    changeKind: 'deadline_shift',
+    actionMode: 'due_date_overlay',
     summary: 'Deadline relief applies to affected counties.',
     publishedAt: '2026-05-06T10:00:00.000Z',
     matchedCount: 3,
     needsReviewCount: 0,
     confidence: 0.92,
     isSample: false,
+    jurisdiction: 'CA',
     ...overrides,
   }
 }

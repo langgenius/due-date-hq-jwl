@@ -76,7 +76,7 @@ describe('firm permissions', () => {
     expect(hasFirmPermission({ role: 'preparer', permission: 'pulse.apply' })).toBe(false)
   })
 
-  it('keeps coordinators read-only and hides dollar exposure by default', () => {
+  it('keeps coordinators read-only and hides deadline readiness by default', () => {
     expect(hasFirmPermission({ role: 'coordinator', permission: 'client.write' })).toBe(false)
     expect(hasFirmPermission({ role: 'coordinator', permission: 'audit.read' })).toBe(false)
     expect(hasFirmPermission({ role: 'coordinator', permission: 'dollars.read' })).toBe(false)

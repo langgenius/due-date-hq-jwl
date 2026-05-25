@@ -4,7 +4,7 @@ const en: LandingCopy = {
   meta: {
     title: 'DueDateHQ — See deadline risk before it becomes a penalty',
     description:
-      'Glass-box deadline intelligence for US CPA practices. Every dollar at risk, every IRS rule, every state-level alert traces back to its official source.',
+      'Glass-box deadline intelligence for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source.',
     ogImage: '/og/home.en.png',
   },
   nav: {
@@ -26,7 +26,7 @@ const en: LandingCopy = {
     eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
     title: 'See deadline risk before it becomes a penalty.',
     description:
-      'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every dollar at risk, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
+      'DueDateHQ is the deadline intelligence workbench for US CPA practices. Every deadline, every IRS rule, every state-level alert traces back to its official source — in one keyboard-first console built for the Monday 5-minute triage.',
     primaryCta: 'Open the workbench',
     secondaryCta: 'See the workflow',
     trust: [
@@ -41,7 +41,7 @@ const en: LandingCopy = {
       brief: {
         status: 'READY',
         title: 'AI weekly brief',
-        text: 'Start with Acme and Birchwood: both are inside the seven-day window, have ready exposure, and cite the current IRS source.',
+        text: 'Start with Acme and Birchwood: both are inside the seven-day window, have complete source trails, and need review.',
         citation: '[1] IRS Pub 509',
       },
       pulse: {
@@ -51,13 +51,13 @@ const en: LandingCopy = {
         cta: 'Review',
       },
       metric: {
-        eyebrow: 'PENALTY RADAR · THIS WEEK',
+        eyebrow: 'DEADLINE RADAR · THIS WEEK',
         range: 'Apr 25 — May 01',
-        value: '$187,420',
-        delta: '+ $24,180 vs last Mon',
+        value: '12',
+        delta: '+3 vs last Mon',
         stats: [
           { label: 'CRITICAL CLIENTS', value: '5' },
-          { label: 'AT RISK FORMS', value: '12' },
+          { label: 'REVIEW NEEDED', value: '12' },
           { label: 'PULSE EVENTS (24h)', value: '3' },
           { label: 'FILED THIS WEEK', value: '11' },
         ],
@@ -76,7 +76,7 @@ const en: LandingCopy = {
           days: 'DAYS',
           status: 'STATUS',
           severity: 'SEVERITY',
-          exposure: 'EXPOSURE',
+          exposure: 'NEXT STEP',
           evidence: 'EVIDENCE',
         },
         rows: [
@@ -93,7 +93,7 @@ const en: LandingCopy = {
             statusTone: 'warning',
             statusDotTone: 'warning',
             severityLabel: 'critical',
-            exposure: '$48,200',
+            exposure: 'Review source',
             exposureTone: 'warning',
             evidence: 'IRS Pub 509',
             evidenceTone: 'info',
@@ -112,7 +112,7 @@ const en: LandingCopy = {
             statusTone: 'outline',
             statusDotTone: 'warning',
             severityLabel: 'critical',
-            exposure: '$32,850',
+            exposure: 'Await client',
             exposureTone: 'warning',
             evidence: 'IRS §6072(b)',
             evidenceTone: 'info',
@@ -131,7 +131,7 @@ const en: LandingCopy = {
             statusTone: 'info',
             statusDotTone: 'normal',
             severityLabel: 'high',
-            exposure: '$24,180',
+            exposure: 'Finish review',
             exposureTone: 'warning',
             evidence: 'IRS Pub 509',
             evidenceTone: 'info',
@@ -150,7 +150,7 @@ const en: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '$18,900',
+            exposure: 'Monitor Pulse',
             exposureTone: 'warning',
             evidence: 'CA-FTB FR-31',
             evidenceTone: 'info',
@@ -169,7 +169,7 @@ const en: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '$12,450',
+            exposure: 'Assign owner',
             exposureTone: 'warning',
             evidence: 'IRS §6072(b)',
             evidenceTone: 'info',
@@ -194,7 +194,7 @@ const en: LandingCopy = {
         value: '30',
         unit: 'sec',
         description:
-          'See this week’s riskiest 5 clients on the Monday console. Penalty Radar is server-pre-aggregated, so the dollar appears before the page even paints.',
+          'See this week’s 5 most urgent clients on the Monday console. Deadline Radar is server-pre-aggregated, so the queue appears before the page even paints.',
       },
       {
         ruleNumber: 'RULE 00',
@@ -290,7 +290,7 @@ const en: LandingCopy = {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
         headline: 'The Monday console.',
-        body: 'Owner opens the laptop, sees five at-risk clients, the dollar exposure, and the first action keystroke. Smart Priority is a pure-function sort — no LLM in the dashboard hot path.',
+        body: 'Owner opens the laptop, sees five urgent clients, the evidence status, and the first action keystroke. Smart Priority is a pure-function sort — no LLM in the dashboard hot path.',
         hints: [
           { keys: '⌘K', label: 'Command' },
           { keys: 'E', label: 'Evidence' },
@@ -302,7 +302,7 @@ const en: LandingCopy = {
           summary: [
             { label: 'OPEN', value: '18' },
             { label: 'DUE THIS WEEK', value: '12' },
-            { label: 'EXPOSURE', value: '$187k' },
+            { label: 'NEEDS REVIEW', value: '5' },
           ],
           tableHeaders: {
             priority: 'PRIORITY',
@@ -311,7 +311,7 @@ const en: LandingCopy = {
             due: 'DEADLINE',
             status: 'STATUS',
             severity: 'SEVERITY',
-            exposure: 'EXPOSURE',
+            exposure: 'NEXT STEP',
             evidence: 'EVIDENCE',
           },
           pulse: {
@@ -332,7 +332,7 @@ const en: LandingCopy = {
               statusTone: 'warning',
               statusDotTone: 'warning',
               severityLabel: 'critical',
-              exposure: '$48,200',
+              exposure: 'Review source',
               exposureTone: 'warning',
               evidence: '2 sources',
               evidenceTone: 'info',
@@ -350,7 +350,7 @@ const en: LandingCopy = {
               statusTone: 'outline',
               statusDotTone: 'warning',
               severityLabel: 'critical',
-              exposure: '$32,850',
+              exposure: 'Await client',
               exposureTone: 'warning',
               evidence: '1 source',
               evidenceTone: 'info',
@@ -368,7 +368,7 @@ const en: LandingCopy = {
               statusTone: 'info',
               statusDotTone: 'normal',
               severityLabel: 'medium',
-              exposure: '$24,180',
+              exposure: 'Finish review',
               exposureTone: 'warning',
               evidence: 'Open',
               evidenceTone: 'outline',
@@ -461,7 +461,7 @@ const en: LandingCopy = {
             { label: 'FORM', value: '1120-S' },
             { label: 'DUE DATE', value: '2026-04-28' },
             { label: 'DAYS LEFT', value: '3 days' },
-            { label: 'EXPOSURE', value: '$48,200.00' },
+            { label: 'NEXT STEP', value: 'Review source' },
             { label: 'PENALTY RULE', value: 'IRC § 6651(a)(1)' },
           ],
           source: {
@@ -526,10 +526,10 @@ const en: LandingCopy = {
     ],
   },
   finalCta: {
-    pill: 'AVG $54k / yr / practice',
-    pillCaption: 'AVOIDABLE PENALTY EXPOSURE IN A CALENDAR YEAR',
-    title: 'Open the workbench. Let the dollars speak.',
-    body: 'Start with a trial or demo workspace, then keep the practice live on Solo when the first dollar of risk is real. No native app. Sign in with Google and the first dollar of risk appears within ten minutes of your first paste.',
+    pill: '30 sec / Monday triage',
+    pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
+    title: 'Open the workbench. Let the sources speak.',
+    body: 'Start with a trial or demo workspace, then keep the practice live on Solo when the first source-backed queue is ready. No native app. Sign in with Google and the first deadline review appears within ten minutes of your first paste.',
     primaryCta: 'Open the workbench',
     secondaryCta: 'Contact sales',
     trust: 'trial available · cancel anytime',
@@ -606,7 +606,7 @@ const en: LandingCopy = {
           '1 production practice',
           '3 seats included',
           'Shared deadline operations',
-          'Pulse and Obligations access',
+          'Pulse and Deadlines access',
         ],
       },
       {
@@ -670,7 +670,7 @@ const en: LandingCopy = {
       {
         question: 'What does Pro add over Solo?',
         answer:
-          'Pro adds a three-seat shared workspace, Pulse monitoring, and the Obligations views a small practice needs for deadline operations.',
+          'Pro adds a three-seat shared workspace, Pulse monitoring, and the Deadlines views a small practice needs for deadline operations.',
       },
       {
         question: 'When should I choose Team?',
@@ -765,14 +765,14 @@ const en: LandingCopy = {
             'Only when the rule keeps official source context and a review state. DueDateHQ can use AI to summarize or classify, but the source and reviewer decision remain the trust boundary.',
         },
         {
-          question: 'What happens before a rule affects Obligations or Dashboard triage?',
+          question: 'What happens before a rule affects Deadlines or Dashboard triage?',
           answer:
             'The rule needs source evidence, normalized filing context, and review status before it can generate or update deadline work. The product does not silently change client work from an unsupported signal.',
         },
         {
           question: 'How does DueDateHQ connect rule changes to the right clients?',
           answer:
-            'It uses the firm’s client filing profiles, jurisdictions, tax types, and obligation records to route reviewed changes into Pulse, Obligations, and triage workflows for the clients that may be affected.',
+            'It uses the firm’s client filing profiles, jurisdictions, tax types, and deadline records to route reviewed changes into Pulse, Deadlines, and triage workflows for the clients that may be affected.',
         },
       ],
       cta: {
@@ -794,7 +794,7 @@ const en: LandingCopy = {
         title: 'Which state updates can become deadline work for my firm?',
         description:
           'DueDateHQ public coverage spans all 50 states and DC. Coverage means public state signals can be monitored, matched against firm client context, and routed through Pulse review before they affect deadline operations.',
-        note: 'Coverage is software monitoring scope; it is not a guarantee that every obligation applies to every firm.',
+        note: 'Coverage is software monitoring scope; it is not a guarantee that every deadline applies to every firm.',
       },
       statesHeader: {
         eyebrow: 'LIVE COVERAGE',
@@ -857,7 +857,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational handoff',
-            body: 'Relevant changes can surface in dashboard, Obligations, and email workflows after review.',
+            body: 'Relevant changes can surface in dashboard, Deadlines, and email workflows after review.',
           },
         ],
       },
@@ -926,7 +926,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Operational routing',
-            body: 'Reviewed signals can surface as dashboard or Obligations actions when firm data indicates possible impact.',
+            body: 'Reviewed signals can surface as dashboard or Deadlines actions when firm data indicates possible impact.',
           },
         ],
         limitations: [
@@ -943,7 +943,7 @@ const en: LandingCopy = {
           {
             question: 'How does a California update become operational work?',
             answer:
-              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects dashboard or Obligations work.',
+              'DueDateHQ preserves the official source, keeps applicability clues, matches against firm client context, and requires review before the signal affects dashboard or Deadlines work.',
           },
         ],
       },
@@ -1052,7 +1052,7 @@ const en: LandingCopy = {
           },
           {
             title: 'Review handoff',
-            body: 'Reviewed signals can become Obligations actions for CPA teams managing affected clients.',
+            body: 'Reviewed signals can become Deadlines actions for CPA teams managing affected clients.',
           },
         ],
         limitations: [
@@ -1069,7 +1069,7 @@ const en: LandingCopy = {
           {
             question: 'What happens after a Texas source signal is reviewed?',
             answer:
-              'Reviewed signals can become Obligations actions or triage context for affected clients; filing decisions remain with the CPA firm.',
+              'Reviewed signals can become Deadlines actions or triage context for affected clients; filing decisions remain with the CPA firm.',
           },
         ],
       },
@@ -1170,7 +1170,7 @@ const en: LandingCopy = {
         coveredSignals: [
           {
             title: 'Deadline operations',
-            body: 'Signals are evaluated for operational impact before they become dashboard or Obligations items.',
+            body: 'Signals are evaluated for operational impact before they become dashboard or Deadlines items.',
           },
           {
             title: 'Applicability context',
@@ -1184,7 +1184,7 @@ const en: LandingCopy = {
         limitations: [
           'DueDateHQ is not a Washington tax authority.',
           'Coverage depends on public-source visibility and product review status.',
-          'Client-specific obligations require CPA review.',
+          'Client-specific deadlines require CPA review.',
         ],
         faq: [
           {
@@ -1206,21 +1206,21 @@ const en: LandingCopy = {
         meta: {
           title: 'CPA Deadline Risk Guide — How firms see penalties before they happen',
           description:
-            'How CPA teams decide which client deadline to touch first using migration data, penalty exposure, evidence, ownership, and Pulse changes.',
+            'How CPA teams decide which client deadline to touch first using migration data, evidence, ownership, readiness, and Pulse changes.',
           ogImage: '/og/home.en.png',
         },
         hero: {
           eyebrow: 'GUIDE',
           title: 'Which deadline should a CPA team touch first this week?',
           description:
-            'DueDateHQ treats deadline risk as an operational ranking problem. Imported client facts, filing profiles, penalty exposure, state updates, evidence status, and owner assignment all shape what should rise to the top.',
+            'DueDateHQ treats deadline risk as an operational ranking problem. Imported client facts, filing profiles, state updates, evidence status, readiness, and owner assignment all shape what should rise to the top.',
           note: 'This guide explains operational risk patterns, not tax advice.',
         },
         sections: [
           {
             eyebrow: 'RISK MODEL',
             title: 'The risky deadline is the one with missing or mismatched context.',
-            body: 'A date on a calendar is only one part of deadline operations. CPA teams also need imported client facts, filing profiles, obligation status, jurisdiction coverage, evidence source, and owner assignment.',
+            body: 'A date on a calendar is only one part of deadline operations. CPA teams also need imported client facts, filing profiles, deadline status, jurisdiction coverage, evidence source, and owner assignment.',
             items: [
               {
                 title: 'Missing client facts',
@@ -1239,11 +1239,11 @@ const en: LandingCopy = {
           {
             eyebrow: 'TRIAGE',
             title: 'The Monday workflow should rank risk, not just dates.',
-            body: 'Deadline risk becomes manageable when the team can scan dollars at risk, days remaining, evidence completeness, state updates, and work ownership in one operational view.',
+            body: 'Deadline risk becomes manageable when the team can scan days remaining, evidence completeness, readiness, state updates, and work ownership in one operational view.',
             items: [
               {
-                title: 'Dollar exposure',
-                body: 'A risk list should show which missed deadlines create meaningful penalty exposure.',
+                title: 'Readiness signal',
+                body: 'A risk list should show which deadlines are blocked by missing facts, stale evidence, or owner gaps.',
               },
               {
                 title: 'Evidence completeness',
@@ -1264,12 +1264,12 @@ const en: LandingCopy = {
           {
             question: 'Which deadline should a CPA team touch first?',
             answer:
-              'The first item is rarely just the earliest date. DueDateHQ ranks work using days remaining, penalty exposure, status, source quality, client context, and ownership signals.',
+              'The first item is rarely just the earliest date. DueDateHQ ranks work using days remaining, status, source quality, client context, readiness, and ownership signals.',
           },
           {
             question: 'How does imported client data affect deadline risk?',
             answer:
-              'Migration data creates the client and obligation context the team uses for triage. Entity type, filing states, tax types, owner, and liability inputs all change the risk picture.',
+              'Migration data creates the client and deadline context the team uses for triage. Entity type, filing states, tax types, owner, and liability inputs all change the risk picture.',
           },
           {
             question: 'What makes a deadline queue defensible?',
@@ -1303,7 +1303,7 @@ const en: LandingCopy = {
           {
             eyebrow: 'DEFINITION',
             title: 'Evidence-backed means every operational claim can be inspected.',
-            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, Pulse alert, or migration-created obligation came from and why it entered the workflow.',
+            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, Pulse alert, or migration-created deadline came from and why it entered the workflow.',
             items: [
               {
                 title: 'Source URL',

@@ -5,21 +5,32 @@ import {
   type ObligationRule,
   type RuleBulkAcceptSkip,
   type RuleBulkImpactPreview,
+  RuleConcreteDraftSchema,
+  type RuleGenerationState,
+  type RuleCoverageRow,
+  type RuleBulkVerifyCandidateSkip,
+  type RuleJurisdiction,
+  type RuleOnboardingActivationOutput,
   type RuleReviewDecision,
   type RuleReviewTask,
   type RuleSource,
   type RuleStatus,
   type TemporaryRule,
 } from '@duedatehq/contracts'
+import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   findRuleById,
+  listRequiredSourceCoverage,
   listObligationRules,
   listRuleSources,
   previewObligationsFromRules,
+  sourceCoversRuleDomain,
   type ObligationRule as CoreObligationRule,
+  type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
-  type RuleJurisdiction,
 } from '@duedatehq/core/rules'
+import type { PulseSourceSignalRow } from '@duedatehq/ports/pulse'
+import type { AiOutputRow } from '@duedatehq/ports/ai'
 import type {
   PracticeRuleRow,
   PracticeRuleReviewTaskRow,
@@ -30,14 +41,46 @@ import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
+import {
+  cachedConcreteDraftKey,
+  generateConcreteDraft,
+  parseCachedConcreteDraft,
+  RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
+  RULE_CONCRETE_DRAFT_PROMPT,
+  type RuleConcreteDraftPayload,
+} from './concrete-draft'
 import { toContractRule, toCoreRule, toPracticeContractRule } from './runtime'
 
 const MAX_BULK_ACCEPT = 100
 const RULE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
+const ONBOARDING_RULE_REVIEW_NOTE = 'Activated from onboarding jurisdiction selection.'
+const COVERAGE_ENTITY_COLUMNS = [
+  'llc',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'sole_prop',
+  'individual',
+  'trust',
+] as const satisfies readonly (keyof RuleCoverageRow['entityCoverage'])[]
+const BUSINESS_COVERAGE_ENTITIES = new Set<keyof RuleCoverageRow['entityCoverage']>([
+  'llc',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'sole_prop',
+])
+type CandidateSourceSignal = PulseSourceSignalRow | null
 
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
+  const { localFactRequirements, ...sourceRest } = source
   return {
-    ...source,
+    ...sourceRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
+    domains: [...source.domains],
+    entityApplicability: [...source.entityApplicability],
     notificationChannels: [...source.notificationChannels],
   }
 }
@@ -45,11 +88,16 @@ function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSourc
 function toPreview(
   preview: ReturnType<typeof previewObligationsFromRules>[number],
 ): ObligationGenerationPreview {
+  const { localFactRequirements, ...previewRest } = preview
   return {
-    ...preview,
+    ...previewRest,
+    ...(localFactRequirements !== undefined
+      ? { localFactRequirements: [...localFactRequirements] }
+      : {}),
     sourceIds: [...preview.sourceIds],
     evidence: preview.evidence.map((item) => ({ ...item })),
     reviewReasons: [...preview.reviewReasons],
+    missingClientFacts: [...preview.missingClientFacts],
   }
 }
 
@@ -65,16 +113,39 @@ function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
 }
 
-function practiceReviewMetadata(row: PracticeRuleRow): {
+function practiceReviewMetadata(
+  row: PracticeRuleRow,
+  reviewerNames: ReadonlyMap<string, string>,
+): {
   verifiedBy?: string
   verifiedAt?: string
+  reviewedByName?: string
+  reviewedAt?: string
   version: number
 } {
+  const reviewerName = row.reviewedBy
+    ? (reviewerNames.get(row.reviewedBy) ?? 'Unknown reviewer')
+    : null
   return {
-    ...(row.reviewedBy ? { verifiedBy: row.reviewedBy } : {}),
+    ...(reviewerName ? { verifiedBy: reviewerName, reviewedByName: reviewerName } : {}),
     ...(row.reviewedAt ? { verifiedAt: toDateOnly(row.reviewedAt) } : {}),
+    ...(row.reviewedAt ? { reviewedAt: row.reviewedAt.toISOString() } : {}),
     version: row.templateVersion,
   }
+}
+
+async function reviewerNamesByUserId(context: RpcContext): Promise<ReadonlyMap<string, string>> {
+  const { tenant } = requireTenant(context)
+  const members = context.vars.members
+  if (!members) return new Map()
+  const rows = await members.listMembers(tenant.firmId)
+  return new Map(rows.map((member) => [member.userId, member.name || member.email]))
+}
+
+async function currentReviewerName(context: RpcContext, userId: string): Promise<string> {
+  const { tenant } = requireTenant(context)
+  const member = await context.vars.members?.findMembership(tenant.firmId, userId)
+  return member?.name || member?.email || 'Unknown reviewer'
 }
 
 function templateRules(): readonly CoreObligationRule[] {
@@ -83,6 +154,99 @@ function templateRules(): readonly CoreObligationRule[] {
 
 function templateRuleById(ruleId: string): CoreObligationRule | null {
   return findRuleById(ruleId) ?? null
+}
+
+function isSourceDefinedRule(rule: Pick<CoreObligationRule, 'dueDateLogic'>): boolean {
+  return rule.dueDateLogic.kind === 'source_defined_calendar'
+}
+
+function sourceDefinedAcceptError() {
+  return new ORPCError('BAD_REQUEST', {
+    message:
+      'Source-defined rule templates require an AI concrete draft and practice review before activation.',
+  })
+}
+
+function ruleCoversCoverageEntity(
+  rule: Pick<CoreObligationRule, 'entityApplicability'>,
+  entity: keyof RuleCoverageRow['entityCoverage'],
+): boolean {
+  if (rule.entityApplicability.includes(entity)) return true
+  if (!rule.entityApplicability.includes('any_business')) return false
+  return BUSINESS_COVERAGE_ENTITIES.has(entity)
+}
+
+function emptyEntityCoverage(): RuleCoverageRow['entityCoverage'] {
+  return {
+    llc: 'none',
+    partnership: 'none',
+    s_corp: 'none',
+    c_corp: 'none',
+    sole_prop: 'none',
+    individual: 'none',
+    trust: 'none',
+  }
+}
+
+function emptyEntitySourceCoverage(): RuleCoverageRow['entitySourceCoverage'] {
+  return {
+    llc: 'not_applicable',
+    partnership: 'not_applicable',
+    s_corp: 'not_applicable',
+    c_corp: 'not_applicable',
+    sole_prop: 'not_applicable',
+    individual: 'not_applicable',
+    trust: 'not_applicable',
+  }
+}
+
+function mergeCoverageState(
+  current: RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']],
+  next: RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']],
+): RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']] {
+  if (current === 'active' || next === 'active') return 'active'
+  if (current === 'review' || next === 'review') return 'review'
+  return 'none'
+}
+
+function mergeSourceCoverageState(
+  current: RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+  next: RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+): RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']] {
+  const rank: Record<
+    RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']],
+    number
+  > = {
+    not_applicable: 0,
+    missing_source: 1,
+    source_registered: 2,
+    source_verified: 3,
+    rule_pending_review: 4,
+    rule_active: 5,
+  }
+  return rank[next] > rank[current] ? next : current
+}
+
+function coverageStateForRule(
+  rule: ObligationRule,
+): RuleCoverageRow['entityCoverage'][keyof RuleCoverageRow['entityCoverage']] | null {
+  if (rule.status === 'active') {
+    return rule.dueDateLogic.kind === 'source_defined_calendar' ? 'review' : 'active'
+  }
+  if (rule.status === 'candidate' || rule.status === 'pending_review') return 'review'
+  return null
+}
+
+function sourceCoverageStateForRule(
+  rule: ObligationRule,
+): RuleCoverageRow['entitySourceCoverage'][keyof RuleCoverageRow['entitySourceCoverage']] | null {
+  if (rule.status === 'active') {
+    return rule.dueDateLogic.kind === 'source_defined_calendar'
+      ? 'rule_pending_review'
+      : 'rule_active'
+  }
+  if (rule.status === 'candidate' || rule.status === 'pending_review') return 'rule_pending_review'
+  return null
 }
 
 async function ensureGlobalTemplateCatalog(context: RpcContext): Promise<void> {
@@ -128,6 +292,18 @@ function pendingContractRule(rule: CoreObligationRule): ObligationRule {
   })
 }
 
+export function isDefaultActiveTemplateRule(
+  rule: Pick<CoreObligationRule, 'jurisdiction' | 'status'>,
+): boolean {
+  return rule.jurisdiction === 'FED' && rule.status === 'verified'
+}
+
+export function defaultContractRuleForTemplate(rule: CoreObligationRule): ObligationRule {
+  return isDefaultActiveTemplateRule(rule)
+    ? toPracticeContractRule(rule, 'active')
+    : pendingContractRule(rule)
+}
+
 function reviewTaskKey(ruleId: string, templateVersion: number): string {
   return `${ruleId}:${templateVersion}`
 }
@@ -145,13 +321,68 @@ function reviewOnlyCoreRule(rule: CoreObligationRule): CoreObligationRule {
 function parsePracticeRule(row: PracticeRuleRow): CoreObligationRule | null {
   if (row.status !== 'active' || !row.ruleJson) return null
   const parsed = ObligationRuleSchema.safeParse(row.ruleJson)
-  return parsed.success ? toCoreRule(parsed.data) : null
+  if (!parsed.success) return null
+  if (isSourceDefinedRule(parsed.data)) return null
+  return toCoreRule(parsed.data)
 }
 
 function parseDecisionRule(row: RuleReviewDecisionRow): CoreObligationRule | null {
   if (row.status !== 'verified' || !row.ruleJson) return null
   const parsed = ObligationRuleSchema.safeParse(row.ruleJson)
   return parsed.success ? toCoreRule(parsed.data) : null
+}
+
+async function loadCandidateSourceContext(input: {
+  context: RpcContext
+  base: CoreObligationRule
+  sourceId: string
+  sourceSignalId?: string
+}): Promise<{
+  source: ReturnType<typeof listRuleSources>[number]
+  sourceSignal: CandidateSourceSignal
+}> {
+  const { scoped } = requireTenant(input.context)
+  const source = listRuleSources().find((item) => item.id === input.sourceId)
+  if (!source) throw new ORPCError('BAD_REQUEST', { message: 'Official source was not found.' })
+  if (source.jurisdiction !== input.base.jurisdiction && source.jurisdiction !== 'FED') {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Official source jurisdiction does not match the rule template.',
+    })
+  }
+  if (!input.base.sourceIds.includes(source.id) && !sourceCoversRuleDomain(source, input.base)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Official source does not cover the selected rule template.',
+    })
+  }
+
+  const sourceSignal = input.sourceSignalId
+    ? await scoped.pulse.getSourceSignal(input.sourceSignalId)
+    : null
+  if (input.sourceSignalId && !sourceSignal) {
+    throw new ORPCError('NOT_FOUND', { message: 'Source signal was not found.' })
+  }
+  if (sourceSignal) {
+    if (sourceSignal.status !== 'open') {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Only open source signals can be attached to rule review.',
+      })
+    }
+    if (sourceSignal.sourceId !== input.sourceId) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Source signal does not match the selected official source.',
+      })
+    }
+    if (
+      sourceSignal.jurisdiction !== input.base.jurisdiction &&
+      sourceSignal.jurisdiction !== 'FED'
+    ) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Source signal jurisdiction does not match the rule template.',
+      })
+    }
+  }
+
+  return { source, sourceSignal }
 }
 
 function toReviewDecision(row: RuleReviewDecisionRow): RuleReviewDecision {
@@ -193,6 +424,13 @@ function toTemporaryRule(row: TemporaryRuleRow): TemporaryRule {
   }
 }
 
+export function isPracticeRuleBehindTemplate(input: {
+  practiceVersion: number
+  templateVersion: number
+}): boolean {
+  return input.practiceVersion < input.templateVersion
+}
+
 async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
   await ensureGlobalTemplateCatalog(context)
   const { scoped } = requireTenant(context)
@@ -204,6 +442,7 @@ async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
     if (rule.status === 'deprecated') continue
     const reviewed = reviewedByRuleId.get(rule.id)
     if (!reviewed) {
+      if (isDefaultActiveTemplateRule(rule)) continue
       reviewTasks.push({
         ruleId: rule.id,
         templateVersion: rule.version,
@@ -211,7 +450,13 @@ async function ensureTemplateReviewTasks(context: RpcContext): Promise<void> {
       })
       continue
     }
-    if (reviewed.status !== 'pending_review' && reviewed.templateVersion !== rule.version) {
+    if (
+      reviewed.status !== 'pending_review' &&
+      isPracticeRuleBehindTemplate({
+        practiceVersion: reviewed.templateVersion,
+        templateVersion: rule.version,
+      })
+    ) {
       reviewTasks.push({
         ruleId: rule.id,
         templateVersion: rule.version,
@@ -245,6 +490,7 @@ async function acceptedTaskForRule(input: {
   status: Exclude<PracticeRuleReviewTaskRow['status'], 'open'>
   reviewNote: string | null
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
 }): Promise<RuleReviewTask> {
   const { scoped } = requireTenant(input.context)
@@ -268,6 +514,7 @@ async function listPracticeRules(input: {
   await ensureTemplateReviewTasks(input.context)
   const { scoped } = requireTenant(input.context)
   const practiceRows = await scoped.rules.listPracticeRules()
+  const reviewerNames = await reviewerNamesByUserId(input.context)
   const practiceByRuleId = new Map(practiceRows.map((row) => [row.ruleId, row]))
   const openReviewTaskKeys = new Set(
     (await scoped.rules.listReviewTasks({ status: 'open' })).map((task) =>
@@ -283,7 +530,11 @@ async function listPracticeRules(input: {
       reviewTaskKey(template.id, template.version),
     )
     if (!practice) {
-      rows.push(pendingContractRule(template))
+      rows.push(defaultContractRuleForTemplate(template))
+      continue
+    }
+    if (isDefaultActiveTemplateRule(template) && practice.status === 'pending_review') {
+      rows.push(toPracticeContractRule(template, 'active'))
       continue
     }
 
@@ -291,24 +542,50 @@ async function listPracticeRules(input: {
       ? ObligationRuleSchema.safeParse(practice.ruleJson)
       : { success: false as const }
     if (practice.status === 'active' && parsed.success) {
+      if (isSourceDefinedRule(parsed.data) && !isDefaultActiveTemplateRule(template)) {
+        rows.push({
+          ...parsed.data,
+          status: 'pending_review',
+          version: practice.templateVersion,
+        })
+        continue
+      }
+      const metadata = practiceReviewMetadata(practice, reviewerNames)
       const activeRule: ObligationRule = {
         ...parsed.data,
         status: 'active',
-        verifiedBy: practice.reviewedBy ?? parsed.data.verifiedBy,
-        verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
+        verifiedBy: metadata.verifiedBy ?? parsed.data.verifiedBy,
+        verifiedAt: metadata.verifiedAt ?? parsed.data.verifiedAt,
+        ...(metadata.reviewedByName ? { reviewedByName: metadata.reviewedByName } : {}),
+        ...(metadata.reviewedAt ? { reviewedAt: metadata.reviewedAt } : {}),
         version: practice.templateVersion,
       }
       rows.push(activeRule)
-      if (practice.templateVersion !== template.version && hasOpenTemplateReviewTask) {
+      if (
+        isPracticeRuleBehindTemplate({
+          practiceVersion: practice.templateVersion,
+          templateVersion: template.version,
+        }) &&
+        hasOpenTemplateReviewTask
+      ) {
         rows.push(pendingContractRule(template))
       }
       continue
     }
 
-    rows.push(toPracticeContractRule(template, practice.status, practiceReviewMetadata(practice)))
+    rows.push(
+      toPracticeContractRule(
+        template,
+        practice.status,
+        practiceReviewMetadata(practice, reviewerNames),
+      ),
+    )
     if (
       practice.status !== 'pending_review' &&
-      practice.templateVersion !== template.version &&
+      isPracticeRuleBehindTemplate({
+        practiceVersion: practice.templateVersion,
+        templateVersion: template.version,
+      }) &&
       hasOpenTemplateReviewTask
     ) {
       rows.push(pendingContractRule(template))
@@ -325,11 +602,14 @@ async function listPracticeRules(input: {
     if (!practice.ruleJson) continue
     const parsed = ObligationRuleSchema.safeParse(practice.ruleJson)
     if (!parsed.success) continue
+    const metadata = practiceReviewMetadata(practice, reviewerNames)
     rows.push({
       ...parsed.data,
       status: practice.status,
-      verifiedBy: practice.reviewedBy ?? parsed.data.verifiedBy,
-      verifiedAt: practice.reviewedAt ? toDateOnly(practice.reviewedAt) : parsed.data.verifiedAt,
+      verifiedBy: metadata.verifiedBy ?? parsed.data.verifiedBy,
+      verifiedAt: metadata.verifiedAt ?? parsed.data.verifiedAt,
+      ...(metadata.reviewedByName ? { reviewedByName: metadata.reviewedByName } : {}),
+      ...(metadata.reviewedAt ? { reviewedAt: metadata.reviewedAt } : {}),
       version: practice.templateVersion,
     })
   }
@@ -345,10 +625,21 @@ async function listPracticeRules(input: {
 
 async function listActiveCoreRules(scoped: ReturnType<typeof requireTenant>['scoped']) {
   const rows = await scoped.rules.listActivePracticeRules()
-  return rows.flatMap((row) => {
+  const activeRows = rows.flatMap((row) => {
     const rule = parsePracticeRule(row)
     return rule ? [rule] : []
   })
+  const practiceRowsByRuleId = new Map(
+    (await scoped.rules.listPracticeRules()).map((row) => [row.ruleId, row]),
+  )
+  const activeRowIds = new Set(activeRows.map((rule) => rule.id))
+  const defaultActiveRules = templateRules().filter((rule) => {
+    if (!isDefaultActiveTemplateRule(rule)) return false
+    if (activeRowIds.has(rule.id)) return false
+    const practice = practiceRowsByRuleId.get(rule.id)
+    return practice?.status !== 'rejected' && practice?.status !== 'archived'
+  })
+  return [...activeRows, ...defaultActiveRules]
 }
 
 function ruleMatchesEntity(rule: CoreObligationRule, entityType: RuleGenerationEntity): boolean {
@@ -365,6 +656,151 @@ function distribution(map: ReadonlyMap<string, number>) {
   return Array.from(map.entries())
     .map(([key, count]) => ({ key, count }))
     .toSorted((left, right) => left.key.localeCompare(right.key))
+}
+
+function uniqueRuleGenerationStates(states: readonly RuleGenerationState[]): RuleGenerationState[] {
+  return Array.from(new Set(states))
+}
+
+export function isOnboardingActivatableRule(rule: Pick<CoreObligationRule, 'status'>): boolean {
+  return rule.status !== 'deprecated'
+}
+
+export function onboardingActivationJurisdictions(
+  states: readonly RuleGenerationState[],
+): RuleJurisdiction[] {
+  const selectedStates = uniqueRuleGenerationStates(states)
+  return selectedStates.length === 0 ? [] : ['FED', ...selectedStates]
+}
+
+export async function activateOnboardingJurisdictionRules(input: {
+  scoped: ScopedRepo
+  userId: string
+  internalDeadlineOffsetDays: number
+  states: readonly RuleGenerationState[]
+  now?: Date
+  ensureCatalog?: () => Promise<void>
+  generateObligations?: typeof generateObligationsForAcceptedRules
+}): Promise<RuleOnboardingActivationOutput> {
+  const selectedStates = uniqueRuleGenerationStates(input.states)
+  const jurisdictions = onboardingActivationJurisdictions(selectedStates)
+  if (jurisdictions.length === 0) {
+    return {
+      selectedStates,
+      jurisdictions,
+      activatedCount: 0,
+      skippedCount: 0,
+      reviewRequiredCount: 0,
+      reviewRequiredJurisdictions: [],
+      generatedObligationCount: 0,
+    }
+  }
+
+  await input.ensureCatalog?.()
+  const reviewedAt = input.now ?? new Date()
+  const jurisdictionSet = new Set<RuleJurisdiction>(jurisdictions)
+  const matchingRules = templateRules().filter((rule) => jurisdictionSet.has(rule.jurisdiction))
+  const activatableRules = matchingRules.filter(isOnboardingActivatableRule)
+  const reviewRequiredRules = activatableRules.filter(isSourceDefinedRule)
+  const activationReadyRules = activatableRules.filter((rule) => !isSourceDefinedRule(rule))
+  const reviewRequiredJurisdictionSet = new Set(
+    reviewRequiredRules.map((rule) => rule.jurisdiction),
+  )
+  const reviewRequiredJurisdictions = jurisdictions.filter((jurisdiction) =>
+    reviewRequiredJurisdictionSet.has(jurisdiction),
+  )
+  const activeCoreRules: CoreObligationRule[] = []
+
+  await Promise.all(
+    activationReadyRules.map(async (rule) => {
+      const activeRule: ObligationRule = {
+        ...toPracticeContractRule(rule, 'active', {
+          verifiedBy: input.userId,
+          verifiedAt: toDateOnly(reviewedAt),
+        }),
+        status: 'active',
+      }
+      activeCoreRules.push(toCoreRule(activeRule))
+      await input.scoped.rules.upsertPracticeRule({
+        ruleId: rule.id,
+        templateId: rule.id,
+        templateVersion: activeRule.version,
+        status: 'active',
+        ruleJson: activeRule,
+        reviewNote: ONBOARDING_RULE_REVIEW_NOTE,
+        reviewedBy: input.userId,
+        reviewedAt,
+      })
+      await input.scoped.rules.decideReviewTask({
+        ruleId: rule.id,
+        templateVersion: activeRule.version,
+        status: 'accepted',
+        reviewNote: ONBOARDING_RULE_REVIEW_NOTE,
+        reviewedBy: input.userId,
+        reviewedAt,
+      })
+    }),
+  )
+
+  await Promise.all(
+    reviewRequiredRules.map(async (rule) => {
+      const pendingRule = pendingContractRule(rule)
+      await input.scoped.rules.upsertPracticeRule({
+        ruleId: rule.id,
+        templateId: rule.id,
+        templateVersion: pendingRule.version,
+        status: 'pending_review',
+        ruleJson: pendingRule,
+        reviewNote: null,
+        reviewedBy: null,
+        reviewedAt: null,
+      })
+    }),
+  )
+  await input.scoped.rules.ensureReviewTasks(
+    reviewRequiredRules.map((rule) => ({
+      ruleId: rule.id,
+      templateVersion: rule.version,
+      reason: 'new_template',
+    })),
+  )
+
+  const generate = input.generateObligations ?? generateObligationsForAcceptedRules
+  const generation = await generate({
+    scoped: input.scoped,
+    userId: input.userId,
+    rules: activeCoreRules,
+    internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+    now: reviewedAt,
+    reason: ONBOARDING_RULE_REVIEW_NOTE,
+  })
+
+  await input.scoped.audit.write({
+    actorId: input.userId,
+    entityType: 'rule_batch',
+    entityId: activatableRules[0]?.id ?? 'empty',
+    action: 'rules.onboarding_activated',
+    after: {
+      selectedStates,
+      jurisdictions,
+      activatedCount: activationReadyRules.length,
+      skippedCount: matchingRules.length - activatableRules.length,
+      reviewRequiredCount: reviewRequiredRules.length,
+      reviewRequiredJurisdictions,
+      generatedObligationCount: generation.createdCount,
+    },
+    reason: ONBOARDING_RULE_REVIEW_NOTE,
+  })
+
+  return {
+    selectedStates,
+    jurisdictions,
+    activatedCount: activationReadyRules.length,
+    skippedCount: matchingRules.length - activatableRules.length,
+    reviewRequiredCount: reviewRequiredRules.length,
+    reviewRequiredJurisdictions,
+    generatedObligationCount: generation.createdCount,
+  }
 }
 
 async function previewBulkImpactForSelections(
@@ -400,6 +836,14 @@ async function previewBulkImpactForSelections(
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'version_conflict',
+      })
+      continue
+    }
+    if (isSourceDefinedRule(template)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_defined_requires_ai_review',
       })
       continue
     }
@@ -470,29 +914,35 @@ async function previewBulkImpactForSelections(
   }
 }
 
-async function acceptTemplateRule(input: {
+export async function acceptTemplateRule(input: {
   context: RpcContext
   rule: CoreObligationRule
   reviewNote: string
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
   editedRule?: ObligationRule
   catalogSeeded?: boolean
   generateObligations?: boolean
 }): Promise<RuleReviewTask> {
-  const { scoped } = requireTenant(input.context)
+  const { scoped, tenant } = requireTenant(input.context)
+  if (!input.editedRule && isSourceDefinedRule(input.rule)) throw sourceDefinedAcceptError()
   if (!input.catalogSeeded) await ensureGlobalTemplateCatalog(input.context)
   const contractRule =
     input.editedRule ??
     toPracticeContractRule(input.rule, 'active', {
-      verifiedBy: input.reviewedBy,
+      verifiedBy: input.reviewedByName ?? input.reviewedBy,
       verifiedAt: toDateOnly(input.reviewedAt),
+      ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+      reviewedAt: input.reviewedAt.toISOString(),
     })
   const activeRule: ObligationRule = {
     ...contractRule,
     status: 'active',
-    verifiedBy: input.reviewedBy,
+    verifiedBy: input.reviewedByName ?? input.reviewedBy,
     verifiedAt: toDateOnly(input.reviewedAt),
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+    reviewedAt: input.reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: input.rule.id,
@@ -526,6 +976,7 @@ async function acceptTemplateRule(input: {
       scoped,
       userId: input.reviewedBy,
       rules: [toCoreRule(activeRule)],
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
@@ -533,11 +984,12 @@ async function acceptTemplateRule(input: {
   return task
 }
 
-async function rejectTemplateRule(input: {
+export async function rejectTemplateRule(input: {
   context: RpcContext
   rule: CoreObligationRule
   reason: string
   reviewedBy: string
+  reviewedByName?: string
   reviewedAt: Date
 }): Promise<RuleReviewTask> {
   const { scoped } = requireTenant(input.context)
@@ -555,12 +1007,15 @@ async function rejectTemplateRule(input: {
   const task = await acceptedTaskForRule({
     context: input.context,
     rule: toPracticeContractRule(input.rule, 'rejected', {
-      verifiedBy: input.reviewedBy,
+      verifiedBy: input.reviewedByName ?? input.reviewedBy,
       verifiedAt: toDateOnly(input.reviewedAt),
+      ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+      reviewedAt: input.reviewedAt.toISOString(),
     }),
     status: 'rejected',
     reviewNote: input.reason,
     reviewedBy: input.reviewedBy,
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
     reviewedAt: input.reviewedAt,
   })
   await scoped.audit.write({
@@ -598,6 +1053,13 @@ const listReviewTasks = os.rules.listReviewTasks.handler(async ({ input, context
   return rows.flatMap((row) => {
     const template = templateById.get(row.ruleId)
     if (!template) return []
+    if (
+      row.status === 'open' &&
+      row.reason === 'new_template' &&
+      isDefaultActiveTemplateRule(template)
+    ) {
+      return []
+    }
     if (input?.jurisdiction && template.jurisdiction !== input.jurisdiction) return []
     const status: ObligationRule['status'] =
       row.status === 'accepted'
@@ -623,6 +1085,7 @@ const listTemporaryRules = os.rules.listTemporaryRules.handler(async ({ context 
 const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }) => {
   const { userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
   if (!rule) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
   if (rule.version !== input.expectedVersion) {
@@ -633,13 +1096,15 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
     rule,
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt: new Date(),
   })
 })
 
 const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input, context }) => {
-  const { scoped, userId } = requireTenant(context)
+  const { scoped, tenant, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
   const practiceById = new Map(
     (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
@@ -669,6 +1134,14 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'version_conflict',
+      })
+      continue
+    }
+    if (isSourceDefinedRule(rule)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_defined_requires_ai_review',
       })
       continue
     }
@@ -710,6 +1183,7 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
         rule,
         reviewNote: input.reviewNote,
         reviewedBy: userId,
+        reviewedByName: reviewerName,
         reviewedAt,
         catalogSeeded: true,
         generateObligations: false,
@@ -721,6 +1195,7 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
     scoped,
     userId,
     rules: acceptInputs,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     now: reviewedAt,
     reason: input.reviewNote,
   })
@@ -742,9 +1217,24 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
   return { accepted, skipped }
 })
 
+const activateOnboardingJurisdictions = os.rules.activateOnboardingJurisdictions.handler(
+  async ({ input, context }) => {
+    const { scoped, tenant, userId } = requireTenant(context)
+    await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+    return activateOnboardingJurisdictionRules({
+      scoped,
+      userId,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      states: input.states,
+      ensureCatalog: () => ensureGlobalTemplateCatalog(context),
+    })
+  },
+)
+
 const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }) => {
   const { userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
   if (!rule) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
   if (rule.version !== input.expectedVersion) {
@@ -756,6 +1246,7 @@ const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }
     rule,
     reason: input.reason,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -764,11 +1255,14 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const rule = {
     ...input.rule,
     status: 'active' as const,
-    verifiedBy: userId,
+    verifiedBy: reviewerName,
     verifiedAt: toDateOnly(reviewedAt),
+    reviewedByName: reviewerName,
+    reviewedAt: reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: rule.id,
@@ -794,6 +1288,7 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
     status: 'accepted',
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -802,13 +1297,16 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   const existing = await scoped.rules.getPracticeRule(input.rule.id)
   if (!existing) throw new ORPCError('NOT_FOUND', { message: 'Practice rule was not found.' })
   const rule = {
     ...input.rule,
     status: 'active' as const,
-    verifiedBy: userId,
+    verifiedBy: reviewerName,
     verifiedAt: toDateOnly(reviewedAt),
+    reviewedByName: reviewerName,
+    reviewedAt: reviewedAt.toISOString(),
   }
   await scoped.rules.upsertPracticeRule({
     ruleId: rule.id,
@@ -835,6 +1333,7 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
     status: 'accepted',
     reviewNote: input.reviewNote,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -845,6 +1344,7 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
   const existing = await scoped.rules.getPracticeRule(input.ruleId)
   if (!existing) throw new ORPCError('NOT_FOUND', { message: 'Practice rule was not found.' })
   const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
   await scoped.rules.upsertPracticeRule({
     ruleId: existing.ruleId,
     templateId: existing.templateId,
@@ -864,10 +1364,17 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
     ? {
         ...parsed.data,
         status: 'archived' as const,
-        verifiedBy: userId,
+        verifiedBy: reviewerName,
         verifiedAt: toDateOnly(reviewedAt),
+        reviewedByName: reviewerName,
+        reviewedAt: reviewedAt.toISOString(),
       }
-    : toPracticeContractRule(template!, 'archived')
+    : toPracticeContractRule(template!, 'archived', {
+        verifiedBy: reviewerName,
+        verifiedAt: toDateOnly(reviewedAt),
+        reviewedByName: reviewerName,
+        reviewedAt: reviewedAt.toISOString(),
+      })
   await scoped.audit.write({
     actorId: userId,
     entityType: 'rule',
@@ -883,6 +1390,7 @@ const archivePracticeRule = os.rules.archivePracticeRule.handler(async ({ input,
     status: 'superseded',
     reviewNote: input.reason,
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
   })
 })
@@ -895,6 +1403,247 @@ const previewBulkRuleImpact = os.rules.previewBulkRuleImpact.handler(async ({ in
   return previewBulkImpactForSelections(context, input.rules)
 })
 
+async function findConcreteDraftRuns(input: {
+  scoped: ScopedRepo
+  inputContextRefs: readonly string[]
+}): Promise<{ preferredRuns: AiOutputRow[]; allRuns: AiOutputRow[] }> {
+  const request = {
+    kind: 'rule_concrete_draft' as const,
+    inputContextRefs: input.inputContextRefs,
+    promptVersion: RULE_CONCRETE_DRAFT_PROMPT,
+  }
+  const [globalRuns, firmRuns] = await Promise.all([
+    input.scoped.ai.findSuccessfulGlobalRunsByContextRefs(request),
+    input.scoped.ai.findSuccessfulRunsByContextRefs(request),
+  ])
+  const realGlobalRuns = globalRuns.filter(
+    (run) => run.model !== RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
+  )
+  const realFirmRuns = firmRuns.filter(
+    (run) => run.model !== RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
+  )
+  const preferredByContext = new Map<string, AiOutputRow>()
+  for (const run of realGlobalRuns) {
+    if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
+      preferredByContext.set(run.inputContextRef, run)
+    }
+  }
+  for (const run of realFirmRuns) {
+    if (run.inputContextRef && !preferredByContext.has(run.inputContextRef)) {
+      preferredByContext.set(run.inputContextRef, run)
+    }
+  }
+  return {
+    preferredRuns: Array.from(preferredByContext.values()),
+    allRuns: [...realGlobalRuns, ...realFirmRuns],
+  }
+}
+
+const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+
+  const lookup = new Map<
+    string,
+    { ruleId: string; sourceId: string; sourceSignalId: string | null }
+  >()
+  for (const ruleInput of input.rules) {
+    const base = templateRuleById(ruleInput.ruleId)
+    if (!base || !isSourceDefinedRule(base)) continue
+    if (!canReadConcreteDraftForSource({ rule: base, sourceId: ruleInput.sourceId })) continue
+    const contextRef = cachedConcreteDraftKey({
+      ruleId: ruleInput.ruleId,
+      ruleVersion: base.version,
+      sourceId: ruleInput.sourceId,
+      sourceSignalId: ruleInput.sourceSignalId,
+    })
+    lookup.set(contextRef, {
+      ruleId: ruleInput.ruleId,
+      sourceId: ruleInput.sourceId,
+      sourceSignalId: ruleInput.sourceSignalId ?? null,
+    })
+  }
+  if (lookup.size === 0) return []
+
+  const { preferredRuns } = await findConcreteDraftRuns({
+    scoped,
+    inputContextRefs: Array.from(lookup.keys()),
+  })
+
+  return preferredRuns.flatMap((run) => {
+    const contextRef = run.inputContextRef ?? ''
+    const target = lookup.get(contextRef)
+    const draft = parseCachedConcreteDraft(run.outputText)
+    if (!target || !draft) return []
+    return [
+      {
+        ...target,
+        sourceSignalId: concreteDraftSourceSignalId(run) ?? target.sourceSignalId,
+        draft: RuleConcreteDraftSchema.parse({
+          aiOutputId: run.id,
+          ...draft,
+        }),
+      },
+    ]
+  })
+})
+
+function canReadConcreteDraftForSource(input: {
+  rule: CoreObligationRule
+  sourceId: string
+}): boolean {
+  const source = listRuleSources().find((item) => item.id === input.sourceId)
+  if (!source) return false
+  if (source.jurisdiction !== input.rule.jurisdiction && source.jurisdiction !== 'FED') {
+    return false
+  }
+  return input.rule.sourceIds.includes(source.id) || sourceCoversRuleDomain(source, input.rule)
+}
+
+function skipConcreteDraftSelection(
+  selection: { ruleId: string; sourceId: string },
+  reason: RuleBulkVerifyCandidateSkip['reason'],
+) {
+  return {
+    skipped: {
+      ruleId: selection.ruleId,
+      sourceId: selection.sourceId,
+      reason,
+    },
+  }
+}
+
+function concreteDraftSourceSignalId(run: AiOutputRow): string | null {
+  const citations = parseConcreteDraftRunCitations(run)
+  if (!citations) return null
+  const sourceSignalId = citations.sourceSignalId
+  return typeof sourceSignalId === 'string' && sourceSignalId.length > 0 ? sourceSignalId : null
+}
+
+function parseConcreteDraftRunCitations(run: AiOutputRow): Record<string, unknown> | null {
+  if (!isRecord(run.citations)) return null
+  return run.citations
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function missingAcceptedConcreteDraftError(): never {
+  throw new ORPCError('BAD_REQUEST', {
+    message: 'AI concrete draft is not ready. Regenerate or wait for backfill.',
+  })
+}
+
+function toConcreteDraftRule(input: {
+  base: CoreObligationRule
+  source: ReturnType<typeof listRuleSources>[number]
+  reviewedBy: string
+  reviewedByName?: string
+  reviewedAt: Date
+  draft: RuleConcreteDraftPayload
+  aiOutputId?: string
+  sourceUpdatedOn?: string
+  ruleTier?: ObligationRule['ruleTier']
+  nextReviewOn?: string
+}): ObligationRule {
+  const activeRule = toPracticeContractRule(input.base, 'active', {
+    verifiedBy: input.reviewedByName ?? input.reviewedBy,
+    verifiedAt: toDateOnly(input.reviewedAt),
+    ...(input.reviewedByName ? { reviewedByName: input.reviewedByName } : {}),
+    reviewedAt: input.reviewedAt.toISOString(),
+    version: input.base.version + 1,
+  })
+  return {
+    ...activeRule,
+    ruleTier: input.ruleTier ?? input.base.ruleTier,
+    coverageStatus: input.draft.coverageStatus,
+    requiresApplicabilityReview: input.draft.requiresApplicabilityReview,
+    dueDateLogic: input.draft.dueDateLogic,
+    extensionPolicy: input.draft.extensionPolicy,
+    sourceIds: Array.from(new Set([input.source.id, ...input.base.sourceIds])),
+    evidence: [
+      {
+        sourceId: input.source.id,
+        ...(input.aiOutputId ? { aiOutputId: input.aiOutputId } : {}),
+        authorityRole: 'basis',
+        locator: {
+          kind:
+            input.source.sourceType === 'form' || input.source.acquisitionMethod === 'pdf_watch'
+              ? 'pdf'
+              : 'html',
+          heading: input.draft.sourceHeading,
+        },
+        summary: `Practice accepted ${input.base.title} against ${input.source.title}.`,
+        sourceExcerpt: input.draft.sourceExcerpt,
+        retrievedAt: toDateOnly(input.reviewedAt),
+        ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
+      },
+    ],
+    quality: input.draft.quality,
+    nextReviewOn: input.nextReviewOn ?? input.base.nextReviewOn,
+  }
+}
+
+export async function loadAcceptedConcreteDraft(input: {
+  scoped: ScopedRepo
+  contextRef: string
+  aiOutputId: string
+}): Promise<{ cachedRun: AiOutputRow; draft: RuleConcreteDraftPayload }> {
+  const { allRuns } = await findConcreteDraftRuns({
+    scoped: input.scoped,
+    inputContextRefs: [input.contextRef],
+  })
+  const cachedRun = allRuns.find(
+    (run) => run.id === input.aiOutputId && run.inputContextRef === input.contextRef,
+  )
+  if (!cachedRun || cachedRun.guardResult !== 'ok') return missingAcceptedConcreteDraftError()
+
+  const draft = parseCachedConcreteDraft(cachedRun.outputText)
+  if (!draft) return missingAcceptedConcreteDraftError()
+  return { cachedRun, draft }
+}
+
+async function loadLatestSourceSnapshot(input: { context: RpcContext; sourceId: string }) {
+  const { scoped } = requireTenant(input.context)
+  return scoped.pulse.getLatestSourceSnapshotBySourceId(input.sourceId)
+}
+
+function toBadRequest(error: unknown) {
+  return new ORPCError('BAD_REQUEST', {
+    message: error instanceof Error ? error.message : 'AI concrete draft was unavailable.',
+  })
+}
+
+const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+
+  const base = templateRuleById(input.ruleId)
+  if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
+  const { source, sourceSignal } = await loadCandidateSourceContext({
+    context,
+    base,
+    sourceId: input.sourceId,
+    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
+  })
+  const latestSourceSnapshot = await loadLatestSourceSnapshot({ context, sourceId: source.id })
+  try {
+    return await generateConcreteDraft({
+      env: context.env,
+      aiRepo: scoped.ai,
+      scope: 'global',
+      userId: null,
+      base,
+      source,
+      sourceSignal,
+      latestSourceSnapshot,
+    })
+  } catch (error) {
+    throw toBadRequest(error)
+  }
+})
+
 const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context }) => {
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
@@ -902,86 +1651,42 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
   const base = templateRuleById(input.ruleId)
   if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
 
-  const source = listRuleSources().find((item) => item.id === input.sourceId)
-  if (!source) throw new ORPCError('BAD_REQUEST', { message: 'Official source was not found.' })
-  if (source.jurisdiction !== base.jurisdiction && source.jurisdiction !== 'FED') {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'Official source jurisdiction does not match the rule template.',
-    })
-  }
-  const sourceSignal = input.sourceSignalId
-    ? await scoped.pulse.getSourceSignal(input.sourceSignalId)
-    : null
-  if (input.sourceSignalId && !sourceSignal) {
-    throw new ORPCError('NOT_FOUND', { message: 'Source signal was not found.' })
-  }
-  if (sourceSignal) {
-    if (sourceSignal.status !== 'open') {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Only open source signals can be attached to rule review.',
-      })
-    }
-    if (sourceSignal.sourceId !== input.sourceId) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Source signal does not match the selected official source.',
-      })
-    }
-    if (sourceSignal.jurisdiction !== base.jurisdiction && sourceSignal.jurisdiction !== 'FED') {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Source signal jurisdiction does not match the rule template.',
-      })
-    }
-  }
-  if (
-    input.coverageStatus === 'full' &&
-    !input.requiresApplicabilityReview &&
-    input.dueDateLogic.kind === 'source_defined_calendar'
-  ) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'Active reminder-ready rules must use concrete due-date logic.',
-    })
-  }
+  const { source, sourceSignal } = await loadCandidateSourceContext({
+    context,
+    base,
+    sourceId: input.sourceId,
+    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
+  })
+  const contextRef = cachedConcreteDraftKey({
+    ruleId: base.id,
+    ruleVersion: base.version,
+    sourceId: source.id,
+    sourceSignalId: sourceSignal?.id ?? null,
+  })
+  const { draft, cachedRun } = await loadAcceptedConcreteDraft({
+    scoped,
+    contextRef,
+    aiOutputId: input.aiOutputId,
+  })
 
   const reviewedAt = new Date()
-  const activeRule = toPracticeContractRule(base, 'active', {
-    verifiedBy: userId,
-    verifiedAt: toDateOnly(reviewedAt),
-    version: base.version + 1,
+  const reviewerName = await currentReviewerName(context, userId)
+  const editedRule = toConcreteDraftRule({
+    base,
+    source,
+    reviewedBy: userId,
+    reviewedByName: reviewerName,
+    reviewedAt,
+    draft,
+    aiOutputId: cachedRun.id,
   })
-  const editedRule: ObligationRule = {
-    ...activeRule,
-    ruleTier: input.ruleTier,
-    coverageStatus: input.coverageStatus,
-    requiresApplicabilityReview: input.requiresApplicabilityReview,
-    dueDateLogic: input.dueDateLogic,
-    extensionPolicy: input.extensionPolicy,
-    sourceIds: Array.from(new Set([input.sourceId, ...base.sourceIds])),
-    evidence: [
-      {
-        sourceId: input.sourceId,
-        authorityRole: 'basis',
-        locator: {
-          kind:
-            source.sourceType === 'form' || source.acquisitionMethod === 'pdf_watch'
-              ? 'pdf'
-              : 'html',
-          heading: input.sourceHeading,
-        },
-        summary: `Practice accepted ${base.title} against ${source.title}.`,
-        sourceExcerpt: input.sourceExcerpt,
-        retrievedAt: toDateOnly(reviewedAt),
-        ...(input.sourceUpdatedOn ? { sourceUpdatedOn: input.sourceUpdatedOn } : {}),
-      },
-    ],
-    quality: input.quality,
-    nextReviewOn: input.nextReviewOn,
-  }
 
   const task = await acceptTemplateRule({
     context,
     rule: base,
     reviewNote: input.reviewNote ?? 'Accepted from rule review.',
     reviewedBy: userId,
+    reviewedByName: reviewerName,
     reviewedAt,
     editedRule,
   })
@@ -1005,19 +1710,191 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
   return toReviewDecision(row)
 })
 
+const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ input, context }) => {
+  const { scoped, tenant, userId } = requireTenant(context)
+  await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
+
+  const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
+  const practiceById = new Map(
+    (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
+  )
+  const taskBySelection = new Map(
+    (await scoped.rules.listReviewTasks({ status: 'open' })).map((task) => [
+      `${task.ruleId}:${task.templateVersion}`,
+      task,
+    ]),
+  )
+  const requestedContextRefs = input.rules.flatMap((selection) => {
+    const base = templateById.get(selection.ruleId)
+    if (!base || !isSourceDefinedRule(base)) return []
+    return cachedConcreteDraftKey({
+      ruleId: selection.ruleId,
+      ruleVersion: base.version,
+      sourceId: selection.sourceId,
+      sourceSignalId: selection.sourceSignalId,
+    })
+  })
+  const { allRuns } = await findConcreteDraftRuns({
+    scoped,
+    inputContextRefs: requestedContextRefs,
+  })
+  const cachedRunByContextAndId = new Map(
+    allRuns.map((run) => [`${run.inputContextRef ?? ''}:${run.id}`, run]),
+  )
+  const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
+  const verified: RuleReviewDecision[] = []
+  const skipped: RuleBulkVerifyCandidateSkip[] = []
+  const acceptedRules: CoreObligationRule[] = []
+
+  if (input.rules.length > 0) await ensureGlobalTemplateCatalog(context)
+
+  const results = await Promise.all(
+    input.rules.slice(0, MAX_BULK_ACCEPT).map(async (selection) => {
+      const base = templateById.get(selection.ruleId)
+      if (!base) return skipConcreteDraftSelection(selection, 'rule_not_found')
+      if (!isSourceDefinedRule(base)) {
+        return skipConcreteDraftSelection(selection, 'not_source_defined')
+      }
+
+      const existing = practiceById.get(selection.ruleId)
+      if (existing?.status === 'active') {
+        return skipConcreteDraftSelection(selection, 'already_active')
+      }
+      if (existing?.status === 'rejected' || existing?.status === 'archived') {
+        return skipConcreteDraftSelection(selection, existing.status)
+      }
+
+      const task = taskBySelection.get(`${selection.ruleId}:${base.version}`)
+      if (!task) return skipConcreteDraftSelection(selection, 'no_open_task')
+      if (task.reason === 'source_changed') {
+        return skipConcreteDraftSelection(selection, 'source_changed_requires_review')
+      }
+
+      const contextRef = cachedConcreteDraftKey({
+        ruleId: selection.ruleId,
+        ruleVersion: base.version,
+        sourceId: selection.sourceId,
+        sourceSignalId: selection.sourceSignalId,
+      })
+      const cachedRun = cachedRunByContextAndId.get(`${contextRef}:${selection.aiOutputId}`)
+      const draft = parseCachedConcreteDraft(cachedRun?.outputText ?? null)
+      if (!cachedRun || cachedRun.guardResult !== 'ok' || !draft) {
+        return skipConcreteDraftSelection(selection, 'draft_not_found')
+      }
+      if (cachedRun.id !== selection.aiOutputId) {
+        return skipConcreteDraftSelection(selection, 'draft_mismatch')
+      }
+
+      let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>
+      try {
+        sourceContext = await loadCandidateSourceContext({
+          context,
+          base,
+          sourceId: selection.sourceId,
+          ...(selection.sourceSignalId ? { sourceSignalId: selection.sourceSignalId } : {}),
+        })
+      } catch {
+        return skipConcreteDraftSelection(selection, 'validation_failed')
+      }
+
+      const editedRule = toConcreteDraftRule({
+        base,
+        source: sourceContext.source,
+        reviewedBy: userId,
+        reviewedByName: reviewerName,
+        reviewedAt,
+        draft,
+        aiOutputId: cachedRun.id,
+      })
+      await acceptTemplateRule({
+        context,
+        rule: base,
+        reviewNote: input.reviewNote,
+        reviewedBy: userId,
+        reviewedByName: reviewerName,
+        reviewedAt,
+        editedRule,
+        catalogSeeded: true,
+        generateObligations: false,
+      })
+      const row = await scoped.rules.upsertDecision({
+        ruleId: base.id,
+        baseVersion: base.version,
+        status: 'verified',
+        ruleJson: editedRule,
+        reviewNote: input.reviewNote,
+        reviewedBy: userId,
+        reviewedAt,
+      })
+      if (sourceContext.sourceSignal) {
+        await scoped.pulse.reviewSourceSignalForRule({
+          signalId: sourceContext.sourceSignal.id,
+          ruleId: base.id,
+          reviewDecisionId: row.id,
+        })
+      }
+      return {
+        verified: toReviewDecision(row),
+        acceptedRule: toCoreRule(editedRule),
+      }
+    }),
+  )
+
+  for (const result of results) {
+    if ('skipped' in result) {
+      skipped.push(result.skipped)
+      continue
+    }
+    verified.push(result.verified)
+    acceptedRules.push(result.acceptedRule)
+  }
+
+  const generation =
+    acceptedRules.length > 0
+      ? await generateObligationsForAcceptedRules({
+          scoped,
+          userId,
+          rules: acceptedRules,
+          internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+          now: reviewedAt,
+          reason: input.reviewNote,
+        })
+      : { createdCount: 0 }
+
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'rule_batch',
+    entityId: verified[0]?.id ?? 'empty',
+    action: 'rules.bulk_accepted',
+    after: {
+      verifiedCount: verified.length,
+      skippedCount: skipped.length,
+      ruleIds: verified.map((decision) => decision.ruleId),
+      generatedObligationCount: generation.createdCount,
+    },
+    reason: input.reviewNote,
+  })
+
+  return { verified, skipped }
+})
+
 const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context }) => {
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
 
   const base = templateRuleById(input.ruleId)
   if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
+  const reviewedAt = new Date()
+  const reviewerName = await currentReviewerName(context, userId)
 
   await rejectTemplateRule({
     context,
     rule: base,
     reason: input.reason,
     reviewedBy: userId,
-    reviewedAt: new Date(),
+    reviewedByName: reviewerName,
+    reviewedAt,
   })
   const row = await scoped.rules.upsertDecision({
     ruleId: base.id,
@@ -1026,17 +1903,26 @@ const rejectCandidate = os.rules.rejectCandidate.handler(async ({ input, context
     ruleJson: null,
     reviewNote: input.reason,
     reviewedBy: userId,
+    reviewedAt,
   })
   return toReviewDecision(row)
 })
 
 const coverage = os.rules.coverage.handler(async ({ context }) => {
   const rows = await listPracticeRules({ context, includeCandidates: true })
+  const sourceCellsByJurisdiction = listRequiredSourceCoverage().reduce((map, cell) => {
+    const list = map.get(cell.jurisdiction) ?? []
+    list.push(cell)
+    map.set(cell.jurisdiction, list)
+    return map
+  }, new Map<RuleJurisdiction, RequiredSourceCoverageCell[]>())
   const sourceCoverage = listRuleSources().reduce<RuleCoverageRowAccumulator>((acc, source) => {
     const current = acc.get(source.jurisdiction) ?? {
       jurisdiction: source.jurisdiction,
       sourceCount: 0,
       highPrioritySourceCount: 0,
+      entityCoverage: emptyEntityCoverage(),
+      entitySourceCoverage: emptyEntitySourceCoverage(),
     }
     current.sourceCount += 1
     if (source.priority === 'critical' || source.priority === 'high') {
@@ -1054,17 +1940,71 @@ const coverage = os.rules.coverage.handler(async ({ context }) => {
     ).length
     const rejectedRuleCount = jurisdictionRules.filter((rule) => rule.status === 'rejected').length
     const archivedRuleCount = jurisdictionRules.filter((rule) => rule.status === 'archived').length
+    const entityCoverage = emptyEntityCoverage()
+    const entitySourceCoverage = emptyEntitySourceCoverage()
+    const sourceCells = sourceCellsByJurisdiction.get(row.jurisdiction) ?? []
+    const requiredSourceCount = sourceCells.filter(
+      (cell) => cell.status !== 'not_applicable',
+    ).length
+    const missingSourceCells = sourceCells.filter((cell) => cell.status === 'missing_source')
+    const missingSourceCount = missingSourceCells.length
+    const missingSourceDomains = Array.from(new Set(missingSourceCells.map((cell) => cell.domain)))
+
+    for (const cell of sourceCells) {
+      entitySourceCoverage[cell.entity] = mergeSourceCoverageState(
+        entitySourceCoverage[cell.entity],
+        cell.status,
+      )
+    }
+
+    for (const rule of jurisdictionRules) {
+      const state = coverageStateForRule(rule)
+      const sourceState = sourceCoverageStateForRule(rule)
+      for (const entity of COVERAGE_ENTITY_COLUMNS) {
+        if (!ruleCoversCoverageEntity(rule, entity)) continue
+        if (state) {
+          entityCoverage[entity] = mergeCoverageState(entityCoverage[entity], state)
+        }
+        if (sourceState) {
+          entitySourceCoverage[entity] = mergeSourceCoverageState(
+            entitySourceCoverage[entity],
+            sourceState,
+          )
+        }
+      }
+    }
+    const applicableSourceStates = new Set(
+      Object.values(entitySourceCoverage).filter((state) => state !== 'not_applicable'),
+    )
+    const sourceCoverageStatus =
+      requiredSourceCount === 0
+        ? 'not_applicable'
+        : missingSourceCount > 0
+          ? 'missing_source'
+          : applicableSourceStates.has('rule_pending_review')
+            ? 'rule_pending_review'
+            : applicableSourceStates.has('rule_active')
+              ? 'rule_active'
+              : applicableSourceStates.has('source_registered')
+                ? 'source_registered'
+                : 'source_verified'
     return {
       jurisdiction: row.jurisdiction,
       sourceCount: row.sourceCount,
       verifiedRuleCount: activeRuleCount,
       candidateCount: pendingReviewCount,
       highPrioritySourceCount: row.highPrioritySourceCount,
+      missingSourceCount,
+      requiredSourceCount,
+      missingSourceDomains,
+      sourceCoverageStatus,
       activeRuleCount,
       pendingReviewCount,
       rejectedRuleCount,
       archivedRuleCount,
       customRuleCount: 0,
+      entityCoverage,
+      entitySourceCoverage,
     }
   })
 })
@@ -1075,6 +2015,8 @@ type RuleCoverageRowAccumulator = Map<
     jurisdiction: RuleJurisdiction
     sourceCount: number
     highPrioritySourceCount: number
+    entityCoverage: RuleCoverageRow['entityCoverage']
+    entitySourceCoverage: RuleCoverageRow['entitySourceCoverage']
   }
 >
 
@@ -1087,13 +2029,29 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
   const pendingReviewRules = templateRules()
     .filter((rule) => !reviewed.has(rule.id) && !activeIds.has(rule.id))
     .map(reviewOnlyCoreRule)
+  const generationClient: Parameters<typeof previewObligationsFromRules>[0]['client'] = {
+    id: input.client.id,
+    entityType: input.client.entityType,
+    state: input.client.state,
+    taxTypes: input.client.taxTypes,
+  }
+  if (input.client.taxYearType !== undefined) {
+    generationClient.taxYearType = input.client.taxYearType
+  }
+  if (input.client.fiscalYearEndMonth !== undefined) {
+    generationClient.fiscalYearEndMonth = input.client.fiscalYearEndMonth
+  }
+  if (input.client.fiscalYearEndDay !== undefined) {
+    generationClient.fiscalYearEndDay = input.client.fiscalYearEndDay
+  }
+  if (input.client.taxPeriodSource !== undefined) {
+    generationClient.taxPeriodSource = input.client.taxPeriodSource
+  }
+  if (input.client.localFacts !== undefined) {
+    generationClient.localFacts = input.client.localFacts
+  }
   const generationInput: Parameters<typeof previewObligationsFromRules>[0] = {
-    client: {
-      id: input.client.id,
-      entityType: input.client.entityType,
-      state: input.client.state,
-      taxTypes: input.client.taxTypes,
-    },
+    client: generationClient,
     rules: [...activeRules, ...pendingReviewRules],
   }
 
@@ -1118,13 +2076,17 @@ export const rulesHandlers = {
   listReviewDecisions,
   acceptTemplate,
   bulkAcceptTemplates,
+  activateOnboardingJurisdictions,
   rejectTemplate,
   createCustomRule,
   updatePracticeRule,
   archivePracticeRule,
   previewRuleImpact,
   previewBulkRuleImpact,
+  draftConcreteRule,
+  listConcreteDrafts,
   verifyCandidate,
+  bulkVerifyCandidates,
   rejectCandidate,
   coverage,
   previewObligations,

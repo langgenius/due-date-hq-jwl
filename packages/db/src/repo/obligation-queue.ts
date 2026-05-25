@@ -1,7 +1,8 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
 import type { PenaltyBreakdownItem } from '@duedatehq/core/penalty'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import { compareSmartPriority, rankSmartPriorities } from '@duedatehq/core/priority'
 import type { ObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
@@ -20,9 +21,11 @@ import {
   type ObligationRiskLevel,
   type ObligationStatus,
   type ObligationType,
+  type TaxPeriodKind,
+  type TaxPeriodSource,
 } from '../schema/obligations'
 import { obligationSavedView, type ObligationQueueDensity } from '../schema/obligation-saved-view'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
@@ -35,18 +38,12 @@ import { loadDerivedReadinessByObligation } from './readiness-derived'
  *   - Keeps the join SQL out of the obligation write path, so future
  *     overlay logic (Phase 1) can replace this read alone.
  *
- * Cursor format: base64(`${score}|${ISO_DATE}|${exposureSortValue}|${id}`).
+ * Cursor format: base64(`${score}|${ISO_DATE}|${id}`).
  * `updated_desc` falls back to offset-less single page in Demo Sprint (limit
  * caps at 100 per request).
  */
 
-export type ObligationQueueSort =
-  | 'smart_priority'
-  | 'due_asc'
-  | 'due_desc'
-  | 'exposure_desc'
-  | 'exposure_asc'
-  | 'updated_desc'
+export type ObligationQueueSort = 'smart_priority' | 'due_asc' | 'due_desc' | 'updated_desc'
 export type ObligationQueueReadiness = ObligationReadiness
 
 export interface ObligationQueueListInput {
@@ -54,6 +51,7 @@ export interface ObligationQueueListInput {
   search?: string
   obligationIds?: string[]
   clientIds?: string[]
+  ruleIds?: string[]
   states?: string[]
   counties?: string[]
   taxTypes?: string[]
@@ -62,10 +60,7 @@ export interface ObligationQueueListInput {
   owner?: 'unassigned'
   due?: 'overdue'
   dueWithinDays?: number
-  exposureStatus?: 'ready' | 'needs_input' | 'unsupported'
   readiness?: ObligationQueueReadiness[]
-  minExposureCents?: number
-  maxExposureCents?: number
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean
@@ -82,6 +77,14 @@ export interface ObligationQueueListRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -98,6 +101,7 @@ export interface ObligationQueueListRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  blockedByObligationInstanceId: string | null
   readiness: ObligationQueueReadiness
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
   extensionMemo: string | null
@@ -173,6 +177,7 @@ export interface ObligationQueueFacetsOutput {
   counties: ObligationQueueCountyFacetOption[]
   taxTypes: ObligationQueueFacetOption[]
   assigneeNames: ObligationQueueFacetOption[]
+  statuses: ObligationQueueFacetOption[]
 }
 
 export interface ObligationQueueSavedViewRow {
@@ -213,6 +218,14 @@ interface ObligationQueueRawJoinedRow {
   clientFilingProfileId: string | null
   taxType: string
   taxYear: number | null
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  taxPeriodStart: Date | null
+  taxPeriodEnd: Date | null
+  taxPeriodKind: TaxPeriodKind
+  taxPeriodSource: TaxPeriodSource
+  taxPeriodReviewReason: string | null
   ruleId: string | null
   ruleVersion: number | null
   rulePeriod: string | null
@@ -229,6 +242,7 @@ interface ObligationQueueRawJoinedRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  blockedByObligationInstanceId: string | null
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
   extensionMemo: string | null
   extensionSource: string | null
@@ -321,41 +335,32 @@ function addDays(date: Date, days: number): Date {
 }
 
 function encodeCursor(
-  row: Pick<
-    ObligationQueueListRow,
-    'currentDueDate' | 'estimatedExposureCents' | 'exposureStatus' | 'id' | 'smartPriority'
-  >,
+  row: Pick<ObligationQueueListRow, 'currentDueDate' | 'id' | 'smartPriority'>,
 ): string {
   const iso = row.currentDueDate.toISOString()
-  return Buffer.from(
-    `${row.smartPriority.score}|${iso}|${exposureSortValue(row)}|${row.id}`,
-    'utf8',
-  ).toString('base64url')
+  return Buffer.from(`${row.smartPriority.score}|${iso}|${row.id}`, 'utf8').toString('base64url')
 }
 
 function decodeCursor(cursor: string): {
   currentDueDate: Date
-  exposureSortValue: number | null
   id: string
   smartPriorityScore: number | null
 } | null {
   try {
     const raw = Buffer.from(cursor, 'base64url').toString('utf8')
     const parts = raw.split('|')
-    const [scoreValue, iso, exposureValue, id] =
+    const [scoreValue, iso, id] =
       parts.length === 4
-        ? parts
+        ? [parts[0] ?? '', parts[1] ?? '', parts[3] ?? '']
         : parts.length === 3
-          ? [parts[0] ?? '', parts[1] ?? '', null, parts[2] ?? '']
-          : [null, parts[0] ?? '', null, parts[1] ?? '']
+          ? [parts[0] ?? '', parts[1] ?? '', parts[2] ?? '']
+          : [null, parts[0] ?? '', parts[1] ?? '']
     if (!iso || !id) return null
     const d = new Date(iso)
     if (Number.isNaN(d.getTime())) return null
     const score = scoreValue === null ? Number.NaN : Number(scoreValue)
-    const exposure = exposureValue === null ? Number.NaN : Number(exposureValue)
     return {
       currentDueDate: d,
-      exposureSortValue: Number.isFinite(exposure) ? exposure : null,
       id,
       smartPriorityScore: Number.isFinite(score) ? score : null,
     }
@@ -426,36 +431,34 @@ function compareRows(
   b: ObligationQueueListRow,
   sort: ObligationQueueSort,
 ): number {
+  // clientId is the universal secondary tiebreak. When the primary
+  // sort metric ties (same priority score, same due date, same
+  // exposure), same-client rows cluster — so the queue's
+  // adjacency-based grouping (continuationRowIds in the route file)
+  // actually triggers. Without this, two rows from the same client
+  // that both hit, say, Apr 15 would still scatter randomly because
+  // the only tiebreaker was obligationId (a UUID).
   if (sort === 'smart_priority') {
-    return compareSmartPriority(
+    const cmp = compareSmartPriority(
       { obligationId: a.id, currentDueDate: a.currentDueDate, smartPriority: a.smartPriority },
       { obligationId: b.id, currentDueDate: b.currentDueDate, smartPriority: b.smartPriority },
     )
+    if (cmp !== 0) return cmp
+    return a.clientId.localeCompare(b.clientId)
   }
   if (sort === 'updated_desc') {
     const updatedDelta = b.updatedAt.getTime() - a.updatedAt.getTime()
     if (updatedDelta !== 0) return updatedDelta
+    const clientDelta = a.clientId.localeCompare(b.clientId)
+    if (clientDelta !== 0) return clientDelta
     return b.id.localeCompare(a.id)
-  }
-  if (sort === 'exposure_desc' || sort === 'exposure_asc') {
-    const direction = sort === 'exposure_desc' ? -1 : 1
-    const exposureDelta = exposureSortValue(a) - exposureSortValue(b)
-    if (exposureDelta !== 0) return exposureDelta * direction
-    return a.id.localeCompare(b.id) * direction
   }
   const direction = sort === 'due_desc' ? -1 : 1
   const dateDelta = a.currentDueDate.getTime() - b.currentDueDate.getTime()
   if (dateDelta !== 0) return dateDelta * direction
+  const clientDelta = a.clientId.localeCompare(b.clientId)
+  if (clientDelta !== 0) return clientDelta
   return a.id.localeCompare(b.id) * direction
-}
-
-function exposureSortValue(
-  row: Pick<ObligationQueueListRow, 'estimatedExposureCents' | 'exposureStatus'>,
-): number {
-  if (row.exposureStatus === 'ready' && row.estimatedExposureCents !== null) {
-    return row.estimatedExposureCents
-  }
-  return -1
 }
 
 function isAfterCursor(
@@ -463,7 +466,6 @@ function isAfterCursor(
   sort: ObligationQueueSort,
   cursor: {
     currentDueDate: Date
-    exposureSortValue: number | null
     id: string
     smartPriorityScore: number | null
   },
@@ -485,14 +487,6 @@ function isAfterCursor(
         },
       ) > 0
     )
-  }
-  if (sort === 'exposure_desc' || sort === 'exposure_asc') {
-    if (cursor.exposureSortValue === null) return true
-    const exposureDelta = exposureSortValue(row) - cursor.exposureSortValue
-    if (sort === 'exposure_desc') {
-      return exposureDelta < 0 || (exposureDelta === 0 && row.id < cursor.id)
-    }
-    return exposureDelta > 0 || (exposureDelta === 0 && row.id > cursor.id)
   }
   const dateDelta = row.currentDueDate.getTime() - cursor.currentDueDate.getTime()
   if (sort === 'due_desc') return dateDelta < 0 || (dateDelta === 0 && row.id < cursor.id)
@@ -543,7 +537,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
     const statuses = new Map(rawRows.map((row) => [row.id, row.status]))
     const [overlayDueDates, evidenceCounts, readinessById, smartPriorityProfile] =
       await Promise.all([
-        listActiveOverlayDueDates(db, firmId, obligationIds),
+        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
         listEvidenceCounts(obligationIds),
         loadDerivedReadinessByObligation(db, firmId, statuses),
         loadSmartPriorityProfile(),
@@ -552,17 +546,21 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
     const asOfDateOnly = asOfDate.toISOString().slice(0, 10)
     const rowDrafts = rawRows.map((row) => {
       const currentDueDate = overlayDueDates.get(row.id) ?? row.currentDueDate
+      const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
+      const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
       const accrued = estimateAccruedPenalty(
         {
           jurisdiction: row.clientState,
           taxType: row.taxType,
           entityType: row.clientEntityType,
-          dueDate: currentDueDate,
+          dueDate: statutoryPenaltyDueDate({ ...row, currentDueDate }),
           penaltyFactsJson: row.penaltyFactsJson,
         },
         { asOfDate: asOfDateOnly },
       )
       return Object.assign({}, row, {
+        filingDueDate: taxAuthorityFilingDueDate,
+        paymentDueDate: taxAuthorityPaymentDueDate,
         currentDueDate,
         readiness: readinessById.get(row.id) ?? 'ready',
         evidenceCount: evidenceCounts.get(row.id) ?? 0,
@@ -626,6 +624,11 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         filters.push(inArray(obligationInstance.clientId, clientIds))
       }
 
+      const ruleIds = uniqueNonEmpty(input.ruleIds)
+      if (ruleIds.length > 0) {
+        filters.push(inArray(obligationInstance.ruleId, ruleIds))
+      }
+
       const states = uniqueNonEmpty(input.states)
         .map((value) => normalizeStateCode(value))
         .filter((value): value is string => value !== null)
@@ -652,35 +655,18 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         filters.push(or(isNull(client.assigneeName), eq(client.assigneeName, ''))!)
       }
 
-      if (input.exposureStatus) {
-        filters.push(eq(obligationInstance.exposureStatus, input.exposureStatus))
-      }
-
-      if (input.minExposureCents !== undefined) {
-        filters.push(gte(obligationInstance.estimatedExposureCents, input.minExposureCents))
-      }
-
-      if (input.maxExposureCents !== undefined) {
-        filters.push(lte(obligationInstance.estimatedExposureCents, input.maxExposureCents))
-      }
-
       const search = normalizeObligationQueueSearch(input.search)
       if (search) {
         const needle = `%${escapeLikePattern(search)}%`
         filters.push(sql`${client.name} like ${needle} escape '\\'`)
       }
 
-      const exposureSortSql = sql<number>`case when ${obligationInstance.exposureStatus} = 'ready' and ${obligationInstance.estimatedExposureCents} is not null then ${obligationInstance.estimatedExposureCents} else -1 end`
       const orderBy =
         sort === 'due_desc'
           ? [desc(obligationInstance.currentDueDate), desc(obligationInstance.id)]
-          : sort === 'exposure_desc'
-            ? [desc(exposureSortSql), desc(obligationInstance.id)]
-            : sort === 'exposure_asc'
-              ? [asc(exposureSortSql), asc(obligationInstance.id)]
-              : sort === 'updated_desc'
-                ? [desc(obligationInstance.updatedAt), desc(obligationInstance.id)]
-                : [asc(obligationInstance.currentDueDate), asc(obligationInstance.id)]
+          : sort === 'updated_desc'
+            ? [desc(obligationInstance.updatedAt), desc(obligationInstance.id)]
+            : [asc(obligationInstance.currentDueDate), asc(obligationInstance.id)]
 
       const rawRows = await db
         .select({
@@ -690,6 +676,14 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           clientFilingProfileId: obligationInstance.clientFilingProfileId,
           taxType: obligationInstance.taxType,
           taxYear: obligationInstance.taxYear,
+          taxYearType: obligationInstance.taxYearType,
+          fiscalYearEndMonth: obligationInstance.fiscalYearEndMonth,
+          fiscalYearEndDay: obligationInstance.fiscalYearEndDay,
+          taxPeriodStart: obligationInstance.taxPeriodStart,
+          taxPeriodEnd: obligationInstance.taxPeriodEnd,
+          taxPeriodKind: obligationInstance.taxPeriodKind,
+          taxPeriodSource: obligationInstance.taxPeriodSource,
+          taxPeriodReviewReason: obligationInstance.taxPeriodReviewReason,
           ruleId: obligationInstance.ruleId,
           ruleVersion: obligationInstance.ruleVersion,
           rulePeriod: obligationInstance.rulePeriod,
@@ -706,6 +700,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
+          blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
           extensionDecision: obligationInstance.extensionDecision,
           extensionMemo: obligationInstance.extensionMemo,
           extensionSource: obligationInstance.extensionSource,
@@ -807,6 +802,14 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               clientFilingProfileId: obligationInstance.clientFilingProfileId,
               taxType: obligationInstance.taxType,
               taxYear: obligationInstance.taxYear,
+              taxYearType: obligationInstance.taxYearType,
+              fiscalYearEndMonth: obligationInstance.fiscalYearEndMonth,
+              fiscalYearEndDay: obligationInstance.fiscalYearEndDay,
+              taxPeriodStart: obligationInstance.taxPeriodStart,
+              taxPeriodEnd: obligationInstance.taxPeriodEnd,
+              taxPeriodKind: obligationInstance.taxPeriodKind,
+              taxPeriodSource: obligationInstance.taxPeriodSource,
+              taxPeriodReviewReason: obligationInstance.taxPeriodReviewReason,
               ruleId: obligationInstance.ruleId,
               ruleVersion: obligationInstance.ruleVersion,
               rulePeriod: obligationInstance.rulePeriod,
@@ -823,6 +826,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               baseDueDate: obligationInstance.baseDueDate,
               currentDueDate: obligationInstance.currentDueDate,
               status: obligationInstance.status,
+              blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
               extensionDecision: obligationInstance.extensionDecision,
               extensionMemo: obligationInstance.extensionMemo,
               extensionSource: obligationInstance.extensionSource,
@@ -906,6 +910,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           >`coalesce(json_extract(${clientFilingProfile.countiesJson}, '$[0]'), ${client.county})`,
           taxType: obligationInstance.taxType,
           assigneeName: client.assigneeName,
+          status: obligationInstance.status,
         })
         .from(obligationInstance)
         .innerJoin(client, eq(obligationInstance.clientId, client.id))
@@ -928,6 +933,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
       const counties = new Map<string, ObligationQueueCountyFacetOption>()
       const taxTypes = new Map<string, ObligationQueueFacetOption>()
       const assigneeNames = new Map<string, ObligationQueueFacetOption>()
+      const statuses = new Map<string, ObligationQueueFacetOption>()
 
       for (const row of rawRows) {
         const clientState = normalizeStateCode(row.clientState)
@@ -990,6 +996,13 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             })
           }
         }
+
+        const statusFacet = statuses.get(row.status)
+        if (statusFacet) {
+          statusFacet.count += 1
+        } else {
+          statuses.set(row.status, { value: row.status, label: row.status, count: 1 })
+        }
       }
 
       return {
@@ -1000,6 +1013,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         assigneeNames: [...assigneeNames.values()]
           .toSorted(compareFacetLabels)
           .slice(0, MAX_FACET_OPTIONS),
+        statuses: [...statuses.values()],
       }
     },
 

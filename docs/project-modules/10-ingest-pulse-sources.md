@@ -200,7 +200,7 @@ flowchart TB
 
 - HTML/RSS 解析工具偏轻量，对复杂政府页面可能需要 source-specific parser。
 - Browserless/GovDelivery fetcher 需要部署环境配置支持；CA/WA/MA 等 WAF 风险源会优先使用
-  Browserless，未配置时会退回 Cloudflare fetch 并通过 source health 暴露给 ops。
+  Browserless，未配置时会退回 Cloudflare fetch 并通过 ingest metrics/source diagnostics 暴露给 ops。
 - 来源页面结构变化可能导致解析退化，需要 fixture tests 和监控。
 - FEMA 等 T2 来源默认不能直接创建 Pulse，需要人工或下游逻辑确认。
 
@@ -208,6 +208,6 @@ flowchart TB
 
 - 为每个 live adapter 增加 fixture snapshot 和 parse 测试。
 - 记录 robots/cache 命中和 conditional fetch 指标。
-- 将 T1 source health 暴露给 Rules > Pulse Changes 的 owner/manager review 表；T2/T3 降级只作被动
-  监控提示，后续再补 ops 专用 stale/quarantined 处理流程。
+- 将 T1/T2/T3 watcher failure 统一保留为 ops 专用 stale/quarantined 诊断，不进入 Rules >
+  Pulse Changes。成功解析出的官方内容变化仍通过 Pulse review 流程处理。
 - 对同一公告跨来源重复出现的情况建立 dedupe 策略。

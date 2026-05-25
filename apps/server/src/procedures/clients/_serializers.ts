@@ -52,6 +52,12 @@ export interface ClientRow {
   taxYearType: 'calendar' | 'fiscal'
   fiscalYearEndMonth: number | null
   fiscalYearEndDay: number | null
+  externalClientId: string | null
+  addressLine1: string | null
+  city: string | null
+  postalCode: string | null
+  primaryPhone: string | null
+  sourceStatus: string | null
   email: string | null
   notes: string | null
   assigneeId: string | null
@@ -87,6 +93,12 @@ export interface ClientCreateInputForRepo {
   taxYearType?: ClientRow['taxYearType']
   fiscalYearEndMonth?: number | null
   fiscalYearEndDay?: number | null
+  externalClientId?: string | null
+  addressLine1?: string | null
+  city?: string | null
+  postalCode?: string | null
+  primaryPhone?: string | null
+  sourceStatus?: string | null
   ownerCount?: number | null
   hasForeignAccounts?: boolean
   hasPayroll?: boolean
@@ -156,6 +168,12 @@ export function toClientPublic(
     taxYearType: row.taxYearType,
     fiscalYearEndMonth: row.fiscalYearEndMonth,
     fiscalYearEndDay: row.fiscalYearEndDay,
+    externalClientId: row.externalClientId,
+    addressLine1: row.addressLine1,
+    city: row.city,
+    postalCode: row.postalCode,
+    primaryPhone: row.primaryPhone,
+    sourceStatus: row.sourceStatus,
     email: row.email,
     notes: row.notes,
     assigneeId: row.assigneeId,

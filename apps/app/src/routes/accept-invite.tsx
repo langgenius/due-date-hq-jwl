@@ -92,7 +92,10 @@ export function AcceptInviteRoute() {
       await navigate('/', { replace: true })
     } catch (err) {
       toast.error(t`Couldn't accept invitation`, {
-        description: err instanceof Error ? err.message : t`Please try again.`,
+        description:
+          err instanceof Error
+            ? err.message
+            : t`Check your network and try again. If this keeps happening, contact support.`,
       })
       setSubmitting(null)
     }
@@ -108,7 +111,10 @@ export function AcceptInviteRoute() {
       }
     } catch (err) {
       toast.error(t`Couldn't start sign-in`, {
-        description: err instanceof Error ? err.message : t`Please try again.`,
+        description:
+          err instanceof Error
+            ? err.message
+            : t`Check your network and try again. If this keeps happening, contact support.`,
       })
       setSubmitting(null)
     }

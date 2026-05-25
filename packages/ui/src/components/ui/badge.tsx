@@ -33,22 +33,35 @@ const badgeVariants = cva(
 )
 
 /**
- * Status indicator dot. Renders the Dify-style halo using the
- * `--shadow-status-indicator-{tone}` composite shadow tokens.
+ * Status indicator dot — flat colored circle.
+ *
+ * 2026-05-21: dropped the `shadow-status-indicator-{tone}` halo per
+ * design call ("remove all of the dots' shadow"). The dot is meant to
+ * read as a label color, not a live-status glow. The `PulsingDot`
+ * component still renders the haloed treatment for genuinely
+ * animated/live signals.
+ *
+ * Added `info` tone (violet) so the obligation lifecycle can
+ * differentiate "Waiting on client" from "In review" — both used to
+ * share warning/amber and were visually indistinguishable.
  */
 function BadgeStatusDot({
   tone = 'success',
   className,
   ...props
 }: React.ComponentProps<'span'> & {
-  tone?: 'success' | 'warning' | 'error' | 'normal' | 'disabled'
+  tone?: 'success' | 'warning' | 'error' | 'normal' | 'disabled' | 'info'
 }) {
   const palette = {
-    success: 'bg-components-badge-status-light-success-bg shadow-status-indicator-green',
-    warning: 'bg-components-badge-status-light-warning-bg shadow-status-indicator-warning',
-    error: 'bg-components-badge-status-light-error-bg shadow-status-indicator-red',
-    normal: 'bg-components-badge-status-light-normal-bg shadow-status-indicator-blue',
-    disabled: 'bg-components-badge-status-light-disabled-bg shadow-status-indicator-gray',
+    success: 'bg-components-badge-status-light-success-bg',
+    warning: 'bg-components-badge-status-light-warning-bg',
+    error: 'bg-components-badge-status-light-error-bg',
+    normal: 'bg-components-badge-status-light-normal-bg',
+    disabled: 'bg-components-badge-status-light-disabled-bg',
+    // Violet — distinct from blue (`normal`, in-progress) and amber
+    // (`warning`, needs-attention/review). Carries the "we're paused,
+    // waiting on someone else" semantic for waiting-on-client.
+    info: 'bg-violet-500',
   }[tone]
 
   return (

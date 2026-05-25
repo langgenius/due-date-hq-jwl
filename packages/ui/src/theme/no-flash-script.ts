@@ -13,7 +13,7 @@ const THEME_INIT_SCRIPT = `(() => {
   const lightThemeColor = ${JSON.stringify(THEME_COLOR_LIGHT)}
   const darkThemeColor = ${JSON.stringify(THEME_COLOR_DARK)}
   const root = document.documentElement
-  let preference = 'system'
+  let preference = 'light'
 
   try {
     const stored = localStorage.getItem(storageKey)

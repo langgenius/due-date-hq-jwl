@@ -1,10 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import type { ClientPublic, ObligationInstancePublic, PulseDetail } from '@duedatehq/contracts'
+import type {
+  ClientPublic,
+  ObligationInstancePublic,
+  ObligationQueueRow,
+  OpportunityPublic,
+  PulseDetail,
+} from '@duedatehq/contracts'
 
 import {
   buildClientContactPlan,
+  buildClientObligationListSummaries,
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
+  buildOpportunityCountByClient,
+  buildPulseMatchesByClient,
+  findExtensionWithoutPaymentObligations,
 } from './client-detail-model'
 
 function obligation(overrides: Partial<ObligationInstancePublic> = {}): ObligationInstancePublic {
@@ -15,6 +25,14 @@ function obligation(overrides: Partial<ObligationInstancePublic> = {}): Obligati
     clientFilingProfileId: null,
     taxType: 'CA Form 100',
     taxYear: 2026,
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
+    taxPeriodStart: '2026-01-01',
+    taxPeriodEnd: '2026-12-31',
+    taxPeriodKind: 'calendar',
+    taxPeriodSource: 'client_default',
+    taxPeriodReviewReason: null,
     ruleId: null,
     ruleVersion: null,
     rulePeriod: null,
@@ -31,11 +49,12 @@ function obligation(overrides: Partial<ObligationInstancePublic> = {}): Obligati
     baseDueDate: '2026-04-15',
     currentDueDate: '2026-04-15',
     status: 'pending',
+    blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
     extensionMemo: null,
     extensionSource: null,
-    extensionExpectedDueDate: null,
+    extensionInternalTargetDate: null,
     extensionDecidedAt: null,
     extensionDecidedByUserId: null,
     extensionState: 'not_started',
@@ -90,6 +109,12 @@ function client(overrides: Partial<ClientPublic> = {}): ClientPublic {
     fiscalYearEndDay: null,
     email: 'owner@example.com',
     notes: null,
+    externalClientId: null,
+    addressLine1: null,
+    city: null,
+    postalCode: null,
+    primaryPhone: null,
+    sourceStatus: null,
     assigneeId: 'user_1',
     assigneeName: 'Casey',
     ownerCount: 2,
@@ -114,6 +139,26 @@ function client(overrides: Partial<ClientPublic> = {}): ClientPublic {
   }
 }
 
+function makeOpportunity(id: string, clientId: string): OpportunityPublic {
+  return {
+    id,
+    kind: 'advisory_conversation',
+    client: {
+      id: clientId,
+      name: clientId,
+      entityType: 'llc',
+      state: 'CA',
+      assigneeName: null,
+    },
+    title: 'Title',
+    summary: 'Summary',
+    timing: 'now',
+    severity: 'medium',
+    evidence: [{ label: 'l', value: 'v' }],
+    primaryAction: { label: 'Act', href: '/x' },
+  }
+}
+
 function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
   return {
     alert: {
@@ -124,12 +169,15 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       title: 'CA disaster relief',
       source: 'CA FTB',
       sourceUrl: 'https://example.com/source',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
       summary: 'Deadline moved.',
       publishedAt: '2026-05-01T00:00:00.000Z',
       matchedCount: 1,
       needsReviewCount: 0,
       confidence: 0.92,
       isSample: false,
+      jurisdiction: 'CA',
     },
     jurisdiction: 'CA',
     counties: ['Alameda'],
@@ -138,6 +186,9 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     originalDueDate: '2026-04-15',
     newDueDate: '2026-06-15',
     effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    structuredChange: null,
     sourceExcerpt: 'Official extension.',
     reviewedAt: null,
     affectedClients: [
@@ -167,6 +218,7 @@ describe('client detail model', () => {
         [
           obligation({
             id: 'overdue',
+            baseDueDate: '2026-05-01',
             currentDueDate: '2026-05-01',
             estimatedExposureCents: 15000,
             estimatedTaxDueCents: 50000,
@@ -174,6 +226,7 @@ describe('client detail model', () => {
           }),
           obligation({
             id: 'review',
+            baseDueDate: '2026-05-20',
             currentDueDate: '2026-05-20',
             status: 'review',
             readiness: 'needs_review',
@@ -187,13 +240,80 @@ describe('client detail model', () => {
     ).toMatchObject({
       openCount: 2,
       overdueOpenCount: 1,
+      statutoryLateUnextendedCount: 1,
+      extensionPaymentDueCount: 0,
+      extensionFiledOpenCount: 0,
       needsReviewCount: 1,
-      projectedExposureCents: 40000,
-      exposureNeedsInputCount: 0,
       estimatedTaxDueCents: 50000,
-      paymentTrackCount: 2,
+      paymentTrackCount: 1,
       nextDueDate: '2026-05-01',
     })
+  })
+
+  it('flags statutory-late rows even after currentDueDate shifts past asOf', () => {
+    // The Lakeview scenario: filing extension paperwork hasn't been
+    // sent yet, currentDueDate is unchanged from baseDueDate, but the
+    // page is rendered after the statutory date. Pill must NOT go
+    // green; statutoryLateUnextendedCount catches it.
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'unextended_late',
+          baseDueDate: '2026-04-15',
+          currentDueDate: '2026-04-15',
+          status: 'review',
+          extensionState: 'not_started',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.statutoryLateUnextendedCount).toBe(1)
+    expect(summary.extensionFiledOpenCount).toBe(0)
+    expect(summary.extensionPaymentDueCount).toBe(0)
+    expect(summary.overdueOpenCount).toBe(1)
+  })
+
+  it('does not count statutory-late when an extension is on the wire', () => {
+    // Real Lakeview seed: extension filed, currentDueDate pushed to
+    // 2026-11-15. Pill must surface "Extended" (or extension-payment
+    // warning) rather than red "statutory late".
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'extended',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-11-15',
+          status: 'extended',
+          extensionState: 'filed',
+          paymentState: 'not_applicable',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.statutoryLateUnextendedCount).toBe(0)
+    expect(summary.extensionFiledOpenCount).toBe(1)
+    expect(summary.extensionPaymentDueCount).toBe(0)
+    // currentDueDate is in the future post-extension, so "X late" is silent.
+    expect(summary.overdueOpenCount).toBe(0)
+  })
+
+  it('flags extension-with-unsettled-payment per anti-pattern #1', () => {
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'extension_payment_due',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-09-15',
+          status: 'extended',
+          extensionState: 'accepted',
+          paymentState: 'estimate_needed',
+        }),
+      ],
+      '2026-05-24',
+    )
+    expect(summary.extensionPaymentDueCount).toBe(1)
+    expect(summary.extensionFiledOpenCount).toBe(1)
+    expect(summary.statutoryLateUnextendedCount).toBe(0)
   })
 
   it('keeps Pulse matches scoped to the selected client', () => {
@@ -233,5 +353,173 @@ describe('client detail model', () => {
       internalOwner: null,
       missing: ['primary_contact', 'internal_owner', 'fallback_contact'],
     })
+  })
+
+  it('summarizes the firm obligations queue into next-due and open-count per client', () => {
+    const queueRow = (overrides: Partial<ObligationQueueRow>): ObligationQueueRow => ({
+      ...obligation(),
+      clientName: 'Client',
+      clientState: 'CA',
+      clientCounty: null,
+      assigneeName: null,
+      taxYearProfileEditable: false,
+      readiness: 'ready',
+      daysUntilDue: 0,
+      evidenceCount: 0,
+      smartPriority: { version: 'smart-priority-v1', score: 0, rank: null, factors: [] },
+      ...overrides,
+    })
+
+    const rows: ObligationQueueRow[] = [
+      queueRow({
+        id: 'a1',
+        clientId: 'client_a',
+        currentDueDate: '2026-06-15',
+        taxType: 'CA Form 100',
+        status: 'pending',
+      }),
+      queueRow({
+        id: 'a2',
+        clientId: 'client_a',
+        currentDueDate: '2026-05-30',
+        taxType: 'CA Payroll',
+        status: 'waiting_on_client',
+      }),
+      queueRow({
+        id: 'a3',
+        clientId: 'client_a',
+        currentDueDate: '2026-04-15',
+        taxType: 'CA Past Due',
+        status: 'done',
+      }),
+      queueRow({
+        id: 'b1',
+        clientId: 'client_b',
+        currentDueDate: '2026-07-01',
+        taxType: 'NY Form CT-3',
+        status: 'in_progress',
+      }),
+    ]
+
+    const summaries = buildClientObligationListSummaries(rows)
+
+    expect(summaries.get('client_a')).toEqual({
+      openCount: 2,
+      overdueCount: 0,
+      waitingOnClientCount: 1,
+      nextDueDate: '2026-05-30',
+      nextTaxType: 'CA Payroll',
+      // earliest-due row is a2 (waiting_on_client) — its status
+      // populates the pill INLINE inside the NEXT DUE cell next to
+      // "Xd late". a3 ('done') is counted toward doneCount but its
+      // historical due date doesn't move nextDueDate backward.
+      nextDueStatus: 'waiting_on_client',
+      doneCount: 1,
+    })
+    expect(summaries.get('client_b')).toEqual({
+      openCount: 1,
+      overdueCount: 0,
+      waitingOnClientCount: 0,
+      nextDueDate: '2026-07-01',
+      nextTaxType: 'NY Form CT-3',
+      nextDueStatus: 'in_progress',
+      doneCount: 0,
+    })
+  })
+
+  it('counts opportunities per client', () => {
+    const counts = buildOpportunityCountByClient([
+      makeOpportunity('1', 'client_a'),
+      makeOpportunity('2', 'client_a'),
+      makeOpportunity('3', 'client_b'),
+    ])
+
+    expect(counts.get('client_a')).toBe(2)
+    expect(counts.get('client_b')).toBe(1)
+    expect(counts.get('client_c')).toBeUndefined()
+  })
+
+  it('groups active pulse matches by client and ignores resolved or reverted matches', () => {
+    const baseAffected = pulseDetail().affectedClients[0]!
+    const detail = pulseDetail({
+      affectedClients: [
+        { ...baseAffected, clientId: 'client_a', obligationId: 'ob_a', matchStatus: 'eligible' },
+        {
+          ...baseAffected,
+          clientId: 'client_b',
+          obligationId: 'ob_b',
+          matchStatus: 'needs_review',
+        },
+        {
+          ...baseAffected,
+          clientId: 'client_c',
+          obligationId: 'ob_c',
+          matchStatus: 'already_applied',
+        },
+        {
+          ...baseAffected,
+          clientId: 'client_d',
+          obligationId: 'ob_d',
+          matchStatus: 'reverted',
+        },
+      ],
+    })
+    const secondDetail = pulseDetail({
+      alert: {
+        ...pulseDetail().alert,
+        id: 'alert_2',
+        publishedAt: '2026-05-10T00:00:00.000Z',
+      },
+      affectedClients: [
+        { ...baseAffected, clientId: 'client_a', obligationId: 'ob_a2', matchStatus: 'eligible' },
+      ],
+    })
+
+    const byClient = buildPulseMatchesByClient([detail, secondDetail])
+
+    expect([...byClient.keys()].toSorted()).toEqual(['client_a', 'client_b'])
+    const matchesForA = byClient.get('client_a')!
+    expect(matchesForA).toHaveLength(2)
+    // Newest first
+    expect(matchesForA[0]!.alertId).toBe('alert_2')
+    expect(matchesForA[1]!.alertId).toBe('alert_1')
+  })
+
+  it('flags obligations where the filing extension is filed but payment is not settled (anti-pattern #1)', () => {
+    const filed = obligation({
+      id: 'filed_unpaid',
+      extensionState: 'filed',
+      paymentState: 'estimate_needed',
+    })
+    const accepted = obligation({
+      id: 'accepted_scheduled',
+      extensionState: 'accepted',
+      paymentState: 'scheduled',
+    })
+    const settled = obligation({
+      id: 'filed_settled',
+      extensionState: 'filed',
+      paymentState: 'confirmed',
+    })
+    const noExtension = obligation({
+      id: 'no_extension',
+      extensionState: 'not_started',
+      paymentState: 'estimate_needed',
+    })
+    const noPayment = obligation({
+      id: 'no_payment',
+      extensionState: 'filed',
+      paymentState: 'not_applicable',
+    })
+
+    const flagged = findExtensionWithoutPaymentObligations([
+      filed,
+      accepted,
+      settled,
+      noExtension,
+      noPayment,
+    ])
+
+    expect(flagged.map((row) => row.id)).toEqual(['filed_unpaid', 'accepted_scheduled'])
   })
 })

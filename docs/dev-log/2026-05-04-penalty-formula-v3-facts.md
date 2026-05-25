@@ -8,7 +8,7 @@ author: 'Codex'
 
 ## Background
 
-Penalty exposure v2 split stored 90-day projected risk from runtime accrued penalty, but the engine
+Deadline readiness v2 split stored 90-day legacy penalty estimate from runtime accrued penalty, but the engine
 still depended on client-level legacy inputs and had no place to persist formula facts, missing fact
 lists, or source references. The requested all-state rollout also made one boundary explicit:
 state penalties cannot reuse federal formulas or fake `$0` when an official formula has not been
@@ -42,7 +42,7 @@ entered.
   and official sources without adding a new top-level dollar metric.
 - Extended `pnpm rules:check-sources` so penalty formula catalog entries must include official URL,
   excerpt, effective date, and last-reviewed date.
-- Clarified the user manual wording for Dashboard `Projected Risk` / Penalty Radar so users
+- Clarified the user manual wording for Dashboard `Legacy penalty estimate` / Deadline Radar so users
   understand it as a 90-day estimated exposure queue, not an official penalty notice or fake `$0`
   when facts are missing.
 

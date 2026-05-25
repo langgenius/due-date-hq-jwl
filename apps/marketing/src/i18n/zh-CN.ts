@@ -4,7 +4,7 @@ const zhCN: LandingCopy = {
   meta: {
     title: 'DueDateHQ — 在罚款发生前看清截止日风险',
     description:
-      '面向美国 CPA 团队的玻璃盒截止日智能工作台。每一笔风险金额、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源。',
+      '面向美国 CPA 团队的玻璃盒截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源。',
     ogImage: '/og/home.zh-CN.png',
   },
   nav: {
@@ -26,7 +26,7 @@ const zhCN: LandingCopy = {
     eyebrow: 'GLASS-BOX DEADLINE INTELLIGENCE',
     title: '在罚款发生前看清截止日风险。',
     description:
-      'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一笔风险金额、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
+      'DueDateHQ 是为美国 CPA 团队打造的截止日智能工作台。每一个截止日、每一条 IRS 规则、每一次州税变更都可追溯到官方原始来源 —— 全部归并在一个键盘优先、为周一 5 分钟分诊设计的控制台里。',
     primaryCta: '打开工作台',
     secondaryCta: '查看工作流',
     trust: [
@@ -41,7 +41,7 @@ const zhCN: LandingCopy = {
       brief: {
         status: 'READY',
         title: 'AI weekly brief',
-        text: '先处理 Acme 和 Birchwood：两者都在七天窗口内，敞口可计算，并且引用了当前 IRS 来源。',
+        text: '先处理 Acme 和 Birchwood：两者都在七天窗口内，来源链完整，并且需要复核。',
         citation: '[1] IRS Pub 509',
       },
       pulse: {
@@ -51,13 +51,13 @@ const zhCN: LandingCopy = {
         cta: '查看',
       },
       metric: {
-        eyebrow: 'PENALTY RADAR · 本周',
+        eyebrow: 'DEADLINE RADAR · 本周',
         range: 'Apr 25 — May 01',
-        value: '$187,420',
-        delta: '+ $24,180 vs 上周一',
+        value: '12',
+        delta: '+3 vs 上周一',
         stats: [
           { label: '高危客户', value: '5' },
-          { label: '风险表单', value: '12' },
+          { label: '需要复核', value: '12' },
           { label: 'PULSE 事件 (24h)', value: '3' },
           { label: '本周已申报', value: '11' },
         ],
@@ -76,7 +76,7 @@ const zhCN: LandingCopy = {
           days: '天数',
           status: '状态',
           severity: '风险',
-          exposure: '敞口',
+          exposure: '下一步',
           evidence: '证据',
         },
         rows: [
@@ -93,7 +93,7 @@ const zhCN: LandingCopy = {
             statusTone: 'warning',
             statusDotTone: 'warning',
             severityLabel: 'critical',
-            exposure: '$48,200',
+            exposure: '复核来源',
             exposureTone: 'warning',
             evidence: 'IRS Pub 509',
             evidenceTone: 'info',
@@ -112,7 +112,7 @@ const zhCN: LandingCopy = {
             statusTone: 'outline',
             statusDotTone: 'warning',
             severityLabel: 'critical',
-            exposure: '$32,850',
+            exposure: '等待客户',
             exposureTone: 'warning',
             evidence: 'IRS §6072(b)',
             evidenceTone: 'info',
@@ -131,7 +131,7 @@ const zhCN: LandingCopy = {
             statusTone: 'info',
             statusDotTone: 'normal',
             severityLabel: 'high',
-            exposure: '$24,180',
+            exposure: '完成复核',
             exposureTone: 'warning',
             evidence: 'IRS Pub 509',
             evidenceTone: 'info',
@@ -150,7 +150,7 @@ const zhCN: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '$18,900',
+            exposure: '监控 Pulse',
             exposureTone: 'warning',
             evidence: 'CA-FTB FR-31',
             evidenceTone: 'info',
@@ -169,7 +169,7 @@ const zhCN: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '$12,450',
+            exposure: '分配 owner',
             exposureTone: 'warning',
             evidence: 'IRS §6072(b)',
             evidenceTone: 'info',
@@ -194,7 +194,7 @@ const zhCN: LandingCopy = {
         value: '30',
         unit: '秒',
         description:
-          '在周一控制台一眼看清本周风险最高的 5 位客户。Penalty Radar 在服务端预聚合，金额在页面绘制前就已就位。',
+          '在周一控制台一眼看清本周最紧急的 5 位客户。Deadline Radar 在服务端预聚合，队列在页面绘制前就已就位。',
       },
       {
         ruleNumber: 'RULE 00',
@@ -279,7 +279,7 @@ const zhCN: LandingCopy = {
         index: '01',
         tag: 'TRIAGE · 30 SECONDS',
         headline: '周一控制台。',
-        body: 'Owner 打开笔记本，看到 5 位高风险客户、敞口金额，以及第一个动作的快捷键。Smart Priority 是纯函数排序 —— 仪表盘热路径里没有 LLM。',
+        body: 'Owner 打开笔记本，看到 5 位高风险客户、证据状态，以及第一个动作的快捷键。Smart Priority 是纯函数排序 —— 仪表盘热路径里没有 LLM。',
         hints: [
           { keys: '⌘K', label: '命令面板' },
           { keys: 'E', label: '证据' },
@@ -291,7 +291,7 @@ const zhCN: LandingCopy = {
           summary: [
             { label: '未完成', value: '18' },
             { label: '本周到期', value: '12' },
-            { label: '敞口', value: '$187k' },
+            { label: '待复核', value: '5' },
           ],
           tableHeaders: {
             priority: '优先级',
@@ -300,7 +300,7 @@ const zhCN: LandingCopy = {
             due: '截止日',
             status: '状态',
             severity: '风险',
-            exposure: '敞口',
+            exposure: '下一步',
             evidence: '证据',
           },
           pulse: {
@@ -321,7 +321,7 @@ const zhCN: LandingCopy = {
               statusTone: 'warning',
               statusDotTone: 'warning',
               severityLabel: 'critical',
-              exposure: '$48,200',
+              exposure: '复核来源',
               exposureTone: 'warning',
               evidence: '2 个来源',
               evidenceTone: 'info',
@@ -339,7 +339,7 @@ const zhCN: LandingCopy = {
               statusTone: 'outline',
               statusDotTone: 'warning',
               severityLabel: 'critical',
-              exposure: '$32,850',
+              exposure: '等待客户',
               exposureTone: 'warning',
               evidence: '1 个来源',
               evidenceTone: 'info',
@@ -357,7 +357,7 @@ const zhCN: LandingCopy = {
               statusTone: 'info',
               statusDotTone: 'normal',
               severityLabel: 'medium',
-              exposure: '$24,180',
+              exposure: '完成复核',
               exposureTone: 'warning',
               evidence: '打开',
               evidenceTone: 'outline',
@@ -445,7 +445,7 @@ const zhCN: LandingCopy = {
             { label: '表单', value: '1120-S' },
             { label: '到期日', value: '2026-04-28' },
             { label: '剩余', value: '3 天' },
-            { label: '敞口', value: '$48,200.00' },
+            { label: '下一步', value: '复核来源' },
             { label: '罚则', value: 'IRC § 6651(a)(1)' },
           ],
           source: {
@@ -510,10 +510,10 @@ const zhCN: LandingCopy = {
     ],
   },
   finalCta: {
-    pill: '平均 $54k / 每年 / 每家',
-    pillCaption: 'AVOIDABLE PENALTY EXPOSURE IN A CALENDAR YEAR',
-    title: '打开工作台。让金额自己说话。',
-    body: '先用 trial 或 demo workspace 体验；当第一笔真实风险金额出现后，再用 Solo 保持生产 practice 在线。无需安装客户端，用 Google 登录，第一次粘贴后十分钟内看到风险金额。',
+    pill: '30 秒 / 周一分诊',
+    pillCaption: 'SOURCE-BACKED DEADLINE OPERATIONS',
+    title: '打开工作台。让来源自己说话。',
+    body: '先用 trial 或 demo workspace 体验；当第一条带来源的队列准备好后，再用 Solo 保持生产 practice 在线。无需安装客户端，用 Google 登录，第一次粘贴后十分钟内看到截止日复核事项。',
     primaryCta: '打开工作台',
     secondaryCta: '联系销售',
     trust: '可试用 · 随时取消',
@@ -584,7 +584,7 @@ const zhCN: LandingCopy = {
           '1 个生产 practice',
           '包含 3 个席位',
           '共享截止日运营',
-          'Pulse 与 Obligations 访问权限',
+          'Pulse 与 Deadlines 访问权限',
         ],
       },
       {
@@ -646,7 +646,7 @@ const zhCN: LandingCopy = {
       {
         question: 'Pro 比 Solo 多什么？',
         answer:
-          'Pro 增加 3 席共享工作区、Pulse 监控和小型 practice 管理截止日运营所需的 Obligations 视图。',
+          'Pro 增加 3 席共享工作区、Pulse 监控和小型 practice 管理截止日运营所需的 Deadlines 视图。',
       },
       {
         question: '什么时候选择 Team？',
@@ -739,14 +739,14 @@ const zhCN: LandingCopy = {
             '只有当规则保留官方来源上下文和复核状态时才值得信任。DueDateHQ 可以让 AI 辅助总结或分类，但来源和复核决定才是信任边界。',
         },
         {
-          question: '规则影响 Obligations 或 Dashboard 分诊前会发生什么？',
+          question: '规则影响 Deadlines 或 Dashboard 分诊前会发生什么？',
           answer:
             '规则需要来源证据、归一化的申报上下文和复核状态，之后才可能生成或更新截止日工作。产品不会根据没有支撑的信号静默改变客户工作。',
         },
         {
           question: 'DueDateHQ 如何把规则变化连接到正确客户？',
           answer:
-            '它使用事务所的客户 filing profile、辖区、税种和义务记录，把已复核变化路由到可能受影响客户的 Pulse、Obligations 和分诊工作流。',
+            '它使用事务所的客户 filing profile、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的 Pulse、Deadlines 和分诊工作流。',
         },
       ],
       cta: {
@@ -831,7 +831,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营交接',
-            body: '相关变更复核后，可以出现在 dashboard、Obligations 和邮件工作流中。',
+            body: '相关变更复核后，可以出现在 dashboard、Deadlines 和邮件工作流中。',
           },
         ],
       },
@@ -900,7 +900,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '运营路由',
-            body: '当事务所数据提示可能受影响时，已复核信号可以出现在 dashboard 或 Obligations 动作中。',
+            body: '当事务所数据提示可能受影响时，已复核信号可以出现在 dashboard 或 Deadlines 动作中。',
           },
         ],
         limitations: [
@@ -917,7 +917,7 @@ const zhCN: LandingCopy = {
           {
             question: 'California 更新如何变成运营工作？',
             answer:
-              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响 dashboard 或 Obligations 工作前需要先复核。',
+              'DueDateHQ 会保留官方来源、适用性线索，并匹配事务所客户上下文；信号在影响 dashboard 或 Deadlines 工作前需要先复核。',
           },
         ],
       },
@@ -1023,7 +1023,7 @@ const zhCN: LandingCopy = {
           },
           {
             title: '复核交接',
-            body: '已复核信号可以成为 CPA 团队管理受影响客户的 Obligations 动作。',
+            body: '已复核信号可以成为 CPA 团队管理受影响客户的 Deadlines 动作。',
           },
         ],
         limitations: [
@@ -1040,7 +1040,7 @@ const zhCN: LandingCopy = {
           {
             question: 'Texas 来源信号复核后会发生什么？',
             answer:
-              '已复核信号可以成为受影响客户的 Obligations 动作或分诊上下文；申报决策仍属于 CPA 事务所。',
+              '已复核信号可以成为受影响客户的 Deadlines 动作或分诊上下文；申报决策仍属于 CPA 事务所。',
           },
         ],
       },
@@ -1139,7 +1139,7 @@ const zhCN: LandingCopy = {
         coveredSignals: [
           {
             title: '截止日运营',
-            body: '信号在成为 dashboard 或 Obligations 项目前会被评估运营影响。',
+            body: '信号在成为 dashboard 或 Deadlines 项目前会被评估运营影响。',
           },
           {
             title: '适用性上下文',
@@ -1174,14 +1174,14 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'CPA 截止日风险指南 — 如何在罚款前看清风险',
           description:
-            'CPA 团队如何结合迁移数据、罚款敞口、证据、owner 和 Pulse 变化判断本周先处理哪个客户截止日。',
+            'CPA 团队如何结合迁移数据、证据、owner、准备状态和 Pulse 变化判断本周先处理哪个客户截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
           eyebrow: 'GUIDE',
           title: 'CPA 团队本周应该先处理哪个截止日？',
           description:
-            'DueDateHQ 把截止日风险当作运营排序问题处理。导入的客户事实、filing profile、罚款敞口、州级更新、证据状态和 owner 分配，都会影响什么应该排到最前面。',
+            'DueDateHQ 把截止日风险当作运营排序问题处理。导入的客户事实、filing profile、州级更新、证据状态、准备状态和 owner 分配，都会影响什么应该排到最前面。',
           note: '本指南解释运营风险模式，不构成税务建议。',
         },
         sections: [
@@ -1207,11 +1207,11 @@ const zhCN: LandingCopy = {
           {
             eyebrow: 'TRIAGE',
             title: '周一工作流应该排序风险，而不仅是排序日期。',
-            body: '当团队能在一个运营视图中扫描风险金额、剩余天数、证据完整度、州级更新和工作 owner 时，截止日风险才可管理。',
+            body: '当团队能在一个运营视图中扫描剩余天数、证据完整度、准备状态、州级更新和工作 owner 时，截止日风险才可管理。',
             items: [
               {
-                title: '金额敞口',
-                body: '风险队列应该显示哪些错过的截止日会造成实质罚款敞口。',
+                title: '准备状态信号',
+                body: '风险队列应该显示哪些截止日被缺失事实、过期证据或 owner 缺口阻塞。',
               },
               {
                 title: '证据完整度',
@@ -1232,7 +1232,7 @@ const zhCN: LandingCopy = {
           {
             question: 'CPA 团队应该先处理哪个截止日？',
             answer:
-              '第一个事项通常不只是最早到期的日期。DueDateHQ 会结合剩余天数、罚款敞口、状态、来源质量、客户上下文和 owner 信号排序。',
+              '第一个事项通常不只是最早到期的日期。DueDateHQ 会结合剩余天数、状态、来源质量、客户上下文、准备状态和 owner 信号排序。',
           },
           {
             question: '导入的客户数据如何影响截止日风险？',

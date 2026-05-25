@@ -27,7 +27,14 @@ import type {
 import { inferTaxTypes } from '@duedatehq/core/default-matrix'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -36,12 +43,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
   formatEnumLabel,
@@ -115,15 +122,13 @@ export function GenerationPreviewTab() {
     null
 
   if (clients.length === 0) {
-    return (
-      <RulesPreviewEmptyState message={t`Create a client before running obligation preview.`} />
-    )
+    return <RulesPreviewEmptyState message={t`Create a client before running deadline preview.`} />
   }
 
   if (!activeClient) {
     return (
       <RulesPreviewEmptyState
-        message={t`Add a state to at least one client before running obligation preview.`}
+        message={t`Add a state to at least one client before running deadline preview.`}
       />
     )
   }
@@ -208,7 +213,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setPreviewInput(currentInput)
         toast.success(t`Annual rollover generated`, {
-          description: t`${result.summary.createdCount} obligations created.`,
+          description: t`${result.summary.createdCount} deadlines created.`,
         })
       },
       onError: (error) => {
@@ -256,8 +261,8 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
             </div>
             <p className="mt-1 text-xs text-text-secondary">
               <Trans>
-                Preview closed source-year obligations, then create next-year obligations from
-                active practice rules.
+                Preview closed source-year deadlines, then create next-year deadlines from active
+                practice rules.
               </Trans>
             </p>
           </div>
@@ -268,7 +273,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
               size="sm"
               render={<Link to={obligationQueueHref(createdIds[0]!)} />}
             >
-              <Trans>Open first created obligation</Trans>
+              <Trans>Open first created deadline</Trans>
             </Button>
           ) : null}
         </div>
@@ -325,7 +330,7 @@ export function AnnualRolloverPanel({ clients }: { clients: readonly ClientPubli
                     <SelectItem key={client.id} value={client.id}>
                       <span className="flex min-w-0 flex-col leading-tight">
                         <span className="truncate">{client.name}</span>
-                        <span className="font-mono text-[11px] text-text-tertiary">
+                        <span className="font-mono text-caption text-text-tertiary">
                           {client.state ?? t`No filing state`}
                         </span>
                       </span>
@@ -468,7 +473,7 @@ function GenerationPreviewForm({
                       >
                         <span className="flex min-w-0 flex-col leading-tight">
                           <span className="truncate">{client.name}</span>
-                          <span className="font-mono text-[11px] text-text-tertiary">
+                          <span className="font-mono text-caption text-text-tertiary">
                             {client.state ?? t`Needs filing state`} ·{' '}
                             {previewEntityLabel(client.entityType)}
                           </span>
@@ -560,7 +565,7 @@ function GenerationPreviewForm({
                 taxTypeChips.map((taxType) => (
                   <span
                     key={taxType}
-                    className="inline-flex h-6 items-center rounded border border-divider-regular bg-background-default px-2 font-mono text-[11px] text-text-secondary"
+                    className="inline-flex h-6 items-center rounded border border-divider-regular bg-background-default px-2 font-mono text-caption text-text-secondary"
                   >
                     {taxType}
                   </span>
@@ -581,7 +586,7 @@ function GenerationPreviewForm({
             </div>
             <span className="text-xs text-text-tertiary">
               {taxTypeSource === 'obligations' ? (
-                <Trans>Tax types from existing obligations.</Trans>
+                <Trans>Tax types from existing deadlines.</Trans>
               ) : (
                 <Trans>Tax types inferred from suggestions.</Trans>
               )}
@@ -591,12 +596,13 @@ function GenerationPreviewForm({
       </SectionFrame>
 
       {previewQuery.isLoading ? (
-        <QueryPanelState state="loading" message={t`Loading obligation preview…`} />
+        <QueryPanelState state="loading" message={t`Loading deadline preview…`} />
       ) : previewQuery.isError ? (
-        <QueryPanelState state="error" message={t`Couldn't run obligation preview`} />
+        <QueryPanelState state="error" message={t`Couldn't run deadline preview`} />
       ) : (
         <PreviewResultsCard
           reminderReady={groups.reminderReady}
+          needsClientFacts={groups.needsClientFacts}
           requiresReview={groups.requiresReview}
         />
       )}
@@ -621,27 +627,27 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         <RolloverMetric
           label={t`Source deadlines`}
           value={result.summary.seedObligationCount}
-          description={t`Closed source-year obligations eligible for rollover. Only done, paid, and extended rows count as source deadlines.`}
+          description={t`Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines.`}
         />
         <RolloverMetric
           label={t`Clients`}
           value={result.summary.clientCount}
-          description={t`Unique clients represented by the source-year obligations in this preview.`}
+          description={t`Unique clients represented by the source-year deadlines in this preview.`}
         />
         <RolloverMetric
           label={t`Will create`}
           value={result.summary.willCreateCount}
-          description={t`Rows that will create pending obligations because an active target-year practice rule produced a concrete due date.`}
+          description={t`Rows that will create pending deadlines because an active target-year practice rule produced a concrete due date.`}
         />
         <RolloverMetric
           label={t`Review`}
           value={result.summary.reviewCount}
-          description={t`Rows that will create review obligations because the active practice rule requires CPA confirmation.`}
+          description={t`Rows that will create review deadlines because the active practice rule requires CPA confirmation.`}
         />
         <RolloverMetric
           label={t`Duplicates`}
           value={result.summary.duplicateCount}
-          description={t`Rows skipped because the target client, rule, tax year, and period already have an obligation.`}
+          description={t`Rows skipped because the target client, rule, tax year, and period already have a deadline.`}
         />
         <RolloverMetric
           label={t`Skipped`}
@@ -651,22 +657,22 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
         <RolloverMetric
           label={t`Created`}
           value={result.summary.createdCount}
-          description={t`Obligations actually created after Generate runs. Preview results show zero here until generation succeeds.`}
+          description={t`Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds.`}
         />
       </div>
-      <div className="max-h-[420px] overflow-auto">
-        <div className="grid min-w-[920px] grid-cols-[132px_180px_160px_96px_120px_1fr_120px] border-b border-divider-regular bg-background-default px-3 py-2 text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="max-h-[420px] overflow-y-auto">
+        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
           <RolloverColumnHeader
             label={t`Status`}
             description={t`The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date.`}
           />
           <RolloverColumnHeader
             label={t`Client`}
-            description={t`The client whose closed source-year obligation is being considered for next-year generation.`}
+            description={t`The client whose closed source-year deadline is being considered for next-year generation.`}
           />
           <RolloverColumnHeader
             label={t`Tax type`}
-            description={t`The tax form or obligation type carried forward from the source-year seed obligation.`}
+            description={t`The tax form or deadline type carried forward from the source-year seed deadline.`}
           />
           <RolloverColumnHeader
             label={t`Due date`}
@@ -681,14 +687,14 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
             description={t`The matched active practice rule and period, or the reason this row is duplicate or skipped.`}
           />
           <RolloverColumnHeader
-            label={t`Obligations`}
-            description={t`Opens the existing duplicate obligation or the newly created obligation after Generate succeeds.`}
+            label={t`Deadlines`}
+            description={t`Opens the existing duplicate deadline or the newly created deadline after Generate succeeds.`}
             align="right"
           />
         </div>
         {result.rows.length === 0 ? (
           <div className="px-3 py-4 text-sm text-text-secondary">
-            <Trans>No closed source-year obligations matched this rollover preview.</Trans>
+            <Trans>No closed source-year deadlines matched this rollover preview.</Trans>
           </div>
         ) : (
           result.rows.map((row, index) => {
@@ -696,19 +702,19 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
             return (
               <div
                 key={`${row.clientId}-${row.taxType}-${row.preview?.ruleId ?? 'missing'}-${row.preview?.period ?? index}`}
-                className="grid min-h-12 min-w-[920px] grid-cols-[132px_180px_160px_96px_120px_1fr_120px] items-center gap-0 border-b border-divider-subtle px-3 py-2 text-xs last:border-b-0"
+                className="grid min-h-12 grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] items-center gap-0 border-b border-divider-subtle px-3 py-2 text-xs last:border-b-0"
               >
                 <span>
                   <RolloverDispositionBadge disposition={row.disposition} />
                 </span>
                 <span className="min-w-0 truncate text-text-primary">{row.clientName}</span>
-                <span className="min-w-0 truncate font-mono text-[11px] text-text-secondary">
-                  {row.taxType}
+                <span className="min-w-0 truncate text-caption text-text-secondary">
+                  <TaxCodeLabel code={row.taxType} />
                 </span>
-                <span className="font-mono text-[11px] tabular-nums text-text-secondary">
+                <span className="min-w-0 truncate font-mono text-caption tabular-nums text-text-secondary">
                   {row.preview?.dueDate ?? '—'}
                 </span>
-                <span className="text-text-secondary">
+                <span className="min-w-0 truncate text-text-secondary">
                   {row.targetStatus ? targetStatusLabel(row.targetStatus, t) : '—'}
                 </span>
                 <span className="min-w-0 truncate text-text-tertiary">
@@ -750,9 +756,9 @@ function RolloverMetric({
 }) {
   return (
     <div className="min-w-0 border-r border-divider-subtle px-3 py-2 last:border-r-0">
-      <div className="flex min-w-0 items-center gap-1 text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="flex min-w-0 items-center gap-1 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         <span className="truncate">{label}</span>
-        <RolloverHelpTooltip label={label} description={description} />
+        <RolloverHelpPopover label={label} description={description} />
       </div>
       <div className="font-mono text-lg font-semibold tabular-nums text-text-primary">{value}</div>
     </div>
@@ -776,30 +782,47 @@ function RolloverColumnHeader({
       )}
     >
       <span className="truncate">{label}</span>
-      <RolloverHelpTooltip label={label} description={description} />
+      <RolloverHelpPopover label={label} description={description} />
     </span>
   )
 }
 
-function RolloverHelpTooltip({ label, description }: { label: string; description: string }) {
+// 2026-05-25 (info-icon audit): the rollover preview's per-metric
+// and per-column help blurbs are glossary-grade (60-100+ chars)
+// which is too long for a Tooltip. Swapped to a Popover matching
+// the ConceptHelp shape (size-6 hit area, w-80 surface, title +
+// description body) so the affordance reads consistently with
+// every other "what does this term mean" explainer in the app.
+// Concept dictionary entries weren't added because the labels
+// here are highly localised to the rollover preview and would
+// pollute the cross-surface concept namespace.
+function RolloverHelpPopover({ label, description }: { label: string; description: string }) {
   const { t } = useLingui()
   return (
-    <Tooltip>
-      <TooltipTrigger
+    <Popover>
+      <PopoverTrigger
+        openOnHover
+        delay={150}
+        closeDelay={80}
         render={
           <button
             type="button"
-            aria-label={t`About ${label}`}
-            className="inline-flex size-4 shrink-0 items-center justify-center rounded-full text-text-tertiary transition hover:bg-background-muted hover:text-text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-state-accent-solid"
-          >
-            <CircleHelpIcon className="size-3.5" aria-hidden />
-          </button>
+            aria-label={t`Explain ${label}`}
+            className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          />
         }
-      />
-      <TooltipContent className="max-w-[280px] whitespace-normal text-left leading-5">
-        {description}
-      </TooltipContent>
-    </Tooltip>
+      >
+        <CircleHelpIcon className="size-3.5" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent side="top" align="center" className="w-80 gap-2 p-3">
+        <PopoverHeader>
+          <PopoverTitle>{label}</PopoverTitle>
+          <PopoverDescription className="text-sm leading-relaxed text-text-secondary">
+            {description}
+          </PopoverDescription>
+        </PopoverHeader>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -815,7 +838,7 @@ function RolloverDispositionBadge({ disposition }: { disposition: AnnualRollover
   return (
     <span
       className={cn(
-        'inline-flex h-6 max-w-full items-center rounded border px-2 text-[11px] font-medium',
+        'inline-flex h-6 max-w-full items-center rounded border px-2 text-caption font-medium',
         disposition === 'will_create' && 'border-status-done/20 bg-status-done/10 text-status-done',
         disposition === 'review' &&
           'border-status-review/20 bg-status-review/10 text-status-review',
@@ -856,7 +879,7 @@ function boundedYear(raw: string, fallback: number, min: number, max: number): n
 }
 
 function obligationQueueHref(obligationId: string): string {
-  return `/obligations?${new URLSearchParams({ obligation: obligationId }).toString()}`
+  return `/deadlines?${new URLSearchParams({ obligation: obligationId }).toString()}`
 }
 
 function rolloverCreatedIds(result: AnnualRolloverOutput | undefined): string[] {
@@ -873,7 +896,7 @@ function skippedReasonLabel(reason: string | null, t: ReturnType<typeof useLingu
   if (reason === 'client_state_missing') return t`Client state missing`
   if (reason === 'client_not_found') return t`Client not found`
   if (reason === 'no_verified_rule_for_target_year') return t`No active target-year rule`
-  if (reason === 'target_obligation_already_exists') return t`Target obligation already exists`
+  if (reason === 'target_obligation_already_exists') return t`Target deadline already exists`
   if (reason === 'verified_rule_has_no_concrete_due_date') return t`No concrete due date`
   return reason ?? t`No rule matched`
 }
@@ -989,10 +1012,10 @@ function TaxYearCalendarSelect({
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-md bg-background-subtle px-2 py-1.5">
-      <div className="truncate text-[10px] font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="truncate text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
         {label}
       </div>
-      <div className="truncate font-mono text-[11px] text-text-secondary">{value}</div>
+      <div className="truncate font-mono text-caption text-text-secondary">{value}</div>
     </div>
   )
 }
@@ -1010,7 +1033,7 @@ function PreviewField({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={htmlFor}
-        className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted"
+        className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted"
       >
         {label}
       </label>
@@ -1039,9 +1062,11 @@ function isGenerationState(value: string | null): value is PreviewFormValues['st
 
 function PreviewResultsCard({
   reminderReady,
+  needsClientFacts,
   requiresReview,
 }: {
   reminderReady: ObligationGenerationPreview[]
+  needsClientFacts: ObligationGenerationPreview[]
   requiresReview: ObligationGenerationPreview[]
 }) {
   const { t } = useLingui()
@@ -1052,7 +1077,7 @@ function PreviewResultsCard({
         tone="success"
         label={
           <ConceptLabel concept="reminderReady">
-            {t`REMINDER READY — ${reminderReady.length} obligation, will fire 30 / 7 / 1-day reminders`}
+            {t`REMINDER READY — ${reminderReady.length} deadline, will fire 30 / 7 / 1-day reminders`}
           </ConceptLabel>
         }
       />
@@ -1063,6 +1088,21 @@ function PreviewResultsCard({
           sourceLookup={sourceLookup}
         />
       ))}
+      {needsClientFacts.length > 0 ? (
+        <>
+          <PreviewGroupHeader
+            tone="review"
+            label={t`NEEDS CLIENT FACTS — ${needsClientFacts.length} items require client detail updates before deadlines can be created`}
+          />
+          {needsClientFacts.map((row) => (
+            <PreviewResultRow
+              key={`${row.ruleId}-${row.ruleVersion}-${row.period}`}
+              row={row}
+              sourceLookup={sourceLookup}
+            />
+          ))}
+        </>
+      ) : null}
       <PreviewGroupHeader
         tone="review"
         label={
@@ -1088,7 +1128,7 @@ function PreviewGroupHeader({ tone, label }: { tone: 'success' | 'review'; label
       <ToneDot tone={tone} />
       <span
         className={cn(
-          'text-[11px] font-medium uppercase tracking-[0.08em]',
+          'text-caption font-medium uppercase tracking-[0.08em]',
           tone === 'success' ? 'text-status-done' : 'text-status-review',
         )}
       >
@@ -1122,7 +1162,7 @@ function PreviewResultRow({
         </span>
         <span
           className={cn(
-            'text-[11px] font-medium',
+            'text-caption font-medium',
             row.reminderReady ? 'text-text-tertiary' : 'text-severity-medium',
           )}
         >
@@ -1133,7 +1173,7 @@ function PreviewResultRow({
         <span className="truncate text-[13px] font-medium text-text-primary">
           {row.ruleTitle} · {row.formName}
         </span>
-        <span className="truncate font-mono text-[11px] text-text-tertiary">
+        <span className="truncate font-mono text-caption text-text-tertiary">
           {row.ruleId} v{row.ruleVersion} · {row.matchedTaxType} → {row.taxType}
         </span>
         {row.reviewReasons.length > 0 ? (
@@ -1141,9 +1181,21 @@ function PreviewResultRow({
             {row.reviewReasons.map((reason) => (
               <span
                 key={reason}
-                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-[10px] text-severity-medium"
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 font-mono text-caption-xs text-severity-medium"
               >
                 {reason}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {row.missingClientFacts.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {row.missingClientFacts.map((fact) => (
+              <span
+                key={fact}
+                className="inline-flex h-[18px] items-center rounded-sm bg-severity-medium-tint px-1.5 text-caption-xs font-medium text-severity-medium"
+              >
+                {fact === 'fiscalYearEnd' ? t`Needs fiscal year end` : fact}
               </span>
             ))}
           </div>
@@ -1154,7 +1206,7 @@ function PreviewResultRow({
           source={evidenceSource}
           ariaLabel={evidenceSource ? t`Open official source: ${evidenceSource.title}` : undefined}
           showIcon={false}
-          className="max-w-full truncate text-right text-[11px] text-text-accent"
+          className="max-w-full truncate text-right text-caption text-text-accent"
         >
           <span className="truncate">{linkLabel}</span>
           <span aria-hidden className="ml-1 shrink-0">

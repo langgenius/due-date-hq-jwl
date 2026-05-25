@@ -6,7 +6,7 @@ import { redirect, type LoaderFunctionArgs } from 'react-router'
 //     page with section anchors
 //   - Pulse changes → its own direct entry `/rules/pulse` (sidebar-promoted)
 //   - Temporary rules → unlisted but reachable at `/rules/temporary`
-//   - Obligation preview → unlisted but reachable at `/rules/preview`
+//   - Deadline preview → unlisted but reachable at `/rules/preview`
 //
 // Bare `/rules` lands on the merged Library page (the canonical hub).
 // `?tab=...` deep-links from before the refactor (Pulse banner, dashboard
@@ -28,7 +28,7 @@ export function rulesIndexLoader({ request }: LoaderFunctionArgs) {
   const mapped = tab ? LEGACY_TAB_TO_PATH[tab] : undefined
   const target = mapped ?? '/rules/library'
 
-  // Preserve any other query params (e.g. `sourceReview=1`, `alert=…`).
+  // Preserve any other query params (e.g. `alert=…`).
   // Hash: a mapped legacy tab carries its own anchor; otherwise pass any
   // explicit hash the caller provided.
   url.searchParams.delete('tab')

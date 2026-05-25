@@ -260,7 +260,7 @@
   --components-badge-status-light-success-halo: rgb(23 178 106 / 0.25);
   --components-badge-status-light-warning-bg: var(--color-util-colors-warning-400);
   --components-badge-status-light-warning-border-inner: var(--color-util-colors-warning-500);
-  --components-badge-status-light-warning-halo: rgb(247 144 9 / 0.25);
+  --components-badge-status-light-warning-halo: rgb(242 95 76 / 0.25);
   --components-badge-status-light-error-bg: var(--color-util-colors-red-400);
   --components-badge-status-light-error-border-inner: var(--color-util-colors-red-500);
   --components-badge-status-light-error-halo: rgb(240 68 56 / 0.25);
@@ -273,7 +273,7 @@
   --components-badge-bg-gray-soft: rgb(16 24 40 / 0.04);
   --components-badge-bg-green-soft: rgb(23 178 106 / 0.08);
   --components-badge-bg-red-soft: rgb(240 68 56 / 0.08);
-  --components-badge-bg-warning-soft: rgb(247 144 9 / 0.08);
+  --components-badge-bg-warning-soft: rgb(242 95 76 / 0.08);
   --components-badge-bg-blue-soft: rgb(11 165 236 / 0.08);
 
   /* ===== Status-indicator shadow halos =================================

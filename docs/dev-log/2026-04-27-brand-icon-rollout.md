@@ -3,7 +3,7 @@ title: '2026-04-27 · Brand icon rollout'
 date: 2026-04-27
 ---
 
-# 2026-04-27 · Brand icon rollout（Penalty Radar Pulse）
+# 2026-04-27 · Brand icon rollout（Deadline Radar Pulse）
 
 ## 背景
 
@@ -13,14 +13,14 @@ Footer、`/login`、`/onboarding`）一直挂着 8–10 px 的 `bg-accent-defaul
 `apps/app/index.html` 引用的 `/icons/icon-192.png` 不存在，浏览器 tab 都拿默认
 灰图。本轮把 v0 占位升级到 v1 真品牌 mark，同步 Figma 与代码，主题感知。
 
-## 设计：Penalty Radar Pulse
+## 设计：Deadline Radar Pulse
 
 把产品三层语义压成一个几何符号（详见 `docs/Design/DueDateHQ-DESIGN.md` §15）：
 
 - 圆角方块 = "HQ" 工作台外壳 / Glass-Box 容器
 - 1 px 发丝圆环 + 12/3/6/9 刻度 + 横贯中心的 1 px 水平线 = Due Date 表盘 ×
   Workbench 表格行
-- Indigo 弧线（−90° → −15°，75° 扫角）+ 弧端 indigo 实心圆点 = Penalty Radar
+- Indigo 弧线（−90° → −15°，75° 扫角）+ 弧端 indigo 实心圆点 = Deadline Radar
   扫描截止日 / 风险被命中的 pulse 信号
 
 颜色全部对应已有 semantic token（`--text-primary` / `--bg-elevated` /
@@ -111,7 +111,7 @@ auto-layout 容器时，子节点的 x/y 坐标无效（auto-layout 重算），
 
 ## 偏离 plan 的地方
 
-无。第一个 PR 命名为 "feat: brand icon rollout (penalty radar pulse)" 即可。
+无。第一个 PR 命名为 "feat: brand icon rollout (deadline radar pulse)" 即可。
 
 ## 同步纪律
 

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -86,6 +86,11 @@ function WizardFrame({
   useAppHotkey('Escape', requestClose, {
     enabled: hotkeysEnabled && !busy,
     requireReset: true,
+    // Multiple Escape handlers ship across the app (wizard, queue
+    // drawer, rule review). They're context-scoped via `enabled` and
+    // mutually exclusive in practice, so the global default 'warn'
+    // logs noise without catching real bugs. Opt this one out.
+    conflictBehavior: 'allow',
     meta: {
       id: 'wizard.escape',
       name: 'Close wizard',
@@ -116,10 +121,17 @@ function WizardFrame({
   )
 
   return (
+    // 2026-05-25 (Yuqi Wizard #37): converged the outer frame's
+    // border radius + border token onto the canonical Dialog
+    // primitive (`rounded-lg`, `border-components-panel-border`).
+    // The wizard still bypasses Dialog's `p-6` body padding because
+    // it owns its own header / stepper / body / footer layout — the
+    // p-3 here is just the outer chrome, so each region can pad
+    // independently. Same family, different layout role.
     <div
       className={cn(
-        'flex w-full flex-col gap-0 overflow-hidden rounded-xl border border-divider-regular bg-components-panel-bg p-3 shadow-overlay',
-        layout === 'route' ? 'min-h-0 flex-1' : 'max-h-[calc(100vh-4rem)]',
+        'flex w-full flex-col gap-0 overflow-hidden rounded-lg border border-components-panel-border bg-components-panel-bg p-3 shadow-overlay',
+        layout === 'route' ? 'min-h-0 flex-none' : 'max-h-[calc(100vh-4rem)]',
       )}
     >
       <div className="sr-only">
@@ -130,28 +142,24 @@ function WizardFrame({
         </Trans>
       </div>
 
-      <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-3">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-mono text-sm text-text-tertiary">
-            <span
-              className="block size-2.5 rounded-sm bg-components-badge-status-light-success-bg"
-              aria-hidden
-            />
-            <span>
-              <Trans>Workbench</Trans>
-            </span>
-            <span aria-hidden>/</span>
-            <span>
-              <ConceptLabel concept="migrationCopilot">
-                <Trans>Import</Trans>
-              </ConceptLabel>
-            </span>
-            <span aria-hidden>/</span>
-            <span className="text-text-secondary">
-              <Trans>Step {step} / 4</Trans>
-            </span>
-          </div>
-        </div>
+      {/* 2026-05-25 (Yuqi #32, #33, #34, #39): header was a
+          monospace breadcrumb "Import / Step N / 4" with a mystery
+          green dot. Three problems:
+          - The green dot had no meaning (Yuqi #32, #39).
+          - `font-mono` made "Import" read as a code path, not as
+            the wizard's actual title (#33).
+          - The "Step N / 4" breadcrumb duplicated the Stepper
+            below — same info, two surfaces (#34, #36).
+          Fixed: dropped the dot, drop the breadcrumb, set
+          "Import" as a real `text-base font-semibold` title in
+          regular case. Step progress lives in the Stepper below
+          as the single source of truth. */}
+      <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-4">
+        <h2 className="text-base font-semibold text-text-primary">
+          <ConceptLabel concept="migrationCopilot">
+            <Trans>Import clients</Trans>
+          </ConceptLabel>
+        </h2>
         {showCloseControl ? (
           <div className="flex items-center gap-2">
             <span className="hidden items-center gap-1 font-mono text-xs text-text-tertiary sm:inline-flex">
@@ -187,6 +195,16 @@ function WizardFrame({
         </div>
       )}
 
+      {/* 2026-05-25 (Yuqi Today #28): Back button drops its
+          ArrowLeftIcon. Yuqi flagged "back button does not need an
+          icon" — the label "Back" already says where the click
+          goes; the icon was redundant chrome that made the back/
+          continue buttons read as a pair of weighted arrows, not as
+          a primary/secondary action pair. Continue keeps its
+          forward arrow because there it functions as a "this is the
+          next step" cue (and rotates on hover toward Step+1).
+          Both buttons now route through the canonical Button size
+          tokens (variant default for Continue, outline for Back). */}
       <footer className="flex h-12 shrink-0 items-center justify-end gap-4 border-divider-subtle px-4">
         <Button
           variant="outline"
@@ -194,7 +212,6 @@ function WizardFrame({
           onClick={onBack}
           disabled={busy || backDisabled || step === 1 || !onBack}
         >
-          <ArrowLeftIcon data-icon="inline-start" />
           <Trans>Back</Trans>
         </Button>
         <Button
@@ -324,7 +341,7 @@ export function WizardRouteShell({
 
   return (
     <>
-      <div className="mx-auto flex min-h-0 w-full max-w-[1120px] flex-1 flex-col gap-4">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1120px] flex-none flex-col gap-4">
         <div className="shrink-0">{resolvedIntro}</div>
         <WizardFrame
           {...frameProps}
@@ -401,6 +418,13 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             {copy.steps.map((step, index) => {
               const complete = index < activeIndex
               const active = index === activeIndex
+              // 2026-05-25 (Yuqi critique #32, #39): the stepper bullet
+              // was a bare green dot with no aria-label. Hovering told
+              // the user nothing about why it was green. Now each step
+              // marker carries an explicit accessibility label so the
+              // tooltip + screen reader read "Step N — completed /
+              // in progress / pending".
+              const stateLabel = complete ? 'Completed' : active ? 'In progress' : 'Pending'
               return (
                 <li
                   key={step.key}
@@ -414,6 +438,9 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
                   )}
                 >
                   <span
+                    role="img"
+                    aria-label={stateLabel}
+                    title={stateLabel}
                     className={cn(
                       'grid size-5 shrink-0 place-items-center rounded-sm border',
                       active
@@ -501,7 +528,9 @@ function transitionCopy(phase: WizardTransitionPhase): {
       }
     case 'import':
       return {
-        title: <Trans>Generating your deadline list</Trans>,
+        // 2026-05-25 (Wizard #40 copy polish): same trim as
+        // Step 4 alert — "your deadline list" → "deadlines".
+        title: <Trans>Generating deadlines…</Trans>,
         description: <Trans>Creating clients, deadlines, evidence links, and audit records.</Trans>,
         steps: [
           { key: 'create-clients', label: <Trans>Create clients</Trans> },

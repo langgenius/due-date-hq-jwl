@@ -8,7 +8,6 @@ import {
   MIGRATION_RUN_ROLES,
   requireCurrentFirmRole,
 } from '../_permissions'
-import { requireGuidedMigrationReview } from '../_plan-gates'
 import { os } from '../_root'
 import { toClientPublic } from '../clients/_serializers'
 import { MigrationService } from './_service'
@@ -31,6 +30,7 @@ async function buildService(
     scoped,
     userId,
     plan: tenant.plan,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
     ...(tenant.createdAt ? { firmCreatedAt: tenant.createdAt } : {}),
     ai: createAI(ctx.env),
     rawBucket: ctx.env.R2_MIGRATION,
@@ -65,39 +65,8 @@ const uploadRaw = os.migration.uploadRaw.handler(async ({ input, context }) => {
   if (input.inline.text !== undefined) out.text = input.inline.text
   if (input.inline.base64 !== undefined) out.base64 = input.inline.base64
   if (input.inline.rawBase64 !== undefined) out.rawBase64 = input.inline.rawBase64
+  if (input.inline.sourceManifest !== undefined) out.sourceManifest = input.inline.sourceManifest
   return service.uploadRaw(out)
-})
-
-export async function stageExternalRowsForMigration(
-  input: Parameters<MigrationService['stageExternalRows']>[0] & { context: RpcContext },
-) {
-  const { context, ...stageInput } = input
-  const service = await buildService(context, MIGRATION_RUN_ROLES)
-  return service.stageExternalRows(stageInput)
-}
-
-const stageExternalRows = os.migration.stageExternalRows.handler(async ({ input, context }) => {
-  return stageExternalRowsForMigration({
-    context,
-    batchId: input.batchId,
-    provider: input.provider,
-    rows: input.rows,
-  })
-})
-
-const cloneStagingRows = os.migration.cloneStagingRows.handler(async ({ input, context }) => {
-  const service = await buildService(context, MIGRATION_RUN_ROLES)
-  const { tenant } = requireTenant(context)
-  requireGuidedMigrationReview(tenant.plan)
-  return service.cloneStagingRows(input.sourceBatchId)
-})
-
-const listStagingRows = os.migration.listStagingRows.handler(async ({ input, context }) => {
-  const service = await buildService(context, MIGRATION_RUN_ROLES)
-  const { tenant } = requireTenant(context)
-  requireGuidedMigrationReview(tenant.plan)
-  const rows = await service.listStagingRows(input.batchId)
-  return { rows }
 })
 
 const runMapper = os.migration.runMapper.handler(async ({ input, context }) => {
@@ -201,9 +170,6 @@ const singleUndo = os.migration.singleUndo.handler(async ({ input, context }) =>
 export const migrationHandlers = {
   createBatch,
   uploadRaw,
-  stageExternalRows,
-  cloneStagingRows,
-  listStagingRows,
   runMapper,
   confirmMapping,
   runNormalizer,

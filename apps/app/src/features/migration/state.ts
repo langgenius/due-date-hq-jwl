@@ -6,8 +6,7 @@ import type {
   NormalizationRow,
   DryRunSummary,
   MigrationSource,
-  MigrationExternalStagingRowInput,
-  MigrationIntegrationProvider,
+  MigrationSourceManifest,
 } from '@duedatehq/contracts'
 
 /**
@@ -22,13 +21,22 @@ import type {
 
 export type StepIndex = 1 | 2 | 3 | 4
 
-export type IntakeMode = 'paste' | 'upload' | 'integration' | 'previous_sync'
+export type PresetId =
+  | 'taxdome'
+  | 'drake'
+  | 'karbon'
+  | 'quickbooks'
+  | 'file_in_time'
+  | 'cch_axcess'
+  | 'cch_prosystem_fx'
+  | 'lacerte'
+  | 'proseries'
+  | 'ultratax_cs'
+  | 'proconnect_tax'
 
-export type PresetId = 'taxdome' | 'drake' | 'karbon' | 'quickbooks' | 'file_in_time'
-export type IntegrationProvider = MigrationIntegrationProvider
+export type PresetSelectionSource = 'manual' | 'detected'
 
 export interface IntakeState {
-  mode: IntakeMode
   /** Raw paste text or file content as utf-8 string. */
   rawText: string
   fileName: string | null
@@ -36,11 +44,9 @@ export interface IntakeState {
   rawFileBase64: string | null
   contentType: string | null
   sizeBytes: number
+  sourceManifest: MigrationSourceManifest | null
   preset: PresetId | null
-  integrationProvider: IntegrationProvider
-  integrationRawText: string
-  integrationRows: MigrationExternalStagingRowInput[]
-  previousSyncBatchId: string | null
+  presetSource: PresetSelectionSource | null
   /** Header indexes blocked by SSN regex on the client side. */
   ssnBlockedColumnIndexes: number[]
   rowCount: number
@@ -94,18 +100,15 @@ export const INITIAL_STATE: WizardState = {
   batchId: null,
   batch: null,
   intake: {
-    mode: 'paste',
     rawText: '',
     fileName: null,
     fileKind: 'paste',
     rawFileBase64: null,
     contentType: null,
     sizeBytes: 0,
+    sourceManifest: null,
     preset: null,
-    integrationProvider: 'karbon',
-    integrationRawText: '',
-    integrationRows: [],
-    previousSyncBatchId: null,
+    presetSource: null,
     ssnBlockedColumnIndexes: [],
     rowCount: 0,
     truncated: false,
@@ -125,18 +128,15 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
 
   const intake = state.intake
   if (
-    intake.mode !== INITIAL_STATE.intake.mode ||
     intake.rawText !== '' ||
     intake.fileName !== null ||
     intake.fileKind !== INITIAL_STATE.intake.fileKind ||
     intake.rawFileBase64 !== null ||
     intake.contentType !== null ||
     intake.sizeBytes !== 0 ||
+    intake.sourceManifest !== null ||
     intake.preset !== null ||
-    intake.integrationProvider !== INITIAL_STATE.intake.integrationProvider ||
-    intake.integrationRawText !== '' ||
-    intake.integrationRows.length > 0 ||
-    intake.previousSyncBatchId !== null ||
+    intake.presetSource !== INITIAL_STATE.intake.presetSource ||
     intake.ssnBlockedColumnIndexes.length > 0 ||
     intake.rowCount !== 0 ||
     intake.truncated ||
@@ -170,7 +170,6 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
 export type WizardAction =
   | { type: 'SET_BUSY'; busy: boolean }
   | { type: 'GO_TO_STEP'; step: StepIndex }
-  | { type: 'INTAKE_MODE'; mode: IntakeMode }
   | {
       type: 'INTAKE_TEXT'
       text: string
@@ -179,17 +178,9 @@ export type WizardAction =
       rawFileBase64?: string | null
       contentType?: string | null
       sizeBytes?: number
+      sourceManifest?: MigrationSourceManifest | null
     }
-  | { type: 'INTAKE_PRESET'; preset: PresetId | null }
-  | { type: 'INTAKE_INTEGRATION_PROVIDER'; provider: IntegrationProvider }
-  | {
-      type: 'INTAKE_INTEGRATION_ROWS'
-      rawText: string
-      tabularText: string
-      rows: MigrationExternalStagingRowInput[]
-      parseError: string | null
-    }
-  | { type: 'INTAKE_PREVIOUS_SYNC'; batchId: string | null }
+  | { type: 'INTAKE_PRESET'; preset: PresetId | null; source?: PresetSelectionSource }
   | {
       type: 'INTAKE_PARSED'
       rowCount: number
@@ -219,8 +210,6 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, isBusy: action.busy }
     case 'GO_TO_STEP':
       return { ...state, step: action.step }
-    case 'INTAKE_MODE':
-      return { ...state, intake: { ...state.intake, mode: action.mode } }
     case 'INTAKE_TEXT':
       return {
         ...state,
@@ -234,56 +223,21 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
           contentType:
             action.contentType === undefined ? state.intake.contentType : action.contentType,
           sizeBytes: action.sizeBytes ?? state.intake.sizeBytes,
+          sourceManifest:
+            action.sourceManifest === undefined
+              ? state.intake.sourceManifest
+              : action.sourceManifest,
           parseError: null,
           submitError: null,
         },
       }
     case 'INTAKE_PRESET':
-      return { ...state, intake: { ...state.intake, preset: action.preset } }
-    case 'INTAKE_INTEGRATION_PROVIDER':
       return {
         ...state,
         intake: {
           ...state.intake,
-          integrationProvider: action.provider,
-          integrationRows: [],
-          integrationRawText: '',
-          rawText: '',
-          rowCount: 0,
-          parseError: null,
-          submitError: null,
-        },
-      }
-    case 'INTAKE_INTEGRATION_ROWS':
-      return {
-        ...state,
-        intake: {
-          ...state.intake,
-          mode: 'integration',
-          integrationRawText: action.rawText,
-          integrationRows: action.rows,
-          rawText: action.tabularText,
-          fileName: `${state.intake.integrationProvider}-integration.json`,
-          fileKind: 'csv',
-          contentType: 'application/json',
-          sizeBytes: action.rawText.length,
-          rowCount: action.rows.length,
-          truncated: false,
-          ssnBlockedColumnIndexes: [],
-          parseError: action.parseError,
-          submitError: null,
-        },
-      }
-    case 'INTAKE_PREVIOUS_SYNC':
-      return {
-        ...state,
-        intake: {
-          ...state.intake,
-          mode: 'previous_sync',
-          previousSyncBatchId: action.batchId,
-          rowCount: action.batchId ? 1 : 0,
-          parseError: null,
-          submitError: null,
+          preset: action.preset,
+          presetSource: action.preset === null ? null : (action.source ?? 'manual'),
         },
       }
     case 'INTAKE_PARSED':
@@ -376,26 +330,25 @@ export const PRESET_IDS: ReadonlyArray<PresetId> = [
   'file_in_time',
 ]
 
+export const TAX_SOFTWARE_PRESET_IDS: ReadonlyArray<PresetId> = [
+  'cch_axcess',
+  'cch_prosystem_fx',
+  'lacerte',
+  'proseries',
+  'ultratax_cs',
+  'proconnect_tax',
+]
+
 export const PRESET_TO_SOURCE: Record<PresetId, MigrationSource> = {
   taxdome: 'preset_taxdome',
   drake: 'preset_drake',
   karbon: 'preset_karbon',
   quickbooks: 'preset_quickbooks',
   file_in_time: 'preset_file_in_time',
-}
-
-export const INTEGRATION_PROVIDERS: ReadonlyArray<IntegrationProvider> = [
-  'karbon',
-  'taxdome',
-  'soraban',
-  'safesend',
-  'proconnect',
-]
-
-export const PROVIDER_TO_SOURCE: Record<IntegrationProvider, MigrationSource> = {
-  taxdome: 'integration_taxdome_zapier',
-  karbon: 'integration_karbon_api',
-  soraban: 'integration_soraban_api',
-  safesend: 'integration_safesend_api',
-  proconnect: 'integration_proconnect_export',
+  cch_axcess: 'preset_cch_axcess',
+  cch_prosystem_fx: 'preset_cch_prosystem_fx',
+  lacerte: 'preset_lacerte',
+  proseries: 'preset_proseries',
+  ultratax_cs: 'preset_ultratax_cs',
+  proconnect_tax: 'preset_proconnect_tax',
 }

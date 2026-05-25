@@ -3,7 +3,6 @@ import * as z from 'zod'
 export const MigrationAuditActions = [
   'migration.batch.created',
   'migration.raw_uploaded',
-  'migration.staging_rows.created',
   'migration.discarded',
   'migration.imported',
   'migration.reverted',
@@ -26,12 +25,14 @@ export const PulseAuditActions = [
   'pulse.revert',
   'pulse.reactivate',
   'pulse.review_requested',
+  'pulse.reviewed',
 ] as const
 
 export const PenaltyAuditActions = ['penalty.override'] as const
 export const RulesAuditActions = [
   'rules.accepted',
   'rules.bulk_accepted',
+  'rules.onboarding_activated',
   'rules.rejected',
   'rules.created',
   'rules.updated',
@@ -48,6 +49,7 @@ export const ClientAuditActions = [
   'client.filing_profiles.replaced',
   'client.jurisdiction.updated',
   'client.risk_profile.updated',
+  'client.tax_year_profile.updated',
 ] as const
 export const AuthAuditActions = [
   'auth.denied',

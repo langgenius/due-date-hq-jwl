@@ -49,7 +49,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          'fixed top-1/2 left-1/2 z-50 grid w-[480px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-2xl border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-2xl outline-none',
+          'fixed top-1/2 left-1/2 z-50 grid w-full max-w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 gap-5 rounded-lg border border-components-panel-border bg-components-panel-bg p-6 text-sm text-text-primary shadow-overlay outline-none',
           overlayPopupAnimationClassName,
           className,
         )}
@@ -57,9 +57,18 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
+          // 2026-05-25 (Yuqi #45): close button moved from top-6
+          // right-6 (24px from each edge — inside the padded area)
+          // to top-3 right-3 (12px). At top-6/right-6 the X was
+          // visually clustered with the title (both at the same y),
+          // which read as "title chrome" rather than a window
+          // close. At top-3/right-3 the X sits in the corner where
+          // close affordances live by convention (Notion / Linear /
+          // shadcn dialogs all park it at the corner edge). The
+          // title now owns the top-left content slot cleanly.
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            render={<Button variant="ghost" className="absolute top-6 right-6" size="icon-sm" />}
+            render={<Button variant="ghost" className="absolute top-3 right-3" size="icon-sm" />}
           >
             <XIcon />
             <span className="sr-only">Close</span>
@@ -102,7 +111,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-lg leading-none font-semibold text-text-primary', className)}
+      className={cn('text-lg leading-none font-medium text-text-primary', className)}
       {...props}
     />
   )

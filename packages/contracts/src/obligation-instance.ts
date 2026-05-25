@@ -12,6 +12,8 @@ import {
   ObligationRiskLevelSchema,
   ObligationStatusSchema,
   ObligationTypeSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
 } from './shared/enums'
 import { EntityIdSchema, TenantIdSchema } from './shared/ids'
 
@@ -41,6 +43,14 @@ export const ObligationInstancePublicSchema = z.object({
   clientFilingProfileId: EntityIdSchema.nullable(),
   taxType: z.string().min(1),
   taxYear: z.number().int().min(1900).max(2100).nullable(),
+  taxYearType: z.enum(['calendar', 'fiscal']),
+  fiscalYearEndMonth: z.number().int().min(1).max(12).nullable(),
+  fiscalYearEndDay: z.number().int().min(1).max(31).nullable(),
+  taxPeriodStart: z.iso.date().nullable(),
+  taxPeriodEnd: z.iso.date().nullable(),
+  taxPeriodKind: TaxPeriodKindSchema,
+  taxPeriodSource: TaxPeriodSourceSchema,
+  taxPeriodReviewReason: z.string().min(1).nullable(),
   ruleId: z.string().min(1).nullable(),
   ruleVersion: z.number().int().positive().nullable(),
   rulePeriod: z.string().min(1).nullable(),
@@ -57,11 +67,16 @@ export const ObligationInstancePublicSchema = z.object({
   baseDueDate: z.iso.date(),
   currentDueDate: z.iso.date(),
   status: ObligationStatusSchema,
+  // Lifecycle v2 (slice 2b): the upstream obligation that's blocking
+  // this row when status === 'blocked'. NULL otherwise. Soft pointer
+  // — no FK constraint at the DB layer. See K-1 dependency graph
+  // (PDF anti-pattern #4).
+  blockedByObligationInstanceId: EntityIdSchema.nullable(),
   readiness: ObligationReadinessSchema,
   extensionDecision: ObligationExtensionDecisionSchema,
   extensionMemo: z.string().nullable(),
   extensionSource: z.string().nullable(),
-  extensionExpectedDueDate: z.iso.date().nullable(),
+  extensionInternalTargetDate: z.iso.date().nullable(),
   extensionDecidedAt: z.iso.datetime().nullable(),
   extensionDecidedByUserId: z.string().nullable(),
   extensionState: ObligationExtensionStateSchema,

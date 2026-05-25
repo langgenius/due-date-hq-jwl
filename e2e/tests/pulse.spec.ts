@@ -28,7 +28,7 @@ test.describe('seeded Pulse alerts', () => {
         'IRS CA storm relief extends selected filing deadlines for Los Angeles County.',
       ),
     ).toBeVisible()
-    await authenticatedPage.getByRole('button', { name: 'Review', exact: true }).click()
+    await dashboardPulseAlertButton(authenticatedPage).click()
 
     const drawer = authenticatedPage.getByRole('dialog')
     await expect(drawer.getByText('Affected clients')).toBeVisible()
@@ -41,7 +41,7 @@ test.describe('seeded Pulse alerts', () => {
 
     await obligationQueuePage.goto()
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
-    await expect(arborRow).toContainText('2026-10-15')
+    await expect(arborRow).toContainText('2026-10-01')
     const arborEvidenceButton = arborRow.getByRole('button', {
       name: 'Open evidence for Arbor & Vale LLC',
     })
@@ -61,19 +61,8 @@ test.describe('seeded Pulse alerts', () => {
     await expect(auditPage.eventRowFor('pulse.apply')).toBeVisible()
     await expect(auditPage.eventRowFor('pulse.apply')).toContainText('Pulse applied')
 
-    await appShellPage.goto('/?asOfDate=2026-05-03&triage=long_term')
-    // "Due this week" KPI tile was removed in the spec-alignment pass; assert
-    // the priority tabs are present and Long-term is the selected tab.
-    await expect(authenticatedPage.getByRole('tab', { name: /This Week/ })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: /Long-term/ })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    )
-    // Pass-3's T6 row chrome switched dashboard rows to relative deadlines
-    // ("165 days") instead of ISO dates, so the post-apply 2026-10-15
-    // verification can no longer live on the dashboard. The /obligations
-    // row assertion earlier in this test already proves the date update.
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible()
+    await appShellPage.goto('/?asOfDate=2026-05-03')
+    await expect(authenticatedPage.getByRole('region', { name: 'Actions this week' })).toBeVisible()
 
     // The Pulse alerts page is `/rules/pulse` now (previously `/rules?tab=pulse`).
     await appShellPage.goto('/rules/pulse')
@@ -125,12 +114,12 @@ test.describe('seeded Pulse alerts', () => {
     }) => {
       await appShellPage.goto()
 
-      await authenticatedPage.getByRole('button', { name: 'Review', exact: true }).click()
+      await dashboardPulseAlertButton(authenticatedPage).click()
       const drawer = authenticatedPage.getByRole('dialog')
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
       await expect(
-        drawer.getByText('Only Owners and Managers can apply Pulse changes.'),
+        drawer.getByText('Only owners and managers can apply Pulse changes.'),
       ).toBeVisible()
       await expect(drawer.getByRole('button', { name: /Apply to 1 obligation/ })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
@@ -149,7 +138,7 @@ test.describe('seeded Pulse alerts', () => {
     }) => {
       await appShellPage.goto()
 
-      await authenticatedPage.getByRole('button', { name: 'Review', exact: true }).click()
+      await dashboardPulseAlertButton(authenticatedPage).click()
       const drawer = authenticatedPage.getByRole('dialog')
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
@@ -209,6 +198,12 @@ async function switchToE2ERole(input: {
 
 function e2eSeedHeaders(): Record<string, string> {
   return process.env.E2E_SEED_TOKEN ? { Authorization: `Bearer ${process.env.E2E_SEED_TOKEN}` } : {}
+}
+
+function dashboardPulseAlertButton(page: Page) {
+  return page.getByRole('button', {
+    name: /Review Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+  })
 }
 
 function isSwitchRoleResponse(value: unknown): value is { cookie: Cookie } {

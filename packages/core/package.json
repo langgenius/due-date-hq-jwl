@@ -12,8 +12,10 @@
     "./penalty": "./src/penalty/index.ts",
     "./priority": "./src/priority/index.ts",
     "./date-logic": "./src/date-logic/index.ts",
+    "./deadlines": "./src/deadlines/index.ts",
     "./obligation-workflow": "./src/obligation-workflow/index.ts",
     "./overlay": "./src/overlay/index.ts",
+    "./readiness-documents": "./src/readiness-documents/index.ts",
     "./default-matrix": "./src/default-matrix/index.ts",
     "./rules": "./src/rules/index.ts",
     "./csv-parser": "./src/csv-parser/index.ts",
@@ -21,6 +23,7 @@
     "./normalize-dict": "./src/normalize-dict/index.ts",
     "./plan-entitlements": "./src/plan-entitlements/index.ts",
     "./permissions": "./src/permissions/index.ts",
+    "./tax-periods": "./src/tax-periods/index.ts",
     "./practice-name": "./src/practice-name.ts"
   },
   "scripts": {

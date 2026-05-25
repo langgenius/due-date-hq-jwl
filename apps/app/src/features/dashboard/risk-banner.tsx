@@ -14,7 +14,7 @@ export function RiskBanner({ title, detail, source, action, className }: RiskBan
   return (
     <div
       className={cn(
-        'grid gap-1 rounded-lg border border-divider-regular bg-components-badge-bg-warning-soft p-4 text-text-primary',
+        'grid gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft p-4 text-text-primary',
         className,
       )}
     >

@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+  MAX_INTERNAL_DEADLINE_OFFSET_DAYS,
+  MIN_INTERNAL_DEADLINE_OFFSET_DAYS,
   SMART_PRIORITY_DEFAULT_PROFILE,
   type FirmPublic,
   type FirmSmartPriorityPreviewOutput,
@@ -51,6 +53,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { Breadcrumb } from '@/components/patterns/breadcrumb'
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
@@ -61,17 +64,15 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
-  'exposure',
   'urgency',
   'importance',
   'history',
   'readiness',
 ] as const satisfies readonly SmartPriorityFactorKey[]
 
-const MIN_EXPOSURE_CAP_CENTS = 1
-const MAX_EXPOSURE_CAP_CENTS = 1_000_000_000
 const MIN_URGENCY_WINDOW_DAYS = 1
 const MAX_URGENCY_WINDOW_DAYS = 365
 const MIN_HISTORY_CAP_COUNT = 1
@@ -81,7 +82,6 @@ function clonePriorityProfile(profile: SmartPriorityProfile): SmartPriorityProfi
   return {
     version: profile.version,
     weights: { ...profile.weights },
-    exposureCapCents: profile.exposureCapCents,
     urgencyWindowDays: profile.urgencyWindowDays,
     historyCapCount: profile.historyCapCount,
   }
@@ -89,7 +89,6 @@ function clonePriorityProfile(profile: SmartPriorityProfile): SmartPriorityProfi
 
 function samePriorityProfile(a: SmartPriorityProfile, b: SmartPriorityProfile): boolean {
   return (
-    a.exposureCapCents === b.exposureCapCents &&
     a.urgencyWindowDays === b.urgencyWindowDays &&
     a.historyCapCount === b.historyCapCount &&
     PRIORITY_FACTOR_KEYS.every((key) => a.weights[key] === b.weights[key])
@@ -118,7 +117,7 @@ export function PracticeRoute() {
 
   if (currentQuery.isError) {
     return (
-      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -132,7 +131,7 @@ export function PracticeRoute() {
 
   if (!currentQuery.data) {
     return (
-      <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -176,6 +175,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   const [name, setName] = useState(firm.name)
   const originalTimezone = resolveUSFirmTimezone(firm.timezone)
   const [timezone, setTimezone] = useState(originalTimezone)
+  const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
+    firm.internalDeadlineOffsetDays,
+  )
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [savedPriorityProfile, setSavedPriorityProfile] = useState(() =>
@@ -198,7 +200,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         })
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         setError(message)
         toast.error(t`Couldn't update practice`, {
           description: message,
@@ -223,7 +227,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         })
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         setError(message)
         toast.error(t`Couldn't update Smart Priority`, {
           description: message,
@@ -238,7 +244,9 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         setPriorityPreview(result)
       },
       onError: (err) => {
-        const message = rpcErrorMessage(err) ?? t`Please try again.`
+        const message =
+          rpcErrorMessage(err) ??
+          t`Check your network and try again. If this keeps happening, contact support.`
         toast.error(t`Couldn't calculate preview`, {
           description: message,
         })
@@ -269,7 +277,18 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
       })
       return
     }
-    updateMutation.mutate({ name: trimmed, timezone })
+    if (
+      internalDeadlineOffsetDays < MIN_INTERNAL_DEADLINE_OFFSET_DAYS ||
+      internalDeadlineOffsetDays > MAX_INTERNAL_DEADLINE_OFFSET_DAYS
+    ) {
+      const message = t`Internal deadline offset must be between 0 and 365 days.`
+      setError(message)
+      toast.error(t`Couldn't update practice`, {
+        description: message,
+      })
+      return
+    }
+    updateMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
   }
 
   function updatePriorityWeight(key: SmartPriorityFactorKey, value: string) {
@@ -284,15 +303,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     }))
   }
 
-  function updatePriorityNumber(
-    key: 'exposureCapCents' | 'urgencyWindowDays' | 'historyCapCount',
-    value: string,
-  ) {
+  function updatePriorityNumber(key: 'urgencyWindowDays' | 'historyCapCount', value: string) {
     const parsed = parseWholeNumber(value)
     setPriorityPreview(null)
     setPriorityProfile((current) => ({
       ...current,
-      [key]: key === 'exposureCapCents' ? parsed * 100 : parsed,
+      [key]: parsed,
     }))
   }
 
@@ -310,23 +326,28 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityUpdateMutation.mutate({
       name: trimmed.length >= 2 ? trimmed : firm.name,
       timezone,
+      internalDeadlineOffsetDays,
       smartPriorityProfile: priorityProfile,
     })
   }
 
-  const dirty = name.trim() !== firm.name || timezone !== originalTimezone
+  const dirty =
+    name.trim() !== firm.name ||
+    timezone !== originalTimezone ||
+    internalDeadlineOffsetDays !== firm.internalDeadlineOffsetDays
+  const internalDeadlineOffsetDaysValid =
+    internalDeadlineOffsetDays >= MIN_INTERNAL_DEADLINE_OFFSET_DAYS &&
+    internalDeadlineOffsetDays <= MAX_INTERNAL_DEADLINE_OFFSET_DAYS
   const weightTotal = priorityWeightTotal(priorityProfile)
   const priorityValid =
     weightTotal === 100 &&
-    priorityProfile.exposureCapCents >= MIN_EXPOSURE_CAP_CENTS &&
-    priorityProfile.exposureCapCents <= MAX_EXPOSURE_CAP_CENTS &&
     priorityProfile.urgencyWindowDays >= MIN_URGENCY_WINDOW_DAYS &&
     priorityProfile.urgencyWindowDays <= MAX_URGENCY_WINDOW_DAYS &&
     priorityProfile.historyCapCount >= MIN_HISTORY_CAP_COUNT &&
     priorityProfile.historyCapCount <= MAX_HISTORY_CAP_COUNT
   const priorityDirty = !samePriorityProfile(priorityProfile, savedPriorityProfile)
   const previewDisabledReason =
-    firm.openObligationCount === 0 ? t`No open obligations available for preview.` : null
+    firm.openObligationCount === 0 ? t`No open deadlines available for preview.` : null
   const currentPlan =
     firm.plan === 'firm'
       ? t`Enterprise`
@@ -348,15 +369,17 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   const firmSummary = t`Active practice · ${{ currentPlan }} plan · ${firm.seatLimit} seat limit`
   const firmSummaryLabel = t`Active practice summary`
   const priorityFactorLabels: Record<SmartPriorityFactorKey, string> = {
-    exposure: t`Projected risk`,
     urgency: t`Deadline urgency`,
     importance: t`Client importance`,
     history: t`Late filing history`,
-    readiness: t`Readiness pressure`,
+    readiness: t`Materials pressure`,
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
+      <Breadcrumb
+        items={[{ label: t`Settings`, to: '/settings' }, { label: t`Practice profile` }]}
+      />
       <section className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -364,13 +387,13 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               <Building2Icon className="size-4" aria-hidden />
             </span>
             <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold leading-tight text-text-primary">
+              <h1 className="truncate text-2xl leading-7 font-semibold text-text-primary">
                 <Trans>Practice profile</Trans>
               </h1>
               <p
                 role="note"
                 aria-label={firmSummaryLabel}
-                className="truncate text-sm text-text-secondary"
+                className="truncate text-[13px] leading-5 text-text-secondary"
               >
                 {firmSummary}
               </p>
@@ -421,6 +444,30 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 disabled={!canEditPractice || updateMutation.isPending}
               />
             </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="firm-internal-deadline-offset">
+                <Trans>Internal deadline</Trans>
+              </Label>
+              <Input
+                id="firm-internal-deadline-offset"
+                type="number"
+                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                step={1}
+                value={internalDeadlineOffsetDays}
+                onChange={(event) =>
+                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                }
+                disabled={!canEditPractice || updateMutation.isPending}
+                className="font-mono tabular-nums"
+              />
+              <p className="text-xs leading-5 text-text-tertiary">
+                <Trans>
+                  DueDateHQ shows work as due this many days before each statutory base deadline.
+                  Changing this recalculates current deadline dates.
+                </Trans>
+              </p>
+            </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">
                 {error}
@@ -429,7 +476,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={!canEditPractice || !dirty || updateMutation.isPending}
+                disabled={
+                  !canEditPractice ||
+                  !dirty ||
+                  !internalDeadlineOffsetDaysValid ||
+                  updateMutation.isPending
+                }
               >
                 {updateMutation.isPending ? <Trans>Saving…</Trans> : <Trans>Save changes</Trans>}
               </Button>
@@ -461,11 +513,15 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <div className="grid gap-5">
               <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
+                  {/* 2026-05-25 (info-icon audit): dropped the
+                      duplicate `smartPriority` popover — the
+                      CardTitle 23 lines above already carries it
+                      via ConceptLabel. One explainer per
+                      concept per screen. */}
                   <div className="flex items-center gap-1.5">
                     <Label>
                       <Trans>Factor weights</Trans>
                     </Label>
-                    <ConceptHelp concept="smartPriority" />
                   </div>
                   <span
                     className={
@@ -477,7 +533,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     <Trans>Total</Trans> {weightTotal}%
                   </span>
                 </div>
-                <div className="grid gap-3 md:grid-cols-5">
+                <div className="grid gap-3 md:grid-cols-4">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
                     <div key={key} className="grid gap-1.5">
                       <Label htmlFor={`priority-weight-${key}`}>{priorityFactorLabels[key]}</Label>
@@ -496,27 +552,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-3">
-                <div className="grid gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="priority-exposure-cap">
-                      <Trans>Projected risk cap</Trans>
-                    </Label>
-                    <ConceptHelp concept="projectedRiskCap" />
-                  </div>
-                  <Input
-                    id="priority-exposure-cap"
-                    type="number"
-                    min={1}
-                    max={MAX_EXPOSURE_CAP_CENTS / 100}
-                    value={Math.round(priorityProfile.exposureCapCents / 100)}
-                    onChange={(event) =>
-                      updatePriorityNumber('exposureCapCents', event.target.value)
-                    }
-                    disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
-                  />
-                </div>
+              <div className="grid gap-3 md:grid-cols-2">
                 <div className="grid gap-1.5">
                   <div className="flex items-center gap-1.5">
                     <Label htmlFor="priority-urgency-window">
@@ -561,7 +597,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="text-xs text-text-tertiary">
-                  <Trans>Preview recalculates open obligations without saving changes.</Trans>
+                  <Trans>Preview recalculates open deadlines without saving changes.</Trans>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button
@@ -604,7 +640,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   <Button
                     type="button"
                     onClick={savePriorityProfile}
-                    disabled={!priorityValid || !priorityDirty || priorityUpdateMutation.isPending}
+                    disabled={
+                      !priorityValid ||
+                      !priorityDirty ||
+                      !internalDeadlineOffsetDaysValid ||
+                      priorityUpdateMutation.isPending
+                    }
                   >
                     {priorityUpdateMutation.isPending ? (
                       <Trans>Saving…</Trans>
@@ -681,7 +722,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
   if (preview.rows.length === 0) {
     return (
       <div className="rounded-md border border-divider-subtle bg-background-section px-3 py-2 text-sm text-text-secondary">
-        <Trans>No open obligations available for preview.</Trans>
+        <Trans>No open deadlines available for preview.</Trans>
       </div>
     )
   }
@@ -695,7 +736,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
         <TableHeader>
           <TableRow>
             <TableHead>
-              <Trans>Obligation</Trans>
+              <Trans>Deadline</Trans>
             </TableHead>
             <TableHead>
               <Trans>Due</Trans>
@@ -714,7 +755,9 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
               <TableCell>
                 <div className="grid gap-0.5">
                   <span className="font-medium text-text-primary">{row.clientName}</span>
-                  <span className="text-text-tertiary">{row.taxType}</span>
+                  <span className="text-text-tertiary">
+                    <TaxCodeLabel code={row.taxType} />
+                  </span>
                 </div>
               </TableCell>
               <TableCell className="font-mono tabular-nums text-text-secondary">
@@ -746,7 +789,7 @@ function SmartPriorityRedactedContent() {
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-4 w-16" />
         </div>
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-4">
           {PRIORITY_FACTOR_KEYS.map((key) => (
             <div key={key} className="grid gap-1.5">
               <Skeleton className="h-4 w-20" />
@@ -756,8 +799,8 @@ function SmartPriorityRedactedContent() {
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {[0, 1, 2].map((item) => (
+      <div className="grid gap-3 md:grid-cols-2">
+        {[0, 1].map((item) => (
           <div key={item} className="grid gap-1.5">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-9 w-full" />
@@ -776,7 +819,7 @@ function SmartPriorityRedactedContent() {
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-[880px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
       <Skeleton className="h-10 w-56" />
       <Skeleton className="h-52 w-full rounded-lg" />
       <Skeleton className="h-40 w-full rounded-lg" />

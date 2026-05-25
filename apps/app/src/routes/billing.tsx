@@ -41,6 +41,7 @@ import {
 } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
+import { PageHeader } from '@/components/patterns/page-header'
 import { PermissionGate } from '@/features/permissions/permission-gate'
 
 type BadgeVariant = ComponentProps<typeof Badge>['variant']
@@ -116,13 +117,13 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
       seats: t`3 seats included`,
       firms: t`1 production practice`,
       aiLabel: t`Practice AI included`,
-      aiDescription: t`Dashboard briefs, Pulse summaries, client risk summaries, and guided import AI for live client data.`,
+      aiDescription: t`Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data.`,
       aiFeatures: [t`Full practice AI workflows`, t`Same AI capability as Team`],
       description: t`For small practices that need shared deadline operations.`,
       features: [
         t`1 production practice`,
         t`3 seats included`,
-        t`Pulse and Obligations access`,
+        t`Pulse and Deadlines access`,
         t`Shared deadline operations`,
       ],
       cta: t`Upgrade to Pro`,
@@ -191,8 +192,16 @@ export function BillingRoute() {
   const activeFirmCount = ownedActiveFirms(firms).length
   const activeFirmLimit = activeFirmEntitlementLimit(firms)
   const activeFirmLimitLabel = activeFirmLimit === null ? t`contract` : String(activeFirmLimit)
+  // 2026-05-24 (critique P2 — clarify): when the owner has more
+  // active practices than their plan permits (e.g. seed has 2 owned
+  // firms on a 1-practice Pro plan), the previous string read "2 of
+  // 1 active practices" — math that reads as a bug. Flag the
+  // over-limit case explicitly so the user sees what's going on.
+  const activeFirmOverLimit = activeFirmLimit !== null && activeFirmCount > activeFirmLimit
   const activeFirmUsage = currentFirm
-    ? t`${activeFirmCount} of ${activeFirmLimitLabel} active practices`
+    ? activeFirmOverLimit
+      ? t`${activeFirmCount} active · ${activeFirmLimitLabel} on this plan`
+      : t`${activeFirmCount} of ${activeFirmLimitLabel} active practices`
     : '—'
   const subscriptionsQuery = useBillingSubscriptions(currentFirm, false, canReadBilling)
   const activeSubscription = subscriptionsQuery.data?.find((subscription) =>
@@ -232,7 +241,7 @@ export function BillingRoute() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-72 w-full" />
       </div>
@@ -250,7 +259,7 @@ export function BillingRoute() {
             need plan or invoice access.
           </Trans>
         }
-        secondaryAction={{ label: <Trans>Open Obligations</Trans>, to: '/obligations' }}
+        secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
       >
         <div />
       </PermissionGate>
@@ -258,33 +267,33 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 px-4 py-6 md:px-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <div className="min-w-0">
-            <span className="text-xs font-medium uppercase text-text-tertiary">
-              <Trans>Practice</Trans>
-            </span>
-            <h1 className="mt-1 text-2xl font-semibold text-text-primary">
-              <Trans>Billing</Trans>
-            </h1>
-            <p className="mt-1 max-w-[680px] text-sm leading-6 text-text-secondary">
-              <Trans>
-                Review the active practice plan, open billing controls, and choose the right
-                workspace tier.
-              </Trans>
-            </p>
-          </div>
-        </div>
-        {currentFirm ? (
-          <Badge
-            variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
-            className="font-mono tabular-nums"
-          >
-            {currentPlanName}
-          </Badge>
-        ) : null}
-      </header>
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
+      {/* 2026-05-24 (design-system audit): migrated from ad-hoc
+          Breadcrumb + custom header to the shared `<PageHeader>`.
+          Breadcrumb routes through the eyebrow slot; current plan
+          Badge sits in the actions cluster.
+          2026-05-24 (A7): outer page width standardized to
+          `max-w-page-wide` (was an outlier 1180px). */}
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Billing` }]}
+        title={<Trans>Billing</Trans>}
+        description={
+          <Trans>
+            Review the active practice plan, open billing controls, and choose the right workspace
+            tier.
+          </Trans>
+        }
+        actions={
+          currentFirm ? (
+            <Badge
+              variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
+              className="font-mono tabular-nums"
+            >
+              {currentPlanName}
+            </Badge>
+          ) : null
+        }
+      />
 
       {portalMutation.isError ? (
         <Alert variant="destructive">
@@ -353,7 +362,7 @@ export function BillingRoute() {
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="font-mono text-3xl font-semibold tabular-nums text-text-primary">
+                    <p className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
                       {currentPlanName}
                     </p>
                     <p className="mt-1 text-sm text-text-secondary">
@@ -620,7 +629,7 @@ function BillingIntervalToggle({
         <Badge
           variant="success"
           className={cn(
-            'font-mono text-[10px]',
+            'font-mono text-caption-xs',
             value === 'yearly' && 'bg-white/20 text-primary-foreground',
           )}
         >
@@ -691,7 +700,7 @@ function PlanOption({
           <div className="flex min-h-10 flex-wrap items-baseline gap-2">
             <span
               className={cn(
-                'text-3xl font-semibold text-text-primary',
+                'text-2xl font-semibold text-text-primary',
                 priceKind === 'numeric' ? 'font-mono tabular-nums' : 'font-sans tracking-normal',
               )}
             >
@@ -707,7 +716,7 @@ function PlanOption({
             <div className="flex flex-wrap items-center gap-2">
               <span>{plan.cadence}</span>
               {plan.savings ? (
-                <Badge variant="success" className="font-mono text-[10px]">
+                <Badge variant="success" className="font-mono text-caption-xs">
                   {plan.savings}
                 </Badge>
               ) : null}
@@ -735,7 +744,7 @@ function PlanOption({
               </TooltipText>
             </div>
           </div>
-          <ul className="flex flex-wrap gap-1.5 text-[11px] leading-4 text-text-secondary">
+          <ul className="flex flex-wrap gap-1.5 text-caption leading-4 text-text-secondary">
             {plan.aiFeatures.map((feature) => (
               <li
                 key={feature}
@@ -796,7 +805,7 @@ function TooltipText({ children, className }: { children: ReactNode; className?:
 function CurrentPlanRibbon() {
   return (
     <div className="pointer-events-none absolute -top-2 -right-2 z-10 h-28 w-28" aria-hidden="true">
-      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-[10px] leading-none font-bold text-primary-foreground uppercase shadow-sm">
+      <span className="absolute top-8 -right-10 flex h-8 w-40 rotate-45 items-center justify-center bg-accent-default text-caption-xs leading-none font-bold text-primary-foreground uppercase shadow-sm">
         <Trans>current</Trans>
       </span>
     </div>

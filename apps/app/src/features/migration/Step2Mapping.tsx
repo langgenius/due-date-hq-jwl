@@ -106,18 +106,26 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
+          {/* 2026-05-25 (Wizard #40 copy polish): dropped
+              "and confirm" — that's the Continue button's job
+              one row down. Heading should name the action,
+              not the action+commit. */}
           <h2 className="text-lg font-semibold text-text-primary">
-            <Trans>Review and confirm column mapping</Trans>
+            <Trans>Review the column mapping</Trans>
           </h2>
           <MappingCapabilityBadge mapping={mapping} />
         </div>
         <div className="flex items-center justify-between gap-3">
+          {/* 2026-05-25 (Wizard #40 copy polish): leads with the
+              number (the actual signal), drops "Average" which
+              just delays it. EIN detection collapsed from a
+              binary 100% / 0% (which reads like a real percentage)
+              to a simple "EIN found" tag shown only when true. */}
           <p className="text-md text-text-secondary">
             {avgConfidence !== null ? (
               <Trans>
-                Average confidence <span className="font-mono tabular-nums">{avgConfidence}%</span>{' '}
-                · EIN detected{' '}
-                <span className="font-mono tabular-nums">{einDetected ? '100%' : '0%'}</span>
+                <span className="font-mono tabular-nums">{avgConfidence}%</span> average confidence
+                {einDetected ? ' · EIN found' : null}
               </Trans>
             ) : (
               <Trans>Run the mapper to see confidence stats.</Trans>
@@ -141,8 +149,11 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
 
       {mapping.status === 'fallback' ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
+          {/* 2026-05-25 (Wizard #40 copy polish): alert titles
+              should be punchy — the AlertDescription below
+              already explains the fallback. */}
           <AlertTitle>
-            <Trans>Automatic field matching is unavailable — using default suggestions</Trans>
+            <Trans>AI mapping unavailable</Trans>
           </AlertTitle>
           <AlertDescription>
             {mapping.fallback === 'preset' ? (
@@ -172,7 +183,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
       {mapping.errorBanner ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
-            <Trans>Something went wrong</Trans>
+            <Trans>Couldn't map columns</Trans>
           </AlertTitle>
           <AlertDescription>{mapping.errorBanner}</AlertDescription>
         </Alert>
@@ -181,10 +192,14 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
       {lowConfCount > 0 ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle>
+            {/* 2026-05-25 (Wizard #40 cross-step polish): dropped
+                "your" — canonical phrase across all 4 steps is
+                bare "needs review" (Step 3 dropped "human",
+                Step 4 will drop "attention"). */}
             <Plural
               value={lowConfCount}
-              one="# column needs your review"
-              other="# columns need your review"
+              one="# column needs review"
+              other="# columns need review"
             />
           </AlertTitle>
         </Alert>
@@ -346,7 +361,16 @@ function MappingCapabilityHelp({
               type="button"
               aria-label={label}
               title={title}
-              className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-destructive outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              // 2026-05-25 (info-icon audit recolor): the help
+              // icon's `text-text-destructive` belonged to the
+              // adjacent "Manual mapping" badge, not to the
+              // "click to learn what this means" affordance.
+              // Standardized to the same tertiary-tone hit
+              // area the canonical ConceptHelp uses elsewhere.
+              // The tooltip body keeps its warning tone — that's
+              // the "you should look at this" context, separate
+              // from the icon's calm affordance.
+              className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <CircleHelpIcon className="size-3.5" aria-hidden />
             </button>

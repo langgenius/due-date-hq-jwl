@@ -30,12 +30,22 @@ import { buildAuditChangeView } from '@/features/audit/audit-change-view'
 import { useAuditActionLabels, useAuditChangeLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 import {
+  extensionDecisionEvidenceDescription,
+  extensionDecisionEvidenceDetails,
+  readExtensionDecisionEvidence,
+} from '@/features/evidence/extension-decision-evidence'
+import {
   EvidenceDrawerContext,
   type EvidenceDrawerContextValue,
   type OpenEvidenceInput,
 } from '@/features/evidence/EvidenceDrawerContext'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
-import { useReadinessLabels, useStatusLabels } from '@/features/obligations/status-control'
+import {
+  useLifecycleV2StatusLabels,
+  useReadinessLabels,
+  useStatusLabels,
+} from '@/features/obligations/status-control'
+import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 
 export function EvidenceDrawerProvider({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<OpenEvidenceInput | null>(null)
@@ -86,9 +96,7 @@ function EvidenceDrawer({
             <FileSearchIcon className="size-4 text-text-accent" aria-hidden />
             <Trans>Evidence for this deadline</Trans>
           </SheetTitle>
-          <SheetDescription>
-            {request?.label ?? <Trans>Obligation evidence</Trans>}
-          </SheetDescription>
+          <SheetDescription>{request?.label ?? <Trans>Deadline evidence</Trans>}</SheetDescription>
         </SheetHeader>
         <div className="grid gap-5 px-6 pb-6">
           <EvidenceSummary request={request} />
@@ -112,7 +120,7 @@ function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
         <Trans>Deadline</Trans>
       </span>
       <div className="text-sm font-medium text-text-primary">
-        {request?.label ?? <Trans>Selected obligation</Trans>}
+        {request?.label ?? <Trans>Selected deadline</Trans>}
       </div>
     </section>
   )
@@ -255,7 +263,7 @@ function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule') return <Trans>Active practice rule</Trans>
   if (sourceType === 'ai_mapper') return <Trans>Import mapping</Trans>
   if (sourceType === 'ai_normalizer') return <Trans>Import cleanup</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>Readiness checklist</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>Materials checklist</Trans>
   if (sourceType === 'readiness_client_response') return <Trans>Client response</Trans>
   if (sourceType === 'penalty_override') return <Trans>Penalty input</Trans>
   if (sourceType === 'extension_decision') return <Trans>Extension decision</Trans>
@@ -272,10 +280,10 @@ function evidenceHeadline(sourceType: string): ReactNode {
   if (sourceType === 'ai_mapper') return <Trans>Matched an imported column to DueDateHQ.</Trans>
   if (sourceType === 'ai_normalizer') return <Trans>Cleaned up an imported value.</Trans>
   if (sourceType === 'readiness_checklist_ai') {
-    return <Trans>Prepared a readiness checklist.</Trans>
+    return <Trans>Prepared a materials checklist.</Trans>
   }
   if (sourceType === 'readiness_client_response') {
-    return <Trans>The client answered readiness questions.</Trans>
+    return <Trans>The client answered the materials questions.</Trans>
   }
   if (sourceType === 'penalty_override') return <Trans>Updated penalty inputs.</Trans>
   if (sourceType === 'extension_decision') return <Trans>Recorded an extension decision.</Trans>
@@ -292,18 +300,26 @@ function evidenceDescription(item: EvidencePublic): ReactNode {
   }
   if (item.sourceType === 'readiness_client_response') {
     const readiness = readRecordString(readJsonRecord(item.normalizedValue), 'readiness')
-    if (readiness) return <Trans>Latest readiness: {humanizeToken(readiness)}.</Trans>
+    if (readiness) return <Trans>Latest materials state: {humanizeToken(readiness)}.</Trans>
   }
   if (item.sourceType === 'verified_rule') {
     return (
-      <Trans>The accepted source-backed rule matched the client facts for this obligation.</Trans>
+      <Trans>The accepted source-backed rule matched the client facts for this deadline.</Trans>
     )
+  }
+  if (item.sourceType === 'extension_decision') {
+    const extensionDecision = readExtensionDecisionEvidence(item)
+    if (extensionDecision) return extensionDecisionEvidenceDescription(extensionDecision)
   }
   return firstReadableValue(item.normalizedValue ?? item.rawValue)?.node ?? null
 }
 
 function evidenceDetails(item: EvidencePublic): EvidenceDetail[] {
   if (item.sourceType === 'penalty_override') return penaltyInputDetails(item)
+  if (item.sourceType === 'extension_decision') {
+    const extensionDecision = readExtensionDecisionEvidence(item)
+    return extensionDecision ? extensionDecisionEvidenceDetails(extensionDecision) : []
+  }
   if (item.sourceType === 'readiness_client_response') return readinessResponseDetails(item)
   if (item.sourceType === 'readiness_checklist_ai') return readinessChecklistDetails(item)
 
@@ -348,7 +364,7 @@ function readinessChecklistDetails(item: EvidencePublic): EvidenceDetail[] {
   const details: Array<EvidenceDetail | null> = [
     taxType ? { id: 'tax-type', label: <Trans>Tax type</Trans>, value: taxType } : null,
     currentDueDate
-      ? { id: 'due-date', label: <Trans>Due date</Trans>, value: currentDueDate }
+      ? { id: 'due-date', label: <Trans>Internal deadline</Trans>, value: currentDueDate }
       : null,
   ]
   return details.filter((detail): detail is EvidenceDetail => detail !== null)
@@ -544,7 +560,7 @@ function humanizeEvidenceValue(value: unknown): string {
 function humanizeFieldName(value: string): string {
   if (value === 'estimatedTaxLiabilityCents') return 'Estimated tax liability'
   if (value === 'equityOwnerCount') return 'Owner count'
-  if (value === 'currentDueDate') return 'Due date'
+  if (value === 'currentDueDate') return 'Internal deadline'
   if (value === 'taxType') return 'Tax type'
   if (value === 'entityType') return 'Entity type'
   if (value === 'readiness') return 'Readiness'
@@ -582,7 +598,13 @@ function formatNullableNumber(value: number | null): ReadableValue {
 function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loading: boolean }) {
   const practiceTimezone = usePracticeTimezone()
   const actionLabels = useAuditActionLabels()
-  const statusLabels = useStatusLabels()
+  // v2-aware status labels — audit timeline reads the same vocabulary
+  // as the queue ("Filed" not "Paid"). Raw status values are still in
+  // beforeJson/afterJson for forensic reconstruction.
+  const lifecycleV2 = useLifecycleV2()
+  const legacyStatusLabels = useStatusLabels()
+  const v2StatusLabels = useLifecycleV2StatusLabels()
+  const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const readinessLabels = useReadinessLabels()
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
 
@@ -598,7 +620,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
         <Skeleton className="h-20 w-full" />
       ) : events.length === 0 ? (
         <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No audit events recorded for this obligation.</Trans>
+          <Trans>No audit events recorded for this deadline.</Trans>
         </div>
       ) : (
         <div className="grid gap-3">

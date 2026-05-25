@@ -3,16 +3,20 @@ import * as z from 'zod'
 import type { AI, AiRunResult } from '@duedatehq/ai'
 import {
   inferTaxTypes,
+  isStateTaxTypeForState,
   type EntityType,
   type InferTaxTypesResult,
 } from '@duedatehq/core/default-matrix'
 import type { BillingPlan } from '@duedatehq/core/plan-entitlements'
 import { parseTabular, type ParsedTabular, type TabularKind } from '@duedatehq/core/csv-parser'
 import { normalizeEntityType, normalizeState } from '@duedatehq/core/normalize-dict'
-import { summarizePenaltyExposure } from '@duedatehq/core/penalty'
+import { DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS } from '@duedatehq/core/deadlines'
 import {
   listObligationRules,
+  previewObligationsFromRules,
+  STATE_RULE_JURISDICTIONS,
   type ObligationRule as CoreObligationRule,
+  type RuleGenerationState,
 } from '@duedatehq/core/rules'
 import {
   DryRunSummarySchema,
@@ -25,14 +29,9 @@ import {
   type MappingRow,
   type MatrixSelection,
   type MigrationBatch,
-  type MigrationExternalEntityType,
-  type MigrationExternalStagingRowInput,
-  type MigrationExposureSummary,
-  type MigrationIntegrationProvider,
   type MigrationError,
   type MigrationSource,
-  type MigrationStageExternalRowsOutput,
-  type MigrationStagingRow,
+  type MigrationSourceManifest,
   type NormalizationRow,
 } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -44,12 +43,8 @@ import {
 } from './_preset-mappings'
 import { buildCommitPlan } from './_commit-plan'
 import { sanitizeMapperOutput, validateNormalizedRows, validateRows } from './_deterministic'
-import type {
-  DeterministicError,
-  ExternalStagingPayloadRow,
-  MappingJsonPayload,
-  MatrixApplicationEntry,
-} from './_types'
+import type { DeterministicError, MappingJsonPayload, MatrixApplicationEntry } from './_types'
+import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
 import { toCoreRule } from '../rules/runtime'
 
 /**
@@ -126,13 +121,23 @@ const MapperOutputSchema = z.object({
       target: z.enum([
         'client.name',
         'client.ein',
+        'client.external_client_id',
         'client.state',
         'client.filing_states',
         'client.county',
+        'client.address_line_1',
+        'client.city',
+        'client.postal_code',
         'client.entity_type',
         'client.tax_types',
+        'client.tax_year_type',
+        'client.fiscal_year_end',
         'client.assignee_name',
+        'client.primary_contact_name',
+        'client.primary_contact_email',
         'client.email',
+        'client.primary_phone',
+        'client.source_status',
         'client.notes',
         'client.estimated_tax_liability',
         'client.equity_owner_count',
@@ -203,6 +208,7 @@ export interface MigrationDeps {
   ai: AI
   userId: string
   plan?: BillingPlan
+  internalDeadlineOffsetDays?: number
   firmCreatedAt?: Date
   rawBucket?: R2Bucket
 }
@@ -217,6 +223,7 @@ export interface UploadRawInput {
   text?: string
   base64?: string
   rawBase64?: string
+  sourceManifest?: MigrationSourceManifest
 }
 
 export class MigrationService {
@@ -329,6 +336,7 @@ export class MigrationService {
       rowCount: parsed.rowCount,
       truncated: parsed.truncated,
     }
+    if (input.sourceManifest) payload.sourceManifest = input.sourceManifest
 
     await this.deps.scoped.migration.updateBatch(input.batchId, {
       mappingJson: payload,
@@ -357,121 +365,6 @@ export class MigrationService {
     return { rawInputR2Key }
   }
 
-  async stageExternalRows(input: {
-    batchId: string
-    provider: MigrationIntegrationProvider
-    rows: MigrationExternalStagingRowInput[]
-  }): Promise<MigrationStageExternalRowsOutput> {
-    const batch = await this.requireDraftBatch(input.batchId)
-    if (!isIntegrationSource(batch.source)) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'External staging rows require an integration migration source.',
-      })
-    }
-    if (providerForSource(batch.source) !== input.provider) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: `Batch source ${batch.source} does not match provider ${input.provider}.`,
-      })
-    }
-
-    const staged = await buildExternalStagingProjection(input.provider, input.rows)
-    await this.deps.scoped.migration.createStagingRows(
-      input.batchId,
-      staged.rows.map((row) => ({
-        id: row.stagingRowId,
-        provider: row.provider,
-        externalEntityType: row.externalEntityType,
-        externalId: row.externalId,
-        externalUrl: row.externalUrl,
-        rowIndex: row.rowIndex,
-        rowHash: row.rowHash,
-        rawRowJson: input.rows[row.rowIndex]?.rawJson ?? {},
-      })),
-    )
-
-    const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
-    payload.providerContext = { provider: input.provider, source: batch.source }
-    payload.externalStagingRows = staged.rows
-    payload.rawInput = {
-      kind: 'csv',
-      headers: staged.headers,
-      rows: staged.tabularRows,
-      rowCount: staged.tabularRows.length,
-      truncated: false,
-    }
-
-    await this.deps.scoped.migration.updateBatch(input.batchId, {
-      mappingJson: payload,
-      rawInputFileName: `${input.provider}-integration.json`,
-      rawInputContentType: 'application/json',
-      rawInputSizeBytes: new TextEncoder().encode(JSON.stringify(input.rows)).byteLength,
-      rowCount: staged.tabularRows.length,
-      status: 'mapping',
-    })
-
-    await this.deps.scoped.audit.write({
-      actorId: this.deps.userId,
-      entityType: 'migration_batch',
-      entityId: input.batchId,
-      action: 'migration.staging_rows.created',
-      after: {
-        provider: input.provider,
-        source: batch.source,
-        rowCount: staged.tabularRows.length,
-      },
-    })
-
-    const updated = await this.requireBatch(input.batchId)
-    return {
-      batch: toMigrationBatch(updated),
-      rowCount: staged.tabularRows.length,
-      headers: staged.headers,
-    }
-  }
-
-  async cloneStagingRows(sourceBatchId: string): Promise<MigrationStageExternalRowsOutput> {
-    const sourceBatch = await this.requireBatch(sourceBatchId)
-    if (!isIntegrationSource(sourceBatch.source)) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Only integration migration batches can be cloned from staging rows.',
-      })
-    }
-    const existingRows = await this.deps.scoped.migration.listStagingRows(sourceBatchId)
-    if (existingRows.length === 0) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'No staging rows are available for this migration batch.',
-      })
-    }
-    const provider = existingRows[0]?.provider
-    if (!provider) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Staging rows are missing provider metadata.',
-      })
-    }
-    const newBatch = await this.createBatch({
-      source: sourceBatch.source,
-      presetUsed: sourceBatch.presetUsed,
-      rowCount: existingRows.length,
-    })
-
-    return this.stageExternalRows({
-      batchId: newBatch.id,
-      provider,
-      rows: existingRows.map((row) => ({
-        externalId: row.externalId,
-        externalUrl: row.externalUrl,
-        externalEntityType: row.externalEntityType,
-        rawJson: normalizeJsonObject(row.rawRowJson),
-      })),
-    })
-  }
-
-  async listStagingRows(batchId: string): Promise<MigrationStagingRow[]> {
-    await this.requireBatch(batchId)
-    const rows = await this.deps.scoped.migration.listStagingRows(batchId)
-    return rows.map(toMigrationStagingRow)
-  }
-
   // ---------------------------------------------------------------------
   // Step 2 — AI Field Mapper
   // ---------------------------------------------------------------------
@@ -492,12 +385,11 @@ export class MigrationService {
     let aiOutputId: string | null = null
 
     const aiResult = await this.deps.ai.runPrompt(
-      'mapper@v1',
+      'mapper@v2',
       {
         header: headers,
         sample_rows: sampleRows,
         preset: batch.presetUsed,
-        provider_context: payload.providerContext ?? null,
         firm_id_hash: this.deps.scoped.firmId,
       },
       MapperOutputSchema,
@@ -518,7 +410,7 @@ export class MigrationService {
             reasoning: m.reasoning ?? null,
             userOverridden: false,
             model: aiResult.model,
-            promptVersion: 'mapper@v1',
+            promptVersion: 'mapper@v2',
             createdAt: new Date().toISOString(),
           }) satisfies MappingRow,
       )
@@ -794,7 +686,8 @@ export class MigrationService {
       },
     })
 
-    return this.composeDryRun(batchId, payload)
+    const rules = await runtimeRulesForFirm(this.deps.scoped)
+    return this.composeDryRun(batchId, payload, rules)
   }
 
   // ---------------------------------------------------------------------
@@ -804,7 +697,8 @@ export class MigrationService {
   async dryRun(batchId: string): Promise<DryRunSummary> {
     const batch = await this.requireBatch(batchId)
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
-    return this.composeDryRun(batchId, payload)
+    const rules = await runtimeRulesForFirm(this.deps.scoped)
+    return this.composeDryRun(batchId, payload, rules)
   }
 
   async apply(batchId: string): Promise<{
@@ -813,7 +707,6 @@ export class MigrationService {
     obligationCount: number
     skippedCount: number
     revertibleUntil: string
-    exposureSummary: MigrationExposureSummary
   }> {
     const batch = await this.requireBatch(batchId)
     if (batch.status === 'applied') {
@@ -830,15 +723,15 @@ export class MigrationService {
 
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
     const rules = await runtimeRulesForFirm(this.deps.scoped)
-    const plan = await this.filterExistingExternalClients(
-      buildCommitPlan({
-        batchId,
-        firmId: this.deps.scoped.firmId,
-        userId: this.deps.userId,
-        payload,
-        rules,
-      }),
-    )
+    const plan = buildCommitPlan({
+      batchId,
+      firmId: this.deps.scoped.firmId,
+      userId: this.deps.userId,
+      payload,
+      internalDeadlineOffsetDays:
+        this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+      rules,
+    })
 
     if (plan.clients.length === 0) {
       throw new ORPCError('BAD_REQUEST', {
@@ -854,7 +747,6 @@ export class MigrationService {
       obligationCount: plan.obligations.length,
       skippedCount: plan.skippedCount,
       revertibleUntil: plan.revertExpiresAt.toISOString(),
-      exposureSummary: summarizeCommitPlanExposure(plan),
     }
   }
 
@@ -880,55 +772,6 @@ export class MigrationService {
     })
 
     return { discardedAt: discardedAt.toISOString() }
-  }
-
-  private async filterExistingExternalClients(
-    plan: ReturnType<typeof buildCommitPlan>,
-  ): Promise<ReturnType<typeof buildCommitPlan>> {
-    const clientRefs = (plan.externalReferences ?? []).filter(
-      (ref) => ref.internalEntityType === 'client',
-    )
-    const provider = clientRefs[0]?.provider
-    if (!provider) return plan
-
-    const existing = await this.deps.scoped.migration.findExternalReferences({
-      provider,
-      externalIds: clientRefs.map((ref) => ref.externalId),
-      internalEntityType: 'client',
-    })
-    if (existing.length === 0) return plan
-
-    const existingExternalIds = new Set(existing.map((ref) => ref.externalId))
-    const skippedClientIds = new Set(
-      clientRefs
-        .filter((ref) => existingExternalIds.has(ref.externalId))
-        .map((ref) => ref.internalEntityId),
-    )
-    if (skippedClientIds.size === 0) return plan
-
-    const keptObligationIds = new Set(
-      plan.obligations
-        .filter((obligation) => !skippedClientIds.has(obligation.clientId))
-        .map((obligation) => obligation.id),
-    )
-
-    return {
-      ...plan,
-      clients: plan.clients.filter((client) => !skippedClientIds.has(client.id)),
-      obligations: plan.obligations.filter((obligation) => keptObligationIds.has(obligation.id)),
-      evidence: plan.evidence.filter(
-        (evidence) =>
-          !evidence.obligationInstanceId || keptObligationIds.has(evidence.obligationInstanceId),
-      ),
-      externalReferences: (plan.externalReferences ?? []).filter((ref) => {
-        if (ref.internalEntityType === 'client') return !skippedClientIds.has(ref.internalEntityId)
-        if (ref.internalEntityType === 'obligation')
-          return keptObligationIds.has(ref.internalEntityId)
-        return true
-      }),
-      successCount: plan.clients.length - skippedClientIds.size,
-      skippedCount: plan.skippedCount + skippedClientIds.size,
-    }
   }
 
   async revert(batchId: string): Promise<{ revertedAt: string }> {
@@ -1078,20 +921,31 @@ export class MigrationService {
     )
   }
 
-  private composeDryRun(batchId: string, payload: MappingJsonPayload): DryRunSummary {
+  private composeDryRun(
+    batchId: string,
+    payload: MappingJsonPayload,
+    rules: readonly CoreObligationRule[] = [],
+  ): DryRunSummary {
     const stats = computeDryRunStats(batchId, payload)
+    const exactPlan =
+      payload.rawInput && payload.confirmedMappings && payload.confirmedNormalizations
+        ? buildCommitPlan({
+            batchId,
+            firmId: this.deps.scoped.firmId,
+            userId: this.deps.userId,
+            payload,
+            internalDeadlineOffsetDays:
+              this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+            rules,
+          })
+        : null
     const summary: DryRunSummary = {
       batchId,
       clientsToCreate: stats.clientsToCreate,
-      obligationsToCreate: stats.obligationsToCreate,
+      obligationsToCreate: exactPlan ? exactPlan.obligations.length : stats.obligationsToCreate,
       skippedRows: stats.skippedRows,
       errors: stats.errors,
-      exposurePreview: previewExposureReadiness({
-        batchId,
-        firmId: this.deps.scoped.firmId,
-        userId: this.deps.userId,
-        payload,
-      }),
+      ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),
     }
     return DryRunSummarySchema.parse(summary)
   }
@@ -1286,112 +1140,6 @@ export class MigrationService {
 // Pure helpers (kept outside the class for testability + tree-shake)
 // ---------------------------------------------------------------------
 
-interface StagingProjection {
-  headers: string[]
-  tabularRows: string[][]
-  rows: ExternalStagingPayloadRow[]
-}
-
-async function buildExternalStagingProjection(
-  provider: MigrationIntegrationProvider,
-  rows: readonly MigrationExternalStagingRowInput[],
-): Promise<StagingProjection> {
-  const rawHeaders = Array.from(
-    new Set(rows.flatMap((row) => Object.keys(row.rawJson).filter((key) => key.trim()))),
-  ).toSorted((a, b) => a.localeCompare(b))
-  const headers = [
-    'External Provider',
-    'External Entity Type',
-    'External ID',
-    'External URL',
-    ...rawHeaders,
-  ]
-  const projectedRows: string[][] = []
-  const externalRows: ExternalStagingPayloadRow[] = []
-  const rowHashes = await Promise.all(
-    rows.map((row) =>
-      hashValue({
-        provider,
-        externalEntityType: row.externalEntityType ?? 'unknown',
-        rawJson: row.rawJson,
-      }),
-    ),
-  )
-
-  for (const [rowIndex, row] of rows.entries()) {
-    const rowHash = rowHashes[rowIndex] ?? ''
-    const externalId = row.externalId?.trim() || `row_${rowHash.slice(0, 24)}`
-    const externalEntityType = row.externalEntityType ?? 'unknown'
-    const externalUrl = row.externalUrl ?? null
-    const stagingRowId = crypto.randomUUID()
-
-    externalRows.push({
-      rowIndex,
-      stagingRowId,
-      provider,
-      externalEntityType,
-      externalId,
-      externalUrl,
-      rowHash,
-    })
-    projectedRows.push([
-      provider,
-      externalEntityType,
-      externalId,
-      externalUrl ?? '',
-      ...rawHeaders.map((header) => stringifyCell(row.rawJson[header])),
-    ])
-  }
-
-  return { headers, tabularRows: projectedRows, rows: externalRows }
-}
-
-function stringifyCell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  if (typeof value === 'string') return value
-  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value)
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => stringifyCell(item))
-      .filter(Boolean)
-      .join('; ')
-  }
-  if (typeof value === 'object') return JSON.stringify(value)
-  return ''
-}
-
-function normalizeJsonObject(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    const out: Record<string, unknown> = {}
-    for (const [key, item] of Object.entries(value)) out[key] = item
-    return out
-  }
-  return { value }
-}
-
-function isIntegrationSource(source: MigrationSource): boolean {
-  return providerForSource(source) !== null
-}
-
-function providerForSource(source: MigrationSource): MigrationIntegrationProvider | null {
-  switch (source) {
-    case 'integration_taxdome_zapier':
-      return 'taxdome'
-    case 'integration_karbon_api':
-      return 'karbon'
-    case 'integration_soraban_api':
-      return 'soraban'
-    case 'integration_safesend_api':
-      return 'safesend'
-    case 'integration_proconnect_export':
-      return 'proconnect'
-    default:
-      return null
-  }
-}
-
 function collectValuesByField(
   headers: string[],
   rows: string[][],
@@ -1488,7 +1236,10 @@ function normalizeTaxTypesDictionary(raw: string): string[] {
 
   if (/\b1120[\s-]?s\b/.test(value) || value.includes('ct-3-s')) out.push('federal_1120s')
   else if (/\b1120\b/.test(value)) out.push('federal_1120')
+  if (/\b1040\b/.test(value)) out.push('federal_1040')
+  if (/\b1041\b/.test(value)) out.push('federal_1041')
   if (/\b1065\b/.test(value)) out.push('federal_1065')
+  if (/\b990\b/.test(value)) out.push('federal_990')
 
   if (value.includes('ca llc') || value.includes('llc fee')) {
     out.push('ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts')
@@ -1633,48 +1384,6 @@ function estimateObligationCount(payload: MappingJsonPayload, clientCount: numbe
   )
 }
 
-function previewExposureReadiness(input: {
-  batchId: string
-  firmId: string
-  userId: string
-  payload: MappingJsonPayload
-}): DryRunSummary['exposurePreview'] {
-  if (!input.payload.rawInput || !input.payload.confirmedMappings) return undefined
-  try {
-    const plan = buildCommitPlan(input)
-    const summary = summarizeCommitPlanExposure(plan)
-    return {
-      totalExposureCents: summary.totalExposureCents,
-      readyCount: summary.readyCount,
-      needsInputCount: summary.needsInputCount,
-      unsupportedCount: summary.unsupportedCount,
-      topRows: summary.topRows,
-    }
-  } catch {
-    return undefined
-  }
-}
-
-function summarizeCommitPlanExposure(
-  plan: ReturnType<typeof buildCommitPlan>,
-): MigrationExposureSummary {
-  const clientById = new Map(plan.clients.map((client) => [client.id, client]))
-  return summarizePenaltyExposure(
-    plan.obligations.map((obligation) => {
-      const client = clientById.get(obligation.clientId)
-      return {
-        id: obligation.id,
-        clientId: obligation.clientId,
-        clientName: client?.name ?? 'Unknown client',
-        taxType: obligation.taxType,
-        currentDueDate: obligation.currentDueDate,
-        exposureStatus: obligation.exposureStatus ?? 'needs_input',
-        estimatedExposureCents: obligation.estimatedExposureCents ?? null,
-      }
-    }),
-  )
-}
-
 function computeMatrixApplication(
   payload: MappingJsonPayload,
   matrixSelections: readonly MatrixSelection[] = [],
@@ -1713,10 +1422,21 @@ function computeMatrixApplication(
   }
 
   // Group rows by (entity, state) cell to count appliedClientCount.
-  const cellCounts = new Map<string, { entityType: string; state: string; count: number }>()
+  const cellCounts = new Map<
+    string,
+    {
+      entityType: string
+      state: string
+      count: number
+      applicationMode: MatrixApplicationEntry['applicationMode']
+    }
+  >()
   for (const row of rows) {
     const rawTaxTypes = taxIdx !== undefined ? (row[taxIdx] ?? '').trim() : ''
-    if (rawTaxTypes) continue
+    const explicitTaxTypes = normalizeTaxTypesFromRows(
+      payload.confirmedNormalizations ?? [],
+      rawTaxTypes,
+    )
 
     const rawEntity = entityIdx !== undefined ? (row[entityIdx] ?? '').trim() : ''
     const rawState = stateIdx !== undefined ? (row[stateIdx] ?? '').trim() : ''
@@ -1728,10 +1448,18 @@ function computeMatrixApplication(
       ...splitStateList(rawFilingStates, stateMap),
     ])
     for (const state of states) {
+      const applicationMode = matrixApplicationModeForTaxTypes(explicitTaxTypes, state)
+      if (!applicationMode) continue
       const key = `${entity}::${state}`
       const cell = cellCounts.get(key)
-      if (cell) cell.count += 1
-      else cellCounts.set(key, { entityType: entity, state, count: 1 })
+      if (cell) {
+        cell.count += 1
+        if (applicationMode === 'federal_return_type_plus_state') {
+          cell.applicationMode = applicationMode
+        }
+      } else {
+        cellCounts.set(key, { entityType: entity, state, count: 1, applicationMode })
+      }
     }
   }
 
@@ -1749,9 +1477,81 @@ function computeMatrixApplication(
       matrixVersion: result.matrixVersion,
       enabled: selectionByCell.get(key) ?? true,
       appliedClientCount: cell.count,
+      applicationMode: cell.applicationMode,
     })
   }
   return out
+}
+
+function computeRuleReviewWarnings(
+  payload: MappingJsonPayload,
+  activeRules: readonly CoreObligationRule[],
+): DryRunSummary['ruleReviewWarnings'] {
+  const warnings: DryRunSummary['ruleReviewWarnings'] = []
+  const catalogRules = listObligationRules({ includeCandidates: true }).filter(
+    (rule) => rule.status !== 'deprecated',
+  )
+
+  for (const cell of payload.matrixApplied ?? []) {
+    if (!cell.enabled || !isEntityType(cell.entityType) || !isRuleGenerationState(cell.state)) {
+      continue
+    }
+    const missingByReason = new Map<
+      DryRunSummary['ruleReviewWarnings'][number]['reason'],
+      string[]
+    >()
+    const stateTaxTypes = cell.taxTypes.filter((taxType) =>
+      isStateTaxTypeForState(taxType, cell.state),
+    )
+
+    for (const taxType of stateTaxTypes) {
+      if (rulesCanGenerateTaxType(activeRules, cell.entityType, cell.state, taxType)) continue
+      const reason = rulesCanGenerateTaxType(catalogRules, cell.entityType, cell.state, taxType)
+        ? 'rules_pending_review'
+        : 'no_matching_rule'
+      missingByReason.set(reason, [...(missingByReason.get(reason) ?? []), taxType])
+    }
+
+    for (const [reason, taxTypes] of missingByReason) {
+      warnings.push({
+        state: cell.state,
+        entityType: cell.entityType,
+        affectedClientCount: cell.appliedClientCount,
+        taxTypes,
+        reason,
+      })
+    }
+  }
+
+  return warnings.toSorted(
+    (a, b) =>
+      a.state.localeCompare(b.state) ||
+      a.entityType.localeCompare(b.entityType) ||
+      a.reason.localeCompare(b.reason),
+  )
+}
+
+function rulesCanGenerateTaxType(
+  rules: readonly CoreObligationRule[],
+  entityType: EntityType,
+  state: RuleGenerationState,
+  taxType: string,
+): boolean {
+  const reviewableRules = rules.map((rule) => ({ ...rule, status: 'verified' as const }))
+  return (
+    previewObligationsFromRules({
+      client: {
+        id: 'migration-dry-run',
+        entityType,
+        state,
+        taxTypes: [taxType],
+        taxYearType: 'calendar',
+        fiscalYearEndMonth: null,
+        fiscalYearEndDay: null,
+      },
+      rules: reviewableRules,
+    }).length > 0
+  )
 }
 
 function splitStateList(raw: string, normalizations: ReadonlyMap<string, string | null>): string[] {
@@ -1782,6 +1582,10 @@ function isEntityType(value: string): value is EntityType {
   )
 }
 
+function isRuleGenerationState(value: string): value is RuleGenerationState {
+  return (STATE_RULE_JURISDICTIONS as readonly string[]).includes(value)
+}
+
 function toMigrationError(row: {
   id: string
   batchId: string
@@ -1798,34 +1602,6 @@ function toMigrationError(row: {
     rawRowJson: row.rawRowJson ?? null,
     errorCode: row.errorCode,
     errorMessage: row.errorMessage,
-    createdAt: row.createdAt.toISOString(),
-  }
-}
-
-function toMigrationStagingRow(row: {
-  id: string
-  firmId: string
-  batchId: string
-  provider: MigrationIntegrationProvider
-  externalEntityType: MigrationExternalEntityType
-  externalId: string
-  externalUrl: string | null
-  rowIndex: number
-  rowHash: string
-  rawRowJson: unknown
-  createdAt: Date
-}): MigrationStagingRow {
-  return {
-    id: row.id,
-    firmId: row.firmId,
-    batchId: row.batchId,
-    provider: row.provider,
-    externalEntityType: row.externalEntityType,
-    externalId: row.externalId,
-    externalUrl: row.externalUrl,
-    rowIndex: row.rowIndex,
-    rowHash: row.rowHash,
-    rawRowJson: row.rawRowJson,
     createdAt: row.createdAt.toISOString(),
   }
 }

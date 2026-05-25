@@ -1,29 +1,28 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
-import { TriangleAlertIcon } from 'lucide-react'
-import { toast } from 'sonner'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { AlertTriangleIcon, TriangleAlertIcon } from 'lucide-react'
+import { toast, type ExternalToast } from 'sonner'
 
 import type {
   ObligationRule,
+  RuleConcreteDraft,
+  RuleConcreteDraftCacheEntry,
   RuleEvidence,
   RuleEvidenceAuthorityRole,
   RuleSource,
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@duedatehq/ui/components/ui/sheet'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
   formatEnumLabel,
@@ -33,68 +32,282 @@ import {
 import { JurisdictionCode, ToneDot } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
+const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-accent-hover)',
+  borderColor: 'var(--state-accent-hover-alt)',
+  color: 'var(--text-accent)',
+}
+const ACCEPT_RULE_SUCCESS_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-success-hover)',
+  borderColor: 'var(--state-success-hover-alt)',
+  color: 'var(--text-success)',
+}
+const ACCEPT_RULE_ERROR_TOAST_STYLE: CSSProperties = {
+  background: 'var(--state-destructive-hover)',
+  borderColor: 'var(--state-destructive-hover-alt)',
+  color: 'var(--text-destructive)',
+}
+const ENTITY_APPLICABILITY_LABELS: Record<string, string> = {
+  any_business: 'business clients',
+  c_corp: 'C corporations',
+  individual: 'individuals',
+  llc: 'LLCs',
+  partnership: 'partnerships',
+  s_corp: 'S corporations',
+  sole_prop: 'sole proprietors',
+  trust: 'trusts',
+}
+
+function formatEntityApplicability(values: readonly string[]): string {
+  const labels = values.map((value) => ENTITY_APPLICABILITY_LABELS[value] ?? formatEnumLabel(value))
+  if (labels.length <= 1) return labels[0] ?? ''
+  if (labels.length === 2) return labels.join(' and ')
+  return `${labels.slice(0, -1).join(', ')}, and ${labels.at(-1)}`
+}
+
 /**
- * Right-side drawer that surfaces the full audit footprint behind a single
- * `ObligationRule` row. Pure presentation: parents pass the already-fetched
- * rule from the `rules.listRules` cache; the drawer never re-issues a query
- * for the rule itself, only for the shared source registry through
- * `useSourceLookup`.
+ * Inline-renderable version of the rule detail — full section list, no
+ * Sheet header (caller provides its own title cue) and no overflow-scroll
+ * viewport. The canonical rule detail surface lives inline in the
+ * Coverage page; the standalone drawer was deprecated as part of the
+ * detail-surface unification (drawer for triage, page/inline for deep
+ * work).
  *
- * Section order is fixed: Applicability → Due-date logic → Extension →
- * Review reasons (conditional) → Evidence → pending review actions →
- * Verification footer. The default review path accepts or rejects the rule as
- * displayed; rule editing stays out of the practice review flow.
+ * Includes its own compact header with `id · v{version} · status` so
+ * the audit footprint is still visible inline, and the
+ * `CandidateReviewSection` (Accept) so the inline view can
+ * complete the daily-triage flow.
  */
-export function RuleDetailDrawer({
+export function RuleDetailInline({
   rule,
-  open,
-  onOpenChange,
+  concreteDraft,
 }: {
-  rule: ObligationRule | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
 }) {
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
-        {rule ? <RuleDetailContent rule={rule} /> : null}
-      </SheetContent>
-    </Sheet>
-  )
-}
-
-function RuleDetailContent({ rule }: { rule: ObligationRule }) {
   const sourceLookup = useSourceLookup()
-
+  // 2026-05-25 (Yuqi rule library #14-#16): the old audit-meta header
+  // (`fed.7004.extension.1065.2025 · v1 · Active`) lived inline at the
+  // top of the body. Now the kicker line lives in the Dialog header
+  // (RuleDetailKicker), so the body just renders the structured
+  // sections. ReviewReasonsSection is conditionally pushed to the top
+  // when present so the "you need to act" prompt isn't buried below
+  // Applicability / Due date when the rule still needs review.
+  const needsReview = rule.status === 'candidate' || rule.status === 'pending_review'
   return (
-    <>
-      <RuleDrawerHeader rule={rule} />
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        <div className="flex flex-col gap-5">
-          <ApplicabilitySection rule={rule} />
-          <DueDateLogicSection rule={rule} />
-          <ExtensionSection rule={rule} />
-          <ReviewReasonsSection rule={rule} />
-          <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
-          <CandidateReviewSection key={rule.id} rule={rule} />
-          <VerificationSection rule={rule} />
-        </div>
-      </div>
-    </>
+    <div className="flex flex-col gap-4">
+      {needsReview ? <ReviewReasonsSection rule={rule} /> : null}
+      <ApplicabilitySection rule={rule} />
+      <DueDateLogicSection rule={rule} />
+      <ExtensionSection rule={rule} />
+      {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
+      <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
+      <CandidateReviewSection key={rule.id} rule={rule} concreteDraft={concreteDraft ?? null} />
+      <VerificationSection rule={rule} />
+    </div>
   )
 }
 
-function CandidateReviewSection({ rule }: { rule: ObligationRule }) {
-  if (rule.status !== 'candidate' && rule.status !== 'pending_review') return null
-  return <CandidateReviewForm rule={rule} />
+/**
+ * Compact inline detail — what a CPA actually needs at a glance to
+ * Accept a pending rule, with everything else trimmed.
+ * Designed for cases where the detail expands inside another list
+ * (e.g. a Coverage row with 7+ pending rules) and the full footprint
+ * would dominate the page.
+ *
+ * Trimmed out vs `RuleDetailInline`:
+ *   - Tax type code (engineer-facing identifier — not part of the
+ *     review decision)
+ *   - Standalone "Needs review" callout (redundant with the status
+ *     pill in the header)
+ *   - Practice review footer (Reviewed by / Reviewed at — audit
+ *     history, not relevant to the accept decision).
+ *   - Multi-row applicability grid (collapsed into a single line)
+ *
+ * Kept:
+ *   - Rule ID + version + status (audit reference)
+ *   - One-line applicability summary
+ *   - Due-date logic
+ *   - Extension policy (compressed)
+ *   - Evidence card(s) — the audit trail the decision rests on
+ *   - Accept button
+ */
+export function RuleDetailCompact({
+  rule,
+  concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
+  onActionComplete,
+}: {
+  rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
+  onActionComplete?: () => void | Promise<void>
+}) {
+  const sourceLookup = useSourceLookup()
+  const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
+  return (
+    <div className="flex min-w-0 flex-col gap-5">
+      {/* Audit meta line — quiet, small mono ID + version + status.
+        Sits between the title (in panel header above) and the
+        section list below. Sized smaller than section labels so it
+        reads as a sub-caption, not a competing header. */}
+      <header className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-caption text-text-muted">
+        <span className="font-mono break-all">{rule.id}</span>
+        <span aria-hidden>·</span>
+        <span className="font-mono">v{rule.version}</span>
+        <span aria-hidden>·</span>
+        <RuleStatusInline status={rule.status} />
+      </header>
+
+      {/* Vertical layout — each section's label sits ABOVE its
+        content, not beside. Frees the full panel width for content
+        (long source titles, due-date paragraphs, evidence cards
+        wrap less aggressively) and removes the eye-jump from a
+        narrow label column to a wider content column. */}
+      <DetailSection label={<Trans>Applicability</Trans>}>
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm text-text-primary">
+          <JurisdictionCode code={rule.jurisdiction} />
+          <span>{formatEntityApplicability(rule.entityApplicability)}</span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="text-text-secondary">{rule.formName}</span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="text-text-secondary">{formatEnumLabel(rule.eventType)}</span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="font-mono text-xs text-text-tertiary">
+            {rule.taxYear}–{rule.applicableYear}
+          </span>
+        </div>
+      </DetailSection>
+
+      <DetailSection label={<Trans>Due date</Trans>}>
+        <p className="text-sm text-text-primary">{dueDateSummary}</p>
+      </DetailSection>
+
+      <DetailSection label={<Trans>Extension</Trans>}>
+        <div className="text-sm">
+          <ExtensionCompact policy={rule.extensionPolicy} />
+        </div>
+      </DetailSection>
+
+      <DetailSection label={<Trans>Evidence</Trans>}>
+        <div className="flex min-w-0 flex-col gap-1.5">
+          {rule.evidence.map((evidence) => (
+            <EvidenceCard
+              key={evidenceKey(evidence)}
+              evidence={evidence}
+              source={sourceLookup.get(evidence.sourceId)}
+            />
+          ))}
+        </div>
+      </DetailSection>
+
+      <CandidateReviewSection
+        key={rule.id}
+        rule={rule}
+        concreteDraft={concreteDraft ?? null}
+        concreteDraftLoading={concreteDraftLoading}
+        deferQueryInvalidation={deferQueryInvalidation}
+        {...(onActionComplete ? { onActionComplete } : {})}
+      />
+    </div>
+  )
 }
 
-function CandidateReviewForm({ rule }: { rule: ObligationRule }) {
+function DetailSection({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-1.5">
+      <p className="text-caption font-medium tracking-[0.08em] text-text-muted uppercase">
+        {label}
+      </p>
+      {children}
+    </section>
+  )
+}
+
+function ExtensionCompact({ policy }: { policy: ObligationRule['extensionPolicy'] }) {
+  if (!policy.available) {
+    return (
+      <span>
+        <span className="text-text-primary">
+          <Trans>Not allowed.</Trans>
+        </span>
+        {policy.notes ? (
+          <span className="ml-1.5 text-xs text-text-tertiary">{policy.notes}</span>
+        ) : null}
+      </span>
+    )
+  }
+  const parts: string[] = []
+  if (policy.formName) parts.push(policy.formName)
+  if (policy.durationMonths !== undefined) parts.push(`${policy.durationMonths}mo`)
+  parts.push(policy.paymentExtended ? 'payment included' : 'filing-only')
+  return (
+    <span className="text-text-primary">
+      <Trans>Allowed</Trans> · {parts.join(' · ')}
+    </span>
+  )
+}
+
+function CandidateReviewSection({
+  rule,
+  concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
+  onActionComplete,
+}: {
+  rule: ObligationRule
+  concreteDraft?: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
+  onActionComplete?: () => void | Promise<void>
+}) {
+  if (rule.status !== 'candidate' && rule.status !== 'pending_review') {
+    return null
+  }
+  return (
+    <CandidateReviewForm
+      rule={rule}
+      concreteDraft={concreteDraft ?? null}
+      concreteDraftLoading={concreteDraftLoading}
+      deferQueryInvalidation={deferQueryInvalidation}
+      {...(onActionComplete ? { onActionComplete } : {})}
+    />
+  )
+}
+
+function CandidateReviewForm({
+  rule,
+  concreteDraft,
+  concreteDraftLoading = false,
+  deferQueryInvalidation = false,
+  onActionComplete,
+}: {
+  rule: ObligationRule
+  concreteDraft: RuleConcreteDraftCacheEntry | null
+  concreteDraftLoading?: boolean
+  deferQueryInvalidation?: boolean
+  onActionComplete?: () => void | Promise<void>
+}) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
+  const [acceptCompleting, setAcceptCompleting] = useState(false)
+  const acceptToastIdRef = useRef<string | number | null>(null)
+  const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
+  const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
+  const draft = concreteDraft?.draft ?? null
 
   const invalidateRules = () => {
-    void queryClient.invalidateQueries({ queryKey: orpc.rules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewTasks.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.rules.listReviewDecisions.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
   }
 
@@ -106,34 +319,77 @@ function CandidateReviewForm({ rule }: { rule: ObligationRule }) {
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
   }
 
+  function acceptToastOptions(options: Omit<ExternalToast, 'id'> = {}): ExternalToast {
+    const id = acceptToastIdRef.current
+    return id === null ? options : { ...options, id }
+  }
+
+  function finishAcceptAction() {
+    void (async () => {
+      try {
+        await onActionComplete?.()
+      } finally {
+        window.requestAnimationFrame(() => {
+          setAcceptCompleting(false)
+          acceptToastIdRef.current = null
+          if (!deferQueryInvalidation) invalidateAcceptedRuleOutputs()
+        })
+      }
+    })()
+  }
+
+  function handleAcceptSuccess() {
+    toast.success(t`Rule accepted`, acceptToastOptions({ style: ACCEPT_RULE_SUCCESS_TOAST_STYLE }))
+    finishAcceptAction()
+  }
+
+  function handleAcceptError(error: unknown) {
+    setAcceptCompleting(false)
+    toast.error(
+      t`Couldn't accept rule`,
+      acceptToastOptions({
+        description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
+        style: ACCEPT_RULE_ERROR_TOAST_STYLE,
+      }),
+    )
+    acceptToastIdRef.current = null
+  }
+
   const acceptMutation = useMutation(
     orpc.rules.acceptTemplate.mutationOptions({
-      onSuccess: () => {
-        invalidateAcceptedRuleOutputs()
-        toast.success(t`Rule accepted`)
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't accept rule`, {
-          description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-        })
-      },
+      onSuccess: handleAcceptSuccess,
+      onError: handleAcceptError,
     }),
   )
-  const rejectMutation = useMutation(
-    orpc.rules.rejectTemplate.mutationOptions({
-      onSuccess: () => {
-        invalidateRules()
-        toast.success(t`Rule rejected`)
-      },
-      onError: (error) => {
-        toast.error(t`Couldn't reject rule`, {
-          description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
-        })
-      },
+  const verifyMutation = useMutation(
+    orpc.rules.verifyCandidate.mutationOptions({
+      onSuccess: handleAcceptSuccess,
+      onError: handleAcceptError,
     }),
   )
-
   function submitAccept() {
+    if (acceptCompleting || isPending) return
+    setAcceptCompleting(true)
+    acceptToastIdRef.current = toast.loading(
+      t`Accepting rule…`,
+      acceptToastOptions({ style: ACCEPT_RULE_LOADING_TOAST_STYLE }),
+    )
+    if (sourceDefined) {
+      if (!draft || reviewSourceId.length === 0) {
+        setAcceptCompleting(false)
+        toast.dismiss(acceptToastIdRef.current)
+        acceptToastIdRef.current = null
+        return
+      }
+      verifyMutation.mutate({
+        ruleId: rule.id,
+        sourceId: reviewSourceId,
+        ...(concreteDraft?.sourceSignalId ? { sourceSignalId: concreteDraft.sourceSignalId } : {}),
+        aiOutputId: draft.aiOutputId,
+        reviewNote: t`Accepted AI concrete draft from rule detail review.`,
+      })
+      return
+    }
     acceptMutation.mutate({
       ruleId: rule.id,
       expectedVersion: rule.version,
@@ -141,43 +397,71 @@ function CandidateReviewForm({ rule }: { rule: ObligationRule }) {
     })
   }
 
-  function submitReject() {
-    rejectMutation.mutate({
-      ruleId: rule.id,
-      expectedVersion: rule.version,
-      reason: t`Rejected from rule detail review.`,
-    })
-  }
+  const isPending = acceptMutation.isPending || verifyMutation.isPending
+  const reviewDisabled = isPending || acceptCompleting
+  const draftUnavailableMessage =
+    sourceDefined && reviewSourceId.length === 0
+      ? t`This source-defined rule is missing an official source.`
+      : null
+  const draftPanelMessage =
+    draftUnavailableMessage ??
+    (sourceDefined && !draft && !concreteDraftLoading ? t`AI concrete draft is not ready.` : null)
+  const acceptDisabledReason = sourceDefined
+    ? reviewSourceId.length === 0
+      ? t`This source-defined rule is missing an official source.`
+      : draftUnavailableMessage
+        ? draftUnavailableMessage
+        : concreteDraftLoading && !draft
+          ? t`AI concrete draft is loading.`
+          : draftPanelMessage && !draft
+            ? draftPanelMessage
+            : !draft
+              ? t`AI concrete draft is not ready.`
+              : null
+    : null
+  const acceptDisabled =
+    reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
 
-  const isPending = acceptMutation.isPending || rejectMutation.isPending
-
+  const entitySummary = formatEntityApplicability(rule.entityApplicability)
   return (
     <section className="flex flex-col gap-3 rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <SectionLabel>
-          <Trans>Practice review</Trans>
-        </SectionLabel>
-        <span className="text-xs text-status-review">
-          <Trans>Needs review</Trans>
-        </span>
-      </div>
+      {/* Section header used to include a right-aligned "Needs review"
+          chip that duplicated the rule-status pill in the audit meta
+          line above. Dropped per /critique — one canonical "needs
+          review" signal is enough. */}
+      <SectionLabel>
+        <Trans>Practice review</Trans>
+      </SectionLabel>
       <p className="text-sm text-text-secondary">
-        <Trans>
-          Accepting activates this rule exactly as shown. Reject it if the evidence, applicability,
-          due-date logic, or extension handling should not become active.
-        </Trans>
+        {sourceDefined && rule.status === 'active' ? (
+          <Trans>
+            This rule is active for client filings in {rule.jurisdiction} for {entitySummary}, but
+            it still needs concrete due-date logic before it can create deadlines.
+          </Trans>
+        ) : (
+          <Trans>
+            Accepting activates this rule for client filings in {rule.jurisdiction} for{' '}
+            {entitySummary}. Skip it if the evidence, applicability, due-date logic, or extension
+            handling needs more review.
+          </Trans>
+        )}
       </p>
+      {sourceDefined ? (
+        <AiDraftReviewPanel
+          draft={draft}
+          errorMessage={draftPanelMessage}
+          generating={concreteDraftLoading && !draft}
+        />
+      ) : null}
+
       <div className="flex justify-end gap-2">
         <Button
           type="button"
-          variant="secondary"
           size="sm"
-          onClick={submitReject}
-          disabled={isPending}
+          onClick={submitAccept}
+          disabled={acceptDisabled}
+          data-rule-action="accept"
         >
-          <Trans>Reject</Trans>
-        </Button>
-        <Button type="button" size="sm" onClick={submitAccept} disabled={isPending}>
           <Trans>Accept rule</Trans>
         </Button>
       </div>
@@ -185,21 +469,72 @@ function CandidateReviewForm({ rule }: { rule: ObligationRule }) {
   )
 }
 
-function RuleDrawerHeader({ rule }: { rule: ObligationRule }) {
+function AiDraftReviewPanel({
+  draft,
+  errorMessage,
+  generating,
+}: {
+  draft: RuleConcreteDraft | null
+  errorMessage: string | null
+  generating: boolean
+}) {
   return (
-    <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
-      <div className="flex items-center gap-2 text-xs text-text-tertiary">
-        <span className="font-mono text-text-secondary">{rule.id}</span>
-        <span aria-hidden>·</span>
-        <span className="font-mono">v{rule.version}</span>
-        <span aria-hidden>·</span>
-        <RuleStatusInline status={rule.status} />
+    <div
+      className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5"
+      aria-busy={generating && !draft ? true : undefined}
+    >
+      <p className="text-xs font-medium text-text-secondary">
+        <Trans>AI concrete draft</Trans>
+      </p>
+      {generating && !draft ? <AiDraftReviewSkeleton /> : null}
+      {!generating && errorMessage && !draft ? (
+        <p className="text-xs text-severity-medium">{errorMessage}</p>
+      ) : null}
+      {draft ? (
+        <div className="flex flex-col gap-2 text-sm">
+          <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
+          <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1 text-xs">
+            <span className="text-text-tertiary">
+              <Trans>Coverage</Trans>
+            </span>
+            <span className="text-text-secondary">
+              {formatEnumLabel(draft.coverageStatus)}
+              {draft.requiresApplicabilityReview ? (
+                <span className="ml-1 text-severity-medium">
+                  <Trans>needs applicability review</Trans>
+                </span>
+              ) : null}
+            </span>
+            <span className="text-text-tertiary">
+              <Trans>Confidence</Trans>
+            </span>
+            <span className="font-mono text-text-secondary">
+              {Math.round(draft.confidence * 100)}%
+            </span>
+          </div>
+          <blockquote className="border-l border-state-accent-active-alt pl-2 text-xs text-text-secondary italic">
+            “{draft.sourceExcerpt}”
+          </blockquote>
+          <p className="text-xs text-text-tertiary">{draft.reasoning}</p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function AiDraftReviewSkeleton() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Skeleton className="h-4 w-4/5" />
+      <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-3 w-16" />
       </div>
-      <SheetTitle className="text-md text-text-primary">{rule.title}</SheetTitle>
-      <SheetDescription className="sr-only">
-        <Trans>Rule detail and evidence</Trans>
-      </SheetDescription>
-    </SheetHeader>
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-3 w-3/4" />
+    </div>
   )
 }
 
@@ -234,27 +569,44 @@ function RuleStatusInline({ status }: { status: ObligationRule['status'] }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
       {children}
     </p>
   )
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
+  // 2026-05-25 (Yuqi rule library #19, #20, #23): applicability
+  // section tidied up. Was a mixed-type grid (some rows in mono,
+  // some in proper text) with a confusing "· also filing" suffix
+  // that didn't read as English. Now:
+  //   - First line: full sentence "Applies to {entities} in
+  //     {jurisdiction}" — answers "who does this rule cover" in
+  //     plain prose before any tabular data.
+  //   - Grid rows uniform `text-sm text-text-secondary` (no more
+  //     mono mixed with non-mono for "Tax year" — that drift was
+  //     Yuqi's #20 complaint).
+  //   - Event row spells out the secondary flags ("also handles
+  //     payment" instead of "· also payment") so the suffix reads
+  //     as a sentence.
   return (
     <section className="flex flex-col gap-2">
       <SectionLabel>
         <Trans>Applicability</Trans>
       </SectionLabel>
-      <div className="flex flex-wrap items-center gap-2 text-base">
-        <JurisdictionCode code={rule.jurisdiction} />
-        <span className="text-text-secondary">{rule.entityApplicability.join(', ')}</span>
-      </div>
-      <div className="grid grid-cols-[88px_1fr] gap-y-1.5 text-base">
+      <p className="text-base text-text-primary">
+        <Trans>
+          Applies to {formatEntityApplicability(rule.entityApplicability)} in{' '}
+          <JurisdictionCode code={rule.jurisdiction} />
+        </Trans>
+      </p>
+      <div className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
         <span className="text-text-tertiary">
           <Trans>Tax type</Trans>
         </span>
-        <span className="font-mono text-sm text-text-secondary">{rule.taxType}</span>
+        <span className="text-text-secondary">
+          <TaxCodeLabel code={rule.taxType} />
+        </span>
         <span className="text-text-tertiary">
           <Trans>Form</Trans>
         </span>
@@ -266,8 +618,10 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
         <span className="text-text-tertiary">
           <Trans>Tax year</Trans>
         </span>
-        <span className="font-mono text-sm text-text-secondary">
-          {rule.taxYear} → {rule.applicableYear}
+        <span className="text-text-secondary tabular-nums">
+          {rule.taxYear === rule.applicableYear
+            ? rule.taxYear
+            : `${rule.taxYear}–${rule.applicableYear}`}
         </span>
       </div>
     </section>
@@ -275,11 +629,11 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
 }
 
 function EventRow({ rule }: { rule: ObligationRule }) {
-  // Surface the eventType as the canonical label and only append "+ filing /
-  // + payment" when it adds non-redundant information. eventType is already
-  // one of filing/payment/extension/election/information_report; rendering
-  // `filing · filing` (the previous version) was a faithful but ugly mirror
-  // of the contract's two flag fields.
+  // 2026-05-25 (Yuqi rule library #19): the "· also filing" suffix
+  // didn't read as English — CPAs asked "what does '· also filing'
+  // mean?" Now spelled out: "(also handles payment)" / "(also
+  // handles filing)" so the relationship to the primary eventType
+  // is obvious.
   const extras: ('filing' | 'payment')[] = []
   if (rule.isFiling && rule.eventType !== 'filing') extras.push('filing')
   if (rule.isPayment && rule.eventType !== 'payment') extras.push('payment')
@@ -287,7 +641,9 @@ function EventRow({ rule }: { rule: ObligationRule }) {
     <span className="text-text-secondary">
       {formatEnumLabel(rule.eventType)}
       {extras.length > 0 ? (
-        <span className="ml-2 text-text-tertiary">· also {extras.join(' + ')}</span>
+        <span className="ml-2 text-text-tertiary">
+          <Trans>(also handles {extras.join(' + ')})</Trans>
+        </span>
       ) : null}
     </span>
   )
@@ -295,10 +651,16 @@ function EventRow({ rule }: { rule: ObligationRule }) {
 
 function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   const summary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
+  // 2026-05-25 (Yuqi rule library #21): the humanizer returns a
+  // dense formula sentence like "15th day of the 3rd month after
+  // tax year end…" which is hard to scan. Renamed the section
+  // label to "When it's due" — plain English asks "when?"
+  // before reading the answer. Padding tightened so the answer
+  // sits closer to the label.
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-1.5">
       <SectionLabel>
-        <Trans>Due date logic</Trans>
+        <Trans>When it's due</Trans>
       </SectionLabel>
       <p className="text-base text-text-primary">{summary}</p>
     </section>
@@ -306,6 +668,14 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
 }
 
 function ExtensionSection({ rule }: { rule: ObligationRule }) {
+  // 2026-05-25 (Yuqi rule library #22, #25): rewrote the extension
+  // section as a structured grid so the relationship between
+  // "extension is allowed", "form to file", "how long", "what's
+  // covered" is read top-down. Before it was four loose paragraphs
+  // and the form name (e.g. "Form 7004") floated on its own line
+  // — Yuqi asked whether Form 7004 belonged to this section at
+  // all. Now everything sits inside one labeled section with
+  // explicit field labels.
   const { extensionPolicy } = rule
   const durationMonths = extensionPolicy.durationMonths
   return (
@@ -314,40 +684,57 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
         <Trans>Extension</Trans>
       </SectionLabel>
       {extensionPolicy.available ? (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <p className="text-base text-text-primary">
-            <Trans>This rule allows an extension.</Trans>
+            <Trans>An extension can be filed for this deadline.</Trans>
           </p>
-          <div className="flex flex-wrap items-center gap-2 text-base text-text-primary">
+          <div className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-1.5 text-sm">
             {extensionPolicy.formName ? (
-              <span className="font-medium">{extensionPolicy.formName}</span>
+              <>
+                <span className="text-text-tertiary">
+                  <Trans>Form</Trans>
+                </span>
+                <span className="font-medium text-text-secondary">{extensionPolicy.formName}</span>
+              </>
             ) : null}
             {durationMonths !== undefined ? (
-              <span className="text-text-secondary">
-                <Trans>{durationMonths} months</Trans>
-              </span>
+              <>
+                <span className="text-text-tertiary">
+                  <Trans>Adds</Trans>
+                </span>
+                <span className="text-text-secondary">
+                  <Plural value={durationMonths} one="# month" other="# months" />
+                </span>
+              </>
             ) : null}
-          </div>
-          <div className="text-sm">
+            <span className="text-text-tertiary">
+              <Trans>Covers</Trans>
+            </span>
             {extensionPolicy.paymentExtended ? (
-              <span className="inline-flex items-center gap-1.5 text-text-secondary">
-                <Trans>Extension also covers payment.</Trans>
+              <span className="text-text-secondary">
+                <Trans>Filing and payment.</Trans>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 font-medium text-severity-medium">
-                <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden />
-                <Trans>Filing-only extension; payment is not extended.</Trans>
+              <span className="inline-flex items-start gap-1.5 font-medium text-severity-medium">
+                <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                <span>
+                  <Trans>Filing only. Payment is not extended.</Trans>
+                </span>
               </span>
             )}
           </div>
-          <p className="text-xs text-text-tertiary">{extensionPolicy.notes}</p>
+          {extensionPolicy.notes ? (
+            <p className="text-xs text-text-tertiary">{extensionPolicy.notes}</p>
+          ) : null}
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5 text-base">
-          <span className="text-text-secondary">
-            <Trans>This rule does not allow an extension.</Trans>
-          </span>
-          <p className="text-xs text-text-tertiary">{extensionPolicy.notes}</p>
+        <div className="flex flex-col gap-1.5">
+          <p className="text-base text-text-primary">
+            <Trans>This deadline cannot be extended.</Trans>
+          </p>
+          {extensionPolicy.notes ? (
+            <p className="text-xs text-text-tertiary">{extensionPolicy.notes}</p>
+          ) : null}
         </div>
       )}
     </section>
@@ -363,23 +750,50 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
     return null
   }
 
+  // 2026-05-25 (Yuqi rule library #27, #28): the callout used to
+  // float at the bottom of the dialog with no label — Yuqi asked
+  // "what is this? does it have an action?" Now it carries:
+  //   - A SectionLabel-style heading so it reads as a regular
+  //     section, not a random alert box
+  //   - An explicit "Needs CPA review" / "Needs CPA confirmation"
+  //     icon-led heading that names the work
+  //   - A `defaultTip` body that explains why
+  //   - The CTA action lives in CandidateReviewSection below
+  //     (Accept / Skip buttons) — this section names the WHY,
+  //     the next one names the HOW.
+  // RuleDetailInline pushes this section to the top of the body
+  // when the rule still needs review, so the prompt isn't buried
+  // below Applicability / Due date.
   if (rule.status === 'candidate' || rule.status === 'pending_review') {
     return (
-      <section className="rounded-md border border-state-accent-active-alt bg-accent-tint px-3 py-2 text-xs">
-        <p className="font-medium text-status-review">
-          <Trans>Needs review · never generates user reminders.</Trans>
+      <section
+        role="region"
+        aria-label="Review required"
+        className="rounded-md border border-state-accent-active-alt bg-accent-tint px-3 py-2"
+      >
+        <p className="flex items-center gap-1.5 text-sm font-medium text-status-review">
+          <AlertTriangleIcon className="size-3.5 shrink-0" aria-hidden />
+          <Trans>Needs CPA review</Trans>
         </p>
-        <p className="mt-1 text-text-secondary">{rule.defaultTip}</p>
+        <p className="mt-1 text-xs text-text-secondary">{rule.defaultTip}</p>
+        <p className="mt-1.5 text-xs text-text-tertiary">
+          <Trans>Use the Accept / Skip buttons below to clear this rule.</Trans>
+        </p>
       </section>
     )
   }
 
   return (
-    <section className="rounded-md border border-divider-regular bg-severity-medium-tint px-3 py-2 text-xs">
-      <p className="font-medium text-severity-medium">
-        <Trans>Applicability review · needs CPA confirmation at generation time.</Trans>
+    <section
+      role="region"
+      aria-label="Applicability review required"
+      className="rounded-md border border-divider-regular bg-severity-medium-tint px-3 py-2"
+    >
+      <p className="flex items-center gap-1.5 text-sm font-medium text-severity-medium">
+        <AlertTriangleIcon className="size-3.5 shrink-0" aria-hidden />
+        <Trans>Needs CPA confirmation each year</Trans>
       </p>
-      <p className="mt-1 text-text-secondary">{rule.defaultTip}</p>
+      <p className="mt-1 text-xs text-text-secondary">{rule.defaultTip}</p>
     </section>
   )
 }
@@ -459,7 +873,7 @@ function EvidenceCard({
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => openEvidenceSource(event, source.url)}
         className={cn(sharedClassName, interactiveClassName)}
       >
         {inner}
@@ -468,6 +882,12 @@ function EvidenceCard({
   }
 
   return <div className={sharedClassName}>{inner}</div>
+}
+
+function openEvidenceSource(event: React.MouseEvent<HTMLAnchorElement>, url: string) {
+  event.preventDefault()
+  event.stopPropagation()
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function evidenceKey(evidence: RuleEvidence): string {
@@ -487,7 +907,7 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
   return (
     <Badge
       className={cn(
-        'h-[18px] shrink-0 rounded-sm border-transparent px-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.04em]',
+        'h-[18px] shrink-0 rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.04em]',
         className,
       )}
     >
@@ -508,7 +928,7 @@ function EvidenceLocator({ evidence }: { evidence: RuleEvidence }) {
 
 function EvidenceMeta({ evidence }: { evidence: RuleEvidence }) {
   return (
-    <div className="flex items-center gap-2 font-mono text-[10px] text-text-muted">
+    <div className="flex items-center gap-2 font-mono text-caption-xs text-text-muted">
       <span>retrieved {evidence.retrievedAt}</span>
       {evidence.sourceUpdatedOn ? (
         <>
@@ -521,6 +941,9 @@ function EvidenceMeta({ evidence }: { evidence: RuleEvidence }) {
 }
 
 function VerificationSection({ rule }: { rule: ObligationRule }) {
+  const practiceTimezone = usePracticeTimezone()
+  if (!rule.reviewedAt) return null
+
   return (
     <section className="flex flex-col gap-1.5 border-t border-divider-subtle pt-4">
       <SectionLabel>
@@ -530,15 +953,15 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>
         </span>
-        <span className="font-mono text-text-secondary">{rule.verifiedBy}</span>
+        <span className="text-text-secondary">
+          {rule.reviewedByName ?? <Trans>Unknown reviewer</Trans>}
+        </span>
         <span className="text-text-tertiary">
           <Trans>Reviewed at</Trans>
         </span>
-        <span className="font-mono text-text-secondary">{rule.verifiedAt}</span>
-        <span className="text-text-tertiary">
-          <Trans>Next review</Trans>
+        <span className="font-mono text-text-secondary">
+          {formatDateTimeWithTimezone(rule.reviewedAt, practiceTimezone)}
         </span>
-        <span className="font-mono text-text-secondary">{rule.nextReviewOn}</span>
       </div>
     </section>
   )

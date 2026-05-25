@@ -50,11 +50,22 @@ function SheetContent({
         data-side={side}
         className={cn(
           'fixed z-50 flex flex-col gap-4 border-components-panel-border bg-components-panel-bg bg-clip-padding text-sm text-text-primary shadow-xl transition duration-200 ease-in-out',
-          'data-starting-style:opacity-0 data-ending-style:opacity-0',
-          'data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=bottom]:data-ending-style:translate-y-[2.5rem]',
-          'data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=left]:data-ending-style:translate-x-[-2.5rem]',
-          'data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=right]:data-ending-style:translate-x-[2.5rem]',
-          'data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-starting-style:translate-y-[-2.5rem] data-[side=top]:data-ending-style:translate-y-[-2.5rem]',
+          // Entry/exit animation: opacity-only fade. The previous
+          // `translate-x-[2.5rem]` + `opacity-0` starting/ending state
+          // was getting stuck (Base UI didn't always clear
+          // `data-starting-style` after first paint), shifting the
+          // popup 40px past the viewport and clipping the close
+          // button. Opacity alone is robust to the stuck state — the
+          // worst case is no fade animation, not a broken layout.
+          'data-ending-style:opacity-0',
+          // 12px inside-edge radius per DESIGN.md §3.3 (`rounded.lg` is
+          // reserved for drawers, modals, command palette). The drawer
+          // is flush to the viewport on its outer edge, so radius only
+          // applies to the corners that meet the dimmed backdrop.
+          'data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:rounded-t-lg data-[side=bottom]:border-t',
+          'data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:rounded-r-lg data-[side=left]:border-r',
+          'data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:rounded-l-lg data-[side=right]:border-l',
+          'data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:rounded-b-lg data-[side=top]:border-b',
           'sm:data-[side=left]:max-w-sm sm:data-[side=right]:max-w-sm',
           className,
         )}

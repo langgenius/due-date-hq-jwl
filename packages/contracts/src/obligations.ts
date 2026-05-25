@@ -12,13 +12,15 @@ import {
   ExposureStatusSchema,
   ObligationEfileStateSchema,
   ObligationExtensionStateSchema,
-  ObligationExtensionDecisionSchema,
   ObligationPaymentStateSchema,
   ObligationPrepStageSchema,
   ObligationRecurrenceSchema,
   ObligationReviewStageSchema,
   ObligationRiskLevelSchema,
   ObligationStatusSchema,
+  ClientTaxYearTypeSchema,
+  TaxPeriodKindSchema,
+  TaxPeriodSourceSchema,
   ObligationTypeSchema,
 } from './shared/enums'
 import { EntityIdSchema } from './shared/ids'
@@ -39,6 +41,14 @@ export const ObligationCreateInputSchema = z.object({
   clientFilingProfileId: EntityIdSchema.nullable().optional(),
   taxType: z.string().min(1),
   taxYear: z.number().int().min(1900).max(2100).nullable().optional(),
+  taxYearType: ClientTaxYearTypeSchema.optional(),
+  fiscalYearEndMonth: z.number().int().min(1).max(12).nullable().optional(),
+  fiscalYearEndDay: z.number().int().min(1).max(31).nullable().optional(),
+  taxPeriodStart: z.iso.date().nullable().optional(),
+  taxPeriodEnd: z.iso.date().nullable().optional(),
+  taxPeriodKind: TaxPeriodKindSchema.optional(),
+  taxPeriodSource: TaxPeriodSourceSchema.optional(),
+  taxPeriodReviewReason: z.string().trim().min(1).nullable().optional(),
   ruleId: z.string().min(1).nullable().optional(),
   ruleVersion: z.number().int().positive().nullable().optional(),
   rulePeriod: z.string().min(1).nullable().optional(),
@@ -79,6 +89,19 @@ export const ObligationCreateInputSchema = z.object({
   exposureCalculatedAt: z.iso.datetime().nullable().optional(),
 })
 
+export const ObligationCreateFromRuleInputSchema = z.object({
+  clientId: EntityIdSchema,
+  ruleId: z.string().trim().min(1),
+  taxYear: z.number().int().min(2000).max(2100).optional(),
+})
+export type ObligationCreateFromRuleInput = z.infer<typeof ObligationCreateFromRuleInputSchema>
+
+export const ObligationCreateFromRuleOutputSchema = z.object({
+  obligations: z.array(ObligationInstancePublicSchema),
+  duplicateCount: z.number().int().min(0),
+})
+export type ObligationCreateFromRuleOutput = z.infer<typeof ObligationCreateFromRuleOutputSchema>
+
 export const ObligationDependencyTypeSchema = z.enum(['k1', 'source_document', 'payment', 'review'])
 export const ObligationDependencyStatusSchema = z.enum(['blocking', 'satisfied', 'waived'])
 export const ObligationDependencyPublicSchema = z.object({
@@ -113,6 +136,49 @@ export const DueDateUpdateInputSchema = z.object({
   currentDueDate: z.iso.date(),
 })
 
+function isValidFiscalYearEnd(month: number, day: number): boolean {
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  return date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+}
+
+export const ObligationTaxYearProfileUpdateInputSchema = z
+  .object({
+    id: EntityIdSchema,
+    taxYearType: ClientTaxYearTypeSchema,
+    fiscalYearEndMonth: z.number().int().min(1).max(12).nullable(),
+    fiscalYearEndDay: z.number().int().min(1).max(31).nullable(),
+    reason: z.string().max(280).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.taxYearType !== 'fiscal') return
+    if (!value.fiscalYearEndMonth || !value.fiscalYearEndDay) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndMonth'],
+        message: 'Fiscal-year obligations require a fiscal year end month and day.',
+      })
+      return
+    }
+    if (!isValidFiscalYearEnd(value.fiscalYearEndMonth, value.fiscalYearEndDay)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['fiscalYearEndDay'],
+        message: 'Fiscal year end must be a valid month/day.',
+      })
+    }
+  })
+export type ObligationTaxYearProfileUpdateInput = z.infer<
+  typeof ObligationTaxYearProfileUpdateInputSchema
+>
+
+export const ObligationTaxYearProfileUpdateOutputSchema = z.object({
+  obligation: ObligationInstancePublicSchema,
+  auditId: EntityIdSchema,
+})
+export type ObligationTaxYearProfileUpdateOutput = z.infer<
+  typeof ObligationTaxYearProfileUpdateOutputSchema
+>
+
 export const ObligationStatusUpdateInputSchema = z.object({
   id: EntityIdSchema,
   status: ObligationStatusSchema,
@@ -124,12 +190,67 @@ export const ObligationStatusUpdateOutputSchema = z.object({
   auditId: EntityIdSchema,
 })
 
+// Filed → e-file rejected → In review unwind (PDF anti-pattern #3:
+// Filed ≠ Done). Caller must hold a row in `done` ("Filed"). Server
+// stamps `efileRejectedAt = now()`, transitions status to `review`,
+// and writes an `obligation.efile.rejected` audit row. The Rejected
+// chip auto-renders on the queue thereafter (rejection-chip.tsx).
+export const ObligationMarkFiledRejectedInputSchema = z.object({
+  id: EntityIdSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationMarkFiledRejectedInput = z.infer<
+  typeof ObligationMarkFiledRejectedInputSchema
+>
+
+// K-1 dependency wiring (PDF anti-pattern #4 + §6.4). Set or clear
+// the upstream-blocker pointer on a row.
+//   - blockedByObligationInstanceId set    → status flips to `blocked`
+//   - blockedByObligationInstanceId null   → blocker cleared, status
+//     reverts to `pending` (when currently `blocked`)
+// Server validates: parent exists in same firm, not self, not already
+// completed. Parent-completion auto-unblock cascade is already wired
+// in updateStatus → unblockChildrenOf.
+export const ObligationUpdateBlockedByInputSchema = z.object({
+  id: EntityIdSchema,
+  blockedByObligationInstanceId: EntityIdSchema.nullable(),
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdateBlockedByInput = z.infer<typeof ObligationUpdateBlockedByInputSchema>
+
+// In Review sub-status mutations — the prep ↔ review pipeline strip in
+// the obligation drawer becomes a real action surface. Each click moves
+// the row to that step (forward or backward — slider model, no
+// transition guards). See
+// docs/Design/in-review-substatus-mutations-2026-05-23.md for the full
+// brief. Server writes a `prep_stage_changed` / `review_stage_changed`
+// audit row mirroring `obligation.status.updated` shape.
+//
+// `notes_open` is the only `reviewStage` value that isn't a step in
+// the strip — it overlays the `in_review` step via the same mutation
+// (caller flips between `in_review` ↔ `notes_open` from the "Leave
+// note" / "Notes addressed" affordances).
+export const ObligationUpdatePrepStageInputSchema = z.object({
+  id: EntityIdSchema,
+  prepStage: ObligationPrepStageSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdatePrepStageInput = z.infer<typeof ObligationUpdatePrepStageInputSchema>
+
+export const ObligationUpdateReviewStageInputSchema = z.object({
+  id: EntityIdSchema,
+  reviewStage: ObligationReviewStageSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdateReviewStageInput = z.infer<
+  typeof ObligationUpdateReviewStageInputSchema
+>
+
 export const ObligationExtensionDecisionInputSchema = z.object({
   id: EntityIdSchema,
-  decision: ObligationExtensionDecisionSchema.exclude(['not_considered']),
   memo: z.string().trim().max(1000).optional(),
   source: z.string().trim().max(240).optional(),
-  expectedExtendedDueDate: z.iso.date().optional(),
+  internalTargetDate: z.iso.date().optional(),
 })
 
 export const ObligationExtensionDecisionOutputSchema = z.object({
@@ -238,9 +359,15 @@ export const obligationsContract = oc.router({
   createBatch: oc
     .input(z.object({ obligations: z.array(ObligationCreateInputSchema).min(1).max(1000) }))
     .output(z.object({ obligations: z.array(ObligationInstancePublicSchema) })),
+  createFromRule: oc
+    .input(ObligationCreateFromRuleInputSchema)
+    .output(ObligationCreateFromRuleOutputSchema),
   previewAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   createAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
+  updateTaxYearProfile: oc
+    .input(ObligationTaxYearProfileUpdateInputSchema)
+    .output(ObligationTaxYearProfileUpdateOutputSchema),
   /**
    * Update one obligation's status. Handler must read `before`, write the
    * row, and append an `obligation.status.updated` audit row carrying both
@@ -249,6 +376,26 @@ export const obligationsContract = oc.router({
    */
   updateStatus: oc
     .input(ObligationStatusUpdateInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  markFiledRejected: oc
+    .input(ObligationMarkFiledRejectedInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  updateBlockedBy: oc
+    .input(ObligationUpdateBlockedByInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  /**
+   * In Review sub-status mutations. Each click on a pipeline step
+   * fires one of these. Server validates the row exists in the
+   * current firm, writes the column, appends a
+   * `prep_stage_changed` / `review_stage_changed` audit row, and
+   * returns the updated row + audit id. No transition guards — the
+   * slider model permits any value→any value, forward or backward.
+   */
+  updatePrepStage: oc
+    .input(ObligationUpdatePrepStageInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  updateReviewStage: oc
+    .input(ObligationUpdateReviewStageInputSchema)
     .output(ObligationStatusUpdateOutputSchema),
   bulkUpdateStatus: oc
     .input(ObligationBulkStatusUpdateInputSchema)

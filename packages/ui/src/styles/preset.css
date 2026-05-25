@@ -27,6 +27,49 @@
  * automatically.
  * -------------------------------------------------------------------------- */
 @theme inline {
+  /* -----------------------------------------------------------------
+   * Page content width caps. 2026-05-24 (design-system audit): these
+   * used to be inlined as `max-w-[1100px]` / `max-w-[920px]` /
+   * `max-w-[880px]` across 14 route + page components. Centralizing
+   * them here means a single change updates every page container at
+   * once; the call sites read `max-w-page-wide` / `max-w-page-medium`
+   * / `max-w-page-narrow` instead of magic pixel values.
+   *
+   *   wide   → content-heavy lists & detail pages (Today, Clients,
+   *            Obligations, Opportunities, Audit, Settings, Dashboard,
+   *            Pulse alerts list).
+   *   medium → form-density pages with side metadata (Account →
+   *            Security).
+   *   narrow → focused single-column settings (Practice profile).
+   * ----------------------------------------------------------------- */
+  --container-page-wide: 1100px;
+  --container-page-medium: 920px;
+  --container-page-narrow: 880px;
+
+  /* -----------------------------------------------------------------
+   * Caption type scale. 2026-05-24 (B5): the app had ~146 inline
+   * `text-[10px]` / `text-[11px]` uses across 60+ files (badge
+   * labels, table micro-meta, eyebrow tracking, tabular gutters).
+   * They sit BELOW Tailwind's `text-xs` (12px) — the "smallest
+   * readable" tier in the system above wasn't small enough for
+   * these contexts. Centralizing as two tokens means a single
+   * change here updates every caption at once.
+   *
+   *   text-caption    → 11px (60 sites — inline metadata, tabular gutters)
+   *   text-caption-xs → 10px (86 sites — eyebrow labels, dense badges)
+   *
+   * Both default line-height is set per Tailwind v4's
+   * `--text-*--line-height` convention so common pairings (uppercase
+   * eyebrow + tracking) read tightly without needing an explicit
+   * `leading-N` on every site. Sites that explicitly set
+   * `leading-3` / `leading-4` continue to win — the explicit class
+   * overrides the implicit per-size line-height.
+   * ----------------------------------------------------------------- */
+  --text-caption: 11px;
+  --text-caption--line-height: 16px;
+  --text-caption-xs: 10px;
+  --text-caption-xs--line-height: 14px;
+
   /* Text */
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -433,5 +476,25 @@
     font-family: var(--font-sans);
     background-color: var(--bg-canvas);
     color: var(--text-primary);
+  }
+
+  /* 2026-05-24 (B1): respect `prefers-reduced-motion: reduce` on
+   * loading spinners. Per WCAG 2.3.3, spinners are functional
+   * process indicators (not "animation from interactions"), so we
+   * keep them VISIBLE — slowing the rotation from ~1s to ~3s
+   * instead of hiding them with `animation: none`. Users who want
+   * less motion still see "something is happening"; the rotation
+   * just doesn't strobe.
+   *
+   * Done as a single preset rule instead of editing 19 individual
+   * call sites that use `animate-spin` (Loader2Icon / LoaderCircleIcon
+   * / RefreshCwIcon during pending). Loader2Icon's animation is from
+   * Tailwind's built-in `.animate-spin` utility — overriding the
+   * duration here covers every consumer.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin {
+      animation-duration: 3s;
+    }
   }
 }

@@ -74,3 +74,4 @@ temp/
 # ─────────── Misc ───────────
 .eslintcache
 .stylelintcache
+.claude/scheduled_tasks.lock

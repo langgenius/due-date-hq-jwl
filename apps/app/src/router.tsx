@@ -97,6 +97,10 @@ function AppRoot() {
   )
 }
 
+function RedirectOnlyRoute() {
+  return null
+}
+
 function notFoundLoader() {
   throw new Response('Page not found', { status: 404, statusText: 'Not Found' })
 }
@@ -109,8 +113,30 @@ function importsAliasLoader() {
   throw redirect('/clients?importHistory=open')
 }
 
-function calendarAliasLoader() {
-  throw redirect('/obligations/calendar')
+function redirectToPathPreservingRequest(request: Request, pathname: string): never {
+  const url = new URL(request.url)
+  throw redirect(`${pathname}${url.search}${url.hash}`)
+}
+
+function legacyObligationsAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines')
+}
+
+function legacyObligationsCalendarAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines/calendar')
+}
+
+function calendarAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/deadlines/calendar')
+}
+
+// /rules/coverage → /rules/library, preserving ?rule=… and any other
+// query params for deep-link compatibility. The Coverage matrix is the
+// Library's default view, so this is a lossless URL collapse.
+function rulesCoverageAliasLoader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  const target = url.search ? `/rules/library${url.search}` : '/rules/library'
+  throw redirect(target)
 }
 
 // Only reachable when unauthenticated. If the session resolves, bounce to the
@@ -359,10 +385,11 @@ export function createAppRouter() {
             {
               path: 'dashboard',
               loader: dashboardAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
             },
             {
-              path: 'obligations',
+              path: 'deadlines',
               handle: routeHandle(routeSummaries.obligations),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
@@ -372,7 +399,7 @@ export function createAppRouter() {
               },
             },
             {
-              path: 'obligations/calendar',
+              path: 'deadlines/calendar',
               handle: routeHandle(routeSummaries.calendarSync),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
@@ -382,8 +409,41 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'deadlines/:obligationRef',
+              handle: routeHandle(routeSummaries.obligations),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ObligationQueueRoute } = await import('@/routes/obligations')
+
+                return { Component: ObligationQueueRoute }
+              },
+            },
+            {
+              path: 'deadlines/:obligationRef/:detailTab',
+              handle: routeHandle(routeSummaries.obligations),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ObligationQueueRoute } = await import('@/routes/obligations')
+
+                return { Component: ObligationQueueRoute }
+              },
+            },
+            {
+              path: 'obligations',
+              loader: legacyObligationsAliasLoader,
+              Component: RedirectOnlyRoute,
+              HydrateFallback: RouteHydrateFallback,
+            },
+            {
+              path: 'obligations/calendar',
+              loader: legacyObligationsCalendarAliasLoader,
+              Component: RedirectOnlyRoute,
+              HydrateFallback: RouteHydrateFallback,
+            },
+            {
               path: 'calendar',
               loader: calendarAliasLoader,
+              Component: RedirectOnlyRoute,
               HydrateFallback: RouteHydrateFallback,
             },
             {
@@ -407,6 +467,17 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'notifications/preferences',
+              handle: routeHandle(routeSummaries.notificationPreferences),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { NotificationPreferencesRoute } =
+                  await import('@/routes/notifications.preferences')
+
+                return { Component: NotificationPreferencesRoute }
+              },
+            },
+            {
               path: 'reminders',
               handle: routeHandle(routeSummaries.reminders),
               HydrateFallback: RouteHydrateFallback,
@@ -427,6 +498,16 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'clients/:clientKey',
+              handle: routeHandle(routeSummaries.clientDetail),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ClientDetailRoute } = await import('@/routes/clients.$clientId')
+
+                return { Component: ClientDetailRoute }
+              },
+            },
+            {
               path: 'opportunities',
               handle: routeHandle(routeSummaries.opportunities),
               HydrateFallback: RouteHydrateFallback,
@@ -440,6 +521,7 @@ export function createAppRouter() {
               path: 'imports',
               HydrateFallback: RouteHydrateFallback,
               loader: importsAliasLoader,
+              Component: RedirectOnlyRoute,
             },
             {
               path: 'audit',
@@ -461,14 +543,14 @@ export function createAppRouter() {
               },
             },
             {
+              // /rules/coverage is now a permanent redirect to /rules/library.
+              // The Coverage view collapsed into the Library page as the
+              // default ?view=matrix; keeping the old URL alive preserves
+              // bookmarks and back-compat. Query params (e.g. `?rule=foo`)
+              // pass through untouched.
               path: 'rules/coverage',
-              handle: routeHandle(routeSummaries.rulesCoverage),
-              HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { RulesCoverageRoute } = await import('@/routes/rules.coverage')
-
-                return { Component: RulesCoverageRoute }
-              },
+              loader: rulesCoverageAliasLoader,
+              Component: RedirectOnlyRoute,
             },
             {
               path: 'rules/sources',
@@ -498,6 +580,22 @@ export function createAppRouter() {
                 const { RulesPulseRoute } = await import('@/routes/rules.pulse')
 
                 return { Component: RulesPulseRoute }
+              },
+            },
+            {
+              // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): closed-
+              // alerts archive promoted from a soft-filter on
+              // /rules/pulse to a dedicated route. Mounts the same
+              // PulseChangesTab with `historyMode={true}` so the
+              // archive is deep-linkable + bookmarkable +
+              // sidebar-reachable.
+              path: 'rules/pulse/history',
+              handle: routeHandle(routeSummaries.rulesPulseHistory),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { RulesPulseHistoryRoute } = await import('@/routes/rules.pulse-history')
+
+                return { Component: RulesPulseHistoryRoute }
               },
             },
             {
@@ -600,11 +698,19 @@ export function createAppRouter() {
                 return { Component: BillingCancelRoute }
               },
             },
+            // In-shell 404 — wildcard sits inside the protected layout
+            // so authenticated users hitting a bad URL still see the
+            // sidebar + nav and can recover. Unauth users get bounced
+            // to login by `protectedLoader` first, same as any other
+            // protected path.
+            {
+              path: '*',
+              lazy: async () => {
+                const { NotFoundRoute } = await import('@/routes/not-found')
+                return { Component: NotFoundRoute }
+              },
+            },
           ],
-        },
-        {
-          path: '*',
-          loader: notFoundLoader,
         },
       ],
     },
@@ -618,6 +724,8 @@ export {
   calendarAliasLoader,
   guestLoader,
   importsAliasLoader,
+  legacyObligationsAliasLoader,
+  legacyObligationsCalendarAliasLoader,
   migrationActivationLoader,
   onboardingLoader,
   protectedLoader,

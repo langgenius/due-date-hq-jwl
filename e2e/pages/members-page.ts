@@ -23,6 +23,24 @@ export class MembersPage {
     return this.page.getByRole('row').filter({ hasText: email }).first()
   }
 
+  /**
+   * Active member rows (non-invitation). Same selector shape as
+   * `invitationRowFor` — the table is two stacked groups, and email
+   * is the unique key — but kept as a separate accessor so the intent
+   * is explicit in tests that target an active member's kebab menu.
+   */
+  memberRowFor(email: string) {
+    return this.page.getByRole('row').filter({ hasText: email }).first()
+  }
+
+  /**
+   * Opens the kebab/⋯ "Open member actions" menu on the row with
+   * `email`. Only present for non-owner, non-self members.
+   */
+  async openMemberActions(email: string) {
+    await this.memberRowFor(email).getByRole('button', { name: 'Open member actions' }).click()
+  }
+
   async invite(input: { email: string; role?: 'Manager' | 'Preparer' | 'Coordinator' }) {
     await this.inviteButton.click()
     await this.inviteDialog.getByLabel('Work email').fill(input.email)
@@ -31,5 +49,39 @@ export class MembersPage {
       await this.page.getByRole('option', { name: input.role }).click()
     }
     await this.sendInviteButton.click()
+  }
+
+  // Confirm dialog locators. 2026-05-24: every destructive action on
+  // this page is gated through an AlertDialog (Cancel invitation,
+  // Remove member, Suspend access, Downgrade role). These accessors
+  // expose the dialog by its title so specs can assert + interact
+  // without coupling to test ids.
+
+  cancelInvitationDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Cancel this invitation?' })
+  }
+
+  /**
+   * Two-step cancel: click the inline "Cancel" link on the invitation
+   * row, then confirm "Cancel invitation" in the AlertDialog. The
+   * legacy single-click no longer works — the confirm gate landed in
+   * commit 26591ad6 of design/preview-integration.
+   */
+  async cancelInvitation(email: string) {
+    await this.invitationRowFor(email).getByRole('button', { name: 'Cancel' }).click()
+    const dialog = this.cancelInvitationDialog()
+    await dialog.getByRole('button', { name: 'Cancel invitation' }).click()
+  }
+
+  removeMemberDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Remove member?' })
+  }
+
+  suspendMemberDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Suspend access?' })
+  }
+
+  downgradeRoleDialog() {
+    return this.page.getByRole('alertdialog', { name: 'Downgrade member?' })
   }
 }

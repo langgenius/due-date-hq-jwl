@@ -79,6 +79,12 @@ export const client = sqliteTable(
       .default('calendar'),
     fiscalYearEndMonth: integer('fiscal_year_end_month'),
     fiscalYearEndDay: integer('fiscal_year_end_day'),
+    externalClientId: text('external_client_id'),
+    addressLine1: text('address_line_1'),
+    city: text('city'),
+    postalCode: text('postal_code'),
+    primaryPhone: text('primary_phone'),
+    sourceStatus: text('source_status'),
     ownerCount: integer('owner_count'),
     hasForeignAccounts: integer('has_foreign_accounts', { mode: 'boolean' })
       .notNull()
@@ -135,6 +141,7 @@ export const client = sqliteTable(
     index('idx_client_firm_state_county').on(table.firmId, table.state, table.county),
     index('idx_client_firm_assignee_id').on(table.firmId, table.assigneeId),
     index('idx_client_firm_assignee').on(table.firmId, table.assigneeName),
+    index('idx_client_firm_external_client').on(table.firmId, table.externalClientId),
     // Dashboard / Obligations penalty input triage.
     index('idx_client_firm_penalty_inputs').on(
       table.firmId,

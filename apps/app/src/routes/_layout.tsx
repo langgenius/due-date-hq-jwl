@@ -8,7 +8,9 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 
 import { AppShell } from '@/components/patterns/app-shell'
 import { KeyboardProvider } from '@/components/patterns/keyboard-shell'
+import { ClientDrawerMount, ClientDrawerProvider } from '@/features/clients/ClientDrawerProvider'
 import { EvidenceDrawerProvider } from '@/features/evidence/EvidenceDrawerProvider'
+import { ObligationDrawerProvider } from '@/features/obligations/ObligationDrawerProvider'
 import { PracticeTimezoneProvider } from '@/features/firm/practice-timezone'
 import { MigrationWizardProvider } from '@/features/migration/WizardProvider'
 import { PulseDrawerProvider } from '@/features/pulse/DrawerProvider'
@@ -77,9 +79,6 @@ function RootLayoutShell({
   const { i18n } = useLingui()
   const matches = useMatches()
   const firmsQuery = useQuery(orpc.firms.listMine.queryOptions({ input: undefined }))
-  const notificationsQuery = useQuery(
-    orpc.notifications.unreadCount.queryOptions({ input: undefined }),
-  )
   const firm = pickCurrentFirm(firmsQuery.data, user)
   const routeMessages = getRouteSummaryMessages(matches)
   const route = {
@@ -107,15 +106,33 @@ function RootLayoutShell({
         >
           <EvidenceDrawerProvider>
             <PulseDrawerProvider>
-              <AppShell
-                user={user}
-                firm={firm}
-                firms={firmsQuery.data ?? [firm]}
-                route={route}
-                themePreference={themePreference}
-                switchThemePreference={switchThemePreference}
-                unreadNotificationCount={notificationsQuery.data?.count ?? 0}
-              />
+              {/* ClientDrawerProvider wraps ObligationDrawerProvider
+                because the obligation drawer's body uses
+                `useClientDrawer()` for its "Open client detail"
+                link. If ClientDrawerProvider sits INSIDE Obligation,
+                the obligation drawer body mounts in a tree where
+                ClientDrawerContext is unset → throws "must be used
+                within ClientDrawerProvider" on first render.
+                `<ClientDrawerMount />` renders the client sheet at
+                THIS level — inside both providers — because the
+                client drawer's body in turn reads
+                `useObligationDrawer()` (via ClientSummaryStrip) for
+                its own "open obligation" link. Mounting the sheet
+                outside ObligationDrawerProvider would throw the
+                symmetric error the moment the drawer first opens. */}
+              <ClientDrawerProvider>
+                <ObligationDrawerProvider>
+                  <AppShell
+                    user={user}
+                    firm={firm}
+                    firms={firmsQuery.data ?? [firm]}
+                    route={route}
+                    themePreference={themePreference}
+                    switchThemePreference={switchThemePreference}
+                  />
+                  <ClientDrawerMount />
+                </ObligationDrawerProvider>
+              </ClientDrawerProvider>
             </PulseDrawerProvider>
           </EvidenceDrawerProvider>
         </KeyboardProvider>
@@ -136,6 +153,7 @@ function pickCurrentFirm(firms: FirmPublic[] | undefined, user: AuthUser): FirmP
     plan: 'solo',
     seatLimit: 1,
     timezone: 'America/New_York',
+    internalDeadlineOffsetDays: 14,
     status: 'active',
     role: 'owner',
     ownerUserId: user.id,

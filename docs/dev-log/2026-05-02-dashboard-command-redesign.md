@@ -16,10 +16,10 @@ stacked widgets instead of a weekly triage workbench.
 - Reframed the Dashboard route as a deadline risk workbench with a page title, as-of badge,
   Obligations CTA, and Migration Copilot CTA.
 - Added a compact metric strip for open obligations, due-this-week pressure, evidence gaps, and
-  penalty exposure.
+  deadline readiness.
 - Kept AI Weekly Brief in the first screen as the explanation layer, ahead of the deterministic
   KPI strip.
-- Replaced the separate Penalty Radar / Risk pulse / Today queue stack with a table-first
+- Replaced the separate Deadline Radar / Risk pulse / Today queue stack with a table-first
   `Next deadlines` panel, a compact inline penalty-readiness summary, and an operational closure
   panel.
 - Made top risk rows evidence-actionable from the `Next deadlines` panel so evidence review is
@@ -30,7 +30,7 @@ stacked widgets instead of a weekly triage workbench.
 - Removed the broken per-row severity left border from dashboard table rows; severity is now
   expressed through row tint and badges instead of a discontinuous vertical rule.
 - Reworked the first `Next deadlines` panel from a responsive CSS grid into a real fixed-layout
-  table and moved Penalty Radar into a compact inline summary above it, avoiding overlapping columns
+  table and moved Deadline Radar into a compact inline summary above it, avoiding overlapping columns
   and removing the unnecessary right-side card rail.
 - Compressed AI Weekly Brief from a full card with a footer into a medium-density strip; refresh,
   status, and updated time now live in the strip header.

@@ -1,7 +1,6 @@
 import * as z from 'zod'
 
 export const SmartPriorityFactorKeySchema = z.enum([
-  'exposure',
   'urgency',
   'importance',
   'history',
@@ -9,24 +8,17 @@ export const SmartPriorityFactorKeySchema = z.enum([
 ])
 export type SmartPriorityFactorKey = z.infer<typeof SmartPriorityFactorKeySchema>
 
-export const SmartPriorityProfileVersionSchema = z.literal('smart-priority-profile-v1')
+export const SmartPriorityProfileVersionSchema = z.literal('smart-priority-profile-v2')
 
 export const SmartPriorityWeightsSchema = z
   .object({
-    exposure: z.number().int().min(0).max(100),
     urgency: z.number().int().min(0).max(100),
     importance: z.number().int().min(0).max(100),
     history: z.number().int().min(0).max(100),
     readiness: z.number().int().min(0).max(100),
   })
   .refine(
-    (weights) =>
-      weights.exposure +
-        weights.urgency +
-        weights.importance +
-        weights.history +
-        weights.readiness ===
-      100,
+    (weights) => weights.urgency + weights.importance + weights.history + weights.readiness === 100,
     { message: 'Smart Priority weights must total 100.' },
   )
 export type SmartPriorityWeights = z.infer<typeof SmartPriorityWeightsSchema>
@@ -34,22 +26,19 @@ export type SmartPriorityWeights = z.infer<typeof SmartPriorityWeightsSchema>
 export const SmartPriorityProfileSchema = z.object({
   version: SmartPriorityProfileVersionSchema,
   weights: SmartPriorityWeightsSchema,
-  exposureCapCents: z.number().int().min(1).max(1_000_000_000),
   urgencyWindowDays: z.number().int().min(1).max(365),
   historyCapCount: z.number().int().min(1).max(20),
 })
 export type SmartPriorityProfile = z.infer<typeof SmartPriorityProfileSchema>
 
 export const SMART_PRIORITY_DEFAULT_PROFILE = {
-  version: 'smart-priority-profile-v1',
+  version: 'smart-priority-profile-v2',
   weights: {
-    exposure: 45,
-    urgency: 25,
+    urgency: 70,
     importance: 15,
     history: 10,
     readiness: 5,
   },
-  exposureCapCents: 1_000_000,
   urgencyWindowDays: 30,
   historyCapCount: 5,
 } as const satisfies SmartPriorityProfile

@@ -39,7 +39,7 @@
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md` §4.1 P0-2（"5 个 Preset Profiles"）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1B.md` §6A.4 Preset Profiles（File In Time 行 + "最完整 one-shot 迁移（彩蛋对标竞品）"）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part2B.md` §17 交付物清单（"5 套 Preset Sample CSV"）
-- **裁定**：Demo Sprint 与 Phase 0 MVP 一致——**5 Preset = TaxDome · Drake · Karbon · QuickBooks · File In Time**，后者渲染顺序固定为第 5 位；`./02-ux-4step-wizard.md` Step 1 的 Preset 选择组件对 File In Time 附一行 tip："Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
+- **裁定**：Demo Sprint 与 Phase 0 MVP 一致——**5 Preset** 继续包含 TaxDome、Drake、Karbon、QuickBooks、File In Time；扩展税务软件模板后，`./02-ux-4step-wizard.md` Step 1 的来源芯片合并为单组并按展示英文名 A-Z 排序。File In Time 仍保留 tip："Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 - **理由**：File In Time 是本产品最直接的 1:1 替换目标（PRD Part1A §1.1 竞品坐标），Demo 现场的叙事杀伤力主要来自"你正在从 FIT 迁过来 → 我们 30 分钟做完一年"。遗漏 FIT 会让 Demo 叙事和竞争定位同时失焦。
 - **工程落地影响**：`./02-ux-4step-wizard.md#step-1-intake` Preset 区 5 项 + FIT 彩蛋 tip；`./06-fixtures/README.md` 提供 5 份 sample CSV；`./04-ai-prompts.md` Field Mapper 的 preset prior 列表 5 项。
 
@@ -62,15 +62,15 @@
 
 ## 4. KPI 起点与终点口径
 
-- **冲突点**：PRD Part2B §12.2 Activation 表里 `Migration Time-to-First-Value` 起点 = "signup"、终点 = "首次看到 Penalty Radar $"；`Migration P95 完成时间（S2-AC5）` 起点 = "Signup"、终点 = "Import 完成（30 客户基准）"。两条起点文字相同都是"signup"，容易被工程侧误合并为"一个起点两个终点"的单 funnel；且 PRD 未明说"是否同一个 PostHog session"。Part1B §6A.10 S2-AC5 备注又单独提供了一组预算分解（粘贴 5min + mapping review 10min + normalize 5min + import 10min buffer）。
+- **冲突点**：PRD Part2B §12.2 Activation 表里 `Migration Time-to-First-Value` 起点 = "signup"、终点 = "首次看到 Deadline Radar $"；`Migration P95 完成时间（S2-AC5）` 起点 = "Signup"、终点 = "Import 完成（30 客户基准）"。两条起点文字相同都是"signup"，容易被工程侧误合并为"一个起点两个终点"的单 funnel；且 PRD 未明说"是否同一个 PostHog session"。Part1B §6A.10 S2-AC5 备注又单独提供了一组预算分解（粘贴 5min + mapping review 10min + normalize 5min + import 10min buffer）。
 - **PRD 引用位置**：
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part2B.md` §12.2 Activation 表第 1 / 第 2 行
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1B.md` §6A.10 S2-AC5（预算分解）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md` §0.3 第 2 条铁律（"30 分钟完成 30 客户"）
 - **裁定**：**两个指标两条起止点，各自独立埋点**，不合并。
-  - Time-to-First-Value：`signup.completed` → `dashboard.penalty_radar.first_rendered`（第一次 Dashboard 顶栏渲染出美元敞口数字，对齐 Part1A §0.3 第 1 条铁律）
+  - Time-to-First-Value：`signup.completed` → `dashboard.penalty_radar.first_rendered`（第一次 Dashboard 顶栏渲染出截止日风险数字，对齐 Part1A §0.3 第 1 条铁律）
   - P95 完成（S2-AC5）：`signup.completed` → `migration.imported`（对齐 Part2B §13.2.1 audit action 名 + Part2B §12.3 T-S2-05）
-- **理由**：Time-to-First-Value 强调"首次 wow"（用户粘贴 5 行、即使没全导完也能看到 Penalty Radar 有数字），是 Demo 现场 60 秒的北极星；P95 完成则强调"30 分钟跑完 30 客户全链路"，是对 FIT 替换承诺的兑现。两者目标值不同（10min vs 30min）、语义不同，必须两条独立 funnel 才能分别做 Go/Gray/Rethink 判断（Part2B §12.4）。
+- **理由**：Time-to-First-Value 强调"首次 wow"（用户粘贴 5 行、即使没全导完也能看到 Deadline Radar 有数字），是 Demo 现场 60 秒的北极星；P95 完成则强调"30 分钟跑完 30 客户全链路"，是对 FIT 替换承诺的兑现。两者目标值不同（10min vs 30min）、语义不同，必须两条独立 funnel 才能分别做 Go/Gray/Rethink 判断（Part2B §12.4）。
 - **工程落地影响**：`./01-mvp-and-journeys.md` §3 KPI 表明确两条 funnel；`../../dev-file/09-Demo-Sprint-Module-Playbook.md` §5.8 Dashboard 模块负责 emit `dashboard.penalty_radar.first_rendered`；§5.6 Migration 模块负责 emit `migration.imported`。
 
 ---

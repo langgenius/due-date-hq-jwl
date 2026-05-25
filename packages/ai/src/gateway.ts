@@ -14,6 +14,7 @@ export interface GatewayRequest<TOut> {
   prompt: string
   input: unknown
   schema: z.ZodType<TOut>
+  timeoutMs?: number
 }
 
 export interface GatewayResponse<TOut> {
@@ -60,6 +61,8 @@ function modelForOpenRouter(model: string): string {
 export async function callGateway<TOut>(
   request: GatewayRequest<TOut>,
 ): Promise<GatewayResponse<TOut>> {
+  const controller = request.timeoutMs ? new AbortController() : null
+  const timeout = controller ? setTimeout(() => controller.abort(), request.timeoutMs) : null
   const aiGateway = createAiGateway({
     accountId: request.accountId,
     gateway: request.slug,
@@ -70,13 +73,19 @@ export async function callGateway<TOut>(
       ? createOpenRouter({ apiKey: request.providerApiKey }).chat(modelForOpenRouter(request.model))
       : createUnified()(request.model)
 
-  const result = await generateText({
-    model: aiGateway(model),
-    system: request.prompt,
-    prompt: JSON.stringify(request.input),
-    output: Output.object({ schema: request.schema }),
-    temperature: 0,
-  })
+  let result: Awaited<ReturnType<typeof generateText>>
+  try {
+    result = await generateText({
+      model: aiGateway(model),
+      system: request.prompt,
+      prompt: JSON.stringify(request.input),
+      output: Output.object({ schema: request.schema }),
+      temperature: 0,
+      ...(controller ? { abortSignal: controller.signal } : {}),
+    })
+  } finally {
+    if (timeout) clearTimeout(timeout)
+  }
 
   const response: GatewayResponse<TOut> = {
     output: request.schema.parse(result.output),

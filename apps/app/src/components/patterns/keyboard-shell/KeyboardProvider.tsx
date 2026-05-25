@@ -130,7 +130,9 @@ function GlobalKeyboardBindings({
       meta: {
         id: 'command.open',
         name: 'Command palette',
-        description: 'Search, ask, or navigate.',
+        // 2026-05-24 (critique P2 — clarify): drop "ask" — the
+        // assistant group was removed but the copy hadn't.
+        description: 'Search or navigate.',
         category: 'global',
         scope: 'global',
       },

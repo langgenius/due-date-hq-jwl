@@ -108,7 +108,7 @@ const MAX_FAILURE_TO_PAY_PERCENT = 0.25
 type TaxDueMonthlyConfig = NonNullable<NonNullable<FormulaRule['calculation']>['taxDueMonthly']>
 type OwnerMonthConfig = NonNullable<NonNullable<FormulaRule['calculation']>['ownerMonth']>
 
-export function estimateProjectedExposure(
+export function estimateLegacyPenaltyAmount(
   input: PenaltyEngineInput,
   options: { horizonDays?: number } = {},
 ): PenaltyEngineResult {
@@ -134,10 +134,6 @@ export function estimateAccruedPenalty(
     daysLate: daysLate(input.dueDate, asOfDate),
     calculationDate: parseDateOnly(asOfDate),
   })
-}
-
-export function estimatePenaltyExposure(input: PenaltyEngineInput): PenaltyEngineResult {
-  return estimateProjectedExposure(input)
 }
 
 export function buildPenaltyFactsFromLegacy(input: {
@@ -1111,73 +1107,6 @@ function fixedLateReportPenalty(input: {
   })
 }
 
-export function summarizePenaltyExposure(
-  rows: readonly {
-    id: string
-    clientId: string
-    clientName: string
-    taxType: string
-    currentDueDate: string | Date
-    exposureStatus: PenaltyExposureStatus
-    estimatedExposureCents: number | null
-  }[],
-): {
-  totalExposureCents: number
-  readyCount: number
-  needsInputCount: number
-  unsupportedCount: number
-  topRows: Array<{
-    obligationId: string
-    clientId: string
-    clientName: string
-    taxType: string
-    currentDueDate: string
-    estimatedExposureCents: number
-    exposureStatus: PenaltyExposureStatus
-  }>
-} {
-  let totalExposureCents = 0
-  let readyCount = 0
-  let needsInputCount = 0
-  let unsupportedCount = 0
-  const topRows = []
-
-  for (const row of rows) {
-    if (row.exposureStatus === 'ready') {
-      readyCount += 1
-      const amount = row.estimatedExposureCents ?? 0
-      totalExposureCents += amount
-      topRows.push({
-        obligationId: row.id,
-        clientId: row.clientId,
-        clientName: row.clientName,
-        taxType: row.taxType,
-        currentDueDate: toDateOnly(row.currentDueDate),
-        estimatedExposureCents: amount,
-        exposureStatus: row.exposureStatus,
-      })
-    } else if (row.exposureStatus === 'needs_input') {
-      needsInputCount += 1
-    } else {
-      unsupportedCount += 1
-    }
-  }
-
-  topRows.sort((a, b) => {
-    const amountDelta = b.estimatedExposureCents - a.estimatedExposureCents
-    if (amountDelta !== 0) return amountDelta
-    return a.currentDueDate.localeCompare(b.currentDueDate)
-  })
-
-  return {
-    totalExposureCents,
-    readyCount,
-    needsInputCount,
-    unsupportedCount,
-    topRows: topRows.slice(0, 5),
-  }
-}
-
 function ready(input: {
   amount: number
   taxDueCents: number | null
@@ -1423,9 +1352,4 @@ function formatDollars(cents: number): string {
 function parseDateOnly(value: string | Date): Date {
   if (value instanceof Date) return new Date(`${value.toISOString().slice(0, 10)}T00:00:00.000Z`)
   return new Date(`${value.slice(0, 10)}T00:00:00.000Z`)
-}
-
-function toDateOnly(value: string | Date): string {
-  if (value instanceof Date) return value.toISOString().slice(0, 10)
-  return value.slice(0, 10)
 }

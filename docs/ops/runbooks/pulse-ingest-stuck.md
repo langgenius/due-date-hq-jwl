@@ -7,8 +7,8 @@ This runbook covers `PULSE_QUEUE`, `R2_PULSE`, `pulse_source_state`,
 
 ## Triggers
 
-- Dashboard or Rules > Pulse Changes shows `Source needs attention`.
-- `pulse_source_state.health_status` is `degraded` or `failing`.
+- Ingest metrics, logs, or Sentry show repeated fetch/parser failures.
+- `pulse_source_state.consecutive_failures` increases or `last_error` stays non-null.
 - `pulse_source_snapshot.parse_status` stays `pending_extract`, `extracting`, or `failed`.
 - FEMA/GovDelivery style signals appear in `pulse_source_signal` but no T1 Pulse follows.
 
@@ -61,11 +61,12 @@ limit 20;
 
 - `pnpm --filter @duedatehq/ingest test`
 - `pnpm --filter @duedatehq/server test -- pulse ingest queue`
-- Confirm `pulse_source_state.health_status='healthy'` after the next successful run.
+- Confirm the next successful run resets `consecutive_failures`, clears `last_error`, and leaves
+  CPA-facing `pulse_source_state.health_status='healthy'` unless the source is manually paused.
 - Confirm no customer-visible alert was generated from `pulse_source_signal` alone.
 - Confirm Obligations/Dashboard dates are derived from active overlay applications after a Pulse apply.
 
 ## Post-Mortem Notes
 
-Record the source ID, failure class, first failing timestamp, raw R2 key, fix commit, and whether any
+Record the source ID, failure class, first failure timestamp, raw R2 key, fix commit, and whether any
 approved Pulse or email digest was affected.

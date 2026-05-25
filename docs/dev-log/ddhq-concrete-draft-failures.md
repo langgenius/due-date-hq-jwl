@@ -1,0 +1,92 @@
+# DDHQ Concrete Draft Failures
+
+> Archived on 2026-05-23: the manual `rules:concrete-drafts:*` report and
+> backfill commands referenced here have been retired. Source-change operations
+> now route through Pulse source watch.
+
+Last updated: 2026-05-22 23:11 CST
+
+Commands used:
+
+```bash
+pnpm -s rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal
+pnpm -s rules:concrete-drafts:report -- --failures --limit=200 --group-by=jurisdiction,refusal --json
+```
+
+## Current Snapshot
+
+- Prompt: `rule-concrete-draft@v2`
+- Scope: local global cache, current working tree
+- Source-defined targets: 431
+- Successful global cached drafts: 431
+- Missing successful drafts: 0
+- Targets with no attempt: 0
+- Detailed failure rows listed below: 0
+
+Failure buckets:
+
+No current failure buckets.
+
+## Resolved In This Pass
+
+These rows no longer appear in the latest missing/failure list after source repairs and targeted backfill:
+
+| Jurisdiction          | Main issue fixed                                                                                                                                                                                                                                                                                                      | Result                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| MD                    | Split Maryland PTE off the general deadlines page to the 2025 Form 510 instruction PDF and added focused source-backed excerpts for PTE, sales/use, and withholding due dates.                                                                                                                                        | All MD guard rows generated successfully; MD is absent from the current failure groups.                               |
+| NC                    | Kept the North Carolina sales/use filing-frequency page but added an excerpt with monthly, quarterly, prepayment, and concrete 2026 expansion examples.                                                                                                                                                               | NC sales/use generated successfully; NC is absent from the current failure groups.                                    |
+| MS                    | Routed Mississippi withholding away from the broad Business Tax landing page to the official Withholding Tax page and added a source-backed due-date excerpt.                                                                                                                                                         | MS withholding generated successfully; the later UI wage schema row is also resolved.                                 |
+| LA                    | Kept the Louisiana 2026 filing dates calendar source, but added focused excerpts from month pages and event pages for corporation/franchise, corporation estimated payments, partnership, fiduciary, sales/use, and withholding due-date rows.                                                                        | All LA tax-calendar rows generated successfully; LA is absent from the current failure groups.                        |
+| KY                    | Kept the Kentucky 2026 tax calendar landing page as the source, but added focused source-backed excerpts from the January, April, and May 2026 monthly calendar pages for LLET, sales tax, and withholding due-date rows.                                                                                             | KY franchise/entity, sales/use, and withholding generated successfully; KY is absent from the current failure groups. |
+| CA                    | Repointed the EDD withholding/UI wage source from the broad Required Filings page to the Payroll Tax Calendar and added source-backed excerpts for DE 88, DE 9, and DE 9C 2026 due dates.                                                                                                                             | CA withholding and UI wage generated successfully; CA is absent from the current failure groups.                      |
+| NM                    | The New Mexico UI wage source page is reachable; the SOURCE_TEXT_UNAVAILABLE row cleared after retrying the source-backed candidate, with default model retry needed after a fast-model parse failure.                                                                                                                | NM UI wage generated successfully; the later individual income schema row is also resolved.                           |
+| ND                    | The North Dakota sales/use and withholding deadline pages are reachable and already had source-backed excerpts; both SOURCE_TEXT_UNAVAILABLE rows cleared after targeted retry.                                                                                                                                       | ND sales/use and withholding generated successfully; ND is absent from the current failure groups.                    |
+| SC                    | The South Carolina DEW wage-report page is reachable; the SOURCE_TEXT_UNAVAILABLE row cleared after targeted retry.                                                                                                                                                                                                   | SC UI wage generated successfully; the later individual income schema row is also resolved.                           |
+| TX                    | The Texas Workforce Commission tax report/payment due-date page is reachable; the SOURCE_TEXT_UNAVAILABLE row cleared after targeted retry.                                                                                                                                                                           | TX UI wage generated successfully; TX is absent from the current failure groups.                                      |
+| UT                    | The Utah unemployment quarterly reporting page is reachable; the SOURCE_TEXT_UNAVAILABLE row cleared after targeted retry. The remaining sales/use and withholding guard rows needed focused excerpts from the quarterly calendar event, including `Sales and Use (STC)`, `Employer Withholding (WTH)`, and April 30. | UT UI wage, sales/use, and withholding generated successfully; UT is absent from the current failure groups.          |
+| FL                    | Reordered Florida corporate source-defined rules to use the official Corporate Income Tax Due Dates PDF before the broad corporate overview page, added focused PDF table excerpts, and taught deterministic fallback to parse `Taxable Year End` installment tables.                                                 | FL return and estimated tax generated successfully; FL is absent from the current failure groups.                     |
+| FED                   | The federal monthly payroll deposit rule was incorrectly sourced only to Pub. 509, which says deposit rules are in Pub. 15. Added the 2026 Pub. 15 source and made it the primary source with a monthly deposit excerpt and 2026 business-day expansions.                                                             | FED monthly payroll deposit generated successfully; `GUARD_REJECTED` is now zero.                                     |
+| IL                    | Replaced the broad business income forms directory with the official Illinois personal property replacement tax due-date page and added excerpts for corporation, partnership, S corporation, and replacement-tax timing.                                                                                             | All three IL schema rows generated successfully; `SCHEMA_INVALID` is now zero.                                        |
+| IA                    | Replaced the broad/generic individual income page with the Iowa individual income FAQ due-date page, split estimated tax to its own official source, and added concrete due-date excerpts.                                                                                                                            | IA individual return and estimated tax generated successfully; IA is absent from current failure groups.              |
+| MS                    | Replaced the broad MDES employers landing page with the MDES quarterly report and tax due-date page and added the quarterly wage-report due dates.                                                                                                                                                                    | MS UI wage generated successfully; MS is absent from current failure groups.                                          |
+| NM                    | Replaced the broad personal income overview with the official New Mexico income-tax due-date reminder PDF and added the April 15 excerpt.                                                                                                                                                                             | NM individual return generated successfully; NM is absent from current failure groups.                                |
+| NC                    | Replaced the broad individual income page with the focused NCDOR when/where/how-to-file page, split estimated tax to its own source, and added return and estimated-payment excerpts.                                                                                                                                 | NC individual return and estimated tax generated successfully; NC only has a separate PTE gateway row.                |
+| SC                    | Replaced the broken/generic individual income source with the current SCDOR statement that extends all 2025 SC individual income filing to October 15, 2026; split estimated tax to the SC1040ES source.                                                                                                              | SC individual return and estimated tax generated successfully; SC is absent from current failure groups.              |
+| WI                    | Replaced the broad Wisconsin individual income index with the DOR deadline FAQ, split estimated tax to its own estimated-payment FAQ source, and added concrete due-date excerpts.                                                                                                                                    | WI individual return and estimated tax generated successfully; WI is absent from current failure groups.              |
+| WY                    | Replaced the Wyoming DOR divisions directory with the Wyoming Title 39 sales-tax compliance source and added monthly/quarterly 2026 sales/use due-date expansions.                                                                                                                                                    | WY sales/use generated successfully; WY is absent from current failure groups.                                        |
+| VA                    | The Virginia VEC quarterly payroll and tax report source is reachable; the SOURCE_TEXT_UNAVAILABLE row cleared after targeted retry.                                                                                                                                                                                  | VA UI wage generated successfully; VA is absent from the current failure groups.                                      |
+| NE                    | Replaced the broken Nebraska unemployment tax overview URL with the Nebraska DOL Employer Tax Services User Guide PDF and added a source-backed quarterly tax and wage report excerpt.                                                                                                                                | NE UI wage generated successfully; NE is absent from the current failure groups.                                      |
+| NV                    | Replaced the broken Nevada ESS help URL with the current DETR Quarterly Reporting Information page and added a source-backed quarterly contribution and wage report excerpt with 2026 due dates.                                                                                                                      | NV UI wage generated successfully; NV is absent from the current failure groups.                                      |
+| MN                    | The current Minnesota Employer Handbook due-date page is reachable and already has a focused source-backed UI wage excerpt; the remaining SOURCE_TEXT_UNAVAILABLE row was an old failed attempt that needed targeted retry.                                                                                           | MN UI wage generated successfully; MN is absent from the current failure groups.                                      |
+| TN                    | Kept the Tennessee delinquent-cycle article because it contains the actual quarterly unemployment report due-date rule, but renamed the source to make that scope clear and added a source-backed UI wage excerpt.                                                                                                    | TN UI wage generated successfully; TN is absent from the current failure groups.                                      |
+| AI gateway final pass | Replaced or tightened the remaining gateway-prone sources for KY UI wage, LA UI wage, NC partnership, ND UI wage, OK UI wage, TN franchise/excise, and WV UI wage. Kept KY's reachable PDF source and added deterministic source-backed evidence because server-side fetches returned a blocked service page.         | All remaining `AI_GATEWAY_ERROR` rows generated successfully; current failure groups are empty.                       |
+| MO                    | The current Missouri Labor quarterly reports page is reachable and contains the due-date text; the remaining SOURCE_TEXT_UNAVAILABLE row was an old failed attempt that needed targeted retry after the source-backed excerpt was added.                                                                              | MO UI wage generated successfully; MO is absent from the current failure groups.                                      |
+| VT                    | Replaced the broken/generic Vermont source path with focused official PDFs/statute/form sources for individual estimated, fiduciary, corporate, pass-through, sales/use, and withholding; added deterministic source-backed excerpts for calendar-year and periodic due dates.                                        | All VT rows generated successfully; VT is absent from the current failure groups.                                     |
+| RI                    | Kept accessible RI pages but added source-backed excerpts for PDF/listed rules, including fiduciary, corporate/franchise, withholding, sales/use, and UI wage reports.                                                                                                                                                | All RI rows generated successfully; RI is absent from the current failure groups.                                     |
+| PA                    | Replaced the page-not-found personal income tax URL with the current PA Personal Income Tax Guide filing requirements page.                                                                                                                                                                                           | PA individual income generated successfully; PA is absent from the current failure groups.                            |
+| OH                    | Replaced the 403 individual filing page with the official Ohio IT 1040/SD 100 instruction PDF and retried the UI wage source with the default model after a parse-only failure.                                                                                                                                       | All OH rows generated successfully; OH is absent from the current failure groups.                                     |
+
+Progress during this investigation:
+
+| Point                                      | Successful | Missing | Source text unavailable | Guard rejected |
+| ------------------------------------------ | ---------: | ------: | ----------------------: | -------------: |
+| Initial cache report                       |        294 |     137 |                     103 |            n/a |
+| After VT/RI/PA/OH repair                   |        380 |      51 |                      12 |             17 |
+| After NE/NV repair                         |        385 |      46 |                       7 |             17 |
+| After NM/ND/SC/TX/UT/VA retry              |        392 |      39 |                       0 |             17 |
+| Current working tree after CA guard repair |        394 |      37 |                       0 |             15 |
+| Current working tree after KY guard repair |        397 |      34 |                       0 |             13 |
+| Current working tree after LA guard repair |        404 |      27 |                       0 |              9 |
+| Current working tree after MD/NC/MS repair |        409 |      22 |                       0 |              4 |
+| Current working tree after UT/FL repair    |        412 |      19 |                       0 |              1 |
+| Current working tree after FED repair      |        413 |      18 |                       0 |              0 |
+| Current working tree after schema repair   |        423 |       8 |                       0 |              0 |
+| Current working tree after gateway repair  |        431 |       0 |                       0 |              0 |
+
+## Remaining By Jurisdiction And Failure
+
+No remaining jurisdiction/failure groups.
+
+## Detailed Failure List
+
+No current detailed failure rows.

@@ -63,6 +63,15 @@ export function sanitizeMapperOutput(
   const sanitized = mappings.map((m) => {
     const idx = headerToIndex.get(m.sourceHeader)
     if (idx !== undefined && blockedSet.has(idx)) {
+      if (m.userOverridden && m.targetField === 'client.ein') {
+        return {
+          ...m,
+          confidence: null,
+          reasoning: 'User-selected EIN mapping for SSN/ITIN-like column.',
+          model: null,
+          promptVersion: 'pii_guard@v1',
+        } satisfies MappingRow
+      }
       return {
         ...m,
         targetField: 'IGNORE' as MappingTarget,

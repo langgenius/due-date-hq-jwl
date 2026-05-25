@@ -13,13 +13,15 @@ import {
   type ObligationRecurrence,
   type ObligationReviewStage,
   type ObligationRiskLevel,
+  type TaxPeriodKind,
+  type TaxPeriodSource,
   type ObligationType,
 } from '../schema/obligations'
-import { listActiveOverlayDueDates } from './overlay'
+import { listActiveOverlayInternalDeadlines } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
-const COLS_PER_OI_ROW = 45
-const OI_BATCH_SIZE = Math.floor(100 / COLS_PER_OI_ROW) // = 3
+const COLS_PER_OI_ROW = 53
+const OI_BATCH_SIZE = Math.max(1, Math.floor(100 / COLS_PER_OI_ROW)) // D1 allows 100 bound params.
 const CLIENT_ASSERT_BATCH_SIZE = 90
 const OI_LOOKUP_IDS_PER_BATCH = 90
 const OI_UPDATE_IDS_PER_BATCH = 90
@@ -30,6 +32,14 @@ export interface ObligationCreateInput {
   clientFilingProfileId?: string | null
   taxType: string
   taxYear?: number | null
+  taxYearType?: 'calendar' | 'fiscal'
+  fiscalYearEndMonth?: number | null
+  fiscalYearEndDay?: number | null
+  taxPeriodStart?: Date | null
+  taxPeriodEnd?: Date | null
+  taxPeriodKind?: TaxPeriodKind
+  taxPeriodSource?: TaxPeriodSource
+  taxPeriodReviewReason?: string | null
   ruleId?: string | null
   ruleVersion?: number | null
   rulePeriod?: string | null
@@ -77,6 +87,31 @@ function isFederalTaxType(taxType: string): boolean {
   return taxType.trim().toLowerCase().startsWith('federal')
 }
 
+function inferTaxYearProfile(input: ObligationCreateInput): {
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+} {
+  if (input.taxYearType === 'fiscal') {
+    return {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: input.fiscalYearEndMonth ?? null,
+      fiscalYearEndDay: input.fiscalYearEndDay ?? null,
+    }
+  }
+  if (input.taxYearType === 'calendar') {
+    return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
+  }
+  if (input.taxPeriodKind === 'fiscal' && input.taxPeriodEnd) {
+    return {
+      taxYearType: 'fiscal',
+      fiscalYearEndMonth: input.taxPeriodEnd.getUTCMonth() + 1,
+      fiscalYearEndDay: input.taxPeriodEnd.getUTCDate(),
+    }
+  }
+  return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
+}
+
 export function makeObligationsRepo(db: Db, firmId: string) {
   async function hydrateObligationRows<T extends ObligationInstance>(
     rows: T[],
@@ -92,7 +127,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
   async function applyOverlayDueDates<T extends { id: string; currentDueDate: Date }>(
     rows: T[],
   ): Promise<T[]> {
-    const overlayDueDates = await listActiveOverlayDueDates(
+    const overlayDueDates = await listActiveOverlayInternalDeadlines(
       db,
       firmId,
       rows.map((row) => row.id),
@@ -211,49 +246,62 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         loadClientsInFirm(inputs.map((input) => input.clientId)),
         loadProfilesInFirm(inputs),
       ])
-      const rows = inputs.map((i) => ({
-        id: i.id ?? crypto.randomUUID(),
-        firmId,
-        clientId: i.clientId,
-        clientFilingProfileId: i.clientFilingProfileId ?? null,
-        taxType: i.taxType,
-        taxYear: i.taxYear ?? null,
-        ruleId: i.ruleId ?? null,
-        ruleVersion: i.ruleVersion ?? null,
-        rulePeriod: i.rulePeriod ?? null,
-        generationSource: i.generationSource ?? null,
-        jurisdiction: resolveJurisdiction(i, { clientsById, profilesById }),
-        obligationType: i.obligationType ?? 'filing',
-        formName: i.formName ?? null,
-        authority: i.authority ?? null,
-        filingDueDate: i.filingDueDate ?? null,
-        paymentDueDate: i.paymentDueDate ?? null,
-        sourceEvidenceJson: i.sourceEvidenceJson ?? null,
-        recurrence: i.recurrence ?? 'once',
-        riskLevel: i.riskLevel ?? 'low',
-        baseDueDate: i.baseDueDate,
-        currentDueDate: i.currentDueDate ?? i.baseDueDate,
-        status: i.status ?? ('pending' as const),
-        prepStage: i.prepStage ?? 'not_started',
-        reviewStage: i.reviewStage ?? 'not_required',
-        extensionState: i.extensionState ?? 'not_started',
-        extensionFormName: i.extensionFormName ?? null,
-        paymentState: i.paymentState ?? 'not_applicable',
-        efileState: i.efileState ?? 'not_applicable',
-        efileAuthorizationForm: i.efileAuthorizationForm ?? null,
-        migrationBatchId: i.migrationBatchId ?? null,
-        estimatedTaxDueCents: i.estimatedTaxDueCents ?? null,
-        estimatedExposureCents: i.estimatedExposureCents ?? null,
-        exposureStatus: i.exposureStatus ?? ('needs_input' as const),
-        penaltyFactsJson: i.penaltyFactsJson ?? null,
-        penaltyFactsVersion: i.penaltyFactsVersion ?? null,
-        penaltyBreakdownJson: i.penaltyBreakdownJson ?? null,
-        penaltyFormulaVersion: i.penaltyFormulaVersion ?? null,
-        missingPenaltyFactsJson: i.missingPenaltyFactsJson ?? null,
-        penaltySourceRefsJson: i.penaltySourceRefsJson ?? null,
-        penaltyFormulaLabel: i.penaltyFormulaLabel ?? null,
-        exposureCalculatedAt: i.exposureCalculatedAt ?? null,
-      }))
+      const rows = inputs.map((i) => {
+        const taxAuthorityFilingDueDate = i.filingDueDate ?? i.baseDueDate
+        const taxAuthorityPaymentDueDate = i.paymentDueDate ?? i.baseDueDate
+        const taxYearProfile = inferTaxYearProfile(i)
+        return {
+          id: i.id ?? crypto.randomUUID(),
+          firmId,
+          clientId: i.clientId,
+          clientFilingProfileId: i.clientFilingProfileId ?? null,
+          taxType: i.taxType,
+          taxYear: i.taxYear ?? null,
+          taxYearType: taxYearProfile.taxYearType,
+          fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
+          fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
+          taxPeriodStart: i.taxPeriodStart ?? null,
+          taxPeriodEnd: i.taxPeriodEnd ?? null,
+          taxPeriodKind: i.taxPeriodKind ?? 'unknown',
+          taxPeriodSource: i.taxPeriodSource ?? 'unknown',
+          taxPeriodReviewReason: i.taxPeriodReviewReason ?? null,
+          ruleId: i.ruleId ?? null,
+          ruleVersion: i.ruleVersion ?? null,
+          rulePeriod: i.rulePeriod ?? null,
+          generationSource: i.generationSource ?? null,
+          jurisdiction: resolveJurisdiction(i, { clientsById, profilesById }),
+          obligationType: i.obligationType ?? 'filing',
+          formName: i.formName ?? null,
+          authority: i.authority ?? null,
+          filingDueDate: taxAuthorityFilingDueDate,
+          paymentDueDate: taxAuthorityPaymentDueDate,
+          sourceEvidenceJson: i.sourceEvidenceJson ?? null,
+          recurrence: i.recurrence ?? 'once',
+          riskLevel: i.riskLevel ?? 'low',
+          baseDueDate: i.baseDueDate,
+          currentDueDate: i.currentDueDate ?? i.baseDueDate,
+          status: i.status ?? ('pending' as const),
+          prepStage: i.prepStage ?? 'not_started',
+          reviewStage: i.reviewStage ?? 'not_required',
+          extensionState: i.extensionState ?? 'not_started',
+          extensionFormName: i.extensionFormName ?? null,
+          paymentState: i.paymentState ?? 'not_applicable',
+          efileState: i.efileState ?? 'not_applicable',
+          efileAuthorizationForm: i.efileAuthorizationForm ?? null,
+          migrationBatchId: i.migrationBatchId ?? null,
+          estimatedTaxDueCents: i.estimatedTaxDueCents ?? null,
+          estimatedExposureCents: i.estimatedExposureCents ?? null,
+          exposureStatus: i.exposureStatus ?? ('needs_input' as const),
+          penaltyFactsJson: i.penaltyFactsJson ?? null,
+          penaltyFactsVersion: i.penaltyFactsVersion ?? null,
+          penaltyBreakdownJson: i.penaltyBreakdownJson ?? null,
+          penaltyFormulaVersion: i.penaltyFormulaVersion ?? null,
+          missingPenaltyFactsJson: i.missingPenaltyFactsJson ?? null,
+          penaltySourceRefsJson: i.penaltySourceRefsJson ?? null,
+          penaltyFormulaLabel: i.penaltyFormulaLabel ?? null,
+          exposureCalculatedAt: i.exposureCalculatedAt ?? null,
+        }
+      })
       const writes = []
       for (let i = 0; i < rows.length; i += OI_BATCH_SIZE) {
         writes.push(db.insert(obligationInstance).values(rows.slice(i, i + OI_BATCH_SIZE)))
@@ -410,6 +458,43 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    async updateTaxYearProfile(
+      id: string,
+      patch: {
+        taxYearType: 'calendar' | 'fiscal'
+        fiscalYearEndMonth: number | null
+        fiscalYearEndDay: number | null
+        taxPeriodStart: Date | null
+        taxPeriodEnd: Date | null
+        taxPeriodKind: TaxPeriodKind
+        taxPeriodSource: TaxPeriodSource
+        taxPeriodReviewReason: string | null
+        baseDueDate?: Date
+        currentDueDate?: Date
+        filingDueDate?: Date | null
+        paymentDueDate?: Date | null
+      },
+    ): Promise<void> {
+      const set: Partial<ObligationInstance> = {
+        taxYearType: patch.taxYearType,
+        fiscalYearEndMonth: patch.taxYearType === 'fiscal' ? patch.fiscalYearEndMonth : null,
+        fiscalYearEndDay: patch.taxYearType === 'fiscal' ? patch.fiscalYearEndDay : null,
+        taxPeriodStart: patch.taxPeriodStart,
+        taxPeriodEnd: patch.taxPeriodEnd,
+        taxPeriodKind: patch.taxPeriodKind,
+        taxPeriodSource: patch.taxPeriodSource,
+        taxPeriodReviewReason: patch.taxPeriodReviewReason,
+      }
+      if (patch.baseDueDate !== undefined) set.baseDueDate = patch.baseDueDate
+      if (patch.currentDueDate !== undefined) set.currentDueDate = patch.currentDueDate
+      if (patch.filingDueDate !== undefined) set.filingDueDate = patch.filingDueDate
+      if (patch.paymentDueDate !== undefined) set.paymentDueDate = patch.paymentDueDate
+      await db
+        .update(obligationInstance)
+        .set(set)
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExposure(
       id: string,
       patch: {
@@ -442,13 +527,66 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // Filed → e-file rejected unwind. Stamps `efile_rejected_at`,
+    // flips `status` back to `review` ("In review"), and clears any
+    // prior acceptance timestamp so the row reads cleanly as
+    // "filed but rejected, back in review."
+    async setEfileRejected(
+      id: string,
+      patch: { rejectedAt: Date; nextStatus: ObligationStatus },
+    ): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({
+          status: patch.nextStatus,
+          efileRejectedAt: patch.rejectedAt,
+          efileAcceptedAt: null,
+        })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    // K-1 dependency wiring. Set or clear the upstream-blocker
+    // pointer. When `blockedBy` is non-null, status flips to `blocked`;
+    // when null, status reverts to `pending`. Parent-completion auto-
+    // unblock continues to fire from updateStatus → unblockChildrenOf.
+    async setBlockedBy(
+      id: string,
+      patch: { blockedBy: string | null; nextStatus: ObligationStatus },
+    ): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({
+          blockedByObligationInstanceId: patch.blockedBy,
+          status: patch.nextStatus,
+        })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    // In Review sub-status mutations. Set the prep_stage or
+    // review_stage column directly — no transition guards at the repo
+    // level. The service layer reads `before`, writes the audit row,
+    // and re-reads `after`.
+    async setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ prepStage })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    async setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ reviewStage })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {
         decision: 'applied' | 'rejected'
         memo: string | null
         source: string | null
-        expectedExtendedDueDate: Date | null
+        internalTargetDate: Date | null
         decidedAt: Date
         decidedByUserId: string
         status?: ObligationStatus
@@ -460,13 +598,48 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           extensionDecision: patch.decision,
           extensionMemo: patch.memo,
           extensionSource: patch.source,
-          extensionExpectedDueDate: patch.expectedExtendedDueDate,
+          extensionExpectedDueDate: patch.internalTargetDate,
           extensionDecidedAt: patch.decidedAt,
           extensionDecidedByUserId: patch.decidedByUserId,
           extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
           ...(patch.status !== undefined ? { status: patch.status } : {}),
         })
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    /**
+     * Lifecycle v2 (slice 2d.4) — parent→children unblock cascade.
+     *
+     * When `parentObligationInstanceId` transitions to `completed`,
+     * find every row where `blocked_by_obligation_instance_id` points
+     * at it AND status is `blocked`, and flip them:
+     *   - status: 'blocked' → 'pending'  (start-of-queue, requires re-pickup)
+     *   - blocked_by: → NULL              (clear the pointer)
+     *
+     * Returns the list of unblocked child IDs so the caller can write
+     * audit entries ("Unblocked by parent #X on YYYY-MM-DD").
+     *
+     * Single-statement update; PDF anti-pattern #4 (K-1 dependency
+     * graph). See docs/Design/obligation-lifecycle-design-brief.md.
+     */
+    async unblockChildrenOf(parentObligationInstanceId: string): Promise<string[]> {
+      const children = await db
+        .select({ id: obligationInstance.id })
+        .from(obligationInstance)
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(obligationInstance.blockedByObligationInstanceId, parentObligationInstanceId),
+            eq(obligationInstance.status, 'blocked'),
+          ),
+        )
+      const childIds = children.map((row) => row.id)
+      if (childIds.length === 0) return []
+      await db
+        .update(obligationInstance)
+        .set({ status: 'pending', blockedByObligationInstanceId: null })
+        .where(and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, childIds)))
+      return childIds
     },
 
     async updateStatusMany(ids: string[], status: ObligationStatus): Promise<void> {

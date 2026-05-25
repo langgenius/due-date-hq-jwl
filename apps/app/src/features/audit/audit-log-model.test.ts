@@ -44,7 +44,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
     clientBatchCreated: 'Client batch created',
     memberRoleUpdated: 'Member role changed',
     migrationImported: 'Import completed',
-    obligationDueDateUpdated: 'Due date changed',
+    obligationDueDateUpdated: 'Internal deadline changed',
     obligationStatusUpdated: 'Deadline status changed',
     penaltyOverride: 'Penalty inputs changed',
     pulseApply: 'Pulse applied',
@@ -65,14 +65,17 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
       not_applicable: 'Not applicable',
     },
     readinessLabels: {
-      ready: 'Ready',
-      waiting: 'Waiting',
-      needs_review: 'Needs review',
+      // 2026-05-23: materials state vocabulary (3rd-iteration labels).
+      // Ready→Received, Waiting→Outstanding, needs_review→Needs CPA
+      // action. See status-control.tsx for the full rationale.
+      ready: 'Received',
+      waiting: 'Outstanding',
+      needs_review: 'Needs CPA action',
     },
     fields: {
       assigneeName: 'Assignee',
       clientCount: 'Clients',
-      currentDueDate: 'Due date',
+      currentDueDate: 'Internal deadline',
       equityOwnerCount: 'Owner count',
       estimatedTaxLiabilityCents: 'Estimated tax liability',
       isPinned: 'Pinned',
@@ -109,7 +112,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
       batchCreated: (action, count) =>
         count === null ? `${action} recorded` : `${action}: ${count} rows`,
       deadlineDueDateChanged: (previous, next) =>
-        `Deadline due date changed from ${previous} to ${next}`,
+        `Internal deadline changed from ${previous} to ${next}`,
       deadlineReadinessChanged: (previous, next) =>
         `Deadline readiness changed from ${previous} to ${next}`,
       deadlineStatusChanged: (previous, next) =>
@@ -211,8 +214,8 @@ describe('audit-log-model', () => {
         'America/Los_Angeles',
       ),
     ).toMatchObject({
-      headline: 'Deadline due date changed from 2026-04-15 to 2026-05-15',
-      changes: [{ field: 'Due date', previous: '2026-04-15', next: '2026-05-15' }],
+      headline: 'Internal deadline changed from 2026-04-15 to 2026-05-15',
+      changes: [{ field: 'Internal deadline', previous: '2026-04-15', next: '2026-05-15' }],
     })
   })
 
@@ -231,7 +234,7 @@ describe('audit-log-model', () => {
     ).toMatchObject({
       headline: 'Penalty inputs changed',
       changes: [
-        { field: 'Estimated tax liability', previous: 'Not set', next: '$1,250.00' },
+        { field: 'Estimated tax liability', previous: 'Not set', next: '$1,250' },
         { field: 'Owner count', previous: '2', next: '3' },
       ],
     })
@@ -337,8 +340,9 @@ describe('audit-log-model', () => {
       pulseAlert: 'Pulse alert',
       rule: 'Rule',
       ruleSource: 'Rule source',
-      obligationQueueExport: 'Obligations export',
+      obligationQueueExport: 'Deadlines export',
       obligationQueueSavedView: 'Saved obligation view',
+      opportunity: 'Opportunity',
     } satisfies AuditEntityTypeLabels
 
     expect(formatAuditEntityTypeLabel('obligation_saved_view', labels)).toBe(
@@ -350,10 +354,14 @@ describe('audit-log-model', () => {
 
   it('formats audit action labels for user-facing surfaces', () => {
     const labels = makeActionLabels({
+      obligationExtensionDecided: 'Extension plan saved',
       obligationStatusUpdated: 'Deadline status changed',
       obligationQueueSavedViewDeleted: 'Saved view deleted',
     })
 
+    expect(formatAuditActionLabel('obligation.extension.decided', labels)).toBe(
+      'Extension plan saved',
+    )
     expect(formatAuditActionLabel('obligations.saved_view.deleted', labels)).toBe(
       'Saved view deleted',
     )

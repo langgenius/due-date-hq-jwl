@@ -26,6 +26,7 @@ function contextFor(role: string, status = 'active'): RpcContext {
         plan: 'solo',
         seatLimit: 1,
         status: 'active',
+        internalDeadlineOffsetDays: 14,
         ownerUserId: 'user_1',
         coordinatorCanSeeDollars: false,
       },

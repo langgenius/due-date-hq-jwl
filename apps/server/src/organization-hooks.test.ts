@@ -82,6 +82,7 @@ describe('buildOrganizationHooks', () => {
           plan: 'solo',
           seatLimit: 1,
           timezone: 'America/New_York',
+          internalDeadlineOffsetDays: 14,
           ownerUserId: 'user_1',
           status: 'active',
         }),

@@ -38,12 +38,12 @@ stateDiagram-v2
 > RPC 编排、Stepper、processing overlay 和 Step 1–4 组件，详见
 > [`./13-onboarding-activation-route.md`](./13-onboarding-activation-route.md)。
 
-| 步骤                     | 目标                                                                     | 退出条件                                           | AC 映射         | 本册锚点 |
-| ------------------------ | ------------------------------------------------------------------------ | -------------------------------------------------- | --------------- | -------- |
-| Step 1 Intake            | 选择数据入口（粘贴 / 上传 / Preset）；SSN 拦截；≤ 1000 行                | 粘贴或上传文件解析成功 + 至少 1 条非空行           | S2-AC1          | §4 本文  |
-| Step 2 Mapping           | AI Mapper 输出 9 字段映射 + 置信度；EIN `★`；可手动 override             | 所有非 IGNORE 列有目标字段；EIN 识别率 = 100%      | S2-AC1 / S2-AC2 | §5 本文  |
-| Step 3 Normalize         | 归一 entity / state / tax_year；冲突解决；确认或取消 Default Matrix cell | 冲突全部选择处置；needs_review 可非阻塞带入 Step 4 | S2-AC3 / S2-AC4 | §6 本文  |
-| Step 4 Dry-Run + Genesis | 展示 counts + 风险预览 + Safety；触发原子导入 + Live Genesis 动画        | `migration.imported` 成功 + Dashboard 落地         | S2-AC5          | §7 本文  |
+| 步骤                     | 目标                                                                        | 退出条件                                           | AC 映射         | 本册锚点 |
+| ------------------------ | --------------------------------------------------------------------------- | -------------------------------------------------- | --------------- | -------- |
+| Step 1 Intake            | 选择数据入口（粘贴 / 上传 / Preset）；SSN 拦截；≤ 1000 行                   | 粘贴或上传文件解析成功 + 至少 1 条非空行           | S2-AC1          | §4 本文  |
+| Step 2 Mapping           | AI Mapper 输出 client / penalty 字段映射 + 置信度；EIN `★`；可手动 override | 所有非 IGNORE 列有目标字段；EIN 识别率 = 100%      | S2-AC1 / S2-AC2 | §5 本文  |
+| Step 3 Normalize         | 归一 entity / state / tax_year；冲突解决；确认或取消 Default Matrix cell    | 冲突全部选择处置；needs_review 可非阻塞带入 Step 4 | S2-AC3 / S2-AC4 | §6 本文  |
+| Step 4 Dry-Run + Genesis | 展示 counts + 风险预览 + Safety；触发原子导入 + Live Genesis 动画           | `migration.imported` 成功 + Dashboard 落地         | S2-AC5          | §7 本文  |
 
 > 数字键 `1-4` **不** 跳步骤（避免误触）；步骤推进只允许 `Continue` / `Back`。来源于 [`./01-mvp-and-journeys.md`](./01-mvp-and-journeys.md) §7.2 键盘基线。
 
@@ -173,7 +173,7 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 
 ### 4.1 目标与状态机
 
-- **目标**：粘贴 / 上传两条路径二选一；SSN 前端拦截；≤ 1000 行；可选 Preset 标签
+- **目标**：粘贴 / 上传两条路径二选一；SSN 前端拦截；≤ 1000 行；可选 Preset 标签；上传路径能识别常见竞品导出包并保留 source manifest
 - **状态机**：`idle → validating → ready → error | ssn_blocked`
 
 | 状态        | 触发                | `[Continue →]`              | 视觉提示                                          |
@@ -204,13 +204,14 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 │                                                                      │
 │        — or —                                                        │   ← 分隔线 + {colors.text-muted}；居中
 │                                                                      │
-│  ┌─ Drop CSV / TSV / XLSX here ─────────────────────────────┐        │   ← Upload zone：高 120px；虚线边框 1px {colors.border-strong}
-│  │         or  [Choose file]     max 1000 rows · 2 MB       │        │     背景 {colors.surface-subtle}；圆角 {rounded.md}
+│  ┌─ Drop CSV / Excel / ZIP / TXT / IIF here ────────────────┐        │   ← Upload zone：高 120px；虚线边框 1px {colors.border-strong}
+│  │         or  [Choose file]     max 1000 rows · 5 MB       │        │     背景 {colors.surface-subtle}；圆角 {rounded.md}
 │  └──────────────────────────────────────────────────────────┘        │     button-secondary
 │                                                                      │
 │  I'm coming from…  (optional)                                        │   ← {typography.label}（11/uppercase）
-│   [TaxDome]  [Drake]  [Karbon]  [QuickBooks]  [File In Time]         │   ← 5 个 chip，{rounded.sm}；hover 边框 {colors.accent-default}
-│                                                      ↑ 位置第 5 位   │     File In Time hover tip 见 §4.3
+│   [CCH Axcess] [CCH ProSystem fx] [Drake] [File In Time]             │
+│   [Karbon] [Lacerte] [ProConnect Tax] [ProSeries] [QuickBooks]       │
+│   [TaxDome] [UltraTax CS]                                            │   ← source chips A-Z
 │                                                                      │
 │  ─────────────────────────────────────────────────────────────       │
 │  🔒 We block SSN-like patterns before sending anything to the AI.    │   ← 永久 hint：{typography.label} + {colors.text-muted}
@@ -242,12 +243,15 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 ### 4.3 交互细节
 
 - Paste 区高度固定 200px；字体 `{typography.numeric}` 便于查看列对齐；粘贴后自动探测 header（空值则由 Step 2 Mapper 再决）
-- Upload：拖放 + 点击；接受 `.csv .tsv .xlsx`；≤ 2MB；开始读取文件时先清空旧解析结果，
+- Upload：拖放 + 点击；接受 `.csv .tsv .txt .xlsx .zip .iif .json .dif .rtnbak .rctrl .dbf .mdx .csd`；
+  ≤ 5MB；开始读取文件时先清空旧解析结果，
   Upload 区显示紫色读取态与 `Reading file…`；读取成功且 `rowCount >= 1` 后 `[Continue →]`
   才启用。空文件 / 只有表头无数据行时展示解析错误，不让用户面对一个无反馈的禁用按钮。
+- 上传适配器：`.zip` 会扫描内部可读的 CSV / TSV / TXT / JSON / XLSX / IIF，并按来源置信度自动选择最可能的客户清单；TaxDome accounts + contacts 导出会合并出 `Primary Contact Name` / `Primary Contact Email`；QuickBooks Desktop IIF customers 会转换成 TSV。`.qbb .qbw .qbm .cab .fbk .xls .pdf` 以及 CCH / Lacerte / ProSeries / UltraTax 的 proprietary return/data 文件（`.rtnbak .rctrl .dbf .mdx .YYi/.YYp/.YYc/.YYs .csd .dif`）必须给出针对来源的导出指引。
+- 解析成功后若检测到来源，展示 `Detected export source` status，并把 `sourceManifest` 随 uploadRaw 持久化，供审计 / 后续分析使用。
 - 超 1000 行前端**只**读取前 1000 行 + 顶部 Banner（见线框）
 - SSN 正则 `\d{3}-\d{2}-\d{4}`；命中列强制 `IGNORE` 并将表格列头边框替换为 `{colors.severity-critical}`（Step 2 透传给 Mapper 结果行）
-- Preset chips：5 个顺序固定 **TaxDome · Drake · Karbon · QuickBooks · File In Time**（对齐 [`./10-conflict-resolutions.md#2-5-preset-含-file-in-time`](./10-conflict-resolutions.md#2-5-preset-含-file-in-time)）
+- Preset chips：合并为单组，按展示英文名 A-Z 排序：**CCH Axcess · CCH ProSystem fx · Drake · File In Time · Karbon · Lacerte · ProConnect Tax · ProSeries · QuickBooks · TaxDome · UltraTax CS**。
 - Preset chips 下方必须说明能力顺序：AI Mapper 先运行；Preset 作为来源上下文传入 AI，
   并在 AI 不可用时作为 preset mapping fallback。用户不能被迫从 UI 猜测当前使用的是
   AI 还是 preset。
@@ -269,13 +273,14 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 | Title                     | `Import clients · Step 1 of 4`                                                                                                  | `导入客户 · 第 1 步 / 共 4 步`                                                             | `<Trans>`                                     |
 | Subtitle                  | `Where is your data coming from?`                                                                                               | `你的数据从哪里来？`                                                                       | `<Trans>`                                     |
 | Paste placeholder         | `Paste here — any shape, we'll figure it out. Include the header row if you have one.`                                          | `粘贴到这里 —— 任何格式都行，我们会自动识别。如果有表头也请一并粘贴。`                     | `` t`...` ``（textarea placeholder 用函数式） |
-| Upload hint               | `Drop CSV / TSV / XLSX here or choose file · max 1000 rows · 2 MB`                                                              | `把 CSV / TSV / XLSX 拖到这里或点击上传 · 最多 1000 行 · 2 MB`                             | `<Trans>`                                     |
+| Upload hint               | `Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB`                                             | `将 CSV / Excel / ZIP / TXT / IIF 拖到这里，或点击选择 · 最多 1000 行 · 5 MB`              | `<Trans>`                                     |
 | Upload reading            | `Reading file…`                                                                                                                 | `正在读取文件…`                                                                            | `<Trans>`                                     |
 | Preset label              | `I'm coming from…`                                                                                                              | `我正在从…迁移过来`                                                                        | `<Trans>`                                     |
 | Preset helper             | `The AI mapper runs first. Selecting a preset adds source context and provides a preset mapping fallback if AI is unavailable.` | `AI mapper 会先运行。选择 preset 会增加来源上下文，并在 AI 不可用时提供 preset 映射兜底。` | `<Trans>`                                     |
 | FIT tooltip               | `Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines.`                      | `正在从 File In Time 迁移？我们会映射可用日历字段，并在生成截止日前标记缺口。`             | `<Trans>`                                     |
 | SSN banner                | `We blocked SSN-like patterns to protect your clients. Those columns won't be sent to the AI.`                                  | `为了保护客户隐私，我们拦截了疑似 SSN 的列，不会发送给 AI。`                               | `<Trans>`                                     |
 | Row overflow warning      | `We imported the first 1000 rows. Split your file to import more.`                                                              | `我们只读取了前 1000 行。请拆分文件后再次导入。`                                           | `<Plural>`（按 rows 数）                      |
+| Source detected           | `Detected export source` / `Using {sourceProductLabel} data from {file}.`                                                       | `已识别导出来源` / `正在使用来自 {file} 的 {sourceProductLabel} 数据。`                    | `<Trans>`                                     |
 | Primary CTA               | `Continue →`                                                                                                                    | `下一步 →`                                                                                 | `<Trans>`                                     |
 | Secondary CTA             | `← Back`                                                                                                                        | `← 返回`                                                                                   | `<Trans>`                                     |
 | Error banner (parse fail) | `We couldn't read that file. Try exporting as CSV.`                                                                             | `无法读取该文件。请先导出为 CSV 再试。`                                                    | `<Trans>`                                     |
@@ -328,7 +333,7 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 
 ### 5.1 目标与状态机
 
-- **目标**：展示 AI Mapper 的 9 字段映射 + 置信度徽章 + EIN `★` 徽章；允许行内 override；`[Re-run AI]` / `[Export mapping]`
+- **目标**：展示 AI Mapper 的 client / penalty 字段映射 + 置信度徽章 + EIN `★` 徽章；允许行内 override；`[Re-run AI]` / `[Export mapping]`
 - **状态机**：`loading → success | fallback_preset | error`
 
 | 状态                        | 触发                  | 顶栏提示                                                            | `[Continue →]`           |
@@ -710,7 +715,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 2. 4 – 6 秒动画：
    - Wizard 淡出（300ms）→ Dashboard 布局淡入（300ms）
    - 粒子（每张 deadline 卡片发射 `+$X` 标签）弧线飞入顶栏（[`../../PRD/DueDateHQ-PRD-v2.0-Part2A.md`](../../PRD/DueDateHQ-PRD-v2.0-Part2A.md) §7.5.6）
-   - 顶栏 Penalty Radar odometer：`$0 → $19,200`（stagger 80ms；每位 `cubic-bezier(0.34, 1.56, 0.64, 1)`）
+   - 顶栏 Deadline Radar odometer：`$0 → $19,200`（stagger 80ms；每位 `cubic-bezier(0.34, 1.56, 0.64, 1)`）
 3. 动画结束 → Dashboard，`This Week` tab 默认选中第 1 条 obligation
 
 **`prefers-reduced-motion: reduce`**：
@@ -779,7 +784,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 
 - `Enter`（焦点在非按钮元素时）= `[Import & Generate deadlines ▶]`
 - `Esc`：preview 态打开关闭确认；**importing + 动画期间失效**（防止撤销到半态）
-- 动画完成时 `aria-live="polite"` 广播：`Imported 30 clients, 152 obligations, 19200 dollars at risk.`
+- 动画完成时 `aria-live="polite"` 广播：`Imported 30 clients, 152 obligations, 19200 deadline risk.`
 - 失败 banner `role="alert"` + `aria-live="assertive"`
 - 粒子动画 `aria-hidden="true"` + `pointer-events: none`（对齐 DueDateHQ-DESIGN §7.5.6.7 行 335）
 
@@ -912,7 +917,7 @@ Toast 持久态  ──24h──>  Expired（Undo all 灰化）
 | `stepper`          | 4 步水平步骤条（active / done / upcoming / error / disabled 五态）    | §2.2 · [`./09-design-system-deltas.md#stepper`](./09-design-system-deltas.md#stepper)                                                                           |
 | `confidence-badge` | AI Mapper High / Medium / Low 三档 + EIN `★`                          | §5.3 · [`./09-design-system-deltas.md#confidence-badge`](./09-design-system-deltas.md#confidence-badge)                                                         |
 | `toast`            | Step 4 持久 Toast（24h）                                              | §7.4 · [`./09-design-system-deltas.md#toast`](./09-design-system-deltas.md#toast)                                                                               |
-| `genesis-odometer` | 顶栏 Penalty Radar 数值滚动                                           | §7.3 · [`./09-design-system-deltas.md#genesis-odometer`](./09-design-system-deltas.md#genesis-odometer)                                                         |
+| `genesis-odometer` | 顶栏 Deadline Radar 数值滚动                                          | §7.3 · [`./09-design-system-deltas.md#genesis-odometer`](./09-design-system-deltas.md#genesis-odometer)                                                         |
 | `email-shell`      | Migration Report 战报邮件容器（本文不定义，但 Safety 文案与邮件同源） | — · [`./08-migration-report-email.md`](./08-migration-report-email.md) + [`./09-design-system-deltas.md#email-shell`](./09-design-system-deltas.md#email-shell) |
 | `risk-row-high`    | Step 4 Top-risk 列表 High 档行（现有 `risk-row-critical` 的同族）     | §7.8 · [`./09-design-system-deltas.md#risk-row-high`](./09-design-system-deltas.md#risk-row-high)                                                               |
 

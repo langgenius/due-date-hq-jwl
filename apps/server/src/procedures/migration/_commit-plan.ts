@@ -13,14 +13,15 @@ import {
 import { validateEin } from '@duedatehq/core/pii'
 import {
   buildPenaltyFactsFromLegacy,
-  estimateProjectedExposure,
   PENALTY_FACTS_VERSION,
   type PenaltyFacts,
 } from '@duedatehq/core/penalty'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { validateRows } from './_deterministic'
 import type { MappingJsonPayload, MatrixApplicationEntry } from './_types'
+import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
 
 type CommitImportInput = Parameters<ScopedRepo['migration']['commitImport']>[0]
 type CommitClient = CommitImportInput['clients'][number]
@@ -28,13 +29,13 @@ type CommitFilingProfile = CommitImportInput['filingProfiles'][number]
 type CommitObligation = CommitImportInput['obligations'][number]
 type CommitEvidence = CommitImportInput['evidence'][number]
 type CommitAudit = CommitImportInput['audits'][number]
-type CommitExternalReference = NonNullable<CommitImportInput['externalReferences']>[number]
 
 interface BuildCommitPlanInput {
   batchId: string
   firmId: string
   userId: string
   payload: MappingJsonPayload
+  internalDeadlineOffsetDays: number
   rules?: readonly ObligationRule[]
 }
 
@@ -49,7 +50,6 @@ interface PendingClientGroup {
   key: string
   facts: ClientImportFacts
   rowIndexes: number[]
-  externalRows: NonNullable<MappingJsonPayload['externalStagingRows']>
   profilesByState: Map<string, FilingProfileImportFacts>
 }
 
@@ -74,7 +74,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
   const filingProfiles: CommitFilingProfile[] = []
   const obligations: CommitObligation[] = []
   const evidence: CommitEvidence[] = []
-  const externalReferences: CommitExternalReference[] = []
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const runtimeRules = input.rules ?? listObligationRules({ includeCandidates: true })
   const ruleById = new Map(runtimeRules.map((rule) => [rule.id, rule]))
@@ -107,21 +106,18 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
     }
 
     const groupKey = clientMergeKey(facts)
-    const externalRow = payload.externalStagingRows?.find((item) => item.rowIndex === rowIndex)
     const current = groups.get(groupKey)
     if (!current) {
       groups.set(groupKey, {
         key: groupKey,
         facts,
         rowIndexes: [rowIndex],
-        externalRows: externalRow ? [externalRow] : [],
         profilesByState: new Map(facts.filingProfiles.map((profile) => [profile.state, profile])),
       })
       continue
     }
 
     current.rowIndexes.push(rowIndex)
-    if (externalRow) current.externalRows.push(externalRow)
     current.facts = mergeClientFacts(current.facts, facts)
     for (const profile of facts.filingProfiles) {
       const existing = current.profilesByState.get(profile.state)
@@ -159,7 +155,18 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       county:
         profileRows.find((profile) => profile.state === primaryState)?.counties[0] ?? facts.county,
       entityType: facts.entityType,
+      taxYearType: facts.taxYearType,
+      fiscalYearEndMonth: facts.fiscalYearEndMonth,
+      fiscalYearEndDay: facts.fiscalYearEndDay,
+      externalClientId: facts.externalClientId,
+      addressLine1: facts.addressLine1,
+      city: facts.city,
+      postalCode: facts.postalCode,
+      primaryPhone: facts.primaryPhone,
+      sourceStatus: facts.sourceStatus,
       email: facts.email,
+      primaryContactName: facts.primaryContactName,
+      primaryContactEmail: facts.primaryContactEmail,
       notes: facts.notes,
       assigneeName: facts.assigneeName,
       estimatedTaxLiabilityCents: facts.estimatedTaxLiabilityCents,
@@ -187,26 +194,6 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       filingProfiles.push(profileRow)
     }
 
-    for (const externalRow of group.externalRows) {
-      externalReferences.push(
-        buildExternalReference({
-          firmId,
-          batchId,
-          provider: externalRow.provider,
-          internalEntityType: 'client',
-          internalEntityId: clientId,
-          externalEntityType: externalRow.externalEntityType,
-          externalId: externalRow.externalId,
-          externalUrl: externalRow.externalUrl,
-          metadataJson: {
-            stagingRowId: externalRow.stagingRowId,
-            rowHash: externalRow.rowHash,
-          },
-          appliedAt,
-        }),
-      )
-    }
-
     const seenPreviewKeys = new Set<string>()
     for (const profile of profileRows) {
       if (profile.taxTypes.length === 0) continue
@@ -216,8 +203,16 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           entityType: facts.entityType,
           state: profile.state,
           taxTypes: profile.taxTypes,
-          taxYearStart: '2026-01-01',
-          taxYearEnd: '2025-12-31',
+          taxYearType: facts.taxYearType,
+          fiscalYearEndMonth: facts.fiscalYearEndMonth,
+          fiscalYearEndDay: facts.fiscalYearEndDay,
+          ...(facts.penaltyFacts.periodStart && facts.penaltyFacts.periodEnd
+            ? {
+                taxYearStart: facts.penaltyFacts.periodStart,
+                taxYearEnd: facts.penaltyFacts.periodEnd,
+                taxPeriodSource: 'migration' as const,
+              }
+            : {}),
         },
         rules: runtimeRules,
       })
@@ -229,20 +224,16 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
 
         const obligationId = crypto.randomUUID()
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
+        const internalDueDate = internalDeadlineFromBaseDueDate(
+          dueDate,
+          input.internalDeadlineOffsetDays,
+        )
         const penaltyFacts = buildPenaltyFactsFromLegacy({
           taxType: preview.taxType,
           estimatedTaxLiabilityCents: facts.estimatedTaxLiabilityCents,
           equityOwnerCount: facts.equityOwnerCount,
         })
         penaltyFacts.facts = { ...penaltyFacts.facts, ...facts.penaltyFacts }
-        const exposure = estimateProjectedExposure({
-          jurisdiction: preview.jurisdiction,
-          taxType: preview.taxType,
-          entityType: facts.entityType,
-          dueDate,
-          asOfDate: appliedAt,
-          penaltyFactsJson: penaltyFacts,
-        })
         const status = preview.requiresReview ? 'review' : 'pending'
         obligations.push({
           id: obligationId,
@@ -254,49 +245,36 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
           taxType: preview.taxType,
           taxYear:
             ruleById.get(preview.ruleId)?.taxYear ?? findRuleById(preview.ruleId)?.taxYear ?? 2026,
+          taxYearType: preview.taxPeriodKind === 'fiscal' ? 'fiscal' : 'calendar',
+          fiscalYearEndMonth:
+            preview.taxPeriodKind === 'fiscal' && preview.taxPeriodEnd
+              ? Number(preview.taxPeriodEnd.slice(5, 7))
+              : null,
+          fiscalYearEndDay:
+            preview.taxPeriodKind === 'fiscal' && preview.taxPeriodEnd
+              ? Number(preview.taxPeriodEnd.slice(8, 10))
+              : null,
+          taxPeriodStart: preview.taxPeriodStart
+            ? new Date(`${preview.taxPeriodStart}T00:00:00.000Z`)
+            : null,
+          taxPeriodEnd: preview.taxPeriodEnd
+            ? new Date(`${preview.taxPeriodEnd}T00:00:00.000Z`)
+            : null,
+          taxPeriodKind: preview.taxPeriodKind,
+          taxPeriodSource: preview.taxPeriodSource,
+          taxPeriodReviewReason: preview.taxPeriodReviewReason,
           ruleId: preview.ruleId,
           ruleVersion: preview.ruleVersion,
           rulePeriod: preview.period,
           generationSource: 'migration',
           baseDueDate: dueDate,
-          currentDueDate: dueDate,
+          currentDueDate: internalDueDate,
           status,
           migrationBatchId: batchId,
-          estimatedTaxDueCents: exposure.estimatedTaxDueCents,
-          estimatedExposureCents: exposure.estimatedExposureCents,
-          exposureStatus: exposure.status,
+          estimatedTaxDueCents: facts.estimatedTaxLiabilityCents,
           penaltyFactsJson: penaltyFacts,
           penaltyFactsVersion: PENALTY_FACTS_VERSION,
-          penaltyBreakdownJson: exposure.breakdown,
-          penaltyFormulaVersion: exposure.formulaVersion,
-          missingPenaltyFactsJson: exposure.missingPenaltyFacts,
-          penaltySourceRefsJson: exposure.penaltySourceRefs,
-          penaltyFormulaLabel: exposure.penaltyFormulaLabel,
-          exposureCalculatedAt: appliedAt,
         })
-        for (const externalRow of group.externalRows) {
-          externalReferences.push(
-            buildExternalReference({
-              firmId,
-              batchId,
-              provider: externalRow.provider,
-              internalEntityType: 'obligation',
-              internalEntityId: obligationId,
-              externalEntityType: externalRow.externalEntityType,
-              externalId: externalRow.externalId,
-              externalUrl: externalRow.externalUrl,
-              metadataJson: {
-                stagingRowId: externalRow.stagingRowId,
-                rowHash: externalRow.rowHash,
-                sourceClientId: clientId,
-                taxType: preview.taxType,
-                jurisdiction: preview.jurisdiction,
-              },
-              appliedAt,
-            }),
-          )
-        }
-
         const primaryEvidence = preview.evidence[0]
         const sourceId = primaryEvidence?.sourceId ?? preview.sourceIds[0] ?? preview.ruleId
         const source = sourceById.get(sourceId)
@@ -376,38 +354,10 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
     obligations,
     evidence,
     audits,
-    externalReferences,
     successCount: clients.length,
     skippedCount: skippedRows.size,
     appliedAt,
     revertExpiresAt,
-  }
-}
-
-function buildExternalReference(input: {
-  firmId: string
-  batchId: string
-  provider: CommitExternalReference['provider']
-  internalEntityType: CommitExternalReference['internalEntityType']
-  internalEntityId: string
-  externalEntityType: CommitExternalReference['externalEntityType']
-  externalId: string
-  externalUrl: string | null
-  metadataJson: unknown
-  appliedAt: Date
-}): CommitExternalReference {
-  return {
-    id: crypto.randomUUID(),
-    firmId: input.firmId,
-    provider: input.provider,
-    migrationBatchId: input.batchId,
-    internalEntityType: input.internalEntityType,
-    internalEntityId: input.internalEntityId,
-    externalEntityType: input.externalEntityType,
-    externalId: input.externalId,
-    externalUrl: input.externalUrl,
-    metadataJson: input.metadataJson,
-    lastSyncedAt: input.appliedAt,
   }
 }
 
@@ -426,7 +376,18 @@ interface ClientImportFacts {
   state: RuleGenerationState | null
   county: string | null
   entityType: EntityType
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+  externalClientId: string | null
+  addressLine1: string | null
+  city: string | null
+  postalCode: string | null
+  primaryPhone: string | null
+  sourceStatus: string | null
   email: string | null
+  primaryContactName: string | null
+  primaryContactEmail: string | null
   notes: string | null
   assigneeName: string | null
   estimatedTaxLiabilityCents: number | null
@@ -442,6 +403,8 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
   const rawFilingStates = readMappedValue(input, 'client.filing_states')
   const rawEntity = readMappedValue(input, 'client.entity_type')
   const rawTaxTypes = readMappedValue(input, 'client.tax_types')
+  const rawTaxYearType = readMappedValue(input, 'client.tax_year_type')
+  const rawFiscalYearEnd = readMappedValue(input, 'client.fiscal_year_end')
   const rawEstimatedTaxLiability = readMappedValue(input, 'client.estimated_tax_liability')
   const rawEquityOwnerCount = readMappedValue(input, 'client.equity_owner_count')
   const rawPenaltyTaxDue = readMappedValue(input, 'penalty.tax_due')
@@ -475,7 +438,8 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
   const entity = normalizeMappedValue(input.normalizations, 'entity_type', rawEntity)
   const entityCandidate = entity ?? ''
   const entityType: EntityType = isEntityType(entityCandidate) ? entityCandidate : 'other'
-  const taxTypes = normalizeTaxTypes(input.normalizations, rawTaxTypes)
+  const taxYearProfile = resolveImportedTaxYearProfile(rawTaxYearType, rawFiscalYearEnd)
+  const taxTypes = normalizeTaxTypesFromRows(input.normalizations, rawTaxTypes)
   const profiles = filingStates.map((state) =>
     buildProfileFacts({
       entityType,
@@ -496,7 +460,18 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
         : (profiles[0]?.state ?? null),
     county: readMappedValue(input, 'client.county'),
     entityType,
+    taxYearType: taxYearProfile.taxYearType,
+    fiscalYearEndMonth: taxYearProfile.fiscalYearEndMonth,
+    fiscalYearEndDay: taxYearProfile.fiscalYearEndDay,
+    externalClientId: readMappedValue(input, 'client.external_client_id'),
+    addressLine1: readMappedValue(input, 'client.address_line_1'),
+    city: readMappedValue(input, 'client.city'),
+    postalCode: readMappedValue(input, 'client.postal_code'),
+    primaryPhone: readMappedValue(input, 'client.primary_phone'),
+    sourceStatus: readMappedValue(input, 'client.source_status'),
     email: normalizeEmail(readMappedValue(input, 'client.email')),
+    primaryContactName: readMappedValue(input, 'client.primary_contact_name'),
+    primaryContactEmail: normalizeEmail(readMappedValue(input, 'client.primary_contact_email')),
     notes: readMappedValue(input, 'client.notes'),
     assigneeName: readMappedValue(input, 'client.assignee_name'),
     estimatedTaxLiabilityCents: parseMoneyCents(rawEstimatedTaxLiability),
@@ -535,6 +510,118 @@ function splitListValue(value: string | null): string[] {
     .filter((item) => item.length > 0)
 }
 
+const EMPTY_TAX_YEAR_VALUES = new Set(['', 'n/a', 'na', 'none', 'null', '-', '--'])
+const MONTH_BY_NAME: ReadonlyMap<string, number> = new Map([
+  ['jan', 1],
+  ['january', 1],
+  ['feb', 2],
+  ['february', 2],
+  ['mar', 3],
+  ['march', 3],
+  ['apr', 4],
+  ['april', 4],
+  ['may', 5],
+  ['jun', 6],
+  ['june', 6],
+  ['jul', 7],
+  ['july', 7],
+  ['aug', 8],
+  ['august', 8],
+  ['sep', 9],
+  ['sept', 9],
+  ['september', 9],
+  ['oct', 10],
+  ['october', 10],
+  ['nov', 11],
+  ['november', 11],
+  ['dec', 12],
+  ['december', 12],
+] as const)
+
+function resolveImportedTaxYearProfile(
+  rawTaxYearType: string | null,
+  rawFiscalYearEnd: string | null,
+): {
+  taxYearType: 'calendar' | 'fiscal'
+  fiscalYearEndMonth: number | null
+  fiscalYearEndDay: number | null
+} {
+  const taxYearType = normalizeImportedTaxYearType(rawTaxYearType)
+  const fiscalYearEndRaw = meaningfulTaxYearText(rawFiscalYearEnd)
+  const fiscalYearEnd = parseFiscalYearEnd(fiscalYearEndRaw)
+  const shouldUseFiscal =
+    taxYearType === 'fiscal' || fiscalYearEnd !== null || fiscalYearEndRaw !== null
+
+  if (!shouldUseFiscal) {
+    return { taxYearType: 'calendar', fiscalYearEndMonth: null, fiscalYearEndDay: null }
+  }
+
+  return {
+    taxYearType: 'fiscal',
+    fiscalYearEndMonth: fiscalYearEnd?.month ?? null,
+    fiscalYearEndDay: fiscalYearEnd?.day ?? null,
+  }
+}
+
+function meaningfulTaxYearText(value: string | null): string | null {
+  const normalized = value?.trim().toLowerCase() ?? ''
+  if (EMPTY_TAX_YEAR_VALUES.has(normalized)) return null
+  if (normalized === 'calendar' || normalized === 'calendar year' || normalized === 'cy')
+    return null
+  return value?.trim() || null
+}
+
+function normalizeImportedTaxYearType(value: string | null): 'calendar' | 'fiscal' | null {
+  const normalized = value?.trim().toLowerCase() ?? ''
+  if (EMPTY_TAX_YEAR_VALUES.has(normalized)) return null
+  if (/^(f|fy|fiscal|fiscal year|fiscal-year)$/.test(normalized)) return 'fiscal'
+  if (/\bfiscal\b/.test(normalized) || /\bfye\b/.test(normalized)) return 'fiscal'
+  if (/^(c|cy|calendar|calendar year|calendar-year)$/.test(normalized)) return 'calendar'
+  if (/\bcalendar\b/.test(normalized)) return 'calendar'
+  return null
+}
+
+function parseFiscalYearEnd(value: string | null): { month: number; day: number } | null {
+  const raw = meaningfulTaxYearText(value)
+  if (!raw) return null
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replaceAll(',', ' ')
+    .replace(/\byear[-\s]+end\b/g, ' ')
+    .replace(/\b(fiscal|tax|year|end|ending|fy|fye)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(cleaned)
+  if (iso) return validMonthDay(Number(iso[2]), Number(iso[3]))
+
+  const numeric = /^(\d{1,2})[/-](\d{1,2})(?:[/-]\d{2,4})?$/.exec(cleaned)
+  if (numeric) return validMonthDay(Number(numeric[1]), Number(numeric[2]))
+
+  const monthNameFirst = /^([a-z]+)\s+(\d{1,2})(?:\s+\d{2,4})?$/.exec(cleaned)
+  if (monthNameFirst) {
+    const month = MONTH_BY_NAME.get(monthNameFirst[1] ?? '')
+    if (month) return validMonthDay(month, Number(monthNameFirst[2]))
+  }
+
+  const dayFirst = /^(\d{1,2})\s+([a-z]+)(?:\s+\d{2,4})?$/.exec(cleaned)
+  if (dayFirst) {
+    const month = MONTH_BY_NAME.get(dayFirst[2] ?? '')
+    if (month) return validMonthDay(month, Number(dayFirst[1]))
+  }
+
+  return null
+}
+
+function validMonthDay(month: number, day: number): { month: number; day: number } | null {
+  if (!Number.isInteger(month) || !Number.isInteger(day)) return null
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+  const date = new Date(Date.UTC(2024, month - 1, day))
+  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return { month, day }
+}
+
 function normalizeStates(
   normalizations: readonly NormalizationRow[],
   raw: string | null,
@@ -562,10 +649,11 @@ function buildProfileFacts(input: {
 }): FilingProfileImportFacts {
   const explicitTaxTypes = taxTypesForState(input.explicitTaxTypes, input.state)
   const matrix = input.matrixByCell.get(`${input.entityType}::${input.state}`)
+  const applicationMode = matrixApplicationModeForTaxTypes(input.explicitTaxTypes, input.state)
   const inferredTaxTypes =
     matrix && matrix.enabled
       ? matrix.taxTypes
-      : !matrix && !input.hasMatrixApplication
+      : !matrix && !input.hasMatrixApplication && applicationMode
         ? inferTaxTypes(input.entityType, input.state).taxTypes
         : []
   const taxTypes = uniqueStrings([...explicitTaxTypes, ...inferredTaxTypes])
@@ -604,7 +692,18 @@ function mergeClientFacts(a: ClientImportFacts, b: ClientImportFacts): ClientImp
     ein: a.ein ?? b.ein,
     state: a.state ?? b.state,
     county: a.county ?? b.county,
+    taxYearType: a.taxYearType === 'fiscal' || b.taxYearType === 'fiscal' ? 'fiscal' : 'calendar',
+    fiscalYearEndMonth: a.fiscalYearEndMonth ?? b.fiscalYearEndMonth,
+    fiscalYearEndDay: a.fiscalYearEndDay ?? b.fiscalYearEndDay,
+    externalClientId: a.externalClientId ?? b.externalClientId,
+    addressLine1: a.addressLine1 ?? b.addressLine1,
+    city: a.city ?? b.city,
+    postalCode: a.postalCode ?? b.postalCode,
+    primaryPhone: a.primaryPhone ?? b.primaryPhone,
+    sourceStatus: a.sourceStatus ?? b.sourceStatus,
     email: a.email ?? b.email,
+    primaryContactName: a.primaryContactName ?? b.primaryContactName,
+    primaryContactEmail: a.primaryContactEmail ?? b.primaryContactEmail,
     notes: uniqueStrings([a.notes ?? '', b.notes ?? '']).join('\n') || null,
     assigneeName: a.assigneeName ?? b.assigneeName,
     estimatedTaxLiabilityCents: a.estimatedTaxLiabilityCents ?? b.estimatedTaxLiabilityCents,
@@ -631,30 +730,6 @@ function normalizeMappedValue(
   if (!raw) return null
   const hit = normalizations.find((item) => item.field === field && item.rawValue === raw)
   return hit?.normalizedValue ?? raw
-}
-
-function normalizeTaxTypes(
-  normalizations: readonly NormalizationRow[],
-  raw: string | null,
-): string[] {
-  if (!raw) return []
-  const hit = normalizations.find((item) => item.field === 'tax_types' && item.rawValue === raw)
-  const normalized = hit?.normalizedValue
-  if (normalized) {
-    try {
-      const parsed = JSON.parse(normalized)
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === 'string')
-      }
-    } catch {
-      return [normalized]
-    }
-    return [normalized]
-  }
-  return raw
-    .split(/[;,|]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
 }
 
 function normalizeEmail(value: string | null): string | null {
