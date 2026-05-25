@@ -106,7 +106,7 @@ function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
   if (DASHBOARD_TERMINAL_STATUSES.has(status)) {
     if (days === 0) return null
     return (
-      <span className="flex shrink-0 items-baseline whitespace-nowrap text-base tabular-nums">
+      <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
         <span className="text-text-tertiary">
           {days < 0 ? (
             <Plural value={-days} one="filed #d late" other="filed #d late" />
@@ -119,7 +119,7 @@ function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
   }
   const past = days < 0
   return (
-    <span className="flex shrink-0 items-baseline whitespace-nowrap text-base tabular-nums">
+    <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
       <span className={cn(past ? 'text-text-destructive' : 'text-text-secondary')}>
         {past ? (
           <Plural value={-days} one="#d late" other="#d late" />
@@ -235,13 +235,20 @@ function ActionRow({
             Semibold made the row's leading word compete with the
             section h2 above; medium keeps it as the row's anchor
             without shouting next to a softer prompt. */}
-        <span className="shrink-0 truncate text-base font-medium text-text-primary">
+        {/* 2026-05-25 (Yuqi Today #1 — second pass): client name
+            stepped down further — was `text-base font-medium`,
+            still reading as the page's heaviest body text. Now
+            `text-sm font-medium` so it stays the row's anchor
+            without competing with the section h2. Prompt drops
+            text-base → text-sm in lockstep so the heading row
+            balances. */}
+        <span className="shrink-0 truncate text-sm font-medium text-text-primary">
           {row.clientName}
         </span>
         <span aria-hidden className="text-text-tertiary">
           ·
         </span>
-        <span className="min-w-0 flex-1 truncate text-base text-text-secondary">{prompt}</span>
+        <span className="min-w-0 flex-1 truncate text-sm text-text-secondary">{prompt}</span>
         {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
           to render unconditionally with `opacity-0` when collapsed —
           which kept the button taking ~100px of flex space, squeezing
@@ -320,7 +327,14 @@ function ActionRow({
             // as two stacked blocks with a gap. 12px top + 16px
             // bottom keeps the dl breathing room while the top
             // sits flush against the row's baseline.
-            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-base transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            // 2026-05-25 (Yuqi Today #3 — second pass): expansion
+            // panel text scale dropped text-base → text-sm. Yuqi
+            // flagged the descriptions/details as "too big" — at
+            // 16px the dt/dd pairs read at body weight, the same
+            // tier as the row header above. text-sm (14px) keeps
+            // the panel readable while making it visually
+            // subordinate to the row that opened it.
+            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
               {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
@@ -459,15 +473,20 @@ function ActionsSummaryTile({
         'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
       )}
     >
+      {/* 2026-05-25 (Yuqi Today #1 — second pass): tile value
+          dropped text-xl → text-lg and font-semibold → font-medium.
+          The number is a magnitude cue, not a hero — at xl/semibold
+          it competed with the page h1. Critical tone now carries
+          the eye via color, not weight. */}
       <span
         className={cn(
-          'text-xl font-semibold leading-tight tabular-nums tracking-tight',
+          'text-lg font-medium leading-tight tabular-nums tracking-tight',
           tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
         )}
       >
         {value}
       </span>
-      <span className="text-base text-text-secondary">{label}</span>
+      <span className="text-sm text-text-secondary">{label}</span>
     </Link>
   )
 }
@@ -681,7 +700,14 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           explanation; the full breakdown lives in the obligation's
           Smart Priority panel). Quiet caption so it doesn't compete
           with the h2. */}
-      <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-xl font-semibold tracking-tight text-text-primary">
+      {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 dropped from
+          text-xl → text-lg. Yuqi flagged the page as "too much bold
+          and medium text" again — keeping `font-semibold` for the
+          single anchor per section, but stepping down a scale
+          tier so the heading doesn't shout next to a quieter
+          body. Same change made to the "Alerts" h2 in
+          needs-attention-section.tsx. */}
+      <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-lg font-semibold tracking-tight text-text-primary">
         <span className="inline-flex items-center gap-2">
           <Trans>Actions this week</Trans>
           {count !== null && count > 0 ? (

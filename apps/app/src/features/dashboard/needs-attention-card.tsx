@@ -105,8 +105,12 @@ function NeedsAttentionCard({
               ladder (red/amber/green) still surfaces via the
               lowConfidence chip + the card's data-tone attribute
               for any consumers that key off it. */}
+          {/* 2026-05-25 (Yuqi Today #3 — second pass): source label
+              text-base → text-sm. The source eyebrow is meta info,
+              not body — at 16px it competed with the title below
+              for first-read attention. */}
           <Atom className="size-4 text-state-accent-solid" aria-label={pulseAlertToneLabel(tone)} />
-          <span className="text-base text-text-tertiary">{alert.source}</span>
+          <span className="text-sm text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {lowConfidence ? (
@@ -133,14 +137,27 @@ function NeedsAttentionCard({
 
       {/* Title block has a fixed 2-line min-height so card heights
           stay uniform across the row even when one title is short.
-          line-clamp-2 caps the upper bound. */}
-      <p className="line-clamp-2 min-h-10 text-md font-medium leading-snug text-text-primary">
-        {alert.title}
-      </p>
+          line-clamp-2 caps the upper bound.
+          2026-05-25 (Yuqi Today #3 — second pass): title size
+          stepped down text-md → text-sm and weight dropped
+          font-medium → font-normal. Yuqi flagged "smaller" — the
+          card was reading as a hero title at text-md. Body weight
+          + sm size keeps it scannable but ranks it below the
+          section h2 above. min-height bumped from min-h-10 →
+          min-h-8 so two short lines still anchor the cards at
+          equal heights. */}
+      <p className="line-clamp-2 min-h-8 text-sm leading-snug text-text-primary">{alert.title}</p>
 
+      {/* 2026-05-25 (Yuqi Today #3 — second pass): body text scale
+          dropped across the card body — "client may be affected"
+          stays text-xs, client-name chips text-base → text-xs,
+          overflow +N text-base → text-xs, empty-state line
+          text-base → text-sm. The whole card collapses to a
+          tighter "title + meta + chips" rhythm matching the cards
+          on /clients and /rules/library. */}
       {impacted > 0 ? (
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-sm text-text-tertiary">
+          <p className="text-xs text-text-tertiary">
             <Plural
               value={impacted}
               one="# client may be affected"
@@ -153,7 +170,7 @@ function NeedsAttentionCard({
                 <li
                   key={name}
                   className={cn(
-                    'inline-flex rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-base text-text-secondary',
+                    'inline-flex rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-xs text-text-secondary',
                   )}
                   title={name}
                 >
@@ -161,13 +178,13 @@ function NeedsAttentionCard({
                 </li>
               ))}
               {hasMore > 0 ? (
-                <li className="inline-flex text-base text-text-tertiary">+{hasMore}</li>
+                <li className="inline-flex text-xs text-text-tertiary">+{hasMore}</li>
               ) : null}
             </ul>
           ) : null}
         </div>
       ) : (
-        <p className="text-base text-text-tertiary">
+        <p className="text-sm text-text-tertiary">
           <Trans>No matching clients in this practice.</Trans>
         </p>
       )}

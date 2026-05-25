@@ -66,33 +66,37 @@ function NeedsAttentionSection() {
           (`items-center`). Matches the same correction made to the
           "Actions this week" h2 below. */}
       <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
+        {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
+            down text-xl → text-lg, matching the parallel change
+            on Actions-this-week's h2. The page was reading as
+            "too much bold and medium text" again — keeping
+            `font-semibold` (anchor) but stepping a scale tier
+            quieter so the section heading doesn't shout against
+            the lighter row body. Count chip also drops from
+            text-base → text-sm so the size hierarchy stays
+            proportional. */}
+        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
-            <span className="text-base font-normal tabular-nums text-text-tertiary">
+            <span className="text-sm font-normal tabular-nums text-text-tertiary">
               {totalAlertCount}
             </span>
           ) : null}
         </h2>
-        {/* 2026-05-25 (Yuqi #3): copy clarified — was "View all"
-            which was ambiguous next to the overflow card "View N
-            more" (same destination, no obvious relation). Both
-            now anchor on the same noun ("alerts"). #7: the icon
-            rotates 45° on hover so the up-right arrow points
-            straight right — a tactile "follow me" cue. */}
-        {/* 2026-05-25 (Yuqi typography rebalance): link demoted from
-            text-base text-secondary (hover → primary) to text-sm
-            text-tertiary (hover → secondary). Yuqi flagged the page
-            as "too much bold and medium" — "view all" is a quiet
-            secondary affordance, not a primary CTA, so it should
-            sit at meta-text weight. */}
+        {/* 2026-05-25 (Yuqi Today #2 — second pass): "View all
+            alerts" link demoted further — was text-sm text-tertiary
+            (hover → secondary). Yuqi flagged it as still too
+            prominent. Now text-xs text-muted (hover → tertiary)
+            and the icon shrinks to size-3 so the affordance reads
+            as quiet meta-text, not a sibling action to the h2.
+            Click target preserved by the `inline-flex` block. */}
         <Link
           to="/rules/pulse"
-          className="group/all inline-flex items-center gap-1 text-sm text-text-tertiary hover:text-text-secondary"
+          className="group/all inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
         >
           <Trans>View all alerts</Trans>
           <ArrowUpRightIcon
-            className="size-3.5 transition-transform duration-200 group-hover/all:rotate-45"
+            className="size-3 transition-transform duration-200 group-hover/all:rotate-45"
             aria-hidden
           />
         </Link>

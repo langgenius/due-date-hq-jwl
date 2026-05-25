@@ -338,13 +338,17 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               filter remains keyboard-typable and the chip is
               accessible without the SVG. The count chip on the right
               stays — same affordance as before. */}
-          {/* 2026-05-25 (Yuqi Alerts third pass — second-batch #3):
-              state-filter chips bumped from text-xs / size-xs badge
-              / h-4 count to text-sm / size-sm badge / h-5 count. The
-              chip strip is the primary state-narrower for the page
-              — at the old size the chips read as caption-tier meta,
-              not as a real filter row. Bigger touch target + bigger
-              motif also makes the StateBadge artwork legible. */}
+          {/* 2026-05-25 (Yuqi Alerts fourth pass — #1): state-filter
+              chips shrunk back down. The previous pass had bumped
+              them up (text-sm / size-sm badge / h-5 count) so the
+              row would read as a real filter strip not caption
+              chrome. Yuqi flagged the result as too big — the
+              chips were claiming a full row of visual weight on a
+              page where the data rows below already carry the
+              attention. Back to text-xs / size-xs badge / h-4
+              count with tighter padding (py-0.5, pl-1, pr-1.5) and
+              gap-1.5 between motif/code/count. Touch target stays
+              ≥24px tall via the badge + padding combo. */}
           {jurisdictionCounts.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
@@ -359,17 +363,17 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     onClick={() => setJurisdictionFilter(active ? null : state)}
                     aria-pressed={active}
                     className={cn(
-                      'inline-flex items-center gap-2 rounded-md border py-1 pl-1.5 pr-2.5 text-sm font-medium tabular-nums transition-colors',
+                      'inline-flex items-center gap-1.5 rounded-md border py-0.5 pl-1 pr-1.5 text-xs font-medium tabular-nums transition-colors',
                       active
                         ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
                         : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
                     )}
                   >
-                    <StateBadge code={state} size="sm" aria-hidden />
+                    <StateBadge code={state} size="xs" aria-hidden />
                     <span>{state}</span>
                     <span
                       className={cn(
-                        'inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 text-xs',
+                        'inline-flex h-4 min-w-4 items-center justify-center rounded-sm px-1 text-[10px]',
                         active
                           ? 'bg-state-accent-solid/15 text-text-accent'
                           : 'bg-background-soft text-text-tertiary',
