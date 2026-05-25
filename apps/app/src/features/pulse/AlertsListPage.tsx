@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowUpRightIcon, HistoryIcon } from 'lucide-react'
+import { AlertCircleIcon, ArrowUpRightIcon, ChevronDownIcon, HistoryIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -13,6 +13,7 @@ import type {
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -24,6 +25,8 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { StateBadge } from '@/components/primitives/state-badge'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDrawer } from './DrawerProvider'
 import { PulseDetailDrawer } from './PulseDetailDrawer'
@@ -383,27 +386,16 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
               padding tightened (py-0 pl-1 pr-2) so each chip
               collapses to its natural badge-height (~24px)
               without claiming extra row real estate. */}
-              {/* 2026-05-25 (Yuqi Alerts #9 — SVG US-map filter):
-                  chip strip replaced with a tilegram-style US map.
-                  Each state sits at its approximate geographic
-                  position; the StateBadge motif + count render
-                  inside the cell. Clicking a tile toggles the
-                  jurisdiction filter — same contract the chip
-                  strip provided. */}
-              {jurisdictionCounts.length > 0 ? (
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs uppercase tracking-wide text-text-tertiary">
-                    <Trans>States</Trans>
-                  </span>
-                  <StateTilegram
-                    counts={new Map(jurisdictionCounts)}
-                    activeState={jurisdictionFilter}
-                    onSelect={(code) =>
-                      setJurisdictionFilter(jurisdictionFilter === code ? null : code)
-                    }
-                  />
-                </div>
-              ) : null}
+              {/* 2026-05-25 (Yuqi /rules/pulse fifth pass — map
+                  in dropdown): the always-visible tilegram was
+                  claiming ~300×300 px of vertical real estate
+                  above the alert list at all times. Yuqi flagged
+                  that as wrong — the map should surface ON DEMAND
+                  through a dropdown, not as standing chrome.
+                  Wrapped the StateTilegram in a Popover with a
+                  compact trigger button that shows the active
+                  state (or "Any state") + count. */}
+              {jurisdictionCounts.length === 0 ? null : null}
 
               {/* 2026-05-25 (Yuqi Alerts #10): Reset moved into the same
               row as the filter dropdowns and demoted to ghost — was a
@@ -506,6 +498,25 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* 2026-05-25 (Yuqi /rules/pulse fifth pass — map
+                    in dropdown): state-filter map lives behind a
+                    Popover trigger instead of being always
+                    visible. The trigger sits in the filter row
+                    next to the four Selects; its label reflects
+                    the active state ("CA · 4 alerts" / "Any
+                    state"). Clicking opens the tilegram in a
+                    popover panel; clicking a tile applies the
+                    filter and closes the popover. */}
+                {jurisdictionCounts.length > 0 ? (
+                  <StateFilterPopover
+                    jurisdictionCounts={jurisdictionCounts}
+                    activeState={jurisdictionFilter}
+                    onSelect={(code) =>
+                      setJurisdictionFilter(jurisdictionFilter === code ? null : code)
+                    }
+                  />
+                ) : null}
 
                 {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #7):
                 FilterX icon dropped from the Reset button — was
@@ -622,6 +633,86 @@ function sourceLabel(sources: readonly PulseSourceHealth[]): string {
 
 function enabledSourceCount(sources: readonly PulseSourceHealth[]): number {
   return enabledPulseSourceCount(sources)
+}
+
+// 2026-05-25 (Yuqi /rules/pulse fifth pass — map in dropdown):
+// state-filter popover. Trigger sits inline with the other
+// filter dropdowns; opens a Popover containing the
+// StateTilegram. Trigger label reflects the active filter so
+// the row reads as "AZ · 3 alerts" / "Any state" without having
+// to open the panel.
+function StateFilterPopover({
+  jurisdictionCounts,
+  activeState,
+  onSelect,
+}: {
+  jurisdictionCounts: Array<[string, number]>
+  activeState: string | null
+  onSelect: (code: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const { t } = useLingui()
+  const activeCount = activeState
+    ? (jurisdictionCounts.find(([code]) => code === activeState)?.[1] ?? 0)
+    : 0
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        className={cn(
+          'inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm whitespace-nowrap transition-colors outline-none',
+          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2',
+          activeState
+            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
+            : 'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
+        )}
+        aria-label={t`Filter by state`}
+      >
+        {activeState ? (
+          <>
+            <StateBadge code={activeState} size="xs" aria-hidden />
+            <span className="font-mono font-medium">{activeState}</span>
+            <span className="tabular-nums text-text-accent/70">
+              <Plural value={activeCount} one="# alert" other="# alerts" />
+            </span>
+          </>
+        ) : (
+          <span>
+            <Trans>Any state</Trans>
+          </span>
+        )}
+        <ChevronDownIcon className="size-4 text-text-tertiary" aria-hidden />
+      </PopoverTrigger>
+      <PopoverContent align="start" alignOffset={0} sideOffset={4} className="w-auto p-3">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3 text-xs">
+            <span className="uppercase tracking-wide text-text-tertiary">
+              <Trans>Filter by state</Trans>
+            </span>
+            {activeState ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onSelect(activeState)
+                  setOpen(false)
+                }}
+                className="text-text-accent hover:underline"
+              >
+                <Trans>Clear</Trans>
+              </button>
+            ) : null}
+          </div>
+          <StateTilegram
+            counts={new Map(jurisdictionCounts)}
+            activeState={activeState}
+            onSelect={(code) => {
+              onSelect(code)
+              setOpen(false)
+            }}
+          />
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 function FilteredEmptyState() {
