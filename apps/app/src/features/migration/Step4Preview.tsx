@@ -1,8 +1,10 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
+import { Link } from 'react-router'
 
 import type { DryRunSummary } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
@@ -22,6 +24,13 @@ export function Step4Preview({ summary }: Step4Props) {
   const clientCount = summary?.clientsToCreate ?? 0
   const obligationCount = summary?.obligationsToCreate ?? 0
   const skipped = summary?.skippedRows ?? 0
+  const ruleReviewWarnings = summary?.ruleReviewWarnings ?? []
+  const ruleReviewStates = uniqueStrings(ruleReviewWarnings.map((warning) => warning.state))
+  const affectedReviewClients = ruleReviewWarnings.reduce(
+    (sum, warning) => sum + warning.affectedClientCount,
+    0,
+  )
+  const ruleReviewHref = buildRuleReviewHref(ruleReviewStates)
 
   return (
     <div className="flex flex-col gap-5 py-5">
@@ -100,6 +109,46 @@ export function Step4Preview({ summary }: Step4Props) {
         </AlertDescription>
       </Alert>
 
+      {ruleReviewWarnings.length > 0 ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle className="flex items-center gap-2">
+            <AlertTriangleIcon className="size-4" aria-hidden />
+            <Trans>Review rules before some state deadlines can be generated</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <div className="flex flex-col gap-3">
+              <p>
+                <Plural
+                  value={affectedReviewClients}
+                  one="# client has state tax types that need active practice rules before those state deadlines can be generated."
+                  other="# clients have state tax types that need active practice rules before those state deadlines can be generated."
+                />
+              </p>
+              <ul className="flex flex-col gap-1 text-sm text-text-primary">
+                {ruleReviewWarnings.map((warning) => (
+                  <li key={`${warning.state}:${warning.entityType}:${warning.reason}`}>
+                    <span className="font-mono text-xs tabular-nums">{warning.state}</span>
+                    <span> · {warning.entityType}</span>
+                    <span> · </span>
+                    <Plural value={warning.affectedClientCount} one="# client" other="# clients" />
+                    <span> · {warning.taxTypes.join(', ')}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                nativeButton={false}
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                render={<Link to={ruleReviewHref} />}
+              >
+                <Trans>Review rules</Trans>
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {summary && summary.errors.length > 0 ? (
         <section
           className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-components-badge-bg-red-soft p-3"
@@ -131,4 +180,14 @@ export function Step4Preview({ summary }: Step4Props) {
       ) : null}
     </div>
   )
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean)))
+}
+
+function buildRuleReviewHref(states: readonly string[]): string {
+  const params = new URLSearchParams({ view: 'rules', library: 'pending_review' })
+  if (states.length === 1) params.set('jur', states[0]!)
+  return `/rules/library?${params.toString()}`
 }

@@ -21,6 +21,7 @@ import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/con
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { validateRows } from './_deterministic'
 import type { MappingJsonPayload, MatrixApplicationEntry } from './_types'
+import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
 
 type CommitImportInput = Parameters<ScopedRepo['migration']['commitImport']>[0]
 type CommitClient = CommitImportInput['clients'][number]
@@ -438,7 +439,7 @@ function rowToClientFacts(input: RowToClientFactsInput): ClientImportFacts {
   const entityCandidate = entity ?? ''
   const entityType: EntityType = isEntityType(entityCandidate) ? entityCandidate : 'other'
   const taxYearProfile = resolveImportedTaxYearProfile(rawTaxYearType, rawFiscalYearEnd)
-  const taxTypes = normalizeTaxTypes(input.normalizations, rawTaxTypes)
+  const taxTypes = normalizeTaxTypesFromRows(input.normalizations, rawTaxTypes)
   const profiles = filingStates.map((state) =>
     buildProfileFacts({
       entityType,
@@ -648,10 +649,11 @@ function buildProfileFacts(input: {
 }): FilingProfileImportFacts {
   const explicitTaxTypes = taxTypesForState(input.explicitTaxTypes, input.state)
   const matrix = input.matrixByCell.get(`${input.entityType}::${input.state}`)
+  const applicationMode = matrixApplicationModeForTaxTypes(input.explicitTaxTypes, input.state)
   const inferredTaxTypes =
     matrix && matrix.enabled
       ? matrix.taxTypes
-      : !matrix && !input.hasMatrixApplication
+      : !matrix && !input.hasMatrixApplication && applicationMode
         ? inferTaxTypes(input.entityType, input.state).taxTypes
         : []
   const taxTypes = uniqueStrings([...explicitTaxTypes, ...inferredTaxTypes])
@@ -728,30 +730,6 @@ function normalizeMappedValue(
   if (!raw) return null
   const hit = normalizations.find((item) => item.field === field && item.rawValue === raw)
   return hit?.normalizedValue ?? raw
-}
-
-function normalizeTaxTypes(
-  normalizations: readonly NormalizationRow[],
-  raw: string | null,
-): string[] {
-  if (!raw) return []
-  const hit = normalizations.find((item) => item.field === 'tax_types' && item.rawValue === raw)
-  const normalized = hit?.normalizedValue
-  if (normalized) {
-    try {
-      const parsed = JSON.parse(normalized)
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === 'string')
-      }
-    } catch {
-      return [normalized]
-    }
-    return [normalized]
-  }
-  return raw
-    .split(/[;,|]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
 }
 
 function normalizeEmail(value: string | null): string | null {

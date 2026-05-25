@@ -38,6 +38,7 @@ export type TaxClassification =
 
 export const MATRIX_VERSION = 'v1.0' as const
 export type MatrixVersion = typeof MATRIX_VERSION
+export type MatrixApplicationMode = 'missing_tax_types' | 'federal_return_type_plus_state'
 
 export interface InferTaxTypesResult {
   taxTypes: string[]
@@ -260,6 +261,27 @@ function dedup(items: readonly string[]): string[] {
   return Array.from(new Set(items))
 }
 
+export function isFederalTaxType(taxType: string): boolean {
+  return taxType.trim().toLowerCase().startsWith('federal')
+}
+
+export function isStateTaxTypeForState(taxType: string, state: string): boolean {
+  const normalizedState = state.trim().toLowerCase()
+  if (!/^[a-z]{2}$/.test(normalizedState)) return false
+  return taxType.trim().toLowerCase().startsWith(`${normalizedState}_`)
+}
+
+export function matrixApplicationModeForTaxTypes(
+  taxTypes: readonly string[],
+  state: string,
+): MatrixApplicationMode | null {
+  const normalized = taxTypes.map((taxType) => taxType.trim()).filter(Boolean)
+  if (normalized.length === 0) return 'missing_tax_types'
+  if (normalized.some((taxType) => isStateTaxTypeForState(taxType, state))) return null
+  if (normalized.every(isFederalTaxType)) return 'federal_return_type_plus_state'
+  return null
+}
+
 function genericStateTaxTypes(entityType: EntityType, state: string): string[] {
   if (!STATE_CODES.has(state) || entityType === 'other') return []
 
@@ -298,7 +320,7 @@ function genericStateTaxTypes(entityType: EntityType, state: string): string[] {
  * Behavior:
  *   - Hit cell → return cell.taxTypes ∪ federal_overlay (de-duped).
  *   - State outside Demo Sprint seed (anything other than CA/NY) →
- *     federal_overlay only + needsReview = true.
+ *     federal_overlay + generated state review tax types + needsReview = true.
  *   - entity_type='other' (with or without state) → federal + needsReview.
  */
 export function inferTaxTypes(

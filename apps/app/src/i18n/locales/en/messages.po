@@ -62,6 +62,7 @@ msgstr "{0, plural, one {# client imported} other {# clients imported}}"
 #. placeholder {0}: result.clientCount
 #. placeholder {0}: table.getFilteredRowModel().rows.length
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {# client} other {# clients}}"
 msgstr "{0, plural, one {# client} other {# clients}}"
@@ -416,6 +417,10 @@ msgstr "{activeFirmCount} active · {activeFirmLimitLabel} on this plan"
 #: src/routes/billing.tsx
 msgid "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgstr "{activeFirmCount} of {activeFirmLimitLabel} active practices"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "{affectedReviewClients, plural, one {# client has state tax types that need active practice rules before those state deadlines can be generated.} other {# clients have state tax types that need active practice rules before those state deadlines can be generated.}}"
+msgstr "{affectedReviewClients, plural, one {# client has state tax types that need active practice rules before those state deadlines can be generated.} other {# clients have state tax types that need active practice rules before those state deadlines can be generated.}}"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{availableCount} available"
@@ -3477,8 +3482,8 @@ msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
 #: src/features/migration/Step3Normalize.tsx
-msgid "Default tax type suggestions apply only where imported rows do not already include tax types."
-msgstr "Default tax type suggestions apply only where imported rows do not already include tax types."
+msgid "Default tax type suggestions fill missing tax types and add state context when imported rows only name a federal return type."
+msgstr "Default tax type suggestions fill missing tax types and add state context when imported rows only name a federal return type."
 
 #: src/routes/practice.tsx
 msgid "Delete practice"
@@ -8440,9 +8445,14 @@ msgstr "Review requested"
 msgid "Review risk and operating pressure."
 msgstr "Review risk and operating pressure."
 
+#: src/features/migration/Step4Preview.tsx
 #: src/routes/migration.new.tsx
 msgid "Review rules"
 msgstr "Review rules"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Review rules before some state deadlines can be generated"
+msgstr "Review rules before some state deadlines can be generated"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Review selected"
@@ -9680,6 +9690,10 @@ msgstr "State"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "STATE"
 msgstr "STATE"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "State context added"
+msgstr "State context added"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "State rule coverage"

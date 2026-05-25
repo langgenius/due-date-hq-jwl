@@ -62,6 +62,7 @@ msgstr ""
 #. placeholder {0}: result.clientCount
 #. placeholder {0}: table.getFilteredRowModel().rows.length
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {# client} other {# clients}}"
 msgstr "{0, plural, one {# 个客户} other {# 个客户}}"
@@ -416,6 +417,10 @@ msgstr "当前方案：{activeFirmCount} 个活跃 · 上限 {activeFirmLimitLab
 #: src/routes/billing.tsx
 msgid "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgstr "{activeFirmCount} / {activeFirmLimitLabel} 个 active 事务所"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "{affectedReviewClients, plural, one {# client has state tax types that need active practice rules before those state deadlines can be generated.} other {# clients have state tax types that need active practice rules before those state deadlines can be generated.}}"
+msgstr "{affectedReviewClients, plural, other {# 个客户有州级税种，需要先启用事务所规则才能生成这些州级截止日。}}"
 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{availableCount} available"
@@ -3477,8 +3482,8 @@ msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
 #: src/features/migration/Step3Normalize.tsx
-msgid "Default tax type suggestions apply only where imported rows do not already include tax types."
-msgstr "默认税种建议仅在导入行尚未包含税种时应用。"
+msgid "Default tax type suggestions fill missing tax types and add state context when imported rows only name a federal return type."
+msgstr "默认税种建议会补全缺失税种；当导入行只写了联邦申报类型时，也会根据州信息补充州级上下文。"
 
 #: src/routes/practice.tsx
 msgid "Delete practice"
@@ -8440,9 +8445,14 @@ msgstr "已请求审核"
 msgid "Review risk and operating pressure."
 msgstr "查看风险与运营压力。"
 
+#: src/features/migration/Step4Preview.tsx
 #: src/routes/migration.new.tsx
 msgid "Review rules"
 msgstr "审核规则"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Review rules before some state deadlines can be generated"
+msgstr "生成部分州级截止日前需要先审核规则"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Review selected"
@@ -9680,6 +9690,10 @@ msgstr "州"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "STATE"
 msgstr "州"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "State context added"
+msgstr "已补充州级上下文"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "State rule coverage"

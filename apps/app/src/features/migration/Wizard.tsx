@@ -6,7 +6,12 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { parseTabular } from '@duedatehq/core/csv-parser'
-import { inferTaxTypes, type EntityType } from '@duedatehq/core/default-matrix'
+import {
+  inferTaxTypes,
+  matrixApplicationModeForTaxTypes,
+  type EntityType,
+  type MatrixApplicationMode,
+} from '@duedatehq/core/default-matrix'
 import type {
   MapperRunOutput,
   MappingRow,
@@ -749,10 +754,13 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
     else if (r.field === 'state') stateMap.set(r.rawValue, r.normalizedValue)
   }
 
-  const counts = new Map<string, { entity: string; state: string; count: number }>()
+  const counts = new Map<
+    string,
+    { entity: string; state: string; count: number; applicationMode: MatrixApplicationMode }
+  >()
   for (const row of parsed.rows) {
     const rawTaxTypes = taxIdx !== undefined ? (row[taxIdx] ?? '').trim() : ''
-    if (rawTaxTypes) continue
+    const explicitTaxTypes = normalizeTaxTypesForMatrix(input.normalizations, rawTaxTypes)
 
     const rawEntity = entityIdx !== undefined ? (row[entityIdx] ?? '').trim() : ''
     const rawState = stateIdx !== undefined ? (row[stateIdx] ?? '').trim() : ''
@@ -764,10 +772,18 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
       ...splitStateList(rawFilingStates, stateMap),
     ])
     for (const normalizedState of states) {
+      const applicationMode = matrixApplicationModeForTaxTypes(explicitTaxTypes, normalizedState)
+      if (!applicationMode) continue
       const key = `${entity}::${normalizedState}`
       const existing = counts.get(key)
-      if (existing) existing.count += 1
-      else counts.set(key, { entity, state: normalizedState, count: 1 })
+      if (existing) {
+        existing.count += 1
+        if (applicationMode === 'federal_return_type_plus_state') {
+          existing.applicationMode = applicationMode
+        }
+      } else {
+        counts.set(key, { entity, state: normalizedState, count: 1, applicationMode })
+      }
     }
   }
 
@@ -784,9 +800,33 @@ function buildMatrixPreview(input: BuildMatrixPreviewInput): MatrixApplicationVi
       matrixVersion: result.matrixVersion,
       enabled: input.applyToAll[`${cell.entity}::${cell.state}`] ?? true,
       appliedClientCount: cell.count,
+      applicationMode: cell.applicationMode,
     })
   }
   return out
+}
+
+function normalizeTaxTypesForMatrix(
+  normalizations: readonly NormalizationRow[],
+  raw: string,
+): string[] {
+  if (!raw) return []
+  const hit = normalizations.find((row) => row.field === 'tax_types' && row.rawValue === raw)
+  if (hit?.normalizedValue) {
+    try {
+      const parsed = JSON.parse(hit.normalizedValue)
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === 'string')
+      }
+    } catch {
+      return [hit.normalizedValue]
+    }
+    return [hit.normalizedValue]
+  }
+  return raw
+    .split(/[;,|]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
 }
 
 function splitStateList(raw: string, normalizations: ReadonlyMap<string, string | null>): string[] {

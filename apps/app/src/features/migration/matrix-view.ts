@@ -13,4 +13,5 @@ export interface MatrixApplicationView {
   matrixVersion: string
   enabled: boolean
   appliedClientCount: number
+  applicationMode: 'missing_tax_types' | 'federal_return_type_plus_state'
 }

@@ -234,8 +234,8 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
       </h3>
       <p className="text-sm text-text-secondary">
         <Trans>
-          Default tax type suggestions apply only where imported rows do not already include tax
-          types.
+          Default tax type suggestions fill missing tax types and add state context when imported
+          rows only name a federal return type.
         </Trans>
       </p>
       <p className="text-sm text-text-tertiary">
@@ -295,6 +295,11 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
                     <Trans>Verified</Trans>
                   </span>
                 )}
+                {cell.applicationMode === 'federal_return_type_plus_state' ? (
+                  <span className="inline-flex h-5 items-center rounded-md border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-secondary">
+                    <Trans>State context added</Trans>
+                  </span>
+                ) : null}
               </div>
             </li>
           )

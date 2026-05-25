@@ -211,12 +211,21 @@ export const MigrationErrorSchema = z.object({
   createdAt: z.iso.datetime(),
 })
 
+export const MigrationRuleReviewWarningSchema = z.object({
+  state: z.string().min(1),
+  entityType: z.string().min(1),
+  affectedClientCount: z.number().int().min(1),
+  taxTypes: z.array(z.string().min(1)),
+  reason: z.enum(['rules_pending_review', 'no_matching_rule']),
+})
+
 export const DryRunSummarySchema = z.object({
   batchId: EntityIdSchema,
   clientsToCreate: z.number().int().min(0),
   obligationsToCreate: z.number().int().min(0),
   skippedRows: z.number().int().min(0),
   errors: z.array(MigrationErrorSchema),
+  ruleReviewWarnings: z.array(MigrationRuleReviewWarningSchema),
 })
 
 export const MatrixSelectionSchema = z.object({

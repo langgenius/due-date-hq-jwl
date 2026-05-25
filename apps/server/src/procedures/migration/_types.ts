@@ -56,6 +56,7 @@ export interface MatrixApplicationEntry {
   enabled: boolean
   /** Demo client count this entry applies to (post-normalize). */
   appliedClientCount: number
+  applicationMode: 'missing_tax_types' | 'federal_return_type_plus_state'
 }
 
 /**

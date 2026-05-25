@@ -3,6 +3,7 @@ import * as z from 'zod'
 import type { AI, AiRunResult } from '@duedatehq/ai'
 import {
   inferTaxTypes,
+  isStateTaxTypeForState,
   type EntityType,
   type InferTaxTypesResult,
 } from '@duedatehq/core/default-matrix'
@@ -12,7 +13,10 @@ import { normalizeEntityType, normalizeState } from '@duedatehq/core/normalize-d
 import { DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS } from '@duedatehq/core/deadlines'
 import {
   listObligationRules,
+  previewObligationsFromRules,
+  STATE_RULE_JURISDICTIONS,
   type ObligationRule as CoreObligationRule,
+  type RuleGenerationState,
 } from '@duedatehq/core/rules'
 import {
   DryRunSummarySchema,
@@ -40,6 +44,7 @@ import {
 import { buildCommitPlan } from './_commit-plan'
 import { sanitizeMapperOutput, validateNormalizedRows, validateRows } from './_deterministic'
 import type { DeterministicError, MappingJsonPayload, MatrixApplicationEntry } from './_types'
+import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
 import { toCoreRule } from '../rules/runtime'
 
 /**
@@ -681,7 +686,8 @@ export class MigrationService {
       },
     })
 
-    return this.composeDryRun(batchId, payload)
+    const rules = await runtimeRulesForFirm(this.deps.scoped)
+    return this.composeDryRun(batchId, payload, rules)
   }
 
   // ---------------------------------------------------------------------
@@ -691,7 +697,8 @@ export class MigrationService {
   async dryRun(batchId: string): Promise<DryRunSummary> {
     const batch = await this.requireBatch(batchId)
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
-    return this.composeDryRun(batchId, payload)
+    const rules = await runtimeRulesForFirm(this.deps.scoped)
+    return this.composeDryRun(batchId, payload, rules)
   }
 
   async apply(batchId: string): Promise<{
@@ -914,14 +921,31 @@ export class MigrationService {
     )
   }
 
-  private composeDryRun(batchId: string, payload: MappingJsonPayload): DryRunSummary {
+  private composeDryRun(
+    batchId: string,
+    payload: MappingJsonPayload,
+    rules: readonly CoreObligationRule[] = [],
+  ): DryRunSummary {
     const stats = computeDryRunStats(batchId, payload)
+    const exactPlan =
+      payload.rawInput && payload.confirmedMappings && payload.confirmedNormalizations
+        ? buildCommitPlan({
+            batchId,
+            firmId: this.deps.scoped.firmId,
+            userId: this.deps.userId,
+            payload,
+            internalDeadlineOffsetDays:
+              this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+            rules,
+          })
+        : null
     const summary: DryRunSummary = {
       batchId,
       clientsToCreate: stats.clientsToCreate,
-      obligationsToCreate: stats.obligationsToCreate,
+      obligationsToCreate: exactPlan ? exactPlan.obligations.length : stats.obligationsToCreate,
       skippedRows: stats.skippedRows,
       errors: stats.errors,
+      ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),
     }
     return DryRunSummarySchema.parse(summary)
   }
@@ -1398,10 +1422,21 @@ function computeMatrixApplication(
   }
 
   // Group rows by (entity, state) cell to count appliedClientCount.
-  const cellCounts = new Map<string, { entityType: string; state: string; count: number }>()
+  const cellCounts = new Map<
+    string,
+    {
+      entityType: string
+      state: string
+      count: number
+      applicationMode: MatrixApplicationEntry['applicationMode']
+    }
+  >()
   for (const row of rows) {
     const rawTaxTypes = taxIdx !== undefined ? (row[taxIdx] ?? '').trim() : ''
-    if (rawTaxTypes) continue
+    const explicitTaxTypes = normalizeTaxTypesFromRows(
+      payload.confirmedNormalizations ?? [],
+      rawTaxTypes,
+    )
 
     const rawEntity = entityIdx !== undefined ? (row[entityIdx] ?? '').trim() : ''
     const rawState = stateIdx !== undefined ? (row[stateIdx] ?? '').trim() : ''
@@ -1413,10 +1448,18 @@ function computeMatrixApplication(
       ...splitStateList(rawFilingStates, stateMap),
     ])
     for (const state of states) {
+      const applicationMode = matrixApplicationModeForTaxTypes(explicitTaxTypes, state)
+      if (!applicationMode) continue
       const key = `${entity}::${state}`
       const cell = cellCounts.get(key)
-      if (cell) cell.count += 1
-      else cellCounts.set(key, { entityType: entity, state, count: 1 })
+      if (cell) {
+        cell.count += 1
+        if (applicationMode === 'federal_return_type_plus_state') {
+          cell.applicationMode = applicationMode
+        }
+      } else {
+        cellCounts.set(key, { entityType: entity, state, count: 1, applicationMode })
+      }
     }
   }
 
@@ -1434,9 +1477,81 @@ function computeMatrixApplication(
       matrixVersion: result.matrixVersion,
       enabled: selectionByCell.get(key) ?? true,
       appliedClientCount: cell.count,
+      applicationMode: cell.applicationMode,
     })
   }
   return out
+}
+
+function computeRuleReviewWarnings(
+  payload: MappingJsonPayload,
+  activeRules: readonly CoreObligationRule[],
+): DryRunSummary['ruleReviewWarnings'] {
+  const warnings: DryRunSummary['ruleReviewWarnings'] = []
+  const catalogRules = listObligationRules({ includeCandidates: true }).filter(
+    (rule) => rule.status !== 'deprecated',
+  )
+
+  for (const cell of payload.matrixApplied ?? []) {
+    if (!cell.enabled || !isEntityType(cell.entityType) || !isRuleGenerationState(cell.state)) {
+      continue
+    }
+    const missingByReason = new Map<
+      DryRunSummary['ruleReviewWarnings'][number]['reason'],
+      string[]
+    >()
+    const stateTaxTypes = cell.taxTypes.filter((taxType) =>
+      isStateTaxTypeForState(taxType, cell.state),
+    )
+
+    for (const taxType of stateTaxTypes) {
+      if (rulesCanGenerateTaxType(activeRules, cell.entityType, cell.state, taxType)) continue
+      const reason = rulesCanGenerateTaxType(catalogRules, cell.entityType, cell.state, taxType)
+        ? 'rules_pending_review'
+        : 'no_matching_rule'
+      missingByReason.set(reason, [...(missingByReason.get(reason) ?? []), taxType])
+    }
+
+    for (const [reason, taxTypes] of missingByReason) {
+      warnings.push({
+        state: cell.state,
+        entityType: cell.entityType,
+        affectedClientCount: cell.appliedClientCount,
+        taxTypes,
+        reason,
+      })
+    }
+  }
+
+  return warnings.toSorted(
+    (a, b) =>
+      a.state.localeCompare(b.state) ||
+      a.entityType.localeCompare(b.entityType) ||
+      a.reason.localeCompare(b.reason),
+  )
+}
+
+function rulesCanGenerateTaxType(
+  rules: readonly CoreObligationRule[],
+  entityType: EntityType,
+  state: RuleGenerationState,
+  taxType: string,
+): boolean {
+  const reviewableRules = rules.map((rule) => ({ ...rule, status: 'verified' as const }))
+  return (
+    previewObligationsFromRules({
+      client: {
+        id: 'migration-dry-run',
+        entityType,
+        state,
+        taxTypes: [taxType],
+        taxYearType: 'calendar',
+        fiscalYearEndMonth: null,
+        fiscalYearEndDay: null,
+      },
+      rules: reviewableRules,
+    }).length > 0
+  )
 }
 
 function splitStateList(raw: string, normalizations: ReadonlyMap<string, string | null>): string[] {
@@ -1465,6 +1580,10 @@ function isEntityType(value: string): value is EntityType {
     value === 'individual' ||
     value === 'other'
   )
+}
+
+function isRuleGenerationState(value: string): value is RuleGenerationState {
+  return (STATE_RULE_JURISDICTIONS as readonly string[]).includes(value)
 }
 
 function toMigrationError(row: {
