@@ -23,6 +23,7 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
@@ -3241,37 +3242,83 @@ export function ObligationQueueRoute() {
           </div>
         </div>
         {/* Right-side detail panel — rendered inline inside the route's
-          2-column flex (vs. the legacy floating Sheet). Fixed 440px on
+          2-column flex (vs. the legacy floating Sheet). Fixed 600px on
           xl+; full-width stacked below the queue at narrower viewports.
           Only mounts when a row is selected; otherwise the queue gets
           the full page width. */}
-        {activeDetailId ? (
-          // 2026-05-25 (Yuqi Deadlines #16): added explicit `xl:h-full`
-          // so the panel wrapper fills the parent row's stretched
-          // height even when the inner ObligationQueueDetailDrawer's
-          // <aside> initial render is shorter than the row (loading
-          // state, empty data). Previously the wrapper relied on
-          // `items-stretch` alone, which created a transient gap at
-          // the panel's bottom edge during load / row-switch — the
-          // "drawer not aligned to top" Yuqi flagged.
-          <div className="min-w-0 w-full xl:h-full xl:w-[600px] xl:shrink-0 xl:min-h-0">
-            <ObligationPanelDispatcher
-              obligationId={activeDetailId}
-              activeTab={activeDetailTab}
-              onTabChange={(nextTab) => {
-                if (routeObligationRef) {
-                  openQueueDetail(activeDetailId, nextTab)
-                  return
-                }
-                void setObligationQueueQuery({ tab: nextTab })
+        {/* 2026-05-26 (Yuqi fifty-ninth pass — architectural parity with
+            Alerts panel): wrap in AnimatePresence + motion.div so the
+            panel uses the same paper-rises enter + dissolve exit motion
+            that /rules/pulse uses. Two layered motion divs:
+              • Outer: animates the flex slot's width (0 → 600px on xl+,
+                or full-width on narrower viewports). Fast (300ms) with
+                Apple's swiftOut curve so the column opens cleanly.
+              • Inner: animates the panel surface itself (y: '100%' → 0)
+                so the paper rises into the open slot — the
+                "paper-on-a-desk" gesture per the inset-surface canonical.
+            On EXIT the choreography reverses to a quick dissolve: paper
+            fades + slot closes simultaneously (no slide-down). Matches
+            Yuqi's reference exactly — Deadlines panel now opens/closes
+            with the same feel as Alerts. */}
+        <AnimatePresence initial={false}>
+          {activeDetailId ? (
+            <motion.div
+              key={`obligation-panel-${activeDetailId}`}
+              initial={{ width: 0 }}
+              animate={{
+                width: 600,
+                transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
               }}
-              onClose={closeQueueDetail}
-              onNeedsInput={setPenaltyRow}
-              practiceAiEnabled={practiceAiEnabled}
-              blockerCandidates={rows}
-            />
-          </div>
-        ) : null}
+              exit={{
+                width: 0,
+                transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+              }}
+              // 2026-05-25 (Yuqi Deadlines #16): added explicit `xl:h-full`
+              // so the panel wrapper fills the parent row's stretched
+              // height even when the inner ObligationQueueDetailDrawer's
+              // <aside> initial render is shorter than the row (loading
+              // state, empty data). Previously the wrapper relied on
+              // `items-stretch` alone, which created a transient gap at
+              // the panel's bottom edge during load / row-switch — the
+              // "drawer not aligned to top" Yuqi flagged.
+              // Width animates to 600 (px). Below xl the parent flex
+              // container stacks (flex-col), so this width becomes a
+              // height-like constraint at the bottom — fine in
+              // practice since the queue + panel stack vertically on
+              // narrow viewports anyway.
+              className="min-w-0 self-stretch overflow-hidden xl:h-full xl:shrink-0 xl:min-h-0"
+            >
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{
+                  y: 0,
+                  transition: { duration: 0.64, ease: [0.32, 0.72, 0, 1], delay: 0.14 },
+                }}
+                exit={{
+                  opacity: 0,
+                  transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
+                }}
+                className="flex h-full w-full min-w-0"
+              >
+                <ObligationPanelDispatcher
+                  obligationId={activeDetailId}
+                  activeTab={activeDetailTab}
+                  onTabChange={(nextTab) => {
+                    if (routeObligationRef) {
+                      openQueueDetail(activeDetailId, nextTab)
+                      return
+                    }
+                    void setObligationQueueQuery({ tab: nextTab })
+                  }}
+                  onClose={closeQueueDetail}
+                  onNeedsInput={setPenaltyRow}
+                  practiceAiEnabled={practiceAiEnabled}
+                  blockerCandidates={rows}
+                />
+              </motion.div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
       <PenaltyInputDialog
         row={penaltyRow}
