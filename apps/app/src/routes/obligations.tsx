@@ -170,6 +170,7 @@ import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { SearchInput } from '@/components/primitives/search-input'
+import { StateBadge } from '@/components/primitives/state-badge'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
@@ -1689,8 +1690,27 @@ export function ObligationQueueRoute() {
             }
           />
         ),
-        cell: (info) => info.getValue<string | null>() ?? '—',
-        meta: { cellClassName: 'text-text-secondary tabular-nums' },
+        // 2026-05-26 (Yuqi /deadlines sixty-fifth pass — State cell
+        // canonical): adopt the Alerts page's universal state
+        // representation. The bare 2-letter code "CA" / "NY" read
+        // as the same line of text as every other cell — the column
+        // didn't actually look like "state" anything. Now: leading
+        // StateBadge SVG (flag/seal motif) + code, matches the
+        // Alerts state-chip strip + the /clients filing-states
+        // pill so "state" reads as a recognized motif at scan
+        // distance. Empty cell stays "—" since rendering a flag for
+        // "no state" would be more confusing than less.
+        cell: (info) => {
+          const state = info.getValue<string | null>()
+          if (!state) return <span className="text-text-tertiary">—</span>
+          return (
+            <span className="inline-flex items-center gap-1.5 font-mono tabular-nums text-text-secondary">
+              <StateBadge code={state} size="xs" aria-hidden />
+              <span>{state}</span>
+            </span>
+          )
+        },
+        meta: { cellClassName: 'text-text-secondary' },
       },
       {
         accessorKey: 'taxType',
@@ -2649,13 +2669,18 @@ export function ObligationQueueRoute() {
                   label={t`All`}
                   count={scopeTotal}
                   active={activeScope === 'all'}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      status: null,
-                      obligation: null,
-                      row: null,
-                    })
-                  }
+                  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass —
+                  // "page blinks and jumps on tab/pill click"):
+                  // dropped the `obligation: null, row: null` patch
+                  // from scope-tab handlers. The clears were auto-
+                  // closing the detail panel on every filter change,
+                  // which triggered the AnimatePresence width-collapse
+                  // exit (280ms) + queue column re-expand to full
+                  // width — that's the "jump." The panel now persists
+                  // across filter changes; if the selected row is no
+                  // longer in the filtered set, the user can close
+                  // explicitly via X / Esc.
+                  onClick={() => void setObligationQueueQuery({ status: null })}
                 />
                 {visibleScopeStatuses.map((status) => (
                   <ObligationQueueScopeTab
@@ -2676,13 +2701,10 @@ export function ObligationQueueRoute() {
                     // are canonical per audit §3.3).
                     icon={STATUS_ICON[status]}
                     iconColor={STATUS_ICON_COLOR[status]}
-                    onClick={() =>
-                      void setObligationQueueQuery({
-                        status: [status],
-                        obligation: null,
-                        row: null,
-                      })
-                    }
+                    // 2026-05-26: drop panel-close patch (see "All" tab
+                    // handler above) so filter clicks no longer trigger
+                    // the drawer width-collapse animation.
+                    onClick={() => void setObligationQueueQuery({ status: [status] })}
                   />
                 ))}
               </nav>
@@ -2715,13 +2737,16 @@ export function ObligationQueueRoute() {
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap items-center gap-1.5">
+              {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
+                  blink fix): same change as scope tabs — dropped the
+                  `obligation: null, row: null` clears so action-chip
+                  toggles no longer auto-close the detail panel and
+                  trigger its width-collapse animation. */}
               <ObligationQueueActionChip
                 active={due === 'overdue'}
                 onClick={() =>
                   void setObligationQueueQuery({
                     due: due === 'overdue' ? null : 'overdue',
-                    obligation: null,
-                    row: null,
                   })
                 }
               >
@@ -2740,8 +2765,6 @@ export function ObligationQueueRoute() {
                 onClick={() =>
                   void setObligationQueueQuery({
                     evidence: evidence === 'needs' ? null : 'needs',
-                    obligation: null,
-                    row: null,
                   })
                 }
               >
@@ -2786,19 +2809,18 @@ export function ObligationQueueRoute() {
                     so all dropdowns across the product read as one
                     family. Width h-8 + gap-1.5 stays — matches the
                     Alerts panel-aware filter pattern. */}
-                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #13):
-                    "Group by" → "Sort by" rename. Yuqi's call: the
-                    selector reads as the primary "order/cluster"
-                    control — calling it "Group by" implies pure
-                    visual clustering with no ordering implication,
-                    but the selected key actually drives both the
-                    sort key AND the section header cluster (when
-                    Client/Status). "Sort by" is the more honest
-                    verb: the table is now sorted by Due date / by
-                    Client / by Status, and grouping is the side
-                    effect. Trigger chrome unchanged (canonical
-                    Alerts-family filter pill). */}
-                <SelectTrigger className="h-8 w-[164px] gap-1.5 border-divider-strong bg-background-default text-xs text-text-primary hover:bg-state-base-hover">
+                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #13 +
+                    follow-up): "Group by" → "Sort by" rename and chrome
+                    matched to the canonical Pulse filter trigger
+                    (rounded-md border-divider-strong bg-default px-2
+                    text-sm whitespace-nowrap, hover:bg-state-base-hover).
+                    Yuqi's screenshot diff showed our trigger reading at
+                    text-xs with a fixed w-[164px] while every Pulse
+                    filter ("All impact ▼", "All sources ▼") was text-sm
+                    natural-width — so this single dropdown looked like
+                    a different family. Width now hugs content, label
+                    bumped to text-sm. */}
+                <SelectTrigger className="inline-flex h-8 items-center gap-1.5 rounded-md border border-divider-strong bg-background-default px-2 text-sm whitespace-nowrap text-text-primary hover:bg-state-base-hover">
                   <span className="text-text-tertiary">
                     <Trans>Sort by</Trans>
                   </span>
@@ -2849,18 +2871,23 @@ export function ObligationQueueRoute() {
                       <Trans>Visible columns</Trans>
                       {hiddenColumnsCount > 0 ? (
                         // Bulk "Show all" — clear the hidden set in
-                        // ONE state write. Previously this looped over
-                        // `column.toggleVisibility(true)`, but each
-                        // call resolved its updater against the same
-                        // stale closure `columnVisibility`, so each
-                        // iteration ended up overwriting the URL with
-                        // just ONE column visible — leaving the rest
-                        // hidden. Writing the empty hide-list directly
-                        // is both correct and atomic.
+                        // ONE state write.
+                        // 2026-05-26 (Yuqi /deadlines sixty-fifth pass
+                        // — "Show all doesn't work"): switched from
+                        // `hide: null` → `hide: []`. The `hide` parser
+                        // has a non-empty default (DEFAULT_HIDDEN_-
+                        // COLUMN_IDS), so passing null resolved BACK
+                        // to that default — which still hides 3+
+                        // columns. The user clicked "Show all" and
+                        // nothing changed because the defaults were
+                        // re-applied. Passing an empty array (combined
+                        // with `clearOnDefault: false` on the parser)
+                        // explicitly says "no columns are hidden,
+                        // preserve this in URL."
                         <button
                           type="button"
                           onClick={() => {
-                            void setObligationQueueQuery({ hide: null })
+                            void setObligationQueueQuery({ hide: [] })
                           }}
                           className="text-xs font-normal text-text-accent hover:underline"
                         >
