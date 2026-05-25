@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
@@ -9,6 +9,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
@@ -601,41 +602,37 @@ function DashboardActionsList({
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
-        <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
-          {totalOpen > 0 ? (
-            <>
-              <Trans>Nothing due this week.</Trans>{' '}
-              <Button
-                variant="link"
-                size="sm"
-                className="px-0 align-baseline"
-                onClick={onOpenAllObligations}
-              >
-                <Plural
-                  value={totalOpen}
-                  one="View # open obligation"
-                  other="View # open obligations"
-                />
-                <ArrowUpRightIcon data-icon="inline-end" />
-              </Button>
-            </>
-          ) : canRunMigration ? (
-            <>
-              <Trans>No deadlines yet. Import clients to get started.</Trans>{' '}
-              <Button
-                variant="link"
-                size="sm"
-                className="px-0 align-baseline"
-                onClick={onOpenWizard}
-              >
-                <FileSearchIcon data-icon="inline-start" />
+        {totalOpen > 0 ? (
+          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
+            <Trans>Nothing due this week.</Trans>{' '}
+            <Button
+              variant="link"
+              size="sm"
+              className="px-0 align-baseline"
+              onClick={onOpenAllObligations}
+            >
+              <Plural
+                value={totalOpen}
+                one="View # open obligation"
+                other="View # open obligations"
+              />
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          </p>
+        ) : canRunMigration ? (
+          <SharedEmptyState
+            title={<Trans>No deadlines yet. Import clients to get started.</Trans>}
+            cta={
+              <Button size="sm" onClick={onOpenWizard}>
                 <Trans>Import clients</Trans>
               </Button>
-            </>
-          ) : (
+            }
+          />
+        ) : (
+          <p className="rounded-md border border-divider-subtle px-4 py-6 text-center text-base text-text-secondary">
             <Trans>You're caught up. Next deadline appears here when one's within a week.</Trans>
-          )}
-        </p>
+          </p>
+        )}
       </section>
     )
   }

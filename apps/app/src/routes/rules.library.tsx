@@ -2563,7 +2563,7 @@ function BatchReviewModal({
   return (
     <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
       <DialogContent
-        showCloseButton
+        showCloseButton={false}
         // Wider than default so the rule body breathes; capped at
         // ~640px so it doesn't dominate the viewport on big screens.
         // Tall flex column with header / scrollable body / footer so
@@ -2580,9 +2580,28 @@ function BatchReviewModal({
           <DialogTitle className="text-sm font-semibold text-text-primary">
             <Trans>Reviewing pending rules</Trans>
           </DialogTitle>
-          <span className="font-mono text-xs tabular-nums text-text-tertiary">
-            <span className="text-text-secondary">{currentIndex + 1}</span> / {total}
-          </span>
+          {/* 2026-05-25 (Yuqi Rule Library #46): use an inline
+              header action cluster instead of DialogContent's
+              absolute top-right close button. The default X sat on
+              top of the progress eyebrow ("1 / N") in this compact
+              review header; keeping both in normal flow reserves
+              space for the count and the close affordance. */}
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="font-mono text-xs tabular-nums text-text-tertiary">
+              <span className="text-text-secondary">{currentIndex + 1}</span> / {total}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={onClose}
+              aria-label={t`Close review queue`}
+              title={t`Close review queue`}
+              className="-mr-1 text-text-tertiary hover:text-text-primary"
+            >
+              <XIcon aria-hidden className="size-4" />
+            </Button>
+          </div>
         </DialogHeader>
         {/* Scrollable body — each rule gets its own scroll position
             via the `key` on the inner wrapper, so moving Prev/Next

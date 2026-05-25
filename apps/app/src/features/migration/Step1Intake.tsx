@@ -383,21 +383,12 @@ export function Step1Intake({
         </p>
       </div>
 
-      {/* 2026-05-25 (Yuqi Wizard #41): paste + upload now sit
-          SIDE-BY-SIDE at comfortable density with a vertical "or"
-          divider between them. They were previously stacked
-          vertically with a horizontal "or" rule — which made the
-          step feel taller than it needed to and pushed the preset
-          chips below the fold on shorter viewports. Side-by-side
-          reads as "two equal entry paths" (the dialog headline
-          says "paste or upload, your call"). Compact density still
-          stacks (single column, no divider) because the wizard's
-          compact viewport is narrow enough that two halves don't
-          fit. */}
-      <div
-        className={cn('flex', compact ? 'min-h-0 flex-col gap-3' : 'flex-row items-stretch gap-3')}
-      >
-        <div className="flex flex-1 flex-col gap-2">
+      {/* 2026-05-25 (Yuqi Today #27): dialog and onboarding now use
+          the same vertical paste/upload stack. The side-by-side
+          dialog treatment made upload read like a separate panel
+          instead of the second import option in Step 1. */}
+      <div className={cn('flex flex-col gap-3', compact ? 'min-h-0' : '')}>
+        <div className="flex flex-col gap-2">
           <label
             htmlFor={pasteId}
             className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
@@ -415,38 +406,16 @@ export function Step1Intake({
               placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
               className={cn(
                 'resize-y border-0 bg-transparent p-2 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
-                compact ? 'h-[104px]' : 'h-[142px]',
+                'h-[104px]',
               )}
             />
           </div>
         </div>
 
-        {/* 2026-05-25 (Yuqi Today #26): "or" stays, the divider
-            lines go. Yuqi flagged that the vertical hairlines above
-            and below "or" felt like over-decorated chrome between
-            two already-distinct columns (each has its own bordered
-            tile). Just the lowercase eyebrow now, vertically
-            centered between paste and upload — the word alone
-            communicates "either path is fine." Hidden at compact
-            density (column stack already implies the choice). */}
-        {!compact ? (
-          <div className="flex flex-col items-center justify-center self-stretch pt-7">
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>or</Trans>
-            </span>
-          </div>
-        ) : null}
-
-        <div className="flex flex-1 flex-col gap-2">
-          {compact ? (
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>Upload file</Trans>
-            </span>
-          ) : (
-            <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-              <Trans>Upload file</Trans>
-            </span>
-          )}
+        <div className="flex flex-col gap-2">
+          <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+            <Trans>Upload file</Trans>
+          </span>
           <div
             role="button"
             tabIndex={0}
@@ -463,8 +432,8 @@ export function Step1Intake({
               }
             }}
             className={cn(
-              'flex flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-              compact ? 'h-[104px] text-sm' : 'min-h-[142px] text-md',
+              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+              compact ? 'text-sm' : 'text-md',
               isFileDragActive || isReadingFile
                 ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
                 : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
@@ -507,11 +476,9 @@ export function Step1Intake({
         </div>
       </div>
 
-      {/* Preset chips live BELOW the paste/upload row — they're a
+      {/* Preset chips live BELOW the paste/upload stack — they're a
           separate "tell us more about your data source" affordance,
-          not a third entry method. Was previously a sibling INSIDE
-          the column stack at line 462; pulled out when paste +
-          upload were promoted to a side-by-side row (#41). */}
+          not a third entry method. */}
       <div className="flex flex-col gap-2">
         <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
           <Trans>I&apos;m coming from… (optional)</Trans>

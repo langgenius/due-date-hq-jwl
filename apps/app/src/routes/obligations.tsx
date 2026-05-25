@@ -9052,7 +9052,7 @@ function EmptyState({
         hasActiveFilters ? (
           <Trans>No obligations match these filters.</Trans>
         ) : (
-          <Trans>No obligations yet.</Trans>
+          <Trans>No deadlines yet. Import clients to get started.</Trans>
         )
       }
       description={
@@ -9060,9 +9060,7 @@ function EmptyState({
           <Trans>
             Try a different filter combination, or clear all filters to see the full queue.
           </Trans>
-        ) : (
-          <Trans>Import a CSV of clients to start tracking their obligations.</Trans>
-        )
+        ) : null
       }
       cta={
         hasActiveFilters ? (

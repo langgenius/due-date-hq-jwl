@@ -10,6 +10,10 @@ import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
 
+vi.mock('@/features/billing/use-billing-data', () => ({
+  useCurrentFirm: () => ({ currentFirm: null, firmsQuery: {} }),
+}))
+
 import { DashboardActionsList } from './actions-list'
 
 declare global {
@@ -89,6 +93,40 @@ afterEach(() => {
 })
 
 describe('DashboardActionsList', () => {
+  it('renders the no-deadlines import CTA as a styled button', () => {
+    const openWizard = vi.fn()
+
+    render(
+      <DashboardActionsList
+        rows={[]}
+        asOfDate="2026-05-23"
+        isLoading={false}
+        totalThisWeek={0}
+        totalOpen={0}
+        needDecisionCount={0}
+        blockedCount={0}
+        waitingOnClientCount={0}
+        canRunMigration={true}
+        onOpenWizard={openWizard}
+        onOpenObligation={vi.fn()}
+        onOpenAllObligations={vi.fn()}
+      />,
+    )
+
+    const importButton = Array.from(document.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Import clients'),
+    )
+    expect(importButton).toBeInstanceOf(HTMLButtonElement)
+    expect(importButton?.className).toContain('bg-components-button-primary-bg')
+    expect(importButton?.className).not.toContain('underline-offset-4')
+
+    act(() => {
+      importButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    expect(openWizard).toHaveBeenCalledTimes(1)
+  })
+
   it('does not render the expanded detail target as a real button', () => {
     render(
       <DashboardActionsList

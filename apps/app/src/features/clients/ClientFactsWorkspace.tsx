@@ -28,7 +28,6 @@ import {
   ClipboardCheckIcon,
   ClipboardListIcon,
   EyeIcon,
-  FileSearchIcon,
   MailIcon,
   MegaphoneIcon,
   MoreHorizontalIcon,
@@ -1288,9 +1287,8 @@ export function ClientFactsWorkspace({
           title={<Trans>No clients yet</Trans>}
           description={<Trans>Import a CSV or create the first manual client record.</Trans>}
           cta={
-            <Button variant="outline" onClick={onImport} disabled={!canImport}>
-              <FileSearchIcon data-icon="inline-start" />
-              <Trans>Run migration</Trans>
+            <Button size="sm" onClick={onImport} disabled={!canImport}>
+              <Trans>Import clients</Trans>
             </Button>
           }
         />
