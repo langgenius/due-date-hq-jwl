@@ -224,9 +224,14 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               48px-square trigger (32px would push past the 40px
               available inside the 56px rail). Label + chevron hide
               entirely via the group-data selector. */}
+          {/* 2026-05-25 (Yuqi rail alignment fix): collapsed avatar
+              bumped size-6 (24px) → size-7 (28px). The 32×32
+              button with a 24px tile read as too much padding;
+              28px gives the brand mark proper weight inside the
+              rail while leaving a 2px halo for hover state. */}
           <span
             aria-hidden
-            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-6 group-data-[collapsed=true]/sidebar:text-xs"
+            className="grid size-8 shrink-0 place-items-center rounded-md bg-brand-primary text-sm font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
             translate="no"
           >
             {currentMonogram}

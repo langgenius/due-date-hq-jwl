@@ -203,7 +203,13 @@ function UserMenuTrigger({
           current account belongs to without opening the menu.
           Promoted to "avatar + name" so the trigger reads as a
           legible account chip. Name is truncated so a long display
-          name doesn't overflow the sidebar footer. */}
+          name doesn't overflow the sidebar footer.
+          2026-05-25 (Yuqi rail alignment fix): in collapsed mode
+          the trigger now shrinks to just the 32×32 avatar
+          (matching the firm-switcher, bell, and toggle hit-box)
+          and the name span hides. Previously the name was
+          leaking past the 56px rail (the "S" of "Sarah" was
+          visible to the right of the avatar). */}
       <DropdownMenuTrigger
         render={
           <button
@@ -212,12 +218,13 @@ function UserMenuTrigger({
             className={cn(
               'inline-flex min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2 rounded-md px-1 py-1 outline-none transition-colors',
               'hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:flex-none group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:p-0',
             )}
           />
         }
       >
         <UserAvatar user={user} />
-        <span className="min-w-0 flex-1 truncate text-left text-sm font-medium text-text-primary">
+        <span className="min-w-0 flex-1 truncate text-left text-sm font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden">
           {displayName}
         </span>
       </DropdownMenuTrigger>
