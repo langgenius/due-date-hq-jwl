@@ -4966,7 +4966,14 @@ export function ObligationQueueDetailDrawer({
                 TabsList + content area sit at a clean 16px gap
                 below the sticky strip's bottom border, reading as
                 a separate visual unit. */}
-            <div className={cn('relative z-0', mode === 'panel' && 'pt-4')}>
+            {/* 2026-05-26 (Yuqi fifty-fifth pass — drop double gap):
+                body wrapper now has `flex-col gap-4` (added in the
+                drawer canonical apply), which already provides 16px
+                between the sticky strip and this tabs container.
+                The extra `pt-4` here was stacking → 32px total
+                between strip and tabs ("weird top margin" per
+                Yuqi). Dropped. */}
+            <div className="relative z-0">
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
@@ -4997,7 +5004,7 @@ export function ObligationQueueDetailDrawer({
                         value="summary"
                         className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
                       >
-                        <Info aria-hidden />
+                        <Info className="size-3.5" aria-hidden />
                         <Trans>Summary</Trans>
                       </TabsTrigger>
                     ) : null}
@@ -5006,19 +5013,19 @@ export function ObligationQueueDetailDrawer({
                         value="readiness"
                         className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
                       >
-                        <PaperclipIcon aria-hidden />
+                        <PaperclipIcon className="size-3.5" aria-hidden />
                         <Trans>Materials</Trans>
                         {outstandingMaterials > 0 ? (
                           <span
                             aria-label={t`${outstandingMaterials} outstanding`}
-                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-state-destructive-solid px-1 text-caption-xs font-medium leading-none tabular-nums text-text-inverted"
+                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-destructive-solid px-1 text-caption-xs font-medium leading-none tabular-nums text-text-inverted"
                           >
                             {outstandingMaterials}
                           </span>
                         ) : allMaterialsReceived ? (
                           <span
                             aria-label={t`All received`}
-                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs text-text-tertiary"
+                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs text-text-tertiary"
                           >
                             <CheckIcon className="size-3" aria-hidden />
                           </span>
@@ -5030,12 +5037,12 @@ export function ObligationQueueDetailDrawer({
                         value="extension"
                         className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
                       >
-                        <CalendarClockIcon aria-hidden />
+                        <CalendarClockIcon className="size-3.5" aria-hidden />
                         <Trans>Extension</Trans>
                         {extensionSaved ? (
                           <span
                             aria-label={t`Extension saved`}
-                            className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-accent-default px-1 text-caption-xs leading-none text-text-inverted"
+                            className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-default px-1 text-caption-xs leading-none text-text-inverted"
                           >
                             <CheckIcon className="size-3" aria-hidden />
                           </span>
@@ -5052,11 +5059,11 @@ export function ObligationQueueDetailDrawer({
                         value="evidence"
                         className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
                       >
-                        <FileTextIcon aria-hidden />
+                        <FileTextIcon className="size-3.5" aria-hidden />
                         <Trans>Evidence</Trans>
                         <span
                           aria-label={t`${evidenceCount} workpapers`}
-                          className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
+                          className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-background-section px-1 text-caption-xs tabular-nums text-text-tertiary"
                         >
                           {evidenceCount}
                         </span>
@@ -7081,10 +7088,19 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
             : 'border-text-primary bg-text-primary text-text-inverted',
         )}
       >
-        <div className="flex min-w-0 flex-col gap-0.5">
+        {/* 2026-05-26 (Yuqi fifty-fifth pass — hero typography):
+            label bumped text-caption-xs (10-11px) → text-xs (12px)
+            so "FILING DEADLINE" reads cleanly against the dark hero
+            bg instead of disappearing into chrome. Date bumped
+            text-xl (20px) → text-2xl (24px) — it's the anchor of
+            the entire panel; the previous text-xl read as a card
+            value, not a hero anchor. tracking-wider (vs the
+            previous 0.08em) gives the uppercase label proper
+            letter-rhythm. */}
+        <div className="flex min-w-0 flex-col gap-1">
           <span
             className={cn(
-              'text-caption-xs font-medium uppercase tracking-[0.08em]',
+              'text-xs font-medium uppercase tracking-wider',
               isMissed ? 'text-text-destructive' : 'text-text-inverted/70',
             )}
           >
@@ -7092,7 +7108,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
           </span>
           <span
             className={cn(
-              'text-xl font-semibold tabular-nums leading-tight',
+              'text-2xl font-semibold tabular-nums leading-tight',
               isMissed ? 'text-text-destructive' : 'text-text-inverted',
             )}
           >
