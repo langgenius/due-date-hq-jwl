@@ -2334,7 +2334,13 @@ export function ObligationQueueRoute() {
           represents shouldn't change mid-typing. */}
       <PageHeader
         title={
-          <span className="inline-flex items-baseline gap-2">
+          // 2026-05-26 (Yuqi fifty-fourth pass — title vertical
+          // alignment): items-baseline → items-center so the count
+          // chip's mono digits sit middle-aligned against the h1.
+          // items-baseline was placing the chip lower (digit
+          // baseline aligned with the larger h1 baseline), giving
+          // a visual sag at the count.
+          <span className="inline-flex items-center gap-2">
             <ConceptLabel concept="obligation">
               <Trans>Deadlines</Trans>
             </ConceptLabel>
@@ -2585,7 +2591,17 @@ export function ObligationQueueRoute() {
                   }
                 }}
               >
-                <SelectTrigger className="h-8 w-[164px] gap-1.5 text-xs">
+                {/* 2026-05-26 (Yuqi fifty-fourth pass — dropdown
+                    style match Alerts page): trigger now uses the
+                    canonical filter-trigger chrome from
+                    docs/Design/inset-surface-design-system.md
+                    (border-divider-strong + bg-background-default
+                    + hover:bg-state-base-hover). Same shape as the
+                    /rules/pulse source / status / impact filters
+                    so all dropdowns across the product read as one
+                    family. Width h-8 + gap-1.5 stays — matches the
+                    Alerts panel-aware filter pattern. */}
+                <SelectTrigger className="h-8 w-[164px] gap-1.5 border-divider-strong bg-background-default text-xs text-text-primary hover:bg-state-base-hover">
                   <span className="text-text-tertiary">
                     <Trans>Group by</Trans>
                   </span>
@@ -2875,7 +2891,16 @@ export function ObligationQueueRoute() {
                     content per viewport. text-sm + py-2 still keeps
                     enough vertical room to read multi-line client
                     names with the existing line-clamp-2. */}
-                <TableBody className="[&_td]:py-2 [&_td]:text-sm">
+                {/* 2026-05-26 (Yuqi fifty-fourth pass — spacier row):
+                    cell padding py-2 → py-3. py-2 (8px) read as
+                    cramped at the new larger client-name type size;
+                    py-3 (12px) gives the row honest breathing room
+                    while still keeping density reasonable for the
+                    queue's primary scan. AffectedClientsTable
+                    (Alerts) stays at py-2 since that table sits
+                    inside a drawer with tighter chrome — different
+                    surface, different density. */}
+                <TableBody className="[&_td]:py-3 [&_td]:text-sm">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -3549,6 +3574,15 @@ function ObligationQueueSortableHeader({
         }
         className={cn(
           'inline-flex min-w-0 items-center gap-0.5 rounded px-1 py-0.5 text-left',
+          // 2026-05-26 (Yuqi fifty-fourth pass — sortable header
+          // text matches TableHead canonical): button now inherits
+          // the same `text-xs font-medium uppercase tracking-[0.08em]`
+          // typography as non-sortable TableHead cells. Without
+          // these, the button's label rendered without the
+          // uppercase/tracking, so sortable columns looked
+          // visually different from sibling non-sortable columns
+          // on the same header row.
+          'text-xs font-medium uppercase tracking-[0.08em]',
           'text-text-tertiary hover:text-text-primary',
           'data-[active=true]:text-text-primary',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -3627,9 +3661,15 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // Quality stat, not active urgency. Skip the dot, drop the
     // urgency tone, render as a muted line. Drop entirely when the
     // row landed exactly on its deadline — no signal there.
-    if (days === 0) return <span className="text-xs text-text-tertiary tabular-nums">—</span>
+    if (days === 0) return <span className="text-sm text-text-tertiary tabular-nums">—</span>
     return (
-      <span className="text-xs text-text-tertiary tabular-nums">
+      // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
+      // "Filed N days late/early" was text-xs (12px), which read as
+      // caption-tier next to the row's text-sm content. Bumped to
+      // text-sm so the terminal stat (a meaningful CPA outcome —
+      // "we filed this 3 days late") sits at body-tier where it
+      // belongs.
+      <span className="text-sm text-text-tertiary tabular-nums">
         {days < 0 ? (
           <Plural value={Math.abs(days)} one="Filed # day late" other="Filed # days late" />
         ) : (
