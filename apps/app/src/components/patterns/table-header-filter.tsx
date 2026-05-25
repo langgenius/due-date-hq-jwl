@@ -234,4 +234,4 @@ function tableHeaderFilterIconTrigger({
   )
 }
 
-export { TableHeaderMultiFilter, tableHeaderFilterTrigger }
+export { TableHeaderMultiFilter, tableHeaderFilterTrigger, tableHeaderFilterIconTrigger }

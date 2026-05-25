@@ -151,6 +151,7 @@ import {
 import { useCurrentUserName } from '@/lib/use-current-user-name'
 import {
   TableHeaderMultiFilter,
+  tableHeaderFilterIconTrigger,
   tableHeaderFilterTrigger,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
@@ -1530,6 +1531,7 @@ export function ObligationQueueRoute() {
           const label = t`Internal Due`
           return (
             <ObligationQueueSortableHeader
+              label={label}
               sort={sort}
               ascSort="due_asc"
               descSort="due_desc"
@@ -1538,6 +1540,7 @@ export function ObligationQueueRoute() {
               onSortChange={changeSort}
             >
               <RangeHeaderFilterDropdown
+                trigger="icon"
                 label={label}
                 minLabel={t`Minimum days until due`}
                 maxLabel={t`Maximum days until due`}
@@ -3245,6 +3248,7 @@ function ExportAxisOption({
 }
 
 function ObligationQueueSortableHeader({
+  label,
   children,
   sort,
   ascSort,
@@ -3253,7 +3257,8 @@ function ObligationQueueSortableHeader({
   sortLabel,
   onSortChange,
 }: {
-  children: ReactNode
+  label: ReactNode
+  children?: ReactNode
   sort: ObligationQueueSort
   ascSort: ObligationQueueSort
   descSort: ObligationQueueSort
@@ -3271,7 +3276,10 @@ function ObligationQueueSortableHeader({
   //
   // New shape:
   //   - Header label + chevron are now ONE clickable region (the
-  //     whole pill, not a separate icon button).
+  //     sort pill, not a separate icon button).
+  //   - The range filter trigger stays a sibling icon button. Keeping
+  //     sort and filter as siblings avoids invalid nested button
+  //     markup when this header renders inside a dropdown trigger.
   //   - Unsorted columns render no icon. The hover affordance is
   //     just the label changing color. Drops the "every column
   //     looks like a button" visual noise from before.
@@ -3282,24 +3290,27 @@ function ObligationQueueSortableHeader({
   const SortIcon = direction === 'asc' ? ChevronUp : direction === 'desc' ? ChevronDown : null
 
   return (
-    <button
-      type="button"
-      aria-label={sortLabel}
-      aria-pressed={direction !== false}
-      data-active={direction !== false ? true : undefined}
-      onClick={() =>
-        onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
-      }
-      className={cn(
-        'inline-flex min-w-0 items-center gap-0.5 -mx-1 px-1 py-0.5 rounded text-left',
-        'text-text-tertiary hover:text-text-primary',
-        'data-[active=true]:text-text-primary',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-      )}
-    >
+    <span className="-mx-1 inline-flex min-w-0 items-center gap-0.5">
+      <button
+        type="button"
+        aria-label={sortLabel}
+        aria-pressed={direction !== false}
+        data-active={direction !== false ? true : undefined}
+        onClick={() =>
+          onSortChange(nextHeaderSort({ currentSort: sort, ascSort, descSort, firstSort }))
+        }
+        className={cn(
+          'inline-flex min-w-0 items-center gap-0.5 rounded px-1 py-0.5 text-left',
+          'text-text-tertiary hover:text-text-primary',
+          'data-[active=true]:text-text-primary',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        )}
+      >
+        <span className="truncate">{label}</span>
+        {SortIcon ? <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden /> : null}
+      </button>
       {children}
-      {SortIcon ? <SortIcon className="size-3 shrink-0 text-text-accent" aria-hidden /> : null}
-    </button>
+    </span>
   )
 }
 
@@ -3423,6 +3434,7 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
 }
 
 function RangeHeaderFilterDropdown({
+  trigger = 'header',
   label,
   minLabel,
   maxLabel,
@@ -3435,6 +3447,7 @@ function RangeHeaderFilterDropdown({
   max,
   onCommit,
 }: {
+  trigger?: 'header' | 'icon'
   label: string
   minLabel: string
   maxLabel: string
@@ -3455,6 +3468,10 @@ function RangeHeaderFilterDropdown({
   const activeMin = open ? draftMin : currentMin
   const activeMax = open ? draftMax : currentMax
   const activeCount = (activeMin.trim() ? 1 : 0) + (activeMax.trim() ? 1 : 0)
+  const triggerNode =
+    trigger === 'icon'
+      ? tableHeaderFilterIconTrigger({ label, activeCount })
+      : tableHeaderFilterTrigger({ label, activeCount })
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -3471,7 +3488,7 @@ function RangeHeaderFilterDropdown({
 
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger render={tableHeaderFilterTrigger({ label, activeCount })} />
+      <DropdownMenuTrigger render={triggerNode} />
       <DropdownMenuContent className="w-72" align="start">
         <DropdownMenuGroup>
           <DropdownMenuLabel>{label}</DropdownMenuLabel>

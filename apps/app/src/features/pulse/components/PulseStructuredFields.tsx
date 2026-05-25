@@ -248,7 +248,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
           // size token as the icon-only Copy button below so the
           // section header heights agree (#16).
           <Button
-            type="button"
+            nativeButton={false}
             variant="link"
             size="sm"
             className="h-7"

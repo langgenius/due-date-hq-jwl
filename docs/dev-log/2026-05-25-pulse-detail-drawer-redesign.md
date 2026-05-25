@@ -118,6 +118,21 @@ items, the review is at 20 / 89.
 
 ## Follow-ups (not in scope here)
 
+## 2026-05-25 follow-up: official-source link semantics
+
+React DevTools reported Base UI's native-button warning in
+`PulseStructuredFields`: the Source card action rendered an
+external `<a>` through `Button render={...}` while keeping the
+default `nativeButton=true` semantics. The action is intentionally
+a link, not a form button, so it now sets `nativeButton={false}`.
+
+Validation:
+
+- `pnpm check`
+- Browser smoke on `http://localhost:5173/rules/pulse` detail
+  drawer: Source card external link still renders, and the
+  relevant Base UI `nativeButton` console warning is gone.
+
 - Yuqi flagged the **Suggested Actions** card title as
   "Suggested next step" — singular — to match the actual content
   (one card, not "actions" plural). Done in this commit as part
