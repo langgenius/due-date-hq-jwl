@@ -316,17 +316,22 @@ export function ClientsRoute() {
         }
         actions={
           <>
-            {/* 2026-05-23: compressed from text+icon to icon-only — saves
-                header chrome and matches the boxed archive glyph in the
-                design mock. Tooltip preserves the action name. */}
+            {/* 2026-05-25 (Yuqi /clients #2): button changes to show the
+                "Archive" verb explicitly — was icon-only with a tooltip
+                that hid the action name. The drawer behind it is the
+                imports archive (CSV migration history); a labeled button
+                makes the destination discoverable without hovering, and
+                matches GitHub's "labeled secondary action" rhythm we're
+                aligning on across the app's table-bearing routes. */}
             <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
               onClick={() => handleImportHistoryOpenChange(true)}
-              aria-label={t`Import history`}
-              title={t`Import history`}
+              aria-label={t`Imports archive`}
+              title={t`Imports archive — review past CSV migrations`}
             >
-              <ArchiveIcon className="size-4" aria-hidden />
+              <ArchiveIcon data-icon="inline-start" />
+              <Trans>Archive</Trans>
             </Button>
             <ClientsCreateSplitButton
               entityLabels={entityLabels}

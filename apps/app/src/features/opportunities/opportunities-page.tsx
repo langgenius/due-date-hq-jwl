@@ -19,14 +19,9 @@ import { formatDatePretty } from '@/lib/utils'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@duedatehq/ui/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
@@ -48,7 +43,13 @@ export function OpportunitiesPage() {
   const summary = opportunitiesQuery.data?.summary
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+    // 2026-05-25 (Yuqi /opportunities #1): page padding + outer gap
+    // aligned with /clients and /rules/library — was `gap-6 p-4 md:p-6`,
+    // now `gap-4 p-3 md:p-5` for the GitHub-density rhythm Yuqi
+    // requested across table-bearing routes. Layout structure follows
+    // the same pattern as /clients: PageHeader → optional Alert →
+    // stat-tile row → flat list (no Card wrapper).
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-5">
       <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (
@@ -62,56 +63,93 @@ export function OpportunitiesPage() {
         </Alert>
       ) : null}
 
-      <section className="grid gap-3 md:grid-cols-3">
-        <SummaryCard
+      {/* 2026-05-25 (Yuqi /opportunities #1): summary tiles migrated
+          from the heavy `Card` shape to the same `StatTile`
+          rectangle used on /rules/library + /clients. Identical
+          tone, identical caption-tier label scale — the three
+          summary surfaces across the app now read the same way. */}
+      <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <OpportunitiesStatTile
           label={<Trans>Advisory conversations</Trans>}
           value={summary?.advisoryConversationCount}
         />
-        <SummaryCard label={<Trans>Scope reviews</Trans>} value={summary?.scopeReviewCount} />
-        <SummaryCard
+        <OpportunitiesStatTile
+          label={<Trans>Scope reviews</Trans>}
+          value={summary?.scopeReviewCount}
+        />
+        <OpportunitiesStatTile
           label={<Trans>Retention check-ins</Trans>}
           value={summary?.retentionCheckInCount}
         />
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>
+      {/* 2026-05-25 (Yuqi /opportunities #1): list section drops the
+          Card chrome (Card / CardHeader / CardContent) so it sits
+          flat on the page background — same rhythm as /clients,
+          /rules/library, /deadlines. The "Business guidance queue"
+          h2 + description anchor the section without a bordered
+          frame; rows still get hairline separators via
+          divide-y. */}
+      <section className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold tracking-tight text-text-primary">
             <Trans>Business guidance queue</Trans>
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-text-tertiary">
             <Trans>Open the client to review facts before deciding whether to follow up.</Trans>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {opportunitiesQuery.isLoading ? (
-            <div className="grid gap-3">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-          ) : opportunities.length === 0 ? (
-            <EmptyState
-              icon={SparklesIcon}
-              title={<Trans>No opportunity cues yet</Trans>}
-              description={
-                <Trans>
-                  Add client facts, filing profiles, and due-date work before the guidance queue has
-                  enough signal.
-                </Trans>
-              }
-            />
-          ) : (
-            <div className="divide-y divide-divider-subtle">
-              {opportunities.map((opportunity) => (
-                <OpportunityRow key={opportunity.id} opportunity={opportunity} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+        {opportunitiesQuery.isLoading ? (
+          <div className="grid gap-2">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        ) : opportunities.length === 0 ? (
+          <EmptyState
+            icon={SparklesIcon}
+            title={<Trans>No opportunity cues yet</Trans>}
+            description={
+              <Trans>
+                Add client facts, filing profiles, and due-date work before the guidance queue has
+                enough signal.
+              </Trans>
+            }
+          />
+        ) : (
+          <div className="divide-y divide-divider-subtle">
+            {opportunities.map((opportunity) => (
+              <OpportunityRow key={opportunity.id} opportunity={opportunity} />
+            ))}
+          </div>
+        )}
+      </section>
 
       <DismissedOpportunitiesSection />
+    </div>
+  )
+}
+
+// 2026-05-25 (Yuqi /opportunities #1): stat tile primitive mirroring
+// rule library's StatTile shape — uppercase caption-tier label, big
+// tabular number. Skeleton placeholder when value is undefined. No
+// click target (these are read-only summaries; clicking opens the
+// queue below which is already on the same page).
+function OpportunitiesStatTile({ label, value }: { label: ReactNode; value: number | undefined }) {
+  return (
+    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+      <div className="flex flex-col gap-0.5">
+        <span
+          className={cn('text-caption-xs font-medium uppercase tracking-wider text-text-tertiary')}
+        >
+          {label}
+        </span>
+        {value === undefined ? (
+          <Skeleton className="h-7 w-12" />
+        ) : (
+          <span className="text-xl font-semibold tabular-nums text-text-primary">{value}</span>
+        )}
+      </div>
     </div>
   )
 }
@@ -270,21 +308,6 @@ function humanizeOpportunityKey(key: string): string {
 // the raw ISO did.
 function formatDismissalDate(iso: string): string {
   return formatDatePretty(iso)
-}
-
-function SummaryCard({ label, value }: { label: ReactNode; value: number | undefined }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 p-4">
-        <span className="text-sm text-text-secondary">{label}</span>
-        {value === undefined ? (
-          <Skeleton className="h-7 w-10" />
-        ) : (
-          <span className="text-2xl font-semibold tabular-nums text-text-primary">{value}</span>
-        )}
-      </CardContent>
-    </Card>
-  )
 }
 
 // 2026-05-24 (critique P2): default snooze window when the user

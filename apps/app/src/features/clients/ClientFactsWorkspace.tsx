@@ -104,6 +104,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StateBadge } from '@/components/primitives/state-badge'
 import { formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -122,7 +123,6 @@ import {
   useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
-import { SurfaceSummaryStrip } from '@/features/_surface-vocabulary'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 // `SectionFrame` + `SectionLabel` imports retired 2026-05-24 with the
@@ -621,7 +621,11 @@ export function ClientFactsWorkspace({
   const navigate = useNavigate()
   const currentUserName = useCurrentUserName()
   const { openDrawer: openClientDrawer } = useClientDrawer()
-  const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
+  // 2026-05-25 (Yuqi /clients #8): header-filter open-state retired
+  // with the move of all filter dropdowns into the ClientsFilterToolbar
+  // strip above the table. Each toolbar trigger now manages its own
+  // uncontrolled open state, so we no longer need to coordinate
+  // mutual-exclusion at the table level.
   const clientOptions = useMemo<FilterOption[]>(
     () =>
       clients
@@ -674,10 +678,6 @@ export function ClientFactsWorkspace({
         return a.label.localeCompare(b.label)
       })
   }, [clients, t])
-  const setHeaderFilterOpen = useCallback((filterId: string, nextOpen: boolean) => {
-    setOpenHeaderFilter((current) => (nextOpen ? filterId : current === filterId ? null : current))
-  }, [])
-
   // Column order per the 2026-05-21 product review (with L-7
   // "Other states" merged into the unified States column 2026-05-22):
   //
@@ -695,31 +695,19 @@ export function ClientFactsWorkspace({
     () => [
       {
         accessorKey: 'name',
-        // 2026-05-23: filter and sort split into distinct click targets.
-        // Label + sort arrow on the LEFT (clicking anywhere on the
-        // label cycles sort); funnel icon on the RIGHT (opens the
-        // filter dropdown). Per Yuqi's audit — filter should never be
-        // mistaken for sort and vice versa.
+        // 2026-05-25 (Yuqi /clients #8): filter funnel removed from
+        // the column header — was an icon-only TableHeaderMultiFilter
+        // sitting on the right edge of every filterable column. All
+        // four filters (Client / States / Entity / Owner) now live in
+        // a single ToolbarFilters row above the table, matching the
+        // Alerts page rhythm. Column header keeps only the sort
+        // arrow.
         header: ({ column }) => (
-          <div className="flex items-center justify-between gap-1">
-            <ColumnSortHeader
-              label={t`Client`}
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-            />
-            <TableHeaderMultiFilter
-              trigger="icon"
-              label={t`Client`}
-              open={openHeaderFilter === 'client'}
-              onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
-              options={clientOptions}
-              selected={clientFilter}
-              emptyLabel={t`No clients`}
-              searchable
-              searchPlaceholder={t`Search clients`}
-              onSelectedChange={onClientFilterChange}
-            />
-          </div>
+          <ColumnSortHeader
+            label={t`Client`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+          />
         ),
         cell: ({ row }) => {
           const matches = pulseMatchesByClient.get(row.original.id)
@@ -768,23 +756,11 @@ export function ClientFactsWorkspace({
       {
         accessorKey: 'state',
         header: ({ column }) => (
-          <div className="flex items-center justify-between gap-1">
-            <ColumnSortHeader
-              label={t`States`}
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-            />
-            <TableHeaderMultiFilter
-              trigger="icon"
-              label={t`States`}
-              open={openHeaderFilter === 'state'}
-              onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
-              options={stateOptions}
-              selected={stateFilter}
-              emptyLabel={t`No states`}
-              onSelectedChange={onStateFilterChange}
-            />
-          </div>
+          <ColumnSortHeader
+            label={t`States`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+          />
         ),
         // Render primary state and any additional filing states inline:
         // primary state = filled secondary badge, additional states =
@@ -794,6 +770,14 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
+        // 2026-05-25 (Yuqi /clients #7): state representation unified
+        // with the Alerts page + Pulse drawer — was a square `Badge`
+        // with mono-text state code, now the same circular StateBadge
+        // SVG flag/seal motif used across every other surface that
+        // shows a jurisdiction. Primary state stays at the front; up
+        // to 2 additional states follow at the same scale. The
+        // overflow chip stays as a +N count so the row width is
+        // predictable.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
@@ -804,17 +788,9 @@ export function ClientFactsWorkspace({
           const overflow = others.length - visibleOthers.length
           return (
             <div className="flex flex-wrap items-center gap-1">
-              <Badge variant="secondary" className="rounded-sm font-mono uppercase tabular-nums">
-                {primary}
-              </Badge>
+              <StateBadge code={primary} size="sm" title={primary} />
               {visibleOthers.map((state) => (
-                <Badge
-                  key={state}
-                  variant="outline"
-                  className="rounded-sm font-mono uppercase tabular-nums"
-                >
-                  {state}
-                </Badge>
+                <StateBadge key={state} code={state} size="sm" title={state} />
               ))}
               {overflow > 0 ? (
                 <span
@@ -842,26 +818,21 @@ export function ClientFactsWorkspace({
         // the client.
         accessorKey: 'entityType',
         header: ({ column }) => (
-          <div className="flex items-center justify-between gap-1">
-            <ColumnSortHeader
-              label={t`Entity`}
-              sortState={column.getIsSorted()}
-              onToggle={() => column.toggleSorting()}
-            />
-            <TableHeaderMultiFilter
-              trigger="icon"
-              label={t`Entity`}
-              open={openHeaderFilter === 'entity'}
-              onOpenChange={(nextOpen) => setHeaderFilterOpen('entity', nextOpen)}
-              options={entityOptions}
-              selected={entityFilter}
-              emptyLabel={t`No entities`}
-              onSelectedChange={onEntityFilterChange}
-            />
-          </div>
+          <ColumnSortHeader
+            label={t`Entity`}
+            sortState={column.getIsSorted()}
+            onToggle={() => column.toggleSorting()}
+          />
         ),
+        // 2026-05-25 (Yuqi /clients #6): entity badge unified with
+        // the detail-page header chip (line ~1893). Was `rounded-sm
+        // font-normal tabular-nums`, now matches detail's `text-xs`
+        // shape so the same identity fact reads the same way on both
+        // surfaces. tabular-nums dropped — entity labels aren't
+        // numeric ("S corp", "LLC"), the tabular-nums override was a
+        // copy-paste artifact from the dot column next door.
         cell: ({ row }) => (
-          <Badge variant="outline" className="rounded-sm font-normal tabular-nums">
+          <Badge variant="outline" className="text-xs font-normal">
             {entityLabels[row.original.entityType]}
           </Badge>
         ),
@@ -1043,26 +1014,10 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'assigneeName',
-        // Owner has filter but no sort in the mock — render the label
-        // as static text and the funnel icon as the only click target.
         header: () => (
-          <div className="flex items-center justify-between gap-1">
-            <span className="text-xs font-medium tracking-wider uppercase text-text-tertiary">
-              <Trans>Owner</Trans>
-            </span>
-            <TableHeaderMultiFilter
-              trigger="icon"
-              label={t`Owner`}
-              open={openHeaderFilter === 'owner'}
-              onOpenChange={(nextOpen) => setHeaderFilterOpen('owner', nextOpen)}
-              options={ownerOptions}
-              selected={ownerFilter}
-              emptyLabel={t`No owners`}
-              searchable
-              searchPlaceholder={t`Search owners`}
-              onSelectedChange={onOwnerFilterChange}
-            />
-          </div>
+          <span className="text-xs font-medium tracking-wider uppercase text-text-tertiary">
+            <Trans>Owner</Trans>
+          </span>
         ),
         cell: ({ row }) => (
           <ClientAssigneeAvatar
@@ -1097,26 +1052,12 @@ export function ClientFactsWorkspace({
       },
     ],
     [
-      clientFilter,
-      clientOptions,
       currentUserName,
-      entityFilter,
       entityLabels,
-      entityOptions,
       factsModel.readinessById,
       obligationSummariesByClient,
-      onClientFilterChange,
-      onEntityFilterChange,
-      onOwnerFilterChange,
-      onStateFilterChange,
-      openHeaderFilter,
       opportunityCountByClient,
-      ownerFilter,
-      ownerOptions,
       pulseMatchesByClient,
-      setHeaderFilterOpen,
-      stateFilter,
-      stateOptions,
       t,
     ],
   )
@@ -1229,14 +1170,29 @@ export function ClientFactsWorkspace({
         clients={clients}
       />
 
-      {/* Column-header filters are the only filter pattern on this
-          surface — Client, Jurisdiction, and Owner each carry their
-          own filter trigger in the column header. The standalone
-          chip row that used to sit here is gone (Entity and Pulse
-          filters lose their UI; the URL params still drive the
-          filter pipeline for deep links). Pulse filtering also
-          lives on the action strip's "Pulse hits" tile, so removing
-          the chip doesn't lose user-facing functionality. */}
+      {/* 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
+          table — same rhythm as /rules/pulse, where the filter
+          dropdowns live in their own row above the alert list. Was
+          previously inline funnel icons on each column header (one
+          per filter), which read as random table chrome rather than
+          a deliberate filter band. The toolbar version surfaces all
+          four filters in one scannable strip; column headers keep
+          only the sort arrow. A Reset button on the right clears
+          every filter at once. */}
+      <ClientsFilterToolbar
+        clientOptions={clientOptions}
+        clientFilter={clientFilter}
+        onClientFilterChange={onClientFilterChange}
+        stateOptions={stateOptions}
+        stateFilter={stateFilter}
+        onStateFilterChange={onStateFilterChange}
+        entityOptions={entityOptions}
+        entityFilter={entityFilter}
+        onEntityFilterChange={onEntityFilterChange}
+        ownerOptions={ownerOptions}
+        ownerFilter={ownerFilter}
+        onOwnerFilterChange={onOwnerFilterChange}
+      />
 
       {/* Frameless table — Card / CardHeader / CardContent + inner
           rounded border removed per the 2026-05-21 design pass. The
@@ -1376,6 +1332,105 @@ function handleClientRowKeyDown(
 }
 
 /**
+ * 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
+ * /clients table. Lifts the four column-header funnel filters
+ * (Client / States / Entity / Owner) into one scannable strip,
+ * matching the /rules/pulse rhythm. Each filter is a toolbar-
+ * trigger TableHeaderMultiFilter (wide outline button with the
+ * label inline + a count chip when active). Reset on the right
+ * clears every filter at once.
+ */
+function ClientsFilterToolbar({
+  clientOptions,
+  clientFilter,
+  onClientFilterChange,
+  stateOptions,
+  stateFilter,
+  onStateFilterChange,
+  entityOptions,
+  entityFilter,
+  onEntityFilterChange,
+  ownerOptions,
+  ownerFilter,
+  onOwnerFilterChange,
+}: {
+  clientOptions: TableFilterOption[]
+  clientFilter: readonly string[]
+  onClientFilterChange: (next: string[]) => void
+  stateOptions: TableFilterOption[]
+  stateFilter: readonly string[]
+  onStateFilterChange: (next: string[]) => void
+  entityOptions: TableFilterOption[]
+  entityFilter: readonly string[]
+  onEntityFilterChange: (next: string[]) => void
+  ownerOptions: TableFilterOption[]
+  ownerFilter: readonly string[]
+  onOwnerFilterChange: (next: string[]) => void
+}) {
+  const { t } = useLingui()
+  const filtersActive =
+    clientFilter.length > 0 ||
+    stateFilter.length > 0 ||
+    entityFilter.length > 0 ||
+    ownerFilter.length > 0
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <TableHeaderMultiFilter
+        trigger="toolbar"
+        label={t`Client`}
+        options={clientOptions}
+        selected={clientFilter}
+        emptyLabel={t`No clients`}
+        searchable
+        searchPlaceholder={t`Search clients`}
+        onSelectedChange={onClientFilterChange}
+      />
+      <TableHeaderMultiFilter
+        trigger="toolbar"
+        label={t`States`}
+        options={stateOptions}
+        selected={stateFilter}
+        emptyLabel={t`No states`}
+        searchable
+        searchPlaceholder={t`Search states`}
+        onSelectedChange={onStateFilterChange}
+      />
+      <TableHeaderMultiFilter
+        trigger="toolbar"
+        label={t`Entity`}
+        options={entityOptions}
+        selected={entityFilter}
+        emptyLabel={t`No entities`}
+        onSelectedChange={onEntityFilterChange}
+      />
+      <TableHeaderMultiFilter
+        trigger="toolbar"
+        label={t`Owner`}
+        options={ownerOptions}
+        selected={ownerFilter}
+        emptyLabel={t`No owners`}
+        searchable
+        searchPlaceholder={t`Search owners`}
+        onSelectedChange={onOwnerFilterChange}
+      />
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={!filtersActive}
+        onClick={() => {
+          onClientFilterChange([])
+          onStateFilterChange([])
+          onEntityFilterChange([])
+          onOwnerFilterChange([])
+        }}
+      >
+        <Trans>Reset</Trans>
+      </Button>
+    </div>
+  )
+}
+
+/**
  * Top-of-page action strip for `/clients`. Replaces the older
  * four-tile configuration read-out ("Ready for rules · Needs facts ·
  * Imported · States covered") with signals that drive a same-day
@@ -1435,23 +1490,35 @@ function ClientsActionStrip({
     return { atRiskCount: atRisk, waitingOnClientCount: waiting }
   }, [obligationSummariesByClient])
 
-  // 2026-05-22: 3-tile grid retired in favor of the shared
-  // SurfaceSummaryStrip. Banner stays — it's the only place that
-  // carries the "Fix now" CTA, and Yuqi explicitly asked for it to
-  // remain when needsFactsCount > 0 (see unified-table-surface-
-  // vocabulary.md Part 6 risk #2 — keeping banner + strip is the
-  // discoverability path for missing facts).
+  // 2026-05-25 (Yuqi /clients #9): retired the SurfaceSummaryStrip
+  // (4 dot-separated counts in one line) in favor of three card
+  // tiles matching the rule library's StatTile pattern. Each tile is
+  // a discrete surface; the eye finds them as distinct items rather
+  // than as run-on prose. Missing-facts moves entirely into the
+  // banner above (it was duplicated in both the strip and the
+  // banner) — banner now carries that single CTA cleanly.
   const hasBanner = needsFactsCount > 0
   const hasAnyMetric =
     atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0 || needsFactsCount > 0
   if (!hasBanner && !hasAnyMetric && !isLoading) return null
 
   return (
-    <div className="flex flex-col gap-3">
+    // 2026-05-25 (Yuqi /clients #4): wrapper gap-3 → gap-2 so the
+    // strip below the banner sits 8px below instead of 12px. The
+    // banner + cards now read as one related cluster, not two
+    // separate sections.
+    <div className="flex flex-col gap-2">
       {hasBanner ? (
+        // 2026-05-25 (Yuqi /clients #3): banner was reading too
+        // muted — `variant="warning"` with the standard amber bg
+        // sat at the same visual weight as the cards below. Made
+        // the alert more prominent with a 3px left rail in
+        // severity-medium amber + a heavier shadow ring. The eye
+        // catches it as "this is the action you should take now,"
+        // not "this is one of several signals."
         <Alert
           variant="warning"
-          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-2 border-l-[3px] border-l-severity-medium shadow-sm shadow-state-warning-hover-alt sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="flex items-start gap-2">
             <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
@@ -1464,7 +1531,7 @@ function ClientsActionStrip({
               <button
                 type="button"
                 onClick={onFixNeedsFacts}
-                className="text-left underline decoration-dotted underline-offset-2 outline-none hover:decoration-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                className="text-left font-medium text-text-primary underline decoration-dotted underline-offset-2 outline-none hover:decoration-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
               >
                 <Plural
                   value={needsFactsCount}
@@ -1474,55 +1541,116 @@ function ClientsActionStrip({
               </button>
             </AlertDescription>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={onFixNeedsFacts}>
+          {/* 2026-05-25 (Yuqi /clients #3): Fix-now button promoted
+              from `variant="outline"` → default primary, so the
+              banner has a clear primary CTA color, not just a
+              bordered chip. */}
+          <Button type="button" size="sm" onClick={onFixNeedsFacts}>
             <Trans>Fix now</Trans>
           </Button>
         </Alert>
       ) : null}
-      <SurfaceSummaryStrip
-        label={t`Clients`}
-        loading={isLoading}
-        items={[
-          {
-            key: 'at-risk',
-            value: atRiskCount,
-            label: t`at risk`,
-            tone: atRiskCount > 0 ? 'destructive' : 'muted',
-            active: atRiskActive,
-            // Clickable when there's something to filter OR when the
-            // filter is already active (so the user can toggle it off
-            // even if a different filter brought the count to 0).
-            ...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {}),
-          },
-          {
-            key: 'waiting',
-            value: waitingOnClientCount,
-            label: t`waiting on client`,
-            tone: waitingOnClientCount > 0 ? 'warning' : 'muted',
-            active: waitingActive,
-            ...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {}),
-          },
-          {
-            // 2026-05-23: relabeled per design mock from "Pulse hits" →
-            // "Pass file". Wiring is preserved (Pulse-match filter
-            // surfacing clients flagged by recent rule-library alerts).
-            // If the intent was a different filter, swap the data
-            // source — the label change alone is safe.
-            key: 'pulse',
-            value: pulseHitCount,
-            label: t`Pass file`,
-            tone: pulseHitCount > 0 ? 'review' : 'muted',
-            ...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {}),
-          },
-          {
-            key: 'missing-facts',
-            value: needsFactsCount,
-            label: t`missing facts`,
-            tone: needsFactsCount > 0 ? 'warning' : 'muted',
-            ...(needsFactsCount > 0 ? { onClick: onFixNeedsFacts } : {}),
-          },
-        ]}
-      />
+      {/* 2026-05-25 (Yuqi /clients #9): three card tiles — At risk /
+          Waiting / Pulse hits. Mirrors the rule library's StatTile
+          row. Each tile is clickable: At risk and Waiting toggle the
+          local filter (active state shows a pressed background);
+          Pulse hits opens the Pulse-affected filter. The fourth
+          "missing facts" metric moved into the banner above. */}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <ClientsStatTile
+          label={t`At risk`}
+          value={atRiskCount}
+          sublabel={t`overdue obligation`}
+          sublabelPlural={t`overdue obligations`}
+          tone="destructive"
+          active={atRiskActive}
+          {...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {})}
+        />
+        <ClientsStatTile
+          label={t`Waiting on client`}
+          value={waitingOnClientCount}
+          sublabel={t`client owes docs`}
+          sublabelPlural={t`clients owe docs`}
+          tone="warning"
+          active={waitingActive}
+          {...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {})}
+        />
+        <ClientsStatTile
+          label={t`Pulse hits`}
+          value={pulseHitCount}
+          sublabel={t`client flagged by a Pulse alert`}
+          sublabelPlural={t`clients flagged by a Pulse alert`}
+          tone="review"
+          {...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {})}
+        />
+      </div>
+    </div>
+  )
+}
+
+// 2026-05-25 (Yuqi /clients #9): stat-tile primitive scoped to the
+// /clients action strip. Mirrors the rule library's StatTile shape
+// (uppercase caption label, big tabular number, optional subline)
+// but adds the `active` pressed-state visual that the strip's
+// filter chips relied on. Each tile can be inert, link, or button.
+function ClientsStatTile({
+  label,
+  value,
+  sublabel,
+  sublabelPlural,
+  tone,
+  onClick,
+  active = false,
+}: {
+  label: string
+  value: number
+  sublabel: string
+  sublabelPlural: string
+  tone: 'destructive' | 'warning' | 'review'
+  onClick?: () => void
+  active?: boolean
+}) {
+  const valueColor =
+    value === 0
+      ? 'text-text-muted'
+      : tone === 'destructive'
+        ? 'text-text-destructive'
+        : tone === 'warning'
+          ? 'text-text-warning'
+          : 'text-status-review'
+  const inner = (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {label}
+      </span>
+      <div className="flex items-baseline gap-2">
+        <span className={cn('text-xl font-semibold tabular-nums', valueColor)}>{value}</span>
+        <span className="text-xs text-text-tertiary">
+          {value === 1 ? sublabel : sublabelPlural}
+        </span>
+      </div>
+    </div>
+  )
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active || undefined}
+        className={cn(
+          'inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2 text-left transition-colors',
+          'hover:border-divider-regular hover:bg-state-base-hover',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          active && 'border-state-accent-solid bg-state-accent-hover hover:bg-state-accent-hover',
+        )}
+      >
+        {inner}
+      </button>
+    )
+  }
+  return (
+    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+      {inner}
     </div>
   )
 }
