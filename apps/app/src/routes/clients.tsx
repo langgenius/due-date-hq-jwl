@@ -297,7 +297,10 @@ export function ClientsRoute() {
   )
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+    // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
+    // padding md:p-6 → md:p-5. /clients is a list page — the table
+    // is what CPAs scan; chrome around it should be efficient.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-5">
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">

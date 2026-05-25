@@ -1262,7 +1262,12 @@ export function ClientFactsWorkspace({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+          {/* 2026-05-25 (GitHub-density pass): row padding py-3 → py-2.
+              /clients is a long list — saves ~8px per row, ~136px
+              per viewport at 17 rows. Multi-line names still get
+              room via the table's line-height; cells visibly tighter
+              without losing legibility. */}
+          <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
             {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
