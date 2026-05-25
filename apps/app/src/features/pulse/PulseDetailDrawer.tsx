@@ -68,6 +68,20 @@ import {
 interface PulseDetailDrawerProps {
   alertId: string | null
   onClose: () => void
+  /**
+   * 2026-05-25 (Yuqi /rules/pulse #9 — drawer → page panel):
+   * - `'sheet'` (default): legacy floating right-side Sheet with
+   *   backdrop. Used as the off-route fallback so callers that
+   *   open the drawer from outside /rules/pulse (e.g. the
+   *   dashboard NeedsAttention card before it's been migrated)
+   *   still see a usable rendering.
+   * - `'panel'`: renders the same body as an inline `<aside>`
+   *   that the route's layout can drop into a flex sibling
+   *   column next to the alerts list. No backdrop, no
+   *   viewport-fixed positioning — the panel splits the page
+   *   like the obligation drawer on /deadlines.
+   */
+  mode?: 'sheet' | 'panel'
 }
 
 const REVERTABLE_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
@@ -146,7 +160,7 @@ function usePulsePermissions(): {
 // Pulse detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
 // evidence + email outbox in one transaction (see packages/db/src/repo/pulse.ts).
-export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) {
+export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDetailDrawerProps) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const open = alertId !== null
@@ -449,164 +463,133 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
     )
   }
 
-  return (
-    <Sheet open={open} onOpenChange={(next) => (next ? null : onClose())}>
-      {/* 2026-05-25 (Yuqi Today #23): right panel now floats with a
-          20px gap on top / bottom / right edges instead of being
-          flush to the viewport. The panel reads as a discrete object
-          on the page (a "card slid in from the right") rather than
-          a wall that fully replaces the right side of the screen.
-          Gap implemented via `top-5 bottom-5 right-5` overrides on
-          the popup's positioning; the SheetContent primitive's
-          default `inset-y-0 right-0 h-full` still applies via
-          data-[side=right] cascade but our explicit `top-5 bottom-5
-          right-5 h-auto` overrides the inset to create the gap.
-          `rounded-lg` on all corners (not just the inner edge) so
-          the floating panel looks like a card from every side. */}
-      <SheetContent
-        side="right"
-        className="data-[side=right]:top-5 data-[side=right]:right-5 data-[side=right]:bottom-5 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] data-[side=right]:rounded-lg sm:data-[side=right]:w-[calc(100vw-2.5rem)] sm:data-[side=right]:max-w-[calc(100vw-2.5rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2.5rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2.5rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2.5rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2.5rem))]"
-      >
-        {/*
-          2026-05-25 (Yuqi review Phase 2):
-          Why a right-slide panel here (not a full page)?
-
-          Pulse alerts are quick-decision work. Each one takes a CPA
-          ~1-3 minutes to scan + decide (apply / dismiss / snooze).
-          The list of alerts is the operational unit; the drawer is
-          "review one card from the list." Slide-in keeps the list
-          visible so the CPA can sweep through alerts without
-          losing place. Same pattern as the obligation drawer and
-          client drawer — consistency across surfaces beats
-          per-page novelty.
-
-          If alerts ever become a meaty per-item investigation
-          (e.g. a full timeline + multi-tab structured editor) we'll
-          revisit and promote to a dedicated route.
-        */}
-        <SheetHeader className="border-b border-divider-subtle">
-          {detailQuery.isLoading || !detail ? (
-            <DetailHeaderSkeleton />
-          ) : (
-            // Header redesign (Yuqi #9, #12, #13, #14, #15, #19):
-            //  - Title promoted to text-2xl so it actually reads as
-            //    the h1 of the drawer.
-            //  - Status badges row (source + status) sits BELOW the
-            //    title at text-sm — quieter chrome, not the
-            //    headline.
-            //  - SheetDescription was duplicating the title's text
-            //    in most cases. Dropped — the title carries the
-            //    message, and the AI-confidence alert below
-            //    explains *why* this needs attention.
-            //  - PulseConfidenceBadge dropped from this row when
-            //    confidence is low — it gets absorbed into the
-            //    "Low AI confidence" alert below so the same
-            //    concept appears once, not twice (#19). For
-            //    healthy confidence it stays here as a quiet info
-            //    chip.
-            (() => {
-              const drawerDotTone = pulseAlertTone({
-                confidence: detail.alert.confidence,
-                matchedCount: detail.alert.matchedCount,
-                needsReviewCount: detail.alert.needsReviewCount,
-                firmStatus: detail.alert.status,
-              })
-              const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
-              return (
-                // 2026-05-25 (Yuqi Alerts second pass #7): the badges
-                // row now sits INSIDE the title column (same
-                // `min-w-0 flex-1` div as title + description), not
-                // as a sibling of the dot+title cluster. Before, the
-                // badges started at the SheetHeader's left padding
-                // edge while the title text started after the
-                // PulsingDot + gap-3 — so the badges were ~20px to
-                // the left of where the title text actually began.
-                // Now everything in the title column shares one
-                // left edge.
-                <div className="flex items-start gap-3">
-                  <PulsingDot
-                    tone={drawerDotTone}
-                    active
-                    label={pulseAlertToneLabel(drawerDotTone)}
-                    className="mt-2 size-2.5 shrink-0"
-                  />
-                  <div className="flex min-w-0 flex-1 flex-col gap-3">
-                    <div className="flex flex-col">
-                      <SheetTitle className="text-xl font-semibold leading-tight text-text-primary">
-                        {detail.alert.title}
-                      </SheetTitle>
-                      {/* Optional summary — only render if it's
-                          meaningfully different from the title. Many
-                          alerts have a summary that just rewords the
-                          title; show it only when there's net new
-                          information. */}
-                      {detail.alert.summary &&
-                      detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                        <SheetDescription className="mt-1.5 text-sm text-text-secondary">
-                          {detail.alert.summary}
-                        </SheetDescription>
-                      ) : (
-                        // SheetDescription is required for a11y
-                        // even when we don't render it visually —
-                        // the dialog needs an accessible description.
-                        // Use sr-only so it satisfies the contract
-                        // without painting redundant chrome.
-                        <SheetDescription className="sr-only">
-                          {detail.alert.title}
-                        </SheetDescription>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <PulseSourceBadge
-                        source={detail.alert.source}
-                        sourceUrl={detail.alert.sourceUrl}
-                      />
-                      <PulseStatusBadge status={detail.alert.status} />
-                      <PulseSourceStatusBadge status={detail.alert.sourceStatus} />
-                      {/* Confidence chip stays here only when the AI
+  // 2026-05-25 (Yuqi /rules/pulse #9 — drawer → page panel):
+  // outermost render shape is conditional on `mode`. The body
+  // (header + content + footer) is shared between both modes so
+  // every Pulse-detail surface — the floating Sheet (off-route
+  // legacy) AND the inline page panel on /rules/pulse — uses
+  // identical content. Mirrors the obligation drawer pattern
+  // (see `ObligationQueueDetailDrawer` in routes/obligations.tsx)
+  // which already proves this works for cross-surface drawers
+  // that need both an in-route panel + a floating fallback.
+  const body = (
+    <>
+      <SheetHeader className="border-b border-divider-subtle">
+        {detailQuery.isLoading || !detail ? (
+          <DetailHeaderSkeleton />
+        ) : (
+          // Header redesign (Yuqi #9, #12, #13, #14, #15, #19):
+          //  - Title promoted to text-2xl so it actually reads as
+          //    the h1 of the drawer.
+          //  - Status badges row (source + status) sits BELOW the
+          //    title at text-sm — quieter chrome, not the
+          //    headline.
+          //  - SheetDescription was duplicating the title's text
+          //    in most cases. Dropped — the title carries the
+          //    message, and the AI-confidence alert below
+          //    explains *why* this needs attention.
+          //  - PulseConfidenceBadge dropped from this row when
+          //    confidence is low — it gets absorbed into the
+          //    "Low AI confidence" alert below so the same
+          //    concept appears once, not twice (#19). For
+          //    healthy confidence it stays here as a quiet info
+          //    chip.
+          (() => {
+            const drawerDotTone = pulseAlertTone({
+              confidence: detail.alert.confidence,
+              matchedCount: detail.alert.matchedCount,
+              needsReviewCount: detail.alert.needsReviewCount,
+              firmStatus: detail.alert.status,
+            })
+            const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
+            return (
+              // 2026-05-25 (Yuqi Alerts second pass #7): the badges
+              // row now sits INSIDE the title column (same
+              // `min-w-0 flex-1` div as title + description), not
+              // as a sibling of the dot+title cluster. Before, the
+              // badges started at the SheetHeader's left padding
+              // edge while the title text started after the
+              // PulsingDot + gap-3 — so the badges were ~20px to
+              // the left of where the title text actually began.
+              // Now everything in the title column shares one
+              // left edge.
+              <div className="flex items-start gap-3">
+                <PulsingDot
+                  tone={drawerDotTone}
+                  active
+                  label={pulseAlertToneLabel(drawerDotTone)}
+                  className="mt-2 size-2.5 shrink-0"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-3">
+                  <div className="flex flex-col">
+                    {/* 2026-05-25 (Yuqi /rules/pulse #9 — drawer →
+                          panel): SheetTitle / SheetDescription
+                          replaced with plain h2 + p so this same
+                          body renders in both Sheet root and an
+                          inline <aside> (panel mode). The
+                          Sheet-wrapped render path still satisfies
+                          a11y via sr-only SheetTitle +
+                          SheetDescription added on the outer
+                          wrapper below. */}
+                    <h2 className="text-xl font-semibold leading-tight text-text-primary">
+                      {detail.alert.title}
+                    </h2>
+                    {detail.alert.summary &&
+                    detail.alert.summary.trim() !== detail.alert.title.trim() ? (
+                      <p className="mt-1.5 text-sm text-text-secondary">{detail.alert.summary}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <PulseSourceBadge
+                      source={detail.alert.source}
+                      sourceUrl={detail.alert.sourceUrl}
+                    />
+                    <PulseStatusBadge status={detail.alert.status} />
+                    <PulseSourceStatusBadge status={detail.alert.sourceStatus} />
+                    {/* Confidence chip stays here only when the AI
                           is confident — low confidence is signalled
                           via the explicit alert block below so the
                           signal isn't shown twice. */}
-                      {!lowConfidence ? (
-                        <PulseConfidenceBadge confidence={detail.alert.confidence} />
-                      ) : null}
-                    </div>
+                    {!lowConfidence ? (
+                      <PulseConfidenceBadge confidence={detail.alert.confidence} />
+                    ) : null}
                   </div>
                 </div>
-              )
-            })()
-          )}
-        </SheetHeader>
+              </div>
+            )
+          })()
+        )}
+      </SheetHeader>
 
-        {/* 2026-05-25 (Yuqi Today #19): body gap reduced from gap-5
+      {/* 2026-05-25 (Yuqi Today #19): body gap reduced from gap-5
             (20px) to gap-4 (16px) and vertical padding from py-5
             to py-4 — denser scan rhythm so the drawer reads as
             information-dense, not as a series of cards with air
             between them. The CPA wants to see source → scope →
             action without paging the whole drawer. */}
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
-          {detailQuery.isError ? (
-            <Alert variant="destructive">
-              <AlertCircleIcon />
-              <AlertTitle>
-                <Trans>Couldn't load this alert</Trans>
-              </AlertTitle>
-              <AlertDescription>
-                {i18n._(pulseErrorDescriptor(detailQuery.error))}{' '}
-                <button
-                  type="button"
-                  className="underline"
-                  onClick={() => void detailQuery.refetch()}
-                >
-                  <Trans>Retry</Trans>
-                </button>
-              </AlertDescription>
-            </Alert>
-          ) : null}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
+        {detailQuery.isError ? (
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>
+              <Trans>Couldn't load this alert</Trans>
+            </AlertTitle>
+            <AlertDescription>
+              {i18n._(pulseErrorDescriptor(detailQuery.error))}{' '}
+              <button
+                type="button"
+                className="underline"
+                onClick={() => void detailQuery.refetch()}
+              >
+                <Trans>Retry</Trans>
+              </button>
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
-          {detail ? (
-            <>
-              {/* 2026-05-25 (Yuqi #10): Affected clients moved to
+        {detail ? (
+          <>
+            {/* 2026-05-25 (Yuqi #10): Affected clients moved to
                   the top of the drawer body. This is THE most
                   important question the CPA brings to a Pulse alert
                   — "does this hit my clients?". Previously it was
@@ -615,46 +598,46 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                   metadata before seeing the impact list. Empty case
                   (#10): if the alert has no affected clients, say
                   so explicitly instead of just hiding the table. */}
-              {detail.alert.actionMode === 'due_date_overlay' ? (
-                <section className="flex flex-col gap-3">
-                  <header className="flex items-baseline justify-between">
-                    <h3 className="text-base font-semibold text-text-primary">
-                      <ConceptLabel concept="pulse">
-                        <Trans>Affected clients</Trans>
-                      </ConceptLabel>
-                      {detail.affectedClients.length > 0 ? (
-                        <span className="ml-1.5 text-text-tertiary">
-                          ({detail.affectedClients.length})
-                        </span>
-                      ) : null}
-                    </h3>
-                    {stats ? <SelectionSummary stats={stats} /> : null}
-                  </header>
-                  {detail.affectedClients.length > 0 ? (
-                    <AffectedClientsTable
-                      rows={detail.affectedClients}
-                      selection={selection}
-                      confirmedReviewIds={confirmedReviewIds}
-                      excludedIds={excludedIds}
-                      onChangeSelection={setSelection}
-                      onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                      onToggleExcluded={
-                        permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
-                      }
-                      readOnly={!canApply}
-                    />
-                  ) : (
-                    <p className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
-                      <Trans>
-                        No clients matched this alert's scope. You can dismiss it or wait — if a new
-                        client is added that matches the scope, the alert will reopen.
-                      </Trans>
-                    </p>
-                  )}
-                </section>
-              ) : null}
+            {detail.alert.actionMode === 'due_date_overlay' ? (
+              <section className="flex flex-col gap-3">
+                <header className="flex items-baseline justify-between">
+                  <h3 className="text-base font-semibold text-text-primary">
+                    <ConceptLabel concept="pulse">
+                      <Trans>Affected clients</Trans>
+                    </ConceptLabel>
+                    {detail.affectedClients.length > 0 ? (
+                      <span className="ml-1.5 text-text-tertiary">
+                        ({detail.affectedClients.length})
+                      </span>
+                    ) : null}
+                  </h3>
+                  {stats ? <SelectionSummary stats={stats} /> : null}
+                </header>
+                {detail.affectedClients.length > 0 ? (
+                  <AffectedClientsTable
+                    rows={detail.affectedClients}
+                    selection={selection}
+                    confirmedReviewIds={confirmedReviewIds}
+                    excludedIds={excludedIds}
+                    onChangeSelection={setSelection}
+                    onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                    onToggleExcluded={
+                      permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
+                    }
+                    readOnly={!canApply}
+                  />
+                ) : (
+                  <p className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
+                    <Trans>
+                      No clients matched this alert's scope. You can dismiss it or wait — if a new
+                      client is added that matches the scope, the alert will reopen.
+                    </Trans>
+                  </p>
+                )}
+              </section>
+            ) : null}
 
-              {/* 2026-05-25 (Yuqi Alerts second pass #8): the
+            {/* 2026-05-25 (Yuqi Alerts second pass #8): the
                   SuggestedActionsPanel moved UP from below
                   PulseStructuredFields to immediately under the
                   affected-clients table. The CPA's primary action
@@ -665,21 +648,21 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                   manager review, safety checklist) all live below
                   the action panel for the CPA who wants to verify
                   before clicking. */}
-              <SuggestedActionsPanel
-                selectionCount={stats?.selectedCount ?? 0}
-                canApply={canApply}
-                sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
-                isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
-                isMutating={isMutating}
-                actionMode={detail.alert.actionMode}
-                onApply={handleApply}
-                onMarkReviewed={() => {
-                  setReasonAction('reviewed')
-                  setReasonText('')
-                }}
-              />
+            <SuggestedActionsPanel
+              selectionCount={stats?.selectedCount ?? 0}
+              canApply={canApply}
+              sourceRevoked={detail.alert.sourceStatus === 'source_revoked'}
+              isClosed={detail.alert.status === 'dismissed' || detail.alert.status === 'reverted'}
+              isMutating={isMutating}
+              actionMode={detail.alert.actionMode}
+              onApply={handleApply}
+              onMarkReviewed={() => {
+                setReasonAction('reviewed')
+                setReasonText('')
+              }}
+            />
 
-              {/* AI confidence: combined the small "AI 46%" badge
+            {/* AI confidence: combined the small "AI 46%" badge
                   with the "Low AI confidence" alert into one block
                   so the same concept isn't shown twice (#15, #19).
                   The alert is the canonical surface — it names the
@@ -691,172 +674,215 @@ export function PulseDetailDrawer({ alertId, onClose }: PulseDetailDrawerProps) 
                   toward the wrong mental model (data is wrong vs.
                   data needs verification). Amber matches the
                   semantics. */}
-              {isVeryLowPulseConfidence(detail.alert.confidence) ? (
-                <Alert variant="warning">
-                  <AlertCircleIcon />
-                  <AlertTitle>
-                    <ConceptLabel concept="aiConfidence">
-                      <Trans>
-                        AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
-                        before applying
-                      </Trans>
-                    </ConceptLabel>
-                  </AlertTitle>
-                  <AlertDescription>
+            {isVeryLowPulseConfidence(detail.alert.confidence) ? (
+              <Alert variant="warning">
+                <AlertCircleIcon />
+                <AlertTitle>
+                  <ConceptLabel concept="aiConfidence">
                     <Trans>
-                      The model extracted these fields with low confidence. Compare against the
-                      source excerpt below and the structured scope before pushing changes to
-                      clients.
+                      AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                      before applying
                     </Trans>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+                  </ConceptLabel>
+                </AlertTitle>
+                <AlertDescription>
+                  <Trans>
+                    The model extracted these fields with low confidence. Compare against the source
+                    excerpt below and the structured scope before pushing changes to clients.
+                  </Trans>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
-              <PulseStructuredFields detail={detail} />
+            <PulseStructuredFields detail={detail} />
 
-              {!canApply ? (
-                <Alert>
-                  <ShieldAlertIcon />
-                  <AlertTitle>
-                    <Trans>Read-only view</Trans>
-                  </AlertTitle>
-                  <AlertDescription>
-                    <Trans>Only owners and managers can apply Pulse changes.</Trans>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+            {!canApply ? (
+              <Alert>
+                <ShieldAlertIcon />
+                <AlertTitle>
+                  <Trans>Read-only view</Trans>
+                </AlertTitle>
+                <AlertDescription>
+                  <Trans>Only owners and managers can apply Pulse changes.</Trans>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
-              {detail.alert.sourceStatus === 'source_revoked' ? (
-                <Alert variant="destructive">
-                  <ShieldAlertIcon />
-                  <AlertTitle>
-                    <Trans>Source revoked</Trans>
-                  </AlertTitle>
-                  <AlertDescription>
-                    <Trans>
-                      This source is no longer trusted. The historical alert remains visible, but
-                      new apply, dismiss, snooze, and undo actions are disabled.
-                    </Trans>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
+            {detail.alert.sourceStatus === 'source_revoked' ? (
+              <Alert variant="destructive">
+                <ShieldAlertIcon />
+                <AlertTitle>
+                  <Trans>Source revoked</Trans>
+                </AlertTitle>
+                <AlertDescription>
+                  <Trans>
+                    This source is no longer trusted. The historical alert remains visible, but new
+                    apply, dismiss, snooze, and undo actions are disabled.
+                  </Trans>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
-              {detail.alert.actionMode === 'due_date_overlay' &&
-              permissions.canViewPriorityQueue ? (
-                <ManagerReviewPanel
-                  canManage={permissions.canManagePriorityReview}
-                  reviewStatus={priorityReview?.status ?? null}
-                  selectedCount={stats?.selectedCount ?? 0}
-                  excludedCount={excludedIds.size}
-                  needsReviewCount={stats?.needsReviewCount ?? 0}
-                  isMutating={isMutating}
-                  onConfirmAll={handleConfirmAllNeedsReview}
-                  onSave={() =>
-                    reviewPriorityMutation.mutate({
-                      alertId: detail.alert.id,
-                      selectedObligationIds: Array.from(selection),
-                      confirmedObligationIds: Array.from(confirmedReviewIds),
-                      excludedObligationIds: Array.from(excludedIds),
-                    })
-                  }
-                />
-              ) : null}
+            {detail.alert.actionMode === 'due_date_overlay' && permissions.canViewPriorityQueue ? (
+              <ManagerReviewPanel
+                canManage={permissions.canManagePriorityReview}
+                reviewStatus={priorityReview?.status ?? null}
+                selectedCount={stats?.selectedCount ?? 0}
+                excludedCount={excludedIds.size}
+                needsReviewCount={stats?.needsReviewCount ?? 0}
+                isMutating={isMutating}
+                onConfirmAll={handleConfirmAllNeedsReview}
+                onSave={() =>
+                  reviewPriorityMutation.mutate({
+                    alertId: detail.alert.id,
+                    selectedObligationIds: Array.from(selection),
+                    confirmedObligationIds: Array.from(confirmedReviewIds),
+                    excludedObligationIds: Array.from(excludedIds),
+                  })
+                }
+              />
+            ) : null}
 
-              {detail.alert.actionMode === 'due_date_overlay' ? <ApplySafetyChecklist /> : null}
-            </>
-          ) : null}
-        </div>
+            {detail.alert.actionMode === 'due_date_overlay' ? <ApplySafetyChecklist /> : null}
+          </>
+        ) : null}
+      </div>
 
-        {/* 2026-05-25 (Yuqi Alerts second pass #12): action bar
+      {/* 2026-05-25 (Yuqi Alerts second pass #12): action bar
             promoted from a hairline-bordered footer to a real
             committed surface — stronger top border, panel-section bg,
             and the primary Apply button bumped to default size (was
             sm). Reads as "this is where the decision happens" rather
             than as continuation chrome. */}
-        <SheetFooter className="border-t border-divider-regular bg-background-section">
-          {detail ? (
-            <DrawerActions
-              alertStatus={detail.alert.status}
-              sourceStatus={detail.alert.sourceStatus}
-              selectionCount={stats?.selectedCount ?? 0}
-              actionMode={detail.alert.actionMode}
-              canApply={canApply}
-              canRequestReview={canRequestPulseReview({
-                role: permissions.role,
-                alertStatus: detail.alert.status,
-                sourceStatus: detail.alert.sourceStatus,
-              })}
-              canApplyReviewed={permissions.canManagePriorityReview}
-              reviewedSetReady={priorityReview?.status === 'reviewed'}
-              isMutating={isMutating}
-              onApply={handleApply}
-              onMarkReviewed={() => {
-                setReasonAction('reviewed')
-                setReasonText('')
-              }}
-              onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-              onDismiss={() => {
-                setReasonAction('dismiss')
-                setReasonText('')
-              }}
-              onSnooze={() => {
-                setReasonAction('snooze')
-                setReasonText('')
-              }}
-              onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-              onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-              onRequestReview={() => setReviewDialogOpen(true)}
-              onCopyDraft={handleCopyDraft}
-            />
-          ) : null}
-        </SheetFooter>
-      </SheetContent>
-      {detail ? (
-        <PulseReviewRequestDialog
-          open={reviewDialogOpen}
-          note={reviewNote}
-          pending={requestReviewMutation.isPending}
-          onOpenChange={setReviewDialogOpen}
-          onChangeNote={setReviewNote}
-          onSubmit={() =>
-            requestReviewMutation.mutate({
-              alertId: detail.alert.id,
-              ...(reviewNote.trim() ? { note: reviewNote } : {}),
-            })
-          }
-        />
-      ) : null}
-      {detail ? (
-        <PulseReasonDialog
-          action={reasonAction}
-          reason={reasonText}
-          pending={
-            dismissMutation.isPending || snoozeMutation.isPending || markReviewedMutation.isPending
-          }
-          onChangeReason={setReasonText}
-          onOpenChange={(nextOpen) => {
-            if (!nextOpen) {
-              setReasonAction(null)
+      <SheetFooter className="border-t border-divider-regular bg-background-section">
+        {detail ? (
+          <DrawerActions
+            alertStatus={detail.alert.status}
+            sourceStatus={detail.alert.sourceStatus}
+            selectionCount={stats?.selectedCount ?? 0}
+            actionMode={detail.alert.actionMode}
+            canApply={canApply}
+            canRequestReview={canRequestPulseReview({
+              role: permissions.role,
+              alertStatus: detail.alert.status,
+              sourceStatus: detail.alert.sourceStatus,
+            })}
+            canApplyReviewed={permissions.canManagePriorityReview}
+            reviewedSetReady={priorityReview?.status === 'reviewed'}
+            isMutating={isMutating}
+            onApply={handleApply}
+            onMarkReviewed={() => {
+              setReasonAction('reviewed')
               setReasonText('')
-            }
-          }}
-          onSubmit={() => {
-            const trimmed = reasonText.trim()
-            if (!trimmed || !reasonAction) return
-            if (reasonAction === 'dismiss') {
-              dismissMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
-            } else if (reasonAction === 'snooze') {
-              snoozeMutation.mutate({
-                alertId: detail.alert.id,
-                until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                reason: trimmed,
-              })
-            } else {
-              markReviewedMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
-            }
-          }}
-        />
-      ) : null}
+            }}
+            onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
+            onDismiss={() => {
+              setReasonAction('dismiss')
+              setReasonText('')
+            }}
+            onSnooze={() => {
+              setReasonAction('snooze')
+              setReasonText('')
+            }}
+            onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+            onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+            onRequestReview={() => setReviewDialogOpen(true)}
+            onCopyDraft={handleCopyDraft}
+          />
+        ) : null}
+      </SheetFooter>
+    </>
+  )
+
+  const reviewRequestDialog = detail ? (
+    <PulseReviewRequestDialog
+      open={reviewDialogOpen}
+      note={reviewNote}
+      pending={requestReviewMutation.isPending}
+      onOpenChange={setReviewDialogOpen}
+      onChangeNote={setReviewNote}
+      onSubmit={() =>
+        requestReviewMutation.mutate({
+          alertId: detail.alert.id,
+          ...(reviewNote.trim() ? { note: reviewNote } : {}),
+        })
+      }
+    />
+  ) : null
+
+  const reasonDialog = detail ? (
+    <PulseReasonDialog
+      action={reasonAction}
+      reason={reasonText}
+      pending={
+        dismissMutation.isPending || snoozeMutation.isPending || markReviewedMutation.isPending
+      }
+      onChangeReason={setReasonText}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          setReasonAction(null)
+          setReasonText('')
+        }
+      }}
+      onSubmit={() => {
+        const trimmed = reasonText.trim()
+        if (!trimmed || !reasonAction) return
+        if (reasonAction === 'dismiss') {
+          dismissMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
+        } else if (reasonAction === 'snooze') {
+          snoozeMutation.mutate({
+            alertId: detail.alert.id,
+            until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            reason: trimmed,
+          })
+        } else {
+          markReviewedMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
+        }
+      }}
+    />
+  ) : null
+
+  // Panel mode — inline page-column aside. No backdrop, no
+  // viewport-fixed positioning, no Sheet/SheetContent wrappers.
+  // The h2 inside the body satisfies a11y. The dialogs still
+  // render as siblings since they're separate modal overlays.
+  if (mode === 'panel') {
+    if (!open) return null
+    return (
+      <>
+        <aside
+          aria-label={t`Pulse alert detail`}
+          className="flex h-full min-w-0 flex-col rounded-lg border border-divider-subtle bg-background-default"
+        >
+          {body}
+        </aside>
+        {reviewRequestDialog}
+        {reasonDialog}
+      </>
+    )
+  }
+
+  // Sheet mode — legacy floating right-side Sheet. Used as the
+  // off-route fallback so callers from outside /rules/pulse still
+  // see a usable drawer. Sheet provides backdrop + focus trap +
+  // Esc + a11y title context for the body's visible h2.
+  return (
+    <Sheet open={open} onOpenChange={(next) => (next ? null : onClose())}>
+      <SheetContent
+        side="right"
+        className="data-[side=right]:top-5 data-[side=right]:right-5 data-[side=right]:bottom-5 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] data-[side=right]:rounded-lg sm:data-[side=right]:w-[calc(100vw-2.5rem)] sm:data-[side=right]:max-w-[calc(100vw-2.5rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2.5rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2.5rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2.5rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2.5rem))]"
+      >
+        {/* sr-only Sheet title + description satisfy Radix Dialog
+            a11y requirement (the visible heading is the h2 inside
+            `body`). */}
+        <SheetTitle className="sr-only">{detail?.alert.title ?? t`Pulse alert detail`}</SheetTitle>
+        <SheetDescription className="sr-only">
+          <Trans>Pulse alert review panel.</Trans>
+        </SheetDescription>
+        {body}
+      </SheetContent>
+      {reviewRequestDialog}
+      {reasonDialog}
     </Sheet>
   )
 }
