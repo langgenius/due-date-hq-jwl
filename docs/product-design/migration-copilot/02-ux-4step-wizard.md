@@ -38,12 +38,12 @@ stateDiagram-v2
 > RPC 编排、Stepper、processing overlay 和 Step 1–4 组件，详见
 > [`./13-onboarding-activation-route.md`](./13-onboarding-activation-route.md)。
 
-| 步骤                     | 目标                                                                        | 退出条件                                           | AC 映射         | 本册锚点 |
-| ------------------------ | --------------------------------------------------------------------------- | -------------------------------------------------- | --------------- | -------- |
-| Step 1 Intake            | 选择数据入口（粘贴 / 上传 / Preset）；SSN 拦截；≤ 1000 行                   | 粘贴或上传文件解析成功 + 至少 1 条非空行           | S2-AC1          | §4 本文  |
-| Step 2 Mapping           | AI Mapper 输出 client / penalty 字段映射 + 置信度；EIN `★`；可手动 override | 所有非 IGNORE 列有目标字段；EIN 识别率 = 100%      | S2-AC1 / S2-AC2 | §5 本文  |
-| Step 3 Normalize         | 归一 entity / state / tax_year；冲突解决；确认或取消 Default Matrix cell    | 冲突全部选择处置；needs_review 可非阻塞带入 Step 4 | S2-AC3 / S2-AC4 | §6 本文  |
-| Step 4 Dry-Run + Genesis | 展示 counts + 风险预览 + Safety；触发原子导入 + Live Genesis 动画           | `migration.imported` 成功 + Dashboard 落地         | S2-AC5          | §7 本文  |
+| 步骤                     | 目标                                                                          | 退出条件                                           | AC 映射         | 本册锚点 |
+| ------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------- | --------------- | -------- |
+| Step 1 Intake            | 选择数据入口（粘贴 / 上传 / Preset）；SSN 拦截；≤ 1000 行                     | 粘贴或上传文件解析成功 + 至少 1 条非空行           | S2-AC1          | §4 本文  |
+| Step 2 Mapping           | AI Mapper 自动准备字段映射；摘要优先，低置信 / fallback / bad rows 才突出展示 | 至少 1 列非 IGNORE；`all_ignore` fallback 禁止继续 | S2-AC1 / S2-AC2 | §5 本文  |
+| Step 3 Normalize         | AI 自动归一值并按 value group 摘要；Default Matrix 默认应用，细节可展开       | needs_review 可非阻塞带入 Step 4                   | S2-AC3 / S2-AC4 | §6 本文  |
+| Step 4 Dry-Run + Genesis | 展示 counts + 风险预览 + Safety；触发原子导入 + Live Genesis 动画             | `migration.imported` 成功 + Dashboard 落地         | S2-AC5          | §7 本文  |
 
 > 数字键 `1-4` **不** 跳步骤（避免误触）；步骤推进只允许 `Continue` / `Back`。来源于 [`./01-mvp-and-journeys.md`](./01-mvp-and-journeys.md) §7.2 键盘基线。
 
@@ -101,7 +101,7 @@ stateDiagram-v2
 | `Tab` / `Shift+Tab` | 焦点循环                                                           | 不逃出 modal                                                        |
 | `Enter`             | 提交当前步（焦点在非 textarea / non-editable 区时等价于 Continue） | 对齐 [`./01-mvp-and-journeys.md`](./01-mvp-and-journeys.md) §7.2    |
 | `Esc`               | 空白向导直接关闭；已有导入工作时打开关闭确认（非 destructive）     | Step 4 动画期间 `Esc` **失效**                                      |
-| `A`                 | 切换当前聚焦的 Step 3 `Apply to all`                               | 仅 Suggested tax types cell 内生效                                  |
+| `A`                 | 切换当前聚焦的 Step 3 tax type default group                       | 仅 Suggested tax types group 内生效                                 |
 | `1` - `4` 数字键    | 不跳步骤                                                           | 避免误触；通过 `[Back]` 逐级回退                                    |
 | `Cmd/Ctrl + V`      | 粘贴                                                               | Step 1 textarea 默认生效                                            |
 | `?`                 | 快捷键帮助浮层                                                     | 全局（[`./01-mvp-and-journeys.md`](./01-mvp-and-journeys.md) §7.1） |
@@ -331,18 +331,24 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 
 ## 5. Step 2 · AI Mapping
 
+> 2026-05-25 更新：Step 2 的默认界面不再是完整字段表，而是
+> `AI prepared your columns` 摘要。完整 mapping table、sample、confidence 和
+> Edit 下拉保留在 `Review column details` 高级展开区。这样真实 onboarding
+> 用户无需理解 `client.*` 内部字段，只有 low-confidence、fallback 或 bad rows
+> 才会被主动推到主界面。
+
 ### 5.1 目标与状态机
 
-- **目标**：展示 AI Mapper 的 client / penalty 字段映射 + 置信度徽章 + EIN `★` 徽章；允许行内 override；`[Re-run AI]` / `[Export mapping]`
+- **目标**：展示 AI Mapper 摘要（导入列数、使用列数、忽略列数、平均置信度、EIN、例外数）；完整字段映射仅在高级展开区中允许 override；`[Re-run AI]`
 - **状态机**：`loading → success | fallback_preset | error`
 
-| 状态                        | 触发                  | 顶栏提示                                                            | `[Continue →]`           |
-| --------------------------- | --------------------- | ------------------------------------------------------------------- | ------------------------ |
-| loading                     | 进入 Step 2 / Re-run  | Spinner + `Running AI Mapper…`                                      | 禁用                     |
-| success                     | Mapper 返回有效 JSON  | 若 low-confidence 行 > 0 → 行 Banner `{n} columns need your review` | 启用                     |
-| fallback_preset             | AI 失败且 Preset 已选 | 顶部 Banner（见 §5.4）                                              | 启用（审阅后）           |
-| fallback_preset (no preset) | AI 失败且无 Preset    | 顶部 Banner + 表头全部 `IGNORE`                                     | 禁用（强制至少一列映射） |
-| error                       | 网络 / 后端异常       | 红 Banner `Something went wrong. [Retry]`                           | 禁用                     |
+| 状态                        | 触发                  | 顶栏提示                                                    | `[Continue →]`           |
+| --------------------------- | --------------------- | ----------------------------------------------------------- | ------------------------ |
+| loading                     | 进入 Step 2 / Re-run  | Spinner + `Running AI Mapper…`                              | 禁用                     |
+| success                     | Mapper 返回有效 JSON  | 摘要 + 若 low-confidence 行 > 0 → `{n} columns need review` | 启用                     |
+| fallback_preset             | AI 失败且 Preset 已选 | 顶部 Banner（见 §5.4），仍显示摘要                          | 启用                     |
+| fallback_preset (no preset) | AI 失败且无 Preset    | 顶部 Banner + 表头全部 `IGNORE`                             | 禁用（强制至少一列映射） |
+| error                       | 网络 / 后端异常       | 红 Banner `Something went wrong. [Retry]`                   | 禁用                     |
 
 ### 5.2 线框
 
@@ -508,9 +514,21 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 
 ## 6. Step 3 · Normalize & Resolve
 
+> 2026-05-25 更新：Step 3 的默认界面改为 `AI cleaned your values` 摘要。
+> Normalizer 输出按 normalized value group 聚合，例如 `L.L.C. / LLC → LLC · 86
+clients`。低置信、未识别、safe fallback 才进入 exception summary。Default
+> Matrix 默认应用；逐组开关保留在 `Adjust tax type defaults`
+> 高级展开区。
+> 2026-05-25 补充：确定性的 normalizer miss 不进入用户可见 exception。带点州缩写
+> （如 `C.A.`）直接修复成 DueDateHQ 内部州代码（`CA`）；明确的 return type
+> （如 `Form 990`）直接修复成 tax type id（`federal_990`）。只有无法确定的值才显示
+> needs-review 摘要。
+> 2026-05-25 补充：value group 明细默认折叠；Step 3 默认只展示 summary
+> cards、exception summary 和展开入口。
+
 ### 6.1 目标与状态机
 
-- **目标**：展示归一 summary（entity_types / states / tax_years）；冲突解决；确认或取消 Default Matrix 将自动补全的 tax types
+- **目标**：展示 AI 归一 summary（value groups、ready groups、needs review、affected clients）；按组解释 safe fallback；Default Matrix 摘要优先，允许展开调整 tax type defaults
 - **状态机**：`idle → saving → ready`（Normalize 出错降级见 §6.5）
 
 ### 6.2 线框
@@ -541,10 +559,10 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 │  │ Default tax type suggestions apply only where imported rows    │
 │  │ rows do not already include tax types.                        │
 │  │ 12 LLC × CA clients                                          │    │
-│  │   → CA Franchise · CA LLC Fee · Fed 1065  [✓ Apply to all] [e]│    │   ← tax type chips（高 18px）
+│  │   → CA Franchise · CA LLC Fee · Fed 1065  [✓ Use suggested filings] [e] │ ← tax type chips（高 18px）
 │  │                                                              │    │
 │  │  5 S-Corp × NY clients                                       │    │
-│  │   → NY CT-3-S · NY PTET · Fed 1120-S [✓ Apply to all] [e]    │    │
+│  │   → NY CT-3-S · NY PTET · Fed 1120-S [✓ Use suggested filings] [e] │    │
 │  └──────────────────────────────────────────────────────────────┘    │
 │                                                                      │
 │  Conflicts (3)                                                       │   ← {typography.label}
@@ -590,13 +608,13 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 └───────────────────────────────────────────────────────┘
 ```
 
-### 6.4 Default Matrix `Apply to all`
+### 6.4 Default Matrix Group Toggle
 
 - 默认勾选（兑现 §6A.5 "无需额外配置"）：Default Matrix 只对导入行中缺失 `client.tax_types` 的客户补全税种
-- 可逐 cell 取消：取消 `Apply to all` 表示该 `(entity_type, state)` cell 下缺 `tax_types` 的客户不使用 Default Matrix 自动补全，也不会在 Step 4 生成对应 obligations
+- 可逐 group 取消：取消 `Use suggested filings` 表示该 `(entity_type, state)` group 下缺 `tax_types` 的客户不使用 Default Matrix 自动补全，也不会在 Step 4 生成对应 obligations
 - 用户 CSV / paste 已明确提供 `client.tax_types` 的行不受该开关影响
 - 前端选择通过 `applyDefaultMatrix({ matrixSelections })` 写入 `migration_batch.mapping_json.matrixApplied[].enabled`；`dryRun` 与最终 `apply` 必须消费同一份 enabled 状态，禁止前端本地假状态
-- 键盘快捷键 `A` = 对当前聚焦的 suggestion cell 切换 `Apply to all`（`aria-keyshortcuts="A"`）
+- 键盘快捷键 `A` = 对当前聚焦的 suggestion group 切换 `Use suggested filings`（`aria-keyshortcuts="A"`）
 - 冲突解决按钮组默认 **`Skip`**（最安全）；Owner 可在 Settings 修改默认为 `Create as new`（Phase 0 扩展位，Demo Sprint 不渲染 Settings 面板）
 
 ### 6.5 错误 / 降级
@@ -613,7 +631,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 | Section: States              | `States`                                                                                        | `州`                                            | `<Trans>`              |
 | Section: Suggested tax types | `Suggested tax types (from entity × state matrix)`                                              | `建议的税种（由实体 × 州矩阵推断）`             | `<Trans>`              |
 | Default Matrix note          | `Default tax type suggestions apply only where imported rows do not already include tax types.` | `默认税种建议仅在导入行没有税种时应用。`        | `<Trans>`              |
-| Apply to all toggle          | `Apply to all`                                                                                  | `全部应用`                                      | `<Trans>`              |
+| Tax type group toggle        | `Use suggested filings`                                                                         | `使用建议申报类型`                              | `<Trans>`              |
 | Section: Conflicts           | `Conflicts ({count})`                                                                           | `冲突（{count}）`                               | `<Plural>`             |
 | Needs review pill            | `Needs review`                                                                                  | `待复核`                                        | `<Trans>`              |
 | Conflict CTA: Merge          | `Merge` (tooltip `Append new fields without overwriting`)                                       | `合并` / `将新字段补齐到现有客户，不覆盖已有值` | `<Trans>`              |
@@ -628,7 +646,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 ### 6.7 键盘 / a11y
 
 - Suggested tax types 区块 `role="group"` + `aria-labelledby`；tax type chip 不进入 tab order
-- `Apply to all` checkbox 使用项目 `Checkbox` primitive，label 暴露 `aria-keyshortcuts="A"`
+- `Use suggested filings` checkbox 使用项目 `Checkbox` primitive，label 暴露 `aria-keyshortcuts="A"`
 - 冲突按钮组 `role="radiogroup"`；默认选中 `Skip` 带 `aria-checked="true"`
 - needs_review pill hover Popover：`role="tooltip"`；键盘用 Enter / Space 打开；`Esc` 关闭
 
@@ -642,7 +660,7 @@ badge 右侧必须有红色问号 icon；hover / focus 后展示该 badge 对应
 | Evidence chip 样式                        | 遵 `evidence-chip` 组件 token | `evidence-chip`（[`../../../DESIGN.md`](../../../DESIGN.md) 行 115）      |
 | Verification-needed 降级                  | pill + 次级按钮               | `{colors.severity-medium-tint}` + `button-secondary`                      |
 | Conflict Merge/Overwrite/Skip/CreateAsNew | 按钮组 radio                  | `button-secondary` + 选中 `{colors.accent-tint}` 背景                     |
-| Apply to all checkbox                     | 16px checkbox + label         | `components.checkbox-*` + `{colors.text-secondary}`                       |
+| Tax type group checkbox                   | 16px checkbox + label         | `components.checkbox-*` + `{colors.text-secondary}`                       |
 | tax type chip                             | 18px 高 mono                  | `{typography.numeric}` + `{rounded.sm}` + `{colors.surface-elevated}`     |
 
 ### 6.9 埋点

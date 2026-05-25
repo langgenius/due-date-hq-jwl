@@ -1,5 +1,5 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   ChevronDownIcon,
   CircleHelpIcon,
@@ -45,6 +45,7 @@ import {
   getAlphabetizedMappingTargets,
   useMappingTargetLabels,
 } from './mapping-target-labels'
+import { buildMappingSummary } from './migration-summary-view-model'
 import type { MapperState } from './state'
 
 interface Step2Props {
@@ -62,38 +63,19 @@ interface Step2Props {
 }
 
 /**
- * Step 2 AI Mapping — pixel-perfect per [02-ux §5].
+ * Step 2 AI Mapping.
  *
- * Columns: Your column → DueDateHQ field · Confidence · Sample · Edit
- * EIN star is permanent, confidence three tiers (H/M/L), low-confidence rows
- * tinted, fallback banner up top.
+ * The main path is a summary of the AI-prepared draft. The editable column
+ * table stays available on demand for advanced review and fallback recovery.
  */
 export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRerun }: Step2Props) {
-  const { t } = useLingui()
   const targetLabels = useMappingTargetLabels()
-
-  const lowConfCount = mapping.rows.filter(
-    (r) => typeof r.confidence === 'number' && r.confidence < 0.8 && r.targetField !== 'IGNORE',
-  ).length
-
-  const avgConfidence =
-    mapping.rows.length > 0
-      ? Math.round(
-          (mapping.rows
-            .filter((r) => typeof r.confidence === 'number')
-            .reduce((sum, r) => sum + (r.confidence ?? 0), 0) /
-            Math.max(1, mapping.rows.filter((r) => typeof r.confidence === 'number').length)) *
-            100,
-        )
-      : null
-
-  const einDetected = mapping.rows.some(
-    (r) =>
-      r.targetField === 'client.ein' && typeof r.confidence === 'number' && r.confidence >= 0.8,
-  )
-  const ignoredCount = mapping.rows.filter((r) => r.targetField === 'IGNORE').length
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const summary = buildMappingSummary(mapping.rows, errors ?? [])
   const allIgnoreFallback =
-    mapping.status === 'fallback' && mapping.fallback === 'all_ignore' && ignoredCount > 0
+    mapping.status === 'fallback' &&
+    mapping.fallback === 'all_ignore' &&
+    summary.hasOnlyIgnoredColumns
 
   function updateRow(idx: number, patch: Partial<MappingRow>) {
     const next = mapping.rows.map((row, i) =>
@@ -106,30 +88,17 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          {/* 2026-05-25 (Wizard #40 copy polish): dropped
-              "and confirm" — that's the Continue button's job
-              one row down. Heading should name the action,
-              not the action+commit. */}
           <h2 className="text-lg font-semibold text-text-primary">
-            <Trans>Review the column mapping</Trans>
+            <Trans>AI prepared your columns</Trans>
           </h2>
           <MappingCapabilityBadge mapping={mapping} />
         </div>
         <div className="flex items-center justify-between gap-3">
-          {/* 2026-05-25 (Wizard #40 copy polish): leads with the
-              number (the actual signal), drops "Average" which
-              just delays it. EIN detection collapsed from a
-              binary 100% / 0% (which reads like a real percentage)
-              to a simple "EIN found" tag shown only when true. */}
           <p className="text-md text-text-secondary">
-            {avgConfidence !== null ? (
-              <Trans>
-                <span className="font-mono tabular-nums">{avgConfidence}%</span> average confidence
-                {einDetected ? ' · EIN found' : null}
-              </Trans>
-            ) : (
-              <Trans>Run the mapper to see confidence stats.</Trans>
-            )}
+            <Trans>
+              DueDateHQ matched the upload to import fields. Open details only if something looks
+              off.
+            </Trans>
           </p>
           <Button
             variant="outline"
@@ -147,6 +116,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       </div>
 
+      {mapping.status === 'loading' ? null : <MappingSummaryGrid summary={summary} />}
+
       {mapping.status === 'fallback' ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           {/* 2026-05-25 (Wizard #40 copy polish): alert titles
@@ -158,8 +129,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <AlertDescription>
             {mapping.fallback === 'preset' ? (
               <Trans>
-                We couldn&apos;t reach AI. Using your selected import template — review and edit as
-                needed.
+                Automatic field matching is unavailable. We used the selected import template and
+                kept the import draft editable.
               </Trans>
             ) : (
               <Trans>
@@ -170,7 +141,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
             {allIgnoreFallback ? (
               <span className="mt-2 block font-medium text-text-primary">
                 <Plural
-                  value={ignoredCount}
+                  value={summary.ignoredColumns}
                   one="# column is currently ignored."
                   other="# columns are currently ignored."
                 />
@@ -189,19 +160,20 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </Alert>
       ) : null}
 
-      {lowConfCount > 0 ? (
+      {summary.lowConfidenceColumns > 0 ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle>
-            {/* 2026-05-25 (Wizard #40 cross-step polish): dropped
-                "your" — canonical phrase across all 4 steps is
-                bare "needs review" (Step 3 dropped "human",
-                Step 4 will drop "attention"). */}
             <Plural
-              value={lowConfCount}
+              value={summary.lowConfidenceColumns}
               one="# column needs review"
               other="# columns need review"
             />
           </AlertTitle>
+          <AlertDescription>
+            <Trans>
+              These columns are still included in the import draft. Open details to adjust them.
+            </Trans>
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -216,68 +188,168 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <Skeleton className="h-9 w-3/4" />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-divider-regular">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[160px]">{t`Your column`}</TableHead>
-                <TableHead aria-hidden className="w-[24px]">
-                  →
-                </TableHead>
-                <TableHead className="w-[180px]">{t`DueDateHQ field`}</TableHead>
-                <TableHead className="w-[120px]">{t`Confidence`}</TableHead>
-                <TableHead>{t`Sample`}</TableHead>
-                <TableHead className="w-[88px]" aria-hidden />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mapping.rows.map((row, idx) => {
-                const tier = confidenceTier(row.confidence, row.targetField)
-                const sample = sampleByHeader[row.sourceHeader] ?? '—'
-                return (
-                  <TableRow
-                    key={row.sourceHeader}
-                    className={cn('h-9', tier === 'low' && 'bg-components-badge-bg-warning-soft')}
-                  >
-                    <TableCell className="font-medium">{row.sourceHeader}</TableCell>
-                    <TableCell aria-hidden className="text-text-tertiary">
-                      →
-                    </TableCell>
-                    <TableCell className="text-xs font-medium text-text-primary">
-                      <span className="inline-flex items-center gap-1">
-                        {row.targetField === 'IGNORE' ? (
-                          <span className="italic text-text-tertiary">{targetLabels.IGNORE}</span>
-                        ) : (
-                          <>
-                            {targetLabels[row.targetField]}
-                            {row.targetField === 'client.ein' ? (
-                              <StarIcon className="size-3 text-text-accent" aria-label="EIN" />
-                            ) : null}
-                          </>
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <ConfidenceBadge tier={tier} confidence={row.confidence} />
-                    </TableCell>
-                    <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
-                      {sample}
-                    </TableCell>
-                    <TableCell>
-                      <EditPopover
-                        current={row.targetField}
-                        sourceHeader={row.sourceHeader}
-                        targetLabels={targetLabels}
-                        onChange={(target) => updateRow(idx, { targetField: target })}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        <section className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-medium text-text-primary">
+                <Trans>Column details</Trans>
+              </h3>
+              <p className="text-sm text-text-secondary">
+                <Trans>
+                  The import draft is ready. Details stay available for advanced review.
+                </Trans>
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-expanded={detailsOpen}
+              onClick={() => setDetailsOpen((open) => !open)}
+            >
+              {detailsOpen ? (
+                <Trans>Hide column details</Trans>
+              ) : (
+                <Trans>Review column details</Trans>
+              )}
+              <ChevronDownIcon data-icon="inline-end" />
+            </Button>
+          </div>
+          {detailsOpen ? (
+            <MappingDetailsTable
+              rows={mapping.rows}
+              sampleByHeader={sampleByHeader}
+              targetLabels={targetLabels}
+              onChange={updateRow}
+            />
+          ) : null}
+        </section>
       )}
+    </div>
+  )
+}
+
+function MappingSummaryGrid({ summary }: { summary: ReturnType<typeof buildMappingSummary> }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <SummaryMetric
+        label={<Trans>Columns used</Trans>}
+        value={<Plural value={summary.mappedColumns} one="# column" other="# columns" />}
+      />
+      <SummaryMetric
+        label={<Trans>Ignored</Trans>}
+        value={<Plural value={summary.ignoredColumns} one="# column" other="# columns" />}
+      />
+      <SummaryMetric
+        label={<Trans>Confidence</Trans>}
+        value={summary.averageConfidence === null ? '—' : `${summary.averageConfidence}%`}
+      />
+      <SummaryMetric
+        label={<Trans>EIN</Trans>}
+        value={summary.einDetected ? <Trans>Found</Trans> : <Trans>Not found</Trans>}
+      />
+      <SummaryMetric
+        label={<Trans>Exceptions</Trans>}
+        value={
+          <Plural
+            value={summary.lowConfidenceColumns + summary.badRows}
+            _0="None"
+            one="# item"
+            other="# items"
+          />
+        }
+      />
+    </div>
+  )
+}
+
+function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
+  return (
+    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
+      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+        {label}
+      </div>
+      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
+    </div>
+  )
+}
+
+function MappingDetailsTable({
+  rows,
+  sampleByHeader,
+  targetLabels,
+  onChange,
+}: {
+  rows: readonly MappingRow[]
+  sampleByHeader: Record<string, string>
+  targetLabels: Record<MappingTarget, string>
+  onChange: (idx: number, patch: Partial<MappingRow>) => void
+}) {
+  const { t } = useLingui()
+
+  return (
+    <div
+      className="overflow-hidden rounded-lg border border-divider-regular"
+      data-slot="step2-column-details"
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[160px]">{t`Your column`}</TableHead>
+            <TableHead aria-hidden className="w-[24px]">
+              →
+            </TableHead>
+            <TableHead className="w-[180px]">{t`DueDateHQ field`}</TableHead>
+            <TableHead className="w-[120px]">{t`Confidence`}</TableHead>
+            <TableHead>{t`Sample`}</TableHead>
+            <TableHead className="w-[88px]" aria-hidden />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, idx) => {
+            const tier = confidenceTier(row.confidence, row.targetField)
+            const sample = sampleByHeader[row.sourceHeader] ?? '—'
+            return (
+              <TableRow
+                key={row.sourceHeader}
+                className={cn('h-9', tier === 'low' && 'bg-components-badge-bg-warning-soft')}
+              >
+                <TableCell className="font-medium">{row.sourceHeader}</TableCell>
+                <TableCell aria-hidden className="text-text-tertiary">
+                  →
+                </TableCell>
+                <TableCell className="text-xs font-medium text-text-primary">
+                  <span className="inline-flex items-center gap-1">
+                    {row.targetField === 'IGNORE' ? (
+                      <span className="italic text-text-tertiary">{targetLabels.IGNORE}</span>
+                    ) : (
+                      <>
+                        {targetLabels[row.targetField]}
+                        {row.targetField === 'client.ein' ? (
+                          <StarIcon className="size-3 text-text-accent" aria-label="EIN" />
+                        ) : null}
+                      </>
+                    )}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <ConfidenceBadge tier={tier} confidence={row.confidence} />
+                </TableCell>
+                <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
+                  {sample}
+                </TableCell>
+                <TableCell>
+                  <EditPopover
+                    current={row.targetField}
+                    sourceHeader={row.sourceHeader}
+                    targetLabels={targetLabels}
+                    onChange={(target) => onChange(idx, { targetField: target })}
+                  />
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
     </div>
   )
 }

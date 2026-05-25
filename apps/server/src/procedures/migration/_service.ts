@@ -9,7 +9,11 @@ import {
 } from '@duedatehq/core/default-matrix'
 import type { BillingPlan } from '@duedatehq/core/plan-entitlements'
 import { parseTabular, type ParsedTabular, type TabularKind } from '@duedatehq/core/csv-parser'
-import { normalizeEntityType, normalizeState } from '@duedatehq/core/normalize-dict'
+import {
+  normalizeEntityType,
+  normalizeState,
+  normalizeTaxTypes,
+} from '@duedatehq/core/normalize-dict'
 import { DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS } from '@duedatehq/core/deadlines'
 import {
   listObligationRules,
@@ -75,9 +79,6 @@ import { toCoreRule } from '../rules/runtime'
  */
 
 const MAX_SAMPLE_ROWS = 5
-const TAX_TYPE_DICT_VERSION = 'dictionary-tax-types@v1'
-const TAX_TYPE_DICT_CONFIDENCE = 0.85
-
 async function runtimeRulesForFirm(scoped: ScopedRepo): Promise<readonly CoreObligationRule[]> {
   await ensureRuleReviewTasks(scoped)
   return (await scoped.rules.listActivePracticeRules()).flatMap((row) => {
@@ -1069,16 +1070,31 @@ export class MigrationService {
         aiOutputId,
         rows: rawValues.map((raw) => {
           const hit = hits.get(raw)
+          const aiNormalized = hit?.normalized ?? []
+          const dictionaryHit = aiNormalized.length === 0 ? normalizeTaxTypes(raw) : null
+          const normalized =
+            aiNormalized.length > 0 ? aiNormalized : (dictionaryHit?.normalized ?? [])
           return {
             id: crypto.randomUUID(),
             batchId,
             field: 'tax_types',
             rawValue: raw,
-            normalizedValue: hit?.normalized ? JSON.stringify(hit.normalized) : null,
-            confidence: hit?.confidence ?? null,
-            model: aiResult.model,
-            promptVersion: 'normalizer-tax-types@v1',
-            reasoning: hit?.reasoning ?? null,
+            normalizedValue: normalized.length > 0 ? JSON.stringify(normalized) : null,
+            confidence:
+              aiNormalized.length > 0
+                ? (hit?.confidence ?? null)
+                : (dictionaryHit?.confidence ?? null),
+            model: aiNormalized.length > 0 ? aiResult.model : null,
+            promptVersion:
+              aiNormalized.length > 0
+                ? 'normalizer-tax-types@v1'
+                : (dictionaryHit?.promptVersion ?? 'normalizer-tax-types@v1'),
+            reasoning:
+              aiNormalized.length > 0
+                ? (hit?.reasoning ?? null)
+                : dictionaryHit
+                  ? 'Deterministic tax-type lookup.'
+                  : (hit?.reasoning ?? null),
             userOverridden: false,
             createdAt: now,
           } satisfies NormalizationRow
@@ -1092,16 +1108,17 @@ export class MigrationService {
     return {
       aiOutputId,
       rows: rawValues.map((raw) => {
-        const normalized = normalizeTaxTypesDictionary(raw)
+        const hit = normalizeTaxTypes(raw)
+        const normalized = hit?.normalized ?? []
         return {
           id: crypto.randomUUID(),
           batchId,
           field: 'tax_types',
           rawValue: raw,
           normalizedValue: normalized.length > 0 ? JSON.stringify(normalized) : null,
-          confidence: normalized.length > 0 ? TAX_TYPE_DICT_CONFIDENCE : null,
+          confidence: hit?.confidence ?? null,
           model: null,
-          promptVersion: normalized.length > 0 ? TAX_TYPE_DICT_VERSION : PRESET_VERSION,
+          promptVersion: hit?.promptVersion ?? PRESET_VERSION,
           reasoning:
             normalized.length > 0
               ? 'Local tax-type dictionary fallback.'
@@ -1224,35 +1241,6 @@ function resolveEntityNormalization(
 function canonicalizeEntityType(value: string): EntityType | null {
   if (isEntityType(value)) return value
   return normalizeEntityType(value)?.normalized ?? null
-}
-
-function normalizeTaxTypesDictionary(raw: string): string[] {
-  const value = raw
-    .trim()
-    .toLowerCase()
-    .replace(/[–—]/g, '-')
-    .replace(/\s+/g, ' ')
-  const out: string[] = []
-
-  if (/\b1120[\s-]?s\b/.test(value) || value.includes('ct-3-s')) out.push('federal_1120s')
-  else if (/\b1120\b/.test(value)) out.push('federal_1120')
-  if (/\b1040\b/.test(value)) out.push('federal_1040')
-  if (/\b1041\b/.test(value)) out.push('federal_1041')
-  if (/\b1065\b/.test(value)) out.push('federal_1065')
-  if (/\b990\b/.test(value)) out.push('federal_990')
-
-  if (value.includes('ca llc') || value.includes('llc fee')) {
-    out.push('ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts')
-  }
-  if (value.includes('ca franchise') || value.includes('ca 100')) {
-    if (value.includes('100s')) out.push('ca_100s_franchise')
-    else out.push('ca_100_franchise')
-  }
-  if (value.includes('ny ct-3-s') || value.includes('ct-3-s')) out.push('ny_ct3s')
-  else if (value.includes('ny ct-3') || value.includes('ct-3')) out.push('ny_ct3')
-  if (value.includes('it-204') || value.includes('it204')) out.push('ny_it204')
-
-  return Array.from(new Set(out))
 }
 
 function base64ToBytes(b64: string): Uint8Array {

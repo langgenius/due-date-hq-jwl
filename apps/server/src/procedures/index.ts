@@ -65,6 +65,7 @@ export const router = os.router({
     updateTaxYearProfile: clientsHandlers.updateTaxYearProfile,
     updatePenaltyInputs: clientsHandlers.updatePenaltyInputs,
     updateRiskProfile: clientsHandlers.updateRiskProfile,
+    updateSourceDetails: clientsHandlers.updateSourceDetails,
     getRiskSummary: clientsHandlers.getRiskSummary,
     requestRiskSummaryRefresh: clientsHandlers.requestRiskSummaryRefresh,
     bulkUpdateAssignee: clientsHandlers.bulkUpdateAssignee,

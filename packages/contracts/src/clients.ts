@@ -237,6 +237,24 @@ export const ClientRiskProfileUpdateOutputSchema = z.object({
 })
 export type ClientRiskProfileUpdateOutput = z.infer<typeof ClientRiskProfileUpdateOutputSchema>
 
+export const ClientSourceDetailsUpdateSchema = z.object({
+  id: EntityIdSchema,
+  externalClientId: z.string().trim().min(1).max(256).nullable().optional(),
+  addressLine1: z.string().trim().min(1).max(500).nullable().optional(),
+  city: z.string().trim().min(1).max(200).nullable().optional(),
+  postalCode: z.string().trim().min(1).max(30).nullable().optional(),
+  primaryPhone: z.string().trim().min(1).max(80).nullable().optional(),
+  sourceStatus: z.string().trim().min(1).max(120).nullable().optional(),
+  reason: z.string().max(280).optional(),
+})
+export type ClientSourceDetailsUpdateInput = z.infer<typeof ClientSourceDetailsUpdateSchema>
+
+export const ClientSourceDetailsUpdateOutputSchema = z.object({
+  client: ClientPublicSchema,
+  auditId: EntityIdSchema,
+})
+export type ClientSourceDetailsUpdateOutput = z.infer<typeof ClientSourceDetailsUpdateOutputSchema>
+
 export const ClientRiskSummaryInputSchema = z.object({ clientId: EntityIdSchema })
 export type ClientRiskSummaryInput = z.infer<typeof ClientRiskSummaryInputSchema>
 
@@ -295,6 +313,9 @@ export const clientsContract = oc.router({
   updateRiskProfile: oc
     .input(ClientRiskProfileUpdateSchema)
     .output(ClientRiskProfileUpdateOutputSchema),
+  updateSourceDetails: oc
+    .input(ClientSourceDetailsUpdateSchema)
+    .output(ClientSourceDetailsUpdateOutputSchema),
   getRiskSummary: oc.input(ClientRiskSummaryInputSchema).output(AiInsightPublicSchema),
   requestRiskSummaryRefresh: oc
     .input(ClientRiskSummaryRefreshInputSchema)

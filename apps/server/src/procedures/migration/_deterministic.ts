@@ -1,3 +1,4 @@
+import { normalizeEntityType, normalizeTaxTypes } from '@duedatehq/core/normalize-dict'
 import { detectSsnColumns, validateEin } from '@duedatehq/core/pii'
 import type { MappingRow, MappingTarget } from '@duedatehq/contracts'
 import type { DeterministicError } from './_types'
@@ -60,7 +61,8 @@ export function sanitizeMapperOutput(
   headers.forEach((h, i) => headerToIndex.set(h, i))
 
   const now = new Date().toISOString()
-  const sanitized = mappings.map((m) => {
+  const sanitized = mappings.map((mapping) => {
+    const m = repairMappingTarget(mapping, headerToIndex, sampleRows)
     const idx = headerToIndex.get(m.sourceHeader)
     if (idx !== undefined && blockedSet.has(idx)) {
       if (m.userOverridden && m.targetField === 'client.ein') {
@@ -110,6 +112,34 @@ export function sanitizeMapperOutput(
   )
 
   return { sanitizedMappings: sanitized, ssnBlockedHeaders: ssn.blockedHeaders }
+}
+
+function repairMappingTarget(
+  mapping: MappingRow,
+  headerToIndex: ReadonlyMap<string, number>,
+  sampleRows: readonly (readonly string[])[],
+): MappingRow {
+  if (mapping.targetField !== 'client.entity_type') return mapping
+  const idx = headerToIndex.get(mapping.sourceHeader)
+  if (idx === undefined) return mapping
+  const sampleValues = sampleRows
+    .map((row) => row[idx]?.trim() ?? '')
+    .filter((value) => value.length > 0)
+  if (sampleValues.length === 0) return mapping
+
+  const entityHits = sampleValues.filter((value) => normalizeEntityType(value)).length
+  const taxTypeHits = sampleValues.filter((value) => normalizeTaxTypes(value)).length
+  if (taxTypeHits === 0 || entityHits >= taxTypeHits) return mapping
+
+  return {
+    ...mapping,
+    targetField: 'client.tax_types',
+    confidence: Math.max(mapping.confidence ?? 0, 0.85),
+    reasoning:
+      'Corrected to tax types because sample values match return/form tax type identifiers.',
+    model: null,
+    promptVersion: 'deterministic-mapper@v1',
+  }
 }
 
 /**

@@ -47,6 +47,7 @@ import type {
   AuditEventPublic,
   ClientFilingProfilesReplaceInput,
   ClientPublic,
+  ClientSourceDetailsUpdateInput,
   MemberAssigneeOption,
   ObligationInstancePublic,
   ObligationRule,
@@ -1847,6 +1848,25 @@ export function ClientDetailWorkspace({
       },
     }),
   )
+  const updateSourceDetailsMutation = useMutation(
+    orpc.clients.updateSourceDetails.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.getRiskSummary.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        toast.success(t`Client details saved`, { description: result.client.name })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't save client details`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const requestRiskSummaryMutation = useMutation(
     orpc.clients.requestRiskSummaryRefresh.mutationOptions({
       onSuccess: () => {
@@ -1999,6 +2019,9 @@ export function ClientDetailWorkspace({
       },
     }),
   )
+  const showSourceFields =
+    getClientSourceType(client) === 'imported' ||
+    Boolean(client.externalClientId || client.sourceStatus)
 
   return (
     <>
@@ -2313,9 +2336,18 @@ export function ClientDetailWorkspace({
                   </div>
                 </TabSection>
 
-                <TabSection title={t`Import source`} summary={formatImportSourceSummary(client)}>
+                <TabSection
+                  title={showSourceFields ? t`Import source` : t`Contact details`}
+                  summary={formatImportSourceSummary(client)}
+                >
                   <div className="rounded-md border border-divider-regular bg-background-default p-4">
-                    <ClientImportSourcePanel client={client} />
+                    <ClientSourceDetailsPanel
+                      key={`${client.id}:source-details`}
+                      client={client}
+                      showSourceFields={showSourceFields}
+                      isSaving={updateSourceDetailsMutation.isPending}
+                      onSave={(input) => updateSourceDetailsMutation.mutate(input)}
+                    />
                   </div>
                 </TabSection>
               </TabsContent>
@@ -3839,30 +3871,151 @@ function ClientFactChecklist({
   )
 }
 
-function ClientImportSourcePanel({ client }: { client: ClientPublic }) {
+function ClientSourceDetailsPanel({
+  client,
+  showSourceFields,
+  isSaving,
+  onSave,
+}: {
+  client: ClientPublic
+  showSourceFields: boolean
+  isSaving: boolean
+  onSave: (input: ClientSourceDetailsUpdateInput) => void
+}) {
+  const [externalClientId, setExternalClientId] = useState(client.externalClientId ?? '')
+  const [sourceStatus, setSourceStatus] = useState(client.sourceStatus ?? '')
+  const [addressLine1, setAddressLine1] = useState(client.addressLine1 ?? '')
+  const [city, setCity] = useState(client.city ?? '')
+  const [postalCode, setPostalCode] = useState(client.postalCode ?? '')
+  const [primaryPhone, setPrimaryPhone] = useState(client.primaryPhone ?? '')
+  const currentValues = {
+    externalClientId: client.externalClientId ?? '',
+    sourceStatus: client.sourceStatus ?? '',
+    addressLine1: client.addressLine1 ?? '',
+    city: client.city ?? '',
+    postalCode: client.postalCode ?? '',
+    primaryPhone: client.primaryPhone ?? '',
+  }
+  const nextValues = {
+    externalClientId,
+    sourceStatus,
+    addressLine1,
+    city,
+    postalCode,
+    primaryPhone,
+  }
+  const hasChanges =
+    nextValues.externalClientId.trim() !== currentValues.externalClientId ||
+    nextValues.sourceStatus.trim() !== currentValues.sourceStatus ||
+    nextValues.addressLine1.trim() !== currentValues.addressLine1 ||
+    nextValues.city.trim() !== currentValues.city ||
+    nextValues.postalCode.trim() !== currentValues.postalCode ||
+    nextValues.primaryPhone.trim() !== currentValues.primaryPhone
+  const reset = () => {
+    setExternalClientId(currentValues.externalClientId)
+    setSourceStatus(currentValues.sourceStatus)
+    setAddressLine1(currentValues.addressLine1)
+    setCity(currentValues.city)
+    setPostalCode(currentValues.postalCode)
+    setPrimaryPhone(currentValues.primaryPhone)
+  }
+  const save = () => {
+    onSave({
+      id: client.id,
+      ...(showSourceFields
+        ? {
+            externalClientId: nullableTrim(externalClientId),
+            sourceStatus: nullableTrim(sourceStatus),
+          }
+        : {}),
+      addressLine1: nullableTrim(addressLine1),
+      city: nullableTrim(city),
+      postalCode: nullableTrim(postalCode),
+      primaryPhone: nullableTrim(primaryPhone),
+      reason: 'Client info source and contact details edit',
+    })
+  }
+
   return (
-    <dl className="grid gap-3 sm:grid-cols-2">
-      <ClientImportSourceField
-        label={<Trans>External client ID</Trans>}
-        value={client.externalClientId}
-      />
-      <ClientImportSourceField label={<Trans>Source status</Trans>} value={client.sourceStatus} />
-      <ClientImportSourceField label={<Trans>Address line 1</Trans>} value={client.addressLine1} />
-      <ClientImportSourceField label={<Trans>City</Trans>} value={client.city} />
-      <ClientImportSourceField label={<Trans>ZIP / postal code</Trans>} value={client.postalCode} />
-      <ClientImportSourceField label={<Trans>Primary phone</Trans>} value={client.primaryPhone} />
-    </dl>
+    <div className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        {showSourceFields ? (
+          <>
+            <ClientSourceDetailsField
+              id="client-source-external-id"
+              label={<Trans>External client ID</Trans>}
+              value={externalClientId}
+              onChange={setExternalClientId}
+            />
+            <ClientSourceDetailsField
+              id="client-source-status"
+              label={<Trans>Source status</Trans>}
+              value={sourceStatus}
+              onChange={setSourceStatus}
+            />
+          </>
+        ) : null}
+        <ClientSourceDetailsField
+          id="client-source-address-line-1"
+          label={<Trans>Address line 1</Trans>}
+          value={addressLine1}
+          onChange={setAddressLine1}
+        />
+        <ClientSourceDetailsField
+          id="client-source-city"
+          label={<Trans>City</Trans>}
+          value={city}
+          onChange={setCity}
+        />
+        <ClientSourceDetailsField
+          id="client-source-postal-code"
+          label={<Trans>ZIP / postal code</Trans>}
+          value={postalCode}
+          onChange={setPostalCode}
+        />
+        <ClientSourceDetailsField
+          id="client-source-primary-phone"
+          label={<Trans>Primary phone</Trans>}
+          value={primaryPhone}
+          onChange={setPrimaryPhone}
+          type="tel"
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" disabled={!hasChanges || isSaving} onClick={save}>
+          {isSaving ? <Trans>Saving…</Trans> : <Trans>Save client details</Trans>}
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={isSaving}>
+          <Trans>Cancel</Trans>
+        </Button>
+      </div>
+    </div>
   )
 }
 
-function ClientImportSourceField({ label, value }: { label: ReactNode; value: string | null }) {
+function nullableTrim(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function ClientSourceDetailsField({
+  id,
+  label,
+  value,
+  onChange,
+  type = 'text',
+}: {
+  id: string
+  label: ReactNode
+  value: string
+  onChange: (value: string) => void
+  type?: 'text' | 'tel'
+}) {
   return (
-    <div className="min-w-0 rounded-md border border-divider-subtle bg-background-base px-3 py-2">
-      <dt className="text-xs font-medium text-text-tertiary">{label}</dt>
-      <dd className="mt-1 truncate text-sm text-text-primary">
-        {value ? value : <span className="text-text-tertiary">N/A</span>}
-      </dd>
-    </div>
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} />
+    </Field>
   )
 }
 

@@ -6,6 +6,7 @@ export type AiInsightRefreshReason =
   | 'manual_refresh'
   | 'client_jurisdiction_update'
   | 'client_risk_profile_update'
+  | 'client_source_details_update'
   | 'client_tax_year_profile_update'
   | 'status_change'
   | 'readiness_change'

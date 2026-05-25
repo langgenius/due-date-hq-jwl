@@ -29,6 +29,7 @@ import {
   ClientDeleteOutputSchema,
   ClientJurisdictionUpdateOutputSchema,
   ClientJurisdictionUpdateSchema,
+  ClientSourceDetailsUpdateSchema,
   ClientTaxYearProfileUpdateOutputSchema,
   ClientTaxYearProfileUpdateSchema,
   clientsContract,
@@ -759,6 +760,22 @@ describe('@duedatehq/contracts', () => {
     expect(output.deleted).toBe(true)
   })
 
+  it('exposes clients.updateSourceDetails for source and contact edits', () => {
+    expect(Object.keys(clientsContract)).toEqual(expect.arrayContaining(['updateSourceDetails']))
+    const input = ClientSourceDetailsUpdateSchema.parse({
+      id: '22222222-2222-4222-8222-222222222222',
+      externalClientId: null,
+      addressLine1: '123 Main St',
+      city: 'Los Angeles',
+      postalCode: '90012',
+      primaryPhone: '555-0100',
+      sourceStatus: null,
+      reason: 'manual contact update',
+    })
+    expect(input.addressLine1).toBe('123 Main St')
+    expect(input.sourceStatus).toBeNull()
+  })
+
   it('exposes clients.updateJurisdiction for existing client fact edits', () => {
     expect(Object.keys(clientsContract)).toEqual(expect.arrayContaining(['updateJurisdiction']))
     const input = ClientJurisdictionUpdateSchema.parse({
@@ -1148,6 +1165,7 @@ describe('@duedatehq/contracts', () => {
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
       changeKind: 'deadline_shift',
       actionMode: 'due_date_overlay',
+      jurisdiction: 'CA',
       summary: 'IRS extends selected filing deadlines for Los Angeles County.',
       publishedAt: '2026-04-15T17:00:00.000Z',
       matchedCount: 1,

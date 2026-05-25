@@ -4,7 +4,7 @@ import type { AI } from '@duedatehq/ai'
 import { PulseExtractOutputSchema } from '@duedatehq/ai'
 import type { MappingTarget } from '@duedatehq/contracts'
 import { listObligationRules } from '@duedatehq/core/rules'
-import { validateNormalizedRows } from './_deterministic'
+import { sanitizeMapperOutput, validateNormalizedRows } from './_deterministic'
 import { PRESET_FALLBACK_CONFIDENCE, PRESET_VERSION } from './_preset-mappings'
 import { MigrationService, type MigrationDeps } from './_service'
 import { toContractRule } from '../rules/runtime'
@@ -187,6 +187,7 @@ function buildScopedRepo(
     async updatePenaltyInputs() {},
     async updateJurisdiction() {},
     async updateRiskProfile() {},
+    async updateSourceDetails() {},
     async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
     async softDelete() {},
@@ -859,6 +860,57 @@ function buildAi(rawResult?: unknown): AI {
   return { extractPulse, runPrompt, runStreaming: runPrompt }
 }
 
+const taxTypeMissRunPrompt: AI['runPrompt'] = async (name, _input, schema) => {
+  if (name === 'normalizer-tax-types@v1') {
+    return {
+      result: schema.parse({
+        normalizations: [
+          {
+            raw: 'Form 990',
+            normalized: [],
+            confidence: 0.72,
+            reasoning: 'Model returned no tax-type match.',
+          },
+        ],
+      }),
+      refusal: null,
+      trace: {
+        promptVersion: name,
+        model: 'fast-json-test-model',
+        latencyMs: 5,
+        guardResult: 'ok',
+        inputHash: 'test-hash',
+      },
+      model: 'fast-json-test-model',
+      confidence: 0.72,
+      cost: 0.0001,
+    }
+  }
+
+  return {
+    result: null,
+    refusal: { code: 'AI_UNAVAILABLE', message: 'no key' },
+    trace: {
+      promptVersion: name,
+      model: 'unknown',
+      latencyMs: 0,
+      guardResult: 'ai_unavailable',
+      inputHash: 'test-hash',
+      refusalCode: 'AI_UNAVAILABLE',
+    },
+    model: null,
+    confidence: null,
+    cost: null,
+  }
+}
+
+function buildTaxTypeMissAi(): AI {
+  const extractPulse: AI['extractPulse'] = async (input) =>
+    taxTypeMissRunPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
+
+  return { extractPulse, runPrompt: taxTypeMissRunPrompt, runStreaming: taxTypeMissRunPrompt }
+}
+
 function buildCountingMigrationAi(): {
   ai: AI
   calls: string[]
@@ -1264,6 +1316,30 @@ const PRESET_GOLDENS: FixtureGoldenCase[] = [
 ]
 
 describe('Migration deterministic validation copy', () => {
+  it('corrects return/form columns that AI mapped as entity type into tax types', () => {
+    const { sanitizedMappings } = sanitizeMapperOutput(
+      [
+        {
+          id: '550e8400-e29b-41d4-a716-446655449001',
+          batchId: '550e8400-e29b-41d4-a716-446655449000',
+          sourceHeader: 'Tax Return Type',
+          targetField: 'client.entity_type',
+          confidence: 0.9,
+          reasoning: 'Model treated return type as entity type.',
+          userOverridden: false,
+          model: 'test-model',
+          promptVersion: 'mapper@v2',
+          createdAt: '2026-05-25T00:00:00.000Z',
+        },
+      ],
+      ['Tax Return Type'],
+      [['Form 990']],
+      { batchId: '550e8400-e29b-41d4-a716-446655449000' },
+    )
+
+    expect(sanitizedMappings[0]?.targetField).toBe('client.tax_types')
+  })
+
   it('does not expose internal enum wording for unrecognized entity types', () => {
     const errors = validateNormalizedRows([
       {
@@ -1903,6 +1979,42 @@ Texas Corp,TX,C-Corp,Form 1120`
     expect(txCell?.taxTypes).toContain('federal_1120')
     expect(txCell?.taxTypes).toContain('tx_state_franchise_or_entity_tax')
     expect(summary.ruleReviewWarnings.some((warning) => warning.state === 'TX')).toBe(true)
+  })
+
+  it('repairs obvious state and tax-type normalizer misses before confirmation', async () => {
+    const { repo } = buildScopedRepo(FIRM)
+    const ai = buildTaxTypeMissAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    const csv = `Client Name,State,Return Type
+Nonprofit Client,C.A.,Form 990`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+
+    const normalizer = await service.runNormalizer(batch.id)
+    expect(normalizer.normalizations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'state',
+          rawValue: 'C.A.',
+          normalizedValue: 'CA',
+        }),
+        expect.objectContaining({
+          field: 'tax_types',
+          rawValue: 'Form 990',
+          normalizedValue: JSON.stringify(['federal_990']),
+        }),
+      ]),
+    )
   })
 
   it('does not apply matrix suggestions when explicit tax types already include that state', async () => {

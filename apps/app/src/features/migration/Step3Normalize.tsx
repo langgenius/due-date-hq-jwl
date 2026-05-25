@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, ShieldCheckIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon, ShieldCheckIcon } from 'lucide-react'
 
-import type { NormalizationRow } from '@duedatehq/contracts'
+import type { MappingRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -13,67 +14,63 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { NormalizeState } from './state'
 import type { MatrixApplicationView } from './matrix-view'
+import {
+  buildMatrixSummary,
+  buildNormalizationSummary,
+  type NormalizationValueGroup,
+} from './migration-summary-view-model'
 
 interface Step3Props {
   normalize: NormalizeState
   matrix: MatrixApplicationView[]
+  rawText?: string | undefined
+  mappings?: readonly MappingRow[] | undefined
   onToggleApplyToAll: (key: string, value: boolean) => void
 }
 
 /**
- * Step 3 Normalize + Default Matrix — pixel-perfect per [02-ux §6].
+ * Step 3 now treats normalization as an AI-prepared import draft.
  *
- * Three section blocks:
- *   - Entity types
- *   - States
- *   - Suggested tax types (matrix application)
- *
- * No conflict block in the Demo path because Step 2 doesn't surface
- * conflict candidates in real time; Day 4 commit handles "matches existing
- * client ID" as it lands.
+ * The ordinary path shows grouped outcomes and exceptions. The previous
+ * per-value/table controls remain available behind explicit review affordances
+ * so large imports do not become one-row-at-a-time cleanup work.
  */
-export function Step3Normalize({ normalize, matrix, onToggleApplyToAll }: Step3Props) {
-  const { t } = useLingui()
-
-  const entityRows = useMemo(
-    () => normalize.rows.filter((r) => r.field === 'entity_type'),
-    [normalize.rows],
+export function Step3Normalize({
+  normalize,
+  matrix,
+  rawText,
+  mappings,
+  onToggleApplyToAll,
+}: Step3Props) {
+  const [valueDetailsOpen, setValueDetailsOpen] = useState(false)
+  const [matrixDetailsOpen, setMatrixDetailsOpen] = useState(false)
+  const normalizationSummary = useMemo(
+    () =>
+      buildNormalizationSummary({
+        normalizations: normalize.rows,
+        rawText,
+        mappings,
+      }),
+    [mappings, normalize.rows, rawText],
   )
-  const stateRows = useMemo(
-    () => normalize.rows.filter((r) => r.field === 'state'),
-    [normalize.rows],
-  )
-
-  const fallbackCount = normalize.rows.filter(usesFallbackHandling).length
+  const matrixSummary = useMemo(() => buildMatrixSummary(matrix), [matrix])
 
   return (
     <div className="flex flex-col gap-5 py-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-text-primary">
-          <Plural
-            value={normalize.rows.length}
-            one="We organized # value"
-            other="We organized # values"
-          />
+          <Trans>AI cleaned your values</Trans>
         </h2>
-        {fallbackCount > 0 ? (
-          <p className="text-sm text-text-secondary">
-            <Plural
-              value={fallbackCount}
-              one="# value could not be matched confidently; it will use a safe fallback."
-              other="# values could not be matched confidently; they will use safe fallbacks."
-            />
-          </p>
-        ) : null}
+        <p className="text-sm text-text-secondary">
+          <Trans>
+            Your uploaded file stays unchanged. DueDateHQ will use this clean import draft only
+            after you import.
+          </Trans>
+        </p>
       </div>
 
       {normalize.errorBanner ? (
         <Alert role="alert" aria-live="assertive">
-          {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
-              with the rest of the wizard's "Couldn't…" error
-              voice (Step 1 L595/L604, Step 2 L175, Wizard
-              toasts). Was the lone "warning" tone in a wizard
-              that's otherwise consistently "we couldn't do X". */}
           <AlertTitle>
             <Trans>Couldn&apos;t organize some values</Trans>
           </AlertTitle>
@@ -88,12 +85,84 @@ export function Step3Normalize({ normalize, matrix, onToggleApplyToAll }: Step3P
         </div>
       ) : (
         <>
-          <Section title={t`Entity types`} rows={entityRows} />
-          <Section title={t`States`} rows={stateRows} />
-          <MatrixSection
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <SummaryMetric
+              label={<Trans>Value groups</Trans>}
+              value={
+                <Plural
+                  value={normalizationSummary.totalGroups}
+                  _0="None"
+                  one="# group"
+                  other="# groups"
+                />
+              }
+            />
+            <SummaryMetric
+              label={<Trans>Ready</Trans>}
+              value={
+                <Plural
+                  value={normalizationSummary.readyGroups}
+                  _0="None"
+                  one="# group"
+                  other="# groups"
+                />
+              }
+            />
+            <SummaryMetric
+              label={<Trans>Needs review</Trans>}
+              value={
+                <Plural
+                  value={normalizationSummary.exceptionGroups}
+                  _0="None"
+                  one="# group"
+                  other="# groups"
+                />
+              }
+            />
+            <SummaryMetric
+              label={<Trans>Clients affected</Trans>}
+              value={
+                <Plural
+                  value={normalizationSummary.affectedExceptionClients}
+                  _0="None"
+                  one="# client"
+                  other="# clients"
+                />
+              }
+            />
+          </div>
+
+          {normalizationSummary.exceptionGroups > 0 ? (
+            <Alert role="status" aria-live="polite">
+              <AlertTitle>
+                <Plural
+                  value={normalizationSummary.exceptionGroups}
+                  one="# value group needs review"
+                  other="# value groups need review"
+                />
+              </AlertTitle>
+              <AlertDescription>
+                <Plural
+                  value={normalizationSummary.affectedExceptionClients}
+                  one="# client is affected by a safe fallback."
+                  other="# clients are affected by safe fallbacks."
+                />
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          <ValueGroupsSection
+            groups={normalizationSummary.groups}
+            expanded={valueDetailsOpen}
+            onToggle={() => setValueDetailsOpen((open) => !open)}
+          />
+          <MatrixSummarySection
             matrix={matrix}
+            summary={matrixSummary}
+            expanded={matrixDetailsOpen}
             applyToAll={normalize.applyToAll}
-            onToggle={onToggleApplyToAll}
+            onToggleExpanded={() => setMatrixDetailsOpen((open) => !open)}
+            onToggleApplyToAll={onToggleApplyToAll}
           />
         </>
       )}
@@ -101,120 +170,203 @@ export function Step3Normalize({ normalize, matrix, onToggleApplyToAll }: Step3P
   )
 }
 
-interface SectionProps {
-  title: string
-  rows: NormalizationRow[]
+function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
+  return (
+    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
+      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+        {label}
+      </div>
+      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
+    </div>
+  )
 }
 
-function Section({ title, rows }: SectionProps) {
-  if (rows.length === 0) return null
-
+function ValueGroupsSection({
+  groups,
+  expanded,
+  onToggle,
+}: {
+  groups: readonly NormalizationValueGroup[]
+  expanded: boolean
+  onToggle: () => void
+}) {
   return (
-    <section
-      role="group"
-      aria-label={title}
-      className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
-    >
-      <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        {title}
-      </h3>
-      <ul className="flex flex-col divide-y divide-divider-regular text-sm">
-        {rows.map((row) => {
-          const fallback = usesFallbackHandling(row)
-          return (
-            <li
-              key={row.id}
-              className={cn(
-                'flex items-center gap-3 py-2',
-                fallback && 'bg-components-badge-bg-warning-soft -mx-3 px-3',
-              )}
-            >
-              <span className="font-mono text-xs tabular-nums text-text-primary">
-                &quot;{row.rawValue}&quot;
-              </span>
-              <span aria-hidden className="text-text-tertiary">
-                →
-              </span>
-              <span className="inline-flex min-h-7 min-w-[120px] max-w-[180px] items-center rounded-md border border-divider-regular bg-background-body px-2 text-xs text-text-primary">
-                {formatNormalizedValue(row)}
-              </span>
-              <EvidenceChip
-                model={row.model}
-                confidence={row.confidence}
-                promptVersion={row.promptVersion}
-              />
-              {fallback ? (
-                <span
-                  className="ml-auto inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
-                  role="status"
-                >
-                  <AlertTriangleIcon className="size-3" aria-hidden />
-                  <FallbackStatus row={row} />
-                </span>
-              ) : null}
-            </li>
-          )
-        })}
-      </ul>
+    <section className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-medium text-text-primary">
+            <Trans>Cleaned value groups</Trans>
+          </h3>
+          <p className="text-sm text-text-secondary">
+            <Trans>Repeated values are grouped, so large imports stay reviewable.</Trans>
+          </p>
+        </div>
+        {groups.length > 0 ? (
+          <Button variant="outline" size="sm" aria-expanded={expanded} onClick={onToggle}>
+            {expanded ? <Trans>Show fewer groups</Trans> : <Trans>Review all groups</Trans>}
+            <ChevronDownIcon data-icon="inline-end" />
+          </Button>
+        ) : null}
+      </div>
+
+      {groups.length === 0 ? (
+        <p className="text-sm text-text-secondary">
+          <Trans>No values needed cleanup for this import.</Trans>
+        </p>
+      ) : expanded ? (
+        <ul className="flex flex-col divide-y divide-divider-regular">
+          {groups.map((group) => (
+            <ValueGroupRow
+              key={`${group.field}:${group.normalizedValue ?? 'none'}:${group.rawValues.join('|')}`}
+              group={group}
+            />
+          ))}
+        </ul>
+      ) : null}
     </section>
   )
 }
 
-function usesFallbackHandling(row: NormalizationRow): boolean {
+function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
+  const { t } = useLingui()
+  const fallback = group.usesFallback
+
   return (
-    row.normalizedValue === null || (typeof row.confidence === 'number' && row.confidence < 0.5)
+    <li
+      className={cn(
+        'flex flex-col gap-2 py-3',
+        fallback && 'bg-components-badge-bg-warning-soft -mx-3 px-3',
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+          {formatFieldLabel(group.field, t)}
+        </span>
+        <span className="text-text-tertiary">·</span>
+        <span className="text-xs text-text-secondary">
+          <Plural value={group.affectedClientCount} one="# client" other="# clients" />
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="font-mono text-xs tabular-nums text-text-primary">
+          {formatRawValueList(group.rawValues)}
+        </span>
+        <span aria-hidden className="text-text-tertiary">
+          →
+        </span>
+        <span className="inline-flex min-h-7 min-w-[120px] max-w-[260px] items-center rounded-md border border-divider-regular bg-background-body px-2 text-xs text-text-primary">
+          {formatNormalizedValue(group)}
+        </span>
+        <EvidenceChip
+          model={group.model}
+          confidence={group.confidence}
+          promptVersion={group.promptVersion}
+        />
+        <GroupStatus group={group} />
+      </div>
+    </li>
   )
 }
 
-function formatNormalizedValue(row: NormalizationRow): string {
-  if (!row.normalizedValue) return row.field === 'state' ? 'No state match' : 'Not recognized'
-  if (row.field === 'entity_type') return formatEntityTypeLabel(row.normalizedValue)
-  return row.normalizedValue
+function MatrixSummarySection({
+  matrix,
+  summary,
+  expanded,
+  applyToAll,
+  onToggleExpanded,
+  onToggleApplyToAll,
+}: {
+  matrix: readonly MatrixApplicationView[]
+  summary: ReturnType<typeof buildMatrixSummary>
+  expanded: boolean
+  applyToAll: Record<string, boolean>
+  onToggleExpanded: () => void
+  onToggleApplyToAll: (key: string, value: boolean) => void
+}) {
+  const { t } = useLingui()
+  if (matrix.length === 0) return null
+
+  return (
+    <section
+      role="group"
+      aria-label={t`Tax type defaults`}
+      className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-medium text-text-primary">
+            <ConceptLabel concept="defaultMatrix">
+              <Trans>Tax type defaults</Trans>
+            </ConceptLabel>
+          </h3>
+          <p className="text-sm text-text-secondary">
+            <Trans>Default tax types are ready for clients without tax types.</Trans>
+          </p>
+        </div>
+        <Button variant="outline" size="sm" aria-expanded={expanded} onClick={onToggleExpanded}>
+          {expanded ? (
+            <Trans>Hide tax type defaults</Trans>
+          ) : (
+            <Trans>Adjust tax type defaults</Trans>
+          )}
+          <ChevronDownIcon data-icon="inline-end" />
+        </Button>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryMetric
+          label={<Trans>Suggestions</Trans>}
+          value={<Plural value={summary.enabledCells} one="# group" other="# groups" />}
+        />
+        <SummaryMetric
+          label={<Trans>Clients covered</Trans>}
+          value={<Plural value={summary.clientsCovered} one="# client" other="# clients" />}
+        />
+        <SummaryMetric
+          label={<Trans>State review</Trans>}
+          value={<Plural value={summary.reviewCells} _0="None" one="# group" other="# groups" />}
+        />
+        <SummaryMetric
+          label={<Trans>Disabled</Trans>}
+          value={<Plural value={summary.disabledCells} _0="None" one="# group" other="# groups" />}
+        />
+      </div>
+
+      {summary.reviewCells > 0 ? (
+        <Alert role="status" aria-live="polite">
+          <AlertTitle>
+            <Plural
+              value={summary.reviewCells}
+              one="# tax type group needs rule review"
+              other="# tax type groups need rule review"
+            />
+          </AlertTitle>
+          <AlertDescription>
+            <Plural
+              value={summary.reviewClients}
+              one="# client will carry state-review context into the preview."
+              other="# clients will carry state-review context into the preview."
+            />
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {expanded ? (
+        <MatrixControls matrix={matrix} applyToAll={applyToAll} onToggle={onToggleApplyToAll} />
+      ) : null}
+    </section>
+  )
 }
 
-function FallbackStatus({ row }: { row: NormalizationRow }) {
-  if (row.normalizedValue === null && row.field === 'state') {
-    return <Trans>No state deadlines</Trans>
-  }
-  if (row.normalizedValue === null) {
-    return <Trans>Not used</Trans>
-  }
-  if (row.field === 'entity_type' && row.normalizedValue === 'other') {
-    return <Trans>Using Other</Trans>
-  }
-  return <Trans>Best match</Trans>
-}
-
-function formatEntityTypeLabel(entityType: string): string {
-  switch (entityType) {
-    case 'c_corp':
-      return 'C corp'
-    case 's_corp':
-      return 'S corp'
-    case 'partnership':
-      return 'Partnership'
-    case 'llc':
-      return 'LLC'
-    case 'individual':
-      return 'Individual'
-    case 'trust':
-      return 'Trust'
-    case 'sole_prop':
-      return 'Sole prop'
-    case 'other':
-      return 'Other'
-    default:
-      return entityType
-  }
-}
-
-interface MatrixSectionProps {
-  matrix: MatrixApplicationView[]
+function MatrixControls({
+  matrix,
+  applyToAll,
+  onToggle,
+}: {
+  matrix: readonly MatrixApplicationView[]
   applyToAll: Record<string, boolean>
   onToggle: (key: string, value: boolean) => void
-}
-
-function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
+}) {
   const { t } = useLingui()
   useAppHotkey(
     'A',
@@ -231,41 +383,16 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
       ignoreInputs: true,
       meta: {
         id: 'wizard.apply-to-all',
-        name: 'Toggle apply to all',
-        description: 'Toggle the focused Apply to all row in Step 3.',
+        name: 'Toggle suggested filings for this group',
+        description: 'Toggle suggested filings for the focused tax type group in Step 3.',
         category: 'wizard',
         scope: 'overlay',
       },
     },
   )
 
-  if (matrix.length === 0) return null
   return (
-    <section
-      role="group"
-      aria-label={t`Suggested tax types`}
-      className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3"
-    >
-      <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        <ConceptLabel concept="defaultMatrix">
-          <Trans>Suggested tax types (from entity × state matrix)</Trans>
-        </ConceptLabel>
-      </h3>
-      {/* 2026-05-25 (Wizard #40 length fix): explainer paragraphs
-          trimmed per audit. The default-tax-type sentence dropped
-          half its length ("suggestions apply only where imported
-          rows do not already include tax types" → "apply only to
-          rows without tax types"). The 30-word penalty-readiness
-          paragraph was removed entirely from this surface — it
-          threaded three concepts (penalty readiness, estimated
-          tax due, owner count) into a step body where users are
-          deciding tax-type defaults, not reading penalty
-          architecture. Penalty readiness already has its own
-          concept popover and Step 4 surface; it doesn't belong
-          here. */}
-      <p className="text-sm text-text-secondary">
-        <Trans>These defaults apply only to rows without tax types.</Trans>
-      </p>
+    <div role="group" aria-label={t`Adjust tax type defaults`} className="flex flex-col gap-2">
       <ul className="flex flex-col divide-y divide-divider-regular">
         {matrix.map((cell) => {
           const key = `${cell.entityType}::${cell.state}`
@@ -273,24 +400,6 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
           return (
             <li key={key} className="flex flex-col gap-2 py-3">
               <div className="flex items-center justify-between gap-3">
-                {/* 2026-05-25 (Wizard #40 plural-form split): the
-                    original baked the entity × state code INTO
-                    the Plural one/other template strings via JS
-                    template interpolation. Lingui extracts the
-                    `<Plural>` one/other strings literally — the
-                    interpolated entity/state expressions
-                    (`cell.entityType.toUpperCase()` etc.) aren't
-                    simple identifiers, so the catalog couldn't
-                    represent them as named ICU placeholders.
-                    Translators would have received a different
-                    message per entity × state combination.
-
-                    Split: the entity × state kicker renders as
-                    data outside Plural; Plural carries only the
-                    count + "client(s)" noun. Catalog message is
-                    now a clean `{count, plural, one {# client}
-                    other {# clients}}`. The visual reads:
-                    "LLC × CA · 5 clients". */}
                 <span className="flex items-center gap-2 text-md text-text-primary">
                   <span className="font-mono text-xs uppercase tracking-wider text-text-tertiary">
                     {cell.entityType} × {cell.state}
@@ -304,16 +413,16 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
                   aria-keyshortcuts="A"
                 >
                   <Checkbox checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
-                  <Trans>Apply to all</Trans>
+                  <Trans>Use suggested filings</Trans>
                 </label>
               </div>
               <div className="flex flex-wrap gap-1.5 text-xs">
-                {cell.taxTypes.map((tt) => (
+                {cell.taxTypes.map((taxType) => (
                   <span
-                    key={tt}
+                    key={taxType}
                     className="inline-flex h-5 items-center rounded-md border border-divider-regular bg-components-panel-bg px-1.5 font-mono tabular-nums text-text-secondary"
                   >
-                    {tt}
+                    {taxType}
                   </span>
                 ))}
                 <EvidenceChip
@@ -345,8 +454,97 @@ function MatrixSection({ matrix, applyToAll, onToggle }: MatrixSectionProps) {
           )
         })}
       </ul>
-    </section>
+    </div>
   )
+}
+
+function GroupStatus({ group }: { group: NormalizationValueGroup }) {
+  if (!group.usesFallback) {
+    return (
+      <span className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-background-subtle px-1.5 text-xs text-text-success">
+        <CheckCircle2Icon className="size-3" aria-hidden />
+        <Trans>Ready</Trans>
+      </span>
+    )
+  }
+  return (
+    <span
+      className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary"
+      role="status"
+    >
+      <AlertTriangleIcon className="size-3" aria-hidden />
+      <FallbackStatus group={group} />
+    </span>
+  )
+}
+
+function FallbackStatus({ group }: { group: NormalizationValueGroup }) {
+  if (group.normalizedValue === null && group.field === 'state') {
+    return <Trans>No state deadlines</Trans>
+  }
+  if (group.normalizedValue === null) {
+    return <Trans>Not used</Trans>
+  }
+  if (group.field === 'entity_type' && group.normalizedValue === 'other') {
+    return <Trans>Using Other</Trans>
+  }
+  return <Trans>Best match</Trans>
+}
+
+function formatFieldLabel(field: string, t: ReturnType<typeof useLingui>['t']): string {
+  if (field === 'entity_type') return t`Entity type`
+  if (field === 'state') return t`State`
+  if (field === 'tax_types') return t`Tax types`
+  return field
+}
+
+function formatRawValueList(values: readonly string[]): string {
+  const visible = values.slice(0, 3).map((value) => `"${value}"`)
+  const hidden = values.length - visible.length
+  return hidden > 0 ? `${visible.join(' / ')} / +${hidden}` : visible.join(' / ')
+}
+
+function formatNormalizedValue(group: NormalizationValueGroup): string {
+  if (!group.normalizedValue) return group.field === 'state' ? 'No state match' : 'Not recognized'
+  if (group.field === 'entity_type') return formatEntityTypeLabel(group.normalizedValue)
+  if (group.field === 'tax_types') return formatTaxTypes(group.normalizedValue)
+  return group.normalizedValue
+}
+
+function formatTaxTypes(value: string): string {
+  try {
+    const parsed = JSON.parse(value)
+    if (Array.isArray(parsed)) {
+      const values = parsed.filter((item): item is string => typeof item === 'string')
+      if (values.length > 0) return values.join(', ')
+    }
+  } catch {
+    return value
+  }
+  return value
+}
+
+function formatEntityTypeLabel(entityType: string): string {
+  switch (entityType) {
+    case 'c_corp':
+      return 'C corp'
+    case 's_corp':
+      return 'S corp'
+    case 'partnership':
+      return 'Partnership'
+    case 'llc':
+      return 'LLC'
+    case 'individual':
+      return 'Individual'
+    case 'trust':
+      return 'Trust'
+    case 'sole_prop':
+      return 'Sole prop'
+    case 'other':
+      return 'Other'
+    default:
+      return entityType
+  }
 }
 
 function EvidenceChip({

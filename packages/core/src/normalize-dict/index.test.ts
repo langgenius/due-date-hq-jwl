@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DICT_VERSION, normalizeEntityType, normalizeState } from './index'
+import { DICT_VERSION, normalizeEntityType, normalizeState, normalizeTaxTypes } from './index'
 
 describe('normalizeEntityType', () => {
   it.each([
@@ -48,6 +48,8 @@ describe('normalizeState', () => {
   it.each([
     ['california', 'CA'],
     ['Calif', 'CA'],
+    ['C.A.', 'CA'],
+    ['n.y.', 'NY'],
     ['New York', 'NY'],
     ['District of Columbia', 'DC'],
     ['washington dc', 'DC'],
@@ -60,5 +62,24 @@ describe('normalizeState', () => {
   it('returns null for unknown states', () => {
     expect(normalizeState('Atlantis')).toBeNull()
     expect(normalizeState('XX')).toBeNull()
+  })
+})
+
+describe('normalizeTaxTypes', () => {
+  it.each([
+    ['Form 990', ['federal_990']],
+    ['Form 1120-S', ['federal_1120s']],
+    [
+      'Form 1065 + CA LLC',
+      ['federal_1065', 'ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts'],
+    ],
+  ])('maps %s', (raw, expected) => {
+    const hit = normalizeTaxTypes(raw)
+    expect(hit).not.toBeNull()
+    expect(hit!.normalized).toEqual(expected)
+  })
+
+  it('returns null for unknown tax type labels', () => {
+    expect(normalizeTaxTypes('general client')).toBeNull()
   })
 })

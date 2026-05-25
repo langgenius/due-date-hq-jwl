@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { parseTabular } from '@duedatehq/core/csv-parser'
+import { normalizeTaxTypes } from '@duedatehq/core/normalize-dict'
 import {
   inferTaxTypes,
   matrixApplicationModeForTaxTypes,
@@ -50,6 +51,7 @@ import {
   type WizardState,
 } from './state'
 import type { MatrixApplicationView } from './matrix-view'
+import { repairMappingRows, repairNormalizationRows } from './migration-summary-view-model'
 
 interface WizardProps {
   open: boolean
@@ -205,7 +207,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     const handleMapperSuccess = (batchId: string) => (result: MapperRunOutput) => {
       dispatch({
         type: 'MAPPER_RESULT',
-        rows: result.mappings,
+        rows: repairMappingRows(result.mappings, state.intake.rawText),
         fallback: result.meta?.fallback ?? null,
       })
       dispatch({ type: 'GO_TO_STEP', step: 2 })
@@ -296,7 +298,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             {
               onError: handleError,
               onSuccess: (normalized) => {
-                dispatch({ type: 'NORMALIZE_RESULT', rows: normalized.normalizations })
+                dispatch({
+                  type: 'NORMALIZE_RESULT',
+                  rows: repairNormalizationRows(normalized.normalizations),
+                })
                 dispatch({ type: 'GO_TO_STEP', step: 3 })
               },
             },
@@ -323,14 +328,14 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         onSuccess: (result) => {
           dispatch({
             type: 'MAPPER_RESULT',
-            rows: result.mappings,
+            rows: repairMappingRows(result.mappings, state.intake.rawText),
             fallback: result.meta?.fallback ?? null,
           })
           listErrorsMutation.mutate({ batchId, stage: 'mapping' })
         },
       },
     )
-  }, [listErrorsMutation, runMapperMutation, state.batchId, t])
+  }, [listErrorsMutation, runMapperMutation, state.batchId, state.intake.rawText, t])
 
   const matrixPreview = useMemo<MatrixApplicationView[]>(
     () =>
@@ -358,7 +363,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     confirmNormalizationMutation.mutate(
       {
         batchId,
-        normalizations: state.normalize.rows,
+        normalizations: repairNormalizationRows(state.normalize.rows),
       },
       {
         onError: handleError,
@@ -606,6 +611,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           <Step3Normalize
             normalize={state.normalize}
             matrix={matrixPreview}
+            rawText={state.intake.rawText}
+            mappings={state.mapping.rows}
             onToggleApplyToAll={(key, value) =>
               dispatch({ type: 'NORMALIZE_TOGGLE_APPLY_TO_ALL', key, value })
             }
@@ -813,13 +820,17 @@ function normalizeTaxTypesForMatrix(
     try {
       const parsed = JSON.parse(hit.normalizedValue)
       if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === 'string')
+        const normalizedValues = parsed.filter((item): item is string => typeof item === 'string')
+        if (normalizedValues.length > 0) return normalizedValues
+        return normalizeTaxTypes(raw)?.normalized ?? []
       }
     } catch {
       return [hit.normalizedValue]
     }
     return [hit.normalizedValue]
   }
+  const dictionaryHit = normalizeTaxTypes(raw)
+  if (dictionaryHit) return dictionaryHit.normalized
   return raw
     .split(/[;,|]/)
     .map((item) => item.trim())

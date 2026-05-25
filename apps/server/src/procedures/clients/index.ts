@@ -747,6 +747,78 @@ const updateRiskProfile = os.clients.updateRiskProfile.handler(async ({ input, c
   }
 })
 
+const updateSourceDetails = os.clients.updateSourceDetails.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+
+  await scoped.clients.updateSourceDetails(input.id, {
+    ...(input.externalClientId !== undefined ? { externalClientId: input.externalClientId } : {}),
+    ...(input.addressLine1 !== undefined ? { addressLine1: input.addressLine1 } : {}),
+    ...(input.city !== undefined ? { city: input.city } : {}),
+    ...(input.postalCode !== undefined ? { postalCode: input.postalCode } : {}),
+    ...(input.primaryPhone !== undefined ? { primaryPhone: input.primaryPhone } : {}),
+    ...(input.sourceStatus !== undefined ? { sourceStatus: input.sourceStatus } : {}),
+  })
+  const [after, filingProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated client could not be re-read.',
+    })
+  }
+
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.source_details.updated',
+    before: {
+      externalClientId: before.externalClientId,
+      addressLine1: before.addressLine1,
+      city: before.city,
+      postalCode: before.postalCode,
+      primaryPhone: before.primaryPhone,
+      sourceStatus: before.sourceStatus,
+    },
+    after: {
+      externalClientId: after.externalClientId,
+      addressLine1: after.addressLine1,
+      city: after.city,
+      postalCode: after.postalCode,
+      primaryPhone: after.primaryPhone,
+      sourceStatus: after.sourceStatus,
+    },
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+  })
+
+  await Promise.all([
+    enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'client_facts_change',
+    }).catch(() => false),
+    enqueueAiInsightRefresh(context.env, {
+      firmId: tenant.firmId,
+      kind: 'client_risk_summary',
+      subjectId: input.id,
+      reason: 'client_source_details_update',
+    }).catch(() => false),
+  ])
+
+  const hideDollars = await shouldHideDollars(context)
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles }),
+    auditId,
+  }
+})
+
 function clientRiskFallback(clientId: string) {
   return [
     {
@@ -899,6 +971,7 @@ export const clientsHandlers = {
   replaceFilingProfiles,
   updatePenaltyInputs,
   updateRiskProfile,
+  updateSourceDetails,
   getRiskSummary,
   requestRiskSummaryRefresh,
   bulkUpdateAssignee,

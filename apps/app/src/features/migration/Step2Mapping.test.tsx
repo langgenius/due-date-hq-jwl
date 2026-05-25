@@ -49,20 +49,28 @@ function renderStep(mapping: MapperState, errors: MigrationError[] = []) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
+  const onUserEdit = vi.fn()
+  const onRerun = vi.fn()
 
   act(() => {
     root?.render(
       <I18nProvider i18n={i18n}>
         <Step2Mapping
           mapping={mapping}
-          sampleByHeader={{ 'Client Name': 'Acme LLC' }}
+          sampleByHeader={{
+            'Client Name': 'Acme LLC',
+            State: 'TX',
+            EIN: '12-3456789',
+          }}
           errors={errors}
-          onUserEdit={vi.fn()}
-          onRerun={vi.fn()}
+          onUserEdit={onUserEdit}
+          onRerun={onRerun}
         />
       </I18nProvider>,
     )
   })
+
+  return { onUserEdit, onRerun }
 }
 
 function mappingState(patch: Partial<MapperState> = {}): MapperState {
@@ -75,22 +83,67 @@ function mappingState(patch: Partial<MapperState> = {}): MapperState {
   }
 }
 
+function clickButton(label: string) {
+  const button = Array.from(document.querySelectorAll('button')).find((candidate) =>
+    candidate.textContent?.includes(label),
+  )
+  expect(button).toBeTruthy()
+  act(() => {
+    button?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+}
+
 describe('Step2Mapping capability disclosure', () => {
   it('shows AI Mapper when structured AI mapping was used', () => {
     renderStep(mappingState())
 
+    expect(document.body.textContent).toContain('AI prepared your columns')
+    expect(document.body.textContent).toContain('Columns used')
+    expect(document.body.textContent).toContain('Confidence')
     expect(document.body.textContent).toContain('AI Mapper')
     expect(document.querySelector('button[aria-label="Explain AI Mapper"]')).toHaveProperty(
       'title',
       'AI Mapper means AI suggested the fields.',
     )
+    expect(document.querySelector('[data-slot="step2-column-details"]')).toBeNull()
+    expect(document.body.textContent).not.toContain('Your column')
+  })
+
+  it('opens the advanced mapping table only when the user asks for details', () => {
+    renderStep(
+      mappingState({
+        rows: [
+          baseRow,
+          {
+            ...baseRow,
+            id: '550e8400-e29b-41d4-a716-446655440002',
+            sourceHeader: 'State',
+            targetField: 'client.state',
+            confidence: 0.71,
+          },
+        ],
+      }),
+    )
+
+    expect(document.querySelector('[data-slot="step2-column-details"]')).toBeNull()
+    expect(document.body.textContent).toContain('1 column needs review')
+
+    clickButton('Review column details')
+
+    expect(document.querySelector('[data-slot="step2-column-details"]')).not.toBeNull()
+    expect(document.body.textContent).toContain('Your column')
+    expect(document.body.textContent).toContain('Client Name')
+    expect(document.body.textContent).toContain('State')
+    expect(document.body.textContent).toContain('Edit')
   })
 
   it('shows Import template when AI uses the selected import template', () => {
     renderStep(mappingState({ status: 'fallback', fallback: 'preset' }))
 
     expect(document.body.textContent).toContain('Import template')
-    expect(document.body.textContent).toContain('Automatic field matching is unavailable')
+    expect(document.body.textContent).toContain(
+      'Automatic field matching is unavailable. We used the selected import template',
+    )
     expect(
       document.querySelector('button[aria-label="Explain import template suggestions"]'),
     ).toHaveProperty(
@@ -100,9 +153,16 @@ describe('Step2Mapping capability disclosure', () => {
   })
 
   it('shows Manual mapping when AI is unavailable and no preset was selected', () => {
-    renderStep(mappingState({ status: 'fallback', fallback: 'all_ignore' }))
+    renderStep(
+      mappingState({
+        status: 'fallback',
+        fallback: 'all_ignore',
+        rows: [{ ...baseRow, targetField: 'IGNORE', confidence: null }],
+      }),
+    )
 
     expect(document.body.textContent).toContain('Manual mapping')
+    expect(document.body.textContent).toContain('1 column is currently ignored.')
     expect(document.querySelector('button[aria-label="Explain Manual mapping"]')).toHaveProperty(
       'title',
       'Manual mapping means no AI or import template result was available.',

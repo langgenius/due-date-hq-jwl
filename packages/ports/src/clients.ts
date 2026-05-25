@@ -110,6 +110,17 @@ export interface ClientsRepo {
       lateFilingCountLast12mo?: number
     },
   ): Promise<void>
+  updateSourceDetails(
+    id: string,
+    input: {
+      externalClientId?: string | null
+      addressLine1?: string | null
+      city?: string | null
+      postalCode?: string | null
+      primaryPhone?: string | null
+      sourceStatus?: string | null
+    },
+  ): Promise<void>
   updateTaxYearProfile(
     id: string,
     input: {

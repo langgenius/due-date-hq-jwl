@@ -267,6 +267,31 @@ export function makeClientsRepo(db: Db, firmId: string) {
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 
+    async updateSourceDetails(
+      id: string,
+      input: {
+        externalClientId?: string | null
+        addressLine1?: string | null
+        city?: string | null
+        postalCode?: string | null
+        primaryPhone?: string | null
+        sourceStatus?: string | null
+      },
+    ): Promise<void> {
+      const patch: Partial<typeof client.$inferInsert> = {}
+      if (input.externalClientId !== undefined) patch.externalClientId = input.externalClientId
+      if (input.addressLine1 !== undefined) patch.addressLine1 = input.addressLine1
+      if (input.city !== undefined) patch.city = input.city
+      if (input.postalCode !== undefined) patch.postalCode = input.postalCode
+      if (input.primaryPhone !== undefined) patch.primaryPhone = input.primaryPhone
+      if (input.sourceStatus !== undefined) patch.sourceStatus = input.sourceStatus
+      if (Object.keys(patch).length === 0) return
+      await db
+        .update(client)
+        .set(patch)
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
     async updateTaxYearProfile(
       id: string,
       input: {

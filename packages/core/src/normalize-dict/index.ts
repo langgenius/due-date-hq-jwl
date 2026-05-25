@@ -29,6 +29,8 @@ export type EntityNormalized =
 
 export const DICT_VERSION = 'dictionary@v1'
 export const DICT_CONFIDENCE = 0.85
+export const TAX_TYPE_DICT_VERSION = 'dictionary-tax-types@v1'
+export const TAX_TYPE_DICT_CONFIDENCE = 0.85
 
 const ENTITY_DICT: Record<string, EntityNormalized> = {
   llc: 'llc',
@@ -212,7 +214,7 @@ function canon(value: string): string {
 export interface DictionaryHit<T> {
   normalized: T
   confidence: number
-  promptVersion: typeof DICT_VERSION
+  promptVersion: typeof DICT_VERSION | typeof TAX_TYPE_DICT_VERSION
 }
 
 /** Return null when no dictionary entry matches; the service then writes a `needs_review` row. */
@@ -232,9 +234,50 @@ export function normalizeState(raw: string): DictionaryHit<string> | null {
   if (STATE_CODES.has(upper)) {
     return { normalized: upper, confidence: 1.0, promptVersion: DICT_VERSION }
   }
+  const alphaOnly = trimmed.replace(/[^a-z]/gi, '').toUpperCase()
+  if (alphaOnly.length === 2 && STATE_CODES.has(alphaOnly)) {
+    return { normalized: alphaOnly, confidence: DICT_CONFIDENCE, promptVersion: DICT_VERSION }
+  }
   const longHit = STATE_LONG[canon(trimmed)]
   if (longHit) {
     return { normalized: longHit, confidence: DICT_CONFIDENCE, promptVersion: DICT_VERSION }
   }
   return null
+}
+
+export function normalizeTaxTypes(raw: string): DictionaryHit<string[]> | null {
+  const value = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ')
+  if (!value) return null
+
+  const out: string[] = []
+  if (/\b1120[\s-]?s\b/.test(value) || value.includes('ct-3-s')) out.push('federal_1120s')
+  else if (/\b1120\b/.test(value)) out.push('federal_1120')
+  if (/\b1040\b/.test(value)) out.push('federal_1040')
+  if (/\b1041\b/.test(value)) out.push('federal_1041')
+  if (/\b1065\b/.test(value)) out.push('federal_1065')
+  if (/\b990\b/.test(value)) out.push('federal_990')
+
+  if (value.includes('ca llc') || value.includes('llc fee')) {
+    out.push('ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts')
+  }
+  if (value.includes('ca franchise') || value.includes('ca 100')) {
+    if (value.includes('100s')) out.push('ca_100s_franchise')
+    else out.push('ca_100_franchise')
+  }
+  if (value.includes('ny ct-3-s') || value.includes('ct-3-s')) out.push('ny_ct3s')
+  else if (value.includes('ny ct-3') || value.includes('ct-3')) out.push('ny_ct3')
+  if (value.includes('it-204') || value.includes('it204')) out.push('ny_it204')
+
+  const normalized = Array.from(new Set(out))
+  return normalized.length > 0
+    ? {
+        normalized,
+        confidence: TAX_TYPE_DICT_CONFIDENCE,
+        promptVersion: TAX_TYPE_DICT_VERSION,
+      }
+    : null
 }
