@@ -110,8 +110,18 @@ export function AppShell(props: AppShellProps) {
               Every other route (Obligations queue, Clients, Rules,
               Settings) lands at 1280px, which fits the queue's
               column set without horizontal scroll while still
-              keeping content off the far edges of 27"+ monitors. */}
-            <div className="mx-auto w-full max-w-[1440px]">
+              keeping content off the far edges of 27"+ monitors.
+
+              2026-05-25 (sticky-header bug fix): added `h-full` and
+              `flex flex-col` so the max-width wrapper propagates
+              `<main>`'s definite height down to RulesPageShell
+              (and any other route shell using `h-full`). Without
+              it, `h-full` on the shell resolved against an
+              auto-height parent and the inner overflow-y-auto
+              never established a real scroll container — sticky
+              elements like the rule library's TableHeader fell
+              back to the document scroll context and never pinned. */}
+            <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col">
               <Outlet />
             </div>
           </main>
