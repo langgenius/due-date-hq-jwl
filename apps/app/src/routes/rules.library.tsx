@@ -54,6 +54,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
 import { SearchInput } from '@/components/primitives/search-input'
+import { StateBadge } from '@/components/primitives/state-badge'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { countSourcesByHealth, jurisdictionLabel } from '@/features/rules/rules-console-model'
@@ -932,7 +933,17 @@ export function RulesLibraryRoute() {
         // matches every other primary CTA in the app.
         <Button size="sm" onClick={startReviewAll}>
           <Trans>Start review</Trans>
-          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-state-accent-active-alt/40 px-1.5 font-mono text-xs tabular-nums">
+          {/* 2026-05-25 (Yuqi rule library fourth pass #5 + #12):
+              count chip switches to a WHITE background. Was a
+              translucent accent (`bg-state-accent-active-alt/40`)
+              which, sitting inside the primary-blue button,
+              picked up enough red from the alt accent token that
+              Yuqi flagged the whole button as "destructive red."
+              Solid white chip + accent text reads cleanly as a
+              "count badge inside a primary CTA" — same pattern
+              GitHub uses for the count chip inside its "Open N
+              issues" button. */}
+          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
             {reviewCount}
           </span>
         </Button>
@@ -1178,7 +1189,16 @@ function StatsBar({
               </span>
             ) : null}
           </div>
-          <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-warning-hover px-2">
+          {/* 2026-05-25 (Yuqi rule library fourth pass #4, #11):
+              needs-review label switches from `justify-end` to
+              `justify-start` so the "N need review" text sits at
+              the LEFT edge of its own segment, immediately after
+              the active segment's right edge. The previous
+              right-aligned text pushed the label all the way out
+              to the bar's far edge, breaking the "active count
+              on left, review count next to it" reading Yuqi
+              wanted. */}
+          <div className="flex flex-1 items-center justify-start overflow-hidden bg-state-warning-hover px-2">
             {REVIEW_LABEL_FITS ? (
               <span className="truncate text-xs font-medium tabular-nums text-text-warning">
                 <Trans>{totalPendingReview} need review</Trans>
@@ -1513,11 +1533,14 @@ function GroupedRulesTable({
             through during scroll. */}
         <TableHeader className="sticky top-0 z-10 !bg-background-default [&_tr]:!bg-background-default">
           <TableRow className="border-b-divider-subtle hover:bg-transparent">
-            {/* 2026-05-25 (Yuqi rule library #2 + #7 — wider): Rule
-                column claims more width (34% → 42%) so rule titles
-                breathe. Form + entity dots + Tier all narrow to
-                fit. */}
-            <TableHead className="w-[42%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+            {/* 2026-05-25 (Yuqi rule library fourth pass #2 + #7
+                — wider, fourth time asking): Rule column widened
+                again 42% → 52%. The 42% earlier pass left long
+                rule titles still truncating on the default
+                viewport. 52% takes most of the table width; Form
+                column shrinks below to fit (#3), entity dot
+                columns stay at their fixed 48px each. */}
+            <TableHead className="w-[52%] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <span className="inline-flex items-baseline gap-2">
                 <Trans>Rule</Trans>
                 <span aria-hidden className="text-text-tertiary/60">
@@ -1528,12 +1551,14 @@ function GroupedRulesTable({
                 </span>
               </span>
             </TableHead>
-            {/* 2026-05-25 (Yuqi rule library #3 — third pass): Form
-                column further narrowed to w-[120px]. Form codes
-                like "1120-S Final" fit in 120px with truncation;
-                anything longer wraps. The freed width goes to the
-                Rule column above. */}
-            <TableHead className="w-[120px] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+            {/* 2026-05-25 (Yuqi rule library fourth pass #3): Form
+                column further narrowed 120px → 96px. The shortest
+                code "7004" (4 chars) and average code "1120-S"
+                (6 chars) both fit comfortably; long codes like
+                "1120-S Final" truncate with an ellipsis and keep
+                the full text in a title tooltip. The reclaimed
+                24px goes to the Rule column above (#7). */}
+            <TableHead className="w-[96px] text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
               <Trans>Form</Trans>
             </TableHead>
             {ENTITY_KEYS.map((entity) => (
@@ -1728,17 +1753,23 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
-          {/* 2026-05-25 (Yuqi rule library #2): badge has a fixed
-              width so every jurisdiction badge (FED, CA, NY, TX, …)
-              renders at the same size. Before, the badge auto-sized
-              to its content — FED (3 chars) was wider than CA
-              (2 chars), so the column read as a ragged left edge. */}
-          <Badge
-            variant="secondary"
-            className="h-5 w-12 justify-center rounded px-0 font-mono text-caption-xs uppercase tracking-wider"
-          >
-            {group.jurisdiction}
-          </Badge>
+          {/* 2026-05-25 (Yuqi rule library fourth pass #6):
+              jurisdiction marker upgraded to the StateBadge SVG
+              primitive used everywhere else US-states surface
+              (Alerts page, Pulse drawer, /clients States column).
+              Was a square mono-text Badge that read different from
+              the rest of the app. The 2-letter code label stays
+              alongside the SVG so the row remains keyboard-typable
+              and the column reads at a glance. Federal-level
+              groups (jurisdiction === "US") still receive a
+              StateBadge — the primitive renders a "FED" mark for
+              that code. */}
+          <span className="inline-flex items-center gap-1.5">
+            <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
+            <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+              {group.jurisdiction}
+            </span>
+          </span>
           <span className="text-base font-semibold text-text-primary">{group.label}</span>
           <span className="text-xs tabular-nums text-text-tertiary">
             <Plural value={group.ruleCount} one="# rule" other="# rules" />
@@ -2011,7 +2042,16 @@ function StatusSectionHeaderRow({
           (ACTIVE section), the w-4 placeholder reserves the slot
           so the label x-position stays constant across section
           headers. */}
-      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="pb-1 pt-3">
+      {/* 2026-05-25 (Yuqi rule library fourth pass #1 — "everything
+          to the left"): added explicit `pl-3 text-left` so the
+          section header label x-position is anchored to the
+          cell's left padding regardless of any primitive
+          `text-center` defaults inherited via colSpan. The flex
+          row inside already left-aligns its content; the
+          additional cell-level overrides defend against the
+          colspan cell defaulting to centered alignment when the
+          column widths shift. */}
+      <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="pb-1 pt-3 pl-3 text-left">
         <div className="flex items-center gap-2">
           <span className="inline-flex w-4 shrink-0 items-center justify-center" aria-hidden>
             {hasSelectAll ? (
@@ -2203,16 +2243,26 @@ function RuleDetailPanel({
             shape the audit ID line used to spell out, so the body
             no longer needs to repeat it. */}
       <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 p-0">
-        {/* 2026-05-25 (Yuqi rule library #8, #10 — third pass):
-            title bumped text-base → text-lg ("title 应该更大"),
-            gap between kicker and title bumped 1 → 2 so the
-            sections separate visually instead of running together
-            ("文字很混乱。也没有 section。加上 section"). */}
-        <DialogHeader className="flex flex-col gap-2 border-b border-divider-subtle px-5 py-4">
-          <RuleDetailKicker rule={rule} />
-          <DialogTitle className="text-lg font-semibold leading-tight text-text-primary">
+        {/* 2026-05-25 (Yuqi rule library fourth pass #8, #10):
+            third-pass tweaks weren't enough — Yuqi still flagged
+            the header as "混乱" (chaotic, no section).
+            Restructured:
+              - Title bumped text-lg → text-xl (even bigger anchor)
+              - Title moved ABOVE the kicker so the eye lands on
+                "Arizona individual income tax return" first, then
+                catches the identity-meta line (jurisdiction + form
+                + year + status) as supporting context below.
+              - 12px gap between title and kicker (gap-3) so the
+                two read as two distinct sections, not one
+                visually-fused block.
+              - Background slightly lifted (bg-background-subtle)
+                on the header surface so it visually separates from
+                the body content scroll area. */}
+        <DialogHeader className="flex flex-col gap-3 border-b border-divider-subtle bg-background-subtle px-5 py-4">
+          <DialogTitle className="text-xl font-semibold leading-tight text-text-primary">
             {rule.title}
           </DialogTitle>
+          <RuleDetailKicker rule={rule} />
         </DialogHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <RuleDetailInline rule={rule} concreteDraft={concreteDraft} />
@@ -2232,13 +2282,22 @@ function RuleDetailPanel({
 // quiet reference for audit / engineer use.
 function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
   return (
+    // 2026-05-25 (Yuqi rule library fourth pass #9): jurisdiction
+    // marker upgraded from the mono-text Badge to the StateBadge
+    // SVG primitive used everywhere else US-states surface in the
+    // app (the GroupHeaderRow above, Alerts page, Pulse drawer,
+    // /clients States column). One visual grammar for "this is a
+    // jurisdiction" instead of two parallel ones. The 2-letter
+    // code text follows the SVG so the chip remains keyboard-
+    // typable and the kicker reads at a glance.
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-      <Badge
-        variant="secondary"
-        className="h-5 rounded px-1.5 font-mono text-caption-xs uppercase tracking-wider"
-      >
-        {rule.jurisdiction}
-      </Badge>
+      <span className="inline-flex items-center gap-1.5">
+        <StateBadge code={rule.jurisdiction} size="xs" title={rule.jurisdiction} />
+        <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+          {rule.jurisdiction}
+        </span>
+      </span>
+      <span aria-hidden>·</span>
       <span className="font-medium text-text-secondary">{rule.formName}</span>
       <span aria-hidden>·</span>
       <span className="font-mono tabular-nums">

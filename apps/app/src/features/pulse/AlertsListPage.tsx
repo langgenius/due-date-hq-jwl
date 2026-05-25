@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArrowUpRightIcon, FilterXIcon, HistoryIcon } from 'lucide-react'
+import { AlertCircleIcon, ArrowUpRightIcon, HistoryIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -338,17 +338,17 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               filter remains keyboard-typable and the chip is
               accessible without the SVG. The count chip on the right
               stays — same affordance as before. */}
-          {/* 2026-05-25 (Yuqi Alerts fourth pass — #1): state-filter
-              chips shrunk back down. The previous pass had bumped
-              them up (text-sm / size-sm badge / h-5 count) so the
-              row would read as a real filter strip not caption
-              chrome. Yuqi flagged the result as too big — the
-              chips were claiming a full row of visual weight on a
-              page where the data rows below already carry the
-              attention. Back to text-xs / size-xs badge / h-4
-              count with tighter padding (py-0.5, pl-1, pr-1.5) and
-              gap-1.5 between motif/code/count. Touch target stays
-              ≥24px tall via the badge + padding combo. */}
+          {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #1): chip
+              further shrunk — Yuqi reported the chips still read
+              "too big" after the previous compression. Dropped
+              the inner count chip entirely (was a small bordered
+              box that visually fused with the state code,
+              producing "NY1" run-together reading); count now
+              lives inline as tabular-nums text-tertiary, separated
+              from the code by a real space character. Outer
+              padding tightened (py-0 pl-1 pr-2) so each chip
+              collapses to its natural badge-height (~24px)
+              without claiming extra row real estate. */}
           {jurisdictionCounts.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
@@ -363,7 +363,7 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     onClick={() => setJurisdictionFilter(active ? null : state)}
                     aria-pressed={active}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-md border py-0.5 pl-1 pr-1.5 text-xs font-medium tabular-nums transition-colors',
+                      'inline-flex items-center gap-1.5 rounded-md border py-0 pl-1 pr-2 text-xs font-medium transition-colors',
                       active
                         ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
                         : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
@@ -373,10 +373,8 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                     <span>{state}</span>
                     <span
                       className={cn(
-                        'inline-flex h-4 min-w-4 items-center justify-center rounded-sm px-1 text-[10px]',
-                        active
-                          ? 'bg-state-accent-solid/15 text-text-accent'
-                          : 'bg-background-soft text-text-tertiary',
+                        'tabular-nums',
+                        active ? 'text-text-accent/70' : 'text-text-tertiary',
                       )}
                     >
                       {count}
@@ -400,7 +398,11 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 if (typeof value === 'string' && isPulseImpactFilter(value)) setImpactFilter(value)
               }}
             >
-              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by impact`}>
+              <SelectTrigger
+                className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                size="sm"
+                aria-label={t`Filter by impact`}
+              >
                 <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
@@ -419,7 +421,11 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                   setChangeKindFilter(value)
               }}
             >
-              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by change type`}>
+              <SelectTrigger
+                className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                size="sm"
+                aria-label={t`Filter by change type`}
+              >
                 <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
@@ -437,7 +443,11 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
               }}
             >
-              <SelectTrigger className="w-[180px]" size="sm" aria-label={t`Filter by alert status`}>
+              <SelectTrigger
+                className="w-[180px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                size="sm"
+                aria-label={t`Filter by alert status`}
+              >
                 <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
@@ -455,7 +465,11 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 if (typeof value === 'string') setSourceFilter(value)
               }}
             >
-              <SelectTrigger className="w-[220px]" size="sm" aria-label={t`Filter by source`}>
+              <SelectTrigger
+                className="w-[220px] border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover"
+                size="sm"
+                aria-label={t`Filter by source`}
+              >
                 <SelectValue>
                   {sourceFilter === 'all' ? <Trans>All sources</Trans> : sourceFilter}
                 </SelectValue>
@@ -472,6 +486,12 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
               </SelectContent>
             </Select>
 
+            {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #7):
+                FilterX icon dropped from the Reset button — was
+                reading as redundant chrome next to the word
+                "Reset" itself. Bare ghost button keeps the
+                tertiary-action affordance without the visual
+                noise of the icon. */}
             <Button
               variant="ghost"
               size="sm"
@@ -484,7 +504,6 @@ export function PulseChangesTab({ embedded = false }: PulseChangesTabProps) {
                 setJurisdictionFilter(null)
               }}
             >
-              <FilterXIcon data-icon="inline-start" />
               <Trans>Reset</Trans>
             </Button>
           </div>

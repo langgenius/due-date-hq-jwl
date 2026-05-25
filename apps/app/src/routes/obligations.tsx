@@ -2196,18 +2196,14 @@ export function ObligationQueueRoute() {
               `bg-background-default` + a backdrop-blur fallback so
               row content scrolling underneath doesn't show through.
               z-10 keeps it above table content but below modals. */}
+          {/* 2026-05-25 (Yuqi /deadlines fourth pass #1): retired
+              the "Filter by status" eyebrow above the scope tabs.
+              The tabs are self-evidently a status filter — the
+              labels (All / Today / Open / Blocked / Waiting on
+              client / Filed) name the dimension out loud. The
+              eyebrow was a duplicate "this is what these tabs
+              are" caption that just added a row of chrome. */}
           <div className="sticky top-0 z-10 flex flex-col gap-1.5 border-b border-divider-regular bg-background-default/95 backdrop-blur-sm">
-            {/* 2026-05-25 (Yuqi rule library #6 / cross-surface):
-                eyebrow label above the scope tabs matches the
-                "FILTER BY ENTITY" pattern from /rules/library. Every
-                filter-band surface across the product now ledes
-                with a small caps eyebrow that names the filter
-                dimension — keeps the visual grammar consistent
-                between Deadlines, Rules library, and any future
-                surface that hangs filter chips above a table. */}
-            <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-              <Trans>Filter by status</Trans>
-            </span>
             <div className="flex flex-wrap items-end gap-3">
               <nav
                 aria-label={t`Status scopes`}
@@ -2745,11 +2741,18 @@ export function ObligationQueueRoute() {
               </Table>
             </>
           )}
-          {/* Footer — sticky to the bottom of the queue column. Always
-            visible regardless of row count (per 2026-05-21 design
-            call). Carries the obligation count, keyboard hints, and
-            client-side pagination controls (replaced Load more). */}
-          <div className="sticky bottom-0 -mx-1 mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
+          {/* 2026-05-25 (Yuqi /deadlines fourth pass #3): pagination
+              footer dropped `sticky bottom-0 -mx-1` so the row sits
+              as a static block immediately BELOW the table frame
+              instead of pinning to the viewport bottom and visually
+              overlapping the last data row. With client-side page
+              flipping the user navigates by page rather than by
+              scroll, so the sticky pin wasn't doing useful work —
+              it was just making the controls feel "inside" the
+              table. `mt-auto` retained so the footer still pushes
+              to the bottom of the flex column when the table is
+              short. */}
+          <div className="mt-auto flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               <span>
                 <Plural value={rows.length} one="# obligation" other="# obligations" />

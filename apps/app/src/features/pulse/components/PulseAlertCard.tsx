@@ -1,4 +1,5 @@
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { useQuery } from '@tanstack/react-query'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
@@ -8,9 +9,12 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { StateBadge } from '@/components/primitives/state-badge'
 
+import { usePulseDetailQueryOptions } from '../api'
 import { PulseConfidenceBadge } from './PulseConfidenceBadge'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
+
+const VISIBLE_CLIENT_NAMES = 3
 
 interface PulseAlertCardProps {
   alert: PulseAlertPublic
@@ -56,30 +60,56 @@ export function PulseAlertCard({
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
 
-  // 2026-05-25 (Yuqi Alerts third pass — second-batch #1, #2):
-  //   • Dropped the `breathing` background tint entirely. The amber
-  //     12% color-mix rendered as a pinkish-red wash on the top
-  //     actionable row — Yuqi: "为什么是浅红的？". Position alone
-  //     (top of the list) is sufficient priority signaling; the
-  //     extra wash was over-shouting.
-  //   • Restructured as a flex-row: content stack on the left
-  //     (flex-1), action column on the right. Yuqi: "action 应该
-  //     放在右边。内容在左边". Reads like a GitHub PR row — the
-  //     subject takes the width it needs, decisions live in the
-  //     trailing edge column.
+  // 2026-05-25 (Yuqi /rules/pulse fourth pass #2): pull the actual
+  // affected-client names from the detail query so the card can
+  // LIST them instead of just showing a "5 clients may be affected"
+  // summary. The list page mounts a card per alert; the detail
+  // query is cached per-alert so this is essentially free after
+  // the first render. Same hook the dashboard NeedsAttentionCard
+  // uses — kept inline here so the two card variants don't share
+  // a single hook with diverging needs (drawer renders names
+  // separately).
+  const affectedClientsQuery = useQuery(usePulseDetailQueryOptions(alert.id))
+  const allAffectedNames = affectedClientsQuery.data?.affectedClients ?? []
+  const uniqueNames: string[] = []
+  const seen = new Set<string>()
+  for (const row of allAffectedNames) {
+    if (!seen.has(row.clientName)) {
+      seen.add(row.clientName)
+      uniqueNames.push(row.clientName)
+    }
+  }
+  const visibleNames = uniqueNames.slice(0, VISIBLE_CLIENT_NAMES)
+  const overflowNames = Math.max(uniqueNames.length - visibleNames.length, 0)
+
+  // 2026-05-25 (Yuqi /rules/pulse fourth pass — #3, #4, #8):
+  //   • #3: Review button moves from a bottom-of-action-column slot
+  //     to the very TOP of the action column so it's always at the
+  //     same vertical anchor across cards. Snooze/Dismiss render
+  //     below it as the softer secondary affordances.
+  //   • #4: outer gap between content + action columns bumped
+  //     gap-4 → gap-6 — Yuqi flagged the two halves as crowded.
+  //   • #8: card chrome restyled — border dropped entirely, light
+  //     gray bg (bg-background-subtle) replaces the white panel.
+  //     Reads as a "soft card on the page surface" instead of a
+  //     bordered tile. Hover lifts to bg-state-base-hover so the
+  //     interactive cue still lands.
   return (
     <article
       role="region"
       aria-label={t`Pulse alert: ${alert.title}`}
       className={cn(
-        'flex items-start gap-4 rounded-md border border-divider-subtle bg-background-default p-3 transition-colors hover:border-divider-regular',
+        'flex items-start gap-6 rounded-md bg-background-subtle p-3 transition-colors hover:bg-state-base-hover',
         compact && 'p-2.5',
       )}
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* Title row: state mark + dominant h3 + trailing chips. The
-            h3 fills the available width so even long titles line-clamp
-            gracefully without compressing the trailing badges. */}
+        {/* Title row: state mark + dominant h3 + (Yuqi /rules/pulse
+            fourth pass #5) trailing source badge so the
+            jurisdiction reads first, the title sits in the middle,
+            and the source ("IRS" / "NY DTF" / …) anchors the end
+            of the headline as a meta tag. Confidence + status chips
+            still trail after the source. */}
         <header className="flex items-center gap-2">
           <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
           <h3
@@ -88,6 +118,7 @@ export function PulseAlertCard({
           >
             {alert.title}
           </h3>
+          <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
           <Badge variant="outline" className="hidden shrink-0 text-caption sm:inline-flex">
             {changeKindLabel(alert.changeKind)}
           </Badge>
@@ -95,21 +126,21 @@ export function PulseAlertCard({
           <PulseSourceStatusBadge status={alert.sourceStatus} />
         </header>
 
-        {/* Source line — moved out of the title row. The badge wraps
-            an `<a target="_blank">` so the CPA can open the official
-            source from this row without touching the drawer (Yuqi
-            Alerts #6). */}
-        <div className="flex items-center gap-1.5 text-xs text-text-tertiary">
-          <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
-        </div>
-
         {/* AI summary — only render when meaningfully different from
             the title. */}
         {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
           <p className="line-clamp-2 text-sm text-text-secondary">{alert.summary}</p>
         ) : null}
 
-        {/* Impact line — count + need-review tail. */}
+        {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #2): impact
+            line now LISTS the affected client names instead of
+            collapsing them to a count. Up to 3 names render as
+            chips inline; the tail folds to `+N more` so long
+            client lists don't blow up the card. The needs-review
+            count + "may be affected" framing live on a trailing
+            meta line below. Falls back to the old count-only
+            rendering for terminal/review-only alerts where the
+            client list isn't useful. */}
         {alert.actionMode === 'review_only' ? (
           <p className="text-sm italic text-text-tertiary">
             <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
@@ -119,46 +150,50 @@ export function PulseAlertCard({
             <Trans>No matching clients in this practice.</Trans>
           </p>
         ) : (
-          <p className="text-sm text-text-tertiary">
-            <span className="font-medium tabular-nums text-text-primary">
-              <Plural value={impacted} one="# client" other="# clients" />
-            </span>{' '}
-            <Trans>may be affected.</Trans>
-            {alert.needsReviewCount > 0 ? (
-              <>
-                <span aria-hidden> · </span>
-                <span className="tabular-nums">
-                  <Trans>{alert.needsReviewCount} need review</Trans>
-                </span>
-              </>
+          <div className="flex flex-col gap-1.5">
+            {visibleNames.length > 0 ? (
+              <ul className="flex flex-wrap items-center gap-1.5">
+                {visibleNames.map((name) => (
+                  <li
+                    key={name}
+                    className="inline-flex rounded-sm border border-divider-subtle bg-background-default px-2 py-0.5 text-xs text-text-secondary"
+                    title={name}
+                  >
+                    {name}
+                  </li>
+                ))}
+                {overflowNames > 0 ? (
+                  <li className="inline-flex text-xs text-text-tertiary">+{overflowNames} more</li>
+                ) : null}
+              </ul>
             ) : null}
-          </p>
+            <p className="text-xs text-text-tertiary">
+              {impacted === 1 ? (
+                <Trans>1 client may be affected.</Trans>
+              ) : (
+                <Trans>{impacted} clients may be affected.</Trans>
+              )}
+              {alert.needsReviewCount > 0 ? (
+                <>
+                  <span aria-hidden> · </span>
+                  <span className="tabular-nums">
+                    <Trans>{alert.needsReviewCount} need review</Trans>
+                  </span>
+                </>
+              ) : null}
+            </p>
+          </div>
         )}
       </div>
 
       {compact ? null : (
-        // Action column — vertical stack on the right edge.
-        // Canonical order: Snooze (softer secondary) → Dismiss
-        // (destructive-ish secondary) → Review (primary, bottommost
-        // so it sits closest to the impact line above). Both Snooze
-        // and Dismiss are audit-logged and require a reason — the
-        // parent owns the prompt. Snooze/Dismiss only render for
-        // `status === 'matched'` (open alerts); on terminal states
-        // the parent omits the handlers, and the action column
-        // collapses to just Review — same canonical "this alert
-        // is closed" signal as before, just expressed by absence in
-        // a stacked column rather than a row.
+        // Action column — Review is ALWAYS at the TOP (Yuqi /rules/
+        // pulse fourth pass #3) so the eye finds the primary
+        // affordance in the same place across cards. Snooze /
+        // Dismiss follow as quiet ghost siblings when the parent
+        // wires them; terminal-state alerts (where snooze/dismiss
+        // are omitted) just show the lone Review button.
         <div className="flex shrink-0 flex-col items-stretch gap-1">
-          {onSnooze ? (
-            <Button variant="ghost" size="sm" onClick={onSnooze}>
-              <Trans>Snooze</Trans>
-            </Button>
-          ) : null}
-          {onDismiss ? (
-            <Button variant="ghost" size="sm" onClick={onDismiss}>
-              <Trans>Dismiss</Trans>
-            </Button>
-          ) : null}
           <Button
             size="sm"
             onClick={onReview}
@@ -171,6 +206,16 @@ export function PulseAlertCard({
             <Trans>Review</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
+          {onSnooze ? (
+            <Button variant="ghost" size="sm" onClick={onSnooze}>
+              <Trans>Snooze</Trans>
+            </Button>
+          ) : null}
+          {onDismiss ? (
+            <Button variant="ghost" size="sm" onClick={onDismiss}>
+              <Trans>Dismiss</Trans>
+            </Button>
+          ) : null}
         </div>
       )}
     </article>
