@@ -190,9 +190,17 @@ export function makeFirmsRepo(db: Db) {
     const [row] = await db
       .select({ value: count() })
       .from(obligationInstance)
+      .innerJoin(
+        client,
+        and(
+          eq(client.id, obligationInstance.clientId),
+          eq(client.firmId, obligationInstance.firmId),
+        ),
+      )
       .where(
         and(
           eq(obligationInstance.firmId, firmId),
+          isNull(client.deletedAt),
           inArray(obligationInstance.status, [
             ...OPEN_OBLIGATION_STATUSES,
           ] satisfies ObligationStatus[]),
@@ -206,9 +214,17 @@ export function makeFirmsRepo(db: Db) {
     const rows = await db
       .select({ firmId: obligationInstance.firmId, value: count() })
       .from(obligationInstance)
+      .innerJoin(
+        client,
+        and(
+          eq(client.id, obligationInstance.clientId),
+          eq(client.firmId, obligationInstance.firmId),
+        ),
+      )
       .where(
         and(
           inArray(obligationInstance.firmId, firmIds),
+          isNull(client.deletedAt),
           inArray(obligationInstance.status, [
             ...OPEN_OBLIGATION_STATUSES,
           ] satisfies ObligationStatus[]),

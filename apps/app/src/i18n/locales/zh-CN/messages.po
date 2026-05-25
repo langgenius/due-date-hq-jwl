@@ -2448,6 +2448,10 @@ msgstr "客户详情"
 msgid "Client details saved"
 msgstr "客户详情已保存"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client details updated"
+msgstr "客户信息已更新"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "客户邮件草稿已复制"
@@ -4512,6 +4516,10 @@ msgstr "报税辖区"
 msgid "Filing jurisdictions saved"
 msgstr "报税辖区已保存"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing jurisdictions updated"
+msgstr "申报辖区已更新"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Filing only. Payment is not extended."
 msgstr ""
@@ -4519,6 +4527,10 @@ msgstr ""
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filing plan"
 msgstr "申报计划"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing profile updated"
+msgstr "申报档案已更新"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filing requirements"
@@ -8766,6 +8778,10 @@ msgstr "风险档案"
 msgid "Risk profile saved"
 msgstr "风险档案已保存"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Risk profile updated"
+msgstr "风险档案已更新"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "风险摘要刷新已排队"
@@ -10169,6 +10185,10 @@ msgstr "税务年度资料"
 #: src/routes/obligations.tsx
 msgid "Tax year profile saved"
 msgstr "税务年度资料已保存"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Tax year settings updated"
+msgstr "税务年度设置已更新"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"

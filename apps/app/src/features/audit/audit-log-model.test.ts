@@ -354,11 +354,15 @@ describe('audit-log-model', () => {
 
   it('formats audit action labels for user-facing surfaces', () => {
     const labels = makeActionLabels({
+      clientSourceDetailsUpdated: 'Client details updated',
       obligationExtensionDecided: 'Extension plan saved',
       obligationStatusUpdated: 'Deadline status changed',
       obligationQueueSavedViewDeleted: 'Saved view deleted',
     })
 
+    expect(formatAuditActionLabel('client.source_details.updated', labels)).toBe(
+      'Client details updated',
+    )
     expect(formatAuditActionLabel('obligation.extension.decided', labels)).toBe(
       'Extension plan saved',
     )

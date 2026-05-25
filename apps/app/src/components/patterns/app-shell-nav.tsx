@@ -598,9 +598,12 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const ruleReviewCount = useRuleLibraryPendingCount()
   const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
   // D-2: sidebar counts. Clients = total active clients; Deadlines =
-  // open-obligation count from FirmPublic.openObligationCount (already
-  // aggregated server-side, no extra query). Counts render only when
-  // > 0 to avoid `Clients (0)` ghost text on a fresh workspace.
+  // open visible deadlines from FirmPublic.openObligationCount (already
+  // aggregated server-side, no extra query). Archived clients retain
+  // their audit/deadline history, but their rows do not appear in the
+  // Deadlines queue and are intentionally excluded from this badge.
+  // Counts render only when > 0 to avoid `Clients (0)` ghost text on a
+  // fresh workspace.
   const clientsCount = useClientsCount()
   const clientsBadge = clientsCount > 0 ? String(clientsCount) : undefined
   const obligationsBadge =

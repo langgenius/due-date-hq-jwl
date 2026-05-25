@@ -2448,6 +2448,10 @@ msgstr "Client detail"
 msgid "Client details saved"
 msgstr "Client details saved"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client details updated"
+msgstr "Client details updated"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Client email draft copied"
 msgstr "Client email draft copied"
@@ -4512,6 +4516,10 @@ msgstr "Filing jurisdictions"
 msgid "Filing jurisdictions saved"
 msgstr "Filing jurisdictions saved"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing jurisdictions updated"
+msgstr "Filing jurisdictions updated"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Filing only. Payment is not extended."
 msgstr "Filing only. Payment is not extended."
@@ -4519,6 +4527,10 @@ msgstr "Filing only. Payment is not extended."
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filing plan"
 msgstr "Filing plan"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing profile updated"
+msgstr "Filing profile updated"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Filing requirements"
@@ -8766,6 +8778,10 @@ msgstr "Risk profile"
 msgid "Risk profile saved"
 msgstr "Risk profile saved"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Risk profile updated"
+msgstr "Risk profile updated"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "Risk summary refresh queued"
@@ -10169,6 +10185,10 @@ msgstr "Tax year profile"
 #: src/routes/obligations.tsx
 msgid "Tax year profile saved"
 msgstr "Tax year profile saved"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Tax year settings updated"
+msgstr "Tax year settings updated"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"

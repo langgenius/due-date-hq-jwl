@@ -599,8 +599,9 @@ export function CreateObligationDialog({
       onSuccess: (result) => {
         const obligation = result.obligations[0]
         // Invalidate every consumer that surfaces obligation data
-        // so the new row appears immediately: dashboard counts,
-        // queue facets, queue list, client filing plan list.
+        // so the new row appears immediately: sidebar count, dashboard
+        // counts, queue facets, queue list, client filing plan list.
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })

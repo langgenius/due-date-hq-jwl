@@ -266,6 +266,8 @@ export const CLIENT_AUDIT_ACTIONS = [
   'client.filing_profiles.replaced',
   'client.jurisdiction.updated',
   'client.risk_profile.updated',
+  'client.source_details.updated',
+  'client.tax_year_profile.updated',
 ] as const
 export type ClientAuditAction = (typeof CLIENT_AUDIT_ACTIONS)[number]
 

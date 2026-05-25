@@ -95,6 +95,7 @@ export function ImportHistoryDrawer({
   const refreshAfterRecovery = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: orpc.migration.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
   }, [queryClient])

@@ -1201,6 +1201,7 @@ export function ObligationQueueRoute() {
         // `updateStatus` below) owns the toast so it can attach the
         // contextual Undo action with the previous status closed over.
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
@@ -1218,6 +1219,7 @@ export function ObligationQueueRoute() {
     orpc.obligations.bulkUpdateStatus.mutationOptions({
       onSuccess: (result) => {
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
@@ -4779,6 +4781,7 @@ export function ObligationQueueDetailDrawer({
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })

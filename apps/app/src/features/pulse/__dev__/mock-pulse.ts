@@ -70,7 +70,9 @@ const MOCK_FIRM: FirmPublic = {
   ownerUserId: 'user_mock_001',
   coordinatorCanSeeDollars: false,
   smartPriorityProfile: SMART_PRIORITY_DEFAULT_PROFILE,
-  openObligationCount: 5,
+  // The Pulse mock seeds alert examples only; it does not seed the
+  // Deadlines queue, so the global sidebar deadline count must stay 0.
+  openObligationCount: 0,
   isCurrent: true,
   createdAt: ISO_NOW,
   updatedAt: ISO_NOW,

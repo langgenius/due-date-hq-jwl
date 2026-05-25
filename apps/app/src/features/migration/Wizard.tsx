@@ -157,6 +157,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       onSuccess: () => {
         invalidateMigration()
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         preheatOperations()
@@ -168,6 +169,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
       onSuccess: () => {
         invalidateMigration()
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         queryClient.removeQueries({ queryKey: orpc.dashboard.load.key() })
         queryClient.removeQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })

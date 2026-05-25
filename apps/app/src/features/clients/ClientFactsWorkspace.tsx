@@ -126,6 +126,8 @@ import {
 } from '@/features/obligations/status-control'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
+import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
+import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 // `SectionFrame` + `SectionLabel` imports retired 2026-05-24 with the
 // switch to <TabSection>. They're still exported from
 // rules-console-primitives for any rules-console caller that wants
@@ -1971,6 +1973,7 @@ export function ClientDetailWorkspace({
         })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         toast.success(t`Status changed to ${v2StatusLabels[vars.status]}`, {
           description: t`Audit ${result.auditId.slice(0, 8)}`,
@@ -2003,6 +2006,7 @@ export function ClientDetailWorkspace({
     orpc.clients.delete.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
@@ -2746,6 +2750,7 @@ function ClientWorkPlanPanel({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         toast.success(
           vars.ids.length === 1
@@ -3433,6 +3438,8 @@ function ClientActivityPanel({
   isLoading: boolean
   firmTimezone: string
 }) {
+  const actionLabels = useAuditActionLabels()
+
   if (!canReadAudit) {
     return (
       <EmptyState
@@ -3469,7 +3476,9 @@ function ClientActivityPanel({
           className="grid gap-1 rounded-md border border-divider-subtle bg-background-section p-3"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-medium text-text-primary">{event.action}</span>
+            <span className="text-sm font-medium text-text-primary">
+              {formatAuditActionLabel(event.action, actionLabels)}
+            </span>
             <span className="text-xs tabular-nums text-text-tertiary">
               {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
             </span>
