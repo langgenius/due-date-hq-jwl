@@ -130,26 +130,32 @@ export function OpportunitiesPage() {
   )
 }
 
-// 2026-05-25 (Yuqi /opportunities #1): stat tile primitive mirroring
-// rule library's StatTile shape — uppercase caption-tier label, big
-// tabular number. Skeleton placeholder when value is undefined. No
-// click target (these are read-only summaries; clicking opens the
-// queue below which is already on the same page).
+// 2026-05-25 (Yuqi /opportunities — copy the other page style):
+// retired the rule-library StatTile shape (uppercase caption-tier
+// label on top, number below) — at full page width the long
+// labels ("Advisory conversations") wrapped to two lines and the
+// tile felt thin. Adopted the dashboard's ActionsSummaryTile
+// rhythm instead: large number on TOP, sentence-case label
+// below, generous padding (`px-4 py-3`), wider min-width. Same
+// shape the user has seen on Today across "Need decision /
+// Blocked / Waiting" — consistency with the surface they spend
+// the most time on. Skeleton placeholder retained while the
+// value loads.
 function OpportunitiesStatTile({ label, value }: { label: ReactNode; value: number | undefined }) {
   return (
-    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
-      <div className="flex flex-col gap-0.5">
-        <span
-          className={cn('text-caption-xs font-medium uppercase tracking-wider text-text-tertiary')}
-        >
-          {label}
+    <div
+      className={cn(
+        'flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3',
+      )}
+    >
+      {value === undefined ? (
+        <Skeleton className="h-7 w-12" />
+      ) : (
+        <span className="text-2xl font-semibold leading-tight tabular-nums tracking-tight text-text-primary">
+          {value}
         </span>
-        {value === undefined ? (
-          <Skeleton className="h-7 w-12" />
-        ) : (
-          <span className="text-xl font-semibold tabular-nums text-text-primary">{value}</span>
-        )}
-      </div>
+      )}
+      <span className="text-sm text-text-secondary">{label}</span>
     </div>
   )
 }

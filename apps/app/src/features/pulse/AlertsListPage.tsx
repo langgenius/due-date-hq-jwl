@@ -225,23 +225,20 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   // routes can review an alert in place.
   const panelOpen = openAlertId !== null
   return (
-    // Match the 1100px cap applied across narrow content pages
-    // (Today/Clients/Opportunities/Audit/Settings). Skipped in the
-    // `embedded` case because the embedding surface (the Rule
-    // library's Pulse tab) already constrains width.
-    // 2026-05-25 (Yuqi Alerts #14): compactness pass — gap-5 → gap-4
-    // on both the embedded and standalone wrappers. The standalone
-    // padding also drops one step (p-3 base / md:p-4) so the page
-    // doesn't read as "loose" inside the app shell's existing padding.
-    // 2026-05-25 (Yuqi /rules/pulse #9): max-width cap removed when
-    // the panel is open so the split-column layout has room to
-    // breathe — single-column page keeps its cap.
+    // 2026-05-25 (Yuqi panel polish): when an alert is open, the
+    // page becomes a fixed-height (h-full) flex container so the
+    // split-column inner can scroll independently inside its own
+    // bounds — the page itself no longer scrolls vertically. This
+    // kills the "scroll on the left AND scroll on the right"
+    // double-scroll Yuqi flagged. When no alert is open the page
+    // keeps its natural auto-height (the table below paginates so
+    // there's nothing to scroll past anyway).
     <div
       className={
         embedded
           ? 'flex flex-col gap-4'
           : panelOpen
-            ? 'mx-auto flex w-full max-w-[1440px] flex-col gap-4 p-3 md:p-4'
+            ? 'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-4 p-3 md:p-4'
             : 'mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-4'
       }
     >
@@ -341,8 +338,20 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           gap-4 : contents` collapses the wrapper away so the
           empty state and skeleton lay out exactly as they did
           before this refactor. */}
+      {/* 2026-05-25 (Yuqi panel polish): when the panel is open
+          the list column scrolls independently — `overflow-y-auto`
+          contains the alert cards so long lists don't push the
+          page down. Outer page is fixed-height (see root), so
+          the panel column's own scroll-management on the right
+          stays independent. No more double-scroll. */}
       <div className={panelOpen ? 'flex min-h-0 flex-1 gap-4' : 'contents'}>
-        <div className={panelOpen ? 'flex min-w-0 flex-1 flex-col gap-4' : 'flex flex-col gap-4'}>
+        <div
+          className={
+            panelOpen
+              ? 'flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto pr-1'
+              : 'flex flex-col gap-4'
+          }
+        >
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
@@ -397,13 +406,24 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   state (or "Any state") + count. */}
               {jurisdictionCounts.length === 0 ? null : null}
 
-              {/* 2026-05-25 (Yuqi Alerts #10): Reset moved into the same
-              row as the filter dropdowns and demoted to ghost — was a
-              full outline button on the right side of its own flex row.
-              Inline ghost reads as a tertiary affordance ("clear what
-              you've set") instead of a primary action competing with
-              the filters themselves. */}
-              <div className="flex flex-wrap items-center gap-2">
+              {/* 2026-05-25 (Yuqi panel polish — minimal filters):
+                  when the panel is open the filter row collapses
+                  to a single non-wrapping line that scrolls
+                  horizontally if there's overflow. The list
+                  column is narrower in split-view (~half width)
+                  so wrapping the 4 selects to 2-3 rows would eat
+                  most of the visible vertical space above the
+                  alerts list. `shrink-0` on each trigger keeps
+                  each filter at its natural width inside the
+                  scroller. When no panel is open, the row still
+                  flex-wraps as before. */}
+              <div
+                className={
+                  panelOpen
+                    ? 'flex flex-nowrap items-center gap-2 overflow-x-auto pb-1'
+                    : 'flex flex-wrap items-center gap-2'
+                }
+              >
                 <Select
                   value={impactFilter}
                   onValueChange={(value) => {
@@ -589,7 +609,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             closing the panel collapses the wrapper back to a
             single column. */}
         {panelOpen ? (
-          <div className="w-[440px] shrink-0 self-stretch lg:w-[480px] xl:w-[520px]">
+          <div className="flex min-h-0 w-[440px] shrink-0 self-stretch lg:w-[480px] xl:w-[520px]">
             <PulseDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
           </div>
         ) : null}

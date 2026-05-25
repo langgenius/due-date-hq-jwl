@@ -8,6 +8,7 @@ import {
   MessageSquareIcon,
   RotateCcwIcon,
   ShieldAlertIcon,
+  XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -846,14 +847,36 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   // viewport-fixed positioning, no Sheet/SheetContent wrappers.
   // The h2 inside the body satisfies a11y. The dialogs still
   // render as siblings since they're separate modal overlays.
+  //
+  // 2026-05-25 (Yuqi panel polish): structural fixes —
+  //   • `h-full min-h-0` on the aside so the inner content can
+  //     scroll without growing the page (prevents the
+  //     left-and-right double-scroll Yuqi flagged).
+  //   • Close button (X) pinned top-right of the aside in
+  //     panel mode. Sheet mode gets one from the Sheet
+  //     primitive's `showCloseButton` automatically; panel
+  //     mode needs an explicit one so the close affordance is
+  //     obvious.
+  //   • Footer (SheetFooter) already has `mt-auto` from the
+  //     primitive — it pins to the bottom of the flex column
+  //     when middle content is short; when middle is long, the
+  //     middle scrolls underneath via its own overflow-y-auto.
   if (mode === 'panel') {
     if (!open) return null
     return (
       <>
         <aside
           aria-label={t`Pulse alert detail`}
-          className="flex h-full min-w-0 flex-col rounded-lg border border-divider-subtle bg-background-default"
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-divider-subtle bg-background-default"
         >
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t`Close alert detail`}
+            className="absolute right-3 top-3 z-10 inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
           {body}
         </aside>
         {reviewRequestDialog}
