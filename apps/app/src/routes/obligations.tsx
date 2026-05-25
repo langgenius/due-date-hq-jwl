@@ -9955,19 +9955,22 @@ function ObligationQueueScopeTab({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      // 2026-05-25 (Yuqi Deadlines #1): scope tab padding bumped
-      // from px-2 py-2 → px-3 py-2.5 so the filters breathe. The
-      // active underline + count sat 8px apart with the old gap;
-      // 12px gives the eye room without sacrificing density.
-      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm whitespace-nowrap transition-colors ${
+      // 2026-05-26 (Yuqi sixty-fifth pass follow-up — scope tabs bigger
+      // + tighter): text-sm → text-base for the label so the scope
+      // names (All / Not started / Filed) read at body-tier alongside
+      // the table content below. py-2.5 → py-1.5 to compensate — the
+      // bigger text already gives the tab vertical weight, the old
+      // padding was making the tabs feel oversized when the label
+      // grew. Icon size and count weight unchanged.
+      className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-1.5 text-base whitespace-nowrap transition-colors ${
         active
           ? 'border-accent-default font-medium text-text-primary'
           : 'border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary'
       }`}
     >
-      {Icon ? <Icon className={cn('size-3.5', iconColor)} aria-hidden /> : null}
+      {Icon ? <Icon className={cn('size-4', iconColor)} aria-hidden /> : null}
       <span>{label}</span>
-      <span className="tabular-nums text-text-tertiary">{count}</span>
+      <span className="text-sm tabular-nums text-text-tertiary">{count}</span>
     </button>
   )
 }
