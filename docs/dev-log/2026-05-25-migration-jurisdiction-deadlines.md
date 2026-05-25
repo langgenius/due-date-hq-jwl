@@ -22,6 +22,12 @@ state suggestions.
   only when a single jurisdiction is affected.
 - Reused the exact commit-plan path for dry-run obligation counts after mapping normalization, so
   preview and apply use the same tax type merge behavior.
+- Simplified the Step 4 warning panel after browser review: removed the inline Rule Library button
+  and replaced raw tax type identifiers with a compact per-state summary of affected clients,
+  entity labels, and state rule type counts.
+- Simplified Step 3 normalization rows after browser review: removed free-text editing of internal
+  normalized values, replaced `Needs review` badges with read-only fallback outcomes, and allowed
+  imports to continue when an optional state value is not recognized.
 
 ## Validation
 

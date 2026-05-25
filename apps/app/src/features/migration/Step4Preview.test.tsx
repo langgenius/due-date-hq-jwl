@@ -49,7 +49,7 @@ function renderPreview(summary: DryRunSummary) {
 }
 
 describe('Step4Preview rule review warnings', () => {
-  it('links single-state rule review warnings to the matching Rule Library jurisdiction', () => {
+  it('summarizes rule review warnings without showing a Rule Library button', () => {
     renderPreview({
       batchId: '550e8400-e29b-41d4-a716-446655440001',
       clientsToCreate: 1,
@@ -61,19 +61,28 @@ describe('Step4Preview rule review warnings', () => {
           state: 'TX',
           entityType: 'c_corp',
           affectedClientCount: 1,
-          taxTypes: ['tx_state_franchise_or_entity_tax'],
+          taxTypes: ['tx_state_franchise_or_entity_tax', 'tx_state_sales_use_tax'],
           reason: 'rules_pending_review',
+        },
+        {
+          state: 'TX',
+          entityType: 'c_corp',
+          affectedClientCount: 1,
+          taxTypes: ['tx_state_withholding_tax'],
+          reason: 'no_matching_rule',
         },
       ],
     })
 
+    expect(document.body.textContent).toContain('Some state deadlines need rule review')
     expect(document.body.textContent).toContain(
-      'Review rules before some state deadlines can be generated',
+      '1 client has state deadlines that need reviewed practice rules first.',
     )
-    expect(document.body.textContent).toContain('tx_state_franchise_or_entity_tax')
+    expect(document.body.textContent).toContain('TX')
+    expect(document.body.textContent).toContain('C corp')
+    expect(document.body.textContent).toContain('3 state rule types')
+    expect(document.body.textContent).not.toContain('tx_state_franchise_or_entity_tax')
     const link = document.querySelector('a[href*="/rules/library"]')
-    expect(link?.getAttribute('href')).toBe(
-      '/rules/library?view=rules&library=pending_review&jur=TX',
-    )
+    expect(link).toBeNull()
   })
 })
