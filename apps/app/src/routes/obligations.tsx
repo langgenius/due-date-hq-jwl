@@ -3091,18 +3091,28 @@ export function ObligationQueueRoute() {
                   deadline content reads at body type instead of
                   caption-tier. Per-column `headerClassName` is
                   preserved by the `meta` plumbing below. */}
-              {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #1): table
-                  chrome simplified. Dropped `border border-divider-regular
-                  rounded-md` — the outer frame was painting a second
-                  visual boundary around the queue inside an already-
-                  bordered scroll column, reading as a card-within-a-
-                  card. Added `bg-background-default` so the rows stand
-                  on a white surface against the page's inset gray.
-                  Inner row dividers + the TableHeader bg still
-                  carry the table's internal structure; no outer
-                  frame needed. */}
-              <Table className="overflow-hidden bg-background-default [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
-                <TableHeader>
+              {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass #1 +
+                  follow-up): table chrome canonical.
+                  - Outer <Table> has NO background — sits transparent
+                    on the page's inset surface so the table doesn't
+                    read as a "white card."
+                  - TableBody picks up `bg-background-default` (white)
+                    so the data rows themselves stand on white.
+                  - TableHeader override below pulls
+                    `bg-background-default-dimmed` (light tinted gray)
+                    to separate the header band from the body without
+                    going full subtle-blue.
+                  - Row hover uses `bg-state-accent-hover` (same accent
+                    tint the right detail panel uses when a row is
+                    selected) so hovering reads as "this is where the
+                    panel will paint when you click." */}
+              <Table className="overflow-hidden [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
+                {/* TableHeader override: bg-background-default-dimmed
+                    (= state-base-hover-alt, a light blue-tinted gray)
+                    instead of the primitive's default `bg-background-
+                    subtle`. Matches the design-system canonical for
+                    a "header band that sits a step above white." */}
+                <TableHeader className="!bg-background-default-dimmed">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id} className="hover:bg-transparent">
                       {headerGroup.headers.map((header) => {
@@ -3158,7 +3168,13 @@ export function ObligationQueueRoute() {
                     (Alerts) stays at py-2 since that table sits
                     inside a drawer with tighter chrome — different
                     surface, different density. */}
-                <TableBody className="[&_td]:py-3 [&_td]:text-sm">
+                {/* TableBody bg-background-default (white). Rows sit
+                    on white; outer table is transparent. Per-row hover
+                    state uses bg-state-accent-hover (light accent tint
+                    = same color the right detail panel uses for a
+                    selected row), so hovering previews where the
+                    panel will paint when you click. */}
+                <TableBody className="bg-background-default [&_td]:py-3 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -3384,25 +3400,18 @@ export function ObligationQueueRoute() {
               </Table>
             </>
           )}
-          {/* 2026-05-25 (Yuqi /deadlines fourth pass #3): pagination
-              footer dropped `sticky bottom-0 -mx-1` so the row sits
-              as a static block immediately BELOW the table frame
-              instead of pinning to the viewport bottom and visually
-              overlapping the last data row. With client-side page
-              flipping the user navigates by page rather than by
-              scroll, so the sticky pin wasn't doing useful work —
-              it was just making the controls feel "inside" the
-              table.
-              2026-05-26 (Yuqi DevTools callout — pagination should
-              be inside scroll container): dropped `mt-auto`. With the
-              transparent filter bar above and the always-visible
-              pagination strip, the auto-margin was creating a big gap
-              between the table and the footer when the queue was
-              short — visually reading as if the pagination had
-              detached and landed outside the queue column. Without
-              mt-auto the row sits immediately below the table and
-              scrolls naturally with the rest of the column content. */}
-          <div className="flex items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-2">
+          {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up):
+              pagination footer pinned to the bottom of the scroll
+              column via `mt-auto`, with NO background. Was previously
+              carrying `bg-background-default` which painted as a
+              second white "card" inside the scroll column —
+              redundant now that the TableBody itself is white.
+              Transparent footer with just the top hairline divider
+              reads as a continuation of the table, not a separate
+              chrome layer. `mt-auto` re-instated so the row is
+              always visible at the column bottom regardless of how
+              many rows the page renders. */}
+          <div className="mt-auto flex items-center justify-between border-t border-divider-subtle px-2 py-2">
             <div className="flex items-center gap-3 text-xs text-text-tertiary">
               {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
                   carries "N deadlines · M clients" so the aggregate
