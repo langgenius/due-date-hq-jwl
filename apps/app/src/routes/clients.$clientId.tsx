@@ -66,7 +66,9 @@ export function ClientDetailRoute() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6">
+    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
+    // for cross-route h1 baseline consistency.
+    <div className="flex flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
       {isLoading ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-8 w-64" />

@@ -307,7 +307,11 @@ export function ClientsRoute() {
     // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
     // padding md:p-6 → md:p-5. /clients is a list page — the table
     // is what CPAs scan; chrome around it should be efficient.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-5">
+    // 2026-05-25 (Yuqi page-title pass): top padding bumped to
+    // pt-6 md:pt-8 so the h1 lands on the same baseline as Today /
+    // Deadlines / Audit. Left/right/bottom kept tight per density
+    // pass above.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">

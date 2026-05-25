@@ -49,7 +49,9 @@ export function OpportunitiesPage() {
     // requested across table-bearing routes. Layout structure follows
     // the same pattern as /clients: PageHeader → optional Alert →
     // stat-tile row → flat list (no Card wrapper).
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-5">
+    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
+    // so /opportunities h1 sits on the same baseline as the rest.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
       <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (

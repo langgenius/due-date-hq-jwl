@@ -2254,9 +2254,11 @@ export function ObligationQueueRoute() {
     // surface in the app — every extra row of breathing room is one
     // less row of work visible. Tighter outer rhythm reclaims room
     // for the table itself.
+    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
+    // (kept the tight horizontal + bottom from the density pass).
     <div
       className={cn(
-        'flex flex-col gap-4 p-3 md:p-5',
+        'flex flex-col gap-4 px-4 pt-6 pb-4 md:px-5 md:pt-8 md:pb-5',
         'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
       )}
     >

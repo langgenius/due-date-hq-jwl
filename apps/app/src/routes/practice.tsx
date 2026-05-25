@@ -64,6 +64,7 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
+import { formatDate } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 const PRIORITY_FACTOR_KEYS = [
@@ -760,8 +761,14 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
                   </span>
                 </div>
               </TableCell>
+              {/* 2026-05-25 (Yuqi Today #9 date format audit): was
+                  rendering raw ISO `row.currentDueDate` while every
+                  other table in the app routes through `formatDate`.
+                  Now uses the canonical helper so the Smart Priority
+                  preview table reads at the same date density as
+                  /deadlines, /clients, audit log, etc. */}
               <TableCell className="font-mono tabular-nums text-text-secondary">
-                {row.currentDueDate}
+                {formatDate(row.currentDueDate)}
               </TableCell>
               <TableCell className="text-right font-mono tabular-nums">
                 {row.previewScore.toFixed(1)}

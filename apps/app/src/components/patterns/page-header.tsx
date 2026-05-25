@@ -27,8 +27,9 @@ import { Breadcrumb, type BreadcrumbItem } from './breadcrumb'
  * Passing both is supported but breadcrumbs win — they always carry more
  * information.
  *
- * The dashboard hero ("Today") is intentionally larger and lives outside
- * this component — see DashboardRoute. Everything else funnels through here.
+ * The dashboard "Today" header lives outside this component (it has a
+ * custom date suffix) but uses the same `text-2xl leading-7 font-semibold`
+ * treatment so all page titles read at the same scale.
  */
 export function PageHeader({
   eyebrow,
