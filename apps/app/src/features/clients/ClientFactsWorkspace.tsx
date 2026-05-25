@@ -105,6 +105,7 @@ import {
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -724,7 +725,15 @@ export function ClientFactsWorkspace({
                   together. The Next-due cell then carries ONLY urgency
                   (a single tone-coded line). */}
               <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="truncate font-medium text-text-primary">{row.original.name}</span>
+                {/* 2026-05-25 (Yuqi /clients fifth pass #4): client
+                    name bumped to text-base — it's the row's
+                    primary identity, so it earns a scale tier
+                    above the other body cells. Other cells inherit
+                    the table's default text-sm via the
+                    `[&_td]:py-2` block above. */}
+                <span className="truncate text-base font-medium text-text-primary">
+                  {row.original.name}
+                </span>
                 {readiness?.status === 'needs_facts' ? (
                   <ClientReadinessBadge readiness={readiness} compact />
                 ) : null}
@@ -770,27 +779,34 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
-        // 2026-05-25 (Yuqi /clients #7): state representation unified
-        // with the Alerts page + Pulse drawer — was a square `Badge`
-        // with mono-text state code, now the same circular StateBadge
-        // SVG flag/seal motif used across every other surface that
-        // shows a jurisdiction. Primary state stays at the front; up
-        // to 2 additional states follow at the same scale. The
-        // overflow chip stays as a +N count so the row width is
-        // predictable.
+        // 2026-05-25 (Yuqi /clients fifth pass #5): state cell now
+        // matches the Pulse drawer's jurisdiction pill exactly —
+        // a single rounded-full pill containing the StateBadge SVG
+        // + 2-letter code + full state name ("CA · California").
+        // Primary state gets the full pill; additional states stay
+        // as bare StateBadge motifs so the row width stays bounded
+        // even with multi-state filings. The +N overflow chip on
+        // the tail mirrors the previous behaviour.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
             return <span className="text-text-tertiary">—</span>
           }
+          const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? null
           const others = getOtherFilingStates(row.original)
           const visibleOthers = others.slice(0, 2)
           const overflow = others.length - visibleOthers.length
           return (
-            <div className="flex flex-wrap items-center gap-1">
-              <StateBadge code={primary} size="sm" title={primary} />
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-0.5 pr-2 text-xs">
+                <StateBadge code={primary} size="xs" aria-hidden />
+                <span className="font-mono font-medium tabular-nums text-text-primary">
+                  {primary}
+                </span>
+                {primaryFull ? <span className="text-text-secondary">{primaryFull}</span> : null}
+              </span>
               {visibleOthers.map((state) => (
-                <StateBadge key={state} code={state} size="sm" title={state} />
+                <StateBadge key={state} code={state} size="xs" title={state} />
               ))}
               {overflow > 0 ? (
                 <span
@@ -804,8 +820,13 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          headerClassName: 'w-[160px]',
-          cellClassName: 'w-[160px]',
+          // 2026-05-25 (Yuqi /clients fifth pass #5): widened
+          // 160px → 220px to fit the primary-state full pill
+          // ("CA · California") at default font-size without
+          // truncating. Other-state SVG-only badges stay compact
+          // on the tail.
+          headerClassName: 'w-[220px]',
+          cellClassName: 'w-[220px]',
         },
       },
       {
@@ -1509,59 +1530,52 @@ function ClientsActionStrip({
     // separate sections.
     <div className="flex flex-col gap-2">
       {hasBanner ? (
-        // 2026-05-25 (Yuqi /clients #3): banner was reading too
-        // muted — `variant="warning"` with the standard amber bg
-        // sat at the same visual weight as the cards below. Made
-        // the alert more prominent with a 3px left rail in
-        // severity-medium amber + a heavier shadow ring. The eye
-        // catches it as "this is the action you should take now,"
-        // not "this is one of several signals."
+        // 2026-05-25 (Yuqi /clients fifth pass #1, #2): banner
+        // cleaned up. Dropped the 3px amber left rail (#2 — Yuqi
+        // explicitly: "remove the left stroke") AND the heavier
+        // shadow ring. Banner now sits at the standard
+        // `variant="warning"` weight — the amber bg alone is
+        // already a real callout against a white page. Drop the
+        // dotted underline + font-medium prose styling on the
+        // message so the banner reads as one cohesive amber
+        // block, not an underlined-link in a tinted box. Fix-now
+        // button switches to `variant="destructive"` (#1 — Yuqi
+        // "Fix now can be in red") — semantically appropriate
+        // since missing facts means the rule library is silently
+        // skipping these clients, which IS a destructive
+        // outcome until the CPA fixes it.
         <Alert
           variant="warning"
-          className="flex flex-col gap-2 border-l-[3px] border-l-severity-medium shadow-sm shadow-state-warning-hover-alt sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         >
           <div className="flex items-start gap-2">
             <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
-            <AlertDescription>
-              {/* 2026-05-23: the message itself is now a clickable link that
-                  fires the same Fix-now action — gives the CPA a second
-                  hit target with stronger reading-affordance. The explicit
-                  "Fix now" button stays on the right for users who scan
-                  the banner from the action edge first. */}
-              <button
-                type="button"
-                onClick={onFixNeedsFacts}
-                className="text-left font-medium text-text-primary underline decoration-dotted underline-offset-2 outline-none hover:decoration-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
-              >
-                <Plural
-                  value={needsFactsCount}
-                  one="# client is missing state or entity type — the rule library is skipping it."
-                  other="# clients are missing state or entity type — the rule library is skipping them."
-                />
-              </button>
+            <AlertDescription className="text-text-primary">
+              <Plural
+                value={needsFactsCount}
+                one="# client is missing state or entity type — the rule library is skipping it."
+                other="# clients are missing state or entity type — the rule library is skipping them."
+              />
             </AlertDescription>
           </div>
-          {/* 2026-05-25 (Yuqi /clients #3): Fix-now button promoted
-              from `variant="outline"` → default primary, so the
-              banner has a clear primary CTA color, not just a
-              bordered chip. */}
-          <Button type="button" size="sm" onClick={onFixNeedsFacts}>
+          <Button type="button" size="sm" variant="destructive" onClick={onFixNeedsFacts}>
             <Trans>Fix now</Trans>
           </Button>
         </Alert>
       ) : null}
-      {/* 2026-05-25 (Yuqi /clients #9): three card tiles — At risk /
-          Waiting / Pulse hits. Mirrors the rule library's StatTile
-          row. Each tile is clickable: At risk and Waiting toggle the
-          local filter (active state shows a pressed background);
-          Pulse hits opens the Pulse-affected filter. The fourth
-          "missing facts" metric moved into the banner above. */}
+      {/* 2026-05-25 (Yuqi /clients fifth pass #3): tile sublabels
+          dropped to match the rule library StatTile exactly —
+          rule library only shows label + value (sublabel reserved
+          for the Watched-tile paused count). The /clients tiles
+          were carrying "overdue obligation" / "client owes docs"
+          / "client flagged by a Pulse alert" sublabels that
+          duplicated what the tile label already said and made
+          the tile rows visually heavier than the rule library
+          row. Now: label + value only. */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <ClientsStatTile
           label={t`At risk`}
           value={atRiskCount}
-          sublabel={t`overdue obligation`}
-          sublabelPlural={t`overdue obligations`}
           tone="destructive"
           active={atRiskActive}
           {...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {})}
@@ -1569,8 +1583,6 @@ function ClientsActionStrip({
         <ClientsStatTile
           label={t`Waiting on client`}
           value={waitingOnClientCount}
-          sublabel={t`client owes docs`}
-          sublabelPlural={t`clients owe docs`}
           tone="warning"
           active={waitingActive}
           {...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {})}
@@ -1578,8 +1590,6 @@ function ClientsActionStrip({
         <ClientsStatTile
           label={t`Pulse hits`}
           value={pulseHitCount}
-          sublabel={t`client flagged by a Pulse alert`}
-          sublabelPlural={t`clients flagged by a Pulse alert`}
           tone="review"
           {...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {})}
         />
@@ -1596,16 +1606,12 @@ function ClientsActionStrip({
 function ClientsStatTile({
   label,
   value,
-  sublabel,
-  sublabelPlural,
   tone,
   onClick,
   active = false,
 }: {
   label: string
   value: number
-  sublabel: string
-  sublabelPlural: string
   tone: 'destructive' | 'warning' | 'review'
   onClick?: () => void
   active?: boolean
@@ -1625,9 +1631,6 @@ function ClientsStatTile({
       </span>
       <div className="flex items-baseline gap-2">
         <span className={cn('text-xl font-semibold tabular-nums', valueColor)}>{value}</span>
-        <span className="text-xs text-text-tertiary">
-          {value === 1 ? sublabel : sublabelPlural}
-        </span>
       </div>
     </div>
   )

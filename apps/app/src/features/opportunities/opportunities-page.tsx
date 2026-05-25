@@ -356,40 +356,59 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
     }),
   )
   const pending = dismissMutation.isPending || snoozeMutation.isPending
+  // 2026-05-25 (Yuqi /opportunities fifth pass #2, #4):
+  // restructured to match the PulseAlertCard layout — content on
+  // the left, vertical action column on the right. Previous
+  // shape grid'd the two halves separately and put the client
+  // name on the RIGHT side next to the action buttons (#4: "move
+  // the CLient name to the left top"). Now client name leads the
+  // header row at the TOP LEFT of the content column, the eye
+  // finds "whose opportunity is this?" immediately.
+  //
+  // Header row: icon + client-name link + Kind / Severity /
+  // Timing chips. Title + summary follow below; evidence chips
+  // wrap at the bottom of the content column.
   return (
-    <article className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-      <div className="flex min-w-0 gap-3">
-        <div className="grid size-9 shrink-0 place-items-center rounded-md bg-background-subtle text-text-secondary">
-          <Icon className="size-4" aria-hidden />
-        </div>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <OpportunityKindBadge kind={opportunity.kind} />
-            <OpportunitySeverityBadge severity={opportunity.severity} />
-            <OpportunityTimingBadge timing={opportunity.timing} />
+    <article className="flex items-start gap-6 py-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <header className="flex flex-wrap items-center gap-2">
+          <div
+            className="grid size-7 shrink-0 place-items-center rounded-md bg-background-subtle text-text-secondary"
+            aria-hidden
+          >
+            <Icon className="size-4" />
           </div>
-          <h2 className="mt-2 text-sm font-medium text-text-primary">{opportunity.title}</h2>
-          <p className="mt-1 text-sm text-text-secondary">{opportunity.summary}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            to={opportunity.primaryAction.href}
+            className="rounded-sm text-sm font-semibold text-text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            {opportunity.client.name}
+          </Link>
+          <OpportunityKindBadge kind={opportunity.kind} />
+          <OpportunitySeverityBadge severity={opportunity.severity} />
+          <OpportunityTimingBadge timing={opportunity.timing} />
+        </header>
+        <h2 className="text-sm font-medium text-text-primary">{opportunity.title}</h2>
+        <p className="text-sm text-text-secondary">{opportunity.summary}</p>
+        {opportunity.evidence.length > 0 ? (
+          <div className="mt-1 flex flex-wrap gap-1.5">
             {opportunity.evidence.map((item) => (
               <Badge key={`${opportunity.id}:${item.label}`} variant="outline">
                 {item.label}: {item.value}
               </Badge>
             ))}
           </div>
-        </div>
+        ) : null}
       </div>
-      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-        <Link
-          to={opportunity.primaryAction.href}
-          className="text-sm font-medium text-text-primary hover:underline"
-        >
-          {opportunity.client.name}
-        </Link>
-        {/* 2026-05-24 (critique P2): user-driven hide. Snooze parks
-            the row for DEFAULT_SNOOZE_DAYS; Dismiss is forever. Both
-            go through `opportunity_dismissal` server-side, so the
-            row reliably stays gone across devices and sessions. */}
+      {/* Action column — primary CTA (Open client) on TOP so the
+          eye finds it at the same vertical anchor across every
+          row, matching the PulseAlertCard treatment. Snooze +
+          Dismiss are softer ghost siblings below. */}
+      <div className="flex shrink-0 flex-col items-stretch gap-1">
+        <Button size="sm" variant="outline" render={<Link to={opportunity.primaryAction.href} />}>
+          <ArrowUpRightIcon data-icon="inline-start" />
+          <Trans>Open client</Trans>
+        </Button>
         <Button
           size="sm"
           variant="ghost"
@@ -400,11 +419,6 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
               until: new Date(Date.now() + DEFAULT_SNOOZE_DAYS * MS_PER_DAY).toISOString(),
             })
           }
-          // 2026-05-24 (style consistency): the previous inline
-          // template string baked the plural form ("days") into
-          // English, which doesn't survive non-English locales.
-          // `plural()` from @lingui/core/macro gives translators
-          // every form they need.
           aria-label={i18n._(
             plural(DEFAULT_SNOOZE_DAYS, {
               one: `Snooze ${opportunity.title} for # day`,
@@ -424,10 +438,6 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
         >
           <XIcon data-icon="inline-start" />
           <Trans>Dismiss</Trans>
-        </Button>
-        <Button size="sm" variant="outline" render={<Link to={opportunity.primaryAction.href} />}>
-          <ArrowUpRightIcon data-icon="inline-start" />
-          <Trans>Open client</Trans>
         </Button>
       </div>
     </article>
