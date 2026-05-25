@@ -17,6 +17,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatDate } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 
 import { isSelectable, toggleSelection, setAllSelection } from '../lib/selection'
 
@@ -163,7 +164,8 @@ export function AffectedClientsTable({
                     the only way to inspect the obligation in context
                     is to memorise the client name and search. */}
                 <Link
-                  to={`/deadlines?id=${row.obligationId}&drawer=obligation`}
+                  to={deadlineDetailHref({ obligationId: row.obligationId })}
+                  state={{ obligationId: row.obligationId }}
                   aria-label={t`Open ${row.clientName} ${row.taxType} in the obligation queue`}
                   className="inline-flex items-center gap-0.5 text-xs text-text-tertiary outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
                 >

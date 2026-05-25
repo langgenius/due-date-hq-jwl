@@ -21,6 +21,7 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -184,6 +185,15 @@ import {
   type ObligationStatus,
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
+import {
+  DEADLINE_DETAIL_TABS,
+  cleanDeadlineDetailSearch,
+  deadlineDetailHref,
+  findObligationIdByDeadlineRef,
+  normalizeDeadlineDetailTab,
+  normalizeDeadlineRef,
+  obligationIdMatchesDeadlineRef,
+} from '@/features/obligations/deadline-detail-url'
 import { isTabVisibleForType, tabsForObligationType } from '@/features/obligations/obligation-type'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
@@ -219,7 +229,7 @@ const OWNER_FILTERS = ['unassigned'] as const
 const DUE_FILTERS = ['overdue'] as const
 const EVIDENCE_FILTERS = ['needs'] as const
 const DETAIL_DRAWERS = ['obligation'] as const
-const DETAIL_TABS = ['summary', 'readiness', 'extension', 'risk', 'evidence', 'audit'] as const
+const DETAIL_TABS = DEADLINE_DETAIL_TABS
 const DENSITY_OPTIONS = [
   'comfortable',
   'compact',
@@ -345,6 +355,13 @@ const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1
 
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
+}
+
+function deadlineDetailStateObligationId(state: unknown, routeRef: string | null): string | null {
+  if (!routeRef || !state || typeof state !== 'object') return null
+  const obligationId = Reflect.get(state, 'obligationId')
+  if (typeof obligationId !== 'string') return null
+  return obligationIdMatchesDeadlineRef(obligationId, routeRef) ? obligationId : null
 }
 
 function parseGeneratedReadinessChecklist(value: string | null): ReadinessChecklistItem[] | null {
@@ -664,6 +681,12 @@ function dueDaysTone(days: number): DueDaysTone {
 
 export function ObligationQueueRoute() {
   const { t } = useLingui()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const routeParams = useParams()
+  const routeObligationRef = normalizeDeadlineRef(routeParams.obligationRef)
+  const routeDetailTab = normalizeDeadlineDetailTab(routeParams.detailTab)
+  const routeStateObligationId = deadlineDetailStateObligationId(location.state, routeObligationRef)
   const queryClient = useQueryClient()
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
@@ -730,10 +753,9 @@ export function ObligationQueueRoute() {
   // curates, Deadlines sorts" per the design brief.
   const sort: ObligationQueueSort = useMemo(() => {
     if (!lifecycleV2) return urlSort
-    const hasExplicitSort =
-      typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('sort')
+    const hasExplicitSort = new URLSearchParams(location.search).has('sort')
     return hasExplicitSort ? urlSort : 'due_asc'
-  }, [urlSort, lifecycleV2])
+  }, [urlSort, lifecycleV2, location.search])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [pageIndex, setPageIndex] = useState(0)
@@ -761,15 +783,16 @@ export function ObligationQueueRoute() {
     maxLength: OBLIGATION_QUEUE_SEARCH_MAX_LENGTH,
   })
   const sorting = useMemo(() => getSortingState(sort), [sort])
-  // When the user intends to open the detail panel (drawer=obligation
-  // + an id in the URL), the table loses ~440px to make room. Auto-
+  // When the user intends to open the detail panel (short route ref,
+  // or legacy drawer=obligation + id), the table loses ~440px to make room. Auto-
   // collapse State / County / Tax type — they're already in the panel
   // header so the cell is redundant; freeing the column space lets
   // the remaining 7 columns fit the narrower viewport without
   // horizontal scroll. We react to URL intent (not `activeDetailId`)
   // so columns adjust the moment the user clicks, before the row
   // model resolves.
-  const panelOpenIntent = drawer === 'obligation' && Boolean(detailId)
+  const panelOpenIntent =
+    Boolean(routeObligationRef) || (drawer === 'obligation' && Boolean(detailId))
   const columnVisibility = useMemo(() => {
     const base = columnVisibilityFromHidden(hiddenColumns)
     if (panelOpenIntent) {
@@ -1084,7 +1107,16 @@ export function ObligationQueueRoute() {
     () => new Map(rows.map((obligationQueueRow) => [obligationQueueRow.id, obligationQueueRow])),
     [rows],
   )
-  const activeRow = (row ? rowsById.get(row) : null) ?? rows[0] ?? null
+  const routeDetailId =
+    routeStateObligationId ?? findObligationIdByDeadlineRef(rows, routeObligationRef)
+  const legacyDetailId = drawer === 'obligation' && detailId ? detailId : null
+  const activeDetailId = routeDetailId ?? legacyDetailId
+  const activeDetailTab = routeObligationRef ? (routeDetailTab ?? 'readiness') : detailTab
+  const activeRow =
+    (row ? rowsById.get(row) : null) ??
+    (activeDetailId ? rowsById.get(activeDetailId) : null) ??
+    rows[0] ??
+    null
   // Separate "the user explicitly selected this row" (drives the
   // background highlight + aria-selected) from "the keyboard cursor
   // sits here" (drives J/K, Enter, hotkeys, falls back to rows[0]).
@@ -1092,9 +1124,27 @@ export function ObligationQueueRoute() {
   // always tinted even with no panel open — which made the queue
   // look like row 1 was permanently focused. Now the highlight
   // only appears when `row` is set in the URL.
-  const explicitActiveRowId = row && rowsById.has(row) ? row : null
-  const activeDetailId =
-    drawer === 'obligation' && detailId && rowsById.has(detailId) ? detailId : null
+  const explicitActiveRowId =
+    activeDetailId && rowsById.has(activeDetailId)
+      ? activeDetailId
+      : row && rowsById.has(row)
+        ? row
+        : null
+  const openQueueDetail = useCallback(
+    (obligationId: string, tab: ObligationQueueDetailTab = activeDetailTab) => {
+      void navigate(deadlineDetailHref({ obligationId, tab, search: location.search }), {
+        state: { obligationId },
+      })
+    },
+    [activeDetailTab, location.search, navigate],
+  )
+  const closeQueueDetail = useCallback(() => {
+    if (routeObligationRef) {
+      void navigate(`/deadlines${cleanDeadlineDetailSearch(location.search)}`)
+      return
+    }
+    void setObligationQueueQuery({ drawer: null, id: null, row: null })
+  }, [location.search, navigate, routeObligationRef, setObligationQueueQuery])
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = functionalUpdate(updater, rowSelection)
@@ -1896,11 +1946,7 @@ export function ObligationQueueRoute() {
     (event) => {
       if (isInteractiveEventTarget(event.target)) return
       if (!activeRow) return
-      void setObligationQueueQuery({
-        drawer: 'obligation',
-        id: activeRow.id,
-        tab: detailTab,
-      })
+      openQueueDetail(activeRow.id, activeDetailTab)
     },
     {
       enabled: keyboardEnabled,
@@ -1991,8 +2037,8 @@ export function ObligationQueueRoute() {
   useAppHotkey(
     'Escape',
     () => {
-      if (drawer === 'obligation') {
-        void setObligationQueueQuery({ drawer: null, id: null })
+      if (activeDetailId) {
+        closeQueueDetail()
         return
       }
       if (row) {
@@ -2044,7 +2090,11 @@ export function ObligationQueueRoute() {
   // `listQuery.fetchNextPage()` inline when crossing the loaded buffer.
 
   function resetObligationQueue() {
-    void setObligationQueueQuery(null)
+    if (routeObligationRef) {
+      void navigate('/deadlines')
+    } else {
+      void setObligationQueueQuery(null)
+    }
     setRowSelection({})
   }
 
@@ -2749,12 +2799,7 @@ export function ObligationQueueRoute() {
                                   void setObligationQueueQuery({ row: tableRow.original.id })
                                   return
                                 }
-                                void setObligationQueueQuery({
-                                  row: tableRow.original.id,
-                                  drawer: 'obligation',
-                                  id: tableRow.original.id,
-                                  tab: detailTab,
-                                })
+                                openQueueDetail(tableRow.original.id, activeDetailTab)
                               }}
                               onKeyDown={(event) => {
                                 // Match native button semantics: Enter and
@@ -2770,12 +2815,7 @@ export function ObligationQueueRoute() {
                                 )
                                   return
                                 event.preventDefault()
-                                void setObligationQueueQuery({
-                                  row: tableRow.original.id,
-                                  drawer: 'obligation',
-                                  id: tableRow.original.id,
-                                  tab: detailTab,
-                                })
+                                openQueueDetail(tableRow.original.id, activeDetailTab)
                               }}
                             >
                               {tableRow.getVisibleCells().map((cell) => {
@@ -2915,9 +2955,15 @@ export function ObligationQueueRoute() {
           <div className="min-w-0 w-full xl:h-full xl:w-[600px] xl:shrink-0 xl:min-h-0">
             <ObligationPanelDispatcher
               obligationId={activeDetailId}
-              activeTab={detailTab}
-              onTabChange={(nextTab) => void setObligationQueueQuery({ tab: nextTab })}
-              onClose={() => void setObligationQueueQuery({ drawer: null, id: null })}
+              activeTab={activeDetailTab}
+              onTabChange={(nextTab) => {
+                if (routeObligationRef) {
+                  openQueueDetail(activeDetailId, nextTab)
+                  return
+                }
+                void setObligationQueueQuery({ tab: nextTab })
+              }}
+              onClose={closeQueueDetail}
               onNeedsInput={setPenaltyRow}
               practiceAiEnabled={practiceAiEnabled}
               blockerCandidates={rows}
@@ -4243,7 +4289,7 @@ export function ObligationQueueDetailDrawer({
 
             2026-05-23: a copy-link icon button sits next to the close
             button per Figma so the CPA can grab a deep-link to this
-            drawer (obligation id + tab) without scrolling to the
+            drawer (short obligation ref + tab) without scrolling to the
             sticky footer. Both buttons live in the top-right corner
             cluster. Sheet mode keeps the link-copy in the footer
             since Radix already owns the corner there. */}
@@ -4254,12 +4300,10 @@ export function ObligationQueueDetailDrawer({
               aria-label={t`Copy link to this obligation`}
               title={t`Copy link to this obligation`}
               onClick={async () => {
-                const url = new URL(window.location.href)
-                url.search = new URLSearchParams({
-                  id: row.id,
-                  drawer: 'obligation',
-                  tab: activeTab,
-                }).toString()
+                const url = new URL(
+                  deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
+                  window.location.origin,
+                )
                 try {
                   await navigator.clipboard.writeText(url.toString())
                   toast.success(t`Link copied`)
@@ -5256,12 +5300,10 @@ export function ObligationQueueDetailDrawer({
               variant="outline"
               size="sm"
               onClick={async () => {
-                const url = new URL(window.location.href)
-                url.search = new URLSearchParams({
-                  id: row.id,
-                  drawer: 'obligation',
-                  tab: activeTab,
-                }).toString()
+                const url = new URL(
+                  deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
+                  window.location.origin,
+                )
                 try {
                   await navigator.clipboard.writeText(url.toString())
                   toast.success(t`Link copied`)

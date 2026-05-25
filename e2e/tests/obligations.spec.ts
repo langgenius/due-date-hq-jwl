@@ -41,7 +41,9 @@ test.describe('seeded obligations', () => {
       .click()
 
     await expect(authenticatedPage).toHaveURL(/\/$/)
-    await expect(authenticatedPage.getByRole('dialog', { name: /Arbor & Vale LLC/ })).toBeVisible()
+    await expect(
+      authenticatedPage.getByRole('complementary', { name: /Arbor & Vale LLC/ }),
+    ).toBeVisible()
   })
 
   test('AC: E2E-OBLIGATIONS-FILTERS searches, filters, and sorts real obligation rows', async ({
@@ -86,8 +88,12 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.goto()
 
     await obligationQueuePage.openDetailFor('Arbor & Vale LLC')
-    await expect(authenticatedPage).toHaveURL(/drawer=obligation/)
-    await expect(authenticatedPage).toHaveURL(/tab=readiness/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\/[0-9a-f]{12}$/)
+    const detailUrl = new URL(authenticatedPage.url())
+    expect(detailUrl.searchParams.has('drawer')).toBe(false)
+    expect(detailUrl.searchParams.has('id')).toBe(false)
+    expect(detailUrl.searchParams.has('row')).toBe(false)
+    expect(detailUrl.searchParams.has('tab')).toBe(false)
     await expect(authenticatedPage.getByRole('dialog', { name: /Arbor & Vale LLC/ })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Readiness' })).toBeVisible()
     await expect(authenticatedPage.getByRole('tab', { name: 'Extension' })).toBeVisible()

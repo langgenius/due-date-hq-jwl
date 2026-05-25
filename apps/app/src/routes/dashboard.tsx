@@ -92,7 +92,7 @@ export function DashboardRoute() {
   // Dashboard is a picker, not a workspace. Clicking an action
   // calls openDrawer(id) which — because dashboard is NOT in the
   // provider's routeOwnsPanel set — navigates to
-  // `/deadlines?id=…&drawer=obligation`. The queue is the
+  // `/deadlines/<short-ref>`. The queue is the
   // canonical workspace; dashboard's job is to send you there with
   // the right obligation already selected.
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
@@ -192,7 +192,7 @@ export function DashboardRoute() {
           // Clicking an action navigates to the obligations queue with
           // the right panel pre-opened for that obligation. The
           // provider's openDrawer routes off-route callers to
-          // `/deadlines?id=…&drawer=obligation` — dashboard is a
+          // `/deadlines/<short-ref>` — dashboard is a
           // picker, the queue is the workspace.
           onOpenObligation={(row) => openObligationDrawer(row.obligationId)}
           onOpenAllObligations={() => void navigate('/deadlines')}

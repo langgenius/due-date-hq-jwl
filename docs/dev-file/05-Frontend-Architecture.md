@@ -188,7 +188,8 @@ feature 语义留在 members vertical 内。
   推导类型；不要手写一份和 parser 分离的 query state interface。
 - `history: 'replace'`、`clearOnDefault` 等 URL 行为优先挂在 parser map 里，让
   `useQueryStates`、serializer 和未来 loader 消费同一份 contract。
-- 任何抽屉开关 / 选中项也写 URL（`?drawer=obligation&id=xxx`）
+- Obligation detail 抽屉用可分享的短路径写 URL（`/deadlines/<short-ref>`；非默认 tab 用
+  `/deadlines/<short-ref>/<tab>`）。旧的 `?drawer=obligation&id=xxx` deep link 只保留兼容。
 - Billing 例外约束：`plan` / `interval` 保持在 URL query 以支持 marketing deep link、登录回跳、
   checkout success/cancel 和 E2E；主 checkout 必须是 route，不用 URL dialog 承载支付链路。
   `/billing?changePlan=...` 可作为轻量确认 dialog，但确认后仍跳 `/billing/checkout?...`。
@@ -241,9 +242,9 @@ Dashboard 首屏不渲染独立 AI Weekly Brief 卡片。`dashboard.load` 仍可
 数据。Triage queue 行内展示 Focus rank、Smart Priority drivers、Next check 和 Evidence 按钮；
 证据按钮调用 app-level `EvidenceDrawerProvider.openEvidence()`，drawer 可跳到 obligation evidence
 和官方 source URL。点击 Triage queue 非控件区域直接跳转
-`/deadlines?obligation=<obligationId>&row=<obligationId>&drawer=obligation&id=<obligationId>`：
-Obligations 先用 `obligation` 参数把 table 筛到对应 obligation，等目标行进入列表数据后再打开
-detail drawer；客户名作为独立链接跳转 `/clients?clients=<clientId>&client=<clientId>`。
+`/deadlines/<short-ref>`：Obligations 用短引用打开对应 detail drawer，地址栏不重复暴露
+完整 obligation UUID；旧 `drawer/id/row/tab` query 仍可兼容打开。客户名作为独立链接跳转
+`/clients?clients=<clientId>&client=<clientId>`。
 
 前端不触发模型调用，也不轮询 AI provider。Dashboard 页面不提供 `Refresh brief` 控件；如果未来在
 其他入口恢复手动刷新，只能调用 enqueue mutation（例如 `dashboard.requestBriefRefresh`），不能在

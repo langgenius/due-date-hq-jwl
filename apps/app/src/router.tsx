@@ -409,6 +409,26 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'deadlines/:obligationRef',
+              handle: routeHandle(routeSummaries.obligations),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ObligationQueueRoute } = await import('@/routes/obligations')
+
+                return { Component: ObligationQueueRoute }
+              },
+            },
+            {
+              path: 'deadlines/:obligationRef/:detailTab',
+              handle: routeHandle(routeSummaries.obligations),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ObligationQueueRoute } = await import('@/routes/obligations')
+
+                return { Component: ObligationQueueRoute }
+              },
+            },
+            {
               path: 'obligations',
               loader: legacyObligationsAliasLoader,
               Component: RedirectOnlyRoute,

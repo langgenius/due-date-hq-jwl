@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router'
 
 import type { ObligationQueueDetailTab } from '@duedatehq/contracts'
 
+import { deadlineDetailHref, isDeadlineQueuePath } from './deadline-detail-url'
+
 interface ObligationDrawerContextValue {
   openDrawer: (obligationId: string) => void
   closeDrawer: () => void
@@ -31,7 +33,7 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
  *    in its own column.
  * 2. **Pickers** (dashboard, anywhere else) — these surface
  *    obligations to triage but aren't the place to act on them.
- *    `openDrawer(id)` navigates to `/deadlines?id=…&drawer=obligation`
+ *    `openDrawer(id)` navigates to `/deadlines/<short-ref>`
  *    so the obligation opens in the canonical queue workspace with
  *    the right panel showing.
  *
@@ -62,10 +64,10 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
   // obligations* (the queue, a client's filing plan) own the panel
   // inline. Routes that are *pickers* (the dashboard — surface what
   // to act on, then send the user to the workspace) navigate to
-  // `/deadlines?id=…` instead. The destination for obligation
+  // `/deadlines/<short-ref>` instead. The destination for obligation
   // viewing is always `/deadlines` with the right panel showing;
   // the queue is the canonical workspace.
-  const isQueueRoute = location.pathname === '/deadlines'
+  const isQueueRoute = isDeadlineQueuePath(location.pathname)
   const isClientDetailRoute = location.pathname.startsWith('/clients/')
   const routeOwnsPanel = isQueueRoute || isClientDetailRoute
 
@@ -74,15 +76,13 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       if (isQueueRoute) {
         // Drive the queue's URL state directly so its own drawer +
         // active-row highlight + J/K hotkeys stay coherent.
-        const params = new URLSearchParams({
-          id: obligationId,
-          drawer: 'obligation',
+        void navigate(deadlineDetailHref({ obligationId, search: location.search }), {
+          state: { obligationId },
         })
-        void navigate(`/deadlines?${params.toString()}`)
         return
       }
       if (routeOwnsPanel) {
-        // Client detail / dashboard mount their own
+        // Client detail mounts its own
         // `<ObligationQueueDetailDrawer mode="panel" />`. Just set
         // local state — the panel reads `obligationId` from context.
         setActiveTab('readiness')
@@ -93,13 +93,9 @@ export function ObligationDrawerProvider({ children }: { children: ReactNode }) 
       // surface so the obligation always renders in a route layout,
       // never as a floating Sheet. This is the new unified rule
       // (2026-05-22 IA pass).
-      const params = new URLSearchParams({
-        id: obligationId,
-        drawer: 'obligation',
-      })
-      void navigate(`/deadlines?${params.toString()}`)
+      void navigate(deadlineDetailHref({ obligationId }), { state: { obligationId } })
     },
-    [isQueueRoute, navigate, routeOwnsPanel],
+    [isQueueRoute, location.search, navigate, routeOwnsPanel],
   )
 
   const closeDrawer = useCallback(() => {
