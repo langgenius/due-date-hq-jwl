@@ -2591,7 +2591,18 @@ export function ObligationQueueRoute() {
               client / Filed) name the dimension out loud. The
               eyebrow was a duplicate "this is what these tabs
               are" caption that just added a row of chrome. */}
-          <div className="sticky top-0 z-10 flex flex-col gap-1.5 border-b border-divider-regular bg-background-default/95 backdrop-blur-sm">
+          {/* 2026-05-26 (Yuqi sixty-third pass — filter bar transparent):
+              dropped `bg-background-default/95 backdrop-blur-sm` from
+              the sticky filter bar per Yuqi's DevTools-screenshot
+              callout. The bar now reads as part of the page surface
+              (transparent) rather than a separate white card sitting
+              on top of the inset gray. The `border-b border-divider-
+              regular` still gives the boundary; scrolling rows
+              underneath simply show through, which is fine because
+              the bar is anchored to the top of the page scroll
+              container — there's never table content directly behind
+              it (it ends at the table top edge). */}
+          <div className="sticky top-0 z-10 flex flex-col gap-1.5 border-b border-divider-regular">
             <div className="flex flex-wrap items-end gap-3">
               <nav
                 aria-label={t`Status scopes`}
