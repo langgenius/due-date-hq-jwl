@@ -343,16 +343,23 @@ export function SidebarMenuBadge({
   tone = 'urgent',
   ...props
 }: React.ComponentProps<'span'> & { tone?: 'urgent' | 'inventory' }) {
+  // 2026-05-25 (Yuqi sidebar badge alignment follow-up): all badges
+  // now share `min-w-[32px]` with `justify-end` so single-digit (3,
+  // 5), double-digit (10) and triple-digit (456) counts all occupy
+  // the same footprint, with digits right-aligned inside. The right
+  // edges already aligned via `ml-auto`; the new fixed min-width
+  // makes the LEFT edges align too, so the rail reads as one tidy
+  // column of right-justified numbers rather than a ragged-left
+  // stack. 32px holds up through 3 digits with px-1 internal
+  // padding; 4-digit counts (unrealistic in this app) would still
+  // expand gracefully.
   if (tone === 'inventory') {
     return (
       <span
         data-slot="sidebar-menu-badge"
         data-tone="inventory"
         className={cn(
-          // Same height/radius/padding as urgent so the right edge of
-          // the rail lines up. Neutral fill + tertiary text keeps the
-          // semantic difference: "this is a number, not a call to act."
-          'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1 font-mono text-xs font-medium tabular-nums text-text-tertiary',
+          'pointer-events-none ml-auto inline-flex h-[18px] min-w-[32px] shrink-0 items-center justify-end rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
           className,
         )}
@@ -367,7 +374,7 @@ export function SidebarMenuBadge({
       className={cn(
         // Saturated warning pill — readable on the panel bg AND on the
         // accent-tint selected bg without needing an active-state override.
-        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-sm border border-state-warning-border bg-state-warning-hover px-1 font-mono text-xs font-medium tabular-nums text-text-warning',
+        'pointer-events-none ml-auto inline-flex h-[18px] min-w-[32px] shrink-0 items-center justify-end rounded-sm border border-state-warning-border bg-state-warning-hover px-1.5 font-mono text-xs font-medium tabular-nums text-text-warning',
         className,
       )}
       {...props}
