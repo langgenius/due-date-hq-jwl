@@ -11,7 +11,7 @@
 | 领域                    | 选型                                                                                    | 为什么                                                                                                                                                                               |
 | ----------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **语言**                | TypeScript 6.x stable + `@typescript/native-preview` (`tsgo` / `tsgolint`)              | TS 6 是稳定语义基线；`tsgo` 用作快速 typecheck；`vp check` 的 typeCheck 路径内部复用 tsgolint                                                                                        |
-| **Monorepo**            | pnpm workspaces + **Vite Task**（vite-plus 内置）                                       | pnpm 10 原生 workspace + catalog 保留（作为版本单一源）；任务编排 / 缓存 / `-r` 递归由 `vp run` 接管，不再引入 Turborepo                                                             |
+| **Monorepo**            | pnpm workspaces + **Vite Task**（vite-plus 内置）                                       | pnpm 11 workspace + catalog 保留（作为版本单一源）；任务编排 / 缓存 / `-r` 递归由 `vp run` 接管，不再引入 Turborepo                                                                  |
 | **脚手架**              | `vp create vite:monorepo` 起骨架                                                        | Vite+ 官方 monorepo 模板，自带 `vite-plus` 根配置 + 共享 typescript-config                                                                                                           |
 | **统一工具链**          | **Vite+ (`vite-plus` + 全局 `vp`)**                                                     | 一个 dep 吞下 Vite 8 + Vitest + Oxlint + Oxfmt + Rolldown + tsdown + Vite Task；`vp check / test / build / run -r` 是全仓唯一入口，取代独立的 oxlint / oxfmt / vitest / turbo 调用链 |
 | **Git Hooks**           | Vite+ `staged` 块（vite.config.ts）                                                     | 由 `vp` 安装的 git hook 调度，等价于 lefthook + lint-staged；单一配置源                                                                                                              |
@@ -169,7 +169,7 @@ Vite+ (`vite-plus`) 把 **Vite 8 + Vitest + Oxlint + Oxfmt + Rolldown + tsdown +
 
 ### 4.1 `pnpm-workspace.yaml`
 
-pnpm 10 已把所有配置迁到这里，**不要再写 `.npmrc`**。catalog 也定义于此。
+pnpm 11 只从 `.npmrc` 读取 auth / registry 类配置；workspace 配置统一放在这里，**不要再写 `.npmrc` 作为项目配置源**。catalog 也定义于此。
 
 实际 `pnpm-workspace.yaml` 的版本号**全部**精确锁定。下面只保留 Phase 0 关键摘录；完整权威清单以仓库根的 `pnpm-workspace.yaml` 为准。
 
@@ -178,7 +178,7 @@ packages:
   - 'apps/*'
   - 'packages/*'
 
-# pnpm 10 settings
+# pnpm 11 settings
 saveExact: true
 autoInstallPeers: true
 dedupePeerDependents: true
@@ -186,11 +186,13 @@ strictPeerDependencies: false
 linkWorkspacePackages: true
 preferWorkspacePackages: true
 
-onlyBuiltDependencies:
-  - esbuild
-  - '@swc/core'
-  - sharp
-  - workerd
+allowBuilds:
+  esbuild: true
+  '@swc/core': true
+  sharp: true
+  workerd: true
+  core-js: false
+  protobufjs: false
 
 # ============================================================
 # Catalog · 全部精确版本；禁止 ^ / ~ / latest
@@ -322,8 +324,8 @@ catalog:
 {
   "name": "duedatehq",
   "private": true,
-  "packageManager": "pnpm@10.x",
-  "engines": { "node": ">=22" },
+  "engines": { "node": ">=22.19.0" },
+  "packageManager": "pnpm@11.3.0",
   "scripts": {
     "ci": "vp check && vp run -r test && vp run build",
     "ready": "vp check && vp run -r test && vp run build",

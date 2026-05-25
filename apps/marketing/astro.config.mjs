@@ -19,7 +19,6 @@ const viteConfig = {
 //   to emit a ~190 KB orphan React client bundle into `dist/_astro/`. When a real
 //   React island is needed later (e.g. interactive LocaleSwitcher), add `react()`
 //   back here and ensure §5.1 JS-budget rules apply.
-// @ts-expect-error Astro 6 + workspace Vite alias recurses while comparing plugin types.
 export default defineConfig({
   site: 'https://due.langgenius.app',
   trailingSlash: 'never',

@@ -154,7 +154,7 @@ Schema、索引、目录结构**一次性覆盖到 Phase 1**：Firm / User / Mem
 | ❌ Electron / Native App        | Tauri menu bar widget（Phase 2）+ SPA 覆盖 95% 场景；PWA / Web Push 已从 Phase 0 移除（见本表下一行）                                                                                                                                                                                               |
 | ❌ 微服务                       | 2 人团队；单 Worker + 模块化 monorepo 足够                                                                                                                                                                                                                                                          |
 | ❌ Radix UI（shadcn 默认）      | Base UI 是 Radix 团队后续项目，体积更小 + Keyboard/RTL 更严格；`components.json` 设 `"style": "base-vega"`                                                                                                                                                                                          |
-| ❌ `.npmrc` 作配置源            | pnpm 10 推荐 `pnpm-workspace.yaml`，workspace 设置与 package 列表同源                                                                                                                                                                                                                               |
+| ❌ `.npmrc` 作配置源            | pnpm 11 只从 `.npmrc` 读取 auth / registry 类配置；workspace 设置、catalog 和 build approval 统一放 `pnpm-workspace.yaml`                                                                                                                                                                           |
 
 ---
 
