@@ -5105,7 +5105,7 @@ export function ObligationQueueDetailDrawer({
                 )
               })()}
             </div>
-            <TabsContent value="summary">
+            <TabsContent value="summary" className="mt-4">
               {/* Summary tab — milestone chevron + active-stage zoom.
                   These were previously pinned in the sticky snapshot
                   block (always-visible across every tab). Yuqi #30
@@ -5149,7 +5149,7 @@ export function ObligationQueueDetailDrawer({
                 />
               </div>
             </TabsContent>
-            <TabsContent value="readiness">
+            <TabsContent value="readiness" className="mt-4">
               <div className="grid gap-3">
                 {/* Top-of-tab summary — explains what readiness IS
                         + shows the at-a-glance state (PRD §3.2 says the
@@ -5201,10 +5201,30 @@ export function ObligationQueueDetailDrawer({
                     weight regardless of state, so the actual workflow
                     goal (send the request) had to fight Generate +
                     Add item for the user's eye. */}
+                {/* 2026-05-26 (Yuqi fifty-eighth pass — section title
+                    semantics): label was "Documents received" + count
+                    of `checklist.length` (TOTAL items). Yuqi flagged
+                    "Documents Received and Outstanding - what is the
+                    relationship? I don't understand" because the same
+                    "13" appeared in BOTH the header ("Documents
+                    received 13 items") AND the Outstanding subsection
+                    below ("Outstanding 13") — a contradiction (you
+                    can't have 13 received AND 13 outstanding when
+                    there's only 13 total).
+                    Fix: rename to "Materials checklist" — it's the
+                    SECTION TITLE for the checklist as a whole. The
+                    Outstanding/Received subsections inside (added
+                    in the forty-ninth pass) carry the actual
+                    received-vs-outstanding split + their own counts.
+                    Hierarchy now reads:
+                      Materials checklist (13 total)
+                        ├ Outstanding (N items)
+                        └ Received (M items, M + N = 13)
+                */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-text-primary">
-                      <Trans>Documents received</Trans>
+                      <Trans>Materials checklist</Trans>
                     </span>
                     {checklist.length > 0 ? (
                       <span className="tabular-nums text-xs text-text-tertiary">
@@ -5558,7 +5578,7 @@ export function ObligationQueueDetailDrawer({
                 ) : null}
               </div>
             </TabsContent>
-            <TabsContent value="extension">
+            <TabsContent value="extension" className="mt-4">
               <div className="grid gap-3">
                 <AlertPanel>
                   <Trans>
@@ -5651,7 +5671,7 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="evidence">
+            <TabsContent value="evidence" className="mt-4">
               {/* Evidence tab split into two visually-distinct sections
                   (2026-05-21):
                     - WORKPAPERS (top, default open): client-attached
