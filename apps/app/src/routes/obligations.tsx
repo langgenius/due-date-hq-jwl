@@ -5689,9 +5689,13 @@ function InsightStatusBadge({ status }: { status: AiInsightPublic['status'] }) {
         <Trans>Ready</Trans>
       </Badge>
     )
+  // 2026-05-25 (status-pill audit §4 #9): "Failed" was warning
+  // (amber) but the §3.1 ladder reserves amber for external
+  // pauses where no urgency exists. A failed AI insight is a
+  // hard failure of the operation — destructive (red).
   if (status === 'failed')
     return (
-      <Badge variant="warning">
+      <Badge variant="destructive">
         <Trans>Failed</Trans>
       </Badge>
     )

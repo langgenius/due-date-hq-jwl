@@ -971,14 +971,22 @@ function RoleDisplay({ role }: { role: MemberPublic['role'] | MemberManagedRole 
   )
 }
 
+// 2026-05-25 (status-pill audit §4 #5): MemberStatusPill was
+// `outline` + `warning` dot for active (amber dot on a non-amber
+// concept) and `secondary` + `disabled` for suspended; the
+// invitation pill was a fully-filled `success` / `warning` chip
+// with a redundant dot. The two pills coexist in the same table,
+// so "Suspended" (secondary fill) and "Expired" (warning fill)
+// looked like they belonged to different families. Unified to
+// the audit's preferred shape: `outline` chip + tone-colored
+// dot (filled chip + dot is redundant per §3.3). Tones now
+// follow the §3.1 ladder: success = healthy, info = active work,
+// warning = external pause, disabled = dormant.
 function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
   const suspended = status === 'suspended'
   return (
-    <Badge
-      variant={suspended ? 'secondary' : 'outline'}
-      className="h-5 rounded-sm px-2 text-xs text-text-secondary"
-    >
-      <BadgeStatusDot tone={suspended ? 'disabled' : 'warning'} className="size-1.5" />
+    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+      <BadgeStatusDot tone={suspended ? 'disabled' : 'success'} className="size-1.5" />
       {suspended ? <Trans>Suspended</Trans> : <Trans>Active</Trans>}
     </Badge>
   )
@@ -987,8 +995,8 @@ function MemberStatusPill({ status }: { status: MemberPublic['status'] }) {
 function InvitationStatusPill({ status }: { status: MemberInvitationPublic['status'] }) {
   const expired = status === 'expired'
   return (
-    <Badge variant={expired ? 'warning' : 'success'} className="h-5 rounded-sm px-2 text-xs">
-      <BadgeStatusDot tone={expired ? 'warning' : 'success'} className="size-1.5" />
+    <Badge variant="outline" className="h-5 rounded-sm px-2 text-xs text-text-secondary">
+      <BadgeStatusDot tone={expired ? 'warning' : 'info'} className="size-1.5" />
       {expired ? <Trans>Expired</Trans> : <Trans>Pending</Trans>}
     </Badge>
   )

@@ -566,6 +566,56 @@ Sidebar footer 只保留 workspace/account 持久状态：plan status + user men
 入口放在 Practice 导航；user menu 不承载 practice profile，除非后续新增真正的 user account
 profile。
 
+### 4.10 Status Pill Tone Ladder（2026-05-25 增补）
+
+> 全审计与变更清单见 [`status-pill-audit-2026-05-25.md`](./status-pill-audit-2026-05-25.md)。
+> 这一节是 audit §3 的"硬裁定"，新加任何 chip / pill 必须先来这里对一遍 tone。
+
+App 里所有"X 是什么状态？"的 chip 都是
+`(tone, shape, ornament)` 三元组。先选 tone（语义），再选 shape（类别），最后
+按 ornament 规则决定要不要加 dot。三档独立，不允许"我觉得这个看着该是绿的"自由发挥。
+
+#### Tone → 语义（不可重新定义）
+
+| Tone                  | 语义                                 | 典型场景                                                                                                                |
+| --------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `success`（绿）       | 完成 / 已结算 / 健康                 | `done` / `paid` / `completed`、rule `active`/`verified`、source `healthy`、materials `Received`、client `ready`         |
+| `info`（蓝）          | **进行中的工作**                     | obligation `in_progress` / `review`、rule `pending_review` / `candidate`、pulse alert `New`                             |
+| `warning`（黄）       | **外部暂停** — 等别人，暂无紧急性    | obligation `waiting_on_client`、source `paused`、invitation `expired`、tip `Failed`                                     |
+| `destructive`（红）   | **硬阻断 / 失败** — 不干预就走不下去 | obligation `blocked`、rule `rejected`、coverage `none`、pulse confidence `< 0.7`、materials `Needs review`、AI `Failed` |
+| `secondary`（灰填充） | 未开始 / 休眠                        | `pending`、`not_applicable`、rule `archived`/`deprecated`、member `suspended`                                           |
+| `outline`（中性边框） | 引用 tag — 不是状态                  | source name、tax code、jurisdiction code、entity tag                                                                    |
+
+注意：§14.7 已经独立裁定了 `needs_review` 一词的双重含义（数据质量类走
+severity-medium 黄；工作流态走 status-review 蓝）。这张表只覆盖工作流态。
+
+#### Shape → 类别（决定整个 chip 的画法）
+
+| Shape                         | 含义                                                 | 例子                                                           |
+| ----------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
+| 填充 chip + lucide icon       | Lifecycle / 工作流状态（"它在它的旅程中走到哪了？"） | `ObligationStatusReadBadge`（标准实现）、rule 状态徽章         |
+| Outline chip + 引用文本       | 元数据 tag，不是状态                                 | tax code、jurisdiction、entity type、source name               |
+| 裸 icon + 浅色文字（无 chip） | 行内 kicker，已经在有 label 的容器里                 | `RuleStatusKicker`（保留）、`ClientReadinessBadge`（压扁版本） |
+| Progress bar 分段             | 跨多行的聚合计数                                     | `RuleStatusBar`、rule library StatsBar 进度条                  |
+
+#### Ornament 规则（dot 用不用）
+
+- 填充 chip → **只用 icon，不再加 dot**。Chip fill 已经在表达 tone，icon
+  负责表达身份。`ObligationStatusReadBadge` / `ObligationQueueStatusControl` 是
+  标准实现。
+- `outline` chip → **可以加 dot**。因为 chip 本身没有 tone 可传达，dot 来
+  补这个信号（`HealthBadge`、`TemporaryRuleStatusBadge`、members &
+  invitations 行）。
+- 填充 chip + dot 是 **冗余**，不允许新加。已经踩过这个坑的位置见
+  [audit §2.3](./status-pill-audit-2026-05-25.md#23--badgestatusdot-是半弃用同家族内不一致的-dot-用法-sev-med)。
+
+#### 落地纪律
+
+- 添加新 chip 前先来这一节对 tone；如果是新语义，去 audit doc 加一行，再回来更新本表。
+- 不要在某个 surface 里自由发挥重新映射 tone（"我们这页这里 review 用黄看着比较稳"
+  这种话术等于在制造 audit §2.1 那种 4 色 review 灾难）。
+- `BadgeStatusDot` 不是默认 ornament。先看 chip 是不是 outline，再决定要不要 dot。
+
 ---
 
 ## 5. Layout Principles
