@@ -4759,8 +4759,17 @@ export function ObligationQueueDetailDrawer({
           covering the last content row when scrolled — 96px buffer
           guarantees clean separation between bottom content and
           action bar. */}
+      {/* 2026-05-26 (Yuqi forty-eighth pass — body flex wrapper):
+          body wrapper is now `flex flex-col gap-4` per drawer
+          canonical. Children get a consistent 16px gap between
+          them instead of each carrying its own `mb-*` margin.
+          Same shape as PulseDetailDrawer body so the two drawers
+          read with identical rhythm. */}
       <div
-        className={cn('px-12 pt-10 pb-24', mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto')}
+        className={cn(
+          'flex flex-col gap-4 px-12 pt-10 pb-24',
+          mode === 'panel' && 'flex-1 min-h-0 overflow-y-auto',
+        )}
       >
         {detailQuery.isLoading ? (
           <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
@@ -5675,13 +5684,31 @@ export function ObligationQueueDetailDrawer({
     return (
       <aside
         aria-label={titleText ?? t`Deadline detail`}
-        // Subtle tinted background distinguishes the panel from the
-        // table area beside it. Inner snapshot is now pinned via
-        // sticky positioning (2026-05-21): the aside itself stops
-        // scrolling; only the tabs-content area scrolls underneath,
-        // so a user 30 docs deep in the Readiness checklist still
-        // sees what row they're on.
-        className="flex h-full min-w-0 flex-col rounded-lg border border-divider-subtle bg-background-subtle"
+        // 2026-05-26 (Yuqi forty-eighth pass — drawer canonical
+        // applied to obligation panel): chrome migrated to match
+        // PulseDetailDrawer's panel-mode aside exactly. Both
+        // drawers in the product now read as the same surface
+        // treatment from a CPA's perspective.
+        //   • `rounded-lg border` → `border-l` only — the panel
+        //     is a sibling COLUMN, not a floating card; the left
+        //     edge alone marks the boundary against the
+        //     table/list area. No corner radius lets it run
+        //     edge-to-edge of the viewport's vertical space.
+        //   • `bg-background-subtle` → `bg-background-default`
+        //     (white) — the panel reads as paper-on-the-desk per
+        //     the inset-surface system, not as a darker tile.
+        //   • Added `relative min-h-0 overflow-hidden` so the
+        //     sticky header/footer don't bleed and the body's
+        //     own scroll surface establishes correctly.
+        //   • Added `shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]`
+        //     — soft left-edge shadow, gestural "paper lifted off
+        //     the desk" per the canonical.
+        // Inner snapshot is still pinned via sticky positioning
+        // (2026-05-21): the aside itself stops scrolling; only
+        // the tabs-content area scrolls underneath, so a user 30
+        // docs deep in the Readiness checklist still sees what
+        // row they're on.
+        className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
       >
         {body}
       </aside>
