@@ -13,7 +13,6 @@ import type {
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Select,
   SelectContent,
@@ -25,10 +24,10 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { StateBadge } from '@/components/primitives/state-badge'
 
 import { usePulseDrawer } from './DrawerProvider'
 import { PulseDetailDrawer } from './PulseDetailDrawer'
+import { StateTilegram } from './components/StateTilegram'
 import {
   usePulseInvalidation,
   usePulseListHistoryQueryOptions,
@@ -384,39 +383,25 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
               padding tightened (py-0 pl-1 pr-2) so each chip
               collapses to its natural badge-height (~24px)
               without claiming extra row real estate. */}
+              {/* 2026-05-25 (Yuqi Alerts #9 — SVG US-map filter):
+                  chip strip replaced with a tilegram-style US map.
+                  Each state sits at its approximate geographic
+                  position; the StateBadge motif + count render
+                  inside the cell. Clicking a tile toggles the
+                  jurisdiction filter — same contract the chip
+                  strip provided. */}
               {jurisdictionCounts.length > 0 ? (
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="mr-1 text-xs uppercase tracking-wide text-text-tertiary">
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs uppercase tracking-wide text-text-tertiary">
                     <Trans>States</Trans>
                   </span>
-                  {jurisdictionCounts.map(([state, count]) => {
-                    const active = jurisdictionFilter === state
-                    return (
-                      <button
-                        key={state}
-                        type="button"
-                        onClick={() => setJurisdictionFilter(active ? null : state)}
-                        aria-pressed={active}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 rounded-md border py-0 pl-1 pr-2 text-xs font-medium transition-colors',
-                          active
-                            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
-                            : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-strong hover:bg-background-default-hover hover:text-text-primary',
-                        )}
-                      >
-                        <StateBadge code={state} size="xs" aria-hidden />
-                        <span>{state}</span>
-                        <span
-                          className={cn(
-                            'tabular-nums',
-                            active ? 'text-text-accent/70' : 'text-text-tertiary',
-                          )}
-                        >
-                          {count}
-                        </span>
-                      </button>
-                    )
-                  })}
+                  <StateTilegram
+                    counts={new Map(jurisdictionCounts)}
+                    activeState={jurisdictionFilter}
+                    onSelect={(code) =>
+                      setJurisdictionFilter(jurisdictionFilter === code ? null : code)
+                    }
+                  />
                 </div>
               ) : null}
 
