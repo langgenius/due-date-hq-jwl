@@ -613,6 +613,7 @@ export function RulesLibraryRoute() {
     () => countSourcesByHealth(sourcesQuery.data ?? []),
     [sourcesQuery.data],
   )
+  const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
 
   // Stats line.
   const totalRules = rules.length
@@ -984,6 +985,7 @@ export function RulesLibraryRoute() {
           totalGaps={totalGaps}
           sourcesHealthy={sourceCounts.healthy}
           sourcesPaused={sourceCounts.paused}
+          loading={statsLoading}
           entityStats={entityStats}
           activeEntity={activeEntity}
           onSelectEntity={(entity) => void setEntityFilter(entity)}
@@ -1112,6 +1114,7 @@ function StatsBar({
   totalGaps,
   sourcesHealthy,
   sourcesPaused,
+  loading,
   entityStats,
   activeEntity,
   onSelectEntity,
@@ -1125,6 +1128,7 @@ function StatsBar({
   totalGaps: number
   sourcesHealthy: number
   sourcesPaused: number
+  loading: boolean
   entityStats: Array<{ entity: EntityKey; count: number; gapCount: number; reviewCount: number }>
   activeEntity: EntityKey | null
   onSelectEntity: (entity: EntityKey) => void
@@ -1166,8 +1170,25 @@ function StatsBar({
   // only; the full label lives in the title tooltip for hover.
   const ACTIVE_LABEL_FITS = activePct >= 18
   const REVIEW_LABEL_FITS = 100 - activePct >= 18
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 border-b border-divider-subtle pb-4" aria-busy="true">
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-7 w-full rounded-md" />
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <StatTileSkeleton />
+            <StatTileSkeleton />
+            <StatTileSkeleton />
+          </div>
+        </div>
+        <SearchBar search={search} onChange={onSearchChange} />
+        <EntityChipRowSkeleton />
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-4 border-b border-divider-subtle pb-4">
+    <div className="flex flex-col gap-4 border-b border-divider-subtle pb-4" aria-busy="false">
       <div className="flex flex-col gap-3">
         <div
           className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
@@ -1253,6 +1274,15 @@ function StatsBar({
         onSelect={onSelectEntity}
         onClear={onClearEntity}
       />
+    </div>
+  )
+}
+
+function StatTileSkeleton() {
+  return (
+    <div className="inline-flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+      <Skeleton className="h-3 w-14" />
+      <Skeleton className="h-6 w-12" />
     </div>
   )
 }
@@ -1436,6 +1466,19 @@ function EntityChipRow({
             </button>
           )
         })}
+      </div>
+    </div>
+  )
+}
+
+function EntityChipRowSkeleton() {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Skeleton className="h-3 w-24" />
+      <div className="flex flex-wrap items-center gap-1.5">
+        {ENTITY_KEYS.map((entity) => (
+          <Skeleton key={entity} className="h-7 w-24 rounded-full" />
+        ))}
       </div>
     </div>
   )

@@ -282,6 +282,18 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
+async function waitForButton(name: string, attempts = 100): Promise<void> {
+  if (findButton(name)) return
+  if (attempts > 0) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    })
+    return waitForButton(name, attempts - 1)
+  }
+  const buttons = Array.from(document.querySelectorAll('button')).map(readableButtonText)
+  throw new Error(`Expected button not found: ${name}; buttons=${buttons.join(', ')}`)
+}
+
 async function waitForAssertion(assertion: () => void, attempts = 100): Promise<void> {
   try {
     assertion()
@@ -316,8 +328,16 @@ function deferred<T>() {
 
 function findButton(name: string): HTMLButtonElement | undefined {
   return Array.from(document.querySelectorAll('button')).find(
-    (candidate): candidate is HTMLButtonElement => candidate.textContent?.trim() === name,
+    (candidate): candidate is HTMLButtonElement =>
+      candidate.textContent?.trim() === name || readableButtonText(candidate) === name,
   )
+}
+
+function readableButtonText(button: HTMLButtonElement): string {
+  return Array.from(button.childNodes)
+    .map((node) => node.textContent?.trim())
+    .filter((part): part is string => Boolean(part))
+    .join(' ')
 }
 
 const coverageRows: RuleCoverageRow[] = []
@@ -403,6 +423,35 @@ afterEach(() => {
 })
 
 describe('RulesLibraryRoute', () => {
+  it('does not show zeroed review metrics while the initial catalog loads', async () => {
+    const rulesRequest = deferred<ObligationRule[]>()
+    const coverageRequest = deferred<RuleCoverageRow[]>()
+    const sourcesRequest = deferred<RuleSource[]>()
+    const rule = obligationRule({
+      id: 'az.individual_income_return.candidate.2026',
+      title: 'Arizona individual income tax return',
+      jurisdiction: 'AZ',
+    })
+    rpcMocks.listRulesQueryFn.mockReturnValue(rulesRequest.promise)
+    rpcMocks.coverageQueryFn.mockReturnValue(coverageRequest.promise)
+    rpcMocks.listSourcesQueryFn.mockReturnValue(sourcesRequest.promise)
+
+    await render(<RulesLibraryRoute />)
+
+    expect(document.querySelector('[aria-busy="true"]')).toBeDefined()
+    expect(document.body.textContent).not.toContain('0 need review')
+
+    await act(async () => {
+      rulesRequest.resolve([rule])
+      coverageRequest.resolve([coverageRow({ jurisdiction: 'AZ' })])
+      sourcesRequest.resolve([ruleSource()])
+      await Promise.all([rulesRequest.promise, coverageRequest.promise, sourcesRequest.promise])
+    })
+
+    await waitForText('1 need review')
+    expect(document.querySelector('[aria-busy="true"]')).toBeNull()
+  })
+
   it('defaults to all jurisdiction groups collapsed', async () => {
     const federalRule = obligationRule({
       id: 'fed.1040.return.2026',
@@ -688,9 +737,9 @@ describe('RulesLibraryRoute', () => {
       .mockResolvedValue([activeFirstRule, secondRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForText('Start review (2)')
+    await waitForButton('Start review 2')
 
-    await clickButton('Start review (2)')
+    await clickButton('Start review 2')
     await waitForText('1 / 2')
     await waitForText(firstRule.title)
 
@@ -720,9 +769,9 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.acceptTemplateMutationFn.mockReturnValueOnce(acceptRequest.promise)
 
     await render(<RulesLibraryRoute />)
-    await waitForText('Start review (1)')
+    await waitForButton('Start review 1')
 
-    await clickButton('Start review (1)')
+    await clickButton('Start review 1')
     await waitForText(rule.title)
 
     await clickButton('Accept rule')
@@ -787,9 +836,9 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.listRulesQueryFn.mockResolvedValue([firstRule, secondRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForText('Start review (2)')
+    await waitForButton('Start review 2')
 
-    await clickButton('Start review (2)')
+    await clickButton('Start review 2')
     await waitForText('1 / 2')
 
     await clickButton('Skip')
