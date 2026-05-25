@@ -209,10 +209,9 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 │  └──────────────────────────────────────────────────────────┘        │     button-secondary
 │                                                                      │
 │  I'm coming from…  (optional)                                        │   ← {typography.label}（11/uppercase）
-│   [TaxDome]  [Drake]  [Karbon]  [QuickBooks]  [File In Time]         │   ← workflow/CRM chips
-│   Tax software exports                                               │
-│   [CCH Axcess] [CCH ProSystem fx] [Lacerte] [ProSeries]              │
-│   [UltraTax CS] [ProConnect Tax]                                     │   ← tax software chips
+│   [CCH Axcess] [CCH ProSystem fx] [Drake] [File In Time]             │
+│   [Karbon] [Lacerte] [ProConnect Tax] [ProSeries] [QuickBooks]       │
+│   [TaxDome] [UltraTax CS]                                            │   ← source chips A-Z
 │                                                                      │
 │  ─────────────────────────────────────────────────────────────       │
 │  🔒 We block SSN-like patterns before sending anything to the AI.    │   ← 永久 hint：{typography.label} + {colors.text-muted}
@@ -252,7 +251,7 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 - 解析成功后若检测到来源，展示 `Detected export source` status，并把 `sourceManifest` 随 uploadRaw 持久化，供审计 / 后续分析使用。
 - 超 1000 行前端**只**读取前 1000 行 + 顶部 Banner（见线框）
 - SSN 正则 `\d{3}-\d{2}-\d{4}`；命中列强制 `IGNORE` 并将表格列头边框替换为 `{colors.severity-critical}`（Step 2 透传给 Mapper 结果行）
-- Preset chips：第一组顺序固定 **TaxDome · Drake · Karbon · QuickBooks · File In Time**（对齐 [`./10-conflict-resolutions.md#2-5-preset-含-file-in-time`](./10-conflict-resolutions.md#2-5-preset-含-file-in-time)）；第二组标题为 **Tax software exports**，顺序固定 **CCH Axcess · CCH ProSystem fx · Lacerte · ProSeries · UltraTax CS · ProConnect Tax**。
+- Preset chips：合并为单组，按展示英文名 A-Z 排序：**CCH Axcess · CCH ProSystem fx · Drake · File In Time · Karbon · Lacerte · ProConnect Tax · ProSeries · QuickBooks · TaxDome · UltraTax CS**。
 - Preset chips 下方必须说明能力顺序：AI Mapper 先运行；Preset 作为来源上下文传入 AI，
   并在 AI 不可用时作为 preset mapping fallback。用户不能被迫从 UI 猜测当前使用的是
   AI 还是 preset。
@@ -277,7 +276,6 @@ Default Matrix。等待期间不能只在底栏按钮里显示 `Working…`；Wi
 | Upload hint               | `Drop CSV / Excel / ZIP / TXT / IIF here or click to choose · max 1000 rows · 5 MB`                                             | `将 CSV / Excel / ZIP / TXT / IIF 拖到这里，或点击选择 · 最多 1000 行 · 5 MB`              | `<Trans>`                                     |
 | Upload reading            | `Reading file…`                                                                                                                 | `正在读取文件…`                                                                            | `<Trans>`                                     |
 | Preset label              | `I'm coming from…`                                                                                                              | `我正在从…迁移过来`                                                                        | `<Trans>`                                     |
-| Tax software label        | `Tax software exports`                                                                                                          | `报税软件导出`                                                                             | `<Trans>`                                     |
 | Preset helper             | `The AI mapper runs first. Selecting a preset adds source context and provides a preset mapping fallback if AI is unavailable.` | `AI mapper 会先运行。选择 preset 会增加来源上下文，并在 AI 不可用时提供 preset 映射兜底。` | `<Trans>`                                     |
 | FIT tooltip               | `Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines.`                      | `正在从 File In Time 迁移？我们会映射可用日历字段，并在生成截止日前标记缺口。`             | `<Trans>`                                     |
 | SSN banner                | `We blocked SSN-like patterns to protect your clients. Those columns won't be sent to the AI.`                                  | `为了保护客户隐私，我们拦截了疑似 SSN 的列，不会发送给 AI。`                               | `<Trans>`                                     |

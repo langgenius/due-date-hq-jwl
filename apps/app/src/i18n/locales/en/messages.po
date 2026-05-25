@@ -423,6 +423,10 @@ msgstr "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgid "{availableCount} available"
 msgstr "{availableCount} available"
 
+#: src/routes/obligations.tsx
+msgid "{checklistCount, plural, one {No client materials received yet; # item is still waiting on the client.} other {No client materials received yet; all # items are still waiting on the client.}}"
+msgstr "{checklistCount, plural, one {No client materials received yet; # item is still waiting on the client.} other {No client materials received yet; all # items are still waiting on the client.}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{clientCount, plural, one {# client} other {# clients}}"
 msgstr "{clientCount, plural, one {# client} other {# clients}}"
@@ -591,6 +595,14 @@ msgstr "{openCount} forms in motion"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open deadlines"
 msgstr "{openCount} open deadlines"
+
+#: src/routes/obligations.tsx
+msgid "{outstanding, plural, one {{receivedCount} received; # item still waiting on the client.} other {{receivedCount} received; # items still waiting on the client.}}"
+msgstr "{outstanding, plural, one {{receivedCount} received; # item still waiting on the client.} other {{receivedCount} received; # items still waiting on the client.}}"
+
+#: src/routes/obligations.tsx
+msgid "{outstanding, plural, one {Waiting on # item} other {Waiting on # items}}"
+msgstr "{outstanding, plural, one {Waiting on # item} other {Waiting on # items}}"
 
 #: src/routes/obligations.tsx
 msgid "{outstanding} items still owed"
@@ -1524,10 +1536,6 @@ msgstr "Apply tax type suggestions"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Apply to all"
 msgstr "Apply to all"
-
-#: src/routes/clients.tsx
-msgid "Archive"
-msgstr "Archive"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -4773,6 +4781,7 @@ msgid "Import from CSV…"
 msgstr "Import from CSV…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/clients.tsx
 msgid "Import history"
 msgstr "Import history"
 
@@ -4826,14 +4835,6 @@ msgstr "Imported client undone"
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
 msgstr "Importing…"
-
-#: src/routes/clients.tsx
-msgid "Imports archive"
-msgstr "Imports archive"
-
-#: src/routes/clients.tsx
-msgid "Imports archive — review past CSV migrations"
-msgstr "Imports archive — review past CSV migrations"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Improves identity matching and audit review."
@@ -6537,10 +6538,6 @@ msgstr "Obligations export"
 #: src/features/audit/audit-log-labels.ts
 msgid "Obligations exported"
 msgstr "Obligations exported"
-
-#: src/routes/obligations.tsx
-msgid "Of {checklistCount} total, {outstanding} are still owed by the client."
-msgstr "Of {checklistCount} total, {outstanding} are still owed by the client."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -10916,10 +10913,6 @@ msgstr "WA subtotal minus credits"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "Waiting"
-
-#: src/routes/obligations.tsx
-msgid "Waiting on {outstanding} items"
-msgstr "Waiting on {outstanding} items"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx

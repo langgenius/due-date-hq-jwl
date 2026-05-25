@@ -1521,6 +1521,7 @@ function ClientsActionStrip({
   const hasBanner = needsFactsCount > 0
   const hasAnyMetric =
     atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0 || needsFactsCount > 0
+  if (isLoading) return <ClientsActionStripSkeleton />
   if (!hasBanner && !hasAnyMetric && !isLoading) return null
 
   return (
@@ -1598,6 +1599,18 @@ function ClientsActionStrip({
   )
 }
 
+function ClientsActionStripSkeleton() {
+  return (
+    <div className="flex flex-col gap-2" aria-busy="true">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        <ClientsStatTileSkeleton />
+        <ClientsStatTileSkeleton />
+        <ClientsStatTileSkeleton />
+      </div>
+    </div>
+  )
+}
+
 // 2026-05-25 (Yuqi /clients #9): stat-tile primitive scoped to the
 // /clients action strip. Mirrors the rule library's StatTile shape
 // (uppercase caption label, big tabular number, optional subline)
@@ -1658,13 +1671,49 @@ function ClientsStatTile({
   )
 }
 
-function ClientTableSkeleton() {
+function ClientsStatTileSkeleton() {
   return (
-    <div className="grid gap-2">
-      {[0, 1, 2, 3, 4].map((item) => (
-        <Skeleton key={item} className="h-12 w-full" />
-      ))}
+    <div className="inline-flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-6 w-8" />
     </div>
+  )
+}
+
+function ClientTableSkeleton() {
+  const columns = [
+    { id: 'client', className: 'w-[240px]', header: 'w-14', cell: 'w-32' },
+    { id: 'states', className: 'w-[220px]', header: 'w-14', cell: 'w-24' },
+    { id: 'entity', className: 'w-[110px]', header: 'w-12', cell: 'w-14' },
+    { id: 'nextDue', className: 'w-[200px]', header: 'w-16', cell: 'w-28' },
+    { id: 'open', className: 'w-[80px] text-right', header: 'ml-auto w-10', cell: 'ml-auto w-4' },
+    { id: 'done', className: 'w-[80px] text-right', header: 'ml-auto w-10', cell: 'ml-auto w-4' },
+    { id: 'owner', className: 'w-[80px]', header: 'w-12', cell: 'w-6 rounded-full' },
+    { id: 'opp', className: 'w-[80px]', header: 'w-10', cell: 'w-8' },
+  ] as const
+  return (
+    <Table className="table-fixed" aria-busy="true">
+      <TableHeader>
+        <TableRow>
+          {columns.map((column) => (
+            <TableHead key={column.id} className={column.className}>
+              <Skeleton className={cn('h-3', column.header)} />
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+        {[0, 1, 2, 3, 4].map((row) => (
+          <TableRow key={row}>
+            {columns.map((column) => (
+              <TableCell key={column.id} className={column.className}>
+                <Skeleton className={cn('h-5', column.cell)} />
+              </TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }
 

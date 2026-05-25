@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, ArchiveIcon } from 'lucide-react'
+import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -146,6 +146,7 @@ export function ClientsRoute() {
       [pulseAlerts],
     ),
   })
+  const pulseDetailsLoading = pulseDetailsQueries.some((query) => query.isLoading)
   const pulseDetails = pulseDetailsQueries
     .map((query) => query.data)
     .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail))
@@ -184,6 +185,12 @@ export function ClientsRoute() {
     () => filterClients(clients, filters, { affectedClientIds }),
     [affectedClientIds, clients, filters],
   )
+  const clientWorkspaceLoading =
+    clientsQuery.isLoading ||
+    obligationsListQuery.isLoading ||
+    opportunitiesQuery.isLoading ||
+    pulseHistoryQuery.isLoading ||
+    pulseDetailsLoading
 
   // 2026-05-24 (useEffect audit): cycle-list write moved into the
   // row-click handler inside ClientFactsWorkspace. That writes
@@ -316,22 +323,19 @@ export function ClientsRoute() {
         }
         actions={
           <>
-            {/* 2026-05-25 (Yuqi /clients #2): button changes to show the
-                "Archive" verb explicitly — was icon-only with a tooltip
-                that hid the action name. The drawer behind it is the
-                imports archive (CSV migration history); a labeled button
-                makes the destination discoverable without hovering, and
-                matches GitHub's "labeled secondary action" rhythm we're
-                aligning on across the app's table-bearing routes. */}
+            {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
+                import history, not client archival. Keep the visible label
+                aligned with the drawer title so "Archive" does not read as
+                a destructive client action. */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleImportHistoryOpenChange(true)}
-              aria-label={t`Imports archive`}
-              title={t`Imports archive — review past CSV migrations`}
+              aria-label={t`Import history`}
+              title={t`Import history`}
             >
-              <ArchiveIcon data-icon="inline-start" />
-              <Trans>Archive</Trans>
+              <HistoryIcon data-icon="inline-start" />
+              <Trans>Import history</Trans>
             </Button>
             <ClientsCreateSplitButton
               entityLabels={entityLabels}
@@ -370,7 +374,7 @@ export function ClientsRoute() {
         filteredClients={filteredClients}
         factsModel={factsModel}
         entityLabels={entityLabels}
-        isLoading={clientsQuery.isLoading}
+        isLoading={clientWorkspaceLoading}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}

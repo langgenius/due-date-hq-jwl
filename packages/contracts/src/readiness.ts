@@ -186,13 +186,13 @@ export type ReadinessRevokeRequestOutput = z.infer<typeof ReadinessRevokeRequest
 export const ReadinessPublicPortalItemSchema = ReadinessChecklistItemSchema.extend({
   responseStatus: ReadinessResponseStatusSchema.nullable(),
   note: z.string().nullable(),
-  etaDate: z.iso.date().nullable(),
 })
 export type ReadinessPublicPortalItem = z.infer<typeof ReadinessPublicPortalItemSchema>
 
 export const ReadinessPublicPortalSchema = z.object({
   requestId: EntityIdSchema,
   firmName: z.string().min(1),
+  senderName: z.string().min(1),
   clientName: z.string().min(1),
   taxType: z.string().min(1),
   currentDueDate: z.iso.date(),
@@ -208,7 +208,6 @@ export const ReadinessPublicSubmitInputSchema = z.object({
       itemId: z.string().min(1),
       status: ReadinessResponseStatusSchema,
       note: z.string().trim().max(1000).optional(),
-      etaDate: z.iso.date().optional(),
     }),
   ),
 })

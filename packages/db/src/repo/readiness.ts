@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import type { ObligationReadiness } from '@duedatehq/ports/shared'
 import type { Db } from '../client'
+import { user } from '../schema/auth'
 import { client } from '../schema/clients'
 import { firmProfile } from '../schema/firm'
 import { obligationInstance } from '../schema/obligations'
@@ -102,6 +103,7 @@ export interface ReadinessPortalRequestRow {
   request: ClientReadinessRequest
   clientName: string
   firmName: string
+  senderName: string
   taxType: string
   currentDueDate: Date
   responses: ClientReadinessResponse[]
@@ -234,11 +236,13 @@ export function makeReadinessPortalRepo(db: Db) {
           request: clientReadinessRequest,
           clientName: client.name,
           firmName: firmProfile.name,
+          senderName: user.name,
           taxType: obligationInstance.taxType,
           currentDueDate: obligationInstance.currentDueDate,
         })
         .from(clientReadinessRequest)
         .innerJoin(client, eq(clientReadinessRequest.clientId, client.id))
+        .innerJoin(user, eq(clientReadinessRequest.createdByUserId, user.id))
         .innerJoin(firmProfile, eq(clientReadinessRequest.firmId, firmProfile.id))
         .innerJoin(
           obligationInstance,

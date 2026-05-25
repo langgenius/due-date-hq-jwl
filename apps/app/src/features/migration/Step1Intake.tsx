@@ -53,7 +53,10 @@ const PRESET_LABELS: Record<PresetId, string> = {
   proconnect_tax: 'ProConnect Tax',
 }
 
-const SOURCE_PRESET_IDS: ReadonlyArray<PresetId> = [...PRESET_IDS, ...TAX_SOFTWARE_PRESET_IDS]
+export const SOURCE_PRESET_IDS: ReadonlyArray<PresetId> = [
+  ...PRESET_IDS,
+  ...TAX_SOFTWARE_PRESET_IDS,
+].toSorted((left, right) => PRESET_LABELS[left].localeCompare(PRESET_LABELS[right], 'en-US'))
 
 const PRESET_LOGOS: Record<
   PresetId,

@@ -17,6 +17,19 @@ function toIsoDate(value: Date): string {
   return value.toISOString().slice(0, 10)
 }
 
+export function clientVisibleFirmName(value: string): string {
+  const trimmed = value.trim().replace(/\s+/g, ' ')
+  if (/^(?:solo|pro|team|firm)\s+plan\s+demo\s+cpa$/i.test(trimmed)) {
+    return 'Mock Practice CPA'
+  }
+  return trimmed || 'CPA Practice'
+}
+
+export function clientVisibleSenderName(value: string): string {
+  const trimmed = value.trim().replace(/\s+/g, ' ')
+  return trimmed || 'CPA'
+}
+
 async function requestIpHash(
   secret: string,
   value: string | undefined,
@@ -44,7 +57,8 @@ function toPortal(row: ReadinessPortalRequestRow): ReadinessPublicPortal {
   const responseByItem = new Map(row.responses.map((response) => [response.itemId, response]))
   return ReadinessPublicPortalSchema.parse({
     requestId: row.request.id,
-    firmName: row.firmName,
+    firmName: clientVisibleFirmName(row.firmName),
+    senderName: clientVisibleSenderName(row.senderName),
     clientName: row.clientName,
     taxType: row.taxType,
     currentDueDate: toIsoDate(row.currentDueDate),
@@ -55,7 +69,6 @@ function toPortal(row: ReadinessPortalRequestRow): ReadinessPublicPortal {
       return Object.assign({}, item, {
         responseStatus: response?.status ?? null,
         note: response?.note ?? null,
-        etaDate: response?.etaDate ? toIsoDate(response.etaDate) : null,
       })
     }),
   })
@@ -134,7 +147,6 @@ export const readinessRoute = new Hono<{
         itemId: response.itemId,
         status: response.status,
         note: response.note?.trim() || null,
-        etaDate: response.etaDate ? new Date(`${response.etaDate}T00:00:00.000Z`) : null,
       })),
     })
     await repo.readiness.syncDocumentChecklistFromResponses({

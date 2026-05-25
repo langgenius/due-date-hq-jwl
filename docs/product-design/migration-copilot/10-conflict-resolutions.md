@@ -39,7 +39,7 @@
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1A.md` §4.1 P0-2（"5 个 Preset Profiles"）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part1B.md` §6A.4 Preset Profiles（File In Time 行 + "最完整 one-shot 迁移（彩蛋对标竞品）"）
   - `docs/PRD/DueDateHQ-PRD-v2.0-Part2B.md` §17 交付物清单（"5 套 Preset Sample CSV"）
-- **裁定**：Demo Sprint 与 Phase 0 MVP 一致——**5 Preset = TaxDome · Drake · Karbon · QuickBooks · File In Time**，后者渲染顺序固定为第 5 位；`./02-ux-4step-wizard.md` Step 1 的 Preset 选择组件对 File In Time 附一行 tip："Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
+- **裁定**：Demo Sprint 与 Phase 0 MVP 一致——**5 Preset** 继续包含 TaxDome、Drake、Karbon、QuickBooks、File In Time；扩展税务软件模板后，`./02-ux-4step-wizard.md` Step 1 的来源芯片合并为单组并按展示英文名 A-Z 排序。File In Time 仍保留 tip："Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 - **理由**：File In Time 是本产品最直接的 1:1 替换目标（PRD Part1A §1.1 竞品坐标），Demo 现场的叙事杀伤力主要来自"你正在从 FIT 迁过来 → 我们 30 分钟做完一年"。遗漏 FIT 会让 Demo 叙事和竞争定位同时失焦。
 - **工程落地影响**：`./02-ux-4step-wizard.md#step-1-intake` Preset 区 5 项 + FIT 彩蛋 tip；`./06-fixtures/README.md` 提供 5 份 sample CSV；`./04-ai-prompts.md` Field Mapper 的 preset prior 列表 5 项。
 

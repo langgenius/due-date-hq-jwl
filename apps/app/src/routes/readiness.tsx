@@ -31,7 +31,6 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
-import { IsoDatePicker } from '@/components/primitives/iso-date-picker'
 import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 
@@ -39,7 +38,6 @@ interface ResponseDraft {
   itemId: string
   status: ReadinessResponseStatus
   note: string
-  etaDate: string
 }
 
 async function fetchReadinessPortal(token: string): Promise<ReadinessPublicPortal> {
@@ -68,8 +66,13 @@ function initialDraft(data: ReadinessPublicPortal): ResponseDraft[] {
     itemId: item.id,
     status: item.responseStatus ?? 'ready',
     note: item.note ?? '',
-    etaDate: item.etaDate ?? '',
   }))
+}
+
+function ReadinessStatusLabel({ status }: { status: ReadinessResponseStatus }) {
+  if (status === 'not_yet') return <Trans>Not yet</Trans>
+  if (status === 'need_help') return <Trans>Need help</Trans>
+  return <Trans>Ready</Trans>
 }
 
 export function ReadinessPortalRoute() {
@@ -119,7 +122,6 @@ export function ReadinessPortalRoute() {
           itemId: response.itemId,
           status: response.status,
           ...(response.note.trim() ? { note: response.note.trim() } : {}),
-          ...(response.etaDate ? { etaDate: response.etaDate } : {}),
         })),
       },
     })
@@ -137,7 +139,7 @@ export function ReadinessPortalRoute() {
           </h1>
           {portal ? (
             <p className="text-sm text-text-secondary">
-              {portal.firmName} · {formatTaxCode(portal.taxType)} ·{' '}
+              {portal.firmName} · {portal.senderName} · {formatTaxCode(portal.taxType)} ·{' '}
               {formatDate(portal.currentDueDate)}
             </p>
           ) : null}
@@ -194,7 +196,9 @@ export function ReadinessPortalRoute() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue>
+                          <ReadinessStatusLabel status={response?.status ?? 'ready'} />
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="ready">
@@ -208,11 +212,6 @@ export function ReadinessPortalRoute() {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <IsoDatePicker
-                      ariaLabel={t`ETA`}
-                      value={response?.etaDate ?? ''}
-                      onValueChange={(etaDate) => updateResponse(item.id, { etaDate })}
-                    />
                     <Textarea
                       aria-label={t`Note`}
                       placeholder={t`Optional note`}

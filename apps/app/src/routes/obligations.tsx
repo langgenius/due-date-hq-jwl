@@ -5,8 +5,10 @@ import {
   useRef,
   useState,
   type HTMLAttributes,
+  type MouseEvent,
   type ReactNode,
 } from 'react'
+import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   flexRender,
@@ -88,7 +90,7 @@ import {
   type ReadinessDocumentChecklistItemPublic,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
-import { Button } from '@duedatehq/ui/components/ui/button'
+import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
@@ -257,6 +259,55 @@ const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
 const DAYS_FILTER_MIN = -3650
 const DAYS_FILTER_MAX = 3650
 const THIS_WEEK_MAX_DAYS = 7
+
+async function copyTextToClipboard(value: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(value)
+    return
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.top = '0'
+    textarea.style.left = '0'
+    textarea.style.opacity = '0'
+    textarea.style.pointerEvents = 'none'
+    document.body.append(textarea)
+    textarea.focus()
+    textarea.select()
+    try {
+      if (!document.execCommand('copy')) throw new Error('Clipboard fallback failed.')
+    } finally {
+      textarea.remove()
+    }
+  }
+}
+
+function openExternalUrl(value: string): void {
+  const opened = window.open(value, '_blank')
+  if (opened) {
+    opened.opener = null
+    opened.focus()
+    return
+  }
+  window.location.assign(value)
+}
+
+function openExternalUrlFromAnchorClick(event: MouseEvent<HTMLAnchorElement>, value: string): void {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey
+  ) {
+    return
+  }
+  event.preventDefault()
+  openExternalUrl(value)
+}
 
 export function isInternalExtensionTargetDateValid(value: string, filingDueDate: string): boolean {
   if (value === '') return true
@@ -4231,10 +4282,21 @@ export function ObligationQueueDetailDrawer({
     deleteChecklistItemMutation.mutate({ itemId })
   }
 
-  function copyLatestLink() {
-    if (!latestRequest?.portalUrl) return
-    void navigator.clipboard.writeText(latestRequest.portalUrl)
-    toast.success(t`Portal link copied`)
+  async function copyLatestLink() {
+    const portalUrl = latestRequest?.portalUrl
+    if (!portalUrl) return
+    try {
+      await copyTextToClipboard(portalUrl)
+      toast.success(t`Portal link copied`)
+    } catch {
+      toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
+    }
+  }
+
+  function openLatestLink() {
+    const portalUrl = latestRequest?.portalUrl
+    if (!portalUrl) return
+    openExternalUrl(portalUrl)
   }
 
   function saveTaxYearProfile() {
@@ -4554,12 +4616,13 @@ export function ObligationQueueDetailDrawer({
                 the snapshot block above instead of the top of the tab
                 content below. */}
             {/* 2026-05-25 (Yuqi Deadlines #9, #12, #16): wrapper
-                top padding (pt-1) dropped — Yuqi flagged "上面的
-                padding 去掉" / "上面是一点空的，去掉". The tablist
-                now sits flush against the sticky snapshot block
-                above with consistent padding on both edges of its
-                own container. */}
-            <div>
+                top padding was dropped after Yuqi flagged extra empty
+                space. 2026-05-25 (client detail side panel): add a
+                panel-only gap back under the sticky date strip so the
+                selected tab/focus ring does not visually tuck under
+                the date cards while the tab group still belongs to
+                the content below. */}
+            <div className={cn('relative z-0', mode === 'panel' && 'pt-3')}>
               <TabsList className="flex h-10 text-sm">
                 {/* Summary tab (2026-05-25 Yuqi Deadlines #30):
                     default-first tab for filing / payment / deposit /
@@ -4876,17 +4939,11 @@ export function ObligationQueueDetailDrawer({
                     <div className="ml-auto flex items-center gap-1.5">
                       {latestRequest.portalUrl ? (
                         <>
-                          <Button size="sm" variant="ghost" onClick={copyLatestLink}>
+                          <Button size="sm" variant="ghost" onClick={() => void copyLatestLink()}>
                             <CopyIcon data-icon="inline-start" />
                             <Trans>Copy link</Trans>
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            render={
-                              <a href={latestRequest.portalUrl} target="_blank" rel="noreferrer" />
-                            }
-                          >
+                          <Button size="sm" variant="ghost" onClick={openLatestLink}>
                             <ExternalLinkIcon data-icon="inline-start" />
                             <Trans>Open portal</Trans>
                           </Button>
@@ -5322,7 +5379,7 @@ export function ObligationQueueDetailDrawer({
                   window.location.origin,
                 )
                 try {
-                  await navigator.clipboard.writeText(url.toString())
+                  await copyTextToClipboard(url.toString())
                   toast.success(t`Link copied`)
                 } catch {
                   toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
@@ -5330,7 +5387,7 @@ export function ObligationQueueDetailDrawer({
               }}
             >
               <LinkIcon data-icon="inline-start" />
-              <Trans>Copy link</Trans>
+              <Trans>Copy link to this obligation</Trans>
             </Button>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <Trans>Close</Trans>
@@ -5817,6 +5874,7 @@ function EvidenceInlineItem({
   const penaltyRows = item.sourceType === 'penalty_override' ? penaltyInputEvidenceRows(item) : null
   const extensionDecision =
     item.sourceType === 'extension_decision' ? readExtensionDecisionEvidence(item) : null
+  const sourceUrl = item.sourceUrl
 
   return (
     <div className="rounded-lg border border-divider-regular p-3">
@@ -5852,16 +5910,17 @@ function EvidenceInlineItem({
       ) : item.rawValue ? (
         <p className="mt-2 break-words text-sm text-text-secondary">{item.rawValue}</p>
       ) : null}
-      {item.sourceUrl ? (
-        <Button
-          className="mt-2"
-          size="sm"
-          variant="outline"
-          render={<a href={item.sourceUrl} target="_blank" rel="noreferrer" />}
+      {sourceUrl ? (
+        <a
+          className={cn(buttonVariants({ size: 'sm', variant: 'outline' }), 'mt-2 w-fit')}
+          href={sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={(event) => openExternalUrlFromAnchorClick(event, sourceUrl)}
         >
           <LinkIcon data-icon="inline-start" />
           <Trans>Open source</Trans>
-        </Button>
+        </a>
       ) : null}
     </div>
   )
@@ -6093,7 +6152,7 @@ function ReadinessOverview({
   checklistCount: number
   receivedCount: number
 }) {
-  const { t } = useLingui()
+  const { i18n, t } = useLingui()
   const stageIdx = timelineIndexForStatus(row.status)
   const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
   const isTerminal = stageKey === 'done' || stageKey === 'completed'
@@ -6188,8 +6247,27 @@ function ReadinessOverview({
         }
       case 'waiting_on_client':
         return {
-          headline: t`Waiting on ${outstanding} items`,
-          subline: t`Of ${checklistCount} total, ${outstanding} are still owed by the client.`,
+          headline: i18n._(
+            plural(outstanding, {
+              one: 'Waiting on # item',
+              other: 'Waiting on # items',
+            }),
+          ),
+          subline:
+            receivedCount === 0
+              ? i18n._(
+                  plural(checklistCount, {
+                    one: 'No client materials received yet; # item is still waiting on the client.',
+                    other:
+                      'No client materials received yet; all # items are still waiting on the client.',
+                  }),
+                )
+              : i18n._(
+                  plural(outstanding, {
+                    one: `${receivedCount} received; # item still waiting on the client.`,
+                    other: `${receivedCount} received; # items still waiting on the client.`,
+                  }),
+                ),
         }
       case 'blocked':
         return {
@@ -6420,7 +6498,7 @@ function ChecklistItemRow({
               </button>
             }
           />
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="min-w-[11rem] whitespace-nowrap">
             {!needsReview ? (
               <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
                 <AlertTriangleIcon className="size-4" aria-hidden />

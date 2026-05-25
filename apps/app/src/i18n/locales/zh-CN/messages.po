@@ -423,6 +423,10 @@ msgstr "{activeFirmCount} / {activeFirmLimitLabel} 个 active 事务所"
 msgid "{availableCount} available"
 msgstr "{availableCount} 个可用"
 
+#: src/routes/obligations.tsx
+msgid "{checklistCount, plural, one {No client materials received yet; # item is still waiting on the client.} other {No client materials received yet; all # items are still waiting on the client.}}"
+msgstr "{checklistCount, plural, one {还没有收到客户材料；还有 # 项在等客户。} other {还没有收到客户材料；全部 # 项都还在等客户。}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{clientCount, plural, one {# client} other {# clients}}"
 msgstr "{clientCount, plural, other {# 个客户}}"
@@ -591,6 +595,14 @@ msgstr "{openCount} 张表进行中"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open deadlines"
 msgstr "{openCount} 个未完成截止日期"
+
+#: src/routes/obligations.tsx
+msgid "{outstanding, plural, one {{receivedCount} received; # item still waiting on the client.} other {{receivedCount} received; # items still waiting on the client.}}"
+msgstr "{outstanding, plural, one {{receivedCount} 项已收到；还有 # 项在等客户。} other {{receivedCount} 项已收到；还有 # 项在等客户。}}"
+
+#: src/routes/obligations.tsx
+msgid "{outstanding, plural, one {Waiting on # item} other {Waiting on # items}}"
+msgstr "{outstanding, plural, one {等待 # 项材料} other {等待 # 项材料}}"
 
 #: src/routes/obligations.tsx
 msgid "{outstanding} items still owed"
@@ -1524,10 +1536,6 @@ msgstr "应用税种建议"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Apply to all"
 msgstr "全部应用"
-
-#: src/routes/clients.tsx
-msgid "Archive"
-msgstr ""
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -4773,6 +4781,7 @@ msgid "Import from CSV…"
 msgstr "从 CSV 导入…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/clients.tsx
 msgid "Import history"
 msgstr "导入历史"
 
@@ -4826,14 +4835,6 @@ msgstr "已撤销导入的客户"
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
 msgstr "正在导入…"
-
-#: src/routes/clients.tsx
-msgid "Imports archive"
-msgstr ""
-
-#: src/routes/clients.tsx
-msgid "Imports archive — review past CSV migrations"
-msgstr ""
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Improves identity matching and audit review."
@@ -6537,10 +6538,6 @@ msgstr "义务导出"
 #: src/features/audit/audit-log-labels.ts
 msgid "Obligations exported"
 msgstr "义务已导出"
-
-#: src/routes/obligations.tsx
-msgid "Of {checklistCount} total, {outstanding} are still owed by the client."
-msgstr "总共 {checklistCount} 项中，客户仍欠 {outstanding} 项。"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -10916,10 +10913,6 @@ msgstr "WA 扣除抵免后的小计"
 #: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "等待中"
-
-#: src/routes/obligations.tsx
-msgid "Waiting on {outstanding} items"
-msgstr "等待 {outstanding} 项材料"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx

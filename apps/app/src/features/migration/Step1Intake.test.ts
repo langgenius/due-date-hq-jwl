@@ -1,8 +1,26 @@
 import { describe, expect, it } from 'vitest'
 import { strToU8, zipSync } from 'fflate'
 
-import { normalizePastedRowsText } from './Step1Intake'
+import { normalizePastedRowsText, SOURCE_PRESET_IDS } from './Step1Intake'
 import { prepareUploadFile, unsupportedUploadForFileName } from './intake-files'
+
+describe('source preset chips', () => {
+  it('lists provider chips alphabetically by displayed label', () => {
+    expect(SOURCE_PRESET_IDS).toEqual([
+      'cch_axcess',
+      'cch_prosystem_fx',
+      'drake',
+      'file_in_time',
+      'karbon',
+      'lacerte',
+      'proconnect_tax',
+      'proseries',
+      'quickbooks',
+      'taxdome',
+      'ultratax_cs',
+    ])
+  })
+})
 
 describe('client rows paste normalization', () => {
   it('turns copied JSON client rows into tabular rows', () => {
