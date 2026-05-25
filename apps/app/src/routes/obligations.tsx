@@ -2119,9 +2119,14 @@ export function ObligationQueueRoute() {
     // when it closes, the column expands to full width — both states
     // share the same height-constrained / overflow-y-auto scroll
     // model.
+    // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
+    // padding md:p-6 → md:p-5. Deadlines is the densest table
+    // surface in the app — every extra row of breathing room is one
+    // less row of work visible. Tighter outer rhythm reclaims room
+    // for the table itself.
     <div
       className={cn(
-        'flex flex-col gap-6 p-4 md:p-6',
+        'flex flex-col gap-4 p-3 md:p-5',
         'xl:h-[calc(100vh-1rem)] xl:overflow-hidden xl:pb-2',
       )}
     >
@@ -2568,7 +2573,13 @@ export function ObligationQueueRoute() {
                   within-group rows below welds same-client rows into
                   one visual block — group boundary lines stay so the
                   eye can find them. */}
-                <TableBody className="[&_td]:py-2.5 [&_td]:text-sm">
+                {/* 2026-05-25 (GitHub-density pass): row vertical
+                    padding py-2.5 → py-2. Each row reclaims ~4px,
+                    so over 17 rows the page shows ~70px more
+                    content per viewport. text-sm + py-2 still keeps
+                    enough vertical room to read multi-line client
+                    names with the existing line-clamp-2. */}
+                <TableBody className="[&_td]:py-2 [&_td]:text-sm">
                   {tableRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={visibleColumnCount} className="py-8">
