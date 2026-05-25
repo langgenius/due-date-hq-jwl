@@ -1,4 +1,4 @@
-import { AlertCircleIcon, FileSearchIcon } from 'lucide-react'
+import { AlertCircleIcon, UploadIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -130,9 +130,24 @@ export function DashboardRoute() {
     // precise, tight" density — section anchors stay legible at
     // scan distance without claiming a whole top-row of vertical
     // real estate.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 p-4 md:p-6">
+    // 2026-05-25 (Yuqi page-title pass): outer container padding
+    // bumped top to pt-6 md:pt-8 (was uniform p-4 md:p-6) so the
+    // h1 has more breathing room from the top edge of the work
+    // surface. Other sides unchanged. Same standard now applied
+    // to /clients, /deadlines, /audit (see route files); the
+    // narrower pages /settings, /practice, /billing already use
+    // py-6 which reads correctly at their tighter width.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <h1 className="text-xl font-semibold leading-tight tracking-[-0.01em] text-text-primary">
+        {/* 2026-05-25 (Yuqi page-title pass): "Today" h1 was text-xl
+            (20px) — the only page in the app at this size. Every
+            other page uses text-2xl (24px) via the canonical
+            PageHeader. The page-header.tsx JSDoc claimed Today
+            was "intentionally larger" but the implementation was
+            actually smaller. Aligned to the same text-2xl
+            leading-7 font-semibold treatment so Today reads as
+            part of the same page-title system. */}
+        <h1 className="text-2xl font-semibold leading-7 text-text-primary">
           <Trans>Today</Trans>{' '}
           <span className="font-normal text-text-tertiary">
             {dashboardQuery.isLoading || !data?.asOfDate ? null : formatTodayHeader(data.asOfDate)}
@@ -140,8 +155,12 @@ export function DashboardRoute() {
         </h1>
         <div className="flex flex-wrap items-center gap-2">
           <CreateObligationDialog />
+          {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
+              The button's job is "upload my client list", not
+              "browse for files" — the upload metaphor matches the
+              CTA verb. */}
           <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
-            <FileSearchIcon data-icon="inline-start" />
+            <UploadIcon data-icon="inline-start" />
             <Trans>Import clients</Trans>
           </Button>
         </div>

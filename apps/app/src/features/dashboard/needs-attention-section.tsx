@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowUpRightIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -54,9 +53,15 @@ function NeedsAttentionSection() {
     // information block rather than a generous tile. The tinted
     // bg still anchors the section visually without claiming a
     // large vertical share of the page.
+    // 2026-05-25 (Yuqi Today #11): section tint stepped slightly
+    // darker and the border dropped. The previous treatment
+    // (`bg-state-destructive-hover/15` + soft border) sat too
+    // close to the page bg to anchor the section. The new bg
+    // (`/25`) reads as a clearly-tinted block without claiming
+    // it's an alert in its own right.
     <section
       aria-label={t`Alerts`}
-      className="flex flex-col gap-2.5 rounded-xl border border-components-badge-bg-warning-soft bg-state-destructive-hover/15 p-3"
+      className="flex flex-col gap-2.5 rounded-xl bg-state-destructive-hover/25 p-3"
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
           LEFT-aligned with "View all alerts" justify-between on the
@@ -89,16 +94,18 @@ function NeedsAttentionSection() {
             prominent. Now text-xs text-muted (hover → tertiary)
             and the icon shrinks to size-3 so the affordance reads
             as quiet meta-text, not a sibling action to the h2.
-            Click target preserved by the `inline-flex` block. */}
+            Click target preserved by the `inline-flex` block.
+            2026-05-25 (Yuqi Today #3): trailing ArrowUpRight icon
+            dropped — the rotation flourish on hover was novelty
+            chrome that drew the eye to a navigation hint. Plain
+            text "View all alerts" is enough. Same removal applied
+            to the parallel "All deadlines" link in
+            features/dashboard/actions-list.tsx. */}
         <Link
           to="/rules/pulse"
-          className="group/all inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
+          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
         >
           <Trans>View all alerts</Trans>
-          <ArrowUpRightIcon
-            className="size-3 transition-transform duration-200 group-hover/all:rotate-45"
-            aria-hidden
-          />
         </Link>
       </div>
 

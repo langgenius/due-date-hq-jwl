@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Astroid, Atom, ChevronRightIcon, Plus } from 'lucide-react'
+import { Atom, ChevronRightIcon, Plus } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
 
@@ -113,18 +114,14 @@ function NeedsAttentionCard({
           <span className="text-sm text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {lowConfidence ? (
-            // 2026-05-25 (Yuqi Today follow-up): confidence chip icon
-            // swapped from AlertTriangle → Astroid. The triangle read
-            // as "warning, something's wrong"; the Astroid reads as
-            // "AI / cosmic uncertainty" — matches the Atom mark above
-            // (same astro family) and doesn't pretend that low
-            // confidence is an error state.
-            <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning">
-              <Astroid className="size-3" aria-hidden />
-              <Trans>Low confidence</Trans>
-            </span>
-          ) : null}
+          {/* 2026-05-25 (Yuqi Today #2): promoted to a shared
+              <LowConfidenceBadge> primitive in
+              components/primitives/low-confidence-badge.tsx so the
+              same visual can replace other ad-hoc low-confidence
+              treatments across the product (Pulse drawer,
+              wizard normalisation rows, etc). Same shape, same
+              tone — single source of truth. */}
+          {lowConfidence ? <LowConfidenceBadge /> : null}
           {/* Chevron telegraphs "click opens" — translates further on
               hover (1px → 4px) so the click affordance feels real
               instead of static chrome. */}
@@ -146,7 +143,15 @@ function NeedsAttentionCard({
           section h2 above. min-height bumped from min-h-10 →
           min-h-8 so two short lines still anchor the cards at
           equal heights. */}
-      <p className="line-clamp-2 min-h-8 text-sm leading-snug text-text-primary">{alert.title}</p>
+      {/* 2026-05-25 (Yuqi Today #1): explicit font-normal — the
+          title was reading as font-medium on hover. No CSS rule
+          actually changes the weight, but the subpixel-anti-
+          aliasing shift on the bg change made the text look
+          slightly heavier. Locking the weight explicitly so it
+          stays at 400 in both rest and hover states. */}
+      <p className="line-clamp-2 min-h-8 text-sm font-normal leading-snug text-text-primary">
+        {alert.title}
+      </p>
 
       {/* 2026-05-25 (Yuqi Today #3 — second pass): body text scale
           dropped across the card body — "client may be affected"

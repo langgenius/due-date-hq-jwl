@@ -237,14 +237,23 @@ function ActionRow({
             `text-sm font-medium` so it stays the row's anchor
             without competing with the section h2. Prompt drops
             text-base → text-sm in lockstep so the heading row
-            balances. */}
-        <span className="shrink-0 truncate text-sm font-medium text-text-primary">
+            balances.
+            2026-05-25 (Yuqi Today #7 + #8): swapped the weight
+            assignment. The prompt ("Review the prepared return
+            and sign off") is the action the CPA needs to take —
+            it deserves the row's emphasis. The client name is
+            context, not the action; demoted to regular weight.
+            So: prompt becomes font-medium, client name becomes
+            font-normal. */}
+        <span className="shrink-0 truncate text-sm font-normal text-text-primary">
           {row.clientName}
         </span>
         <span aria-hidden className="text-text-tertiary">
           ·
         </span>
-        <span className="min-w-0 flex-1 truncate text-sm text-text-secondary">{prompt}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+          {prompt}
+        </span>
         {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
           to render unconditionally with `opacity-0` when collapsed —
           which kept the button taking ~100px of flex space, squeezing
@@ -332,7 +341,17 @@ function ActionRow({
             // subordinate to the row that opened it.
             className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
-            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-2">
+            {/* 2026-05-25 (Yuqi Today intro): each row of the dl
+                pinned to the same min-height so the dt/dd gaps
+                read as a consistent rhythm. Previously the Status
+                row was taller (chip h-6 + Status text) than the
+                bare-text rows, so the gap between labels varied —
+                "Action", "Deadlines", "Status" sat at three
+                different vertical pitches. `[&>dt]` / `[&>dd]`
+                selectors apply a flex+min-h-7+items-center to
+                every direct child so each pair becomes a stable
+                28px row. */}
+            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-1 [&>dd]:flex [&>dd]:min-h-7 [&>dd]:items-center [&>dt]:flex [&>dt]:min-h-7 [&>dt]:items-center">
               {/* 2026-05-25 (Yuqi follow-up): "Action" row added as the
                   FIRST item in the expansion panel. The action prompt
                   also sits inline on the collapsed row's heading line,
@@ -356,25 +375,33 @@ function ActionRow({
                   plan the week. Internal first (it's the date the
                   CPA actually works against); official second as
                   the statutory reality. Both shown as prose
-                  ("May 6, 2026") via formatDatePretty. */}
+                  ("May 6, 2026") via formatDatePretty.
+                  2026-05-25 (Yuqi Today #10): Deadlines dd is the
+                  panel's anchor — once the user has expanded a
+                  row, they're planning around the dates. Framed
+                  the date cluster in a soft inset chip
+                  (`bg-background-default rounded-md px-2`) so the
+                  eye lands on it ahead of the other meta rows. */}
               <dt className="text-text-tertiary">
                 <Trans>Deadlines</Trans>
               </dt>
-              <dd className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-text-primary tabular-nums">
-                <span>
-                  <Trans>
-                    Internal{' '}
-                    <span className="font-medium">{formatDatePretty(internalDueDate)}</span>
-                  </Trans>
-                </span>
-                <span aria-hidden className="text-text-tertiary">
-                  ·
-                </span>
-                <span>
-                  <Trans>
-                    Official{' '}
-                    <span className="font-medium">{formatDatePretty(row.currentDueDate)}</span>
-                  </Trans>
+              <dd className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-text-primary tabular-nums">
+                <span className="inline-flex items-center gap-2 rounded-md border border-divider-subtle bg-background-default px-2 py-0.5">
+                  <span>
+                    <Trans>
+                      Internal{' '}
+                      <span className="font-medium">{formatDatePretty(internalDueDate)}</span>
+                    </Trans>
+                  </span>
+                  <span aria-hidden className="text-text-tertiary">
+                    ·
+                  </span>
+                  <span>
+                    <Trans>
+                      Official{' '}
+                      <span className="font-medium">{formatDatePretty(row.currentDueDate)}</span>
+                    </Trans>
+                  </span>
                 </span>
               </dd>
 
@@ -707,27 +734,23 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           <ConceptHelp concept="smartPriority" />
         </span>
       </h2>
-      {/* 2026-05-25 (Yuqi #7): icon rotates 45° on hover so the
-          up-right arrow points straight right — a tactile "follow
-          this link" cue. Same pattern as the Alerts "View all"
-          link on Today. */}
       {/* 2026-05-25 (Yuqi typography rebalance): link demoted to
           text-sm tertiary, same treatment as the Alerts "View all"
           link. "All deadlines" is a navigation hint, not a primary
-          action. */}
+          action.
+          2026-05-25 (Yuqi Today #4 + #5): ArrowUpRight icon dropped
+          (same change as the "View all alerts" link above) and
+          text scale stepped down to text-xs text-text-muted so
+          both nav-hint links read at exactly the same weight. */}
       <Link
         to="/deadlines"
         onClick={(event) => {
           event.preventDefault()
           onOpenAll()
         }}
-        className="group/all-deadlines inline-flex items-center gap-1 text-sm text-text-tertiary hover:text-text-secondary"
+        className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
       >
         <Trans>All deadlines</Trans>
-        <ArrowUpRightIcon
-          className="size-3.5 transition-transform duration-200 group-hover/all-deadlines:rotate-45"
-          aria-hidden
-        />
       </Link>
     </div>
   )
