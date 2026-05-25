@@ -55,7 +55,7 @@ function BlockedByChip({
         }}
         title={title}
         aria-label={title}
-        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-destructive hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle text-text-tertiary hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <LinkIcon className="size-3" aria-hidden />
       </button>
@@ -80,7 +80,15 @@ function BlockedByChip({
       title={title}
       className="inline-flex max-w-[220px] items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      <LinkIcon className="size-3.5 shrink-0 text-text-destructive" aria-hidden />
+      {/* 2026-05-26 (Yuqi sixty-fifth pass follow-up #3): icon tone
+          neutralized from text-destructive → text-text-tertiary.
+          The red icon next to the chip label was reading as "this
+          is a destructive action" — but the chip is a navigation
+          handle ("by Lakeview Medical Partners · Form 1065"), not a
+          danger affordance. The Status pill in the same row already
+          carries the "Blocked" tone signal; the link icon just needs
+          to be visible. */}
+      <LinkIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
       <span className="truncate">
         <Trans>by {label}</Trans>
       </span>
