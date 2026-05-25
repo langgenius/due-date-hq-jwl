@@ -3,7 +3,6 @@ import { CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
 
 import type { DryRunSummary } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
@@ -72,11 +71,13 @@ export function Step4Preview({ summary }: Step4Props) {
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
           </li>
+          {/* 2026-05-25 (info-icon audit): unwrapped — the
+              bullet text already paraphrases the concept;
+              audit-trail detail belongs on the audit page,
+              not in a passing safety bullet. */}
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
-            <ConceptLabel concept="auditTrail">
-              <Trans>Audit log captures every AI decision</Trans>
-            </ConceptLabel>
+            <Trans>Audit log captures every AI decision</Trans>
           </li>
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />

@@ -602,10 +602,12 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             {detail.alert.actionMode === 'due_date_overlay' ? (
               <section className="flex flex-col gap-3">
                 <header className="flex items-baseline justify-between">
+                  {/* 2026-05-25 (info-icon audit): unwrapped —
+                      re-defining "Pulse" inside a Pulse drawer
+                      is noise. The list page (AlertsListPage)
+                      keeps the canonical pulse explainer. */}
                   <h3 className="text-base font-semibold text-text-primary">
-                    <ConceptLabel concept="pulse">
-                      <Trans>Affected clients</Trans>
-                    </ConceptLabel>
+                    <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
                       <span className="ml-1.5 text-text-tertiary">
                         ({detail.affectedClients.length})

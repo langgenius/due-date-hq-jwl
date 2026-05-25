@@ -376,10 +376,12 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
+            {/* 2026-05-25 (info-icon audit): unwrapped — the
+                DialogDescription below already explains the
+                evidence bundle; the popover trigger was a
+                third copy on the same surface. */}
             <DialogTitle>
-              <ConceptLabel concept="auditTrail">
-                <Trans>Audit evidence package</Trans>
-              </ConceptLabel>
+              <Trans>Audit evidence package</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>
@@ -709,10 +711,12 @@ export function AuditLogPage() {
 
       <Card>
         <CardHeader>
+          {/* 2026-05-25 (info-icon audit): unwrapped — the
+              PageHeader at L596 already carries the auditTrail
+              popover; the card heading doesn't need a third
+              copy on the same page. */}
           <CardTitle>
-            <ConceptLabel concept="auditTrail">
-              <Trans>Event stream</Trans>
-            </ConceptLabel>
+            <Trans>Event stream</Trans>
           </CardTitle>
           <CardDescription>
             <Trans>Newest practice-scoped audit events appear first.</Trans>

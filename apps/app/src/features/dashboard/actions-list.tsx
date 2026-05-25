@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon, Info } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, FileSearchIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
@@ -9,6 +9,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
@@ -670,7 +671,6 @@ function DashboardActionsList({
 }
 
 function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
-  const { t } = useLingui()
   return (
     // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
     // LEFT-aligned with the "All deadlines" link justify-between on
@@ -702,12 +702,16 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
             <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
           ) : null}
         </span>
-        <span
-          className="inline-flex items-center gap-1 text-caption font-normal text-text-tertiary"
-          title={t`Sorted by Smart Priority — urgency × penalty × dependency. Open a row to see its factors.`}
-        >
+        {/* 2026-05-25 (info-icon audit): the bare `<span title=…>
+            <Info /></span>` non-focusable affordance becomes a
+            real ConceptHelp popover. Standardizes on the
+            canonical CircleHelpIcon + Popover treatment used
+            everywhere else in the app, and routes through the
+            typed `smartPriority` concept entry so the copy
+            lives in one place. */}
+        <span className="inline-flex items-center gap-1 text-caption font-normal text-text-tertiary">
           <Trans>· sorted by priority</Trans>
-          <Info className="size-3" aria-hidden />
+          <ConceptHelp concept="smartPriority" />
         </span>
       </h2>
       {/* 2026-05-25 (Yuqi #7): icon rotates 45° on hover so the

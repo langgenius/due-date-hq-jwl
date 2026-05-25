@@ -346,7 +346,16 @@ function MappingCapabilityHelp({
               type="button"
               aria-label={label}
               title={title}
-              className="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-destructive outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              // 2026-05-25 (info-icon audit recolor): the help
+              // icon's `text-text-destructive` belonged to the
+              // adjacent "Manual mapping" badge, not to the
+              // "click to learn what this means" affordance.
+              // Standardized to the same tertiary-tone hit
+              // area the canonical ConceptHelp uses elsewhere.
+              // The tooltip body keeps its warning tone — that's
+              // the "you should look at this" context, separate
+              // from the icon's calm affordance.
+              className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <CircleHelpIcon className="size-3.5" aria-hidden />
             </button>

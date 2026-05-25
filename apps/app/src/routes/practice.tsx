@@ -513,11 +513,15 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <div className="grid gap-5">
               <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
+                  {/* 2026-05-25 (info-icon audit): dropped the
+                      duplicate `smartPriority` popover — the
+                      CardTitle 23 lines above already carries it
+                      via ConceptLabel. One explainer per
+                      concept per screen. */}
                   <div className="flex items-center gap-1.5">
                     <Label>
                       <Trans>Factor weights</Trans>
                     </Label>
-                    <ConceptHelp concept="smartPriority" />
                   </div>
                   <span
                     className={
