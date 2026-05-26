@@ -1,8 +1,8 @@
 # DueDateHQ · DESIGN.md
 
 > 文档类型：视觉设计系统（Single Source of Truth for UI）
-> 版本：**v2.0**
-> 日期：2026-05-26（v1.0 → v2.0 升级，整合 84/85 次设计 pass 沉淀的 canonical pattern）
+> 版本：**v2.1**
+> 日期：2026-05-26（v2.0 → v2.1 修订：§2.5 同步到 primitives.css 实施现状）
 > 方向：**Ramp × Linear · Light Workbench**（浅色主导，暗色为镜像，不做方向 B 的 Bloomberg 终端风）
 > 对齐：PRD v2.0 §1.3 设计原则 + §5 核心页面规格 + §10 UI/UX 规范
 > 阅读对象：Designer / Frontend Engineer / AI coding agents（Cursor / v0 / Lovable）
@@ -202,43 +202,67 @@ drift inventory + prioritized fix punch list).
 | 紫色做主色（非 accent）         | 稀释 navy 权威感                 |
 | 绿色表示 "OK / 安全"            | 用灰色 `--severity-neutral` 代替 |
 
-### 2.5 Radius / Shadow Token（唯一合法来源）
+### 2.5 Radius / Shadow Token（实施现状 · 2026-05-26 同步）
 
-除下表以外，**所有其他圆角 / 阴影一律禁止**（包括业务组件里写 `rounded-lg` / `shadow-md` 等裸 Tailwind 类）。**唯一权威值在 `/DESIGN.md` `rounded:` / `shadows:` YAML 段**；本节仅展示工程实现镜像，禁止本节与 `/DESIGN.md` 出现数值分歧。
+**这一节描述代码实际使用的 token 集**，与 `packages/ui/src/styles/tokens/primitives.css` 保持同步。所有 radius / shadow token 直接采用 Tailwind v4 + Dify 设计体系默认值（这是 vite-plus 模板的工程约定），DESIGN.md 不再发明独立 token 名称。
 
-```css
-/* === Radius === */
---radius-sm: 0.25rem; /* 4px · Chip / Evidence / Confidence Badge / 小内联 token             */
---radius: 0.375rem; /* 6px · Button (shadcn) / Input / Card / Banner / Dropdown / Toast / Pulse Banner */
---radius-lg: 0.75rem; /* 12px · Drawer / Modal / Command Palette                                       */
-/* 禁止 > 12px（避免 Notion 式圆润感）                                               */
+#### Radius scale（Tailwind v4 默认）
 
-/* === Shadow（"禁止阴影"的三个例外） === */
---shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04); /* Drawer / Popover 层 3         */
---shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08); /* Modal / Command Palette 层 4  */
-/* 暗色模式同 rgba 不变，浏览器会自动调整感知（Cloudflare Workers SPA 不做单独 dark shadow） */
-/* 业务组件不可用 --shadow-overlay 之外的其他阴影                                    */
+```
+--radius-sm:   4px  · Chip / Evidence chip / Confidence badge / 小内联 token
+--radius-md:   6px  · 备用（项目实际未使用，所有 6px 场景由 shadcn primitives 内部消化）
+--radius-lg:   8px  · Card / Panel / Banner / Dropdown / Toast / 内嵌 Section
+--radius-xl:  12px  · Drawer / Modal / Command Palette / Stage tile / 大号卡片
+--radius-2xl: 16px  · ⚠️ 慎用，仅用于刻意"邀请触碰"的浮层（如 Search Palette 顶部容器）
+--rounded-full:    · Pill / Avatar / 单行 chip 容器 / 全圆 status indicator
 ```
 
-| Token              | 用途                                                                                                                            | 禁用场景                        |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `--radius-sm`      | chip · evidence chip · confidence badge · 小内联 token                                                                          | 按钮 / 卡片 / 容器              |
-| `--radius`         | **所有 shadcn 按钮（Primary / Secondary / Outline / Ghost / Icon）** · 输入框 · Banner · Card · Dropdown · Toast · Pulse Banner | chip / 浮层                     |
-| `--radius-lg`      | Drawer / Modal / Command Palette                                                                                                | 普通 Card（过大显得松散）       |
-| `--shadow-subtle`  | Drawer 底部、Popover、Tooltip                                                                                                   | 普通 Card（违反"禁止阴影"铁律） |
-| `--shadow-overlay` | Command Palette / 重要 Modal                                                                                                    | 其他浮层（用 subtle 即可）      |
+**禁用**：`rounded-3xl`（24px）— 在 workbench 风格里读起来太松散，迄今为止代码库中零使用。
 
-**Tailwind 4 `@theme` 映射**：
+#### Shadow scale（Dify 默认 + 本项目添加的 subtle/overlay 别名）
 
-```css
-@theme {
-  --radius-sm: 0.25rem;
-  --radius: 0.375rem;
-  --radius-lg: 0.75rem;
-  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
 ```
+--shadow-xs:      0px 1px 2px 0px rgba(16, 24, 40, 0.05)
+--shadow-sm:      0px 1px 2px 0px rgba(16, 24, 40, 0.06),
+                  0px 1px 3px 0px rgba(16, 24, 40, 0.10)   · 默认浮层 / Button hover / Card 浅举升
+--shadow-md:      0px 2px 4px -2px rgba(16, 24, 40, 0.06),
+                  0px 4px 8px -2px rgba(16, 24, 40, 0.10)
+--shadow-lg:      0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+                  0px 12px 16px -4px rgba(16, 24, 40, 0.08)
+--shadow-xl:      0px 8px 8px -4px rgba(16, 24, 40, 0.03),
+                  0px 20px 24px -4px rgba(16, 24, 40, 0.08)
+--shadow-2xl:     0px 24px 48px -12px rgba(16, 24, 40, 0.18)
+--shadow-3xl:     0px 32px 64px -12px rgba(16, 24, 40, 0.14)
+
+/* 本项目语义化别名 — 保留 backwards-compat，新代码优先用上面的 Dify 默认 scale */
+--shadow-subtle:  0 2px 8px rgba(0, 0, 0, 0.04)   · Drawer 底缘 / Popover / Tooltip
+--shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08)  · Modal / Command Palette / Floating action bar
+```
+
+#### 实际使用规约（按场景）
+
+| 场景                  | Radius                         | Shadow                              |
+| --------------------- | ------------------------------ | ----------------------------------- |
+| Chip / Evidence badge | `rounded-sm`                   | 无                                  |
+| Button (shadcn)       | `rounded-md`（primitive 内部） | hover/active 自带 `shadow-sm`       |
+| Card / Banner / Panel | `rounded-lg`                   | 无（page 上的卡片默认无 shadow）    |
+| Drawer / Modal        | `rounded-xl`                   | `shadow-overlay`（或 `shadow-2xl`） |
+| Command Palette       | `rounded-xl`                   | `shadow-overlay`                    |
+| Floating action bar   | `rounded-xl`                   | `shadow-overlay`                    |
+| Popover / Tooltip     | `rounded-lg`                   | `shadow-subtle` 或 `shadow-sm`      |
+| Pill / Avatar circle  | `rounded-full`                 | 无                                  |
+| Status pill           | `rounded-full`                 | 无                                  |
+
+#### 漂移判据
+
+下面这些用法应被视为漂移并替换：
+
+- `rounded-3xl` — 项目从未使用，不要引入。
+- `rounded-2xl` — 仅 3 处历史用法，新代码不要使用。倾向于 `rounded-xl`。
+- `shadow-3xl`、`shadow-2xl` — 不要在业务组件使用（仅 Tailwind 默认保留以备移植）。
+- 内联自定义 shadow（如 `shadow-[0_20px_48px_...]`）— 应改为 `shadow-overlay`，除非该值经过单独 design review。
+
+**变更基础（2026-05-26 v2.1）**：原版 §2.5 给出的"只允许 sm / md / lg 三档" + "只允许 subtle / overlay 两档 shadow" 是 v1.0 的早期愿景，但 `primitives.css` 实施时跟随了 vite-plus 模板的 Dify-默认 scale。本次同步把文档拉齐到实际实施面，避免下一轮 audit 把工程默认值误判为漂移。
 
 ---
 

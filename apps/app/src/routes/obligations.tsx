@@ -7232,7 +7232,7 @@ export function ObligationQueueDetailDrawer({
         // the tabs-content area scrolls underneath, so a user 30
         // docs deep in the Readiness checklist still sees what
         // row they're on.
-        className="relative flex h-full w-full flex-none min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
+        className="relative flex h-full w-full flex-none min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
       >
         {body}
       </aside>

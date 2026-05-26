@@ -70,7 +70,7 @@ export function FloatingActionBar({
       role="region"
       aria-label={ariaLabel}
       className={cn(
-        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-[0_20px_48px_-16px_rgb(0_0_0_/_0.18)] [&_button]:text-text-primary [&_button:hover:not(:disabled)]:bg-state-base-hover [&_button:disabled]:opacity-50',
+        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-overlay [&_button]:text-text-primary [&_button:hover:not(:disabled)]:bg-state-base-hover [&_button:disabled]:opacity-50',
         className,
       )}
     >
