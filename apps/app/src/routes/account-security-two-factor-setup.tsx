@@ -39,7 +39,7 @@ export function TwoFactorSetupPanel({
       <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
         <div className="grid place-items-center rounded-md border border-border-default bg-background-default p-4">
           <div
-            className="rounded-md bg-white p-3 shadow-sm"
+            className="rounded-md bg-background-surface-white p-3 shadow-sm"
             aria-label={t`Authenticator setup QR code`}
           >
             <QRCodeSVG
