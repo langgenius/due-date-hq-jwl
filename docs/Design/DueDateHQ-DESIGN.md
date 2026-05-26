@@ -1323,6 +1323,68 @@ Per-route shell shape (after `clients.$clientId.tsx` reference):
 
 `apps/app/src/components/patterns/tab-section.tsx` — canonical section header inside tab bodies. Single source of truth for `eyebrow + h2 + actions slot` rhythm. All `/clients/[id]` tab bodies use it; new tab bodies elsewhere should match.
 
+Usage example: see `/clients/[id]` Work tab in `ClientFactsWorkspace.tsx` — `<TabSection eyebrow="…" title="…" actions={…}>{children}</TabSection>`. The eyebrow slot accepts ReactNode, the title is bold h2 scale, the actions slot is the same h2-actions cluster pattern as PageHeader.
+
+### §16.18 `font-mono` carve-outs (enforcement clarification)
+
+The general rule (§3 Typography, §3.4 数字铁律) reserves `font-mono` for kbd hints. In practice the canonical recognizes a small set of legitimate technical-string contexts that also warrant mono:
+
+| Legitimate `font-mono` context   | Example sites                                                                                                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| kbd hint primitive               | `packages/ui/src/components/ui/kbd.tsx`, `ShortcutHelpDialog` kbd spans                                                                                                                      |
+| Dev-panel / debug IDs            | `audit-log-table` actorId, `generation-preview-tab` rule IDs, `rule-detail-drawer` scope strings, `sources-tab` source.id                                                                    |
+| URL / email / token inputs       | Calendar URL input, OTP email confirmation, security tokens, `TimezoneSelect` zone id                                                                                                        |
+| State codes in fixed-width grids | `state-rule-activation-selector` picker (2-letter codes in size-7 cells), `JurisdictionCode` primitive, `ClientFactsWorkspace` state badges, `CreateObligationDialog.normalizedJurisdiction` |
+| Audit log timestamps             | `EvidenceDrawerProvider` event meta, `audit-log-table` timestamp cell                                                                                                                        |
+| Migration wizard import paths    | `Step1Intake` / `Step3Normalize` / `Step4Preview` / `WizardShell` / `ImportHistoryDrawer`                                                                                                    |
+
+**Everywhere else, drop `font-mono`** and use `tabular-nums` alone if numeric alignment is the goal. Combining `font-mono` + `tabular-nums` on numeric content is redundant — `tabular-nums` already makes digits 0-9 equal-width, and the mono font shifts the overall typographic feel toward "developer dashboard."
+
+- **Don't:** `<span className="font-mono tabular-nums">{count}</span>`
+- **Do:** `<span className="tabular-nums">{count}</span>`
+
+Verification: `grep -rn "font-mono tabular-nums" apps/app/src --include='*.tsx' | grep -v opportunities` should return 0 outside the carve-outs above. 86th pass batches 6-9 (commits `d9014131`, `aa63776b`, `28fdc874`, `461a2e52`) swept 69 sites; current `font-mono` total is 104, all categorically legitimate per the table above.
+
+### §16.19 Spacing-scale enforcement
+
+§5.1 establishes the 4px-base spacing scale. **Canonical flex/grid `gap-*` values are `gap-2 / gap-3 / gap-4 / gap-6` only.**
+
+| Forbidden      | Use instead                                                           | Why                                                               |
+| -------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `gap-5` (20px) | `gap-4` (16px) for tight bodies; `gap-6` (24px) for section breathing | Sits between the tight and loose breakpoints and reads as neither |
+| `gap-7` (28px) | `gap-6`                                                               | Not on the canonical scale                                        |
+| `gap-8` (32px) | `gap-6` for page-level shells; `gap-4` for inner blocks               | Page-shell section gaps use `gap-6`; `gap-8` reads too loose      |
+
+**When to pick gap-4 vs gap-6:**
+
+- **`gap-4` (16px)** — drawer/dialog body sections, form fields, card content, tight related items
+- **`gap-6` (24px)** — page-level shell, section-to-section breathing room, distinct card-to-card spacing
+
+86th pass batch 5 (commit `f3bb3010`) swept 17 `gap-5` sites across 12 files. The sweep should remain at zero. Verification: `grep -rnE "\bgap-(5|7|8)\b" apps/app/src --include='*.tsx' | grep -v opportunities | grep -v "// "` should return 0.
+
+### §16.20 Date display canonical
+
+Two helpers in `apps/app/src/lib/utils.ts`:
+
+| Helper                                        | Returns                                        | Use for                                                                                            |
+| --------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `formatDate(value)`                           | ISO `YYYY-MM-DD`                               | Sort attributes, `data-*` props, audit-log meta, CSV exports — **machine consumption**             |
+| `formatDatePretty(value, { alwaysShowYear })` | Prose: "May 6, 2026" (or "May 6" current year) | **Any human-facing date the user reads** — drawer body, banners, key-dates panel, inline sentences |
+
+**Carve-outs that retain `formatDate` (ISO) for user-facing display:**
+
+- `/deadlines` queue row date column — high-density tabular scan beats prose
+- `PathToFilingSummary` milestone strip stamps (`text-[9px]`) — dense column needs ISO compactness
+- Audit log timestamps — precision wins over prose (canonical "audit-log meta" exception)
+- Internal computation: `startIso`, `endIso`, `today`, `daysBetween` arguments
+
+86th pass batch 3 (commit `2198f9df`) swept 14 sites in `obligations.tsx` drawer body to `formatDatePretty`. Pattern: **drawer body / banner / inline sentences → prose; dense queue/strip/audit-log → ISO.**
+
+- **Don't:** Render `iso.slice(0, 10)` directly to the UI (returns "2026-05-09" instead of "May 9, 2026").
+- **Do:** Pass through `formatDate()` (machine) or `formatDatePretty()` (human) per canonical above.
+
+`formatDateTimeWithTimezone(iso, tz)` is the canonical for timestamps that need precision (e.g. "Last updated 2026-05-01 02:27:00 PDT"). Used in drawer footer audit lines and the audit-log table; not for body content.
+
 ---
 
 _This document is a single source of truth. If in doubt, choose density over decoration, precision over friendliness._
