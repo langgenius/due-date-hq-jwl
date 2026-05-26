@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
@@ -409,22 +409,35 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            {/* 2026-05-26 (step-6 ux-flow audit F4.1/F4.2/F4.3):
+                Cancel outline → ghost; download / request buttons
+                announce aria-busy + show Loader2 spinner while
+                pending. */}
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Close</Trans>
             </Button>
             {latest?.status === 'ready' ? (
               <Button
                 onClick={() => createDownloadUrl.mutate({ id: latest.id })}
                 disabled={createDownloadUrl.isPending}
+                aria-busy={createDownloadUrl.isPending}
               >
-                <DownloadIcon data-icon="inline-start" />
+                {createDownloadUrl.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <DownloadIcon data-icon="inline-start" />
+                )}
                 <Trans>Download latest</Trans>
               </Button>
             ) : (
               <Button
                 onClick={() => requestPackage.mutate({ scope: 'firm' })}
                 disabled={requestPackage.isPending}
+                aria-busy={requestPackage.isPending}
               >
+                {requestPackage.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : null}
                 <Trans>Request export</Trans>
               </Button>
             )}

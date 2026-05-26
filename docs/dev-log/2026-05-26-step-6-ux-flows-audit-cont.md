@@ -233,3 +233,117 @@ Same i18n drift. Severity **P1**. shipped.
 **R6.3 — `features/rules/coverage-tab.tsx:1036-1079` EntityCoverageLegend uses `uppercase tracking-[0.08em]` on "Legend" eyebrow.**
 This survived the seventy-third pass which retired the "FILTER BY ENTITY" eyebrow on the chip row. Inconsistent legend treatment. Severity **P3**. Fix: tone the eyebrow to a plain `text-xs font-medium`. ⏳ deferred — different surface, may warrant the eyebrow.
 
+---
+
+## F. Seven thin-wrapper feature pages
+
+### F1 — `features/notifications/notifications-page.tsx` (168 lines)
+
+**F1.1 — No filter tabs (unread / all / by-type).**
+The audit prompt mentioned "inbox + filter tabs" but there are NONE. List uses `status: 'all'` and limit 50 — no per-type filter, no unread-only view. A power-user with 50 mixed notifications has no way to see only Pulse alerts. Severity **P2**. Fix: add a Tabs primitive at the top: "All / Unread / Pulse / Deadlines / System." ⏳ deferred — needs design call on the tab set.
+
+**F1.2 — Read vs unread visual differentiation is nonexistent.**
+`notifications-page.tsx:104-106` Every notification renders with the same `bg-background-default border-divider-subtle`. The "Mark read" button at line 149-159 is the only signal an item is unread. Severity **P1**. Fix: add a left bar/dot or a subtle bg-state-accent-tint when `!item.readAt`. shipped.
+
+**F1.3 — Loading state shows NOTHING.**
+`notificationsQuery.isLoading` is checked at line 99 only for "show empty state if false AND length===0". During loading the user sees a blank Card. Severity **P1**. Fix: render 4-5 Skeleton article cards. shipped.
+
+**F1.4 — `notifications-page.tsx:73` `markAllRead` disabled when "every item is read" — but ALSO disabled when the list is empty (every of [] returns true).**
+Quirk of `Array.every` on []. The button looks disabled with no explanation. Severity **P3**. Fix: explicit check `notifications.length > 0 && notifications.some(item => !item.readAt)`. shipped.
+
+**F1.5 — List has no pagination — hardcoded limit 50.**
+At 51 notifications the user is silently truncated. Severity **P2**. ⏳ deferred — needs cursor-paginated server.
+
+**F1.6 — `notifications-page.tsx:104-105` `<article>` has no `aria-label` and the unread/read state isn't surfaced to assistive tech.**
+SR users tabbing through can't tell which items are unread. Severity **P2**. Fix: add `aria-label={item.readAt ? t\`Read: ${title}\` : t\`Unread: ${title}\``. shipped.
+
+### F2 — `features/workload/workload-page.tsx` (407 lines)
+
+**F2.1 — `workload-page.tsx:155-158` Loading state uses bordered text block, not Skeleton.**
+Same drift as Q1.1. Severity **P1**. Fix: replace with skeleton rows. shipped.
+
+**F2.2 — `workload-page.tsx:106-118` Error state uses Card + CardTitle + CardDescription instead of canonical `<Alert variant="destructive">`.**
+Drift from notifications-page.tsx (which uses Alert correctly). Severity **P2**. Fix: convert to Alert primitive. shipped.
+
+**F2.3 — `workload-page.tsx:51-66` Firms loading state ALSO renders a Card with text — not skeletons.**
+Same drift pattern. Severity **P2**. Fix: skeleton card. shipped (rolled in with F2.1).
+
+**F2.4 — `workload-page.tsx:94-102` Refresh button has no `aria-busy`.**
+Pattern same as Q3.6. Severity **P3**. Fix: aria-busy + Loader2 spinner. shipped.
+
+**F2.5 — `workload-page.tsx:262-287` MetricCard shows "—" when value is undefined (loading).**
+Loading state is presented as data ("—") rather than as a loading skeleton. A user might think their workload has em-dashes. Severity **P2**. Fix: show skeleton during loading. shipped.
+
+**F2.6 — `workload-page.tsx:256` `<p className="text-xs font-medium uppercase text-text-tertiary">` on manager-insight metric label.**
+Uppercase kicker drift. The eightieth-pass commits retired most uppercase kickers. Severity **P3**. ⏳ deferred — uppercase here may be intentional differentiator.
+
+### F3 — `features/opportunities/opportunities-page.tsx` (458 lines)
+
+**F3.1 — Dismiss action has no undo affordance in the toast.**
+`opportunities-page.tsx:336-350` Dismiss mutation succeeds → "Opportunity dismissed" toast → NO undo. The user has to scroll to the "Dismissed opportunities" disclosure at the bottom of the page and click Restore. Severity **P1**. Fix: add toast action `{ label: 'Undo', onClick: () => restore() }`. ⏳ deferred — toast primitive needs callback support audit.
+
+**F3.2 — Snooze defaults to 14 days with no per-action duration picker.**
+`opportunities-page.tsx:326-327` A user wanting to snooze for 7 days or 30 days has to wait the 14-day default then re-dismiss. Severity **P2**. Fix: convert Snooze button to a DropdownMenu with 7d / 14d / 30d / 90d items. ⏳ deferred — feature work.
+
+**F3.3 — Action column always shows 3 buttons vertically.**
+`opportunities-page.tsx:415-454` Open / Snooze / Dismiss. On a 10-opportunity list that's 30 buttons — visual noise. Severity **P3**. Fix: collapse Snooze + Dismiss into a `⋯` menu, keep Open as the primary. ⏳ deferred — needs design call.
+
+### F4 — `features/audit/audit-log-page.tsx` (793 lines)
+
+**F4.1 — `audit-log-page.tsx:412` Export-dialog Cancel button uses `variant="outline"` instead of canonical ghost.**
+Same drift as Q3.3. Severity **P3**. Fix: ghost. shipped.
+
+**F4.2 — `audit-log-page.tsx:416-422` "Download latest" button has no `aria-busy` while `createDownloadUrl.isPending`.**
+Severity **P3**. Fix: add aria-busy + Loader2. shipped.
+
+**F4.3 — `audit-log-page.tsx:424-429` "Request export" button has no `aria-busy` while `requestPackage.isPending`.**
+Severity **P3**. shipped.
+
+### F5 — `features/reminders/reminders-page.tsx` (666 lines)
+
+**F5.1 — `reminders-page.tsx:655` Template-dialog Cancel uses `variant="outline"` — drift from canonical ghost.**
+Severity **P3**. shipped.
+
+**F5.2 — `reminders-page.tsx:638` Template-body Textarea has `font-mono`.**
+Drift from the recent font-mono purge passes (audit-86-batch6/7/8). Email-template body is regular prose, not a code surface. Severity **P2**. Fix: drop `font-mono`. shipped.
+
+**F5.3 — `reminders-page.tsx:658-660` "Save template" button shows no spinner, no "Saving…" label.**
+Severity **P2**. Fix: aria-busy + Loader2. shipped.
+
+**F5.4 — `reminders-page.tsx:544-551` "Loading suppressions…" + empty-state are plain `<p>` text in bordered boxes.**
+Inconsistent with the skeleton pattern used elsewhere on the page (templatesQuery uses Skeleton via the `loading` prop). Severity **P3**. ⏳ deferred — minor.
+
+**F5.5 — `reminders-page.tsx:625-630, 631-640` Subject / Body inputs use `<label>` wrapping `<Input>` without `htmlFor`.**
+Technically valid HTML (label wrapping an input implicitly associates them), but the `<span>` inside the label is decorative — a SR user navigating by tab hears nothing. Severity **P3**. ⏳ deferred — accessibility verification on Base UI Input's label discovery.
+
+### F6 — `features/members/members-page.tsx` (1198 lines)
+
+**F6.1 — `members-page.tsx:1085-1093` Invite mutation onSuccess does NOT toast.**
+The dialog just closes silently. The user has no confirmation the invite was sent. They'd have to navigate to the Pending Invites section and verify the row appeared. Severity **P1**. Fix: `toast.success(t\`Invite sent to ${email}\`)`. shipped.
+
+**F6.2 — `members-page.tsx:1169` Cancel button uses `variant="outline"` — drift.**
+Severity **P3**. Fix: ghost. shipped.
+
+**F6.3 — `members-page.tsx:1172-1174` "Send invite" button label changes to "Sending…" but no spinner.**
+Severity **P3**. Fix: aria-busy + Loader2. shipped.
+
+**F6.4 — `members-page.tsx:1158-1162` Error display is a raw `<p role="alert" class="text-sm text-text-destructive">` with `inviteMutation.error.message`.**
+Drift from the canonical Alert primitive. The error message comes from the RPC and may be unreadable to a CPA ("VALIDATION_ERROR: email must be unique"). Severity **P2**. Fix: use Alert primitive + run through `rpcErrorMessage()`. shipped.
+
+**F6.5 — `members-page.tsx:1131-1150` Role Select shows MANAGED_ROLES inline list — but no description per role.**
+The page-level helper text below ("Owner stays read-only. Managers can review work; preparers and coordinators have scoped access.") is divorced from the actual picker — a user changing the role doesn't see WHICH role does WHAT. Severity **P2**. Fix: add a second line per SelectItem with the role's permission summary. ⏳ deferred — needs content design.
+
+### F7 — `features/calendar/calendar-page.tsx` (616 lines)
+
+**F7.1 — Calendar page is subscription-management, not the "calendar grid" the audit prompt implied.**
+The audit prompt mentioned "calendar grid, month nav, filter sidebar, event hover" but the file is only iCal-feed management. The product doesn't have an in-app month calendar view. Severity **P2** if Yuqi wanted a month grid; otherwise ❌ not drift. needs-discussion.
+
+**F7.2 — `calendar-page.tsx:357-359` IntegrationNote body uses string-literal copy that's English-only ("Other calendars -> From URL").**
+The arrow `->` is ASCII — should be unicode `→`. Severity **P3**. Fix: replace ASCII arrows with `→`. shipped.
+
+**F7.3 — `calendar-page.tsx:272-274` Regenerate button shows "Regenerating…" label but no Loader2 spinner.**
+Pattern. Severity **P3**. shipped.
+
+**F7.4 — `calendar-page.tsx:338` "Disable feed" disabled-button shows "Disabling…" label but no Loader2 spinner.**
+Same pattern. Severity **P3**. shipped.
+
