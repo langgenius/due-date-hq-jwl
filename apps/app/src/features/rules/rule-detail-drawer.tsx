@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, SparklesIcon, TriangleAlertIcon } from 'lucide-react'
+import { AlertTriangleIcon, Astroid, TriangleAlertIcon } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
 
 import type {
@@ -22,6 +22,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
   formatEnumLabel,
@@ -589,7 +590,7 @@ function AiDraftReviewPanel({
               onClick={onGenerateDraft}
               disabled={generating}
             >
-              <SparklesIcon data-icon="inline-start" />
+              <Astroid data-icon="inline-start" />
               {generating ? <Trans>Generating…</Trans> : <Trans>Generate draft</Trans>}
             </Button>
           ) : null}
@@ -613,8 +614,22 @@ function AiDraftReviewPanel({
             <span className="text-text-tertiary">
               <Trans>Confidence</Trans>
             </span>
+            {/* 2026-05-26 (Step 9 AI Visibility Audit F-013): qualitative
+                tier (Low/Medium/High) renders alongside the raw
+                percentage so a CPA reading the draft can match against
+                the same Low/Medium/High vocabulary used in Pulse,
+                instead of mentally translating "72%" into the canonical
+                ladder. */}
             <span className="font-mono text-text-secondary">
               {Math.round(draft.confidence * 100)}%
+              <span className="ml-1 text-text-tertiary">
+                {(() => {
+                  const tier = aiConfidenceTier(draft.confidence)
+                  if (tier === 'low') return <Trans>(Low)</Trans>
+                  if (tier === 'medium') return <Trans>(Medium)</Trans>
+                  return <Trans>(High)</Trans>
+                })()}
+              </span>
             </span>
           </div>
           <blockquote className="border-l border-state-accent-active-alt pl-2 text-xs text-text-secondary italic">
@@ -628,8 +643,17 @@ function AiDraftReviewPanel({
 }
 
 function AiDraftReviewSkeleton() {
+  // 2026-05-26 (Step 9 AI Visibility Audit F-053): added explicit
+  // "AI is reading the source" microcopy above the skeleton bars.
+  // Before, a bare skeleton row left the user wondering whether the
+  // page was loading or actually invoking a model — naming the
+  // operation removes the ambiguity and sets honest latency
+  // expectations.
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" aria-busy="true">
+      <p className="text-xs text-text-tertiary">
+        <Trans>AI is reading the source…</Trans>
+      </p>
       <Skeleton className="h-4 w-4/5" />
       <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
         <Skeleton className="h-3 w-16" />

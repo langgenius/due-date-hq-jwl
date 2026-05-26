@@ -1,11 +1,11 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useState, type ReactNode } from 'react'
 import {
+  Astroid,
   ChevronDownIcon,
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
-  SparklesIcon,
   StarIcon,
 } from 'lucide-react'
 
@@ -332,7 +332,23 @@ function MappingDetailsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <ConfidenceBadge tier={tier} confidence={row.confidence} />
+                  {/* 2026-05-26 (Step 9 AI Visibility Audit F-012):
+                      when a user has overridden the AI mapping for
+                      this row, the confidence pill no longer
+                      renders — the AI's confidence is no longer the
+                      governing signal. Instead an "Overridden" chip
+                      tells the user this row has been touched, so
+                      a re-run of the AI won't silently clobber
+                      their work. Previously the userOverridden
+                      flag was tracked but never visualized per
+                      row. */}
+                  {row.userOverridden ? (
+                    <span className="inline-flex h-5 items-center rounded-md border border-state-accent-active-alt bg-state-accent-hover px-1.5 text-xs font-medium uppercase tracking-wide text-text-accent">
+                      <Trans>Overridden</Trans>
+                    </span>
+                  ) : (
+                    <ConfidenceBadge tier={tier} confidence={row.confidence} />
+                  )}
                 </TableCell>
                 <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
                   {sample}
@@ -401,8 +417,14 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
+        // 2026-05-26 (Step 9 AI Visibility Audit F-001, F-014):
+        // SparklesIcon replaced with the canonical Astroid AI
+        // provenance icon. Sparkles is now reserved for the
+        // billing/opportunities feature glyphs; Astroid is the
+        // per-value AI provenance mark across Pulse, dashboard,
+        // and migration.
         <Badge variant="destructive">
-          <SparklesIcon data-icon="inline-start" />
+          <Astroid data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
       }
