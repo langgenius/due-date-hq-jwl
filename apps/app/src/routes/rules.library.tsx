@@ -11,11 +11,12 @@ import {
   CircleCheck,
   CircleSlash,
   MessageSquareText,
+  MoreHorizontalIcon,
   PlusIcon,
   RadioTowerIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsString, useQueryState } from 'nuqs'
+import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type {
   ObligationRule,
@@ -37,6 +38,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -53,10 +61,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { useAppHotkey } from '@/components/patterns/keyboard-shell'
+import { PageHeader } from '@/components/patterns/page-header'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
-import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
@@ -575,6 +583,15 @@ export function RulesLibraryRoute() {
   const [search, setSearch] = useQueryState('q', parseAsString)
   const [ruleId, setRuleId] = useQueryState('rule', parseAsString)
   const [entityFilter, setEntityFilter] = useQueryState('entity', parseAsString)
+  // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs above
+  // the table. URL-bound so the active scope deep-links. Default is
+  // 'all'. `null` from nuqs maps back to 'all' for the activeScope
+  // computation so the chip is always one of the four known states.
+  const [scope, setScope] = useQueryState(
+    'scope',
+    parseAsStringLiteral(['all', 'active', 'review', 'missing'] as const),
+  )
+  const activeScope = scope ?? 'all'
   const isSearching = (search ?? '').trim().length > 0
   // Batch-review state. `selectedRuleIds` tracks which needs-review
   // rules the user has checked off. `batchReviewRuleIds` snapshots the
@@ -607,18 +624,41 @@ export function RulesLibraryRoute() {
   const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data])
   const rulesById = useMemo(() => new Map(rules.map((rule) => [rule.id, rule])), [rules])
   const coverageRows = useMemo(() => coverageQuery.data ?? [], [coverageQuery.data])
-  // Apply entity filter — when a By-Entity chip is active, restrict
-  // the rules feeding the table to just those that apply to that
-  // entity type. Coverage rows are untouched (state-level coverage
-  // signals still reflect the full picture).
+  // Apply entity + scope filter. Entity slices by who-the-rule-applies-to;
+  // scope slices by review state. Coverage rows stay untouched —
+  // state-level coverage signals reflect the full picture regardless
+  // of filter.
+  // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs filter
+  // rules ahead of grouping. 'all' = no filter; 'active' = status
+  // active|verified; 'review' = pending-review group; 'missing' is
+  // handled at the group level (post-build) since it filters by
+  // coverage gaps not rule status.
   const filteredRules = useMemo(() => {
-    if (!activeEntity) return rules
-    return rules.filter((r) => r.entityApplicability.includes(activeEntity))
-  }, [rules, activeEntity])
-  const groups = useMemo(
+    let result = rules
+    if (activeEntity) {
+      result = result.filter((r) => r.entityApplicability.includes(activeEntity))
+    }
+    if (activeScope === 'active') {
+      result = result.filter((r) => r.status === 'active' || r.status === 'verified')
+    } else if (activeScope === 'review') {
+      result = result.filter((r) => statusGroupOf(r.status) === 'needs_review')
+    }
+    // For 'missing' scope, the rules array stays — we still need rule
+    // data to identify which entity columns have a rule. Group-level
+    // post-filter below restricts to groups with gap entities.
+    return result
+  }, [rules, activeEntity, activeScope])
+  const groupsAll = useMemo(
     () => buildGroups(filteredRules, coverageRows),
     [filteredRules, coverageRows],
   )
+  const groups = useMemo(() => {
+    if (activeScope !== 'missing') return groupsAll
+    // Missing scope: only state groups that have at least one
+    // entity gap (entity × jurisdiction with no rule). Each group's
+    // own gapEntities array already encodes the gaps.
+    return groupsAll.filter((g) => g.gapEntities.length > 0)
+  }, [groupsAll, activeScope])
   // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
   // `sourceCounts` + `totalGaps` retired with the 3-tile scoreboard.
   // Total rule count drives the page-header chip; per-entity gap
@@ -630,7 +670,17 @@ export function RulesLibraryRoute() {
   const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
   const totalRules = rules.length
   const totalActive = rules.filter((r) => r.status === 'active' || r.status === 'verified').length
-  const totalPendingReview = groups.reduce((acc, g) => acc + g.pendingReviewCount, 0)
+  // Scope counts are computed against the UNFILTERED rules + groupsAll
+  // so the tab badges stay stable as the user toggles scopes (they
+  // tell you "what's in each scope before you switch").
+  const totalPendingReview = useMemo(
+    () => rules.filter((r) => statusGroupOf(r.status) === 'needs_review').length,
+    [rules],
+  )
+  const totalGapEntities = useMemo(
+    () => groupsAll.reduce((acc, g) => acc + g.gapEntities.length, 0),
+    [groupsAll],
+  )
   // Per-entity statistics — for each entity type:
   //   - `count`       total rules applicable to it across the catalog
   //   - `gapCount`    applicable jurisdictions with NO rule for this entity
@@ -933,53 +983,53 @@ export function RulesLibraryRoute() {
   const currentBatchReviewRule = currentBatchReviewRuleId
     ? (rulesById.get(currentBatchReviewRuleId) ?? null)
     : null
+  // 2026-05-26 (Yuqi /rules/library critique P1): actions cluster
+  // reduced to canonical ≤2 outline + 1 primary. Sources + Export
+  // coverage moved INTO the ⋯ overflow menu. Visible cluster now:
+  // ⋯ overflow + (optional Start review N) + + New rule.
   const headerActions = (
     <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="icon-sm" aria-label={t`More library actions`}>
+              <MoreHorizontalIcon className="size-4" aria-hidden />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-[200px]">
+          <DropdownMenuItem render={<Link to="/rules/sources" />}>
+            <RadioTowerIcon className="size-4" aria-hidden />
+            <Trans>Sources</Trans>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleExport}>
+            <ArrowUpRightIcon className="size-4" aria-hidden />
+            <Trans>Export coverage</Trans>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={openNewRule}>
+            <PlusIcon className="size-4" aria-hidden />
+            <Trans>New rule</Trans>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       {reviewCount > 0 ? (
-        // 2026-05-25 (Yuqi rule library #5 — third pass): Yuqi
-        // flagged the amber treatment as reading as "destructive."
-        // Switched to a default primary blue with the count
-        // rendered as an inset tabular chip — the count carries
-        // the "N waiting" magnitude cue, the button color reads as
-        // "primary action, not danger." Standard accent palette
-        // matches every other primary CTA in the app.
         <Button size="sm" onClick={startReviewAll}>
           <Trans>Start review</Trans>
-          {/* 2026-05-25 (Yuqi rule library fourth pass #5 + #12):
-              count chip switches to a WHITE background. Was a
-              translucent accent (`bg-state-accent-active-alt/40`)
-              which, sitting inside the primary-blue button,
-              picked up enough red from the alt accent token that
-              Yuqi flagged the whole button as "destructive red."
-              Solid white chip + accent text reads cleanly as a
-              "count badge inside a primary CTA" — same pattern
-              GitHub uses for the count chip inside its "Open N
-              issues" button. */}
           <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
             {reviewCount}
           </span>
         </Button>
-      ) : null}
-      {/* 2026-05-26 (Yuqi seventy-second pass — product feel
-          sweep): Sources link promoted from the retired
-          "Watched" StatTile into a header action so the route is
-          discoverable from the canonical action cluster. */}
-      <Button variant="outline" size="sm" render={<Link to="/rules/sources" />}>
-        <RadioTowerIcon data-icon="inline-start" />
-        <Trans>Sources</Trans>
-      </Button>
-      {/* 2026-05-26 (Yuqi seventy-second pass): Export icon
-          aligned to the /deadlines convention — `ArrowUpRightIcon`
-          (data leaving the app), replacing `DownloadIcon` (arrow
-          down to disk). */}
-      <Button variant="outline" size="sm" onClick={handleExport}>
-        <ArrowUpRightIcon data-icon="inline-start" />
-        <Trans>Export coverage</Trans>
-      </Button>
-      <Button size="sm" onClick={openNewRule}>
-        <PlusIcon data-icon="inline-start" />
-        <Trans>New rule</Trans>
-      </Button>
+      ) : (
+        // No-review baseline: + New rule stays visible as the
+        // primary CTA so the header always has a single primary
+        // action. When review is pending, that becomes the
+        // primary; + New rule moves into the overflow.
+        <Button size="sm" onClick={openNewRule}>
+          <PlusIcon data-icon="inline-start" />
+          <Trans>New rule</Trans>
+        </Button>
+      )}
     </>
   )
 
@@ -995,88 +1045,112 @@ export function RulesLibraryRoute() {
   }
 
   return (
-    <RulesPageShell
-      // 2026-05-26 (Yuqi seventy-first pass — canonical chip on Rule
-      // library): title now follows the /clients + /deadlines +
-      // /alerts pattern. Noun + rounded pill chip with "N rules" so
-      // the page reads as one of the product's surfaces, not a
-      // standalone tool. Chip shows the TOTAL rule count (active
-      // + pending review + gaps don't all collapse into "rules" —
-      // pending-review-stuff already has its own banner; the chip
-      // is the at-a-glance "this is the size of the rule catalog").
-      title={
-        <span className="inline-flex items-center gap-2">
-          <Trans>Rule library</Trans>
-          {!rulesQuery.isLoading ? (
-            <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-              <Plural value={totalRules} one="# rule" other="# rules" />
-            </span>
-          ) : null}
-        </span>
-      }
-      description={t`Every filing deadline the practice tracks. Review pending rules, fill missing coverage, and add new ones.`}
-      actions={headerActions}
-      wide
+    // 2026-05-26 (Yuqi /rules/library critique P0 — structural pass):
+    // Rule library adopts the canonical sticky-footer + table-card +
+    // independent-scroll mechanism that /deadlines + /alerts + /clients
+    // run. Replaces the prior RulesPageShell wrapping (Regular variant
+    // + frameless table + page-level scroll). PageHeader + progress
+    // bar + scope tabs + search + entity chips stay pinned above; only
+    // the rule grid scrolls. `max-w-[1440px]` cap preserved so the
+    // jurisdiction + entity matrix has room to breathe at desktop.
+    <div
+      className={cn(
+        'mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'xl:h-screen xl:overflow-hidden',
+      )}
     >
-      <div className="flex flex-col gap-4">
-        <StatsBar
-          loading={statsLoading}
-          totalActive={totalActive}
-          totalPendingReview={totalPendingReview}
-          entityStats={entityStats}
-          activeEntity={activeEntity}
-          onSelectEntity={(entity) => void setEntityFilter(entity)}
-          onClearEntity={() => void setEntityFilter(null)}
-          search={search ?? ''}
-          onSearchChange={(next) => void setSearch(next || null)}
-        />
+      <PageHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Trans>Rule library</Trans>
+            {!rulesQuery.isLoading ? (
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+                <Plural value={totalRules} one="# rule" other="# rules" />
+              </span>
+            ) : null}
+          </span>
+        }
+        actions={headerActions}
+      />
 
-        {/* 2026-05-26 (Yuqi seventy-second pass — converge on
-            inline filter chip pattern): the standalone "Filtering:
-            ENTITY · N rules · Clear filter" banner has been
-            retired. The EntityChipRow below ALREADY shows the
-            active chip in filled-dark state (visibly selected) and
-            exposes an inline "Clear" link in its header — the
-            banner was a third surface saying the same thing.
-            /deadlines + /alerts both drive filter state via inline
-            chip toggles without a separate banner; Rule library
-            now matches that pattern. */}
+      {/* Progress bar — completion meter (active LEFT / needs-review
+          RIGHT). Yuqi explicitly asked for this to stay at the top
+          ("把进度条放回来"). */}
+      <RuleReviewProgressBar
+        {...(statsLoading
+          ? ({ loading: true } as const)
+          : ({ totalActive, totalPendingReview } as const))}
+      />
 
-        {rulesQuery.isLoading || coverageQuery.isLoading ? (
-          <LoadingState />
-        ) : isSearching ? (
-          <SearchResultsTable
-            rules={matchedRules}
-            query={searchLower}
-            onRuleClick={handleRuleClick}
-          />
+      {/* Scope tabs — primary navigation axis. All / Active / Needs
+          review / Missing. Tab counts are pinned to the unfiltered
+          rules + groupsAll so badges stay stable as the user toggles
+          scopes (each tab is honest about what it'll show). */}
+      <ScopeTabBand
+        activeScope={activeScope}
+        totalAll={totalRules}
+        totalActive={totalActive}
+        totalReview={totalPendingReview}
+        totalMissing={totalGapEntities}
+        onChange={(next) => void setScope(next === 'all' ? null : next)}
+      />
+
+      {/* Filter row — search + entity-filter chips. Sits below the
+          scope tabs as a secondary narrowing axis. */}
+      <div className="flex shrink-0 flex-col gap-3">
+        <SearchBar search={search ?? ''} onChange={(next) => void setSearch(next || null)} />
+        {statsLoading ? (
+          <EntityChipRowSkeleton />
         ) : (
-          <GroupedRulesTable
-            groups={groups}
-            expanded={expanded}
-            onToggle={toggleGroup}
-            onExpandAll={expandAll}
-            onCollapseAll={collapseAll}
-            onRuleClick={handleRuleClick}
-            onAddRule={handleAddRule}
-            selectedRuleIds={selectedRuleIds}
-            onToggleRuleSelection={toggleRuleSelection}
-            onToggleRulesSelection={toggleRulesSelection}
+          <EntityChipRow
+            entityStats={entityStats}
+            activeEntity={activeEntity}
+            onSelect={(entity) => void setEntityFilter(entity)}
+            onClear={() => void setEntityFilter(null)}
           />
         )}
-
-        {/* Rule detail — when ?rule=X is set, render the rule detail
-            inline below the table. Compact form (a focused review
-            surface), not a sheet, so it composes with the grouped
-            list above. Closing clears the URL param. */}
-        {selectedRule ? (
-          <RuleDetailPanel
-            rule={selectedRule}
-            concreteDraft={selectedConcreteDraft}
-            onClose={() => void setRuleId(null)}
-          />
-        ) : null}
       </div>
+
+      {/* Table-card frame — bordered card with the rule grid inside,
+          rows-area `flex-1 min-h-0 overflow-y-auto` so only the grid
+          scrolls. Matches /deadlines + /clients structure. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle bg-background-default">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {rulesQuery.isLoading || coverageQuery.isLoading ? (
+            <LoadingState />
+          ) : isSearching ? (
+            <SearchResultsTable
+              rules={matchedRules}
+              query={searchLower}
+              onRuleClick={handleRuleClick}
+            />
+          ) : (
+            <GroupedRulesTable
+              groups={groups}
+              expanded={expanded}
+              onToggle={toggleGroup}
+              onExpandAll={expandAll}
+              onCollapseAll={collapseAll}
+              onRuleClick={handleRuleClick}
+              onAddRule={handleAddRule}
+              selectedRuleIds={selectedRuleIds}
+              onToggleRuleSelection={toggleRuleSelection}
+              onToggleRulesSelection={toggleRulesSelection}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Rule detail — when ?rule=X is set, render the rule detail
+          Dialog. Portals out so it doesn't compete with the flex
+          layout above. */}
+      {selectedRule ? (
+        <RuleDetailPanel
+          rule={selectedRule}
+          concreteDraft={selectedConcreteDraft}
+          onClose={() => void setRuleId(null)}
+        />
+      ) : null}
       {/* Floating bulk-review bar — appears at the bottom of the
           viewport when ≥1 rule is selected. Stays visible while the
           user scrolls so they can launch the review modal at any
@@ -1110,7 +1184,7 @@ export function RulesLibraryRoute() {
           (no pre-fill) and from each gap row's "+ Add rule" button
           (pre-filled with the missing jurisdiction + entity). */}
       {newRuleSeed !== null ? <NewRuleModal seed={newRuleSeed} onClose={closeNewRule} /> : null}
-    </RulesPageShell>
+    </div>
   )
 }
 
@@ -1118,60 +1192,82 @@ export function RulesLibraryRoute() {
 // page title via RulesPageShell's `actions` slot. See header above.
 
 // ---------------------------------------------------------------------------
-// One-line stats bar (replaces the two stacked summary strips)
+// Scope tabs band (replaces the prior StatsBar wrapper)
 // ---------------------------------------------------------------------------
 
-// 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
-// Retired the 3-tile scoreboard (Total / Missing / Watched). Total
-// → page-header chip, Watched → header Sources action, Missing →
-// per-entity-chip gap badge.
-// 2026-05-26 (Yuqi feedback — "把进度条放回来"): restored the
-// completion-meter progress bar at the top. Same shape the
-// third-pass shipped: active-LEFT (success-green, work done) and
-// needs-review-RIGHT (warning-amber, work pending). Reads as a
-// completion meter, not a backlog meter — direction matches the
-// canonical progress-fills-as-you-complete-work convention.
-function StatsBar({
-  loading,
+// 2026-05-26 (Yuqi /rules/library critique P0): ScopeTabBand is the
+// primary navigation axis — All / Active / Needs review / Missing.
+// Same visual contract as /deadlines' ObligationQueueScopeTab so
+// CPAs switching between surfaces read the same tabbar treatment:
+// hug-content triggers, accent underline on active, count badge per
+// tab, transparent background.
+//
+// The prior `StatsBar` wrapper (progress + search + chips) is
+// retired — those three rows are now siblings in the route's flex
+// column.
+type ScopeKey = 'all' | 'active' | 'review' | 'missing'
+
+function ScopeTabBand({
+  activeScope,
+  totalAll,
   totalActive,
-  totalPendingReview,
-  entityStats,
-  activeEntity,
-  onSelectEntity,
-  onClearEntity,
-  search,
-  onSearchChange,
+  totalReview,
+  totalMissing,
+  onChange,
 }: {
-  loading: boolean
+  activeScope: ScopeKey
+  totalAll: number
   totalActive: number
-  totalPendingReview: number
-  entityStats: Array<{ entity: EntityKey; count: number; gapCount: number; reviewCount: number }>
-  activeEntity: EntityKey | null
-  onSelectEntity: (entity: EntityKey) => void
-  onClearEntity: () => void
-  search: string
-  onSearchChange: (next: string) => void
+  totalReview: number
+  totalMissing: number
+  onChange: (scope: ScopeKey) => void
 }) {
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-4" aria-busy="true">
-        <RuleReviewProgressBar loading />
-        <SearchBar search={search} onChange={onSearchChange} />
-        <EntityChipRowSkeleton />
-      </div>
-    )
-  }
+  const { t } = useLingui()
+  const tabs: Array<{ key: ScopeKey; label: string; count: number }> = [
+    { key: 'all', label: t`All`, count: totalAll },
+    { key: 'active', label: t`Active`, count: totalActive },
+    { key: 'review', label: t`Needs review`, count: totalReview },
+    { key: 'missing', label: t`Missing`, count: totalMissing },
+  ]
   return (
-    <div className="flex flex-col gap-4" aria-busy="false">
-      <RuleReviewProgressBar totalActive={totalActive} totalPendingReview={totalPendingReview} />
-      <SearchBar search={search} onChange={onSearchChange} />
-      <EntityChipRow
-        entityStats={entityStats}
-        activeEntity={activeEntity}
-        onSelect={onSelectEntity}
-        onClear={onClearEntity}
-      />
-    </div>
+    <nav
+      className="flex shrink-0 items-center gap-4 border-b border-divider-subtle"
+      aria-label={t`Filter by scope`}
+    >
+      {tabs.map((tab) => {
+        const active = tab.key === activeScope
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(tab.key)}
+            className={cn(
+              'relative -mb-px flex shrink-0 items-center gap-1.5 px-1 py-2.5 text-sm whitespace-nowrap transition-colors',
+              active
+                ? 'font-medium text-text-primary'
+                : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            <span>{tab.label}</span>
+            <span
+              className={cn(
+                'text-xs tabular-nums',
+                active ? 'text-text-secondary' : 'text-text-tertiary',
+              )}
+            >
+              {tab.count}
+            </span>
+            {active ? (
+              <span
+                aria-hidden
+                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-accent-default"
+              />
+            ) : null}
+          </button>
+        )
+      })}
+    </nav>
   )
 }
 
