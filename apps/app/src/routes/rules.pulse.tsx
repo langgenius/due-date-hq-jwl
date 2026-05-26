@@ -102,7 +102,7 @@ export function RulesPulseRoute() {
       //   • `!important` retained on pb-0 since the underlying
       //     shell pads pb-4 md:pb-6 by default.
       contentClassName={cn(
-        'transition-[max-width,min-width,padding-bottom] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
+        'transition-[max-width,min-width,padding-bottom] duration-300 ease-apple',
         panelOpen ? 'max-w-[1440px] min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
       )}
       actions={

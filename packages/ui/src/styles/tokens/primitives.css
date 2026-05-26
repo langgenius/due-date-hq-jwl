@@ -99,6 +99,16 @@
   /* ===== Animations ====================================================== */
   --animate-spin-slow: spin 2s linear infinite;
 
+  /* ===== Easing ==========================================================
+   * `--ease-apple` is the iOS-style "in-out" curve we use on width /
+   * opacity / max-width transitions of full-surface containers (sidebar
+   * collapse, drawer slide, rules-pulse panel resize). Auto-generates
+   * the `ease-apple` Tailwind utility. Keep Tailwind defaults
+   * (ease-linear / ease-in / ease-out / ease-in-out) for shorter
+   * transitions where the Apple curve would feel sluggish.
+   * --------------------------------------------------------------------- */
+  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
+
   /* ===== Util-colors: gray =============================================== */
   --color-util-colors-gray-25: #fcfcfd;
   --color-util-colors-gray-50: #f9fafb;
