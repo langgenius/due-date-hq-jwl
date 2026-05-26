@@ -36,6 +36,7 @@ export function PageHeader({
   eyebrowAside,
   breadcrumbs,
   title,
+  metaRow,
   description,
   actions,
   className,
@@ -52,6 +53,26 @@ export function PageHeader({
   eyebrowAside?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
   title: ReactNode
+  /**
+   * Optional secondary row between the h1 and the description.
+   *
+   * Use for *identity metadata* about the page subject — small chips,
+   * pills, or labels that describe the entity without being part of
+   * its name. Routes that have crammed entity/owner/state chips into
+   * the h1 (audit P0 D1 on /clients/[id]) read better with the h1
+   * carrying just the title and these supporting facts living one
+   * tier down at 12 px / text-secondary.
+   *
+   * Rendered as a `<div>` (not `<p>`) so it can host inline-block
+   * children like Badge / Pill / DropdownMenu triggers. The wrapper
+   * provides the typography (12 px, text-secondary, wrap-friendly
+   * gaps); slot content provides its own per-chip styling.
+   *
+   * Distinct from `description` — description is *prose about state*
+   * ("5 open · next due May 6"); metaRow is *facts about identity*
+   * (LLC · Sarah K. · CA, NY · Add filing state).
+   */
+  metaRow?: ReactNode
   description?: ReactNode
   actions?: ReactNode
   className?: string
@@ -83,6 +104,11 @@ export function PageHeader({
           </div>
         ) : null}
         <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
+        {metaRow ? (
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">
+            {metaRow}
+          </div>
+        ) : null}
         {description ? (
           <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
         ) : null}
