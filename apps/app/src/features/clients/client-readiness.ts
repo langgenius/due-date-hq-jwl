@@ -12,7 +12,6 @@ export const CLIENT_ENTITY_TYPES = [
 ] as const satisfies readonly ClientCreateInput['entityType'][]
 
 export const ALL_ENTITIES = 'all'
-export const CLIENT_ENTITY_FILTERS = [ALL_ENTITIES, ...CLIENT_ENTITY_TYPES] as const
 export const STATE_FILTER_ALL = 'all'
 export const CLIENT_READINESS_FILTERS = ['ready', 'needs_facts'] as const
 export const CLIENT_SOURCE_FILTERS = ['imported', 'manual'] as const

@@ -113,19 +113,6 @@ const TECHNICAL_FIELD_KEYS = new Set([
 
 const TECHNICAL_FIELD_SUFFIXES = ['Hash', 'Id', 'Ids', 'IDs', '_id']
 
-const COUNT_FIELD_NOUNS: Record<string, keyof AuditChangeLabels['nouns']> = {
-  clientCount: 'clients',
-  clientsAffected: 'clients',
-  count: 'rows',
-  createdCount: 'deadlines',
-  fileCount: 'files',
-  matchedCount: 'clients',
-  needsReviewCount: 'clients',
-  obligationCount: 'deadlines',
-  rowCount: 'rows',
-  skippedCount: 'rows',
-}
-
 export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresenter> = {
   'ai.guard_failed': genericPresenter,
   'ai.refusal': genericPresenter,
@@ -722,12 +709,4 @@ export function buildAuditChangeView(
     ? AUDIT_CHANGE_PRESENTERS[event.action]
     : genericPresenter
   return presenter(context)
-}
-
-export function describeAuditChangeCount(
-  key: string,
-  count: number | null,
-  labels: AuditChangeLabels,
-): string {
-  return formatCountValue(count, COUNT_FIELD_NOUNS[key] ?? 'rows', labels)
 }

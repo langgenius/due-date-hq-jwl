@@ -1176,11 +1176,6 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
 )
 StateBadge.displayName = 'StateBadge'
 
-/** Whether a designed badge exists for the given code (uppercased). */
-export function hasDesignedBadge(code: string): boolean {
-  return code.toUpperCase() in DESIGNED_BADGES
-}
-
 /**
  * Resolve a two-letter code (CA, TX, …), "FED", or "IRS" to its full
  * jurisdiction name ("California", "Texas", "Federal"). Returns the

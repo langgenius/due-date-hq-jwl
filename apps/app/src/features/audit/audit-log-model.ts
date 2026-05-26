@@ -311,24 +311,6 @@ export function getAuditEntityDisplay(
   }
 }
 
-export type AuditSummaryLabels = {
-  empty: string
-  object: string
-  noPayload: string
-  created: string
-  beforeOnly: string
-  noChange: string
-}
-
-const DEFAULT_AUDIT_SUMMARY_LABELS: AuditSummaryLabels = {
-  empty: 'empty',
-  object: 'object',
-  noPayload: 'No before/after payload',
-  created: 'Created snapshot',
-  beforeOnly: 'Before snapshot only',
-  noChange: 'No field-level change detected',
-}
-
 const ISO_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/
 const DEFAULT_AUDIT_TIMEZONE = 'UTC'
 
@@ -341,14 +323,6 @@ function readRecord(value: unknown): Record<string, unknown> | null {
   return Object.fromEntries(Object.entries(value))
 }
 
-function stringifyScalar(value: unknown, labels: AuditSummaryLabels, timeZone: string): string {
-  if (value === null) return 'null'
-  if (value === undefined) return labels.empty
-  if (typeof value === 'string') return formatStringValue(value, timeZone)
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
-  return labels.object
-}
-
 function formatAuditJsonValue(value: unknown, timeZone: string): unknown {
   if (typeof value === 'string') return formatStringValue(value, timeZone)
   if (Array.isArray(value)) return value.map((entry) => formatAuditJsonValue(entry, timeZone))
@@ -359,31 +333,6 @@ function formatAuditJsonValue(value: unknown, timeZone: string): unknown {
     )
   }
   return value
-}
-
-export function summarizeAuditChange(
-  event: Pick<AuditEventPublic, 'beforeJson' | 'afterJson'>,
-  labels: AuditSummaryLabels = DEFAULT_AUDIT_SUMMARY_LABELS,
-  timeZone = DEFAULT_AUDIT_TIMEZONE,
-) {
-  const before = readRecord(event.beforeJson)
-  const after = readRecord(event.afterJson)
-  if (!before && !after) return labels.noPayload
-
-  const keys = new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})])
-  const changes = [...keys]
-    .filter((key) => JSON.stringify(before?.[key]) !== JSON.stringify(after?.[key]))
-    .slice(0, 3)
-    .map((key) => {
-      const beforeValue = stringifyScalar(before?.[key], labels, timeZone)
-      const afterValue = stringifyScalar(after?.[key], labels, timeZone)
-      return `${key}: ${beforeValue} -> ${afterValue}`
-    })
-
-  if (changes.length > 0) return changes.join('; ')
-  if (!before && after) return labels.created
-  if (before && !after) return labels.beforeOnly
-  return labels.noChange
 }
 
 export function formatAuditJson(value: unknown, timeZone = DEFAULT_AUDIT_TIMEZONE): string {

@@ -52,32 +52,12 @@ export const billingSearchParamsParsers = {
 
 export type BillingSearchParams = inferParserType<typeof billingSearchParamsParsers>
 
-export interface BillingPlanInfo {
-  id: BillingPlan
-  label: string
-  monthly: string
-  yearly: string
-  seatLimit: number
-  badge: string
-  description: string
-  bullets: string[]
-  selfServe: boolean
-}
-
 export function isBillingPlan(value: string | null): value is BillingPlan {
   return value === 'solo' || value === 'pro' || value === 'team' || value === 'firm'
 }
 
 export function isBillingInterval(value: string | null): value is BillingInterval {
   return value === 'monthly' || value === 'yearly'
-}
-
-export function parseBillingPlan(value: string | null): BillingPlan {
-  return isBillingPlan(value) ? value : SELF_SERVE_BILLING_PLAN
-}
-
-export function parseBillingInterval(value: string | null): BillingInterval {
-  return isBillingInterval(value) ? value : 'monthly'
 }
 
 export function billingPlanMonthlyEquivalent(plan: BillingPlan, interval: BillingInterval): number {
@@ -113,10 +93,6 @@ export function billingPlanHref(plan: BillingPlan, interval: BillingInterval): s
 
 export function isSelfServeBillingPlan(plan: BillingPlan): plan is SelfServeBillingPlan {
   return (SELF_SERVE_BILLING_PLANS as readonly BillingPlan[]).includes(plan)
-}
-
-export function isFirmOwner(firm: FirmPublic | null | undefined): boolean {
-  return firm?.role === 'owner'
 }
 
 export function paidPlanActive(firm: FirmPublic | null | undefined): boolean {
