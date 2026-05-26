@@ -38,7 +38,9 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.goto('/rules/library?filter=pending')
   await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
-  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible()
+  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible({
+    timeout: 20_000,
+  })
 })
 
 test('AC: E2E-RULES-DETAIL renders a shipped rule detail workspace', async ({

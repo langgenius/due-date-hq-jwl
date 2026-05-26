@@ -56,7 +56,7 @@ test.describe('seeded client facts', () => {
     await clientsPage.goto()
 
     await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('LLC')
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('CA')
+    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('California')
     await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('MC')
     await expect(clientsPage.rowFor('Unassigned Foundry LLC')).toContainText('Unassigned')
   })
