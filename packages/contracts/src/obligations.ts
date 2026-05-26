@@ -285,18 +285,9 @@ export type ObligationBulkStatusUpdateOutput = z.infer<
   typeof ObligationBulkStatusUpdateOutputSchema
 >
 
-export const ObligationRequestInputKindSchema = z.enum([
-  'decision_needed',
-  'review_requested',
-  'blocked',
-  'fyi',
-])
-export type ObligationRequestInputKind = z.infer<typeof ObligationRequestInputKindSchema>
-
 export const ObligationRequestInputInputSchema = z.object({
   obligationId: EntityIdSchema,
   recipientUserId: z.string().trim().min(1),
-  kind: ObligationRequestInputKindSchema,
   message: z.string().trim().min(1).max(1000),
 })
 export type ObligationRequestInputInput = z.infer<typeof ObligationRequestInputInputSchema>

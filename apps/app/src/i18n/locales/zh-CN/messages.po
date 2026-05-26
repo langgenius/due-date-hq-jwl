@@ -376,12 +376,6 @@ msgstr "{0} ready · {1} estimated deadline matches"
 msgid "{0} recent"
 msgstr "最近 {0} 条"
 
-#. placeholder {0}: requestInputKindText(latestInputRequest.kind, t)
-#. placeholder {1}: formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)
-#: src/routes/obligations.tsx
-msgid "{0} requested from {latestInputRequestRecipient} on {1}"
-msgstr "{0} 已请求 {latestInputRequestRecipient} 于 {1} 处理"
-
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} required fact(s) missing"
@@ -3714,10 +3708,6 @@ msgstr "决策备注（必填）"
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Decision needed"
-msgstr "需要决策"
-
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default tax types are ready for clients without tax types."
 msgstr "已为没有税种的客户准备默认税种。"
@@ -4959,10 +4949,6 @@ msgstr "未来业务提示"
 msgid "Future edits to facts, risk profile, or deletion will appear here."
 msgstr "后续对事实、风险档案的编辑或删除操作将在此显示。"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "FYI"
-msgstr "仅供知悉"
-
 #: src/routes/practice.tsx
 msgid "General"
 msgstr "常规"
@@ -5280,14 +5266,15 @@ msgstr "个人"
 msgid "Information return"
 msgstr "信息申报"
 
-#: src/routes/obligations.tsx
-msgid "Input request sent"
-msgstr "输入请求已发送"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Input requested"
 msgstr "已请求输入"
+
+#. placeholder {0}: formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)
+#: src/routes/obligations.tsx
+msgid "Input requested from {latestInputRequestRecipient} on {0}"
+msgstr "已向 {latestInputRequestRecipient} 请求输入：{0}"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Inspect official sources and their watcher health."
@@ -7398,6 +7385,7 @@ msgstr "已逾期"
 #: src/features/permissions/permission-gate.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
+#: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Owner"
 msgstr "负责人"
@@ -7528,6 +7516,7 @@ msgstr "部分已应用"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Partner"
 msgstr "合伙人"
@@ -8643,11 +8632,6 @@ msgstr "请求 Pulse 审核"
 msgid "Request review"
 msgstr "请求审核"
 
-#: src/features/audit/audit-log-labels.ts
-#: src/routes/obligations.tsx
-msgid "Request type"
-msgstr "请求类型"
-
 #: src/routes/obligations.tsx
 msgid "Requested from client"
 msgstr "已向客户索取"
@@ -8859,7 +8843,6 @@ msgstr "查看事务所范围内的审计事件。"
 msgid "Review reasons"
 msgstr "审核原因"
 
-#: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Review requested"
 msgstr "已请求审核"
@@ -9676,6 +9659,10 @@ msgstr "近 7 天已发送"
 msgid "Sent to {0} · expires {1}"
 msgstr "已发送至 {0} · {1} 过期"
 
+#: src/routes/obligations.tsx
+msgid "Sent to {recipientName}"
+msgstr "已发送给 {recipientName}"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Sent to clients 30 days before the deadline as the early countdown email."
 msgstr "在截止日前 30 天发送给客户，作为早期倒计时邮件。"
@@ -10468,6 +10455,7 @@ msgid "Team and Enterprise plans add capacity pressure, unassigned risk, and rev
 msgstr "Team 和 Enterprise 计划会为每周工作负载分诊增加产能压力、未分配风险和复核压力信号。"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
 msgid "Team member"
 msgstr "团队成员"
 
@@ -10743,6 +10731,10 @@ msgstr "这些列仍会包含在导入草稿中。打开详情即可调整。"
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "They are only shown during setup. Store them somewhere private before verification."
 msgstr "这些恢复码只会在设置期间显示。请在验证前将它们保存在私密位置。"
+
+#: src/routes/obligations.tsx
+msgid "They'll see your note in their inbox and on this deadline."
+msgstr "对方会在收件箱和这个截止事项中看到你的备注。"
 
 #: src/lib/i18n-error.ts
 msgid "This action conflicts with the current state. Refresh and try again."

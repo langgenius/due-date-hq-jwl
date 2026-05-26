@@ -376,12 +376,6 @@ msgstr "{0} ready · {1} estimated deadline matches"
 msgid "{0} recent"
 msgstr "{0} recent"
 
-#. placeholder {0}: requestInputKindText(latestInputRequest.kind, t)
-#. placeholder {1}: formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)
-#: src/routes/obligations.tsx
-msgid "{0} requested from {latestInputRequestRecipient} on {1}"
-msgstr "{0} requested from {latestInputRequestRecipient} on {1}"
-
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} required fact(s) missing"
@@ -3714,10 +3708,6 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Decision needed"
-msgstr "Decision needed"
-
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default tax types are ready for clients without tax types."
 msgstr "Default tax types are ready for clients without tax types."
@@ -4959,10 +4949,6 @@ msgstr "Future business cues"
 msgid "Future edits to facts, risk profile, or deletion will appear here."
 msgstr "Future edits to facts, risk profile, or deletion will appear here."
 
-#: src/features/audit/audit-log-labels.ts
-msgid "FYI"
-msgstr "FYI"
-
 #: src/routes/practice.tsx
 msgid "General"
 msgstr "General"
@@ -5280,14 +5266,15 @@ msgstr "Individual"
 msgid "Information return"
 msgstr "Information return"
 
-#: src/routes/obligations.tsx
-msgid "Input request sent"
-msgstr "Input request sent"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Input requested"
 msgstr "Input requested"
+
+#. placeholder {0}: formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)
+#: src/routes/obligations.tsx
+msgid "Input requested from {latestInputRequestRecipient} on {0}"
+msgstr "Input requested from {latestInputRequestRecipient} on {0}"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Inspect official sources and their watcher health."
@@ -7398,6 +7385,7 @@ msgstr "Overdue"
 #: src/features/permissions/permission-gate.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
+#: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Owner"
 msgstr "Owner"
@@ -7528,6 +7516,7 @@ msgstr "Partially applied"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Partner"
 msgstr "Partner"
@@ -8643,11 +8632,6 @@ msgstr "Request Pulse review"
 msgid "Request review"
 msgstr "Request review"
 
-#: src/features/audit/audit-log-labels.ts
-#: src/routes/obligations.tsx
-msgid "Request type"
-msgstr "Request type"
-
 #: src/routes/obligations.tsx
 msgid "Requested from client"
 msgstr "Requested from client"
@@ -8859,7 +8843,6 @@ msgstr "Review practice-wide audit events."
 msgid "Review reasons"
 msgstr "Review reasons"
 
-#: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Review requested"
 msgstr "Review requested"
@@ -9676,6 +9659,10 @@ msgstr "Sent last 7 days"
 msgid "Sent to {0} · expires {1}"
 msgstr "Sent to {0} · expires {1}"
 
+#: src/routes/obligations.tsx
+msgid "Sent to {recipientName}"
+msgstr "Sent to {recipientName}"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Sent to clients 30 days before the deadline as the early countdown email."
 msgstr "Sent to clients 30 days before the deadline as the early countdown email."
@@ -10468,6 +10455,7 @@ msgid "Team and Enterprise plans add capacity pressure, unassigned risk, and rev
 msgstr "Team and Enterprise plans add capacity pressure, unassigned risk, and review pressure signals for weekly workload triage."
 
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
 msgid "Team member"
 msgstr "Team member"
 
@@ -10743,6 +10731,10 @@ msgstr "These columns are still included in the import draft. Open details to ad
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "They are only shown during setup. Store them somewhere private before verification."
 msgstr "They are only shown during setup. Store them somewhere private before verification."
+
+#: src/routes/obligations.tsx
+msgid "They'll see your note in their inbox and on this deadline."
+msgstr "They'll see your note in their inbox and on this deadline."
 
 #: src/lib/i18n-error.ts
 msgid "This action conflicts with the current state. Refresh and try again."

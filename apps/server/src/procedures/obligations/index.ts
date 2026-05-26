@@ -135,21 +135,6 @@ function deadlineDetailHrefForObligation(obligationId: string): string {
   return `/deadlines/${encodeURIComponent(ref)}/summary`
 }
 
-function requestInputKindNotificationLabel(kind: string): string {
-  switch (kind) {
-    case 'decision_needed':
-      return 'Decision needed'
-    case 'review_requested':
-      return 'Review requested'
-    case 'blocked':
-      return 'Blocked'
-    case 'fyi':
-      return 'FYI'
-    default:
-      return 'Input requested'
-  }
-}
-
 function obligationNotificationSubject(row: ObligationRow, clientName: string | null): string {
   const form = row.formName ?? row.taxType
   return clientName ? `${clientName} - ${form}` : form
@@ -823,7 +808,6 @@ const requestInput = os.obligations.requestInput.handler(async ({ input, context
   const message = input.message.trim()
   const href = deadlineDetailHrefForObligation(input.obligationId)
   const subject = obligationNotificationSubject(obligation, client?.name ?? null)
-  const kindLabel = requestInputKindNotificationLabel(input.kind)
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
     entityType: 'obligation_instance',
@@ -833,7 +817,6 @@ const requestInput = os.obligations.requestInput.handler(async ({ input, context
       recipientUserId: recipient.userId,
       recipientName: recipient.name,
       recipientRole: recipient.role,
-      requestKind: input.kind,
       message,
       href,
     },
@@ -844,11 +827,10 @@ const requestInput = os.obligations.requestInput.handler(async ({ input, context
     entityType: 'obligation_instance',
     entityId: input.obligationId,
     title: `${actor.name} requested input`,
-    body: `${kindLabel} on ${subject}: ${message}`,
+    body: `${subject}: ${message}`,
     href,
     metadataJson: {
       auditId,
-      requestKind: input.kind,
       requestedByUserId: userId,
       requestedByName: actor.name,
       recipientRole: recipient.role,

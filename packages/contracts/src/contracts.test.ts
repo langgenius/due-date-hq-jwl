@@ -44,7 +44,6 @@ import {
   ObligationCreateFromRulesInputSchema,
   ObligationExtensionDecisionInputSchema,
   ObligationRequestInputInputSchema,
-  ObligationRequestInputKindSchema,
   ObligationRequestInputOutputSchema,
   ObligationTaxYearProfileUpdateInputSchema,
   ObligationTaxYearProfileUpdateOutputSchema,
@@ -678,19 +677,12 @@ describe('@duedatehq/contracts', () => {
     })
     expect(bulkOutput.updatedCount).toBe(1)
 
-    expect(ObligationRequestInputKindSchema.options).toEqual([
-      'decision_needed',
-      'review_requested',
-      'blocked',
-      'fyi',
-    ])
     const requestInput = ObligationRequestInputInputSchema.parse({
       obligationId: '11111111-1111-4111-8111-111111111111',
       recipientUserId: 'user_partner_1',
-      kind: 'decision_needed',
       message: 'Please confirm whether to file an extension.',
     })
-    expect(requestInput.kind).toBe('decision_needed')
+    expect(requestInput.message).toBe('Please confirm whether to file an extension.')
     const requestOutput = ObligationRequestInputOutputSchema.parse({
       auditId: '33333333-3333-4333-8333-333333333333',
       notificationId: '44444444-4444-4444-8444-444444444444',

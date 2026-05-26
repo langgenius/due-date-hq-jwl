@@ -94,7 +94,6 @@ import {
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
-  type ObligationRequestInputKind,
   type ObligationReviewStage,
   type AiInsightPublic,
   type AuditEventPublic,
@@ -553,17 +552,10 @@ const DETAIL_PANEL_CONTENT_EXIT_ANIM = {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
-const REQUEST_INPUT_KIND_VALUES = [
-  'decision_needed',
-  'review_requested',
-  'blocked',
-  'fyi',
-] as const satisfies readonly ObligationRequestInputKind[]
 
 type DeadlineInputRequestAudit = {
   recipientName: string | null
   recipientRole: string | null
-  kind: ObligationRequestInputKind | null
   message: string | null
   createdAt: string
 }
@@ -571,16 +563,11 @@ type DeadlineInputRequestAudit = {
 type DeadlineInputRequestDraft = {
   obligationId: string
   recipientUserId: string
-  kind: ObligationRequestInputKind
   message: string
 }
 
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
-}
-
-function isRequestInputKind(value: unknown): value is ObligationRequestInputKind {
-  return REQUEST_INPUT_KIND_VALUES.some((kind) => kind === value)
 }
 
 function readPlainRecord(value: unknown): Record<string, unknown> | null {
@@ -600,48 +587,14 @@ export function latestDeadlineInputRequest(
   for (const event of sorted) {
     if (event.action !== 'obligation.input_requested') continue
     const after = readPlainRecord(event.afterJson)
-    const rawKind = after?.requestKind
     return {
       recipientName: readNonEmptyString(after, 'recipientName'),
       recipientRole: readNonEmptyString(after, 'recipientRole'),
-      kind: isRequestInputKind(rawKind) ? rawKind : null,
       message: readNonEmptyString(after, 'message'),
       createdAt: event.createdAt,
     }
   }
   return null
-}
-
-function requestInputKindText(
-  kind: ObligationRequestInputKind | null,
-  t: (strings: TemplateStringsArray, ...values: unknown[]) => string,
-): string {
-  switch (kind) {
-    case 'decision_needed':
-      return t`Decision needed`
-    case 'review_requested':
-      return t`Review requested`
-    case 'blocked':
-      return t`Blocked`
-    case 'fyi':
-      return t`FYI`
-    default:
-      return t`Input request`
-  }
-}
-
-function requestRecipientRoleText(
-  role: MemberAssigneeOption['role'],
-  t: (strings: TemplateStringsArray, ...values: unknown[]) => string,
-): string {
-  switch (role) {
-    case 'owner':
-      return t`Owner`
-    case 'partner':
-      return t`Partner`
-    default:
-      return t`Team member`
-  }
 }
 
 function deadlineDetailStateObligationId(state: unknown, routeRef: string | null): string | null {
@@ -4695,7 +4648,6 @@ export function ObligationQueueDetailDrawer({
   const [requestInputDraft, setRequestInputDraft] = useState<DeadlineInputRequestDraft>({
     obligationId: '',
     recipientUserId: '',
-    kind: 'decision_needed',
     message: '',
   })
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
@@ -4746,12 +4698,17 @@ export function ObligationQueueDetailDrawer({
   )
   const requestInputMutation = useMutation(
     orpc.obligations.requestInput.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (_result, variables) => {
+        const recipientName =
+          requestRecipients.find((recipient) => recipient.assigneeId === variables.recipientUserId)
+            ?.name ?? t`owner or partner`
         setRequestInputDialogOpen(false)
         setRequestInputDraft((current) => ({ ...current, message: '' }))
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
-        toast.success(t`Input request sent`)
+        toast.success(t`Sent to ${recipientName}`, {
+          description: t`They'll see your note in their inbox and on this deadline.`,
+        })
       },
       onError: (err) => {
         toast.error(t`Couldn't send input request`, {
@@ -4790,7 +4747,7 @@ export function ObligationQueueDetailDrawer({
   )
   const latestInputRequestRecipient = latestInputRequest?.recipientName ?? t`owner or partner`
   const latestInputRequestTitle = latestInputRequest
-    ? t`${requestInputKindText(latestInputRequest.kind, t)} requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
+    ? t`Input requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
     : undefined
   // `obligationTypeLabels` lookup was retired with the header distill
   // (2026-05-21) — the "FILING" badge it backed is gone. If a future
@@ -5478,7 +5435,6 @@ export function ObligationQueueDetailDrawer({
         current.obligationId === row.id
           ? current.recipientUserId || requestRecipients[0]?.assigneeId || ''
           : requestRecipients[0]?.assigneeId || '',
-      kind: current.obligationId === row.id ? current.kind : 'decision_needed',
       message: current.obligationId === row.id ? current.message : '',
     }))
     setRequestInputDialogOpen(true)
@@ -5503,7 +5459,6 @@ export function ObligationQueueDetailDrawer({
     requestInputMutation.mutate({
       obligationId: row.id,
       recipientUserId,
-      kind: requestInputDraft.kind,
       message,
     })
   }
@@ -7074,7 +7029,6 @@ export function ObligationQueueDetailDrawer({
         open={requestInputDialogOpen}
         recipients={requestRecipients}
         selectedRecipientUserId={selectedRequestRecipientUserId}
-        kind={requestInputDraft.kind}
         message={requestInputDraft.message}
         loadingRecipients={requestRecipientsQuery.isLoading}
         submitting={requestInputMutation.isPending}
@@ -7084,9 +7038,6 @@ export function ObligationQueueDetailDrawer({
         }}
         onRecipientChange={(recipientUserId) => {
           setRequestInputDraft((current) => ({ ...current, recipientUserId }))
-        }}
-        onKindChange={(kind) => {
-          setRequestInputDraft((current) => ({ ...current, kind }))
         }}
         onMessageChange={(message) => {
           setRequestInputDraft((current) => ({ ...current, message }))
@@ -7248,37 +7199,37 @@ function DeadlineInputRequestDialog({
   open,
   recipients,
   selectedRecipientUserId,
-  kind,
   message,
   loadingRecipients,
   submitting,
   onOpenChange,
   onRecipientChange,
-  onKindChange,
   onMessageChange,
   onSubmit,
 }: {
   open: boolean
   recipients: readonly MemberAssigneeOption[]
   selectedRecipientUserId: string
-  kind: ObligationRequestInputKind
   message: string
   loadingRecipients: boolean
   submitting: boolean
   onOpenChange: (open: boolean) => void
   onRecipientChange: (recipientUserId: string) => void
-  onKindChange: (kind: ObligationRequestInputKind) => void
   onMessageChange: (message: string) => void
   onSubmit: () => void
 }) {
   const { t } = useLingui()
   const selectedRecipient =
     recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
-  const recipientTriggerText = selectedRecipient
-    ? `${selectedRecipient.name} (${requestRecipientRoleText(selectedRecipient.role, t)})`
-    : loadingRecipients
-      ? t`Loading team`
-      : t`Choose recipient`
+  const roleLabels = {
+    owner: t`Owner`,
+    partner: t`Partner`,
+    manager: t`Team member`,
+    preparer: t`Team member`,
+    coordinator: t`Team member`,
+  } satisfies Record<MemberAssigneeOption['role'], string>
+  const recipientTriggerText =
+    selectedRecipient?.name ?? (loadingRecipients ? t`Loading team` : t`Choose recipient`)
   const submitDisabled =
     submitting || loadingRecipients || !selectedRecipientUserId || message.trim().length === 0
 
@@ -7323,7 +7274,7 @@ function DeadlineInputRequestDialog({
                       </span>
                       <span className="min-w-0 flex-1 truncate">{recipient.name}</span>
                       <span className="text-xs text-text-tertiary">
-                        {requestRecipientRoleText(recipient.role, t)}
+                        {roleLabels[recipient.role]}
                       </span>
                     </DropdownMenuRadioItem>
                   ))}
@@ -7340,38 +7291,6 @@ function DeadlineInputRequestDialog({
                 <Trans>Add an active owner or partner before sending an input request.</Trans>
               </p>
             ) : null}
-          </div>
-          <div className="grid gap-2">
-            <span className="text-sm font-medium text-text-primary">
-              <Trans>Request type</Trans>
-            </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <button
-                    type="button"
-                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-                  >
-                    <span className="truncate">{requestInputKindText(kind, t)}</span>
-                    <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                  </button>
-                }
-              />
-              <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
-                <DropdownMenuRadioGroup
-                  value={kind}
-                  onValueChange={(value) => {
-                    if (isRequestInputKind(value)) onKindChange(value)
-                  }}
-                >
-                  {REQUEST_INPUT_KIND_VALUES.map((option) => (
-                    <DropdownMenuRadioItem key={option} value={option}>
-                      {requestInputKindText(option, t)}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
           <div className="grid gap-2">
             <label htmlFor="deadline-input-request-message" className="text-sm font-medium">

@@ -318,7 +318,6 @@ describe('deadline input request audit chip', () => {
         afterJson: {
           recipientName: 'Olivia Owner',
           recipientRole: 'owner',
-          requestKind: 'review_requested',
           message: 'Please review the extension plan.',
         },
         reason: null,
@@ -338,7 +337,6 @@ describe('deadline input request audit chip', () => {
         afterJson: {
           recipientName: 'Pat Partner',
           recipientRole: 'partner',
-          requestKind: 'decision_needed',
           message: 'Please decide whether to file.',
         },
         reason: null,
@@ -351,7 +349,6 @@ describe('deadline input request audit chip', () => {
     expect(latest).toEqual({
       recipientName: 'Pat Partner',
       recipientRole: 'partner',
-      kind: 'decision_needed',
       message: 'Please decide whether to file.',
       createdAt: '2026-05-26T13:00:00.000Z',
     })

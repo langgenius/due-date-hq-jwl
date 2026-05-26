@@ -508,7 +508,6 @@ describe('obligations.requestInput', () => {
       {
         obligationId: REQUEST_OBLIGATION_ID,
         recipientUserId: PARTNER_USER_ID,
-        kind: 'decision_needed',
         message: ' Please confirm whether we should file the extension. ',
       },
       { context },
@@ -528,7 +527,6 @@ describe('obligations.requestInput', () => {
           recipientUserId: PARTNER_USER_ID,
           recipientName: 'Pat Partner',
           recipientRole: 'partner',
-          requestKind: 'decision_needed',
           message: 'Please confirm whether we should file the extension.',
           href: '/deadlines/999999999999/summary',
         }),
@@ -541,7 +539,7 @@ describe('obligations.requestInput', () => {
         entityType: 'obligation_instance',
         entityId: REQUEST_OBLIGATION_ID,
         title: 'Paula Preparer requested input',
-        body: 'Decision needed on Summit Events LLC - Form 1040: Please confirm whether we should file the extension.',
+        body: 'Summit Events LLC - Form 1040: Please confirm whether we should file the extension.',
         href: '/deadlines/999999999999/summary',
       }),
     )
@@ -563,7 +561,6 @@ describe('obligations.requestInput', () => {
         {
           obligationId: REQUEST_OBLIGATION_ID,
           recipientUserId: PARTNER_USER_ID,
-          kind: 'fyi',
           message: 'For awareness.',
         },
         { context },
@@ -592,7 +589,6 @@ describe('obligations.requestInput', () => {
         {
           obligationId: REQUEST_OBLIGATION_ID,
           recipientUserId: manager.userId,
-          kind: 'blocked',
           message: 'Need partner direction.',
         },
         { context },

@@ -13,11 +13,10 @@ new workflow state.
   - only active preparers can send requests
   - recipients must be active owners or partners
   - self-notification is rejected
-- Wrote an `obligation.input_requested` audit event with recipient, request type, message,
-  and deadline href metadata.
+- Wrote an `obligation.input_requested` audit event with recipient, message, and deadline href
+  metadata.
 - Created an `internal_request` in-app notification for the selected owner or partner.
-- Added a footer `Request input` button in deadline detail, plus a recipient/type/message
-  dialog.
+- Added a footer `Request input` button in deadline detail, plus a recipient/message dialog.
 - Added a non-blocking `Input requested` header chip derived from the latest audit event.
 - Added notification and audit labels, icons, and Lingui catalog entries.
 
