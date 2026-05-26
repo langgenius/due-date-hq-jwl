@@ -17,6 +17,8 @@ locator and copy drift in the seeded deadline flows.
   the latest client/rules/deadlines UI.
 - Stabilized the command-palette E2E helper after CI still missed `Control+K` on Chromium, and
   aligned the clients spec with the current full filing-state display (`California`).
+- Matched the Rule Library pending-filter review CTA wait to the route's initial 20s wait after
+  CI showed the second render path could exceed Playwright's default 5s timeout.
 
 ## Validation
 
@@ -38,3 +40,5 @@ locator and copy drift in the seeded deadline flows.
   - Passed.
 - `pnpm exec playwright test e2e/tests/authenticated-shell.spec.ts e2e/tests/clients.spec.ts e2e/tests/obligations.spec.ts --project=chromium --workers=1 --retries=0`
   - 16 passed.
+- `pnpm exec playwright test e2e/tests/rules-console.spec.ts --project=chromium --workers=1 --retries=0`
+  - 3 passed.
