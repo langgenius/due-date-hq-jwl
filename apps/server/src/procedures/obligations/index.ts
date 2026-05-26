@@ -37,6 +37,7 @@ import { toCoreRule } from '../rules/runtime'
 import {
   buildRuleBackedCreateInput,
   keyForGenerated,
+  reconcileReadinessChecklistsForCreatedRuleObligations,
   sourceUrlForPreview,
 } from '../rules/_obligation-generation'
 
@@ -445,6 +446,15 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
   const now = new Date()
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const { ids } = await scoped.obligations.createBatch(createInputs)
+  await reconcileReadinessChecklistsForCreatedRuleObligations({
+    scoped,
+    userId,
+    obligations: ids.flatMap((id, index) => {
+      const obligation = createInputs[index]
+      return obligation ? [{ id, obligation, client }] : []
+    }),
+    now,
+  })
   await scoped.evidence.writeBatch(
     createInputs.map((created, index) => ({
       obligationInstanceId: ids[index] ?? null,

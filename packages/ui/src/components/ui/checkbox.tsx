@@ -16,10 +16,14 @@ function Checkbox({ className, ...props }: CheckboxPrimitive.Root.Props) {
         'hover:border-components-checkbox-border-hover hover:bg-components-checkbox-bg-unchecked-hover',
         'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         'disabled:cursor-not-allowed disabled:border-components-checkbox-border-disabled disabled:bg-components-checkbox-bg-disabled',
+        'aria-disabled:cursor-not-allowed aria-disabled:border-components-checkbox-border-disabled aria-disabled:bg-components-checkbox-bg-disabled',
+        'data-disabled:cursor-not-allowed data-disabled:border-components-checkbox-border-disabled data-disabled:bg-components-checkbox-bg-disabled',
         'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:aria-checked:border-components-checkbox-bg',
         'data-checked:border-components-checkbox-bg data-checked:bg-components-checkbox-bg data-checked:text-components-checkbox-icon',
         'data-checked:hover:bg-components-checkbox-bg-hover data-checked:hover:border-components-checkbox-bg-hover',
         'data-checked:disabled:border-components-checkbox-bg-disabled-checked data-checked:disabled:bg-components-checkbox-bg-disabled-checked data-checked:disabled:text-components-checkbox-icon-disabled',
+        'data-checked:aria-disabled:border-components-checkbox-bg-disabled-checked data-checked:aria-disabled:bg-components-checkbox-bg-disabled-checked data-checked:aria-disabled:text-components-checkbox-icon-disabled',
+        'data-checked:data-disabled:border-components-checkbox-bg-disabled-checked data-checked:data-disabled:bg-components-checkbox-bg-disabled-checked data-checked:data-disabled:text-components-checkbox-icon-disabled',
         className,
       )}
       {...props}

@@ -42,6 +42,7 @@ describe('readiness procedure helpers', () => {
       },
       client: {
         entityType: 'individual',
+        taxClassification: 'individual',
         state: 'CA',
       },
       userId: 'user_1',

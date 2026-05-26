@@ -46,6 +46,7 @@ interface ReconcileChecklistObligation {
 
 interface ReconcileChecklistClient {
   entityType: string | null
+  taxClassification: string | null
   state: string | null
 }
 
@@ -61,6 +62,7 @@ export async function reconcileChecklistForObligation(input: {
     formName: input.obligation.formName,
     obligationType: input.obligation.obligationType,
     entityType: input.client.entityType,
+    taxClassification: input.client.taxClassification,
     jurisdiction: input.obligation.jurisdiction ?? input.client.state,
   })
   return input.readiness.reconcileDocumentChecklistItems({

@@ -238,4 +238,26 @@ describe('readiness document checklist templates', () => {
       'generic.fallback_readiness',
     )
   })
+
+  it('uses selected form and client tax classification when the tax type is generic', () => {
+    expect(
+      selectReadinessDocumentTemplate({ taxType: 'manual_deadline', formName: 'Form 1040' }).key,
+    ).toBe('1040.individual_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_7004',
+        formName: 'Form 7004',
+        entityType: 'llc',
+        taxClassification: 'partnership',
+      }).key,
+    ).toBe('1065.partnership_return')
+    expect(
+      selectReadinessDocumentTemplate({
+        taxType: 'federal_7004',
+        formName: 'Form 7004',
+        entityType: 'llc',
+        taxClassification: 's_corp',
+      }).key,
+    ).toBe('1120s.s_corporation_return')
+  })
 })

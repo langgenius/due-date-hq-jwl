@@ -4,10 +4,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { describeTaxCode } from '@/lib/tax-codes'
 
 /**
- * Inline human-readable tax-code label with a tooltip exposing the raw
- * code, jurisdiction, and a plain-English description. Use this in
- * text-heavy spots (drawer subtitles, table cells, alt-line under a
- * client name) where the user needs to read a form name, not a
+ * Inline human-readable tax-code label. By default it includes a
+ * tooltip exposing the raw code, jurisdiction, and a plain-English
+ * description; set `tooltip={false}` when the surrounding row already
+ * owns the interaction affordance.
+ *
+ * Use this in text-heavy spots (drawer subtitles, table cells, alt-line
+ * under a client name) where the user needs to read a form name, not a
  * snake_case identifier.
  *
  * For chip-style placements that need a bordered surface use
@@ -17,13 +20,19 @@ function TaxCodeLabel({
   code,
   className,
   asChild = false,
+  tooltip = true,
 }: {
   code: string | null | undefined
   className?: string
   asChild?: boolean
+  tooltip?: boolean
 }) {
   const meta = describeTaxCode(code)
   if (!meta.code) return null
+
+  if (!tooltip) {
+    return <span className={className}>{meta.label}</span>
+  }
 
   const inner = asChild ? (
     <>{meta.label}</>

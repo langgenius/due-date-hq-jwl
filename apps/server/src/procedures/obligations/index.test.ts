@@ -213,6 +213,9 @@ function makeContext(input: {
   const writeAudit = vi.fn(async (_event: Parameters<ScopedRepo['audit']['write']>[0]) => ({
     id: '77777777-7777-4777-8777-777777777777',
   }))
+  const reconcileDocumentChecklistItems = vi.fn(
+    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => [],
+  )
 
   const client = input.client === undefined ? makeClient() : input.client
   const profiles = input.profiles ?? [makeProfile()]
@@ -293,6 +296,21 @@ function makeContext(input: {
     listByFirm: null!,
     list: null!,
   }
+  const readiness: ScopedRepo['readiness'] = {
+    firmId: FIRM_ID,
+    listDocumentChecklistByObligation: null!,
+    createDocumentChecklistItems: null!,
+    reconcileDocumentChecklistItems,
+    updateDocumentChecklistItem: null!,
+    deleteDocumentChecklistItem: null!,
+    listByObligation: null!,
+    createRequest: null!,
+    getRequest: null!,
+    markOpened: null!,
+    revokeRequest: null!,
+    submitResponses: null!,
+    syncDocumentChecklistFromResponses: null!,
+  }
   const scoped: ScopedRepo = {
     firmId: FIRM_ID,
     ai: null!,
@@ -305,7 +323,7 @@ function makeContext(input: {
     obligationQueue: null!,
     workload: null!,
     pulse: null!,
-    readiness: null!,
+    readiness,
     rules,
     migration: null!,
     evidence,
@@ -397,12 +415,25 @@ function makeContext(input: {
     },
   }
 
-  return { context, createdInputs, createBatch, writeEvidenceBatch, writeAudit }
+  return {
+    context,
+    createdInputs,
+    createBatch,
+    writeEvidenceBatch,
+    writeAudit,
+    reconcileDocumentChecklistItems,
+  }
 }
 
 describe('obligations.createFromRule', () => {
   it('creates rule-backed obligations with evidence and audit rows', async () => {
-    const { context, createdInputs, writeEvidenceBatch, writeAudit } = makeContext({})
+    const {
+      context,
+      createdInputs,
+      writeEvidenceBatch,
+      writeAudit,
+      reconcileDocumentChecklistItems,
+    } = makeContext({})
 
     const result = await call(
       obligationsHandlers.createFromRule,
@@ -430,6 +461,17 @@ describe('obligations.createFromRule', () => {
         normalizedValue: 'federal_7004',
       }),
     ])
+    expect(reconcileDocumentChecklistItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        obligationInstanceId: CREATED_OBLIGATION_IDS[0],
+        createdByUserId: USER_ID,
+        template: expect.arrayContaining([
+          expect.objectContaining({
+            templateKey: '1120s.s_corporation_return.s_election',
+          }),
+        ]),
+      }),
+    )
     expect(writeAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'obligation.batch_created',

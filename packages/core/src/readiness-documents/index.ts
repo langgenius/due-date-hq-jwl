@@ -5,6 +5,7 @@ export interface ReadinessDocumentChecklistInput {
   formName?: string | null
   obligationType?: string | null
   entityType?: string | null
+  taxClassification?: string | null
   jurisdiction?: string | null
 }
 
@@ -59,7 +60,14 @@ function normalize(value: string | null | undefined): string {
 }
 
 function searchable(input: ReadinessDocumentChecklistInput): string {
-  return [input.taxType, input.formName, input.obligationType, input.entityType, input.jurisdiction]
+  return [
+    input.taxType,
+    input.formName,
+    input.obligationType,
+    input.entityType,
+    input.taxClassification,
+    input.jurisdiction,
+  ]
     .map(normalize)
     .filter(Boolean)
     .join('_')

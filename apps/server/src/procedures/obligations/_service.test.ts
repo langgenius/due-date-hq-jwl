@@ -900,7 +900,7 @@ describe('updateObligationStatus', () => {
     })
   })
 
-  it('resets review sub-steps when a row re-enters In Review', async () => {
+  it('starts review sub-steps at reviewer review when a row re-enters In Review', async () => {
     const { repo, map } = buildScoped(FIRM, [
       makeRow({
         status: 'waiting_on_client',
@@ -916,13 +916,13 @@ describe('updateObligationStatus', () => {
     })
 
     expect(result.obligation.status).toBe('review')
-    expect(result.obligation.prepStage).toBe('ready_for_prep')
-    expect(result.obligation.reviewStage).toBe('not_required')
-    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
-    expect(map.get(ROW_ID)?.reviewStage).toBe('not_required')
+    expect(result.obligation.prepStage).toBe('prepared')
+    expect(result.obligation.reviewStage).toBe('in_review')
+    expect(map.get(ROW_ID)?.prepStage).toBe('prepared')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
   })
 
-  it('resets review sub-steps in bulk when rows re-enter In Review', async () => {
+  it('starts review sub-steps in bulk at reviewer review when rows re-enter In Review', async () => {
     const rowA = makeRow({
       status: 'waiting_on_client',
       readiness: 'waiting',
@@ -943,13 +943,13 @@ describe('updateObligationStatus', () => {
     })
 
     expect(result.updatedCount).toBe(2)
-    expect(map.get(rowA.id)?.prepStage).toBe('ready_for_prep')
-    expect(map.get(rowA.id)?.reviewStage).toBe('not_required')
-    expect(map.get(rowB.id)?.prepStage).toBe('ready_for_prep')
-    expect(map.get(rowB.id)?.reviewStage).toBe('not_required')
+    expect(map.get(rowA.id)?.prepStage).toBe('prepared')
+    expect(map.get(rowA.id)?.reviewStage).toBe('in_review')
+    expect(map.get(rowB.id)?.prepStage).toBe('prepared')
+    expect(map.get(rowB.id)?.reviewStage).toBe('in_review')
   })
 
-  it('resets review sub-steps when a rejected filing re-enters In Review', async () => {
+  it('starts review sub-steps at reviewer review when a rejected filing re-enters In Review', async () => {
     const { repo, map } = buildScoped(FIRM, [
       makeRow({
         status: 'done',
@@ -962,10 +962,10 @@ describe('updateObligationStatus', () => {
     const result = await markObligationFiledRejected(repo, 'user_1', { id: ROW_ID })
 
     expect(result.obligation.status).toBe('review')
-    expect(result.obligation.prepStage).toBe('ready_for_prep')
-    expect(result.obligation.reviewStage).toBe('not_required')
-    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
-    expect(map.get(ROW_ID)?.reviewStage).toBe('not_required')
+    expect(result.obligation.prepStage).toBe('prepared')
+    expect(result.obligation.reviewStage).toBe('in_review')
+    expect(map.get(ROW_ID)?.prepStage).toBe('prepared')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
   })
 
   it('throws NOT_FOUND when the obligation does not belong to the firm', async () => {

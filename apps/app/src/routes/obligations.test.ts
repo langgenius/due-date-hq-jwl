@@ -10,6 +10,7 @@ import {
   rangeSelectionUpdate,
   reviewPipelineCurrent,
   selectionHeaderState,
+  willReadinessChecklistBeFullyReceived,
 } from './obligations'
 
 describe('obligations quick filters', () => {
@@ -154,18 +155,27 @@ describe('internal extension plan save state', () => {
 })
 
 describe('review workflow step derivation', () => {
-  it('keeps generated review rows at preparing until the draft is sent', () => {
+  it('starts newly entered review rows at reviewing', () => {
     expect(
       reviewPipelineCurrent({
         prepStage: 'ready_for_prep',
         reviewStage: 'not_required',
       }),
-    ).toBe('preparing_return')
+    ).toBe('reviewing_return')
 
     expect(
       reviewPipelineCurrent({
         prepStage: 'ready_for_prep',
         reviewStage: 'ready_for_review',
+      }),
+    ).toBe('reviewing_return')
+  })
+
+  it('keeps explicit in-prep rows at preparing', () => {
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'in_prep',
+        reviewStage: 'not_required',
       }),
     ).toBe('preparing_return')
   })
@@ -215,6 +225,47 @@ describe('materials readiness gating', () => {
     expect(
       countOutstandingReadinessDocuments([{ status: 'received' }, { status: 'received' }]),
     ).toBe(0)
+  })
+
+  it('does not treat an empty checklist as fully received', () => {
+    expect(willReadinessChecklistBeFullyReceived([], new Set())).toBe(false)
+  })
+
+  it('does not advance when an unreceived item remains outside the receive action', () => {
+    expect(
+      willReadinessChecklistBeFullyReceived(
+        [
+          { id: 'w2', status: 'missing' },
+          { id: '1099', status: 'needs_review' },
+        ],
+        new Set(['w2']),
+      ),
+    ).toBe(false)
+  })
+
+  it('advances when the receive action covers every remaining item', () => {
+    expect(
+      willReadinessChecklistBeFullyReceived(
+        [
+          { id: 'w2', status: 'received' },
+          { id: '1099', status: 'missing' },
+          { id: 'k1', status: 'needs_review' },
+        ],
+        new Set(['1099', 'k1']),
+      ),
+    ).toBe(true)
+  })
+
+  it('treats an already received checklist as complete', () => {
+    expect(
+      willReadinessChecklistBeFullyReceived(
+        [
+          { id: 'w2', status: 'received' },
+          { id: '1099', status: 'received' },
+        ],
+        new Set(),
+      ),
+    ).toBe(true)
   })
 })
 

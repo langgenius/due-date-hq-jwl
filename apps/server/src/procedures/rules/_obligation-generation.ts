@@ -6,6 +6,7 @@ import {
   type ObligationRule,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
+import { generateReadinessDocumentChecklist } from '@duedatehq/core/readiness-documents'
 import { buildPenaltyFactsFromLegacy, PENALTY_FACTS_VERSION } from '@duedatehq/core/penalty'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { ClientRow } from '@duedatehq/ports/clients'
@@ -27,6 +28,15 @@ interface GenerateForAcceptedRulesSummary {
   createdCount: number
   duplicateCount: number
   clientCount: number
+}
+
+interface CreatedRuleObligationReadinessInput {
+  id: string
+  obligation: Pick<
+    ObligationCreateInput,
+    'taxType' | 'formName' | 'obligationType' | 'jurisdiction'
+  >
+  client: Pick<ClientRow, 'entityType' | 'taxClassification' | 'state'>
 }
 
 const RULE_GENERATION_STATES = new Set<string>(STATE_RULE_JURISDICTIONS)
@@ -154,8 +164,8 @@ export function buildRuleBackedCreateInput(input: {
     baseDueDate: dueDate,
     currentDueDate: internalDueDate,
     status: input.preview.requiresReview ? 'review' : 'pending',
-    prepStage: input.preview.requiresReview ? 'ready_for_prep' : 'not_started',
-    reviewStage: 'not_required',
+    prepStage: input.preview.requiresReview ? 'prepared' : 'not_started',
+    reviewStage: input.preview.requiresReview ? 'in_review' : 'not_required',
     extensionState:
       input.preview.eventType === 'extension'
         ? 'ready_to_file'
@@ -171,6 +181,31 @@ export function buildRuleBackedCreateInput(input: {
     penaltyFactsVersion: PENALTY_FACTS_VERSION,
     preview: input.preview,
   }
+}
+
+export async function reconcileReadinessChecklistsForCreatedRuleObligations(input: {
+  scoped: Pick<ScopedRepo, 'readiness'>
+  userId: string
+  obligations: readonly CreatedRuleObligationReadinessInput[]
+  now: Date
+}) {
+  await Promise.all(
+    input.obligations.map((entry) =>
+      input.scoped.readiness.reconcileDocumentChecklistItems({
+        obligationInstanceId: entry.id,
+        createdByUserId: input.userId,
+        template: generateReadinessDocumentChecklist({
+          taxType: entry.obligation.taxType,
+          formName: entry.obligation.formName ?? null,
+          obligationType: entry.obligation.obligationType ?? null,
+          entityType: entry.client.entityType,
+          taxClassification: entry.client.taxClassification,
+          jurisdiction: entry.obligation.jurisdiction ?? entry.client.state,
+        }),
+        now: input.now,
+      }),
+    ),
+  )
 }
 
 export async function generateObligationsForAcceptedRules(
@@ -211,6 +246,10 @@ export async function generateObligationsForAcceptedRules(
   const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const createInputs: Array<ObligationCreateInput & { preview: ObligationGenerationPreview }> = []
+  const readinessInputs: Array<{
+    obligation: ObligationCreateInput & { preview: ObligationGenerationPreview }
+    client: ClientRow
+  }> = []
   const clientIdsWithCandidates = new Set<string>()
   let candidateCount = 0
   let duplicateCount = 0
@@ -252,16 +291,16 @@ export async function generateObligationsForAcceptedRules(
         }
 
         seenGeneratedKeys.add(key)
-        createInputs.push(
-          buildRuleBackedCreateInput({
-            client,
-            profile,
-            rule,
-            preview,
-            internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
-            now,
-          }),
-        )
+        const createInput = buildRuleBackedCreateInput({
+          client,
+          profile,
+          rule,
+          preview,
+          internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+          now,
+        })
+        createInputs.push(createInput)
+        readinessInputs.push({ obligation: createInput, client })
       }
     }
   }
@@ -276,6 +315,15 @@ export async function generateObligationsForAcceptedRules(
   }
 
   const { ids } = await input.scoped.obligations.createBatch(createInputs)
+  await reconcileReadinessChecklistsForCreatedRuleObligations({
+    scoped: input.scoped,
+    userId: input.userId,
+    obligations: ids.flatMap((id, index) => {
+      const entry = readinessInputs[index]
+      return entry ? [{ id, obligation: entry.obligation, client: entry.client }] : []
+    }),
+    now,
+  })
   await input.scoped.evidence.writeBatch(
     createInputs.map((created, index) => ({
       obligationInstanceId: ids[index] ?? null,

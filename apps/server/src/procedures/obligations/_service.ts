@@ -276,8 +276,8 @@ async function toObligationPublicFromScoped(
 
 async function resetReviewSubSteps(scoped: ScopedRepo, obligationId: string): Promise<void> {
   await Promise.all([
-    scoped.obligations.setPrepStage(obligationId, 'ready_for_prep'),
-    scoped.obligations.setReviewStage(obligationId, 'not_required'),
+    scoped.obligations.setPrepStage(obligationId, 'prepared'),
+    scoped.obligations.setReviewStage(obligationId, 'in_review'),
   ])
 }
 

@@ -107,6 +107,9 @@ function makeScoped(input: {
     ids: rows.map((_, index) => `evidence_${index + 1}`),
   }))
   const writeAudit = vi.fn(async () => ({ id: 'audit_1' }))
+  const reconcileDocumentChecklistItems = vi.fn(
+    async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => [],
+  )
   const createBatch = vi.fn(async (rows: ObligationCreateInput[]) => {
     createdInputs.push(...rows)
     return { ids: rows.map((_, index) => `obligation_${index + 1}`) }
@@ -134,9 +137,19 @@ function makeScoped(input: {
     audit: {
       write: writeAudit,
     },
+    readiness: {
+      reconcileDocumentChecklistItems,
+    },
   } as unknown as ScopedRepo
 
-  return { scoped, createdInputs, createBatch, writeEvidenceBatch, writeAudit }
+  return {
+    scoped,
+    createdInputs,
+    createBatch,
+    writeEvidenceBatch,
+    writeAudit,
+    reconcileDocumentChecklistItems,
+  }
 }
 
 describe('generateObligationsForAcceptedRules', () => {
@@ -238,7 +251,7 @@ describe('generateObligationsForAcceptedRules', () => {
       taxTypes: ['federal_1040', 'federal_1040_extension'],
       migrationBatchId: null,
     })
-    const { scoped, createdInputs } = makeScoped({
+    const { scoped, createdInputs, reconcileDocumentChecklistItems } = makeScoped({
       clients: [client],
       profiles: new Map([[CLIENT_ID, [profile]]]),
     })
@@ -279,6 +292,16 @@ describe('generateObligationsForAcceptedRules', () => {
           paymentState: 'estimate_needed',
         }),
       ]),
+    )
+    expect(reconcileDocumentChecklistItems).toHaveBeenCalledTimes(2)
+    expect(reconcileDocumentChecklistItems).toHaveBeenCalledWith(
+      expect.objectContaining({
+        obligationInstanceId: 'obligation_1',
+        createdByUserId: USER_ID,
+        template: expect.arrayContaining([
+          expect.objectContaining({ templateKey: '1040.individual_return.w2_forms' }),
+        ]),
+      }),
     )
   })
 
@@ -492,8 +515,8 @@ describe('generateObligationsForAcceptedRules', () => {
         authority: 'Ohio Revised Code Chapter 718',
         filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
         status: 'review',
-        prepStage: 'ready_for_prep',
-        reviewStage: 'not_required',
+        prepStage: 'prepared',
+        reviewStage: 'in_review',
         preview: expect.objectContaining({
           reminderReady: false,
           reviewReasons: ['local_fact_requirements_missing'],

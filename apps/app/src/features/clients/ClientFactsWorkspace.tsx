@@ -3259,16 +3259,10 @@ function FilingPlanYearSection({
                 aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
                 className="min-w-0 flex-1 truncate rounded-sm text-left text-xs font-medium leading-4 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
-                {/* 2026-05-24 (re-critique smoke-test): the previous
-                    shape wrapped `<TaxCodeLabel>` (which renders a
-                    `<TooltipTrigger>` button) inside this outer
-                    button — invalid HTML (`<button>` inside
-                    `<button>`) that fired a hydration error on every
-                    filing-plan render. `asChild` switches the
-                    tooltip trigger to a `<span>` so the row button
-                    stays a single button. The tooltip still fires
-                    via the trigger's pointer handlers on the span. */}
-                <TaxCodeLabel code={obligation.taxType} asChild />
+                {/* 2026-05-26: plain label here. The filing-plan row is
+                    already the interactive target, so the tax-code help
+                    tooltip/cursor reads as a stray hover affordance. */}
+                <TaxCodeLabel code={obligation.taxType} tooltip={false} />
               </button>
               <span className="flex w-[120px] items-baseline gap-1.5 text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.currentDueDate)}
