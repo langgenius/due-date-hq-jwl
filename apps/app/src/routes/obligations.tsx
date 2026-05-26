@@ -100,6 +100,7 @@ import {
   type ClientReadinessRequestPublic,
   type ClientReadinessResponsePublic,
   type ReadinessDocumentChecklistItemPublic,
+  type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
@@ -4597,6 +4598,10 @@ export function ObligationQueueDetailDrawer({
     obligationId: string
     itemIds: ReadonlySet<string>
   }>({ obligationId: '', itemIds: new Set<string>() })
+  const [materialsRequestPreview, setMaterialsRequestPreview] = useState<{
+    open: boolean
+    obligationId: string | null
+  }>({ open: false, obligationId: null })
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -4849,6 +4854,17 @@ export function ObligationQueueDetailDrawer({
     selectedChecklistItemCount === checklistItemIdsForSelection.length
   const checklistGenerating =
     generateChecklistMutation.isPending || autoGenerateChecklistQuery.isFetching
+  const previewRequestEmailMutation = useMutation(
+    orpc.readiness.previewRequestEmail.mutationOptions({
+      onError: (err) => {
+        toast.error(t`Couldn't prepare materials request preview`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const sendRequestMutation = useMutation(
     orpc.readiness.sendRequest.mutationOptions({
       onSuccess: (result) => {
@@ -4864,6 +4880,18 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
+  const previewRequestEmail =
+    previewRequestEmailMutation.data?.obligationId === materialsRequestPreview.obligationId
+      ? previewRequestEmailMutation.data
+      : null
+  function closeMaterialsRequestPreview() {
+    setMaterialsRequestPreview({ open: false, obligationId: null })
+    previewRequestEmailMutation.reset()
+  }
+  function openMaterialsRequestPreview(activeObligationId: string) {
+    setMaterialsRequestPreview({ open: true, obligationId: activeObligationId })
+    previewRequestEmailMutation.mutate({ obligationId: activeObligationId })
+  }
   const addChecklistItemMutation = useMutation(
     orpc.readiness.addChecklistItem.mutationOptions({
       onSuccess: () => {
@@ -6319,12 +6347,12 @@ export function ObligationQueueDetailDrawer({
                         <div className="flex justify-end pt-1">
                           <Button
                             size="sm"
-                            onClick={() =>
-                              sendRequestMutation.mutate({
-                                obligationId: row.id,
-                              })
+                            onClick={() => openMaterialsRequestPreview(row.id)}
+                            disabled={
+                              previewRequestEmailMutation.isPending ||
+                              sendRequestMutation.isPending ||
+                              checklist.length === 0
                             }
-                            disabled={sendRequestMutation.isPending || checklist.length === 0}
                           >
                             <SendIcon data-icon="inline-start" />
                             <Trans>Send to client</Trans>
@@ -6859,6 +6887,32 @@ export function ObligationQueueDetailDrawer({
           </div>
         </div>
       ) : null}
+      <MaterialsRequestPreviewDialog
+        open={materialsRequestPreview.open}
+        preview={previewRequestEmail}
+        loading={previewRequestEmailMutation.isPending}
+        errorMessage={
+          previewRequestEmailMutation.isError
+            ? (rpcErrorMessage(previewRequestEmailMutation.error) ??
+              t`Couldn't prepare materials request preview`)
+            : null
+        }
+        sending={sendRequestMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open) closeMaterialsRequestPreview()
+          else if (materialsRequestPreview.obligationId) {
+            setMaterialsRequestPreview((current) => ({ ...current, open: true }))
+          }
+        }}
+        onSend={() => {
+          const obligationIdToSend = previewRequestEmail?.obligationId
+          if (!obligationIdToSend) return
+          sendRequestMutation.mutate(
+            { obligationId: obligationIdToSend },
+            { onSuccess: closeMaterialsRequestPreview },
+          )
+        }}
+      />
       {row ? (
         /* 2026-05-26 (Yuqi seventieth pass #10): top border dropped.
            The drawer body's content already ends with its own
@@ -6970,6 +7024,181 @@ export function ObligationQueueDetailDrawer({
         {body}
       </SheetContent>
     </Sheet>
+  )
+}
+
+function MaterialsRequestPreviewDialog({
+  open,
+  preview,
+  loading,
+  errorMessage,
+  sending,
+  onOpenChange,
+  onSend,
+}: {
+  open: boolean
+  preview: ReadinessPreviewRequestEmailOutput | null
+  loading: boolean
+  errorMessage: string | null
+  sending: boolean
+  onOpenChange: (open: boolean) => void
+  onSend: () => void
+}) {
+  const emailStatus = preview?.recipientEmail ? (
+    preview.emailWillBeQueued ? (
+      <Badge variant="success">
+        <Trans>Email will be queued</Trans>
+      </Badge>
+    ) : (
+      <Badge variant="secondary">
+        <Trans>Link only</Trans>
+      </Badge>
+    )
+  ) : (
+    <Badge variant="secondary">
+      <Trans>No client email</Trans>
+    </Badge>
+  )
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[min(760px,calc(100vh-2rem))] w-[min(720px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
+          <DialogTitle>
+            <Trans>Preview materials request</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>
+              Review the email generated from the Reminders template before creating the client
+              materials link.
+            </Trans>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
+          {loading ? (
+            <div className="grid gap-3">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : errorMessage ? (
+            <p
+              role="alert"
+              className="rounded-md border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
+            >
+              {errorMessage}
+            </p>
+          ) : preview ? (
+            <>
+              <section className="grid gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                    <Trans>Recipient</Trans>
+                  </span>
+                  {emailStatus}
+                </div>
+                <p className="rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-sm text-text-primary">
+                  {preview.recipientEmail ?? <Trans>A materials link will be created only.</Trans>}
+                </p>
+                {!preview.emailWillBeQueued ? (
+                  <p className="text-xs text-text-tertiary">
+                    {preview.recipientEmail && !preview.templateActive ? (
+                      <Trans>
+                        The template is paused in Reminders, so no email will be queued.
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        The client can still receive the link manually after it is created.
+                      </Trans>
+                    )}
+                  </p>
+                ) : null}
+              </section>
+              <section className="grid gap-2">
+                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                  <Trans>Subject</Trans>
+                </span>
+                <p className="rounded-md border border-divider-subtle p-3 text-sm font-medium text-text-primary">
+                  {preview.subject}
+                </p>
+              </section>
+              <section className="grid gap-2">
+                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                  <Trans>Email body</Trans>
+                </span>
+                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-xs leading-relaxed text-text-primary">
+                  {preview.bodyText}
+                </pre>
+              </section>
+              <div className="grid gap-3 md:grid-cols-2">
+                <MaterialsRequestPreviewChecklist
+                  title={<Trans>Outstanding</Trans>}
+                  items={preview.checklist.outstanding}
+                />
+                <MaterialsRequestPreviewChecklist
+                  title={<Trans>Received</Trans>}
+                  items={preview.checklist.received}
+                />
+              </div>
+            </>
+          ) : null}
+        </div>
+        <DialogFooter className="border-t border-divider-subtle px-6 py-4">
+          <Button variant="outline" render={<Link to="/reminders" />}>
+            <ExternalLinkIcon data-icon="inline-start" />
+            <Trans>Edit template in Reminders</Trans>
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" onClick={onSend} disabled={!preview || loading || sending}>
+            <SendIcon data-icon="inline-start" />
+            {preview?.emailWillBeQueued ? (
+              <Trans>Send request</Trans>
+            ) : (
+              <Trans>Create materials link</Trans>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MaterialsRequestPreviewChecklist({
+  title,
+  items,
+}: {
+  title: ReactNode
+  items: readonly ReadinessDocumentChecklistItemPublic[]
+}) {
+  return (
+    <section className="grid content-start gap-2 rounded-md border border-divider-subtle p-3">
+      <header className="flex items-center gap-2">
+        <h3 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          {title}
+        </h3>
+        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded bg-background-subtle px-1 text-caption-xs font-medium tabular-nums text-text-secondary">
+          {items.length}
+        </span>
+      </header>
+      {items.length === 0 ? (
+        <p className="text-sm text-text-tertiary">
+          <Trans>None</Trans>
+        </p>
+      ) : (
+        <ul className="grid gap-2">
+          {items.map((item) => (
+            <li key={item.id} className="grid gap-0.5 text-sm">
+              <span className="font-medium text-text-primary">{item.label}</span>
+              {item.description ? (
+                <span className="text-xs text-text-secondary">{item.description}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 

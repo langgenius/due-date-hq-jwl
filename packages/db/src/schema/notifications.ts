@@ -38,7 +38,11 @@ export type ReminderChannel = (typeof REMINDER_CHANNELS)[number]
 export const REMINDER_STATUSES = ['pending', 'queued', 'sent', 'skipped', 'failed'] as const
 export type ReminderStatus = (typeof REMINDER_STATUSES)[number]
 
-export const REMINDER_TEMPLATE_KINDS = ['deadline_reminder', 'client_deadline_reminder'] as const
+export const REMINDER_TEMPLATE_KINDS = [
+  'deadline_reminder',
+  'client_deadline_reminder',
+  'readiness_request',
+] as const
 export type ReminderTemplateKind = (typeof REMINDER_TEMPLATE_KINDS)[number]
 
 export const CLIENT_EMAIL_SUPPRESSION_REASONS = ['unsubscribe', 'bounce', 'manual'] as const

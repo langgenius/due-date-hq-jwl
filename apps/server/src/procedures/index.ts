@@ -175,6 +175,7 @@ export const router = os.router({
   },
   readiness: {
     generateChecklist: readinessHandlers.generateChecklist,
+    previewRequestEmail: readinessHandlers.previewRequestEmail,
     sendRequest: readinessHandlers.sendRequest,
     revokeRequest: readinessHandlers.revokeRequest,
     addChecklistItem: readinessHandlers.addChecklistItem,

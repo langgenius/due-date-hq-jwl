@@ -2,7 +2,11 @@ import { oc } from '@orpc/contract'
 import * as z from 'zod'
 import { EntityIdSchema, TenantIdSchema } from './shared/ids'
 
-export const ReminderTemplateKindSchema = z.enum(['deadline_reminder', 'client_deadline_reminder'])
+export const ReminderTemplateKindSchema = z.enum([
+  'deadline_reminder',
+  'client_deadline_reminder',
+  'readiness_request',
+])
 export type ReminderTemplateKind = z.infer<typeof ReminderTemplateKindSchema>
 
 export const ReminderRecipientKindSchema = z.enum(['member', 'client'])

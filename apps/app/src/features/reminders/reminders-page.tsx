@@ -23,7 +23,13 @@ import type {
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@duedatehq/ui/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -93,33 +99,49 @@ function offsetLabel(offsetDays: number) {
   return <Trans>{offsetDays} days before</Trans>
 }
 
-// 2026-05-24 (critique P1 — clarify): a CPA reading the Reminders
-// templates table doesn't want to see `{{client_name}}: {{tax_type}}
-// due {{due_date}}` — they want to see what the recipient will
-// receive. Render the subject against a stable, recognizable sample
-// so the value of the row is "is this readable copy?" not "can I
-// parse this template grammar?".
-//
-// Authors still see the raw mustache in the Edit dialog where it
-// belongs.
-//
-// Keep this in sync with the server-side variable list — currently
-// `client_name`, `tax_type`, `due_date`, `offset_days`,
-// `obligation_url`, `unsubscribe_url`.
-const REMINDER_TEMPLATE_SAMPLE: Record<string, string> = {
-  client_name: 'Acme LLC',
-  tax_type: 'Form 1065',
-  due_date: 'May 15, 2026',
-  offset_days: '7',
-  obligation_url: 'duedatehq.com/o/sample',
-  unsubscribe_url: 'duedatehq.com/u/sample',
+function templateListDescription(template: ReminderTemplatePublic) {
+  if (template.templateKey === 'client-deadline-30-day-reminder') {
+    return <Trans>Sent to clients 30 days before the deadline as the early countdown email.</Trans>
+  }
+  if (template.templateKey === 'client-deadline-7-day-reminder') {
+    return <Trans>Sent to clients 7 days before the deadline as the final countdown email.</Trans>
+  }
+  if (template.kind === 'readiness_request') {
+    return <Trans>Used from Send to client to collect the current checklist from the client.</Trans>
+  }
+  return <Trans>Practice-managed reminder template.</Trans>
 }
 
-function renderReminderTemplatePreview(template: string): string {
-  return template.replace(/\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}/gi, (match, name) => {
-    const replacement = REMINDER_TEMPLATE_SAMPLE[String(name).toLowerCase()]
-    return replacement ?? match
-  })
+function templateDialogDescription(template: ReminderTemplatePublic) {
+  if (template.templateKey === 'client-deadline-30-day-reminder') {
+    return (
+      <Trans>
+        This is the 30-day client countdown email. Variables: client_name, tax_type, due_date,
+        offset_days, obligation_url, and unsubscribe_url.
+      </Trans>
+    )
+  }
+  if (template.templateKey === 'client-deadline-7-day-reminder') {
+    return (
+      <Trans>
+        This is the 7-day client countdown email. Variables: client_name, tax_type, due_date,
+        offset_days, obligation_url, and unsubscribe_url.
+      </Trans>
+    )
+  }
+  if (template.kind === 'readiness_request') {
+    return (
+      <Trans>
+        This template is used when Materials sends a checklist collection request. Variables:
+        client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist.
+      </Trans>
+    )
+  }
+  return (
+    <Trans>
+      Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url.
+    </Trans>
+  )
 }
 
 function StatTile({
@@ -175,7 +197,12 @@ export function RemindersPage() {
         breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Reminders` }]}
         title={<Trans>Reminders</Trans>}
         actions={
-          <Button render={<Link to="/notifications" />} variant="outline" size="sm">
+          <Button
+            render={<Link to="/notifications" />}
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+          >
             <BellIcon data-icon="inline-start" />
             <Trans>Personal inbox</Trans>
           </Button>
@@ -201,7 +228,7 @@ export function RemindersPage() {
           icon={AlarmClockIcon}
           label={<Trans>Upcoming</Trans>}
           value={overview?.upcomingCount ?? 0}
-          caption={<Trans>30 / 7 / 1 day and overdue</Trans>}
+          caption={<Trans>30 / 7 days and overdue</Trans>}
         />
         <StatTile
           icon={SendIcon}
@@ -270,6 +297,12 @@ function TemplatesPanel({
         <CardTitle>
           <Trans>Reminder templates</Trans>
         </CardTitle>
+        <CardDescription>
+          <Trans>
+            Edit the practice-managed 30-day countdown, 7-day countdown, and checklist collection
+            emails.
+          </Trans>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -298,16 +331,8 @@ function TemplatesPanel({
                   <TableCell>
                     <div className="grid gap-1 whitespace-normal">
                       <span className="font-medium text-text-primary">{template.name}</span>
-                      {/* 2026-05-24 (critique P1 — clarify): render
-                          the subject against sample data so a CPA
-                          sees what their client will receive
-                          ("Acme LLC: Form 1065 due May 15, 2026"),
-                          not the raw mustache syntax
-                          ("{{client_name}}: {{tax_type}} due
-                          {{due_date}}"). The raw syntax still shows
-                          in the Edit dialog where authors need it. */}
                       <span className="text-xs text-text-tertiary">
-                        {renderReminderTemplatePreview(template.subject)}
+                        {templateListDescription(template)}
                       </span>
                     </div>
                   </TableCell>
@@ -362,7 +387,7 @@ function UpcomingPanel({
           </p>
         ) : reminders.length === 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
-            <Trans>No upcoming reminders match the current 30 / 7 / 1-day windows.</Trans>
+            <Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>
           </p>
         ) : (
           <Table>
@@ -588,12 +613,7 @@ function TemplateDialog({
       <DialogContent className="w-[680px]">
         <DialogHeader>
           <DialogTitle>{template.name}</DialogTitle>
-          <DialogDescription>
-            <Trans>
-              Variables use double braces, for example client_name, tax_type, due_date, offset_days,
-              obligation_url, or unsubscribe_url.
-            </Trans>
-          </DialogDescription>
+          <DialogDescription>{templateDialogDescription(template)}</DialogDescription>
         </DialogHeader>
         <form
           className="grid gap-4"

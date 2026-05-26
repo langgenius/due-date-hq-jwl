@@ -1084,7 +1084,7 @@ function PreviewResultsCard({
         tone="success"
         label={
           <ConceptLabel concept="reminderReady">
-            {t`REMINDER READY — ${reminderReady.length} deadline, will fire 30 / 7 / 1-day reminders`}
+            {t`REMINDER READY — ${reminderReady.length} deadline, will fire 30 / 7-day reminders`}
           </ConceptLabel>
         }
       />

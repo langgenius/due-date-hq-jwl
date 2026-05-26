@@ -73,6 +73,7 @@ import {
   WorkloadWindowMaxDays,
   workloadContract,
 } from './workload'
+import { ReminderTemplateKindSchema } from './reminders'
 import {
   MatrixSelectionSchema,
   MappingTargetSchema,
@@ -466,6 +467,14 @@ describe('@duedatehq/contracts', () => {
 
   it('keeps the obligation readiness enum stable', () => {
     expect(ObligationReadinessSchema.options).toEqual(['ready', 'waiting', 'needs_review'])
+  })
+
+  it('keeps reminder template kinds stable', () => {
+    expect(ReminderTemplateKindSchema.options).toEqual([
+      'deadline_reminder',
+      'client_deadline_reminder',
+      'readiness_request',
+    ])
   })
 
   it('allows readiness portal checklist payloads up to thirty items', () => {
