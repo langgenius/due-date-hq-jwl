@@ -44,14 +44,6 @@ import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
 import { PulseStructuredFields } from './components/PulseStructuredFields'
-// PulsingDot + pulseAlertTone helpers retained for any future
-// usage; no current consumer in this file (drawer header dot
-// removed 2026-05-26 per Yuqi /rules/pulse #3).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  pulseAlertTone as _pulseAlertTone,
-  pulseAlertToneLabel as _pulseAlertToneLabel,
-} from './pulse-alert-tone'
 import {
   usePulseInvalidation,
   usePulseDetailQueryOptions,
