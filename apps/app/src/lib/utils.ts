@@ -151,3 +151,13 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   if (abs < MS_PER_YEAR) return ago(Math.round(abs / MS_PER_MONTH), 'mo')
   return ago(Math.round(abs / MS_PER_YEAR), 'y')
 }
+
+/**
+ * Whole-day count from start → end, floored at zero. Both inputs are
+ * ISO-8601 date or datetime strings. Used for cycle-time / aging
+ * calculations where partial days round to whole days.
+ */
+export function daysBetween(startIso: string, endIso: string): number {
+  const ms = new Date(endIso).getTime() - new Date(startIso).getTime()
+  return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)))
+}

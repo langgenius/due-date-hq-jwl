@@ -50,7 +50,6 @@ import {
   Columns3Icon,
   CopyIcon,
   DownloadIcon,
-  EllipsisVerticalIcon,
   ExternalLinkIcon,
   EyeIcon,
   FileArchiveIcon,
@@ -63,7 +62,6 @@ import {
   SendIcon,
   PlusIcon,
   SearchIcon,
-  Trash2Icon,
   UserRoundIcon,
   XIcon,
 } from 'lucide-react'
@@ -97,7 +95,6 @@ import {
   type ObligationReviewStage,
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
-  type ClientReadinessResponsePublic,
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
@@ -188,7 +185,6 @@ import {
   ObligationQueueStatusControl,
   STATUS_ICON,
   STATUS_ICON_COLOR,
-  STATUS_VARIANT,
   useLifecycleV2StatusLabels,
   useStatusLabels,
   type ObligationStatus,
@@ -208,7 +204,11 @@ import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProv
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
+import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
+import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { initialsFromName } from '@/lib/auth'
@@ -217,6 +217,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   cn,
+  daysBetween,
   formatCents,
   formatDate,
   formatDatePretty,
@@ -8235,192 +8236,6 @@ function ReadinessOverview({
   )
 }
 
-// One persisted document row in the readiness checklist. The checkbox is
-// the CPA-owned source of truth; client portal responses only annotate
-// and can move the same item into review/missing/received states.
-function ChecklistItemRow({
-  item,
-  response,
-  pending,
-  selected,
-  selectionDisabled,
-  onToggleSelect,
-  onStatusChange,
-  onLabelCommit: _onLabelCommit,
-  onDescriptionCommit: _onDescriptionCommit,
-  onNoteCommit: _onNoteCommit,
-  onRemove,
-}: {
-  item: ReadinessDocumentChecklistItemPublic
-  response: ClientReadinessResponsePublic | null
-  pending: boolean
-  // Multi-select model (2026-05-23). The leading Checkbox tracks
-  // selection (for the floating "Mark client docs received" batch
-  // action), NOT the item's received-state. Status is communicated
-  // via the small inline status chip on received / needs-review
-  // items; mutating status one-at-a-time happens via the row body
-  // click-through (future: dedicated inline editor) or the floating
-  // bar's batch action.
-  selected: boolean
-  selectionDisabled: boolean
-  onToggleSelect: () => void
-  onStatusChange: (status: ReadinessDocumentChecklistItemPublic['status']) => void
-  // Inline label/description/note editing was wired through these
-  // callbacks. The new card visual is read-only (matches Figma) so
-  // they're accepted but unused here; the underscore prefix silences
-  // eslint while we keep the prop contract stable for the call site.
-  // Restore the inline editor in a follow-up by re-introducing a
-  // collapsible editor section toggled by a small overflow menu.
-  onLabelCommit: (label: string) => void
-  onDescriptionCommit: (description: string) => void
-  onNoteCommit: (note: string) => void
-  onRemove: () => void
-}) {
-  const { t } = useLingui()
-  const received = item.status === 'received'
-  const needsReview = item.status === 'needs_review'
-  const responseBadge = response
-    ? (() => {
-        switch (response.status) {
-          case 'ready':
-            return { variant: 'success' as const, label: t`Client ready` }
-          case 'not_yet':
-            return { variant: 'warning' as const, label: t`Not yet` }
-          case 'need_help':
-            return { variant: 'destructive' as const, label: t`Needs help` }
-        }
-        return { variant: 'outline' as const, label: response.status }
-      })()
-    : null
-  // 2026-05-23 (drawer fidelity pass): card visual rebuilt against
-  // the Figma target. Per-row chrome stripped — no Mark received
-  // button, no chevron expand, no italic info-icon description.
-  // The card now reads as a clean checkbox + title + description
-  // block; status is a small chip on the right when non-default;
-  // selection state shows a strong accent border + filled checkbox.
-  // The floating action bar at the bottom of the drawer owns the
-  // mark-received affordance (single-item case: select one, click
-  // bar). Edit/delete moved behind an overflow menu (… on hover).
-  return (
-    <div
-      className={cn(
-        'group/checklist-item rounded-md border bg-background-default p-3 transition-colors',
-        selected
-          ? 'border-accent-default ring-2 ring-accent-default/20'
-          : 'border-divider-subtle hover:border-divider-regular',
-        received && !selected && 'bg-background-subtle',
-        selectionDisabled && 'border-divider-regular bg-background-subtle opacity-60',
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <Checkbox
-          aria-label={
-            selectionDisabled
-              ? t`Document ${item.label} already received`
-              : selected
-                ? t`Deselect document ${item.label}`
-                : t`Select document ${item.label} for batch action`
-          }
-          checked={selected}
-          disabled={pending || selectionDisabled}
-          onCheckedChange={onToggleSelect}
-          className={cn('mt-0.5 shrink-0', selectionDisabled && 'opacity-50 grayscale')}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                'truncate text-sm font-medium leading-tight',
-                received ? 'text-text-secondary' : 'text-text-primary',
-              )}
-            >
-              {item.label}
-            </span>
-            {/* Status chip — sits inline with the title on the right
-                so received / needs-review state is visible at a
-                glance without a per-row action button. Default
-                (missing) shows nothing; the absence is the signal. */}
-            {received ? (
-              <Badge variant="success" className="text-caption-xs uppercase tracking-wide">
-                <CheckCircle2Icon className="size-3" aria-hidden />
-                <Trans>Received</Trans>
-              </Badge>
-            ) : needsReview ? (
-              <Badge variant="destructive" className="text-caption-xs uppercase tracking-wide">
-                <AlertTriangleIcon className="size-3" aria-hidden />
-                <Trans>Needs review</Trans>
-              </Badge>
-            ) : null}
-            {responseBadge ? (
-              <Badge
-                variant={responseBadge.variant}
-                className="text-caption-xs uppercase tracking-wide"
-              >
-                {responseBadge.label}
-              </Badge>
-            ) : null}
-          </div>
-          {item.description ? (
-            <p className="mt-1 text-xs leading-snug text-text-tertiary">{item.description}</p>
-          ) : null}
-          {response?.note ? (
-            <p className="mt-1.5 rounded-sm bg-background-section px-2 py-1 text-xs text-text-secondary">
-              <Trans>Client note</Trans>: {response.note}
-              {response.etaDate ? (
-                <>
-                  {' '}
-                  · <Trans>ETA {formatDate(response.etaDate)}</Trans>
-                </>
-              ) : null}
-            </p>
-          ) : null}
-        </div>
-        {/* Overflow menu — accessible per-row delete + mark-needs-
-            review without exposing them as chrome on every card.
-            Renders only on hover/focus to keep the default state
-            calm (matches the Figma's clean card surface). */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                aria-label={t`More actions for ${item.label}`}
-                className="shrink-0 rounded-md p-1 text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/checklist-item:opacity-100"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <EllipsisVerticalIcon className="size-4" aria-hidden />
-              </button>
-            }
-          />
-          <DropdownMenuContent align="end" className="min-w-[11rem] whitespace-nowrap">
-            {!needsReview ? (
-              <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
-                <AlertTriangleIcon className="size-4" aria-hidden />
-                <span>
-                  <Trans>Mark needs review</Trans>
-                </span>
-              </DropdownMenuItem>
-            ) : null}
-            {received ? (
-              <DropdownMenuItem onClick={() => onStatusChange('missing')} disabled={pending}>
-                <span>
-                  <Trans>Mark not received</Trans>
-                </span>
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem onClick={onRemove} variant="destructive">
-              <Trash2Icon className="size-4" aria-hidden />
-              <span>
-                <Trans>Remove</Trans>
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
-  )
-}
-
 // Format a tax-period span. Full calendar years collapse to just
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
@@ -9188,28 +9003,11 @@ const STAGE_STATUS_GROUPS: Record<TimelineStageKey, ReadonlySet<ObligationStatus
   completed: new Set(['completed'] as const),
 }
 
-// Per-stage canonical "what's next" task list. Surfaced in the
-// ActiveStageDetailCard below the milestone strip. Tasks come in three
-// flavours:
-//   - mutation: tapping it should fire a state-change mutation (e.g.
-//               "Mark filed" calls changeStatusMutation with `done`)
-//   - routing : navigates somewhere else (Readiness tab, the upstream
-//               blocking obligation, the Evidence tab)
-//   - manual  : passive ☐ — the CPA confirms it themselves
-// For the static prototype shipped 2026-05-21, tasks render as visual
-// checklist rows ONLY — no mutations or routes are wired yet. Next pass
-// will bind mutation tasks to the existing mutations and routing tasks
-// to tab/route handlers.
-type StageTaskFlavor = 'mutation' | 'routing' | 'manual'
-
-type StageTask = {
-  id: string
-  label: string
-  flavor: StageTaskFlavor
-  primary?: boolean
-  hint?: string
-}
-
+// `StageTask` and `StageActions` (the render component) live in
+// `@/features/obligations/StageActions`. The flavor system + rendering
+// rules are documented there. ActiveStageDetailCard's useMemo below
+// builds the per-stage task list.
+//
 // Note: task labels are populated INSIDE ActiveStageDetailCard via
 // useLingui's `t` (see useMemo below). Earlier we factored this out
 // to a standalone `canonicalTasksForStage(stageKey, row, t)` helper,
@@ -9287,11 +9085,6 @@ function computePastStageEntries(auditEvents: readonly AuditEventPublic[]): Past
     exitAt: span.exitAt ?? span.entryAt,
     events: span.events,
   }))
-}
-
-function daysBetween(startIso: string, endIso: string): number {
-  const ms = new Date(endIso).getTime() - new Date(startIso).getTime()
-  return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)))
 }
 
 // Canonical e-file sub-status pipeline. Linear path the row walks
@@ -9415,258 +9208,11 @@ function pipelineStateOf<T extends string>(
   return 'upcoming'
 }
 
-// StageActions — the actionable surface for the active stage.
-// Restructured 2026-05-21 because the prior "list of mixed-shape
-// checkboxes" pattern read as chaotic: square boxes (manual) sitting
-// alongside an accent-ring dot (primary mutation) sitting alongside
-// ghost mutation rows. Nothing read as a clear "click here" button;
-// the primary task looked like a selected radio item.
-//
-// New visual hierarchy:
-//   1. Primary mutation task    → solid <Button>. Unmistakable CTA.
-//   2. Other mutation/routing   → ghost <Button> with right-edge glyph.
-//   3. Manual reminders         → single tertiary text line beneath,
-//                                  not a checklist (manual tasks have
-//                                  no backing schema and confused
-//                                  CPAs into thinking they could
-//                                  check them off in-app).
-//
-// Renders nothing if the task list is empty.
-function StageActions({
-  tasks,
-  onTaskClick,
-}: {
-  tasks: StageTask[]
-  onTaskClick: (task: StageTask) => void
-}) {
-  const primary = tasks.find((task) => task.primary && task.flavor === 'mutation')
-  const secondary = tasks.filter(
-    (task) => task !== primary && (task.flavor === 'mutation' || task.flavor === 'routing'),
-  )
-  const reminders = tasks.filter((task) => task.flavor === 'manual')
-  if (!primary && secondary.length === 0 && reminders.length === 0) return null
-  return (
-    // 2026-05-26 (Yuqi feedback #14): tighter gap between primary
-    // button + secondary links + reminder line. gap-2 (8px) read
-    // as too loose between buttons that all share one decision
-    // context. gap-1 (4px) lets the cluster scan as one stage
-    // action group.
-    <div className="flex flex-col gap-1">
-      {primary ? (
-        <Button
-          size="sm"
-          onClick={() => onTaskClick(primary)}
-          title={primary.hint ?? undefined}
-          className="w-fit"
-        >
-          {primary.label}
-        </Button>
-      ) : null}
-      {secondary.length > 0 ? (
-        <ul className="flex flex-col gap-0.5">
-          {secondary.map((task) => {
-            const destructive = task.id === 'mark-blocked'
-            return (
-              <li key={task.id} className="flex">
-                <Button
-                  variant={destructive ? 'destructive-ghost' : 'ghost'}
-                  size="sm"
-                  onClick={() => onTaskClick(task)}
-                  title={task.hint ?? undefined}
-                  className={cn(
-                    'h-7 justify-start gap-1.5 px-2 text-xs font-normal',
-                    !destructive && '-mx-2',
-                    !destructive && 'text-text-secondary',
-                  )}
-                >
-                  <span className="flex-1 text-left">{task.label}</span>
-                  {task.flavor === 'routing' ? (
-                    <ArrowUpRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  ) : destructive ? null : (
-                    <ChevronRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  )}
-                </Button>
-              </li>
-            )
-          })}
-        </ul>
-      ) : null}
-      {reminders.length > 0 ? (
-        <p className="text-caption leading-snug text-text-tertiary">
-          {reminders.map((task) => task.label).join(' · ')}
-        </p>
-      ) : null}
-    </div>
-  )
-}
-
-/**
- * Inline blocker card rendered on the Blocked stage. Shows the
- * upstream obligation's form / client / due / current status so the
- * CPA understands WHY this row is blocked without leaving the
- * drawer. The whole card is clickable — opens the blocker's drawer
- * via the same provider the queue + client detail use.
- *
- * Fetches via `obligations.getDetail` (the same query the drawer
- * itself uses), so when the CPA clicks through to the blocker the
- * data is already in cache and the destination drawer opens
- * instantly.
- */
-function BlockerContextCard({
-  blockerId,
-  onOpen,
-}: {
-  blockerId: string
-  onOpen: (id: string) => void
-}) {
-  const { t } = useLingui()
-  const detailQuery = useQuery({
-    ...orpc.obligations.getDetail.queryOptions({
-      input: { obligationId: blockerId },
-    }),
-    enabled: blockerId !== '',
-  })
-  const labels = useLifecycleV2StatusLabels()
-  const blocker = detailQuery.data?.row ?? null
-  if (detailQuery.isLoading || !blocker) {
-    return (
-      <div
-        role="status"
-        aria-label={t`Loading blocker details`}
-        className="rounded-md border border-divider-subtle bg-background-subtle p-3"
-      >
-        <Skeleton className="h-3 w-1/2" />
-        <Skeleton className="mt-2 h-3 w-1/3" />
-      </div>
-    )
-  }
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(blockerId)}
-      className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
-      aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
-    >
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-          <Trans>Blocked by</Trans>
-        </span>
-        <ArrowUpRightIcon
-          className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
-          aria-hidden
-        />
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="text-sm font-medium text-text-primary">
-          {formatTaxCode(blocker.taxType)}
-        </span>
-        <span className="text-xs text-text-secondary">{blocker.clientName}</span>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-        <Badge variant={STATUS_VARIANT[blocker.status]} className="text-caption-xs">
-          {labels[blocker.status]}
-        </Badge>
-        <span className="tabular-nums">
-          <Trans>Due {formatDate(blocker.currentDueDate)}</Trans>
-        </span>
-      </div>
-    </button>
-  )
-}
-
 // 2026-05-23: WaitingOutstandingDocs component retired with Option D.
 // The full panel (count header + bullet list of doc names + routing
 // button) duplicated content from the Client readiness tab. Replaced
 // inline in ActiveStageDetailCard with a one-line signal that links
 // to the tab; the tab owns the actual document inventory.
-
-/**
- * Inline key-dates summary rendered on the Completed stage. The
- * terminal stage card is otherwise sparse — just a stage label and
- * a "Archive workpapers" reminder. CPAs landing on a closed
- * obligation are usually answering "when did this close and how
- * long did it take" for client communication or year-end review;
- * this card surfaces those answers without forcing a trip to the
- * Dates panel.
- *
- * Dates derived from audit events:
- *  - Filed: first event where status became `done`
- *  - Completed: first event where status became `completed`
- *  - Total turnaround: createdAt → completed (in days)
- *
- * `row.createdAt` is always available; the other two only render if
- * we have audit evidence for them (some rows skip directly to
- * completed via the status picker without a `done` intermediate
- * stop — for those, the Filed row is omitted).
- */
-function CompletedKeyDates({
-  row,
-  auditEvents,
-}: {
-  row: ObligationQueueRow
-  auditEvents: readonly AuditEventPublic[]
-}) {
-  const { t } = useLingui()
-  const [filedAt, completedAt] = useMemo(() => {
-    let filed: string | null = null
-    let completed: string | null = null
-    for (const event of auditEvents) {
-      if (event.action !== 'status_changed') continue
-      if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
-      const after = (event.afterJson as { status?: unknown }).status
-      if (typeof after !== 'string') continue
-      if (after === 'done' && !filed) filed = event.createdAt
-      if (after === 'completed' && !completed) completed = event.createdAt
-    }
-    return [filed, completed]
-  }, [auditEvents])
-  const turnaroundDays = useMemo(() => {
-    if (!completedAt) return null
-    return daysBetween(row.createdAt, completedAt)
-  }, [row.createdAt, completedAt])
-  const rows: Array<{ label: string; value: string }> = [
-    // 2026-05-26 (86th pass): user-facing Key Dates panel uses prose
-    // dates per audit cross-cutting A.
-    { label: t`Opened`, value: formatDatePretty(row.createdAt.slice(0, 10)) },
-  ]
-  if (filedAt) rows.push({ label: t`Filed`, value: formatDatePretty(filedAt.slice(0, 10)) })
-  if (completedAt)
-    rows.push({ label: t`Completed`, value: formatDatePretty(completedAt.slice(0, 10)) })
-  return (
-    // 2026-05-26 (Yuqi feedback — "too many lines"): dropped the
-    //   `rounded-md border border-divider-regular bg-background-subtle p-3`
-    //   chrome on this inner panel. It sat INSIDE the already-tinted
-    //   `ActiveStageDetailCard` and was painting a redundant rule
-    //   right beneath the card's own outline. The KEY DATES uppercase
-    //   tag + the gap-y-1 dl below carry enough section grouping on
-    //   their own — no frame needed. The consumer call site wraps
-    //   this in `<div className="mt-3">`, so no margin is needed
-    //   here.
-    <div>
-      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-        <Trans>Key dates</Trans>
-      </p>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-        {rows.map((r) => (
-          <Fragment key={r.label}>
-            <dt className="text-text-tertiary">{r.label}</dt>
-            <dd className="text-right tabular-nums text-text-primary">{r.value}</dd>
-          </Fragment>
-        ))}
-        {turnaroundDays !== null ? (
-          <>
-            <dt className="text-text-tertiary">
-              <Trans>Cycle time</Trans>
-            </dt>
-            <dd className="text-right tabular-nums text-text-secondary">
-              <Plural value={turnaroundDays} one="# day" other="# days" />
-            </dd>
-          </>
-        ) : null}
-      </dl>
-    </div>
-  )
-}
 
 function ActiveStageDetailCard({
   row,
