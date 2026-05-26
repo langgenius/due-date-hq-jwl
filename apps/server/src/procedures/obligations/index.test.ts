@@ -194,6 +194,7 @@ function makeContext(input: {
   profiles?: ClientFilingProfileRow[]
   duplicates?: ObligationInstanceRow[]
   practiceRule?: PracticeRuleRow | null
+  practiceRules?: PracticeRuleRow[]
 }) {
   const rows: ObligationInstanceRow[] = []
   const createdInputs: ObligationCreateInput[] = []
@@ -219,6 +220,9 @@ function makeContext(input: {
 
   const client = input.client === undefined ? makeClient() : input.client
   const profiles = input.profiles ?? [makeProfile()]
+  const practiceRules =
+    input.practiceRules ??
+    (input.practiceRule !== undefined && input.practiceRule !== null ? [input.practiceRule] : [])
   const clients: ScopedRepo['clients'] = {
     firmId: FIRM_ID,
     create: null!,
@@ -249,7 +253,9 @@ function makeContext(input: {
     upsertGlobalTemplates: null!,
     listPracticeRules: null!,
     listActivePracticeRules: null!,
-    getPracticeRule: vi.fn(async () => input.practiceRule ?? null),
+    getPracticeRule: vi.fn(
+      async (ruleId: string) => practiceRules.find((rule) => rule.ruleId === ruleId) ?? null,
+    ),
     upsertPracticeRule: null!,
     ensureReviewTasks: null!,
     listReviewTasks: null!,
@@ -482,6 +488,118 @@ describe('obligations.createFromRule', () => {
         }),
       }),
     )
+  })
+
+  it('creates multiple selected rules in one manual batch', async () => {
+    const { context, createdInputs, writeEvidenceBatch, writeAudit } = makeContext({
+      practiceRules: [makePracticeRule('ny.ct3s.return.2025')],
+    })
+
+    const result = await call(
+      obligationsHandlers.createFromRules,
+      {
+        clientId: CLIENT_ID,
+        selections: [
+          { ruleId: 'fed.7004.extension.1120s.2025' },
+          { ruleId: 'ny.ct3s.return.2025' },
+        ],
+      },
+      { context },
+    )
+
+    expect(result.duplicateCount).toBe(0)
+    expect(result.obligations).toHaveLength(2)
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        jurisdiction: 'FED',
+        ruleId: 'fed.7004.extension.1120s.2025',
+        formName: 'Form 7004',
+      }),
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        jurisdiction: 'NY',
+        ruleId: 'ny.ct3s.return.2025',
+        formName: 'Form CT-3-S',
+      }),
+    ])
+    expect(writeEvidenceBatch).toHaveBeenCalledWith([
+      expect.objectContaining({
+        sourceId: 'fed.7004.extension.1120s.2025',
+        normalizedValue: 'federal_7004',
+      }),
+      expect.objectContaining({
+        sourceId: 'ny.ct3s.return.2025',
+        normalizedValue: 'ny_ct3s',
+      }),
+    ])
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'obligation.batch_created',
+        after: expect.objectContaining({
+          ruleIds: ['fed.7004.extension.1120s.2025', 'ny.ct3s.return.2025'],
+          createdCount: 2,
+        }),
+      }),
+    )
+  })
+
+  it('allows a state rule without an existing client filing profile', async () => {
+    const { context, createdInputs } = makeContext({
+      client: makeClient({ state: 'CA' }),
+      profiles: [makeProfile({ state: 'CA' })],
+      practiceRules: [makePracticeRule('ny.ct3s.return.2025')],
+    })
+
+    const result = await call(
+      obligationsHandlers.createFromRules,
+      {
+        clientId: CLIENT_ID,
+        selections: [{ ruleId: 'ny.ct3s.return.2025' }],
+      },
+      { context },
+    )
+
+    expect(result.duplicateCount).toBe(0)
+    expect(result.obligations).toHaveLength(1)
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        clientFilingProfileId: null,
+        jurisdiction: 'NY',
+        ruleId: 'ny.ct3s.return.2025',
+        formName: 'Form CT-3-S',
+      }),
+    ])
+  })
+
+  it('honors a manually selected active rule even when the client entity differs', async () => {
+    const { context, createdInputs } = makeContext({
+      client: makeClient({ entityType: 'c_corp', taxClassification: 'c_corp', state: 'CA' }),
+      profiles: [makeProfile({ state: 'CA' })],
+    })
+
+    const result = await call(
+      obligationsHandlers.createFromRule,
+      {
+        clientId: CLIENT_ID,
+        ruleId: 'fed.1040.return.2025',
+      },
+      { context },
+    )
+
+    expect(result.duplicateCount).toBe(0)
+    expect(result.obligations).toHaveLength(1)
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        jurisdiction: 'FED',
+        taxType: 'federal_1040',
+        ruleId: 'fed.1040.return.2025',
+        formName: 'Form 1040',
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+    ])
   })
 
   it('does not put concrete draft AI ids on manually created obligation evidence rows', async () => {

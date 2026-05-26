@@ -279,6 +279,12 @@ In priority order:
    rule / gap / search variants; focused state styling consistent
    with /deadlines; table-card frame respects gap-4 between
    search bar and grid.
+8. **Stripe S14 — multi-color stacked progress bar** —
+   [SHIPPED 2026-05-26 via agent 6 merge] `RuleReviewProgressBar`
+   now consumes `statusCounts` and renders one segment per
+   `RuleStatus` with >0 rules. Same h-7 rounded-md shape; finer
+   distribution exposes verified / candidate / archived
+   composition the old two-tone bar collapsed.
 
 Re-run `/critique` after the structural pass — target ≥32/40.
 

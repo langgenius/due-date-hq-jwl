@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@duedatehq/ui/components/ui/field'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import {
   Select,
@@ -45,10 +46,8 @@ import { type ClientEntityType } from '@/features/clients/client-readiness'
 import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import {
   COMMON_FORM_VOUCHER_SUGGESTIONS,
-  isDeadlineCategoryDefaultFormName,
   listDeadlineCategorySuggestions,
   listFormVoucherSuggestionsForInput,
-  preferredDeadlineCategoryFormName,
   resolveDeadlineCategoryForInput,
   type DeadlineCategorySuggestion,
   type ResolvedDeadlineRuleCandidate,
@@ -73,12 +72,31 @@ type SuggestionGroup<TOption extends SuggestionOption> = {
   options: readonly TOption[]
 }
 
+type JurisdictionOptionClient = {
+  state: string | null
+  filingProfiles: readonly { state: string }[]
+}
+
+type RuleSelectionMatch =
+  | {
+      kind: 'matched'
+      jurisdiction: string
+      normalizedJurisdiction: string
+      rule: ObligationRule
+    }
+  | {
+      kind: 'review_required' | 'unavailable' | 'loading'
+      jurisdiction: string
+      normalizedJurisdiction: string
+    }
+
 type FormValues = {
   clientId: string
   taxType: string
   taxYear: string
+  formNames: string[]
   jurisdiction: string
-  formName: string
+  includeFederal: boolean
   internalNotes: string
 }
 
@@ -112,38 +130,53 @@ function defaultFormValues(defaultClientId?: string, taxYear = defaultTaxYear())
     clientId: defaultClientId ?? '',
     taxType: '',
     taxYear,
+    formNames: [],
     jurisdiction: '',
-    formName: '',
+    includeFederal: true,
     internalNotes: '',
   }
 }
 
 function createFormSchema(t: ReturnType<typeof useLingui>['t']) {
-  return z.object({
-    clientId: z.string().min(1, t`Pick a client`),
-    taxType: z
-      .string()
-      .trim()
-      .min(1, t`Deadline category is required`)
-      .max(80, t`Deadline category must be 80 characters or fewer`),
-    taxYear: z
-      .string()
-      .trim()
-      .regex(/^\d{4}$/, t`Tax year is required`),
-    jurisdiction: z
-      .string()
-      .trim()
-      .min(1, t`Jurisdiction is required`)
-      .max(80, t`Jurisdiction must be 80 characters or fewer`),
-    formName: z
-      .string()
-      .trim()
-      .max(80, t`Form / voucher must be 80 characters or fewer`),
-    internalNotes: z
-      .string()
-      .trim()
-      .max(5000, t`Notes must be 5000 characters or fewer`),
-  })
+  return z
+    .object({
+      clientId: z.string().min(1, t`Pick a client`),
+      taxType: z
+        .string()
+        .trim()
+        .min(1, t`Deadline category is required`)
+        .max(80, t`Deadline category must be 80 characters or fewer`),
+      taxYear: z
+        .string()
+        .trim()
+        .regex(/^\d{4}$/, t`Tax year is required`),
+      formNames: z
+        .array(
+          z
+            .string()
+            .trim()
+            .min(1)
+            .max(80, t`Form / voucher must be 80 characters or fewer`),
+        )
+        .max(10, t`Select 10 forms or fewer`),
+      jurisdiction: z
+        .string()
+        .trim()
+        .max(80, t`Jurisdiction must be 80 characters or fewer`),
+      includeFederal: z.boolean(),
+      internalNotes: z
+        .string()
+        .trim()
+        .max(5000, t`Notes must be 5000 characters or fewer`),
+    })
+    .superRefine((value, context) => {
+      if (value.jurisdiction.trim().length > 0 || value.includeFederal) return
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: t`Jurisdiction is required`,
+        path: ['jurisdiction'],
+      })
+    })
 }
 
 type FormFieldError = { message?: string }
@@ -190,63 +223,122 @@ function normalizeJurisdictionForRuleSearch(value: string): string {
   return normalized
 }
 
-function ruleAppliesToSelectedClient(rule: ObligationRule, client: ClientPublic): boolean {
-  if (client.entityType !== 'other' && rule.entityApplicability.includes(client.entityType)) {
-    return true
-  }
-  if (
-    rule.entityApplicability.includes('any_business') &&
-    client.entityType !== 'individual' &&
-    client.entityType !== 'trust'
-  ) {
-    return true
-  }
+function uniqueJurisdictions(values: readonly string[]): string[] {
+  const seen = new Set<string>()
+  return values.flatMap((value) => {
+    const normalized = normalizeJurisdictionForRuleSearch(value)
+    if (normalized.length === 0 || seen.has(normalized)) return []
+    seen.add(normalized)
+    return [normalized]
+  })
+}
 
-  if (!client.taxClassification || client.taxClassification === 'unknown') return false
-  if (client.taxClassification === 'partnership') {
-    return rule.entityApplicability.includes('partnership')
+export function defaultJurisdictionForClient(client: JurisdictionOptionClient | null): string {
+  if (!client) return ''
+  return (
+    uniqueJurisdictions([
+      ...client.filingProfiles.map((profile) => profile.state),
+      ...(client.state ? [client.state] : []),
+    ]).find((jurisdiction) => jurisdiction !== 'FED') ?? ''
+  )
+}
+
+export function selectedJurisdictionsForCreate(input: {
+  jurisdiction: string
+  includeFederal: boolean
+  fixedJurisdiction?: string | null
+}): string[] {
+  const fixedJurisdiction = input.fixedJurisdiction
+    ? normalizeJurisdictionForRuleSearch(input.fixedJurisdiction)
+    : null
+  if (fixedJurisdiction) return [fixedJurisdiction]
+
+  const jurisdiction = normalizeJurisdictionForRuleSearch(input.jurisdiction)
+  return uniqueJurisdictions([
+    ...(jurisdiction && jurisdiction !== 'FED' ? [jurisdiction] : []),
+    ...(jurisdiction === 'FED' || input.includeFederal ? ['FED'] : []),
+  ])
+}
+
+function uniqueFormNames(values: readonly string[]): string[] {
+  const seen = new Set<string>()
+  return values.flatMap((value) => {
+    const trimmed = value.trim()
+    const normalized = trimmed.toLowerCase()
+    if (trimmed.length === 0 || seen.has(normalized)) return []
+    seen.add(normalized)
+    return [trimmed]
+  })
+}
+
+function categorySupportsJurisdiction(input: {
+  categoryValue: string
+  jurisdiction: string
+}): boolean {
+  return (
+    resolveDeadlineCategoryForInput({
+      value: input.categoryValue,
+      jurisdiction: input.jurisdiction,
+      formName: '',
+    }).candidates.length > 0
+  )
+}
+
+function defaultIncludeFederalForCategory(category: DeadlineCategorySuggestion): boolean {
+  if (category.jurisdiction) {
+    return normalizeJurisdictionForRuleSearch(category.jurisdiction) === 'FED'
   }
-  if (client.taxClassification === 's_corp') {
-    return rule.entityApplicability.includes('s_corp')
-  }
-  if (client.taxClassification === 'c_corp') {
-    return rule.entityApplicability.includes('c_corp')
-  }
-  if (client.taxClassification === 'trust' || client.taxClassification === 'estate') {
-    return rule.entityApplicability.includes('trust')
-  }
-  if (client.taxClassification === 'individual') {
-    return rule.entityApplicability.includes('individual')
-  }
-  if (client.taxClassification === 'disregarded_entity') {
-    return (
-      rule.entityApplicability.includes('sole_prop') ||
-      rule.entityApplicability.includes('individual') ||
-      rule.entityApplicability.includes('any_business')
-    )
-  }
-  return false
+  return categorySupportsJurisdiction({ categoryValue: category.value, jurisdiction: 'FED' })
+}
+
+function mergeSuggestionOptions(options: readonly SuggestionOption[]): SuggestionOption[] {
+  const seen = new Set<string>()
+  return options.flatMap((option) => {
+    const normalized = option.value.trim().toLowerCase()
+    if (normalized.length === 0 || seen.has(normalized)) return []
+    seen.add(normalized)
+    return [option]
+  })
+}
+
+export function preferredFormNamesForSelection(input: {
+  categoryValue: string
+  jurisdictions: readonly string[]
+}): string[] {
+  return uniqueFormNames(
+    input.jurisdictions.flatMap((jurisdiction) => {
+      const suggestion = listFormVoucherSuggestionsForInput({
+        value: input.categoryValue,
+        jurisdiction,
+      })[0]
+      return suggestion ? [suggestion.value] : []
+    }),
+  )
 }
 
 function findCreateRuleForSelection(input: {
   rules: readonly ObligationRule[]
-  client: ClientPublic
   candidates: readonly ResolvedDeadlineRuleCandidate[]
   jurisdiction: string
+  formNames: readonly string[]
   taxYear: number
 }): ObligationRule | null {
   const jurisdiction = normalizeJurisdictionForRuleSearch(input.jurisdiction)
-  const matches = input.candidates.flatMap((candidate, candidateIndex) => {
-    const matchFormName = candidate.matchFormName?.trim().toLowerCase() ?? ''
-    return input.rules
-      .filter((rule) => rule.status === 'active')
-      .filter((rule) => rule.dueDateLogic.kind !== 'source_defined_calendar')
-      .filter((rule) => rule.taxType === candidate.taxType)
-      .filter((rule) => rule.jurisdiction === jurisdiction)
-      .filter((rule) => ruleAppliesToSelectedClient(rule, input.client))
-      .filter((rule) => !matchFormName || rule.formName.trim().toLowerCase() === matchFormName)
-      .map((rule) => ({ candidateIndex, rule }))
-  })
+  const selectedFormNames = new Set(input.formNames.map((formName) => formName.toLowerCase()))
+  const collectMatches = (formNames: ReadonlySet<string>) =>
+    input.candidates.flatMap((candidate, candidateIndex) => {
+      const matchFormName = candidate.matchFormName?.trim().toLowerCase() ?? ''
+      return input.rules
+        .filter((rule) => rule.status === 'active')
+        .filter((rule) => rule.dueDateLogic.kind !== 'source_defined_calendar')
+        .filter((rule) => rule.taxType === candidate.taxType)
+        .filter((rule) => rule.jurisdiction === jurisdiction)
+        .filter((rule) => !matchFormName || rule.formName.trim().toLowerCase() === matchFormName)
+        .filter((rule) => formNames.size === 0 || formNames.has(rule.formName.trim().toLowerCase()))
+        .map((rule) => ({ candidateIndex, rule }))
+    })
+  const matchesWithForms = collectMatches(selectedFormNames)
+  const matches = matchesWithForms.length > 0 ? matchesWithForms : collectMatches(new Set())
 
   matches.sort((a, b) => {
     if (a.candidateIndex !== b.candidateIndex) return a.candidateIndex - b.candidateIndex
@@ -261,47 +353,27 @@ function findCreateRuleForSelection(input: {
 
 function hasReviewRuleForSelection(input: {
   rules: readonly ObligationRule[]
-  client: ClientPublic
   candidates: readonly ResolvedDeadlineRuleCandidate[]
   jurisdiction: string
+  formNames: readonly string[]
 }): boolean {
   const jurisdiction = normalizeJurisdictionForRuleSearch(input.jurisdiction)
-  return input.candidates.some((candidate) => {
-    const matchFormName = candidate.matchFormName?.trim().toLowerCase() ?? ''
-    return input.rules.some(
-      (rule) =>
-        (rule.status === 'candidate' ||
-          rule.status === 'pending_review' ||
-          rule.dueDateLogic.kind === 'source_defined_calendar') &&
-        rule.taxType === candidate.taxType &&
-        rule.jurisdiction === jurisdiction &&
-        ruleAppliesToSelectedClient(rule, input.client) &&
-        (!matchFormName || rule.formName.trim().toLowerCase() === matchFormName),
-    )
-  })
-}
-
-function shouldReplaceFormName(input: {
-  currentCategoryValue: string
-  nextCategoryValue: string
-  currentFormName: string
-  autoFormName: string | null
-}): boolean {
-  const currentFormName = input.currentFormName.trim()
-  if (currentFormName.length === 0) return true
-  if (input.autoFormName !== null && currentFormName === input.autoFormName) return true
-  if (
-    isDeadlineCategoryDefaultFormName({
-      value: input.currentCategoryValue,
-      formName: currentFormName,
+  const selectedFormNames = new Set(input.formNames.map((formName) => formName.toLowerCase()))
+  const hasMatch = (formNames: ReadonlySet<string>) =>
+    input.candidates.some((candidate) => {
+      const matchFormName = candidate.matchFormName?.trim().toLowerCase() ?? ''
+      return input.rules.some(
+        (rule) =>
+          (rule.status === 'candidate' ||
+            rule.status === 'pending_review' ||
+            rule.dueDateLogic.kind === 'source_defined_calendar') &&
+          rule.taxType === candidate.taxType &&
+          rule.jurisdiction === jurisdiction &&
+          (!matchFormName || rule.formName.trim().toLowerCase() === matchFormName) &&
+          (formNames.size === 0 || formNames.has(rule.formName.trim().toLowerCase())),
+      )
     })
-  ) {
-    return true
-  }
-  return isDeadlineCategoryDefaultFormName({
-    value: input.nextCategoryValue,
-    formName: currentFormName,
-  })
+  return hasMatch(selectedFormNames) || hasMatch(new Set())
 }
 
 function suggestionMatchesValue(option: SuggestionOption, value: string): boolean {
@@ -465,6 +537,170 @@ function SuggestionCombobox<TOption extends SuggestionOption>({
   )
 }
 
+function SuggestionMultiSelect<TOption extends SuggestionOption>({
+  id,
+  values,
+  placeholder,
+  searchPlaceholder,
+  emptyLabel,
+  groups,
+  invalid,
+  queryOnOpen = 'empty',
+  allowCustom = true,
+  onValuesChange,
+}: {
+  id: string
+  values: readonly string[]
+  placeholder: string
+  searchPlaceholder: string
+  emptyLabel: string
+  groups: readonly SuggestionGroup<TOption>[]
+  invalid?: boolean
+  queryOnOpen?: 'selection' | 'empty'
+  allowCustom?: boolean
+  onValuesChange: (values: string[]) => void
+}) {
+  const { t } = useLingui()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const options = useMemo(() => groups.flatMap((group) => group.options), [groups])
+  const selectedValues = uniqueFormNames(values)
+  const selectedLabels = selectedValues.map(
+    (value) => options.find((option) => option.value === value)?.label ?? value,
+  )
+  const triggerLabel = selectedLabels.join(', ')
+  const trimmedQuery = query.trim()
+  const hasExactMatch = options.some((option) => suggestionMatchesValue(option, trimmedQuery))
+
+  function changeOpen(nextOpen: boolean) {
+    setOpen(nextOpen)
+    setQuery(nextOpen && queryOnOpen === 'selection' ? triggerLabel : '')
+  }
+
+  function toggleValue(value: string) {
+    const normalizedValue = value.trim().toLowerCase()
+    const selected = selectedValues.some(
+      (selectedValue) => selectedValue.trim().toLowerCase() === normalizedValue,
+    )
+    onValuesChange(
+      selected
+        ? selectedValues.filter(
+            (selectedValue) => selectedValue.trim().toLowerCase() !== normalizedValue,
+          )
+        : uniqueFormNames([...selectedValues, value]),
+    )
+  }
+
+  function selectCustom(nextValue: string) {
+    onValuesChange(uniqueFormNames([...selectedValues, nextValue]))
+    setQuery('')
+  }
+
+  return (
+    <Popover open={open} onOpenChange={changeOpen}>
+      <PopoverTrigger
+        render={
+          <button
+            id={id}
+            type="button"
+            role="combobox"
+            aria-expanded={open}
+            aria-invalid={invalid || undefined}
+            className={cn(
+              'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border border-divider-regular bg-components-input-bg-normal px-3 py-1 text-sm text-components-input-text-filled transition-colors outline-none',
+              'hover:bg-components-input-bg-hover',
+              'focus-visible:border-components-input-border-active focus-visible:bg-components-input-bg-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
+              'aria-invalid:border-components-input-border-destructive aria-invalid:bg-components-input-bg-destructive aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',
+            )}
+          >
+            <span
+              className={cn(
+                'min-w-0 flex-1 truncate text-left',
+                triggerLabel
+                  ? 'text-components-input-text-filled'
+                  : 'text-components-input-text-placeholder',
+              )}
+            >
+              {triggerLabel || placeholder}
+            </span>
+            <ChevronDownIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+          </button>
+        }
+      />
+      <PopoverContent
+        align="start"
+        className="w-(--anchor-width) min-w-(--anchor-width) max-w-[calc(100vw-2rem)] overflow-hidden p-0"
+      >
+        <Command loop>
+          <CommandInput
+            autoFocus
+            value={query}
+            onValueChange={setQuery}
+            placeholder={searchPlaceholder}
+          />
+          <CommandList className="max-h-[320px]">
+            <CommandEmpty>{emptyLabel}</CommandEmpty>
+            {groups.map((group, index) =>
+              group.options.length > 0 ? (
+                <Fragment key={group.heading ?? index}>
+                  {index > 0 ? <CommandSeparator /> : null}
+                  <CommandGroup heading={group.heading}>
+                    {group.options.map((option) => {
+                      const selected = selectedValues.some(
+                        (value) => value.trim().toLowerCase() === option.value.toLowerCase(),
+                      )
+                      return (
+                        <CommandItem
+                          key={option.value}
+                          value={[option.label, option.description ?? ''].join(' ')}
+                          onSelect={() => toggleValue(option.value)}
+                          className="grid-cols-[minmax(0,1fr)_auto]"
+                        >
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium text-text-primary">
+                              {option.label}
+                            </span>
+                            {option.description ? (
+                              <span className="block truncate text-xs text-text-tertiary">
+                                {option.description}
+                              </span>
+                            ) : null}
+                          </span>
+                          <CheckIcon
+                            className={cn(
+                              'size-4 text-text-accent',
+                              selected ? 'opacity-100' : 'opacity-0',
+                            )}
+                            aria-hidden
+                          />
+                        </CommandItem>
+                      )
+                    })}
+                  </CommandGroup>
+                </Fragment>
+              ) : null,
+            )}
+            {allowCustom && trimmedQuery.length > 0 && !hasExactMatch ? (
+              <>
+                <CommandSeparator />
+                <CommandItem
+                  value={trimmedQuery}
+                  onSelect={() => selectCustom(trimmedQuery)}
+                  className="grid-cols-[minmax(0,1fr)]"
+                >
+                  <span className="truncate text-sm text-text-primary">
+                    {t`Use "${trimmedQuery}"`}
+                  </span>
+                </CommandItem>
+              </>
+            ) : null}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 /**
  * "+ Add deadline" entry-point dialog. Used by the Today page
  * (no `defaultClientId`) and the Client detail page
@@ -498,7 +734,6 @@ export function CreateObligationDialog({
   const entityLabels = useEntityLabels()
   const [open, setOpen] = useState(false)
   const [createClientOpen, setCreateClientOpen] = useState(false)
-  const [autoFormName, setAutoFormName] = useState<string | null>(null)
   const taxYearContext = useMemo(buildTaxYearSelectContext, [])
 
   const formSchema = useMemo(() => createFormSchema(t), [t])
@@ -513,8 +748,9 @@ export function CreateObligationDialog({
   const clientId = useStore(form.store, (state) => state.values.clientId)
   const taxTypeValue = useStore(form.store, (state) => state.values.taxType)
   const taxYearValue = useStore(form.store, (state) => state.values.taxYear)
+  const formNamesValue = useStore(form.store, (state) => state.values.formNames)
   const jurisdictionValue = useStore(form.store, (state) => state.values.jurisdiction)
-  const formNameValue = useStore(form.store, (state) => state.values.formName)
+  const includeFederalValue = useStore(form.store, (state) => state.values.includeFederal)
   const internalNotes = useStore(form.store, (state) => state.values.internalNotes)
 
   const clientsQuery = useQuery({
@@ -531,20 +767,44 @@ export function CreateObligationDialog({
     enabled: open,
   })
   const allRules = rulesQuery.data ?? EMPTY_RULES
+  const deadlineCategoryOptions = useMemo(listDeadlineCategorySuggestions, [])
   const deadlineCategorySuggestionGroups = useMemo(
     () =>
       [
         {
-          options: listDeadlineCategorySuggestions(),
+          options: deadlineCategoryOptions,
         },
       ] satisfies readonly SuggestionGroup<DeadlineCategorySuggestion>[],
-    [],
+    [deadlineCategoryOptions],
   )
+  const selectedCategory = useMemo(
+    () => deadlineCategoryOptions.find((option) => option.value === taxTypeValue) ?? null,
+    [deadlineCategoryOptions, taxTypeValue],
+  )
+  const fixedJurisdiction = selectedCategory?.jurisdiction ?? null
+  const selectedRuleJurisdictions = useMemo(
+    () =>
+      selectedJurisdictionsForCreate({
+        jurisdiction: jurisdictionValue,
+        includeFederal: includeFederalValue,
+        fixedJurisdiction,
+      }),
+    [fixedJurisdiction, includeFederalValue, jurisdictionValue],
+  )
+  const selectedFormNames = useMemo(() => uniqueFormNames(formNamesValue), [formNamesValue])
   const formVoucherSuggestionGroups = useMemo(() => {
-    const related = listFormVoucherSuggestionsForInput({
-      value: taxTypeValue,
-      jurisdiction: jurisdictionValue,
-    })
+    const selectedJurisdictions =
+      selectedRuleJurisdictions.length > 0
+        ? selectedRuleJurisdictions
+        : uniqueJurisdictions([jurisdictionValue, includeFederalValue ? 'FED' : ''])
+    const related = mergeSuggestionOptions(
+      selectedJurisdictions.flatMap((jurisdiction) =>
+        listFormVoucherSuggestionsForInput({
+          value: taxTypeValue,
+          jurisdiction,
+        }),
+      ),
+    )
     const relatedValues = new Set(related.map((option) => option.value.toLowerCase()))
     return [
       {
@@ -557,61 +817,92 @@ export function CreateObligationDialog({
         ],
       },
     ] satisfies readonly SuggestionGroup<SuggestionOption>[]
-  }, [jurisdictionValue, t, taxTypeValue])
-  const ruleMatchStatus = useMemo(() => {
+  }, [includeFederalValue, jurisdictionValue, selectedRuleJurisdictions, t, taxTypeValue])
+  const ruleMatches = useMemo((): RuleSelectionMatch[] => {
     if (
-      !selectedClient ||
       taxTypeValue.trim().length === 0 ||
-      jurisdictionValue.trim().length === 0 ||
+      selectedRuleJurisdictions.length === 0 ||
       !/^\d{4}$/.test(taxYearValue)
     ) {
-      return { kind: 'idle' as const }
+      return []
     }
-    if (rulesQuery.isPending && allRules.length === 0) return { kind: 'loading' as const }
 
-    const resolution = resolveDeadlineCategoryForInput({
-      value: taxTypeValue,
-      jurisdiction: jurisdictionValue,
-      formName: formNameValue,
-    })
-    const rule = findCreateRuleForSelection({
-      rules: allRules,
-      client: selectedClient,
-      candidates: resolution.candidates,
-      jurisdiction: jurisdictionValue,
-      taxYear: Number(taxYearValue),
-    })
-    if (rule) return { kind: 'matched' as const, rule }
-
-    const needsReview = hasReviewRuleForSelection({
-      rules: allRules,
-      client: selectedClient,
-      candidates: resolution.candidates,
-      jurisdiction: jurisdictionValue,
-    })
-    if (needsReview) {
-      return {
-        kind: 'review_required' as const,
-        jurisdiction: resolution.normalizedJurisdiction,
+    if (!selectedClient) {
+      return selectedRuleJurisdictions.map((jurisdiction) => ({
+        kind: 'loading' as const,
+        jurisdiction,
+        normalizedJurisdiction: normalizeJurisdictionForRuleSearch(jurisdiction),
+      }))
+    }
+    return selectedRuleJurisdictions.map((jurisdiction) => {
+      const resolution = resolveDeadlineCategoryForInput({
+        value: taxTypeValue,
+        jurisdiction,
+        formName: '',
+      })
+      const normalizedJurisdiction = resolution.normalizedJurisdiction
+      if (rulesQuery.isPending && allRules.length === 0) {
+        return {
+          kind: 'loading' as const,
+          jurisdiction,
+          normalizedJurisdiction,
+        }
       }
-    }
+      const rule = findCreateRuleForSelection({
+        rules: allRules,
+        candidates: resolution.candidates,
+        jurisdiction,
+        formNames: selectedFormNames,
+        taxYear: Number(taxYearValue),
+      })
+      if (rule) {
+        return {
+          kind: 'matched' as const,
+          jurisdiction,
+          normalizedJurisdiction,
+          rule,
+        }
+      }
 
-    return {
-      kind: 'unavailable' as const,
-      jurisdiction: resolution.normalizedJurisdiction,
-    }
+      const needsReview = hasReviewRuleForSelection({
+        rules: allRules,
+        candidates: resolution.candidates,
+        jurisdiction,
+        formNames: selectedFormNames,
+      })
+      if (needsReview) {
+        return {
+          kind: 'review_required' as const,
+          jurisdiction,
+          normalizedJurisdiction,
+        }
+      }
+      return {
+        kind: 'unavailable' as const,
+        jurisdiction,
+        normalizedJurisdiction,
+      }
+    })
   }, [
     allRules,
-    formNameValue,
-    jurisdictionValue,
     rulesQuery.isPending,
     selectedClient,
+    selectedFormNames,
+    selectedRuleJurisdictions,
     taxTypeValue,
     taxYearValue,
   ])
+  const matchedRuleSelections = useMemo(() => {
+    if (!/^\d{4}$/.test(taxYearValue)) return []
+    const taxYear = Number(taxYearValue)
+    return ruleMatches.flatMap((match) =>
+      match.kind === 'matched' ? [{ ruleId: match.rule.id, taxYear }] : [],
+    )
+  }, [ruleMatches, taxYearValue])
+  const hasBlockingRuleSelection = ruleMatches.some((match) => match.kind !== 'matched')
 
   const createMutation = useMutation(
-    orpc.obligations.createFromRule.mutationOptions({
+    orpc.obligations.createFromRules.mutationOptions({
       onSuccess: (result) => {
         const obligation = result.obligations[0]
         // Invalidate every consumer that surfaces obligation data
@@ -638,7 +929,6 @@ export function CreateObligationDialog({
           })
         }
         form.reset(defaultFormValues(defaultClientId, taxYearContext.defaultTaxYear))
-        setAutoFormName(null)
         setOpen(false)
         if (obligation) onCreated?.(obligation.id)
       },
@@ -656,31 +946,16 @@ export function CreateObligationDialog({
       return
     }
 
-    const taxYear = Number(value.taxYear)
-    const resolvedCategory = resolveDeadlineCategoryForInput({
-      value: value.taxType,
-      jurisdiction: value.jurisdiction,
-      formName: value.formName,
-    })
-    const rule = findCreateRuleForSelection({
-      rules: allRules,
-      client: selectedClient,
-      candidates: resolvedCategory.candidates,
-      jurisdiction: value.jurisdiction,
-      taxYear,
-    })
-
-    if (!rule) {
+    if (matchedRuleSelections.length === 0 || hasBlockingRuleSelection) {
       toast.error(t`Couldn't add deadline`, {
-        description: t`No rule-backed deadline is available for this category, jurisdiction, and tax year yet.`,
+        description: t`Every selected jurisdiction needs an active rule-backed deadline.`,
       })
       return
     }
 
     createMutation.mutate({
       clientId: value.clientId,
-      ruleId: rule.id,
-      taxYear,
+      selections: matchedRuleSelections,
     })
   }
 
@@ -710,26 +985,17 @@ export function CreateObligationDialog({
     })
   }
 
-  function setAutoFormForSelection(input: { categoryValue: string; jurisdiction: string }) {
-    const nextFormName = preferredDeadlineCategoryFormName({
-      value: input.categoryValue,
-      jurisdiction: input.jurisdiction,
+  function setAutoFormsForSelection(input: {
+    categoryValue: string
+    jurisdiction: string
+    includeFederal: boolean
+    fixedJurisdiction?: string | null
+  }) {
+    const nextForms = preferredFormNamesForSelection({
+      categoryValue: input.categoryValue,
+      jurisdictions: selectedJurisdictionsForCreate(input),
     })
-    form.setFieldValue('formName', nextFormName ?? '')
-    setAutoFormName(nextFormName)
-  }
-
-  function maybeReplaceAutoFormName(input: { categoryValue: string; jurisdiction: string }) {
-    if (
-      shouldReplaceFormName({
-        currentCategoryValue: taxTypeValue,
-        nextCategoryValue: input.categoryValue,
-        currentFormName: formNameValue,
-        autoFormName,
-      })
-    ) {
-      setAutoFormForSelection(input)
-    }
+    form.setFieldValue('formNames', nextForms)
   }
 
   return (
@@ -738,7 +1004,6 @@ export function CreateObligationDialog({
         open={open}
         onOpenChange={(nextOpen) => {
           setOpen(nextOpen)
-          if (!nextOpen) setAutoFormName(null)
         }}
       >
         <DialogTrigger
@@ -754,15 +1019,15 @@ export function CreateObligationDialog({
             )
           }
         />
-        <DialogContent className="w-[36rem] max-w-[calc(100vw-2rem)]">
+        <DialogContent className="w-[42rem] max-w-[calc(100vw-2rem)]">
           <DialogHeader>
             <DialogTitle>
               <Trans>Add deadline</Trans>
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Select the tax year, deadline category, and jurisdiction. DueDateHQ calculates the
-                due date from the rule library.
+                Select the tax year, deadline category, jurisdiction, forms, and whether to include
+                Federal. DueDateHQ calculates each due date from the rule library.
               </Trans>
             </DialogDescription>
           </DialogHeader>
@@ -784,7 +1049,24 @@ export function CreateObligationDialog({
                     <ClientCombobox
                       id="obligation-client"
                       value={field.state.value || null}
-                      onValueChange={(next) => field.handleChange(next)}
+                      onValueChange={(next) => {
+                        field.handleChange(next)
+                        const nextClient = clients.find((client) => client.id === next) ?? null
+                        const nextJurisdiction = defaultJurisdictionForClient(nextClient)
+                        const nextIncludeFederal = selectedCategory
+                          ? defaultIncludeFederalForCategory(selectedCategory)
+                          : true
+                        form.setFieldValue('jurisdiction', nextJurisdiction)
+                        form.setFieldValue('includeFederal', nextIncludeFederal)
+                        if (selectedCategory) {
+                          setAutoFormsForSelection({
+                            categoryValue: selectedCategory.value,
+                            jurisdiction: nextJurisdiction,
+                            includeFederal: nextIncludeFederal,
+                            fixedJurisdiction: selectedCategory.jurisdiction ?? null,
+                          })
+                        }
+                      }}
                       disabled={Boolean(defaultClientId)}
                       placeholder={t`Pick a client…`}
                     />
@@ -835,13 +1117,24 @@ export function CreateObligationDialog({
                         allowCustom={false}
                         onValueChange={field.handleChange}
                         onOptionSelect={(option) => {
-                          const nextJurisdiction = option.jurisdiction ?? jurisdictionValue
+                          let nextJurisdiction = jurisdictionValue
                           if (option.jurisdiction) {
-                            form.setFieldValue('jurisdiction', option.jurisdiction)
+                            const jurisdiction = normalizeJurisdictionForRuleSearch(
+                              option.jurisdiction,
+                            )
+                            nextJurisdiction = jurisdiction === 'FED' ? '' : jurisdiction
+                            form.setFieldValue('jurisdiction', nextJurisdiction)
+                          } else if (jurisdictionValue.trim().length === 0) {
+                            nextJurisdiction = defaultJurisdictionForClient(selectedClient)
+                            form.setFieldValue('jurisdiction', nextJurisdiction)
                           }
-                          maybeReplaceAutoFormName({
+                          const nextIncludeFederal = defaultIncludeFederalForCategory(option)
+                          form.setFieldValue('includeFederal', nextIncludeFederal)
+                          setAutoFormsForSelection({
                             categoryValue: option.value,
                             jurisdiction: nextJurisdiction,
+                            includeFederal: nextIncludeFederal,
+                            fixedJurisdiction: option.jurisdiction ?? null,
                           })
                         }}
                       />
@@ -888,30 +1181,27 @@ export function CreateObligationDialog({
                 </form.Field>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <form.Field name="formName">
-                  {(field) => (
-                    <Field>
-                      <FieldLabel htmlFor="obligation-form-name">
-                        <Trans>Form / voucher</Trans>
-                      </FieldLabel>
-                      <SuggestionCombobox
-                        id="obligation-form-name"
-                        value={field.state.value}
-                        placeholder={t`Optional`}
-                        searchPlaceholder={t`Search forms and vouchers…`}
-                        emptyLabel={t`No forms or vouchers match.`}
-                        groups={formVoucherSuggestionGroups}
-                        queryOnOpen="empty"
-                        onValueChange={(value) => {
-                          field.handleChange(value)
-                          setAutoFormName(null)
-                        }}
-                      />
-                      <FieldError errors={fieldErrors(field.state.meta.errors)} />
-                    </Field>
-                  )}
-                </form.Field>
+              <form.Field name="formNames">
+                {(field) => (
+                  <Field>
+                    <FieldLabel htmlFor="obligation-form-names">
+                      <Trans>Form / voucher</Trans>
+                    </FieldLabel>
+                    <SuggestionMultiSelect
+                      id="obligation-form-names"
+                      values={field.state.value}
+                      placeholder={t`Optional`}
+                      searchPlaceholder={t`Search forms and vouchers…`}
+                      emptyLabel={t`No forms or vouchers match.`}
+                      groups={formVoucherSuggestionGroups}
+                      onValuesChange={field.handleChange}
+                    />
+                    <FieldError errors={fieldErrors(field.state.meta.errors)} />
+                  </Field>
+                )}
+              </form.Field>
+
+              <div className="grid gap-4 md:grid-cols-[1fr_160px]">
                 <form.Field name="jurisdiction">
                   {(field) => (
                     <Field>
@@ -922,15 +1212,18 @@ export function CreateObligationDialog({
                         id="obligation-jurisdiction"
                         name={field.name}
                         value={field.state.value}
-                        placeholder={t`Federal, CA, NY…`}
+                        placeholder={fixedJurisdiction ? t`Federal only` : t`CA, NY, TX…`}
+                        disabled={Boolean(fixedJurisdiction)}
                         onBlur={field.handleBlur}
                         onChange={(event) => {
                           const nextJurisdiction = event.target.value
                           field.handleChange(nextJurisdiction)
                           if (taxTypeValue.trim().length > 0) {
-                            maybeReplaceAutoFormName({
+                            setAutoFormsForSelection({
                               categoryValue: taxTypeValue,
                               jurisdiction: nextJurisdiction,
+                              includeFederal: includeFederalValue,
+                              fixedJurisdiction,
                             })
                           }
                         }}
@@ -939,35 +1232,87 @@ export function CreateObligationDialog({
                     </Field>
                   )}
                 </form.Field>
+                <form.Field name="includeFederal">
+                  {(field) => {
+                    const federalOnly =
+                      normalizeJurisdictionForRuleSearch(fixedJurisdiction ?? '') === 'FED'
+                    return (
+                      <Field>
+                        <span className="hidden text-sm font-medium text-text-primary md:block">
+                          &nbsp;
+                        </span>
+                        <label
+                          className={cn(
+                            'flex h-9 items-center gap-2 rounded-md border border-divider-regular bg-components-input-bg-normal px-3 text-sm text-text-primary',
+                            federalOnly && 'bg-background-subtle text-text-tertiary',
+                          )}
+                        >
+                          <Checkbox
+                            checked={federalOnly || field.state.value}
+                            disabled={federalOnly}
+                            onCheckedChange={(checked) => {
+                              const nextIncludeFederal = checked
+                              field.handleChange(nextIncludeFederal)
+                              if (taxTypeValue.trim().length > 0) {
+                                setAutoFormsForSelection({
+                                  categoryValue: taxTypeValue,
+                                  jurisdiction: jurisdictionValue,
+                                  includeFederal: nextIncludeFederal,
+                                  fixedJurisdiction,
+                                })
+                              }
+                            }}
+                            aria-label={t`Include Federal`}
+                            className="size-4"
+                          />
+                          <Trans>Federal</Trans>
+                        </label>
+                      </Field>
+                    )
+                  }}
+                </form.Field>
               </div>
 
-              {ruleMatchStatus.kind !== 'idle' ? (
-                <div
-                  aria-live="polite"
-                  className={cn(
-                    'rounded-md border px-3 py-2 text-xs',
-                    ruleMatchStatus.kind === 'matched'
-                      ? 'border-state-success-solid/60 bg-state-success-hover text-text-success'
-                      : ruleMatchStatus.kind === 'review_required'
-                        ? 'border-state-warning-border bg-state-warning-hover text-text-warning'
-                        : 'border-divider-regular bg-background-subtle text-text-tertiary',
-                  )}
-                >
-                  {ruleMatchStatus.kind === 'matched' ? (
-                    <>
-                      <Trans>Match</Trans>
-                      <span> · {ruleMatchStatus.rule.title}</span>
-                    </>
-                  ) : ruleMatchStatus.kind === 'review_required' ? (
-                    <>
-                      <Trans>Rule review required</Trans>
-                      <span> · {ruleMatchStatus.jurisdiction}</span>
-                    </>
-                  ) : ruleMatchStatus.kind === 'loading' ? (
-                    <Trans>Loading rules…</Trans>
-                  ) : (
-                    <Trans>No active rules for this jurisdiction.</Trans>
-                  )}
+              {ruleMatches.length > 0 ? (
+                <div className="grid gap-2" aria-live="polite">
+                  {ruleMatches.map((match) => (
+                    <div
+                      key={match.jurisdiction}
+                      className={cn(
+                        'rounded-md border px-3 py-2 text-xs',
+                        match.kind === 'matched'
+                          ? 'border-state-success-solid/60 bg-state-success-hover text-text-success'
+                          : match.kind === 'review_required'
+                            ? 'border-state-warning-border bg-state-warning-hover text-text-warning'
+                            : 'border-divider-regular bg-background-subtle text-text-tertiary',
+                      )}
+                    >
+                      <span className="font-mono">{match.normalizedJurisdiction}</span>
+                      {match.kind === 'matched' ? (
+                        <>
+                          <span> · </span>
+                          <Trans>Match</Trans>
+                          <span> · {match.rule.title}</span>
+                          <span> · {match.rule.formName || formatTaxCode(match.rule.taxType)}</span>
+                        </>
+                      ) : match.kind === 'review_required' ? (
+                        <>
+                          <span> · </span>
+                          <Trans>Rule review required</Trans>
+                        </>
+                      ) : match.kind === 'loading' ? (
+                        <>
+                          <span> · </span>
+                          <Trans>Loading rules…</Trans>
+                        </>
+                      ) : (
+                        <>
+                          <span> · </span>
+                          <Trans>No active rule</Trans>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ) : null}
 
@@ -1003,13 +1348,21 @@ export function CreateObligationDialog({
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || rulesQuery.isLoading || clientId.length === 0}
+                disabled={
+                  createMutation.isPending ||
+                  rulesQuery.isLoading ||
+                  clientId.length === 0 ||
+                  matchedRuleSelections.length === 0 ||
+                  hasBlockingRuleSelection
+                }
               >
                 {createMutation.isPending
                   ? t`Adding…`
                   : rulesQuery.isLoading
                     ? t`Loading rules…`
-                    : t`Add deadline`}
+                    : matchedRuleSelections.length > 1
+                      ? t`Add ${matchedRuleSelections.length} deadlines`
+                      : t`Add deadline`}
               </Button>
             </DialogFooter>
           </form>

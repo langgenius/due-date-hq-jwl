@@ -96,6 +96,20 @@ export const ObligationCreateFromRuleInputSchema = z.object({
 })
 export type ObligationCreateFromRuleInput = z.infer<typeof ObligationCreateFromRuleInputSchema>
 
+export const ObligationCreateFromRulesInputSchema = z.object({
+  clientId: EntityIdSchema,
+  selections: z
+    .array(
+      z.object({
+        ruleId: z.string().trim().min(1),
+        taxYear: z.number().int().min(2000).max(2100).optional(),
+      }),
+    )
+    .min(1)
+    .max(25),
+})
+export type ObligationCreateFromRulesInput = z.infer<typeof ObligationCreateFromRulesInputSchema>
+
 export const ObligationCreateFromRuleOutputSchema = z.object({
   obligations: z.array(ObligationInstancePublicSchema),
   duplicateCount: z.number().int().min(0),
@@ -358,6 +372,9 @@ export const obligationsContract = oc.router({
     .output(z.object({ obligations: z.array(ObligationInstancePublicSchema) })),
   createFromRule: oc
     .input(ObligationCreateFromRuleInputSchema)
+    .output(ObligationCreateFromRuleOutputSchema),
+  createFromRules: oc
+    .input(ObligationCreateFromRulesInputSchema)
     .output(ObligationCreateFromRuleOutputSchema),
   previewAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   createAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),

@@ -653,12 +653,31 @@ export function RulesLibraryRoute() {
   // `totalActive` + `totalPendingReview` because the top-of-page
   // progress bar (active filled vs needs-review trailing) is back
   // in StatsBar. Same two values the third-pass implementation used.
+  // 2026-05-26 (Stripe S14 restyle, merged with Phase A/B): progress
+  // bar now reads as a multi-color stacked breakdown — one segment
+  // per `RuleStatus` with >0 rules. `statusCounts` is the data; the
+  // bar derives segment widths + label fits from it. Scope tab
+  // counts (`totalActive`, `totalPendingReview`, `totalGapEntities`)
+  // are computed against the UNFILTERED rules + `groupsAll` so the
+  // tab badges stay stable as the user toggles scopes.
   const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
   const totalRules = rules.length
-  const totalActive = rules.filter((r) => r.status === 'active' || r.status === 'verified').length
-  // Scope counts are computed against the UNFILTERED rules + groupsAll
-  // so the tab badges stay stable as the user toggles scopes (they
-  // tell you "what's in each scope before you switch").
+  const statusCounts = useMemo<Record<RuleStatus, number>>(() => {
+    const counts: Record<RuleStatus, number> = {
+      active: 0,
+      verified: 0,
+      pending_review: 0,
+      candidate: 0,
+      rejected: 0,
+      archived: 0,
+      deprecated: 0,
+    }
+    for (const rule of rules) {
+      counts[rule.status] += 1
+    }
+    return counts
+  }, [rules])
+  const totalActive = statusCounts.active + statusCounts.verified
   const totalPendingReview = useMemo(
     () => rules.filter((r) => statusGroupOf(r.status) === 'needs_review').length,
     [rules],
@@ -1273,9 +1292,7 @@ export function RulesLibraryRoute() {
           RIGHT). Yuqi explicitly asked for this to stay at the top
           ("把进度条放回来"). */}
       <RuleReviewProgressBar
-        {...(statsLoading
-          ? ({ loading: true } as const)
-          : ({ totalActive, totalPendingReview } as const))}
+        {...(statsLoading ? ({ loading: true } as const) : ({ statusCounts } as const))}
       />
 
       {/* Scope tabs — primary navigation axis. All / Active / Needs
@@ -1413,7 +1430,10 @@ export function RulesLibraryRoute() {
 //
 // The prior `StatsBar` wrapper (progress + search + chips) is
 // retired — those three rows are now siblings in the route's flex
-// column.
+// column. Agent 6's S14 multi-color stacked bar landed on the
+// retired StatsBar; the multi-color treatment is preserved by
+// re-applying it to `RuleReviewProgressBar` (which now consumes
+// `statusCounts` directly — see the bar implementation below).
 type ScopeKey = 'all' | 'active' | 'review' | 'missing'
 
 function ScopeTabBand({
@@ -1485,60 +1505,125 @@ function ScopeTabBand({
   )
 }
 
-// 2026-05-26 (Yuqi feedback — "把进度条放回来"): split out as its
-// own component so the StatsBar body reads as 3 sibling rows
-// (progress / search / chips) instead of an inline progress block
-// stacked above the rest. Same visual contract as the third-pass
-// version: h-7 rounded-md two-tone segment, success-green LEFT
-// (active count), warning-amber RIGHT (needs-review count). Each
-// segment hides its label below ~18 % width and falls back to the
-// raw count; the full label lives in the title tooltip on hover.
+// 2026-05-26 (Stripe S14 restyle — "Your overview" Payments card):
+// Was a two-tone meter (active LEFT vs needs-review RIGHT). Now a
+// multi-color stacked bar — one segment per `RuleStatus` with >0
+// rules in the catalog. Same h-7 rounded-md shape; the data is
+// just broken out finer so the eye reads the actual catalog
+// composition (verified / candidate / archived weren't visible
+// before, all collapsed into "active" or implicit). Per-segment
+// tone uses the canonical token already mapped to each status
+// elsewhere in the file (`STATUS_TONE` + `EntityStateCell`).
+// Segments hide their label below ~18 % width and fall back to a
+// numeric count; the full breakdown lives in the title tooltip
+// and aria-label.
+type ProgressSegment = {
+  status: RuleStatus
+  count: number
+  label: string
+  /** Background color class. */
+  bg: string
+  /** Text color class, paired with `bg` for adequate contrast. */
+  text: string
+}
+
 function RuleReviewProgressBar(
   props:
-    | { loading: true; totalActive?: never; totalPendingReview?: never }
-    | { loading?: false; totalActive: number; totalPendingReview: number },
+    | { loading: true; statusCounts?: never }
+    | { loading?: false; statusCounts: Record<RuleStatus, number> },
 ) {
   if (props.loading) {
     return (
       <div className="h-7 w-full animate-pulse rounded-md border border-divider-subtle bg-background-subtle" />
     )
   }
-  const totalReviewed = props.totalActive + props.totalPendingReview
-  const activePct = totalReviewed > 0 ? (props.totalActive / totalReviewed) * 100 : 0
-  const ACTIVE_LABEL_FITS = activePct >= 18
-  const REVIEW_LABEL_FITS = 100 - activePct >= 18
+  const { statusCounts } = props
+  // Order matches the catalog's lifecycle reading: green (done) →
+  // blue (verified) → amber (in review) → neutral (candidate) →
+  // red (rejected) → muted (archived / deprecated). Reading left to
+  // right tells the maturity story.
+  const SEGMENT_ORDER: readonly RuleStatus[] = [
+    'active',
+    'verified',
+    'pending_review',
+    'candidate',
+    'rejected',
+    'archived',
+    'deprecated',
+  ] as const
+  const SEGMENT_LABEL: Record<RuleStatus, string> = {
+    active: 'active',
+    verified: 'verified',
+    pending_review: 'need review',
+    candidate: 'candidate',
+    rejected: 'rejected',
+    archived: 'archived',
+    deprecated: 'deprecated',
+  }
+  const SEGMENT_BG: Record<RuleStatus, string> = {
+    active: 'bg-state-success-hover',
+    verified: 'bg-state-accent-hover',
+    pending_review: 'bg-state-warning-hover',
+    candidate: 'bg-state-base-active',
+    rejected: 'bg-state-destructive-hover',
+    archived: 'bg-divider-regular',
+    deprecated: 'bg-divider-regular',
+  }
+  const SEGMENT_TEXT: Record<RuleStatus, string> = {
+    active: 'text-text-success',
+    verified: 'text-text-accent',
+    pending_review: 'text-text-warning',
+    candidate: 'text-text-secondary',
+    rejected: 'text-text-destructive',
+    archived: 'text-text-tertiary',
+    deprecated: 'text-text-tertiary',
+  }
+  const segments: ProgressSegment[] = SEGMENT_ORDER.flatMap((status) => {
+    const count = statusCounts[status] ?? 0
+    if (count <= 0) return []
+    return [
+      {
+        status,
+        count,
+        label: SEGMENT_LABEL[status],
+        bg: SEGMENT_BG[status],
+        text: SEGMENT_TEXT[status],
+      },
+    ]
+  })
+  const total = segments.reduce((acc, s) => acc + s.count, 0)
+  const breakdown = segments.map((s) => `${s.count} ${s.label}`).join(' · ')
   return (
     <div
       className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
       role="img"
-      aria-label={`${props.totalActive} active out of ${totalReviewed} reviewed`}
-      title={`${props.totalActive} active · ${props.totalPendingReview} need review`}
+      aria-label={total > 0 ? `Rule catalog breakdown — ${breakdown}` : 'Empty rule catalog'}
+      title={breakdown || undefined}
     >
-      <div
-        className="flex items-center overflow-hidden bg-state-success-hover px-2 transition-[width] duration-300"
-        style={{ width: `${activePct}%` }}
-      >
-        {ACTIVE_LABEL_FITS ? (
-          <span className="truncate text-xs font-medium tabular-nums text-text-success">
-            <Trans>{props.totalActive} active</Trans>
-          </span>
-        ) : activePct > 0 ? (
-          <span className="truncate text-xs font-medium tabular-nums text-text-success">
-            {props.totalActive}
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-warning-hover px-2">
-        {REVIEW_LABEL_FITS ? (
-          <span className="truncate text-xs font-medium tabular-nums text-text-warning">
-            <Trans>{props.totalPendingReview} need review</Trans>
-          </span>
-        ) : props.totalPendingReview > 0 ? (
-          <span className="truncate text-xs font-medium tabular-nums text-text-warning">
-            {props.totalPendingReview}
-          </span>
-        ) : null}
-      </div>
+      {segments.map((segment) => {
+        const pct = total > 0 ? (segment.count / total) * 100 : 0
+        const labelFits = pct >= 18
+        return (
+          <div
+            key={segment.status}
+            className={cn(
+              'flex items-center overflow-hidden px-2 transition-[width] duration-300',
+              segment.bg,
+            )}
+            style={{ width: `${pct}%` }}
+          >
+            {labelFits ? (
+              <span className={cn('truncate text-xs font-medium tabular-nums', segment.text)}>
+                {segment.count} {segment.label}
+              </span>
+            ) : (
+              <span className={cn('truncate text-xs font-medium tabular-nums', segment.text)}>
+                {segment.count}
+              </span>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

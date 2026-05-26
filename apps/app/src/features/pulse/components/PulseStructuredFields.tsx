@@ -280,25 +280,6 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
 
       <FactCard title={<Trans>Scope</Trans>}>
         <FactGrid facts={scopeFacts} />
-        {detail.alert.actionMode === 'review_only' ? (
-          <div className="mt-3 rounded-md border border-divider-subtle bg-background-soft p-3 text-sm text-text-secondary">
-            <span className="block text-xs font-semibold uppercase tracking-wide text-text-tertiary">
-              <Trans>Structured change</Trans>
-            </span>
-            {/* 2026-05-26 (Yuqi scrollbar audit): dropped `max-h-40
-                overflow-auto`. The pre was inside the drawer
-                body's `overflow-y-auto` container — capping the
-                pre's height forced a nested vertical scrollbar
-                INSIDE the drawer's own scrollbar. Now the pre
-                expands to fit and the drawer body scroll handles
-                the overflow naturally. `whitespace-pre-wrap`
-                still wraps long lines so the pre doesn't push
-                horizontal scroll either. */}
-            <pre className="mt-2 whitespace-pre-wrap break-words font-mono text-xs">
-              {formatStructuredChange(detail.structuredChange, t`No structured fields.`)}
-            </pre>
-          </div>
-        ) : null}
       </FactCard>
 
       {/* 2026-05-25 (Yuqi Today #20): source excerpt no longer wrapped
@@ -334,12 +315,6 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       </div>
     </div>
   )
-}
-
-function formatStructuredChange(value: unknown, fallback: string): string {
-  if (value === null || value === undefined) return fallback
-  if (typeof value === 'string') return value
-  return JSON.stringify(value, null, 2)
 }
 
 // Visible card wrapper around a logical section. Header is a real

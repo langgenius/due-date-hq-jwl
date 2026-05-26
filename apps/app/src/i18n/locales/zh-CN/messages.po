@@ -136,11 +136,6 @@ msgstr "{0, plural, one {# 个缺口} other {# 个缺口}}"
 msgid "{0, plural, one {# group} other {# groups}}"
 msgstr "{0, plural, one {# 组} other {# 组}}"
 
-#. placeholder {0}: materialsSelection.itemIds.size
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# item selected} other {# items selected}}"
-msgstr "{0, plural, one {已选中 # 项} other {已选中 # 项}}"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -774,6 +769,10 @@ msgstr "{ruleReviewCount} 条规则待复核"
 msgid "{scopeTotal} open"
 msgstr ""
 
+#: src/routes/obligations.tsx
+msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
+msgstr "{selectedChecklistItemCount, plural, one {已选中 # 项} other {已选中 # 项}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
 msgstr "已选择 {selectedCount} 条"
@@ -1160,6 +1159,11 @@ msgstr "活动日志"
 #: src/features/audit/audit-log-table.tsx
 msgid "Actor"
 msgstr "执行人"
+
+#. placeholder {0}: matchedRuleSelections.length
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Add {0} deadlines"
+msgstr "添加 {0} 个截止日"
 
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a manual client record to the active practice directory."
@@ -2071,6 +2075,10 @@ msgstr "C 公司"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "C Corporation"
 msgstr "C 型公司"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "CA, NY, TX…"
+msgstr ""
 
 #: src/features/rules/sources-tab.tsx
 msgid "CADENCE"
@@ -3817,6 +3825,11 @@ msgstr "不要为本次导入使用 Client > Backup；备份以及 IDATA/DBF/MDX
 msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 msgstr "不要为本次导入使用 File > Client File Maintenance > Copy/Backup；它备份的是 YYi、YYp、YYc 或 YYs 等申报文件。"
 
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "Document {0} already received"
+msgstr "文件 {0} 已收到"
+
 #: src/routes/obligations.tsx
 msgid "Document item added"
 msgstr "文件项已添加"
@@ -4226,6 +4239,10 @@ msgstr "你打开过的每个客户都已修复。关闭面板即可刷新列表
 msgid "Every filing deadline the practice tracks. Review pending rules, fill missing coverage, and add new ones."
 msgstr ""
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Every selected jurisdiction needs an active rule-backed deadline."
+msgstr "每个选中的辖区都需要有一条已激活且由规则支持的截止日。"
+
 #: src/routes/account.security.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "除当前设备外，所有已登录的浏览器和设备都会立即失去访问权限。下次使用时需要重新认证。"
@@ -4488,6 +4505,10 @@ msgstr "失败"
 msgid "Fallback document list ready"
 msgstr "兜底文件清单已就绪"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Federal"
+msgstr ""
+
 #: src/features/migration/Step4Preview.tsx
 msgid "Federal deadlines and state deadlines with active rules will still be generated."
 msgstr "联邦截止日，以及已有生效规则的州级截止日，仍会正常生成。"
@@ -4497,8 +4518,8 @@ msgid "Federal EIN"
 msgstr "联邦 EIN"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Federal, CA, NY…"
-msgstr "联邦、CA、NY…"
+msgid "Federal only"
+msgstr ""
 
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
@@ -4808,7 +4829,7 @@ msgstr "表单"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Form / voucher"
-msgstr "表单 / 缴款凭证"
+msgstr ""
 
 #: src/routes/rules.library.tsx
 msgid "Form name"
@@ -5182,6 +5203,10 @@ msgstr "收件箱，{unreadCount} 条未读"
 #: src/features/migration/Step1Intake.tsx
 msgid "Include client number, client name, email, phone, address, return type, and preparer fields."
 msgstr "包含 client number、client name、email、phone、address、return type 和 preparer 字段。"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Include Federal"
+msgstr ""
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -5737,9 +5762,10 @@ msgstr "将所选项标记为已延期"
 msgid "Mark upstream return resolved"
 msgstr "标记上游申报已处理"
 
+#. placeholder {0}: receivingItemIds.size
 #: src/routes/obligations.tsx
-msgid "Marked {firedCount} items received"
-msgstr "已标记收到 {firedCount} 项"
+msgid "Marked {0} items received"
+msgstr "已标记收到 {0} 项"
 
 #: src/routes/obligations.tsx
 msgid "Marked 1 item received"
@@ -6291,6 +6317,9 @@ msgid "No active practice is selected."
 msgstr "未选择当前事务所。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
+msgid "No active rule"
+msgstr "无已激活规则"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "该辖区暂无已激活规则。"
@@ -6424,7 +6453,7 @@ msgstr "没有表单"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "No forms or vouchers match."
-msgstr "没有匹配的表单或缴款凭证。"
+msgstr ""
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No import batches yet"
@@ -6562,10 +6591,6 @@ msgstr "{0} 中未为该实体定义规则"
 msgid "No rule extension or unknown"
 msgstr "规则未允许延期或未知"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "No rule-backed deadline is available for this category, jurisdiction, and tax year yet."
-msgstr "该类别、税务机关和税年暂时没有可由规则生成的截止日期。"
-
 #: src/routes/rules.library.tsx
 msgid "No rules and no coverage data yet."
 msgstr "尚无规则和覆盖数据。"
@@ -6615,10 +6640,6 @@ msgstr "不生成州级截止日"
 #: src/routes/obligations.tsx
 msgid "No states"
 msgstr "没有州"
-
-#: src/features/pulse/components/PulseStructuredFields.tsx
-msgid "No structured fields."
-msgstr "没有结构化字段。"
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -7185,7 +7206,7 @@ msgstr "机会已暂停"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Optional"
-msgstr "可选"
+msgstr ""
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Optional context; save it from the deadline drawer after creation."
@@ -9262,7 +9283,7 @@ msgstr "搜索截止日类别…"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Search forms and vouchers…"
-msgstr "搜索表单或缴款凭证…"
+msgstr ""
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search owners"
@@ -9417,8 +9438,8 @@ msgid "Select tax year {value}"
 msgstr "选择税年 {value}"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Select the tax year, deadline category, and jurisdiction. DueDateHQ calculates the due date from the rule library."
-msgstr "选择税年、截止日期类别和税务机关。DueDateHQ 会根据规则库计算截止日期。"
+msgid "Select the tax year, deadline category, jurisdiction, forms, and whether to include Federal. DueDateHQ calculates each due date from the rule library."
+msgstr ""
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Select visible batch-ready rules"
@@ -10046,10 +10067,6 @@ msgstr "仍在等待确认"
 msgid "Stops"
 msgstr "停止"
 
-#: src/features/pulse/components/PulseStructuredFields.tsx
-msgid "Structured change"
-msgstr "结构化变更"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"
 msgstr "主题"
@@ -10124,7 +10141,7 @@ msgstr "建议表格"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms and vouchers"
-msgstr "建议的表单和缴款凭证"
+msgstr ""
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Suggestions"

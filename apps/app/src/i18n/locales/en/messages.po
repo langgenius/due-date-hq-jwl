@@ -136,11 +136,6 @@ msgstr "{0, plural, one {# gap} other {# gap}}"
 msgid "{0, plural, one {# group} other {# groups}}"
 msgstr "{0, plural, one {# group} other {# groups}}"
 
-#. placeholder {0}: materialsSelection.itemIds.size
-#: src/routes/obligations.tsx
-msgid "{0, plural, one {# item selected} other {# items selected}}"
-msgstr "{0, plural, one {# item selected} other {# items selected}}"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -774,6 +769,10 @@ msgstr "{ruleReviewCount} rules pending review"
 msgid "{scopeTotal} open"
 msgstr "{scopeTotal} open"
 
+#: src/routes/obligations.tsx
+msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
+msgstr "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
 msgstr "{selectedCount} selected"
@@ -1160,6 +1159,11 @@ msgstr "Activity log"
 #: src/features/audit/audit-log-table.tsx
 msgid "Actor"
 msgstr "Actor"
+
+#. placeholder {0}: matchedRuleSelections.length
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Add {0} deadlines"
+msgstr "Add {0} deadlines"
 
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a manual client record to the active practice directory."
@@ -2071,6 +2075,10 @@ msgstr "C corp"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "C Corporation"
 msgstr "C Corporation"
+
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "CA, NY, TX…"
+msgstr "CA, NY, TX…"
 
 #: src/features/rules/sources-tab.tsx
 msgid "CADENCE"
@@ -3817,6 +3825,11 @@ msgstr "Do not use Client > Backup for this import; backups and IDATA/DBF/MDX fi
 msgid "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import; that backs up return files such as YYi, YYp, YYc, or YYs."
 
+#. placeholder {0}: item.label
+#: src/routes/obligations.tsx
+msgid "Document {0} already received"
+msgstr "Document {0} already received"
+
 #: src/routes/obligations.tsx
 msgid "Document item added"
 msgstr "Document item added"
@@ -4226,6 +4239,10 @@ msgstr "Every client you opened is fixed. Close the sheet to refresh the list, o
 msgid "Every filing deadline the practice tracks. Review pending rules, fill missing coverage, and add new ones."
 msgstr "Every filing deadline the practice tracks. Review pending rules, fill missing coverage, and add new ones."
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Every selected jurisdiction needs an active rule-backed deadline."
+msgstr "Every selected jurisdiction needs an active rule-backed deadline."
+
 #: src/routes/account.security.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
@@ -4488,6 +4505,10 @@ msgstr "Failed"
 msgid "Fallback document list ready"
 msgstr "Fallback document list ready"
 
+#: src/features/obligations/CreateObligationDialog.tsx
+msgid "Federal"
+msgstr "Federal"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "Federal deadlines and state deadlines with active rules will still be generated."
 msgstr "Federal deadlines and state deadlines with active rules will still be generated."
@@ -4497,8 +4518,8 @@ msgid "Federal EIN"
 msgstr "Federal EIN"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Federal, CA, NY…"
-msgstr "Federal, CA, NY…"
+msgid "Federal only"
+msgstr "Federal only"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
@@ -5184,6 +5205,10 @@ msgid "Include client number, client name, email, phone, address, return type, a
 msgstr "Include client number, client name, email, phone, address, return type, and preparer fields."
 
 #: src/features/obligations/CreateObligationDialog.tsx
+msgid "Include Federal"
+msgstr "Include Federal"
+
+#: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "Individual"
 msgstr "Individual"
@@ -5737,9 +5762,10 @@ msgstr "Mark selected extended"
 msgid "Mark upstream return resolved"
 msgstr "Mark upstream return resolved"
 
+#. placeholder {0}: receivingItemIds.size
 #: src/routes/obligations.tsx
-msgid "Marked {firedCount} items received"
-msgstr "Marked {firedCount} items received"
+msgid "Marked {0} items received"
+msgstr "Marked {0} items received"
 
 #: src/routes/obligations.tsx
 msgid "Marked 1 item received"
@@ -6291,6 +6317,9 @@ msgid "No active practice is selected."
 msgstr "No active practice is selected."
 
 #: src/features/obligations/CreateObligationDialog.tsx
+msgid "No active rule"
+msgstr "No active rule"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "No active rules for this jurisdiction."
 msgstr "No active rules for this jurisdiction."
@@ -6562,10 +6591,6 @@ msgstr "No rule defined for this entity in {0}"
 msgid "No rule extension or unknown"
 msgstr "No rule extension or unknown"
 
-#: src/features/obligations/CreateObligationDialog.tsx
-msgid "No rule-backed deadline is available for this category, jurisdiction, and tax year yet."
-msgstr "No rule-backed deadline is available for this category, jurisdiction, and tax year yet."
-
 #: src/routes/rules.library.tsx
 msgid "No rules and no coverage data yet."
 msgstr "No rules and no coverage data yet."
@@ -6615,10 +6640,6 @@ msgstr "No state deadlines"
 #: src/routes/obligations.tsx
 msgid "No states"
 msgstr "No states"
-
-#: src/features/pulse/components/PulseStructuredFields.tsx
-msgid "No structured fields."
-msgstr "No structured fields."
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -9417,8 +9438,8 @@ msgid "Select tax year {value}"
 msgstr "Select tax year {value}"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "Select the tax year, deadline category, and jurisdiction. DueDateHQ calculates the due date from the rule library."
-msgstr "Select the tax year, deadline category, and jurisdiction. DueDateHQ calculates the due date from the rule library."
+msgid "Select the tax year, deadline category, jurisdiction, forms, and whether to include Federal. DueDateHQ calculates each due date from the rule library."
+msgstr "Select the tax year, deadline category, jurisdiction, forms, and whether to include Federal. DueDateHQ calculates each due date from the rule library."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Select visible batch-ready rules"
@@ -10045,10 +10066,6 @@ msgstr "Still waiting on confirmation"
 #: src/features/calendar/calendar-page.tsx
 msgid "Stops"
 msgstr "Stops"
-
-#: src/features/pulse/components/PulseStructuredFields.tsx
-msgid "Structured change"
-msgstr "Structured change"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Subject"

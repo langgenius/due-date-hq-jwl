@@ -82,6 +82,7 @@ export const router = os.router({
     exportSelected: obligationQueueHandlers.exportSelected,
     createBatch: obligationsHandlers.createBatch,
     createFromRule: obligationsHandlers.createFromRule,
+    createFromRules: obligationsHandlers.createFromRules,
     previewAnnualRollover: obligationsHandlers.previewAnnualRollover,
     createAnnualRollover: obligationsHandlers.createAnnualRollover,
     updateDueDate: obligationsHandlers.updateDueDate,

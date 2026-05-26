@@ -41,6 +41,7 @@ import {
   ObligationBulkStatusUpdateOutputSchema,
   ObligationCreateFromRuleInputSchema,
   ObligationCreateFromRuleOutputSchema,
+  ObligationCreateFromRulesInputSchema,
   ObligationExtensionDecisionInputSchema,
   ObligationTaxYearProfileUpdateInputSchema,
   ObligationTaxYearProfileUpdateOutputSchema,
@@ -510,6 +511,7 @@ describe('@duedatehq/contracts', () => {
       expect.arrayContaining([
         'createBatch',
         'createFromRule',
+        'createFromRules',
         'previewAnnualRollover',
         'createAnnualRollover',
         'updateDueDate',
@@ -1904,6 +1906,22 @@ describe('@duedatehq/contracts', () => {
       clientId: '33333333-3333-4333-8333-333333333333',
       ruleId: 'fed.7004.extension.1120s.2025',
       taxYear: 2026,
+    })
+
+    expect(
+      ObligationCreateFromRulesInputSchema.parse({
+        clientId: '33333333-3333-4333-8333-333333333333',
+        selections: [
+          { ruleId: 'fed.7004.extension.1120s.2025', taxYear: 2026 },
+          { ruleId: 'ny.ct3s.return.2025', taxYear: 2026 },
+        ],
+      }),
+    ).toEqual({
+      clientId: '33333333-3333-4333-8333-333333333333',
+      selections: [
+        { ruleId: 'fed.7004.extension.1120s.2025', taxYear: 2026 },
+        { ruleId: 'ny.ct3s.return.2025', taxYear: 2026 },
+      ],
     })
 
     expect(
