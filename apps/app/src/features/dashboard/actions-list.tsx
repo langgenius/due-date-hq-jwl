@@ -13,7 +13,7 @@ import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-stat
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
-import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
+import { ObligationStatusReadBadge, STATUS_ICON_COLOR } from '@/features/obligations/status-control'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -205,7 +205,13 @@ function ActionRow({
           // `px-3 py-2`; the 2.5 was a half-step that doesn't exist
           // in the canonical scale. Affects Today's action rows so
           // they match the row density used on Deadlines.
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          // 2026-05-26 (Yuqi /today feedback): hover transition gets
+          // a deliberate ease-in-out timing (200ms) instead of the
+          // default `transition-colors` (150ms ease). The slightly
+          // longer + symmetric easing makes the hover feel
+          // intentional, not snappy — important on a dashboard
+          // surface where the row IS the affordance.
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
@@ -216,11 +222,20 @@ function ActionRow({
       >
         {/* Leading chevron — rotates 90° when expanded so the row
           reads as "this opens." Pure visual cue; not a button (the
-          whole row container handles expansion via hover/focus). */}
+          whole row container handles expansion via hover/focus).
+          2026-05-26 (Yuqi sixty-ninth pass): arrow tone now tracks
+          the row's status via the canonical `STATUS_ICON_COLOR`
+          map (red for blocked, amber for waiting_on_client, accent
+          for review/in_progress, success for done, tertiary for
+          pending). Carries the urgency cue at the row's leading
+          edge so a quick scan reads "what's this row asking me to
+          do" without first parsing the right-edge Status badge.
+          Expanded state pushes the arrow to text-primary so the
+          rotate-down cue stays legible even on neutral rows. */}
         <ArrowRightIcon
           className={cn(
-            'size-3.5 shrink-0 text-text-tertiary transition-transform',
-            expanded && 'rotate-90 text-text-primary',
+            'size-3.5 shrink-0 transition-transform',
+            expanded ? 'rotate-90 text-text-primary' : STATUS_ICON_COLOR[row.status],
           )}
           aria-hidden
         />
@@ -545,7 +560,6 @@ function DashboardActionsList({
   const { t } = useLingui()
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
-  const overflow = Math.max(totalThisWeek - visible.length, 0)
   // Single-row hover state. Only one row expanded at a time — mouse
   // can only physically be over one row.
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -663,9 +677,15 @@ function DashboardActionsList({
     <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
       <SectionHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
+      {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
+          Action rows already carry their own hover-bg state to anchor
+          attention; the hairline between every row was reading as
+          a table-frame, fighting the borderless-card aesthetic of
+          the surrounding sections. The 2px `gap-0.5` between rows
+          plus the hover-bg gives enough rhythm without chrome. */}
       <ul className="flex flex-col gap-0.5">
         {visible.map((row) => (
-          <li key={row.obligationId} className="border-b border-divider-subtle last:border-b-0">
+          <li key={row.obligationId}>
             <ActionRow
               row={row}
               asOfDate={asOfDate}
@@ -680,17 +700,13 @@ function DashboardActionsList({
           </li>
         ))}
       </ul>
-      {overflow > 0 ? (
-        // 2026-05-26 (Yuqi forty-second pass — caption unification):
-        // "… N more in the queue" is a caption (a footer-meta line
-        // anchoring the list), not body copy. Dropped from text-base
-        // → text-xs to match the caption scale used for counts /
-        // timestamps / attributions everywhere else on Today / Alerts
-        // / Deadlines.
-        <p className="text-xs text-text-tertiary">
-          <Plural value={overflow} one="… # more in the queue" other="… # more in the queue" />
-        </p>
-      ) : null}
+      {/* 2026-05-26 (Yuqi /today feedback): "… N more in the queue"
+          caption removed. The section already has a "View all
+          deadlines" link in its header (see SectionHeader); the
+          footer caption was duplicate-pointing to the same
+          destination. The truncation itself is communicated
+          implicitly — the count in the header tells the user how
+          many TOTAL deadlines exist this week. */}
     </section>
   )
 }

@@ -67,9 +67,39 @@ type SidebarContextValue = {
    * badge dots. Persisted in `localStorage[ddhq.sidebar.collapsed]`
    * so the user's preference survives reloads. Mobile mode
    * ignores this (the Sheet drawer is always full-width).
+   *
+   * 2026-05-26 (Yuqi sidebar mechanism): `collapsed` is now the
+   * EFFECTIVE state, computed as `userCollapsed || autoCollapsed`.
+   * Surfaces with a wide right detail panel (e.g. /deadlines'
+   * obligation drawer) call `setAutoCollapsed(true)` on mount so
+   * the rail temporarily narrows to give the panel room; on
+   * unmount they restore `false` and the user's persisted
+   * preference takes over again. The user's manual toggle still
+   * works during an auto-collapse — clicking expand sets BOTH
+   * `userCollapsed` and `autoCollapsed` to false so the user
+   * override wins for the rest of that panel session.
    */
   collapsed: boolean
   toggleCollapsed: () => void
+  /**
+   * Programmatic, transient collapse. NOT persisted. Use this
+   * from a route effect when the page opens a wide right panel
+   * that would otherwise compete with the sidebar for width.
+   * The user can still manually expand while auto-collapsed —
+   * their expansion wins for the rest of the panel session.
+   */
+  setAutoCollapsed: (next: boolean) => void
+  /**
+   * 2026-05-26 (Yuqi sixty-ninth pass): call from sidebar nav
+   * item clicks. Treats this navigation as a "show me where I
+   * am" intent and absorbs the NEXT auto-collapse request from
+   * the destination route. The next time a wide panel opens
+   * (e.g. the user clicks a row in the queue), auto-collapse
+   * resumes as normal. This way a sidebar click never lands the
+   * user on a page with the sidebar already gone, even if that
+   * page deep-links into a row.
+   */
+  notifySidebarNavigation: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null)
@@ -94,7 +124,21 @@ function readPersistedCollapsed(): boolean {
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  const [collapsed, setCollapsed] = React.useState<boolean>(() => readPersistedCollapsed())
+  // `userCollapsed` is the persisted preference — only changes when
+  // the user clicks the toggle button. Drives reloads and the user's
+  // baseline for every panel session.
+  const [userCollapsed, setUserCollapsed] = React.useState<boolean>(() => readPersistedCollapsed())
+  // `autoCollapsed` is transient programmatic collapse driven by
+  // route surfaces with a wide right panel. NEVER persisted —
+  // closing the panel restores the user's preference.
+  const [autoCollapsed, setAutoCollapsedState] = React.useState(false)
+  // 2026-05-26 (Yuqi sixty-ninth pass): one-shot absorber for
+  // auto-collapse requests that arrive immediately after a
+  // sidebar nav click. Ref (not state) because we don't want a
+  // re-render when it flips, and the route effect's
+  // `setAutoCollapsed(true)` call would otherwise race with a
+  // state update from the click handler.
+  const blockNextAutoCollapseRef = React.useRef(false)
   const visibleOpenMobile = isMobile ? openMobile : false
 
   if (!isMobile && openMobile) {
@@ -108,9 +152,22 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setOpenMobile((prev) => !prev)
   }, [])
 
+  // Effective collapsed state: either source can flip it on.
+  const collapsed = userCollapsed || autoCollapsed
+
   const toggleCollapsed = React.useCallback(() => {
-    setCollapsed((prev) => {
-      const next = !prev
+    // The user's intent is to flip the EFFECTIVE state. If we're
+    // currently collapsed (whether the user set it OR auto did),
+    // clicking expand should expand — set BOTH flags to false so
+    // auto doesn't immediately re-collapse. If we're expanded,
+    // clicking collapse sets the persisted user preference.
+    setUserCollapsed((prevUserCollapsed) => {
+      // `setUserCollapsed` is called inside a state setter, so we
+      // can't read the latest `autoCollapsed` here directly — but
+      // `prevUserCollapsed || autoCollapsed` is the rendered
+      // `collapsed` value at toggle time. Re-derive it.
+      const prevEffective = prevUserCollapsed || autoCollapsed
+      const next = !prevEffective
       try {
         window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
       } catch {
@@ -119,6 +176,36 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       }
       return next
     })
+    // If the user is overriding an auto-collapse, clear the auto
+    // flag so it doesn't immediately reapply on the next render.
+    if (autoCollapsed) setAutoCollapsedState(false)
+  }, [autoCollapsed])
+
+  const setAutoCollapsed = React.useCallback((next: boolean) => {
+    // 2026-05-26 (Yuqi sixty-ninth pass): if the user just clicked
+    // a sidebar nav link, absorb the FIRST `setAutoCollapsed(true)`
+    // that arrives from the destination route. Releases the
+    // one-shot block on either consumption or an explicit
+    // `setAutoCollapsed(false)` (route unmount / panel close) so
+    // future panel opens during this same route work normally.
+    if (next && blockNextAutoCollapseRef.current) {
+      blockNextAutoCollapseRef.current = false
+      return
+    }
+    if (!next) {
+      // An explicit "panel just closed" call clears any pending
+      // block too — we don't want a stale block hanging around.
+      blockNextAutoCollapseRef.current = false
+    }
+    setAutoCollapsedState(next)
+  }, [])
+
+  const notifySidebarNavigation = React.useCallback(() => {
+    // Clear any standing auto-collapse so the click visibly opens
+    // the rail, then arm the one-shot block to absorb the
+    // destination route's mount-effect auto-collapse.
+    setAutoCollapsedState(false)
+    blockNextAutoCollapseRef.current = true
   }, [])
 
   // Memoise the value so non-Provider subscribers don't re-render on every
@@ -131,8 +218,18 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       isMobile,
       collapsed,
       toggleCollapsed,
+      setAutoCollapsed,
+      notifySidebarNavigation,
     }),
-    [visibleOpenMobile, toggleSidebar, isMobile, collapsed, toggleCollapsed],
+    [
+      visibleOpenMobile,
+      toggleSidebar,
+      isMobile,
+      collapsed,
+      toggleCollapsed,
+      setAutoCollapsed,
+      notifySidebarNavigation,
+    ],
   )
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
@@ -200,13 +297,55 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
   //     centered icon button, etc.) follows what the user sees,
   //     not the persisted state.
   const [hovered, setHovered] = React.useState(false)
-  const effectiveCollapsed = collapsed && !hovered
+  const targetCollapsed = collapsed && !hovered
+  // 2026-05-26 (Yuqi sidebar transition smoothness): `data-collapsed`
+  // drives CSS classes that change layout (row direction, padding,
+  // visibility, etc.) — these flip INSTANTLY when the value changes,
+  // while the sidebar's WIDTH animates over 300ms. The mismatch
+  // caused content to overflow the painted sidebar boundary mid-
+  // transition (e.g. the collapse-toggle leaking into page content
+  // during the expand animation).
+  //
+  // Fix: split timing asymmetrically.
+  //
+  //   • COLLAPSE (false → true): flip layout IMMEDIATELY so the row
+  //     direction changes to vertical, content shrinks horizontally,
+  //     THEN the width animates 220→56. Layout fits within the
+  //     shrinking footprint at every frame.
+  //
+  //   • EXPAND (true → false): hold the collapsed layout until the
+  //     width animation finishes 56→220, THEN flip layout to
+  //     horizontal. The expanded layout never paints inside a too-
+  //     narrow footprint.
+  //
+  // Implementation: track `renderedCollapsed` in state. On collapse
+  // it follows `targetCollapsed` immediately. On expand it follows
+  // after the width transition completes (300ms via setTimeout). The
+  // outer `overflow-hidden` clip on the inner overlay is the
+  // belt-and-suspenders backstop if the timer ever drifts.
+  //
+  // KEY INSIGHT: width and layout need different timing.
+  //   • Inner overlay WIDTH uses `targetCollapsed` directly — so
+  //     hover-expand is snappy (width starts changing immediately).
+  //   • `data-collapsed` (which drives layout direction, padding,
+  //     visibility) uses `renderedCollapsed` — delayed on expand so
+  //     the row stays in its narrow-friendly layout until the
+  //     painted area is wide enough.
+  const [renderedCollapsed, setRenderedCollapsed] = React.useState(targetCollapsed)
+  React.useEffect(() => {
+    if (targetCollapsed) {
+      setRenderedCollapsed(true)
+      return
+    }
+    const timer = window.setTimeout(() => setRenderedCollapsed(false), 300)
+    return () => window.clearTimeout(timer)
+  }, [targetCollapsed])
   const overlayActive = collapsed && hovered
   return (
     <aside
       data-slot="sidebar"
       data-mobile="false"
-      data-collapsed={effectiveCollapsed ? 'true' : 'false'}
+      data-collapsed={renderedCollapsed ? 'true' : 'false'}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
@@ -225,12 +364,27 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           use the same curve + duration so icon-staying-put +
           label-fade-out read as one coordinated motion, not as
           two separate animations stepping on each other. */}
+      {/* 2026-05-26 (Yuqi sixty-ninth pass follow-up — firm switcher
+          bug context): the hover-overlay was carrying a soft drop-
+          shadow on its right edge to suggest "this is lifted above
+          the page." But against an inset page background that
+          shadow + the white panel bg made the whole sidebar (and
+          everything inside it, including the firm-switcher trigger)
+          read as a floating card detached from the rail's natural
+          column. Dropped the shadow; the 1px right border alone is
+          enough delimiter, and the rail now reads as the same
+          surface in both collapsed and hover-expanded states. */}
+      {/* 2026-05-26 (Yuqi sidebar transition bug): `overflow-hidden`
+          ensures the painted sidebar boundary is inviolable. The
+          collapse-toggle in the firm-switcher row used to leak past
+          the right edge mid-transition (when the row flipped to
+          horizontal layout instantly via `data-collapsed`, but the
+          width was still animating 56→220 over 300ms). With the
+          clip, any momentary overflow is hidden inside the sidebar
+          rather than spilling into the page content area. */}
       <div
-        className={cn(
-          'absolute inset-y-0 left-0 z-30 flex flex-col border-r border-divider-regular bg-components-panel-bg transition-[width,box-shadow] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
-          overlayActive && 'shadow-[6px_0_24px_-12px_rgb(0_0_0_/_0.18)]',
-        )}
-        style={{ width: effectiveCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
+        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+        style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       >
         {children}
       </div>

@@ -80,15 +80,11 @@ function BlockedByChip({
       title={title}
       className="inline-flex max-w-[220px] items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
-      {/* 2026-05-26 (Yuqi sixty-fifth pass follow-up #3): icon tone
-          neutralized from text-destructive → text-text-tertiary.
-          The red icon next to the chip label was reading as "this
-          is a destructive action" — but the chip is a navigation
-          handle ("by Lakeview Medical Partners · Form 1065"), not a
-          danger affordance. The Status pill in the same row already
-          carries the "Blocked" tone signal; the link icon just needs
-          to be visible. */}
-      <LinkIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+      {/* 2026-05-26 (Yuqi sixty-sixth pass): icon tone aligned to
+          the label's text-text-secondary so the icon + text read
+          as a single navigation token instead of two greys at
+          different weights. Yuqi: "same gray icon." */}
+      <LinkIcon className="size-3.5 shrink-0 text-text-secondary" aria-hidden />
       <span className="truncate">
         <Trans>by {label}</Trans>
       </span>

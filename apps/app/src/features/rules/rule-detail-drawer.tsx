@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, TriangleAlertIcon } from 'lucide-react'
+import { AlertTriangleIcon, SparklesIcon, TriangleAlertIcon } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
 
 import type {
@@ -17,7 +17,6 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { ConceptLabel } from '@/features/concepts/concept-help'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -27,9 +26,10 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import {
   formatEnumLabel,
   humanizeDueDateLogic,
+  RULE_AUTHORITY_ROLE_DESCRIPTION,
   RULE_AUTHORITY_ROLE_LABEL,
 } from './rules-console-model'
-import { JurisdictionCode, ToneDot } from './rules-console-primitives'
+import { JurisdictionCode } from './rules-console-primitives'
 import { useSourceLookup } from './use-source-lookup'
 
 const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
@@ -149,17 +149,21 @@ export function RuleDetailCompact({
   const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
   return (
     <div className="flex min-w-0 flex-col gap-5">
-      {/* Audit meta line — quiet, small mono ID + version + status.
-        Sits between the title (in panel header above) and the
-        section list below. Sized smaller than section labels so it
-        reads as a sub-caption, not a competing header. */}
-      <header className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-caption text-text-muted">
-        <span className="font-mono break-all">{rule.id}</span>
-        <span aria-hidden>·</span>
-        <span className="font-mono">v{rule.version}</span>
-        <span aria-hidden>·</span>
-        <RuleStatusInline status={rule.status} />
-      </header>
+      {/* 2026-05-26 (Yuqi /critique — P1-3 / P2-1 / P2-3):
+        retired the audit meta line. It carried `rule.id` (a
+        dev-internal slug — `al.individual_income_return.candidate.
+        2026` reads as code, not as identity), `v{rule.version}`
+        (only meaningful to engineers debugging migrations), and
+        a `Needs review` status pill (redundant — every rule in
+        the batch-review queue is "Needs review" by definition;
+        the surface IS the review queue). The audit trail for
+        these values lives in the server-side audit log; the
+        review screen doesn't need to repeat it.
+
+        If a future surface needs the rule id (deep-link share,
+        DevTools, support ticket reference), expose it via a
+        "Copy rule id" affordance or a Details disclosure, not
+        as visible chrome. */}
 
       {/* Vertical layout — each section's label sits ABOVE its
         content, not beside. Frees the full panel width for content
@@ -222,11 +226,17 @@ export function RuleDetailCompact({
 }
 
 function DetailSection({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+  // 2026-05-26 (Yuqi /critique on Review Pending Rules modal —
+  // P1-1): section labels were `text-caption uppercase tracking-
+  // wider text-text-muted` kicker eyebrows. Five eyebrows in a
+  // row on the review surface made the modal read as a form, not
+  // a decision page. Switched to the canonical `text-sm font-
+  // semibold text-text-primary` section heading that /clients,
+  // /deadlines, /rules/library, /alerts all use. The kicker
+  // style stays gone everywhere in the product.
   return (
     <section className="flex flex-col gap-1.5">
-      <p className="text-caption font-medium tracking-[0.08em] text-text-muted uppercase">
-        {label}
-      </p>
+      <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
       {children}
     </section>
   )
@@ -367,6 +377,46 @@ function CandidateReviewForm({
       onError: handleAcceptError,
     }),
   )
+  // 2026-05-26 (Yuqi /critique — P0-3): when the AI concrete
+  // draft isn't ready, the user used to be stuck — disabled
+  // Accept + Skip = infinite "come back later" loop across 456+
+  // rules. Now: `draftConcreteRule` mutation surfaced inline so
+  // the user can trigger generation right from the review card.
+  // On success, invalidate `listConcreteDrafts` so the new draft
+  // surfaces in the panel; the disabled Accept then unlocks.
+  const draftMutation = useMutation(
+    orpc.rules.draftConcreteRule.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.rules.listConcreteDrafts.key() })
+        toast.success(t`Draft generated`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't generate draft`, {
+          description: rpcErrorMessage(error) ?? t`Try again, or skip this rule for now.`,
+        })
+      },
+    }),
+  )
+  function requestDraft() {
+    if (!sourceDefined || reviewSourceId.length === 0 || draftMutation.isPending) return
+    draftMutation.mutate({ ruleId: rule.id, sourceId: reviewSourceId })
+  }
+
+  // 2026-05-26 (Yuqi /critique — P2-2): preview the rule's impact
+  // so the Practice review explainer can show the actual count of
+  // deadlines acceptance would generate. Surfaces in the
+  // explainer copy as "Accepting will generate ~N deadlines for
+  // client filings in {jurisdiction}…" — the decision weight
+  // depends on the magnitude, not just the jurisdiction + entity
+  // labels. Errors are silently ignored — if the preview can't
+  // load, we fall back to the generic copy.
+  const impactQuery = useQuery({
+    ...orpc.rules.previewRuleImpact.queryOptions({
+      input: { ruleId: rule.id, expectedVersion: rule.version },
+    }),
+    staleTime: 60_000,
+  })
+  const estimatedObligations = impactQuery.data?.estimatedObligationCount ?? null
   function submitAccept() {
     if (acceptCompleting || isPending) return
     setAcceptCompleting(true)
@@ -446,11 +496,27 @@ function CandidateReviewForm({
           </Trans>
         )}
       </p>
+      {/* 2026-05-26 (Yuqi /critique — P2-2): client-impact line.
+          Shows the actual count of deadlines this rule would
+          generate across the firm's clients. Renders only when
+          the preview query has a count > 0 so an empty firm
+          doesn't see a misleading "0 deadlines." Quiet text
+          tertiary — informative, not action-demanding. */}
+      {estimatedObligations !== null && estimatedObligations > 0 ? (
+        <p className="text-xs text-text-tertiary">
+          <Plural
+            value={estimatedObligations}
+            one="Generates ~# deadline across your current clients."
+            other="Generates ~# deadlines across your current clients."
+          />
+        </p>
+      ) : null}
       {sourceDefined ? (
         <AiDraftReviewPanel
           draft={draft}
           errorMessage={draftPanelMessage}
-          generating={concreteDraftLoading && !draft}
+          generating={(concreteDraftLoading || draftMutation.isPending) && !draft}
+          {...(reviewSourceId.length > 0 ? { onGenerateDraft: requestDraft } : {})}
         />
       ) : null}
 
@@ -473,10 +539,19 @@ function AiDraftReviewPanel({
   draft,
   errorMessage,
   generating,
+  onGenerateDraft,
 }: {
   draft: RuleConcreteDraft | null
   errorMessage: string | null
   generating: boolean
+  /**
+   * 2026-05-26 (Yuqi /critique — P0-3): when no draft and not
+   * actively generating, render a "Generate draft" button.
+   * Optional — only rendered when caller has a viable source +
+   * mutation wired up. Without this prop the panel just shows
+   * the disabled / pending state as before.
+   */
+  onGenerateDraft?: () => void
 }) {
   return (
     <div
@@ -488,7 +563,37 @@ function AiDraftReviewPanel({
       </p>
       {generating && !draft ? <AiDraftReviewSkeleton /> : null}
       {!generating && errorMessage && !draft ? (
-        <p className="text-xs text-severity-medium">{errorMessage}</p>
+        // 2026-05-26 (Yuqi /critique — P0-2): "AI concrete draft
+        // is not ready" was rendered in `text-severity-medium`
+        // (amber/red). That tone implies "something is broken",
+        // but the pre-generation state isn't an error — it's a
+        // pending state. Switched to `text-text-tertiary` so the
+        // message reads as informational. The disabled Accept
+        // button already communicates "you can't proceed yet";
+        // the message just explains why. Red wasn't earning the
+        // urgency it claimed.
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-text-tertiary">{errorMessage}</p>
+          {/* 2026-05-26 (Yuqi /critique — P0-3 follow-up): inline
+              "Generate draft" CTA. Without it, the user could only
+              Skip → revisit → still no draft → Skip again — an
+              infinite loop across the 456-rule queue. Outline
+              button keeps the primary "Accept rule" CTA as the
+              dominant action below; this is the "make Accept
+              possible" pre-action. */}
+          {onGenerateDraft ? (
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={onGenerateDraft}
+              disabled={generating}
+            >
+              <SparklesIcon data-icon="inline-start" />
+              {generating ? <Trans>Generating…</Trans> : <Trans>Generate draft</Trans>}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
       {draft ? (
         <div className="flex flex-col gap-2 text-sm">
@@ -538,41 +643,18 @@ function AiDraftReviewSkeleton() {
   )
 }
 
-function RuleStatusInline({ status }: { status: ObligationRule['status'] }) {
-  if (status === 'candidate' || status === 'pending_review') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-status-review">
-        <ToneDot tone="review" />
-        <ConceptLabel concept="candidateRule">
-          <Trans>Needs review</Trans>
-        </ConceptLabel>
-      </span>
-    )
-  }
-  if (status === 'deprecated' || status === 'archived' || status === 'rejected') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-text-tertiary">
-        <ToneDot tone="disabled" />
-        {status === 'rejected' ? <Trans>Rejected</Trans> : <Trans>Inactive</Trans>}
-      </span>
-    )
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 text-text-secondary">
-      <ToneDot tone="success" />
-      <ConceptLabel concept="verifiedRule">
-        <Trans>Active</Trans>
-      </ConceptLabel>
-    </span>
-  )
-}
+// 2026-05-26 (Yuqi /critique): `RuleStatusInline` retired with the
+// audit meta line in RuleDetailCompact. Status pill was redundant
+// on the review surface (every rule there is "Needs review" by
+// queue definition) and unused elsewhere. Recover from git if a
+// non-review surface needs the inline status renderer.
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
-      {children}
-    </p>
-  )
+  // 2026-05-26 (Yuqi /critique — same canonical move as
+  // DetailSection above). Practice review heading now reads at
+  // the same weight as Applicability / Due date / Extension /
+  // Evidence so the action zone doesn't feel buried under meta.
+  return <h4 className="text-sm font-semibold text-text-primary">{children}</h4>
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
@@ -904,10 +986,16 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
     watch: 'bg-severity-medium-tint text-severity-medium',
     early_warning: 'bg-severity-medium-tint text-severity-medium',
   }[role]
+  // 2026-05-26 (Yuqi /critique — P1-4): WATCH / BASIS / CROSS-CHECK
+  // / EARLY-WARN were opaque to first-timers. Tooltip via `title`
+  // explains the classification in plain English on hover. The
+  // label stays short so it fits the evidence-card chip slot;
+  // the explainer surfaces only when the user needs it.
   return (
     <Badge
+      title={RULE_AUTHORITY_ROLE_DESCRIPTION[role]}
       className={cn(
-        'h-[18px] shrink-0 rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.04em]',
+        'h-[18px] shrink-0 cursor-help rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.04em]',
         className,
       )}
     >

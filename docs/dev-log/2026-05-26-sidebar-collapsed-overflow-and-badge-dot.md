@@ -118,6 +118,6 @@ reserves the 10px spacer between icon and (zero-width) label.
 
 - The React Router `insertBefore` / `removeChild` console errors
   observed during testing came from eval-driven localStorage swaps
-  + reloads (the harness mutating the DOM mid-HMR commit). They
-  are not reproducible with normal user interaction and aren't
-  caused by these CSS-only changes.
+  - reloads (the harness mutating the DOM mid-HMR commit). They
+    are not reproducible with normal user interaction and aren't
+    caused by these CSS-only changes.

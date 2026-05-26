@@ -13,6 +13,7 @@ import type {
 import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { PageHeader } from '@/components/patterns/page-header'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
@@ -138,33 +139,40 @@ export function DashboardRoute() {
     // narrower pages /settings, /practice, /billing already use
     // py-6 which reads correctly at their tighter width.
     <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        {/* 2026-05-25 (Yuqi page-title pass): "Today" h1 was text-xl
-            (20px) — the only page in the app at this size. Every
-            other page uses text-2xl (24px) via the canonical
-            PageHeader. The page-header.tsx JSDoc claimed Today
-            was "intentionally larger" but the implementation was
-            actually smaller. Aligned to the same text-2xl
-            leading-7 font-semibold treatment so Today reads as
-            part of the same page-title system. */}
-        <h1 className="text-2xl font-semibold leading-7 text-text-primary">
-          <Trans>Today</Trans>{' '}
-          <span className="font-normal text-text-tertiary">
-            {dashboardQuery.isLoading || !data?.asOfDate ? null : formatTodayHeader(data.asOfDate)}
+      {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
+          page-header family): the hand-rolled <header> is gone.
+          /today now routes through the same `<PageHeader>`
+          primitive as /clients, /deadlines, /alerts, and
+          /rules/library — date moves into the canonical pill
+          chip slot so it matches the family's "title + count
+          chip" shape, and the action cluster sits in the
+          `actions` prop. Future polish to the PageHeader
+          primitive propagates here automatically. */}
+      <PageHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Trans>Today</Trans>
+            {!dashboardQuery.isLoading && data?.asOfDate ? (
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+                {formatTodayHeader(data.asOfDate)}
+              </span>
+            ) : null}
           </span>
-        </h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <CreateObligationDialog />
-          {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
-              The button's job is "upload my client list", not
-              "browse for files" — the upload metaphor matches the
-              CTA verb. */}
-          <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
-            <UploadIcon data-icon="inline-start" />
-            <Trans>Import clients</Trans>
-          </Button>
-        </div>
-      </header>
+        }
+        actions={
+          <>
+            <CreateObligationDialog />
+            {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
+                The button's job is "upload my client list", not
+                "browse for files" — the upload metaphor matches the
+                CTA verb. */}
+            <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
+              <UploadIcon data-icon="inline-start" />
+              <Trans>Import clients</Trans>
+            </Button>
+          </>
+        }
+      />
 
       {dashboardQuery.isError ? (
         <Alert variant="destructive">

@@ -67,6 +67,7 @@ export function RulesPageShell({
   actions,
   compact = false,
   lockViewport = false,
+  wide = false,
   contentClassName,
   children,
 }: {
@@ -76,6 +77,16 @@ export function RulesPageShell({
   actions?: ReactNode
   compact?: boolean
   lockViewport?: boolean
+  /**
+   * 2026-05-26 (Yuqi rule library width): opt out of the
+   * `max-w-page-wide` (1100px) cap and let the content fill the
+   * outer 1440px cap from `app-shell.tsx`. Matches the /deadlines
+   * page where the table benefits from the extra horizontal room
+   * (jurisdiction + 7 entity columns + tier + chevrons). Default
+   * stays at 1100px so /rules/pulse and /rules/coverage are
+   * unaffected.
+   */
+  wide?: boolean
   contentClassName?: string
   children: ReactNode
 }) {
@@ -97,7 +108,8 @@ export function RulesPageShell({
             as /today; this is that one-line change. */}
         <div
           className={cn(
-            'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6',
+            'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6',
+            wide ? 'max-w-[1440px]' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,
           )}

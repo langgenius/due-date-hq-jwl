@@ -7,7 +7,6 @@ import {
   AlertCircleIcon,
   ArrowUpRightIcon,
   CheckIcon,
-  ChevronDownIcon,
   HistoryIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -32,18 +31,18 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@duedatehq/ui/components/ui/select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 import { StateBadge } from '@/components/primitives/state-badge'
-import { cn } from '@duedatehq/ui/lib/utils'
+import { PageHeader } from '@/components/patterns/page-header'
+import { FilterTrigger } from '@/components/patterns/filter-trigger'
 
 import { usePulseDrawer } from './DrawerProvider'
 import { PulseDetailDrawer } from './PulseDetailDrawer'
@@ -293,83 +292,78 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             // the embedded shell collapsed to content-height and
             // the panel only occupied the height of the tallest
             // alert card.
-            'flex h-full min-h-0 flex-col gap-4'
+            'flex h-full min-h-0 flex-col gap-6'
           : panelOpen
-            ? 'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-4 p-3 md:p-4'
-            : 'mx-auto flex w-full max-w-page-wide flex-col gap-4 p-3 md:p-4'
+            ? // 2026-05-26 (Yuqi seventy-fourth pass — canonical
+              // container padding): aligned to the same shape as
+              // /today + /clients + /rules/library. Was `gap-4
+              // p-3 md:p-4`; now `gap-6 px-4 pt-6 pb-4 md:px-6
+              // md:pt-8 md:pb-6` (panel-open variant keeps the
+              // wider max-w cap so the right panel has room).
+              'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+            : 'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >
       {!embedded ? (
-        <header className="flex flex-col gap-2">
-          <div className="flex items-end justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="flex items-center gap-2 text-2xl font-semibold leading-tight text-text-primary">
-                <PulsingDot
-                  tone={isEmpty ? 'success' : 'warning'}
-                  active
-                  label={
-                    isEmpty ? t`No active alerts right now` : t`Active alerts waiting for review`
-                  }
-                />
-                <Trans>Alerts</Trans>
-              </h1>
-              <p className="max-w-[640px] text-md text-text-secondary">
-                <ConceptLabel concept="pulse">
-                  <Trans>
-                    Regulatory Pulse signals that match your practice's clients. Review, batch-apply
-                    due-date changes, snooze, or revisit closed changes.
-                  </Trans>
-                </ConceptLabel>
-              </p>
-            </div>
-            <div className="flex shrink-0 items-end gap-3">
+        // 2026-05-26 (Yuqi seventy-fourth pass — Alerts joins the
+        // page-header family): the hand-rolled <header> retired in
+        // favor of the canonical PageHeader primitive. Title +
+        // canonical chip + PulsingDot inline (preserved — it
+        // carries the "live signal" semantics specific to Alerts).
+        // "View sources" / "View history" promoted from text links
+        // → outline Button shapes so the action cluster reads as
+        // actions, not soft links. Description survives via the
+        // primitive's description prop, picking up the canonical
+        // text-[13px] leading-5 instead of the hand-rolled
+        // text-md.
+        <PageHeader
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Trans>Alerts</Trans>
               {!alertsQuery.isLoading ? (
-                <span className="hidden text-xs tabular-nums text-text-tertiary md:inline">
+                <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
                   {alerts.length === 0 ? (
-                    <Trans>0 active</Trans>
-                  ) : filtersActive ? (
-                    <Trans>
-                      {filteredAlerts.length} shown · {alerts.length} total
-                    </Trans>
+                    <Trans>0 ongoing</Trans>
                   ) : (
-                    <Plural value={alerts.length} one="# active" other="# active" />
+                    <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
                   )}
                 </span>
               ) : null}
-              {/* 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): the
-                  "View history" button now navigates to
-                  `/rules/pulse/history` instead of pre-setting the
-                  status filter inline. History earns its own
-                  route + sidebar entry so the CPA can deep-link
-                  the archive, bookmark it, and find it via global
-                  search — none of which worked when history was
-                  a soft-filter on the live page. Hidden when this
-                  component is mounted in history-mode (we're
-                  already on the archive). */}
-              <div className="flex shrink-0 items-center gap-2">
-                <Link
-                  to="/rules/library"
-                  className="group/sources inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
+              <PulsingDot
+                tone={isEmpty ? 'success' : 'warning'}
+                active
+                label={
+                  isEmpty ? t`No active alerts right now` : t`Active alerts waiting for review`
+                }
+              />
+            </span>
+          }
+          description={t`Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.`}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link to="/rules/library" />}
+                aria-label={t`View sources`}
+              >
+                <ArrowUpRightIcon data-icon="inline-start" />
+                <Trans>View sources</Trans>
+              </Button>
+              {!historyMode ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  render={<Link to="/rules/pulse/history" />}
+                  aria-label={t`View history`}
                 >
-                  <Trans>View sources</Trans>
-                  <ArrowUpRightIcon
-                    className="size-3.5 transition-transform duration-200 group-hover/sources:rotate-45"
-                    aria-hidden
-                  />
-                </Link>
-                {!historyMode ? (
-                  <Link
-                    to="/rules/pulse/history"
-                    className="inline-flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
-                  >
-                    <HistoryIcon className="size-3.5" aria-hidden />
-                    <Trans>View history</Trans>
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </header>
+                  <HistoryIcon data-icon="inline-start" />
+                  <Trans>View history</Trans>
+                </Button>
+              ) : null}
+            </>
+          }
+        />
       ) : null}
 
       {alertsQuery.isError ? (
@@ -520,115 +514,108 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                     : 'flex flex-wrap items-center gap-2'
                 }
               >
-                <Select
-                  value={impactFilter}
-                  onValueChange={(value) => {
-                    if (typeof value === 'string' && isPulseImpactFilter(value))
-                      setImpactFilter(value)
-                  }}
-                >
-                  <SelectTrigger
-                    className={cn(
-                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
-                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
-                      // shrink filter triggers when the panel is
-                      // open so all 4-5 chips fit on one line in
-                      // the narrower list column. 180 → 130 still
-                      // leaves room for the longest label
-                      // ("Partially applied").
-                      // 2026-05-26 (Yuqi twentieth pass #2): when
-                      // panel is open the trigger hugs its content
-                      // (no fixed width) so the row fits one line
-                      // and each button is exactly as wide as its
-                      // active label.
-                      panelOpen ? 'w-auto' : 'w-[180px]',
-                    )}
-                    size="sm"
-                    aria-label={t`Filter by impact`}
-                  >
-                    <SelectValue>{impactFilterLabel(impactFilter)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {impactFilterLabel(option)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* 2026-05-26 (Yuqi seventy-fourth pass follow-up
+                    — finish E): three Base UI Selects converted to
+                    DropdownMenu + FilterTrigger. Yuqi's standing
+                    "incorrect dropdown interaction" feedback on
+                    Base UI Selects applies here too — the rest of
+                    the product uses DropdownMenu + RadioGroup. The
+                    panelOpen ? 'w-auto' : 'w-[180px]' sizing is
+                    preserved per the previous twentieth-pass
+                    rationale (one-line filter row when the right
+                    panel is open). */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={impactFilter !== 'all'}
+                        aria-label={t`Filter by impact`}
+                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
+                      >
+                        <span className="min-w-0 flex-1 truncate text-left">
+                          {impactFilterLabel(impactFilter)}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={impactFilter}
+                      onValueChange={(value) => {
+                        if (typeof value === 'string' && isPulseImpactFilter(value))
+                          setImpactFilter(value)
+                      }}
+                    >
+                      {PULSE_IMPACT_FILTER_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {impactFilterLabel(option)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-                <Select
-                  value={changeKindFilter}
-                  onValueChange={(value) => {
-                    if (typeof value === 'string' && isChangeKindFilter(value))
-                      setChangeKindFilter(value)
-                  }}
-                >
-                  <SelectTrigger
-                    className={cn(
-                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
-                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
-                      // shrink filter triggers when the panel is
-                      // open so all 4-5 chips fit on one line in
-                      // the narrower list column. 180 → 130 still
-                      // leaves room for the longest label
-                      // ("Partially applied").
-                      // 2026-05-26 (Yuqi twentieth pass #2): when
-                      // panel is open the trigger hugs its content
-                      // (no fixed width) so the row fits one line
-                      // and each button is exactly as wide as its
-                      // active label.
-                      panelOpen ? 'w-auto' : 'w-[180px]',
-                    )}
-                    size="sm"
-                    aria-label={t`Filter by change type`}
-                  >
-                    <SelectValue>{changeKindFilterLabel(changeKindFilter)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {changeKindFilterLabel(option)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={changeKindFilter !== 'all'}
+                        aria-label={t`Filter by change type`}
+                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
+                      >
+                        <span className="min-w-0 flex-1 truncate text-left">
+                          {changeKindFilterLabel(changeKindFilter)}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={changeKindFilter}
+                      onValueChange={(value) => {
+                        if (typeof value === 'string' && isChangeKindFilter(value))
+                          setChangeKindFilter(value)
+                      }}
+                    >
+                      {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {changeKindFilterLabel(option)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    if (typeof value === 'string' && isStatusFilter(value)) setStatusFilter(value)
-                  }}
-                >
-                  <SelectTrigger
-                    className={cn(
-                      'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
-                      // 2026-05-26 (Yuqi /rules/pulse tenth pass):
-                      // shrink filter triggers when the panel is
-                      // open so all 4-5 chips fit on one line in
-                      // the narrower list column. 180 → 130 still
-                      // leaves room for the longest label
-                      // ("Partially applied").
-                      // 2026-05-26 (Yuqi twentieth pass #2): when
-                      // panel is open the trigger hugs its content
-                      // (no fixed width) so the row fits one line
-                      // and each button is exactly as wide as its
-                      // active label.
-                      panelOpen ? 'w-auto' : 'w-[180px]',
-                    )}
-                    size="sm"
-                    aria-label={t`Filter by alert status`}
-                  >
-                    <SelectValue>{statusFilterLabel(statusFilter)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent align="start" alignItemWithTrigger={false}>
-                    {STATUS_FILTER_OPTIONS.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {statusFilterLabel(option)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={statusFilter !== 'all'}
+                        aria-label={t`Filter by alert status`}
+                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
+                      >
+                        <span className="min-w-0 flex-1 truncate text-left">
+                          {statusFilterLabel(statusFilter)}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={statusFilter}
+                      onValueChange={(value) => {
+                        if (typeof value === 'string' && isStatusFilter(value))
+                          setStatusFilter(value)
+                      }}
+                    >
+                      {STATUS_FILTER_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {statusFilterLabel(option)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* 2026-05-26 (Yuqi /rules/pulse follow-up): source
                     filter converted from a flat Select to a searchable
@@ -912,30 +899,24 @@ function StateFilterPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className={cn(
-          'inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm whitespace-nowrap transition-colors outline-none',
-          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2',
-          activeState
-            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
-            : 'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
-        )}
-        aria-label={t`Filter by state`}
-      >
-        {activeState ? (
-          <>
-            <StateBadge code={activeState} size="xs" aria-hidden />
-            <span className="font-mono font-medium">{activeState}</span>
-            <span className="tabular-nums text-text-accent/70">
-              <Plural value={activeCount} one="# alert" other="# alerts" />
-            </span>
-          </>
-        ) : (
-          <span>
-            <Trans>Any state</Trans>
-          </span>
-        )}
-        <ChevronDownIcon className="size-4 text-text-tertiary" aria-hidden />
-      </PopoverTrigger>
+        render={
+          <FilterTrigger active={Boolean(activeState)} aria-label={t`Filter by state`}>
+            {activeState ? (
+              <>
+                <StateBadge code={activeState} size="xs" aria-hidden />
+                <span className="font-mono font-medium">{activeState}</span>
+                <span className="tabular-nums text-text-accent/70">
+                  <Plural value={activeCount} one="# alert" other="# alerts" />
+                </span>
+              </>
+            ) : (
+              <span>
+                <Trans>Any state</Trans>
+              </span>
+            )}
+          </FilterTrigger>
+        }
+      />
       <PopoverContent align="start" alignOffset={0} sideOffset={4} className="w-auto p-3">
         <div className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-3 text-xs">
@@ -995,34 +976,23 @@ function SourceFilterPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        className={cn(
-          // 2026-05-26 (Yuqi twentieth pass #2): drop the
-          // `min-w-[160px]` floor so the trigger hugs its content —
-          // "All sources" / "IRS · 12 alerts" sits at natural width
-          // and the one-line filter row stays tight when panel is
-          // open. Chevron + label fit without enforcing a minimum.
-          'inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-sm whitespace-nowrap transition-colors outline-none',
-          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2',
-          isFiltered
-            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent'
-            : 'border-divider-strong bg-background-default text-text-primary hover:bg-state-base-hover',
-        )}
-        aria-label={t`Filter by source`}
-      >
-        <span className="min-w-0 flex-1 truncate text-left">
-          {isFiltered ? (
-            <>
-              <span className="font-medium">{activeSource}</span>
-              <span className="ml-1.5 tabular-nums text-text-accent/70">
-                <Plural value={activeCount} one="# alert" other="# alerts" />
-              </span>
-            </>
-          ) : (
-            <Trans>All sources</Trans>
-          )}
-        </span>
-        <ChevronDownIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-      </PopoverTrigger>
+        render={
+          <FilterTrigger active={isFiltered} aria-label={t`Filter by source`}>
+            <span className="min-w-0 flex-1 truncate text-left">
+              {isFiltered ? (
+                <>
+                  <span className="font-medium">{activeSource}</span>
+                  <span className="ml-1.5 tabular-nums text-text-accent/70">
+                    <Plural value={activeCount} one="# alert" other="# alerts" />
+                  </span>
+                </>
+              ) : (
+                <Trans>All sources</Trans>
+              )}
+            </span>
+          </FilterTrigger>
+        }
+      />
       <PopoverContent
         align="start"
         sideOffset={4}

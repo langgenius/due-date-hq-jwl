@@ -291,3 +291,16 @@ export const RULE_AUTHORITY_ROLE_LABEL: Record<RuleEvidenceAuthorityRole, string
   watch: 'Watch',
   early_warning: 'Early warn',
 }
+
+// 2026-05-26 (Yuqi /critique — P1-4): tooltip-friendly explainer
+// for each authority role. The labels above are short for chip
+// real estate; these strings spell out what each role means so a
+// first-timer hovering the chip understands the classification.
+// Stays in plain English (no jargon) so the explainer doesn't
+// itself need an explainer.
+export const RULE_AUTHORITY_ROLE_DESCRIPTION: Record<RuleEvidenceAuthorityRole, string> = {
+  basis: 'Primary source — the authority this rule is based on.',
+  cross_check: 'Supporting source that confirms the primary basis.',
+  watch: 'Monitoring source — the rule cites this in case the authority changes its position.',
+  early_warning: 'Advance signal that the rule may need to change soon.',
+}
