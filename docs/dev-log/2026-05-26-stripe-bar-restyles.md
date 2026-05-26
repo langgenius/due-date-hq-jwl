@@ -46,7 +46,44 @@ consumer.
 
 ## Task S9 — success-pill green tint + check icon
 
-**Files:** TBD (will append after the next commit).
+**Files:**
+- `packages/ui/src/components/ui/badge.tsx`
+- `apps/app/src/features/obligations/status-control.tsx`
+
+The canonical `Badge` `success` variant was a pale green-tint
+chip with dark green text (`bg-components-badge-bg-green-soft
+text-text-success`) — readable but quiet, basically the same
+weight as every other low-emphasis pill in the palette.
+
+Restyled to a Stripe-style "Succeeded" chip: solid green
+(`state-success-solid`, green-500) with white text
+(`text-text-primary-on-surface`). The check-mark glyph is
+already supplied by callers — `FileCheck` / `CircleCheck` on
+the obligation lifecycle, `CheckCheck` / `FileCheck` on the
+Pulse status set, `CheckCircle2Icon` on the clients workspace.
+No new icons added; the variant just gets bolder chrome and
+the existing glyphs carry through with `currentColor`.
+
+**Icon-color override for obligation status pills:** the
+obligation status surface used to pin the icon color
+explicitly to `text-text-success` (dark green) — on a solid
+green pill that disappears. Added `STATUS_ICON_COLOR_ON_PILL`
+in `status-control.tsx` — same map as `STATUS_ICON_COLOR`,
+overrides `done` / `paid` / `completed` to
+`text-text-primary-on-surface` (white). The dropdown menu
+items keep the original menu-surface tints so the glyph
+still reads as a hue swatch against the white menu
+background.
+
+**Surfaces affected (all already used `variant="success"`):**
+- `/deadlines` queue — status pill on Filed / Paid / Completed rows.
+- `/clients/:clientId` — filing-plan rows (`ObligationStatusReadBadge`), "All on track" chip, "Ready" / "Ready for rules" insight chips.
+- `/rules/pulse` — Applied / Reviewed alert status badge.
+- `/reminders`, `/notifications` — "Sent" delivery status badge.
+- `/obligations` — "Received" / "Client ready" inline chips.
+
+Same content, same statuses, same labels — pure visual lift on
+the existing success-state pill.
 
 ## Task S4 — `+`-prefixed filter chips on /clients
 
