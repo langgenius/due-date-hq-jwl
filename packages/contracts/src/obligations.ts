@@ -285,6 +285,19 @@ export type ObligationBulkStatusUpdateOutput = z.infer<
   typeof ObligationBulkStatusUpdateOutputSchema
 >
 
+export const ObligationRequestInputInputSchema = z.object({
+  obligationId: EntityIdSchema,
+  recipientUserId: z.string().trim().min(1),
+  message: z.string().trim().min(1).max(1000),
+})
+export type ObligationRequestInputInput = z.infer<typeof ObligationRequestInputInputSchema>
+
+export const ObligationRequestInputOutputSchema = z.object({
+  auditId: EntityIdSchema,
+  notificationId: EntityIdSchema,
+})
+export type ObligationRequestInputOutput = z.infer<typeof ObligationRequestInputOutputSchema>
+
 export const DeadlineTipInputSchema = z.object({ obligationId: EntityIdSchema })
 export type DeadlineTipInput = z.infer<typeof DeadlineTipInputSchema>
 
@@ -417,6 +430,9 @@ export const obligationsContract = oc.router({
   decideExtension: oc
     .input(ObligationExtensionDecisionInputSchema)
     .output(ObligationExtensionDecisionOutputSchema),
+  requestInput: oc
+    .input(ObligationRequestInputInputSchema)
+    .output(ObligationRequestInputOutputSchema),
   listByClient: oc
     .input(z.object({ clientId: EntityIdSchema }))
     .output(z.array(ObligationInstancePublicSchema)),

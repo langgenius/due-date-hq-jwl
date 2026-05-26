@@ -130,6 +130,28 @@ text-text-primary` for the heading, optional count chip in
 
 - `pnpm check` — 0 errors, 9 pre-existing warnings (unchanged).
 
+## 5. Follow-up — Adjacent client rows
+
+Yuqi flagged a manual create case where the same client generated two
+deadlines. In the default Date sort, the queue repeated the client
+name on both adjacent rows, which made the pair read as unrelated
+rows.
+
+Changed the adjacency grouping back on for any sort mode: when rows
+for the same client are consecutive, the first row shows the client
+name and following rows render as continuation rows. Continuations
+hide the repeated client name, show a small connector in the Client
+cell, and indent the checkbox plus subsequent cells slightly so the
+second deadline reads as part of the same client cluster.
+
+Verification:
+
+- `pnpm --filter @duedatehq/app exec tsc --noEmit`
+- `pnpm format`
+- Browser validation on `http://localhost:5173/deadlines`: two JHX
+  rows render with `JHX` only on the first row; the second row is
+  indented and keeps its own Form 1120/status cells.
+
 ## What I need from Yuqi
 
 Two items I could only partially confirm without a screenshot:

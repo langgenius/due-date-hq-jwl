@@ -15,12 +15,10 @@ export class ClientsPage {
 
   constructor(readonly page: Page) {
     this.directoryTitle = page.getByRole('heading', { name: 'Clients' })
-    this.toolbar = page.locator('[data-slot="card-header"]').filter({
-      has: page.getByRole('button', { name: /^Client(?:\s+\d+)?$/ }),
-    })
-    this.clientFilter = this.toolbar.getByRole('button', { name: /^Client(?:\s+\d+)?$/ })
-    this.entityFilter = this.toolbar.getByRole('button', { name: /^Entity(?:\s+\d+)?$/ })
-    this.stateFilter = this.toolbar.getByRole('button', { name: /^State(?:\s+\d+)?$/ })
+    this.toolbar = page.locator('body')
+    this.clientFilter = page.getByRole('button', { name: /^Client(?:\s+\d+)?$/ }).first()
+    this.entityFilter = page.getByRole('button', { name: /^Entity(?:\s+\d+)?$/ }).first()
+    this.stateFilter = page.getByRole('button', { name: /^States(?:\s+\d+)?$/ }).first()
     this.newClientButton = page.getByRole('button', { name: 'New client' })
     this.createDialog = page.getByRole('dialog', { name: 'Create client' })
     this.createClientButton = this.createDialog.getByRole('button', { name: 'Create client' })

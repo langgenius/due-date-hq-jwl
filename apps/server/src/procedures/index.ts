@@ -94,6 +94,7 @@ export const router = os.router({
     updateReviewStage: obligationsHandlers.updateReviewStage,
     bulkUpdateStatus: obligationsHandlers.bulkUpdateStatus,
     decideExtension: obligationsHandlers.decideExtension,
+    requestInput: obligationsHandlers.requestInput,
     listByClient: obligationsHandlers.listByClient,
     getDeadlineTip: obligationsHandlers.getDeadlineTip,
     requestDeadlineTipRefresh: obligationsHandlers.requestDeadlineTipRefresh,
@@ -175,6 +176,7 @@ export const router = os.router({
   },
   readiness: {
     generateChecklist: readinessHandlers.generateChecklist,
+    previewRequestEmail: readinessHandlers.previewRequestEmail,
     sendRequest: readinessHandlers.sendRequest,
     revokeRequest: readinessHandlers.revokeRequest,
     addChecklistItem: readinessHandlers.addChecklistItem,

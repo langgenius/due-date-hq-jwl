@@ -666,18 +666,22 @@ function ColumnSortHeader({
   sortState,
   onToggle,
   align = 'left',
+  description,
 }: {
   label: string
   sortState: false | 'asc' | 'desc'
   onToggle: () => void
   align?: 'left' | 'right'
+  description?: string
 }) {
+  const sortLabel = description ? `Sort by ${label}. ${description}` : `Sort by ${label}`
+
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label={`Sort by ${label}`}
-      title={`Sort by ${label}`}
+      aria-label={sortLabel}
+      title={sortLabel}
       data-active={sortState !== false ? true : undefined}
       className={cn(
         // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
@@ -1202,18 +1206,15 @@ export function ClientFactsWorkspace({
         // (we don't have a routed view for closed obligations yet; the
         // client detail's Activity tab is the right destination when
         // we add that link).
-        // 2026-05-26 (Yuqi /clients directory pivot brief): renamed
-        // `Done` → `Filed YTD`. "Done" was ambiguous (filed?
-        // completed? all closed states?); "Filed YTD" rescopes the
-        // column to the YTD-filed slice the CPA actually wants to
-        // see at a glance. Cell rendering + sortingFn unchanged —
-        // the underlying `doneCount` already represents filed +
-        // closed-out terminal-state obligations, which is what
-        // "filed YTD" means in practice.
+        // 2026-05-26 (browser comment): renamed `Filed YTD` →
+        // `Filed` because this summary is status-based, not a true
+        // year-to-date audit timestamp filter. It counts rows already
+        // in the user-facing Filed or Completed terminal states.
         id: 'doneObligations',
         header: ({ column }) => (
           <ColumnSortHeader
-            label={t`Filed YTD`}
+            label={t`Filed`}
+            description={t`Counts this client's deadlines that are already Filed or Completed.`}
             sortState={column.getIsSorted()}
             onToggle={() => column.toggleSorting()}
           />
@@ -1226,16 +1227,24 @@ export function ClientFactsWorkspace({
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           const count = summary?.doneCount ?? 0
+          const title =
+            count === 1
+              ? t`1 filed or completed deadline for this client`
+              : t`${count} filed or completed deadlines for this client`
           if (count === 0) {
-            return <span className="tabular-nums text-text-tertiary">0</span>
+            // 2026-05-26 (merge with main): keep left-aligned (our
+            // Yuqi feedback #3) but adopt main's `title` const above
+            // for the singular/plural tooltip copy.
+            return (
+              <span className="tabular-nums text-text-tertiary" title={title}>
+                0
+              </span>
+            )
           }
           // 2026-05-26 (Yuqi feedback #3): left-aligned numeric matches
           // the table family.
           return (
-            <span
-              className="tabular-nums text-text-secondary"
-              title={t`${count} deadlines filed or closed-out this year`}
-            >
+            <span className="tabular-nums text-text-secondary" title={title}>
               {count}
             </span>
           )
@@ -1363,7 +1372,7 @@ export function ClientFactsWorkspace({
   // controls on /clients.
 
   // 2026-05-23: column sort state for the new sort-arrow indicators
-  // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / DONE). Default sort
+  // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / FILED). Default sort
   // is unset so rows render in the API's `due_asc` order — clicking
   // a header opts in. Stored locally because sort feels transient (a
   // "show me by ___" gesture) rather than something to deep-link.
@@ -1383,15 +1392,15 @@ export function ClientFactsWorkspace({
     state: { sorting },
     onSortingChange: setSorting,
     getRowId: (client) => client.id,
-    // OTHER STATES + SERVICES start hidden because they're empty for
-    // the typical single-state, no-services-managed firm shape (the
-    // seeded demo's nine clients all show "—" in both columns). They
-    // become useful once a firm starts tracking multiple states or
-    // tax-type services — at which point a column-toggle UI can
-    // surface them. Until then, keeping them off-screen kills two
-    // wasted columns that otherwise train the eye to scan past data.
+    // Lower-frequency columns start hidden and stay available through
+    // the column-toggle UI. The default directory view should stay
+    // focused on find-and-open plus live work state.
     initialState: {
       columnVisibility: {
+        // Browser follow-up: this is a useful historical count, but
+        // not a default directory scan dimension. Keep it available
+        // for CPAs who opt into filed/completed volume review.
+        doneObligations: false,
         // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.`
         // demoted to hidden-by-default. The directory's primary job
         // is find-and-open; an opportunity count earns its visual

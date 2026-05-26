@@ -1,5 +1,18 @@
+import { call } from '@orpc/server'
 import { describe, expect, it, vi } from 'vitest'
-import { reconcileChecklistForObligation, toPortalChecklist } from './index'
+import type { ClientRow } from '@duedatehq/ports/clients'
+import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
+import type { ScopedRepo } from '@duedatehq/ports/scoped'
+import type { MemberRow, MembersRepo } from '@duedatehq/ports/tenants'
+import type { Env } from '../../env'
+import type { RpcContext } from '../_context'
+import {
+  groupReadinessChecklistForEmail,
+  reconcileChecklistForObligation,
+  renderReadinessRequestEmail,
+  readinessHandlers,
+  toPortalChecklist,
+} from './index'
 
 function publicChecklistItem(index: number) {
   const now = '2026-05-22T00:00:00.000Z'
@@ -21,11 +34,367 @@ function publicChecklistItem(index: number) {
   }
 }
 
+function repoChecklistItem(index: number) {
+  const item = publicChecklistItem(index)
+  return {
+    ...item,
+    templateKey: `template.item.${index}`,
+    templateVersion: 1,
+    createdAt: new Date(item.createdAt),
+    updatedAt: new Date(item.updatedAt),
+    receivedAt: null,
+  }
+}
+
+function emailPayloadText(payload: unknown): string {
+  if (typeof payload !== 'object' || payload === null) return ''
+  const text = Reflect.get(payload, 'text')
+  return typeof text === 'string' ? text : ''
+}
+
+function makeReadinessContext(input: { clientEmail?: string | null; templateActive?: boolean }) {
+  const now = new Date('2026-05-22T00:00:00.000Z')
+  const dueDate = new Date('2026-05-15T00:00:00.000Z')
+  const obligation: ObligationInstanceRow = {
+    id: '22222222-2222-4222-8222-222222222222',
+    firmId: 'firm_1',
+    clientId: '33333333-3333-4333-8333-333333333333',
+    clientFilingProfileId: null,
+    taxType: 'Form 1065',
+    taxYear: 2025,
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
+    taxPeriodStart: null,
+    taxPeriodEnd: null,
+    taxPeriodKind: 'calendar',
+    taxPeriodSource: 'client_default',
+    taxPeriodReviewReason: null,
+    ruleId: null,
+    ruleVersion: null,
+    rulePeriod: null,
+    generationSource: null,
+    jurisdiction: 'FED',
+    obligationType: 'filing',
+    formName: '1065',
+    authority: 'IRS',
+    filingDueDate: dueDate,
+    paymentDueDate: null,
+    sourceEvidenceJson: null,
+    recurrence: 'annual',
+    riskLevel: 'low',
+    baseDueDate: dueDate,
+    currentDueDate: dueDate,
+    status: 'in_progress',
+    blockedByObligationInstanceId: null,
+    readiness: 'waiting',
+    extensionDecision: 'not_considered',
+    extensionMemo: null,
+    extensionSource: null,
+    extensionExpectedDueDate: null,
+    extensionDecidedAt: null,
+    extensionDecidedByUserId: null,
+    extensionState: 'not_started',
+    extensionFormName: null,
+    extensionFiledAt: null,
+    extensionAcceptedAt: null,
+    prepStage: 'waiting_on_client',
+    reviewStage: 'not_required',
+    reviewerUserId: null,
+    reviewCompletedAt: null,
+    paymentState: 'not_applicable',
+    paymentConfirmedAt: null,
+    efileState: 'not_applicable',
+    efileAuthorizationForm: null,
+    efileSubmittedAt: null,
+    efileAcceptedAt: null,
+    efileRejectedAt: null,
+    migrationBatchId: null,
+    estimatedTaxDueCents: null,
+    estimatedExposureCents: null,
+    exposureStatus: 'needs_input',
+    penaltyFactsJson: null,
+    penaltyFactsVersion: null,
+    penaltyBreakdownJson: null,
+    penaltyFormulaVersion: null,
+    missingPenaltyFactsJson: null,
+    penaltySourceRefsJson: null,
+    penaltyFormulaLabel: null,
+    exposureCalculatedAt: null,
+    createdAt: now,
+    updatedAt: now,
+  }
+  const client: ClientRow = {
+    id: obligation.clientId,
+    firmId: 'firm_1',
+    name: 'Acme LLC',
+    ein: null,
+    state: 'CA',
+    county: null,
+    entityType: 'partnership',
+    legalEntity: 'partnership',
+    taxClassification: 'partnership',
+    taxYearType: 'calendar',
+    fiscalYearEndMonth: null,
+    fiscalYearEndDay: null,
+    externalClientId: null,
+    addressLine1: null,
+    city: null,
+    postalCode: null,
+    primaryPhone: null,
+    sourceStatus: null,
+    email: input.clientEmail === undefined ? 'client@example.com' : input.clientEmail,
+    notes: null,
+    assigneeId: null,
+    assigneeName: null,
+    ownerCount: null,
+    hasForeignAccounts: false,
+    hasPayroll: false,
+    hasSalesTax: false,
+    has1099Vendors: false,
+    hasK1Activity: true,
+    primaryContactName: null,
+    primaryContactEmail: null,
+    importanceWeight: 1,
+    lateFilingCountLast12mo: 0,
+    estimatedTaxLiabilityCents: null,
+    estimatedTaxLiabilitySource: null,
+    equityOwnerCount: null,
+    migrationBatchId: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  }
+  const checklistRows = [
+    {
+      ...repoChecklistItem(1),
+      label: 'K-1 packages',
+      description: 'Partnership K-1 packages.',
+    },
+    {
+      ...repoChecklistItem(2),
+      label: 'Prior-year return',
+      description: 'Prior-year filing copy.',
+      status: 'received' as const,
+      receivedAt: new Date('2026-05-22T00:00:00.000Z'),
+    },
+  ]
+  const reconcileDocumentChecklistItems = vi.fn(async () => checklistRows)
+  const createRequest = vi.fn(
+    async (request: Parameters<ScopedRepo['readiness']['createRequest']>[0]) => ({
+      ...request,
+      firmId: 'firm_1',
+      status: 'sent' as const,
+      firstOpenedAt: null,
+      lastRespondedAt: null,
+      createdAt: new Date('2026-05-22T00:00:00.000Z'),
+      updatedAt: new Date('2026-05-22T00:00:00.000Z'),
+      responses: [],
+    }),
+  )
+  type EnqueueEmailInput = Parameters<NonNullable<ScopedRepo['notifications']>['enqueueEmail']>[0]
+  const enqueueEmailCalls: EnqueueEmailInput[] = []
+  const enqueueEmail = vi.fn(async (email: EnqueueEmailInput) => {
+    enqueueEmailCalls.push(email)
+    return { id: '55555555-5555-4555-8555-555555555555', created: true }
+  })
+  const emailQueueSend = vi.fn(async () => undefined)
+  const member: MemberRow = {
+    id: 'member_1',
+    organizationId: 'firm_1',
+    userId: 'user_1',
+    name: 'Owner',
+    email: 'owner@example.com',
+    image: null,
+    role: 'owner',
+    status: 'active',
+    createdAt: new Date('2026-05-22T00:00:00.000Z'),
+  }
+  const members: MembersRepo = {
+    listMembers: null!,
+    listInvitations: null!,
+    findMembership: vi.fn(async () => member),
+    findMember: null!,
+    findMemberByEmail: null!,
+    findInvitation: null!,
+    findPendingInvitationByEmail: null!,
+    seatLimit: null!,
+    seatUsage: null!,
+    updateRole: null!,
+    setMemberStatus: null!,
+    writeAudit: null!,
+  }
+  const scoped = {
+    firmId: 'firm_1',
+    obligations: { findById: vi.fn(async () => obligation) },
+    clients: { findById: vi.fn(async () => client) },
+    readiness: {
+      firmId: 'firm_1',
+      reconcileDocumentChecklistItems,
+      createRequest,
+    },
+    reminders: {
+      listTemplates: vi.fn(async () => [
+        {
+          id: 'template_1',
+          firmId: 'firm_1',
+          templateKey: 'client-materials-request',
+          kind: 'readiness_request' as const,
+          name: 'Client checklist collection email',
+          subject: '{{client_name}}: secure materials request for {{tax_type}}',
+          bodyText:
+            'Open {{request_url}}\n\nOutstanding:\n{{outstanding_checklist}}\n\nReceived:\n{{received_checklist}}',
+          active: input.templateActive ?? true,
+          isSystem: false,
+          usageCount: 0,
+          lastSentAt: null,
+          createdAt: null,
+          updatedAt: null,
+        },
+      ]),
+    },
+    notifications: { enqueueEmail },
+    audit: { write: vi.fn(async () => ({ id: '44444444-4444-4444-8444-444444444444' })) },
+  } as unknown as ScopedRepo
+  const context: RpcContext = {
+    env: {
+      AUTH_SECRET: '01234567890123456789012345678901',
+      APP_URL: 'https://app.test',
+      EMAIL_QUEUE: { send: emailQueueSend },
+    } as unknown as Env,
+    request: new Request('https://app.test/rpc/readiness/sendRequest'),
+    vars: {
+      requestId: 'req_1',
+      tenantContext: {
+        firmId: 'firm_1',
+        timezone: 'America/New_York',
+        plan: 'solo',
+        seatLimit: 1,
+        status: 'active',
+        internalDeadlineOffsetDays: 14,
+        ownerUserId: 'user_1',
+        coordinatorCanSeeDollars: false,
+      },
+      userId: 'user_1',
+      members,
+      scoped,
+    },
+  }
+  return { context, enqueueEmail, enqueueEmailCalls, emailQueueSend }
+}
+
 describe('readiness procedure helpers', () => {
   it('maps the full portal checklist instead of truncating at eight items', () => {
     const checklist = Array.from({ length: 14 }, (_, index) => publicChecklistItem(index))
 
     expect(toPortalChecklist(checklist)).toHaveLength(14)
+  })
+
+  it('groups all checklist items for materials request email preview', () => {
+    const missing = publicChecklistItem(1)
+    const received = { ...publicChecklistItem(2), status: 'received' as const }
+    const needsReview = { ...publicChecklistItem(3), status: 'needs_review' as const }
+
+    expect(groupReadinessChecklistForEmail([missing, received, needsReview])).toEqual({
+      outstanding: [missing, needsReview],
+      received: [received],
+    })
+  })
+
+  it('renders materials request emails with grouped checklist text', () => {
+    const missing = publicChecklistItem(1)
+    const received = { ...publicChecklistItem(2), status: 'received' as const }
+
+    expect(
+      renderReadinessRequestEmail({
+        template: {
+          subject: '{{client_name}}: materials needed for {{tax_type}}',
+          bodyText:
+            'Open {{request_url}}\n\nOutstanding:\n{{outstanding_checklist}}\n\nReceived:\n{{received_checklist}}',
+        },
+        clientName: 'Acme LLC',
+        taxType: 'Form 1065',
+        dueDate: '2026-05-15',
+        requestUrl: 'https://app.test/readiness/token',
+        checklist: groupReadinessChecklistForEmail([missing, received]),
+      }),
+    ).toEqual({
+      subject: 'Acme LLC: materials needed for Form 1065',
+      bodyText: [
+        'Open https://app.test/readiness/token',
+        '',
+        'Outstanding:',
+        '- Document item 1 - Description 1',
+        '',
+        'Received:',
+        '- Document item 2 - Description 2',
+      ].join('\n'),
+    })
+  })
+
+  it('previews readiness request email with current grouped checklist items', async () => {
+    const { context } = makeReadinessContext({})
+
+    const result = await call(
+      readinessHandlers.previewRequestEmail,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(result.emailWillBeQueued).toBe(true)
+    expect(result.recipientEmail).toBe('client@example.com')
+    expect(result.subject).toBe('Acme LLC: secure materials request for Form 1065')
+    expect(result.checklist.outstanding).toEqual([
+      expect.objectContaining({ label: 'K-1 packages', status: 'missing' }),
+    ])
+    expect(result.checklist.received).toEqual([
+      expect.objectContaining({ label: 'Prior-year return', status: 'received' }),
+    ])
+    expect(result.bodyText).toContain(
+      'A secure materials link will be generated when you send this request.',
+    )
+  })
+
+  it('sends readiness requests with the active Reminders materials template', async () => {
+    const { context, enqueueEmail, enqueueEmailCalls, emailQueueSend } = makeReadinessContext({})
+
+    const result = await call(
+      readinessHandlers.sendRequest,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(result.emailQueued).toBe(true)
+    expect(enqueueEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'readiness_request',
+        payloadJson: expect.objectContaining({
+          recipients: ['client@example.com'],
+          subject: 'Acme LLC: secure materials request for Form 1065',
+          text: expect.stringContaining('- K-1 packages - Partnership K-1 packages.'),
+        }),
+      }),
+    )
+    const queuedEmail = enqueueEmailCalls[0]
+    expect(queuedEmail).toBeDefined()
+    const queuedText = emailPayloadText(queuedEmail?.payloadJson)
+    expect(queuedText).toContain('https://app.test/readiness/')
+    expect(queuedText).toContain('- Prior-year return - Prior-year filing copy.')
+    expect(emailQueueSend).toHaveBeenCalledWith({ type: 'email.flush' })
+  })
+
+  it('creates a materials link without queueing email when the client has no email', async () => {
+    const { context, enqueueEmail, emailQueueSend } = makeReadinessContext({ clientEmail: null })
+
+    const result = await call(
+      readinessHandlers.sendRequest,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(result.emailQueued).toBe(false)
+    expect(enqueueEmail).not.toHaveBeenCalled()
+    expect(emailQueueSend).not.toHaveBeenCalled()
   })
 
   it('reconciles through the repository with versioned template metadata', async () => {

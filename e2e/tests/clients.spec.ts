@@ -39,14 +39,14 @@ test('AC: E2E-CLIENTS-CREATE creates a manual client through oRPC', async ({
     state: 'CA',
     county: 'Alameda',
     email: 'harbor@example.com',
-    owner: 'E2E Owner',
   })
 
   await expect(authenticatedPage.getByText('Client created')).toBeVisible()
   await expect(clientsPage.clientDetailHeading(clientName)).toBeVisible()
   await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
+  await authenticatedPage.getByRole('tab', { name: 'Client info' }).click()
   await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
-  await expect(clientsPage.detailSection('Fact readiness')).toBeVisible()
+  await expect(clientsPage.detailSection('Onboarding state')).toBeVisible()
 })
 
 test.describe('seeded client facts', () => {
@@ -55,17 +55,9 @@ test.describe('seeded client facts', () => {
   test('AC: E2E-CLIENTS-FACTS-SEED summarizes ready seeded clients', async ({ clientsPage }) => {
     await clientsPage.goto()
 
-    await expect(clientsPage.metricCard('Ready for rules')).toContainText('4')
-    await expect(clientsPage.metricCard('Needs facts')).toContainText('0')
-    await expect(clientsPage.metricCard('Imported')).toContainText('0')
-    await expect(clientsPage.metricCard('Imported')).toContainText('4 manual records')
-    await expect(clientsPage.metricCard('States covered')).toContainText('3')
-
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('Ready for rules')
     await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('LLC')
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('CA / Los Angeles')
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('Manual')
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('M. Chen')
+    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('CA')
+    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('MC')
     await expect(clientsPage.rowFor('Unassigned Foundry LLC')).toContainText('Unassigned')
   })
 
@@ -104,13 +96,16 @@ test.describe('seeded client facts', () => {
     await clientsPage.rowFor('Unassigned Foundry LLC').click()
 
     await expect(clientsPage.clientDetailHeading('Unassigned Foundry LLC')).toBeVisible()
-    await expect(authenticatedPage.getByText('Manual')).toBeVisible()
-    await expect(authenticatedPage.getByText('Ready for rules')).toBeVisible()
+    await expect(
+      authenticatedPage.getByRole('button', { name: 'Change owner — currently unassigned' }),
+    ).toBeVisible()
     await expect(authenticatedPage.getByText(/1 open filing/)).toBeVisible()
+    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
     await expect(clientsPage.detailSection('Future business cues')).toBeVisible()
+    await authenticatedPage.getByRole('tab', { name: 'Work' }).click()
     await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
+    await authenticatedPage.getByRole('tab', { name: 'Client info' }).click()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
-    await authenticatedPage.getByRole('button', { name: /Fact readiness/ }).click()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
     await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
@@ -157,7 +152,7 @@ test.describe('seeded client facts', () => {
     await expect(authenticatedPage.getByText('federal_1120s')).toHaveCount(0)
     await authenticatedPage.keyboard.press('Escape')
 
-    const formPicker = dialog.locator('#obligation-form-name')
+    const formPicker = dialog.locator('#obligation-form-names')
     await expect(formPicker).toHaveAttribute('role', 'combobox')
     await expect(formPicker).toContainText('Form 1120-S')
     await formPicker.click()

@@ -8,6 +8,7 @@ export const NotificationTypeSchema = z.enum([
   'client_reminder',
   'pulse_alert',
   'audit_package_ready',
+  'internal_request',
   'system',
 ])
 export type NotificationType = z.infer<typeof NotificationTypeSchema>

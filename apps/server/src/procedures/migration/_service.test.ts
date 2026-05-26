@@ -2138,7 +2138,7 @@ California LLC,CA,LLC,Form 1065`
     expect(state.importedObligations.some((item) => item.jurisdiction === 'CA')).toBe(false)
   })
 
-  it('does not create a federal fallback when the state return counterpart is pending review', async () => {
+  it('keeps the federal deadline when the state return counterpart is pending review', async () => {
     const federalOnlyRules = activePracticeRuleRows(
       FIRM,
       (rule) => rule.status === 'verified' && rule.jurisdiction === 'FED',
@@ -2167,7 +2167,7 @@ California S Corp,CA,S-Corp,Form 1120-S`
     const summary = await service.applyDefaultMatrix(batch.id)
     const result = await service.apply(batch.id)
 
-    expect(summary.obligationsToCreate).toBe(0)
+    expect(summary.obligationsToCreate).toBe(1)
     expect(summary.ruleReviewWarnings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -2179,9 +2179,19 @@ California S Corp,CA,S-Corp,Form 1120-S`
       ]),
     )
     expect(result.clientCount).toBe(1)
-    expect(result.obligationCount).toBe(0)
+    expect(result.obligationCount).toBe(1)
     expect(state.importedClients).toHaveLength(1)
-    expect(state.importedObligations).toHaveLength(0)
+    expect(state.importedObligations).toHaveLength(1)
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'FED' && item.taxType === 'federal_1120s',
+      ),
+    ).toBe(true)
+    expect(
+      state.importedObligations.some(
+        (item) => item.jurisdiction === 'CA' && item.taxType === 'ca_100s',
+      ),
+    ).toBe(false)
   })
 
   it('warns about state rule review even when the firm has no active rules yet', async () => {
@@ -2264,7 +2274,7 @@ California LLC,CA,LLC,Form 1065`
     ).toBe(true)
   })
 
-  it('prefers an active NY individual state return rule over the federal counterpart', async () => {
+  it('creates active NY individual state and federal counterparts without duplicating federal', async () => {
     const activeRuleRows = [
       ...activePracticeRuleRows(FIRM),
       concreteStatePracticeRuleRow({
@@ -2299,25 +2309,20 @@ NY Individual,NY,Individual,Form 1040`
     const result = await service.apply(batch.id)
 
     const client = state.importedClients.find((item) => item.name === 'NY Individual')
-    expect(summary.obligationsToCreate).toBe(5)
-    expect(result.obligationCount).toBe(5)
+    const clientObligations = state.importedObligations.filter(
+      (item) => item.clientId === client?.id,
+    )
+    const federal1040Obligations = clientObligations.filter(
+      (item) => item.jurisdiction === 'FED' && item.taxType === 'federal_1040',
+    )
+    expect(result.obligationCount).toBe(summary.obligationsToCreate)
     expect(
-      state.importedObligations.some(
-        (item) =>
-          item.clientId === client?.id && item.jurisdiction === 'NY' && item.taxType === 'ny_it201',
-      ),
+      clientObligations.some((item) => item.jurisdiction === 'NY' && item.taxType === 'ny_it201'),
     ).toBe(true)
-    expect(
-      state.importedObligations.some(
-        (item) =>
-          item.clientId === client?.id &&
-          item.jurisdiction === 'FED' &&
-          item.taxType === 'federal_1040',
-      ),
-    ).toBe(false)
+    expect(federal1040Obligations).toHaveLength(1)
   })
 
-  it('prefers an active CA S corporation state return over Form 1120-S', async () => {
+  it('creates active CA S corporation state and federal return deadlines', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
     const ai = buildAi()
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
@@ -2346,7 +2351,7 @@ California S Corp,CA,S-Corp,Form 1120-S`
     expect(
       summary.ruleReviewWarnings.some((warning) => warning.taxTypes.includes('ca_100s_franchise')),
     ).toBe(false)
-    expect(result.obligationCount).toBe(1)
+    expect(result.obligationCount).toBe(2)
     expect(
       state.importedObligations.some(
         (item) =>
@@ -2360,7 +2365,51 @@ California S Corp,CA,S-Corp,Form 1120-S`
           item.jurisdiction === 'FED' &&
           item.taxType === 'federal_1120s',
       ),
-    ).toBe(false)
+    ).toBe(true)
+  })
+
+  it('generates one federal deadline across multiple filing states', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const batch = await service.createBatch({ source: 'preset_drake', presetUsed: 'drake' })
+    const csv = `Client Name,State,Filing States,Entity Type,Return Type
+Multi State S Corp,CA,CA; NY,S-Corp,Form 1120-S`
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: csv })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Filing States': 'client.filing_states',
+        'Entity Type': 'client.entity_type',
+        'Return Type': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    const client = state.importedClients.find((item) => item.name === 'Multi State S Corp')
+    const clientObligations = state.importedObligations.filter(
+      (item) => item.clientId === client?.id,
+    )
+    const federalReturnObligations = clientObligations.filter(
+      (item) => item.jurisdiction === 'FED' && item.taxType === 'federal_1120s',
+    )
+
+    expect(result.obligationCount).toBe(summary.obligationsToCreate)
+    expect(federalReturnObligations).toHaveLength(1)
+    expect(
+      clientObligations.some((item) => item.jurisdiction === 'CA' && item.taxType === 'ca_100s'),
+    ).toBe(true)
+    expect(
+      clientObligations.some((item) => item.jurisdiction === 'NY' && item.taxType === 'ny_ct3s'),
+    ).toBe(true)
   })
 
   it('honors disabled matrix selections in dryRun and apply', async () => {

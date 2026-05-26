@@ -19,9 +19,19 @@ import {
   reminderTemplate,
 } from '../schema/notifications'
 
+export { renderReminderTemplate } from '@duedatehq/ports/reminders'
+
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
 const DEFAULT_LIMIT = 25
 const MAX_LIMIT = 100
+const CLIENT_30_DAY_TEMPLATE_KEY = 'client-deadline-30-day-reminder'
+const CLIENT_7_DAY_TEMPLATE_KEY = 'client-deadline-7-day-reminder'
+const MATERIALS_REQUEST_TEMPLATE_KEY = 'client-materials-request'
+const EDITABLE_REMINDER_TEMPLATE_KEYS = new Set([
+  CLIENT_30_DAY_TEMPLATE_KEY,
+  CLIENT_7_DAY_TEMPLATE_KEY,
+  MATERIALS_REQUEST_TEMPLATE_KEY,
+])
 
 type TemplateDefault = Omit<
   ReminderTemplateRow,
@@ -32,40 +42,102 @@ export const DEFAULT_REMINDER_TEMPLATES: readonly TemplateDefault[] = [
   {
     templateKey: 'member-deadline-reminder',
     kind: 'deadline_reminder',
-    name: 'Internal deadline reminder',
-    subject: '{{client_name}} due in {{offset_days}} days',
-    bodyText: '{{tax_type}} is due {{due_date}}.\n\nOpen the obligation: {{obligation_url}}',
+    name: 'Team deadline countdown email',
+    subject: 'Action needed in {{offset_days}} days: {{client_name}} {{tax_type}}',
+    bodyText: [
+      'Team,',
+      '',
+      '{{client_name}} has a {{tax_type}} deadline due {{due_date}}. Please review the file, ' +
+        'confirm the current owner, and clear any open client-materials or review blockers ' +
+        'before the countdown reaches the due date.',
+      '',
+      'Deadline workspace:',
+      '{{obligation_url}}',
+      '',
+      'Suggested next steps:',
+      '- Confirm the deadline is assigned and the return status is current.',
+      '- Review outstanding materials, extension decisions, and payment readiness.',
+      '- Update the deadline notes if the client or reviewer needs follow-up.',
+      '',
+      'Thank you.',
+    ].join('\n'),
     active: true,
     isSystem: true,
   },
   {
-    templateKey: 'client-deadline-reminder',
+    templateKey: CLIENT_30_DAY_TEMPLATE_KEY,
     kind: 'client_deadline_reminder',
-    name: 'Client deadline reminder',
-    subject: '{{client_name}}: {{tax_type}} due {{due_date}}',
-    bodyText:
-      'A deadline is coming up: {{tax_type}} is due {{due_date}}.\n\nUnsubscribe from client deadline reminders: {{unsubscribe_url}}',
+    name: '30-day client deadline countdown email',
+    subject: '{{client_name}}: {{tax_type}} deadline in 30 days',
+    bodyText: [
+      'Hello {{client_name}},',
+      '',
+      'Our office is tracking your upcoming {{tax_type}} deadline on {{due_date}}, which is ' +
+        'now 30 days away.',
+      '',
+      'We are reviewing the file and will follow up through the secure client portal if any ' +
+        'documents, signatures, or payment information are needed. Please watch for those ' +
+        'requests so we can keep the filing on schedule.',
+      '',
+      'Thank you,',
+      'Your tax team',
+      '',
+      'Unsubscribe from deadline reminder emails: {{unsubscribe_url}}',
+    ].join('\n'),
+    active: true,
+    isSystem: true,
+  },
+  {
+    templateKey: CLIENT_7_DAY_TEMPLATE_KEY,
+    kind: 'client_deadline_reminder',
+    name: '7-day client deadline countdown email',
+    subject: '{{client_name}}: {{tax_type}} deadline in 7 days',
+    bodyText: [
+      'Hello {{client_name}},',
+      '',
+      'This is a reminder that your {{tax_type}} deadline is 7 days away on {{due_date}}.',
+      '',
+      'If you have received a secure materials request from our office, please complete it as ' +
+        'soon as practical so our team can finish review and filing steps before the deadline.',
+      '',
+      'Thank you,',
+      'Your tax team',
+      '',
+      'Unsubscribe from deadline reminder emails: {{unsubscribe_url}}',
+    ].join('\n'),
+    active: true,
+    isSystem: true,
+  },
+  {
+    templateKey: MATERIALS_REQUEST_TEMPLATE_KEY,
+    kind: 'readiness_request',
+    name: 'Client checklist collection email',
+    subject: '{{client_name}}: secure materials request for {{tax_type}}',
+    bodyText: [
+      'Hello {{client_name}},',
+      '',
+      'Our office is preparing your {{tax_type}} work for the {{due_date}} deadline. Please use ' +
+        'the secure link below to review the materials checklist and upload or confirm the ' +
+        'items still outstanding:',
+      '',
+      '{{request_url}}',
+      '',
+      'Outstanding items:',
+      '{{outstanding_checklist}}',
+      '',
+      'Items we have already received:',
+      '{{received_checklist}}',
+      '',
+      'If an item is not available yet, please note that in the portal so our team can plan ' +
+        'the next step. We will review your responses and follow up if we need clarification.',
+      '',
+      'Thank you,',
+      'Your tax team',
+    ].join('\n'),
     active: true,
     isSystem: true,
   },
 ]
-
-export type ReminderTemplateVariables = Record<string, string | number | null | undefined>
-
-export function renderReminderTemplate(
-  template: Pick<ReminderTemplateRow, 'subject' | 'bodyText'>,
-  variables: ReminderTemplateVariables,
-): { subject: string; text: string } {
-  const replace = (value: string) =>
-    value.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, key: string) => {
-      const variable = variables[key]
-      return variable === null || variable === undefined ? '' : String(variable)
-    })
-  return {
-    subject: replace(template.subject),
-    text: replace(template.bodyText),
-  }
-}
 
 function clampLimit(limit: number | undefined): number {
   return Math.min(Math.max(limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT)
@@ -112,6 +184,16 @@ function emptyTemplateRow(template: TemplateDefault): ReminderTemplateRow {
   }
 }
 
+function defaultTemplateForKey(templateKey: string): TemplateDefault | undefined {
+  return DEFAULT_REMINDER_TEMPLATES.find((template) => template.templateKey === templateKey)
+}
+
+function clientDeadlineTemplateKey(offsetDays: number): string | null {
+  if (offsetDays === 30) return CLIENT_30_DAY_TEMPLATE_KEY
+  if (offsetDays === 7) return CLIENT_7_DAY_TEMPLATE_KEY
+  return null
+}
+
 export function makeRemindersRepo(db: Db, firmId: string) {
   async function practiceTimezone(): Promise<string> {
     const [row] = await db
@@ -122,7 +204,7 @@ export function makeRemindersRepo(db: Db, firmId: string) {
     return row?.timezone ?? 'America/New_York'
   }
 
-  async function readTemplates(): Promise<ReminderTemplateRow[]> {
+  async function readAllTemplates(): Promise<ReminderTemplateRow[]> {
     const rows = await db
       .select()
       .from(reminderTemplate)
@@ -153,14 +235,16 @@ export function makeRemindersRepo(db: Db, firmId: string) {
       const shouldReplace = !current || (current.firmId === null && row.firmId === firmId)
       if (!shouldReplace) continue
       const rowStats = stats.get(row.id) ?? { usageCount: 0, lastSentAt: null }
+      const defaultTemplate = defaultTemplateForKey(row.templateKey)
+      const isSystemDefault = row.firmId === null && row.isSystem
       byKey.set(row.templateKey, {
         id: row.id,
         firmId: row.firmId,
         templateKey: row.templateKey,
         kind: row.kind,
-        name: row.name,
-        subject: row.subject,
-        bodyText: row.bodyText,
+        name: defaultTemplate?.name ?? row.name,
+        subject: isSystemDefault && defaultTemplate ? defaultTemplate.subject : row.subject,
+        bodyText: isSystemDefault && defaultTemplate ? defaultTemplate.bodyText : row.bodyText,
         active: row.active,
         isSystem: row.isSystem,
         usageCount: rowStats.usageCount,
@@ -180,11 +264,19 @@ export function makeRemindersRepo(db: Db, firmId: string) {
     )
   }
 
+  async function readEditableTemplates(): Promise<ReminderTemplateRow[]> {
+    return (await readAllTemplates()).filter((template) =>
+      EDITABLE_REMINDER_TEMPLATE_KEYS.has(template.templateKey),
+    )
+  }
+
   async function writeFirmTemplate(
     templateKey: string,
     patch: ReminderTemplatePatch,
   ): Promise<ReminderTemplateRow> {
-    const current = (await readTemplates()).find((template) => template.templateKey === templateKey)
+    const current = (await readEditableTemplates()).find(
+      (template) => template.templateKey === templateKey,
+    )
     if (!current) throw new Error('Reminder template was not found.')
 
     const update = {
@@ -210,7 +302,9 @@ export function makeRemindersRepo(db: Db, firmId: string) {
       })
     }
 
-    const updated = (await readTemplates()).find((template) => template.templateKey === templateKey)
+    const updated = (await readEditableTemplates()).find(
+      (template) => template.templateKey === templateKey,
+    )
     if (!updated) throw new Error('Reminder template could not be read after update.')
     return updated
   }
@@ -221,7 +315,6 @@ export function makeRemindersRepo(db: Db, firmId: string) {
     const targets = new Map([
       [addDays(today, 30), 30],
       [addDays(today, 7), 7],
-      [addDays(today, 1), 1],
     ])
 
     const rows = await db
@@ -312,7 +405,7 @@ export function makeRemindersRepo(db: Db, firmId: string) {
           recipientKind: 'client' as const,
           channel: 'email' as const,
           deliveryStatus: statusByKey.get(clientKey) ?? 'pending',
-          templateKey: 'client-deadline-reminder',
+          templateKey: clientDeadlineTemplateKey(offsetDays),
         },
       ]
     })
@@ -327,7 +420,7 @@ export function makeRemindersRepo(db: Db, firmId: string) {
       const timezone = await practiceTimezone()
       const today = dateInTimezone(timezone, new Date())
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      const templates = await readTemplates()
+      const templates = await readEditableTemplates()
       const upcoming = await upcomingCandidates(MAX_LIMIT)
       const [queuedToday] = await db
         .select({ value: count() })
@@ -375,13 +468,21 @@ export function makeRemindersRepo(db: Db, firmId: string) {
       }
     },
 
-    listTemplates: readTemplates,
+    listTemplates: readEditableTemplates,
 
     updateTemplate: writeFirmTemplate,
 
     async resolveTemplate(kind: ReminderTemplateKind) {
-      const templates = await readTemplates()
+      const templates = await readAllTemplates()
       return templates.find((template) => template.kind === kind && template.active) ?? null
+    },
+
+    async resolveTemplateByKey(templateKey: string) {
+      const templates = await readAllTemplates()
+      return (
+        templates.find((template) => template.templateKey === templateKey && template.active) ??
+        null
+      )
     },
 
     async listUpcoming(input: { limit?: number } = {}) {

@@ -23,9 +23,9 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
-  await expect(authenticatedPage.getByRole('button', { name: /^\d+\s+needs review$/ })).toBeVisible(
-    { timeout: 20_000 },
-  )
+  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible({
+    timeout: 20_000,
+  })
 
   await authenticatedPage.goto('/rules/sources')
   await expect(authenticatedPage).toHaveURL(/\/rules\/sources$/)
@@ -36,9 +36,9 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
 
   await rulesConsolePage.libraryTab.click()
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
-  await authenticatedPage.getByRole('button', { name: /^\d+\s+needs review$/ }).click()
+  await authenticatedPage.goto('/rules/library?filter=pending')
   await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
-  await expect(authenticatedPage.getByText('Entity coverage')).toBeVisible()
+  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible()
 })
 
 test('AC: E2E-RULES-DETAIL renders a shipped rule detail workspace', async ({
@@ -48,14 +48,12 @@ test('AC: E2E-RULES-DETAIL renders a shipped rule detail workspace', async ({
     '/rules/library?filter=pending&q=AL&from=coverage&rule=al.individual_income_return.candidate.2026',
   )
 
-  await expect(authenticatedPage.getByLabel('Review workspace')).toBeVisible()
-  await expect(
-    authenticatedPage.getByRole('heading', {
-      name: 'Alabama individual income tax return applicability',
-    }),
-  ).toBeVisible()
-  await expect(authenticatedPage.getByText('Due date', { exact: true })).toBeVisible()
-  await expect(authenticatedPage.getByText('Evidence', { exact: true })).toBeVisible()
+  const ruleDetail = authenticatedPage.getByRole('dialog', {
+    name: /Alabama individual income tax return applicability/,
+  })
+  await expect(ruleDetail).toBeVisible({ timeout: 20_000 })
+  await expect(ruleDetail.getByRole('heading', { name: "When it's due" })).toBeVisible()
+  await expect(ruleDetail.getByRole('heading', { name: 'Evidence' })).toBeVisible()
 })
 
 test('AC: E2E-RULES-PREVIEW runs the implemented obligation preview', async ({

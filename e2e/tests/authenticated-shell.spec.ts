@@ -62,7 +62,7 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
       'Coverage',
       'Sources',
       'Rule library',
-      'Pulse',
+      'Alerts',
       'Temporary rules',
       'Members',
       'Billing',
@@ -75,10 +75,8 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
 
   await expect(authenticatedPage).toHaveURL(/\/deadlines\/calendar$/)
   await expect(authenticatedPage.getByText('Subscription notes')).toBeVisible()
-  await expect(authenticatedPage.getByRole('link', { name: 'Back to Deadlines' })).toHaveAttribute(
-    'href',
-    '/deadlines',
-  )
+  await authenticatedPage.getByRole('button', { name: 'Back to Deadlines' }).click()
+  await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
 
   await appShellPage.openCommandPalette()
   await appShellPage.commandItem('Rule library').click()

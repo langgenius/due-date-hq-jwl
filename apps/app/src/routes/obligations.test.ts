@@ -7,6 +7,7 @@ import {
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
   materialsChecklistReference,
+  latestDeadlineInputRequest,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
   reviewPipelineCurrent,
@@ -299,6 +300,58 @@ describe('materials checklist reference', () => {
         obligationType: 'filing',
       }),
     ).toBeNull()
+  })
+})
+
+describe('deadline input request audit chip', () => {
+  it('reads the latest input request from deadline audit events', () => {
+    const latest = latestDeadlineInputRequest([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        firmId: 'firm_1',
+        actorId: 'user_preparer',
+        actorLabel: 'Paula Preparer',
+        entityType: 'obligation_instance',
+        entityId: 'obligation_1',
+        action: 'obligation.input_requested',
+        beforeJson: null,
+        afterJson: {
+          recipientName: 'Olivia Owner',
+          recipientRole: 'owner',
+          message: 'Please review the extension plan.',
+        },
+        reason: null,
+        ipHash: null,
+        userAgentHash: null,
+        createdAt: '2026-05-26T12:00:00.000Z',
+      },
+      {
+        id: '22222222-2222-4222-8222-222222222222',
+        firmId: 'firm_1',
+        actorId: 'user_preparer',
+        actorLabel: 'Paula Preparer',
+        entityType: 'obligation_instance',
+        entityId: 'obligation_1',
+        action: 'obligation.input_requested',
+        beforeJson: null,
+        afterJson: {
+          recipientName: 'Pat Partner',
+          recipientRole: 'partner',
+          message: 'Please decide whether to file.',
+        },
+        reason: null,
+        ipHash: null,
+        userAgentHash: null,
+        createdAt: '2026-05-26T13:00:00.000Z',
+      },
+    ])
+
+    expect(latest).toEqual({
+      recipientName: 'Pat Partner',
+      recipientRole: 'partner',
+      message: 'Please decide whether to file.',
+      createdAt: '2026-05-26T13:00:00.000Z',
+    })
   })
 })
 

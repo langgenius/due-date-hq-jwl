@@ -3,14 +3,61 @@
 
 BEGIN TRANSACTION;
 
+-- Demo users can create throwaway practice records during local QA. Clear any
+-- firm owned by a mock user before rebuilding the canonical mock practices.
+DELETE FROM client_email_suppression WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM client_readiness_response WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM client_readiness_request WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM calendar_subscription WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM reminder WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM in_app_notification WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM notification_digest_run WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM email_outbox WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM notification_preference WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM opportunity_dismissal WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM dashboard_brief WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM ai_insight_cache WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM llm_log WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM ai_output WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM audit_evidence_package WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM evidence_link WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM audit_event WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_saved_view WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_exception_application WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM exception_rule WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM practice_rule_review_task WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM practice_rule WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM rule_review_decision WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM pulse_application WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM pulse_priority_review WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM pulse_firm_alert WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_readiness_template_item_suppression WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_readiness_checklist_item WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_review_note WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_dependency WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM obligation_instance WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM client_filing_profile WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM client WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM migration_error WHERE batch_id IN (SELECT id FROM migration_batch WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%'));
+DELETE FROM migration_normalization WHERE batch_id IN (SELECT id FROM migration_batch WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%'));
+DELETE FROM migration_mapping WHERE batch_id IN (SELECT id FROM migration_batch WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%'));
+DELETE FROM migration_batch WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM reminder_template WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM subscription WHERE reference_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM invitation WHERE organization_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM member WHERE organization_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+DELETE FROM organization WHERE id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
+
 DELETE FROM client_email_suppression WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM client_readiness_response WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM client_readiness_request WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM calendar_subscription WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM reminder WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM in_app_notification WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM notification_digest_run WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM email_outbox WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM notification_preference WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM opportunity_dismissal WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM dashboard_brief WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM ai_insight_cache WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM llm_log WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
@@ -25,6 +72,7 @@ DELETE FROM practice_rule_review_task WHERE firm_id IN ('mock_firm_brightline', 
 DELETE FROM practice_rule WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM rule_review_decision WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_application WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM pulse_priority_review WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_firm_alert WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_source_signal WHERE source_id = 'fema.declarations' AND external_id IN ('fema-ca-2026-early-signal', 'fema-tx-2026-early-signal');
 DELETE FROM pulse_source_snapshot WHERE id LIKE 'mock_%';
@@ -39,7 +87,12 @@ WHERE id LIKE 'mock_%'
     '40000000-0000-4000-8000-000000000006',
     '40000000-0000-4000-8000-000000000007'
   );
+DELETE FROM obligation_readiness_template_item_suppression WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM obligation_readiness_checklist_item WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM obligation_review_note WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM obligation_dependency WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM obligation_instance WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+DELETE FROM client_filing_profile WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM client WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM migration_error
 WHERE batch_id LIKE 'mock_migration_%'
@@ -231,17 +284,29 @@ VALUES
   ('33000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001', 4, '{"Client":"Draft Riverbend","State":"","Entity":"LLC"}', 'STATE_REQUIRED', 'State is required before default matrix can generate state obligations.', CAST(unixepoch('2026-05-01 09:12:00') * 1000 AS INTEGER));
 
 INSERT INTO client
-  (id, firm_id, name, ein, state, county, entity_type, email, notes, assignee_name, importance_weight, late_filing_count_last_12mo, estimated_tax_liability_cents, estimated_tax_liability_source, equity_owner_count, migration_batch_id, created_at, updated_at, deleted_at)
+  (id, firm_id, name, ein, state, county, entity_type, email, notes, assignee_id, assignee_name, importance_weight, late_filing_count_last_12mo, estimated_tax_liability_cents, estimated_tax_liability_source, equity_owner_count, migration_batch_id, created_at, updated_at, deleted_at)
 VALUES
-  ('10000000-0000-4000-8000-000000000001', 'mock_firm_brightline', 'Arbor & Vale LLC', '12-3456789', 'CA', 'Los Angeles', 'llc', 'finance@arborvale.test', 'High-touch partnership client for Pulse relief demo.', 'M. Chen', 3, 2, 7800000, 'demo_seed', 3, NULL, CAST(unixepoch('2026-05-01 08:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000002', 'mock_firm_brightline', 'Bright Studio S-Corp', '21-2222222', 'CA', NULL, 's_corp', 'office@brightstudio.test', 'Missing county intentionally exercises Pulse needs-review flow.', 'A. Rivera', 2, 1, 9400000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 08:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000003', 'mock_firm_brightline', 'Northstar Dental Group', '98-7654321', 'NY', 'Queens', 's_corp', 'controller@northstardental.test', 'Imported from Karbon.', 'A. Rivera', 2, 0, 5500000, 'imported', 4, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000004', 'mock_firm_brightline', 'Copperline Studios Inc.', '45-1111111', 'TX', 'Travis', 'c_corp', 'tax@copperline.test', 'Waiting on client packet.', 'K. Patel', 3, 1, 12600000, 'imported', 8, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:21:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:38:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000005', 'mock_firm_brightline', 'Cascade Florist', '33-4444444', 'WA', 'King', 'sole_prop', NULL, 'Unassigned owner and missing email exercise workload and client facts.', NULL, 1, 0, NULL, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 08:44:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:39:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000006', 'mock_firm_brightline', 'Magnolia Family Trust', '77-5555555', 'FL', 'Miami-Dade', 'trust', 'trustee@magnolia.test', 'Trust and Florida state coverage sample.', 'M. Chen', 2, 0, 2500000, 'demo_seed', 5, NULL, CAST(unixepoch('2026-05-01 08:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000007', 'mock_firm_brightline', 'Lakeview Medical Partners', '66-8888888', 'MA', 'Suffolk', 'partnership', 'admin@lakeviewmedical.test', 'Large exposure partner return.', 'A. Rivera', 3, 3, 18500000, 'imported', 11, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:22:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000008', 'mock_firm_brightline', 'Orbit Design LLC', '51-7777777', 'CA', 'San Diego', 'llc', 'founder@orbitdesign.test', 'CA FTB overlay already applied.', 'K. Patel', 2, 0, 4100000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 08:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), NULL),
-  ('10000000-0000-4000-8000-000000000009', 'mock_firm_brightline', 'Riverbend Draft Client', NULL, NULL, NULL, 'llc', NULL, 'Incomplete record from skipped import row.', NULL, 1, 0, NULL, NULL, NULL, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:23:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), NULL);
+  ('10000000-0000-4000-8000-000000000001', 'mock_firm_brightline', 'Arbor & Vale LLC', '12-3456789', 'CA', 'Los Angeles', 'llc', 'finance@arborvale.test', 'High-touch partnership client for Pulse relief demo.', 'mock_user_manager_miguel', 'Miguel Chen', 3, 2, 7800000, 'demo_seed', 3, NULL, CAST(unixepoch('2026-05-01 08:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000002', 'mock_firm_brightline', 'Bright Studio S-Corp', '21-2222222', 'CA', NULL, 's_corp', 'office@brightstudio.test', 'Missing county intentionally exercises Pulse needs-review flow.', 'mock_user_preparer_avery', 'Avery Patel', 2, 1, 9400000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 08:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000003', 'mock_firm_brightline', 'Northstar Dental Group', '98-7654321', 'NY', 'Queens', 's_corp', 'controller@northstardental.test', 'Imported from Karbon.', 'mock_user_preparer_avery', 'Avery Patel', 2, 0, 5500000, 'imported', 4, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000004', 'mock_firm_brightline', 'Copperline Studios Inc.', '45-1111111', 'TX', 'Travis', 'c_corp', 'tax@copperline.test', 'Waiting on client packet.', 'mock_user_preparer_avery', 'Avery Patel', 3, 1, 12600000, 'imported', 8, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:21:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:38:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000005', 'mock_firm_brightline', 'Cascade Florist', '33-4444444', 'WA', 'King', 'sole_prop', NULL, 'Unassigned owner and missing email exercise workload and client facts.', NULL, NULL, 1, 0, NULL, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 08:44:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:39:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000006', 'mock_firm_brightline', 'Magnolia Family Trust', '77-5555555', 'FL', 'Miami-Dade', 'trust', 'trustee@magnolia.test', 'Trust and Florida state coverage sample.', 'mock_user_manager_miguel', 'Miguel Chen', 2, 0, 2500000, 'demo_seed', 5, NULL, CAST(unixepoch('2026-05-01 08:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000007', 'mock_firm_brightline', 'Lakeview Medical Partners', '66-8888888', 'MA', 'Suffolk', 'partnership', 'admin@lakeviewmedical.test', 'Large exposure partner return.', 'mock_user_partner_priya', 'Priya Shah', 3, 3, 18500000, 'imported', 11, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:22:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000008', 'mock_firm_brightline', 'Orbit Design LLC', '51-7777777', 'CA', 'San Diego', 'llc', 'founder@orbitdesign.test', 'CA FTB overlay already applied.', 'mock_user_partner_priya', 'Priya Shah', 2, 0, 4100000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 08:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), NULL),
+  ('10000000-0000-4000-8000-000000000009', 'mock_firm_brightline', 'Riverbend Draft Client', NULL, NULL, NULL, 'llc', NULL, 'Incomplete record from skipped import row.', NULL, NULL, 1, 0, NULL, NULL, NULL, '30000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:23:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), NULL);
+
+INSERT INTO client_filing_profile
+  (id, firm_id, client_id, state, counties_json, tax_types_json, is_primary, source, migration_batch_id, archived_at, created_at, updated_at)
+VALUES
+  ('15000000-0000-4000-8000-000000000001', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000001', 'CA', '["Los Angeles"]', '["federal_1065","ca_568"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 08:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000002', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000002', 'CA', '[]', '["federal_1120s"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 08:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000003', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000003', 'NY', '["Queens"]', '["federal_1120s","federal_941","ny_ct3s","ny_sales_st100"]', 1, 'imported', '30000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000004', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000004', 'TX', '["Travis"]', '["tx_franchise_report"]', 1, 'imported', '30000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:21:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:38:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000005', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000005', 'WA', '["King"]', '["federal_1040"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 08:44:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:39:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000006', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000006', 'FL', '["Miami-Dade"]', '["federal_1041","fl_corp_income"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 08:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000007', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000007', 'MA', '["Suffolk"]', '["federal_1065"]', 1, 'imported', '30000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:22:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER)),
+  ('15000000-0000-4000-8000-000000000008', 'mock_firm_brightline', '10000000-0000-4000-8000-000000000008', 'CA', '["San Diego"]', '["ca_llc_franchise_min_800"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 08:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER));
 
 INSERT INTO obligation_instance
   (id, firm_id, client_id, tax_type, tax_year, base_due_date, current_due_date, status, migration_batch_id, estimated_tax_due_cents, estimated_exposure_cents, exposure_status, penalty_breakdown_json, penalty_formula_version, exposure_calculated_at, created_at, updated_at)
@@ -794,20 +859,36 @@ VALUES
   ('34300000-0000-4000-8000-000000000001', '34000000-0000-4000-8000-000000000001', 3, '{"Client":"Draft Solo Prospect","State":"","Entity":"Individual"}', 'STATE_REQUIRED', 'State is required before the default matrix can generate obligations.', CAST(unixepoch('2026-05-01 09:31:00') * 1000 AS INTEGER));
 
 INSERT INTO client
-  (id, firm_id, name, ein, state, county, entity_type, email, notes, assignee_name, importance_weight, late_filing_count_last_12mo, estimated_tax_liability_cents, estimated_tax_liability_source, equity_owner_count, migration_batch_id, created_at, updated_at, deleted_at)
+  (id, firm_id, name, ein, state, county, entity_type, email, notes, assignee_id, assignee_name, importance_weight, late_filing_count_last_12mo, estimated_tax_liability_cents, estimated_tax_liability_source, equity_owner_count, migration_batch_id, created_at, updated_at, deleted_at)
 VALUES
-  ('11000000-0000-4000-8000-000000000001', 'mock_firm_plan_solo', 'Maple Advisory Partners', '11-1000001', 'NY', 'Queens', 'partnership', 'tax@mapleadvisory.test', 'Solo-plan imported partnership with a NY deadline and Pulse match.', 'Sofia Solo', 3, 1, 6100000, 'imported', 4, '34000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), NULL),
-  ('11000000-0000-4000-8000-000000000002', 'mock_firm_plan_solo', 'Cedar Ridge Therapy PC', '11-1000002', 'CA', 'Alameda', 's_corp', 'admin@cedarridge.test', 'Manual solo client waiting for owner review.', 'Sofia Solo', 2, 0, 4200000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), NULL),
-  ('11000000-0000-4000-8000-000000000003', 'mock_firm_plan_solo', 'North Loop Freelancer', '11-1000003', 'TX', 'Travis', 'individual', 'owner@northloop.test', 'Client readiness request sample for the Solo account.', NULL, 1, 0, NULL, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:44:00') * 1000 AS INTEGER), NULL),
-  ('12000000-0000-4000-8000-000000000001', 'mock_firm_plan_pro', 'Beacon Robotics Inc.', '12-2000001', 'TX', 'Travis', 'c_corp', 'tax@beaconrobotics.test', 'High exposure Pro-plan client waiting on a state workpaper.', 'Priya Pro', 3, 2, 16200000, 'imported', 6, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), NULL),
-  ('12000000-0000-4000-8000-000000000002', 'mock_firm_plan_pro', 'Willow Family Office LLC', '12-2000002', 'CA', 'Los Angeles', 'llc', 'controller@willowfamily.test', 'Los Angeles LLC for IRS disaster Pulse matching.', 'Nora Pro', 3, 1, 7800000, 'imported', 5, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER), NULL),
-  ('12000000-0000-4000-8000-000000000003', 'mock_firm_plan_pro', 'Harborview Partners', '12-2000003', 'NY', 'Queens', 'partnership', 'admin@harborview.test', 'Unassigned Pro Obligations row for owner triage.', NULL, 2, 1, 9900000, 'demo_seed', 7, NULL, CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER), NULL),
-  ('12000000-0000-4000-8000-000000000004', 'mock_firm_plan_pro', 'Quartz Medical PLLC', '12-2000004', 'FL', 'Orange', 's_corp', 'admin@quartzmedical.test', 'Unsupported exposure sample for Pro filters.', 'Nora Pro', 2, 0, 4200000, 'imported', 3, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER), NULL),
-  ('13000000-0000-4000-8000-000000000001', 'mock_firm_plan_team', 'Redwood SaaS LLC', '13-3000001', 'CA', 'Los Angeles', 'llc', 'finance@redwoodsaas.test', 'Team-plan Los Angeles client for Pulse and capacity testing.', 'Morgan Team', 3, 2, 24500000, 'imported', 8, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:51:00') * 1000 AS INTEGER), NULL),
-  ('13000000-0000-4000-8000-000000000002', 'mock_firm_plan_team', 'Alpine Dental Partners', '13-3000002', 'CO', 'Denver', 'partnership', 'admin@alpinedental.test', 'Waiting on partner confirmations.', 'Casey Team', 3, 1, 13500000, 'imported', 9, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:52:00') * 1000 AS INTEGER), NULL),
-  ('13000000-0000-4000-8000-000000000003', 'mock_firm_plan_team', 'Blue Harbor S-Corp', '13-3000003', 'NY', 'Kings', 's_corp', 'tax@blueharbor.test', 'Coordinator-owned review sample.', 'Jordan Team', 2, 0, 8400000, 'imported', 4, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:53:00') * 1000 AS INTEGER), NULL),
-  ('13000000-0000-4000-8000-000000000004', 'mock_firm_plan_team', 'Summit Events LLC', '13-3000004', 'TX', 'Dallas', 'llc', 'owner@summitevents.test', 'Unassigned team queue row with missing exposure input.', NULL, 2, 1, NULL, NULL, 3, NULL, CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:54:00') * 1000 AS INTEGER), NULL),
-  ('13000000-0000-4000-8000-000000000005', 'mock_firm_plan_team', 'Pacific Trust', '13-3000005', 'FL', 'Miami-Dade', 'trust', 'trustee@pacifictrust.test', 'Completed trust return for done-state testing.', 'Morgan Team', 1, 0, 2600000, 'demo_seed', 5, NULL, CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:55:00') * 1000 AS INTEGER), NULL);
+  ('11000000-0000-4000-8000-000000000001', 'mock_firm_plan_solo', 'Maple Advisory Partners', '11-1000001', 'NY', 'Queens', 'partnership', 'tax@mapleadvisory.test', 'Solo-plan imported partnership with a NY deadline and Pulse match.', 'mock_user_plan_solo', 'Sofia Solo', 3, 1, 6100000, 'imported', 4, '34000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), NULL),
+  ('11000000-0000-4000-8000-000000000002', 'mock_firm_plan_solo', 'Cedar Ridge Therapy PC', '11-1000002', 'CA', 'Alameda', 's_corp', 'admin@cedarridge.test', 'Manual solo client waiting for owner review.', 'mock_user_plan_solo', 'Sofia Solo', 2, 0, 4200000, 'demo_seed', 2, NULL, CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), NULL),
+  ('11000000-0000-4000-8000-000000000003', 'mock_firm_plan_solo', 'North Loop Freelancer', '11-1000003', 'TX', 'Travis', 'individual', 'owner@northloop.test', 'Client readiness request sample for the Solo account.', NULL, NULL, 1, 0, NULL, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:44:00') * 1000 AS INTEGER), NULL),
+  ('12000000-0000-4000-8000-000000000001', 'mock_firm_plan_pro', 'Beacon Robotics Inc.', '12-2000001', 'TX', 'Travis', 'c_corp', 'tax@beaconrobotics.test', 'High exposure Pro-plan client waiting on a state workpaper.', 'mock_user_plan_pro', 'Priya Pro', 3, 2, 16200000, 'imported', 6, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), NULL),
+  ('12000000-0000-4000-8000-000000000002', 'mock_firm_plan_pro', 'Willow Family Office LLC', '12-2000002', 'CA', 'Los Angeles', 'llc', 'controller@willowfamily.test', 'Los Angeles LLC for IRS disaster Pulse matching.', 'mock_user_plan_pro_preparer', 'Nora Pro', 3, 1, 7800000, 'imported', 5, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER), NULL),
+  ('12000000-0000-4000-8000-000000000003', 'mock_firm_plan_pro', 'Harborview Partners', '12-2000003', 'NY', 'Queens', 'partnership', 'admin@harborview.test', 'Unassigned Pro Obligations row for owner triage.', NULL, NULL, 2, 1, 9900000, 'demo_seed', 7, NULL, CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER), NULL),
+  ('12000000-0000-4000-8000-000000000004', 'mock_firm_plan_pro', 'Quartz Medical PLLC', '12-2000004', 'FL', 'Orange', 's_corp', 'admin@quartzmedical.test', 'Unsupported exposure sample for Pro filters.', 'mock_user_plan_pro_preparer', 'Nora Pro', 2, 0, 4200000, 'imported', 3, '35000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER), NULL),
+  ('13000000-0000-4000-8000-000000000001', 'mock_firm_plan_team', 'Redwood SaaS LLC', '13-3000001', 'CA', 'Los Angeles', 'llc', 'finance@redwoodsaas.test', 'Team-plan Los Angeles client for Pulse and capacity testing.', 'mock_user_plan_team_manager', 'Morgan Team', 3, 2, 24500000, 'imported', 8, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:51:00') * 1000 AS INTEGER), NULL),
+  ('13000000-0000-4000-8000-000000000002', 'mock_firm_plan_team', 'Alpine Dental Partners', '13-3000002', 'CO', 'Denver', 'partnership', 'admin@alpinedental.test', 'Waiting on partner confirmations.', 'mock_user_plan_team_preparer', 'Casey Team', 3, 1, 13500000, 'imported', 9, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:52:00') * 1000 AS INTEGER), NULL),
+  ('13000000-0000-4000-8000-000000000003', 'mock_firm_plan_team', 'Blue Harbor S-Corp', '13-3000003', 'NY', 'Kings', 's_corp', 'tax@blueharbor.test', 'Coordinator-owned review sample.', 'mock_user_plan_team_coordinator', 'Jordan Team', 2, 0, 8400000, 'imported', 4, '36000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:53:00') * 1000 AS INTEGER), NULL),
+  ('13000000-0000-4000-8000-000000000004', 'mock_firm_plan_team', 'Summit Events LLC', '13-3000004', 'TX', 'Dallas', 'llc', 'owner@summitevents.test', 'Unassigned team queue row with missing exposure input.', NULL, NULL, 2, 1, NULL, NULL, 3, NULL, CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:54:00') * 1000 AS INTEGER), NULL),
+  ('13000000-0000-4000-8000-000000000005', 'mock_firm_plan_team', 'Pacific Trust', '13-3000005', 'FL', 'Miami-Dade', 'trust', 'trustee@pacifictrust.test', 'Completed trust return for done-state testing.', 'mock_user_plan_team_manager', 'Morgan Team', 1, 0, 2600000, 'demo_seed', 5, NULL, CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:55:00') * 1000 AS INTEGER), NULL);
+
+INSERT INTO client_filing_profile
+  (id, firm_id, client_id, state, counties_json, tax_types_json, is_primary, source, migration_batch_id, archived_at, created_at, updated_at)
+VALUES
+  ('15100000-0000-4000-8000-000000000001', 'mock_firm_plan_solo', '11000000-0000-4000-8000-000000000001', 'NY', '["Queens"]', '["federal_1065","ny_it204"]', 1, 'imported', '34000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER)),
+  ('15100000-0000-4000-8000-000000000002', 'mock_firm_plan_solo', '11000000-0000-4000-8000-000000000002', 'CA', '["Alameda"]', '["federal_1120s"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 09:36:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER)),
+  ('15100000-0000-4000-8000-000000000003', 'mock_firm_plan_solo', '11000000-0000-4000-8000-000000000003', 'TX', '["Travis"]', '["federal_1040"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 09:37:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:44:00') * 1000 AS INTEGER)),
+  ('15200000-0000-4000-8000-000000000001', 'mock_firm_plan_pro', '12000000-0000-4000-8000-000000000001', 'TX', '["Travis"]', '["federal_1120","tx_franchise_report"]', 1, 'imported', '35000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER)),
+  ('15200000-0000-4000-8000-000000000002', 'mock_firm_plan_pro', '12000000-0000-4000-8000-000000000002', 'CA', '["Los Angeles"]', '["federal_1065","ca_568"]', 1, 'imported', '35000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:41:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER)),
+  ('15200000-0000-4000-8000-000000000003', 'mock_firm_plan_pro', '12000000-0000-4000-8000-000000000003', 'NY', '["Queens"]', '["federal_1065"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 09:42:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER)),
+  ('15200000-0000-4000-8000-000000000004', 'mock_firm_plan_pro', '12000000-0000-4000-8000-000000000004', 'FL', '["Orange"]', '["fl_corp_income"]', 1, 'imported', '35000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:43:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER)),
+  ('15300000-0000-4000-8000-000000000001', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000001', 'CA', '["Los Angeles"]', '["federal_1065","ca_568"]', 1, 'imported', '36000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:51:00') * 1000 AS INTEGER)),
+  ('15300000-0000-4000-8000-000000000002', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000002', 'CO', '["Denver"]', '["federal_1065","co_partnership"]', 1, 'imported', '36000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:46:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:52:00') * 1000 AS INTEGER)),
+  ('15300000-0000-4000-8000-000000000003', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000003', 'NY', '["Kings"]', '["federal_1120s"]', 1, 'imported', '36000000-0000-4000-8000-000000000001', NULL, CAST(unixepoch('2026-05-01 09:47:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:53:00') * 1000 AS INTEGER)),
+  ('15300000-0000-4000-8000-000000000004', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000004', 'TX', '["Dallas"]', '["federal_1065","tx_franchise_report"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 09:48:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:54:00') * 1000 AS INTEGER)),
+  ('15300000-0000-4000-8000-000000000005', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000005', 'FL', '["Miami-Dade"]', '["federal_1041"]', 1, 'demo_seed', NULL, NULL, CAST(unixepoch('2026-05-01 09:49:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:55:00') * 1000 AS INTEGER));
 
 INSERT INTO obligation_instance
   (id, firm_id, client_id, tax_type, tax_year, base_due_date, current_due_date, status, extension_decision, migration_batch_id, estimated_tax_due_cents, estimated_exposure_cents, exposure_status, penalty_breakdown_json, penalty_formula_version, exposure_calculated_at, created_at, updated_at)
@@ -972,5 +1053,41 @@ SET
   efile_rejected_at = CAST(unixepoch('2026-05-10 14:23:00') * 1000 AS INTEGER),
   efile_accepted_at = NULL
 WHERE id = '20000000-0000-4000-8000-000000000007';
+
+-- Tie state-specific obligations to explicit filing profiles. Federal
+-- obligations intentionally keep NULL so Add deadline can still treat
+-- Federal as the default, non-profile jurisdiction.
+UPDATE obligation_instance
+SET client_filing_profile_id = CASE id
+  WHEN '20000000-0000-4000-8000-000000000002' THEN '15000000-0000-4000-8000-000000000001'
+  WHEN '20000000-0000-4000-8000-000000000004' THEN '15000000-0000-4000-8000-000000000003'
+  WHEN '20000000-0000-4000-8000-000000000005' THEN '15000000-0000-4000-8000-000000000004'
+  WHEN '20000000-0000-4000-8000-000000000008' THEN '15000000-0000-4000-8000-000000000006'
+  WHEN '20000000-0000-4000-8000-000000000010' THEN '15000000-0000-4000-8000-000000000008'
+  WHEN '20000000-0000-4000-8000-000000000023' THEN '15000000-0000-4000-8000-000000000003'
+  WHEN '21000000-0000-4000-8000-000000000001' THEN '15100000-0000-4000-8000-000000000001'
+  WHEN '22000000-0000-4000-8000-000000000001' THEN '15200000-0000-4000-8000-000000000001'
+  WHEN '22000000-0000-4000-8000-000000000004' THEN '15200000-0000-4000-8000-000000000002'
+  WHEN '22000000-0000-4000-8000-000000000006' THEN '15200000-0000-4000-8000-000000000004'
+  WHEN '23000000-0000-4000-8000-000000000002' THEN '15300000-0000-4000-8000-000000000001'
+  WHEN '23000000-0000-4000-8000-000000000004' THEN '15300000-0000-4000-8000-000000000002'
+  WHEN '23000000-0000-4000-8000-000000000006' THEN '15300000-0000-4000-8000-000000000004'
+  ELSE client_filing_profile_id
+END
+WHERE id IN (
+  '20000000-0000-4000-8000-000000000002',
+  '20000000-0000-4000-8000-000000000004',
+  '20000000-0000-4000-8000-000000000005',
+  '20000000-0000-4000-8000-000000000008',
+  '20000000-0000-4000-8000-000000000010',
+  '20000000-0000-4000-8000-000000000023',
+  '21000000-0000-4000-8000-000000000001',
+  '22000000-0000-4000-8000-000000000001',
+  '22000000-0000-4000-8000-000000000004',
+  '22000000-0000-4000-8000-000000000006',
+  '23000000-0000-4000-8000-000000000002',
+  '23000000-0000-4000-8000-000000000004',
+  '23000000-0000-4000-8000-000000000006'
+);
 
 COMMIT;

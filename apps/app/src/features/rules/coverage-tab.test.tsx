@@ -30,9 +30,11 @@ const rpcMocks = vi.hoisted(() => ({
   listReviewTasksQueryFn: vi.fn(),
   listConcreteDraftsQueryFn: vi.fn(),
   draftConcreteRuleQueryFn: vi.fn(),
+  draftConcreteRuleMutationFn: vi.fn(),
   acceptTemplateMutationFn: vi.fn(),
   verifyCandidateMutationFn: vi.fn(),
   rejectTemplateMutationFn: vi.fn(),
+  previewRuleImpactQueryFn: vi.fn(),
   previewBulkRuleImpactMutationFn: vi.fn(),
   bulkAcceptTemplatesMutationFn: vi.fn(),
   bulkVerifyCandidatesMutationFn: vi.fn(),
@@ -90,8 +92,13 @@ vi.mock('@/lib/rpc', () => ({
           queryKey: ['rules', 'draftConcreteRule', input],
           queryFn: rpcMocks.draftConcreteRuleQueryFn,
         }),
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.draftConcreteRuleMutationFn,
+          ...options,
+        }),
       },
       listConcreteDrafts: {
+        key: () => ['rules', 'listConcreteDrafts'],
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ['rules', 'listConcreteDrafts', input],
           queryFn: rpcMocks.listConcreteDraftsQueryFn,
@@ -113,6 +120,12 @@ vi.mock('@/lib/rpc', () => ({
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.rejectTemplateMutationFn,
           ...options,
+        }),
+      },
+      previewRuleImpact: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'previewRuleImpact', input],
+          queryFn: rpcMocks.previewRuleImpactQueryFn,
         }),
       },
       previewBulkRuleImpact: {
@@ -414,12 +427,25 @@ beforeEach(() => {
   rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
   rpcMocks.draftConcreteRuleQueryFn.mockReset()
   rpcMocks.draftConcreteRuleQueryFn.mockResolvedValue(null)
+  rpcMocks.draftConcreteRuleMutationFn.mockReset()
+  rpcMocks.draftConcreteRuleMutationFn.mockResolvedValue(null)
   rpcMocks.acceptTemplateMutationFn.mockReset()
   rpcMocks.acceptTemplateMutationFn.mockResolvedValue({})
   rpcMocks.verifyCandidateMutationFn.mockReset()
   rpcMocks.verifyCandidateMutationFn.mockResolvedValue({})
   rpcMocks.rejectTemplateMutationFn.mockReset()
   rpcMocks.rejectTemplateMutationFn.mockResolvedValue({})
+  rpcMocks.previewRuleImpactQueryFn.mockReset()
+  rpcMocks.previewRuleImpactQueryFn.mockResolvedValue({
+    selectedCount: 1,
+    acceptReadyCount: 1,
+    skipped: [],
+    jurisdictionCounts: [{ key: 'CA', count: 1 }],
+    entityCounts: [{ key: 'individual', count: 1 }],
+    formCounts: [{ key: 'Form 540', count: 1 }],
+    reviewReasonCounts: [],
+    estimatedObligationCount: 1,
+  })
   rpcMocks.previewBulkRuleImpactMutationFn.mockReset()
   rpcMocks.previewBulkRuleImpactMutationFn.mockResolvedValue({
     selectedCount: 1,

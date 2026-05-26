@@ -8,15 +8,15 @@ export class OpportunitiesPage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Opportunities' })
-    this.queue = page.locator('[data-slot="card"]').filter({
+    this.queue = page.locator('section').filter({
       has: page.getByText('Business guidance queue', { exact: true }),
     })
-    this.advisorySummary = page.locator('[data-slot="card"]').filter({
-      has: page.getByText('Advisory conversations', { exact: true }),
-    })
-    this.retentionSummary = page.locator('[data-slot="card"]').filter({
-      has: page.getByText('Retention check-ins', { exact: true }),
-    })
+    this.advisorySummary = page
+      .getByText('Advisory conversations', { exact: true })
+      .locator('xpath=../..')
+    this.retentionSummary = page
+      .getByText('Retention check-ins', { exact: true })
+      .locator('xpath=../..')
   }
 
   async goto() {

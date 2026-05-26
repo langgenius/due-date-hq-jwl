@@ -38,7 +38,7 @@ test.describe('seeded opportunities', () => {
     await expect(retentionRow).toContainText('Relationship check-in candidate')
     await expect(retentionRow).toContainText('Late filings in 12 months: 2')
 
-    await retentionRow.getByRole('link', { name: 'Open client' }).click()
+    await retentionRow.getByRole('button', { name: 'Open client' }).click()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
     await expect(
       authenticatedPage.getByRole('heading', { name: 'Copperline Studios' }),
@@ -52,23 +52,20 @@ test.describe('seeded opportunities', () => {
     await opportunitiesPage.goto()
     await opportunitiesPage
       .rowFor('Arbor & Vale LLC')
-      .getByRole('link', { name: 'Open client' })
+      .getByRole('button', { name: 'Open client' })
       .click()
 
     await expect(authenticatedPage.getByRole('heading', { name: 'Arbor & Vale LLC' })).toBeVisible()
-    await authenticatedPage
-      .getByRole('button', {
-        name: /Future business cues Advisory, scope, and retention opportunities/,
+    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
+    const card = authenticatedPage
+      .locator('section')
+      .filter({
+        has: authenticatedPage.getByRole('heading', { name: 'Future business cues' }),
       })
-      .click()
-    const card = authenticatedPage.locator('[data-slot="card"]').filter({
-      has: authenticatedPage.getByText('Future business cues', { exact: true }),
-    })
+      .last()
     await expect(card).toBeVisible()
     await expect(card).toContainText('Consider an advisory conversation')
-    await expect(card.getByRole('link', { name: 'View all opportunities' })).toHaveAttribute(
-      'href',
-      '/opportunities',
-    )
+    await card.getByRole('button', { name: 'View all opportunities' }).click()
+    await expect(authenticatedPage).toHaveURL(/\/opportunities$/)
   })
 })
