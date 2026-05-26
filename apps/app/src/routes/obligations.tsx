@@ -218,7 +218,13 @@ import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { cn, formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import {
+  cn,
+  formatCents,
+  formatDate,
+  formatDatePretty,
+  formatDateTimeWithTimezone,
+} from '@/lib/utils'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -3597,7 +3603,9 @@ export function ObligationQueueRoute() {
                                         <span aria-hidden> · </span>
                                         <Trans>
                                           next{' '}
-                                          {formatDate(groupHeader.earliestDueDate.slice(0, 10))}
+                                          {formatDatePretty(
+                                            groupHeader.earliestDueDate.slice(0, 10),
+                                          )}
                                         </Trans>
                                       </span>
                                       {groupHeader.lateCount > 0 ? (
@@ -6292,7 +6300,8 @@ export function ObligationQueueDetailDrawer({
                         className="border-state-warning-border bg-state-warning-hover text-text-warning"
                       >
                         <Trans>
-                          Client response due {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                          Client response due{' '}
+                          {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                         </Trans>
                       </Badge>
                       <span className="text-text-tertiary">
@@ -6668,7 +6677,7 @@ export function ObligationQueueDetailDrawer({
                         <span className="text-xs text-text-secondary">
                           <Trans>
                             Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
-                            {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                            {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                           </Trans>
                         </span>
                         <div className="ml-auto flex items-center gap-1.5">
@@ -9031,12 +9040,19 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const dateRows = useMemo(
     () => [
+      // 2026-05-26 (86th pass, audit cross-cutting A): user-facing
+      // reference-date list now renders prose via `formatDatePretty`
+      // (e.g. "May 9, 2026") instead of ISO. The drawer is a panel
+      // the user reads; ISO format here undermines the canonical
+      // "finance-grade calm" feel. Queue row date column keeps
+      // `formatDate` because that's a dense triage table where ISO
+      // alignment + tabular-nums is the better trade.
       ...(row.efileSubmittedAt
         ? [
             {
               key: 'submitted',
               label: t`Submitted`,
-              value: formatDate(row.efileSubmittedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileSubmittedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9045,7 +9061,7 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
             {
               key: 'accepted',
               label: t`Accepted`,
-              value: formatDate(row.efileAcceptedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileAcceptedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9054,7 +9070,7 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
             {
               key: 'rejected',
               label: t`Rejected`,
-              value: formatDate(row.efileRejectedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileRejectedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9063,8 +9079,12 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
         label: t`Tax period`,
         value: formatTaxPeriod(row.taxPeriodStart, row.taxPeriodEnd),
       },
-      { key: 'created', label: t`Created`, value: formatDate(row.createdAt.slice(0, 10)) },
-      { key: 'updated', label: t`Last touched`, value: formatDate(row.updatedAt.slice(0, 10)) },
+      { key: 'created', label: t`Created`, value: formatDatePretty(row.createdAt.slice(0, 10)) },
+      {
+        key: 'updated',
+        label: t`Last touched`,
+        value: formatDatePretty(row.updatedAt.slice(0, 10)),
+      },
     ],
     [row, t],
   )
@@ -9466,7 +9486,7 @@ function PathToFilingSummary({
                   // "Past deadline" — readable in any tone.
                   <span
                     className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-secondary"
-                    title={t`Filing was due ${formatDate(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
+                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
@@ -9961,10 +9981,13 @@ function CompletedKeyDates({
     return daysBetween(row.createdAt, completedAt)
   }, [row.createdAt, completedAt])
   const rows: Array<{ label: string; value: string }> = [
-    { label: t`Opened`, value: formatDate(row.createdAt.slice(0, 10)) },
+    // 2026-05-26 (86th pass): user-facing Key Dates panel uses prose
+    // dates per audit cross-cutting A.
+    { label: t`Opened`, value: formatDatePretty(row.createdAt.slice(0, 10)) },
   ]
-  if (filedAt) rows.push({ label: t`Filed`, value: formatDate(filedAt.slice(0, 10)) })
-  if (completedAt) rows.push({ label: t`Completed`, value: formatDate(completedAt.slice(0, 10)) })
+  if (filedAt) rows.push({ label: t`Filed`, value: formatDatePretty(filedAt.slice(0, 10)) })
+  if (completedAt)
+    rows.push({ label: t`Completed`, value: formatDatePretty(completedAt.slice(0, 10)) })
   return (
     // 2026-05-26 (Yuqi feedback — "too many lines"): dropped the
     //   `rounded-md border border-divider-regular bg-background-subtle p-3`
@@ -10799,7 +10822,7 @@ function ActiveStageDetailCard({
         </h3>
         {stageEnteredAt ? (
           <p className="text-xs text-text-tertiary">
-            <Trans>Entered {formatDate(stageEnteredAt.slice(0, 10))}</Trans>
+            <Trans>Entered {formatDatePretty(stageEnteredAt.slice(0, 10))}</Trans>
           </p>
         ) : null}
       </header>
@@ -10830,7 +10853,7 @@ function ActiveStageDetailCard({
           <div className="flex flex-col gap-0.5 leading-snug">
             <p className="font-medium text-text-destructive">
               <Trans>
-                Filing was due {formatDate(row.currentDueDate.slice(0, 10))} —{' '}
+                Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
                 <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.
               </Trans>
             </p>
