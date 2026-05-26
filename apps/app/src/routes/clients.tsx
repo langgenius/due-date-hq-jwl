@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
@@ -102,6 +103,7 @@ export function ClientsRoute() {
   const entityLabels = useEntityLabels()
   const [
     {
+      q: searchQuery,
       clients: clientFilter,
       entity: entityFilter,
       state: stateFilter,
@@ -163,6 +165,7 @@ export function ClientsRoute() {
   const filters = useMemo(
     () =>
       normalizeClientsQueryFilters({
+        q: searchQuery,
         clients: clientFilter,
         entity: entityFilter,
         state: stateFilter,
@@ -172,6 +175,7 @@ export function ClientsRoute() {
         pulse: pulseFilter,
       }),
     [
+      searchQuery,
       clientFilter,
       entityFilter,
       ownerFilter,
@@ -214,11 +218,23 @@ export function ClientsRoute() {
     }),
   )
 
+  // 2026-05-26 (Yuqi /clients directory pivot brief): inline search
+  // handler. The `q` URL param flows through normalizeClientsQueryFilters
+  // → filters.search → filterClients haystack. Passing `null` when the
+  // value is empty clears the param entirely so shared URLs don't carry
+  // dangling `?q=` suffixes.
+  const handleSearchChange = useCallback(
+    (next: string) => {
+      const trimmed = next.trim()
+      void setClientsQuery({ q: trimmed.length > 0 ? next : null })
+    },
+    [setClientsQuery],
+  )
+
   const handleClientFilterChange = useCallback(
     (values: string[]) => {
       const clientIds = normalizeClientIdFilters(values)
       void setClientsQuery({
-        q: null,
         clients: nullableQueryArray(clientIds),
       })
     },
@@ -229,7 +245,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedEntities = values.filter(isClientEntityType)
       void setClientsQuery({
-        q: null,
         entity: nullableQueryArray(typedEntities),
       })
     },
@@ -240,7 +255,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const states = normalizeClientStateFilters(values)
       void setClientsQuery({
-        q: null,
         state: nullableQueryArray(states),
       })
     },
@@ -251,7 +265,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedSources = values.filter(isClientSourceType)
       void setClientsQuery({
-        q: null,
         source: nullableQueryArray(typedSources),
       })
     },
@@ -262,7 +275,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const owners = normalizeClientOwnerFilters(values)
       void setClientsQuery({
-        q: null,
         owner: nullableQueryArray(owners),
       })
     },
@@ -273,7 +285,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedPulse = values.filter(isClientPulseFilter)
       void setClientsQuery({
-        q: null,
         pulse: nullableQueryArray(typedPulse),
       })
     },
@@ -304,24 +315,36 @@ export function ClientsRoute() {
   )
 
   return (
-    // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
-    // padding md:p-6 → md:p-5. /clients is a list page — the table
-    // is what CPAs scan; chrome around it should be efficient.
-    // 2026-05-25 (Yuqi page-title pass): top padding bumped to
-    // pt-6 md:pt-8 so the h1 lands on the same baseline as Today /
-    // Deadlines / Audit. Left/right/bottom kept tight per density
-    // pass above.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
+    // 2026-05-26 (Yuqi macro→micro audit, Fix #1 + Fix #6 / §2.1):
+    // /clients adopts the sticky-footer variant of the canonical
+    // outer container — same shape as /deadlines. Required by Phase 7
+    // (table-card frame + responsive page-size, §6) which assumes the
+    // parent column has a defined viewport-driven height so the inner
+    // card's `flex-1 min-h-0` rows-area can actually flex. Was Regular
+    // (`gap-6 pb-4 md:pb-6`); now Sticky-footer (`gap-4 pb-0
+    // xl:h-screen xl:overflow-hidden`).
+    <div
+      className={cn(
+        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'xl:h-screen xl:overflow-hidden',
+      )}
+    >
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">
             <Trans>Clients</Trans>
             {/* 2026-05-23: count chip next to the title gives a one-glance
-                "how many clients does this firm manage?" signal. Reads the
-                full unfiltered list (not the filtered subset) so it stays
-                stable as the user toggles action-strip chips. */}
+                "how many clients does this firm manage?" signal.
+                2026-05-26 (Yuqi /clients directory pivot brief): chip
+                copy drops the word "Client(s)" — the title already
+                says "Clients", a chip saying "47 Clients" reads as
+                repetitive. Matches the canonical title-chip pattern
+                (page-family-canonical §3) where the chip carries a
+                qualifier number only ("47") or noun+number when the
+                noun differs from the title (e.g. "17 open" on
+                /deadlines). */}
             <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
-              <Plural value={clients.length} one="# Client" other="# Clients" />
+              {clients.length}
             </span>
           </span>
         }
@@ -379,6 +402,8 @@ export function ClientsRoute() {
         factsModel={factsModel}
         entityLabels={entityLabels}
         isLoading={clientWorkspaceLoading}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}

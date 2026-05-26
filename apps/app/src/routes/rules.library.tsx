@@ -620,14 +620,17 @@ export function RulesLibraryRoute() {
     [filteredRules, coverageRows],
   )
   // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
-  // `sourceCounts`, `totalActive`, `totalPendingReview`, `totalGaps`
-  // are no longer surfaced via the retired StatsBar scoreboard.
-  // The total rule count drives the page-header chip; the rest is
-  // available in the per-row + per-entity-chip cues that already
-  // existed. Keeping `statsLoading` and `totalRules` for the header
-  // chip + StatsBar loading state.
+  // `sourceCounts` + `totalGaps` retired with the 3-tile scoreboard.
+  // Total rule count drives the page-header chip; per-entity gap
+  // count surfaces on each chip in EntityChipRow.
+  // 2026-05-26 (Yuqi feedback — "把进度条放回来"): restored
+  // `totalActive` + `totalPendingReview` because the top-of-page
+  // progress bar (active filled vs needs-review trailing) is back
+  // in StatsBar. Same two values the third-pass implementation used.
   const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
   const totalRules = rules.length
+  const totalActive = rules.filter((r) => r.status === 'active' || r.status === 'verified').length
+  const totalPendingReview = groups.reduce((acc, g) => acc + g.pendingReviewCount, 0)
   // Per-entity statistics — for each entity type:
   //   - `count`       total rules applicable to it across the catalog
   //   - `gapCount`    applicable jurisdictions with NO rule for this entity
@@ -1018,6 +1021,8 @@ export function RulesLibraryRoute() {
       <div className="flex flex-col gap-4">
         <StatsBar
           loading={statsLoading}
+          totalActive={totalActive}
+          totalPendingReview={totalPendingReview}
           entityStats={entityStats}
           activeEntity={activeEntity}
           onSelectEntity={(entity) => void setEntityFilter(entity)}
@@ -1117,20 +1122,19 @@ export function RulesLibraryRoute() {
 // ---------------------------------------------------------------------------
 
 // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
-// StatsBar now ONLY hosts the search input + entity-filter chip
-// row. The progress bar, 3-tile scoreboard, and "Missing/Watched
-// /Sources" tiles were retired:
-//   • Total rules → page-header title chip ("N rules").
-//   • Pending review count → "Start review" header CTA already
-//     carries it.
-//   • Watched (sources) → dedicated header action button.
-//   • Missing / gaps → surfaced inline in the EntityChipRow's
-//     per-chip gap-count badge (already there), so the dataset's
-//     coverage health is still visible without a separate tile.
-// Result: no scoreboard above the table. Same shape as
-// /deadlines + /alerts.
+// Retired the 3-tile scoreboard (Total / Missing / Watched). Total
+// → page-header chip, Watched → header Sources action, Missing →
+// per-entity-chip gap badge.
+// 2026-05-26 (Yuqi feedback — "把进度条放回来"): restored the
+// completion-meter progress bar at the top. Same shape the
+// third-pass shipped: active-LEFT (success-green, work done) and
+// needs-review-RIGHT (warning-amber, work pending). Reads as a
+// completion meter, not a backlog meter — direction matches the
+// canonical progress-fills-as-you-complete-work convention.
 function StatsBar({
   loading,
+  totalActive,
+  totalPendingReview,
   entityStats,
   activeEntity,
   onSelectEntity,
@@ -1139,6 +1143,8 @@ function StatsBar({
   onSearchChange,
 }: {
   loading: boolean
+  totalActive: number
+  totalPendingReview: number
   entityStats: Array<{ entity: EntityKey; count: number; gapCount: number; reviewCount: number }>
   activeEntity: EntityKey | null
   onSelectEntity: (entity: EntityKey) => void
@@ -1149,6 +1155,7 @@ function StatsBar({
   if (loading) {
     return (
       <div className="flex flex-col gap-4" aria-busy="true">
+        <RuleReviewProgressBar loading />
         <SearchBar search={search} onChange={onSearchChange} />
         <EntityChipRowSkeleton />
       </div>
@@ -1156,6 +1163,7 @@ function StatsBar({
   }
   return (
     <div className="flex flex-col gap-4" aria-busy="false">
+      <RuleReviewProgressBar totalActive={totalActive} totalPendingReview={totalPendingReview} />
       <SearchBar search={search} onChange={onSearchChange} />
       <EntityChipRow
         entityStats={entityStats}
@@ -1163,6 +1171,64 @@ function StatsBar({
         onSelect={onSelectEntity}
         onClear={onClearEntity}
       />
+    </div>
+  )
+}
+
+// 2026-05-26 (Yuqi feedback — "把进度条放回来"): split out as its
+// own component so the StatsBar body reads as 3 sibling rows
+// (progress / search / chips) instead of an inline progress block
+// stacked above the rest. Same visual contract as the third-pass
+// version: h-7 rounded-md two-tone segment, success-green LEFT
+// (active count), warning-amber RIGHT (needs-review count). Each
+// segment hides its label below ~18 % width and falls back to the
+// raw count; the full label lives in the title tooltip on hover.
+function RuleReviewProgressBar(
+  props:
+    | { loading: true; totalActive?: never; totalPendingReview?: never }
+    | { loading?: false; totalActive: number; totalPendingReview: number },
+) {
+  if (props.loading) {
+    return (
+      <div className="h-7 w-full animate-pulse rounded-md border border-divider-subtle bg-background-subtle" />
+    )
+  }
+  const totalReviewed = props.totalActive + props.totalPendingReview
+  const activePct = totalReviewed > 0 ? (props.totalActive / totalReviewed) * 100 : 0
+  const ACTIVE_LABEL_FITS = activePct >= 18
+  const REVIEW_LABEL_FITS = 100 - activePct >= 18
+  return (
+    <div
+      className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
+      role="img"
+      aria-label={`${props.totalActive} active out of ${totalReviewed} reviewed`}
+      title={`${props.totalActive} active · ${props.totalPendingReview} need review`}
+    >
+      <div
+        className="flex items-center overflow-hidden bg-state-success-hover px-2 transition-[width] duration-300"
+        style={{ width: `${activePct}%` }}
+      >
+        {ACTIVE_LABEL_FITS ? (
+          <span className="truncate text-xs font-medium tabular-nums text-text-success">
+            <Trans>{props.totalActive} active</Trans>
+          </span>
+        ) : activePct > 0 ? (
+          <span className="truncate text-xs font-medium tabular-nums text-text-success">
+            {props.totalActive}
+          </span>
+        ) : null}
+      </div>
+      <div className="flex flex-1 items-center justify-end overflow-hidden bg-state-warning-hover px-2">
+        {REVIEW_LABEL_FITS ? (
+          <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+            <Trans>{props.totalPendingReview} need review</Trans>
+          </span>
+        ) : props.totalPendingReview > 0 ? (
+          <span className="truncate text-xs font-medium tabular-nums text-text-warning">
+            {props.totalPendingReview}
+          </span>
+        ) : null}
+      </div>
     </div>
   )
 }

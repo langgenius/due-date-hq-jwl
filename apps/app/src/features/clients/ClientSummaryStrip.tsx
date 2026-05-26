@@ -77,16 +77,29 @@ function TileShell({
     tone === 'neutral' && 'text-text-primary',
     tone === 'muted' && 'text-text-tertiary',
   )
+  // 2026-05-26 (Yuqi feedback #3 — "卡片样式看看别的地方有没有
+  // 在用，可以拿过来的"): TileShell aligned to the canonical
+  // inset-surface card chrome used app-wide (see
+  // `inset-surface-design-system.md` §card-chrome):
+  //   - `bg-background-default` (white) instead of off-white arbitrary
+  //   - `border border-divider-subtle` (the canonical card border)
+  //   - `rounded-md` (6px) instead of `rounded-xl` (12px)
+  // Earlier `rounded-xl` + raw-hex bg was a Figma-replica one-off; the
+  // inset-surface system shipped after and made `rounded-md` +
+  // `bg-default` + `border-divider-subtle` the family-wide card.
   const baseClass =
-    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-xl bg-[var(--color-util-colors-gray-25)] transition-colors hover:bg-background-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
+    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-subtle bg-background-default transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
   // Inner content shared by all three variants. Renders label → value
   // → optional subline so each tile reads top-down (eyebrow → value
   // → context phrase) with two stacked padding zones matching the
   // Figma's split frames.
+  // 2026-05-26 (Yuqi feedback #3): label retired uppercase kicker +
+  // raw-rgba opacity for canonical sm-medium text-text-tertiary, in
+  // line with page-family-canonical §9 (no uppercase kicker eyebrows).
   const body = (
     <>
-      <span className="px-3 pt-3 pb-1 text-xs leading-4 uppercase text-[rgba(16,24,40,0.3)]">
+      <span className="px-3 pt-3 pb-1 text-xs font-medium leading-4 text-text-tertiary">
         {label}
       </span>
       <span className="flex flex-col gap-0.5 px-3 pb-3 pt-1">

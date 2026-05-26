@@ -69,10 +69,10 @@ extra borders around the content area.
 
 ### Two variants
 
-| Variant       | Use when                                                                  | Differences                                                                          |
-| ------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Regular       | /today, /alerts, /clients, /rules/library, /opportunities                 | `gap-6`, `pb-4/6`. Content can grow past viewport.                                   |
-| Sticky-footer | /deadlines (and any page where the data card pins to the viewport bottom) | `gap-4`, `pb-0`, `xl:h-screen xl:overflow-hidden`. Inner card uses `flex-1 min-h-0`. |
+| Variant       | Use when                                                                            | Differences                                                                          |
+| ------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Regular       | /today, /alerts, /rules/library, /opportunities                                     | `gap-6`, `pb-4/6`. Content can grow past viewport.                                   |
+| Sticky-footer | /deadlines, /clients (and any page where the data card pins to the viewport bottom) | `gap-4`, `pb-0`, `xl:h-screen xl:overflow-hidden`. Inner card uses `flex-1 min-h-0`. |
 
 Pick exactly one; do not mix.
 

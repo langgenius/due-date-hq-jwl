@@ -6,6 +6,7 @@ import { Link, Navigate, useLocation, useParams } from 'react-router'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
@@ -67,9 +68,20 @@ export function ClientDetailRoute() {
   }
 
   return (
-    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
-    // for cross-route h1 baseline consistency.
-    <div className="flex flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+    // 2026-05-26 (Yuqi feedback #11-#14 — "scrolling mechanism should
+    // follow Deadline expanded"): outer container moves to the
+    // canonical sticky-footer variant (matches /deadlines + /clients
+    // list). At xl+ the page IS the viewport — `h-screen
+    // overflow-hidden` — so the workspace can host its own scroll
+    // container internally. Below xl, the page falls back to natural
+    // content-driven scrolling (the workspace stays usable on mobile
+    // / tablet without locked viewport math).
+    <div
+      className={cn(
+        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'xl:h-screen xl:overflow-hidden',
+      )}
+    >
       {isLoading ? (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-8 w-64" />

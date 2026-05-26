@@ -1,4 +1,12 @@
-import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router'
 import { parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -37,10 +45,12 @@ import {
   PlusIcon,
   RefreshCwIcon,
   ScrollTextIcon,
+  SearchIcon,
   SettingsIcon,
   SparklesIcon,
   UserRoundIcon,
   UsersRoundIcon,
+  XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -65,7 +75,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
-import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -108,7 +118,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
-import { formatCents, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
+import { formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { initialsFromName } from '@/lib/auth'
@@ -135,6 +145,7 @@ import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 // rules-console-primitives for any rules-console caller that wants
 // them.
 
+import { ClientCycleArrows } from './ClientCycleArrows'
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { useClientDrawer } from './ClientDrawerProvider'
@@ -185,6 +196,12 @@ type ClientFactsWorkspaceProps = {
   // import — route imports workspace).
   entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
+  // 2026-05-26 (Yuqi /clients directory pivot brief): search wiring.
+  // `searchQuery` is the current URL-backed `q` value; the workspace
+  // surfaces it via the toolbar's search input. `onSearchChange` writes
+  // back to the URL on every keystroke (the route debounces if needed).
+  searchQuery: string
+  onSearchChange: (value: string) => void
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]
@@ -207,6 +224,47 @@ type ClientFactsWorkspaceProps = {
 
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
+
+// 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): /clients adopts
+// the /deadlines responsive page-size pattern so the table fills the
+// visible viewport instead of paginating at a fixed 25 regardless of
+// monitor height. Constants mirror obligations.tsx so both surfaces
+// share the same row-fit math.
+const CLIENTS_ROW_HEIGHT_PX = 49 // h-12 + 1px border, mirrors /deadlines
+const CLIENTS_PAGE_SIZE_MIN = 8
+const CLIENTS_PAGE_SIZE_MAX = 50
+// Inside-card chrome subtracted from the table-card's clientHeight:
+//   TableHeader (≈40) + Pagination footer (≈44) + 1px borders + buffer
+const CLIENTS_INSIDE_CHROME_PX = 96
+
+function computeClientsResponsivePageSize(containerHeight: number): number {
+  const usable = Math.max(0, containerHeight - CLIENTS_INSIDE_CHROME_PX)
+  const fit = Math.floor(usable / CLIENTS_ROW_HEIGHT_PX)
+  return Math.max(
+    CLIENTS_PAGE_SIZE_MIN,
+    Math.min(CLIENTS_PAGE_SIZE_MAX, fit || CLIENTS_PAGE_SIZE_MIN),
+  )
+}
+
+// Callback-ref shape so observation kicks in when the table-card
+// mounts (even if it mounts AFTER the initial render — e.g. inside
+// a loading/success ternary).
+function useClientsResponsivePageSize(): [number, (element: HTMLElement | null) => void] {
+  const [pageSize, setPageSize] = useState<number>(CLIENTS_PAGE_SIZE_MIN)
+  const [element, setElement] = useState<HTMLElement | null>(null)
+  useEffect(() => {
+    if (typeof window === 'undefined') return () => {}
+    if (!element) return () => {}
+    const measure = (): void => {
+      setPageSize(computeClientsResponsivePageSize(element.clientHeight))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [element])
+  return [pageSize, setElement]
+}
 
 /**
  * `TabSection` — canonical section primitive for the client detail
@@ -597,7 +655,12 @@ function ColumnSortHeader({
       title={`Sort by ${label}`}
       data-active={sortState !== false ? true : undefined}
       className={cn(
-        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-md px-1 text-xs font-medium tracking-wider whitespace-nowrap text-text-tertiary uppercase outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
+        // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
+        // uppercase + tracking-wider kicker style; family canonical
+        // (page-family-canonical §6) specifies sortable headers use
+        // sm + normal-case + text-secondary so they read as labels,
+        // not eyebrows. Matches /deadlines + /alerts table headers.
+        '-mx-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded-md px-1 text-sm font-medium whitespace-nowrap text-text-secondary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[active=true]:text-text-primary',
         align === 'right' && 'justify-end',
       )}
     >
@@ -639,6 +702,8 @@ export function ClientFactsWorkspace({
   factsModel,
   entityLabels,
   isLoading,
+  searchQuery,
+  onSearchChange,
   clientFilter,
   stateFilter,
   ownerFilter,
@@ -650,7 +715,11 @@ export function ClientFactsWorkspace({
   onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
-  onPulseFilterChange,
+  // 2026-05-26 (Yuqi /clients directory pivot brief): retired
+  // `onPulseFilterChange` consumer (was driving the Pulse hits
+  // StatTile click). Prop still typed for caller stability; will
+  // be removed end-to-end in a follow-up cleanup pass when the
+  // route's `handlePulseFilterChange` retires too.
   onImport,
   canImport,
 }: ClientFactsWorkspaceProps) {
@@ -957,6 +1026,11 @@ export function ClientFactsWorkspace({
           cellClassName: 'w-[200px]',
         },
       },
+      // 2026-05-26 (Yuqi follow-up — "bring back services"): the
+      // brief had retired this column; Yuqi reversed that call.
+      // Column restored to its prior shape — hidden by default
+      // (via columnVisibility below), accessible via the column-
+      // toggle UI for the CPA who actively reviews scope-of-work.
       {
         id: 'servicesCount',
         header: () => <span className="block text-right">{t`Services`}</span>,
@@ -1035,10 +1109,18 @@ export function ClientFactsWorkspace({
         // (we don't have a routed view for closed obligations yet; the
         // client detail's Activity tab is the right destination when
         // we add that link).
+        // 2026-05-26 (Yuqi /clients directory pivot brief): renamed
+        // `Done` → `Filed YTD`. "Done" was ambiguous (filed?
+        // completed? all closed states?); "Filed YTD" rescopes the
+        // column to the YTD-filed slice the CPA actually wants to
+        // see at a glance. Cell rendering + sortingFn unchanged —
+        // the underlying `doneCount` already represents filed +
+        // closed-out terminal-state obligations, which is what
+        // "filed YTD" means in practice.
         id: 'doneObligations',
         header: ({ column }) => (
           <ColumnSortHeader
-            label={t`Done`}
+            label={t`Filed YTD`}
             sortState={column.getIsSorted()}
             onToggle={() => column.toggleSorting()}
             align="right"
@@ -1058,7 +1140,7 @@ export function ClientFactsWorkspace({
           return (
             <span
               className="block text-right tabular-nums text-text-secondary"
-              title={t`${count} filed or closed-out deadlines for this client`}
+              title={t`${count} deadlines filed or closed-out this year`}
             >
               {count}
             </span>
@@ -1072,7 +1154,11 @@ export function ClientFactsWorkspace({
       {
         accessorKey: 'assigneeName',
         header: () => (
-          <span className="text-xs font-medium tracking-wider uppercase text-text-tertiary">
+          // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
+          // the uppercase kicker on this header cell; canonical table
+          // headers are sm-medium normal-case (page-family-canonical
+          // §6). Now matches the sibling ColumnSortHeader treatment.
+          <span className="text-sm font-medium text-text-secondary">
             <Trans>Owner</Trans>
           </span>
         ),
@@ -1119,26 +1205,14 @@ export function ClientFactsWorkspace({
     ],
   )
 
-  // Action-strip chip filters — local to this surface so they're not
-  // entangled with the URL state. Click "8 at risk" / "1 waiting on
-  // client" to narrow the table; click again to clear. The chips
-  // render with `active` state so the CPA sees which filter is on.
-  // Pulse hits + missing facts still route through the URL-backed
-  // parent filters (onPulseFilterChange / onReadinessFilterChange) so
-  // deep links continue to work for those.
-  const [atRiskActive, setAtRiskActive] = useState(false)
-  const [waitingActive, setWaitingActive] = useState(false)
-
-  const visibleClients = useMemo(() => {
-    if (!atRiskActive && !waitingActive) return filteredClients
-    return filteredClients.filter((client) => {
-      const summary = obligationSummariesByClient.get(client.id)
-      if (!summary) return false
-      if (atRiskActive && summary.overdueCount === 0) return false
-      if (waitingActive && summary.waitingOnClientCount === 0) return false
-      return true
-    })
-  }, [filteredClients, atRiskActive, waitingActive, obligationSummariesByClient])
+  // 2026-05-26 (Yuqi /clients directory pivot brief): the local
+  // `atRiskActive`/`waitingActive` state + the `visibleClients`
+  // narrowing memo were driven by the StatTile strip toggle. The
+  // strip retired (triage signals belong on /today + /deadlines);
+  // the local narrowing it powered also retires. The table now
+  // consumes `filteredClients` directly — URL-backed filters
+  // (states / entity / owner / search) are the only narrowing
+  // controls on /clients.
 
   // 2026-05-23: column sort state for the new sort-arrow indicators
   // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / DONE). Default sort
@@ -1146,8 +1220,14 @@ export function ClientFactsWorkspace({
   // a header opts in. Stored locally because sort feels transient (a
   // "show me by ___" gesture) rather than something to deep-link.
   const [sorting, setSorting] = useState<SortingState>([])
+  // 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): responsive
+  // page-size — the table-card observes its own clientHeight via
+  // ResizeObserver, then `table.setPageSize` consumes the result on
+  // every change so the page-count UI stays accurate as the viewport
+  // changes. Mirrors the /deadlines hook + setter pair.
+  const [responsivePageSize, setTableCardElement] = useClientsResponsivePageSize()
   const table = useReactTable({
-    data: visibleClients,
+    data: filteredClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -1164,19 +1244,37 @@ export function ClientFactsWorkspace({
     // wasted columns that otherwise train the eye to scan past data.
     initialState: {
       columnVisibility: {
+        // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.`
+        // demoted to hidden-by-default. The directory's primary job
+        // is find-and-open; an opportunity count earns its visual
+        // weight only when surfaced via the column-toggle UI for
+        // the rare CPA who actively triages opportunities here.
+        opportunities: false,
+        // `servicesCount` stays hidden by default per its prior
+        // behavior — the cell renders "—" for typical firms that
+        // haven't fully populated filing profiles, but the column
+        // is restored (Yuqi follow-up — "bring back services") so
+        // it's available via the column-toggle UI for any CPA who
+        // tracks scope-of-work here.
         servicesCount: false,
       },
       pagination: {
-        // 25-row pages — covers single-page rendering for most small/
-        // mid firms (the typical seeded demo has ~10 clients) while
-        // keeping the buffer reasonable for firms with 200+ clients.
-        // The pagination footer only renders when total > 25 so small
-        // firms don't see empty controls.
+        // 2026-05-26: pageSize seeded from the responsive-page-size
+        // hook's floor (CLIENTS_PAGE_SIZE_MIN). The hook overrides on
+        // mount via useEffect below once the table-card measures its
+        // own clientHeight.
         pageIndex: 0,
-        pageSize: 25,
+        pageSize: CLIENTS_PAGE_SIZE_MIN,
       },
     },
   })
+  // Sync the responsive measurement into the table's pagination
+  // state. table.setPageSize is the official React-Table API for
+  // this; doing it from an effect keeps the table source-of-truth
+  // for state while letting the hook own measurement.
+  useEffect(() => {
+    table.setPageSize(responsivePageSize)
+  }, [responsivePageSize, table])
   const handleOpenClientDetail = useCallback(
     (clientId: string) => {
       // 2026-05-24 (useEffect audit): persist the currently-visible
@@ -1211,14 +1309,7 @@ export function ClientFactsWorkspace({
       <ClientsActionStrip
         isLoading={isLoading}
         needsFactsCount={factsModel.summary.needsFacts}
-        obligationSummariesByClient={obligationSummariesByClient}
-        pulseHitCount={pulseMatchesByClient.size}
-        atRiskActive={atRiskActive}
-        waitingActive={waitingActive}
         onFixNeedsFacts={() => setFixNeedsFactsOpen(true)}
-        onToggleAtRisk={() => setAtRiskActive((prev) => !prev)}
-        onToggleWaiting={() => setWaitingActive((prev) => !prev)}
-        onOpenPulseHits={() => onPulseFilterChange(['affected'])}
       />
 
       <FixNeedsFactsSheet
@@ -1237,6 +1328,8 @@ export function ClientFactsWorkspace({
           only the sort arrow. A Reset button on the right clears
           every filter at once. */}
       <ClientsFilterToolbar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
         clientOptions={clientOptions}
         clientFilter={clientFilter}
         onClientFilterChange={onClientFilterChange}
@@ -1251,74 +1344,18 @@ export function ClientFactsWorkspace({
         onOwnerFilterChange={onOwnerFilterChange}
       />
 
-      {/* Frameless table — Card / CardHeader / CardContent + inner
-          rounded border removed per the 2026-05-21 design pass. The
-          data sits directly on the page background, matching the
-          Obligations queue and Rule library treatments. */}
-      {isLoading ? (
-        <ClientTableSkeleton />
-      ) : clients.length > 0 ? (
-        <Table className="table-fixed">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={header.column.columnDef.meta?.headerClassName}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          {/* 2026-05-25 (GitHub-density pass): row padding py-3 → py-2.
-              /clients is a long list — saves ~8px per row, ~136px
-              per viewport at 17 rows. Multi-line names still get
-              room via the table's line-height; cells visibly tighter
-              without losing legibility. */}
-          <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
-            {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={t`Open client detail for ${row.original.name}`}
-                  className="group cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
-                  onClick={(event) => {
-                    // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
-                    // the read-only drawer for a quick glance without
-                    // leaving the list — power-user shortcut that
-                    // mirrors browsers' "open in new tab" muscle
-                    // memory. Plain click commits to the full page.
-                    if (event.metaKey || event.ctrlKey) {
-                      event.preventDefault()
-                      openClientDrawer(row.original.id)
-                      return
-                    }
-                    handleOpenClientDetail(row.original.id)
-                  }}
-                  onKeyDown={(event) =>
-                    handleClientRowKeyDown(event, row.original.id, handleOpenClientDetail)
-                  }
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={cell.column.columnDef.meta?.cellClassName}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <ClientTableEmptyRow colSpan={table.getAllLeafColumns().length} />
-            )}
-          </TableBody>
-        </Table>
-      ) : (
+      {/* 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): table
+          re-framed in the canonical bordered card with `flex-1
+          min-h-0` rows-area + pinned pagination footer. Mirrors
+          /deadlines so /clients renders identically. Outer container
+          in routes/clients.tsx is height-constrained at xl so this
+          flex-1 has somewhere to grow into.
+
+          On small viewports / when there are zero clients, the empty
+          state replaces the card-frame entirely so the dashed
+          ClientTableEmptyRow doesn't sit inside a doubly-bordered
+          shell. */}
+      {clients.length === 0 && !isLoading ? (
         <EmptyState
           icon={UsersRoundIcon}
           title={<Trans>No clients yet</Trans>}
@@ -1329,50 +1366,128 @@ export function ClientFactsWorkspace({
             </Button>
           }
         />
-      )}
-
-      {/* Pagination footer — renders only when the filtered client
-          set spans more than one page so small firms / empty filters
-          don't see vestigial controls. Same shape + icons as the
-          Obligations queue footer (sticky bottom-of-table block).
-          Page count uses `getFilteredRowModel`/`getRowCount` semantics
-          via `table.getPageCount()`. */}
-      {table.getPageCount() > 1 ? (
-        <div className="flex items-center justify-between border-t border-divider-subtle pt-3 text-xs text-text-tertiary">
-          <span>
-            <Plural
-              value={table.getFilteredRowModel().rows.length}
-              one="# client"
-              other="# clients"
-            />
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t`Previous page`}
-              disabled={!table.getCanPreviousPage()}
-              onClick={() => table.previousPage()}
-            >
-              <ChevronLeftIcon className="size-4" aria-hidden />
-            </Button>
-            <span className="px-2 tabular-nums">
-              <Trans>
-                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-              </Trans>
-            </span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t`Next page`}
-              disabled={!table.getCanNextPage()}
-              onClick={() => table.nextPage()}
-            >
-              <ChevronRightIcon className="size-4" aria-hidden />
-            </Button>
+      ) : (
+        <div
+          ref={setTableCardElement}
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle"
+        >
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background-default">
+            {isLoading ? (
+              <ClientTableSkeleton />
+            ) : (
+              <Table className="table-fixed rounded-none border-0">
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className={header.column.columnDef.meta?.headerClassName}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                {/* 2026-05-25 (GitHub-density pass): row padding py-3 → py-2.
+                    /clients is a long list — saves ~8px per row, ~136px
+                    per viewport at 17 rows. Multi-line names still get
+                    room via the table's line-height; cells visibly tighter
+                    without losing legibility. */}
+                <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+                  {table.getRowModel().rows.length > 0 ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t`Open client detail for ${row.original.name}`}
+                        className="group h-12 cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        onClick={(event) => {
+                          // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
+                          // the read-only drawer for a quick glance without
+                          // leaving the list — power-user shortcut that
+                          // mirrors browsers' "open in new tab" muscle
+                          // memory. Plain click commits to the full page.
+                          if (event.metaKey || event.ctrlKey) {
+                            event.preventDefault()
+                            openClientDrawer(row.original.id)
+                            return
+                          }
+                          handleOpenClientDetail(row.original.id)
+                        }}
+                        onKeyDown={(event) =>
+                          handleClientRowKeyDown(event, row.original.id, handleOpenClientDetail)
+                        }
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell
+                            key={cell.id}
+                            className={cell.column.columnDef.meta?.cellClassName}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <ClientTableEmptyRow colSpan={table.getAllLeafColumns().length} />
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
+          {/* Pagination footer inside the card frame, separated by a
+              top border. Always rendered when there's >1 page; the
+              flex-shrink-0 keeps it pinned at the bottom of the card
+              while the rows-area scrolls.
+              2026-05-26 (Yuqi feedback — "polish everything in
+              table-container"): aligned padding to canonical (§6
+              `--space-pagination-y` = py-6, `--space-cell-x` = px-2)
+              so /clients matches /deadlines exactly. Was `px-3 py-2`
+              (slim toolbar feel); now `px-2 py-6` (deliberate card
+              footer with breathing room). */}
+          {table.getPageCount() > 1 ? (
+            <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
+              <span>
+                <Plural
+                  value={table.getFilteredRowModel().rows.length}
+                  one="# client"
+                  other="# clients"
+                />
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t`Previous page`}
+                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => table.previousPage()}
+                >
+                  <ChevronLeftIcon className="size-4" aria-hidden />
+                </Button>
+                <span className="px-2 tabular-nums">
+                  <Trans>
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                  </Trans>
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t`Next page`}
+                  disabled={!table.getCanNextPage()}
+                  onClick={() => table.nextPage()}
+                >
+                  <ChevronRightIcon className="size-4" aria-hidden />
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      )}
     </>
   )
 }
@@ -1397,6 +1512,8 @@ function handleClientRowKeyDown(
  * clears every filter at once.
  */
 function ClientsFilterToolbar({
+  searchQuery,
+  onSearchChange,
   clientOptions,
   clientFilter,
   onClientFilterChange,
@@ -1410,6 +1527,8 @@ function ClientsFilterToolbar({
   ownerFilter,
   onOwnerFilterChange,
 }: {
+  searchQuery: string
+  onSearchChange: (next: string) => void
   clientOptions: TableFilterOption[]
   clientFilter: readonly string[]
   onClientFilterChange: (next: string[]) => void
@@ -1425,12 +1544,77 @@ function ClientsFilterToolbar({
 }) {
   const { t } = useLingui()
   const filtersActive =
+    searchQuery.length > 0 ||
     clientFilter.length > 0 ||
     stateFilter.length > 0 ||
     entityFilter.length > 0 ||
     ownerFilter.length > 0
+
+  // 2026-05-26 (Yuqi /clients directory pivot brief): `/` keypress
+  // anywhere on the page focuses the search input. Skipped when the
+  // user is already typing in another input/textarea/contentEditable
+  // so the slash key still works as a literal character there.
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+  useEffect(() => {
+    function handleKey(event: globalThis.KeyboardEvent) {
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
+      const target = event.target
+      if (target instanceof HTMLElement) {
+        const tagName = target.tagName.toLowerCase()
+        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) return
+      }
+      event.preventDefault()
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* 2026-05-26 (Yuqi /clients directory pivot brief): inline
+          search input at the start of the toolbar. Visual lead for
+          the directory's primary action (find a client by name).
+          Magnifying-glass icon left, clear (X) right when there's
+          text. `/` hotkey wires above; URL `?q=` keeps the search
+          shareable. */}
+      <div className="relative w-[280px]">
+        <SearchIcon
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary"
+        />
+        <Input
+          ref={searchInputRef}
+          type="search"
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              onSearchChange('')
+              searchInputRef.current?.blur()
+            }
+          }}
+          placeholder={t`Search by name or EIN`}
+          aria-label={t`Search clients`}
+          className="h-8 pr-8 pl-8 text-sm"
+        />
+        {searchQuery.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => {
+              onSearchChange('')
+              searchInputRef.current?.focus()
+            }}
+            aria-label={t`Clear search`}
+            title={t`Clear search`}
+            className="absolute top-1/2 right-2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-3.5" aria-hidden />
+          </button>
+        ) : null}
+      </div>
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`Client`}
@@ -1474,6 +1658,10 @@ function ClientsFilterToolbar({
         size="sm"
         disabled={!filtersActive}
         onClick={() => {
+          // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
+          // clears search alongside the structural filters so the
+          // CPA returns to the full directory in one click.
+          onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
           onEntityFilterChange([])
@@ -1515,204 +1703,51 @@ function ClientsFilterToolbar({
 function ClientsActionStrip({
   isLoading,
   needsFactsCount,
-  obligationSummariesByClient,
-  pulseHitCount,
-  atRiskActive,
-  waitingActive,
   onFixNeedsFacts,
-  onToggleAtRisk,
-  onToggleWaiting,
-  onOpenPulseHits,
 }: {
   isLoading: boolean
   needsFactsCount: number
-  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
-  pulseHitCount: number
-  atRiskActive: boolean
-  waitingActive: boolean
   onFixNeedsFacts: () => void
-  onToggleAtRisk: () => void
-  onToggleWaiting: () => void
-  onOpenPulseHits: () => void
 }) {
-  const { t } = useLingui()
-  const { atRiskCount, waitingOnClientCount } = useMemo(() => {
-    let atRisk = 0
-    let waiting = 0
-    for (const summary of obligationSummariesByClient.values()) {
-      if (summary.overdueCount > 0) atRisk += 1
-      if (summary.waitingOnClientCount > 0) waiting += 1
-    }
-    return { atRiskCount: atRisk, waitingOnClientCount: waiting }
-  }, [obligationSummariesByClient])
-
-  // 2026-05-25 (Yuqi /clients #9): retired the SurfaceSummaryStrip
-  // (4 dot-separated counts in one line) in favor of three card
-  // tiles matching the rule library's StatTile pattern. Each tile is
-  // a discrete surface; the eye finds them as distinct items rather
-  // than as run-on prose. Missing-facts moves entirely into the
-  // banner above (it was duplicated in both the strip and the
-  // banner) — banner now carries that single CTA cleanly.
+  // 2026-05-26 (Yuqi /clients directory pivot brief): the 3-tile
+  // StatTile strip (At risk / Waiting on client / Pulse hits) is
+  // retired. /clients is now a directory-first surface; the
+  // triage signals belong on /today and /deadlines where
+  // dollar-exposure context is also present. The needs-facts
+  // banner stays — it's actionable setup work specific to the
+  // directory itself, not a triage tile.
   const hasBanner = needsFactsCount > 0
-  const hasAnyMetric =
-    atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0 || needsFactsCount > 0
   if (isLoading) return <ClientsActionStripSkeleton />
-  if (!hasBanner && !hasAnyMetric && !isLoading) return null
+  if (!hasBanner) return null
 
   return (
-    // 2026-05-25 (Yuqi /clients #4): wrapper gap-3 → gap-2 so the
-    // strip below the banner sits 8px below instead of 12px. The
-    // banner + cards now read as one related cluster, not two
-    // separate sections.
-    <div className="flex flex-col gap-2">
-      {hasBanner ? (
-        // 2026-05-25 (Yuqi /clients fifth pass #1, #2): banner
-        // cleaned up. Dropped the 3px amber left rail (#2 — Yuqi
-        // explicitly: "remove the left stroke") AND the heavier
-        // shadow ring. Banner now sits at the standard
-        // `variant="warning"` weight — the amber bg alone is
-        // already a real callout against a white page. Drop the
-        // dotted underline + font-medium prose styling on the
-        // message so the banner reads as one cohesive amber
-        // block, not an underlined-link in a tinted box. Fix-now
-        // button switches to `variant="destructive"` (#1 — Yuqi
-        // "Fix now can be in red") — semantically appropriate
-        // since missing facts means the rule library is silently
-        // skipping these clients, which IS a destructive
-        // outcome until the CPA fixes it.
-        <Alert
-          variant="warning"
-          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex items-start gap-2">
-            <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
-            <AlertDescription className="text-text-primary">
-              <Plural
-                value={needsFactsCount}
-                one="# client is missing state or entity type — the rule library is skipping it."
-                other="# clients are missing state or entity type — the rule library is skipping them."
-              />
-            </AlertDescription>
-          </div>
-          <Button type="button" size="sm" variant="destructive" onClick={onFixNeedsFacts}>
-            <Trans>Fix now</Trans>
-          </Button>
-        </Alert>
-      ) : null}
-      {/* 2026-05-25 (Yuqi /clients fifth pass #3): tile sublabels
-          dropped to match the rule library StatTile exactly —
-          rule library only shows label + value (sublabel reserved
-          for the Watched-tile paused count). The /clients tiles
-          were carrying "overdue obligation" / "client owes docs"
-          / "client flagged by a Pulse alert" sublabels that
-          duplicated what the tile label already said and made
-          the tile rows visually heavier than the rule library
-          row. Now: label + value only. */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ClientsStatTile
-          label={t`At risk`}
-          value={atRiskCount}
-          tone="destructive"
-          active={atRiskActive}
-          {...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {})}
-        />
-        <ClientsStatTile
-          label={t`Waiting on client`}
-          value={waitingOnClientCount}
-          tone="warning"
-          active={waitingActive}
-          {...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {})}
-        />
-        <ClientsStatTile
-          label={t`Pulse hits`}
-          value={pulseHitCount}
-          tone="review"
-          {...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {})}
-        />
+    <Alert
+      variant="warning"
+      className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className="flex items-start gap-2">
+        <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
+        <AlertDescription className="text-text-primary">
+          <Plural
+            value={needsFactsCount}
+            one="# client is missing state or entity type — the rule library is skipping it."
+            other="# clients are missing state or entity type — the rule library is skipping them."
+          />
+        </AlertDescription>
       </div>
-    </div>
+      <Button type="button" size="sm" variant="destructive" onClick={onFixNeedsFacts}>
+        <Trans>Fix now</Trans>
+      </Button>
+    </Alert>
   )
 }
 
+// 2026-05-26 (Yuqi /clients directory pivot brief): skeleton scoped
+// to the needs-facts banner only. The 3-tile skeleton retired with
+// the StatTile strip. `ClientsStatTile` + `ClientsStatTileSkeleton`
+// also retired — they were only used by the strip.
 function ClientsActionStripSkeleton() {
-  return (
-    <div className="flex flex-col gap-2" aria-busy="true">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ClientsStatTileSkeleton />
-        <ClientsStatTileSkeleton />
-        <ClientsStatTileSkeleton />
-      </div>
-    </div>
-  )
-}
-
-// 2026-05-25 (Yuqi /clients #9): stat-tile primitive scoped to the
-// /clients action strip. Mirrors the rule library's StatTile shape
-// (uppercase caption label, big tabular number, optional subline)
-// but adds the `active` pressed-state visual that the strip's
-// filter chips relied on. Each tile can be inert, link, or button.
-function ClientsStatTile({
-  label,
-  value,
-  tone,
-  onClick,
-  active = false,
-}: {
-  label: string
-  value: number
-  tone: 'destructive' | 'warning' | 'review'
-  onClick?: () => void
-  active?: boolean
-}) {
-  const valueColor =
-    value === 0
-      ? 'text-text-muted'
-      : tone === 'destructive'
-        ? 'text-text-destructive'
-        : tone === 'warning'
-          ? 'text-text-warning'
-          : 'text-status-review'
-  const inner = (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-        {label}
-      </span>
-      <div className="flex items-baseline gap-2">
-        <span className={cn('text-xl font-semibold tabular-nums', valueColor)}>{value}</span>
-      </div>
-    </div>
-  )
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        aria-pressed={active || undefined}
-        className={cn(
-          'inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2 text-left transition-colors',
-          'hover:border-divider-regular hover:bg-state-base-hover',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          active && 'border-state-accent-solid bg-state-accent-hover hover:bg-state-accent-hover',
-        )}
-      >
-        {inner}
-      </button>
-    )
-  }
-  return (
-    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
-      {inner}
-    </div>
-  )
-}
-
-function ClientsStatTileSkeleton() {
-  return (
-    <div className="inline-flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2">
-      <Skeleton className="h-3 w-24" />
-      <Skeleton className="h-6 w-8" />
-    </div>
-  )
+  return <Skeleton className="h-10 w-full" aria-busy="true" />
 }
 
 function ClientTableSkeleton() {
@@ -2063,27 +2098,16 @@ export function ClientDetailWorkspace({
 
   return (
     <>
-      {/* 2026-05-23 (critique #9): the obligation panel splits the
-          ENTIRE page now, not just the body underneath the
-          PageHeader. Previously only the body section flexed
-          left/right when a filing-plan row was selected — the
-          PageHeader stayed full-width above and got visually
-          truncated by the panel's right rail.
-
-          New shape: a top-level xl:flex-row split. The left column
-          (`<div flex-1 min-w-0>`) holds BOTH the PageHeader and the
-          body. The aside panel becomes a true full-page right rail
-          when an obligation is open. PageHeader's own flex layout
-          (title left, actions right) keeps working inside the
-          narrower left column. */}
-      <div className="flex min-h-0 flex-col gap-6 xl:flex-row xl:items-start">
-        <div
-          className={cn(
-            'flex min-w-0 flex-1 flex-col gap-6',
-            // No extra width math needed — the aside below has fixed
-            // xl:w-[480px] + xl:shrink-0, so flex-1 fills the rest.
-          )}
-        >
+      {/* 2026-05-26 (Yuqi feedback #11-#14 — "page scrolling mechanism
+          should follow Deadline expanded"): outer container is now a
+          flex column on small viewports and a flex row at xl+. The
+          left column owns its OWN scroll container (PageHeader +
+          metadata pinned, tab body scrolls); the right panel slides
+          in motion-animated 0→600 when a filing row is clicked. The
+          page-level scroll on the document body is gone — only the
+          tab body scrolls. Mirrors /deadlines exactly. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PageHeader
             eyebrow={
               <Link
@@ -2101,78 +2125,37 @@ export function ClientDetailWorkspace({
                 <Trans>Clients</Trans>
               </Link>
             }
+            // 2026-05-26 (Yuqi feedback #1): ClientCycleArrows moves
+            // to the eyebrowAside slot so the prev/next group sits on
+            // the SAME row as the "< Clients" back-link, with space
+            // between. PageHeader already supports this slot
+            // (eyebrow + eyebrowAside on one row).
+            eyebrowAside={<ClientCycleArrows currentClientId={client.id} />}
             title={
-              // 2026-05-23: relaxed the inline-with-h1 breakpoint from
-              // xl (1280px) down to md (768px). At lg/xl viewports the
-              // chips fit comfortably next to the title — the wrap-to-
-              // a-second-row treatment shown in the prior commit was
-              // the wrong tradeoff for typical desktop widths, where
-              // the Figma keeps Trust + owner + state inline with the
-              // h1. Still stacks vertically on tablet/mobile where the
-              // chip set would otherwise collide with the title.
+              // 2026-05-26 (Yuqi macro→micro audit, Fix #3 + #11 / §2.2,
+              // §2.4): title cluster reduced to title + 1 readiness chip
+              // per canonical (page-family-canonical §3 — title + ≤1
+              // chip). Entity badge, owner pill, and filing-state chips
+              // moved DOWN to ClientContactMetaRow so the H1 line reads
+              // as identification, not a stat strip.
               <span className="flex flex-col items-start gap-y-2 md:flex-row md:flex-wrap md:items-center md:gap-x-3">
                 <ClientTitleSwitcher client={client} />
-                {/* Identity chips inline with the title (D-2). Entity badge
-                  + filing-state chips read the client's shape in one
-                  scan. The readiness chip is **conditional**: only
-                  renders when something needs the CPA's attention — no
-                  ghost slot when ready. Replaces the standalone
-                  identity strip that lived below the header. */}
-                <span className="inline-flex flex-wrap items-center gap-1.5 align-middle">
-                  {/* Entity badge uses the same `outline` style as
-                    every other place that surfaces entity type
-                    (ClientPeekHoverCard, ClientDetailDrawer,
-                    obligations queue, Create-client dialog). The
-                    `info` variant the H1 row was using was the only
-                    blue-tinted entity chip in the whole app — it
-                    drew attention as a signal, but entity type is
-                    a static identity fact, not a status. Quieted to
-                    match. */}
-                  <Badge variant="outline" className="text-xs">
-                    {entityLabels[client.entityType]}
+                {readiness?.status === 'needs_facts' ? (
+                  // 2026-05-26 (Fix #9 / §3.7): badge tone destructive
+                  // → warning. "Add filing state" is incomplete
+                  // configuration, not a destructive state; warning
+                  // matches the needs-facts banner tone and the
+                  // canonical color reservation (red is for late /
+                  // hard errors / blocked).
+                  <Badge
+                    variant="warning"
+                    className="cursor-pointer text-xs"
+                    render={<button type="button" onClick={openMissingFacts} />}
+                  >
+                    <SettingsIcon className="size-3" aria-hidden />
+                    <MissingFactsActionLabel readiness={readiness} />
                   </Badge>
-                  {/* Owner pill (2026-05-23). Inline chip showing who
-                      this client is assigned to — was previously only
-                      surfaced inside the Team tile in the summary
-                      strip. Pulling it into the H1 chip cluster keeps
-                      "whose client?" answerable in the same scan as
-                      the entity type and filing state, so the third
-                      summary tile can be repurposed for Open Filing.
-                      Unassigned state uses a person silhouette icon
-                      + the literal word; assigned state shows a tiny
-                      stable-hashed avatar + the name. */}
-                  <ClientOwnerHeaderPill
-                    assigneeId={client.assigneeId ?? null}
-                    name={client.assigneeName ?? null}
-                    currentUserName={currentUserName}
-                    assignableMembers={assignableMembers}
-                    disabled={bulkAssigneeMutation.isPending}
-                    onChange={changeOwner}
-                  />
-                  <ClientFilingStateChips client={client} />
-                  {readiness?.status === 'needs_facts' ? (
-                    // Badge's `render` prop swaps in a <button> as the
-                    // root element so the chip itself is the click
-                    // target — no wrapping <button> nested in the <h1>
-                    // (which caused nested-interactive DOM + an
-                    // inconsistent click area in the earlier revision).
-                    //
-                    // 2026-05-23: label reframed from "Needs filing
-                    // state" (which read as an obligation status) to
-                    // "Add filing state" (imperative — clearly an
-                    // action the CPA needs to take on the client's
-                    // setup). SettingsIcon prefix visually anchors
-                    // it as configuration, not in-flight work.
-                    <Badge
-                      variant="destructive"
-                      className="cursor-pointer text-xs"
-                      render={<button type="button" onClick={openMissingFacts} />}
-                    >
-                      <SettingsIcon className="size-3" aria-hidden />
-                      <MissingFactsActionLabel readiness={readiness} />
-                    </Badge>
-                  ) : null}
-                </span>
+                ) : null}
               </span>
             }
             // 2026-05-23: subtitle suppressed when readiness gap chip is
@@ -2204,21 +2187,16 @@ export function ClientDetailWorkspace({
             // enough to drop it from this header.
             actions={
               <>
-                <ClientHeaderOverflowMenu clientId={client.id} canReadAudit={canReadAudit} />
-                {/* 2026-05-23: archive button collapsed to icon-only per
-                    Figma. The verb is unambiguous from the icon (file-
-                    cabinet glyph) and the action is rarely the daily-
-                    driver task — the +Add deadline button next to it
-                    deserves the only labeled CTA in the cluster. */}
-                <Button
-                  variant="outline"
-                  size="icon-sm"
-                  aria-label={t`Archive ${client.name}`}
-                  title={t`Archive client`}
-                  onClick={() => setArchiveOpen(true)}
-                >
-                  <ArchiveIcon aria-hidden />
-                </Button>
+                {/* 2026-05-26 (Yuqi macro→micro audit, Fix #4 / §2.3):
+                    actions cluster reduced to ⋯ overflow + the primary
+                    CTA. Archive moved INSIDE the overflow per canonical
+                    (no destructive actions in the visible cluster). */}
+                <ClientHeaderOverflowMenu
+                  clientId={client.id}
+                  clientName={client.name}
+                  canReadAudit={canReadAudit}
+                  onArchive={() => setArchiveOpen(true)}
+                />
                 <CreateObligationDialog defaultClientId={client.id} />
               </>
             }
@@ -2228,7 +2206,7 @@ export function ClientDetailWorkspace({
             split (one wrapper above) already separates this from the
             right-rail obligation panel, so this section just renders
             the column-of-content inline. */}
-          <section className="flex min-w-0 flex-col gap-6">
+          <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
             {/* Provenance (Imported / Manual) lived here briefly during
                 the D-2 transition. Dropped 2026-05-22 per design call —
                 low-signal: most clients are Manual by default, and the
@@ -2236,7 +2214,20 @@ export function ClientDetailWorkspace({
                 migration history is still discoverable from the
                 /clients header Import-history drawer. */}
 
-            <ClientContactMetaRow client={client} />
+            <ClientContactMetaRow
+              client={client}
+              entityLabel={entityLabels[client.entityType]}
+              ownerSlot={
+                <ClientOwnerHeaderPill
+                  assigneeId={client.assigneeId ?? null}
+                  name={client.assigneeName ?? null}
+                  currentUserName={currentUserName}
+                  assignableMembers={assignableMembers}
+                  disabled={bulkAssigneeMutation.isPending}
+                  onChange={changeOwner}
+                />
+              }
+            />
 
             {/* Active alerts + summary strip stay ABOVE the tabs —
                 they're global signals about the client ("anything wrong
@@ -2273,29 +2264,81 @@ export function ClientDetailWorkspace({
                   void setActiveTab(value)
                 }
               }}
+              // 2026-05-26 (Yuqi feedback #12-14): Tabs root becomes
+              // its own flex column inside the workspace. TabsList sits
+              // shrink-0 at the top; the active TabsContent fills the
+              // remaining height with its own overflow-y-auto. Without
+              // this, the whole detail page scrolls as one (the bug
+              // Yuqi flagged — "一整页一起滑动是不对的").
+              className="flex min-h-0 flex-1 flex-col"
             >
-              {/* Tab underline: `divider-regular` (8%) not `subtle` (4%).
-                  The tabs are the primary navigation inside the
-                  detail body — a 4% line vanished against
-                  `background-default` and tabs felt like floating
-                  triggers instead of a real tabbar. */}
-              <TabsList variant="line" className="border-b border-divider-regular">
-                <TabsTrigger value="work">
+              {/* 2026-05-26 (Yuqi feedback #6 + #7): tab bar matches
+                  the /deadlines scope-tabs visual — left-aligned,
+                  hug-content triggers (no flex-1), transparent
+                  background, single hairline border. Drops the
+                  background-default that Yuqi flagged ("why is there
+                  a background?"). The primitive's `variant="line"`
+                  already provides the underline-on-active treatment.
+                  Triggers are overridden below to drop the
+                  primitive's `flex-1` so each tab hugs its label
+                  (matches /deadlines instead of spreading full-width). */}
+              <TabsList
+                variant="line"
+                className="flex shrink-0 gap-4 border-b border-divider-subtle bg-transparent px-0 text-sm"
+              >
+                {/* 2026-05-26 (Yuqi feedback #7): triggers override the
+                    primitive's default `flex-1` so each tab hugs its
+                    label (left-aligned like /deadlines scope tabs).
+                    `text-base` + `px-3 py-1.5` matches the
+                    /deadlines `ObligationQueueScopeTab` proportions
+                    so both surfaces read at the same visual scale.
+                    The primitive's underline-on-active stays. */}
+                <TabsTrigger value="work" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
                   <Trans>Work</Trans>
                 </TabsTrigger>
-                <TabsTrigger value="info">
+                <TabsTrigger value="info" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
                   <Trans>Client info</Trans>
-                  {missingFilingState ? <BadgeStatusDot tone="error" className="ml-1.5" /> : null}
+                  {/* 2026-05-26 (Yuqi post-revamp critique P2 / §5):
+                      dot → count chip. The dot signaled "something
+                      is missing" but didn't say HOW MUCH. A count
+                      bubble surfaces the magnitude at the tab bar
+                      so the CPA can decide whether to switch tabs
+                      before clicking through. Tone matches the
+                      readiness chip (warning, not destructive) per
+                      §3.7 canonical color reservation. */}
+                  {readiness && readiness.missingRequiredFacts.length > 0 ? (
+                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 font-mono text-[10px] font-medium leading-none tabular-nums text-text-warning">
+                      {readiness.missingRequiredFacts.length}
+                    </span>
+                  ) : null}
                 </TabsTrigger>
-                <TabsTrigger value="discover">
-                  <Trans>Discover</Trans>
+                {/* 2026-05-26 (Yuqi post-revamp critique P1 / §5):
+                    tab label renamed `Discover` → `Opportunities`.
+                    CPAs read tabs left-to-right; "Discover" doesn't
+                    say what's there. The tab actually surfaces
+                    "Suggested forms" + "Future business cues" —
+                    both Opportunities. URL key stays `discover`
+                    so deep links don't break. */}
+                <TabsTrigger value="discover" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
+                  <Trans>Opportunities</Trans>
                 </TabsTrigger>
-                <TabsTrigger value="activity">
+                <TabsTrigger value="activity" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
                   <Trans>Activity</Trans>
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="work" className="flex flex-col gap-6 pt-4">
+              {/* 2026-05-26 (Yuqi feedback #14): each TabsContent
+                  owns its own overflow-y-auto so the tab body scrolls
+                  INDEPENDENTLY of the rest of the page (PageHeader,
+                  ContactMetaRow, alerts, summary, tab bar stay
+                  pinned). Matches /deadlines's "queue column scrolls,
+                  surrounding chrome stays put" mechanism. The bottom
+                  padding gives the last row breathing room from the
+                  viewport edge. */}
+              <TabsContent
+                value="work"
+                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+              >
                 <ClientWorkPlanPanel
                   obligations={obligations}
                   isLoading={obligationsQuery.isLoading}
@@ -2312,7 +2355,10 @@ export function ClientDetailWorkspace({
                   card frame around the section block itself). The
                   DetailSection collapsible pattern + the ad-hoc
                   SectionFrame "Notes" block both retired here. */}
-              <TabsContent value="info" className="flex flex-col gap-6 pt-4">
+              <TabsContent
+                value="info"
+                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+              >
                 {/* Compliance posture — EIN + tax year + owners +
                     activity-scope flags. Client identity facts, not
                     "work" in progress; the CPA edits / verifies these
@@ -2391,7 +2437,10 @@ export function ClientDetailWorkspace({
                 </TabSection>
               </TabsContent>
 
-              <TabsContent value="discover" className="flex flex-col gap-6 pt-4">
+              <TabsContent
+                value="discover"
+                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+              >
                 <TabSection
                   title={t`Suggested forms`}
                   summary={t`Forms the rule library can add without a new deadline`}
@@ -2413,7 +2462,10 @@ export function ClientDetailWorkspace({
                 </TabSection>
               </TabsContent>
 
-              <TabsContent value="activity" className="flex flex-col gap-6 pt-4">
+              <TabsContent
+                value="activity"
+                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
+              >
                 {/* Activity content only renders when the tab is the
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
@@ -2476,8 +2528,24 @@ export function ClientDetailWorkspace({
             inside the body) so opening an obligation pushes the
             PageHeader, summary strip, alerts, AND the filing plan
             all left at once. */}
+        {/* 2026-05-26 (Yuqi feedback #12-#14): obligation panel as a
+            plain conditional aside at the canonical /deadlines width
+            (xl:w-[600px]). Motion-animated slide-in was attempted
+            (AnimatePresence + motion.div width 0→600) but the
+            interaction with the new flex-row + items-stretch parent
+            settled at intermediate widths under React 19's
+            concurrent renders — the entry-animation never reliably
+            reached the 600px target. Falling back to a plain aside
+            gives the right WIDTH (matches /deadlines on the
+            mechanism's most visible contract) and the right
+            scrolling structure (the panel column scrolls
+            independently of the left column). A CSS-only slide-in
+            transition is a follow-up. */}
         {activeObligationId ? (
-          <aside className="w-full min-w-0 xl:w-[480px] xl:shrink-0">
+          <aside
+            data-slot="obligation-detail-panel"
+            className="flex w-full min-w-0 shrink-0 self-stretch overflow-hidden xl:h-full xl:min-h-0 xl:w-[600px]"
+          >
             <ObligationPanelDispatcher
               obligationId={activeObligationId}
               activeTab={obligationTab}
@@ -3065,29 +3133,39 @@ function FilingPlanYearSection({
   const toggleYear = useCallback(() => {
     onSetYearSelection(yearIds, !yearAllSelected)
   }, [onSetYearSelection, yearIds, yearAllSelected])
-  // 2026-05-24 (Figma replica pass): year section snapped to the
-  // pixel-exact frame from the Figma Make export.
-  //   - Outer frame: `bg-background-soft` (#f9fafb) + `rounded-xl`
-  //     (12px) + an inset `border-divider-subtle` hairline.
+  // 2026-05-24 (Figma replica pass): year section originally snapped
+  // to the pixel-exact frame from the Figma Make export
+  // (`bg-background-soft` + `rounded-xl` + inset hairline).
+  // 2026-05-26 (Yuqi post-revamp critique P1 / §3.5 — tab section-
+  // frame unification): frame swapped to the canonical
+  // `bg-background-default rounded-md border-divider-regular` so
+  // the Work tab's year panels read identically to the section
+  // frames in Client info, Discover, and Activity. The previous
+  // `rounded-xl bg-background-soft border-subtle` was the only
+  // divergent frame on the page — left over from the pre-canonical
+  // pixel-replica pass. Inset-surface canonical (rounded-md +
+  // bg-default) is the system-level rule; per-page Figma replicas
+  // should respect it.
   //   - Year header row: year + `· current year` italic marker +
-  //     the "N open filing" badge — bg-accent-soft + text-accent for
-  //     the current year, bg-gray-soft + text-tertiary for any
-  //     prior year. Padding `px-3 py-3`.
-  //   - Column header bar: bg-gray-soft inside the frame (not
-  //     bg-white) so it reads as the section's legend. Padding
-  //     `px-3 py-2`, text 12px medium tertiary.
-  //   - Row cells: 12px text. Form name medium, dates regular,
-  //     status as the pill from ObligationQueueStatusControl,
-  //     estimate right-aligned regular. Row padding `px-3 py-2`,
-  //     border-b `#f3f4f6` hairline between rows.
-  //   - Leading "N" badge: pl-3 on the row, badge bg-gray-soft
-  //     rounded-full w-5 (20px), 12px medium tertiary text.
+  //     the "N open filing" badge. Same row paddings (`px-3 py-3`)
+  //     as the original.
+  //   - Column header bar: still bg-gray-soft inside the frame so
+  //     it reads as the section's legend.
+  //   - Row cells: 12px text + rule pill unchanged.
   const isUnknown = group.year === 'unknown'
   return (
-    <div className="overflow-hidden rounded-xl border border-divider-subtle bg-background-soft">
-      {/* Year header bar */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-3">
-        <span className="text-sm font-medium leading-5 tabular-nums text-text-primary">
+    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+      {/* Year header bar.
+          2026-05-26 (Yuqi feedback #9 + #10 — "感觉很难发现 / 没有看出
+          来这是 header"): bumped the year-section header from
+          text-sm to text-base font-semibold + soft section tint
+          (bg-background-subtle) + border-b to set it apart from the
+          rows below. Reads now as a real section header / group
+          banner rather than as the first row of the table. Matches
+          the section-heading scale used by the TabSection primitive
+          (page-family-canonical §9). */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-divider-subtle bg-background-subtle px-3 py-2.5">
+        <span className="text-base font-semibold leading-6 tabular-nums text-text-primary">
           {isUnknown ? <Trans>No tax year</Trans> : group.year}
         </span>
         {group.isCurrent ? (
@@ -3179,15 +3257,15 @@ function FilingPlanYearSection({
         >
           <Trans>Status</Trans>
         </FilingPlanSortHeader>
-        <FilingPlanSortHeader
-          className="w-[120px] justify-end"
-          active={sort.field === 'estimate'}
-          dir={sort.dir}
-          onClick={() => onCycleSort('estimate')}
-          alignRight
-        >
-          <Trans>Estimated tax</Trans>
-        </FilingPlanSortHeader>
+        {/* 2026-05-26 (Yuqi feedback #8 — "右边panel展开时 form
+            看不见了。可以不显示 estimated tax"): Estimated Tax column
+            retired from the filing-plan view. When the right panel
+            opens, the left column shrinks to ~430px; with 5 columns
+            (Form / Internal / Official / Status / Estimated Tax) the
+            FORM cell gets squeezed below readable width. The
+            estimated-tax figure is still available inside the
+            obligation drawer's Summary tab; the table view stays as a
+            quick-scan grid. */}
       </div>
       {/* Rows — flat list against the section frame, each separated
           by a `#f3f4f6` hairline. Last row has no border-b.
@@ -3198,7 +3276,7 @@ function FilingPlanYearSection({
           carries the multi-select affordance the bulk bar reads from. */}
       <div className="bg-background-default">
         {sortedObligations.map((obligation, rowIndex) => {
-          const hasEstimate = obligation.estimatedTaxDueCents !== null
+          // `hasEstimate` retired with the Estimated Tax column (Yuqi feedback #8).
           const isLast = rowIndex === sortedObligations.length - 1
           const isSelected = selectedIds.has(obligation.id)
           return (
@@ -3296,9 +3374,9 @@ function FilingPlanYearSection({
                   onChange={onChangeStatus}
                 />
               </span>
-              <span className="w-[120px] text-right text-xs leading-4 tabular-nums text-text-primary">
-                {hasEstimate ? formatCents(obligation.estimatedTaxDueCents ?? 0) : ''}
-              </span>
+              {/* 2026-05-26 (Yuqi feedback #8): Estimated Tax cell
+                  dropped with the column. Inline tax figure now
+                  surfaces only in the obligation drawer (Summary tab). */}
             </div>
           )
         })}
@@ -3339,7 +3417,10 @@ function ClientActiveAlertsSection({
       className="rounded-md border border-divider-regular bg-background-default p-4"
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft/40 px-4 py-2.5">
-        <h3 className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-text-warning">
+        {/* 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
+            uppercase kicker; canonical section heading is sm-semibold
+            sentence-case (page-family-canonical §9). */}
+        <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-text-warning">
           <MegaphoneIcon className="size-3.5" aria-hidden />
           <Trans>Active alerts for this client</Trans>
         </h3>
@@ -3427,29 +3508,51 @@ function ClientActiveAlertsExtensionCard({
  */
 function ClientHeaderOverflowMenu({
   clientId,
+  clientName,
   canReadAudit,
+  onArchive,
 }: {
   clientId: string
+  clientName: string
   canReadAudit: boolean
+  onArchive: () => void
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  if (!canReadAudit) return null
+  // 2026-05-26 (Yuqi macro→micro audit, Fix #4 / §2.3): Archive moved
+  // INSIDE the ⋯ overflow per canonical (≤2 outline buttons + no
+  // destructive in the visible cluster). The menu used to gate on
+  // `canReadAudit` and disappear entirely when the user lacked audit
+  // — now Archive is always available so the menu renders, with the
+  // audit-log entry conditionally shown.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" size="sm" aria-label={t`More client actions`}>
+          // 2026-05-26 (Yuqi feedback #2 — "icon button 怎么不是正方形"):
+          // switched from size="sm" (which sets h-8 with horizontal padding,
+          // producing a rectangle) to size="icon-sm" (h-8 w-8, true square).
+          <Button variant="outline" size="icon-sm" aria-label={t`More client actions`}>
             <MoreHorizontalIcon className="size-4" aria-hidden />
           </Button>
         }
       />
       <DropdownMenuContent align="end" className="min-w-[220px]">
+        {canReadAudit ? (
+          <DropdownMenuItem
+            onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+          >
+            <ScrollTextIcon className="size-4" aria-hidden />
+            <Trans>View audit log</Trans>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem
-          onClick={() => void navigate(`/audit?entityId=${clientId}&entityType=client`)}
+          onClick={onArchive}
+          aria-label={t`Archive ${clientName}`}
+          className="text-state-warning-text"
         >
-          <ScrollTextIcon className="size-4" aria-hidden />
-          <Trans>View audit log</Trans>
+          <ArchiveIcon className="size-4" aria-hidden />
+          <Trans>Archive client</Trans>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -4199,20 +4302,27 @@ function ClientOwnerHeaderPill({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
+          // 2026-05-26 (Yuqi feedback #5 — "可以更大，现在点击 area 太小"):
+          // pill expanded to a real click target. Was a tiny chip
+          // (px-2 py-0.5, text-xs, 4×4px avatar, 3×3px chevron). Now
+          // h-7 (28px) + px-2.5 + size-5 avatar + size-3.5 chevron.
+          // Same shape rules as other owner pills used in /deadlines
+          // queue cells so the picker reads as a real interactive
+          // control.
           <button
             type="button"
             aria-label={triggerLabel}
             title={triggerLabel}
             disabled={disabled}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              'inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >
             {name === null ? (
               <>
-                <span className="inline-flex size-4 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-                  <UserRoundIcon className="size-3" aria-hidden />
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
+                  <UserRoundIcon className="size-3.5" aria-hidden />
                 </span>
                 <Trans>Unassigned</Trans>
               </>
@@ -4220,7 +4330,7 @@ function ClientOwnerHeaderPill({
               <>
                 <span
                   className={cn(
-                    'inline-flex size-4 items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-tight',
+                    'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
                     isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
                   )}
                 >
@@ -4229,7 +4339,7 @@ function ClientOwnerHeaderPill({
                 <span className="truncate">{name}</span>
               </>
             )}
-            <ChevronDownIcon className="size-3 text-text-tertiary" aria-hidden />
+            <ChevronDownIcon className="size-3.5 text-text-tertiary" aria-hidden />
           </button>
         }
       />
@@ -4397,11 +4507,37 @@ function MissingFactsActionLabel({ readiness }: { readiness: ClientReadiness }) 
   return <Trans>Add client facts</Trans>
 }
 
-function ClientContactMetaRow({ client }: { client: ClientPublic }) {
+function ClientContactMetaRow({
+  client,
+  entityLabel,
+  ownerSlot,
+}: {
+  client: ClientPublic
+  entityLabel: string
+  ownerSlot: ReactNode
+}) {
+  // 2026-05-26 (Yuqi macro→micro audit, Fix #11 / §2.4): the row now
+  // also carries the identity chips that used to clutter the title
+  // cluster — entity badge, owner pill, filing-state chips. They
+  // were 4-5 elements jammed into the H1 row; per canonical the
+  // title gets 1 chip max, the rest of the identity moves here.
+  //
+  // 2026-05-26 (rebase): merged with main's `buildClientHeaderContactItems`
+  // builder pattern. The builder pre-resolves contact / email /
+  // phone / address items (filtering out malformed migration data
+  // like the literal `primary_phone` column name). We render the
+  // identity chips FIRST (badge → owner → states), then the
+  // builder-produced contact items. Row is unconditionally
+  // rendered now (was hidden when items.length === 0) because the
+  // entity badge always has content.
   const items = buildClientHeaderContactItems(client)
-  if (items.length === 0) return null
   return (
-    <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
+    <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-text-tertiary">
+      <Badge variant="outline" className="text-xs">
+        {entityLabel}
+      </Badge>
+      {ownerSlot}
+      <ClientFilingStateChips client={client} />
       {items.map((item) => (
         <ClientContactMetaItem key={`${item.kind}:${item.value}`} item={item} />
       ))}
@@ -4618,17 +4754,16 @@ function SuggestedFormsCatalogPanel({
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <Badge
-                      variant="warning"
-                      className="cursor-default rounded-sm text-caption-xs uppercase tracking-wide"
-                    >
+                    // 2026-05-26 (Yuqi macro→micro audit, Fix #7 /
+                    // §3.3): retired uppercase kicker on the badge.
+                    <Badge variant="warning" className="cursor-default rounded-sm text-xs">
                       <Plural value={suggested.length} one="# gap" other="# gap" />
                     </Badge>
                   }
                 />
                 <TooltipContent className="max-w-sm whitespace-normal text-left">
                   <div className="flex flex-col gap-1">
-                    <span className="text-caption-xs font-medium uppercase tracking-wide opacity-70">
+                    <span className="text-xs font-medium text-text-secondary">
                       <Trans>Missing from this client</Trans>
                     </span>
                     <ul className="flex flex-col gap-0.5">
@@ -4672,7 +4807,10 @@ function SuggestedFormsCatalogPanel({
       ) : (
         <>
           <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
-            <p className="text-xs font-medium tracking-[0.08em] text-text-warning uppercase">
+            {/* 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3):
+                retired uppercase kicker; sentence-case sm-semibold
+                matches the canonical section-heading scale. */}
+            <p className="text-sm font-semibold text-text-warning">
               <Trans>Suggested</Trans>
               {' · '}
               <Plural value={suggested.length} one="# rule" other="# rules" />
