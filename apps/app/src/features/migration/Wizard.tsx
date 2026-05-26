@@ -678,6 +678,13 @@ function LiveGenesisOverlay({
   genesis: { clientCount: number; obligationCount: number } | null
 }) {
   if (!genesis) return null
+  // z-[70]: documented escape hatch above the canonical z-50 overlay
+  // tier (Dialog / Sheet / Toast). The wizard's own dialog is already
+  // mounted at z-50; this genesis overlay sits *above* that so the
+  // count + spinner stay visible while the wizard finalises. The
+  // arbitrary 70 (rather than another `z-50` that'd compete) is the
+  // singular use of "above-overlay" in the app — left as an arbitrary
+  // value rather than promoting to a `--z-*` token for a one-off.
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
