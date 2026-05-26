@@ -591,6 +591,16 @@ const sidebarMenuButtonVariants = cva(
     // accent border, no `accent-text` label color.
     "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
     "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-05-26 (Yuqi sidebar status surface — bold pass):
+    // active-route marker in collapsed mode. A 3px-wide accent
+    // bar at the LEFT EDGE of the active tile signals "you are
+    // here" without needing labels. Combines with the bg-accent-tint
+    // tile so the active route reads both as a color-tinted square
+    // AND as the column's anchored marker, similar to Linear's
+    // active-route indicator. Only applies in collapsed mode; the
+    // expanded mode's full bg-tint already does the wayfinding job.
+    "group-data-[collapsed=true]/sidebar:data-[active=true]:before:absolute group-data-[collapsed=true]/sidebar:data-[active=true]:before:left-0 group-data-[collapsed=true]/sidebar:data-[active=true]:before:top-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:h-4 group-data-[collapsed=true]/sidebar:data-[active=true]:before:w-[3px] group-data-[collapsed=true]/sidebar:data-[active=true]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:rounded-r-full group-data-[collapsed=true]/sidebar:data-[active=true]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:data-[active=true]:before:content-['']",
+    "group-data-[collapsed=true]/sidebar:aria-[current=page]:before:absolute group-data-[collapsed=true]/sidebar:aria-[current=page]:before:left-0 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:top-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:h-4 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:w-[3px] group-data-[collapsed=true]/sidebar:aria-[current=page]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:rounded-r-full group-data-[collapsed=true]/sidebar:aria-[current=page]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:aria-[current=page]:before:content-['']",
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
     // 2026-05-26 (Yuqi sidebar smoothness pass): label span now
     // animates rather than hard-hides. Expanded → collapsed
@@ -740,6 +750,25 @@ export function SidebarMenuBadge({
   // badges (Alerts "3", Rule library "456") keep their red dot in
   // collapsed because they actually warrant attention. Expanded
   // mode still shows the inline gray count text.
+  // 2026-05-26 (Yuqi sidebar status surface — bold pass): collapsed
+  // rail becomes a status surface, not just a nav rail. Both tones
+  // now render their COUNT (not a dot) in collapsed mode as a small
+  // pill at the icon's top-right. The visual language separates
+  // urgent from inventory clearly:
+  //   • Urgent (red filled pill, white text, subtle pulse) — Alerts,
+  //     Rule library pending review. Calls for action.
+  //   • Inventory (neutral filled pill, secondary text, no pulse) —
+  //     Deadlines, Clients. Reference counts only. The numeric
+  //     framing (not a colored dot) makes it read as "count"
+  //     instead of "alert" — addresses Yuqi's earlier concern
+  //     that gray dots looked like alerts.
+  // The badge sits at -top-1/-right-1 so it overlaps the icon's
+  // corner slightly and reads as floating above it. A 2px border in
+  // the panel-bg color creates visual separation from the icon edge
+  // so it never blurs into the icon glyph. Numbers >99 still fit
+  // (up to 3 digits) at 10px font; 4-digit counts get clipped.
+  const collapsedBadgeBase =
+    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-1 group-data-[collapsed=true]/sidebar:-right-1 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:h-4 group-data-[collapsed=true]/sidebar:min-w-4 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg group-data-[collapsed=true]/sidebar:px-1 group-data-[collapsed=true]/sidebar:text-[10px] group-data-[collapsed=true]/sidebar:font-semibold group-data-[collapsed=true]/sidebar:leading-none'
   if (tone === 'inventory') {
     return (
       <span
@@ -748,7 +777,8 @@ export function SidebarMenuBadge({
         className={cn(
           'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
-          'group-data-[collapsed=true]/sidebar:hidden',
+          collapsedBadgeBase,
+          'group-data-[collapsed=true]/sidebar:bg-background-subtle group-data-[collapsed=true]/sidebar:text-text-secondary',
           className,
         )}
         {...props}
@@ -761,7 +791,13 @@ export function SidebarMenuBadge({
       data-tone="urgent"
       className={cn(
         'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-warning',
-        'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:size-1.5 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:bg-state-warning-solid group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
+        collapsedBadgeBase,
+        'group-data-[collapsed=true]/sidebar:bg-state-destructive-solid group-data-[collapsed=true]/sidebar:text-text-inverted',
+        // Subtle pulse on the urgent badge — communicates "fresh /
+        // needs attention" without being annoying. 2.4s cycle, 70%
+        // opacity at the trough so it never disappears entirely.
+        // `motion-reduce:animate-none` respects user preference.
+        'group-data-[collapsed=true]/sidebar:animate-[pulse_2.4s_ease-in-out_infinite] group-data-[collapsed=true]/sidebar:motion-reduce:animate-none',
         className,
       )}
       {...props}
