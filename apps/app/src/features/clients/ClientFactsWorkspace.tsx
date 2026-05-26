@@ -2522,30 +2522,56 @@ export function ClientDetailWorkspace({
           </section>
         </div>
         {/* Obligation page panel — replaces the modal Sheet on this
-            route. Width is fixed 480px on xl+, full-width stacked
+            route. Width is fixed 600px on xl+, full-width stacked
             below the entire client surface at narrower viewports.
             Now a sibling of the left column wrapper (was nested
             inside the body) so opening an obligation pushes the
             PageHeader, summary strip, alerts, AND the filing plan
             all left at once. */}
-        {/* 2026-05-26 (Yuqi feedback #12-#14): obligation panel as a
-            plain conditional aside at the canonical /deadlines width
-            (xl:w-[600px]). Motion-animated slide-in was attempted
-            (AnimatePresence + motion.div width 0→600) but the
-            interaction with the new flex-row + items-stretch parent
-            settled at intermediate widths under React 19's
-            concurrent renders — the entry-animation never reliably
-            reached the 600px target. Falling back to a plain aside
-            gives the right WIDTH (matches /deadlines on the
-            mechanism's most visible contract) and the right
-            scrolling structure (the panel column scrolls
-            independently of the left column). A CSS-only slide-in
-            transition is a follow-up. */}
-        {activeObligationId ? (
-          <aside
-            data-slot="obligation-detail-panel"
-            className="flex w-full min-w-0 shrink-0 self-stretch overflow-hidden xl:h-full xl:min-h-0 xl:w-[600px]"
-          >
+        {/* 2026-05-26: CSS-only slide-in. Earlier in this session we
+            tried AnimatePresence + motion.div animating width 0→600
+            but the interaction with this flex-row + items-stretch
+            parent settled at stuck intermediate widths under React
+            19's concurrent renders — the entry-animation never
+            reliably reached the 600px target. We rolled back to a
+            snap-mount, then brought the slide-in back via a native
+            CSS transition on `width` (no motion library involved).
+            Shape:
+              • At xl+: aside is ALWAYS mounted (so the width
+                transition has a stable element to animate). Width
+                starts at 0 and animates to 600px when an obligation
+                is selected. A negative `mr` cancels the parent's
+                xl:gap-6 while the aside is closed so there's no
+                phantom 24px void to the right of the left column;
+                margin animates back to 0 alongside the width.
+              • Below xl: parent is flex-col, so the aside renders
+                as a conditional full-width block below the rest of
+                the page (current behavior — no width animation
+                because it isn't the dominant axis here).
+            CSS sidesteps React 19's reconciliation entirely and is
+            stable across renders. */}
+        <aside
+          data-slot="obligation-detail-panel"
+          data-open={activeObligationId ? 'true' : 'false'}
+          className={cn(
+            'min-w-0 shrink-0 self-stretch overflow-hidden',
+            // Below xl: simple conditional show / hide (no animation —
+            // the parent is flex-col, width transitions aren't the
+            // right shape for a vertical stack).
+            activeObligationId ? 'flex w-full' : 'hidden',
+            // xl+: always present as a flex slot, width-animated.
+            'xl:flex xl:h-full xl:min-h-0',
+            'xl:transition-[width,margin-right] xl:duration-300 xl:ease-[cubic-bezier(0.32,0.72,0,1)]',
+            // Closed: 0 width AND a negative right margin equal to
+            // the parent's xl:gap-6 so the unused gap doesn't show
+            // up as a void on the right edge.
+            'xl:w-0 xl:-mr-6',
+            // Open: real width + reset the negative margin so the
+            // gap reappears between left column and panel.
+            activeObligationId && 'xl:w-[600px] xl:mr-0',
+          )}
+        >
+          {activeObligationId ? (
             <ObligationPanelDispatcher
               obligationId={activeObligationId}
               activeTab={obligationTab}
@@ -2559,8 +2585,8 @@ export function ClientDetailWorkspace({
               practiceAiEnabled={practiceAiEnabled}
               blockerCandidates={[]}
             />
-          </aside>
-        ) : null}
+          ) : null}
+        </aside>
       </div>
 
       {/* Archive confirmation. `clients.delete` is a soft-delete server-
