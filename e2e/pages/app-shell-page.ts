@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 
 export class AppShellPage {
   readonly primaryNavigation: Locator
@@ -36,13 +36,24 @@ export class AppShellPage {
 
   async openCommandPalette() {
     await this.primaryNavigation.waitFor({ state: 'visible' })
-    if (await this.tryOpenCommandPalette('Meta+K')) return
-    if (await this.tryOpenCommandPalette('Control+K')) return
-    await this.dispatchHotkeys([
-      { key: 'k', code: 'KeyK', metaKey: true },
-      { key: 'k', code: 'KeyK', ctrlKey: true },
-    ])
-    await this.commandDialog.waitFor({ state: 'visible' })
+
+    await expect
+      .poll(
+        async () => {
+          if (await this.tryOpenCommandPalette('Control+K')) return true
+          if (await this.tryOpenCommandPalette('Meta+K')) return true
+
+          await this.dispatchHotkeys([
+            { key: 'k', code: 'KeyK', ctrlKey: true },
+            { key: 'K', code: 'KeyK', ctrlKey: true },
+            { key: 'k', code: 'KeyK', metaKey: true },
+            { key: 'K', code: 'KeyK', metaKey: true },
+          ])
+          return this.commandDialog.isVisible()
+        },
+        { timeout: 10_000, intervals: [100, 250, 500] },
+      )
+      .toBe(true)
   }
 
   commandItem(name: string) {
@@ -99,8 +110,10 @@ export class AppShellPage {
           metaKey: Boolean(hotkey.metaKey),
           shiftKey: Boolean(hotkey.shiftKey),
         }
+        document.body.dispatchEvent(new KeyboardEvent('keydown', init))
         window.dispatchEvent(new KeyboardEvent('keydown', init))
         document.dispatchEvent(new KeyboardEvent('keydown', init))
+        document.body.dispatchEvent(new KeyboardEvent('keyup', init))
         window.dispatchEvent(new KeyboardEvent('keyup', init))
         document.dispatchEvent(new KeyboardEvent('keyup', init))
       }

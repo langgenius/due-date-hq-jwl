@@ -15,6 +15,8 @@ locator and copy drift in the seeded deadline flows.
 - Followed up on the same `main` push after CI surfaced catalog drift: formatted the client-detail
   panel dev-log note, refreshed Lingui catalogs, and filled the 40 missing `zh-CN` messages from
   the latest client/rules/deadlines UI.
+- Stabilized the command-palette E2E helper after CI still missed `Control+K` on Chromium, and
+  aligned the clients spec with the current full filing-state display (`California`).
 
 ## Validation
 
@@ -34,3 +36,5 @@ locator and copy drift in the seeded deadline flows.
   - 60 files passed, 386 tests passed.
 - `pnpm build`
   - Passed.
+- `pnpm exec playwright test e2e/tests/authenticated-shell.spec.ts e2e/tests/clients.spec.ts e2e/tests/obligations.spec.ts --project=chromium --workers=1 --retries=0`
+  - 16 passed.
