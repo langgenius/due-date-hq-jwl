@@ -207,10 +207,10 @@ import { isTabVisibleForType, tabsForObligationType } from '@/features/obligatio
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { getAssigneeTint } from '@/lib/assignee-tint'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
@@ -4361,48 +4361,6 @@ function ObligationQueueSortableHeader({
         )}
       </button>
       {children}
-    </span>
-  )
-}
-
-// Assignee avatar — 24px circle with up-to-2-letter initials. Picks
-// up the existing initialsFromName helper used by the global user
-// menu so vocabulary stays consistent. `isMine` swaps the background
-// to a soft accent tint + accent text — gives a quiet "this is your
-// row" cue without an extra YOU chip. Name lives in the title
-// (tooltip) so the column stays compact.
-function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean; title: string }) {
-  const initials = initialsFromName(name)
-  // 2026-05-25 (Yuqi Deadlines #1): bumped from size-6 (24px) to
-  // size-7 (28px) and text bumped to text-xs. The initials inside
-  // the 24px circle were reading as cramped at scan distance — Yuqi
-  // flagged "avatar 有点太挤了". The marginal size bump gives the
-  // glyphs room without inflating the Owner column footprint
-  // unreasonably.
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #10): bumped again to
-  // size-8 (32px) + text-sm. With the row's primary anchor now at
-  // text-base, the 28px circle was reading as "too small" relative
-  // to the client name beside it. 32px sits as a proper row icon
-  // (matches the Today dashboard's owner-avatar size) and the
-  // text-sm initials no longer read like caption-tier inside the
-  // disc.
-  // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
-  // size + initials hash consistency"): the non-self path now resolves
-  // a per-name tint via the shared `getAssigneeTint` helper instead of
-  // a single `bg-background-subtle` neutral. /clients already did this
-  // — the deadlines queue was the surface where "AR" and "KP" looked
-  // identical at scan distance. Now same person → same color → same
-  // visual identity across every owner column in the app.
-  return (
-    <span
-      aria-label={title}
-      title={title}
-      className={cn(
-        'inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold uppercase tracking-tight',
-        isMine ? 'bg-state-accent-hover-alt text-text-accent' : getAssigneeTint(name),
-      )}
-    >
-      {initials}
     </span>
   )
 }
