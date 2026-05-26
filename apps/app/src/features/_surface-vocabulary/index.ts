@@ -13,3 +13,10 @@ export {
   type SurfaceSummaryItemTone,
   type SurfaceSummaryStripProps,
 } from './SurfaceSummaryStrip'
+
+export {
+  AI_CONFIDENCE_THRESHOLDS,
+  aiConfidenceTier,
+  isLowAiConfidence,
+  type AiConfidenceTier,
+} from './ai-confidence'

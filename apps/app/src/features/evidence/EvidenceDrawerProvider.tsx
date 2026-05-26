@@ -266,9 +266,15 @@ function EvidenceSourceIcon({ sourceType }: { sourceType: string }) {
 
 function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule') return <Trans>Active practice rule</Trans>
-  if (sourceType === 'ai_mapper') return <Trans>Import mapping</Trans>
-  if (sourceType === 'ai_normalizer') return <Trans>Import cleanup</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>Materials checklist</Trans>
+  // 2026-05-26 (Step 9 AI Visibility Audit F-011): "AI" prefix
+  // restored to the user-facing labels. The previous labels dropped
+  // the word AI from the most prominent provenance disclosure on
+  // this surface — readers without icon-literacy lost the cue
+  // entirely. The SparklesIcon stays as the icon affordance, but
+  // the label now reads the provenance honestly.
+  if (sourceType === 'ai_mapper') return <Trans>AI import mapping</Trans>
+  if (sourceType === 'ai_normalizer') return <Trans>AI import cleanup</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>AI materials checklist</Trans>
   if (sourceType === 'readiness_client_response') return <Trans>Client response</Trans>
   if (sourceType === 'penalty_override') return <Trans>Penalty input</Trans>
   if (sourceType === 'extension_decision') return <Trans>Extension decision</Trans>

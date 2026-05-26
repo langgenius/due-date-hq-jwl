@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CircleHelpIcon } from 'lucide-react'
+import { Astroid, CircleHelpIcon } from 'lucide-react'
 import { useLingui } from '@lingui/react/macro'
 
 import {
@@ -28,7 +28,10 @@ type ConceptId =
   | 'migrationCopilot'
   | 'obligations'
   | 'triageQueue'
-  | 'aiWeeklyBrief'
+  // 2026-05-26 (Step 9 AI Visibility Audit F-016): `aiWeeklyBrief`
+  // entry was registered but no consumer ever called
+  // `concept="aiWeeklyBrief"`. Removed until a surface lands so
+  // the union type doesn't fragment with ghost entries.
   | 'deadlineTip'
   | 'auditTrail'
   | 'obligationPreview'
@@ -137,11 +140,6 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
         title: t`Top deadlines by risk`,
         description: t`The highest-risk open deadlines for the chosen window — work these first.`,
       }
-    case 'aiWeeklyBrief':
-      return {
-        title: t`AI weekly brief`,
-        description: t`A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list.`,
-      }
     case 'deadlineTip':
       return {
         title: t`Deadline Tip`,
@@ -210,6 +208,13 @@ export function ConceptHelp({
   const { t } = useLingui()
   const copy = useConceptCopy(concept)
   const label = triggerLabel ?? copy.title
+  // 2026-05-26 (Step 9 AI Visibility Audit F-026): AI-specific
+  // concepts swap CircleHelpIcon → Astroid on the trigger so the
+  // help popover's icon reinforces "this concept is about AI" before
+  // the user reads the popover body. Non-AI concepts keep the
+  // canonical question-mark.
+  const isAiConcept = concept === 'aiConfidence' || concept === 'deadlineTip'
+  const TriggerIcon = isAiConcept ? Astroid : CircleHelpIcon
 
   return (
     <Popover>
@@ -229,7 +234,7 @@ export function ConceptHelp({
           />
         }
       >
-        <CircleHelpIcon className="size-3.5" aria-hidden />
+        <TriggerIcon className="size-3.5" aria-hidden />
       </PopoverTrigger>
       {/* 2026-05-25 (Yuqi rule library #18): concept-help popovers
           were rendering at text-xs (12px) which Yuqi flagged as too

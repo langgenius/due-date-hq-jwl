@@ -1,7 +1,7 @@
 import { type ComponentProps, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans } from '@lingui/react/macro'
-import { SparklesIcon } from 'lucide-react'
+import { Crown } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -41,7 +41,13 @@ export function UpgradeCtaButton({
       )}
       render={<Link to={billingPlanHref(plan, interval)} />}
     >
-      <SparklesIcon data-icon="inline-start" />
+      {/* 2026-05-26 (Step 9 AI Visibility Audit F-006): SparklesIcon
+          replaced with Crown. Sparkles had been overloaded across
+          billing (this upgrade CTA), opportunities, and per-value
+          AI provenance — three meanings, one glyph, training the
+          wrong mental model. Crown locks "premium / paid tier"
+          semantics without bleeding into the AI iconography. */}
+      <Crown data-icon="inline-start" />
       <span className="relative z-10">{children ?? <Trans>Upgrade to Pro</Trans>}</span>
     </Button>
   )

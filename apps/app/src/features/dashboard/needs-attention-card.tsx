@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Atom, ChevronRightIcon, Plus } from 'lucide-react'
+import { Astroid, ChevronRightIcon, Plus } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
+import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
 
@@ -20,7 +21,12 @@ import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-aler
 // text-sm font-semibold for readability), sans-serif numerals
 // throughout, source eyebrow demoted to small tertiary label.
 
-const LOW_CONFIDENCE_THRESHOLD = 0.7
+// 2026-05-26 (Step 9 AI Visibility Audit F-019): threshold migrated
+// to the canonical `isLowAiConfidence(0.5)`. Previously this card
+// fired the LowConfidenceBadge for confidence in [0.5, 0.7) while
+// the Pulse drawer for the same alert showed nothing — same alert,
+// two different confidence stories. Now: card + drawer both
+// pick up the same 0.5 floor.
 const VISIBLE_CLIENT_NAMES = 2
 
 function useUniqueAffectedClientNames(alertId: string): {
@@ -61,7 +67,7 @@ function NeedsAttentionCard({
   // drawer used confidence-first logic — so the SAME alert read
   // green outside and red inside.
   const tone = pulseAlertTone(alert)
-  const lowConfidence = alert.confidence < LOW_CONFIDENCE_THRESHOLD
+  const lowConfidence = isLowAiConfidence(alert.confidence)
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
@@ -98,19 +104,23 @@ function NeedsAttentionCard({
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           {/* 2026-05-25 (Yuqi Today follow-up): the Pulse identity
-              mark on the dashboard card is now an Atom icon in
-              accent-blue instead of the generic PulsingDot. The dot
-              read as "any status indicator"; the Atom reads
-              specifically as "Pulse / AI signal" — a single icon
-              the user can learn to recognize across surfaces. Tone
-              ladder (red/amber/green) still surfaces via the
-              lowConfidence chip + the card's data-tone attribute
-              for any consumers that key off it. */}
+              mark on the dashboard card was an Atom icon in
+              accent-blue. The Atom read as "Pulse / AI signal" but
+              was the ONLY surface using it — every other AI surface
+              uses Astroid.
+              2026-05-26 (Step 9 AI Visibility Audit F-001):
+              swapped Atom → Astroid so the dashboard's Pulse
+              identity mark matches the canonical AI provenance icon
+              used by `PulseAlertCard`, `PulseDetailDrawer`, and
+              `LowConfidenceBadge`. Three icons for "AI" → one. */}
           {/* 2026-05-25 (Yuqi Today #3 — second pass): source label
               text-base → text-sm. The source eyebrow is meta info,
               not body — at 16px it competed with the title below
               for first-read attention. */}
-          <Atom className="size-4 text-state-accent-solid" aria-label={pulseAlertToneLabel(tone)} />
+          <Astroid
+            className="size-4 text-state-accent-solid"
+            aria-label={pulseAlertToneLabel(tone)}
+          />
           <span className="text-sm text-text-tertiary">{alert.source}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">

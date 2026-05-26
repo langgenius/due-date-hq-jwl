@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import { ArrowRightIcon, Astroid, CopyIcon, ExternalLinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseDetail } from '@duedatehq/contracts'
@@ -243,6 +243,25 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 2026-05-26 (Step 9 AI Visibility Audit F-009): inline
+          caveat banner above the structured-fields cards. The
+          Source / Scope cards below render AI-EXTRACTED values
+          (Authority / Issued / Effective / Forms / Entity types
+          ...) as if they were verbatim source facts. For tax
+          software, a CPA filing on a hallucinated "Effective"
+          date is a real consequence. The banner names the
+          provenance explicitly + points at the source link for
+          verification. Quiet (info tone, not destructive) so it
+          reads as orientation, not error. */}
+      <div className="flex items-start gap-2 rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+        <Astroid className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+        <span>
+          <Trans>
+            The fields below are an AI extraction of the source bulletin. Open the official source
+            to verify before applying changes to clients.
+          </Trans>
+        </span>
+      </div>
       <FactCard
         title={<Trans>Source</Trans>}
         action={

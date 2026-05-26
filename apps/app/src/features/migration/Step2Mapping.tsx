@@ -1,11 +1,11 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useState, type ReactNode } from 'react'
 import {
+  Astroid,
   ChevronDownIcon,
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
-  SparklesIcon,
   StarIcon,
 } from 'lucide-react'
 
@@ -329,7 +329,19 @@ function MappingDetailsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <MappingConfidenceTier tier={tier} confidence={row.confidence} />
+                  {/* Step 9 F-012: when a user overrides the AI mapping
+                      for a row, show "Overridden" chip instead of the
+                      confidence pill so an AI re-run can't silently
+                      clobber their work. (HEAD's name for the badge
+                      is `MappingConfidenceTier`, not `ConfidenceBadge`
+                      which is the name Step 9 used.) */}
+                  {row.userOverridden ? (
+                    <span className="inline-flex h-5 items-center rounded-md border border-state-accent-active-alt bg-state-accent-hover px-1.5 text-xs font-medium uppercase tracking-wide text-text-accent">
+                      <Trans>Overridden</Trans>
+                    </span>
+                  ) : (
+                    <MappingConfidenceTier tier={tier} confidence={row.confidence} />
+                  )}
                 </TableCell>
                 <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
                   {sample}
@@ -407,8 +419,14 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
+        // Step 9 F-001/F-014: SparklesIcon → canonical Astroid AI
+        // provenance icon. Sparkles reserved for billing/opportunities.
+        // Variant kept at `outline` (HEAD) instead of Step 9's
+        // `destructive` — destructive = red in this design system,
+        // which would falsely flag AI mapping as an error per the
+        // Step 7 audit's similar fix on MappingCapabilityBadge.
         <Badge variant="outline">
-          <SparklesIcon data-icon="inline-start" />
+          <Astroid data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
       }

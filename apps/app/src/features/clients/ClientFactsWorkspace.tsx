@@ -4520,10 +4520,24 @@ function InsightStatusBadge({ status }: { status: AiInsightPublic['status'] }) {
     )
   }
   if (status === 'stale') {
+    // 2026-05-26 (Step 9 AI Visibility Audit F-021): tooltip
+    // explains what stale means for an AI insight.
     return (
-      <Badge variant="info" className="text-xs">
-        <Trans>Stale</Trans>
-      </Badge>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Badge variant="info" tabIndex={0} className="cursor-help text-xs">
+              <Trans>Stale</Trans>
+            </Badge>
+          }
+        />
+        <TooltipContent>
+          <Trans>
+            This AI insight was generated before the client's facts changed. Refresh to get an
+            up-to-date summary.
+          </Trans>
+        </TooltipContent>
+      </Tooltip>
     )
   }
   return (
