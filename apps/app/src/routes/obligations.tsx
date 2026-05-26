@@ -1201,6 +1201,8 @@ export function ObligationQueueRoute() {
         // `updateStatus` below) owns the toast so it can attach the
         // contextual Undo action with the previous status closed over.
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDeadlineTip.key() })
@@ -1219,6 +1221,8 @@ export function ObligationQueueRoute() {
     orpc.obligations.bulkUpdateStatus.mutationOptions({
       onSuccess: (result) => {
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
@@ -8380,8 +8384,8 @@ function PathToFilingSummary({
   //     waiting_on_third_party / bookkeeping_cleanup / ready_for_prep)
   //   blocked          → row.blockedByObligationInstanceId (K-1) via
   //     existing BlockedByChip; a verbal hint here would duplicate that.
-  //   review           → row.reviewStage (ready_for_review / in_review /
-  //     notes_open / approved)
+  //   review           → compact workflow from row.prepStage + row.reviewStage
+  //     (preparing return / reviewing return / ready to file)
   //   done (filed)     → row.efileState (submitted → awaiting; accepted;
   //     rejected; paper_filed; final_package_delivered)
   // Returns null when no meaningful annotation exists. Renders as a
@@ -8855,47 +8859,33 @@ const PAYMENT_PIPELINE_KEYS = [
   'confirmed',
 ] as const
 
-// In-Review sub-status pipeline. Mirrors the e-file strip's shape —
-// six sequential steps the row walks through from "ready to prep"
-// to "approved, ready to file." Combines `prepStage` (three values:
-// ready_for_prep / in_prep / prepared) with `reviewStage` (three
-// non-flag values: ready_for_review / in_review / approved) into
-// one linear path the CPA can see. `notes_open` is a reactive flag
-// on the in_review step, not a separate step — surfaced as an
-// annotation when present rather than its own column.
-//
-// Why we visualize this: prep ↔ review is the longest stage in the
-// lifecycle and where the most days are typically spent. Without a
-// strip, the CPA only sees a single sub-status word ("Ready for
-// review") and has no idea what step that is in the journey, nor
-// what's ahead. Same critique that originally motivated the e-file
-// pipeline strip.
-const REVIEW_PIPELINE_KEYS = [
-  'ready_for_prep',
-  'in_prep',
-  'prepared',
-  'ready_for_review',
-  'in_review',
-  'approved',
-] as const
+// In-Review workflow shown to CPAs. The database keeps finer-grained
+// prep/review columns for auditability, but the drawer should not
+// expose every internal flag as a separate "step" — it made freshly
+// generated review rows look like they had already jumped to step 4.
+// Collapse the work into the three business states a preparer expects:
+// prepare the return, review the return, then file it.
+const REVIEW_PIPELINE_KEYS = ['preparing_return', 'reviewing_return', 'ready_to_file'] as const
 type ReviewPipelineKey = (typeof REVIEW_PIPELINE_KEYS)[number]
 
-// Derive the current step from the row's prep + review sub-state
-// columns. Review takes priority over prep — once `reviewStage` is
-// set, the row has handed off to the reviewer and the strip should
-// reflect that.
-function reviewPipelineCurrent(row: ObligationQueueRow): ReviewPipelineKey | null {
-  if (row.reviewStage === 'approved') return 'approved'
-  if (row.reviewStage === 'in_review' || row.reviewStage === 'notes_open') return 'in_review'
-  if (row.reviewStage === 'ready_for_review') return 'ready_for_review'
-  if (row.prepStage === 'prepared') return 'prepared'
-  if (row.prepStage === 'in_prep') return 'in_prep'
-  if (row.prepStage === 'ready_for_prep') return 'ready_for_prep'
-  // Status is `review` but no sub-stage is set yet. Treat as just-
-  // started so the strip shows the first step as current rather than
-  // every step as upcoming (which would be misleading — the row IS
-  // in the In Review stage).
-  return 'ready_for_prep'
+export function reviewPipelineCurrent(
+  row: Pick<ObligationQueueRow, 'prepStage' | 'reviewStage'>,
+): ReviewPipelineKey {
+  if (row.reviewStage === 'approved') return 'ready_to_file'
+  if (
+    row.reviewStage === 'in_review' ||
+    row.reviewStage === 'notes_open' ||
+    row.prepStage === 'prepared'
+  ) {
+    return 'reviewing_return'
+  }
+  return 'preparing_return'
+}
+
+export function countOutstandingReadinessDocuments(
+  checklist: readonly Pick<ReadinessDocumentChecklistItemPublic, 'status'>[],
+): number {
+  return checklist.filter((item) => item.status !== 'received').length
 }
 
 // Resolve the pipeline position of a step relative to where the row
@@ -9203,7 +9193,7 @@ function ActiveStageDetailCard({
   // card body. Same filter logic the old WaitingOutstandingDocs panel
   // used (anything not yet `received`), just without the bullet list.
   const outstandingDocsCount = useMemo(
-    () => readinessChecklist.filter((item) => item.status !== 'received').length,
+    () => countOutstandingReadinessDocuments(readinessChecklist),
     [readinessChecklist],
   )
   // Sub-status descriptor — read inline (NOT from
@@ -9256,14 +9246,10 @@ function ActiveStageDetailCard({
         return null
       case 'review':
       case 'in_progress':
-        if (row.reviewStage === 'ready_for_review') return t`Ready for reviewer sign-off`
-        if (row.reviewStage === 'in_review') return t`Reviewer checking the return`
-        if (row.reviewStage === 'notes_open') return t`Reviewer left notes to address`
-        if (row.reviewStage === 'approved') return t`Reviewer approved — ready to file`
-        if (row.prepStage === 'in_prep') return t`Preparer drafting the return`
-        if (row.prepStage === 'prepared') return t`Draft complete — sent to reviewer`
-        if (row.prepStage === 'ready_for_prep') return t`Ready to draft the return`
-        return null
+        if (row.reviewStage === 'notes_open') return t`Review notes open`
+        if (reviewPipelineCurrent(row) === 'ready_to_file') return t`Ready to file`
+        if (reviewPipelineCurrent(row) === 'reviewing_return') return t`Reviewing return`
+        return t`Preparing return`
       case 'extended':
         return t`Extension filed — new due date in effect`
       case 'done':
@@ -9304,6 +9290,8 @@ function ActiveStageDetailCard({
     })
     return [...filtered].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)
   }, [auditEvents, stageStatusSet])
+  const reviewCurrent = reviewPipelineCurrent(row)
+  const notesOpen = row.reviewStage === 'notes_open'
   const tasks: StageTask[] = useMemo(() => {
     switch (stageKey) {
       case 'pending':
@@ -9351,6 +9339,12 @@ function ActiveStageDetailCard({
               flavor: 'mutation',
               primary: true,
             },
+            {
+              id: 'mark-blocked',
+              label: t`Mark blocked`,
+              flavor: 'mutation',
+              hint: t`Use when another return, notice, or issue is stopping this deadline.`,
+            },
           ]
         }
         if (row.prepStage === 'waiting_on_third_party') {
@@ -9366,19 +9360,32 @@ function ActiveStageDetailCard({
               flavor: 'mutation',
               primary: true,
             },
+            {
+              id: 'mark-blocked',
+              label: t`Mark blocked`,
+              flavor: 'mutation',
+              hint: t`Use when another return, notice, or issue is stopping this deadline.`,
+            },
           ]
         }
-        // 2026-05-23: Option D shape — just the primary mutation.
-        // The routing affordance (open Materials tab) moved into the
-        // inline signal line in the card body; the manual chase
-        // reminder dropped because "Send reminder" is the same action
-        // surfaced from the Materials tab itself.
+        // 2026-05-23: Option D shape — a primary mutation plus a
+        // quiet escape hatch for genuine blocker cases. The routing
+        // affordance (open Materials tab) moved into the inline
+        // signal line in the card body; the manual chase reminder
+        // dropped because "Send reminder" is the same action surfaced
+        // from the Materials tab itself.
         return [
           {
             id: 'received',
             label: t`Mark materials received`,
             flavor: 'mutation',
             primary: true,
+          },
+          {
+            id: 'mark-blocked',
+            label: t`Mark blocked`,
+            flavor: 'mutation',
+            hint: t`Use when another return, notice, or issue is stopping this deadline.`,
           },
         ]
       }
@@ -9396,17 +9403,48 @@ function ActiveStageDetailCard({
           },
         ]
       case 'review': {
-        // 2026-05-23: the three "manual" reminders that used to live here
-        // ("Mark drafting complete and hand off to reviewer", "Get
-        // reviewer sign-off on the return", "Address reviewer's notes")
-        // were just text-shaped placeholders for steps that now have
-        // real mutations. Clicking step 3 of the pipeline strip flips
-        // prepStage='prepared'; clicking step 6 flips
-        // reviewStage='approved'; the "Leave note" / "Notes addressed"
-        // affordances rendered inline with step 5 handle the notes_open
-        // round-trip. So the strip itself is the action surface and the
-        // manual reminders are redundant.
-        const reviewTasks: StageTask[] = []
+        if (reviewCurrent === 'preparing_return') {
+          return [
+            {
+              id: 'send-review',
+              label: t`Send to review`,
+              flavor: 'mutation',
+              primary: true,
+              hint: t`Use after the preparer has finished the draft.`,
+            },
+          ]
+        }
+        if (reviewCurrent === 'reviewing_return') {
+          if (notesOpen) {
+            return [
+              {
+                id: 'mark-notes-addressed',
+                label: t`Mark notes addressed`,
+                flavor: 'mutation',
+                primary: true,
+              },
+            ]
+          }
+          return [
+            {
+              id: 'approve-return',
+              label: t`Approve return`,
+              flavor: 'mutation',
+              primary: true,
+            },
+            {
+              id: 'leave-review-note',
+              label: t`Leave note for preparer`,
+              flavor: 'mutation',
+            },
+            {
+              id: 'sign-8879',
+              label: t`Pre-stage 8879 packet for client`,
+              flavor: 'routing',
+              hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
+            },
+          ]
+        }
         // 2026-05-23: renamed from "Get 8879 signed by client" per
         // critique. The 8879 signature actually flows through the
         // Filed stage's e-file pipeline (`efileState='authorization_
@@ -9417,19 +9455,20 @@ function ActiveStageDetailCard({
         // ready to send the second the row enters the Filed stage.
         // Tooltip names that timing relationship so the routing
         // doesn't read as a duplicate of the Filed sub-status work.
-        reviewTasks.push({
-          id: 'sign-8879',
-          label: t`Pre-stage 8879 packet for client`,
-          flavor: 'routing',
-          hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
-        })
-        reviewTasks.push({
-          id: 'file',
-          label: t`Mark return submitted to authority`,
-          flavor: 'mutation',
-          primary: true,
-        })
-        return reviewTasks
+        return [
+          {
+            id: 'sign-8879',
+            label: t`Pre-stage 8879 packet for client`,
+            flavor: 'routing',
+            hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
+          },
+          {
+            id: 'file',
+            label: t`Mark return submitted to authority`,
+            flavor: 'mutation',
+            primary: true,
+          },
+        ]
       }
       case 'done': {
         // Sub-status mutations on a `done` row (advancing efileState
@@ -9667,7 +9706,16 @@ function ActiveStageDetailCard({
       default:
         return []
     }
-  }, [stageKey, row.status, row.prepStage, row.efileState, row.paymentState, t])
+  }, [
+    stageKey,
+    row.status,
+    row.prepStage,
+    row.efileState,
+    row.paymentState,
+    reviewCurrent,
+    notesOpen,
+    t,
+  ])
   const stageEnteredAt =
     stageEvents.length > 0 ? stageEvents[stageEvents.length - 1]!.createdAt : null
   // Past stages — every stage the row visited BEFORE the active one.
@@ -9675,7 +9723,7 @@ function ActiveStageDetailCard({
   // stage. The CPA sees the chronology without losing the active-card
   // focus. Single-expand-at-a-time keeps the panel from ballooning.
   const pastEntries = useMemo(() => computePastStageEntries(auditEvents), [auditEvents])
-  const [expandedPast, setExpandedPast] = useState<TimelineStageKey | null>(null)
+  const [expandedPast, setExpandedPast] = useState<string | null>(null)
   // Label maps for the e-file / payment sub-status pipelines, computed
   // inline so the Lingui macro transforms the t-tags correctly.
   // Same "actor + object" treatment as the review pipeline above.
@@ -9697,21 +9745,14 @@ function ActiveStageDetailCard({
     scheduled: t`Payment scheduled with authority`,
     confirmed: t`Authority confirmed payment cleared`,
   }
-  // Step labels say WHO is doing WHAT to the return, not generic
-  // verbs. Earlier copy ("Preparer in progress", "Prepared — handing
-  // off", "Ready for prep") punted on the object — prep of what,
-  // ready for what? Each label below names both the actor (preparer
-  // / reviewer / etc.) and what's happening to the return.
+  // Step labels stay at the business-workflow altitude. The underlying
+  // data still tracks ready_for_prep / prepared / notes_open, but CPAs
+  // only need the three decisions they can act on from this card.
   const reviewPipelineLabels: Record<ReviewPipelineKey, string> = {
-    ready_for_prep: t`Ready to draft the return`,
-    in_prep: t`Preparer drafting the return`,
-    prepared: t`Draft complete — sent to reviewer`,
-    ready_for_review: t`Ready for reviewer sign-off`,
-    in_review: t`Reviewer checking the return`,
-    approved: t`Reviewer approved — ready to file`,
+    preparing_return: t`Preparing return`,
+    reviewing_return: t`Reviewing return`,
+    ready_to_file: t`Ready to file`,
   }
-  const reviewCurrent = reviewPipelineCurrent(row)
-  const notesOpen = row.reviewStage === 'notes_open'
   // Task click dispatcher. Sub-status mutations (efileState /
   // paymentState / prepStage / reviewStage) don't have RPC procedures
   // yet — those tasks fall through to a toast placeholder. Status-
@@ -9722,10 +9763,26 @@ function ActiveStageDetailCard({
     switch (task.id) {
       // Status → review (start work / unpause / unblock / resume)
       case 'start':
-      case 'received':
       case 'resume':
       case 'unblocked':
         return onChangeStatus('review')
+      case 'received':
+        if (outstandingDocsCount > 0) {
+          onChangeTab('readiness')
+          return toast.info(t`Materials still outstanding`, {
+            description: plural(outstandingDocsCount, {
+              one: '# item still needs to be received before moving to In review.',
+              other: '# items still need to be received before moving to In review.',
+            }),
+            action: {
+              label: t`Check materials`,
+              onClick: () => onChangeTab('readiness'),
+            },
+          })
+        }
+        return onChangeStatus('review')
+      case 'mark-blocked':
+        return onChangeStatus('blocked')
       // Status → waiting_on_client. Also opens the Readiness tab so
       // the CPA can immediately send the document request from the
       // place it actually lives. The status flip happens first; the
@@ -9735,6 +9792,14 @@ function ActiveStageDetailCard({
         onChangeStatus('waiting_on_client')
         onChangeTab('readiness')
         return
+      case 'send-review':
+        return onChangePrepStage('prepared')
+      case 'approve-return':
+        return onChangeReviewStage('approved')
+      case 'leave-review-note':
+        return onChangeReviewStage('notes_open')
+      case 'mark-notes-addressed':
+        return onChangeReviewStage('in_review')
       // Status → done (mark filed)
       case 'file':
         return onChangeStatus('done')
@@ -9803,11 +9868,10 @@ function ActiveStageDetailCard({
     row.paymentState !== 'not_applicable'
   const showEfilePipeline = stageKey === 'done' && row.status !== 'paid' && efileStateSet
   const showPaymentPipeline = stageKey === 'done' && row.status === 'paid' && paymentStateSet
-  // In Review gets the same pipeline strip treatment as Filed, but
-  // only for `review`/`in_progress`/`extended` rows that actually
-  // live in the canonical review flow. The strip walks the row's
-  // prepStage + reviewStage as a single 6-step path so the CPA can
-  // see "we're in prep" vs "we're in review" at a glance.
+  // In Review keeps a compact three-state strip. The detailed
+  // prepStage/reviewStage values are still useful for audit and undo,
+  // but showing all six internal flags made normal rows look more
+  // advanced than they really were.
   const showReviewPipeline = stageKey === 'review'
   // 2026-05-26 (Yuqi sixty-seventh pass — structure the OVERDUE
   // signal inside the card): when the active stage is past the
@@ -10063,57 +10127,22 @@ function ActiveStageDetailCard({
           </ul>
         </div>
       ) : showReviewPipeline ? (
-        /* In Review pipeline strip — same shape as the e-file /
-           payment strips above but walks prepStage → reviewStage.
-           Each step is a real <button> (slider model): clicking moves
-           the row to that step, forward or backward. Steps 1-3 fire
-           updatePrepStage; steps 4-6 fire updateReviewStage. Current
-           step is rendered as a non-button label since clicking "go
-           to where you already are" is a no-op (server short-circuits
-           anyway, but suppressing the button avoids a stray toast).
-           When `reviewStage === 'notes_open'` the in_review step
-           picks up a "Notes open" annotation plus a "Notes addressed"
-           affordance; otherwise step 5 surfaces a "Leave note" button. */
+        /* In Review workflow — compact progress only. The old slider
+           exposed implementation flags and made default rows look too
+           far along. Keep actions on the current step, while the
+           steps themselves stay as status markers. */
         <div className="mt-3 flex flex-col gap-2">
-          <p className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          <p className="text-caption font-medium uppercase tracking-wider text-text-tertiary">
             <Trans>Steps</Trans>
           </p>
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-1.5">
             {REVIEW_PIPELINE_KEYS.map((key) => {
               const state = pipelineStateOf(key, reviewCurrent, REVIEW_PIPELINE_KEYS)
               const label = reviewPipelineLabels[key]
-              const showNotesOpen = state === 'current' && key === 'in_review' && notesOpen
-              // prep stage owns ready_for_prep / in_prep / prepared;
-              // review stage owns ready_for_review / in_review /
-              // approved. Each step's click target is the matching
-              // mutation handler with the step's value.
-              const handleStepClick = () => {
-                if (state === 'current') return
-                if (key === 'ready_for_prep' || key === 'in_prep' || key === 'prepared') {
-                  onChangePrepStage(key)
-                } else {
-                  // notes_open never appears as a step key; the
-                  // remaining three (ready_for_review / in_review /
-                  // approved) all flow through reviewStage.
-                  onChangeReviewStage(key)
-                }
-              }
-              const stepTitle = state === 'current' ? t`You're on this step` : t`Move to: ${label}`
+              const showNotesOpen = state === 'current' && key === 'reviewing_return' && notesOpen
               return (
                 <li key={key} className="flex flex-col">
-                  <button
-                    type="button"
-                    onClick={handleStepClick}
-                    disabled={state === 'current'}
-                    title={stepTitle}
-                    aria-label={stepTitle}
-                    className={cn(
-                      '-mx-1 flex w-full items-start gap-2 rounded px-1 py-0.5 text-left text-xs outline-none transition-colors',
-                      state === 'current'
-                        ? 'cursor-default'
-                        : 'cursor-pointer hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                    )}
-                  >
+                  <div className="flex items-start gap-2 text-sm">
                     {state === 'done' ? (
                       <CheckCircle2Icon
                         className="mt-0.5 size-3.5 shrink-0 text-state-success-solid"
@@ -10155,36 +10184,7 @@ function ActiveStageDetailCard({
                         </span>
                       ) : null}
                     </span>
-                  </button>
-                  {/* notes_open affordances on the in_review step.
-                      When the reviewer is checking the return:
-                        - notes NOT open → small "Leave note" ghost
-                          button flips reviewStage='notes_open'
-                        - notes ARE open → "Notes addressed" flips
-                          back to 'in_review'. */}
-                  {state === 'current' && key === 'in_review' ? (
-                    <div className="ml-3 mt-1 mb-1">
-                      {notesOpen ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => onChangeReviewStage('in_review')}
-                        >
-                          <Trans>Mark notes addressed</Trans>
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => onChangeReviewStage('notes_open')}
-                        >
-                          <Trans>Leave note for preparer</Trans>
-                        </Button>
-                      )}
-                    </div>
-                  ) : null}
+                  </div>
                   {state === 'current' && tasks.length > 0 ? (
                     <div className="ml-3 mt-2 mb-2">
                       <StageActions tasks={tasks} onTaskClick={handleTaskClick} />
@@ -10248,14 +10248,15 @@ function ActiveStageDetailCard({
             <Trans>Previous stages</Trans> · {pastEntries.length}
           </p>
           <ul className="flex flex-col gap-0.5">
-            {pastEntries.map((entry) => {
-              const open = expandedPast === entry.stageKey
+            {pastEntries.map((entry, index) => {
+              const entryKey = `${entry.stageKey}:${entry.entryAt}:${entry.exitAt}:${index}`
+              const open = expandedPast === entryKey
               const days = daysBetween(entry.entryAt, entry.exitAt)
               return (
-                <li key={entry.stageKey} className="flex flex-col">
+                <li key={entryKey} className="flex flex-col">
                   <button
                     type="button"
-                    onClick={() => setExpandedPast(open ? null : entry.stageKey)}
+                    onClick={() => setExpandedPast(open ? null : entryKey)}
                     aria-expanded={open}
                     className="-mx-1 flex items-center gap-2 rounded px-1 py-1 text-left text-xs outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
@@ -10340,12 +10341,10 @@ function subStatusForActiveStage(
     }
     case 'review':
     case 'in_progress': {
-      if (row.reviewStage === 'ready_for_review') return t`Ready for review`
-      if (row.reviewStage === 'in_review') return t`In review`
       if (row.reviewStage === 'notes_open') return t`Notes open`
-      if (row.reviewStage === 'approved') return t`Approved — ready to file`
-      if (row.prepStage === 'in_prep') return t`Preparer in progress`
-      return null
+      if (reviewPipelineCurrent(row) === 'ready_to_file') return t`Ready to file`
+      if (reviewPipelineCurrent(row) === 'reviewing_return') return t`Reviewing`
+      return t`Preparing`
     }
     case 'done':
     case 'paid': {

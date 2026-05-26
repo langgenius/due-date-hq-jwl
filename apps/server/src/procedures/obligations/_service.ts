@@ -274,6 +274,13 @@ async function toObligationPublicFromScoped(
   return toObligationPublic(row, { client })
 }
 
+async function resetReviewSubSteps(scoped: ScopedRepo, obligationId: string): Promise<void> {
+  await Promise.all([
+    scoped.obligations.setPrepStage(obligationId, 'ready_for_prep'),
+    scoped.obligations.setReviewStage(obligationId, 'not_required'),
+  ])
+}
+
 /**
  * updateObligationStatus — extracted from the procedure handler so it can be
  * unit-tested with an in-memory scoped repo + audit writer.
@@ -317,7 +324,11 @@ export async function updateObligationStatus(
     })
   }
 
+  const enteringReview = before.status !== 'review' && input.status === 'review'
   await scoped.obligations.updateStatus(input.id, input.status)
+  if (enteringReview) {
+    await resetReviewSubSteps(scoped, input.id)
+  }
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -406,6 +417,7 @@ export async function markObligationFiledRejected(
 
   const rejectedAt = new Date()
   await scoped.obligations.setEfileRejected(input.id, { rejectedAt, nextStatus: 'review' })
+  await resetReviewSubSteps(scoped, input.id)
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -524,11 +536,9 @@ export async function updateObligationBlockedBy(
 /**
  * In Review sub-status mutations — `prep_stage` and `review_stage`.
  *
- * Each click on a pipeline step in the obligation drawer fires one of
- * these. Slider model: any value→any value is legal, forward or
- * backward; the strip permits jumping non-adjacent steps too (e.g.
- * from `ready_for_prep` direct to `prepared` if the CPA wants to
- * skip ahead).
+ * The obligation drawer presents these as a collapsed workflow, but
+ * the underlying columns remain independently auditable. Any value→any
+ * value is still legal because existing rows may need manual correction.
  *
  * Same NOT_FOUND / no-op / re-read pattern as `updateObligationStatus`.
  * Audit row mirrors the `status_changed` shape with the relevant
@@ -680,6 +690,9 @@ export async function bulkUpdateObligationStatus(
     changedRows.map((row) => row.id),
     input.status,
   )
+  if (input.status === 'review') {
+    await Promise.all(changedRows.map((row) => resetReviewSubSteps(scoped, row.id)))
+  }
   const afterRows = await scoped.obligations.findManyByIds(changedRows.map((row) => row.id))
   const afterById = new Map(afterRows.map((row) => [row.id, row]))
 

@@ -155,7 +155,7 @@ export function buildRuleBackedCreateInput(input: {
     currentDueDate: internalDueDate,
     status: input.preview.requiresReview ? 'review' : 'pending',
     prepStage: input.preview.requiresReview ? 'ready_for_prep' : 'not_started',
-    reviewStage: input.preview.requiresReview ? 'ready_for_review' : 'not_required',
+    reviewStage: 'not_required',
     extensionState:
       input.preview.eventType === 'extension'
         ? 'ready_to_file'

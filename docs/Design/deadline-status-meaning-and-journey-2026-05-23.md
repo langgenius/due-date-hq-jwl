@@ -248,14 +248,12 @@ lifecycle v2; should rarely appear.
 
 ### Current state — partially there
 
-- ✅ Sub-status text label (Ready for review / Notes open / etc.).
+- ✅ Compact In Review step strip (Preparing return / Reviewing return /
+  Ready to file), derived from prep/review sub-status fields.
 - ✅ Primary "Mark filed" wired.
 - ✅ "Get 8879 signed by client" routes to Evidence.
 - ✅ Done-this-stage audit chronology (shown in the screenshot).
-- ❌ **Gap**: no pipeline visualization for prep↔review sub-states.
-  The Filed stage gets a 6-step strip; In Review just shows a
-  sub-status word. CPA can't see at a glance "we're in prep / review
-  notes are open / approved — ready to file."
+- ✅ Notes-open annotation when reviewer feedback is active.
 
 ---
 
@@ -432,11 +430,11 @@ FILED · ... → Confirm acceptance → COMPLETED
 
 ### P1 — Workflow visibility
 
-3. **In review: sub-status pipeline visualization.** Mirror the
-   Filed stage's 6-step strip for In Review's prep ↔ review pipeline
-   (`ready_for_prep` → `in_prep` → `prepared` → `ready_for_review`
-   → `in_review` → `notes_open` → `approved`). Today only the
-   sub-status word is surfaced; the journey isn't visible.
+3. **In review: compact workflow visibility.** Show the CPA-facing path
+   as Preparing return → Reviewing return → Ready to file, with
+   notes-open shown as an annotation on Reviewing return. Keep the
+   detailed prep/review flags in audit data rather than exposing them
+   as separate steps.
 
 4. **Completed: key-dates summary.** Show filed date / accepted date
    / total turnaround time on the terminal stage card. Saves the CPA

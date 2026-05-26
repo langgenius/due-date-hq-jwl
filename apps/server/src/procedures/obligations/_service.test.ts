@@ -6,6 +6,7 @@ import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
+  markObligationFiledRejected,
   toObligationPublic,
   updateObligationPrepStage,
   updateObligationReviewStage,
@@ -897,6 +898,74 @@ describe('updateObligationStatus', () => {
       before: { status: 'in_progress', readiness: 'ready' },
       after: { status: 'waiting_on_client', readiness: 'waiting' },
     })
+  })
+
+  it('resets review sub-steps when a row re-enters In Review', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({
+        status: 'waiting_on_client',
+        readiness: 'waiting',
+        prepStage: 'prepared',
+        reviewStage: 'approved',
+      }),
+    ])
+
+    const result = await updateObligationStatus(repo, 'user_1', {
+      id: ROW_ID,
+      status: 'review',
+    })
+
+    expect(result.obligation.status).toBe('review')
+    expect(result.obligation.prepStage).toBe('ready_for_prep')
+    expect(result.obligation.reviewStage).toBe('not_required')
+    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('not_required')
+  })
+
+  it('resets review sub-steps in bulk when rows re-enter In Review', async () => {
+    const rowA = makeRow({
+      status: 'waiting_on_client',
+      readiness: 'waiting',
+      prepStage: 'prepared',
+      reviewStage: 'approved',
+    })
+    const rowB = makeRow({
+      id: '33333333-3333-4333-8333-333333333333',
+      status: 'pending',
+      prepStage: 'in_prep',
+      reviewStage: 'notes_open',
+    })
+    const { repo, map } = buildScoped(FIRM, [rowA, rowB])
+
+    const result = await bulkUpdateObligationStatus(repo, 'user_1', {
+      ids: [rowA.id, rowB.id],
+      status: 'review',
+    })
+
+    expect(result.updatedCount).toBe(2)
+    expect(map.get(rowA.id)?.prepStage).toBe('ready_for_prep')
+    expect(map.get(rowA.id)?.reviewStage).toBe('not_required')
+    expect(map.get(rowB.id)?.prepStage).toBe('ready_for_prep')
+    expect(map.get(rowB.id)?.reviewStage).toBe('not_required')
+  })
+
+  it('resets review sub-steps when a rejected filing re-enters In Review', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({
+        status: 'done',
+        prepStage: 'prepared',
+        reviewStage: 'approved',
+        efileAcceptedAt: new Date('2026-04-20T00:00:00.000Z'),
+      }),
+    ])
+
+    const result = await markObligationFiledRejected(repo, 'user_1', { id: ROW_ID })
+
+    expect(result.obligation.status).toBe('review')
+    expect(result.obligation.prepStage).toBe('ready_for_prep')
+    expect(result.obligation.reviewStage).toBe('not_required')
+    expect(map.get(ROW_ID)?.prepStage).toBe('ready_for_prep')
+    expect(map.get(ROW_ID)?.reviewStage).toBe('not_required')
   })
 
   it('throws NOT_FOUND when the obligation does not belong to the firm', async () => {

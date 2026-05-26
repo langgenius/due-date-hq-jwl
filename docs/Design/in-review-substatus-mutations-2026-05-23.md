@@ -1,8 +1,9 @@
 # In Review sub-status mutations (`prepStage` + `reviewStage`)
 
-**Status**: Design proposal. Pre-implementation. Needs hanxujiang sync before
-backend code lands — they've been actively touching
-`apps/server/src/procedures/obligations/` today.
+**Status**: Superseded by the 2026-05-26 compact workflow. The mutation
+endpoints remain, but the deadline drawer now exposes three CPA-facing
+steps — Preparing return, Reviewing return, Ready to file — instead of the
+six internal prep/review flags described below.
 
 **Authors**: Yuqi + Claude
 **Date**: 2026-05-23

@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import {
   canSaveInternalExtensionPlan,
+  countOutstandingReadinessDocuments,
   isObligationQueueRowControlClick,
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
+  reviewPipelineCurrent,
   selectionHeaderState,
 } from './obligations'
 
@@ -148,6 +150,71 @@ describe('internal extension plan save state', () => {
         memo: 'Proceed with extension.',
       }),
     ).toBe(false)
+  })
+})
+
+describe('review workflow step derivation', () => {
+  it('keeps generated review rows at preparing until the draft is sent', () => {
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'ready_for_prep',
+        reviewStage: 'not_required',
+      }),
+    ).toBe('preparing_return')
+
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'ready_for_prep',
+        reviewStage: 'ready_for_review',
+      }),
+    ).toBe('preparing_return')
+  })
+
+  it('collapses prepared and reviewer states into reviewing', () => {
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'prepared',
+        reviewStage: 'not_required',
+      }),
+    ).toBe('reviewing_return')
+
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'ready_for_prep',
+        reviewStage: 'notes_open',
+      }),
+    ).toBe('reviewing_return')
+  })
+
+  it('uses approved as the only ready-to-file review state', () => {
+    expect(
+      reviewPipelineCurrent({
+        prepStage: 'prepared',
+        reviewStage: 'approved',
+      }),
+    ).toBe('ready_to_file')
+  })
+})
+
+describe('materials readiness gating', () => {
+  it('treats an empty checklist as having no outstanding materials', () => {
+    expect(countOutstandingReadinessDocuments([])).toBe(0)
+  })
+
+  it('counts missing and needs-review materials as outstanding', () => {
+    expect(
+      countOutstandingReadinessDocuments([
+        { status: 'missing' },
+        { status: 'received' },
+        { status: 'needs_review' },
+      ]),
+    ).toBe(2)
+  })
+
+  it('allows the review transition only after every item is received', () => {
+    expect(
+      countOutstandingReadinessDocuments([{ status: 'received' }, { status: 'received' }]),
+    ).toBe(0)
   })
 })
 

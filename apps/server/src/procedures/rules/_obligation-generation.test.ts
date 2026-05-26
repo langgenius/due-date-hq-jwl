@@ -493,7 +493,7 @@ describe('generateObligationsForAcceptedRules', () => {
         filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
         status: 'review',
         prepStage: 'ready_for_prep',
-        reviewStage: 'ready_for_review',
+        reviewStage: 'not_required',
         preview: expect.objectContaining({
           reminderReady: false,
           reviewReasons: ['local_fact_requirements_missing'],
